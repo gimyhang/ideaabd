@@ -217,7 +217,7 @@
                 <td style="width: 50%;">
                     <div class="logo">IdeaABD</div>
                     <div style="font-size: 11px; color: #64748b; margin-top: 4px;">Enterprise Digital Bookstore Platform</div>
-                    <div style="font-size: 11px; color: #64748b;">Dhaka, Bangladesh | support@IdeaABD.com</div>
+                    <div style="font-size: 11px; color: #64748b;">Dhaka, Bangladesh | ideapbd@gmail.com | +8801726976982</div>
                 </td>
                 <td style="width: 50%;" class="invoice-title">
                     INVOICE
@@ -300,7 +300,7 @@
 
         <!-- Footer Disclaimer -->
         <div class="footer">
-            Thank you for purchasing from IdeaABD Library! For any billing queries, contact support@IdeaABD.com.
+            Thank you for purchasing from IdeaABD Library! For any billing queries, contact ideapbd@gmail.com or call +8801726976982.
             <br>
             This is an official computer-generated A4 invoice document and does not require a physical signature.
         </div>
