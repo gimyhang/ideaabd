@@ -14,7 +14,7 @@
     @endif
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="bg-gray-100">
+<body class="bg-classic text-gray-800">
     <nav class="bg-white shadow mb-6 p-4">
         <div class="container mx-auto flex gap-4">
             <a href="/" class="text-blue-600 font-bold">হোম</a>
