@@ -50,6 +50,18 @@
       mix-blend-mode: multiply;
     }
   }
+
+  /* Dropdown panel styles */
+  .dropdown-panel {
+    @apply bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 overflow-hidden transform opacity-0 scale-95 transition-all duration-150;
+  }
+  .dropdown-panel.show {
+    @apply opacity-100 scale-100;
+  }
+  /* ensure focus outline for keyboard users */
+  .dropdown-panel [role="menuitem"]:focus {
+    @apply outline-none bg-gray-100;
+  }
 }
 
 /* Utility tweaks for prose (article content) */
