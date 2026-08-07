@@ -1,11 +1,39 @@
-@import 'tailwindcss';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
-@source '../../storage/framework/views/*.php';
-@source '../**/*.blade.php';
-@source '../**/*.js';
+/* Project customizations */
+:root {
+  --brand-500: #3d66ff;
+  --brand-600: #3153e6;
+  --accent: #ffb020;
+  --muted: #6b7280;
+}
 
-@theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+@layer base {
+  html, body {
+    height: 100%;
+  }
+  body {
+    @apply bg-white text-gray-800 antialiased;
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  }
+  a { @apply text-brand-500 hover:text-brand-600; }
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center px-4 py-2 bg-brand-500 text-white rounded-md shadow-sm hover:bg-brand-600; 
+  }
+  .card {
+    @apply bg-white rounded-lg shadow-sm overflow-hidden;
+  }
+  .book-badge {
+    @apply inline-block text-xs font-semibold bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full;
+  }
+}
+
+/* Utility tweaks for prose (article content) */
+@layer utilities {
+  .prose a { color: var(--brand-500); }
 }
