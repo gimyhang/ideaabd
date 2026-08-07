@@ -16,7 +16,7 @@
             </div>
 
             <div class="mt-6 text-gray-700 leading-relaxed">
-                {!! $book->description ?? '<p>বইয়ের সংক্ষিপ্ত বিবরণ এখানে দেখানো হবে।</p>' !!}
+                {!! nl2br(e($book->description ?? 'বইয়ের সংক্ষিপ্ত বিবরণ এখানে দেখানো হবে।')) !!}
             </div>
 
             <div class="mt-6 flex items-center gap-3">
