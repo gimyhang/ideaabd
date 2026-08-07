@@ -8,7 +8,16 @@
     <!-- Fonts & Vite-built assets -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Lora:ital,wght@0,400;0,600;1,400&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Theme Script (preserve dark-mode preference) -->
+    <script>
+        if (localStorage.getItem('admin_theme') === 'dark') {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
 
     @if(app()->environment('local'))
         @php /* When running with Vite/Laravel plugin */ @endphp
