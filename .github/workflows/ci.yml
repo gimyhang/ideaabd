@@ -12,6 +12,21 @@ jobs:
     strategy:
       matrix:
         php: [ '8.1', '8.2' ]
+        node: ['18']
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: laravel
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd "mysqladmin ping --silent"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 3
 
     steps:
       - uses: actions/checkout@v4
@@ -23,31 +38,73 @@ jobs:
           extensions: mbstring, pdo, xml, bcmath, gd
           coverage: none
 
-      - name: Validate composer
-        run: composer --version
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
 
-      - name: Get Composer Cache
+      - name: Cache Composer
         uses: actions/cache@v4
         with:
           path: ~/.composer/cache
           key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-composer-
+          restore-keys: ${{ runner.os }}-composer-
 
-      - name: Install dependencies
+      - name: Cache Node modules
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: ${{ runner.os }}-node-
+
+      - name: Install PHP dependencies
         run: composer install --no-progress --no-suggest --prefer-dist --no-interaction
 
-      - name: Run tests (if available)
+      - name: Install node dependencies
+        run: npm ci
+
+      - name: Build frontend assets
+        run: npm run build
+
+      - name: Prepare environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+          # configure DB for CI
+          php -r "file_put_contents('.env', preg_replace('/DB_CONNECTION=.*/', 'DB_CONNECTION=mysql', file_get_contents('.env')));"
+          php -r "file_put_contents('.env', preg_replace('/DB_HOST=.*/', 'DB_HOST=127.0.0.1', file_get_contents('.env')));"
+          php -r "file_put_contents('.env', preg_replace('/DB_DATABASE=.*/', 'DB_DATABASE=laravel', file_get_contents('.env')));"
+          php -r "file_put_contents('.env', preg_replace('/DB_USERNAME=.*/', 'DB_USERNAME=root', file_get_contents('.env')));"
+          php -r "file_put_contents('.env', preg_replace('/DB_PASSWORD=.*/', 'DB_PASSWORD=root', file_get_contents('.env')));"
+          php artisan config:clear
+
+      - name: Wait for MySQL
+        run: |
+          n=0
+          until mysqladmin ping -h 127.0.0.1 -uroot -proot --silent; do
+            n=$((n+1))
+            echo "Waiting for mysql ($n)..."
+            sleep 5
+            if [ $n -ge 12 ]; then
+              exit 1
+            fi
+          done
+
+      - name: Run migrations
+        run: php artisan migrate --force
+
+      - name: Run tests
         run: |
           if [ -f phpunit.xml ] || [ -f phpunit.xml.dist ]; then
-            vendor/bin/phpunit --colors=always || true
+            vendor/bin/phpunit --colors=always
           else
             echo "No PHPUnit config found, skipping tests"
           fi
 
-      - name: Run static analysis (optional)
+      - name: Static analysis (optional)
         run: |
-          if [ -f composer.json ]; then
-            # run php -v as a simple check; add phpstan/psalm steps if present in composer scripts
-            php -v
+          if composer show | grep -q 'phpstan\|psalm'; then
+            vendor/bin/phpstan analyse || true
+          else
+            echo "No phpstan/psalm configured"
           fi
