@@ -2,69 +2,108 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Project customizations */
+/* Project Custom Design System Variables */
 :root {
-  --brand-500: #3d66ff;
-  --brand-600: #3153e6;
-  --accent: #ffb020;
-  --muted: #6b7280;
+  --brand-500: #5b3df5;
+  --brand-600: #4b32da;
+  --accent: #ff8f1f;
+  --accent-soft: #fff1db;
+  --sage: #2f6f61;
+  --ink: #15213a;
+  --surface: #fcfaf7;
+  --surface-2: #fff8ef;
+  --muted: #64748b;
 }
 
 @layer base {
-  html, body {
-    height: 100%;
-  }
+
+  html,
   body {
-    @apply bg-white text-gray-800 antialiased;
-    font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    height: 100%;
+    scroll-behavior: smooth;
   }
-  a { @apply text-brand-500 hover:text-brand-600; }
+
+  body {
+    @apply antialiased;
+    background: linear-gradient(135deg, #fcfaf7 0%, #f7efe5 48%, #f3efff 100%);
+    color: var(--ink);
+    font-family: "Hind Siliguri", "Noto Sans Bengali", "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+
+  ::selection {
+    background: rgba(91, 61, 245, 0.2);
+    color: var(--ink);
+  }
+
+  a {
+    @apply text-brand-500 hover:text-brand-600 transition-colors duration-150;
+  }
 }
 
 @layer components {
   .btn-primary {
-    @apply inline-flex items-center px-4 py-2 bg-brand-500 text-white rounded-md shadow-sm hover:bg-brand-600; 
+    @apply inline-flex items-center px-4 py-2 bg-brand-500 text-white rounded-full shadow-sm hover:bg-brand-600 transition-all duration-150;
   }
+
   .card {
-    @apply bg-white rounded-lg shadow-sm overflow-hidden;
+    @apply overflow-hidden rounded-2xl border border-slate-200 bg-white/90;
+    box-shadow: 0 12px 35px rgba(15, 23, 42, 0.08);
   }
+
   .book-badge {
-    @apply inline-block text-xs font-semibold bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full;
+    @apply inline-block rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-800;
   }
 
-  /* Classic background: subtle warm paper tone with light texture */
   .bg-classic {
-    background-color: #fbf7ef; /* warm paper */
-    background-image: 
-      linear-gradient(180deg, rgba(255,255,255,0.6), rgba(250,245,235,0.6)),
-      repeating-linear-gradient(135deg, rgba(0,0,0,0.015) 0 1px, transparent 1px 28px);
+    background-color: var(--surface);
+    background-image:
+      linear-gradient(145deg, rgba(255, 255, 255, 0.8), rgba(248, 241, 232, 0.75)),
+      radial-gradient(circle at top left, rgba(91, 61, 245, 0.08), transparent 30%),
+      repeating-linear-gradient(135deg, rgba(0, 0, 0, 0.018) 0 1px, transparent 1px 22px);
     background-attachment: fixed;
-    background-size: auto, 6px 6px;
+    background-size: auto, cover, 6px 6px;
   }
 
-  /* alternative: subtle vignette for large screens */
-  @media (min-width: 1024px) {
-    .bg-classic::before {
-      content: ''; position: fixed; inset: 0; pointer-events: none;
-      background: radial-gradient(ellipse at center, rgba(0,0,0,0.03), rgba(0,0,0,0) 40%);
-      mix-blend-mode: multiply;
-    }
+  .hero-panel {
+    background: linear-gradient(135deg, rgba(91, 61, 245, 0.96), rgba(47, 111, 97, 0.9));
+    box-shadow: 0 24px 60px rgba(91, 61, 245, 0.2);
   }
 
-  /* Dropdown panel styles */
+  .shop-card {
+    @apply rounded-[1.5rem] border border-slate-200/80 bg-white/85 backdrop-blur transition-all duration-200;
+    box-shadow: 0 16px 45px rgba(15, 23, 42, 0.08);
+  }
+
+  .soft-surface {
+    @apply rounded-[1.25rem] border border-slate-200/70 bg-slate-50/80;
+  }
+
   .dropdown-panel {
-    @apply bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 overflow-hidden transform opacity-0 scale-95 transition-all duration-150;
+    @apply bg-white rounded-xl shadow-lg ring-1 ring-black ring-opacity-5 overflow-hidden transform opacity-0 scale-95 transition-all duration-150;
   }
+
   .dropdown-panel.show {
     @apply opacity-100 scale-100;
   }
-  /* ensure focus outline for keyboard users */
+
   .dropdown-panel [role="menuitem"]:focus {
     @apply outline-none bg-gray-100;
   }
+
+  @media (min-width: 1024px) {
+    .bg-classic::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.03), rgba(0, 0, 0, 0) 40%);
+      mix-blend-mode: multiply;
+    }
+  }
 }
 
-/* Utility tweaks for prose (article content) */
 @layer utilities {
-  .prose a { color: var(--brand-500); }
+  .prose a {
+    color: var(--brand-500);
+  }
 }

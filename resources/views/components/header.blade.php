@@ -1,22 +1,23 @@
-<header class="bg-white shadow-sm">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between items-center h-16">
+<header class="sticky top-0 z-40 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl shadow-[0_8px_30px_rgba(15,23,42,0.05)]">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="flex h-16 items-center justify-between">
             <!-- Logo -->
             <div class="flex items-center">
                 <a href="{{ url('/') }}" class="flex items-center gap-3">
                     <img src="{{ asset('images/logo.png') }}" alt="আইডিয়া প্রকাশন" class="h-10 w-auto rounded" />
-                    <span class="font-semibold text-lg text-gray-800">আইডিয়া প্রকাশন</span>
+                    <span class="text-lg font-black tracking-tight text-slate-900">আইডিয়া প্রকাশন</span>
                 </a>
             </div>
 
             <!-- Desktop: Search + Nav -->
             <div class="hidden md:flex md:items-center md:gap-6 flex-1 mx-6">
-                <form action="{{ route('search') ?? '#' }}" method="GET" class="flex w-full">
+                @php $searchAction = \Illuminate\Support\Facades\Route::has('search') ? route('search') : '#'; @endphp
+                <form action="{{ $searchAction }}" method="GET" class="flex w-full">
                     <label for="q" class="sr-only">বই খুঁজুন</label>
                     <div class="relative w-full">
                         <input id="q" name="q" type="search" placeholder="বইয়ের নাম, লেখক বা কিওয়ার্ড লিখুন..." 
-                            class="block w-full rounded-full border border-gray-200 bg-gray-50 py-2 pl-4 pr-12 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
-                        <button type="submit" class="absolute right-1 top-1/2 -translate-y-1/2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full px-3 py-1 text-sm">খুঁজুন</button>
+                            class="block w-full rounded-full border border-slate-200 bg-slate-50 py-2.5 pl-4 pr-14 text-sm text-slate-700 placeholder-slate-400 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200" />
+                        <button type="submit" class="absolute right-1 top-1/2 -translate-y-1/2 rounded-full bg-gradient-to-r from-indigo-600 to-sky-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm transition hover:brightness-110">খুঁজুন</button>
                     </div>
                 </form>
 
@@ -47,19 +48,20 @@
             <!-- Actions: account/cart & mobile menu -->
             <div class="flex items-center gap-4">
                 <div class="hidden md:flex md:items-center md:gap-4">
-                    <a href="{{ route('login') ?? '#'}}" class="text-gray-700 hover:text-indigo-600 text-sm">সাইন ইন</a>
-                    <a href="{{ route('register') ?? '#'}}" class="text-gray-700 hover:text-indigo-600 text-sm">রেজিস্টার</a>
+                    @php $loginAction = \Illuminate\Support\Facades\Route::has('login') ? route('login') : '#'; $registerAction = \Illuminate\Support\Facades\Route::has('register') ? route('register') : '#'; @endphp
+                    <a href="{{ $loginAction }}" class="text-gray-700 hover:text-indigo-600 text-sm">সাইন ইন</a>
+                    <a href="{{ $registerAction }}" class="text-gray-700 hover:text-indigo-600 text-sm">রেজিস্টার</a>
                 </div>
 
-                <a href="{{ route('cart') ?? '#'}}" class="relative text-gray-700 hover:text-indigo-600">
+                <button type="button" id="open-cart-drawer" class="relative text-gray-700 hover:text-indigo-600" aria-label="Open Cart">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4" />
                         <circle cx="10" cy="20" r="1" />
                         <circle cx="18" cy="20" r="1" />
                     </svg>
                     <!-- badge -->
-                    <span class="absolute -top-2 -right-2 bg-red-600 text-white text-xs rounded-full px-1.5">0</span>
-                </a>
+                    <span id="cart-count" class="absolute -top-2 -right-2 bg-red-600 text-white text-xs rounded-full px-1.5">0</span>
+                </button>
 
                 <!-- Mobile menu button -->
                 <button id="mobile-menu-button" type="button" class="md:hidden inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:bg-gray-100 focus:outline-none" aria-expanded="false" aria-controls="mobile-menu">
@@ -77,7 +79,8 @@
     <!-- Mobile menu -->
     <div id="mobile-menu" class="md:hidden hidden border-t border-gray-100">
         <div class="px-4 py-3 space-y-2">
-            <form action="{{ route('search') ?? '#' }}" method="GET" class="flex w-full">
+            @php $searchAction = \Illuminate\Support\Facades\Route::has('search') ? route('search') : '#'; @endphp
+            <form action="{{ $searchAction }}" method="GET" class="flex w-full">
                 <input name="q" type="search" placeholder="বই খুঁজুন..." class="block w-full rounded-l-md border border-gray-200 bg-white py-2 px-3 text-sm focus:outline-none" />
                 <button type="submit" class="bg-indigo-600 text-white px-4 rounded-r-md">খুঁজুন</button>
             </form>
@@ -97,8 +100,8 @@
 
             <a href="#" class="block text-gray-700 py-2">অফার</a>
             <div class="pt-2 border-t border-gray-100">
-                <a href="{{ route('login') ?? '#'}}" class="block py-2 text-gray-700">সাইন ইন</a>
-                <a href="{{ route('register') ?? '#'}}" class="block py-2 text-gray-700">রেজিস্টার</a>
+                <a href="{{ $loginAction ?? (\Illuminate\Support\Facades\Route::has('login') ? route('login') : '#') }}" class="block py-2 text-gray-700">সাইন ইন</a>
+                <a href="{{ $registerAction ?? (\Illuminate\Support\Facades\Route::has('register') ? route('register') : '#') }}" class="block py-2 text-gray-700">রেজিস্টার</a>
             </div>
         </div>
     </div>
@@ -210,6 +213,15 @@
                     t.setAttribute('aria-expanded', String(!panel.classList.contains('hidden')));
                 });
             });
+
+            // Open cart drawer button event (dispatches custom event listened by cart-drawer component)
+            const openCartBtn = document.getElementById('open-cart-drawer');
+            if (openCartBtn){
+                openCartBtn.addEventListener('click', function(e){
+                    e.preventDefault();
+                    document.dispatchEvent(new CustomEvent('openCartDrawer'));
+                });
+            }
         })();
     </script>
 </header>

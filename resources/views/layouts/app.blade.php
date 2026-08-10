@@ -8,7 +8,7 @@
     <!-- Fonts & Vite-built assets -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Lora:ital,wght@0,400;0,600;1,400&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700;800&family=Inter:wght@300;400;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
 
     <!-- Theme Script (preserve dark-mode preference) -->
     <script>
@@ -25,16 +25,13 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="bg-classic text-gray-800">
-    <nav class="bg-white shadow mb-6 p-4">
-        <div class="container mx-auto flex gap-4">
-            <a href="/" class="text-blue-600 font-bold">হোম</a>
-            <a href="/about" class="text-gray-700">আমাদের সম্পর্কে</a>
-            <a href="/contact" class="text-gray-700">যোগাযোগ</a>
-        </div>
-    </nav>
+    @include('components.header')
 
-    <main>
+    <main class="min-h-screen">
         @yield('content')
     </main>
+
+    @include('components.cart-drawer')
+    @include('components.footer')
 </body>
 </html>

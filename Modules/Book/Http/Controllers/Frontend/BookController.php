@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Modules\Book\Models\Book;
 use Modules\Book\Models\Category;
 
@@ -18,66 +19,71 @@ class BookController extends Controller
      */
     public function index(Request $request): View
     {
-        $books = Book::query()
-            ->with(['category', 'authors', 'vendor'])
-            ->withAvg('reviews', 'rating')
-            ->withCount('reviews')
-            ->where('is_active', true)
-            // ১. ক্যাটাগরি ও সাব-ক্যাটাগরি ফিল্টার
-            ->when($request->filled('category'), fn ($q) => 
-                $q->whereHas('category', fn ($cat) => $cat->where('slug', $request->string('category')))
-            )
-            // ২. লেখক ফিল্টার
-            ->when($request->filled('author'), fn ($q) => 
-                $q->whereHas('authors', fn ($auth) => $auth->where('slug', $request->string('author')))
-            )
-            // ৩. প্রাইস রেঞ্জ (Min-Max Price Slider)
-            ->when($request->filled('min_price'), fn ($q) => 
-                $q->where('price', '>=', $request->float('min_price'))
-            )
-            ->when($request->filled('max_price'), fn ($q) => 
-                $q->where('price', '<=', $request->float('max_price'))
-            )
-            // ৪. মিনিমাম স্টার রেটিং ফিল্টার (e.g., 4★ & above)
-            ->when($request->filled('rating'), fn ($q) => 
-                $q->having('reviews_avg_rating', '>=', $request->float('rating'))
-            )
-            // ৫. ফরম্যাট (Printed, eBook, Audiobook, Both)
-            ->when($request->filled('format'), fn ($q) => 
-                $q->where('format', $request->string('format'))
-            )
-            // ৬. ইন-স্টক ও প্রিমিয়াম ফিল্টার
-            ->when($request->boolean('in_stock'), fn ($q) => 
-                $q->where('stock_quantity', '>', 0)
-            )
-            // ৭. স্মার্ট এডভান্সড সার্চ (Title, ISBN, Author, Publisher)
-            ->when($request->filled('search'), function ($q) use ($request) {
-                $search = $request->string('search')->trim()->value();
-                $q->where(fn ($sub) => 
-                    $sub->where('title', 'LIKE', "%{$search}%")
-                        ->orWhere('isbn', 'LIKE', "%{$search}%")
-                        ->orWhereHas('authors', fn ($a) => $a->where('name', 'LIKE', "%{$search}%"))
-                        ->orWhereHas('vendor', fn ($v) => $v->where('shop_name', 'LIKE', "%{$search}%"))
-                );
-            })
-            // ৮. কাস্টম সর্টিং লজিক
-            ->when($request->filled('sort'), function ($q) use ($request) {
-                match ($request->string('sort')->value()) {
-                    'price_low'   => $q->orderBy('price', 'asc'),
-                    'price_high'  => $q->orderBy('price', 'desc'),
-                    'avg_rating'  => $q->orderByDesc('reviews_avg_rating'),
-                    'bestselling' => $q->orderByDesc('sales_count'), // বিক্রির সংখ্যা অনুযায়ী
-                    'oldest'      => $q->oldest(),
-                    default       => $q->latest(),
-                };
-            }, fn ($q) => $q->latest())
-            ->paginate(16)
-            ->withQueryString();
+        $canUseBooks = false;
 
-        $categories = Category::query()
-            ->where('is_active', true)
-            ->withCount('books')
-            ->get(['id', 'name', 'slug']);
+        try {
+            $canUseBooks = DB::getSchemaBuilder()->hasTable('books') && DB::getSchemaBuilder()->hasTable('categories');
+        } catch (\Throwable) {
+            $canUseBooks = false;
+        }
+
+        $books = collect();
+        $categories = collect();
+
+        if ($canUseBooks) {
+            $books = Book::query()
+                ->with(['category', 'authors', 'vendor'])
+                ->withAvg('reviews', 'rating')
+                ->withCount('reviews')
+                ->where('is_active', true)
+                ->when($request->filled('category'), fn ($q) =>
+                    $q->whereHas('category', fn ($cat) => $cat->where('slug', $request->string('category')))
+                )
+                ->when($request->filled('author'), fn ($q) =>
+                    $q->whereHas('authors', fn ($auth) => $auth->where('slug', $request->string('author')))
+                )
+                ->when($request->filled('min_price'), fn ($q) =>
+                    $q->where('price', '>=', $request->float('min_price'))
+                )
+                ->when($request->filled('max_price'), fn ($q) =>
+                    $q->where('price', '<=', $request->float('max_price'))
+                )
+                ->when($request->filled('rating'), fn ($q) =>
+                    $q->having('reviews_avg_rating', '>=', $request->float('rating'))
+                )
+                ->when($request->filled('format'), fn ($q) =>
+                    $q->where('format', $request->string('format'))
+                )
+                ->when($request->boolean('in_stock'), fn ($q) =>
+                    $q->where('stock_quantity', '>', 0)
+                )
+                ->when($request->filled('search'), function ($q) use ($request) {
+                    $search = $request->string('search')->trim()->value();
+                    $q->where(fn ($sub) =>
+                        $sub->where('title', 'LIKE', "%{$search}%")
+                            ->orWhere('isbn', 'LIKE', "%{$search}%")
+                            ->orWhereHas('authors', fn ($a) => $a->where('name', 'LIKE', "%{$search}%"))
+                            ->orWhereHas('vendor', fn ($v) => $v->where('shop_name', 'LIKE', "%{$search}%"))
+                    );
+                })
+                ->when($request->filled('sort'), function ($q) use ($request) {
+                    match ($request->string('sort')->value()) {
+                        'price_low'   => $q->orderBy('price', 'asc'),
+                        'price_high'  => $q->orderBy('price', 'desc'),
+                        'avg_rating'  => $q->orderByDesc('reviews_avg_rating'),
+                        'bestselling' => $q->orderByDesc('sales_count'),
+                        'oldest'      => $q->oldest(),
+                        default       => $q->latest(),
+                    };
+                }, fn ($q) => $q->latest())
+                ->paginate(16)
+                ->withQueryString();
+
+            $categories = Category::query()
+                ->where('is_active', true)
+                ->withCount('books')
+                ->get(['id', 'name', 'slug']);
+        }
 
         return view('book::frontend.index', compact('books', 'categories'));
     }
