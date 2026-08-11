@@ -22,7 +22,7 @@
                     <span class="text-4xl mb-2 block">✍️</span>
                     <span class="font-bold text-slate-700">ব্লগ</span>
                 </a>
-                <a href="{{ route('author.index') }}" class="text-center p-4 hover:bg-slate-50 rounded-lg transition">
+                <a href="{{ route('authors.index') }}" class="text-center p-4 hover:bg-slate-50 rounded-lg transition">
                     <span class="text-4xl mb-2 block">👨‍✏️</span>
                     <span class="font-bold text-slate-700">লেখক</span>
                 </a>

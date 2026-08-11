@@ -15,6 +15,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'payment/bkash/callback',
             'payment/nagad/callback',
         ]);
+        $middleware->alias([
+            'role' => \App\Http\Middleware\RoleMiddleware::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

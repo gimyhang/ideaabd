@@ -1,4 +1,8 @@
-@include('components.header')
+@extends('layouts.app')
+
+@section('title', 'ওয়েবজিন')
+
+@section('content')
 
 @include('components.webzine-hero', [
     'issueTitle' => $issue->title ?? 'প্রজন্ম ওয়েবজিন — চলমান ইস্যু',
@@ -67,4 +71,4 @@
     </div>
 </main>
 
-@include('layouts.footer')
+@endsection

@@ -13,8 +13,8 @@
                 <form action="#" method="POST" class="space-y-4">
                     @csrf
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Shakil Masud</label>
-                        <input type="text" name="name" required class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <label for="contact-name" class="block text-sm font-medium text-gray-700 mb-1">আপনার নাম</label>
+                        <input type="text" id="contact-name" name="name" required class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">ইমেইল</label>

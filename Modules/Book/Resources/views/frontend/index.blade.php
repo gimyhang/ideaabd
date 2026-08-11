@@ -1,71 +1,119 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
-@section('title', 'বই ক্যাটালগ - আইডিয়া প্রকাশন')
+@section('title', 'বই কেনাকাটা')
 
 @section('content')
-<div class="min-h-screen bg-classic px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
-    <div class="mx-auto max-w-7xl">
-        <section class="hero-panel overflow-hidden rounded-[2rem] border border-white/20 p-8 text-white sm:p-10 lg:p-12">
-            <div class="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
-                <div class="max-w-2xl">
-                    <p class="mb-4 inline-flex rounded-full bg-white/15 px-3 py-1 text-sm font-semibold backdrop-blur">📚 আধুনিক অনলাইন বুকশপ</p>
-                    <h1 class="text-3xl font-black tracking-tight sm:text-4xl lg:text-5xl">আপনার পছন্দের বই, এখন এক ক্লিকে</h1>
-                    <p class="mt-4 text-lg text-indigo-100">শিক্ষা, সাহিত্য, শিশু-কিশোর, বিজ্ঞান ও ব্যবসার বই একসাথে আবিষ্কার করুন।</p>
-                </div>
-                <div class="rounded-2xl border border-white/20 bg-white/12 p-4 backdrop-blur">
-                    <p class="text-sm font-semibold uppercase tracking-[0.3em] text-indigo-100">আজকের অফার</p>
-                    <p class="mt-2 text-2xl font-bold">ফ্রেশ রিলিজ & বেস্টসেলার</p>
+    <section class="px-6 py-10 mx-auto max-w-7xl">
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-slate-900">📚 বই কেনাকাটা</h1>
+            <p class="mt-2 text-slate-600">হাজারো বই থেকে আপনার পছন্দের বই খুঁজে নিন</p>
+        </div>
+
+        <!-- Search & Filter -->
+        <div class="mb-8 rounded-3xl bg-white/90 p-6 shadow-lg ring-1 ring-slate-200">
+            <form class="flex flex-col md:flex-row gap-4">
+                <input type="text" name="search" placeholder="বইয়ের নাম বা লেখক খুঁজুন..." class="flex-1 rounded-full border border-slate-200 bg-slate-50 py-3 px-4 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200" />
+                <button type="submit" class="rounded-full bg-gradient-to-r from-indigo-600 to-sky-600 px-8 py-3 text-sm font-semibold text-white shadow-sm transition hover:brightness-110">খুঁজুন</button>
+            </form>
+        </div>
+
+        <!-- Demo Books Grid -->
+        <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            <div class="group rounded-3xl bg-white/90 overflow-hidden shadow-lg hover:shadow-2xl ring-1 ring-slate-200 transition">
+                <div class="aspect-square bg-gradient-to-br from-indigo-100 to-sky-100 flex items-center justify-center text-6xl">📘</div>
+                <div class="p-4">
+                    <h3 class="text-sm font-bold text-slate-900">পদ্মা নদীর মাঝি</h3>
+                    <p class="text-xs text-slate-600 mt-1">মানিক বন্দ্যোপাধ্যায়</p>
+                    <div class="mt-3 flex items-center justify-between">
+                        <span class="text-lg font-bold text-indigo-600">৳350</span>
+                        <button class="px-3 py-1.5 rounded-full bg-indigo-600 text-white text-xs font-semibold">🛒</button>
+                    </div>
                 </div>
             </div>
-        </section>
 
-        <div class="mt-8 flex flex-col gap-6 lg:flex-row lg:items-start">
-            <aside class="w-full lg:w-72">
-                <div class="shop-card p-5">
-                    <h3 class="text-lg font-bold text-slate-900">ক্যাটাগরিসমূহ</h3>
-                    <ul class="mt-4 space-y-2">
-                        @foreach($categories as $cat)
-                            <li>
-                                <a href="?category={{ $cat->slug }}" class="flex items-center justify-between rounded-xl px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-indigo-600">
-                                    <span>{{ $cat->name }}</span>
-                                    <span class="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-500">{{ $cat->books_count }}</span>
-                                </a>
-                            </li>
-                        @endforeach
-                    </ul>
-                </div>
-            </aside>
-
-            <section class="flex-1">
-                <div class="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
-                    @forelse($books as $book)
-                        <article class="shop-card group p-5 transition hover:-translate-y-1 hover:shadow-[0_22px_55px_rgba(15,23,42,0.12)]">
-                            <div class="flex items-center justify-between">
-                                <span class="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-700">{{$book->category->name ?? 'বই'}}</span>
-                                <span class="text-sm font-semibold text-slate-500">{{$book->format ?? 'প্রিন্টেড'}}</span>
-                            </div>
-                            <h4 class="mt-4 text-xl font-bold text-slate-900">{{ $book->title }}</h4>
-                            <p class="mt-2 text-sm leading-6 text-slate-600">{{ Str::limit($book->description ?? 'বইয়ের বিস্তারিত শীঘ্রই যোগ হবে।', 120) }}</p>
-                            <p class="mt-4 text-sm text-slate-500">লেখক: {{ $book->authors->pluck('name')->join(', ') }}</p>
-                            <div class="mt-5 flex items-center justify-between">
-                                <p class="text-lg font-black text-slate-900">৳ {{ number_format($book->price, 2) }}</p>
-                                <a href="/books/{{ $book->slug }}" class="inline-flex items-center rounded-full bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700">বিস্তারিত</a>
-                            </div>
-                        </article>
-                    @empty
-                        <div class="shop-card col-span-full p-8 text-center text-slate-600">
-                            কোনো বই পাওয়া যায়নি। শীঘ্রই আরও নতুন বই যুক্ত হবে।
-                        </div>
-                    @endforelse
-                </div>
-
-                @if(method_exists($books, 'links'))
-                    <div class="mt-6">
-                        {{ $books->links() }}
+            <div class="group rounded-3xl bg-white/90 overflow-hidden shadow-lg hover:shadow-2xl ring-1 ring-slate-200 transition">
+                <div class="aspect-square bg-gradient-to-br from-indigo-100 to-sky-100 flex items-center justify-center text-6xl">📕</div>
+                <div class="p-4">
+                    <h3 class="text-sm font-bold text-slate-900">চাঁদের পাহাড়</h3>
+                    <p class="text-xs text-slate-600 mt-1">সৈয়দ মুস্তাফা সিরাজ</p>
+                    <div class="mt-3 flex items-center justify-between">
+                        <span class="text-lg font-bold text-indigo-600">৳320</span>
+                        <button class="px-3 py-1.5 rounded-full bg-indigo-600 text-white text-xs font-semibold">🛒</button>
                     </div>
-                @endif
-            </section>
+                </div>
+            </div>
+
+            <div class="group rounded-3xl bg-white/90 overflow-hidden shadow-lg hover:shadow-2xl ring-1 ring-slate-200 transition">
+                <div class="aspect-square bg-gradient-to-br from-indigo-100 to-sky-100 flex items-center justify-center text-6xl">📗</div>
+                <div class="p-4">
+                    <h3 class="text-sm font-bold text-slate-900">গীতাঞ্জলি</h3>
+                    <p class="text-xs text-slate-600 mt-1">রবীন্দ্রনাথ ঠাকুর</p>
+                    <div class="mt-3 flex items-center justify-between">
+                        <span class="text-lg font-bold text-indigo-600">৳300</span>
+                        <button class="px-3 py-1.5 rounded-full bg-indigo-600 text-white text-xs font-semibold">🛒</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="group rounded-3xl bg-white/90 overflow-hidden shadow-lg hover:shadow-2xl ring-1 ring-slate-200 transition">
+                <div class="aspect-square bg-gradient-to-br from-indigo-100 to-sky-100 flex items-center justify-center text-6xl">📙</div>
+                <div class="p-4">
+                    <h3 class="text-sm font-bold text-slate-900">কর্মফল</h3>
+                    <p class="text-xs text-slate-600 mt-1">শরৎচন্দ্র চট্টোপাধ্যায়</p>
+                    <div class="mt-3 flex items-center justify-between">
+                        <span class="text-lg font-bold text-indigo-600">৳400</span>
+                        <button class="px-3 py-1.5 rounded-full bg-indigo-600 text-white text-xs font-semibold">🛒</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="group rounded-3xl bg-white/90 overflow-hidden shadow-lg hover:shadow-2xl ring-1 ring-slate-200 transition">
+                <div class="aspect-square bg-gradient-to-br from-indigo-100 to-sky-100 flex items-center justify-center text-6xl">📔</div>
+                <div class="p-4">
+                    <h3 class="text-sm font-bold text-slate-900">আমার বাঙালি</h3>
+                    <p class="text-xs text-slate-600 mt-1">হুমায়ুন আজাদ</p>
+                    <div class="mt-3 flex items-center justify-between">
+                        <span class="text-lg font-bold text-indigo-600">৳350</span>
+                        <button class="px-3 py-1.5 rounded-full bg-indigo-600 text-white text-xs font-semibold">🛒</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="group rounded-3xl bg-white/90 overflow-hidden shadow-lg hover:shadow-2xl ring-1 ring-slate-200 transition">
+                <div class="aspect-square bg-gradient-to-br from-indigo-100 to-sky-100 flex items-center justify-center text-6xl">📕</div>
+                <div class="p-4">
+                    <h3 class="text-sm font-bold text-slate-900">অগ্নি পরীক্ষা</h3>
+                    <p class="text-xs text-slate-600 mt-1">বঙ্কিমচন্দ্র চট্টোপাধ্যায়</p>
+                    <div class="mt-3 flex items-center justify-between">
+                        <span class="text-lg font-bold text-indigo-600">৳450</span>
+                        <button class="px-3 py-1.5 rounded-full bg-indigo-600 text-white text-xs font-semibold">🛒</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="group rounded-3xl bg-white/90 overflow-hidden shadow-lg hover:shadow-2xl ring-1 ring-slate-200 transition">
+                <div class="aspect-square bg-gradient-to-br from-indigo-100 to-sky-100 flex items-center justify-center text-6xl">📗</div>
+                <div class="p-4">
+                    <h3 class="text-sm font-bold text-slate-900">বঙ্গভাষা</h3>
+                    <p class="text-xs text-slate-600 mt-1">রাজা রামমোহন রায়</p>
+                    <div class="mt-3 flex items-center justify-between">
+                        <span class="text-lg font-bold text-indigo-600">৳280</span>
+                        <button class="px-3 py-1.5 rounded-full bg-indigo-600 text-white text-xs font-semibold">🛒</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="group rounded-3xl bg-white/90 overflow-hidden shadow-lg hover:shadow-2xl ring-1 ring-slate-200 transition">
+                <div class="aspect-square bg-gradient-to-br from-indigo-100 to-sky-100 flex items-center justify-center text-6xl">📘</div>
+                <div class="p-4">
+                    <h3 class="text-sm font-bold text-slate-900">আমার আছে দুঃখ</h3>
+                    <p class="text-xs text-slate-600 mt-1">বিষ্ণু দে</p>
+                    <div class="mt-3 flex items-center justify-between">
+                        <span class="text-lg font-bold text-indigo-600">৳260</span>
+                        <button class="px-3 py-1.5 rounded-full bg-indigo-600 text-white text-xs font-semibold">🛒</button>
+                    </div>
+                </div>
+            </div>
         </div>
-    </div>
-</div>
+    </section>
 @endsection

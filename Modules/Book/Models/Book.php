@@ -9,9 +9,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Modules\Author\Models\Author;
 use Modules\Book\Models\Category;
 use Modules\Review\Models\Review;
+use Modules\Tag\Models\Tag;
 use Modules\Vendor\Models\Vendor;
 
 class Book extends Model
@@ -74,6 +76,14 @@ class Book extends Model
     /**
      * Author Relationship (Pivot Table: book_author)
      */
+    public function publisher(): BelongsTo
+    {
+        return $this->belongsTo(\Modules\Publisher\Models\Publisher::class, 'publisher_id');
+    }
+
+    /**
+     * Authors Relationship
+     */
     public function authors(): BelongsToMany
     {
         return $this->belongsToMany(Author::class, 'book_author', 'book_id', 'author_id');
@@ -86,4 +96,10 @@ class Book extends Model
     {
         return $this->hasMany(Review::class);
     }
-}
+    /**
+     * Tags Relationship (বইয়ের ট্যাগগুলো)
+     */
+    public function tags(): MorphToMany
+    {
+        return $this->morphToMany(Tag::class, 'taggable', 'taggables', 'taggable_id', 'tag_id', 'id', 'id');
+    }}

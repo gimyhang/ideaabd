@@ -1,4 +1,8 @@
-@include('components.header')
+@extends('layouts.app')
+
+@section('title', $author->name ?? 'লেখক')
+
+@section('content')
 
 <main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
     <div class="bg-white rounded-lg shadow-sm p-6">
@@ -28,4 +32,4 @@
     </div>
 </main>
 
-@include('layouts.footer')
+@endsection

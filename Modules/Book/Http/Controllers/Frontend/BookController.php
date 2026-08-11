@@ -32,7 +32,7 @@ class BookController extends Controller
 
         if ($canUseBooks) {
             $books = Book::query()
-                ->with(['category', 'authors', 'vendor'])
+                ->with(['category', 'authors', 'publisher'])
                 ->withAvg('reviews', 'rating')
                 ->withCount('reviews')
                 ->where('is_active', true)
@@ -94,7 +94,7 @@ class BookController extends Controller
     public function show(string $slug): View
     {
         $book = Book::query()
-            ->with(['category', 'authors', 'vendor', 'reviews.user'])
+            ->with(['category', 'authors', 'publisher', 'reviews.user'])
             ->withAvg('reviews', 'rating')
             ->withCount('reviews')
             ->where('slug', $slug)
@@ -146,7 +146,7 @@ class BookController extends Controller
     public function quickView(int $id): JsonResponse
     {
         $book = Book::query()
-            ->with(['category', 'authors', 'vendor'])
+            ->with(['category', 'authors', 'publisher'])
             ->withAvg('reviews', 'rating')
             ->findOrFail($id);
 

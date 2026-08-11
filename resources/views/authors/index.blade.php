@@ -1,4 +1,8 @@
-@include('components.header')
+@extends('layouts.app')
+
+@section('title', 'লেখক ডিরেক্টরি')
+
+@section('content')
 
 <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
     <div class="flex flex-col lg:flex-row gap-8">
@@ -92,8 +96,9 @@
     </div>
 </main>
 
-@include('layouts.footer')
+@endsection
 
+@push('scripts')
 <script>
     // small helper: highlight active alphabet (optional if server-side handles it)
     (function(){
@@ -107,3 +112,4 @@
         });
     })();
 </script>
+@endpush

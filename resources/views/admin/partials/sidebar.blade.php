@@ -1,0 +1,89 @@
+@php
+    /**
+     * Nav tree for the admin panel. Every section of the site — including the
+     * sub-admin / seller panels — hangs off this one sidebar.
+     *
+     * `route` is a route name; entries whose route is not registered are skipped
+     * so a half-deployed module can never 500 the whole panel.
+     */
+    $pending = $adminPendingRegistrations ?? 0;
+
+    $menu = [
+        null => [
+            ['route' => 'admin.dashboard', 'icon' => 'gauge-high', 'label' => 'ড্যাশবোর্ড'],
+        ],
+        'ক্যাটালগ' => [
+            ['route' => 'admin.books',      'icon' => 'book',        'label' => 'বই'],
+            ['route' => 'admin.ebooks',     'icon' => 'tablet-screen-button', 'label' => 'ই-বুক'],
+            ['route' => 'admin.authors',    'icon' => 'pen-fancy',   'label' => 'লেখক'],
+            ['route' => 'admin.publishers', 'icon' => 'building',    'label' => 'প্রকাশক'],
+        ],
+        'কনটেন্ট' => [
+            ['route' => 'admin.blog',     'icon' => 'blog',      'label' => 'ব্লগ'],
+            ['route' => 'admin.webzines', 'icon' => 'newspaper', 'label' => 'ওয়েবজিন'],
+        ],
+        'বিক্রয়' => [
+            ['route' => 'admin.orders', 'icon' => 'receipt', 'label' => 'অর্ডার ও বিল'],
+        ],
+        'ব্যবহারকারী' => [
+            ['route' => 'admin.users',               'icon' => 'users',      'label' => 'সব ব্যবহারকারী'],
+            ['route' => 'admin.registrations.index', 'icon' => 'user-check', 'label' => 'রেজিস্ট্রেশন অনুমোদন',
+             'badge' => $pending, 'badgeClass' => 'bg-warning text-dark'],
+            ['route' => 'admin.sub-admins.index',    'icon' => 'user-shield', 'label' => 'সাব-অ্যাডমিন'],
+        ],
+        'সাব-অ্যাডমিন প্যানেল' => [
+            ['route' => 'subadmin.bills.index', 'icon' => 'file-invoice-dollar', 'label' => 'বিল তালিকা'],
+            ['route' => 'subadmin.accounts',    'icon' => 'wallet',             'label' => 'সেলার অ্যাকাউন্ট'],
+        ],
+        'সাইট' => [
+            ['route' => 'home', 'icon' => 'arrow-up-right-from-square', 'label' => 'ওয়েবসাইট দেখুন', 'target' => '_blank'],
+        ],
+    ];
+@endphp
+
+<aside class="adm-side">
+    <a href="{{ route('admin.dashboard') }}" class="adm-brand">
+        <x-brand-logo :size="38" />
+        <span class="adm-brand__text">
+            <span class="adm-brand__name d-block">{{ config('brand.name') }}</span>
+            <span class="adm-brand__sub">{{ config('brand.tagline') }}</span>
+        </span>
+    </a>
+
+    <nav class="adm-nav">
+        @foreach ($menu as $group => $items)
+            @php
+                // Drop entries whose route isn't registered on this deployment.
+                $items = array_filter($items, fn ($i) => Route::has($i['route']));
+            @endphp
+
+            @if (! empty($items))
+                @if ($group)
+                    <div class="adm-nav__label">{{ $group }}</div>
+                @endif
+
+                @foreach ($items as $item)
+                    @php
+                        // "admin.books" also highlights "admin.books.edit", etc.
+                        $base   = preg_replace('/\.index$/', '', $item['route']);
+                        $active = request()->routeIs($item['route']) || request()->routeIs($base . '.*');
+                    @endphp
+                    <a href="{{ route($item['route']) }}"
+                       class="adm-nav__link {{ $active ? 'is-active' : '' }}"
+                       @isset($item['target']) target="{{ $item['target'] }}" rel="noopener" @endisset
+                       @if ($active) aria-current="page" @endif>
+                        <i class="fas fa-{{ $item['icon'] }}"></i>
+                        <span>{{ $item['label'] }}</span>
+                        @if (! empty($item['badge']))
+                            <span class="badge {{ $item['badgeClass'] ?? 'bg-primary' }}">@bn($item['badge'])</span>
+                        @endif
+                    </a>
+                @endforeach
+            @endif
+        @endforeach
+    </nav>
+
+    <div class="adm-side__foot adm-brand__text">
+        সংস্করণ @bn(1).@bn(0) · @bnDate(now())
+    </div>
+</aside>

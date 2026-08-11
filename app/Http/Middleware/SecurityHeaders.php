@@ -31,9 +31,9 @@ class SecurityHeaders
         // Permissions Policy (formerly Feature-Policy) — restrict features
         $response->headers->set('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
 
-        // Content-Security-Policy: keep permissive for now because app uses inline scripts/styles; tighten in production after moving inline JS to external files
+        // CSP: allow CDN fonts/icons and inline scripts needed by Bootstrap/Blade
         if (app()->environment('production')) {
-            $csp = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' fonts.googleapis.com; img-src 'self' data:; font-src 'self' fonts.gstatic.com;";
+            $csp = "default-src 'self'; script-src 'self' 'unsafe-inline' cdnjs.cloudflare.com cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' fonts.googleapis.com cdnjs.cloudflare.com; img-src 'self' data: https:; font-src 'self' fonts.gstatic.com cdnjs.cloudflare.com; connect-src 'self';";
             $response->headers->set('Content-Security-Policy', $csp);
 
             // Enforce HSTS
