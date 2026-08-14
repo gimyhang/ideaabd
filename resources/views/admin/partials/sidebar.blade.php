@@ -23,13 +23,20 @@
             ['route' => 'admin.webzines', 'icon' => 'newspaper', 'label' => 'ওয়েবজিন'],
         ],
         'বিক্রয়' => [
-            ['route' => 'admin.orders', 'icon' => 'receipt', 'label' => 'অর্ডার ও বিল'],
+            ['route' => 'admin.ecommerce-orders', 'icon' => 'cart-shopping', 'label' => 'বইয়ের অর্ডার'],
+            ['route' => 'admin.orders', 'icon' => 'receipt', 'label' => 'সেলার বিল'],
+            ['route' => 'admin.book-requests.index', 'icon' => 'code-pull-request', 'label' => 'বই রিকোয়েস্ট'],
         ],
         'ব্যবহারকারী' => [
             ['route' => 'admin.users',               'icon' => 'users',      'label' => 'সব ব্যবহারকারী'],
             ['route' => 'admin.registrations.index', 'icon' => 'user-check', 'label' => 'রেজিস্ট্রেশন অনুমোদন',
              'badge' => $pending, 'badgeClass' => 'bg-warning text-dark'],
             ['route' => 'admin.sub-admins.index',    'icon' => 'user-shield', 'label' => 'সাব-অ্যাডমিন'],
+        ],
+        'অ্যাডমিন এক্সেস' => [
+            ['route' => 'admin.roles.index',       'icon' => 'key',             'label' => 'পারমিশন ম্যাট্রিক্স'],
+            ['route' => 'admin.activity-logs',     'icon' => 'clock-rotate-left', 'label' => 'অ্যাক্টিভিটি লগ'],
+            ['route' => 'admin.system-settings',   'icon' => 'sliders',         'label' => 'সিস্টেম সেটিংস'],
         ],
         'সাব-অ্যাডমিন প্যানেল' => [
             ['route' => 'subadmin.bills.index', 'icon' => 'file-invoice-dollar', 'label' => 'বিল তালিকা'],

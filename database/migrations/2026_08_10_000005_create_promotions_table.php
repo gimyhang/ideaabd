@@ -11,6 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Idempotent: a partially migrated database can re-run this safely.
+        if (Schema::hasTable("promotions")) {
+            return;
+        }
+
         Schema::create('promotions', function (Blueprint $table) {
             $table->id();
             $table->string('code', 50)->unique();

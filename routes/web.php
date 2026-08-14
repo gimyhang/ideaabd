@@ -11,8 +11,11 @@ use App\Http\Controllers\ResearchController;
 use App\Http\Controllers\AdminController;
 
 use App\Http\Controllers\Auth\RegistrationController;
+use App\Http\Controllers\Admin\ContentController;
 use App\Http\Controllers\Admin\RegistrationApprovalController;
 use App\Http\Controllers\Admin\SubAdminController;
+use App\Http\Controllers\Admin\AdminAccessController;
+use App\Support\ContentTypes;
 use App\Http\Controllers\SubAdmin\BillingController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\HomeController;
@@ -57,6 +60,9 @@ Route::prefix('books')->name('book.')->group(function () {
     Route::get('/{slug}/preview', [BookController::class, 'preview'])->name('preview');
     Route::get('/{id}/quick-view', [BookController::class, 'quickView'])->name('quick-view');
 });
+
+Route::post('/book-requests', [\App\Http\Controllers\BookRequestController::class, 'store'])->name('book-requests.store');
+Route::post('/orders', [\App\Http\Controllers\OrderController::class, 'store'])->name('orders.store');
 
 // Blog routes are defined in the Blog module (Modules/Blog/Routes/web.php), which
 // already registers blog.index / blog.show / blog.category / blog.tag.
@@ -118,6 +124,27 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::get('/authors', [AdminController::class, 'authors'])->name('authors');
     Route::get('/publishers', [AdminController::class, 'publishers'])->name('publishers');
     Route::get('/orders', [AdminController::class, 'orders'])->name('orders');
+    Route::get('/ecommerce-orders', [AdminController::class, 'ecommerceOrders'])->name('ecommerce-orders');
+    Route::get('/book-requests', [\App\Http\Controllers\BookRequestController::class, 'index'])->name('book-requests.index');
+    Route::patch('/book-requests/{id}', [\App\Http\Controllers\BookRequestController::class, 'updateStatus'])->name('book-requests.update');
+
+    // Content management — the admin creates, edits, approves, rejects and
+    // deletes any book / ebook / author / publisher / blog post / webzine, and
+    // can file it on behalf of a contributor who cannot register online.
+    Route::get('/moderation', [ContentController::class, 'queue'])->name('moderation');
+
+    Route::prefix('content/{type}')->name('content.')->controller(ContentController::class)
+        ->where(['type' => implode('|', ContentTypes::keys()), 'id' => '[0-9]+'])
+        ->group(function () {
+            Route::get('/create', 'create')->name('create');
+            Route::post('/', 'store')->name('store');
+            Route::get('/{id}/edit', 'edit')->name('edit');
+            Route::put('/{id}', 'update')->name('update');
+            Route::delete('/{id}', 'destroy')->name('destroy');
+            Route::patch('/{id}/approve', 'approve')->name('approve');
+            Route::patch('/{id}/reject', 'reject')->name('reject');
+            Route::patch('/{id}/restore', 'restore')->name('restore');
+        });
 
     // Sub-admin & seller accounts, managed from under the site admin dashboard
     Route::prefix('sub-admins')->name('sub-admins.')->controller(SubAdminController::class)->group(function () {
@@ -137,6 +164,13 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::patch('/{user}/reject', 'reject')->name('reject');
         Route::delete('/{user}', 'cancel')->name('cancel');
     });
+
+    // Admin access, permissions, activity logs & system settings
+    Route::get('/roles-permissions', [AdminAccessController::class, 'rolesPermissions'])->name('roles.index');
+    Route::post('/roles-permissions', [AdminAccessController::class, 'updatePermissions'])->name('roles.update');
+    Route::get('/activity-logs', [AdminAccessController::class, 'activityLogs'])->name('activity-logs');
+    Route::get('/system-settings', [AdminAccessController::class, 'systemSettings'])->name('system-settings');
+    Route::post('/system-settings', [AdminAccessController::class, 'updateSystemSettings'])->name('system-settings.update');
 });
 
 // --- Sub-admin / Seller panel ---------------------------------------------

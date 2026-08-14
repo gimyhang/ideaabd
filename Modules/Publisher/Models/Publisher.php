@@ -2,6 +2,8 @@
 
 namespace Modules\Publisher\Models;
 
+use App\Models\Concerns\Moderatable;
+
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -9,7 +11,7 @@ use Modules\Book\Models\Book;
 
 class Publisher extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, Moderatable;
 
     protected $fillable = [
         'name',

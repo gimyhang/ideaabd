@@ -7,6 +7,9 @@
 @endsection
 
 @section('actions')
+    <a href="{{ route('admin.content.create', 'ebooks') }}" class="btn btn-primary">
+        <i class="fas fa-plus me-1"></i> নতুন ই-বুক যোগ করুন
+    </a>
     <a href="{{ route('ebook.index') }}" target="_blank" rel="noopener" class="btn btn-outline-secondary">
         <i class="fas fa-arrow-up-right-from-square me-1"></i> সাইটে দেখুন
     </a>
@@ -20,6 +23,7 @@
 ])
 
 @include('admin.partials.data-table', [
+    'contentType' => 'ebooks',
     'rows'      => $ebooks,
     'empty'     => 'কোনো ই-বুক পাওয়া যায়নি',
     'emptyHint' => 'ই-বুকের টেবিল তৈরি না হলে এই তালিকা খালি থাকবে — মাইগ্রেশন চালান।',

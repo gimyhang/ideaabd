@@ -7,6 +7,9 @@
 @endsection
 
 @section('actions')
+    <a href="{{ route('admin.content.create', 'blog') }}" class="btn btn-primary">
+        <i class="fas fa-plus me-1"></i> নতুন ব্লগ পোস্ট যোগ করুন
+    </a>
     <a href="{{ route('blog.index') }}" target="_blank" rel="noopener" class="btn btn-outline-secondary">
         <i class="fas fa-arrow-up-right-from-square me-1"></i> সাইটে দেখুন
     </a>
@@ -20,6 +23,7 @@
 ])
 
 @include('admin.partials.data-table', [
+    'contentType' => 'blog',
     'rows'      => $posts,
     'empty'     => 'কোনো ব্লগ পোস্ট নেই',
     'emptyIcon' => 'blog',

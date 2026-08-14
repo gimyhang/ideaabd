@@ -31,6 +31,10 @@ return new class extends Migration
         });
 
         // Bills table – sub-admin/seller creates bills for customers
+        if (Schema::hasTable('bills')) {
+            return;
+        }
+
         Schema::create('bills', function (Blueprint $table) {
             $table->id();
             $table->string('bill_no')->unique();
@@ -56,6 +60,9 @@ return new class extends Migration
     {
         Schema::dropIfExists('bills');
         Schema::table('users', function (Blueprint $table) {
+            if (Schema::hasColumn('users', 'approved_by')) {
+                $table->dropForeign(['approved_by']);
+            }
             $table->dropColumn(['reg_status', 'reg_type', 'reg_data', 'approved_by', 'approved_at', 'rejection_reason']);
         });
     }

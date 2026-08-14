@@ -19,6 +19,26 @@
     </form>
 
     <div class="d-flex align-items-center gap-2 ms-auto">
+        {{-- Quick Create Dropdown --}}
+        <div class="dropdown">
+            <button class="btn btn-primary btn-sm d-flex align-items-center gap-1 dropdown-toggle fw-semibold py-1.5 px-2.5" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fas fa-plus-circle"></i>
+                <span class="d-none d-sm-inline">নতুন যোগ করুন</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                <li><h6 class="dropdown-header text-uppercase small text-muted">ক্যাটালগ ও কন্টেন্ট</h6></li>
+                <li><a class="dropdown-item" href="{{ route('admin.content.create', 'books') }}"><i class="fas fa-book me-2 text-primary"></i>নতুন বই যোগ</a></li>
+                <li><a class="dropdown-item" href="{{ route('admin.content.create', 'ebooks') }}"><i class="fas fa-tablet-screen-button me-2 text-info"></i>নতুন ই-বুক যোগ</a></li>
+                <li><a class="dropdown-item" href="{{ route('admin.content.create', 'blog') }}"><i class="fas fa-blog me-2 text-success"></i>নতুন ব্লগ পোস্ট</a></li>
+                <li><a class="dropdown-item" href="{{ route('admin.content.create', 'webzines') }}"><i class="fas fa-newspaper me-2 text-warning"></i>নতুন ওয়েবজিন</a></li>
+                <li><a class="dropdown-item" href="{{ route('admin.content.create', 'authors') }}"><i class="fas fa-pen-fancy me-2 text-secondary"></i>নতুন লেখক</a></li>
+                <li><a class="dropdown-item" href="{{ route('admin.content.create', 'publishers') }}"><i class="fas fa-building me-2 text-dark"></i>নতুন প্রকাশক</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><h6 class="dropdown-header text-uppercase small text-muted">বিক্রি ও অর্ডার</h6></li>
+                <li><a class="dropdown-item text-danger fw-bold" href="{{ route('subadmin.bills.create') }}"><i class="fas fa-receipt me-2"></i>নতুন অর্ডার / বিল পোস্ট</a></li>
+            </ul>
+        </div>
+
         {{-- Pending registrations --}}
         @if (Route::has('admin.registrations.index'))
             <a href="{{ route('admin.registrations.index', ['status' => 'pending']) }}"
@@ -30,6 +50,11 @@
                 @endif
             </a>
         @endif
+
+        {{-- Dark Mode Toggle --}}
+        <button class="adm-iconbtn text-decoration-none" data-theme-toggle type="button" title="ডার্ক / লাইট মোড সুইচার">
+            <i class="fas fa-moon"></i>
+        </button>
 
         {{-- View site --}}
         <a href="{{ route('home') }}" target="_blank" rel="noopener" class="adm-iconbtn text-decoration-none d-none d-sm-grid" title="ওয়েবসাইট দেখুন">
@@ -53,6 +78,9 @@
                     <div class="fw-semibold small">{{ $me->name }}</div>
                     <div class="text-muted" style="font-size:.75rem">{{ $me->email }}</div>
                 </li>
+                @if (Route::has('admin.roles.index'))
+                    <li><a class="dropdown-item" href="{{ route('admin.roles.index') }}"><i class="fas fa-user-shield me-2 text-primary"></i>পারমিশন ও এক্সেস</a></li>
+                @endif
                 @if (Route::has('admin.users'))
                     <li><a class="dropdown-item" href="{{ route('admin.users') }}"><i class="fas fa-users me-2 text-muted"></i>ব্যবহারকারী</a></li>
                 @endif

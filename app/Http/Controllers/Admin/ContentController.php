@@ -1,0 +1,699 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Models\Concerns\Moderatable;
+use App\Models\User;
+use App\Support\ContentTypes;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
+use Illuminate\View\View;
+
+/**
+ * One controller for every admin-managed content type.
+ *
+ * Two things the platform needs that a plain resource controller does not give
+ * us, and which drive most of the code here:
+ *
+ *  1. Moderation — an admin approves, rejects or deletes anything a seller,
+ *     publisher or author submitted.
+ *  2. Posting on behalf of someone else — contributors who cannot register
+ *     online still get their books, author pages and articles published, with
+ *     the credit recorded against their name.
+ *
+ * The shape of each type (fields, validation, upload folders) lives in
+ * {@see ContentTypes}; nothing type-specific is hard-coded below.
+ */
+class ContentController extends Controller
+{
+    /** Where an uploaded file lands, relative to storage/app/public. */
+    private const UPLOAD_DISK = 'public';
+
+    /**
+     * Everything waiting for a decision, across all six content types.
+     *
+     * Types whose table or moderation columns are missing are skipped rather
+     * than fataling, so the page works on a partially migrated deployment.
+     */
+    public function queue(Request $request): View
+    {
+        $status  = $request->string('status')->toString() ?: 'pending';
+        $status  = in_array($status, ['pending', 'approved', 'rejected', 'all'], true) ? $status : 'pending';
+        $pending = [];
+        $items   = [];
+
+        foreach (ContentTypes::all() as $key => $spec) {
+            if (! Schema::hasTable($spec['table']) || ! Schema::hasColumn($spec['table'], 'mod_status')) {
+                continue;
+            }
+
+            $rows = DB::table($spec['table'])
+                ->when($status !== 'all', fn ($q) => $q->where('mod_status', $status))
+                ->when(
+                    Schema::hasColumn($spec['table'], 'deleted_at'),
+                    fn ($q) => $q->whereNull('deleted_at')
+                )
+                ->orderByDesc('created_at')
+                ->limit(50)
+                ->get();
+
+            $pending[$key] = DB::table($spec['table'])->where('mod_status', 'pending')->count();
+
+            foreach ($rows as $row) {
+                $items[] = [
+                    'type'    => $key,
+                    'label'   => $spec['label'],
+                    'icon'    => $spec['icon'],
+                    'id'      => $row->id,
+                    'title'   => $row->{$spec['display']} ?? '—',
+                    'status'  => $row->mod_status ?? 'approved',
+                    'credit'  => $row->owner_name ?: null,
+                    'reason'  => $row->rejection_reason ?? null,
+                    'created' => $row->created_at ?? null,
+                ];
+            }
+        }
+
+        usort($items, fn ($a, $b) => strcmp((string) $b['created'], (string) $a['created']));
+
+        return view('admin.content.queue', [
+            'items'   => $items,
+            'pending' => $pending,
+            'status'  => $status,
+        ]);
+    }
+
+    public function create(string $type): View
+    {
+        $spec = ContentTypes::get($type);
+
+        $this->guardTableExists($spec);
+
+        return view('admin.content.form', [
+            'spec'      => $spec,
+            'record'    => null,
+            'lookups'   => $this->lookups($spec),
+            'creditees' => $this->creditees(),
+        ]);
+    }
+
+    public function store(Request $request, string $type): RedirectResponse
+    {
+        $spec = ContentTypes::get($type);
+
+        $this->guardTableExists($spec);
+
+        $data = $this->validated($request, $spec, null);
+
+        /** @var Model $record */
+        $record = new $spec['model']();
+        $attributes = $this->attributesFrom($request, $spec, $data, $record);
+
+        $attributes['slug'] = $this->uniqueSlug(
+            $spec,
+            $data[$spec['slugFrom']] ?? $spec['label'],
+            null
+        );
+
+        $attributes += $this->creditAttributes($request, $spec, isNew: true);
+
+        $record->forceFill($attributes)->save();
+
+        return redirect()
+            ->route($spec['listRoute'])
+            ->with('success', "{$spec['label']} যোগ করা হয়েছে — “{$record->{$spec['display']}}”।");
+    }
+
+    public function edit(string $type, int $id): View
+    {
+        $spec   = ContentTypes::get($type);
+        $record = $this->findRecord($spec, $id);
+
+        return view('admin.content.form', [
+            'spec'      => $spec,
+            'record'    => $record,
+            'lookups'   => $this->lookups($spec),
+            'creditees' => $this->creditees(),
+        ]);
+    }
+
+    public function update(Request $request, string $type, int $id): RedirectResponse
+    {
+        $spec   = ContentTypes::get($type);
+        $record = $this->findRecord($spec, $id);
+
+        $data       = $this->validated($request, $spec, $record);
+        $attributes = $this->attributesFrom($request, $spec, $data, $record);
+
+        // Re-slug only when the admin cleared the field or renamed the entry and
+        // the old slug was derived from the old name.
+        if ($request->filled('slug')) {
+            $attributes['slug'] = $this->uniqueSlug($spec, (string) $request->input('slug'), $record);
+        }
+
+        $attributes += $this->creditAttributes($request, $spec, isNew: false);
+
+        $record->forceFill($attributes)->save();
+
+        return redirect()
+            ->route($spec['listRoute'])
+            ->with('success', "{$spec['label']} হালনাগাদ করা হয়েছে।");
+    }
+
+    // ─── Moderation ─────────────────────────────────────────────────────
+
+    public function approve(string $type, int $id): RedirectResponse
+    {
+        $spec   = ContentTypes::get($type);
+        $record = $this->findRecord($spec, $id);
+
+        $this->guardModeratable($record);
+        $record->markApproved(auth()->id());
+
+        // Approving is also what puts the entry live on the site.
+        $this->setVisibility($record, true);
+
+        return back()->with('success', "{$spec['label']} অনুমোদন করা হয়েছে।");
+    }
+
+    public function reject(Request $request, string $type, int $id): RedirectResponse
+    {
+        $spec   = ContentTypes::get($type);
+        $record = $this->findRecord($spec, $id);
+
+        $validated = $request->validate([
+            'reason' => ['required', 'string', 'max:500'],
+        ], [], ['reason' => 'কারণ']);
+
+        $this->guardModeratable($record);
+        $record->markRejected($validated['reason'], auth()->id());
+
+        $this->setVisibility($record, false);
+
+        return back()->with('success', "{$spec['label']} বাতিল করা হয়েছে।");
+    }
+
+    public function destroy(string $type, int $id): RedirectResponse
+    {
+        $spec   = ContentTypes::get($type);
+        $record = $this->findRecord($spec, $id);
+
+        $label = $record->{$spec['display']};
+        $record->delete();
+
+        return redirect()
+            ->route($spec['listRoute'])
+            ->with('success', "“{$label}” মুছে ফেলা হয়েছে।");
+    }
+
+    public function restore(string $type, int $id): RedirectResponse
+    {
+        $spec = ContentTypes::get($type);
+
+        abort_unless($this->softDeletes($spec['model']), 404);
+
+        $record = $spec['model']::onlyTrashed()->findOrFail($id);
+        $record->restore();
+
+        return back()->with('success', "{$spec['label']} ফিরিয়ে আনা হয়েছে।");
+    }
+
+    // ─── internals ──────────────────────────────────────────────────────
+
+    /**
+     * Build the validation rules from the field spec.
+     *
+     * FK existence rules are appended only when the lookup table has actually
+     * been migrated — otherwise `exists:` would throw on a half-migrated
+     * deployment instead of showing a validation error.
+     *
+     * @param  array<string, mixed>  $spec
+     * @return array<string, mixed>
+     */
+    private function validated(Request $request, array $spec, ?Model $record): array
+    {
+        $rules      = [];
+        $attributes = [];
+
+        foreach ($spec['fields'] as $name => $field) {
+            // author_role_group is a virtual composite field — its real
+            // columns (author_role, author_name, author_link_id) are validated separately.
+            if ($field['type'] === 'author_role_group') {
+                $rules['author_role']       = ['nullable', 'string', 'in:author,translator,editor'];
+                $rules['author_name']       = ['nullable', 'string', 'max:255'];
+                $rules['author_input_mode'] = ['nullable', 'string', 'in:directory,custom'];
+                $rules['author_link_id']    = ['nullable', 'integer'];
+                if (Schema::hasTable('authors')) {
+                    $rules['author_link_id'][] = Rule::exists('authors', 'id');
+                }
+                $attributes['author_role']    = 'ভূমিকা';
+                $attributes['author_name']    = 'লেখকের নাম';
+                $attributes['author_link_id'] = 'লেখক (ডিরেক্টরি)';
+                continue;
+            }
+
+            $fieldRules = explode('|', $field['rules']);
+
+            if (! empty($field['lookup']) && Schema::hasTable($field['lookup'])) {
+                $fieldRules[] = Rule::exists($field['lookup'], 'id');
+            }
+
+            if (! empty($field['unique'])) {
+                $unique = Rule::unique($spec['table'], $name);
+                $fieldRules[] = $record ? $unique->ignore($record->getKey()) : $unique;
+            }
+
+            $rules[$name]      = $fieldRules;
+            $attributes[$name] = $field['label'];
+        }
+
+        $rules['slug']         = ['nullable', 'string', 'max:255', 'regex:/^[\pL\pN\-_]+$/u'];
+        $rules['owner_name']   = ['nullable', 'string', 'max:255'];
+        $rules['owner_phone']  = ['nullable', 'string', 'max:30'];
+        $rules['submitted_by'] = ['nullable', 'integer', Rule::exists('users', 'id')];
+        $rules['mod_status']   = ['nullable', Rule::in([
+            'pending', 'approved', 'rejected',
+        ])];
+
+        $attributes += [
+            'slug'         => 'slug',
+            'owner_name'   => 'যার পক্ষে',
+            'owner_phone'  => 'ফোন',
+            'submitted_by' => 'ব্যবহারকারী',
+            'mod_status'   => 'অনুমোদন অবস্থা',
+        ];
+
+        return $request->validate($rules, [], $attributes);
+    }
+
+    /**
+     * Turn validated input into a column => value map.
+     *
+     * Only keys named in the field spec ever reach the model, so `forceFill`
+     * below cannot be used to set a column the admin form does not expose.
+     *
+     * @param  array<string, mixed>  $spec
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    private function attributesFrom(Request $request, array $spec, array $data, Model $record): array
+    {
+        $attributes = [];
+
+        foreach ($spec['fields'] as $name => $field) {
+            $type = $field['type'];
+
+            // Virtual composite field — expand into the real DB columns.
+            // In 'directory' mode we link to the authors table; in 'custom' mode
+            // we store a free-text name. Either way author_role is always saved.
+            if ($type === 'author_role_group') {
+                $mode = $request->input('author_input_mode', 'custom');
+
+                if (Schema::hasColumn($spec['table'], 'author_role')) {
+                    $attributes['author_role'] = $request->input('author_role') ?: null;
+                }
+
+                if ($mode === 'directory') {
+                    $linkId = $request->integer('author_link_id') ?: null;
+                    if (Schema::hasColumn($spec['table'], 'author_link_id')) {
+                        $attributes['author_link_id'] = $linkId;
+                    }
+                    // Resolve the name from the authors table so both columns stay in sync
+                    if (Schema::hasColumn($spec['table'], 'author_name') && $linkId) {
+                        $attributes['author_name'] = DB::table('authors')->where('id', $linkId)->value('name') ?: null;
+                    } elseif (Schema::hasColumn($spec['table'], 'author_name')) {
+                        $attributes['author_name'] = null;
+                    }
+                } else {
+                    // Custom mode: Auto-create author if it doesn't exist
+                    $authorName = $request->input('author_name');
+                    if ($authorName) {
+                        $authorSlug = $this->bengaliToEnglish($authorName) ?: Str::random(8);
+                        $existingAuthor = DB::table('authors')->where('name', $authorName)->orWhere('slug', $authorSlug)->first();
+                        
+                        if ($existingAuthor) {
+                            $linkId = $existingAuthor->id;
+                            $authorName = $existingAuthor->name;
+                        } else {
+                            $linkId = DB::table('authors')->insertGetId([
+                                'name' => $authorName,
+                                'slug' => $authorSlug,
+                                'is_active' => true,
+                                'created_at' => now(),
+                                'updated_at' => now(),
+                            ]);
+                        }
+                        
+                        if (Schema::hasColumn($spec['table'], 'author_link_id')) {
+                            $attributes['author_link_id'] = $linkId;
+                        }
+                        if (Schema::hasColumn($spec['table'], 'author_name')) {
+                            $attributes['author_name'] = $authorName;
+                        }
+                    } else {
+                        if (Schema::hasColumn($spec['table'], 'author_link_id')) {
+                            $attributes['author_link_id'] = null;
+                        }
+                        if (Schema::hasColumn($spec['table'], 'author_name')) {
+                            $attributes['author_name'] = null;
+                        }
+                    }
+                }
+                continue;
+            }
+
+            if ($type === 'file') {
+                $stored = $this->handleUpload($request, $name, $field, $record);
+
+                if ($stored !== false) {
+                    $attributes[$name] = $stored;
+                }
+
+                continue;
+            }
+
+            if ($type === 'checkbox') {
+                $attributes[$name] = $request->boolean($name);
+
+                continue;
+            }
+
+            $value = $data[$name] ?? null;
+
+            if ($name === 'category_id' && $request->filled('sub_category_name')) {
+                $mainCategoryId = $data['category_id'] ?? null;
+                $subCatName = $request->input('sub_category_name');
+                $subCatSlug = $this->bengaliToEnglish($subCatName) ?: Str::random(8);
+                
+                if ($mainCategoryId) {
+                    $existingSubCat = DB::table('categories')
+                        ->where('parent_id', $mainCategoryId)
+                        ->where(function($q) use ($subCatName, $subCatSlug) {
+                            $q->where('name', $subCatName)->orWhere('slug', $subCatSlug);
+                        })->first();
+                        
+                    if ($existingSubCat) {
+                        $attributes['category_id'] = $existingSubCat->id;
+                    } else {
+                        $attributes['category_id'] = DB::table('categories')->insertGetId([
+                            'parent_id' => $mainCategoryId,
+                            'name' => $subCatName,
+                            'slug' => $subCatSlug,
+                            'is_active' => true,
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ]);
+                    }
+                }
+                continue;
+            }
+
+            if ($name === 'publisher_id' && $request->filled('new_publisher_name')) {
+                $pubName = $request->input('new_publisher_name');
+                $pubSlug = $this->bengaliToEnglish($pubName) ?: Str::random(8);
+                
+                $existingPub = DB::table('publishers')
+                    ->where('name', $pubName)->orWhere('slug', $pubSlug)->first();
+                    
+                if ($existingPub) {
+                    $attributes['publisher_id'] = $existingPub->id;
+                } else {
+                    $attributes['publisher_id'] = DB::table('publishers')->insertGetId([
+                        'name' => $pubName,
+                        'slug' => $pubSlug,
+                        'is_active' => true,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
+                continue;
+            }
+
+            if ($type === 'editor' || $type === 'textarea') {
+                $value = $value === null ? null : strip_tags((string) $value, '<p><br><strong><em><u><ul><ol><li><a><h2><h3><h4><blockquote><img>');
+            }
+
+            if (($value === '' || $value === null) && isset($field['default'])) {
+                $value = $field['default'];
+            }
+
+            $attributes[$name] = $value === '' ? null : $value;
+        }
+
+        return $attributes;
+    }
+
+    /**
+     * Store an uploaded file and return its public URL.
+     *
+     * @return string|null|false  the new value, or false to leave the column alone
+     */
+    private function handleUpload(Request $request, string $name, array $field, Model $record): string|null|false
+    {
+        if ($request->boolean("remove_{$name}")) {
+            $this->deleteStoredFile($record->{$name} ?? null);
+
+            return null;
+        }
+
+        $file = $request->file($name);
+
+        if (! $file instanceof UploadedFile) {
+            return false;
+        }
+
+        $path = $file->store($field['disk'] ?? 'uploads', self::UPLOAD_DISK);
+
+        // Replacing a file should not leave the old one behind on disk.
+        $this->deleteStoredFile($record->{$name} ?? null);
+
+        return $path;
+    }
+
+    /**
+     * Remove a previously uploaded file.
+     *
+     * Only paths under the public disk's own URL prefix are touched, so a legacy
+     * value pointing at an external CDN is left alone.
+     */
+    private function deleteStoredFile(?string $value): void
+    {
+        if (! $value) {
+            return;
+        }
+
+        $prefix = rtrim(Storage::disk(self::UPLOAD_DISK)->url(''), '/') . '/';
+
+        if (! str_starts_with($value, $prefix)) {
+            return;
+        }
+
+        $relative = substr($value, strlen($prefix));
+
+        if ($relative !== '' && ! str_contains($relative, '..')) {
+            Storage::disk(self::UPLOAD_DISK)->delete($relative);
+        }
+    }
+
+    /**
+     * Ownership / moderation columns.
+     *
+     * Anything an admin types in is approved on the spot — the approval queue
+     * exists for submissions coming from sellers, publishers and authors.
+     *
+     * @param  array<string, mixed>  $spec
+     * @return array<string, mixed>
+     */
+    private function creditAttributes(Request $request, array $spec, bool $isNew): array
+    {
+        $creditedUser = $request->integer('submitted_by') ?: null;
+        $attributes   = [];
+
+        if (Schema::hasColumn($spec['table'], 'mod_status')) {
+            $attributes['owner_name']  = $request->input('owner_name') ?: null;
+            $attributes['owner_phone'] = $request->input('owner_phone') ?: null;
+
+            if ($isNew) {
+                $attributes['submitted_by'] = $creditedUser ?? auth()->id();
+                $attributes['mod_status']   = $request->input('mod_status', 'approved');
+                $attributes['reviewed_by']  = auth()->id();
+                $attributes['reviewed_at']  = now();
+            } elseif ($creditedUser !== null) {
+                $attributes['submitted_by'] = $creditedUser;
+            }
+        }
+
+        // blog_posts.author_id is a NOT NULL FK to users, so an offline
+        // contributor's post is filed under the crediting admin and the real
+        // name is carried in owner_name.
+        if ($spec['table'] === 'blog_posts') {
+            $attributes['author_id'] = $creditedUser ?? auth()->id();
+
+            if ($isNew && ! $request->filled('status')) {
+                $attributes['status'] = 'published';
+            }
+
+            if ($request->input('status') === 'published') {
+                $attributes['published_at'] = now();
+            }
+        }
+
+        if ($spec['table'] === 'webzines' && $request->boolean('is_published')) {
+            $attributes['published_at'] = now();
+        }
+
+        return $attributes;
+    }
+
+    /** A slug that is unique within the type's own table. */
+    private function uniqueSlug(array $spec, string $source, ?Model $ignore): string
+    {
+        $base = $this->bengaliToEnglish($source) ?: Str::slug(Str::random(8));
+        $slug = $base;
+        $n    = 1;
+
+        while ($this->slugTaken($spec, $slug, $ignore)) {
+            $slug = $base . '-' . (++$n);
+        }
+
+        return $slug;
+    }
+
+    private function bengaliToEnglish(string $text): string
+    {
+        $bengali = ['অ','আ','ই','ঈ','উ','ঊ','ঋ','এ','ঐ','ও','ঔ','ক','খ','গ','ঘ','ঙ','চ','ছ','জ','ঝ','ঞ','ট','ঠ','ড','ঢ','ণ','ত','থ','দ','ধ','ন','প','ফ','ব','ভ','ম','য','র','ল','শ','ষ','স','হ','ড়','ঢ়','য়','ৎ','ং','ঃ','ঁ','া','ি','ী','ু','ূ','ৃ','ে','ৈ','ো','ৌ','্'];
+        $english = ['a','a','i','i','u','u','ri','e','oi','o','ou','k','kh','g','gh','ng','ch','ch','j','jh','n','t','th','d','dh','n','t','th','d','dh','n','p','f','b','bh','m','z','r','l','sh','sh','s','h','r','rh','y','t','ng','h','n','a','i','i','u','u','ri','e','oi','o','ou',''];
+        $text = str_replace($bengali, $english, $text);
+        return Str::slug($text, '-', null);
+    }
+
+    private function slugTaken(array $spec, string $slug, ?Model $ignore): bool
+    {
+        $query = DB::table($spec['table'])->where('slug', $slug);
+
+        if ($ignore) {
+            $query->where('id', '!=', $ignore->getKey());
+        }
+
+        return $query->exists();
+    }
+
+    /**
+     * Options for every select in the form, keyed by lookup table.
+     *
+     * @param  array<string, mixed>  $spec
+     * @return array<string, array<int, string>>
+     */
+    private function lookups(array $spec): array
+    {
+        $labels  = ['categories' => 'name', 'publishers' => 'name', 'authors' => 'name', 'blog_categories' => 'name'];
+        $lookups = [];
+
+        foreach ($spec['fields'] as $field) {
+            $table = $field['lookup'] ?? null;
+
+            if (! $table || isset($lookups[$table]) || ! Schema::hasTable($table)) {
+                continue;
+            }
+
+            $column = $labels[$table] ?? 'name';
+
+            $query = DB::table($table);
+            
+            if ($table === 'categories') {
+                $query->whereNull('parent_id');
+            }
+
+            $lookups[$table] = $query
+                ->orderBy($column)
+                ->limit(500)
+                ->pluck($column, 'id')
+                ->all();
+        }
+
+        return $lookups;
+    }
+
+    /**
+     * Registered users an entry can be credited to.
+     *
+     * @return array<int, string>
+     */
+    private function creditees(): array
+    {
+        return User::query()
+            ->whereIn('role', [
+                User::ROLE_AUTHOR, User::ROLE_PUBLISHER, User::ROLE_SELLER,
+                User::ROLE_SUB_ADMIN, User::ROLE_ADMIN,
+            ])
+            ->orderBy('name')
+            ->limit(500)
+            ->get(['id', 'name', 'role'])
+            ->mapWithKeys(fn (User $u) => [$u->id => "{$u->name} ({$u->role})"])
+            ->all();
+    }
+
+    private function findRecord(array $spec, int $id): Model
+    {
+        $this->guardTableExists($spec);
+
+        $query = $spec['model']::query();
+
+        if ($this->softDeletes($spec['model'])) {
+            $query->withTrashed();
+        }
+
+        return $query->findOrFail($id);
+    }
+
+    /** @param  class-string<Model>  $model */
+    private function softDeletes(string $model): bool
+    {
+        return in_array(SoftDeletes::class, class_uses_recursive($model), true);
+    }
+
+    private function guardTableExists(array $spec): void
+    {
+        abort_unless(
+            Schema::hasTable($spec['table']),
+            503,
+            "{$spec['label']} টেবিল এখনো তৈরি হয়নি — সার্ভারে `php artisan migrate --force` চালান।"
+        );
+    }
+
+    private function guardModeratable(Model $record): void
+    {
+        abort_unless(
+            method_exists($record, 'markApproved') && $record->hasModerationColumns(),
+            503,
+            'মডারেশন কলাম এখনো তৈরি হয়নি — সার্ভারে `php artisan migrate --force` চালান।'
+        );
+    }
+
+    /** Approve/reject also flips whichever "live on the site" flag the table uses. */
+    private function setVisibility(Model $record, bool $visible): void
+    {
+        foreach (['is_active', 'is_published'] as $flag) {
+            if (Schema::hasColumn($record->getTable(), $flag)) {
+                $record->forceFill([$flag => $visible])->save();
+
+                return;
+            }
+        }
+
+        if (Schema::hasColumn($record->getTable(), 'status')) {
+            $record->forceFill(['status' => $visible ? 'published' : 'draft'])->save();
+        }
+    }
+}

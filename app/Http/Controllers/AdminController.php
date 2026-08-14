@@ -10,10 +10,14 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
+use App\Services\AdminAccessService;
+
 class AdminController extends Controller
 {
-    public function __construct(private readonly AdminDashboardService $dashboard)
-    {
+    public function __construct(
+        private readonly AdminDashboardService $dashboard,
+        private readonly AdminAccessService $accessService
+    ) {
     }
 
     public function index(): View
@@ -23,6 +27,16 @@ class AdminController extends Controller
 
     public function dashboard(): View
     {
+        $systemNotice = null;
+        try {
+            if (Schema::hasTable('admin_dashboard_settings')) {
+                $setting = \App\Models\AdminDashboardSetting::where('key', 'system_notice')->first();
+                if ($setting && ! empty($setting->value['active'])) {
+                    $systemNotice = $setting->value;
+                }
+            }
+        } catch (\Throwable) {}
+
         return view('admin.dashboard', [
             'stats'         => $this->dashboard->stats(),
             'sales'         => $this->dashboard->salesSeries(12),
@@ -31,6 +45,9 @@ class AdminController extends Controller
             'recentBills'   => $this->dashboard->recentBills(6),
             'pendingRegs'   => $this->dashboard->recentRegistrations(5),
             'topSellers'    => $this->dashboard->topSellers(5),
+            'systemHealth'  => $this->accessService->systemHealth(),
+            'activityLogs'  => $this->accessService->recentLogs(8),
+            'systemNotice'  => $systemNotice,
         ]);
     }
 
@@ -82,6 +99,22 @@ class AdminController extends Controller
                 'due'     => $this->dashboard->stats()['revenue_due'],
             ],
         ]);
+    }
+
+    public function ecommerceOrders(Request $request): View
+    {
+        $orders = \App\Models\Order::query()
+            ->with('book')
+            ->when($request->filled('search'), function ($q) use ($request) {
+                $term = '%' . $request->string('search')->trim() . '%';
+                $q->where('customer_name', 'like', $term)
+                  ->orWhere('customer_phone', 'like', $term)
+                  ->orWhere('gift_recipient_name', 'like', $term);
+            })
+            ->latest()
+            ->paginate(20);
+            
+        return view('admin.ecommerce-orders', compact('orders'));
     }
 
     // ─── Catalog & content lists ────────────────────────────────────────

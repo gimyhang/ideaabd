@@ -7,6 +7,9 @@
 @endsection
 
 @section('actions')
+    <a href="{{ route('admin.content.create', 'publishers') }}" class="btn btn-primary">
+        <i class="fas fa-plus me-1"></i> নতুন প্রকাশক যোগ করুন
+    </a>
     <a href="{{ route('publishers.index') }}" target="_blank" rel="noopener" class="btn btn-outline-secondary">
         <i class="fas fa-arrow-up-right-from-square me-1"></i> সাইটে দেখুন
     </a>
@@ -20,6 +23,7 @@
 ])
 
 @include('admin.partials.data-table', [
+    'contentType' => 'publishers',
     'rows'      => $publishers,
     'empty'     => 'কোনো প্রকাশক পাওয়া যায়নি',
     'emptyHint' => 'প্রকাশকের টেবিল তৈরি না হলে এই তালিকা খালি থাকবে — মাইগ্রেশন চালান।',

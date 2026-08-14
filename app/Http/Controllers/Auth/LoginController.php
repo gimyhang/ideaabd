@@ -16,20 +16,26 @@ class LoginController extends Controller
             'password' => ['required'],
         ]);
 
-        if (Auth::attempt($credentials, $request->boolean('remember'))) {
-            $request->session()->regenerate();
+        try {
+            if (Auth::attempt($credentials, $request->boolean('remember'))) {
+                $request->session()->regenerate();
 
-            $user = Auth::user();
+                $user = Auth::user();
 
-            // Redirect based on role
-            if ($user->isAdmin()) {
-                return redirect()->intended(route('admin.dashboard'));
+                // Redirect based on role
+                if ($user->isAdmin()) {
+                    return redirect()->intended(route('admin.dashboard'));
+                }
+                if ($user->isSeller() || $user->isSubAdmin()) {
+                    return redirect()->intended(route('subadmin.bills.index'));
+                }
+
+                return redirect()->intended(route('home'));
             }
-            if ($user->isSeller() || $user->isSubAdmin()) {
-                return redirect()->intended(route('subadmin.bills.index'));
-            }
-
-            return redirect()->intended(route('home'));
+        } catch (\Illuminate\Database\QueryException $e) {
+            throw ValidationException::withMessages([
+                'email' => 'সিস্টেম ডাটাবেজ অফলাইনে আছে বা কানেক্ট হতে পারছে না। অনুগ্রহ করে সার্ভার চেক করুন।',
+            ]);
         }
 
         throw ValidationException::withMessages([

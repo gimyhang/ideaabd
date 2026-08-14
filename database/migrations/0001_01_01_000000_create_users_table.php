@@ -20,7 +20,8 @@ return new class extends Migration
             $table->string('password');
             
             // User Role & Status Controls
-            $table->string('role')->default('customer'); // admin, manager, customer
+            $table->string('role')->default('customer'); // admin, manager, customer, seller, publisher, author
+            $table->string('reg_status')->default('approved'); // pending, approved, rejected (seller/publisher/author রেজিস্ট্রেশন অ্যাপ্রুভালের জন্য)
             $table->string('avatar')->nullable();
             $table->boolean('is_active')->default(true);
 

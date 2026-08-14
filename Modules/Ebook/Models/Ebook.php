@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Ebook\Models;
 
+use App\Models\Concerns\Moderatable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -14,11 +15,12 @@ use Modules\Author\Models\Author;
 use Modules\Ebook\Models\Category;
 use Modules\Review\Models\Review;
 use Modules\Tag\Models\Tag;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Vendor\Models\Vendor;
 
 class Ebook extends Model
 {
-    use HasFactory;
+    use HasFactory, Moderatable, SoftDeletes;
 
     /**
      * The table associated with the model.
@@ -36,6 +38,9 @@ class Ebook extends Model
         'vendor_id',
         'category_id',
         'title',
+        'subtitle',
+        'author_name',
+        'author_role',
         'slug',
         'isbn',
         'description',

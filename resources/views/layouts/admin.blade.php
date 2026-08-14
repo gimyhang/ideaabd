@@ -74,12 +74,19 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
 <script>
-    // Sidebar toggle — "mini" on desktop, slide-over on mobile. Choice is remembered.
+    // Sidebar & Dark Mode toggle — stored in localStorage
     (function () {
         var body = document.body;
-        var KEY  = 'adm-side-mini';
+        var MINI_KEY = 'adm-side-mini';
+        var DARK_KEY = 'adm-dark-mode';
 
-        if (localStorage.getItem(KEY) === '1') body.classList.add('side-mini');
+        if (localStorage.getItem(MINI_KEY) === '1') body.classList.add('side-mini');
+        if (localStorage.getItem(DARK_KEY) === '1') body.classList.add('dark-mode');
+
+        var dynBrand = localStorage.getItem('adm-dynamic-brand');
+        var dynBrand2 = localStorage.getItem('adm-dynamic-brand2');
+        if (dynBrand) document.documentElement.style.setProperty('--brand', dynBrand);
+        if (dynBrand2) document.documentElement.style.setProperty('--brand-2', dynBrand2);
 
         document.querySelectorAll('[data-side-toggle]').forEach(function (btn) {
             btn.addEventListener('click', function () {
@@ -87,8 +94,16 @@
                     body.classList.toggle('side-open');
                 } else {
                     body.classList.toggle('side-mini');
-                    localStorage.setItem(KEY, body.classList.contains('side-mini') ? '1' : '0');
+                    localStorage.setItem(MINI_KEY, body.classList.contains('side-mini') ? '1' : '0');
                 }
+            });
+        });
+
+        document.querySelectorAll('[data-theme-toggle]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                body.classList.toggle('dark-mode');
+                var isDark = body.classList.contains('dark-mode');
+                localStorage.setItem(DARK_KEY, isDark ? '1' : '0');
             });
         });
 

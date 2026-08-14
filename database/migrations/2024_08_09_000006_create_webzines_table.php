@@ -8,6 +8,11 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // Idempotent: a partially migrated database can re-run this safely.
+        if (Schema::hasTable("webzines")) {
+            return;
+        }
+
         Schema::create('webzines', function (Blueprint $table) {
             $table->id();
             $table->string('title')->unique();
