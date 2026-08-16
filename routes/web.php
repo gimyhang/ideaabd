@@ -20,11 +20,22 @@ use App\Http\Controllers\SubAdmin\BillingController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\HomeController;
 
+use App\Http\Controllers\CartController;
+use App\Http\Controllers\Admin\PaymentAdminController;
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes (Ideap Platform Core Routes)
 |--------------------------------------------------------------------------
 */
+
+// --- Language Switcher ------------------------------------------------------
+Route::get('/lang/{locale}', function (string $locale) {
+    if (in_array($locale, ['bn', 'en'], true)) {
+        session()->put('locale', $locale);
+    }
+    return redirect()->back();
+})->name('lang.switch');
 
 // --- Auth routes (login / logout) --------------------------------------------
 Route::get('/login', fn() => view('auth.login'))->name('login')->middleware('guest');
@@ -34,13 +45,29 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->midd
 // --- Search ------------------------------------------------------------------
 Route::get('/search', [BookController::class, 'index'])->name('search');
 
-// --- Wishlist / Cart / Checkout (placeholder stubs) --------------------------
+// --- Wishlist / Cart / Checkout ----------------------------------------------
 Route::get('/wishlist', fn() => redirect('/books'))->name('wishlist')->middleware('auth');
-Route::get('/cart', fn() => redirect('/books'))->name('cart');
+Route::get('/cart', [CartController::class, 'index'])->name('cart');
+Route::get('/checkout', [CartController::class, 'index'])->name('checkout');
+Route::match(['get', 'post'], '/cart/checkout', function (\Illuminate\Http\Request $request) {
+    if ($request->isMethod('get')) {
+        return redirect()->route('cart');
+    }
+    return app(CartController::class)->checkout($request);
+})->name('cart.checkout');
 Route::post('/cart/add', fn() => back())->name('cart.add');
-Route::get('/checkout', fn() => redirect('/books'))->name('checkout');
 Route::post('/newsletter/subscribe', fn() => back()->with('success', 'Subscribed successfully!'))->name('newsletter.subscribe');
 Route::get('/webzines/archive', fn() => redirect(route('webzine.index')))->name('webzine.archive');
+
+// --- Storage Fallback Route for Live Shared Hosts & CPanel without Symlink ---
+Route::get('/storage/{path}', function (string $path) {
+    $filePath = storage_path('app/public/' . $path);
+    if (!file_exists($filePath)) {
+        abort(404);
+    }
+    $mime = mime_content_type($filePath) ?: 'application/octet-stream';
+    return response()->file($filePath, ['Content-Type' => $mime]);
+})->where('path', '.*')->name('storage.file');
 
 // হোমপেজ
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -63,6 +90,7 @@ Route::prefix('books')->name('book.')->group(function () {
 
 Route::post('/book-requests', [\App\Http\Controllers\BookRequestController::class, 'store'])->name('book-requests.store');
 Route::post('/orders', [\App\Http\Controllers\OrderController::class, 'store'])->name('orders.store');
+Route::get('/api/recent-orders', [\App\Http\Controllers\SocialProofController::class, 'getRecentOrders']);
 
 // Blog routes are defined in the Blog module (Modules/Blog/Routes/web.php), which
 // already registers blog.index / blog.show / blog.category / blog.tag.
@@ -72,6 +100,7 @@ Route::prefix('ebooks')->name('ebook.')->group(function () {
     Route::get('/', [EbookController::class, 'index'])->name('index');
     Route::get('/{slug}', [EbookController::class, 'show'])->name('show');
     Route::get('/{slug}/read', [EbookController::class, 'read'])->name('read');
+    Route::get('/{slug}/download', [EbookController::class, 'download'])->name('download');
 });
 
 // Webzine routes are defined in the Webzine module (Modules/Webzine/Routes/web.php)
@@ -112,12 +141,31 @@ Route::post('/register/{type}', [RegistrationController::class, 'register'])->na
 Route::get('/pending-approval', [RegistrationController::class, 'pendingApproval'])
     ->middleware('auth')->name('pending.approval');
 
+// --- User Account & Portal --------------------------------------------------
+Route::get('/my-account', [\App\Http\Controllers\UserController::class, 'dashboard'])
+    ->middleware('auth')->name('my-account');
+
+Route::get('/user', function () {
+    if (!auth()->check()) {
+        return redirect()->guest(route('login'));
+    }
+    $user = auth()->user();
+    if ($user->isAdmin()) {
+        return redirect()->route('admin.dashboard');
+    }
+    if ($user->isSeller() || $user->isSubAdmin()) {
+        return redirect()->route('subadmin.bills.index');
+    }
+    return redirect()->route('my-account');
+})->name('user.portal');
+
 // --- Admin panel ------------------------------------------------------------
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/', [AdminController::class, 'index'])->name('index');
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
     Route::get('/users', [AdminController::class, 'users'])->name('users');
     Route::get('/books', [AdminController::class, 'books'])->name('books');
+    Route::get('/categories', [AdminController::class, 'categories'])->name('categories');
     Route::get('/blog', [AdminController::class, 'blog'])->name('blog');
     Route::get('/ebooks', [AdminController::class, 'ebooks'])->name('ebooks');
     Route::get('/webzines', [AdminController::class, 'webzines'])->name('webzines');
@@ -125,8 +173,19 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::get('/publishers', [AdminController::class, 'publishers'])->name('publishers');
     Route::get('/orders', [AdminController::class, 'orders'])->name('orders');
     Route::get('/ecommerce-orders', [AdminController::class, 'ecommerceOrders'])->name('ecommerce-orders');
+    Route::get('/ecommerce-orders/{order}', [AdminController::class, 'showEcommerceOrder'])->name('ecommerce-orders.show');
+    Route::put('/ecommerce-orders/{order}', [AdminController::class, 'updateEcommerceOrder'])->name('ecommerce-orders.update');
+    Route::patch('/ecommerce-orders/{order}/status', [AdminController::class, 'updateEcommerceOrderStatus'])->name('ecommerce-orders.status');
+    Route::get('/ecommerce-orders/{order}/invoice', [AdminController::class, 'ecommerceOrderInvoice'])->name('ecommerce-orders.invoice');
+    Route::get('/ecommerce-orders/{order}/slip', [AdminController::class, 'ecommerceOrderSlip'])->name('ecommerce-orders.slip');
+    Route::delete('/ecommerce-orders/{order}', [AdminController::class, 'destroyEcommerceOrder'])->name('ecommerce-orders.destroy');
     Route::get('/book-requests', [\App\Http\Controllers\BookRequestController::class, 'index'])->name('book-requests.index');
     Route::patch('/book-requests/{id}', [\App\Http\Controllers\BookRequestController::class, 'updateStatus'])->name('book-requests.update');
+    Route::get('/visitor-reports', [AdminController::class, 'visitorReports'])->name('visitor-reports');
+    Route::get('/reports/print', [AdminController::class, 'printReport'])->name('reports.print');
+    Route::post('/books/quick-stock', [AdminController::class, 'quickUpdateStock'])->name('books.quick-stock');
+    Route::get('/customers', [AdminController::class, 'customers'])->name('customers');
+    Route::post('/customers/broadcast-message', [AdminController::class, 'broadcastMessage'])->name('customers.broadcast');
 
     // Content management — the admin creates, edits, approves, rejects and
     // deletes any book / ebook / author / publisher / blog post / webzine, and
@@ -165,12 +224,23 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::delete('/{user}', 'cancel')->name('cancel');
     });
 
+    // Payment management & gateways
+    Route::get('/payments', [PaymentAdminController::class, 'index'])->name('payments.index');
+    Route::post('/payments', [PaymentAdminController::class, 'updateGateways'])->name('payments.update');
+    Route::patch('/payments/{order}/status', [PaymentAdminController::class, 'updateStatus'])->name('payments.status');
+
+    // Quick AJAX resource creators for books/ebooks forms
+    Route::post('/quick/category', [\App\Http\Controllers\Admin\QuickResourceController::class, 'quickStoreCategory'])->name('quick.category');
+    Route::post('/quick/author', [\App\Http\Controllers\Admin\QuickResourceController::class, 'quickStoreAuthor'])->name('quick.author');
+    Route::post('/quick/publisher', [\App\Http\Controllers\Admin\QuickResourceController::class, 'quickStorePublisher'])->name('quick.publisher');
+
     // Admin access, permissions, activity logs & system settings
     Route::get('/roles-permissions', [AdminAccessController::class, 'rolesPermissions'])->name('roles.index');
     Route::post('/roles-permissions', [AdminAccessController::class, 'updatePermissions'])->name('roles.update');
     Route::get('/activity-logs', [AdminAccessController::class, 'activityLogs'])->name('activity-logs');
     Route::get('/system-settings', [AdminAccessController::class, 'systemSettings'])->name('system-settings');
     Route::post('/system-settings', [AdminAccessController::class, 'updateSystemSettings'])->name('system-settings.update');
+    Route::post('/system-settings/clear-cache', [AdminAccessController::class, 'clearCache'])->name('system-settings.clear-cache');
 });
 
 // --- Sub-admin / Seller panel ---------------------------------------------
@@ -179,5 +249,9 @@ Route::prefix('seller')->name('subadmin.')->middleware(['auth', 'role:sub_admin,
     Route::get('/bills/create', [BillingController::class, 'create'])->name('bills.create');
     Route::post('/bills', [BillingController::class, 'store'])->name('bills.store');
     Route::get('/bills/{bill}', [BillingController::class, 'show'])->name('bills.show');
+    Route::get('/bills/{bill}/edit', [BillingController::class, 'edit'])->name('bills.edit');
+    Route::put('/bills/{bill}', [BillingController::class, 'update'])->name('bills.update');
+    Route::delete('/bills/{bill}', [BillingController::class, 'destroy'])->name('bills.destroy');
     Route::get('/accounts', [BillingController::class, 'sellerAccounts'])->name('accounts');
+    Route::get('/api/books/search', [BillingController::class, 'searchBooks'])->name('books.search');
 });

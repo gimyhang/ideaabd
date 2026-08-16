@@ -13,32 +13,49 @@ class BlogController extends Controller
 {
     public function index(Request $request)
     {
-        $query = BlogPost::published();
+        $query = BlogPost::with(['category', 'author', 'tags'])
+            ->where('status', 'published');
 
-        if ($request->search) {
-            $query->where('title', 'like', "%{$request->search}%")
-                  ->orWhere('content', 'like', "%{$request->search}%");
+        if ($request->filled('search')) {
+            $search = $request->string('search')->trim()->value();
+            $query->where(function ($sub) use ($search) {
+                $sub->where('title', 'like', "%{$search}%")
+                    ->orWhere('content', 'like', "%{$search}%")
+                    ->orWhere('excerpt', 'like', "%{$search}%");
+            });
         }
 
-        if ($request->category) {
+        if ($request->filled('category')) {
             $query->whereHas('category', function ($q) use ($request) {
                 $q->where('slug', $request->category);
             });
         }
 
-        if ($request->sort === 'latest') {
-            $query->latest('published_at');
-        } elseif ($request->sort === 'popular') {
-            $query->orderBy('view_count', 'desc');
+        if ($request->sort === 'popular') {
+            $query->orderByDesc('view_count');
         } else {
-            $query->latest('published_at');
+            $query->orderByDesc('published_at')->latest('id');
         }
 
-        $posts = $query->paginate(12);
-        $categories = BlogCategory::where('is_active', true)->get();
-        $featured = BlogPost::published()->featured()->limit(5)->get();
+        $posts = $query->paginate(12)->withQueryString();
+        
+        $categories = BlogCategory::withCount(['posts' => function($q) {
+            $q->where('status', 'published');
+        }])->where('is_active', true)->get();
 
-        return view('blog::index', compact('posts', 'categories', 'featured'));
+        $featured = BlogPost::with(['category', 'author'])
+            ->where('status', 'published')
+            ->where(function($q) {
+                $q->where('is_featured', true)->orWhereNotNull('featured_image');
+            })
+            ->latest('published_at')
+            ->limit(5)
+            ->get();
+
+        // Hero post (the top featured post)
+        $heroPost = $featured->first() ?: $posts->first();
+
+        return view('blog::index', compact('posts', 'categories', 'featured', 'heroPost'));
     }
 
     public function show($slug)

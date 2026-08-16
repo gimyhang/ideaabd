@@ -66,17 +66,17 @@
             <button class="btn d-flex align-items-center gap-2 px-2" data-bs-toggle="dropdown" aria-expanded="false">
                 <span class="adm-avatar">{{ $initial }}</span>
                 <span class="text-start d-none d-lg-block lh-sm">
-                    <span class="d-block fw-semibold small">{{ $me->name }}</span>
+                    <span class="d-block fw-semibold small">{{ $me->name ?? 'অ্যাডমিন' }}</span>
                     <span class="d-block text-muted" style="font-size:.72rem">
-                        {{ ['admin' => 'সাইট অ্যাডমিন', 'sub_admin' => 'সাব-অ্যাডমিন', 'seller' => 'সেলার'][$me->role] ?? $me->role }}
+                        {{ ['admin' => 'সাইট অ্যাডমিন', 'sub_admin' => 'সাব-অ্যাডমিন', 'seller' => 'সেলার'][$me->role ?? 'admin'] ?? ($me->role ?? 'অ্যাডমিন') }}
                     </span>
                 </span>
                 <i class="fas fa-chevron-down text-muted small"></i>
             </button>
             <ul class="dropdown-menu dropdown-menu-end shadow-sm">
                 <li class="px-3 py-2 border-bottom">
-                    <div class="fw-semibold small">{{ $me->name }}</div>
-                    <div class="text-muted" style="font-size:.75rem">{{ $me->email }}</div>
+                    <div class="fw-semibold small">{{ $me->name ?? 'অ্যাডমিন' }}</div>
+                    <div class="text-muted" style="font-size:.75rem">{{ $me->email ?? 'admin@ideaabd.com' }}</div>
                 </li>
                 @if (Route::has('admin.roles.index'))
                     <li><a class="dropdown-item" href="{{ route('admin.roles.index') }}"><i class="fas fa-user-shield me-2 text-primary"></i>পারমিশন ও এক্সেস</a></li>

@@ -2,19 +2,13 @@
 
 namespace Database\Seeders;
 
-use App\Models\Bill;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * One topical demo record per admin section, so every page in the panel has
- * something real to render.
- *
- * Idempotent: re-running updates the same rows instead of duplicating them.
- * All content is original placeholder copy written for this project.
+ * Demo catalog content (books, authors, categories, blog) without fake staff accounts.
  */
 class DemoContentSeeder extends Seeder
 {
@@ -22,14 +16,8 @@ class DemoContentSeeder extends Seeder
     {
         $now = now();
 
-        // Content tables carry FKs on `users`, so make sure an admin exists first.
-        $this->user('admin@ideaabd.com', [
-            'name'       => 'সাইট অ্যাডমিন',
-            'phone'      => '01726976982',
-            'role'       => User::ROLE_ADMIN,
-            'reg_status' => User::STATUS_APPROVED,
-            'reg_type'   => User::ROLE_ADMIN,
-        ]);
+        // Ensure main admin exists via AdminUserSeeder
+        $this->call(AdminUserSeeder::class);
 
         // ── Category ────────────────────────────────────────────────────
         $categoryId = $this->upsert('categories', ['slug' => 'uponnash'], [
@@ -57,14 +45,14 @@ class DemoContentSeeder extends Seeder
 
         // ── Author ──────────────────────────────────────────────────────
         $authorId = $this->upsert('authors', ['slug' => 'nabanita-rahman'], [
-            'name'        => 'নবনীতা রহমান',
-            'bio'         => 'সমকালীন বাংলা কথাসাহিত্যের লেখক। নদীভাঙন ও গ্রামীণ জীবন তাঁর লেখার প্রধান বিষয়।',
-            'email'       => 'nabanita@example.com',
-            'is_verified' => true,
-            'is_active'   => true,
+            'name'         => 'নবনীতা রহমান',
+            'bio'          => 'সমকালীন বাংলা কথাসাহিত্যের লেখক। নদীভাঙন ও গ্রামীণ জীবন তাঁর লেখার প্রধান বিষয়।',
+            'email'        => 'nabanita@example.com',
+            'is_verified'  => true,
+            'is_active'    => true,
             'is_publisher' => false,
-            'created_at'  => $now,
-            'updated_at'  => $now,
+            'created_at'   => $now,
+            'updated_at'   => $now,
         ]);
 
         // ── Book ────────────────────────────────────────────────────────
@@ -73,8 +61,7 @@ class DemoContentSeeder extends Seeder
             'publisher_id'   => $publisherId,
             'title'          => 'নদীর ওপার আকাশ',
             'isbn'           => '9789849001234',
-            'description'    => 'নদীভাঙনে ভিটেমাটি হারানো এক পরিবারের টিকে থাকার গল্প। '
-                              . 'বাস্তুচ্যুত মানুষের স্বপ্ন ও সংগ্রামের কথা উঠে এসেছে এই উপন্যাসে।',
+            'description'    => 'নদীভাঙনে ভিটেমাটি হারানো এক পরিবারের টিকে থাকার গল্প। বাস্তবচ্যুত মানুষের স্বপ্ন ও সংগ্রামের কথা উঠে এসেছে এই উপন্যাসে।',
             'price'          => 480.00,
             'discount_price' => 384.00,
             'preview_pages'  => 12,
@@ -120,12 +107,8 @@ class DemoContentSeeder extends Seeder
         $this->upsert('blog_posts', ['slug' => 'boi-porar-obhyash-gore-tola'], [
             'title'        => 'বই পড়ার অভ্যাস গড়ে তোলার সাতটি ধাপ',
             'excerpt'      => 'প্রতিদিন অল্প করে পড়েও বছরে অনেকগুলো বই শেষ করা সম্ভব — শুরুটা কীভাবে করবেন।',
-            'content'      => "পড়ার অভ্যাস একদিনে তৈরি হয় না। ছোট লক্ষ্য দিয়ে শুরু করলে সেটি টিকে থাকে।\n\n"
-                            . "প্রথম ধাপ: দিনে মাত্র দশ মিনিট নির্দিষ্ট করুন। সময়টি প্রতিদিন একই রাখুন।\n\n"
-                            . "দ্বিতীয় ধাপ: হাতের কাছে বই রাখুন। যে বই চোখে পড়ে, সেটিই পড়া হয়।\n\n"
-                            . "তৃতীয় ধাপ: পছন্দের বিষয় দিয়ে শুরু করুন, কঠিন বই দিয়ে নয়।",
+            'content'      => "পড়ার অভ্যাস একদিনে তৈরি হয় না। ছোট লক্ষ্য দিয়ে শুরু করলে সেটি টিকে থাকে।\n\nপ্রথম ধাপ: দিনে মাত্র দশ মিনিট নির্দিষ্ট করুন। সময়টি প্রতিদিন একই রাখুন।\n\nদ্বিতীয় ধাপ: হাতের কাছে বই রাখুন। যে বই চোখে পড়ে, সেটিই পড়া হয়।\n\nতৃতীয় ধাপ: পছন্দের বিষয় দিয়ে শুরু করুন, কঠিন বই দিয়ে নয়।",
             'category_id'  => $blogCategoryId,
-            // blog_posts.author_id is a FK on `users`, not on `authors`.
             'author_id'    => $this->anyUserId(),
             'status'       => 'published',
             'published_at' => $now->copy()->subDays(3),
@@ -152,13 +135,8 @@ class DemoContentSeeder extends Seeder
         // ── Research paper ──────────────────────────────────────────────
         $this->upsert('research_papers', ['slug' => 'grameen-pathagar-o-shikkha'], [
             'title'            => 'গ্রামীণ পাঠাগার ও প্রাথমিক শিক্ষার সম্পর্ক',
-            'abstract'         => 'গ্রামীণ পাঠাগারের উপস্থিতি প্রাথমিক পর্যায়ের শিক্ষার্থীদের পাঠদক্ষতায় '
-                                . 'কী প্রভাব ফেলে — তা নিয়ে একটি পর্যালোচনামূলক গবেষণা।',
-            'content'          => "ভূমিকা\n\nগ্রামীণ জনপদে পাঠাগার কেবল বই রাখার জায়গা নয় — এটি শিশুদের "
-                                . "প্রথম পাঠকেন্দ্র হিসেবেও কাজ করে।\n\nপদ্ধতি\n\nদেশের তিনটি উপজেলার "
-                                . "বারোটি প্রাথমিক বিদ্যালয়ের শিক্ষার্থীদের পাঠদক্ষতা পর্যালোচনা করা হয়েছে।\n\n"
-                                . "ফলাফল\n\nযেসব এলাকায় সক্রিয় পাঠাগার রয়েছে, সেখানে শিক্ষার্থীদের পঠন-বোধগম্যতা "
-                                . "তুলনামূলকভাবে ভালো পাওয়া গেছে।",
+            'abstract'         => 'গ্রামীণ পাঠাগারের উপস্থিতি প্রাথমিক পর্যায়ের শিক্ষার্থীদের পাঠদক্ষতায় কী প্রভাব ফেলে — তা নিয়ে একটি পর্যালোচনামূলক গবেষণা।',
+            'content'          => "ভূমিকা\n\nগ্রামীণ জনপদে পাঠাগার কেবল বই রাখার জায়গা নয় — এটি শিশুদের প্রথম পাঠকেন্দ্র হিসেবেও কাজ করে।\n\nপদ্ধতি\n\nদেশের তিনটি উপজেলার বারোটি প্রাথমিক বিদ্যালয়ের শিক্ষার্থীদের পাঠদক্ষতা পর্যালোচনা করা হয়েছে।\n\nফলাফল\n\nযেসব এলাকায় সক্রিয় পাঠাগার রয়েছে, সেখানে শিক্ষার্থীদের পঠন-বোধগম্যতা তুলনামূলকভাবে ভালো পাওয়া গেছে।",
             'author_id'        => $authorId,
             'keywords'         => 'পাঠাগার, প্রাথমিক শিক্ষা, পাঠদক্ষতা',
             'category'         => 'শিক্ষা',
@@ -184,98 +162,20 @@ class DemoContentSeeder extends Seeder
             'updated_at'  => $now,
         ]);
 
-        // ── Staff accounts ──────────────────────────────────────────────
-        $subAdmin = $this->user('subadmin.demo@ideaabd.com', [
-            'name'       => 'তানভীর হাসান',
-            'phone'      => '01711000001',
-            'role'       => User::ROLE_SUB_ADMIN,
-            'reg_status' => User::STATUS_APPROVED,
-            'reg_type'   => User::ROLE_SUB_ADMIN,
-        ]);
-
-        $seller = $this->user('seller.demo@ideaabd.com', [
-            'name'       => 'রুমানা আক্তার',
-            'phone'      => '01711000002',
-            'role'       => User::ROLE_SELLER,
-            'reg_status' => User::STATUS_APPROVED,
-            'reg_type'   => User::ROLE_SELLER,
-        ]);
-
-        // Pending registration, so the approval queue is not empty.
-        $this->user('author.pending@ideaabd.com', [
-            'name'       => 'সাদিয়া ইসলাম',
-            'phone'      => '01711000003',
-            'role'       => User::ROLE_AUTHOR,
-            'reg_status' => User::STATUS_PENDING,
-            'reg_type'   => User::ROLE_AUTHOR,
-            'reg_data'   => ['লেখার বিষয়' => 'ছোটগল্প', 'প্রকাশিত বই' => '২টি'],
-        ]);
-
-        // A buyer, so the role breakdown chart has more than one slice.
-        $this->user('buyer.demo@ideaabd.com', [
-            'name'       => 'আরিফুল ইসলাম',
-            'phone'      => '01711000004',
-            'role'       => User::ROLE_BUYER,
-            'reg_status' => User::STATUS_APPROVED,
-            'reg_type'   => User::ROLE_BUYER,
-        ]);
-
-        // ── Bill / order ────────────────────────────────────────────────
-        if ($seller && Schema::hasTable('bills')) {
-            Bill::updateOrCreate(['bill_no' => 'DEMO-0001'], [
-                'seller_id'      => $seller->id,
-                'customer_name'  => 'আরিফুল ইসলাম',
-                'customer_phone' => '01711000004',
-                'customer_email' => 'buyer.demo@ideaabd.com',
-                'items'          => [[
-                    'title'    => 'নদীর ওপার আকাশ',
-                    'quantity' => 2,
-                    'price'    => 384.00,
-                ]],
-                'subtotal'       => 768.00,
-                'discount'       => 0,
-                'tax'            => 0,
-                'total'          => 768.00,
-                'payment_method' => 'bkash',
-                'payment_status' => 'paid',
-                'notes'          => 'ডেমো অর্ডার — ড্যাশবোর্ড যাচাইয়ের জন্য।',
-            ]);
-
-            Bill::updateOrCreate(['bill_no' => 'DEMO-0002'], [
-                'seller_id'      => $subAdmin?->id ?? $seller->id,
-                'customer_name'  => 'মেহেদী হাসান',
-                'customer_phone' => '01711000005',
-                'items'          => [[
-                    'title'    => 'ডিজিটাল শিক্ষাভাবনা',
-                    'quantity' => 1,
-                    'price'    => 220.00,
-                ]],
-                'subtotal'       => 220.00,
-                'total'          => 220.00,
-                'payment_method' => 'cash',
-                'payment_status' => 'pending',
-                'notes'          => 'ডেমো অর্ডার — বাকি পেমেন্টের উদাহরণ।',
-            ]);
+        if ($this->command) {
+            $this->command->info('ডেমো কন্টেন্ট প্রস্তুত।');
         }
-
-        $this->command?->info('ডেমো কনটেন্ট প্রস্তুত।');
     }
 
-    /**
-     * Insert-or-update a row on a table that may not exist in this deployment.
-     *
-     * @return int|null  the row id, or null when the table is absent
-     */
     private function upsert(string $table, array $match, array $values): ?int
     {
         if (! Schema::hasTable($table)) {
-            $this->command?->warn("এড়িয়ে যাওয়া হলো: `{$table}` টেবিল নেই।");
-
+            if ($this->command) {
+                $this->command->warn("এড়িয়ে যাওয়া হলো: `{$table}` টেবিল নেই।");
+            }
             return null;
         }
 
-        // Only write columns the table actually has, so a schema drift between
-        // deployments cannot break the seeder.
         $values = array_filter(
             $values,
             fn ($key) => Schema::hasColumn($table, $key),
@@ -287,24 +187,9 @@ class DemoContentSeeder extends Seeder
         return (int) DB::table($table)->where($match)->value('id');
     }
 
-    /** An admin user id, falling back to any user — used for FKs on `users`. */
     private function anyUserId(): ?int
     {
         return User::where('role', User::ROLE_ADMIN)->value('id')
             ?? User::query()->value('id');
-    }
-
-    private function user(string $email, array $attributes): ?User
-    {
-        try {
-            return User::withTrashed()->updateOrCreate(
-                ['email' => $email],
-                [...$attributes, 'password' => Hash::make('password'), 'is_active' => true, 'deleted_at' => null],
-            );
-        } catch (\Throwable $e) {
-            $this->command?->warn("ব্যবহারকারী তৈরি হয়নি ({$email}): {$e->getMessage()}");
-
-            return null;
-        }
     }
 }

@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Modules\Blog\Models\BlogCategory;
-use Modules\User\Models\User;
+use App\Models\User;
 use Modules\Blog\Models\BlogTag;
 
 class BlogPost extends Model

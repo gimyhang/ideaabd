@@ -30,6 +30,7 @@ class User extends Authenticatable
         'name', 'email', 'phone', 'password',
         'role', 'avatar', 'is_active',
         'reg_status', 'reg_type', 'reg_data',
+        'loyalty_points', 'affiliate_balance',
     ];
 
     protected $hidden = ['password', 'remember_token'];
@@ -41,6 +42,8 @@ class User extends Authenticatable
             'password'          => 'hashed',
             'is_active'         => 'boolean',
             'reg_data'          => 'array',
+            'loyalty_points'    => 'integer',
+            'affiliate_balance' => 'decimal:2',
         ];
     }
 
@@ -59,6 +62,11 @@ class User extends Authenticatable
     public function isRejected(): bool { return $this->reg_status === self::STATUS_REJECTED; }
 
     // ─── Relationships ───────────────────────────────────────────────
+    public function orders()
+    {
+        return $this->hasMany(\App\Models\Order::class, 'user_id');
+    }
+
     public function bills()
     {
         return $this->hasMany(\App\Models\Bill::class, 'seller_id');

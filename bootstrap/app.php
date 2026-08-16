@@ -15,6 +15,13 @@ return Application::configure(basePath: dirname(__DIR__))
             'payment/bkash/callback',
             'payment/nagad/callback',
         ]);
+        
+        $middleware->web(append: [
+            \App\Http\Middleware\SetLocale::class,
+            \App\Http\Middleware\AffiliateTracking::class,
+            \App\Http\Middleware\TrackVisitor::class,
+        ]);
+
         $middleware->alias([
             'role' => \App\Http\Middleware\RoleMiddleware::class,
         ]);

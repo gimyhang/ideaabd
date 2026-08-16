@@ -2,7 +2,11 @@
 <html lang="bn">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <meta name="theme-color" content="#0066cc">
+    <meta name="color-scheme" content="light">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'ideaabd - অনলাইন বই এবং পণ্যের মার্কেটপ্লেস')</title>
     
@@ -91,11 +95,41 @@
 
     <!-- Main Content -->
     <main class="flex-grow-1">
+        @if (session('success'))
+            <div class="container mt-3">
+                <div class="alert alert-success alert-dismissible fade show rounded-4 shadow-sm border-0 d-flex align-items-center gap-2 p-3" role="alert">
+                    <i class="fa-solid fa-circle-check fs-4 text-success flex-shrink-0"></i>
+                    <div class="fw-semibold">{{ session('success') }}</div>
+                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            </div>
+            <script>
+                // Clear localStorage cart on successful order
+                try {
+                    localStorage.removeItem('idea_cart');
+                    if (typeof updateHeaderCartBadge === 'function') updateHeaderCartBadge();
+                } catch(e) {}
+            </script>
+        @endif
+
+        @if (session('error'))
+            <div class="container mt-3">
+                <div class="alert alert-danger alert-dismissible fade show rounded-4 shadow-sm border-0 d-flex align-items-center gap-2 p-3" role="alert">
+                    <i class="fa-solid fa-circle-exclamation fs-4 text-danger flex-shrink-0"></i>
+                    <div class="fw-semibold">{{ session('error') }}</div>
+                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            </div>
+        @endif
+
         @yield('content')
     </main>
 
     <!-- Footer -->
     @include('layouts.footer')
+
+    <!-- Global Cart Drawer -->
+    @include('partials.cart-drawer')
 
     <!-- Bootstrap JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
@@ -110,6 +144,94 @@
                     new bootstrap.Alert(alert).close();
                 }, 3000);
             });
+        });
+    </script>
+    
+    <!-- Social Proof Bubble -->
+    <div id="social-proof-bubble" class="social-proof-bubble d-none">
+        <div class="d-flex align-items-center">
+            <div class="bubble-icon">
+                <i class="fas fa-shopping-bag text-primary"></i>
+            </div>
+            <div class="bubble-text ms-3">
+                <p class="mb-0 small"><strong id="sp-name">রহিম</strong> (<span id="sp-district">ঢাকা</span>) এইমাত্র কিনেছেন</p>
+                <h6 class="mb-0 text-primary" id="sp-book">শঙ্খনীল কারাগার</h6>
+                <small class="text-muted" id="sp-time">5 minutes ago</small>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .social-proof-bubble {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            padding: 12px 15px;
+            z-index: 1050;
+            max-width: 300px;
+            border-left: 4px solid var(--primary-accent);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+        .social-proof-bubble.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .bubble-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--primary-light);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Social Proof Logic
+            fetch('/api/recent-orders')
+                .then(res => res.json())
+                .then(data => {
+                    if(data.length > 0) {
+                        let currentIndex = 0;
+                        const bubble = document.getElementById('social-proof-bubble');
+                        
+                        setInterval(() => {
+                            // Hide bubble first if showing
+                            bubble.classList.remove('show');
+                            
+                            setTimeout(() => {
+                                const order = data[currentIndex];
+                                document.getElementById('sp-name').innerText = order.customer_name;
+                                document.getElementById('sp-district').innerText = order.district;
+                                document.getElementById('sp-book').innerText = order.book_title;
+                                document.getElementById('sp-time').innerText = order.time_ago;
+                                
+                                bubble.classList.remove('d-none');
+                                // Force reflow
+                                void bubble.offsetWidth;
+                                bubble.classList.add('show');
+                                
+                                currentIndex = (currentIndex + 1) % data.length;
+                                
+                                // Hide after 5 seconds
+                                setTimeout(() => {
+                                    bubble.classList.remove('show');
+                                }, 5000);
+                                
+                            }, 500); // wait for fade out
+                            
+                        }, 25000); // Show every 25 seconds
+                    }
+                })
+                .catch(err => console.log('Social proof error:', err));
         });
     </script>
     

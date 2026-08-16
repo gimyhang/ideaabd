@@ -38,4 +38,9 @@ class Publisher extends Model
     {
         return $this->hasMany(Book::class, 'publisher_id');
     }
+
+    public function ebooks()
+    {
+        return $this->hasMany(\Modules\Ebook\Models\Ebook::class, 'publisher_id');
+    }
 }

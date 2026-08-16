@@ -128,6 +128,10 @@ class ContentController extends Controller
 
         $attributes += $this->creditAttributes($request, $spec, isNew: true);
 
+        if ($type === 'blog' && ($attributes['status'] ?? null) === 'published' && empty($attributes['published_at'])) {
+            $attributes['published_at'] = now();
+        }
+
         $record->forceFill($attributes)->save();
 
         return redirect()
@@ -163,6 +167,10 @@ class ContentController extends Controller
         }
 
         $attributes += $this->creditAttributes($request, $spec, isNew: false);
+
+        if ($type === 'blog' && ($attributes['status'] ?? null) === 'published' && empty($record->published_at)) {
+            $attributes['published_at'] = now();
+        }
 
         $record->forceFill($attributes)->save();
 
@@ -294,7 +302,39 @@ class ContentController extends Controller
             'mod_status'   => 'অনুমোদন অবস্থা',
         ];
 
-        return $request->validate($rules, [], $attributes);
+        $validated = $request->validate($rules, [], $attributes);
+
+        if ($request->filled('summary')) {
+            $summaryClean = trim(strip_tags((string) $request->input('summary')));
+            $words = preg_split('/\s+/u', $summaryClean, -1, PREG_SPLIT_NO_EMPTY);
+            if (count($words) > 400) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'summary' => 'বইয়ের সারসংক্ষেপ (Product Summary) সর্বোচ্চ ৪০০ শব্দের মধ্যে হতে হবে। বর্তমানে ' . count($words) . ' টি শব্দ রয়েছে।',
+                ]);
+            }
+        }
+
+        if ($request->filled('description')) {
+            $descClean = trim(strip_tags((string) $request->input('description')));
+            $words = preg_split('/\s+/u', $descClean, -1, PREG_SPLIT_NO_EMPTY);
+            if (count($words) > 400) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'description' => 'বিস্তারিত ফ্ল্যাপ ও বিবরণ সর্বোচ্চ ৪০০ শব্দের মধ্যে হতে হবে। বর্তমানে ' . count($words) . ' টি শব্দ রয়েছে।',
+                ]);
+            }
+        }
+
+        if ($request->filled('author_bio')) {
+            $bioClean = trim(strip_tags((string) $request->input('author_bio')));
+            $words = preg_split('/\s+/u', $bioClean, -1, PREG_SPLIT_NO_EMPTY);
+            if (count($words) > 300) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'author_bio' => 'লেখক পরিচিতি সর্বোচ্চ ৩০০ শব্দের মধ্যে হতে হবে। বর্তমানে ' . count($words) . ' টি শব্দ রয়েছে।',
+                ]);
+            }
+        }
+
+        return $validated;
     }
 
     /**
@@ -449,6 +489,27 @@ class ContentController extends Controller
             }
 
             $attributes[$name] = $value === '' ? null : $value;
+        }
+
+        if ($spec['table'] === 'ebooks') {
+            if ($request->hasFile('file_path')) {
+                $uploaded = $request->file('file_path');
+                $ext = strtolower($uploaded->getClientOriginalExtension());
+                $attributes['file_type'] = $ext;
+                $sizeBytes = $uploaded->getSize();
+                $attributes['file_size'] = $sizeBytes >= 1048576 
+                    ? round($sizeBytes / 1048576, 1) . ' MB' 
+                    : round($sizeBytes / 1024) . ' KB';
+            }
+            $hasEpub = $request->hasFile('epub_file_path') || !empty($attributes['epub_file_path']) || ($attributes['file_type'] ?? '') === 'epub';
+            $hasPdf = !empty($attributes['file_path']) && ($attributes['file_type'] ?? '') === 'pdf';
+            if ($hasEpub && $hasPdf) {
+                $attributes['format'] = 'both';
+            } elseif ($hasEpub) {
+                $attributes['format'] = 'epub';
+            } else {
+                $attributes['format'] = 'pdf';
+            }
         }
 
         return $attributes;
@@ -607,13 +668,44 @@ class ContentController extends Controller
                 continue;
             }
 
+            if ($table === 'categories') {
+                $categories = DB::table('categories')
+                    ->whereNull('deleted_at')
+                    ->orderBy('name')
+                    ->get(['id', 'name', 'parent_id']);
+
+                $cats = [];
+                $parents = $categories->whereNull('parent_id');
+                $children = $categories->whereNotNull('parent_id');
+
+                foreach ($parents as $p) {
+                    $cats[$p->id] = $p->name;
+                    foreach ($children->where('parent_id', $p->id) as $child) {
+                        $cats[$child->id] = '— ' . $child->name . ' (' . $p->name . ')';
+                    }
+                }
+                foreach ($children as $c) {
+                    if (!isset($cats[$c->id])) {
+                        $cats[$c->id] = $c->name;
+                    }
+                }
+                $lookups['categories'] = $cats;
+                continue;
+            }
+
+            if ($table === 'parent_categories') {
+                $lookups['parent_categories'] = DB::table('categories')
+                    ->whereNull('parent_id')
+                    ->whereNull('deleted_at')
+                    ->orderBy('name')
+                    ->pluck('name', 'id')
+                    ->all();
+                continue;
+            }
+
             $column = $labels[$table] ?? 'name';
 
             $query = DB::table($table);
-            
-            if ($table === 'categories') {
-                $query->whereNull('parent_id');
-            }
 
             $lookups[$table] = $query
                 ->orderBy($column)

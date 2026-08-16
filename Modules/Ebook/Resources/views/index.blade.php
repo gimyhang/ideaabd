@@ -1,0 +1,1 @@
+@include('ebook::frontend.index')

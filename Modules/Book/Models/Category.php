@@ -73,4 +73,12 @@ class Category extends Model
     {
         return $this->hasMany(Book::class, 'category_id');
     }
+
+    /**
+     * Ebooks in this category
+     */
+    public function ebooks(): HasMany
+    {
+        return $this->hasMany(\Modules\Ebook\Models\Ebook::class, 'category_id');
+    }
 }

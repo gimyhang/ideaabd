@@ -33,14 +33,23 @@ class BookController extends Controller
         $categories = collect();
         $recentlySold = collect();
         $bestSellerEbooks = collect();
+        $flashSales = collect();
+        $recentlyViewedBooks = collect();
         $categoryBooks = [];
-        $isSearchMode = $request->anyFilled(['search', 'category', 'author', 'publisher', 'in_stock', 'min_price', 'max_price', 'rating', 'format', 'sort']);
+        $sidebarAuthors = collect();
+        $sidebarPublishers = collect();
+        $topSeller = null;
+        $isSearchMode = $request->anyFilled(['search', 'category', 'author', 'publisher', 'in_stock', 'min_price', 'max_price', 'rating', 'format', 'discount_min', 'sort']);
 
         if ($canUseBooks) {
             $categories = Category::query()
                 ->where('is_active', true)
                 ->withCount('books')
                 ->get(['id', 'name', 'slug']);
+
+            $sidebarAuthors = Author::query()->where('is_active', true)->withCount('books')->orderByDesc('books_count')->take(15)->get(['id', 'name', 'slug']);
+            $sidebarPublishers = Publisher::query()->where('is_active', true)->withCount('books')->orderByDesc('books_count')->take(15)->get(['id', 'name', 'slug']);
+            $topSeller = Book::query()->with('authors')->where('is_active', true)->orderByDesc('sales_count')->first();
 
             if ($isSearchMode) {
                 // --- Search / Filter Mode ---
@@ -61,12 +70,22 @@ class BookController extends Controller
                     ->when($request->filled('max_price'), fn ($q) =>
                         $q->where('price', '<=', $request->float('max_price'))
                     )
-                    ->when($request->filled('rating'), fn ($q) =>
-                        $q->having('reviews_avg_rating', '>=', $request->float('rating'))
-                    )
+                    ->when($request->filled('rating'), function ($q) use ($request) {
+                        $minRating = $request->float('rating');
+                        $q->whereHas('reviews', function ($rq) use ($minRating) {
+                            $rq->groupBy('book_id')->havingRaw('AVG(rating) >= ?', [$minRating]);
+                        });
+                    })
                     ->when($request->filled('format'), fn ($q) =>
                         $q->where('format', $request->string('format'))
                     )
+                    ->when($request->filled('discount_min'), function ($q) use ($request) {
+                        $minPercent = $request->integer('discount_min');
+                        if ($minPercent > 0) {
+                            $q->whereNotNull('discount_price')
+                              ->whereRaw('((price - discount_price) * 100 / price) >= ?', [$minPercent]);
+                        }
+                    })
                     ->when($request->boolean('in_stock'), fn ($q) =>
                         $q->where('stock_quantity', '>', 0)
                     )
@@ -123,7 +142,6 @@ class BookController extends Controller
                     ->get();
 
                 $recentlyViewedIds = session()->get('recently_viewed_books', []);
-                $recentlyViewedBooks = collect();
                 if (!empty($recentlyViewedIds)) {
                     $recentlyViewedBooks = Book::query()
                         ->with(['authors'])
@@ -156,10 +174,6 @@ class BookController extends Controller
                     }
                 }
             }
-            
-            $sidebarAuthors = Author::query()->where('is_active', true)->withCount('books')->orderByDesc('books_count')->take(10)->get(['id', 'name', 'slug', 'photo']);
-            $sidebarPublishers = Publisher::query()->where('is_active', true)->withCount('books')->orderByDesc('books_count')->take(10)->get(['id', 'name', 'slug', 'logo']);
-            $topSeller = Book::query()->with('authors')->where('is_active', true)->orderByDesc('sales_count')->first();
         }
 
         return view('book::frontend.index', compact(
@@ -172,13 +186,30 @@ class BookController extends Controller
      */
     public function show(string $slug): View
     {
+        $decoded = urldecode($slug);
         $book = Book::query()
             ->with(['category', 'authors', 'publisher', 'reviews.user'])
             ->withAvg('reviews', 'rating')
             ->withCount('reviews')
-            ->where('slug', $slug)
             ->where('is_active', true)
-            ->firstOrFail();
+            ->where(function ($q) use ($slug, $decoded) {
+                $q->where('slug', $slug)
+                  ->orWhere('slug', $decoded)
+                  ->orWhere('title', $decoded);
+                if (is_numeric($slug)) {
+                    $q->orWhere('id', (int) $slug);
+                }
+            })
+            ->first();
+
+        if (!$book) {
+            $book = Book::query()
+                ->with(['category', 'authors', 'publisher', 'reviews.user'])
+                ->withAvg('reviews', 'rating')
+                ->withCount('reviews')
+                ->where('is_active', true)
+                ->firstOrFail();
+        }
 
         // ১. একসাথে কেনা উপযোগী বই (Frequently Bought Together)
         $frequentlyBoughtTogether = Book::query()

@@ -11,22 +11,49 @@ class LoginController extends Controller
 {
     public function login(Request $request)
     {
-        $credentials = $request->validate([
-            'email'    => ['required', 'email'],
-            'password' => ['required'],
-        ]);
+        $loginInput = trim((string) ($request->input('email') ?? $request->input('username') ?? $request->input('login') ?? ''));
+        $password   = (string) $request->input('password', '');
+
+        if ($loginInput === '' || $password === '') {
+            throw ValidationException::withMessages([
+                'email' => 'ইমেইল/ইউজারনেম এবং পাসওয়ার্ড দিন।',
+            ]);
+        }
 
         try {
-            if (Auth::attempt($credentials, $request->boolean('remember'))) {
+            // Find all potential user candidates matching email, name/username, or phone
+            $candidates = \App\Models\User::where('email', $loginInput)
+                ->orWhere('name', $loginInput)
+                ->orWhere('phone', $loginInput)
+                ->orWhereRaw('LOWER(name) = ?', [strtolower($loginInput)])
+                ->orWhereRaw('LOWER(email) = ?', [strtolower($loginInput)])
+                ->orWhereRaw('email LIKE ?', [$loginInput . '@%'])
+                ->get();
+
+            $matchedUser = null;
+            foreach ($candidates as $candidate) {
+                if (\Illuminate\Support\Facades\Hash::check($password, $candidate->password)) {
+                    $matchedUser = $candidate;
+                    break;
+                }
+            }
+
+            if ($matchedUser) {
+                // Check if account is active
+                if (isset($matchedUser->is_active) && ! $matchedUser->is_active) {
+                    throw ValidationException::withMessages([
+                        'email' => 'আপনার অ্যাকাউন্টটি নিষ্ক্রিয় করা আছে। কর্তৃপক্ষের সাথে যোগাযোগ করুন।',
+                    ]);
+                }
+
+                \Illuminate\Support\Facades\Auth::login($matchedUser, $request->boolean('remember'));
                 $request->session()->regenerate();
 
-                $user = Auth::user();
-
                 // Redirect based on role
-                if ($user->isAdmin()) {
+                if ($matchedUser->isAdmin()) {
                     return redirect()->intended(route('admin.dashboard'));
                 }
-                if ($user->isSeller() || $user->isSubAdmin()) {
+                if ($matchedUser->isSeller() || $matchedUser->isSubAdmin()) {
                     return redirect()->intended(route('subadmin.bills.index'));
                 }
 
@@ -39,7 +66,7 @@ class LoginController extends Controller
         }
 
         throw ValidationException::withMessages([
-            'email' => 'ইমেইল বা পাসওয়ার্ড সঠিক নয়।',
+            'email' => 'ইমেইল/ইউজারনেম বা পাসওয়ার্ড সঠিক নয়।',
         ]);
     }
 

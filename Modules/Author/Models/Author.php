@@ -45,7 +45,7 @@ class Author extends Model
 
     public function ebooks()
     {
-        return $this->belongsToMany(\Modules\Ebook\Models\Ebook::class, 'ebook_author', 'author_id', 'ebook_id');
+        return $this->hasMany(\Modules\Ebook\Models\Ebook::class, 'author_id');
     }
 
     public function submissions()

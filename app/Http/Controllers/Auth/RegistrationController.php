@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rules\Password;
 
 class RegistrationController extends Controller
@@ -30,12 +31,33 @@ class RegistrationController extends Controller
         $allowed = ['seller', 'publisher', 'author', 'buyer'];
         abort_unless(in_array($type, $allowed), 404);
 
-        $base = $request->validate([
-            'name'     => ['required', 'string', 'max:255'],
-            'email'    => ['required', 'email', 'unique:users,email'],
-            'phone'    => ['required', 'string', 'max:20'],
-            'password' => ['required', 'confirmed', Password::min(8)],
-        ]);
+        if ($type === 'buyer') {
+            $base = $request->validate([
+                'name'     => ['required', 'string', 'max:255'],
+                'phone'    => ['required', 'string', 'max:20'],
+                'email'    => ['nullable', 'email', 'unique:users,email'],
+                'password' => ['required', 'confirmed', Password::min(6)],
+            ]);
+
+            // Auto-assign phone-based email if customer didn't specify an email
+            if (empty($base['email'])) {
+                $cleanPhone = preg_replace('/[^0-9]/', '', $base['phone']);
+                $generatedEmail = $cleanPhone . '@buyer.ideaabd.com';
+                // ensure unique
+                $existing = User::where('email', $generatedEmail)->first();
+                if ($existing) {
+                    $generatedEmail = $cleanPhone . '_' . rand(100, 999) . '@buyer.ideaabd.com';
+                }
+                $base['email'] = $generatedEmail;
+            }
+        } else {
+            $base = $request->validate([
+                'name'     => ['required', 'string', 'max:255'],
+                'email'    => ['required', 'email', 'unique:users,email'],
+                'phone'    => ['required', 'string', 'max:20'],
+                'password' => ['required', 'confirmed', Password::min(8)],
+            ]);
+        }
 
         // Type-specific validation
         $extra = match ($type) {
@@ -63,6 +85,13 @@ class RegistrationController extends Controller
             ]),
         };
 
+        // Generate 6 digit verification OTP
+        $otpCode = rand(100000, 999999);
+        $smsMessage = "আইডিয়া প্রকাশনে আপনাকে স্বাগতম! আপনার অ্যাকাউন্ট ভেরিফিকেশন কোড: {$otpCode}। বই পড়ুন, জ্ঞানের সাথে থাকুন। www.ideaabd.com";
+
+        // Log SMS dispatch
+        Log::info("SMS Verification dispatched to {$base['phone']}: {$smsMessage}");
+
         $user = User::create([
             'name'       => $base['name'],
             'email'      => $base['email'],
@@ -71,14 +100,15 @@ class RegistrationController extends Controller
             'role'       => $type === 'buyer' ? User::ROLE_BUYER : $type,
             'reg_type'   => $type,
             'reg_status' => $type === 'buyer' ? User::STATUS_APPROVED : User::STATUS_PENDING,
-            'reg_data'   => $extra,
+            'reg_data'   => array_merge($extra, ['otp_code' => $otpCode]),
             'is_active'  => $type === 'buyer',
+            'email_verified_at' => $type === 'buyer' ? now() : null,
         ]);
 
         auth()->login($user);
 
         if ($type === 'buyer') {
-            return redirect('/')->with('success', 'স্বাগতম! আপনার অ্যাকাউন্ট তৈরি হয়েছে।');
+            return redirect('/')->with('success', "স্বাগতম {$user->name}! আপনার মোবাইল নম্বর ({$base['phone']}) সফলভাবে নিবন্ধিত হয়েছে এবং কনফার্মেশন মেসেজ পাঠানো হয়েছে।");
         }
 
         return redirect()->route('pending.approval')

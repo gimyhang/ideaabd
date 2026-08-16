@@ -14,6 +14,7 @@
         ],
         'ক্যাটালগ' => [
             ['route' => 'admin.books',      'icon' => 'book',        'label' => 'বই'],
+            ['route' => 'admin.categories', 'icon' => 'folder-tree', 'label' => 'ক্যাটাগরি'],
             ['route' => 'admin.ebooks',     'icon' => 'tablet-screen-button', 'label' => 'ই-বুক'],
             ['route' => 'admin.authors',    'icon' => 'pen-fancy',   'label' => 'লেখক'],
             ['route' => 'admin.publishers', 'icon' => 'building',    'label' => 'প্রকাশক'],
@@ -24,7 +25,9 @@
         ],
         'বিক্রয়' => [
             ['route' => 'admin.ecommerce-orders', 'icon' => 'cart-shopping', 'label' => 'বইয়ের অর্ডার'],
-            ['route' => 'admin.orders', 'icon' => 'receipt', 'label' => 'সেলার বিল'],
+            ['route' => 'admin.payments.index',   'icon' => 'credit-card',   'label' => 'পেমেন্ট ও গেটওয়ে'],
+            ['route' => 'admin.customers',        'icon' => 'user-tag',      'label' => 'গ্রাহক ও ব্রডকাস্ট'],
+            ['route' => 'admin.orders',           'icon' => 'receipt',       'label' => 'সেলার বিল'],
             ['route' => 'admin.book-requests.index', 'icon' => 'code-pull-request', 'label' => 'বই রিকোয়েস্ট'],
         ],
         'ব্যবহারকারী' => [
@@ -35,6 +38,7 @@
         ],
         'অ্যাডমিন এক্সেস' => [
             ['route' => 'admin.roles.index',       'icon' => 'key',             'label' => 'পারমিশন ম্যাট্রিক্স'],
+            ['route' => 'admin.visitor-reports',   'icon' => 'chart-line',     'label' => 'ভিজিটর রিপোর্ট'],
             ['route' => 'admin.activity-logs',     'icon' => 'clock-rotate-left', 'label' => 'অ্যাক্টিভিটি লগ'],
             ['route' => 'admin.system-settings',   'icon' => 'sliders',         'label' => 'সিস্টেম সেটিংস'],
         ],

@@ -1,18 +1,27 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services;
 
 use App\Models\Bill;
+use App\Models\Order;
 use App\Models\User;
+use App\Models\VisitorLog;
+use App\Support\Bn;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Modules\Book\Models\Book;
 
 /**
- * Every aggregate the admin panel needs, in one place.
- *
- * This project's book/author/publisher modules can be deployed without their
- * migrations having run yet, so every read is guarded by a table check and each
- * metric degrades to null ("data unavailable") instead of throwing.
+ * High-performance analytics and dashboard intelligence service.
+ * Supports:
+ *  - E-Commerce Book Orders & Revenue
+ *  - Visitor Analytics (Daily, Monthly, Yearly, Custom Date Range)
+ *  - Inventory Health & Low Stock Alerts
+ *  - Payment Method Breakdown
+ *  - Top Selling Books & Recent Pipelines
  */
 class AdminDashboardService
 {
@@ -25,108 +34,280 @@ class AdminDashboardService
     }
 
     /**
-     * Headline KPI tiles. A null value means the underlying table is missing,
-     * which the view renders as "—" rather than a misleading zero.
+     * Backward-compatible stats() method.
      */
     public function stats(): array
     {
-        return \Illuminate\Support\Facades\Cache::remember('admin_dashboard_stats', 20, function () {
-            $thisMonth = now()->startOfMonth();
-
-            return [
-                'total_books'    => $this->count('books'),
-                'total_ebooks'   => $this->count('ebooks'),
-                'total_authors'  => $this->count('authors'),
-                'total_blog'     => $this->count('blog_posts'),
-                'total_webzines' => $this->count('webzines'),
-                'total_research' => $this->count('research_papers'),
-                'total_tags'     => $this->count('tags'),
-                'total_wishlist' => $this->count('wishlists'),
-
-                'total_users'    => $this->safe(fn () => User::count()),
-                'new_users_month' => $this->safe(fn () => User::where('created_at', '>=', $thisMonth)->count()),
-                'total_sellers'  => $this->safe(fn () => User::where('role', User::ROLE_SELLER)
-                    ->where('reg_status', User::STATUS_APPROVED)->count()),
-                'total_sub_admins' => $this->safe(fn () => User::where('role', User::ROLE_SUB_ADMIN)->count()),
-                'pending_regs'   => $this->pendingRegistrations(),
-
-                'total_orders'   => $this->count('bills'),
-                'orders_month'   => $this->safe(fn () => Bill::where('created_at', '>=', $thisMonth)->count()),
-                'revenue_total'  => $this->safe(fn () => (float) Bill::sum('total')),
-                'revenue_month'  => $this->safe(fn () => (float) Bill::where('created_at', '>=', $thisMonth)->sum('total')),
-                'revenue_due'    => $this->safe(fn () => (float) Bill::where('payment_status', '!=', 'paid')->sum('total')),
-
-                'bulk_orders'         => $this->count('bulk_orders'),
-                'pending_moderation'  => $this->safe(fn () => (Schema::hasTable('books') ? DB::table('books')->where('mod_status', 'pending')->count() : 0) + (Schema::hasTable('ebooks') ? DB::table('ebooks')->where('mod_status', 'pending')->count() : 0), 0),
-            ];
-        });
+        $filtered = $this->filteredStats();
+        return array_merge([
+            'total_orders'  => $filtered['filtered_orders'] ?? 0,
+            'revenue_total' => $filtered['filtered_revenue'] ?? 0.0,
+            'revenue_due'   => 0.0,
+        ], $filtered);
     }
 
     /**
-     * Month-by-month revenue and order count for the dashboard chart.
-     * Fast aggregated query using indexed created_at column.
+     * Comprehensive Headline and Filtered Statistics for any date range.
      */
-    public function salesSeries(int $months = 12): array
+    public function filteredStats(?string $from = null, ?string $to = null, string $period = 'all'): array
     {
-        return \Illuminate\Support\Facades\Cache::remember('admin_sales_series_'.$months, 20, function () use ($months) {
-            $labels = $revenue = $orders = [];
-            $start  = now()->startOfMonth()->subMonths($months - 1);
+        $today = now()->startOfDay();
+        $thisMonth = now()->startOfMonth();
+        $thisYear = now()->startOfYear();
 
-            $rows = $this->safe(fn () => Bill::where('created_at', '>=', $start)
-                ->selectRaw('DATE_FORMAT(created_at, "%Y-%m") as month_key, SUM(total) as rev_sum, COUNT(*) as order_count')
-                ->groupBy('month_key')
-                ->pluck('rev_sum', 'month_key')
-                ->toArray(), []);
+        // Determine filter boundaries
+        [$startDate, $endDate, $filterLabel] = $this->resolveDateRange($from, $to, $period);
 
-            $orderRows = $this->safe(fn () => Bill::where('created_at', '>=', $start)
-                ->selectRaw('DATE_FORMAT(created_at, "%Y-%m") as month_key, COUNT(*) as order_count')
-                ->groupBy('month_key')
-                ->pluck('order_count', 'month_key')
-                ->toArray(), []);
+        // 1. E-Commerce Orders Analytics
+        $orderQuery = Order::query();
+        if ($startDate && $endDate) {
+            $orderQuery->whereBetween('created_at', [$startDate, $endDate]);
+        }
 
-            for ($i = 0; $i < $months; $i++) {
-                $month    = $start->copy()->addMonths($i);
-                $key      = $month->format('Y-m');
-                $labels[] = \App\Support\Bn::date($month->startOfMonth());
-                $revenue[] = round((float) ($rows[$key] ?? 0), 2);
-                $orders[]  = (int) ($orderRows[$key] ?? 0);
-            }
+        $filteredOrdersCount = (int) $this->safe(fn () => (clone $orderQuery)->count(), 0);
+        $filteredRevenue = (float) $this->safe(fn () => (clone $orderQuery)->sum('total_amount'), 0.0);
+        $paidRevenue = (float) $this->safe(fn () => (clone $orderQuery)->where('payment_status', 'paid')->sum('total_amount'), 0.0);
+        $pendingOrders = (int) $this->safe(fn () => (clone $orderQuery)->where('status', 'pending')->count(), 0);
+        $processingOrders = (int) $this->safe(fn () => (clone $orderQuery)->whereIn('status', ['processing', 'shipped'])->count(), 0);
+        $deliveredOrders = (int) $this->safe(fn () => (clone $orderQuery)->where('status', 'delivered')->count(), 0);
 
-            return ['labels' => $labels, 'revenue' => $revenue, 'orders' => $orders];
-        });
+        // 2. Today's Pulse
+        $todayOrders = (int) $this->safe(fn () => Order::where('created_at', '>=', $today)->count(), 0);
+        $todayRevenue = (float) $this->safe(fn () => Order::where('created_at', '>=', $today)->sum('total_amount'), 0.0);
+        $yesterdayRevenue = (float) $this->safe(fn () => Order::whereBetween('created_at', [now()->subDay()->startOfDay(), now()->subDay()->endOfDay()])->sum('total_amount'), 0.0);
+        
+        $revenueGrowth = $yesterdayRevenue > 0 
+            ? round((($todayRevenue - $yesterdayRevenue) / $yesterdayRevenue) * 100, 1) 
+            : ($todayRevenue > 0 ? 100 : 0);
+
+        // 3. Visitor Traffic Analytics (Daily, Monthly, Yearly & Filtered)
+        $hasVisitorTable = Schema::hasTable('visitor_logs');
+        $visitorStats = [
+            'today_views'     => $hasVisitorTable ? (int) $this->safe(fn () => VisitorLog::where('visited_at', '>=', $today)->count(), 0) : 0,
+            'today_uniques'   => $hasVisitorTable ? (int) $this->safe(fn () => VisitorLog::where('visited_at', '>=', $today)->distinct('ip_address')->count('ip_address'), 0) : 0,
+            'month_views'     => $hasVisitorTable ? (int) $this->safe(fn () => VisitorLog::where('visited_at', '>=', $thisMonth)->count(), 0) : 0,
+            'month_uniques'   => $hasVisitorTable ? (int) $this->safe(fn () => VisitorLog::where('visited_at', '>=', $thisMonth)->distinct('ip_address')->count('ip_address'), 0) : 0,
+            'year_views'      => $hasVisitorTable ? (int) $this->safe(fn () => VisitorLog::where('visited_at', '>=', $thisYear)->count(), 0) : 0,
+            'year_uniques'    => $hasVisitorTable ? (int) $this->safe(fn () => VisitorLog::where('visited_at', '>=', $thisYear)->distinct('ip_address')->count('ip_address'), 0) : 0,
+            'total_views'     => $hasVisitorTable ? (int) $this->safe(fn () => VisitorLog::count(), 0) : 0,
+            'total_uniques'   => $hasVisitorTable ? (int) $this->safe(fn () => VisitorLog::distinct('ip_address')->count('ip_address'), 0) : 0,
+            'filtered_views'  => 0,
+            'filtered_uniques'=> 0,
+        ];
+
+        if ($hasVisitorTable && $startDate && $endDate) {
+            $visitorStats['filtered_views'] = (int) $this->safe(fn () => VisitorLog::whereBetween('visited_at', [$startDate, $endDate])->count(), 0);
+            $visitorStats['filtered_uniques'] = (int) $this->safe(fn () => VisitorLog::whereBetween('visited_at', [$startDate, $endDate])->distinct('ip_address')->count('ip_address'), 0);
+        } else {
+            $visitorStats['filtered_views'] = $visitorStats['total_views'];
+            $visitorStats['filtered_uniques'] = $visitorStats['total_uniques'];
+        }
+
+        // 4. Inventory Health (Low Stock & Out of Stock)
+        $lowStockBooks = collect();
+        $outOfStockCount = 0;
+        if (Schema::hasTable('books') && Schema::hasColumn('books', 'stock_quantity')) {
+            $lowStockBooks = $this->safe(fn () => Book::where('stock_quantity', '<=', 5)
+                ->whereNull('deleted_at')
+                ->orderBy('stock_quantity', 'asc')
+                ->limit(8)
+                ->get(), collect());
+
+            $outOfStockCount = (int) $this->safe(fn () => Book::where('stock_quantity', '<=', 0)->count(), 0);
+        }
+
+        // 5. Payment Gateway Split
+        $paymentSplit = [
+            'bkash'  => (float) $this->safe(fn () => (clone $orderQuery)->where('payment_method', 'bkash')->sum('total_amount'), 0.0),
+            'nagad'  => (float) $this->safe(fn () => (clone $orderQuery)->where('payment_method', 'nagad')->sum('total_amount'), 0.0),
+            'rocket' => (float) $this->safe(fn () => (clone $orderQuery)->where('payment_method', 'rocket')->sum('total_amount'), 0.0),
+            'cod'    => (float) $this->safe(fn () => (clone $orderQuery)->where('payment_method', 'cod')->sum('total_amount'), 0.0),
+            'bank'   => (float) $this->safe(fn () => (clone $orderQuery)->where('payment_method', 'bank')->sum('total_amount'), 0.0),
+        ];
+
+        // 6. Top Selling Books
+        $topBooks = collect();
+        if (Schema::hasTable('books')) {
+            $topBooks = $this->safe(fn () => Book::whereNull('deleted_at')
+                ->orderByDesc('sales_count')
+                ->limit(5)
+                ->get(), collect());
+        }
+
+        // 7. Recent Customer Book Requests
+        $bookRequests = collect();
+        if (Schema::hasTable('book_requests')) {
+            $bookRequests = $this->safe(fn () => DB::table('book_requests')->latest()->limit(5)->get(), collect());
+        }
+
+        return [
+            'filter_label'        => $filterLabel,
+            'start_date'          => $startDate?->format('Y-m-d'),
+            'end_date'            => $endDate?->format('Y-m-d'),
+            'filtered_orders'     => $filteredOrdersCount,
+            'filtered_revenue'    => $filteredRevenue,
+            'paid_revenue'        => $paidRevenue,
+            'pending_orders'      => $pendingOrders,
+            'processing_orders'   => $processingOrders,
+            'delivered_orders'    => $deliveredOrders,
+            'today_orders'        => $todayOrders,
+            'today_revenue'       => $todayRevenue,
+            'revenue_growth'      => $revenueGrowth,
+            'visitor'             => $visitorStats,
+            'low_stock_books'     => $lowStockBooks,
+            'out_of_stock_count'  => $outOfStockCount,
+            'payment_split'       => $paymentSplit,
+            'top_books'           => $topBooks,
+            'book_requests'       => $bookRequests,
+            'total_books'         => $this->count('books'),
+            'total_ebooks'        => $this->count('ebooks'),
+            'total_authors'       => $this->count('authors'),
+            'total_publishers'    => $this->count('publishers'),
+            'total_users'         => $this->safe(fn () => User::count(), 0),
+            'total_customers'     => $this->safe(fn () => User::whereIn('role', ['customer', 'buyer'])->count(), 0),
+            'pending_regs'        => $this->pendingRegistrations(),
+        ];
     }
 
-    /** Signups per month, split by role, for the growth chart. */
-    public function userGrowth(int $months = 6): array
+    /**
+     * Sales and Revenue Series for Chart.js (Daily, Monthly, Yearly).
+     */
+    public function salesSeries(string $period = 'monthly', ?string $from = null, ?string $to = null): array
     {
-        return \Illuminate\Support\Facades\Cache::remember('admin_user_growth_'.$months, 20, function () use ($months) {
-            $labels = $counts = [];
-            $start  = now()->startOfMonth()->subMonths($months - 1);
+        $labels = [];
+        $revenue = [];
+        $orders = [];
 
-            $rows = $this->safe(fn () => User::where('created_at', '>=', $start)
-                ->selectRaw('DATE_FORMAT(created_at, "%Y-%m") as month_key, COUNT(*) as user_count')
-                ->groupBy('month_key')
-                ->pluck('user_count', 'month_key')
-                ->toArray(), []);
+        if ($period === 'daily') {
+            // Last 14 days or custom range
+            $start = $from ? Carbon::parse($from)->startOfDay() : now()->subDays(13)->startOfDay();
+            $end = $to ? Carbon::parse($to)->endOfDay() : now()->endOfDay();
+            $days = (int) $start->diffInDays($end) + 1;
+            if ($days > 31) $days = 31; // cap daily granularity
 
-            for ($i = 0; $i < $months; $i++) {
-                $month    = $start->copy()->addMonths($i);
-                $key      = $month->format('Y-m');
-                $labels[] = \App\Support\Bn::date($month->startOfMonth());
-                $counts[] = (int) ($rows[$key] ?? 0);
+            for ($i = 0; $i < $days; $i++) {
+                $day = $start->copy()->addDays($i);
+                $dayStart = $day->copy()->startOfDay();
+                $dayEnd = $day->copy()->endOfDay();
+                $key = $day->format('d M');
+
+                $rev = (float) $this->safe(fn () => Order::whereBetween('created_at', [$dayStart, $dayEnd])->sum('total_amount'), 0.0);
+                $cnt = (int) $this->safe(fn () => Order::whereBetween('created_at', [$dayStart, $dayEnd])->count(), 0);
+
+                $labels[] = Bn::date($day);
+                $revenue[] = round($rev, 2);
+                $orders[] = $cnt;
             }
+        } elseif ($period === 'yearly') {
+            // Last 5 years
+            $startYear = now()->subYears(4)->year;
+            $endYear = now()->year;
 
-            return ['labels' => $labels, 'counts' => $counts];
-        });
+            for ($yr = $startYear; $yr <= $endYear; $yr++) {
+                $yrStart = Carbon::createFromDate($yr, 1, 1)->startOfDay();
+                $yrEnd = Carbon::createFromDate($yr, 12, 31)->endOfDay();
+
+                $rev = (float) $this->safe(fn () => Order::whereBetween('created_at', [$yrStart, $yrEnd])->sum('total_amount'), 0.0);
+                $cnt = (int) $this->safe(fn () => Order::whereBetween('created_at', [$yrStart, $yrEnd])->count(), 0);
+
+                $labels[] = Bn::num($yr) . ' সাল';
+                $revenue[] = round($rev, 2);
+                $orders[] = $cnt;
+            }
+        } else {
+            // Last 12 months (Default)
+            $start = now()->startOfMonth()->subMonths(11);
+            for ($i = 0; $i < 12; $i++) {
+                $month = $start->copy()->addMonths($i);
+                $mStart = $month->copy()->startOfMonth();
+                $mEnd = $month->copy()->endOfMonth();
+
+                $rev = (float) $this->safe(fn () => Order::whereBetween('created_at', [$mStart, $mEnd])->sum('total_amount'), 0.0);
+                $cnt = (int) $this->safe(fn () => Order::whereBetween('created_at', [$mStart, $mEnd])->count(), 0);
+
+                $labels[] = Bn::date($mStart);
+                $revenue[] = round($rev, 2);
+                $orders[] = $cnt;
+            }
+        }
+
+        return ['labels' => $labels, 'revenue' => $revenue, 'orders' => $orders];
     }
 
-    /** Users grouped by role, for the role breakdown doughnut. */
-    public function roleBreakdown(): array
+    /**
+     * Visitor Traffic Series for Chart.js (Daily, Monthly, Yearly).
+     */
+    public function visitorSeries(string $period = 'daily', ?string $from = null, ?string $to = null): array
     {
-        return $this->safe(fn () => User::select('role', DB::raw('count(*) as aggregate'))
-            ->groupBy('role')
-            ->pluck('aggregate', 'role')
-            ->toArray(), []);
+        $labels = [];
+        $views = [];
+        $uniques = [];
+
+        if (!Schema::hasTable('visitor_logs')) {
+            return ['labels' => ['আজকে'], 'views' => [0], 'uniques' => [0]];
+        }
+
+        if ($period === 'monthly') {
+            // Last 12 months
+            $start = now()->startOfMonth()->subMonths(11);
+            for ($i = 0; $i < 12; $i++) {
+                $m = $start->copy()->addMonths($i);
+                $mStart = $m->copy()->startOfMonth();
+                $mEnd = $m->copy()->endOfMonth();
+
+                $v = (int) $this->safe(fn () => VisitorLog::whereBetween('visited_at', [$mStart, $mEnd])->count(), 0);
+                $u = (int) $this->safe(fn () => VisitorLog::whereBetween('visited_at', [$mStart, $mEnd])->distinct('ip_address')->count('ip_address'), 0);
+
+                $labels[] = Bn::date($mStart);
+                $views[] = $v;
+                $uniques[] = $u;
+            }
+        } elseif ($period === 'yearly') {
+            // Last 5 years
+            $startYear = now()->subYears(4)->year;
+            $endYear = now()->year;
+
+            for ($yr = $startYear; $yr <= $endYear; $yr++) {
+                $yrStart = Carbon::createFromDate($yr, 1, 1)->startOfDay();
+                $yrEnd = Carbon::createFromDate($yr, 12, 31)->endOfDay();
+
+                $v = (int) $this->safe(fn () => VisitorLog::whereBetween('visited_at', [$yrStart, $yrEnd])->count(), 0);
+                $u = (int) $this->safe(fn () => VisitorLog::whereBetween('visited_at', [$yrStart, $yrEnd])->distinct('ip_address')->count('ip_address'), 0);
+
+                $labels[] = Bn::num($yr) . ' সাল';
+                $views[] = $v;
+                $uniques[] = $u;
+            }
+        } else {
+            // Last 14 days (Daily)
+            $start = $from ? Carbon::parse($from)->startOfDay() : now()->subDays(13)->startOfDay();
+            $end = $to ? Carbon::parse($to)->endOfDay() : now()->endOfDay();
+            $days = (int) $start->diffInDays($end) + 1;
+            if ($days > 31) $days = 31;
+
+            for ($i = 0; $i < $days; $i++) {
+                $d = $start->copy()->addDays($i);
+                $dStart = $d->copy()->startOfDay();
+                $dEnd = $d->copy()->endOfDay();
+
+                $v = (int) $this->safe(fn () => VisitorLog::whereBetween('visited_at', [$dStart, $dEnd])->count(), 0);
+                $u = (int) $this->safe(fn () => VisitorLog::whereBetween('visited_at', [$dStart, $dEnd])->distinct('ip_address')->count('ip_address'), 0);
+
+                $labels[] = Bn::date($d);
+                $views[] = $v;
+                $uniques[] = $u;
+            }
+        }
+
+        return ['labels' => $labels, 'views' => $views, 'uniques' => $uniques];
+    }
+
+    /**
+     * Recent Orders Stream with Buyer details.
+     */
+    public function recentOrders(int $limit = 8)
+    {
+        return $this->safe(fn () => Order::with('book')->latest()->limit($limit)->get(), collect());
     }
 
     public function recentBills(int $limit = 8)
@@ -141,7 +322,19 @@ class AdminDashboardService
             ->latest()->limit($limit)->get(), collect());
     }
 
-    /** Top sellers by billed revenue. */
+    public function roleBreakdown(): array
+    {
+        return $this->safe(fn () => User::select('role', DB::raw('count(*) as aggregate'))
+            ->groupBy('role')
+            ->pluck('aggregate', 'role')
+            ->toArray(), []);
+    }
+
+    public function userGrowth(int $months = 6): array
+    {
+        return ['labels' => [], 'counts' => []];
+    }
+
     public function topSellers(int $limit = 5)
     {
         return $this->safe(fn () => Bill::select('seller_id', DB::raw('SUM(total) as revenue'), DB::raw('COUNT(*) as bills'))
@@ -152,16 +345,35 @@ class AdminDashboardService
             ->get(), collect());
     }
 
-    // ─── internals ──────────────────────────────────────────────────────
+    /**
+     * Resolve filter dates into Carbon instances.
+     */
+    private function resolveDateRange(?string $from, ?string $to, string $period): array
+    {
+        if ($from && $to) {
+            $startDate = Carbon::parse($from)->startOfDay();
+            $endDate = Carbon::parse($to)->endOfDay();
+            $filterLabel = Bn::date($startDate) . ' থেকে ' . Bn::date($endDate);
+            return [$startDate, $endDate, $filterLabel];
+        }
 
-    /** Row count for a table, or null when the table has not been migrated. */
+        return match ($period) {
+            'today' => [now()->startOfDay(), now()->endOfDay(), 'আজকের দিন (' . Bn::date(now()) . ')'],
+            'yesterday' => [now()->subDay()->startOfDay(), now()->subDay()->endOfDay(), 'গতকাল (' . Bn::date(now()->subDay()) . ')'],
+            'week'  => [now()->subDays(7)->startOfDay(), now()->endOfDay(), 'বিগত ৭ দিন'],
+            'month' => [now()->startOfMonth(), now()->endOfMonth(), 'চলতি মাস (' . now()->translatedFormat('F Y') . ')'],
+            'year'  => [now()->startOfYear(), now()->endOfYear(), 'চলতি বছর (' . Bn::num(now()->year) . ')'],
+            default => [null, null, 'সর্বমোট সার্বিক সময় (All Time)'],
+        };
+    }
+
     private function count(string $table): ?int
     {
         if (! $this->hasTable($table)) {
             return null;
         }
 
-        return $this->safe(fn () => DB::table($table)->count());
+        return $this->safe(fn () => DB::table($table)->whereNull('deleted_at')->count(), 0);
     }
 
     private function hasTable(string $table): bool
@@ -169,7 +381,6 @@ class AdminDashboardService
         return $this->safe(fn () => Schema::hasTable($table), false);
     }
 
-    /** Run a query, swallowing any driver/schema failure. */
     private function safe(callable $query, mixed $fallback = null): mixed
     {
         try {

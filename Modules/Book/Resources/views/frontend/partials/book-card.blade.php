@@ -1,108 +1,173 @@
-<div class="group flex flex-col bg-white overflow-hidden border border-slate-200 hover:shadow-lg transition-all duration-300 h-full relative p-1 w-full rounded-md">
-    <!-- Offer Badge -->
-    @if($book->discount_price && $book->discount_price < $book->price)
-        @php
-            $discountPercentage = round((($book->price - $book->discount_price) / $book->price) * 100);
-        @endphp
-        <div class="absolute -top-1.5 -left-1.5 z-30 drop-shadow-md w-11 h-11 flex items-center justify-center">
-            <svg class="absolute inset-0 w-full h-full text-rose-500 drop-shadow-lg" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 0l2.8 2.8 4-.6 1.4 3.8 3.8 1.4-.6 4 2.8 2.8-2.8 2.8.6 4-3.8 1.4-1.4 3.8-4 .6L12 24l-2.8-2.8-4 .6-1.4-3.8-3.8-1.4.6-4-2.8-2.8 2.8-2.8-.6-4 3.8-1.4 1.4-3.8 4-.6L12 0z"/>
-            </svg>
-            <span class="relative z-10 text-[13px] font-black text-white leading-none mt-0.5">{{ $discountPercentage }}%</span>
-        </div>
-    @endif
+@php
+    $cover = $book->cover_image;
+    $coverUrl = null;
+    if ($cover) {
+        if (str_starts_with($cover, 'http')) {
+            $coverUrl = $cover;
+        } elseif (str_starts_with($cover, 'storage/')) {
+            $coverUrl = asset($cover);
+        } elseif (str_starts_with($cover, '/storage/')) {
+            $coverUrl = asset(ltrim($cover, '/'));
+        } else {
+            $coverUrl = asset('storage/' . $cover);
+        }
+    }
+    
+    // Resolve Author from Authors relation or directory fallback
+    $firstAuthor = $book->authors->first();
+    if (!$firstAuthor && $book->author_link_id) {
+        $firstAuthor = \Modules\Author\Models\Author::find($book->author_link_id);
+    }
+    if (!$firstAuthor && $book->author_name) {
+        $firstAuthor = \Modules\Author\Models\Author::where('name', $book->author_name)->first();
+    }
+    
+    $authorName = $firstAuthor ? $firstAuthor->name : ($book->author_name ?: 'আইডিয়া প্রকাশন');
+    $authorUrl = $firstAuthor ? route('authors.show', $firstAuthor->slug ?? $firstAuthor->id) : null;
+    
+    $discountPercentage = ($book->price > 0 && $book->discount_price && $book->discount_price < $book->price)
+        ? round((($book->price - $book->discount_price) / $book->price) * 100)
+        : null;
+    $isOutOfStock = isset($book->stock_quantity) && $book->stock_quantity <= 0;
+    $finalPrice = ($book->discount_price && $book->discount_price < $book->price) ? $book->discount_price : $book->price;
+@endphp
 
-    <!-- Book Image -->
-    <div class="relative w-full aspect-[7/10] mx-auto flex-shrink-0 bg-slate-50 mb-2 overflow-hidden rounded-sm">
+<div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden hover-lift p-2.5 d-flex flex-column text-center position-relative product-card-modern" 
+     style="background: #ffffff; transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease; border: 1px solid #eef2f6 !important;">
+    
+    <!-- Top Badges Row -->
+    <div class="position-absolute top-0 start-0 w-100 p-2 d-flex justify-content-between align-items-center z-2 pointer-events-none">
+        @if($discountPercentage)
+            <span class="badge bg-danger rounded-pill shadow-xs fw-bold" style="font-size: 0.72rem; letter-spacing: 0.3px;">
+                -{{ $discountPercentage }}%
+            </span>
+        @else
+            <span></span>
+        @endif
+
+        @if($isOutOfStock)
+            <span class="badge bg-dark bg-opacity-75 text-white rounded-pill px-2 py-0.5 small" style="font-size: 0.7rem;">
+                স্টক আউট
+            </span>
+        @elseif($book->format)
+            <span class="badge bg-white text-dark shadow-xs border rounded-pill px-2 py-0.5 small" style="font-size: 0.68rem;">
+                {{ $book->format === 'hardcover' ? 'হার্ডকভার' : ($book->format === 'ebook' ? 'ই-বুক' : 'পেপারব্যাক') }}
+            </span>
+        @endif
+    </div>
+
+    <!-- Book Cover Image Container (7:10 Aspect Ratio) -->
+    <div class="position-relative overflow-hidden rounded-3 mb-2.5 mx-auto w-100 group-hover" 
+         style="aspect-ratio: 7 / 10; background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);">
         
-        <!-- Wishlist Button -->
-        <button type="button" class="absolute top-1.5 right-1.5 z-30 w-7 h-7 rounded-full bg-white/90 hover:bg-white text-slate-400 hover:text-rose-500 shadow-sm flex items-center justify-center transition-all duration-200" title="উইশলিস্টে যোগ করুন">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" /></svg>
-        </button>
-
-        @php
-            $cover = $book->cover_image;
-            if ($cover) {
-                $coverUrl = str_starts_with($cover, 'http') ? $cover : (str_starts_with($cover, '/storage/') ? asset(ltrim($cover, '/')) : asset('storage/' . $cover));
-            }
-        @endphp
-        <a href="{{ route('book.show', $book->slug) }}" class="block w-full h-full">
-            @if($cover)
-                <img src="{{ $coverUrl }}" alt="{{ $book->title }}" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
+        <a href="{{ route('book.show', $book->slug) }}" class="d-block w-100 h-100 text-decoration-none">
+            @if($coverUrl)
+                <img src="{{ $coverUrl }}" 
+                     alt="{{ $book->title }}" 
+                     class="w-100 h-100 object-fit-cover transition-transform"
+                     loading="lazy"
+                     onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'w-100 h-100 d-flex flex-column align-items-center justify-content-center text-center p-2\' style=\'background: linear-gradient(145deg, #f8fafc 0%, #e2e8f0 100%);\'><div class=\'rounded-circle bg-white shadow-xs p-2 mb-1 text-muted d-flex align-items-center justify-content-center\' style=\'width: 40px; height: 40px;\'><i class=\'fa-solid fa-book text-secondary fs-5 opacity-50\'></i></div><span class=\'badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-2 py-0.5 fw-bold mb-1\' style=\'font-size: 0.7rem;\'><i class=\'fa-regular fa-image me-1\'></i>কভার নেই</span><span class=\'small fw-bold text-dark text-truncate w-100\' style=\'font-size: 0.72rem;\'>{{ addslashes($book->title) }}</span></div>';">
             @else
-                <!-- Demo Image -->
-                <img src="https://placehold.co/130x186/f8fafc/64748b?text=No+Cover" alt="Demo Image" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
+                <!-- Stylish Placeholder when Book has No Cover -->
+                <div class="w-100 h-100 d-flex flex-column align-items-center justify-content-center text-center p-2" 
+                     style="background: linear-gradient(145deg, #f8fafc 0%, #e2e8f0 100%);">
+                    <div class="rounded-circle bg-white shadow-xs p-2 mb-1.5 text-muted d-flex align-items-center justify-content-center" 
+                         style="width: 42px; height: 42px;">
+                        <i class="fa-solid fa-book-open text-primary fs-5 opacity-60"></i>
+                    </div>
+                    <span class="badge bg-secondary text-white rounded-pill px-2.5 py-1 fw-bold shadow-xs mb-1" style="font-size: 0.72rem; letter-spacing: 0.3px;">
+                        <i class="fa-regular fa-image me-1"></i> কভার নেই
+                    </span>
+                    <span class="small fw-semibold text-dark text-truncate w-100 px-1" style="font-size: 0.73rem;">
+                        {{ $book->title }}
+                    </span>
+                </div>
             @endif
         </a>
-        
-        <!-- Hover Action Overlay -->
-        <div class="absolute inset-0 z-20 bg-slate-900/60 flex flex-col items-center justify-center gap-3 opacity-0 invisible group-hover:visible group-hover:opacity-100 transition-all duration-300">
-            <!-- Quick View Button (Redirects to details since modal is missing) -->
-            <a href="{{ route('book.show', $book->slug) }}" class="quick-view-btn cursor-pointer w-[120px] bg-white text-slate-800 hover:bg-slate-100 transition-colors text-[12px] py-2 rounded-full font-bold shadow-lg flex justify-center items-center gap-1.5 translate-y-4 group-hover:translate-y-0 duration-300 delay-75" title="এক নজরে দেখুন">
-                <i class="fa-solid fa-eye text-[11px]"></i>
-                কুইক ভিউ
-            </a>
 
-            <!-- Add to Cart Button (Redirects to details since script is missing) -->
-            <a href="{{ route('book.show', $book->slug) }}" class="add-to-cart-btn cursor-pointer w-[120px] bg-blue-600 text-white hover:bg-blue-700 transition-colors text-[12px] py-2 rounded-full font-bold shadow-lg flex justify-center items-center gap-1.5 translate-y-4 group-hover:translate-y-0 duration-300 delay-100" title="কার্টে যোগ করুন">
-                <i class="fa-solid fa-cart-shopping text-[11px]"></i>
-                অ্যাড টু কার্ট
-            </a>
-        </div>
+        <!-- Look Inside / Quick Preview Float Button on Hover -->
+        <a href="{{ route('book.show', $book->slug) }}#look-inside" 
+           class="position-absolute bottom-0 start-50 translate-middle-x mb-2 badge bg-dark bg-opacity-75 text-white text-decoration-none rounded-pill px-2.5 py-1 small shadow-sm d-none d-md-inline-flex align-items-center gap-1 opacity-0 hover-opacity-100 transition-all" 
+           style="font-size: 0.7rem; z-index: 3;">
+            <i class="fa-regular fa-eye"></i> একটু পড়ুন
+        </a>
     </div>
     
-    <!-- Book Info (Dynamic with fixed spaces) -->
-    <div class="flex flex-col flex-grow text-center px-1 pb-1">
-        <!-- Title -->
-        <div class="mb-0.5 relative flex items-center justify-center min-h-[36px] w-full">
-            <!-- Original Title -->
-            <a href="{{ route('book.show', $book->slug) }}" class="block w-full">
-                <h3 class="text-[13px] font-bold text-slate-800 hover:text-blue-600 transition-colors line-clamp-2 leading-tight" title="{{ $book->title }}">
-                    {{ $book->title }}
-                </h3>
+    <!-- Book Information & Details -->
+    <div class="d-flex flex-column flex-grow-1 px-1">
+        
+        <!-- Book Title -->
+        <h6 class="fw-bold text-dark mb-1 line-clamp-2" style="font-size: 0.88rem; line-height: 1.35; min-height: 2.35em;" title="{{ $book->title }}">
+            <a href="{{ route('book.show', $book->slug) }}" class="text-decoration-none text-dark hover-primary">
+                {{ $book->title }}
             </a>
-            
-            <!-- See More Button removed from here to prevent hiding text -->
-        </div>
+        </h6>
         
-        <!-- Author -->
-        <div class="mb-1 overflow-hidden">
-            @php
-                $authorNames = $book->authors->isNotEmpty() ? $book->authors->pluck('name')->join(', ') : ($book->author_name ?: 'অজানা লেখক');
-            @endphp
-            <p class="text-[11px] text-slate-500 line-clamp-1" title="{{ $authorNames }}">
-                {{ $authorNames }}
-            </p>
-        </div>
-        
-        <!-- Price -->
-        <div class="mt-auto flex flex-wrap items-center justify-center gap-x-1.5 gap-y-0 mb-0.5">
-            @if($book->discount_price && $book->discount_price < $book->price)
-                <span class="text-[12px] text-rose-500 line-through font-medium">৳{{ round($book->price) }}</span>
-                <span class="text-[14px] font-bold text-slate-900">৳{{ round($book->discount_price) }}</span>
+        <!-- Author Name (Links directly to Author Directory) -->
+        <p class="text-muted small text-truncate mb-1" style="font-size: 0.76rem;" title="{{ $authorName }}">
+            <i class="fa-solid fa-pen-nib text-secondary opacity-60 me-1" style="font-size: 0.68rem;"></i>
+            @if($authorUrl)
+                <a href="{{ $authorUrl }}" class="text-decoration-none text-muted hover-primary fw-semibold">
+                    {{ $authorName }}
+                </a>
             @else
-                <span class="text-[14px] font-bold text-slate-900">৳{{ round($book->price) }}</span>
+                <span class="fw-semibold">{{ $authorName }}</span>
             @endif
-        </div>
+        </p>
         
-        <!-- Rating -->
-        <div class="flex items-center justify-center gap-0.5 mb-1.5">
-            <div class="flex text-amber-400">
-                @for($i=1; $i<=5; $i++)
-                    @if($i <= round($book->reviews_avg_rating ?? 0))
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-3 h-3"><path fill-rule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z" clip-rule="evenodd" /></svg>
+        <!-- Customer Rating Stars -->
+        <div class="d-flex align-items-center justify-content-center gap-1 mb-2" style="font-size: 11px;">
+            <div class="d-inline-flex gap-0 text-warning" style="line-height: 1;">
+                @php $ratingVal = round($book->reviews_avg_rating ?? 5); @endphp
+                @for($i = 1; $i <= 5; $i++)
+                    @if($i <= $ratingVal)
+                        <i class="fa-solid fa-star" style="font-size: 10px; width: 11px;"></i>
                     @else
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-3 h-3 text-slate-300"><path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" /></svg>
+                        <i class="fa-regular fa-star text-secondary opacity-40" style="font-size: 10px; width: 11px;"></i>
                     @endif
                 @endfor
             </div>
-            <span class="text-[10px] text-slate-400 ml-0.5">({{ $book->reviews_count ?? 0 }})</span>
+            <span class="text-muted" style="font-size: 10px;">({{ $book->reviews_count ?? 0 }})</span>
+        </div>
+
+        <!-- Pricing Row -->
+        <div class="mt-auto d-flex align-items-center justify-content-center gap-2 mb-2.5">
+            @if($book->discount_price && $book->discount_price < $book->price)
+                <span class="text-muted text-decoration-line-through small" style="font-size: 0.78rem;">
+                    ৳{{ round($book->price) }}
+                </span>
+                <span class="fw-bold text-danger fs-6">
+                    ৳{{ round($book->discount_price) }}
+                </span>
+            @else
+                <span class="fw-bold text-dark fs-6">
+                    ৳{{ round($book->price) }}
+                </span>
+            @endif
         </div>
         
-        <!-- Permanent Add to Cart (Mobile Friendly) -->
-        <a href="{{ route('book.show', $book->slug) }}" class="mt-auto w-full py-1.5 bg-blue-50 hover:bg-blue-600 text-blue-600 hover:text-white rounded-md text-[12px] font-bold transition-colors flex items-center justify-center gap-1.5 border border-blue-100 hover:border-blue-600">
-            <i class="fa-solid fa-cart-shopping text-[10px]"></i>
-            কার্টে রাখুন
-        </a>
+        <!-- Action Buttons: "কার্টে যোগ" & "বাই নাউ" (50/50 Balanced & Dynamic) -->
+        <div class="d-flex align-items-center gap-1.5 mt-auto pt-1">
+            <!-- Add to Cart Button (কার্টে যোগ) -->
+            <button type="button" 
+                    class="btn btn-outline-primary btn-sm rounded-pill fw-bold flex-fill py-1.5 px-2 d-inline-flex align-items-center justify-content-center gap-1 transition-all" 
+                    style="font-size: 0.76rem;" 
+                    title="কার্টে যোগ করুন"
+                    onclick="addToCartLive(this, {{ $book->id }}, '{{ addslashes($book->title) }}', {{ $finalPrice }}, '{{ $coverUrl }}')">
+                <i class="fa-solid fa-cart-plus" style="font-size: 0.72rem;"></i>
+                <span>কার্টে যোগ</span>
+            </button>
+
+            <!-- Buy Now Button (বাই নাউ) -->
+            <button type="button" 
+                    class="btn btn-primary btn-sm rounded-pill fw-bold flex-fill py-1.5 px-2 d-inline-flex align-items-center justify-content-center gap-1 shadow-xs transition-all" 
+                    style="font-size: 0.76rem;"
+                    title="সরাসরি কিনুন"
+                    onclick="buyNowLive({{ $book->id }}, '{{ addslashes($book->title) }}', {{ $finalPrice }}, '{{ $coverUrl }}', '{{ $book->slug }}')">
+                <i class="fa-solid fa-bolt" style="font-size: 0.7rem;"></i>
+                <span>বাই নাউ</span>
+            </button>
+        </div>
+
     </div>
 </div>

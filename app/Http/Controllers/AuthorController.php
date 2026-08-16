@@ -12,10 +12,13 @@ class AuthorController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Author::query();
+        $query = Author::query()->withCount('books')->where('is_active', true);
 
         if ($request->filled('q')) {
-            $query->where('name', 'like', '%'.$request->q.'%');
+            $query->where(function($sub) use ($request) {
+                $sub->where('name', 'like', '%'.$request->q.'%')
+                    ->orWhere('bio', 'like', '%'.$request->q.'%');
+            });
         }
 
         if ($request->filled('letter')) {
@@ -26,13 +29,13 @@ class AuthorController extends Controller
         if ($request->filled('filter')) {
             switch ($request->filter) {
                 case 'most_books':
-                    $query->withCount('books')->orderBy('books_count', 'desc');
+                    $query->orderBy('books_count', 'desc');
                     break;
                 case 'recent_active':
                     $query->orderBy('updated_at', 'desc');
                     break;
-                case 'award_winners':
-                    $query->where('is_award_winner', 1);
+                case 'verified':
+                    $query->where('is_verified', true);
                     break;
             }
         }
@@ -40,10 +43,11 @@ class AuthorController extends Controller
         if ($request->filled('sort')) {
             switch ($request->sort) {
                 case 'popular':
-                    $query->orderBy('popularity', 'desc');
-                    break;
                 case 'books_desc':
-                    $query->withCount('books')->orderBy('books_count', 'desc');
+                    $query->orderBy('books_count', 'desc');
+                    break;
+                case 'name':
+                    $query->orderBy('name', 'asc');
                     break;
                 case 'latest':
                 default:
@@ -51,14 +55,13 @@ class AuthorController extends Controller
                     break;
             }
         } else {
-            // sensible default
-            $query->orderBy('name');
+            $query->orderBy('name', 'asc');
         }
 
-        $authors = $query->paginate(18);
+        $authors = $query->paginate(18)->withQueryString();
 
         // sidebar: top authors by book count
-        $topAuthors = Author::withCount('books')->orderBy('books_count', 'desc')->limit(6)->get();
+        $topAuthors = Author::withCount('books')->where('is_active', true)->orderBy('books_count', 'desc')->limit(6)->get();
 
         return view('authors.index', compact('authors', 'topAuthors'));
     }

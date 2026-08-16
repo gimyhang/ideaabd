@@ -19,11 +19,11 @@
                         <div class="alert alert-success py-2">{{ session('status') }}</div>
                     @endif
 
-                    <form method="POST" action="/login">
+                    <form method="POST" action="{{ route('login') }}">
                         @csrf
                         <div class="mb-3">
-                            <label class="form-label fw-semibold">ইমেইল</label>
-                            <input type="email" name="email" class="form-control" value="{{ old('email') }}" required autofocus>
+                            <label class="form-label fw-semibold">ইমেইল বা ইউজারনেম</label>
+                            <input type="text" name="email" class="form-control" value="{{ old('email') }}" placeholder="ইমেইল অথবা ইউজারনেম লিখুন" required autofocus autocomplete="username" autocapitalize="none" spellcheck="false">
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-semibold">পাসওয়ার্ড</label>

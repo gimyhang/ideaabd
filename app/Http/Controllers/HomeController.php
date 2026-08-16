@@ -88,11 +88,17 @@ class HomeController extends Controller
                 ->orderByDesc('books_count')
                 ->take(10)
                 ->get();
+
+            $topSeller = \Modules\Book\Models\Book::query()
+                ->with(['authors', 'category'])
+                ->where('is_active', true)
+                ->orderByDesc('sales_count')
+                ->first() ?? $books->first();
         }
 
         return view('frontend.home', compact(
             'books', 'recentlySold', 'bestSellerEbooks', 'flashSales',
-            'recentlyViewedBooks', 'dynamicCategories', 'sidebarAuthors', 'sidebarPublishers'
+            'recentlyViewedBooks', 'dynamicCategories', 'sidebarAuthors', 'sidebarPublishers', 'topSeller'
         ));
     }
 }

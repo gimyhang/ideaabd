@@ -11,36 +11,37 @@ use Illuminate\Support\Facades\Hash;
  *
  * Credentials come from .env so no password is ever committed:
  *
- *     ADMIN_NAME="Site Admin"
- *     ADMIN_EMAIL=admin@example.com
- *     ADMIN_PASSWORD=<strong password>
+ *     ADMIN_NAME="admin"
+ *     ADMIN_USERNAME="admin"
+ *     ADMIN_EMAIL=adideabd@gmail.com
+ *     ADMIN_PASSWORD=admin123456
+ *
+ * @property \Illuminate\Console\Command|null $command
  */
 class AdminUserSeeder extends Seeder
 {
     public function run(): void
     {
-        $email    = env('ADMIN_EMAIL');
-        $password = env('ADMIN_PASSWORD');
-
-        if (empty($email) || empty($password)) {
-            $this->command?->warn('ADMIN_EMAIL / ADMIN_PASSWORD .env-এ নেই — অ্যাডমিন তৈরি এড়িয়ে যাওয়া হলো।');
-
-            return;
-        }
+        $email    = env('ADMIN_EMAIL') ?: 'adideabd@gmail.com';
+        $password = env('ADMIN_PASSWORD') ?: 'admin123456';
+        $name     = env('ADMIN_NAME') ?: (env('ADMIN_USERNAME') ?: 'admin');
 
         $user = User::withTrashed()->updateOrCreate(
             ['email' => $email],
             [
-                'name'       => env('ADMIN_NAME', 'Site Admin'),
-                'password'   => Hash::make($password),
-                'role'       => User::ROLE_ADMIN,
-                'is_active'  => true,
-                'reg_status' => User::STATUS_APPROVED,
-                'reg_type'   => User::ROLE_ADMIN,
-                'deleted_at' => null,
+                'name'              => $name,
+                'password'          => Hash::make($password),
+                'role'              => User::ROLE_ADMIN,
+                'is_active'         => true,
+                'reg_status'        => User::STATUS_APPROVED,
+                'reg_type'          => User::ROLE_ADMIN,
+                'email_verified_at' => now(),
+                'deleted_at'        => null,
             ]
         );
 
-        $this->command?->info("অ্যাডমিন প্রস্তুত: {$user->email}");
+        if ($this->command) {
+            $this->command->info("অ্যাডমিন প্রস্তুত: {$user->name} ({$user->email})");
+        }
     }
 }

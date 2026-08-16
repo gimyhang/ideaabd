@@ -30,22 +30,34 @@ class Book extends Model
     protected $fillable = [
         'vendor_id',
         'category_id',
+        'publisher_id',
         'title',
         'subtitle',
         'author_name',
         'author_role',
         'author_link_id',
+        'author_bio',
+        'author_image',
         'slug',
         'isbn',
+        'summary',
         'description',
-        'price',
-        'discount_price',
+        'published_at',
+        'edition',
+        'stock_status',
+        'stock_quantity',
+        'format', // 'printed', 'ebook', 'both'
+        'cover_type', // 'paperback', 'hardcover', 'both'
+        'price', // Paperback regular price or default price
+        'discount_price', // Paperback discount price
+        'hardcover_price', // Hardcover regular price
+        'hardcover_discount_price', // Hardcover discount price
+        'page_count',
+        'language',
         'cover_image',
         'sample_pdf_path',
         'preview_pages',
-        'stock_quantity',
         'sales_count',
-        'format', // 'printed', 'ebook', 'both'
         'is_active',
     ];
 
@@ -57,10 +69,14 @@ class Book extends Model
     protected $casts = [
         'price' => 'decimal:2',
         'discount_price' => 'decimal:2',
+        'hardcover_price' => 'decimal:2',
+        'hardcover_discount_price' => 'decimal:2',
         'stock_quantity' => 'integer',
+        'page_count' => 'integer',
         'sales_count' => 'integer',
         'preview_pages' => 'integer',
         'is_active' => 'boolean',
+        'published_at' => 'date',
     ];
 
     protected static function booted()
@@ -99,6 +115,14 @@ class Book extends Model
     }
 
     /**
+     * Author Direct Link Relationship
+     */
+    public function authorLink(): BelongsTo
+    {
+        return $this->belongsTo(Author::class, 'author_link_id');
+    }
+
+    /**
      * Authors Relationship
      */
     public function authors(): BelongsToMany
@@ -119,4 +143,110 @@ class Book extends Model
     public function tags(): MorphToMany
     {
         return $this->morphToMany(Tag::class, 'taggable', 'taggables', 'taggable_id', 'tag_id', 'id', 'id');
-    }}
+    }
+
+    /**
+     * Get Cover URL safely across all storage formats and live environments.
+     */
+    public function getCoverUrlAttribute(): ?string
+    {
+        if (!$this->cover_image) {
+            return null;
+        }
+        $cover = trim($this->cover_image);
+        if (str_starts_with($cover, 'http://') || str_starts_with($cover, 'https://')) {
+            return $cover;
+        }
+        if (str_starts_with($cover, 'storage/')) {
+            return asset($cover);
+        }
+        if (str_starts_with($cover, '/storage/')) {
+            return asset(ltrim($cover, '/'));
+        }
+        if (str_starts_with($cover, 'images/')) {
+            return asset($cover);
+        }
+        return asset('storage/' . ltrim($cover, '/'));
+    }
+
+    /**
+     * Get Author Avatar URL (either from author link or custom uploaded author image)
+     */
+    public function getAuthorPhotoUrlAttribute(): ?string
+    {
+        if ($this->author_image) {
+            $img = trim($this->author_image);
+            if (str_starts_with($img, 'http://') || str_starts_with($img, 'https://')) {
+                return $img;
+            }
+            return asset(str_starts_with($img, 'storage/') ? $img : 'storage/' . ltrim($img, '/'));
+        }
+
+        $linkedAuthor = $this->authorLink ?: $this->authors->first();
+        if ($linkedAuthor && $linkedAuthor->avatar) {
+            $av = trim($linkedAuthor->avatar);
+            if (str_starts_with($av, 'http://') || str_starts_with($av, 'https://')) {
+                return $av;
+            }
+            return asset(str_starts_with($av, 'storage/') ? $av : 'storage/' . ltrim($av, '/'));
+        }
+
+        return null;
+    }
+
+    /**
+     * Get Author Bio Text (from authorLink, first author relation, or direct field)
+     */
+    public function getAuthorBioTextAttribute(): ?string
+    {
+        if (!empty($this->author_bio)) {
+            return $this->author_bio;
+        }
+        $linkedAuthor = $this->authorLink ?: $this->authors->first();
+        return $linkedAuthor?->bio;
+    }
+
+    /**
+     * Human-readable stock status label in Bengali
+     */
+    public function getStockStatusLabelAttribute(): string
+    {
+        return match ($this->stock_status) {
+            'out_of_stock' => 'স্টক শেষ (Out of Stock)',
+            'pre_order'    => 'প্রি-অর্ডার চলছে (Pre-Order)',
+            'upcoming'     => 'আসন্ন প্রকাশনা (Upcoming)',
+            'backorder'    => 'মুদ্রণ সাপেক্ষে (Backorder)',
+            default        => 'স্টকে আছে (In Stock)',
+        };
+    }
+
+    /**
+     * Check if book has separate hardcover pricing
+     */
+    public function getHasHardcoverAttribute(): bool
+    {
+        return in_array($this->cover_type, ['hardcover', 'both'], true) || ($this->hardcover_price && $this->hardcover_price > 0);
+    }
+
+    /**
+     * Final effective paperback price
+     */
+    public function getEffectivePaperbackPriceAttribute(): float
+    {
+        if ($this->discount_price && $this->discount_price > 0 && $this->discount_price < $this->price) {
+            return (float) $this->discount_price;
+        }
+        return (float) ($this->price ?? 0);
+    }
+
+    /**
+     * Final effective hardcover price
+     */
+    public function getEffectiveHardcoverPriceAttribute(): float
+    {
+        if ($this->hardcover_discount_price && $this->hardcover_discount_price > 0 && $this->hardcover_discount_price < $this->hardcover_price) {
+            return (float) $this->hardcover_discount_price;
+        }
+        return (float) ($this->hardcover_price ?? $this->effective_paperback_price);
+    }
+}

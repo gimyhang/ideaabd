@@ -32,10 +32,13 @@
                 <thead>
                     <tr>
                         @foreach ($cols as $i => $col)
-                            <th class="{{ $i === 0 ? 'ps-3' : '' }} {{ $i === $last ? 'pe-3' : '' }} {{ $col['align'] ?? '' }}">
+                            <th class="{{ $i === 0 ? 'ps-3' : '' }} {{ empty($contentType) && $i === $last ? 'pe-3' : '' }} {{ $col['align'] ?? '' }}">
                                 {{ $col['label'] }}
                             </th>
                         @endforeach
+                        @if(!empty($contentType))
+                            <th class="text-end pe-3" style="min-width: 110px;">অ্যাকশন</th>
+                        @endif
                     </tr>
                 </thead>
                 <tbody>
@@ -46,7 +49,7 @@
                                     $value = data_get($row, $col['key'] ?? '');
                                     $blank = $value === null || $value === '';
                                 @endphp
-                                <td class="{{ $i === 0 ? 'ps-3' : '' }} {{ $i === $last ? 'pe-3' : '' }} {{ $col['align'] ?? '' }}">
+                                <td class="{{ $i === 0 ? 'ps-3' : '' }} {{ empty($contentType) && $i === $last ? 'pe-3' : '' }} {{ $col['align'] ?? '' }}">
                                     @switch($col['type'] ?? 'text')
                                         @case('index')
                                             <span class="text-muted small">@bn($rows->firstItem() + $n)</span>
@@ -91,6 +94,32 @@
                                     @endswitch
                                 </td>
                             @endforeach
+
+                            @if(!empty($contentType))
+                                <td class="text-end pe-3">
+                                    <div class="d-inline-flex gap-1 align-items-center">
+                                        <a href="{{ route('admin.content.edit', ['type' => $contentType, 'id' => data_get($row, 'id')]) }}" 
+                                           class="btn btn-sm btn-outline-primary" 
+                                           title="সম্পাদনা করুন"
+                                           style="padding: 0.2rem 0.5rem;">
+                                            <i class="fas fa-pen-to-square"></i>
+                                        </a>
+                                        <form action="{{ route('admin.content.destroy', ['type' => $contentType, 'id' => data_get($row, 'id')]) }}" 
+                                              method="POST" 
+                                              class="d-inline"
+                                              onsubmit="return confirm('আপনি কি নিশ্চিত যে এটি মুছে ফেলতে চান?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" 
+                                                    class="btn btn-sm btn-outline-danger" 
+                                                    title="মুছে ফেলুন"
+                                                    style="padding: 0.2rem 0.5rem;">
+                                                <i class="fas fa-trash-can"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            @endif
                         </tr>
                     @endforeach
                 </tbody>

@@ -7,7 +7,7 @@ namespace Modules\Book\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Modules\User\Models\User;
+use App\Models\User;
 
 class Wishlist extends Model
 {

@@ -48,4 +48,20 @@ class Webzine extends Model
     {
         return $query->where('is_published', true)->whereNotNull('published_at');
     }
+
+    /**
+     * Resolved Cover URL
+     */
+    public function getCoverUrlAttribute(): ?string
+    {
+        if (!$this->cover_image) return null;
+        $cover = trim($this->cover_image);
+        if (str_starts_with($cover, 'http://') || str_starts_with($cover, 'https://')) {
+            return $cover;
+        }
+        if (str_starts_with($cover, 'storage/')) {
+            return asset($cover);
+        }
+        return asset('storage/' . ltrim($cover, '/'));
+    }
 }
