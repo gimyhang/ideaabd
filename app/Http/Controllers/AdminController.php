@@ -377,6 +377,7 @@ class AdminController extends Controller
                 });
             })
             ->when($categoryId, fn ($q) => $q->where('category_id', $categoryId))
+            ->when($stockFilter === 'pre_order', fn ($q) => $q->where('stock_status', 'pre_order'))
             ->when($stockFilter === 'low', fn ($q) => $q->where('stock_quantity', '<=', 5)->where('stock_quantity', '>', 0))
             ->when($stockFilter === 'out', fn ($q) => $q->where('stock_quantity', '<=', 0))
             ->when($stockFilter === 'in_stock', fn ($q) => $q->where('stock_quantity', '>', 5))
@@ -388,10 +389,11 @@ class AdminController extends Controller
         $categories = DB::table('categories')->whereNull('deleted_at')->orderBy('name')->pluck('name', 'id')->all();
 
         $stats = [
-            'total'    => \Modules\Book\Models\Book::count(),
-            'active'   => \Modules\Book\Models\Book::where('is_active', true)->count(),
-            'low_stock'=> \Modules\Book\Models\Book::where('stock_quantity', '<=', 5)->where('stock_quantity', '>', 0)->count(),
-            'out_stock'=> \Modules\Book\Models\Book::where('stock_quantity', '<=', 0)->count(),
+            'total'     => \Modules\Book\Models\Book::count(),
+            'active'    => \Modules\Book\Models\Book::where('is_active', true)->count(),
+            'pre_order' => \Modules\Book\Models\Book::where('stock_status', 'pre_order')->count(),
+            'low_stock' => \Modules\Book\Models\Book::where('stock_quantity', '<=', 5)->where('stock_quantity', '>', 0)->count(),
+            'out_stock' => \Modules\Book\Models\Book::where('stock_quantity', '<=', 0)->count(),
         ];
 
         return view('admin.books', compact('books', 'categories', 'stats'));

@@ -47,20 +47,10 @@
 @endpush
 
 @php
-    $siteLogo = $settings['site_logo'] ?? config('brand.logo');
-    $logoUrl = null;
-    if ($siteLogo) {
-        $logoUrl = str_starts_with($siteLogo, 'http') ? $siteLogo : asset($siteLogo);
-    }
-    
-    $banner1 = $settings['home_banner_1'] ?? null;
-    $banner1Url = $banner1 ? (str_starts_with($banner1, 'http') ? $banner1 : asset($banner1)) : null;
-
-    $banner2 = $settings['home_banner_2'] ?? null;
-    $banner2Url = $banner2 ? (str_starts_with($banner2, 'http') ? $banner2 : asset($banner2)) : null;
-
-    $siteFavicon = $settings['site_favicon'] ?? null;
-    $faviconUrl = $siteFavicon ? (str_starts_with($siteFavicon, 'http') ? $siteFavicon : asset($siteFavicon)) : null;
+    $logoUrl = \App\Support\SiteSetting::logoUrl();
+    $banner1Url = \App\Support\SiteSetting::banner1Url();
+    $banner2Url = \App\Support\SiteSetting::banner2Url();
+    $faviconUrl = \App\Support\SiteSetting::faviconUrl();
 @endphp
 
 @section('content')
@@ -75,17 +65,21 @@
                 </h5>
                 <p class="text-muted small mb-0">লোগো, ব্যানার ক্রপিং ও রিসাইজিং, ডেলিভারি চার্জ, নোটিশ এবং থিম কালারসমূহ নিয়ন্ত্রণ করুন।</p>
             </div>
-            <div class="d-flex align-items-center gap-2">
+            <div class="d-flex flex-wrap align-items-center gap-2">
+                <!-- Save Button in Top Header -->
+                <button type="submit" form="systemSettingsForm" class="btn btn-primary btn-sm rounded-pill px-3.5 py-2 fw-bold d-inline-flex align-items-center gap-1.5 shadow-sm">
+                    <i class="fa-solid fa-floppy-disk"></i> সংরক্ষণ করুন
+                </button>
                 <!-- Clear Cache Form -->
                 <form action="{{ route('admin.system-settings.clear-cache') }}" method="POST" onsubmit="return confirm('আপনি কি নিশ্চিত যে সকল ক্যাশ ক্লিয়ার করতে চান?');">
                     @csrf
                     <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3 py-2 fw-semibold d-inline-flex align-items-center gap-1.5 shadow-xs">
-                        <i class="fa-solid fa-broom"></i> ক্যাশ ক্লিয়ার করুন
+                        <i class="fa-solid fa-broom"></i> ক্যাশ ক্লিয়ার
                     </button>
                 </form>
                 <!-- Live Site Link -->
-                <a href="{{ route('home') }}" target="_blank" class="btn btn-primary btn-sm rounded-pill px-3 py-2 fw-semibold d-inline-flex align-items-center gap-1.5 shadow-xs">
-                    <i class="fa-solid fa-arrow-up-right-from-square"></i> ওয়েবসাইট দেখুন
+                <a href="{{ route('home') }}" target="_blank" class="btn btn-outline-secondary btn-sm rounded-pill px-3 py-2 fw-semibold d-inline-flex align-items-center gap-1.5 shadow-xs">
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i> সাইট দেখুন
                 </a>
             </div>
         </div>
@@ -964,7 +958,7 @@
             </div>
 
             <!-- Footer Save Button Bar -->
-            <div class="card-footer bg-light border-top p-4 d-flex justify-content-between align-items-center">
+            <div class="card-footer bg-light border-top p-3.5 d-flex justify-content-between align-items-center">
                 <span class="small text-muted d-none d-sm-inline">
                     <i class="fa-solid fa-shield-halved text-success me-1"></i> সেটিংস পরিবর্তনের সাথে সাথে তা সর্বত্র কার্যকর হবে।
                 </span>
@@ -973,6 +967,26 @@
                 </button>
             </div>
 
+        </div>
+
+        <!-- Sticky Floating Bottom Save Bar -->
+        <div class="position-sticky bottom-0 bg-white border-top shadow-lg p-3 rounded-4 mt-3 z-3 d-flex flex-wrap align-items-center justify-content-between gap-3" 
+             style="background: rgba(255, 255, 255, 0.96) !important; backdrop-filter: blur(10px); border: 1px solid #e2e8f0 !important;">
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1.5 small fw-semibold">
+                    <i class="fa-solid fa-circle-check me-1"></i> সেটিংস প্রস্তুত
+                </span>
+                <span class="small text-muted d-none d-md-inline">যে কোনো ট্যাবের পরিবর্তন এক ক্লিকেই সংরক্ষণ করুন।</span>
+            </div>
+            <div class="d-flex align-items-center gap-2 ms-auto">
+                <button type="reset" class="btn btn-outline-secondary rounded-pill px-3.5 py-2 fw-semibold">
+                    <i class="fa-solid fa-rotate-left me-1"></i> রিসেট
+                </button>
+                <button type="submit" class="btn btn-primary btn-lg rounded-pill px-4 py-2 fw-bold shadow-sm d-inline-flex align-items-center gap-2">
+                    <i class="fa-solid fa-floppy-disk"></i>
+                    <span>সেটিংস সংরক্ষণ করুন</span>
+                </button>
+            </div>
         </div>
     </form>
 </div>
@@ -1149,6 +1163,27 @@
         if (document.getElementById('prevInvTerms')) document.getElementById('prevInvTerms').textContent = terms;
         if (document.getElementById('prevInvFooter')) document.getElementById('prevInvFooter').textContent = footer;
     }
+
+    // Auto-restore Active Tab from URL Hash
+    document.addEventListener('DOMContentLoaded', function () {
+        const hash = window.location.hash;
+        if (hash) {
+            const targetBtn = document.querySelector(`button[data-bs-target="${hash}"]`);
+            if (targetBtn) {
+                const tab = new bootstrap.Tab(targetBtn);
+                tab.show();
+            }
+        }
+
+        document.querySelectorAll('button[data-bs-toggle="pill"]').forEach(btn => {
+            btn.addEventListener('shown.bs.tab', function (e) {
+                const target = e.target.getAttribute('data-bs-target');
+                if (target) {
+                    history.replaceState(null, null, target);
+                }
+            });
+        });
+    });
 </script>
 @endpush
 @endsection

@@ -8,7 +8,16 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'ideaabd - অনলাইন বই এবং পণ্যের মার্কেটপ্লেস')</title>
+    <title>@yield('title', \App\Support\SiteSetting::name() . ' — ' . \App\Support\SiteSetting::tagline())</title>
+
+    {{-- Dynamic Site Favicon --}}
+    @php $siteFaviconUrl = \App\Support\SiteSetting::faviconUrl(); @endphp
+    @if ($siteFaviconUrl)
+        <link rel="icon" href="{{ $siteFaviconUrl }}">
+        <link rel="apple-touch-icon" href="{{ $siteFaviconUrl }}">
+    @else
+        <link rel="icon" href="{{ asset('favicon.ico') }}">
+    @endif
     
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">

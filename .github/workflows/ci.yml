@@ -58,7 +58,7 @@ jobs:
           restore-keys: ${{ runner.os }}-node-
 
       - name: Install PHP dependencies
-        run: composer install --no-progress --no-suggest --prefer-dist --no-interaction
+        run: composer install --no-progress --prefer-dist --no-interaction
 
       - name: Install node dependencies
         run: npm ci
@@ -70,7 +70,6 @@ jobs:
         run: |
           cp .env.example .env
           php artisan key:generate
-          # configure DB for CI
           php -r "file_put_contents('.env', preg_replace('/DB_CONNECTION=.*/', 'DB_CONNECTION=mysql', file_get_contents('.env')));"
           php -r "file_put_contents('.env', preg_replace('/DB_HOST=.*/', 'DB_HOST=127.0.0.1', file_get_contents('.env')));"
           php -r "file_put_contents('.env', preg_replace('/DB_DATABASE=.*/', 'DB_DATABASE=laravel', file_get_contents('.env')));"
@@ -99,12 +98,4 @@ jobs:
             vendor/bin/phpunit --colors=always
           else
             echo "No PHPUnit config found, skipping tests"
-          fi
-
-      - name: Static analysis (optional)
-        run: |
-          if composer show | grep -q 'phpstan\|psalm'; then
-            vendor/bin/phpstan analyse || true
-          else
-            echo "No phpstan/psalm configured"
           fi

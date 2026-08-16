@@ -384,10 +384,16 @@ class AdminAccessController extends Controller
                 ]
             );
 
-            $this->accessService->log('update_settings', 'সিস্টেম সেটিংস ও ইনভয়েস প্রেরক কনফিগারেশন সফলভাবে আপডেট করা হয়েছে');
+            \App\Support\SiteSetting::clearCache();
+            try {
+                \Illuminate\Support\Facades\Artisan::call('cache:clear');
+                \Illuminate\Support\Facades\Artisan::call('view:clear');
+            } catch (\Throwable $e) {}
+
+            $this->accessService->log('update_settings', 'সিস্টেম সেটিংস ও ব্র্যান্ডিং সফলভাবে আপডেট করা হয়েছে');
         }
 
-        return back()->with('success', 'সকল সিস্টেম সেটিংস ও কনফিগারেশন সফলভাবে সংরক্ষিত হয়েছে!');
+        return back()->with('success', 'সকল সিস্টেম সেটিংস ও ব্র্যান্ডিং ইমেজ সফলভাবে সংরক্ষিত হয়েছে!');
     }
 
     /**
@@ -410,7 +416,7 @@ class AdminAccessController extends Controller
             }
         }
 
-        if ($file) {
+        if ($file && $file->isValid()) {
             $path = $file->store($folder, 'public');
             return 'storage/' . $path;
         }
@@ -424,6 +430,7 @@ class AdminAccessController extends Controller
     public function clearCache(Request $request): RedirectResponse
     {
         try {
+            \App\Support\SiteSetting::clearCache();
             \Illuminate\Support\Facades\Artisan::call('view:clear');
             \Illuminate\Support\Facades\Artisan::call('cache:clear');
             \Illuminate\Support\Facades\Artisan::call('config:clear');

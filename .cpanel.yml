@@ -1,0 +1,7 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/ideaabdc/public_html
+    - /bin/cp -rf * $DEPLOYPATH/
+    - /bin/cp -f .htaccess $DEPLOYPATH/.htaccess || true
+    - /bin/cp -f .env.example $DEPLOYPATH/.env.example || true

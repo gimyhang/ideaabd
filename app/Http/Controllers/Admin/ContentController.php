@@ -139,10 +139,21 @@ class ContentController extends Controller
             ->with('success', "{$spec['label']} যোগ করা হয়েছে — “{$record->{$spec['display']}}”।");
     }
 
-    public function edit(string $type, int $id): View
+    public function show(string $type, int $id): RedirectResponse
     {
-        $spec   = ContentTypes::get($type);
-        $record = $this->findRecord($spec, $id);
+        return redirect()->route('admin.content.edit', ['type' => $type, 'id' => $id]);
+    }
+
+    public function edit(string $type, int $id): View|RedirectResponse
+    {
+        $spec = ContentTypes::get($type);
+        try {
+            $record = $this->findRecord($spec, $id);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return redirect()
+                ->route($spec['listRoute'])
+                ->with('error', "অনুরোধকৃত {$spec['label']}টি (ID: #{$id}) পাওয়া যায়নি বা ডাটাবেজ থেকে অপসারিত হয়েছে।");
+        }
 
         return view('admin.content.form', [
             'spec'      => $spec,
@@ -154,8 +165,14 @@ class ContentController extends Controller
 
     public function update(Request $request, string $type, int $id): RedirectResponse
     {
-        $spec   = ContentTypes::get($type);
-        $record = $this->findRecord($spec, $id);
+        $spec = ContentTypes::get($type);
+        try {
+            $record = $this->findRecord($spec, $id);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return redirect()
+                ->route($spec['listRoute'])
+                ->with('error', "অনুরোধকৃত {$spec['label']}টি (ID: #{$id}) পাওয়া যায়নি।");
+        }
 
         $data       = $this->validated($request, $spec, $record);
         $attributes = $this->attributesFrom($request, $spec, $data, $record);

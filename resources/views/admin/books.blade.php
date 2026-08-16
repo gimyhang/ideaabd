@@ -98,6 +98,7 @@
             <div class="col-6 col-md-2">
                 <select name="stock" class="form-select form-select-sm">
                     <option value="">— সকল স্টক অবস্থা —</option>
+                    <option value="pre_order" @selected(request('stock') === 'pre_order')>⏳ প্রি-অর্ডার চলছে</option>
                     <option value="in_stock" @selected(request('stock') === 'in_stock')>ইন স্টক (&gt;৫)</option>
                     <option value="low" @selected(request('stock') === 'low')>লো স্টক (&le;৫)</option>
                     <option value="out" @selected(request('stock') === 'out')>স্টক আউট (০)</option>
@@ -234,7 +235,11 @@
                             {{-- Stock Inventory & Quick Refill --}}
                             <td class="text-center">
                                 <div class="d-inline-flex align-items-center gap-1.5">
-                                    @if($stock <= 0)
+                                    @if($book->stock_status === 'pre_order')
+                                        <span class="badge bg-warning text-dark border border-warning-subtle rounded-pill px-2 fw-semibold">
+                                            <i class="fas fa-clock-rotate-left me-1"></i>প্রি-অর্ডার
+                                        </span>
+                                    @elseif($stock <= 0)
                                         <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2">
                                             <i class="fas fa-times-circle me-1"></i>স্টকআউট
                                         </span>

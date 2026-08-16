@@ -45,7 +45,11 @@
             <span></span>
         @endif
 
-        @if($isOutOfStock)
+        @if($book->stock_status === 'pre_order')
+            <span class="badge bg-warning text-dark border border-warning-subtle rounded-pill px-2 py-0.5 small fw-bold shadow-xs" style="font-size: 0.68rem;">
+                <i class="fa-solid fa-clock-rotate-left me-0.5"></i> প্রি-অর্ডার
+            </span>
+        @elseif($isOutOfStock || $book->stock_status === 'out_of_stock')
             <span class="badge bg-dark bg-opacity-75 text-white rounded-pill px-2 py-0.5 small" style="font-size: 0.7rem;">
                 স্টক আউট
             </span>
@@ -146,9 +150,9 @@
             @endif
         </div>
         
-        <!-- Action Buttons: "কার্টে যোগ" & "বাই নাউ" (50/50 Balanced & Dynamic) -->
+        <!-- Action Buttons: "কার্টে যোগ" & "বাই নাউ" / "প্রি-অর্ডার" -->
         <div class="d-flex align-items-center gap-1.5 mt-auto pt-1">
-            <!-- Add to Cart Button (কার্টে যোগ) -->
+            <!-- Add to Cart Button -->
             <button type="button" 
                     class="btn btn-outline-primary btn-sm rounded-pill fw-bold flex-fill py-1.5 px-2 d-inline-flex align-items-center justify-content-center gap-1 transition-all" 
                     style="font-size: 0.76rem;" 
@@ -158,15 +162,26 @@
                 <span>কার্টে যোগ</span>
             </button>
 
-            <!-- Buy Now Button (বাই নাউ) -->
-            <button type="button" 
-                    class="btn btn-primary btn-sm rounded-pill fw-bold flex-fill py-1.5 px-2 d-inline-flex align-items-center justify-content-center gap-1 shadow-xs transition-all" 
-                    style="font-size: 0.76rem;"
-                    title="সরাসরি কিনুন"
-                    onclick="buyNowLive({{ $book->id }}, '{{ addslashes($book->title) }}', {{ $finalPrice }}, '{{ $coverUrl }}', '{{ $book->slug }}')">
-                <i class="fa-solid fa-bolt" style="font-size: 0.7rem;"></i>
-                <span>বাই নাউ</span>
-            </button>
+            <!-- Buy Now / Pre-Order Button -->
+            @if($book->stock_status === 'pre_order')
+                <button type="button" 
+                        class="btn btn-warning text-dark btn-sm rounded-pill fw-bold flex-fill py-1.5 px-2 d-inline-flex align-items-center justify-content-center gap-1 shadow-xs transition-all border border-warning-subtle" 
+                        style="font-size: 0.76rem;"
+                        title="বইটি প্রি-অর্ডার করুন"
+                        onclick="buyNowLive({{ $book->id }}, '{{ addslashes($book->title) }}', {{ $finalPrice }}, '{{ $coverUrl }}', '{{ $book->slug }}')">
+                    <i class="fa-solid fa-clock-rotate-left" style="font-size: 0.7rem;"></i>
+                    <span>প্রি-অর্ডার</span>
+                </button>
+            @else
+                <button type="button" 
+                        class="btn btn-primary btn-sm rounded-pill fw-bold flex-fill py-1.5 px-2 d-inline-flex align-items-center justify-content-center gap-1 shadow-xs transition-all" 
+                        style="font-size: 0.76rem;"
+                        title="সরাসরি কিনুন"
+                        onclick="buyNowLive({{ $book->id }}, '{{ addslashes($book->title) }}', {{ $finalPrice }}, '{{ $coverUrl }}', '{{ $book->slug }}')">
+                    <i class="fa-solid fa-bolt" style="font-size: 0.7rem;"></i>
+                    <span>বাই নাউ</span>
+                </button>
+            @endif
         </div>
 
     </div>

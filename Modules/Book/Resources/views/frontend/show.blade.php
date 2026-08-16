@@ -303,6 +303,19 @@
                                 </div>
                             </div>
 
+                            @if($book->stock_status === 'pre_order')
+                                <!-- Pre-Order Notice Banner -->
+                                <div class="alert alert-warning border-warning d-flex align-items-center gap-3 p-3 rounded-3 mb-3 shadow-xs">
+                                    <div class="rounded-circle bg-warning text-dark d-flex align-items-center justify-content-center flex-shrink-0" style="width: 40px; height: 40px; font-size: 1.15rem;">
+                                        <i class="fa-solid fa-clock-rotate-left"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold text-dark mb-0.5">বইটির প্রি-অর্ডার চলছে (Pre-Order Available)</div>
+                                        <div class="small text-dark-emphasis">বইটি বর্তমানে প্রেসে প্রকাশের প্রক্রিয়ায় রয়েছে। এখন প্রি-অর্ডার করলে প্রকাশের সাথে সাথে অগ্রাধিকারে আপনার ঠিকানায় ক্যাশ অন ডেলিভারিতে পৌঁছে যাবে।</div>
+                                    </div>
+                                </div>
+                            @endif
+
                             <!-- Quantity & Purchase Action Buttons -->
                             <div class="d-flex flex-column flex-sm-row align-items-stretch gap-3 mb-4">
                                 
@@ -318,14 +331,20 @@
                                 </div>
 
                                 <!-- Add to Cart Button -->
-                                <button type="button" class="btn btn-outline-primary btn-lg flex-fill rounded-3 fw-bold d-inline-flex align-items-center justify-content-center gap-2 shadow-xs" onclick="addToCartLive({{ $book->id }}, '{{ addslashes($book->title) }}', currentSelectedPrice, '{{ $coverUrl }}')">
+                                <button type="button" class="btn btn-outline-primary btn-lg flex-fill rounded-3 fw-bold d-inline-flex align-items-center justify-content-center gap-2 shadow-xs" onclick="addToCartLive(this, {{ $book->id }}, '{{ addslashes($book->title) }}', currentSelectedPrice, '{{ $coverUrl }}')">
                                     <i class="fa-solid fa-cart-shopping"></i> কার্টে যোগ করুন
                                 </button>
 
-                                <!-- Direct Order / Buy Now Button -->
-                                <button type="button" class="btn btn-primary btn-lg flex-fill rounded-3 fw-bold d-inline-flex align-items-center justify-content-center gap-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#directOrderModal">
-                                    <i class="fa-solid fa-bolt"></i> সরাসরি অর্ডার করুন
-                                </button>
+                                <!-- Direct Order / Buy Now / Pre-Order Button -->
+                                @if($book->stock_status === 'pre_order')
+                                    <button type="button" class="btn btn-warning text-dark btn-lg flex-fill rounded-3 fw-bold d-inline-flex align-items-center justify-content-center gap-2 shadow-sm border border-warning-subtle" onclick="buyNowLive({{ $book->id }}, '{{ addslashes($book->title) }}', currentSelectedPrice, '{{ $coverUrl }}', '{{ $book->slug }}')">
+                                        <i class="fa-solid fa-clock-rotate-left"></i> প্রি-অর্ডার করুন
+                                    </button>
+                                @else
+                                    <button type="button" class="btn btn-primary btn-lg flex-fill rounded-3 fw-bold d-inline-flex align-items-center justify-content-center gap-2 shadow-sm" onclick="buyNowLive({{ $book->id }}, '{{ addslashes($book->title) }}', currentSelectedPrice, '{{ $coverUrl }}', '{{ $book->slug }}')">
+                                        <i class="fa-solid fa-bolt"></i> সরাসরি অর্ডার করুন
+                                    </button>
+                                @endif
                             </div>
 
                             <!-- Trust Badges & Guarantee Grid -->

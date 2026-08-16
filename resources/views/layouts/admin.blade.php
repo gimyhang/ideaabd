@@ -6,10 +6,15 @@
     <meta name="theme-color" content="#1e293b">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="robots" content="noindex, nofollow">
-    <title>@yield('title', 'অ্যাডমিন প্যানেল') — {{ config('brand.name') }}</title>
+    <title>@yield('title', 'অ্যাডমিন প্যানেল') — {{ \App\Support\SiteSetting::name() }}</title>
 
-    @if (config('brand.favicon') && is_file(public_path(config('brand.favicon'))))
-        <link rel="icon" href="{{ asset(config('brand.favicon')) }}">
+    {{-- Dynamic Site Favicon --}}
+    @php $adminFaviconUrl = \App\Support\SiteSetting::faviconUrl(); @endphp
+    @if ($adminFaviconUrl)
+        <link rel="icon" href="{{ $adminFaviconUrl }}">
+        <link rel="apple-touch-icon" href="{{ $adminFaviconUrl }}">
+    @else
+        <link rel="icon" href="{{ asset('favicon.ico') }}">
     @endif
 
     <link rel="preconnect" href="https://fonts.googleapis.com">

@@ -51,41 +51,14 @@
             {{-- Brand Logo & Text --}}
             <a class="site-brand" href="{{ route('home') }}">
                 @php 
-                    $logo = config('brand.logo'); 
-                    try {
-                        if (\Illuminate\Support\Facades\Schema::hasTable('admin_dashboard_settings')) {
-                            $dbLogo = \Illuminate\Support\Facades\DB::table('admin_dashboard_settings')
-                                ->where('key', 'site_logo')
-                                ->value('value');
-                            if ($dbLogo) {
-                                $decoded = json_decode($dbLogo);
-                                $logo = json_last_error() === JSON_ERROR_NONE ? $decoded : $dbLogo;
-                            }
-                        }
-                    } catch (\Throwable $e) {}
-                    
-                    $logoUrl = null;
-                    if ($logo) {
-                        if (str_starts_with($logo, 'http://') || str_starts_with($logo, 'https://')) {
-                            $logoUrl = $logo;
-                        } elseif (str_starts_with($logo, 'storage/')) {
-                            $logoUrl = asset($logo);
-                        } elseif (str_starts_with($logo, '/storage/')) {
-                            $logoUrl = asset(ltrim($logo, '/'));
-                        } elseif (str_starts_with($logo, 'images/')) {
-                            $logoUrl = asset($logo);
-                        } else {
-                            $logoUrl = asset('storage/' . ltrim($logo, '/'));
-                        }
-                    }
-                    if (!$logoUrl && file_exists(public_path('images/logo.svg'))) {
-                        $logoUrl = asset('images/logo.svg');
-                    }
+                    $logoUrl = \App\Support\SiteSetting::logoUrl();
+                    $siteName = \App\Support\SiteSetting::name();
+                    $siteTagline = \App\Support\SiteSetting::tagline();
                 @endphp
                 <div class="site-brand__logo-box">
                     @if ($logoUrl)
                         <img src="{{ $logoUrl }}"
-                             alt="{{ config('brand.name', 'আইডিয়া প্রকাশন') }}" 
+                             alt="{{ $siteName }}" 
                              class="site-brand__img"
                              onerror="this.onerror=null; this.src='{{ asset('images/logo.svg') }}';">
                     @else
@@ -93,8 +66,8 @@
                     @endif
                 </div>
                 <div class="site-brand__text d-flex flex-column justify-content-center">
-                    <span class="site-brand__name">{{ config('brand.name', 'আইডিয়া প্রকাশন') }}</span>
-                    <span class="site-brand__sub">বই ও মুক্তচিন্তার ডিজিটাল প্রকাশনা</span>
+                    <span class="site-brand__name">{{ $siteName }}</span>
+                    <span class="site-brand__sub">{{ $siteTagline }}</span>
                 </div>
             </a>
 
