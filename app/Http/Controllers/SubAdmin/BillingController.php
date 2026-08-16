@@ -125,7 +125,6 @@ class BillingController extends Controller
         }
 
         $books = Book::query()
-            ->where('is_active', true)
             ->where(function ($query) use ($q) {
                 $like = '%' . $q . '%';
                 $query->where('title', 'like', $like)
