@@ -72,7 +72,7 @@ class BlogController extends Controller
                 ->withCount(['posts' => function($q) {
                     $q->where('status', 'published');
                 }])
-                ->orderBy('sort_order')
+                ->orderBy('id')
                 ->get();
         }
 

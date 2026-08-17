@@ -694,6 +694,8 @@
                     @endforeach
                 </div>
             </div>
+            @endif
+
             <!-- Sidebar Google Ad Unit -->
             @include('partials.google-ad', ['type' => 'sidebar'])
         </aside>
