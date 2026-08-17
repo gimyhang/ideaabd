@@ -50,9 +50,19 @@ class BlogPost extends Model
         return $this->belongsToMany(BlogTag::class, 'blog_post_tags', 'blog_post_id', 'blog_tag_id');
     }
 
+    public function reviews()
+    {
+        return $this->hasMany(\Modules\Review\Models\Review::class, 'blog_post_id')->where('is_approved', true)->latest();
+    }
+
+    public function allReviews()
+    {
+        return $this->hasMany(\Modules\Review\Models\Review::class, 'blog_post_id')->latest();
+    }
+
     public function scopePublished($query)
     {
-        return $query->where('status', 'published')->whereNotNull('published_at');
+        return $query->where('status', 'published');
     }
 
     public function scopeFeatured($query)

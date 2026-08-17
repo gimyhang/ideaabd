@@ -32,23 +32,29 @@
                         </a>
                     @endif
 
-                    <h1 class="fw-bold text-dark display-6 mb-3" style="line-height: 1.35;">{{ $post->title }}</h1>
+                    <h1 class="fw-bold text-dark display-6 mb-3 lit-title" style="line-height: 1.35;">{{ $post->title }}</h1>
 
+                    @php
+                        $authorName = $post->author ? $post->author->name : 'সম্পাদকীয় বিভাগ';
+                        $authorSearchUrl = route('authors.index') . '?search=' . urlencode($authorName);
+                    @endphp
                     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 text-muted small py-3 border-top border-bottom">
                         <div class="d-flex align-items-center gap-2">
-                            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
-                                <i class="fa-solid fa-pen-nib"></i>
-                            </div>
-                            <div>
-                                <span class="fw-bold text-dark d-block">{{ $post->author ? $post->author->name : 'সম্পাদকীয় বিভাগ' }}</span>
-                                <span class="text-muted" style="font-size: 0.75rem;">আইডিয়া প্রকাশন</span>
-                            </div>
+                            <a href="{{ $authorSearchUrl }}" class="d-flex align-items-center gap-2 text-decoration-none text-dark hover-primary" title="লেখক ডিরেক্টরীতে লেখকের প্রোফাইল ও বই দেখুন">
+                                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold shadow-sm" style="width: 38px; height: 38px; font-size: 0.95rem;">
+                                    {{ mb_substr($authorName, 0, 1) }}
+                                </div>
+                                <div>
+                                    <span class="fw-bold text-dark d-block" style="font-size: 0.95rem;">{{ $authorName }}</span>
+                                    <span class="text-muted" style="font-size: 0.75rem;">আইডিয়া সাহিত্যপত্র লেখক ও গবেষক</span>
+                                </div>
+                            </a>
                         </div>
 
-                        <div class="d-flex align-items-center gap-3">
-                            <span>
-                                <i class="fa-regular fa-calendar text-primary me-1"></i>
-                                {{ $post->published_at ? $post->published_at->format('d M, Y') : ($post->created_at ? $post->created_at->format('d M, Y') : '') }}
+                        <div class="d-flex flex-wrap align-items-center gap-3">
+                            <span title="প্রকাশের তারিখ ও সময়">
+                                <i class="fa-regular fa-calendar-check text-primary me-1"></i>
+                                {{ $post->published_at ? $post->published_at->format('d M, Y • h:i A') : ($post->created_at ? $post->created_at->format('d M, Y • h:i A') : 'আজ') }}
                             </span>
                             @if($post->view_count)
                                 <span><i class="fa-regular fa-eye text-primary me-1"></i>@bn($post->view_count) বার পঠিত</span>
@@ -62,7 +68,7 @@
                     $fImage = $post->featured_image;
                     $fImageUrl = null;
                     if ($fImage) {
-                        $fImageUrl = str_starts_with($fImage, 'http') ? $fImage : asset('storage/' . $fImage);
+                        $fImageUrl = str_starts_with($fImage, 'http') ? $fImage : (str_starts_with($fImage, 'storage/') ? asset($fImage) : asset('storage/' . $fImage));
                     }
                 @endphp
                 @if($fImageUrl)
@@ -73,18 +79,20 @@
 
                 <!-- Excerpt Highlight -->
                 @if($post->excerpt)
-                    <div class="p-3 mb-4 rounded-3 border-start border-4 border-primary bg-light fst-italic text-secondary" style="font-size: 1.05rem;">
+                    <div class="p-3 mb-4 rounded-3 border-start border-4 border-primary bg-light fst-italic text-secondary" style="font-size: 1.05rem; line-height: 1.75;">
                         {{ $post->excerpt }}
                     </div>
                 @endif
 
                 <!-- Content -->
-                <div class="text-dark leading-relaxed mb-4" style="font-size: 1.12rem; line-height: 2;">
+                <div class="text-dark leading-relaxed mb-4 article-content" style="font-size: 1.12rem; line-height: 2;">
                     {!! nl2br(e($post->content)) !!}
                 </div>
 
-                <!-- In-Article Google Ad Slot -->
-                @include('partials.google-ad', ['type' => 'in-article'])
+                <!-- Photocard Google Ad Slot (Compact End of Article Ad) -->
+                <div class="my-4">
+                    @include('partials.google-ad', ['type' => 'in-article'])
+                </div>
 
                 <!-- Tags -->
                 @if($post->tags && $post->tags->isNotEmpty())
@@ -101,9 +109,9 @@
                     </div>
                 @endif
 
-                <!-- Share & Back -->
-                <div class="p-3 bg-light rounded-3 d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3">
-                    <span class="small fw-bold text-dark"><i class="fa-solid fa-share-nodes text-primary me-1"></i>পড়ুন এবং শেয়ার করুন</span>
+                <!-- Share & Social Links -->
+                <div class="p-3 bg-light rounded-3 d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-4">
+                    <span class="small fw-bold text-dark"><i class="fa-solid fa-share-nodes text-primary me-1"></i>পড়ুন এবং বন্ধুদের সাথে শেয়ার করুন</span>
                     <div class="d-flex gap-2">
                         <a href="https://www.facebook.com/sharer/sharer.php?u={{ urlencode(url()->current()) }}" target="_blank" rel="noopener" class="btn btn-sm btn-primary rounded-circle" style="width: 34px; height: 34px; display: grid; place-items: center;" title="ফেসবুকে শেয়ার">
                             <i class="fa-brands fa-facebook-f"></i>
@@ -115,6 +123,88 @@
                             <i class="fa-brands fa-whatsapp"></i>
                         </a>
                     </div>
+                </div>
+
+                {{-- Reader Comments & Review Section --}}
+                <div class="pt-4 border-top">
+                    <h5 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-comments text-primary"></i>
+                        <span>পাঠক মন্তব্য ও পর্যালোচনা</span>
+                        <span class="badge bg-light text-muted border rounded-pill">@bn($post->reviews ? $post->reviews->count() : 0)টি</span>
+                    </h5>
+
+                    <!-- Comment & Review Form -->
+                    <div class="card p-3.5 mb-4 border-0 shadow-sm rounded-4 bg-light">
+                        <h6 class="fw-bold text-dark mb-2"><i class="fa-solid fa-pen-fancy text-success me-1.5"></i>আপনার মতামত বা রিভিউ দিন</h6>
+                        @auth
+                            <form action="{{ route('blog.review.store', $post->id) }}" method="POST">
+                                @csrf
+                                <div class="row g-2 mb-3 align-items-center">
+                                    <div class="col-sm-auto">
+                                        <label class="small fw-semibold text-muted mb-0">রেটিং নির্বাচন করুন:</label>
+                                    </div>
+                                    <div class="col-sm-auto">
+                                        <select name="rating" class="form-select form-select-sm rounded-pill border">
+                                            <option value="5">⭐⭐⭐⭐⭐ (অসাধারণ - ৫ স্টার)</option>
+                                            <option value="4">⭐⭐⭐⭐ (খুব ভালো - ৪ স্টার)</option>
+                                            <option value="3">⭐⭐⭐ (ভালো - ৩ স্টার)</option>
+                                            <option value="2">⭐⭐ (চলনসই - ২ স্টার)</option>
+                                            <option value="1">⭐ (উন্নতি প্রয়োজন - ১ স্টার)</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <textarea name="comment" rows="3" class="form-control rounded-3 border-0 shadow-sm" 
+                                              required placeholder="লেখাটি কেমন লাগলো? আপনার মূল্যবান মতামত ও সাহিত্য আলোচনা এখানে লিখুন..."></textarea>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary btn-sm rounded-pill px-4 fw-bold shadow-sm">
+                                    <i class="fa-solid fa-paper-plane me-1"></i> মন্তব্য পোস্ট করুন
+                                </button>
+                            </form>
+                        @else
+                            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 p-3 bg-white rounded-3 border">
+                                <span class="small text-muted">মন্তব্য ও রিভিউ দিতে অনুগ্রহ করে আপনার অ্যাকাউন্টে লগইন করুন।</span>
+                                <div class="d-flex gap-2">
+                                    <a href="{{ route('login') }}" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold">লগইন করুন</a>
+                                    <a href="{{ route('register.form', 'customer') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">নিবন্ধন</a>
+                                </div>
+                            </div>
+                        @endauth
+                    </div>
+
+                    <!-- Reviews List -->
+                    @if($post->reviews && $post->reviews->isNotEmpty())
+                        <div class="d-flex flex-column gap-3 mb-3">
+                            @foreach($post->reviews as $rev)
+                                <div class="p-3 bg-white border rounded-3 shadow-xs">
+                                    <div class="d-flex align-items-center justify-content-between mb-1.5">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center fw-bold" style="width: 32px; height: 32px; font-size: 0.85rem;">
+                                                {{ mb_substr($rev->user ? $rev->user->name : 'পা', 0, 1) }}
+                                            </div>
+                                            <div>
+                                                <span class="fw-bold text-dark d-block small">{{ $rev->user ? $rev->user->name : 'পাঠক' }}</span>
+                                                <span class="text-muted" style="font-size: 0.7rem;">{{ $rev->created_at ? $rev->created_at->format('d M, Y • h:i A') : 'সম্প্রতি' }}</span>
+                                            </div>
+                                        </div>
+
+                                        @if($rev->rating)
+                                            <div class="text-warning small" title="{{ $rev->rating }} স্টার">
+                                                @for($i = 1; $i <= 5; $i++)
+                                                    <i class="fa-{{ $i <= $rev->rating ? 'solid' : 'regular' }} fa-star"></i>
+                                                @endfor
+                                            </div>
+                                        @endif
+                                    </div>
+                                    <p class="mb-0 text-dark small leading-relaxed ps-4 ms-2" style="white-space: pre-line;">{{ $rev->comment }}</p>
+                                </div>
+                            @endforeach
+                        </div>
+                    @else
+                        <p class="text-muted small mb-3 fst-italic">এখনো কোনো মন্তব্য নেই। আপনিই প্রথম পাঠক মন্তব্যটি লিখুন!</p>
+                    @endif
                 </div>
             </article>
 

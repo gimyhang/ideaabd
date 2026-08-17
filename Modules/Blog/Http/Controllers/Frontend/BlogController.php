@@ -81,7 +81,31 @@ class BlogController extends Controller
 
     public function show($slug)
     {
-        $post = BlogPost::where('slug', $slug)->published()->firstOrFail();
+        $post = BlogPost::with(['category', 'author', 'tags', 'reviews.user'])
+            ->where('slug', $slug)
+            ->orWhere('id', $slug)
+            ->first();
+
+        if (!$post) {
+            $decoded = urldecode($slug);
+            $post = BlogPost::with(['category', 'author', 'tags', 'reviews.user'])
+                ->where('slug', $decoded)
+                ->orWhere('slug', 'like', "%{$decoded}%")
+                ->orWhere('title', 'like', "%{$decoded}%")
+                ->first();
+        }
+
+        if (!$post) {
+            return redirect()->route('blog.index')->with('info', 'অনুরোধকৃত লেখাটি পাওয়া যায়নি বা সরানো হয়েছে। আইডিয়া সাহিত্যপত্রের সাম্প্রতিক লেখাগুলো নিচে দেখতে পারেন।');
+        }
+
+        // If post is not published yet, allow preview only for the author or admin
+        if ($post->status !== 'published') {
+            if (!auth()->check() || (auth()->id() !== $post->author_id && !auth()->user()->isAdmin())) {
+                return redirect()->route('blog.index')->with('warning', 'এই লেখাটি এখনো পর্যালোচনার অপেক্ষায় রয়েছে এবং প্রকাশিত হয়নি।');
+            }
+        }
+
         $post->increment('view_count');
 
         $related = BlogPost::published()
@@ -91,6 +115,35 @@ class BlogController extends Controller
             ->get();
 
         return view('blog::show', compact('post', 'related'));
+    }
+
+    /**
+     * Store reader comment / review for a blog post.
+     */
+    public function storeReview(Request $request, $id)
+    {
+        if (!auth()->check()) {
+            session()->put('url.intended', url()->previous());
+            return redirect()->route('login')->with('info', 'মন্তব্য বা রিভিউ দিতে অনুগ্রহ করে আপনার অ্যাকাউন্টে লগইন করুন।');
+        }
+
+        $request->validate([
+            'comment' => 'required|string|max:2000',
+            'rating'  => 'nullable|integer|min:1|max:5',
+        ]);
+
+        $post = BlogPost::findOrFail($id);
+
+        \Modules\Review\Models\Review::create([
+            'user_id'      => auth()->id(),
+            'blog_post_id' => $post->id,
+            'rating'       => (int) ($request->input('rating', 5)),
+            'title'        => $request->input('title', 'পাঠক প্রতিক্রিয়া'),
+            'comment'      => $request->input('comment'),
+            'is_approved'  => true,
+        ]);
+
+        return redirect()->back()->with('success', 'আপনার সুন্দর মন্তব্য ও প্রতিক্রিয়া সফলভাবে প্রকাশিত হয়েছে। ধন্যবাদ!');
     }
 
     public function category($slug)

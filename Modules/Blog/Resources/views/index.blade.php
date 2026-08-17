@@ -449,36 +449,42 @@
                                 </a>
 
                                 <div class="card-body p-3 p-xl-3.5 d-flex flex-column">
-                                    <div class="text-muted small mb-2 d-flex align-items-center justify-content-between" style="font-size: 0.78rem;">
-                                        <span>
-                                            <i class="fa-regular fa-calendar text-primary me-1"></i>
-                                            {{ $post->published_at ? $post->published_at->format('d M, Y') : ($post->created_at ? $post->created_at->format('d M, Y') : 'আজ') }}
-                                        </span>
-                                        <span class="text-muted">
-                                            <i class="fa-regular fa-clock me-1 text-warning"></i>৩ মিনিট পাঠ
-                                        </span>
-                                    </div>
-
-                                    <h5 class="fw-bold mb-2 line-clamp-2 lit-headline" style="font-size: 1.02rem;">
-                                        <a href="{{ route('blog.show', $post->slug) }}" class="text-decoration-none text-dark">
+                                    <h5 class="fw-bold mb-2 line-clamp-2 lit-headline" style="font-size: 1.05rem;">
+                                        <a href="{{ route('blog.show', $post->slug) }}" class="text-decoration-none text-dark hover-primary">
                                             {{ $post->title }}
                                         </a>
                                     </h5>
+
+                                    {{-- Author Icon & Name Linked to Author Directory + Publish Date and Time --}}
+                                    @php
+                                        $authorName = $post->author ? $post->author->name : 'সম্পাদকীয় বিভাগ';
+                                        $authorSearchUrl = route('authors.index') . '?search=' . urlencode($authorName);
+                                    @endphp
+                                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2.5 pb-2 border-bottom text-muted small" style="font-size: 0.76rem;">
+                                        <a href="{{ $authorSearchUrl }}" class="d-flex align-items-center gap-1.5 text-decoration-none text-dark hover-primary" title="লেখক ডিরেক্টরীতে লেখকের প্রোফাইল ও বই দেখুন">
+                                            <span class="lit-author-avatar flex-shrink-0" style="width: 26px; height: 26px; font-size: 0.75rem;">
+                                                {{ mb_substr($authorName, 0, 1) }}
+                                            </span>
+                                            <span class="fw-bold text-dark text-truncate" style="max-width: 130px;">
+                                                {{ $authorName }}
+                                            </span>
+                                        </a>
+
+                                        <span class="text-muted" title="প্রকাশের তারিখ ও সময়">
+                                            <i class="fa-regular fa-clock text-primary me-1"></i>
+                                            {{ $post->published_at ? $post->published_at->format('d M, Y • h:i A') : ($post->created_at ? $post->created_at->format('d M, Y • h:i A') : 'আজ') }}
+                                        </span>
+                                    </div>
 
                                     <p class="text-secondary small line-clamp-2 mb-3 opacity-90" style="font-size: 0.84rem; line-height: 1.65;">
                                         {{ $post->excerpt ?: Str::limit(strip_tags($post->content), 90) }}
                                     </p>
 
-                                    <div class="mt-auto pt-2.5 border-top d-flex align-items-center justify-content-between">
-                                        <div class="d-flex align-items-center gap-2 min-w-0" style="max-width: 65%;">
-                                            <span class="lit-author-avatar flex-shrink-0">
-                                                {{ mb_substr($post->author ? $post->author->name : 'আ', 0, 1) }}
-                                            </span>
-                                            <span class="small fw-semibold text-dark text-truncate" style="font-size: 0.8rem;">
-                                                {{ $post->author ? $post->author->name : 'সম্পাদকীয়' }}
-                                            </span>
-                                        </div>
-                                        <a href="{{ route('blog.show', $post->slug) }}" class="btn btn-outline-primary btn-sm rounded-pill px-2.5 py-1 fw-bold btn-lit-read" style="font-size: 0.75rem;">
+                                    <div class="mt-auto pt-2 d-flex align-items-center justify-content-between">
+                                        <span class="text-muted small" style="font-size: 0.72rem;">
+                                            <i class="fa-solid fa-book-open text-warning me-1"></i>৩ মিনিট পাঠ
+                                        </span>
+                                        <a href="{{ route('blog.show', $post->slug) }}" class="btn btn-outline-primary btn-sm rounded-pill px-3 py-1 fw-bold btn-lit-read" style="font-size: 0.75rem;">
                                             পড়ুন <i class="fa-solid fa-arrow-right ms-1"></i>
                                         </a>
                                     </div>
@@ -557,36 +563,42 @@
                                         </a>
 
                                         <div class="card-body p-3 p-xl-3.5 d-flex flex-column">
-                                            <div class="text-muted small mb-2 d-flex align-items-center justify-content-between" style="font-size: 0.78rem;">
-                                                <span>
-                                                    <i class="fa-regular fa-calendar text-primary me-1"></i>
-                                                    {{ $post->published_at ? $post->published_at->format('d M, Y') : ($post->created_at ? $post->created_at->format('d M, Y') : 'আজ') }}
-                                                </span>
-                                                <span class="text-muted">
-                                                    <i class="fa-regular fa-clock me-1 text-warning"></i>৩ মিনিট পাঠ
-                                                </span>
-                                            </div>
-
-                                            <h5 class="fw-bold mb-2 line-clamp-2 lit-headline" style="font-size: 1.02rem;">
-                                                <a href="{{ route('blog.show', $post->slug) }}" class="text-decoration-none text-dark">
+                                            <h5 class="fw-bold mb-2 line-clamp-2 lit-headline" style="font-size: 1.05rem;">
+                                                <a href="{{ route('blog.show', $post->slug) }}" class="text-decoration-none text-dark hover-primary">
                                                     {{ $post->title }}
                                                 </a>
                                             </h5>
+
+                                            {{-- Author Icon & Name Linked to Author Directory + Publish Date and Time --}}
+                                            @php
+                                                $catAuthorName = $post->author ? $post->author->name : 'সম্পাদকীয় বিভাগ';
+                                                $catAuthorSearchUrl = route('authors.index') . '?search=' . urlencode($catAuthorName);
+                                            @endphp
+                                            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2.5 pb-2 border-bottom text-muted small" style="font-size: 0.76rem;">
+                                                <a href="{{ $catAuthorSearchUrl }}" class="d-flex align-items-center gap-1.5 text-decoration-none text-dark hover-primary" title="লেখক ডিরেক্টরীতে লেখকের প্রোফাইল ও বই দেখুন">
+                                                    <span class="lit-author-avatar flex-shrink-0" style="width: 26px; height: 26px; font-size: 0.75rem;">
+                                                        {{ mb_substr($catAuthorName, 0, 1) }}
+                                                    </span>
+                                                    <span class="fw-bold text-dark text-truncate" style="max-width: 130px;">
+                                                        {{ $catAuthorName }}
+                                                    </span>
+                                                </a>
+
+                                                <span class="text-muted" title="প্রকাশের তারিখ ও সময়">
+                                                    <i class="fa-regular fa-clock text-primary me-1"></i>
+                                                    {{ $post->published_at ? $post->published_at->format('d M, Y • h:i A') : ($post->created_at ? $post->created_at->format('d M, Y • h:i A') : 'আজ') }}
+                                                </span>
+                                            </div>
 
                                             <p class="text-secondary small line-clamp-2 mb-3 opacity-90" style="font-size: 0.84rem; line-height: 1.65;">
                                                 {{ $post->excerpt ?: Str::limit(strip_tags($post->content), 90) }}
                                             </p>
 
-                                            <div class="mt-auto pt-2.5 border-top d-flex align-items-center justify-content-between">
-                                                <div class="d-flex align-items-center gap-2 min-w-0" style="max-width: 65%;">
-                                                    <span class="lit-author-avatar flex-shrink-0">
-                                                        {{ mb_substr($post->author ? $post->author->name : 'আ', 0, 1) }}
-                                                    </span>
-                                                    <span class="small fw-semibold text-dark text-truncate" style="font-size: 0.8rem;">
-                                                        {{ $post->author ? $post->author->name : 'সম্পাদকীয়' }}
-                                                    </span>
-                                                </div>
-                                                <a href="{{ route('blog.show', $post->slug) }}" class="btn btn-outline-primary btn-sm rounded-pill px-2.5 py-1 fw-bold btn-lit-read" style="font-size: 0.75rem;">
+                                            <div class="mt-auto pt-2 d-flex align-items-center justify-content-between">
+                                                <span class="text-muted small" style="font-size: 0.72rem;">
+                                                    <i class="fa-solid fa-book-open text-warning me-1"></i>৩ মিনিট পাঠ
+                                                </span>
+                                                <a href="{{ route('blog.show', $post->slug) }}" class="btn btn-outline-primary btn-sm rounded-pill px-3 py-1 fw-bold btn-lit-read" style="font-size: 0.75rem;">
                                                     পড়ুন <i class="fa-solid fa-arrow-right ms-1"></i>
                                                 </a>
                                             </div>
