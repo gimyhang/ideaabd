@@ -8,6 +8,9 @@
 @endsection
 
 @section('actions')
+    <a href="{{ route('admin.purchases.edit', $purchase->id) }}" class="btn btn-warning text-dark fw-bold">
+        <i class="fas fa-file-pen me-1"></i> ইনভয়েস সংশোধন (Edit)
+    </a>
     <button type="button" class="btn btn-outline-dark" onclick="window.print()">
         <i class="fas fa-print me-1"></i> প্রিন্ট ইনভয়েস
     </button>

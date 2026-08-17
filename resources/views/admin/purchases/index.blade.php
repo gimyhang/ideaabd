@@ -184,6 +184,11 @@
                                         <i class="fas fa-file-invoice me-1"></i> ইনভয়েস
                                     </a>
 
+                                    <a href="{{ route('admin.purchases.edit', $p->id) }}" 
+                                       class="btn btn-sm btn-outline-warning text-dark px-2 py-1" title="ইনভয়েস সংশোধন (Edit)">
+                                        <i class="fas fa-file-pen"></i>
+                                    </a>
+
                                     <form action="{{ route('admin.purchases.destroy', $p->id) }}" method="POST" class="d-inline"
                                           onsubmit="return confirm('আপনি কি নিশ্চিত যে এই ক্রয় ইনভয়েসটি মুছে ফেলতে চান?');">
                                         @csrf

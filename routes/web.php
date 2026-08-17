@@ -187,6 +187,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::get('/payments', 'payments')->name('payments');
         Route::post('/payments', 'storePayment')->name('payments.store');
         Route::get('/{purchase}', 'show')->name('show');
+        Route::get('/{purchase}/edit', 'edit')->name('edit');
+        Route::put('/{purchase}', 'update')->name('update');
         Route::delete('/{purchase}', 'destroy')->name('destroy');
     });
 

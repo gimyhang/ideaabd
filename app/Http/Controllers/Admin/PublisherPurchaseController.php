@@ -318,6 +318,248 @@ class PublisherPurchaseController extends Controller
     }
 
     /**
+     * Show form to edit an existing publisher purchase.
+     */
+    public function edit(PublisherPurchase $purchase): View
+    {
+        $purchase->load(['publisher', 'items.book', 'payments']);
+        $publishers = Publisher::where('is_active', true)->orderBy('name')->get();
+        $authors = \Modules\Author\Models\Author::where('is_active', true)->orderBy('name')->get();
+        $categories = Category::where('is_active', true)->orderBy('name')->get();
+        $books = Book::select('id', 'title', 'price', 'stock_quantity', 'publisher_id', 'category_id', 'author_name')->orderBy('title')->get();
+
+        return view('admin.purchases.edit', compact('purchase', 'publishers', 'authors', 'categories', 'books'));
+    }
+
+    /**
+     * Update purchase, re-adjust inventory stocks, items, and recalculate financials.
+     */
+    public function update(Request $request, PublisherPurchase $purchase): RedirectResponse
+    {
+        $validated = $request->validate([
+            'publisher_id'                => 'nullable|integer',
+            'publisher_name'              => 'nullable|string|max:255',
+            'publisher_phone'             => 'nullable|string|max:50',
+            'publisher_address'           => 'nullable|string|max:255',
+            'publisher_memo_no'           => 'nullable|string|max:100',
+            'purchase_no'                 => 'required|string|max:50|unique:publisher_purchases,purchase_no,' . $purchase->id,
+            'purchase_date'               => 'required|date',
+            'payment_type'                => 'required|in:cash,credit,partial',
+            'discount_amount'             => 'nullable|numeric|min:0',
+            'notes'                       => 'nullable|string|max:1000',
+            'items'                       => 'required|array|min:1',
+            'items.*.title'               => 'required|string|max:255',
+            'items.*.book_id'             => 'nullable|integer',
+            'items.*.author'              => 'nullable|string|max:255',
+            'items.*.category_id'         => 'nullable|integer',
+            'items.*.category_name'       => 'nullable|string|max:100',
+            'items.*.quantity'            => 'required|integer|min:1',
+            'items.*.mrp_price'           => 'nullable|numeric|min:0',
+            'items.*.purchase_commission_percent' => 'nullable|numeric|min:0|max:100',
+            'items.*.cost_price'          => 'required|numeric|min:0',
+            'items.*.shop_discount_percent' => 'nullable|numeric|min:0|max:100',
+            'items.*.sale_price'          => 'required|numeric|min:0',
+        ], [
+            'purchase_no.required' => 'ক্রয় ইনভয়েস নম্বর দিন।',
+            'purchase_no.unique'   => 'এই ইনভয়েস নম্বরটি অন্য ক্রয়ে ব্যবহার করা হয়েছে।',
+            'items.required'       => 'কমপক্ষে একটি বই তালিকায় থাকতে হবে।',
+            'items.min'            => 'কমপক্ষে একটি বই তালিকায় থাকতে হবে।',
+        ]);
+
+        if (empty($validated['publisher_id']) && empty($validated['publisher_name'])) {
+            return back()->withInput()->withErrors(['publisher_id' => 'অনুগ্রহ করে বিদ্যমান প্রকাশনী বেছে নিন অথবা নতুন প্রকাশনীর নাম লিখুন।']);
+        }
+
+        return DB::transaction(function () use ($request, $validated, $purchase) {
+            // Roll back previous inventory quantities for old items
+            $oldItems = $purchase->items()->get();
+            foreach ($oldItems as $oldItem) {
+                if ($oldItem->book_id && Book::where('id', $oldItem->book_id)->exists()) {
+                    $book = Book::find($oldItem->book_id);
+                    $book->stock_quantity = max(0, $book->stock_quantity - $oldItem->quantity);
+                    $book->save();
+                }
+            }
+            $purchase->items()->delete();
+
+            // Auto resolve or create Publisher
+            $publisherId = !empty($validated['publisher_id']) ? (int)$validated['publisher_id'] : null;
+            $publisherName = trim((string)($validated['publisher_name'] ?? ''));
+
+            if (!$publisherId || !Publisher::where('id', $publisherId)->exists()) {
+                if (!empty($publisherName)) {
+                    $pub = Publisher::where('name', $publisherName)->first();
+                    if (!$pub) {
+                        $slugBase = $this->bengaliToEnglish($publisherName) ?: 'pub-' . uniqid();
+                        $slug = $slugBase;
+                        $c = 1;
+                        while (Publisher::where('slug', $slug)->exists()) {
+                            $slug = $slugBase . '-' . (++$c);
+                        }
+                        $pub = Publisher::create([
+                            'name' => $publisherName,
+                            'slug' => $slug,
+                            'phone' => $validated['publisher_phone'] ?? null,
+                            'address' => $validated['publisher_address'] ?? null,
+                            'is_active' => true,
+                        ]);
+                    }
+                    $publisherId = $pub->id;
+                } else {
+                    $pub = Publisher::first();
+                    $publisherId = $pub ? $pub->id : null;
+                }
+            }
+
+            $totalAmount = 0.0;
+            $discount = (float) ($validated['discount_amount'] ?? 0);
+
+            // Update Purchase header record
+            $purchase->purchase_no = $validated['purchase_no'];
+            $purchase->publisher_memo_no = $validated['publisher_memo_no'] ?? null;
+            $purchase->publisher_id = $publisherId;
+            $purchase->purchase_date = $validated['purchase_date'];
+            $purchase->payment_type = $validated['payment_type'];
+            $purchase->discount_amount = $discount;
+            $purchase->notes = $validated['notes'] ?? null;
+
+            // Process purchase items & sync with Bookshop
+            foreach ($validated['items'] as $itemData) {
+                $qty = (int) $itemData['quantity'];
+                $mrp = (float) ($itemData['mrp_price'] ?? 0);
+                $commPercent = (float) ($itemData['purchase_commission_percent'] ?? 0);
+                $cost = (float) $itemData['cost_price'];
+                $shopDiscPercent = (float) ($itemData['shop_discount_percent'] ?? 0);
+                $sale = (float) $itemData['sale_price'];
+
+                $itemSubtotal = $qty * $cost;
+                $totalAmount += $itemSubtotal;
+
+                $bookId = !empty($itemData['book_id']) ? (int)$itemData['book_id'] : null;
+                $authorName = trim((string)($itemData['author'] ?? ''));
+                $categoryName = trim((string)($itemData['category_name'] ?? ''));
+
+                // Auto resolve or create Category
+                $categoryId = !empty($itemData['category_id']) ? (int)$itemData['category_id'] : null;
+                if (!$categoryId && !empty($categoryName)) {
+                    $cat = Category::where('name', $categoryName)->first();
+                    if (!$cat) {
+                        $catSlugBase = $this->bengaliToEnglish($categoryName) ?: 'cat-' . uniqid();
+                        $catSlug = $catSlugBase;
+                        $c = 1;
+                        while (Category::where('slug', $catSlug)->exists()) {
+                            $catSlug = $catSlugBase . '-' . (++$c);
+                        }
+                        $cat = Category::create([
+                            'name' => $categoryName,
+                            'slug' => $catSlug,
+                            'is_active' => true,
+                        ]);
+                    }
+                    $categoryId = $cat->id;
+                }
+
+                // Auto resolve or create Author
+                $authorId = null;
+                if (!empty($authorName)) {
+                    $author = \Modules\Author\Models\Author::where('name', $authorName)->first();
+                    if (!$author) {
+                        $authSlugBase = $this->bengaliToEnglish($authorName) ?: 'author-' . uniqid();
+                        $authSlug = $authSlugBase;
+                        $c = 1;
+                        while (\Modules\Author\Models\Author::where('slug', $authSlug)->exists()) {
+                            $authSlug = $authSlugBase . '-' . (++$c);
+                        }
+                        $author = \Modules\Author\Models\Author::create([
+                            'name' => $authorName,
+                            'slug' => $authSlug,
+                            'is_active' => true,
+                        ]);
+                    }
+                    $authorId = $author->id;
+                }
+
+                $bookRegularPrice = $mrp > 0 ? $mrp : ($sale > 0 ? $sale : $cost);
+                $bookDiscountPrice = ($sale > 0 && $sale < $bookRegularPrice) ? $sale : null;
+
+                if ($bookId && Book::where('id', $bookId)->exists()) {
+                    $book = Book::find($bookId);
+                    $book->increment('stock_quantity', $qty);
+                    $book->stock_status = 'in_stock';
+                    $book->price = $bookRegularPrice;
+                    $book->discount_price = $bookDiscountPrice;
+                    if (!$book->publisher_id) {
+                        $book->publisher_id = $publisherId;
+                    }
+                    if ($categoryId && !$book->category_id) {
+                        $book->category_id = $categoryId;
+                    }
+                    if ($authorId) {
+                        $book->authors()->syncWithoutDetaching([$authorId]);
+                    }
+                    $book->is_active = true;
+                    $book->save();
+                } else {
+                    $bookTitle = trim($itemData['title']);
+                    $slugBase = $this->bengaliToEnglish($bookTitle) ?: Str::slug(Str::random(8));
+                    $slug = $slugBase;
+                    $c = 1;
+                    while (Book::withTrashed()->where('slug', $slug)->exists()) {
+                        $slug = $slugBase . '-' . (++$c);
+                    }
+
+                    $newBook = new Book();
+                    $newBook->title = $bookTitle;
+                    $newBook->slug = $slug;
+                    $newBook->publisher_id = $publisherId;
+                    $newBook->category_id = $categoryId;
+                    $newBook->author_name = !empty($authorName) ? $authorName : null;
+                    $newBook->stock_quantity = $qty;
+                    $newBook->stock_status = 'in_stock';
+                    $newBook->price = $bookRegularPrice;
+                    $newBook->discount_price = $bookDiscountPrice;
+                    $newBook->is_active = true;
+                    $newBook->published_at = now();
+                    $newBook->save();
+
+                    if ($authorId) {
+                        $newBook->authors()->syncWithoutDetaching([$authorId]);
+                    }
+
+                    $bookId = $newBook->id;
+                }
+
+                // Save Purchase Item
+                $item = new PublisherPurchaseItem();
+                $item->purchase_id = $purchase->id;
+                $item->book_id = $bookId;
+                $item->book_title = $itemData['title'];
+                $item->author_name = $authorName ?: null;
+                $item->category_id = $categoryId;
+                $item->quantity = $qty;
+                $item->mrp_price = $mrp;
+                $item->purchase_commission_percent = $commPercent;
+                $item->unit_cost_price = $cost;
+                $item->shop_discount_percent = $shopDiscPercent;
+                $item->unit_sale_price = $sale;
+                $item->subtotal = $itemSubtotal;
+                $item->save();
+            }
+
+            $grandTotal = max(0, $totalAmount - $discount);
+            $purchase->total_amount = $totalAmount;
+            $purchase->grand_total = $grandTotal;
+            $purchase->save();
+
+            // Recalculate paid and due amount
+            $purchase->recalculate();
+
+            return redirect()->route('admin.purchases.show', $purchase->id)
+                ->with('success', "ক্রয় ইনভয়েস #{$purchase->purchase_no} সফলভাবে আপডেট ও সংশোধন করা হয়েছে।");
+        });
+    }
+
+    /**
      * Show single purchase invoice with items and repayment history.
      */
     public function show(PublisherPurchase $purchase): View
