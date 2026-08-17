@@ -140,6 +140,19 @@
                                 <li><a class="dropdown-item py-2" href="{{ route('subadmin.bills.index') }}"><i class="fas fa-file-invoice-dollar text-success me-2"></i>সেলার প্যানেল</a></li>
                             @endif
 
+                            @if (($me->isAuthor() || $me->isAdmin() || $me->reg_type === 'author') && Route::has('author.dashboard'))
+                                <li>
+                                    <a class="dropdown-item py-2 fw-semibold text-success" href="{{ route('author.dashboard') }}">
+                                        <i class="fas fa-feather-pointed me-2"></i>লেখক ড্যাশবোর্ড
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item py-2 small text-muted" href="{{ route('author.dashboard', ['tab' => 'write']) }}">
+                                        <i class="fas fa-pen-nib text-warning me-2"></i>নতুন লেখা পোস্ট করুন
+                                    </a>
+                                </li>
+                            @endif
+
                             @if (Route::has('wishlist'))
                                 <li><a class="dropdown-item py-2" href="{{ route('wishlist') }}"><i class="fas fa-heart text-danger me-2"></i>পছন্দের তালিকা</a></li>
                             @endif

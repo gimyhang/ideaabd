@@ -56,6 +56,9 @@ class LoginController extends Controller
                 if ($matchedUser->isSeller() || $matchedUser->isSubAdmin()) {
                     return redirect()->intended(route('subadmin.bills.index'));
                 }
+                if ($matchedUser->isAuthor()) {
+                    return redirect()->intended(route('author.dashboard'));
+                }
 
                 return redirect()->intended(route('home'));
             }

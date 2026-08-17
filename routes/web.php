@@ -159,11 +159,16 @@ Route::get('/user', function () {
     return redirect()->route('my-account');
 })->name('user.portal');
 
-// --- Author Blog Management (Post, Draft, Edit, Delete) -------------------
-Route::prefix('author/blog')->name('author.blog.')->middleware(['auth'])->group(function () {
-    Route::post('/', [\App\Http\Controllers\AuthorBlogController::class, 'store'])->name('store');
-    Route::put('/{id}', [\App\Http\Controllers\AuthorBlogController::class, 'update'])->name('update');
-    Route::delete('/{id}', [\App\Http\Controllers\AuthorBlogController::class, 'destroy'])->name('destroy');
+// --- Author Portal & Blog Management (Dashboard, Write Post, Draft, Edit, Delete) ---
+Route::prefix('author')->name('author.')->middleware(['auth'])->group(function () {
+    Route::get('/dashboard', [\App\Http\Controllers\AuthorBlogController::class, 'dashboard'])->name('dashboard');
+    Route::get('/posts/create', [\App\Http\Controllers\AuthorBlogController::class, 'createPost'])->name('posts.create');
+    Route::get('/posts/{id}/edit', [\App\Http\Controllers\AuthorBlogController::class, 'editPost'])->name('posts.edit');
+    Route::prefix('blog')->name('blog.')->group(function () {
+        Route::post('/', [\App\Http\Controllers\AuthorBlogController::class, 'store'])->name('store');
+        Route::put('/{id}', [\App\Http\Controllers\AuthorBlogController::class, 'update'])->name('update');
+        Route::delete('/{id}', [\App\Http\Controllers\AuthorBlogController::class, 'destroy'])->name('destroy');
+    });
 });
 
 // --- Admin panel ------------------------------------------------------------

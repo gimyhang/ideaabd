@@ -146,7 +146,95 @@
                 </div>
             </div>
             @endif
+
+            <!-- Author Invitation Box -->
+            <div class="card p-4 mt-4 border-0 shadow-sm rounded-4 bg-light text-center">
+                <i class="fa-solid fa-feather-pointed fs-2 text-success mb-2"></i>
+                <h5 class="fw-bold text-dark mb-1">আপনিও কি আইডিয়া ব্লগে লিখতে চান?</h5>
+                <p class="small text-muted mb-3">আপনার জ্ঞানগর্ভ প্রবন্ধ, কবিতা, বইয়ের পর্যালোচনা ও সাহিত্যকর্ম প্রকাশ করতে আমাদের লেখক পোর্টালে যুক্ত হোন।</p>
+                <div class="d-flex justify-content-center gap-2">
+                    @auth
+                        <a href="{{ route('author.dashboard', ['tab' => 'write']) }}" class="btn btn-success rounded-pill px-4 fw-bold shadow-sm">
+                            <i class="fas fa-pen-nib me-1.5"></i> লেখা পোস্ট করুন
+                        </a>
+                        <a href="{{ route('author.dashboard') }}" class="btn btn-outline-secondary rounded-pill px-3 fw-semibold">
+                            <i class="fas fa-gauge-high me-1"></i> ড্যাশবোর্ড
+                        </a>
+                    @else
+                        <button type="button" class="btn btn-success rounded-pill px-4 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#authorLoginModal">
+                            <i class="fas fa-right-to-bracket me-1.5"></i> লেখক লগইন
+                        </button>
+                        <a href="{{ route('register.form', 'author') }}" class="btn btn-outline-success rounded-pill px-3 fw-semibold">
+                            নতুন লেখক নিবন্ধন
+                        </a>
+                    @endauth
+                </div>
+            </div>
         </div>
     </div>
 </div>
+
+{{-- Author Quick Login Modal --}}
+@guest
+<div class="modal fade" id="authorLoginModal" tabindex="-1" aria-labelledby="authorLoginModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
+            <div class="modal-header bg-success text-white py-3 px-4 border-0">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="fas fa-feather-pointed fs-4 text-warning"></i>
+                    <div>
+                        <h5 class="modal-title fw-bold mb-0 text-white" id="authorLoginModalLabel">লেখক লগইন</h5>
+                        <small class="text-white-50">মোবাইল নম্বর ও পাসওয়ার্ড দিয়ে প্রবেশ করুন</small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4 bg-white">
+                <form action="{{ route('login') }}" method="POST">
+                    @csrf
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold text-dark">
+                            <i class="fas fa-mobile-screen-button text-success me-1"></i> মোবাইল নম্বর বা ইমেইল
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light"><i class="fas fa-user text-muted"></i></span>
+                            <input type="text" name="email" class="form-control form-control-lg fs-6" 
+                                   placeholder="০১৭১০... অথবা ইমেইল" required autofocus>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold text-dark">
+                            <i class="fas fa-lock text-success me-1"></i> পাসওয়ার্ড
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light"><i class="fas fa-key text-muted"></i></span>
+                            <input type="password" name="password" class="form-control form-control-lg fs-6" 
+                                   placeholder="পাসওয়ার্ড লিখুন" required>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="remember" id="authorRemember" checked>
+                            <label class="form-check-label small text-muted" for="authorRemember">লগইন মনে রাখুন</label>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-success btn-lg w-100 rounded-pill fw-bold shadow-sm mb-3">
+                        <i class="fas fa-right-to-bracket me-1.5"></i> লগইন করে ড্যাশবোর্ডে প্রবেশ করুন
+                    </button>
+
+                    <div class="text-center pt-2 border-top">
+                        <span class="text-muted small">এখনো লেখক হিসেবে একাউন্ট নেই?</span>
+                        <a href="{{ route('register.form', 'author') }}" class="fw-bold text-success text-decoration-none ms-1 small">
+                            + লেখক হিসেবে নিবন্ধন করুন
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+@endguest
 @endsection

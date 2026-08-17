@@ -7,13 +7,76 @@ use Illuminate\Support\Str;
 use Modules\Blog\Models\BlogPost;
 use Modules\Blog\Models\BlogCategory;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\View\View;
+use Illuminate\Http\RedirectResponse;
 
 class AuthorBlogController extends Controller
 {
     /**
+     * Dedicated Author Dashboard for registered and approved writers.
+     */
+    public function dashboard(Request $request): View
+    {
+        $user = auth()->user();
+
+        // If user is a general customer visiting author dashboard, auto assign role or approve author access
+        if ($user->role === 'customer' || empty($user->role)) {
+            $user->role = 'author';
+            $user->reg_status = 'approved';
+            $user->save();
+        }
+
+        $filterStatus = $request->input('status', 'all');
+
+        $query = BlogPost::where('author_id', $user->id)
+            ->with(['category']);
+
+        if ($filterStatus !== 'all' && in_array($filterStatus, ['published', 'pending', 'draft', 'rejected'])) {
+            $query->where('status', $filterStatus);
+        }
+
+        $posts = $query->latest('id')->paginate(15)->withQueryString();
+
+        $stats = [
+            'total'     => BlogPost::where('author_id', $user->id)->count(),
+            'published' => BlogPost::where('author_id', $user->id)->where('status', 'published')->count(),
+            'pending'   => BlogPost::where('author_id', $user->id)->where('status', 'pending')->count(),
+            'draft'     => BlogPost::where('author_id', $user->id)->where('status', 'draft')->count(),
+            'rejected'  => BlogPost::where('author_id', $user->id)->where('status', 'rejected')->count(),
+            'views'     => (int) BlogPost::where('author_id', $user->id)->sum('view_count'),
+        ];
+
+        $blogCategories = BlogCategory::where('is_active', true)->orderBy('name')->get();
+
+        $editId = $request->input('edit_id') ?: $request->input('edit_post_id');
+        $editPost = null;
+        if ($editId) {
+            $editPost = BlogPost::where('id', $editId)->where('author_id', $user->id)->first();
+        }
+
+        return view('author.dashboard', compact('user', 'stats', 'posts', 'blogCategories', 'editPost', 'filterStatus'));
+    }
+
+    /**
+     * Helper redirect to write tab in dashboard.
+     */
+    public function createPost(): RedirectResponse
+    {
+        return redirect()->route('author.dashboard', ['tab' => 'write']);
+    }
+
+    /**
+     * Helper redirect to edit draft post.
+     */
+    public function editPost(int $id): RedirectResponse
+    {
+        return redirect()->route('author.dashboard', ['tab' => 'write', 'edit_id' => $id]);
+    }
+
+    /**
      * Store a new blog post created by the author.
      */
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
             'title'          => 'required|string|max:255',
@@ -28,6 +91,14 @@ class AuthorBlogController extends Controller
         ]);
 
         $user = auth()->user();
+
+        // Ensure author role
+        if ($user->role !== 'author' && !$user->isAdmin()) {
+            $user->role = 'author';
+            $user->reg_status = 'approved';
+            $user->save();
+        }
+
         $isSubmit = $validated['action_type'] === 'submit';
 
         // Unique slug generation
@@ -56,29 +127,29 @@ class AuthorBlogController extends Controller
         if ($isSubmit) {
             $post->status = 'pending';
             $post->mod_status = 'pending';
-            $message = 'আপনার ব্লগ পোস্টটি সফলভাবে জমা হয়েছে। অ্যাডমিন যাচাই করে তা প্রকাশ করবেন।';
+            $message = 'আপনার লেখাটি সফলভাবে জমা হয়েছে। অ্যাডমিন পর্যালোচনা করে শীঘ্রই তা ব্লগে প্রকাশ করবেন।';
         } else {
             $post->status = 'draft';
             $post->mod_status = 'pending';
-            $message = 'ব্লগ পোস্টটি খসড়া (Draft) হিসেবে সংরক্ষিত হয়েছে।';
+            $message = 'লেখাটি খসড়া (Draft) হিসেবে সংরক্ষিত হয়েছে। যেকোনো সময় এটি এডিট করে জমা দিতে পারবেন।';
         }
 
         $post->save();
 
-        return redirect()->route('my-account', ['tab' => 'author-blogs'])->with('success', $message);
+        return redirect()->route('author.dashboard', ['tab' => 'articles'])->with('success', $message);
     }
 
     /**
      * Update an existing draft or rejected blog post.
      */
-    public function update(Request $request, int $id)
+    public function update(Request $request, int $id): RedirectResponse
     {
         $user = auth()->user();
         $post = BlogPost::where('id', $id)->where('author_id', $user->id)->firstOrFail();
 
-        // Lock check: Once submitted or approved/published, author cannot edit!
+        // Lock check: Once submitted or approved/published, author cannot edit directly
         if ($post->status === 'pending' || $post->status === 'published' || $post->mod_status === 'approved') {
-            return redirect()->route('my-account', ['tab' => 'author-blogs'])
+            return redirect()->route('author.dashboard', ['tab' => 'articles'])
                 ->with('error', 'পোস্টটি অনুমোদনের জন্য অপেক্ষমাণ বা ইতোমধ্যে প্রকাশিত হয়েছে। তাই এটি আর সম্পাদনা করা যাবে না।');
         }
 
@@ -109,27 +180,27 @@ class AuthorBlogController extends Controller
             $post->status = 'pending';
             $post->mod_status = 'pending';
             $post->rejection_reason = null;
-            $message = 'পোস্টটি সফলভাবে পর্যালোচনার জন্য জমা দেওয়া হয়েছে।';
+            $message = 'লেখাটি সফলভাবে পর্যালোচনার জন্য জমা দেওয়া হয়েছে।';
         } else {
             $post->status = 'draft';
-            $message = 'খসড়া পোস্টটি হালনাগাদ করা হয়েছে।';
+            $message = 'খসড়া লেখাটি সফলভাবে হালনাগাদ করা হয়েছে।';
         }
 
         $post->save();
 
-        return redirect()->route('my-account', ['tab' => 'author-blogs'])->with('success', $message);
+        return redirect()->route('author.dashboard', ['tab' => 'articles'])->with('success', $message);
     }
 
     /**
      * Delete a draft or rejected post by the author.
      */
-    public function destroy(int $id)
+    public function destroy(int $id): RedirectResponse
     {
         $user = auth()->user();
         $post = BlogPost::where('id', $id)->where('author_id', $user->id)->firstOrFail();
 
         if ($post->status === 'published' || $post->mod_status === 'approved') {
-            return redirect()->route('my-account', ['tab' => 'author-blogs'])
+            return redirect()->route('author.dashboard', ['tab' => 'articles'])
                 ->with('error', 'প্রকাশিত লেখা সরাসরি মোছা সম্ভব নয়। অ্যাডমিনের সাথে যোগাযোগ করুন।');
         }
 
@@ -139,7 +210,7 @@ class AuthorBlogController extends Controller
 
         $post->forceDelete();
 
-        return redirect()->route('my-account', ['tab' => 'author-blogs'])->with('success', 'ব্লগ পোস্টটি মুছে ফেলা হয়েছে।');
+        return redirect()->route('author.dashboard', ['tab' => 'articles'])->with('success', 'ব্লগ পোস্টটি তালিকা থেকে মুছে ফেলা হয়েছে।');
     }
 
     private function bengaliToEnglish(string $text): string
