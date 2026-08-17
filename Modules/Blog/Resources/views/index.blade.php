@@ -371,7 +371,40 @@
             </div>
             @endif
 
-            <!-- Newsletter Box -->
+            <!-- Author / Write Post Box (Placed ABOVE Newsletter as requested) -->
+            <div class="card p-4 mb-4 border-0 shadow-sm rounded-4 text-center bg-white border-top border-4 border-success">
+                <div class="rounded-circle bg-success-subtle text-success d-flex align-items-center justify-content-center mx-auto mb-2" style="width: 52px; height: 52px;">
+                    <i class="fa-solid fa-feather-pointed fs-3"></i>
+                </div>
+                <h5 class="fw-bold text-dark mb-1">ব্লগে লিখতে চান?</h5>
+                <p class="small text-muted mb-3">আইডিয়া ব্লগে আপনার মৌলিক প্রবন্ধ, গল্প, কবিতা ও সাহিত্য আলোচনা প্রকাশ করতে লেখা জমা দিন।</p>
+                @auth
+                    <div class="d-flex flex-column gap-2">
+                        <a href="{{ route('author.dashboard', ['tab' => 'write']) }}" class="btn btn-success rounded-pill py-2.5 fw-bold shadow-sm">
+                            <i class="fas fa-feather-pointed me-1.5"></i> নিজের লেখা পোস্ট করুন
+                        </a>
+                        <a href="{{ route('author.dashboard') }}" class="btn btn-outline-success btn-sm rounded-pill py-2 fw-semibold">
+                            <i class="fas fa-gauge-high me-1.5"></i> লেখক ড্যাশবোর্ড
+                        </a>
+                    </div>
+                @else
+                    <div class="d-flex flex-column gap-2">
+                        <button type="button" class="btn btn-success rounded-pill py-2.5 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#authorLoginModal">
+                            <i class="fas fa-feather-pointed me-1.5"></i> নিজের লেখা পোস্ট করুন
+                        </button>
+                        <div class="d-flex gap-2 justify-content-center">
+                            <button type="button" class="btn btn-outline-success btn-sm rounded-pill px-3 py-1.5 fw-semibold flex-fill" data-bs-toggle="modal" data-bs-target="#authorLoginModal">
+                                <i class="fas fa-right-to-bracket me-1"></i> লগইন
+                            </button>
+                            <a href="{{ route('register.form', 'author') }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 py-1.5 fw-semibold flex-fill">
+                                <i class="fas fa-user-plus me-1"></i> নিবন্ধন
+                            </a>
+                        </div>
+                    </div>
+                @endauth
+            </div>
+
+            <!-- Newsletter Box (Placed BELOW Author Box) -->
             <div class="card p-4 mb-4 border-0 shadow-sm rounded-4 text-center text-white position-relative overflow-hidden" 
                  style="background: linear-gradient(135deg, #0369a1 0%, #0284c7 100%);">
                 <i class="fa-regular fa-envelope-open fs-1 mb-2 opacity-75"></i>
@@ -385,27 +418,6 @@
                         সাবস্ক্রাইব করুন
                     </button>
                 </form>
-            </div>
-
-            <!-- Author Registration Box -->
-            <div class="card p-4 border-0 shadow-sm rounded-4 text-center bg-light">
-                <i class="fa-solid fa-feather-pointed fs-2 text-success mb-2"></i>
-                <h6 class="fw-bold text-dark mb-1">ব্লগে লেখা প্রকাশ করতে চান?</h6>
-                <p class="small text-muted mb-3">আইডিয়া ব্লগে আপনার জ্ঞানগর্ভ লেখা, গল্প, কবিতা ও সমালোচনা প্রকাশ করতে লেখক পোর্টালে যুক্ত হোন।</p>
-                @auth
-                    <a href="{{ route('author.dashboard', ['tab' => 'write']) }}" class="btn btn-success btn-sm rounded-pill px-4 fw-bold">
-                        <i class="fas fa-pen-nib me-1"></i> লেখা পোস্ট করুন
-                    </a>
-                @else
-                    <div class="d-flex flex-column gap-2">
-                        <button type="button" class="btn btn-success btn-sm rounded-pill px-4 fw-bold" data-bs-toggle="modal" data-bs-target="#authorLoginModal">
-                            <i class="fas fa-right-to-bracket me-1"></i> লেখক লগইন
-                        </button>
-                        <a href="{{ route('register.form', 'author') }}" class="btn btn-outline-secondary btn-sm rounded-pill px-4">
-                            নতুন লেখক নিবন্ধন
-                        </a>
-                    </div>
-                @endauth
             </div>
         </aside>
     </div>
