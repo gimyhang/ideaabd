@@ -55,7 +55,28 @@ class BlogController extends Controller
         // Hero post (the top featured post)
         $heroPost = $featured->first() ?: $posts->first();
 
-        return view('blog::index', compact('posts', 'categories', 'featured', 'heroPost'));
+        // Category-wise grouped posts for modern literary magazine structure
+        $categoriesWithPosts = collect();
+        if (!$request->filled('search') && !$request->filled('category')) {
+            $categoriesWithPosts = BlogCategory::where('is_active', true)
+                ->whereHas('posts', function($q) {
+                    $q->where('status', 'published');
+                })
+                ->with(['posts' => function($q) {
+                    $q->where('status', 'published')
+                      ->with(['author', 'category'])
+                      ->latest('published_at')
+                      ->latest('id')
+                      ->take(6);
+                }])
+                ->withCount(['posts' => function($q) {
+                    $q->where('status', 'published');
+                }])
+                ->orderBy('sort_order')
+                ->get();
+        }
+
+        return view('blog::index', compact('posts', 'categories', 'featured', 'heroPost', 'categoriesWithPosts'));
     }
 
     public function show($slug)

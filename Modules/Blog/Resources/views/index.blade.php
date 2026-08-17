@@ -405,102 +405,198 @@
                 </form>
             </div>
 
-            <!-- Dynamic Literary Posts Grid (3 Columns on Desktop) -->
-            <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4 mb-4">
-                @forelse($posts as $post)
-                    <div class="col">
-                        <article class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden lit-card d-flex flex-column">
-                            <a href="{{ route('blog.show', $post->slug) }}" class="text-decoration-none d-block">
-                                <div class="lit-card-media">
-                                    @php
-                                        $image = $post->featured_image;
-                                        $imageUrl = null;
-                                        if ($image) {
-                                            $imageUrl = str_starts_with($image, 'http') ? $image : (str_starts_with($image, 'storage/') ? asset($image) : asset('storage/' . $image));
-                                        }
-                                    @endphp
-                                    @if($imageUrl)
-                                        <img src="{{ $imageUrl }}" 
-                                             alt="{{ $post->title }}" 
-                                             loading="lazy"
-                                             onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'w-100 h-100 d-flex flex-column align-items-center justify-content-center bg-light text-muted\'><i class=\'fa-solid fa-feather-pointed fs-2 text-primary opacity-50 mb-1\'></i><span class=\'small fw-bold\'>আইডিয়া ব্লগ</span></div>';">
-                                    @else
-                                        <div class="w-100 h-100 d-flex flex-column align-items-center justify-content-center bg-light text-muted">
-                                            <i class="fa-solid fa-feather-pointed fs-2 text-primary opacity-50 mb-1"></i>
-                                            <span class="small fw-semibold">আইডিয়া প্রকাশন</span>
-                                        </div>
-                                    @endif
+            @if(request('search') || request('category') || $categoriesWithPosts->isEmpty())
+                <!-- Search Results or Single Filtered Category Grid (3 Columns) -->
+                <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4 mb-4">
+                    @forelse($posts as $post)
+                        <div class="col">
+                            <article class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden lit-card d-flex flex-column">
+                                <a href="{{ route('blog.show', $post->slug) }}" class="text-decoration-none d-block">
+                                    <div class="lit-card-media">
+                                        @php
+                                            $image = $post->featured_image;
+                                            $imageUrl = null;
+                                            if ($image) {
+                                                $imageUrl = str_starts_with($image, 'http') ? $image : (str_starts_with($image, 'storage/') ? asset($image) : asset('storage/' . $image));
+                                            }
+                                        @endphp
+                                        @if($imageUrl)
+                                            <img src="{{ $imageUrl }}" 
+                                                 alt="{{ $post->title }}" 
+                                                 loading="lazy"
+                                                 onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'w-100 h-100 d-flex flex-column align-items-center justify-content-center bg-light text-muted\'><i class=\'fa-solid fa-feather-pointed fs-2 text-primary opacity-50 mb-1\'></i><span class=\'small fw-bold\'>আইডিয়া ব্লগ</span></div>';">
+                                        @else
+                                            <div class="w-100 h-100 d-flex flex-column align-items-center justify-content-center bg-light text-muted">
+                                                <i class="fa-solid fa-feather-pointed fs-2 text-primary opacity-50 mb-1"></i>
+                                                <span class="small fw-semibold">আইডিয়া প্রকাশন</span>
+                                            </div>
+                                        @endif
 
-                                    <div class="lit-card-media-overlay"></div>
+                                        <div class="lit-card-media-overlay"></div>
 
-                                    @if($post->category)
-                                        <span class="badge bg-primary bg-gradient position-absolute top-0 start-0 m-2.5 shadow-sm rounded-pill px-2.5 py-1 fw-semibold" style="font-size: 0.72rem; z-index: 2;">
-                                            <i class="fa-solid fa-folder me-1"></i>{{ $post->category->name }}
+                                        @if($post->category)
+                                            <span class="badge bg-primary bg-gradient position-absolute top-0 start-0 m-2.5 shadow-sm rounded-pill px-2.5 py-1 fw-semibold" style="font-size: 0.72rem; z-index: 2;">
+                                                <i class="fa-solid fa-folder me-1"></i>{{ $post->category->name }}
+                                            </span>
+                                        @endif
+
+                                        @if($post->view_count)
+                                            <span class="badge bg-dark bg-opacity-75 text-white position-absolute top-0 end-0 m-2.5 shadow-sm rounded-pill px-2 py-1 small" style="font-size: 0.7rem; z-index: 2;">
+                                                <i class="fa-regular fa-eye me-1"></i>@bn($post->view_count)
+                                            </span>
+                                        @endif
+                                    </div>
+                                </a>
+
+                                <div class="card-body p-3 p-xl-3.5 d-flex flex-column">
+                                    <div class="text-muted small mb-2 d-flex align-items-center justify-content-between" style="font-size: 0.78rem;">
+                                        <span>
+                                            <i class="fa-regular fa-calendar text-primary me-1"></i>
+                                            {{ $post->published_at ? $post->published_at->format('d M, Y') : ($post->created_at ? $post->created_at->format('d M, Y') : 'আজ') }}
                                         </span>
-                                    @endif
-
-                                    @if($post->view_count)
-                                        <span class="badge bg-dark bg-opacity-75 text-white position-absolute top-0 end-0 m-2.5 shadow-sm rounded-pill px-2 py-1 small" style="font-size: 0.7rem; z-index: 2;">
-                                            <i class="fa-regular fa-eye me-1"></i>@bn($post->view_count)
-                                        </span>
-                                    @endif
-                                </div>
-                            </a>
-
-                            <div class="card-body p-3 p-xl-3.5 d-flex flex-column">
-                                <div class="text-muted small mb-2 d-flex align-items-center justify-content-between" style="font-size: 0.78rem;">
-                                    <span>
-                                        <i class="fa-regular fa-calendar text-primary me-1"></i>
-                                        {{ $post->published_at ? $post->published_at->format('d M, Y') : ($post->created_at ? $post->created_at->format('d M, Y') : 'আজ') }}
-                                    </span>
-                                    <span class="text-muted">
-                                        <i class="fa-regular fa-clock me-1 text-warning"></i>৩ মিনিট পাঠ
-                                    </span>
-                                </div>
-
-                                <h5 class="fw-bold mb-2 line-clamp-2 lit-headline" style="font-size: 1.02rem;">
-                                    <a href="{{ route('blog.show', $post->slug) }}" class="text-decoration-none text-dark">
-                                        {{ $post->title }}
-                                    </a>
-                                </h5>
-
-                                <p class="text-secondary small line-clamp-2 mb-3 opacity-90" style="font-size: 0.84rem; line-height: 1.65;">
-                                    {{ $post->excerpt ?: Str::limit(strip_tags($post->content), 90) }}
-                                </p>
-
-                                <div class="mt-auto pt-2.5 border-top d-flex align-items-center justify-content-between">
-                                    <div class="d-flex align-items-center gap-2 min-w-0" style="max-width: 65%;">
-                                        <span class="lit-author-avatar flex-shrink-0">
-                                            {{ mb_substr($post->author ? $post->author->name : 'আ', 0, 1) }}
-                                        </span>
-                                        <span class="small fw-semibold text-dark text-truncate" style="font-size: 0.8rem;">
-                                            {{ $post->author ? $post->author->name : 'সম্পাদকীয়' }}
+                                        <span class="text-muted">
+                                            <i class="fa-regular fa-clock me-1 text-warning"></i>৩ মিনিট পাঠ
                                         </span>
                                     </div>
-                                    <a href="{{ route('blog.show', $post->slug) }}" class="btn btn-outline-primary btn-sm rounded-pill px-2.5 py-1 fw-bold btn-lit-read" style="font-size: 0.75rem;">
-                                        পড়ুন <i class="fa-solid fa-arrow-right ms-1"></i>
-                                    </a>
-                                </div>
-                            </div>
-                        </article>
-                    </div>
-                @empty
-                    <div class="col-12 w-100">
-                        <div class="card p-5 text-center border-0 shadow-sm rounded-4 bg-light">
-                            <i class="fa-solid fa-book-open-reader fs-1 text-muted mb-3 opacity-50"></i>
-                            <h5 class="fw-bold text-dark lit-title">কোনো লেখা পাওয়া যায়নি</h5>
-                            <p class="text-muted small mb-3">অন্য কোনো ক্যাটাগরি বা শব্দ দিয়ে অনুসন্ধান করুন।</p>
-                            <a href="{{ route('blog.index') }}" class="btn btn-primary btn-sm rounded-pill px-4 align-self-center">সকল লেখা দেখুন</a>
-                        </div>
-                    </div>
-                @endforelse
-            </div>
 
-            <!-- Pagination -->
-            @if(isset($posts) && $posts instanceof \Illuminate\Pagination\LengthAwarePaginator && $posts->hasPages())
-                <div class="d-flex justify-content-center mb-5">
-                    {{ $posts->links() }}
+                                    <h5 class="fw-bold mb-2 line-clamp-2 lit-headline" style="font-size: 1.02rem;">
+                                        <a href="{{ route('blog.show', $post->slug) }}" class="text-decoration-none text-dark">
+                                            {{ $post->title }}
+                                        </a>
+                                    </h5>
+
+                                    <p class="text-secondary small line-clamp-2 mb-3 opacity-90" style="font-size: 0.84rem; line-height: 1.65;">
+                                        {{ $post->excerpt ?: Str::limit(strip_tags($post->content), 90) }}
+                                    </p>
+
+                                    <div class="mt-auto pt-2.5 border-top d-flex align-items-center justify-content-between">
+                                        <div class="d-flex align-items-center gap-2 min-w-0" style="max-width: 65%;">
+                                            <span class="lit-author-avatar flex-shrink-0">
+                                                {{ mb_substr($post->author ? $post->author->name : 'আ', 0, 1) }}
+                                            </span>
+                                            <span class="small fw-semibold text-dark text-truncate" style="font-size: 0.8rem;">
+                                                {{ $post->author ? $post->author->name : 'সম্পাদকীয়' }}
+                                            </span>
+                                        </div>
+                                        <a href="{{ route('blog.show', $post->slug) }}" class="btn btn-outline-primary btn-sm rounded-pill px-2.5 py-1 fw-bold btn-lit-read" style="font-size: 0.75rem;">
+                                            পড়ুন <i class="fa-solid fa-arrow-right ms-1"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </article>
+                        </div>
+                    @empty
+                        <div class="col-12 w-100">
+                            <div class="card p-5 text-center border-0 shadow-sm rounded-4 bg-light">
+                                <i class="fa-solid fa-book-open-reader fs-1 text-muted mb-3 opacity-50"></i>
+                                <h5 class="fw-bold text-dark lit-title">কোনো লেখা পাওয়া যায়নি</h5>
+                                <p class="text-muted small mb-3">অন্য কোনো ক্যাটাগরি বা শব্দ দিয়ে অনুসন্ধান করুন।</p>
+                                <a href="{{ route('blog.index') }}" class="btn btn-primary btn-sm rounded-pill px-4 align-self-center">সকল লেখা দেখুন</a>
+                            </div>
+                        </div>
+                    @endforelse
                 </div>
+
+                <!-- Pagination for Filtered List -->
+                @if(isset($posts) && $posts instanceof \Illuminate\Pagination\LengthAwarePaginator && $posts->hasPages())
+                    <div class="d-flex justify-content-center mb-5">
+                        {{ $posts->links() }}
+                    </div>
+                @endif
+
+            @else
+                <!-- Category-wise Grouped Literary Sections (3-Column Grid per Category) -->
+                @foreach($categoriesWithPosts as $catSection)
+                    <section class="mb-5">
+                        <div class="d-flex align-items-center justify-content-between pb-2 mb-3 border-bottom border-2 border-primary border-opacity-25">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="rounded-circle bg-primary bg-opacity-10 text-primary p-2 d-inline-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                                    <i class="fa-solid fa-feather-pointed fs-5"></i>
+                                </span>
+                                <h4 class="fw-bold text-dark mb-0 lit-title">{{ $catSection->name }}</h4>
+                                <span class="badge bg-light text-muted border rounded-pill px-2.5 py-1 small">@bn($catSection->posts_count)টি লেখা</span>
+                            </div>
+                            <a href="{{ route('blog.category', $catSection->slug) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 fw-bold text-nowrap">
+                                সকল {{ $catSection->name }} দেখুন <i class="fa-solid fa-arrow-right ms-1"></i>
+                            </a>
+                        </div>
+
+                        <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4">
+                            @foreach($catSection->posts as $post)
+                                <div class="col">
+                                    <article class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden lit-card d-flex flex-column">
+                                        <a href="{{ route('blog.show', $post->slug) }}" class="text-decoration-none d-block">
+                                            <div class="lit-card-media">
+                                                @php
+                                                    $image = $post->featured_image;
+                                                    $imageUrl = null;
+                                                    if ($image) {
+                                                        $imageUrl = str_starts_with($image, 'http') ? $image : (str_starts_with($image, 'storage/') ? asset($image) : asset('storage/' . $image));
+                                                    }
+                                                @endphp
+                                                @if($imageUrl)
+                                                    <img src="{{ $imageUrl }}" 
+                                                         alt="{{ $post->title }}" 
+                                                         loading="lazy"
+                                                         onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'w-100 h-100 d-flex flex-column align-items-center justify-content-center bg-light text-muted\'><i class=\'fa-solid fa-feather-pointed fs-2 text-primary opacity-50 mb-1\'></i><span class=\'small fw-bold\'>আইডিয়া ব্লগ</span></div>';">
+                                                @else
+                                                    <div class="w-100 h-100 d-flex flex-column align-items-center justify-content-center bg-light text-muted">
+                                                        <i class="fa-solid fa-feather-pointed fs-2 text-primary opacity-50 mb-1"></i>
+                                                        <span class="small fw-semibold">আইডিয়া প্রকাশন</span>
+                                                    </div>
+                                                @endif
+
+                                                <div class="lit-card-media-overlay"></div>
+
+                                                @if($post->view_count)
+                                                    <span class="badge bg-dark bg-opacity-75 text-white position-absolute top-0 end-0 m-2.5 shadow-sm rounded-pill px-2 py-1 small" style="font-size: 0.7rem; z-index: 2;">
+                                                        <i class="fa-regular fa-eye me-1"></i>@bn($post->view_count)
+                                                    </span>
+                                                @endif
+                                            </div>
+                                        </a>
+
+                                        <div class="card-body p-3 p-xl-3.5 d-flex flex-column">
+                                            <div class="text-muted small mb-2 d-flex align-items-center justify-content-between" style="font-size: 0.78rem;">
+                                                <span>
+                                                    <i class="fa-regular fa-calendar text-primary me-1"></i>
+                                                    {{ $post->published_at ? $post->published_at->format('d M, Y') : ($post->created_at ? $post->created_at->format('d M, Y') : 'আজ') }}
+                                                </span>
+                                                <span class="text-muted">
+                                                    <i class="fa-regular fa-clock me-1 text-warning"></i>৩ মিনিট পাঠ
+                                                </span>
+                                            </div>
+
+                                            <h5 class="fw-bold mb-2 line-clamp-2 lit-headline" style="font-size: 1.02rem;">
+                                                <a href="{{ route('blog.show', $post->slug) }}" class="text-decoration-none text-dark">
+                                                    {{ $post->title }}
+                                                </a>
+                                            </h5>
+
+                                            <p class="text-secondary small line-clamp-2 mb-3 opacity-90" style="font-size: 0.84rem; line-height: 1.65;">
+                                                {{ $post->excerpt ?: Str::limit(strip_tags($post->content), 90) }}
+                                            </p>
+
+                                            <div class="mt-auto pt-2.5 border-top d-flex align-items-center justify-content-between">
+                                                <div class="d-flex align-items-center gap-2 min-w-0" style="max-width: 65%;">
+                                                    <span class="lit-author-avatar flex-shrink-0">
+                                                        {{ mb_substr($post->author ? $post->author->name : 'আ', 0, 1) }}
+                                                    </span>
+                                                    <span class="small fw-semibold text-dark text-truncate" style="font-size: 0.8rem;">
+                                                        {{ $post->author ? $post->author->name : 'সম্পাদকীয়' }}
+                                                    </span>
+                                                </div>
+                                                <a href="{{ route('blog.show', $post->slug) }}" class="btn btn-outline-primary btn-sm rounded-pill px-2.5 py-1 fw-bold btn-lit-read" style="font-size: 0.75rem;">
+                                                    পড়ুন <i class="fa-solid fa-arrow-right ms-1"></i>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </article>
+                                </div>
+                            @endforeach
+                        </div>
+                    </section>
+                @endforeach
             @endif
         </main>
 
