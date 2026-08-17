@@ -18,16 +18,22 @@ class PublisherPurchaseItem extends Model
         'author_name',
         'category_id',
         'quantity',
+        'mrp_price',
+        'purchase_commission_percent',
         'unit_cost_price',
+        'shop_discount_percent',
         'unit_sale_price',
         'subtotal',
     ];
 
     protected $casts = [
-        'quantity'        => 'integer',
-        'unit_cost_price' => 'decimal:2',
-        'unit_sale_price' => 'decimal:2',
-        'subtotal'        => 'decimal:2',
+        'quantity'                    => 'integer',
+        'mrp_price'                   => 'decimal:2',
+        'purchase_commission_percent' => 'decimal:2',
+        'unit_cost_price'             => 'decimal:2',
+        'shop_discount_percent'       => 'decimal:2',
+        'unit_sale_price'             => 'decimal:2',
+        'subtotal'                    => 'decimal:2',
     ];
 
     public function purchase()

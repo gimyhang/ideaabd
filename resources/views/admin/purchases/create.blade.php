@@ -65,15 +65,27 @@
                             </div>
                             @error('publisher_id')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
                         </div>
+
                         <div class="col-md-3">
-                            <label class="form-label fw-semibold">ক্রয় ইনভয়েস # <span class="text-danger">*</span></label>
+                            <label class="form-label fw-semibold">ক্রয় চালান # <span class="text-danger">*</span></label>
                             <input type="text" name="purchase_no" class="form-control @error('purchase_no') is-invalid @enderror" 
                                    value="{{ old('purchase_no', $suggestedInvoiceNo) }}" required>
                             @error('purchase_no')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
+
                         <div class="col-md-3">
                             <label class="form-label fw-semibold">ক্রয়ের তারিখ <span class="text-danger">*</span></label>
                             <input type="date" name="purchase_date" class="form-control" value="{{ old('purchase_date', date('Y-m-d')) }}" required>
+                        </div>
+
+                        {{-- Publisher Memo No --}}
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold text-dark">
+                                <i class="fas fa-receipt me-1 text-primary"></i>প্রকাশকের নিজস্ব মেমো / চালান নং
+                            </label>
+                            <input type="text" name="publisher_memo_no" class="form-control" 
+                                   placeholder="যেমন: মেমো নং ১২৫৭ বা চালান নং..." value="{{ old('publisher_memo_no') }}">
+                            <small class="text-muted">প্রকাশনীর পক্ষ থেকে প্রাপ্ত মেমো/চালান নম্বরটি এখানে সংরক্ষণ করুন।</small>
                         </div>
                     </div>
                 </div>
@@ -81,10 +93,10 @@
 
             {{-- Purchase Items Card --}}
             <div class="card border-0 shadow-sm rounded-4 mb-4">
-                <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+                <div class="card-header bg-white py-3 border-bottom d-flex flex-wrap align-items-center justify-content-between gap-2">
                     <div>
-                        <h5 class="fw-bold mb-0 text-dark"><i class="fas fa-book-medical me-2 text-success"></i>ক্রয়কৃত বইয়ের তালিকা</h5>
-                        <small class="text-success"><i class="fas fa-check-circle me-1"></i>ইনভয়েস সেভ হওয়ার সাথে সাথে বইটি বুকশপ এবং লেখক/প্রকাশক না থাকলে ডিরেক্টরিতে অটোমেটিক যোগ হবে।</small>
+                        <h5 class="fw-bold mb-0 text-dark"><i class="fas fa-book-medical me-2 text-success"></i>ক্রয়কৃত বই ও কমিশন হিসাব</h5>
+                        <small class="text-success"><i class="fas fa-check-circle me-1"></i>বইয়ের মূল মূল্য ও কমিশন দিলে ক্রয়মূল্য এবং বুকশপে ছাড় দিলে বিক্রয়মূল্য স্বয়ংক্রিয়ভাবে হিসাব হবে।</small>
                     </div>
                     <button type="button" class="btn btn-sm btn-success rounded-pill px-3 fw-semibold" onclick="addItemRow()">
                         <i class="fas fa-plus me-1"></i> আরো বই যোগ করুন
@@ -94,15 +106,18 @@
                     <div class="table-responsive">
                         <table class="table table-bordered align-middle" id="itemsTable">
                             <thead class="table-light">
-                                <tr class="small text-muted text-uppercase">
-                                    <th style="min-width: 220px;">বইয়ের নাম (নতুন/বিদ্যমান) <span class="text-danger">*</span></th>
-                                    <th style="min-width: 140px;">লেখক (নতুন/বিদ্যমান)</th>
-                                    <th style="min-width: 140px;">ক্যাটাগরি</th>
-                                    <th style="width: 90px;">পরিমাণ <span class="text-danger">*</span></th>
-                                    <th style="width: 110px;">ক্রয়মূল্য (৳) <span class="text-danger">*</span></th>
-                                    <th style="width: 110px;">বিক্রয়মূল্য (৳) <span class="text-danger">*</span></th>
-                                    <th style="width: 110px;">মোট (৳)</th>
-                                    <th style="width: 45px;"></th>
+                                <tr class="small text-muted text-uppercase text-center">
+                                    <th style="min-width: 180px;" class="text-start">বইয়ের নাম <span class="text-danger">*</span></th>
+                                    <th style="min-width: 130px;" class="text-start">লেখক</th>
+                                    <th style="min-width: 130px;" class="text-start">ক্যাটাগরি</th>
+                                    <th style="width: 75px;">পরিমাণ</th>
+                                    <th style="width: 100px;">বইয়ের মূল্য (MRP ৳)</th>
+                                    <th style="width: 80px;">ক্রয় কমিশন %</th>
+                                    <th style="width: 100px;">ক্রয়মূল্য (৳)</th>
+                                    <th style="width: 80px;">শপ ছাড় %</th>
+                                    <th style="width: 100px;">বিক্রয়মূল্য (৳)</th>
+                                    <th style="width: 105px;">মোট ক্রয় (৳)</th>
+                                    <th style="width: 40px;"></th>
                                 </tr>
                             </thead>
                             <tbody id="itemsBody">
@@ -110,7 +125,7 @@
                                 <tr class="item-row" data-row="0">
                                     <td>
                                         <input type="text" name="items[0][title]" class="form-control form-control-sm item-title" 
-                                               list="booksList" placeholder="বইয়ের নাম লিখুন..." required oninput="onTitleInput(this, 0)">
+                                               list="booksList" placeholder="বইয়ের নাম..." required oninput="onTitleInput(this, 0)">
                                         <input type="hidden" name="items[0][book_id]" class="item-book-id" value="">
                                     </td>
                                     <td>
@@ -118,24 +133,33 @@
                                                list="authorsList" placeholder="লেখকের নাম...">
                                     </td>
                                     <td>
-                                        <select name="items[0][category_id]" class="form-select form-select-sm item-category">
-                                            <option value="">ক্যাটাগরি</option>
-                                            @foreach($categories as $cat)
-                                                <option value="{{ $cat->id }}">{{ $cat->name }}</option>
-                                            @endforeach
-                                        </select>
+                                        <input type="text" name="items[0][category_name]" class="form-control form-control-sm item-category" 
+                                               list="categoriesList" placeholder="ক্যাটাগরি...">
+                                        <input type="hidden" name="items[0][category_id]" class="item-category-id" value="">
                                     </td>
                                     <td>
                                         <input type="number" name="items[0][quantity]" class="form-control form-control-sm item-qty text-center" 
-                                               value="1" min="1" required oninput="calcRow(0)">
+                                               value="1" min="1" required oninput="onQtyChange(0)">
                                     </td>
                                     <td>
-                                        <input type="number" step="0.01" name="items[0][cost_price]" class="form-control form-control-sm item-cost text-end" 
-                                               value="0" min="0" required oninput="calcRow(0)">
+                                        <input type="number" step="0.01" name="items[0][mrp_price]" class="form-control form-control-sm item-mrp text-end" 
+                                               value="0" min="0" placeholder="MRP" oninput="onMrpChange(0)">
                                     </td>
                                     <td>
-                                        <input type="number" step="0.01" name="items[0][sale_price]" class="form-control form-control-sm item-sale text-end" 
-                                               value="0" min="0" required>
+                                        <input type="number" step="0.01" name="items[0][purchase_commission_percent]" class="form-control form-control-sm item-comm text-center" 
+                                               value="0" min="0" max="100" placeholder="%" oninput="onCommChange(0)">
+                                    </td>
+                                    <td>
+                                        <input type="number" step="0.01" name="items[0][cost_price]" class="form-control form-control-sm item-cost text-end fw-bold text-danger" 
+                                               value="0" min="0" required oninput="onCostChange(0)">
+                                    </td>
+                                    <td>
+                                        <input type="number" step="0.01" name="items[0][shop_discount_percent]" class="form-control form-control-sm item-shop-disc text-center" 
+                                               value="0" min="0" max="100" placeholder="%" oninput="onShopDiscChange(0)">
+                                    </td>
+                                    <td>
+                                        <input type="number" step="0.01" name="items[0][sale_price]" class="form-control form-control-sm item-sale text-end fw-bold text-success" 
+                                               value="0" min="0" required oninput="onSaleChange(0)">
                                     </td>
                                     <td class="text-end fw-bold text-dark item-subtotal">৳0.00</td>
                                     <td class="text-center">
@@ -148,20 +172,26 @@
                         </table>
                     </div>
 
-                    {{-- Datalist for existing authors --}}
+                    {{-- Datalists --}}
                     <datalist id="authorsList">
                         @foreach($authors as $a)
                             <option value="{{ $a->name }}"></option>
                         @endforeach
                     </datalist>
 
-                    {{-- Datalist for fast existing books lookup --}}
+                    <datalist id="categoriesList">
+                        @foreach($categories as $cat)
+                            <option value="{{ $cat->name }}" data-id="{{ $cat->id }}"></option>
+                        @endforeach
+                    </datalist>
+
                     <datalist id="booksList">
                         @foreach($books as $b)
                             <option value="{{ $b->title }}" 
                                     data-id="{{ $b->id }}"
                                     data-author="{{ $b->author_name }}"
-                                    data-category="{{ $b->category_id }}"
+                                    data-category-id="{{ $b->category_id }}"
+                                    data-category-name="{{ $b->category?->name ?? '' }}"
                                     data-price="{{ $b->price }}">
                                 (স্টক: {{ $b->stock_quantity }} | মূল্য: ৳{{ $b->price }})
                             </option>
@@ -192,12 +222,12 @@
                 </div>
                 <div class="card-body p-4">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <span class="text-muted">মোট বইয়ের ক্রয়মূল্য:</span>
+                        <span class="text-muted">মোট ক্রয়মূল্য:</span>
                         <span class="fw-bold fs-5 text-dark" id="displayTotal">৳0.00</span>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label small fw-semibold text-muted">ছাড় / কমিশন (Discount ৳):</label>
+                        <label class="form-label small fw-semibold text-muted">ছাড় / অতিরিক্ত কমিশন (Discount ৳):</label>
                         <input type="number" step="0.01" name="discount_amount" id="discountInput" class="form-control text-end" value="0" min="0" oninput="calcTotals()">
                     </div>
 
@@ -260,9 +290,15 @@
         existingBooksMap[opt.value.trim().toLowerCase()] = {
             id: opt.getAttribute('data-id'),
             author: opt.getAttribute('data-author'),
-            category: opt.getAttribute('data-category'),
+            categoryId: opt.getAttribute('data-category-id'),
+            categoryName: opt.getAttribute('data-category-name'),
             price: opt.getAttribute('data-price'),
         };
+    });
+
+    const categoryMap = {};
+    document.querySelectorAll('#categoriesList option').forEach(opt => {
+        categoryMap[opt.value.trim().toLowerCase()] = opt.getAttribute('data-id');
     });
 
     function onTitleInput(input, index) {
@@ -272,18 +308,116 @@
 
         const hiddenId = row.querySelector('.item-book-id');
         const authorInput = row.querySelector('.item-author');
-        const catSelect = row.querySelector('.item-category');
+        const catInput = row.querySelector('.item-category');
+        const catIdInput = row.querySelector('.item-category-id');
+        const mrpInput = row.querySelector('.item-mrp');
         const saleInput = row.querySelector('.item-sale');
 
         if (existingBooksMap[val]) {
             const b = existingBooksMap[val];
             hiddenId.value = b.id;
             if (b.author && !authorInput.value) authorInput.value = b.author;
-            if (b.category && !catSelect.value) catSelect.value = b.category;
-            if (b.price && (!saleInput.value || saleInput.value == '0')) saleInput.value = b.price;
+            if (b.categoryName && !catInput.value) {
+                catInput.value = b.categoryName;
+                catIdInput.value = b.categoryId;
+            }
+            if (b.price) {
+                if (!mrpInput.value || mrpInput.value == '0') mrpInput.value = b.price;
+                if (!saleInput.value || saleInput.value == '0') saleInput.value = b.price;
+                onMrpChange(index);
+            }
         } else {
             hiddenId.value = '';
         }
+    }
+
+    function onMrpChange(index) {
+        const row = document.querySelector(`tr[data-row="${index}"]`);
+        if (!row) return;
+
+        const mrp = parseFloat(row.querySelector('.item-mrp').value) || 0;
+        const comm = parseFloat(row.querySelector('.item-comm').value) || 0;
+        const costInput = row.querySelector('.item-cost');
+        const shopDisc = parseFloat(row.querySelector('.item-shop-disc').value) || 0;
+        const saleInput = row.querySelector('.item-sale');
+
+        if (comm > 0) {
+            const cost = mrp - (mrp * comm / 100);
+            costInput.value = cost.toFixed(2);
+        } else if (parseFloat(costInput.value) === 0) {
+            costInput.value = mrp.toFixed(2);
+        }
+
+        if (shopDisc > 0) {
+            const sale = mrp - (mrp * shopDisc / 100);
+            saleInput.value = sale.toFixed(2);
+        } else if (!saleInput.value || parseFloat(saleInput.value) === 0) {
+            saleInput.value = mrp.toFixed(2);
+        }
+
+        calcRow(index);
+    }
+
+    function onCommChange(index) {
+        const row = document.querySelector(`tr[data-row="${index}"]`);
+        if (!row) return;
+
+        const mrp = parseFloat(row.querySelector('.item-mrp').value) || 0;
+        const comm = parseFloat(row.querySelector('.item-comm').value) || 0;
+        const costInput = row.querySelector('.item-cost');
+
+        if (mrp > 0) {
+            const cost = mrp - (mrp * comm / 100);
+            costInput.value = Math.max(0, cost).toFixed(2);
+        }
+        calcRow(index);
+    }
+
+    function onCostChange(index) {
+        const row = document.querySelector(`tr[data-row="${index}"]`);
+        if (!row) return;
+
+        const mrp = parseFloat(row.querySelector('.item-mrp').value) || 0;
+        const cost = parseFloat(row.querySelector('.item-cost').value) || 0;
+        const commInput = row.querySelector('.item-comm');
+
+        if (mrp > 0 && cost <= mrp) {
+            const comm = ((mrp - cost) / mrp) * 100;
+            commInput.value = comm.toFixed(2);
+        }
+        calcRow(index);
+    }
+
+    function onShopDiscChange(index) {
+        const row = document.querySelector(`tr[data-row="${index}"]`);
+        if (!row) return;
+
+        const mrp = parseFloat(row.querySelector('.item-mrp').value) || 0;
+        const shopDisc = parseFloat(row.querySelector('.item-shop-disc').value) || 0;
+        const saleInput = row.querySelector('.item-sale');
+
+        if (mrp > 0) {
+            const sale = mrp - (mrp * shopDisc / 100);
+            saleInput.value = Math.max(0, sale).toFixed(2);
+        }
+    }
+
+    function onSaleChange(index) {
+        const row = document.querySelector(`tr[data-row="${index}"]`);
+        if (!row) return;
+
+        const mrp = parseFloat(row.querySelector('.item-mrp').value) || 0;
+        const sale = parseFloat(row.querySelector('.item-sale').value) || 0;
+        const shopDiscInput = row.querySelector('.item-shop-disc');
+
+        if (mrp > 0 && sale <= mrp) {
+            const disc = ((mrp - sale) / mrp) * 100;
+            shopDiscInput.value = disc.toFixed(2);
+        }
+    }
+
+    function onQtyChange(index) {
+        calcRow(index);
     }
 
     function calcRow(index) {
@@ -383,7 +517,7 @@
         tr.innerHTML = `
             <td>
                 <input type="text" name="items[${i}][title]" class="form-control form-control-sm item-title" 
-                       list="booksList" placeholder="বইয়ের নাম লিখুন..." required oninput="onTitleInput(this, ${i})">
+                       list="booksList" placeholder="বইয়ের নাম..." required oninput="onTitleInput(this, ${i})">
                 <input type="hidden" name="items[${i}][book_id]" class="item-book-id" value="">
             </td>
             <td>
@@ -391,24 +525,33 @@
                        list="authorsList" placeholder="লেখকের নাম...">
             </td>
             <td>
-                <select name="items[${i}][category_id]" class="form-select form-select-sm item-category">
-                    <option value="">ক্যাটাগরি</option>
-                    @foreach($categories as $cat)
-                        <option value="{{ $cat->id }}">{{ $cat->name }}</option>
-                    @endforeach
-                </select>
+                <input type="text" name="items[${i}][category_name]" class="form-control form-control-sm item-category" 
+                       list="categoriesList" placeholder="ক্যাটাগরি...">
+                <input type="hidden" name="items[${i}][category_id]" class="item-category-id" value="">
             </td>
             <td>
                 <input type="number" name="items[${i}][quantity]" class="form-control form-control-sm item-qty text-center" 
-                       value="1" min="1" required oninput="calcRow(${i})">
+                       value="1" min="1" required oninput="onQtyChange(${i})">
             </td>
             <td>
-                <input type="number" step="0.01" name="items[${i}][cost_price]" class="form-control form-control-sm item-cost text-end" 
-                       value="0" min="0" required oninput="calcRow(${i})">
+                <input type="number" step="0.01" name="items[${i}][mrp_price]" class="form-control form-control-sm item-mrp text-end" 
+                       value="0" min="0" placeholder="MRP" oninput="onMrpChange(${i})">
             </td>
             <td>
-                <input type="number" step="0.01" name="items[${i}][sale_price]" class="form-control form-control-sm item-sale text-end" 
-                       value="0" min="0" required>
+                <input type="number" step="0.01" name="items[${i}][purchase_commission_percent]" class="form-control form-control-sm item-comm text-center" 
+                       value="0" min="0" max="100" placeholder="%" oninput="onCommChange(${i})">
+            </td>
+            <td>
+                <input type="number" step="0.01" name="items[${i}][cost_price]" class="form-control form-control-sm item-cost text-end fw-bold text-danger" 
+                       value="0" min="0" required oninput="onCostChange(${i})">
+            </td>
+            <td>
+                <input type="number" step="0.01" name="items[${i}][shop_discount_percent]" class="form-control form-control-sm item-shop-disc text-center" 
+                       value="0" min="0" max="100" placeholder="%" oninput="onShopDiscChange(${i})">
+            </td>
+            <td>
+                <input type="number" step="0.01" name="items[${i}][sale_price]" class="form-control form-control-sm item-sale text-end fw-bold text-success" 
+                       value="0" min="0" required oninput="onSaleChange(${i})">
             </td>
             <td class="text-end fw-bold text-dark item-subtotal">৳0.00</td>
             <td class="text-center">

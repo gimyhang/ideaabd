@@ -82,26 +82,31 @@ class PublisherPurchaseController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'publisher_id'        => 'nullable|integer',
-            'publisher_name'      => 'nullable|string|max:255',
-            'publisher_phone'     => 'nullable|string|max:50',
-            'publisher_address'   => 'nullable|string|max:255',
-            'purchase_no'         => 'required|string|max:50|unique:publisher_purchases,purchase_no',
-            'purchase_date'       => 'required|date',
-            'payment_type'        => 'required|in:cash,credit,partial',
-            'discount_amount'     => 'nullable|numeric|min:0',
-            'paid_amount'         => 'nullable|numeric|min:0',
-            'payment_method'      => 'nullable|string|max:50',
-            'transaction_ref'     => 'nullable|string|max:100',
-            'notes'               => 'nullable|string|max:1000',
-            'items'               => 'required|array|min:1',
-            'items.*.title'       => 'required|string|max:255',
-            'items.*.book_id'     => 'nullable|integer',
-            'items.*.author'      => 'nullable|string|max:255',
-            'items.*.category_id' => 'nullable|integer',
-            'items.*.quantity'    => 'required|integer|min:1',
-            'items.*.cost_price'  => 'required|numeric|min:0',
-            'items.*.sale_price'  => 'required|numeric|min:0',
+            'publisher_id'                => 'nullable|integer',
+            'publisher_name'              => 'nullable|string|max:255',
+            'publisher_phone'             => 'nullable|string|max:50',
+            'publisher_address'           => 'nullable|string|max:255',
+            'publisher_memo_no'           => 'nullable|string|max:100',
+            'purchase_no'                 => 'required|string|max:50|unique:publisher_purchases,purchase_no',
+            'purchase_date'               => 'required|date',
+            'payment_type'                => 'required|in:cash,credit,partial',
+            'discount_amount'             => 'nullable|numeric|min:0',
+            'paid_amount'                 => 'nullable|numeric|min:0',
+            'payment_method'              => 'nullable|string|max:50',
+            'transaction_ref'             => 'nullable|string|max:100',
+            'notes'                       => 'nullable|string|max:1000',
+            'items'                       => 'required|array|min:1',
+            'items.*.title'               => 'required|string|max:255',
+            'items.*.book_id'             => 'nullable|integer',
+            'items.*.author'              => 'nullable|string|max:255',
+            'items.*.category_id'         => 'nullable|integer',
+            'items.*.category_name'       => 'nullable|string|max:100',
+            'items.*.quantity'            => 'required|integer|min:1',
+            'items.*.mrp_price'           => 'nullable|numeric|min:0',
+            'items.*.purchase_commission_percent' => 'nullable|numeric|min:0|max:100',
+            'items.*.cost_price'          => 'required|numeric|min:0',
+            'items.*.shop_discount_percent' => 'nullable|numeric|min:0|max:100',
+            'items.*.sale_price'          => 'required|numeric|min:0',
         ], [
             'purchase_no.required'  => 'ক্রয় ইনভয়েস নম্বর দিন।',
             'purchase_no.unique'    => 'এই ইনভয়েস নম্বরটি পূর্বে ব্যবহার করা হয়েছে।',
@@ -150,6 +155,7 @@ class PublisherPurchaseController extends Controller
             // Create Purchase record
             $purchase = new PublisherPurchase();
             $purchase->purchase_no = $validated['purchase_no'];
+            $purchase->publisher_memo_no = $validated['publisher_memo_no'] ?? null;
             $purchase->publisher_id = $publisherId;
             $purchase->purchase_date = $validated['purchase_date'];
             $purchase->payment_type = $validated['payment_type'];
@@ -161,13 +167,38 @@ class PublisherPurchaseController extends Controller
             // Process purchase items & sync with Bookshop
             foreach ($validated['items'] as $itemData) {
                 $qty = (int) $itemData['quantity'];
+                $mrp = (float) ($itemData['mrp_price'] ?? 0);
+                $commPercent = (float) ($itemData['purchase_commission_percent'] ?? 0);
                 $cost = (float) $itemData['cost_price'];
+                $shopDiscPercent = (float) ($itemData['shop_discount_percent'] ?? 0);
                 $sale = (float) $itemData['sale_price'];
+
                 $itemSubtotal = $qty * $cost;
                 $totalAmount += $itemSubtotal;
 
                 $bookId = !empty($itemData['book_id']) ? (int)$itemData['book_id'] : null;
                 $authorName = trim((string)($itemData['author'] ?? ''));
+                $categoryName = trim((string)($itemData['category_name'] ?? ''));
+
+                // Auto resolve or create Category if new name is entered
+                $categoryId = !empty($itemData['category_id']) ? (int)$itemData['category_id'] : null;
+                if (!$categoryId && !empty($categoryName)) {
+                    $cat = Category::where('name', $categoryName)->first();
+                    if (!$cat) {
+                        $catSlugBase = $this->bengaliToEnglish($categoryName) ?: 'cat-' . uniqid();
+                        $catSlug = $catSlugBase;
+                        $c = 1;
+                        while (Category::where('slug', $catSlug)->exists()) {
+                            $catSlug = $catSlugBase . '-' . (++$c);
+                        }
+                        $cat = Category::create([
+                            'name' => $categoryName,
+                            'slug' => $catSlug,
+                            'is_active' => true,
+                        ]);
+                    }
+                    $categoryId = $cat->id;
+                }
 
                 // Auto resolve or create Author in Author directory
                 $authorId = null;
@@ -189,16 +220,21 @@ class PublisherPurchaseController extends Controller
                     $authorId = $author->id;
                 }
 
+                $bookRegularPrice = $mrp > 0 ? $mrp : ($sale > 0 ? $sale : $cost);
+                $bookDiscountPrice = ($sale > 0 && $sale < $bookRegularPrice) ? $sale : null;
+
                 // If existing book is selected, update bookshop stock and price
                 if ($bookId && Book::where('id', $bookId)->exists()) {
                     $book = Book::find($bookId);
                     $book->increment('stock_quantity', $qty);
                     $book->stock_status = 'in_stock';
-                    if ($sale > 0) {
-                        $book->price = $sale;
-                    }
+                    $book->price = $bookRegularPrice;
+                    $book->discount_price = $bookDiscountPrice;
                     if (!$book->publisher_id) {
                         $book->publisher_id = $publisherId;
+                    }
+                    if ($categoryId && !$book->category_id) {
+                        $book->category_id = $categoryId;
                     }
                     if ($authorId) {
                         $book->authors()->syncWithoutDetaching([$authorId]);
@@ -219,11 +255,12 @@ class PublisherPurchaseController extends Controller
                     $newBook->title = $bookTitle;
                     $newBook->slug = $slug;
                     $newBook->publisher_id = $publisherId;
-                    $newBook->category_id = !empty($itemData['category_id']) ? (int)$itemData['category_id'] : null;
+                    $newBook->category_id = $categoryId;
                     $newBook->author_name = !empty($authorName) ? $authorName : null;
                     $newBook->stock_quantity = $qty;
                     $newBook->stock_status = 'in_stock';
-                    $newBook->price = $sale > 0 ? $sale : $cost;
+                    $newBook->price = $bookRegularPrice;
+                    $newBook->discount_price = $bookDiscountPrice;
                     $newBook->is_active = true;
                     $newBook->published_at = now();
                     $newBook->save();
@@ -241,9 +278,12 @@ class PublisherPurchaseController extends Controller
                 $item->book_id = $bookId;
                 $item->book_title = $itemData['title'];
                 $item->author_name = $authorName ?: null;
-                $item->category_id = !empty($itemData['category_id']) ? (int)$itemData['category_id'] : null;
+                $item->category_id = $categoryId;
                 $item->quantity = $qty;
+                $item->mrp_price = $mrp;
+                $item->purchase_commission_percent = $commPercent;
                 $item->unit_cost_price = $cost;
+                $item->shop_discount_percent = $shopDiscPercent;
                 $item->unit_sale_price = $sale;
                 $item->subtotal = $itemSubtotal;
                 $item->save();

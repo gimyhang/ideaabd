@@ -14,6 +14,7 @@ class PublisherPurchase extends Model
 
     protected $fillable = [
         'purchase_no',
+        'publisher_memo_no',
         'publisher_id',
         'purchase_date',
         'payment_type',

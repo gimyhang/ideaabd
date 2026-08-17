@@ -136,9 +136,12 @@
                     @foreach ($purchases as $p)
                         <tr>
                             <td class="ps-3">
-                                <a href="{{ route('admin.purchases.show', $p->id) }}" class="fw-bold text-decoration-none">
+                                <a href="{{ route('admin.purchases.show', $p->id) }}" class="fw-bold text-decoration-none text-primary">
                                     {{ $p->purchase_no }}
                                 </a>
+                                @if($p->publisher_memo_no)
+                                    <div class="small text-muted"><i class="fas fa-receipt me-1"></i>মেমো: {{ $p->publisher_memo_no }}</div>
+                                @endif
                             </td>
                             <td>
                                 <div class="fw-bold text-dark">{{ $p->publisher->name ?? '—' }}</div>

@@ -68,6 +68,9 @@
                 <div class="col-md-6 text-md-end">
                     <span class="text-muted small text-uppercase fw-semibold">ক্রয়ের বিবরণ:</span>
                     <div class="mt-1">
+                        @if($purchase->publisher_memo_no)
+                            <div class="text-primary fw-bold mb-1"><i class="fas fa-receipt me-1"></i>প্রকাশকের মেমো নং: #{{ $purchase->publisher_memo_no }}</div>
+                        @endif
                         <div>ক্রয়ের ধরন: <strong>{{ ['cash' => 'নগদে ক্রয়', 'credit' => 'বাকিতে ক্রয়', 'partial' => 'আংশিক বাকি'][$purchase->payment_type] ?? $purchase->payment_type }}</strong></div>
                         <div>এন্ট্রি করেছেন: <strong>{{ $purchase->creator->name ?? 'অ্যাডমিন' }}</strong></div>
                     </div>
@@ -77,35 +80,45 @@
             {{-- Items Table --}}
             <div class="table-responsive mb-4">
                 <table class="table table-bordered align-middle">
-                    <thead class="table-light">
-                        <tr class="small text-muted text-uppercase">
-                            <th class="ps-3">#</th>
-                            <th>বইয়ের নাম</th>
-                            <th>লেখক</th>
-                            <th>ক্যাটাগরি</th>
-                            <th class="text-center">পরিমাণ</th>
-                            <th class="text-end">ক্রয়মূল্য (একক)</th>
-                            <th class="text-end pe-3">মোট টাকা</th>
+                    <thead class="table-light text-center small text-muted text-uppercase">
+                        <tr>
+                            <th class="ps-3" style="width: 40px;">#</th>
+                            <th class="text-start">বইয়ের বিবরণ</th>
+                            <th>পরিমাণ</th>
+                            <th>মূল্য (MRP)</th>
+                            <th>কমিশন %</th>
+                            <th>ক্রয়মূল্য</th>
+                            <th>শপ বিক্রয়মূল্য</th>
+                            <th class="text-end pe-3">মোট ক্রয়</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach($purchase->items as $i => $item)
                             <tr>
-                                <td class="ps-3 text-muted small">@bn($i + 1)</td>
+                                <td class="ps-3 text-muted small text-center">@bn($i + 1)</td>
                                 <td>
                                     <div class="fw-bold text-dark">{{ $item->book_title }}</div>
+                                    <div class="small text-muted">
+                                        লেখক: {{ $item->author_name ?? '—' }} | ক্যাটাগরি: {{ $item->category->name ?? $item->book?->category?->name ?? '—' }}
+                                    </div>
                                     @if($item->book)
-                                        <a href="{{ route('shop.show', $item->book->slug) }}" target="_blank" class="small text-primary text-decoration-none">
-                                            <i class="fas fa-arrow-up-right-from-square me-1"></i>বুকশপে দেখুন (বর্তমান স্টক: @bn($item->book->stock_quantity))
+                                        <a href="{{ route('shop.show', $item->book->slug) }}" target="_blank" class="small text-primary text-decoration-none d-inline-block mt-0.5">
+                                            <i class="fas fa-arrow-up-right-from-square me-1"></i>বুকশপে লাইভ দেখুন (স্টক: @bn($item->book->stock_quantity))
                                         </a>
-                                    @else
-                                        <span class="badge bg-success-subtle text-success small">বুকশপে অটো-যুক্ত</span>
                                     @endif
                                 </td>
-                                <td>{{ $item->author_name ?? '—' }}</td>
-                                <td>{{ $item->category->name ?? $item->book?->category?->name ?? '—' }}</td>
                                 <td class="text-center fw-bold">@bn($item->quantity) টি</td>
-                                <td class="text-end">@taka($item->unit_cost_price)</td>
+                                <td class="text-center">@taka($item->mrp_price > 0 ? $item->mrp_price : $item->unit_cost_price)</td>
+                                <td class="text-center text-danger fw-semibold">
+                                    {{ $item->purchase_commission_percent > 0 ? $item->purchase_commission_percent . '%' : '—' }}
+                                </td>
+                                <td class="text-center fw-bold text-danger">@taka($item->unit_cost_price)</td>
+                                <td class="text-center text-success">
+                                    <strong>@taka($item->unit_sale_price)</strong>
+                                    @if($item->shop_discount_percent > 0)
+                                        <div class="small text-muted">(@bn($item->shop_discount_percent)% ছাড়)</div>
+                                    @endif
+                                </td>
                                 <td class="text-end pe-3 fw-bold text-dark">@taka($item->subtotal)</td>
                             </tr>
                         @endforeach
