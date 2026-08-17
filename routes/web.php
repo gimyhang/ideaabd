@@ -160,6 +160,8 @@ Route::get('/user', function () {
 })->name('user.portal');
 
 // --- Author Portal & Blog Management (Dashboard, Write Post, Draft, Edit, Delete) ---
+Route::get('/blog/write', [\App\Http\Controllers\AuthorBlogController::class, 'writeGateway'])->name('blog.write');
+
 Route::prefix('author')->name('author.')->middleware(['auth'])->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\AuthorBlogController::class, 'dashboard'])->name('dashboard');
     Route::get('/posts/create', [\App\Http\Controllers\AuthorBlogController::class, 'createPost'])->name('posts.create');

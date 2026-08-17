@@ -173,17 +173,10 @@
                 </div>
 
                 <div class="col-lg-4 text-lg-end">
-                    @auth
-                        <a href="{{ route('author.dashboard', ['tab' => 'write']) }}" class="btn btn-warning text-dark btn-lg rounded-pill px-4 py-2.5 fw-bold shadow-lg d-inline-flex align-items-center gap-2">
-                            <i class="fas fa-feather-pointed fs-5"></i>
-                            <span>নিজের লেখা পোস্ট করুন</span>
-                        </a>
-                    @else
-                        <button type="button" class="btn btn-warning text-dark btn-lg rounded-pill px-4 py-2.5 fw-bold shadow-lg d-inline-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#authorLoginModal">
-                            <i class="fas fa-feather-pointed fs-5"></i>
-                            <span>নিজের লেখা পোস্ট করুন</span>
-                        </button>
-                    @endauth
+                    <a href="{{ route('blog.write') }}" class="btn btn-warning text-dark btn-lg rounded-pill px-4 py-2.5 fw-bold shadow-lg d-inline-flex align-items-center gap-2">
+                        <i class="fas fa-feather-pointed fs-5"></i>
+                        <span>নিজের লেখা পোস্ট করুন</span>
+                    </a>
                 </div>
             </div>
 
@@ -265,7 +258,7 @@
                 </div>
 
                 <div class="d-flex flex-wrap gap-2">
-                    <a href="{{ route('author.dashboard', ['tab' => 'write']) }}" class="btn btn-warning text-dark rounded-pill px-4 py-2 fw-bold shadow-sm">
+                    <a href="{{ route('blog.write') }}" class="btn btn-warning text-dark rounded-pill px-4 py-2 fw-bold shadow-sm">
                         <i class="fas fa-pen-nib me-1.5"></i> নিজের লেখা পোস্ট করুন
                     </a>
                     <a href="{{ route('author.dashboard') }}" class="btn btn-outline-light rounded-pill px-3 py-2 fw-semibold">
@@ -291,12 +284,12 @@
                 </div>
 
                 <div class="d-flex flex-wrap gap-2">
-                    <button type="button" class="btn btn-success rounded-pill px-4 py-2 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#authorLoginModal">
+                    <a href="{{ route('blog.write') }}" class="btn btn-success rounded-pill px-4 py-2 fw-bold shadow-sm">
                         <i class="fas fa-feather-pointed me-1.5"></i> নিজের লেখা পোস্ট করুন
-                    </button>
-                    <button type="button" class="btn btn-outline-success rounded-pill px-3 py-2 fw-semibold" data-bs-toggle="modal" data-bs-target="#authorLoginModal">
+                    </a>
+                    <a href="{{ route('login') }}" class="btn btn-outline-success rounded-pill px-3 py-2 fw-semibold">
                         <i class="fas fa-right-to-bracket me-1.5"></i> লেখক লগইন
-                    </button>
+                    </a>
                     <a href="{{ route('register.form', 'author') }}" class="btn btn-outline-secondary rounded-pill px-3 py-2 fw-semibold">
                         <i class="fas fa-user-plus me-1.5"></i> নতুন নিবন্ধন
                     </a>
@@ -522,7 +515,7 @@
                 <p class="text-muted mb-2.5" style="font-size: 0.78rem; line-height: 1.45;">আইডিয়া সাহিত্যপত্রে আপনার মৌলিক গল্প, কবিতা, প্রবন্ধ ও সাহিত্য আলোচনা প্রকাশ করুন।</p>
                 @auth
                     <div class="d-flex flex-column gap-1.5">
-                        <a href="{{ route('author.dashboard', ['tab' => 'write']) }}" class="btn btn-success btn-sm rounded-pill py-2 fw-bold shadow-sm">
+                        <a href="{{ route('blog.write') }}" class="btn btn-success btn-sm rounded-pill py-2 fw-bold shadow-sm">
                             <i class="fas fa-feather-pointed me-1"></i> নিজের লেখা পোস্ট করুন
                         </a>
                         <a href="{{ route('author.dashboard') }}" class="btn btn-outline-success btn-sm rounded-pill py-1.5 fw-semibold" style="font-size: 0.78rem;">
@@ -531,14 +524,14 @@
                     </div>
                 @else
                     <div class="d-flex flex-column gap-1.5">
-                        <button type="button" class="btn btn-success btn-sm rounded-pill py-2 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#authorLoginModal">
+                        <a href="{{ route('blog.write') }}" class="btn btn-success btn-sm rounded-pill py-2 fw-bold shadow-sm">
                             <i class="fas fa-feather-pointed me-1"></i> নিজের লেখা পোস্ট করুন
-                        </button>
+                        </a>
                         <div class="d-flex gap-1.5 justify-content-center">
-                            <button type="button" class="btn btn-outline-success btn-sm rounded-pill px-2.5 py-1 fw-semibold flex-fill" style="font-size: 0.78rem;" data-bs-toggle="modal" data-bs-target="#authorLoginModal">
+                            <a href="{{ route('login') }}" class="btn btn-outline-success btn-sm rounded-pill px-2.5 py-1 fw-semibold flex-fill text-center" style="font-size: 0.78rem;">
                                 <i class="fas fa-right-to-bracket me-1"></i> লগইন
-                            </button>
-                            <a href="{{ route('register.form', 'author') }}" class="btn btn-outline-secondary btn-sm rounded-pill px-2.5 py-1 fw-semibold flex-fill" style="font-size: 0.78rem;">
+                            </a>
+                            <a href="{{ route('register.form', 'author') }}" class="btn btn-outline-secondary btn-sm rounded-pill px-2.5 py-1 fw-semibold flex-fill text-center" style="font-size: 0.78rem;">
                                 <i class="fas fa-user-plus me-1"></i> নিবন্ধন
                             </a>
                         </div>

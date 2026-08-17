@@ -13,11 +13,49 @@ use Illuminate\Http\RedirectResponse;
 class AuthorBlogController extends Controller
 {
     /**
+     * Public gateway for writing blog posts.
+     * Directs guests to login/register, pending authors to approval status, and approved authors to write dashboard.
+     */
+    public function writeGateway(Request $request): RedirectResponse
+    {
+        if (!auth()->check()) {
+            session()->put('url.intended', route('blog.write'));
+            return redirect()->route('login')->with('info', 'ব্লগে নিজের লেখা প্রকাশ করতে অনুগ্রহ করে আপনার মোবাইল নম্বর ও পাসওয়ার্ড দিয়ে লগইন করুন অথবা নতুন লেখক হিসেবে নিবন্ধন করুন।');
+        }
+
+        $user = auth()->user();
+
+        // If user's registration is pending approval
+        if ($user->reg_status === 'pending' || $user->status === 'pending') {
+            return redirect()->route('pending.approval')->with('warning', 'আপনার লেখক অ্যাকাউন্টটি অ্যাডমিন অনুমোদনের অপেক্ষায় রয়েছে। অনুমোদন সম্পন্ন হলে আপনি ব্লগে লেখা পোস্ট করতে পারবেন।');
+        }
+
+        // If user is rejected
+        if ($user->reg_status === 'rejected' || $user->status === 'rejected') {
+            return redirect()->route('home')->with('error', 'আপনার লেখক অ্যাকাউন্টের আবেদনটি অনুমোদিত হয়নি।');
+        }
+
+        // Auto assign author role for registered approved users
+        if ($user->role === 'customer' || empty($user->role)) {
+            $user->role = 'author';
+            $user->reg_status = 'approved';
+            $user->save();
+        }
+
+        return redirect()->route('author.dashboard', ['tab' => 'write']);
+    }
+
+    /**
      * Dedicated Author Dashboard for registered and approved writers.
      */
-    public function dashboard(Request $request): View
+    public function dashboard(Request $request)
     {
         $user = auth()->user();
+
+        // Check if user is pending approval
+        if ($user->reg_status === 'pending' || $user->status === 'pending') {
+            return redirect()->route('pending.approval')->with('warning', 'আপনার লেখক অ্যাকাউন্টটি অ্যাডমিন অনুমোদনের অপেক্ষায় রয়েছে।');
+        }
 
         // If user is a general customer visiting author dashboard, auto assign role or approve author access
         if ($user->role === 'customer' || empty($user->role)) {

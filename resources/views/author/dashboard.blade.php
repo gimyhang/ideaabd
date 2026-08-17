@@ -359,6 +359,9 @@
                                 </div>
 
                                 <div class="d-flex flex-wrap gap-2 justify-content-end">
+                                    <button type="button" class="btn btn-outline-primary px-4 py-2.5 rounded-pill fw-semibold" onclick="openArticleLivePreview()">
+                                        <i class="fas fa-eye me-1.5"></i> লাইভ প্রিভিউ (Preview)
+                                    </button>
                                     <button type="submit" name="action_type" value="draft" class="btn btn-outline-secondary px-4 py-2.5 rounded-pill fw-semibold">
                                         <i class="fas fa-bookmark me-1.5"></i> খসড়া সংরক্ষণ করুন (Save Draft)
                                     </button>
@@ -408,6 +411,54 @@
     </div>
 </div>
 
+{{-- Interactive Article Live Preview Modal --}}
+<div class="modal fade" id="articlePreviewModal" tabindex="-1" aria-labelledby="articlePreviewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+        <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
+            <div class="modal-header bg-dark text-white py-3 px-4 border-0">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="fas fa-newspaper text-warning fs-4"></i>
+                    <div>
+                        <h5 class="modal-title fw-bold mb-0 text-white" id="articlePreviewModalLabel">ব্লগে কেমন দেখাবে (লাইভ প্রিভিউ)</h5>
+                        <small class="text-white-50">প্রকাশিত হলে পাঠকরা যেভাবে দেখতে পাবেন</small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4 p-md-5 bg-white">
+                <article>
+                    <div id="prevCategoryBadge" class="badge bg-primary bg-gradient px-3 py-1.5 rounded-pill mb-3 d-inline-block">সাধারণ সাহিত্য</div>
+                    <h1 id="prevTitle" class="fw-bold text-dark display-6 mb-3" style="line-height: 1.35;">শিরোনামের নমুনা</h1>
+                    
+                    <div class="d-flex align-items-center gap-3 py-3 border-top border-bottom mb-4 text-muted small">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center shadow-sm fw-bold" style="width: 36px; height: 36px;">
+                                {{ mb_substr($user->name, 0, 1) }}
+                            </div>
+                            <div>
+                                <span class="fw-bold text-dark d-block">{{ $user->name }}</span>
+                                <span class="text-muted" style="font-size: 0.72rem;">আইডিয়া সাহিত্যপত্র লেখক</span>
+                            </div>
+                        </div>
+                        <span class="ms-auto"><i class="fa-regular fa-calendar text-primary me-1"></i>আজ</span>
+                    </div>
+
+                    <div id="prevCoverBox" class="rounded-4 overflow-hidden mb-4 shadow-sm" style="max-height: 380px; display: none;">
+                        <img id="prevCoverImg" src="" alt="Cover" class="w-100 h-100 object-fit-cover">
+                    </div>
+
+                    <div id="prevExcerptBox" class="p-3 bg-light rounded-3 mb-4 border-start border-4 border-primary fs-6 fst-italic text-secondary" style="display: none;"></div>
+
+                    <div id="prevContent" class="fs-6 text-dark leading-relaxed" style="line-height: 1.8; white-space: pre-line;"></div>
+                </article>
+            </div>
+            <div class="modal-footer bg-light border-0 py-3 px-4">
+                <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">বন্ধ করুন</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
     function switchTab(tabName) {
         if (tabName === 'write') {
@@ -423,6 +474,49 @@
                 tab.show();
             }
         }
+    }
+
+    function openArticleLivePreview() {
+        const title = document.querySelector('input[name="title"]')?.value.trim() || 'শিরোনাম ছাড়া খসড়া';
+        const catSelect = document.querySelector('select[name="category_id"]');
+        const catName = catSelect && catSelect.selectedIndex > 0 ? catSelect.options[catSelect.selectedIndex].text : 'সাহিত্যপত্র';
+        const excerpt = document.querySelector('textarea[name="excerpt"]')?.value.trim() || '';
+        const content = document.querySelector('textarea[name="content"]')?.value.trim() || 'এখানে কোনো বিষয়বস্তু লেখা হয়নি...';
+        const fileInput = document.querySelector('input[name="featured_image"]');
+
+        document.getElementById('prevTitle').textContent = title;
+        document.getElementById('prevCategoryBadge').textContent = catName;
+        document.getElementById('prevContent').textContent = content;
+
+        const excerptBox = document.getElementById('prevExcerptBox');
+        if (excerpt) {
+            excerptBox.textContent = excerpt;
+            excerptBox.style.display = 'block';
+        } else {
+            excerptBox.style.display = 'none';
+        }
+
+        const coverBox = document.getElementById('prevCoverBox');
+        const coverImg = document.getElementById('prevCoverImg');
+
+        if (fileInput && fileInput.files && fileInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                coverImg.src = e.target.result;
+                coverBox.style.display = 'block';
+            };
+            reader.readAsDataURL(fileInput.files[0]);
+        } else {
+            @if($editPost && $editPost->featured_image)
+                coverImg.src = "{{ asset('storage/' . $editPost->featured_image) }}";
+                coverBox.style.display = 'block';
+            @else
+                coverBox.style.display = 'none';
+            @endif
+        }
+
+        const modal = new bootstrap.Modal(document.getElementById('articlePreviewModal'));
+        modal.show();
     }
 </script>
 @endsection

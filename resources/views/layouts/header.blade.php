@@ -114,6 +114,12 @@
                     <span class="site-icon__count" id="siteCartCount" hidden>০</span>
                 </a>
 
+                {{-- Direct 'লেখা পোস্ট করুন' Button in Header --}}
+                <a href="{{ route('blog.write') }}" class="btn btn-warning btn-sm rounded-pill fw-bold px-3 py-1.5 shadow-sm text-dark d-none d-md-inline-flex align-items-center gap-1.5 me-2" title="ব্লগে নিজের লেখা পোস্ট করুন">
+                    <i class="fas fa-pen-nib text-dark"></i>
+                    <span>লেখা পোস্ট করুন</span>
+                </a>
+
                 @auth
                     <div class="dropdown">
                         <button class="site-user dropdown-toggle border-0 shadow-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="padding: 0.35rem 0.9rem 0.35rem 0.35rem;">
@@ -284,6 +290,9 @@
         @endforeach
 
         <div class="d-grid gap-2 mt-4 pt-3 border-top">
+            <a href="{{ route('blog.write') }}" class="btn btn-warning rounded-pill fw-bold text-dark shadow-sm">
+                <i class="fas fa-pen-nib me-1.5"></i> নিজের লেখা পোস্ট করুন
+            </a>
             @auth
                 @if ($me->isAdmin() && Route::has('admin.dashboard'))
                     <a href="{{ route('admin.dashboard') }}" class="btn btn-primary rounded-pill fw-semibold">অ্যাডমিন প্যানেল</a>
