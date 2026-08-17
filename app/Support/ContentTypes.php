@@ -201,6 +201,23 @@ final class ContentTypes
                     'is_active'   => ['label' => 'সক্রিয় থাকবে', 'type' => 'checkbox', 'rules' => 'nullable|boolean', 'col' => 6],
                 ],
             ],
+
+            'blog_categories' => [
+                'label'     => 'ব্লগ ক্যাটাগরি',
+                'model'     => \Modules\Blog\Models\BlogCategory::class,
+                'table'     => 'blog_categories',
+                'listRoute' => 'admin.blog-categories',
+                'display'   => 'name',
+                'slugFrom'  => 'name',
+                'icon'      => 'shapes',
+                'fields'    => [
+                    'name'        => ['label' => 'ক্যাটাগরির নাম (যেমন: কবিতা, ছোটগল্প, প্রবন্ধ)', 'type' => 'text', 'rules' => 'required|string|max:255', 'unique' => true, 'col' => 6],
+                    'icon'        => ['label' => 'ফন্ট অসাম আইকন (যেমন: feather-pointed, book-open-reader)', 'type' => 'text', 'rules' => 'nullable|string|max:100', 'col' => 6],
+                    'image'       => ['label' => 'ক্যাটাগরি থাম্বনেল / কভার ছবি', 'type' => 'file', 'accept' => 'image/*', 'disk' => 'blog/categories', 'rules' => 'nullable|image|max:3072', 'col' => 12],
+                    'description' => ['label' => 'বিবরণ বা ভূমিকা', 'type' => 'textarea', 'rules' => 'nullable|string|max:2000', 'col' => 12],
+                    'is_active'   => ['label' => 'সক্রিয় থাকবে', 'type' => 'checkbox', 'default' => true, 'rules' => 'nullable|boolean', 'col' => 12],
+                ],
+            ],
         ];
     }
 

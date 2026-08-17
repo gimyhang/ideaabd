@@ -508,6 +508,29 @@ class AdminController extends Controller
         return view('admin.blog', compact('posts', 'stats', 'search', 'status'));
     }
 
+    public function blogCategories(Request $request): View
+    {
+        $search = $request->string('search')->trim()->value();
+        $query = \Modules\Blog\Models\BlogCategory::query()
+            ->withCount(['posts' => fn($q) => $q->where('status', 'published')])
+            ->when($search, function ($q, $term) {
+                $like = '%' . $term . '%';
+                $q->where('name', 'like', $like)
+                  ->orWhere('slug', 'like', $like)
+                  ->orWhere('description', 'like', $like);
+            })
+            ->orderBy('name');
+
+        $categories = $query->paginate(25)->withQueryString();
+
+        $stats = [
+            'total'  => \Modules\Blog\Models\BlogCategory::count(),
+            'active' => \Modules\Blog\Models\BlogCategory::where('is_active', true)->count(),
+        ];
+
+        return view('admin.blog-categories', compact('categories', 'stats', 'search'));
+    }
+
     public function webzines(Request $request): View
     {
         return view('admin.webzines', [

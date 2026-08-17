@@ -237,21 +237,22 @@
         </div>
     </div>
 
-    <div class="row justify-content-center">
-        <div class="col-lg-9">
+    <div class="row g-4">
+        <!-- Main Reading Column -->
+        <div class="col-lg-8">
             <!-- Book Sheet Reading Card -->
-            <article class="lit-book-sheet p-4 p-md-5 mb-5" id="bookArticle">
+            <article class="lit-book-sheet p-4 p-md-5 mb-4" id="bookArticle">
                 <div class="lit-book-spine"></div>
 
                 <!-- Dedicated Print Header (Visible ONLY on Print) -->
                 <div class="print-header d-none">
                     <div class="d-flex align-items-center justify-content-between">
                         <div class="d-flex align-items-center gap-2">
-                            <span style="font-size: 1.6rem; font-weight: bold; color: #0c4a6e; font-family: serif;">📖 আইডিয়া প্রকাশন</span>
-                            <span style="font-size: 1rem; color: #555; border-left: 2px solid #ccc; padding-left: 10px;">আইডিয়া সাহিত্য সাময়িকী</span>
+                            <span style="font-size: 1.5rem; font-weight: bold; color: #0c4a6e; font-family: serif;">📖 {{ \App\Support\SiteSetting::name() }}</span>
+                            <span style="font-size: 0.95rem; color: #555; border-left: 2px solid #ccc; padding-left: 10px;">{{ \App\Support\SiteSetting::tagline() }}</span>
                         </div>
-                        <div class="text-end" style="font-size: 0.85rem; color: #666;">
-                            <div>www.ideaabd.com/blog</div>
+                        <div class="text-end" style="font-size: 0.8rem; color: #666;">
+                            <div>{{ url()->current() }}</div>
                             <div>তারিখ: {{ date('d M, Y') }}</div>
                         </div>
                     </div>
@@ -286,12 +287,12 @@
                     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 text-muted small py-3 my-3 border-top border-bottom" style="background: rgba(0,0,0,0.015); border-color: #e2e8f0 !important;">
                         <div class="d-flex align-items-center gap-2.5">
                             <a href="{{ $authorSearchUrl }}" class="d-flex align-items-center gap-2 text-decoration-none text-dark hover-primary" title="লেখক ডিরেক্টরীতে লেখকের প্রোফাইল ও বই দেখুন">
-                                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold shadow-sm" style="width: 42px; height: 42px; font-size: 1.05rem;">
+                                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold shadow-sm" style="width: 40px; height: 40px; font-size: 1rem;">
                                     {{ mb_substr($authorName, 0, 1) }}
                                 </div>
                                 <div>
-                                    <span class="fw-bold text-dark d-block" style="font-size: 1rem;">{{ $authorName }}</span>
-                                    <span class="text-muted" style="font-size: 0.76rem;">আইডিয়া সাহিত্যপত্র লেখক ও গবেষক</span>
+                                    <span class="fw-bold text-dark d-block" style="font-size: 0.96rem;">{{ $authorName }}</span>
+                                    <span class="text-muted" style="font-size: 0.74rem;">আইডিয়া সাহিত্যপত্র লেখক ও গবেষক</span>
                                 </div>
                             </a>
                         </div>
@@ -385,28 +386,45 @@
                     </div>
                 </div>
 
-                {{-- Publisher & Site Identity Box at the End of Article (On Screen & Print) --}}
-                <div class="card border-0 rounded-4 p-4 text-dark mb-4 position-relative overflow-hidden print-footer-identity" 
-                     style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border: 1px solid #cbd5e1 !important;">
-                    <div class="d-flex flex-column flex-md-row align-items-center gap-3.5">
-                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center shadow-sm fs-3 flex-shrink-0" style="width: 56px; height: 56px;">
-                            <i class="fa-solid fa-book-bookmark"></i>
+                {{-- Compact Publisher & Site Identity Box at the End of Article (12pt title, 8pt details + URL) --}}
+                @php
+                    $siteName = \App\Support\SiteSetting::name();
+                    $siteTagline = \App\Support\SiteSetting::tagline();
+                    $siteLogo = \App\Support\SiteSetting::logoUrl() ?: asset('images/logo.png');
+                    $siteAddress = \App\Support\SiteSetting::get('contact_address', 'সেন্ট্রাল রোড, রংপুর ৫৪০০, বাংলাদেশ');
+                    $sitePhone = \App\Support\SiteSetting::get('contact_phone', '+৮৮০ ১৩১৮ ৬৯২ ৬৯২');
+                    $siteEmail = \App\Support\SiteSetting::get('contact_email', 'ideapbd@gmail.com');
+                @endphp
+                <div class="card border rounded-3 p-3 text-dark mb-4 position-relative overflow-hidden print-footer-identity" 
+                     style="background: #fafaf9; border-color: #e7e5e4 !important;">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="flex-shrink-0">
+                            @if($siteLogo)
+                                <img src="{{ $siteLogo }}" alt="{{ $siteName }}" class="rounded" style="max-height: 38px; max-width: 110px; object-fit: contain;">
+                            @else
+                                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center shadow-xs fs-5" style="width: 38px; height: 38px;">
+                                    <i class="fa-solid fa-book-bookmark"></i>
+                                </div>
+                            @endif
                         </div>
-                        <div class="flex-grow-1 text-center text-md-start">
-                            <div class="d-flex align-items-center justify-content-center justify-content-md-start gap-2 mb-1">
-                                <h5 class="fw-bold mb-0 text-dark lit-title">আইডিয়া প্রকাশন ও সাহিত্য সাময়িকী</h5>
-                                <span class="badge bg-primary px-2.5 py-0.5 rounded-pill small">ডিজিটাল প্রকাশনা</span>
+                        <div class="flex-grow-1">
+                            <div class="d-flex flex-wrap align-items-center gap-2 mb-0.5">
+                                <span class="fw-bold text-dark lit-title" style="font-size: 12pt;">{{ $siteName }}</span>
+                                <span class="badge bg-light text-muted border px-2 py-0.5 rounded-pill" style="font-size: 7.5pt;">{{ $siteTagline }}</span>
                             </div>
-                            <p class="small text-secondary mb-1">
-                                সেন্ট্রাল রোড, রংপুর ৫৪০০, বাংলাদেশ | হেল্পলাইন: <strong>+৮৮০ ১৩১৮ ৬৯২ ৬৯২</strong> | ইমেইল: ideapbd@gmail.com
-                            </p>
-                            <div class="small text-muted" style="font-size: 0.78rem;">
-                                ওয়েবসাইট: <a href="https://www.ideaabd.com" target="_blank" class="text-primary fw-semibold">www.ideaabd.com</a> | সর্বস্বত্ব সংরক্ষিত © {{ date('Y') }} আইডিয়া প্রকাশন।
+                            <div class="text-secondary" style="font-size: 8pt; line-height: 1.5;">
+                                <span>ঠিকানা: {{ $siteAddress }}</span> • 
+                                <span>হেল্পলাইন: {{ $sitePhone }}</span> • 
+                                <span>ইমেইল: {{ $siteEmail }}</span>
+                            </div>
+                            <div class="text-muted mt-0.5" style="font-size: 8pt;">
+                                <span>লেখার লিংক: <a href="{{ url()->current() }}" class="text-primary text-decoration-none">{{ url()->current() }}</a></span> • 
+                                <span>সর্বস্বত্ব সংরক্ষিত © {{ date('Y') }} {{ $siteName }}</span>
                             </div>
                         </div>
-                        <div class="flex-shrink-0 no-print">
-                            <a href="{{ route('book.index') }}" class="btn btn-outline-primary rounded-pill px-3.5 py-2 fw-bold small text-nowrap">
-                                <i class="fa-solid fa-book-open me-1"></i> আমাদের বইসমূহ দেখুন
+                        <div class="flex-shrink-0 no-print d-none d-sm-block">
+                            <a href="{{ route('book.index') }}" class="btn btn-outline-primary btn-sm rounded-pill px-3 py-1 fw-semibold text-nowrap" style="font-size: 8.5pt;">
+                                <i class="fa-solid fa-book-open me-1"></i> বইসমূহ
                             </a>
                         </div>
                     </div>
@@ -549,6 +567,85 @@
                         </a>
                     @endauth
                 </div>
+            </div>
+        </div>
+
+        <!-- Sidebar Column (Visible on Desktop / Tablet, Hidden on Print) -->
+        <div class="col-lg-4 no-print">
+            <div class="d-flex flex-column gap-4 position-sticky" style="top: 2rem;">
+                
+                {{-- Author Profile Widget --}}
+                <div class="card p-4 border-0 shadow-sm rounded-4 bg-white text-center">
+                    <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold shadow-sm mx-auto mb-2.5" style="width: 64px; height: 64px; font-size: 1.5rem;">
+                        {{ mb_substr($authorName, 0, 1) }}
+                    </div>
+                    <h6 class="fw-bold text-dark mb-1">{{ $authorName }}</h6>
+                    <p class="text-muted small mb-3">আইডিয়া সাহিত্যপত্র লেখক ও গবেষক</p>
+                    <a href="{{ $authorSearchUrl }}" class="btn btn-outline-primary btn-sm rounded-pill px-4 fw-bold shadow-xs">
+                        <i class="fa-solid fa-user-pen me-1.5"></i> লেখকের সকল বই ও লেখা
+                    </a>
+                </div>
+
+                {{-- Sidebar Google Ad Slot --}}
+                @include('partials.google-ad', ['type' => 'sidebar'])
+
+                {{-- Trending / Popular Posts in Sidebar --}}
+                @php
+                    $sidebarPosts = \Modules\Blog\Models\BlogPost::where('status', 'published')
+                        ->where('id', '!=', $post->id)
+                        ->latest('published_at')
+                        ->limit(5)
+                        ->get();
+                @endphp
+                @if($sidebarPosts->isNotEmpty())
+                    <div class="card p-3.5 border-0 shadow-sm rounded-4 bg-white">
+                        <h6 class="fw-bold text-dark mb-3 pb-2 border-bottom d-flex align-items-center gap-2">
+                            <i class="fa-solid fa-fire text-danger"></i>
+                            <span>সাম্প্রতিক সাহিত্যকর্ম</span>
+                        </h6>
+                        <div class="d-flex flex-column gap-3">
+                            @foreach($sidebarPosts as $sPost)
+                                <a href="{{ route('blog.show', $sPost->slug) }}" class="text-decoration-none d-flex gap-2.5 align-items-center group hover-lift">
+                                    <div class="rounded-3 overflow-hidden flex-shrink-0" style="width: 65px; height: 50px; background: #e2e8f0;">
+                                        @php $sImg = $sPost->featured_image; @endphp
+                                        @if($sImg)
+                                            <img src="{{ str_starts_with($sImg, 'http') ? $sImg : (str_starts_with($sImg, 'storage/') ? asset($sImg) : asset('storage/' . $sImg)) }}" class="w-100 h-100 object-fit-cover">
+                                        @else
+                                            <div class="w-100 h-100 d-flex align-items-center justify-content-center text-muted" style="font-size: 0.8rem;">📖</div>
+                                        @endif
+                                    </div>
+                                    <div class="flex-grow-1 overflow-hidden">
+                                        <h6 class="fw-bold text-dark mb-1 line-clamp-2" style="font-size: 0.85rem; line-height: 1.35;">{{ $sPost->title }}</h6>
+                                        <span class="text-muted small" style="font-size: 0.72rem;">
+                                            <i class="fa-regular fa-calendar me-1"></i>{{ $sPost->published_at ? $sPost->published_at->format('d M, Y') : ($sPost->created_at ? $sPost->created_at->format('d M, Y') : '') }}
+                                        </span>
+                                    </div>
+                                </a>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+
+                {{-- Categories Quick Widget --}}
+                @php
+                    $sidebarCats = \Modules\Blog\Models\BlogCategory::where('is_active', true)->withCount(['posts' => fn($q) => $q->where('status', 'published')])->limit(6)->get();
+                @endphp
+                @if($sidebarCats->isNotEmpty())
+                    <div class="card p-3.5 border-0 shadow-sm rounded-4 bg-white">
+                        <h6 class="fw-bold text-dark mb-3 pb-2 border-bottom d-flex align-items-center gap-2">
+                            <i class="fa-solid fa-shapes text-primary"></i>
+                            <span>ব্লগ ক্যাটাগরি</span>
+                        </h6>
+                        <div class="d-flex flex-wrap gap-1.5">
+                            @foreach($sidebarCats as $scat)
+                                <a href="{{ route('blog.category', $scat->slug) }}" class="badge bg-light text-dark border px-3 py-1.5 rounded-pill text-decoration-none small hover-primary">
+                                    {{ $scat->name }} <span class="text-muted">(@bn($scat->posts_count ?? 0))</span>
+                                </a>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+
             </div>
         </div>
     </div>

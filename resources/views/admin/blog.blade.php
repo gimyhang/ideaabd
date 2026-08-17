@@ -7,6 +7,9 @@
 @endsection
 
 @section('actions')
+    <a href="{{ route('admin.blog-categories') }}" class="btn btn-outline-primary">
+        <i class="fas fa-shapes me-1"></i> ক্যাটাগরি তৈরি ও পরিচালনা
+    </a>
     <a href="{{ route('admin.content.create', 'blog') }}" class="btn btn-primary">
         <i class="fas fa-plus me-1"></i> নতুন ব্লগ পোস্ট যোগ করুন
     </a>

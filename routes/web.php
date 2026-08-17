@@ -184,6 +184,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::get('/books', [AdminController::class, 'books'])->name('books');
     Route::get('/categories', [AdminController::class, 'categories'])->name('categories');
     Route::get('/blog', [AdminController::class, 'blog'])->name('blog');
+    Route::get('/blog-categories', [AdminController::class, 'blogCategories'])->name('blog-categories');
     Route::get('/ebooks', [AdminController::class, 'ebooks'])->name('ebooks');
     Route::get('/webzines', [AdminController::class, 'webzines'])->name('webzines');
     Route::get('/authors', [AdminController::class, 'authors'])->name('authors');
