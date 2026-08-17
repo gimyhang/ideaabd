@@ -305,10 +305,23 @@
                                 @endif
 
                                 <div class="mb-3">
-                                    <label class="form-label fw-bold text-dark">লেখার শিরোনাম (Title) <span class="text-danger">*</span></label>
+                                    <label class="form-label fw-bold text-dark">লেখার মূল শিরোনাম (Title) <span class="text-danger">*</span></label>
                                     <input type="text" name="title" class="form-control form-control-lg fs-6 rounded-3 @error('title') is-invalid @enderror" 
                                            value="{{ old('title', $editPost->title ?? '') }}" required placeholder="এখানে আকর্ষণীয় ও স্পষ্ট শিরোনাম লিখুন...">
                                     @error('title')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-dark">
+                                        উপ-শিরোনাম / ট্যাগলাইন (Subtitle / Tagline) <span class="text-muted small">(ঐচ্ছিক)</span>
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light"><i class="fa-solid fa-quote-left text-primary"></i></span>
+                                        <input type="text" name="subtitle" class="form-control rounded-3 @error('subtitle') is-invalid @enderror" 
+                                               value="{{ old('subtitle', $editPost->subtitle ?? '') }}" placeholder="যেমন: 'একটি ঐতিহাসিক সাহিত্য পর্যালোচনা' বা বিশেষ সার-ট্যাগলাইন...">
+                                    </div>
+                                    <small class="text-muted" style="font-size: 0.76rem;">শিরোনামের নিচে দৃষ্টিনন্দনভাবে সাব-টাইটেল হিসেবে প্রদর্শিত হবে।</small>
+                                    @error('subtitle')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                 </div>
 
                                 <div class="row g-3 mb-3">
@@ -463,7 +476,8 @@
             <div class="modal-body p-4 p-md-5 bg-white">
                 <article>
                     <div id="prevCategoryBadge" class="badge bg-primary bg-gradient px-3 py-1.5 rounded-pill mb-3 d-inline-block">সাধারণ সাহিত্য</div>
-                    <h1 id="prevTitle" class="fw-bold text-dark display-6 mb-3" style="line-height: 1.35;">শিরোনামের নমুনা</h1>
+                    <h1 id="prevTitle" class="fw-bold text-dark display-6 mb-1" style="line-height: 1.35;">শিরোনামের নমুনা</h1>
+                    <div id="prevSubtitleBox" class="fs-6 text-muted mb-3 fst-italic" style="display: none;"></div>
                     
                     <div class="d-flex align-items-center gap-3 py-3 border-top border-bottom mb-4 text-muted small">
                         <div class="d-flex align-items-center gap-2">
@@ -513,6 +527,7 @@
 
     function openArticleLivePreview() {
         const title = document.querySelector('input[name="title"]')?.value.trim() || 'শিরোনাম ছাড়া খসড়া';
+        const subtitle = document.querySelector('input[name="subtitle"]')?.value.trim() || '';
         const catSelect = document.querySelector('select[name="category_id"]');
         const catName = catSelect && catSelect.selectedIndex > 0 ? catSelect.options[catSelect.selectedIndex].text : 'সাহিত্যপত্র';
         const excerpt = document.querySelector('textarea[name="excerpt"]')?.value.trim() || '';
@@ -522,6 +537,14 @@
         document.getElementById('prevTitle').textContent = title;
         document.getElementById('prevCategoryBadge').textContent = catName;
         document.getElementById('prevContent').textContent = content;
+
+        const subBox = document.getElementById('prevSubtitleBox');
+        if (subtitle) {
+            subBox.textContent = subtitle;
+            subBox.style.display = 'block';
+        } else {
+            subBox.style.display = 'none';
+        }
 
         const excerptBox = document.getElementById('prevExcerptBox');
         if (excerpt) {

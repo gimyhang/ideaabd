@@ -275,9 +275,16 @@
                         </div>
                     </div>
 
-                    <h1 class="fw-bold text-dark display-6 mb-3 lit-title" style="line-height: 1.4; font-family: 'SolaimanLipi', Georgia, serif;">
+                    <h1 class="fw-bold text-dark display-6 mb-2 lit-title" style="line-height: 1.4; font-family: 'SolaimanLipi', Georgia, serif;">
                         {{ $post->title }}
                     </h1>
+
+                    @if($post->subtitle)
+                        <div class="fs-6 text-secondary mb-3 fst-italic fw-normal d-flex align-items-center gap-1.5" style="font-family: 'SolaimanLipi', Georgia, serif; line-height: 1.6;">
+                            <i class="fa-solid fa-feather text-primary opacity-50"></i>
+                            <span>{{ $post->subtitle }}</span>
+                        </div>
+                    @endif
 
                     {{-- Author Details Linked to Author Directory & Exact Publish Date/Time --}}
                     @php

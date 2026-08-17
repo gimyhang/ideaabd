@@ -174,9 +174,10 @@ final class ContentTypes
                 'slugFrom'  => 'title',
                 'icon'      => 'blog',
                 'fields'    => [
-                    'title'          => ['label' => 'শিরোনাম', 'type' => 'text', 'rules' => 'required|string|max:255', 'unique' => true, 'col' => 8],
+                    'title'          => ['label' => 'মূল শিরোনাম', 'type' => 'text', 'rules' => 'required|string|max:255', 'unique' => true, 'col' => 8],
                     'category_id'    => ['label' => 'ক্যাটাগরি', 'type' => 'select', 'lookup' => 'blog_categories', 'rules' => 'nullable|integer', 'col' => 4],
-                    'excerpt'        => ['label' => 'সংক্ষিপ্তসার', 'type' => 'textarea', 'rules' => 'nullable|string|max:1000', 'col' => 12],
+                    'subtitle'       => ['label' => 'উপ-শিরোনাম বা ট্যাগলাইন (Subtitle / Tagline)', 'type' => 'text', 'rules' => 'nullable|string|max:500', 'col' => 12],
+                    'excerpt'        => ['label' => 'সংক্ষিপ্তসার / ভূমিকা', 'type' => 'textarea', 'rules' => 'nullable|string|max:1000', 'col' => 12],
                     'content'        => ['label' => 'মূল লেখা', 'type' => 'editor', 'rules' => 'required|string|max:100000', 'col' => 12],
                     'status'         => ['label' => 'অবস্থা', 'type' => 'select', 'rules' => 'nullable|in:draft,pending,published,archived', 'col' => 4,
                                           'options' => ['draft' => 'খসড়া', 'pending' => 'অপেক্ষমাণ', 'published' => 'প্রকাশিত', 'archived' => 'সংরক্ষিত']],

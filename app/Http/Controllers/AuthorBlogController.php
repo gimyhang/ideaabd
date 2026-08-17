@@ -118,6 +118,7 @@ class AuthorBlogController extends Controller
     {
         $validated = $request->validate([
             'title'          => 'required|string|max:255',
+            'subtitle'       => 'nullable|string|max:500',
             'category_id'    => 'required|integer|exists:blog_categories,id',
             'excerpt'        => 'nullable|string|max:1000',
             'content'        => 'required|string',
@@ -151,6 +152,7 @@ class AuthorBlogController extends Controller
 
         $post = new BlogPost();
         $post->title = $validated['title'];
+        $post->subtitle = $validated['subtitle'] ?? null;
         $post->slug = $slug;
         $post->category_id = $validated['category_id'] ?: null;
         $post->excerpt = $validated['excerpt'] ?: Str::limit(strip_tags($validated['content']), 200);
@@ -190,6 +192,7 @@ class AuthorBlogController extends Controller
 
         $validated = $request->validate([
             'title'          => 'required|string|max:255',
+            'subtitle'       => 'nullable|string|max:500',
             'category_id'    => 'required|integer|exists:blog_categories,id',
             'excerpt'        => 'nullable|string|max:1000',
             'content'        => 'required|string',
@@ -211,6 +214,7 @@ class AuthorBlogController extends Controller
         }
 
         $post->title = $validated['title'];
+        $post->subtitle = $validated['subtitle'] ?? null;
         // Update slug to clean english if empty or modified
         if (empty($post->slug) || !preg_match('/^[a-z0-9-]+$/i', $post->slug)) {
             $post->slug = $this->generateEnglishSlug($validated['title'], $post->id);
