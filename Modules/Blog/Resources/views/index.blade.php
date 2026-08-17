@@ -21,20 +21,36 @@
                 সমকালীন সাহিত্য আলোচনা, নতুন বইয়ের পর্যালোচনা, লেখক সাক্ষাৎকার ও গবেষণাধর্মী নানা নিবন্ধের ডিজিটাল প্রকাশনা।
             </p>
             
-            <!-- Search Bar -->
-            <form action="{{ route('blog.index') }}" method="GET" class="d-flex flex-column flex-sm-row gap-2">
-                <div class="input-group shadow rounded-pill overflow-hidden bg-white p-1" style="max-width: 520px;">
-                    <span class="input-group-text bg-transparent border-0 text-muted ps-3">
-                        <i class="fas fa-search"></i>
-                    </span>
-                    <input type="text" name="search" value="{{ request('search') }}" 
-                           class="form-control border-0 shadow-none ps-2" 
-                           placeholder="নিবন্ধের শিরোনাম, বিষয় বা লেখক দিয়ে খুঁজুন...">
-                    <button type="submit" class="btn btn-primary rounded-pill px-4 fw-semibold">
-                        খুঁজুন
-                    </button>
+            <!-- Search Bar & Action Buttons -->
+            <div class="d-flex flex-column flex-md-row gap-3 align-items-md-center mt-3">
+                <form action="{{ route('blog.index') }}" method="GET" class="flex-grow-1" style="max-width: 480px;">
+                    <div class="input-group shadow rounded-pill overflow-hidden bg-white p-1">
+                        <span class="input-group-text bg-transparent border-0 text-muted ps-3">
+                            <i class="fas fa-search"></i>
+                        </span>
+                        <input type="text" name="search" value="{{ request('search') }}" 
+                               class="form-control border-0 shadow-none ps-2" 
+                               placeholder="শিরোনাম, বিষয় বা লেখক খুঁজুন...">
+                        <button type="submit" class="btn btn-primary rounded-pill px-4 fw-semibold">
+                            খুঁজুন
+                        </button>
+                    </div>
+                </form>
+
+                <div>
+                    @auth
+                        <a href="{{ route('author.dashboard', ['tab' => 'write']) }}" class="btn btn-warning text-dark btn-lg rounded-pill px-4 py-2.5 fw-bold shadow d-inline-flex align-items-center gap-2">
+                            <i class="fas fa-feather-pointed fs-5"></i>
+                            <span>নিজের লেখা পোস্ট করুন</span>
+                        </a>
+                    @else
+                        <button type="button" class="btn btn-warning text-dark btn-lg rounded-pill px-4 py-2.5 fw-bold shadow d-inline-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#authorLoginModal">
+                            <i class="fas fa-feather-pointed fs-5"></i>
+                            <span>নিজের লেখা পোস্ট করুন</span>
+                        </button>
+                    @endauth
                 </div>
-            </form>
+            </div>
         </div>
     </div>
 
@@ -49,15 +65,15 @@
                     <div>
                         <div class="d-flex align-items-center gap-2">
                             <h5 class="fw-bold mb-0 text-white">স্বাগতম, {{ auth()->user()->name }}!</h5>
-                            <span class="badge bg-warning text-dark px-2.5 py-0.5 rounded-pill small fw-bold">লেখক কর্নার</span>
+                            <span class="badge bg-warning text-dark px-2.5 py-0.5 rounded-pill small fw-bold">অনুমোদিত লেখক</span>
                         </div>
-                        <p class="small mb-0 text-light opacity-90">আইডিয়া ব্লগে আপনার নতুন কোনো মৌলিক সাহিত্যকর্ম বা প্রবন্ধ থাকলে এখনই পোস্ট করুন।</p>
+                        <p class="small mb-0 text-light opacity-90">আইডিয়া ব্লগে আপনার নতুন কোনো গল্প, প্রবন্ধ, কবিতা বা বইয়ের পর্যালোচনা পোস্ট করুন।</p>
                     </div>
                 </div>
 
                 <div class="d-flex flex-wrap gap-2">
                     <a href="{{ route('author.dashboard', ['tab' => 'write']) }}" class="btn btn-warning text-dark rounded-pill px-4 py-2 fw-bold shadow-sm">
-                        <i class="fas fa-pen-nib me-1.5"></i> নতুন লেখা পোস্ট করুন
+                        <i class="fas fa-pen-nib me-1.5"></i> নিজের লেখা পোস্ট করুন
                     </a>
                     <a href="{{ route('author.dashboard') }}" class="btn btn-outline-light rounded-pill px-3 py-2 fw-semibold">
                         <i class="fas fa-gauge-high me-1.5"></i> লেখক ড্যাশবোর্ড
@@ -74,19 +90,22 @@
                     </div>
                     <div>
                         <div class="d-flex align-items-center gap-2">
-                            <h5 class="fw-bold mb-0 text-dark">আপনি কি একজন লেখক বা গবেষক?</h5>
-                            <span class="badge bg-success-subtle text-success px-2.5 py-0.5 rounded-pill small fw-bold">লেখক আহ্বান</span>
+                            <h5 class="fw-bold mb-0 text-dark">আপনি কি ব্লগে লিখতে চান?</h5>
+                            <span class="badge bg-success-subtle text-success px-2.5 py-0.5 rounded-pill small fw-bold">লেখক কর্নার</span>
                         </div>
-                        <p class="small text-muted mb-0">আইডিয়া ব্লগে আপনার মৌলিক লেখা, প্রবন্ধ ও সাহিত্যকর্ম প্রকাশ করতে মোবাইল নম্বর ও পাসওয়ার্ড দিয়ে লগইন করুন।</p>
+                        <p class="small text-muted mb-0">আইডিয়া ব্লগে আপনার মৌলিক লেখা, প্রবন্ধ ও সাহিত্যকর্ম প্রকাশ করতে লগইন করুন বা নিবন্ধন করুন।</p>
                     </div>
                 </div>
 
                 <div class="d-flex flex-wrap gap-2">
                     <button type="button" class="btn btn-success rounded-pill px-4 py-2 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#authorLoginModal">
-                        <i class="fas fa-right-to-bracket me-1.5"></i> লেখক লগইন (মোবাইল / পাসওয়ার্ড)
+                        <i class="fas fa-feather-pointed me-1.5"></i> নিজের লেখা পোস্ট করুন
                     </button>
-                    <a href="{{ route('register.form', 'author') }}" class="btn btn-outline-success rounded-pill px-3 py-2 fw-semibold">
-                        <i class="fas fa-user-plus me-1.5"></i> নতুন লেখক নিবন্ধন
+                    <button type="button" class="btn btn-outline-success rounded-pill px-3 py-2 fw-semibold" data-bs-toggle="modal" data-bs-target="#authorLoginModal">
+                        <i class="fas fa-right-to-bracket me-1.5"></i> লেখক লগইন
+                    </button>
+                    <a href="{{ route('register.form', 'author') }}" class="btn btn-outline-secondary rounded-pill px-3 py-2 fw-semibold">
+                        <i class="fas fa-user-plus me-1.5"></i> নতুন নিবন্ধন
                     </a>
                 </div>
             </div>
