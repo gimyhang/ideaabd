@@ -31,7 +31,7 @@ class RegistrationController extends Controller
         $allowed = ['seller', 'publisher', 'author', 'buyer'];
         abort_unless(in_array($type, $allowed), 404);
 
-        if ($type === 'buyer') {
+        if (in_array($type, ['buyer', 'author'])) {
             $base = $request->validate([
                 'name'     => ['required', 'string', 'max:255'],
                 'phone'    => ['required', 'string', 'max:20'],
@@ -39,14 +39,15 @@ class RegistrationController extends Controller
                 'password' => ['required', 'confirmed', Password::min(6)],
             ]);
 
-            // Auto-assign phone-based email if customer didn't specify an email
+            // Auto-assign phone-based email if user didn't specify an email
             if (empty($base['email'])) {
                 $cleanPhone = preg_replace('/[^0-9]/', '', $base['phone']);
-                $generatedEmail = $cleanPhone . '@buyer.ideaabd.com';
+                $domain = $type === 'author' ? 'author.ideaabd.com' : 'buyer.ideaabd.com';
+                $generatedEmail = $cleanPhone . '@' . $domain;
                 // ensure unique
                 $existing = User::where('email', $generatedEmail)->first();
                 if ($existing) {
-                    $generatedEmail = $cleanPhone . '_' . rand(100, 999) . '@buyer.ideaabd.com';
+                    $generatedEmail = $cleanPhone . '_' . rand(100, 999) . '@' . $domain;
                 }
                 $base['email'] = $generatedEmail;
             }
@@ -75,8 +76,8 @@ class RegistrationController extends Controller
             ]),
             'author' => $request->validate([
                 'pen_name' => ['nullable', 'string', 'max:255'],
-                'bio'      => ['required', 'string'],
-                'genre'    => ['required', 'string'],
+                'bio'      => ['nullable', 'string'],
+                'genre'    => ['nullable', 'string'],
                 'nid'      => ['nullable', 'string'],
             ]),
             'buyer' => $request->validate([
@@ -92,6 +93,9 @@ class RegistrationController extends Controller
         // Log SMS dispatch
         Log::info("SMS Verification dispatched to {$base['phone']}: {$smsMessage}");
 
+        $isActive = in_array($type, ['buyer', 'author'], true);
+        $regStatus = $isActive ? User::STATUS_APPROVED : User::STATUS_PENDING;
+
         $user = User::create([
             'name'       => $base['name'],
             'email'      => $base['email'],
@@ -99,16 +103,44 @@ class RegistrationController extends Controller
             'password'   => Hash::make($base['password']),
             'role'       => $type === 'buyer' ? User::ROLE_BUYER : $type,
             'reg_type'   => $type,
-            'reg_status' => $type === 'buyer' ? User::STATUS_APPROVED : User::STATUS_PENDING,
+            'reg_status' => $regStatus,
             'reg_data'   => array_merge($extra, ['otp_code' => $otpCode]),
-            'is_active'  => $type === 'buyer',
-            'email_verified_at' => $type === 'buyer' ? now() : null,
+            'is_active'  => $isActive,
+            'email_verified_at' => $isActive ? now() : null,
         ]);
+
+        // Auto create/sync entry in authors table if type is author
+        if ($type === 'author') {
+            try {
+                $authorName = !empty($extra['pen_name']) ? $extra['pen_name'] : $base['name'];
+                $authorSlug = \Illuminate\Support\Str::slug($authorName) ?: 'author-' . $user->id;
+                if (\Illuminate\Support\Facades\DB::table('authors')->where('slug', $authorSlug)->exists()) {
+                    $authorSlug .= '-' . $user->id;
+                }
+                \Illuminate\Support\Facades\DB::table('authors')->insertOrIgnore([
+                    'name'        => $authorName,
+                    'slug'        => $authorSlug,
+                    'bio'         => $extra['bio'] ?? null,
+                    'phone'       => $base['phone'],
+                    'email'       => $base['email'],
+                    'is_active'   => true,
+                    'is_verified' => false,
+                    'created_at'  => now(),
+                    'updated_at'  => now(),
+                ]);
+            } catch (\Throwable $e) {
+                Log::warning("Could not auto-create directory author entry: " . $e->getMessage());
+            }
+        }
 
         auth()->login($user);
 
         if ($type === 'buyer') {
-            return redirect('/')->with('success', "স্বাগতম {$user->name}! আপনার মোবাইল নম্বর ({$base['phone']}) সফলভাবে নিবন্ধিত হয়েছে এবং কনফার্মেশন মেসেজ পাঠানো হয়েছে।");
+            return redirect('/')->with('success', "স্বাগতম {$user->name}! আপনার মোবাইল নম্বর ({$base['phone']}) সফলভাবে নিবন্ধিত হয়েছে।");
+        }
+
+        if ($type === 'author') {
+            return redirect()->route('my-account')->with('success', "স্বাগতম লেখক {$user->name}! আপনার মোবাইল নম্বরটি ইউজারনেম হিসেবে সেট হয়েছে। আপনি এখন ব্লগ পোস্ট লিখতে ও ড্রাফট করতে পারেন।");
         }
 
         return redirect()->route('pending.approval')

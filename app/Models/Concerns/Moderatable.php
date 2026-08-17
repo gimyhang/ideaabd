@@ -91,7 +91,7 @@ trait Moderatable
         ])->save();
     }
 
-    public function markRejected(string $reason, ?int $reviewerId = null): bool
+    public function markRejected(?string $reason = null, ?int $reviewerId = null): bool
     {
         return $this->forceFill([
             'mod_status'       => self::MOD_REJECTED,

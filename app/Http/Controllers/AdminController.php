@@ -469,9 +469,43 @@ class AdminController extends Controller
 
     public function blog(Request $request): View
     {
-        return view('admin.blog', [
-            'posts' => $this->listing('blog_posts', $request, ['title', 'slug']),
-        ]);
+        $search = $request->string('search')->trim()->value();
+        $status = $request->string('status')->trim()->value();
+
+        $query = \Modules\Blog\Models\BlogPost::query()
+            ->with(['category', 'author', 'submitter'])
+            ->when($search, function ($q, $term) {
+                $like = '%' . $term . '%';
+                $q->where(function ($w) use ($like) {
+                    $w->where('title', 'like', $like)
+                      ->orWhere('slug', 'like', $like)
+                      ->orWhere('content', 'like', $like);
+                });
+            })
+            ->when($status && $status !== 'all', function ($q) use ($status) {
+                if ($status === 'published') {
+                    $q->where(fn($w) => $w->where('status', 'published')->orWhere('mod_status', 'approved'));
+                } elseif ($status === 'pending') {
+                    $q->where(fn($w) => $w->where('status', 'pending')->orWhere('mod_status', 'pending'));
+                } elseif ($status === 'rejected') {
+                    $q->where(fn($w) => $w->where('status', 'rejected')->orWhere('mod_status', 'rejected'));
+                } elseif ($status === 'draft') {
+                    $q->where('status', 'draft');
+                }
+            })
+            ->latest();
+
+        $posts = $query->paginate(20)->withQueryString();
+
+        $stats = [
+            'total'     => \Modules\Blog\Models\BlogPost::count(),
+            'published' => \Modules\Blog\Models\BlogPost::where('status', 'published')->orWhere('mod_status', 'approved')->count(),
+            'pending'   => \Modules\Blog\Models\BlogPost::where('status', 'pending')->orWhere('mod_status', 'pending')->count(),
+            'draft'     => \Modules\Blog\Models\BlogPost::where('status', 'draft')->count(),
+            'rejected'  => \Modules\Blog\Models\BlogPost::where('status', 'rejected')->orWhere('mod_status', 'rejected')->count(),
+        ];
+
+        return view('admin.blog', compact('posts', 'stats', 'search', 'status'));
     }
 
     public function webzines(Request $request): View
@@ -483,9 +517,32 @@ class AdminController extends Controller
 
     public function authors(Request $request): View
     {
-        return view('admin.authors', [
-            'authors' => $this->listing('authors', $request, ['name', 'slug']),
-        ]);
+        $search = $request->string('search')->trim()->value();
+        $status = $request->input('is_active');
+
+        $query = \Modules\Author\Models\Author::query()
+            ->withCount('books')
+            ->when($search, function ($q, $term) {
+                $like = '%' . $term . '%';
+                $q->where(function ($w) use ($like) {
+                    $w->where('name', 'like', $like)
+                      ->orWhere('slug', 'like', $like)
+                      ->orWhere('email', 'like', $like)
+                      ->orWhere('phone', 'like', $like);
+                });
+            })
+            ->when($status !== null && $status !== '', fn ($q) => $q->where('is_active', (bool) $status))
+            ->latest();
+
+        $authors = $query->paginate(20)->withQueryString();
+
+        $stats = [
+            'total'    => \Modules\Author\Models\Author::count(),
+            'active'   => \Modules\Author\Models\Author::where('is_active', true)->count(),
+            'verified' => \Modules\Author\Models\Author::where('is_verified', true)->count(),
+        ];
+
+        return view('admin.authors', compact('authors', 'stats', 'search', 'status'));
     }
 
     public function publishers(Request $request): View

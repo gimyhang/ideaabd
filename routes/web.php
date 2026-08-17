@@ -159,6 +159,13 @@ Route::get('/user', function () {
     return redirect()->route('my-account');
 })->name('user.portal');
 
+// --- Author Blog Management (Post, Draft, Edit, Delete) -------------------
+Route::prefix('author/blog')->name('author.blog.')->middleware(['auth'])->group(function () {
+    Route::post('/', [\App\Http\Controllers\AuthorBlogController::class, 'store'])->name('store');
+    Route::put('/{id}', [\App\Http\Controllers\AuthorBlogController::class, 'update'])->name('update');
+    Route::delete('/{id}', [\App\Http\Controllers\AuthorBlogController::class, 'destroy'])->name('destroy');
+});
+
 // --- Admin panel ------------------------------------------------------------
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/', [AdminController::class, 'index'])->name('index');
@@ -171,6 +178,30 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::get('/webzines', [AdminController::class, 'webzines'])->name('webzines');
     Route::get('/authors', [AdminController::class, 'authors'])->name('authors');
     Route::get('/publishers', [AdminController::class, 'publishers'])->name('publishers');
+
+    // Publisher Purchases & Payment Installments
+    Route::prefix('purchases')->name('purchases.')->controller(\App\Http\Controllers\Admin\PublisherPurchaseController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/create', 'create')->name('create');
+        Route::post('/', 'store')->name('store');
+        Route::get('/payments', 'payments')->name('payments');
+        Route::post('/payments', 'storePayment')->name('payments.store');
+        Route::get('/{purchase}', 'show')->name('show');
+        Route::delete('/{purchase}', 'destroy')->name('destroy');
+    });
+
+    // Idea Prokashon Accounting, Invoicing, Income & Expense Management
+    Route::prefix('accounting')->name('accounting.')->controller(\App\Http\Controllers\Admin\IdeaAccountingController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::post('/entries', 'storeEntry')->name('entries.store');
+        Route::delete('/entries/{entry}', 'destroyEntry')->name('entries.destroy');
+        Route::get('/invoices', 'invoices')->name('invoices.index');
+        Route::get('/invoices/create', 'createInvoice')->name('invoices.create');
+        Route::post('/invoices', 'storeInvoice')->name('invoices.store');
+        Route::get('/invoices/{invoice}', 'showInvoice')->name('invoices.show');
+        Route::delete('/invoices/{invoice}', 'destroyInvoice')->name('invoices.destroy');
+    });
+
     Route::get('/orders', [AdminController::class, 'orders'])->name('orders');
     Route::get('/ecommerce-orders', [AdminController::class, 'ecommerceOrders'])->name('ecommerce-orders');
     Route::get('/ecommerce-orders/{order}', [AdminController::class, 'showEcommerceOrder'])->name('ecommerce-orders.show');

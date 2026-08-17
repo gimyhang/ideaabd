@@ -1,0 +1,354 @@
+@extends('layouts.admin')
+
+@section('title', 'নতুন বিল ও চালান তৈরি')
+@section('heading', 'আইডিয়া প্রকাশন বিল ও ডেলিভারি চালান তৈরি')
+@section('breadcrumb')
+    <li class="breadcrumb-item"><a href="{{ route('admin.accounting.index') }}">হিসাব ও আয়-ব্যয়</a></li>
+    <li class="breadcrumb-item"><a href="{{ route('admin.accounting.invoices.index') }}">বিল ও চালান</a></li>
+    <li class="breadcrumb-item active" aria-current="page">নতুন তৈরি</li>
+@endsection
+
+@section('actions')
+    <a href="{{ route('admin.accounting.invoices.index') }}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-1"></i> তালিকায় ফিরুন
+    </a>
+@endsection
+
+@section('content')
+
+<form action="{{ route('admin.accounting.invoices.store') }}" method="POST" id="invoiceForm">
+    @csrf
+
+    <div class="row g-4">
+        {{-- Left Form --}}
+        <div class="col-12 col-xl-8">
+            {{-- Document & Customer Details --}}
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0 text-primary"><i class="fas fa-file-invoice me-2"></i>চালান ও গ্রাহক তথ্য</h5>
+                    <div class="btn-group btn-group-sm" role="group">
+                        <input type="radio" class="btn-check" name="type" id="typeInvoice" value="invoice" checked onchange="updateDocType()">
+                        <label class="btn btn-outline-primary" for="typeInvoice"><i class="fas fa-receipt me-1"></i>বিল / ক্যাশ মেমো</label>
+
+                        <input type="radio" class="btn-check" name="type" id="typeChallan" value="challan" onchange="updateDocType()">
+                        <label class="btn btn-outline-primary" for="typeChallan"><i class="fas fa-truck me-1"></i>ডেলিভারি চালান</label>
+                    </div>
+                </div>
+                <div class="card-body p-3 p-md-4">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">গ্রাহক / প্রতিষ্ঠানের নাম <span class="text-danger">*</span></label>
+                            <input type="text" name="customer_name" class="form-control @error('customer_name') is-invalid @enderror" 
+                                   placeholder="গ্রাহকের নাম বা লাইব্রেরি / এজেন্সির নাম" value="{{ old('customer_name') }}" required>
+                            @error('customer_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">মোবাইল নম্বর</label>
+                            <input type="text" name="customer_phone" class="form-control" placeholder="017XXXXXXXX" value="{{ old('customer_phone') }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">তারিখ <span class="text-danger">*</span></label>
+                            <input type="date" name="invoice_date" class="form-control" value="{{ old('invoice_date', date('Y-m-d')) }}" required>
+                        </div>
+                        <div class="col-md-8">
+                            <label class="form-label small fw-semibold text-muted">ঠিকানা / গন্তব্য</label>
+                            <input type="text" name="customer_address" class="form-control form-control-sm" placeholder="গ্রাহক বা প্রতিষ্ঠানের সম্পূর্ণ ঠিকানা...">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold text-muted">চালান / ইনভয়েস নম্বর <span class="text-danger">*</span></label>
+                            <input type="text" name="invoice_no" id="invoiceNoInput" class="form-control form-control-sm" value="{{ old('invoice_no', $suggestedNo) }}" required>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Bill / Challan Items Table --}}
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+                    <div>
+                        <h5 class="fw-bold mb-0 text-dark"><i class="fas fa-list-check me-2 text-success"></i>পণ্য, বই বা সেবার বিবরণ</h5>
+                        <small class="text-muted">বুকশপের যেকোনো বই বেছে নিতে পারেন অথবা সরাসরি যেকোনো বিবরণ/পণ্যের নাম লিখতে পারেন।</small>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-success rounded-pill px-3 fw-semibold" onclick="addItemRow()">
+                        <i class="fas fa-plus me-1"></i> আরো আইটেম যোগ করুন
+                    </button>
+                </div>
+                <div class="card-body p-3">
+                    <div class="table-responsive">
+                        <table class="table table-bordered align-middle" id="itemsTable">
+                            <thead class="table-light">
+                                <tr class="small text-muted text-uppercase">
+                                    <th style="min-width: 240px;">বিবরণ / বই / পণ্যের নাম <span class="text-danger">*</span></th>
+                                    <th style="width: 140px;">ধরন</th>
+                                    <th style="width: 100px;">পরিমাণ <span class="text-danger">*</span></th>
+                                    <th style="width: 120px;">দর / একক মূল্য (৳) <span class="text-danger">*</span></th>
+                                    <th style="width: 120px;">মোট টাকা (৳)</th>
+                                    <th style="width: 45px;"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="itemsBody">
+                                <tr class="item-row" data-row="0">
+                                    <td>
+                                        <input type="text" name="items[0][title]" class="form-control form-control-sm item-title" 
+                                               list="booksList" placeholder="বইয়ের নাম অথবা যেকোনো বিবরণ লিখুন..." required oninput="onTitleInput(this, 0)">
+                                        <input type="hidden" name="items[0][book_id]" class="item-book-id" value="">
+                                    </td>
+                                    <td>
+                                        <select name="items[0][item_type]" class="form-select form-select-sm">
+                                            <option value="বই (Book)">বই (Book)</option>
+                                            <option value="পণ্য (Product)">পণ্য (Product)</option>
+                                            <option value="কাগজ/কালি (Raw Material)">কাগজ/কাঁচামাল</option>
+                                            <option value="সেবা (Service)">সেবা (Service)</option>
+                                            <option value="বিবিধ">বিবিধ</option>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <input type="number" step="0.01" name="items[0][quantity]" class="form-control form-control-sm item-qty text-center" 
+                                               value="1" min="0.01" required oninput="calcRow(0)">
+                                    </td>
+                                    <td>
+                                        <input type="number" step="0.01" name="items[0][price]" class="form-control form-control-sm item-price text-end" 
+                                               value="0" min="0" required oninput="calcRow(0)">
+                                    </td>
+                                    <td class="text-end fw-bold text-dark item-subtotal">৳0.00</td>
+                                    <td class="text-center">
+                                        <button type="button" class="btn btn-sm btn-outline-danger p-1 border-0" onclick="removeRow(this)">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {{-- Datalist of Bookshop Books --}}
+                    <datalist id="booksList">
+                        @foreach($books as $b)
+                            <option value="{{ $b->title }}" data-id="{{ $b->id }}" data-price="{{ $b->price }}">
+                                (স্টক: {{ $b->stock_quantity }} | মূল্য: ৳{{ $b->price }})
+                            </option>
+                        @endforeach
+                    </datalist>
+
+                    <div class="mt-2">
+                        <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3" onclick="addItemRow()">
+                            <i class="fas fa-plus me-1"></i> আরো আইটেম যোগ করুন
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-body p-3">
+                    <label class="form-label small fw-semibold text-muted">শর্তাবলী / বিশেষ নোট (চালানে প্রিন্ট হবে)</label>
+                    <textarea name="notes" rows="2" class="form-control rounded-3" placeholder="যেমন: বিক্রিত বই ফেরতযোগ্য নয় বা কুরিয়ারে পাঠানো হলো..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        {{-- Right Calculation & Payment Card --}}
+        <div class="col-12 col-xl-4">
+            <div class="card border-0 shadow-sm rounded-4 sticky-top" style="top: 80px;">
+                <div class="card-header bg-primary text-white py-3 rounded-top-4">
+                    <h5 class="fw-bold mb-0"><i class="fas fa-calculator me-2"></i>হিসাব ও পেমেন্ট</h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="text-muted">মোট উপ-যোগফল (Subtotal):</span>
+                        <span class="fw-bold fs-5 text-dark" id="displaySubtotal">৳0.00</span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-muted">বিশেষ ছাড় (Discount ৳):</label>
+                        <input type="number" step="0.01" name="discount" id="discountInput" class="form-control text-end" value="0" min="0" oninput="calcTotals()">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-muted">ভ্যাট / ট্যাক্স / চার্জ (VAT ৳):</label>
+                        <input type="number" step="0.01" name="tax" id="taxInput" class="form-control text-end" value="0" min="0" oninput="calcTotals()">
+                    </div>
+
+                    <hr>
+
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="fw-bold">সর্বমোট প্রদেয় (Grand Total):</span>
+                        <span class="fw-bold fs-4 text-primary" id="displayGrandTotal">৳0.00</span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">পরিশোধের পরিমাণ (Paid ৳):</label>
+                        <div class="input-group">
+                            <input type="number" step="0.01" name="paid_amount" id="paidInput" class="form-control text-end fw-bold text-success fs-5" value="0" min="0" oninput="calcTotals()">
+                            <button type="button" class="btn btn-outline-success" onclick="fillFullPaid()">ফুল পেইড</button>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-muted">পেমেন্ট মাধ্যম:</label>
+                        <select name="payment_method" class="form-select">
+                            <option value="ক্যাশ / নগদ (Cash)">ক্যাশ / নগদ (Cash)</option>
+                            <option value="ব্যাংক একাউন্ট (Bank)">ব্যাংক একাউন্ট (Bank Transfer)</option>
+                            <option value="বিকাশ (bKash)">বিকাশ (bKash)</option>
+                            <option value="নগদ (Nagad)">নগদ (Nagad)</option>
+                            <option value="চেক (Cheque)">চেক (Cheque)</option>
+                        </select>
+                    </div>
+
+                    <div class="alert alert-danger p-3 rounded-3 mb-4 d-flex justify-content-between align-items-center" id="dueAlert">
+                        <span class="fw-semibold">বকেয়া (Due):</span>
+                        <span class="fw-bold fs-5 text-danger" id="displayDue">৳0.00</span>
+                    </div>
+
+                    <button type="submit" class="btn btn-success w-100 py-3 rounded-pill fw-bold shadow-sm">
+                        <i class="fas fa-check-circle me-1.5"></i> চালান / বিল সংরক্ষণ করুন
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<script>
+    let rowCounter = 1;
+
+    const existingBooksMap = {};
+    document.querySelectorAll('#booksList option').forEach(opt => {
+        existingBooksMap[opt.value.trim().toLowerCase()] = {
+            id: opt.getAttribute('data-id'),
+            price: opt.getAttribute('data-price')
+        };
+    });
+
+    function updateDocType() {
+        const isChallan = document.getElementById('typeChallan').checked;
+        const invInput = document.getElementById('invoiceNoInput');
+        if (isChallan && invInput.value.startsWith('IDEA-')) {
+            invInput.value = invInput.value.replace('IDEA-', 'CHL-');
+        } else if (!isChallan && invInput.value.startsWith('CHL-')) {
+            invInput.value = invInput.value.replace('CHL-', 'IDEA-');
+        }
+    }
+
+    function onTitleInput(input, index) {
+        const val = input.value.trim().toLowerCase();
+        const row = document.querySelector(`tr[data-row="${index}"]`);
+        if (!row) return;
+
+        const hiddenId = row.querySelector('.item-book-id');
+        const priceInput = row.querySelector('.item-price');
+
+        if (existingBooksMap[val]) {
+            const b = existingBooksMap[val];
+            hiddenId.value = b.id;
+            if (b.price && (!priceInput.value || priceInput.value == '0')) {
+                priceInput.value = b.price;
+                calcRow(index);
+            }
+        } else {
+            hiddenId.value = '';
+        }
+    }
+
+    function calcRow(index) {
+        const row = document.querySelector(`tr[data-row="${index}"]`);
+        if (!row) return;
+
+        const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
+        const price = parseFloat(row.querySelector('.item-price').value) || 0;
+        const subtotal = qty * price;
+
+        row.querySelector('.item-subtotal').textContent = '৳' + subtotal.toFixed(2);
+        calcTotals();
+    }
+
+    function calcTotals() {
+        let subtotal = 0;
+        document.querySelectorAll('.item-row').forEach(row => {
+            const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
+            const price = parseFloat(row.querySelector('.item-price').value) || 0;
+            subtotal += (qty * price);
+        });
+
+        const discount = parseFloat(document.getElementById('discountInput').value) || 0;
+        const tax = parseFloat(document.getElementById('taxInput').value) || 0;
+        const grandTotal = Math.max(0, subtotal - discount + tax);
+
+        document.getElementById('displaySubtotal').textContent = '৳' + subtotal.toFixed(2);
+        document.getElementById('displayGrandTotal').textContent = '৳' + grandTotal.toFixed(2);
+
+        const paid = parseFloat(document.getElementById('paidInput').value) || 0;
+        const due = Math.max(0, grandTotal - paid);
+
+        document.getElementById('displayDue').textContent = '৳' + due.toFixed(2);
+    }
+
+    function fillFullPaid() {
+        let subtotal = 0;
+        document.querySelectorAll('.item-row').forEach(row => {
+            const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
+            const price = parseFloat(row.querySelector('.item-price').value) || 0;
+            subtotal += (qty * price);
+        });
+        const discount = parseFloat(document.getElementById('discountInput').value) || 0;
+        const tax = parseFloat(document.getElementById('taxInput').value) || 0;
+        const grandTotal = Math.max(0, subtotal - discount + tax);
+        document.getElementById('paidInput').value = grandTotal.toFixed(2);
+        calcTotals();
+    }
+
+    function addItemRow() {
+        const tbody = document.getElementById('itemsBody');
+        const i = rowCounter++;
+
+        const tr = document.createElement('tr');
+        tr.className = 'item-row';
+        tr.setAttribute('data-row', i);
+        tr.innerHTML = `
+            <td>
+                <input type="text" name="items[${i}][title]" class="form-control form-control-sm item-title" 
+                       list="booksList" placeholder="বইয়ের নাম অথবা যেকোনো বিবরণ..." required oninput="onTitleInput(this, ${i})">
+                <input type="hidden" name="items[${i}][book_id]" class="item-book-id" value="">
+            </td>
+            <td>
+                <select name="items[${i}][item_type]" class="form-select form-select-sm">
+                    <option value="বই (Book)">বই (Book)</option>
+                    <option value="পণ্য (Product)">পণ্য (Product)</option>
+                    <option value="কাগজ/কাঁচামাল">কাগজ/কাঁচামাল</option>
+                    <option value="সেবা (Service)">সেবা (Service)</option>
+                    <option value="বিবিধ">বিবিধ</option>
+                </select>
+            </td>
+            <td>
+                <input type="number" step="0.01" name="items[${i}][quantity]" class="form-control form-control-sm item-qty text-center" 
+                       value="1" min="0.01" required oninput="calcRow(${i})">
+            </td>
+            <td>
+                <input type="number" step="0.01" name="items[${i}][price]" class="form-control form-control-sm item-price text-end" 
+                       value="0" min="0" required oninput="calcRow(${i})">
+            </td>
+            <td class="text-end fw-bold text-dark item-subtotal">৳0.00</td>
+            <td class="text-center">
+                <button type="button" class="btn btn-sm btn-outline-danger p-1 border-0" onclick="removeRow(this)">
+                    <i class="fas fa-times"></i>
+                </button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    }
+
+    function removeRow(btn) {
+        const rows = document.querySelectorAll('.item-row');
+        if (rows.length <= 1) {
+            alert('কমপক্ষে একটি আইটেম থাকতে হবে।');
+            return;
+        }
+        btn.closest('tr').remove();
+        calcTotals();
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        calcTotals();
+    });
+</script>
+
+@endsection

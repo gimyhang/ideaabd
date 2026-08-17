@@ -812,5 +812,153 @@ body.dark-mode .timeline-item::before {
     white-space: nowrap;
 }
 
+/* ── Subtle Badge & Color Utility Fallbacks ────────────────── */
+.bg-success-subtle { background-color: #d1e7dd !important; color: #0f5132 !important; }
+.bg-warning-subtle { background-color: #fff3cd !important; color: #664d03 !important; }
+.bg-danger-subtle  { background-color: #f8d7da !important; color: #842029 !important; }
+.bg-primary-subtle { background-color: #cfe2ff !important; color: #084298 !important; }
+.bg-info-subtle    { background-color: #cff4fc !important; color: #055160 !important; }
+.bg-secondary-subtle { background-color: #e2e3e5 !important; color: #41464b !important; }
+.bg-dark-subtle    { background-color: #ced4da !important; color: #1a1e21 !important; }
+
+.border-success-subtle { border-color: #a3cfbb !important; }
+.border-warning-subtle { border-color: #ffe69c !important; }
+.border-danger-subtle  { border-color: #f1aeb5 !important; }
+.border-primary-subtle { border-color: #9ec5fe !important; }
+.border-info-subtle    { border-color: #9eeaf9 !important; }
+
+.rounded-4 { border-radius: 1rem !important; }
+.rounded-3 { border-radius: 0.75rem !important; }
+.shadow-xs { box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06) !important; }
+
+.table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+}
+
+.adm-side__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-right: 0.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, .08);
+}
+
+.adm-side__header .adm-brand {
+    border-bottom: none;
+    flex: 1 1 auto;
+}
+
+/* ── Backdrop for Mobile Sidebar ───────────────────────────── */
+.adm-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.65);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 1050;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+body.side-open .adm-backdrop {
+    opacity: 1;
+    pointer-events: auto;
+    cursor: pointer;
+}
+
+/* ── Desktop Mini Sidebar ──────────────────────────────────── */
+@media (min-width: 992px) {
+    body.side-mini .adm-side {
+        width: var(--side-w-sm);
+    }
+    body.side-mini .adm-side .adm-brand__text,
+    body.side-mini .adm-side .adm-nav__label,
+    body.side-mini .adm-side .adm-nav__link span,
+    body.side-mini .adm-side .adm-side__foot {
+        display: none !important;
+    }
+    body.side-mini .adm-side .adm-nav__link {
+        justify-content: center;
+        padding: 0.75rem 0.5rem;
+    }
+    body.side-mini .adm-side .adm-nav__link i:first-child {
+        font-size: 1.2rem;
+        margin: 0;
+    }
+    body.side-mini .adm-main {
+        margin-left: var(--side-w-sm);
+    }
+}
+
+/* ── Mobile Responsive Sidebar & Layout (Max 991.98px) ──────── */
+@media (max-width: 991.98px) {
+    .adm-side {
+        position: fixed;
+        inset: 0 auto 0 0;
+        width: 280px;
+        max-width: 85vw;
+        z-index: 1060;
+        transform: translateX(-100%);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: none;
+    }
+
+    body.side-open {
+        overflow: hidden;
+    }
+
+    body.side-open .adm-side {
+        transform: translateX(0);
+        box-shadow: 4px 0 35px rgba(0, 0, 0, 0.45);
+    }
+
+    .adm-side__close {
+        background: transparent;
+        border: none;
+        color: #fff;
+        padding: 0.5rem 0.75rem;
+        font-size: 1.25rem;
+        cursor: pointer;
+        opacity: 0.85;
+        transition: opacity 0.2s;
+    }
+
+    .adm-side__close:hover {
+        opacity: 1;
+    }
+
+    .adm-main {
+        margin-left: 0 !important;
+        width: 100% !important;
+    }
+
+    .adm-top {
+        padding: 0.5rem 0.75rem;
+        gap: 0.5rem;
+    }
+
+    .adm-content {
+        padding: 1rem 0.75rem 2.5rem;
+    }
+
+    .adm-card {
+        border-radius: 12px;
+    }
+
+    .table-responsive {
+        border-radius: 10px;
+    }
+
+    .adm-table thead th,
+    .adm-table tbody td {
+        padding: 0.65rem 0.75rem;
+        font-size: 0.88rem;
+    }
+}
+
+
 
 

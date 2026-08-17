@@ -19,6 +19,16 @@
             ['route' => 'admin.authors',    'icon' => 'pen-fancy',   'label' => 'লেখক'],
             ['route' => 'admin.publishers', 'icon' => 'building',    'label' => 'প্রকাশক'],
         ],
+        'প্রকাশনী ক্রয় ও স্টক' => [
+            ['route' => 'admin.purchases.index',    'icon' => 'receipt',             'label' => 'প্রকাশনী ক্রয় তালিকা'],
+            ['route' => 'admin.purchases.create',   'icon' => 'cart-plus',           'label' => 'নতুন ক্রয় এন্ট্রি'],
+            ['route' => 'admin.purchases.payments', 'icon' => 'hand-holding-dollar', 'label' => 'পরিশোধ ও কিস্তি হিসাব'],
+        ],
+        'আইডিয়া হিসাব ও বিল চালান' => [
+            ['route' => 'admin.accounting.index',           'icon' => 'scale-balanced',     'label' => 'আয়-ব্যয় ও হিসাব খাতা'],
+            ['route' => 'admin.accounting.invoices.create', 'icon' => 'file-circle-plus',   'label' => 'বিল ও চালান তৈরি'],
+            ['route' => 'admin.accounting.invoices.index',  'icon' => 'file-invoice-dollar', 'label' => 'বিল ও চালান তালিকা'],
+        ],
         'কনটেন্ট' => [
             ['route' => 'admin.blog',     'icon' => 'blog',      'label' => 'ব্লগ'],
             ['route' => 'admin.webzines', 'icon' => 'newspaper', 'label' => 'ওয়েবজিন'],
@@ -27,7 +37,7 @@
             ['route' => 'admin.ecommerce-orders', 'icon' => 'cart-shopping', 'label' => 'বইয়ের অর্ডার'],
             ['route' => 'admin.payments.index',   'icon' => 'credit-card',   'label' => 'পেমেন্ট ও গেটওয়ে'],
             ['route' => 'admin.customers',        'icon' => 'user-tag',      'label' => 'গ্রাহক ও ব্রডকাস্ট'],
-            ['route' => 'admin.orders',           'icon' => 'receipt',       'label' => 'সেলার বিল'],
+            ['route' => 'admin.orders',           'icon' => 'file-invoice',  'label' => 'সেলার বিল'],
             ['route' => 'admin.book-requests.index', 'icon' => 'code-pull-request', 'label' => 'বই রিকোয়েস্ট'],
         ],
         'ব্যবহারকারী' => [
@@ -53,13 +63,18 @@
 @endphp
 
 <aside class="adm-side">
-    <a href="{{ route('admin.dashboard') }}" class="adm-brand">
-        <x-brand-logo :size="38" />
-        <span class="adm-brand__text">
-            <span class="adm-brand__name d-block">{{ config('brand.name') }}</span>
-            <span class="adm-brand__sub">{{ config('brand.tagline') }}</span>
-        </span>
-    </a>
+    <div class="adm-side__header d-flex align-items-center justify-content-between">
+        <a href="{{ route('admin.dashboard') }}" class="adm-brand text-decoration-none">
+            <x-brand-logo :size="38" />
+            <span class="adm-brand__text">
+                <span class="adm-brand__name d-block">{{ config('brand.name') }}</span>
+                <span class="adm-brand__sub">{{ config('brand.tagline') }}</span>
+            </span>
+        </a>
+        <button type="button" class="adm-side__close d-lg-none btn btn-sm text-white" data-side-close aria-label="সাইডবার বন্ধ করুন">
+            <i class="fas fa-times fs-5"></i>
+        </button>
+    </div>
 
     <nav class="adm-nav">
         @foreach ($menu as $group => $items)

@@ -218,11 +218,11 @@ class ContentController extends Controller
         $record = $this->findRecord($spec, $id);
 
         $validated = $request->validate([
-            'reason' => ['required', 'string', 'max:500'],
+            'reason' => ['nullable', 'string', 'max:500'],
         ], [], ['reason' => 'কারণ']);
 
         $this->guardModeratable($record);
-        $record->markRejected($validated['reason'], auth()->id());
+        $record->markRejected($validated['reason'] ?? null, auth()->id());
 
         $this->setVisibility($record, false);
 
