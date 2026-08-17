@@ -37,6 +37,9 @@ Route::get('/lang/{locale}', function (string $locale) {
     return redirect()->back();
 })->name('lang.switch');
 
+// --- XML Sitemap for SEO ---
+Route::get('/sitemap.xml', [\App\Http\Controllers\SitemapController::class, 'index'])->name('sitemap');
+
 // --- Auth routes (login / logout) --------------------------------------------
 Route::get('/login', fn() => view('auth.login'))->name('login')->middleware('guest');
 Route::post('/login', [LoginController::class, 'login'])->middleware('guest');

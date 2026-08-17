@@ -598,6 +598,8 @@
                     </section>
                 @endforeach
             @endif
+            <!-- Bottom In-Feed Google Ad Slot -->
+            @include('partials.google-ad', ['type' => 'bottom'])
         </main>
 
         <!-- Compact Literary Sidebar (Slim 25% Width) -->
@@ -692,7 +694,8 @@
                     @endforeach
                 </div>
             </div>
-            @endif
+            <!-- Sidebar Google Ad Unit -->
+            @include('partials.google-ad', ['type' => 'sidebar'])
         </aside>
     </div>
 </div>

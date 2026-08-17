@@ -79,9 +79,12 @@
                 @endif
 
                 <!-- Content -->
-                <div class="text-dark leading-relaxed mb-5" style="font-size: 1.12rem; line-height: 2;">
+                <div class="text-dark leading-relaxed mb-4" style="font-size: 1.12rem; line-height: 2;">
                     {!! nl2br(e($post->content)) !!}
                 </div>
+
+                <!-- In-Article Google Ad Slot -->
+                @include('partials.google-ad', ['type' => 'in-article'])
 
                 <!-- Tags -->
                 @if($post->tags && $post->tags->isNotEmpty())

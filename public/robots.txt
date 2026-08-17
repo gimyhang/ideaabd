@@ -1,2 +1,6 @@
 User-agent: *
-Disallow:
+Disallow: /admin/
+Disallow: /seller/
+Disallow: /author/dashboard
+
+Sitemap: https://www.ideaabd.com/sitemap.xml
