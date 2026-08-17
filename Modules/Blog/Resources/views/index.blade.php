@@ -210,33 +210,107 @@
         </div>
     </div>
 
-    <!-- Category Submenu Navigation Bar -->
+    <!-- 5-Column x 1-Row Visual Category Showcase with Thumbnails -->
     @if(isset($categories) && $categories->isNotEmpty())
-    <div class="card p-2.5 mb-4 border-0 shadow-sm rounded-4 bg-white">
-        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 px-2">
-            <div class="lit-nav-pills flex-grow-1">
-                <a href="{{ route('blog.index') }}" class="lit-nav-pill {{ !request('category') ? 'active' : '' }}">
-                    <i class="fa-solid fa-layer-group me-1.5"></i> সকল বিষয়
-                </a>
-                @foreach($categories as $category)
-                    <a href="{{ route('blog.category', $category->slug) }}" 
-                       class="lit-nav-pill {{ request('category') === $category->slug ? 'active' : '' }}">
-                        {{ $category->name }}
-                        @if(!empty($category->posts_count))
-                            <span class="badge {{ request('category') === $category->slug ? 'bg-white text-primary' : 'bg-light text-muted border' }} rounded-pill ms-1 small" style="font-size: 0.7rem;">
-                                {{ $category->posts_count }}
-                            </span>
-                        @endif
-                    </a>
-                @endforeach
-            </div>
-
+    <div class="mb-4">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+            <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                <i class="fa-solid fa-shapes text-primary"></i>
+                <span>সাহিত্য ও বিষয়ভিত্তিক ক্যাটাগরি</span>
+            </h5>
             @if(request('category') || request('search'))
-                <a href="{{ route('blog.index') }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 py-1 text-nowrap fw-semibold">
+                <a href="{{ route('blog.index') }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 py-1 fw-semibold">
                     <i class="fas fa-xmark me-1"></i> ফিল্টার মুছুন
                 </a>
             @endif
         </div>
+
+        @php
+            $firstFiveCategories = $categories->take(5);
+            $remainingCategories = $categories->skip(5);
+            $catIcons = [
+                'poetry-kobita' => ['icon' => 'fa-feather-pointed', 'color' => '#0284c7', 'bg' => '#e0f2fe'],
+                'stories-uponnash' => ['icon' => 'fa-book-open-reader', 'color' => '#059669', 'bg' => '#d1fae5'],
+                'essays-probondho' => ['icon' => 'fa-newspaper', 'color' => '#ea580c', 'bg' => '#ffedd5'],
+                'travelogue-vromon' => ['icon' => 'fa-compass', 'color' => '#0891b2', 'bg' => '#cffafe'],
+                'book-reviews' => ['icon' => 'fa-glasses', 'color' => '#d97706', 'bg' => '#fef3c7'],
+                'research-philosophy' => ['icon' => 'fa-microscope', 'color' => '#2563eb', 'bg' => '#dbeafe'],
+                'translation-literature' => ['icon' => 'fa-language', 'color' => '#4f46e5', 'bg' => '#e0e7ff'],
+                'interviews' => ['icon' => 'fa-microphone-lines', 'color' => '#db2777', 'bg' => '#fce7f3'],
+                'science-tech' => ['icon' => 'fa-atom', 'color' => '#16a34a', 'bg' => '#dcfce7'],
+            ];
+        @endphp
+
+        <!-- First Row (5 Columns on Desktop) -->
+        <div class="row row-cols-2 row-cols-sm-3 row-cols-md-5 g-3 mb-2">
+            @foreach($firstFiveCategories as $cat)
+                @php
+                    $style = $catIcons[$cat->slug] ?? ['icon' => 'fa-folder-open', 'color' => '#0284c7', 'bg' => '#e0f2fe'];
+                    $catImage = $cat->image ? (str_starts_with($cat->image, 'http') ? $cat->image : asset('storage/' . $cat->image)) : null;
+                @endphp
+                <div class="col">
+                    <a href="{{ route('blog.category', $cat->slug) }}" class="card h-100 border-0 shadow-sm rounded-4 text-decoration-none hover-lift overflow-hidden text-center p-3" 
+                       style="background: {{ request('category') === $cat->slug ? '#0369a1' : '#ffffff' }}; border: 1px solid {{ request('category') === $cat->slug ? '#0369a1' : '#e2e8f0' }} !important; transition: all 0.25s ease;">
+                        <div class="mb-2.5 mx-auto rounded-4 d-flex align-items-center justify-content-center shadow-xs overflow-hidden" 
+                             style="width: 58px; height: 58px; background: {{ request('category') === $cat->slug ? 'rgba(255,255,255,0.2)' : $style['bg'] }};">
+                            @if($catImage)
+                                <img src="{{ $catImage }}" alt="{{ $cat->name }}" class="w-100 h-100 object-fit-cover">
+                            @else
+                                <i class="fa-solid {{ $style['icon'] }} fs-4" style="color: {{ request('category') === $cat->slug ? '#ffffff' : $style['color'] }};"></i>
+                            @endif
+                        </div>
+                        <h6 class="fw-bold mb-1 line-clamp-1 {{ request('category') === $cat->slug ? 'text-white' : 'text-dark' }}" style="font-size: 0.95rem;">
+                            {{ $cat->name }}
+                        </h6>
+                        <span class="small {{ request('category') === $cat->slug ? 'text-white-50' : 'text-muted' }}" style="font-size: 0.75rem;">
+                            @bn($cat->posts_count ?? 0)টি রচনা
+                        </span>
+                    </a>
+                </div>
+            @endforeach
+        </div>
+
+        <!-- Collapsible Remaining Categories -->
+        @if($remainingCategories->isNotEmpty())
+            <div class="collapse mt-2" id="moreCategoriesCollapse">
+                <div class="row row-cols-2 row-cols-sm-3 row-cols-md-5 g-3 pt-2">
+                    @foreach($remainingCategories as $cat)
+                        @php
+                            $style = $catIcons[$cat->slug] ?? ['icon' => 'fa-folder-open', 'color' => '#0284c7', 'bg' => '#e0f2fe'];
+                            $catImage = $cat->image ? (str_starts_with($cat->image, 'http') ? $cat->image : asset('storage/' . $cat->image)) : null;
+                        @endphp
+                        <div class="col">
+                            <a href="{{ route('blog.category', $cat->slug) }}" class="card h-100 border-0 shadow-sm rounded-4 text-decoration-none hover-lift overflow-hidden text-center p-3" 
+                               style="background: {{ request('category') === $cat->slug ? '#0369a1' : '#ffffff' }}; border: 1px solid {{ request('category') === $cat->slug ? '#0369a1' : '#e2e8f0' }} !important; transition: all 0.25s ease;">
+                                <div class="mb-2.5 mx-auto rounded-4 d-flex align-items-center justify-content-center shadow-xs overflow-hidden" 
+                                     style="width: 58px; height: 58px; background: {{ request('category') === $cat->slug ? 'rgba(255,255,255,0.2)' : $style['bg'] }};">
+                                    @if($catImage)
+                                        <img src="{{ $catImage }}" alt="{{ $cat->name }}" class="w-100 h-100 object-fit-cover">
+                                    @else
+                                        <i class="fa-solid {{ $style['icon'] }} fs-4" style="color: {{ request('category') === $cat->slug ? '#ffffff' : $style['color'] }};"></i>
+                                    @endif
+                                </div>
+                                <h6 class="fw-bold mb-1 line-clamp-1 {{ request('category') === $cat->slug ? 'text-white' : 'text-dark' }}" style="font-size: 0.95rem;">
+                                    {{ $cat->name }}
+                                </h6>
+                                <span class="small {{ request('category') === $cat->slug ? 'text-white-50' : 'text-muted' }}" style="font-size: 0.75rem;">
+                                    @bn($cat->posts_count ?? 0)টি রচনা
+                                </span>
+                            </a>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+
+            <!-- See More / Show Less Toggle Button -->
+            <div class="text-center mt-3">
+                <button class="btn btn-outline-primary btn-sm rounded-pill px-4 py-1.5 fw-semibold shadow-xs" type="button" 
+                        data-bs-toggle="collapse" data-bs-target="#moreCategoriesCollapse" aria-expanded="false" 
+                        aria-controls="moreCategoriesCollapse" id="toggleMoreCatsBtn" onclick="toggleCatBtnText(this)">
+                    <span>আরও ক্যাটাগরি দেখুন (See More)</span> <i class="fa-solid fa-chevron-down ms-1"></i>
+                </button>
+            </div>
+        @endif
     </div>
     @endif
 
@@ -777,4 +851,17 @@
     </div>
 </div>
 @endguest
+
+<script>
+    function toggleCatBtnText(btn) {
+        setTimeout(() => {
+            const collapseEl = document.getElementById('moreCategoriesCollapse');
+            if (collapseEl && collapseEl.classList.contains('show')) {
+                btn.innerHTML = '<span>কম ক্যাটাগরি দেখুন (Show Less)</span> <i class="fa-solid fa-chevron-up ms-1"></i>';
+            } else {
+                btn.innerHTML = '<span>আরও ক্যাটাগরি দেখুন (See More)</span> <i class="fa-solid fa-chevron-down ms-1"></i>';
+            }
+        }, 350);
+    }
+</script>
 @endsection

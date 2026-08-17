@@ -313,9 +313,9 @@
 
                                 <div class="row g-3 mb-3">
                                     <div class="col-md-6">
-                                        <label class="form-label fw-bold text-dark">ক্যাটাগরি বা বিষয়</label>
-                                        <select name="category_id" class="form-select rounded-3">
-                                            <option value="">-- ক্যাটাগরি বেছে নিন (ঐচ্ছিক) --</option>
+                                        <label class="form-label fw-bold text-dark">ক্যাটাগরি বা বিষয় <span class="text-danger">*</span></label>
+                                        <select name="category_id" class="form-select rounded-3" required>
+                                            <option value="">-- ক্যাটাগরি বেছে নিন --</option>
                                             @foreach($blogCategories as $cat)
                                                 <option value="{{ $cat->id }}" @selected(old('category_id', $editPost->category_id ?? '') == $cat->id)>
                                                     {{ $cat->name }}
@@ -325,14 +325,25 @@
                                     </div>
 
                                     <div class="col-md-6">
-                                        <label class="form-label fw-bold text-dark">ফিচার্ড কভার ছবি <span class="text-muted small">(ঐচ্ছিক)</span></label>
-                                        <input type="file" name="featured_image" class="form-control rounded-3" accept="image/*">
-                                        @if($editPost && $editPost->featured_image)
-                                            <div class="mt-2 d-flex align-items-center gap-2">
-                                                <img src="{{ asset('storage/' . $editPost->featured_image) }}" alt="Preview" class="rounded-3 border" style="height: 45px; width: 60px; object-fit: cover;">
-                                                <small class="text-muted">বর্তমান কভার ছবি সংযুক্ত আছে</small>
-                                            </div>
-                                        @endif
+                                        <label class="form-label fw-bold text-dark">
+                                            ফিচার্ড ফটোকার্ড / কভার ছবি <span class="text-danger">*</span>
+                                        </label>
+                                        <input type="file" name="featured_image" id="featuredImageInput" class="form-control rounded-3 @error('featured_image') is-invalid @enderror" 
+                                               accept="image/jpeg,image/png,image/webp" {{ $editPost && $editPost->featured_image ? '' : 'required' }} onchange="previewPhotocard(this)">
+                                        @error('featured_image')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                        
+                                        <!-- Mandatory Photocard Guidelines Badge -->
+                                        <div class="mt-2 p-2 bg-light border rounded-3 text-muted small" style="font-size: 0.76rem;">
+                                            <div class="fw-bold text-dark mb-0.5"><i class="fa-solid fa-circle-info text-primary me-1"></i>ফটোকার্ড নির্দেশনা (বাধ্যতামূলক):</div>
+                                            <div>• <strong>নির্ধারিত মাপ:</strong> ১২০০×৬৭৫ পিক্সেল (১৬:৯ রেশিও) বা ৮০০×৪৫০ পিক্সেল</div>
+                                            <div>• <strong>সর্বোচ্চ সাইজ:</strong> ৫০০ KB (কম্প্রেসড JPG/PNG/WebP)</div>
+                                        </div>
+
+                                        <div id="photocardPreviewWrapper" class="mt-2 d-flex align-items-center gap-2" style="{{ $editPost && $editPost->featured_image ? '' : 'display:none;' }}">
+                                            <img id="photocardPreviewImg" src="{{ $editPost && $editPost->featured_image ? asset('storage/' . $editPost->featured_image) : '' }}" 
+                                                 alt="Photocard Preview" class="rounded-3 border shadow-xs" style="height: 52px; width: 85px; object-fit: cover;">
+                                            <small class="text-success fw-semibold"><i class="fa-solid fa-check me-1"></i>ফটোকার্ড সিলেক্টেড</small>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -343,9 +354,33 @@
                                 </div>
 
                                 <div class="mb-4">
-                                    <label class="form-label fw-bold text-dark">মূল বিষয়বস্তু ও রচনা (Content) <span class="text-danger">*</span></label>
-                                    <textarea name="content" rows="12" class="form-control rounded-3 @error('content') is-invalid @enderror" 
-                                              required placeholder="আপনার প্রবন্ধ, গল্প, কবিতা, বই পর্যালোচনা বা মতামত এখানে বিস্তারিত লিখুন...">{{ old('content', $editPost->content ?? '') }}</textarea>
+                                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-1.5">
+                                        <label class="form-label fw-bold text-dark mb-0">মূল বিষয়বস্তু ও রচনা (Content) <span class="text-danger">*</span></label>
+                                        
+                                        <!-- Rich Formatting Toolbar -->
+                                        <div class="btn-group btn-group-sm bg-light border rounded-pill p-0.5 shadow-xs" role="group" aria-label="Formatting Toolbar">
+                                            <button type="button" class="btn btn-light rounded-pill px-2.5 py-0.5 fw-bold text-dark" onclick="formatContent('bold')" title="বোল্ড (Bold)">
+                                                <i class="fa-solid fa-bold"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-light rounded-pill px-2.5 py-0.5 fst-italic text-dark" onclick="formatContent('italic')" title="ইটালিক (Italic)">
+                                                <i class="fa-solid fa-italic"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-light rounded-pill px-2.5 py-0.5 text-decoration-underline text-dark" onclick="formatContent('underline')" title="আন্ডারলাইন (Underline)">
+                                                <i class="fa-solid fa-underline"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-light rounded-pill px-2.5 py-0.5 text-dark fw-bold" onclick="formatContent('h3')" title="উপ-শিরোনাম (Heading 3)">
+                                                H3
+                                            </button>
+                                            <button type="button" class="btn btn-light rounded-pill px-2.5 py-0.5 text-dark" onclick="formatContent('quote')" title="উদ্ধৃতি (Quote)">
+                                                <i class="fa-solid fa-quote-left"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-light rounded-pill px-2.5 py-0.5 text-dark" onclick="formatContent('list')" title="বুলেট তালিকা">
+                                                <i class="fa-solid fa-list-ul"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <textarea name="content" id="blogContentTextarea" rows="12" class="form-control rounded-3 @error('content') is-invalid @enderror" 
+                                              required placeholder="আপনার প্রবন্ধ, গল্প, কবিতা, বই পর্যালোচনা বা মতামত এখানে বিস্তারিত লিখুন... প্রয়োজনমতো উপরের টুলবার দিয়ে বোল্ড, ইটালিক ও হেডিং ব্যবহার করতে পারেন।">{{ old('content', $editPost->content ?? '') }}</textarea>
                                     @error('content')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                 </div>
 
@@ -515,8 +550,53 @@
             @endif
         }
 
-        const modal = new bootstrap.Modal(document.getElementById('articlePreviewModal'));
-        modal.show();
+    function previewPhotocard(input) {
+        const previewWrapper = document.getElementById('photocardPreviewWrapper');
+        const previewImg = document.getElementById('photocardPreviewImg');
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                if (previewImg) previewImg.src = e.target.result;
+                if (previewWrapper) previewWrapper.style.display = 'flex';
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function formatContent(type) {
+        const textarea = document.getElementById('blogContentTextarea');
+        if (!textarea) return;
+
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const selectedText = textarea.value.substring(start, end);
+        let replacement = '';
+
+        switch(type) {
+            case 'bold':
+                replacement = selectedText ? `<b>${selectedText}</b>` : '<b>বোল্ড টেক্সট</b>';
+                break;
+            case 'italic':
+                replacement = selectedText ? `<i>${selectedText}</i>` : '<i>ইটালিক টেক্সট</i>';
+                break;
+            case 'underline':
+                replacement = selectedText ? `<u>${selectedText}</u>` : '<u>আন্ডারলাইন টেক্সট</u>';
+                break;
+            case 'h3':
+                replacement = selectedText ? `\n<h3>${selectedText}</h3>\n` : '\n<h3>উপ-শিরোনাম</h3>\n';
+                break;
+            case 'quote':
+                replacement = selectedText ? `\n<blockquote>${selectedText}</blockquote>\n` : '\n<blockquote>এখানে উদ্ধৃতি লিখুন...</blockquote>\n';
+                break;
+            case 'list':
+                replacement = selectedText ? `\n<ul>\n  <li>${selectedText}</li>\n</ul>\n` : '\n<ul>\n  <li>প্রথম পয়েন্ট</li>\n  <li>দ্বিতীয় পয়েন্ট</li>\n</ul>\n';
+                break;
+            default:
+                replacement = selectedText;
+        }
+
+        textarea.setRangeText(replacement, start, end, 'select');
+        textarea.focus();
     }
 </script>
 @endsection

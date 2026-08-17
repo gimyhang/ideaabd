@@ -118,14 +118,16 @@ class AuthorBlogController extends Controller
     {
         $validated = $request->validate([
             'title'          => 'required|string|max:255',
-            'category_id'    => 'nullable|integer|exists:blog_categories,id',
+            'category_id'    => 'required|integer|exists:blog_categories,id',
             'excerpt'        => 'nullable|string|max:1000',
             'content'        => 'required|string',
-            'featured_image' => 'nullable|image|max:4096',
+            'featured_image' => 'required|image|max:4096',
             'action_type'    => 'required|in:draft,submit',
         ], [
-            'title.required'   => 'ব্লগ পোস্টের শিরোনাম দিন।',
-            'content.required' => 'ব্লগের মূল বিষয়বস্তু বা লেখা দিন।',
+            'title.required'          => 'ব্লগ পোস্টের শিরোনাম দিন।',
+            'category_id.required'    => 'লেখার ক্যাটাগরি বা বিষয় নির্বাচন করুন।',
+            'content.required'        => 'ব্লগের মূল বিষয়বস্তু বা রচনা লিখুন।',
+            'featured_image.required' => 'লেখার সাথে একটি নির্ধারিত মাপের (১২০০×৬৭৫ বা ৮০০×৪৫০) ফটোকার্ড কভার ছবি নির্বাচন করা বাধ্যতামূলক।',
         ]);
 
         $user = auth()->user();
@@ -139,13 +141,8 @@ class AuthorBlogController extends Controller
 
         $isSubmit = $validated['action_type'] === 'submit';
 
-        // Unique slug generation
-        $slugBase = $this->bengaliToEnglish($validated['title']) ?: Str::slug(Str::random(8));
-        $slug = $slugBase;
-        $counter = 1;
-        while (BlogPost::withTrashed()->where('slug', $slug)->exists()) {
-            $slug = $slugBase . '-' . (++$counter);
-        }
+        // Unique automatic English slug generation
+        $slug = $this->generateEnglishSlug($validated['title']);
 
         $imagePath = null;
         if ($request->hasFile('featured_image')) {
@@ -193,11 +190,15 @@ class AuthorBlogController extends Controller
 
         $validated = $request->validate([
             'title'          => 'required|string|max:255',
-            'category_id'    => 'nullable|integer|exists:blog_categories,id',
+            'category_id'    => 'required|integer|exists:blog_categories,id',
             'excerpt'        => 'nullable|string|max:1000',
             'content'        => 'required|string',
             'featured_image' => 'nullable|image|max:4096',
             'action_type'    => 'required|in:draft,submit',
+        ], [
+            'title.required'       => 'ব্লগ পোস্টের শিরোনাম দিন।',
+            'category_id.required' => 'লেখার ক্যাটাগরি বা বিষয় নির্বাচন করুন।',
+            'content.required'     => 'ব্লগের মূল বিষয়বস্তু বা রচনা লিখুন।',
         ]);
 
         $isSubmit = $validated['action_type'] === 'submit';
@@ -210,6 +211,10 @@ class AuthorBlogController extends Controller
         }
 
         $post->title = $validated['title'];
+        // Update slug to clean english if empty or modified
+        if (empty($post->slug) || !preg_match('/^[a-z0-9-]+$/i', $post->slug)) {
+            $post->slug = $this->generateEnglishSlug($validated['title'], $post->id);
+        }
         $post->category_id = $validated['category_id'] ?: null;
         $post->excerpt = $validated['excerpt'] ?: Str::limit(strip_tags($validated['content']), 200);
         $post->content = $validated['content'];
@@ -251,11 +256,43 @@ class AuthorBlogController extends Controller
         return redirect()->route('author.dashboard', ['tab' => 'articles'])->with('success', 'ব্লগ পোস্টটি তালিকা থেকে মুছে ফেলা হয়েছে।');
     }
 
-    private function bengaliToEnglish(string $text): string
+    /**
+     * Generate automatic unique English slug from Bengali/English title.
+     */
+    public function generateEnglishSlug(string $title, ?int $ignoreId = null): string
     {
-        $bengali = ['অ','আ','ই','ঈ','উ','ঊ','ঋ','এ','ঐ','ও','ঔ','ক','খ','গ','ঘ','ঙ','চ','ছ','জ','ঝ','ঞ','ট','ঠ','ড','ঢ','ণ','ত','থ','দ','ধ','ন','প','ফ','ব','ভ','ম','য','র','ল','শ','ষ','স','হ','ড়','ঢ়','য়','ৎ','ং','ঃ','ঁ','া','ি','ী','ু','ূ','ৃ','ে','ৈ','ো','ৌ','্'];
-        $english = ['a','a','i','i','u','u','ri','e','oi','o','ou','k','kh','g','gh','ng','ch','ch','j','jh','n','t','th','d','dh','n','t','th','d','dh','n','p','f','b','bh','m','z','r','l','sh','sh','s','h','r','rh','y','t','ng','h','n','a','i','i','u','u','ri','e','oi','o','ou',''];
-        $text = str_replace($bengali, $english, $text);
-        return Str::slug($text, '-', null);
+        $bengali = [
+            'অ'=>'a','আ'=>'aa','ই'=>'i','ঈ'=>'ee','উ'=>'u','ঊ'=>'oo','ঋ'=>'ri',
+            'এ'=>'e','ঐ'=>'oi','ও'=>'o','ঔ'=>'ou',
+            'ক'=>'k','খ'=>'kh','গ'=>'g','ঘ'=>'gh','ঙ'=>'ng',
+            'চ'=>'ch','ছ'=>'chh','জ'=>'j','ঝ'=>'jh','ঞ'=>'ny',
+            'ট'=>'t','ঠ'=>'th','ড'=>'d','ঢ'=>'dh','ণ'=>'n',
+            'ত'=>'t','থ'=>'th','দ'=>'d','ধ'=>'dh','ন'=>'n',
+            'প'=>'p','ফ'=>'f','ব'=>'b','ভ'=>'bh','ম'=>'m',
+            'য'=>'z','র'=>'r','ল'=>'l','শ'=>'sh','ষ'=>'sh','স'=>'s','হ'=>'h',
+            'ড়'=>'r','ঢ়'=>'rh','য়'=>'y','ৎ'=>'t','ং'=>'ng','ঃ'=>'h','ঁ'=>'n',
+            'া'=>'a','ি'=>'i','ী'=>'ee','ু'=>'u','ূ'=>'oo','ৃ'=>'ri','ে'=>'e','ৈ'=>'oi','ো'=>'o','ৌ'=>'ou','্'=>''
+        ];
+
+        $transliterated = strtr($title, $bengali);
+        $clean = preg_replace('/[^a-zA-Z0-9\s-]/', '', $transliterated);
+        $slugBase = Str::slug($clean, '-');
+
+        if (empty($slugBase) || strlen($slugBase) < 3) {
+            $slugBase = 'post-' . Str::lower(Str::random(6));
+        }
+
+        $slug = $slugBase;
+        $counter = 1;
+        $query = BlogPost::withTrashed();
+        if ($ignoreId) {
+            $query->where('id', '!=', $ignoreId);
+        }
+
+        while ((clone $query)->where('slug', $slug)->exists()) {
+            $slug = $slugBase . '-' . (++$counter);
+        }
+
+        return $slug;
     }
 }

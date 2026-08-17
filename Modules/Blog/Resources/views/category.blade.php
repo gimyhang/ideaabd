@@ -78,11 +78,19 @@
                             {{ $post->excerpt ?: Str::limit(strip_tags($post->content), 100) }}
                         </p>
 
+                        @php
+                            $authorName = $post->author ? $post->author->name : 'সম্পাদকীয় বিভাগ';
+                            $authorSearchUrl = route('authors.index') . '?search=' . urlencode($authorName);
+                        @endphp
                         <div class="mt-auto pt-3 border-top d-flex align-items-center justify-content-between">
-                            <span class="small fw-bold text-dark">
-                                <i class="fa-solid fa-pen-nib text-muted me-1"></i>
-                                {{ $post->author ? $post->author->name : 'সম্পাদকীয়' }}
-                            </span>
+                            <a href="{{ $authorSearchUrl }}" class="d-flex align-items-center gap-2 text-decoration-none text-dark hover-primary" title="লেখক ডিরেক্টরীতে লেখকের প্রোফাইল ও বই দেখুন">
+                                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold" style="width: 28px; height: 28px; font-size: 0.8rem;">
+                                    {{ mb_substr($authorName, 0, 1) }}
+                                </div>
+                                <span class="small fw-bold text-dark text-truncate" style="max-width: 130px;">
+                                    {{ $authorName }}
+                                </span>
+                            </a>
                             <a href="{{ route('blog.show', $post->slug) }}" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-semibold" style="font-size: 0.8rem;">
                                 পড়ুন →
                             </a>

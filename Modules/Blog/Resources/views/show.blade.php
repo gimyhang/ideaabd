@@ -58,26 +58,62 @@
 
     /* Literary Drop-cap for First Paragraph */
     .article-content > p:first-of-type::first-letter {
-        font-size: 3.4rem;
+        font-size: 3.2rem;
         float: left;
         line-height: 0.85;
         margin-right: 0.6rem;
-        margin-top: 0.15rem;
+        margin-top: 0.12rem;
         color: #0369a1;
         font-weight: bold;
         font-family: Georgia, 'SolaimanLipi', serif;
     }
 
     .article-content {
-        font-size: 1.15rem;
-        line-height: 2.15;
+        font-size: 13pt; /* Standard 13pt literary font */
+        line-height: 1.75; /* Normal, natural Bengali line height */
         color: #1e293b;
-        letter-spacing: 0.15px;
+        letter-spacing: 0.1px;
         text-align: justify;
         text-justify: inter-word;
+        user-select: text !important;
+        -webkit-user-select: text !important;
     }
     .article-content p {
-        margin-bottom: 1.5rem;
+        margin-bottom: 1.25rem;
+    }
+    .article-content b, .article-content strong {
+        font-weight: 700;
+        color: #0f172a;
+    }
+    .article-content i, .article-content em {
+        font-style: italic;
+    }
+    .article-content u {
+        text-decoration: underline;
+        text-underline-offset: 3px;
+    }
+    .article-content h3, .article-content h4 {
+        font-weight: 700;
+        color: #0369a1;
+        margin-top: 1.5rem;
+        margin-bottom: 0.75rem;
+        font-size: 1.3rem;
+    }
+    .article-content blockquote {
+        border-left: 4px solid #0284c7;
+        background: #f8fafc;
+        padding: 0.75rem 1.25rem;
+        margin: 1.25rem 0;
+        border-radius: 0 8px 8px 0;
+        font-style: italic;
+        color: #475569;
+    }
+    .article-content ul, .article-content ol {
+        margin: 1rem 0;
+        padding-left: 1.75rem;
+    }
+    .article-content li {
+        margin-bottom: 0.4rem;
     }
 
     /* Reading Controls Toolbar */
@@ -305,7 +341,7 @@
 
                 <!-- Main Book / Article Body -->
                 <div class="article-content mb-5" id="articleBody">
-                    {!! nl2br(e($post->content)) !!}
+                    {!! nl2br(strip_tags($post->content, '<b><strong><i><em><u><h3><h4><h5><h6><blockquote><ul><ol><li><p><br><a><span>')) !!}
                 </div>
 
                 <!-- Book Page End Ornament -->
@@ -518,15 +554,45 @@
     </div>
 </div>
 
+<!-- Copy Restricted Floating Toast Notice -->
+<div id="copyRestrictedToast" class="position-fixed bottom-0 start-50 translate-middle-x p-3 no-print d-none" style="z-index: 1080; transition: opacity 0.3s ease;">
+    <div class="toast show align-items-center text-white bg-dark border-0 shadow-lg rounded-4 p-2 px-3" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex align-items-center gap-2">
+            <i class="fa-solid fa-shield-halved text-warning fs-5"></i>
+            <div class="toast-body small py-1">
+                <strong>কপিরাইট সংরক্ষিত:</strong> লেখাটি কপি করা নিষেধ। আপনি সম্পূর্ণ পেজটি <strong>প্রিন্ট/PDF</strong> অথবা <strong>শেয়ার</strong> করতে পারেন।
+            </div>
+            <button type="button" class="btn-close btn-close-white ms-auto me-1" onclick="document.getElementById('copyRestrictedToast').classList.add('d-none')"></button>
+        </div>
+    </div>
+</div>
+
 <script>
-    let currentFontSize = 1.15;
+    // Copy protection - allow selecting & reading, allow printing, but intercept copy action
+    document.addEventListener('copy', function(e) {
+        const selection = window.getSelection();
+        if (selection && selection.toString().trim().length > 0) {
+            e.preventDefault();
+            const toast = document.getElementById('copyRestrictedToast');
+            if (toast) {
+                toast.classList.remove('d-none');
+                toast.style.opacity = '1';
+                setTimeout(() => {
+                    toast.style.opacity = '0';
+                    setTimeout(() => toast.classList.add('d-none'), 350);
+                }, 4000);
+            }
+        }
+    });
+
+    let currentFontSize = 13;
     function adjustFontSize(delta) {
-        currentFontSize += (delta * 0.1);
-        if (currentFontSize < 0.9) currentFontSize = 0.9;
-        if (currentFontSize > 1.6) currentFontSize = 1.6;
+        currentFontSize += delta;
+        if (currentFontSize < 11) currentFontSize = 11;
+        if (currentFontSize > 18) currentFontSize = 18;
         const article = document.getElementById('articleBody');
         if (article) {
-            article.style.fontSize = currentFontSize + 'rem';
+            article.style.fontSize = currentFontSize + 'pt';
         }
     }
 
