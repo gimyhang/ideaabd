@@ -118,14 +118,38 @@
         #epub-viewer-wrapper {
             width: 100%;
             height: 100%;
-            max-width: 960px;
+            max-width: 1440px;
             margin: 0 auto;
             background-color: var(--reader-surface);
-            box-shadow: 0 4px 25px rgba(0, 0, 0, 0.06);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.08);
             border-radius: 12px;
             position: relative;
             overflow: hidden;
             border: 1px solid var(--reader-border);
+            transition: all 0.3s ease;
+        }
+
+        /* Dual Page Spread Center Spine Shadow Effect */
+        #epub-viewer-wrapper.dual-spread-active::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            width: 32px;
+            transform: translateX(-50%);
+            pointer-events: none;
+            background: linear-gradient(to right, rgba(0,0,0,0.01), rgba(0,0,0,0.12) 50%, rgba(0,0,0,0.01));
+            z-index: 10;
+            opacity: 0.85;
+        }
+
+        [data-theme="sepia"] #epub-viewer-wrapper.dual-spread-active::after {
+            background: linear-gradient(to right, rgba(139,94,60,0.02), rgba(139,94,60,0.18) 50%, rgba(139,94,60,0.02));
+        }
+
+        [data-theme="dark"] #epub-viewer-wrapper.dual-spread-active::after {
+            background: linear-gradient(to right, rgba(0,0,0,0.15), rgba(0,0,0,0.6) 50%, rgba(0,0,0,0.15));
         }
 
         #epub-viewer {
@@ -171,6 +195,7 @@
             .nav-next { right: 4px; }
             .reader-main { padding: 0.25rem; }
             #epub-viewer-wrapper { border-radius: 6px; }
+            #epub-viewer-wrapper.dual-spread-active::after { display: none; }
         }
 
         /* TOC Drawer */
@@ -300,10 +325,16 @@
             </div>
 
             @if($readerType === 'epub')
+                <!-- Spread Mode Toggle (Dual Spread vs Single Page) -->
+                <button type="button" class="reader-btn d-none d-md-inline-flex active" id="btn-toggle-spread" title="পৃষ্ঠা ভিউ (পাশাপাশি ২ পাতা / ১ পাতা)">
+                    <i class="fa-solid fa-book-open" id="spread-icon"></i>
+                    <span id="spread-text">২ পাতা</span>
+                </button>
+
                 <!-- Flow / Pagination Mode -->
-                <button type="button" class="reader-btn d-none d-md-inline-flex" id="btn-toggle-flow" title="পড়ার ধরন (বই পাতা / স্ক্রোল)">
+                <button type="button" class="reader-btn d-none d-md-inline-flex" id="btn-toggle-flow" title="পড়ার ধরন (পাতা / স্ক্রোল)">
                     <i class="fa-solid fa-file-lines" id="flow-icon"></i>
-                    <span id="flow-text">স্ক্রোল মোড</span>
+                    <span id="flow-text">স্ক্রোল</span>
                 </button>
 
                 <!-- Font Size Controls -->
@@ -350,7 +381,7 @@
 
         <!-- EPUB Mode Container -->
         @if($readerType === 'epub' && $fileUrl)
-            <div id="epub-viewer-wrapper">
+            <div id="epub-viewer-wrapper" class="dual-spread-active">
                 <div id="epub-viewer"></div>
             </div>
             <button class="nav-arrow nav-prev" id="nav-prev" title="পূর্ববর্তী পৃষ্ঠা">
@@ -363,81 +394,280 @@
         @elseif($articles->count() > 0 || !empty($webzine->description))
             <div class="articles-scroll-container" id="text-reader-content">
                 <!-- Magazine Showcase Header inside Reader -->
-                <div class="article-card text-center mb-4">
+                <div class="text-center p-4 bg-white rounded-3 border shadow-xs mb-4">
                     @if($webzine->cover_url)
                         <img src="{{ $webzine->cover_url }}" alt="{{ $webzine->title }}" class="rounded-3 shadow mb-3 mx-auto" style="max-height: 280px; aspect-ratio: 3/4; object-fit: cover;">
                     @endif
-                    <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-1 rounded-pill fw-semibold mb-2">
+                    <div class="badge bg-primary text-white rounded-pill px-3 py-1 mb-2 font-monospace">
                         {{ $webzine->category ?: 'আইডিয়া সাহিত্য সাময়িকী' }} @if($webzine->issue_number) · সংখ্যা #{{ $webzine->issue_number }} @endif
-                    </span>
+                    </div>
                     <h1 class="fw-bold text-dark mb-2" style="font-size: 1.8rem;">{{ $webzine->title }}</h1>
                     @if($webzine->publication_date)
                         <p class="text-muted small mb-0"><i class="fa-regular fa-calendar me-1"></i>প্রকাশের তারিখ: {{ $webzine->publication_date->format('d M Y') }}</p>
                     @endif
                 </div>
 
+                {{-- Editorial / Description --}}
                 @if(!empty($webzine->description))
-                    <div class="article-card">
-                        <h4 class="fw-bold border-bottom pb-2 mb-3 text-dark">
-                            <i class="fa-solid fa-feather-pointed text-primary me-2"></i>সম্পাদকীয় ও বিবরণ
-                        </h4>
-                        <div class="reader-text-body" style="font-size: 1.1rem; line-height: 1.9; text-align: justify;">
+                    <div class="article-item" id="editorial-section">
+                        <div class="article-title text-primary"><i class="fa-solid fa-pen-nib me-2"></i>সম্পাদকের কথা / পরিচিতি</div>
+                        <div class="article-meta">আইডিয়া সাহিত্য প্রকাশনা বিভাগ</div>
+                        <div class="article-body">
                             {!! nl2br(e($webzine->description)) !!}
                         </div>
                     </div>
                 @endif
 
-                @foreach($articles as $article)
-                    <article id="article-{{ $article->id }}" class="article-card">
-                        @if($article->featured_image)
-                            <img src="{{ asset('storage/' . $article->featured_image) }}" alt="{{ $article->title }}" class="w-100 rounded-3 mb-3" style="max-height: 400px; object-fit: cover;">
-                        @endif
-                        <h2 class="fw-bold text-dark mb-2" style="font-size: 1.6rem; line-height: 1.35;">{{ $article->title }}</h2>
-                        @if($article->author)
-                            <p class="text-muted small mb-3"><i class="fa-solid fa-pen-nib me-1 text-success"></i>লেখক: <strong>{{ $article->author->name }}</strong></p>
-                        @endif
-                        <div class="reader-text-body" style="font-size: 1.05rem; line-height: 1.85; text-align: justify;">
-                            {!! nl2br(e($article->content)) !!}
+                {{-- Articles List --}}
+                @forelse($articles as $art)
+                    <div class="article-item" id="article-{{ $art->id }}">
+                        <div class="article-title">{{ $art->title }}</div>
+                        <div class="article-meta">
+                            @if($art->author_name) <span><i class="fa-regular fa-user me-1"></i>{{ $art->author_name }}</span> @endif
+                            @if($art->category) <span><i class="fa-solid fa-tag me-1"></i>{{ $art->category }}</span> @endif
                         </div>
-                    </article>
-                @endforeach
+                        <div class="article-body">
+                            {!! $art->content !!}
+                        </div>
+                    </div>
+                @empty
+                    @if(empty($webzine->description))
+                        <div class="text-center p-5">
+                            <div class="mb-3 text-muted fs-1"><i class="fa-solid fa-book-open"></i></div>
+                            <h5 class="fw-bold">কোনো লেখা পাওয়া যায়নি</h5>
+                            <p class="text-muted">এই সংখ্যাটির ডিজিটাল ফাইল এখনও প্রস্তুত হয়নি।</p>
+                        </div>
+                    @endif
+                @endforelse
             </div>
-        <!-- Fallback Preview -->
+        <!-- No Content Fallback -->
         @else
-            <div class="card p-4 p-md-5 mx-auto my-auto text-center border-0 shadow-sm rounded-4" style="max-width: 550px; background: var(--reader-surface);">
-                <div class="mx-auto rounded-3 shadow mb-3 overflow-hidden" style="width: 130px; aspect-ratio: 7/10;">
+            <div class="empty-state">
+                <div class="cover-thumb mb-3">
                     @if($webzine->cover_url)
                         <img src="{{ $webzine->cover_url }}" alt="{{ $webzine->title }}" class="w-100 h-100 object-fit-cover">
                     @else
-                        <div class="w-100 h-100 d-flex align-items-center justify-content-center bg-light fs-1 text-primary">📰</div>
+                        <i class="fa-solid fa-newspaper fs-1 text-primary"></i>
                     @endif
                 </div>
                 <h4 class="fw-bold mb-2">{{ $webzine->title }}</h4>
-                <p class="text-muted small mb-4">এই সাময়িকীটির ডিজিটাল ফাইল আপলোডের অপেক্ষায় রয়েছে। অ্যাডমিন প্যানেল থেকে এর EPUB ফাইল আপলোড করা যাবে।</p>
-                <div class="d-flex justify-content-center gap-2">
+                <p class="text-muted mb-4">এই সংখ্যাটির ই-বুক ফাইল এখনও আপলোড করা হয়নি।</p>
+                <div>
                     <a href="{{ route('webzine.show', $webzine->slug) }}" class="btn btn-primary rounded-pill px-4">সাময়িকী পেজে ফিরুন</a>
                 </div>
             </div>
         @endif
     </main>
 
-    <!-- Footer Progress / Status Bar -->
+    <!-- Bottom Reading Progress Bar -->
     <footer class="reader-foot">
-        <div id="status-info" class="text-truncate me-2">
-            <i class="fa-solid fa-newspaper me-1 text-primary"></i>
-            {{ strtoupper($readerType === 'epub' ? 'EPUB ডিজিটাল সাময়িকী' : 'অনলাইন সাহিত্য সাময়িকী') }}
-        </div>
-        <div id="progress-info" class="fw-semibold">
-            আইডিয়া প্রকাশন ও ওয়েবজিন
-        </div>
+        <div class="text-truncate" style="max-width: 40%;">{{ $webzine->title }}</div>
+        <div class="small fw-semibold" id="progress-info">পড়ুন ও উপভোগ করুন</div>
+        <div class="text-truncate d-none d-sm-block text-end" style="max-width: 40%;">আইডিয়া ডিজিটাল রিডার</div>
     </footer>
 
-    <!-- Modern Bengali EPUB Rendering Engine -->
+    <!-- Comprehensive Bijoy (SutonnyMJ / ANSI) to Bengali Unicode Converter Engine -->
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const readerType = "{{ $readerType }}";
-            const fileUrl = "{{ $fileUrl }}";
+    function isBijoyEncoded(str) {
+        if (!str || typeof str !== 'string' || str.trim().length < 2) return false;
+        // Common Bijoy signatures & ANSI ligature sequences
+        const bijoyPatterns = [
+            /Avg/i, /Avw/i, /cÖ/i, /Kwe/i, /‡[A-Za-z]/, /w[A-Za-z]/, /[A-Za-z]©/,
+            /[²³µ¶·¸¹º»¼½¾¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿ¡¢£¤¥¦§¨ª«¬®¯°±›œŸ]/
+        ];
+        return bijoyPatterns.some(rx => rx.test(str));
+    }
+
+    function convertBijoyToUnicode(src) {
+        if (!src || typeof src !== 'string') return src;
+
+        let text = src;
+
+        // 1. Double letter conversions and special multi-character sequences
+        const multiCharBijoy = [
+            ["w¯¿", "স্ত্রি"],
+            ["¯¿", "স্ত্রী"],
+            ["cÖKvk", "প্রকাশ"],
+            ["cÖ", "প্র"],
+            ["K¬", "ক্ল"],
+            ["±", "হৃ"],
+            ["°", "হু"],
+            ["¯", "হ্ল"],
+            ["®", "হ্ম"],
+            ["¬", "হ্ন"],
+            ["«", "স্ব"],
+            ["ª", "স্র"],
+            ["¨", "স্ন"],
+            ["§", "স্ম"],
+            ["¦", "স্ফ"],
+            ["¥", "স্প"],
+            ["¤", "স্থ"],
+            ["£", "ষ্ক্র"],
+            ["¢", "ষ্খ"],
+            ["¡", "ষ্ক"],
+            ["ÿ", "ষ্ণ"],
+            ["þ", "ষ্ঠ"],
+            ["ý", "ষ্ট"],
+            ["ü", "ষ্ফ"],
+            ["û", "ষ্প"],
+            ["ú", "শ্র"],
+            ["ù", "শ্ম"],
+            ["ø", "শ্ছ"],
+            ["÷", "শ্চ"],
+            ["ö", "শু"],
+            ["õ", "ল্ল"],
+            ["ô", "ল্ম"],
+            ["ó", "ল্ব"],
+            ["ò", "ল্ফ"],
+            ["ñ", "ল্প"],
+            ["ð", "ল্ড"],
+            ["ï", "ল্ট"],
+            ["î", "ল্গ"],
+            ["í", "ল্ক"],
+            ["ì", "ম্ল"],
+            ["ë", "ম্ম"],
+            ["ê", "ম্ভ"],
+            ["é", "ম্ব"],
+            ["è", "ম্ফ"],
+            ["ç", "ম্প"],
+            ["æ", "ন্ব"],
+            ["å", "ন্ম"],
+            ["ä", "ন্ধ"],
+            ["ã", "ন্দ্ব"],
+            ["â", "ন্দ"],
+            ["á", "ন্থ"],
+            ["à", "ন্ত্ব"],
+            ["ß", "ন্ত"],
+            ["Þ", "ন্ড"],
+            ["Ý", "ন্ঠ"],
+            ["Ü", "ন্ট"],
+            ["Û", "ধ্ব"],
+            ["Ú", "ধ্ব"],
+            ["Ù", "দ্ম"],
+            ["Ø", "দ্ব"],
+            ["×", "দ্ব"],
+            ["Ö", "ত্র"],
+            ["Õ", "থ্ব"],
+            ["Ô", "ত্ব"],
+            ["Ó", "ত্ম"],
+            ["Ò", "ত্ন"],
+            ["Ñ", "ত্থ"],
+            ["Ð", "ত্ত"],
+            ["Ï", "ণ্ড"],
+            ["Î", "ণ্ঠ"],
+            ["Í", "ণ্ট"],
+            ["Ì", "ণ্ড"],
+            ["Ë", "ড্ড"],
+            ["Ê", "ঠ্ফ"],
+            ["É", "ট্ম"],
+            ["È", "ট্ট"],
+            ["Ç", "ট্ফ"],
+            ["Æ", "ঞ্জ"],
+            ["Å", "ঞ্ছ"],
+            ["Ä", "ঞ্চ"],
+            ["Ã", "জ্ঞ"],
+            ["Â", "জ্ঞ"],
+            ["Á", "চ্ছ্ব"],
+            ["À", "চ্ছ"],
+            ["¿", "চ্চ"],
+            ["¾", "ঙ্ঘ"],
+            ["½", "ঙ্গ"],
+            ["¼", "ঙ্খ"],
+            ["»", "ঙ্ক্ষ"],
+            ["º", "ঙ্ক"],
+            ["¹", "গ্ধ"],
+            ["¸", "গু"],
+            ["¶", "ক্ষ"],
+            ["µ", "ক্র"],
+            ["³", "ক্ত"],
+            ["²", "ক্ষ"]
+        ];
+
+        for (let i = 0; i < multiCharBijoy.length; i++) {
+            text = text.split(multiCharBijoy[i][0]).join(multiCharBijoy[i][1]);
+        }
+
+        const C = '(?:[\u0980-\u09FF]|(?:[K-NO-TV-YZ_`a-g-k-ro-q][\u09CD&]?)+|[²-ÿ¡-±›œŸ])';
+
+        // 2. Dual vowel markers (O-kar and OU-kar)
+        text = text.replace(new RegExp('‡(' + C + ')v', 'g'), '$1ো');
+        text = text.replace(new RegExp('†(' + C + ')v', 'g'), '$1ো');
+        text = text.replace(new RegExp('‡(' + C + ')Š', 'g'), '$1ৌ');
+        text = text.replace(new RegExp('†(' + C + ')Š', 'g'), '$1ৌ');
+
+        // 3. Shift pre-kar AFTER consonant
+        text = text.replace(new RegExp('w(' + C + ')', 'g'), '$1w');
+        text = text.replace(new RegExp('‡(' + C + ')', 'g'), '$1‡');
+        text = text.replace(new RegExp('†(' + C + ')', 'g'), '$1†');
+        text = text.replace(new RegExp('ˆ(' + C + ')', 'g'), '$1ˆ');
+        text = text.replace(new RegExp('‰(' + C + ')', 'g'), '$1‰');
+
+        // 4. Shift Ref (©) BEFORE consonant
+        text = text.replace(new RegExp('(' + C + ')©', 'g'), 'র্$1');
+
+        // 5. Direct Character Mapping
+        const singleMap = {
+            'Av': 'আ', 'A': 'অ', 'B': 'ই', 'C': 'ঈ', 'D': 'উ', 'E': 'ঊ', 'F': 'ঋ', 'G': 'এ', 'H': 'ঐ', 'I': 'ও', 'J': 'ঔ',
+            'K': 'ক', 'L': 'খ', 'M': 'গ', 'N': 'ঘ', 'O': 'ঙ',
+            'P': 'চ', 'Q': 'ছ', 'R': 'জ', 'S': 'ঝ', 'T': 'ঞ',
+            'U': 'ট', 'V': 'ঠ', 'W': 'ড', 'X': 'ঢ', 'Y': 'ণ',
+            'Z': 'ত', '_': 'থ', '`': 'দ', 'a': 'ধ', 'b': 'ন',
+            'c': 'প', 'd': 'ফ', 'e': 'ব', 'f': 'ভ', 'g': 'ম',
+            'h': 'য', 'i': 'র', 'j': 'ল', 'k': 'শ', 'l': 'ষ',
+            'm': 'স', 'n': 'হ', 'o': 'ড়', 'p': 'ঢ়', 'q': 'য়',
+            'r': 'ৎ', 's': 'ং', 't': 'ঃ', 'u': 'ঁ',
+            '0': '০', '1': '১', '2': '২', '3': '৩', '4': '৪', '5': '৫', '6': '৬', '7': '৭', '8': '৮', '9': '৯',
+            'v': 'া', 'w': 'ি', 'x': 'ী', 'y': 'ু', '~': 'ূ', '…': 'ৃ', 'ƒ': 'ৃ',
+            '†': 'ে', '‡': 'ে', 'ˆ': 'ৈ', '‰': 'ৈ', 'Š': 'ৌ',
+            '›': '্র', 'œ': '্র', 'Ÿ': '্য', '&': '্',
+            '|': '।'
+        };
+
+        let result = '';
+        for (let i = 0; i < text.length; i++) {
+            const ch = text[i];
+            if (ch === 'A' && text[i+1] === 'v') {
+                result += 'আ';
+                i++;
+            } else if (singleMap[ch] !== undefined) {
+                result += singleMap[ch];
+            } else {
+                result += ch;
+            }
+        }
+
+        return result;
+    }
+
+    // Auto-convert all DOM text nodes containing Bijoy/SutonnyMJ
+    function processBijoyElements(rootNode) {
+        if (!rootNode) return;
+        const walker = rootNode.ownerDocument.createTreeWalker(rootNode, NodeFilter.SHOW_TEXT, null, false);
+        const nodesToConvert = [];
+        let node;
+        while (node = walker.nextNode()) {
+            if (node.nodeValue && isBijoyEncoded(node.nodeValue)) {
+                nodesToConvert.push(node);
+            }
+        }
+        nodesToConvert.forEach(n => {
+            n.nodeValue = convertBijoyToUnicode(n.nodeValue);
+        });
+    }
+    </script>
+
+    <!-- Reader Logic Engine -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const fileUrl = @json($fileUrl);
+            const readerType = @json($readerType);
             const loader = document.getElementById('reader-loader');
+
+            // Auto-convert any static HTML/Description in Bijoy format
+            const staticReaderContent = document.getElementById('text-reader-content');
+            if (staticReaderContent) {
+                processBijoyElements(staticReaderContent);
+            }
 
             // Theme Management
             const themeLight = document.getElementById('theme-light');
@@ -446,7 +676,9 @@
 
             function applyTheme(theme) {
                 document.documentElement.setAttribute('data-theme', theme);
-                document.querySelectorAll('[id^="theme-"]').forEach(btn => btn.classList.remove('active'));
+                localStorage.setItem('idea_webzine_reader_theme', theme);
+
+                [themeLight, themeSepia, themeDark].forEach(btn => btn && btn.classList.remove('active'));
                 if (theme === 'light') themeLight && themeLight.classList.add('active');
                 if (theme === 'sepia') themeSepia && themeSepia.classList.add('active');
                 if (theme === 'dark') themeDark && themeDark.classList.add('active');
@@ -463,6 +695,9 @@
                     window.rendition.themes.override('background', bgColor);
                 }
             }
+
+            const savedTheme = localStorage.getItem('idea_webzine_reader_theme') || 'light';
+            applyTheme(savedTheme);
 
             if (themeLight) themeLight.addEventListener('click', () => applyTheme('light'));
             if (themeSepia) themeSepia.addEventListener('click', () => applyTheme('sepia'));
@@ -494,64 +729,69 @@
                 try {
                     const isMobile = window.innerWidth < 768;
                     let currentFlow = 'paginated';
+                    let currentSpread = isMobile ? 'none' : 'always';
+
+                    const viewerWrapper = document.getElementById('epub-viewer-wrapper');
+                    if (viewerWrapper) {
+                        if (currentSpread === 'always') {
+                            viewerWrapper.classList.add('dual-spread-active');
+                        } else {
+                            viewerWrapper.classList.remove('dual-spread-active');
+                        }
+                    }
 
                     const book = ePub(fileUrl);
                     const rendition = book.renderTo("epub-viewer", {
                         width: "100%",
                         height: "100%",
-                        spread: isMobile ? "none" : "auto",
-                        minSpreadWidth: 800,
+                        spread: currentSpread,
+                        minSpreadWidth: 700,
                         flow: "paginated",
                         allowScriptedContent: true
                     });
                     window.rendition = rendition;
 
-                    // INJECT BENGALI FONT & CLEAN STYLES INTO EPUB CONTENT IFRAMES
+                    // INJECT BENGALI FONT, AUTO BIJOY CONVERTER & CLEAN STYLES INTO EPUB CONTENT IFRAMES
                     rendition.hooks.content.register(function(contents) {
                         try {
-                            const head = contents.document.head;
+                            const doc = contents.document;
+                            const head = doc.head;
                             if (head) {
-                                // Load Google Font
-                                const fontLink = contents.document.createElement('link');
+                                // Load Google Font Hind Siliguri
+                                const fontLink = doc.createElement('link');
                                 fontLink.rel = 'stylesheet';
                                 fontLink.href = 'https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&display=swap';
                                 head.appendChild(fontLink);
 
-                                // Style override for crisp Bengali typography
-                                const style = contents.document.createElement('style');
+                                // Style override for crisp Bengali typography and auto font fitting
+                                const style = doc.createElement('style');
                                 style.textContent = `
                                     * {
-                                        font-family: 'Hind Siliguri', 'SolaimanLipi', 'Kalpurush', -apple-system, BlinkMacSystemFont, sans-serif !important;
+                                        font-family: 'Hind Siliguri', 'SolaimanLipi', 'Kalpurush', 'Noto Sans Bengali', -apple-system, BlinkMacSystemFont, sans-serif !important;
                                         -webkit-font-smoothing: antialiased !important;
                                         text-rendering: optimizeLegibility !important;
                                     }
                                     body {
                                         font-family: 'Hind Siliguri', 'SolaimanLipi', 'Kalpurush', sans-serif !important;
                                         line-height: 1.85 !important;
-                                        padding: 10px 18px !important;
+                                        padding: 12px 24px !important;
                                         word-wrap: break-word !important;
                                         overflow-wrap: break-word !important;
+                                        hyphens: auto !important;
                                     }
-                                    p {
+                                    p, div, span, li {
                                         font-size: 1.05rem !important;
                                         line-height: 1.85 !important;
                                         margin-bottom: 1.15em !important;
                                         text-align: justify !important;
                                     }
-                                    h1, h2, h3, h4, h5, h6 {
-                                        font-weight: 700 !important;
-                                        line-height: 1.35 !important;
-                                        margin-top: 1.2em !important;
-                                        margin-bottom: 0.5em !important;
-                                    }
-                                    img, svg {
-                                        max-width: 100% !important;
-                                        height: auto !important;
-                                        display: block !important;
-                                        margin: 12px auto !important;
-                                    }
                                 `;
                                 head.appendChild(style);
+                            }
+
+                            // AUTO-DETECT & CONVERT SUTONNYMJ / BIJOY TO UNICODE BENGALI IN EPUB CHAPTER
+                            if (doc.body) {
+                                processBijoyElements(doc.body);
                             }
 
                             // Touch Swipe for Mobile
@@ -566,7 +806,7 @@
                             }, false);
 
                         } catch (err) {
-                            console.warn("EPUB style hook note:", err);
+                            console.warn("EPUB style/font hook note:", err);
                         }
                     });
 
@@ -578,6 +818,30 @@
                         console.error("EPUB display error:", err);
                         if (loader) loader.style.display = 'none';
                     });
+
+                    // Spread Toggle Button (Dual Pages vs Single Page)
+                    const btnToggleSpread = document.getElementById('btn-toggle-spread');
+                    const spreadIcon = document.getElementById('spread-icon');
+                    const spreadText = document.getElementById('spread-text');
+                    if (btnToggleSpread) {
+                        btnToggleSpread.addEventListener('click', function() {
+                            if (currentSpread === 'always') {
+                                currentSpread = 'none';
+                                rendition.spread('none');
+                                if (spreadIcon) spreadIcon.className = 'fa-solid fa-book';
+                                if (spreadText) spreadText.textContent = '১ পাতা';
+                                btnToggleSpread.classList.remove('active');
+                                if (viewerWrapper) viewerWrapper.classList.remove('dual-spread-active');
+                            } else {
+                                currentSpread = 'always';
+                                rendition.spread('always');
+                                if (spreadIcon) spreadIcon.className = 'fa-solid fa-book-open';
+                                if (spreadText) spreadText.textContent = '২ পাতা';
+                                btnToggleSpread.classList.add('active');
+                                if (viewerWrapper) viewerWrapper.classList.add('dual-spread-active');
+                            }
+                        });
+                    }
 
                     // Navigation buttons
                     const prevBtn = document.getElementById('nav-prev');
@@ -639,6 +903,7 @@
                                 if (nextBtn) nextBtn.style.display = 'none';
                                 if (flowIcon) flowIcon.className = 'fa-solid fa-book-open';
                                 if (flowText) flowText.textContent = 'পাতা মোড';
+                                if (viewerWrapper) viewerWrapper.classList.remove('dual-spread-active');
                             } else {
                                 currentFlow = 'paginated';
                                 rendition.flow('paginated');
@@ -646,6 +911,9 @@
                                 if (nextBtn) nextBtn.style.display = 'flex';
                                 if (flowIcon) flowIcon.className = 'fa-solid fa-file-lines';
                                 if (flowText) flowText.textContent = 'স্ক্রোল মোড';
+                                if (currentSpread === 'always' && viewerWrapper) {
+                                    viewerWrapper.classList.add('dual-spread-active');
+                                }
                             }
                         });
                     }
