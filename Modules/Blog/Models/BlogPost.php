@@ -106,7 +106,27 @@ class BlogPost extends Model
 
     public function scopePublished($query)
     {
-        return $query->where('status', 'published');
+        return $query->where(function ($q) {
+            $q->where('status', 'published')
+              ->orWhere('status', 'approved')
+              ->orWhere('mod_status', 'approved')
+              ->orWhereNull('status');
+        })->where(function ($q) {
+            $q->whereNull('mod_status')
+              ->orWhere('mod_status', 'approved')
+              ->orWhere('mod_status', '!=', 'rejected');
+        });
+    }
+
+    public function getAuthorNameAttribute(): string
+    {
+        if (!empty($this->owner_name)) {
+            return $this->owner_name;
+        }
+        if ($this->author) {
+            return $this->author->name;
+        }
+        return 'সম্পাদকীয় বিভাগ';
     }
 
     public function scopeFeatured($query)

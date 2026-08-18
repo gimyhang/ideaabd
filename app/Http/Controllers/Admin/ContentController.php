@@ -680,17 +680,56 @@ class ContentController extends Controller
             }
         }
 
-        // blog_posts.author_id is a NOT NULL FK to users, so an offline
-        // contributor's post is filed under the crediting admin and the real
-        // name is carried in owner_name.
+        // blog_posts.author_id is a NOT NULL FK to users.
+        // Map author from authors/users table safely so SQLite/MySQL FK constraint never fails.
         if ($spec['table'] === 'blog_posts') {
-            $attributes['author_id'] = $creditedUser ?: (auth()->id() ?: 1);
+            $rawAuthorId = $request->input('author_id');
+            $authorUserId = null;
+
+            if ($rawAuthorId) {
+                // 1. Check if $rawAuthorId exists in `users` table
+                $userRow = DB::table('users')->where('id', $rawAuthorId)->first();
+                if ($userRow) {
+                    $authorUserId = (int) $userRow->id;
+                    $attributes['owner_name'] = $userRow->name;
+                } else {
+                    // 2. It's from `authors` table! Find matching user or auto-create shadow user record
+                    $authorRow = DB::table('authors')->where('id', $rawAuthorId)->first();
+                    if ($authorRow) {
+                        $matchingUser = DB::table('users')
+                            ->where(function($q) use ($authorRow) {
+                                if (!empty($authorRow->email)) $q->orWhere('email', $authorRow->email);
+                                if (!empty($authorRow->phone)) $q->orWhere('phone', $authorRow->phone);
+                            })->first();
+
+                        if ($matchingUser) {
+                            $authorUserId = (int) $matchingUser->id;
+                        } else {
+                            $authorUserId = DB::table('users')->insertGetId([
+                                'name'       => $authorRow->name,
+                                'email'      => $authorRow->email ?: ('author_' . $authorRow->id . '@ideaabd.com'),
+                                'phone'      => $authorRow->phone ?: ('01' . str_pad((string)$authorRow->id, 9, '0', STR_PAD_LEFT)),
+                                'password'   => bcrypt(Str::random(16)),
+                                'role'       => 'author',
+                                'reg_type'   => 'author',
+                                'reg_status' => 'approved',
+                                'is_active'  => true,
+                                'created_at' => now(),
+                                'updated_at' => now(),
+                            ]);
+                        }
+                        $attributes['owner_name'] = $authorRow->name;
+                    }
+                }
+            }
+
+            $attributes['author_id'] = $authorUserId ?: ($creditedUser ?: (auth()->id() ?: 1));
 
             if ($isNew && ! $request->filled('status')) {
                 $attributes['status'] = 'published';
             }
 
-            if ($request->input('status') === 'published') {
+            if ($request->input('status') === 'published' && empty($attributes['published_at'])) {
                 $attributes['published_at'] = now();
             }
         }
