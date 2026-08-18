@@ -28,6 +28,13 @@ class BlogPost extends Model
         'published_at',
         'view_count',
         'is_featured',
+        'mod_status',
+        'submitted_by',
+        'owner_name',
+        'owner_phone',
+        'reviewed_by',
+        'reviewed_at',
+        'rejection_reason',
     ];
 
     protected $casts = [
@@ -44,6 +51,11 @@ class BlogPost extends Model
     public function author()
     {
         return $this->belongsTo(User::class, 'author_id');
+    }
+
+    public function submitter()
+    {
+        return $this->belongsTo(User::class, 'submitted_by');
     }
 
     public function tags()

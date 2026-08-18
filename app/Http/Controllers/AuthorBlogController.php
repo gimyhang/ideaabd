@@ -133,23 +133,16 @@ class AuthorBlogController extends Controller
             'category_id'    => 'required|integer|exists:blog_categories,id',
             'excerpt'        => 'nullable|string|max:1000',
             'content'        => 'required|string',
+            'featured_image' => 'nullable|image|max:8192',
             'action_type'    => 'required|in:draft,submit',
         ];
 
-        // Featured image is required only if AI generated photocard is not provided
-        if (!$hasAiImage) {
-            $rules['featured_image'] = 'required|image|max:8192';
-        } else {
-            $rules['featured_image'] = 'nullable|image|max:8192';
-        }
-
         $validated = $request->validate($rules, [
-            'title.required'          => 'ব্লগ পোস্টের শিরোনাম দিন।',
-            'category_id.required'    => 'লেখার ক্যাটাগরি বা বিষয় নির্বাচন করুন।',
-            'content.required'        => 'ব্লগের মূল বিষয়বস্তু বা রচনা লিখুন।',
-            'featured_image.required' => 'লেখার সাথে একটি ফটোকার্ড কভার ছবি নির্বাচন করুন অথবা "এআই দিয়ে ফটোকার্ড তৈরি করুন" অপশনটি ব্যবহার করুন।',
-            'featured_image.image'    => 'ফটোকার্ডটি একটি বৈধ ছবি (JPG, PNG, WebP) হতে হবে।',
-            'featured_image.max'      => 'ছবি ফাইলের সর্বোচ্চ সাইজ ৮ মেগাবাইট হতে পারবে।',
+            'title.required'       => 'ব্লগ পোস্টের শিরোনাম দিন।',
+            'category_id.required' => 'লেখার ক্যাটাগরি বা বিষয় নির্বাচন করুন।',
+            'content.required'     => 'ব্লগের মূল বিষয়বস্তু বা রচনা লিখুন।',
+            'featured_image.image' => 'ফটোকার্ডটি একটি বৈধ ছবি (JPG, PNG, WebP) হতে হবে।',
+            'featured_image.max'   => 'ছবি ফাইলের সর্বোচ্চ সাইজ ৮ মেগাবাইট হতে পারবে।',
         ]);
 
         $user = auth()->user();
@@ -164,21 +157,19 @@ class AuthorBlogController extends Controller
         // Unique automatic English slug generation
         $slug = $this->generateEnglishSlug($validated['title']);
 
-        // Handle Image: Uploaded File takes precedence, then Base64 AI photocard
+        // Handle Image: Uploaded File takes precedence, then Base64 AI photocard, then Auto-generated title card
         $imagePath = null;
         try {
             if ($hasUpload) {
                 $imagePath = $request->file('featured_image')->store('blog', 'public');
             } elseif ($hasAiImage) {
                 $imagePath = $this->saveBase64Image($request->input('ai_photocard_data'), 'blog');
+            } else {
+                $imagePath = $this->generateDefaultPhotocard($validated['title'], $user->name);
             }
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::error("Featured image upload/generation error: " . $e->getMessage());
-            return back()->withInput()->with('error', 'ছবি প্রক্রিয়াকরণে সমস্যা হয়েছে। অনুগ্রহ করে পুনরায় ছবি আপলোড বা এআই ফটোকার্ড জেনারেট করুন।');
-        }
-
-        if (empty($imagePath)) {
-            return back()->withInput()->with('error', 'ফটোকার্ড কভার ছবি সংরক্ষণ করা সম্ভব হয়নি। অনুগ্রহ করে পুনরায় ছবি নির্বাচন করুন।');
+            $imagePath = $this->generateDefaultPhotocard($validated['title'], $user->name);
         }
 
         // Title unique check handling
@@ -403,5 +394,44 @@ class AuthorBlogController extends Controller
         }
 
         return $slug;
+    }
+
+    /**
+     * Generate an ultra-fast default SVG photocard when author doesn't attach an image.
+     */
+    protected function generateDefaultPhotocard(string $title, string $authorName): string
+    {
+        $safeTitle = htmlspecialchars(Str::limit($title, 70), ENT_QUOTES, 'UTF-8');
+        $safeAuthor = htmlspecialchars($authorName, ENT_QUOTES, 'UTF-8');
+
+        $svg = <<<SVG
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" width="1200" height="675">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#022c22" />
+      <stop offset="50%" stop-color="#065f46" />
+      <stop offset="100%" stop-color="#064e3b" />
+    </linearGradient>
+    <radialGradient id="glow" cx="70%" cy="30%" r="60%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.15" />
+      <stop offset="100%" stop-color="#000000" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="675" fill="url(#bg)" />
+  <rect width="1200" height="675" fill="url(#glow)" />
+  <rect x="35" y="35" width="1130" height="605" fill="none" stroke="#fbbf24" stroke-width="2" opacity="0.35" rx="8" />
+  <rect x="70" y="65" width="230" height="44" rx="22" fill="rgba(255,255,255,0.15)" />
+  <text x="185" y="94" fill="#fbbf24" font-family="'Hind Siliguri', sans-serif" font-size="20" font-weight="bold" text-anchor="middle">✦ সাহিত্যপত্র ও ব্লগ</text>
+  <text x="1130" y="94" fill="rgba(255,255,255,0.75)" font-family="'Hind Siliguri', sans-serif" font-size="18" font-weight="bold" text-anchor="end">আইডিয়া প্রকাশন</text>
+  <text x="70" y="300" fill="#ffffff" font-family="'Hind Siliguri', sans-serif" font-size="46" font-weight="bold">{$safeTitle}</text>
+  <line x1="70" y1="535" x2="1130" y2="535" stroke="rgba(255,255,255,0.2)" stroke-width="2" />
+  <text x="70" y="585" fill="#ffffff" font-family="'Hind Siliguri', sans-serif" font-size="24" font-weight="bold">✍️ রচনা: {$safeAuthor}</text>
+  <text x="1130" y="585" fill="#fbbf24" font-family="'Hind Siliguri', sans-serif" font-size="20" font-weight="bold" text-anchor="end">www.ideaabd.com</text>
+</svg>
+SVG;
+
+        $fileName = 'photocard_' . time() . '_' . Str::random(8) . '.svg';
+        \Illuminate\Support\Facades\Storage::disk('public')->put('blog/' . $fileName, $svg);
+        return 'blog/' . $fileName;
     }
 }

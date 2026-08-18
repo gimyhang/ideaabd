@@ -479,7 +479,9 @@ class AdminController extends Controller
                 $q->where(function ($w) use ($like) {
                     $w->where('title', 'like', $like)
                       ->orWhere('slug', 'like', $like)
-                      ->orWhere('content', 'like', $like);
+                      ->orWhere('content', 'like', $like)
+                      ->orWhere('owner_name', 'like', $like)
+                      ->orWhereHas('author', fn($a) => $a->where('name', 'like', $like)->orWhere('phone', 'like', $like));
                 });
             })
             ->when($status && $status !== 'all', function ($q) use ($status) {
@@ -493,16 +495,17 @@ class AdminController extends Controller
                     $q->where('status', 'draft');
                 }
             })
-            ->latest();
+            ->orderByRaw("CASE WHEN status = 'pending' OR mod_status = 'pending' THEN 0 ELSE 1 END")
+            ->latest('id');
 
         $posts = $query->paginate(20)->withQueryString();
 
         $stats = [
             'total'     => \Modules\Blog\Models\BlogPost::count(),
-            'published' => \Modules\Blog\Models\BlogPost::where('status', 'published')->orWhere('mod_status', 'approved')->count(),
-            'pending'   => \Modules\Blog\Models\BlogPost::where('status', 'pending')->orWhere('mod_status', 'pending')->count(),
+            'published' => \Modules\Blog\Models\BlogPost::where(fn($w) => $w->where('status', 'published')->orWhere('mod_status', 'approved'))->count(),
+            'pending'   => \Modules\Blog\Models\BlogPost::where(fn($w) => $w->where('status', 'pending')->orWhere('mod_status', 'pending'))->count(),
             'draft'     => \Modules\Blog\Models\BlogPost::where('status', 'draft')->count(),
-            'rejected'  => \Modules\Blog\Models\BlogPost::where('status', 'rejected')->orWhere('mod_status', 'rejected')->count(),
+            'rejected'  => \Modules\Blog\Models\BlogPost::where(fn($w) => $w->where('status', 'rejected')->orWhere('mod_status', 'rejected'))->count(),
         ];
 
         return view('admin.blog', compact('posts', 'stats', 'search', 'status'));

@@ -340,7 +340,7 @@
                                     <div class="col-md-6">
                                         <div class="d-flex align-items-center justify-content-between mb-1">
                                             <label class="form-label fw-bold text-dark mb-0">
-                                                ফিচার্ড ফটোকার্ড / কভার ছবি <span class="text-danger">*</span>
+                                                ফিচার্ড ফটোকার্ড / কভার ছবি <span class="text-muted small fw-normal">(ঐচ্ছিক)</span>
                                             </label>
                                             <button type="button" class="btn btn-sm btn-outline-success fw-bold rounded-pill px-2.5 py-0.5" 
                                                     style="font-size: 0.78rem;" onclick="openAiPhotocardGenerator()">
@@ -350,9 +350,9 @@
 
                                         <input type="hidden" name="ai_photocard_data" id="aiPhotocardDataInput" value="">
                                         
-                                        <!-- Real File Input -->
+                                        <!-- Real File Input (Always optional so mobile writers can submit effortlessly) -->
                                         <input type="file" name="featured_image" id="featuredImageInput" class="form-control rounded-3 @error('featured_image') is-invalid @enderror" 
-                                               accept="image/jpeg,image/png,image/webp" {{ $editPost && $editPost->featured_image ? '' : 'required' }} onchange="handlePhotocardSelection(this)">
+                                               accept="image/jpeg,image/png,image/webp" onchange="handlePhotocardSelection(this)">
                                         @error('featured_image')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                         
                                         <!-- Error Notification Box -->
@@ -361,14 +361,14 @@
                                             <span id="photocardErrorText">ছবি প্রক্রিয়াকরণে সমস্যা হয়েছে। অনুগ্রহ করে পুনরায় সঠিক ফরম্যাটের ছবি আপলোড করুন অথবা এআই দিয়ে ফটোকার্ড তৈরি করুন।</span>
                                         </div>
 
-                                        <!-- Mandatory Photocard Guidelines Badge -->
-                                        <div class="mt-2 p-2.5 bg-light border rounded-3 text-muted small" style="font-size: 0.76rem;">
+                                        <!-- Mobile-Friendly Photocard Tip -->
+                                        <div class="mt-2 p-2 bg-light border rounded-3 text-muted small" style="font-size: 0.75rem;">
                                             <div class="d-flex align-items-center justify-content-between">
-                                                <span class="fw-bold text-dark"><i class="fa-solid fa-crop-simple text-primary me-1"></i>অটো-ক্রপ ও ফিক্সড সাইজ:</span>
-                                                <span class="badge bg-primary-subtle text-primary border rounded-pill">১৬:৯ ফরম্যাট (১২০০×৬৭৫ px)</span>
+                                                <span class="fw-semibold text-dark"><i class="fa-solid fa-wand-magic-sparkles text-success me-1"></i>অটো-জেনারেটর সুবিধা:</span>
+                                                <span class="badge bg-success-subtle text-success border rounded-pill">১৬:৯ এইচডি সাইজ</span>
                                             </div>
                                             <div class="mt-1">
-                                                যেকোনো ছবি দিলে তা স্বয়ংক্রিয়ভাবে ১৬:৯ রেশিওতে ফিক্সড হয়ে যাবে। ছবি না থাকলে উপরের <strong>"এআই ফটোকার্ড তৈরি করুন"</strong> বোতামে ক্লিক করুন।
+                                                ছবি না দিলেও কোনো সমস্যা নেই! লেখার শিরোনাম অনুযায়ী আকর্ষণীয় সাহিত্যিক ফটোকার্ড স্বয়ংক্রিয়ভাবে তৈরি হয়ে যাবে।
                                             </div>
                                         </div>
 
@@ -398,31 +398,39 @@
                                     <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-1.5">
                                         <label class="form-label fw-bold text-dark mb-0">মূল বিষয়বস্তু ও রচনা (Content) <span class="text-danger">*</span></label>
                                         
-                                        <!-- Rich Formatting Toolbar -->
-                                        <div class="btn-group btn-group-sm bg-light border rounded-pill p-0.5 shadow-xs" role="group" aria-label="Formatting Toolbar">
-                                            <button type="button" class="btn btn-light rounded-pill px-2.5 py-0.5 fw-bold text-dark" onclick="formatContent('bold')" title="বোল্ড (Bold)">
-                                                <i class="fa-solid fa-bold"></i>
-                                            </button>
-                                            <button type="button" class="btn btn-light rounded-pill px-2.5 py-0.5 fst-italic text-dark" onclick="formatContent('italic')" title="ইটালিক (Italic)">
-                                                <i class="fa-solid fa-italic"></i>
-                                            </button>
-                                            <button type="button" class="btn btn-light rounded-pill px-2.5 py-0.5 text-decoration-underline text-dark" onclick="formatContent('underline')" title="আন্ডারলাইন (Underline)">
-                                                <i class="fa-solid fa-underline"></i>
-                                            </button>
-                                            <button type="button" class="btn btn-light rounded-pill px-2.5 py-0.5 text-dark fw-bold" onclick="formatContent('h3')" title="উপ-শিরোনাম (Heading 3)">
-                                                H3
-                                            </button>
-                                            <button type="button" class="btn btn-light rounded-pill px-2.5 py-0.5 text-dark" onclick="formatContent('quote')" title="উদ্ধৃতি (Quote)">
-                                                <i class="fa-solid fa-quote-left"></i>
-                                            </button>
-                                            <button type="button" class="btn btn-light rounded-pill px-2.5 py-0.5 text-dark" onclick="formatContent('list')" title="বুলেট তালিকা">
-                                                <i class="fa-solid fa-list-ul"></i>
-                                            </button>
+                                        <!-- Mobile-Responsive Touch-Friendly Rich Formatting Toolbar -->
+                                        <div class="d-flex align-items-center overflow-x-auto pb-1 gap-1" style="max-width: 100%;">
+                                            <div class="btn-group btn-group-sm bg-light border rounded-pill p-0.5 shadow-xs flex-nowrap" role="group" aria-label="Formatting Toolbar">
+                                                <button type="button" class="btn btn-light rounded-pill px-2.5 py-1 fw-bold text-dark" onclick="formatContent('bold')" title="বোল্ড (Bold)">
+                                                    <i class="fa-solid fa-bold"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-light rounded-pill px-2.5 py-1 fst-italic text-dark" onclick="formatContent('italic')" title="ইটালিক (Italic)">
+                                                    <i class="fa-solid fa-italic"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-light rounded-pill px-2.5 py-1 text-decoration-underline text-dark" onclick="formatContent('underline')" title="আন্ডারলাইন (Underline)">
+                                                    <i class="fa-solid fa-underline"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-light rounded-pill px-2.5 py-1 text-dark fw-bold" onclick="formatContent('h3')" title="উপ-শিরোনাম (Heading 3)">
+                                                    H3
+                                                </button>
+                                                <button type="button" class="btn btn-light rounded-pill px-2.5 py-1 text-dark" onclick="formatContent('quote')" title="উদ্ধৃতি (Quote)">
+                                                    <i class="fa-solid fa-quote-left"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-light rounded-pill px-2.5 py-1 text-dark" onclick="formatContent('list')" title="বুলেট তালিকা">
+                                                    <i class="fa-solid fa-list-ul"></i>
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                     <textarea name="content" id="blogContentTextarea" rows="12" class="form-control rounded-3 @error('content') is-invalid @enderror" 
-                                              required placeholder="আপনার প্রবন্ধ, গল্প, কবিতা, বই পর্যালোচনা বা মতামত এখানে বিস্তারিত লিখুন... প্রয়োজনমতো উপরের টুলবার দিয়ে বোল্ড, ইটালিক ও হেডিং ব্যবহার করতে পারেন।">{{ old('content', $editPost->content ?? '') }}</textarea>
+                                              oninput="updateContentStats()" required 
+                                              placeholder="আপনার প্রবন্ধ, গল্প, কবিতা, বই পর্যালোচনা বা মতামত এখানে বিস্তারিত লিখুন... প্রয়োজনমতো উপরের টুলবার দিয়ে বোল্ড, ইটালিক ও হেডিং ব্যবহার করতে পারেন।">{{ old('content', $editPost->content ?? '') }}</textarea>
                                     @error('content')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                    
+                                    <div class="d-flex align-items-center justify-content-between mt-1 text-muted" style="font-size: 0.76rem;">
+                                        <span id="contentStatsText"><i class="fa-solid fa-file-lines me-1"></i>শব্দ: ০ | বর্ণ: ০</span>
+                                        <span class="text-success"><i class="fa-solid fa-check-double me-1"></i>মোবাইল ও পিসিতে ফ্রেন্ডলি</span>
+                                    </div>
                                 </div>
 
                                 <div class="p-3 bg-light rounded-3 mb-4 border d-flex align-items-start gap-2 text-muted small">
@@ -430,19 +438,19 @@
                                     <div>
                                         <strong>প্রকাশনা নিয়মাবলী:</strong><br>
                                         • <strong>"খসড়া সংরক্ষণ করুন"</strong> চাপলে লেখাটি শুধুমাত্র আপনার কাছে ড্রাফট হিসেবে থাকবে এবং পরবর্তীতে এডিট করতে পারবেন।<br>
-                                        • <strong>"অনুমোদনের জন্য জমা দিন"</strong> চাপলে তা প্রকাশকের পর্যালোচনা বোর্ডে চলে যাবে এবং যাচাই সম্পন্ন হলে স্বয়ংক্রিয়ভাবে ব্লগে প্রকাশিত হবে।
+                                        • <strong>"অনুমোদনের জন্য জমা দিন"</strong> চাপলে তা সরাসরি অ্যাডমিন প্যানেলে রিভিউ ও অনুমোদনের জন্য চলে যাবে।
                                     </div>
                                 </div>
 
                                 <div class="d-flex flex-wrap gap-2 justify-content-end">
-                                    <button type="button" class="btn btn-outline-primary px-4 py-2.5 rounded-pill fw-semibold" onclick="openArticleLivePreview()">
-                                        <i class="fas fa-eye me-1.5"></i> লাইভ প্রিভিউ (Preview)
+                                    <button type="button" class="btn btn-outline-primary px-3 px-md-4 py-2.5 rounded-pill fw-semibold" onclick="openArticleLivePreview()">
+                                        <i class="fas fa-eye me-1.5"></i> লাইভ প্রিভিউ
                                     </button>
-                                    <button type="submit" name="action_type" value="draft" class="btn btn-outline-secondary px-4 py-2.5 rounded-pill fw-semibold">
-                                        <i class="fas fa-bookmark me-1.5"></i> খসড়া সংরক্ষণ করুন (Save Draft)
+                                    <button type="submit" name="action_type" value="draft" class="btn btn-outline-secondary px-3 px-md-4 py-2.5 rounded-pill fw-semibold" onclick="ensurePhotocardBeforeSubmit()">
+                                        <i class="fas fa-bookmark me-1.5"></i> খসড়া সংরক্ষণ
                                     </button>
-                                    <button type="submit" name="action_type" value="submit" class="btn btn-success px-4 py-2.5 rounded-pill fw-bold shadow-sm">
-                                        <i class="fas fa-paper-plane me-1.5"></i> অনুমোদনের জন্য জমা দিন (Submit)
+                                    <button type="submit" name="action_type" value="submit" class="btn btn-success px-4 px-md-5 py-2.5 rounded-pill fw-bold shadow-sm" onclick="ensurePhotocardBeforeSubmit()">
+                                        <i class="fas fa-paper-plane me-1.5"></i> অনুমোদনের জন্য জমা দিন
                                     </button>
                                 </div>
                             </form>
@@ -1119,6 +1127,46 @@
 
         textarea.setRangeText(replacement, start, end, 'select');
         textarea.focus();
+        updateContentStats();
     }
+
+    function updateContentStats() {
+        const textarea = document.getElementById('blogContentTextarea');
+        const statsEl = document.getElementById('contentStatsText');
+        if (!textarea || !statsEl) return;
+
+        const text = textarea.value.trim();
+        const chars = text.length;
+        const words = text ? text.split(/\s+/).filter(Boolean).length : 0;
+        statsEl.innerHTML = `<i class="fa-solid fa-file-lines me-1"></i>শব্দ: ${words} | বর্ণ: ${chars}`;
+    }
+
+    // Auto-attach AI photocard if neither upload nor AI card exists before form submission
+    function ensurePhotocardBeforeSubmit() {
+        const fileInput = document.getElementById('featuredImageInput');
+        const aiInput = document.getElementById('aiPhotocardDataInput');
+        const titleInput = document.querySelector('input[name="title"]');
+
+        if ((!fileInput || !fileInput.files || !fileInput.files[0]) && (!aiInput || !aiInput.value)) {
+            try {
+                const customTitleInput = document.getElementById('aiCardCustomTitle');
+                if (customTitleInput && titleInput) {
+                    customTitleInput.value = titleInput.value.trim() || 'আইডিয়া সাহিত্যপত্র প্রবন্ধ';
+                }
+                renderAiPhotocard();
+                const canvas = document.getElementById('aiPhotocardCanvas');
+                if (canvas && aiInput) {
+                    aiInput.value = canvas.toDataURL('image/jpeg', 0.90);
+                }
+            } catch (err) {
+                console.warn("Background auto photocard render:", err);
+            }
+        }
+    }
+
+    // Initialize stats on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        updateContentStats();
+    });
 </script>
 @endsection
