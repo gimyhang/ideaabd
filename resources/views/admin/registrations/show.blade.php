@@ -95,34 +95,49 @@
                     </div>
                     @endif
 
-                    @if($user->reg_status === 'pending')
                     <hr class="my-4">
-                    <div class="d-flex gap-2">
+                    <h6 class="fw-bold text-dark mb-3"><i class="fas fa-sliders text-primary me-1"></i>প্রশাসনিক অ্যাকশন ও অনুমোদন নিয়ন্ত্রণ</h6>
+                    <div class="d-flex flex-wrap gap-2 mb-3">
+                        {{-- Approve Button --}}
                         <form method="POST" action="{{ route('admin.registrations.approve', $user) }}" class="flex-grow-1">
                             @csrf @method('PATCH')
-                            <button class="btn btn-success w-100 rounded-pill fw-bold"><i class="fas fa-check me-1"></i>অনুমোদন করুন ও ইমেইল পাঠান</button>
+                            <button type="submit" class="btn {{ $user->reg_status === 'approved' ? 'btn-outline-success' : 'btn-success' }} w-100 rounded-pill fw-bold">
+                                <i class="fas fa-check me-1"></i>{{ $user->reg_status === 'approved' ? 'অনুমোদিত (পুনরায় অনুমোদন করুন)' : 'অনুমোদন করুন ও ইমেইল পাঠান' }}
+                            </button>
                         </form>
-                        <button class="btn btn-danger flex-grow-1 rounded-pill" data-bs-toggle="collapse" data-bs-target="#rejectForm">
-                            <i class="fas fa-times me-1"></i>প্রত্যাখ্যান করুন
-                        </button>
-                    </div>
-                    <div id="rejectForm" class="collapse mt-3">
-                        <form method="POST" action="{{ route('admin.registrations.reject', $user) }}" class="p-3 bg-light rounded-3 border border-danger-subtle">
-                            @csrf @method('PATCH')
-                            <label class="form-label fw-semibold small text-danger">প্রত্যাখ্যানের কারণ <span class="text-danger">*</span></label>
-                            <textarea name="reason" class="form-control form-control-sm mb-2 rounded-2" rows="3" required placeholder="ব্যবহারকারীকে কারণ জানানো হবে..."></textarea>
-                            <button type="submit" class="btn btn-danger btn-sm w-100 rounded-pill">প্রত্যাখ্যান নিশ্চিত করুন</button>
-                        </form>
-                    </div>
-                    @endif
 
-                    @if($user->reg_status === 'rejected')
-                    <hr class="my-4">
-                    <form method="POST" action="{{ route('admin.registrations.cancel', $user) }}" onsubmit="return confirm('সম্পূর্ণ ডিলিট করবেন?')">
-                        @csrf @method('DELETE')
-                        <button class="btn btn-outline-danger btn-sm rounded-pill"><i class="fas fa-trash me-1"></i>রেকর্ড মুছুন</button>
-                    </form>
-                    @endif
+                        {{-- Reject Button (Collapse trigger) --}}
+                        <button type="button" class="btn {{ $user->reg_status === 'rejected' ? 'btn-outline-danger' : 'btn-danger' }} flex-grow-1 rounded-pill fw-semibold" data-bs-toggle="collapse" data-bs-target="#rejectForm">
+                            <i class="fas fa-times me-1"></i>{{ $user->reg_status === 'rejected' ? 'নতুন কারণসহ বাতিল' : 'প্রত্যাখ্যান / বাতিল করুন' }}
+                        </button>
+
+                        {{-- Edit Button --}}
+                        <a href="{{ route('admin.registrations.edit', $user) }}" class="btn btn-outline-secondary rounded-pill px-4 fw-semibold">
+                            <i class="fas fa-edit me-1"></i>এডিট
+                        </a>
+
+                        {{-- Delete Button --}}
+                        <form method="POST" action="{{ route('admin.registrations.cancel', $user) }}" 
+                              onsubmit="return confirm('আপনি কি নিশ্চিত যে {{ addslashes($user->name) }} এর রেজিস্ট্রেশন ও অ্যাকাউন্টটি সম্পূর্ণ মুছে ফেলতে চান?');">
+                            @csrf @method('DELETE')
+                            <button type="submit" class="btn btn-outline-danger rounded-pill px-4">
+                                <i class="fas fa-trash me-1"></i>সম্পূর্ণ ডিলিট
+                            </button>
+                        </form>
+                    </div>
+
+                    {{-- Collapsible Rejection Form --}}
+                    <div id="rejectForm" class="collapse">
+                        <form method="POST" action="{{ route('admin.registrations.reject', $user) }}" class="p-3 bg-light rounded-4 border border-danger-subtle">
+                            @csrf @method('PATCH')
+                            <label class="form-label fw-bold small text-danger">আবেদন বাতিলের কারণ <span class="text-danger">*</span></label>
+                            <textarea name="reason" class="form-control mb-2 rounded-3" rows="3" required placeholder="বাতিলের কারণ লিখুন (ব্যবহারকারীকে ইমেইল/নোটিফিকেশনের মাধ্যমে জানানো হবে)...">{{ $user->rejection_reason ?? '' }}</textarea>
+                            <div class="d-flex justify-content-end gap-2">
+                                <button type="button" class="btn btn-light btn-sm rounded-pill px-3" data-bs-toggle="collapse" data-bs-target="#rejectForm">বাতিল</button>
+                                <button type="submit" class="btn btn-danger btn-sm rounded-pill px-4 fw-bold">প্রত্যাখ্যান নিশ্চিত করুন</button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>

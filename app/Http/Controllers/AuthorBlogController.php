@@ -155,8 +155,8 @@ class AuthorBlogController extends Controller
         $user = auth()->user();
 
         // Ensure author role and approval
-        if (!$user->isAuthor() && !$user->isAdmin() && $user->role !== 'author') {
-            return redirect()->route('home')->with('error', 'শুধুমাত্র অনুমোদিত লেখকগণ লেখা পোস্ট করতে পারেন।');
+        if (!$user->isAdmin() && (!$user->isAuthor() || $user->reg_status !== 'approved' || !$user->is_active)) {
+            return redirect()->route('pending.approval')->with('warning', 'আপনার লেখক অ্যাকাউন্টটি এখনও অ্যাডমিন কর্তৃক অনুমোদিত হয়নি। অনুমোদন সম্পন্ন হলে আপনি লেখা পোস্ট করতে পারবেন।');
         }
 
         $isSubmit = $validated['action_type'] === 'submit';
@@ -224,6 +224,9 @@ class AuthorBlogController extends Controller
     public function update(Request $request, int $id): RedirectResponse
     {
         $user = auth()->user();
+        if (!$user->isAdmin() && (!$user->isAuthor() || $user->reg_status !== 'approved' || !$user->is_active)) {
+            return redirect()->route('pending.approval')->with('warning', 'আপনার লেখক অ্যাকাউন্টটি এখনও অ্যাডমিন কর্তৃক অনুমোদিত হয়নি।');
+        }
         $post = BlogPost::where('id', $id)->where('author_id', $user->id)->firstOrFail();
 
         // Lock check: Once submitted or approved/published, author cannot edit directly

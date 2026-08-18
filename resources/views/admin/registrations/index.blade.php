@@ -125,28 +125,37 @@
                         <td class="small text-muted">{{ $user->created_at->format('d M Y') }}</td>
                         <td class="pe-4 text-end">
                             <div class="d-inline-flex gap-1 align-items-center">
-                                <a href="{{ route('admin.registrations.show', $user) }}" class="btn btn-sm btn-outline-primary" title="বিস্তারিত">
+                                <a href="{{ route('admin.registrations.show', $user) }}" class="btn btn-sm btn-outline-primary" title="বিস্তারিত দেখুন">
                                     <i class="fas fa-eye"></i>
                                 </a>
-                                <a href="{{ route('admin.registrations.edit', $user) }}" class="btn btn-sm btn-outline-secondary" title="এডিট / সংশোধন">
+                                <a href="{{ route('admin.registrations.edit', $user) }}" class="btn btn-sm btn-outline-secondary" title="তথ্য সংশোধন ও এডিট">
                                     <i class="fas fa-edit"></i>
                                 </a>
-                                @if($user->reg_status === 'pending')
+
+                                {{-- Approve Action (Always available) --}}
                                 <form method="POST" action="{{ route('admin.registrations.approve', $user) }}" class="d-inline">
                                     @csrf @method('PATCH')
-                                    <button class="btn btn-sm btn-success" title="অনুমোদন করুন"><i class="fas fa-check"></i></button>
+                                    <button type="submit" class="btn btn-sm {{ $user->reg_status === 'approved' ? 'btn-outline-success' : 'btn-success' }}" 
+                                            title="{{ $user->reg_status === 'approved' ? 'অনুমোদিত (পুনরায় অনুমোদন করুন)' : 'অনুমোদন করুন ও ইমেইল পাঠান' }}">
+                                        <i class="fas fa-check"></i>
+                                    </button>
                                 </form>
-                                <button class="btn btn-sm btn-danger" title="প্রত্যাখ্যান করুন"
-                                    data-bs-toggle="modal" data-bs-target="#rejectModal{{ $user->id }}">
+
+                                {{-- Reject Action (Always available) --}}
+                                <button type="button" class="btn btn-sm {{ $user->reg_status === 'rejected' ? 'btn-outline-danger' : 'btn-danger' }}" 
+                                        title="{{ $user->reg_status === 'rejected' ? 'বাতিলকৃত (নতুন কারণসহ বাতিল)' : 'প্রত্যাখ্যান / বাতিল করুন' }}"
+                                        data-bs-toggle="modal" data-bs-target="#rejectModal{{ $user->id }}">
                                     <i class="fas fa-times"></i>
                                 </button>
-                                @endif
-                                @if($user->reg_status === 'rejected')
-                                <form method="POST" action="{{ route('admin.registrations.cancel', $user) }}" onsubmit="return confirm('সম্পূর্ণ মুছে ফেলবেন?')" class="d-inline">
+
+                                {{-- Delete Action (Always available) --}}
+                                <form method="POST" action="{{ route('admin.registrations.cancel', $user) }}" 
+                                      onsubmit="return confirm('আপনি কি নিশ্চিত যে {{ addslashes($user->name) }} এর রেজিস্ট্রেশন ও অ্যাকাউন্টটি সম্পূর্ণ মুছে ফেলতে চান?');" class="d-inline">
                                     @csrf @method('DELETE')
-                                    <button class="btn btn-sm btn-outline-danger" title="মুছুন"><i class="fas fa-trash"></i></button>
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="সম্পূর্ণ মুছে ফেলুন">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
                                 </form>
-                                @endif
                             </div>
 
                             {{-- Bio Popup Modal --}}

@@ -56,9 +56,14 @@ class User extends Authenticatable
     public function isBuyer(): bool      { return in_array($this->role, [self::ROLE_BUYER, self::ROLE_CUSTOMER]); }
     public function hasRole(string $role): bool { return $this->role === $role; }
 
-    // Registration pending?
+    // Registration status helpers
     public function isPending(): bool  { return $this->reg_status === self::STATUS_PENDING; }
-    public function isApproved(): bool { return $this->reg_status === self::STATUS_APPROVED || $this->role === self::ROLE_CUSTOMER; }
+    public function isApproved(): bool { 
+        if (in_array($this->role, [self::ROLE_AUTHOR, self::ROLE_SELLER, self::ROLE_PUBLISHER], true)) {
+            return $this->reg_status === self::STATUS_APPROVED && (bool) $this->is_active;
+        }
+        return $this->reg_status === self::STATUS_APPROVED || in_array($this->role, [self::ROLE_BUYER, self::ROLE_CUSTOMER, self::ROLE_ADMIN], true); 
+    }
     public function isRejected(): bool { return $this->reg_status === self::STATUS_REJECTED; }
 
     // ─── Relationships ───────────────────────────────────────────────

@@ -39,6 +39,20 @@ class LoginController extends Controller
             }
 
             if ($matchedUser) {
+                // Check if registration is pending approval for author/seller/publisher
+                if (in_array($matchedUser->role, ['author', 'seller', 'publisher'], true)) {
+                    if ($matchedUser->reg_status === 'pending' || !$matchedUser->is_active) {
+                        throw ValidationException::withMessages([
+                            'email' => 'আপনার অ্যাকাউন্টটি এখনও অ্যাডমিন কর্তৃক অনুমোদিত হয়নি। অনুমোদন সম্পন্ন হলে আপনার ইমেইলে নোটিফিকেশন পৌঁছে যাবে এবং আপনি লগইন করতে পারবেন।',
+                        ]);
+                    }
+                    if ($matchedUser->reg_status === 'rejected') {
+                        throw ValidationException::withMessages([
+                            'email' => 'আপনার রেজিস্ট্রেশন অ্যাকাউন্টটির আবেদন প্রত্যাখ্যাত বা বাতিল করা হয়েছে।' . ($matchedUser->rejection_reason ? ' কারণ: ' . $matchedUser->rejection_reason : ''),
+                        ]);
+                    }
+                }
+
                 // Check if account is active
                 if (isset($matchedUser->is_active) && ! $matchedUser->is_active) {
                     throw ValidationException::withMessages([

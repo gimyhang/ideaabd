@@ -206,8 +206,20 @@ class RegistrationApprovalController extends Controller
     public function cancel(User $user)
     {
         abort_unless(in_array($user->role, ['seller', 'publisher', 'author']), 404);
-        $user->delete();
+        $name = $user->name;
+
+        // If author, clean up entry in authors directory
+        if ($user->role === 'author') {
+            try {
+                DB::table('authors')->where('email', $user->email)->orWhere('phone', $user->phone)->delete();
+            } catch (\Throwable $e) {
+                Log::warning("Could not clean up author directory on delete: " . $e->getMessage());
+            }
+        }
+
+        $user->forceDelete();
+
         return redirect()->route('admin.registrations.index')
-            ->with('success', "রেজিস্ট্রেশন মুছে ফেলা হয়েছে।");
+            ->with('success', "{$name} এর রেজিস্ট্রেশন আবেদন ও অ্যাকাউন্টটি সম্পূর্ণ মুছে ফেলা হয়েছে।");
     }
 }
