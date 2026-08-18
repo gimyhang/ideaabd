@@ -108,12 +108,19 @@ class RegistrationController extends Controller
                 'bio'      => ['nullable', 'string'],
                 'genre'    => ['nullable', 'string'],
                 'nid'      => ['nullable', 'string'],
+                'avatar'   => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:4096'],
             ]),
             'buyer' => $request->validate([
                 'address'      => ['nullable', 'string'],
                 'date_of_birth'=> ['nullable', 'date'],
             ]),
         };
+
+        // Handle avatar photo upload if provided
+        $avatarPath = null;
+        if ($request->hasFile('avatar')) {
+            $avatarPath = $request->file('avatar')->store('avatars', 'public');
+        }
 
         // Generate 6 digit verification OTP
         $otpCode = rand(100000, 999999);
@@ -130,11 +137,12 @@ class RegistrationController extends Controller
             'name'       => $base['name'],
             'email'      => $base['email'],
             'phone'      => $base['phone'],
+            'avatar'     => $avatarPath,
             'password'   => Hash::make($base['password']),
             'role'       => $type === 'buyer' ? User::ROLE_BUYER : $type,
             'reg_type'   => $type,
             'reg_status' => $regStatus,
-            'reg_data'   => array_merge($extra, ['otp_code' => $otpCode]),
+            'reg_data'   => array_merge($extra, ['otp_code' => $otpCode, 'avatar' => $avatarPath]),
             'is_active'  => $isActive,
             'email_verified_at' => $isActive ? now() : null,
         ]);
@@ -148,15 +156,16 @@ class RegistrationController extends Controller
                     $authorSlug .= '-' . $user->id;
                 }
                 \Illuminate\Support\Facades\DB::table('authors')->insertOrIgnore([
-                    'name'        => $authorName,
-                    'slug'        => $authorSlug,
-                    'bio'         => $extra['bio'] ?? null,
-                    'phone'       => $base['phone'],
-                    'email'       => $base['email'],
-                    'is_active'   => false, // Pending admin approval
-                    'is_verified' => false,
-                    'created_at'  => now(),
-                    'updated_at'  => now(),
+                    'name'         => $authorName,
+                    'slug'         => $authorSlug,
+                    'bio'          => $extra['bio'] ?? null,
+                    'author_image' => $avatarPath,
+                    'phone'        => $base['phone'],
+                    'email'        => $base['email'],
+                    'is_active'    => false, // Pending admin approval
+                    'is_verified'  => false,
+                    'created_at'   => now(),
+                    'updated_at'   => now(),
                 ]);
             } catch (\Throwable $e) {
                 Log::warning("Could not auto-create directory author entry: " . $e->getMessage());

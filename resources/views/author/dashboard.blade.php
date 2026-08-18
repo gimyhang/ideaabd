@@ -89,23 +89,44 @@
         </div>
 
         <div class="row align-items-center position-relative z-1 g-3">
-            <div class="col-md-8">
-                <div class="d-inline-flex align-items-center gap-2 px-3 py-1 bg-white bg-opacity-20 rounded-pill mb-2 backdrop-blur shadow-sm">
-                    <i class="fas fa-certificate text-warning"></i>
-                    <span class="small fw-semibold text-white">অনুমোদিত লেখক ও গবেষক পোর্টাল</span>
-                </div>
-                <h1 class="fw-bold display-6 mb-1 text-white">স্বাগতম, {{ $user->name }}!</h1>
-                <p class="fs-6 opacity-90 mb-3 text-light">
-                    আইডিয়া ব্লগে আপনার জ্ঞানগর্ভ প্রবন্ধ, গল্প, কবিতা ও গবেষণাধর্মী সাহিত্যকর্ম প্রকাশের কেন্দ্রীয় ড্যাশবোর্ড।
-                </p>
-                <div class="d-flex flex-wrap gap-2 text-white-50 small">
-                    <span><i class="fas fa-phone me-1 text-warning"></i>{{ $user->phone ?? 'ফোন নম্বর সংরক্ষিত নেই' }}</span>
-                    @if($user->email && !str_contains($user->email, '@author.ideaabd.com'))
-                        <span class="ms-md-3"><i class="fas fa-envelope me-1 text-warning"></i>{{ $user->email }}</span>
+            <div class="col-md-8 d-flex align-items-center gap-3">
+                @php
+                    $uAvatar = $user->avatar;
+                    $uAvatarUrl = null;
+                    if ($uAvatar) {
+                        $uAvatarUrl = str_starts_with($uAvatar, 'http') ? $uAvatar : (str_starts_with($uAvatar, 'storage/') ? asset($uAvatar) : asset('storage/' . $uAvatar));
+                    }
+                @endphp
+                <div class="position-relative flex-shrink-0">
+                    @if($uAvatarUrl)
+                        <img src="{{ $uAvatarUrl }}" alt="{{ $user->name }}" 
+                             class="rounded-circle border border-3 border-warning shadow-sm object-fit-cover" 
+                             style="width: 75px; height: 75px;">
+                    @else
+                        <div class="rounded-circle bg-white text-success d-flex align-items-center justify-content-center shadow-sm fs-2 fw-bold border border-3 border-warning" 
+                             style="width: 75px; height: 75px;">
+                            {{ mb_substr($user->name, 0, 1) }}
+                        </div>
                     @endif
-                    <span class="ms-md-3 badge bg-success-subtle text-success px-2.5 py-1 rounded-pill">
-                        <i class="fas fa-circle-check me-1"></i> একাউন্ট সক্রিয়
-                    </span>
+                </div>
+                <div>
+                    <div class="d-inline-flex align-items-center gap-2 px-3 py-1 bg-white bg-opacity-20 rounded-pill mb-1.5 backdrop-blur shadow-sm">
+                        <i class="fas fa-certificate text-warning"></i>
+                        <span class="small fw-semibold text-white">অনুমোদিত লেখক ও গবেষক পোর্টাল</span>
+                    </div>
+                    <h1 class="fw-bold display-6 mb-1 text-white">স্বাগতম, {{ $user->name }}!</h1>
+                    <p class="fs-6 opacity-90 mb-2 text-light">
+                        আইডিয়া ব্লগে আপনার জ্ঞানগর্ভ প্রবন্ধ, গল্প, কবিতা ও গবেষণাধর্মী সাহিত্যকর্ম প্রকাশের কেন্দ্রীয় ড্যাশবোর্ড।
+                    </p>
+                    <div class="d-flex flex-wrap gap-2 text-white-50 small">
+                        <span><i class="fas fa-phone me-1 text-warning"></i>{{ $user->phone ?? 'ফোন নম্বর সংরক্ষিত নেই' }}</span>
+                        @if($user->email && !str_contains($user->email, '@author.ideaabd.com'))
+                            <span class="ms-md-3"><i class="fas fa-envelope me-1 text-warning"></i>{{ $user->email }}</span>
+                        @endif
+                        <span class="ms-md-3 badge bg-success-subtle text-success px-2.5 py-1 rounded-pill">
+                            <i class="fas fa-circle-check me-1"></i> একাউন্ট সক্রিয়
+                        </span>
+                    </div>
                 </div>
             </div>
 
@@ -495,6 +516,9 @@
                                                 <button type="button" class="btn btn-light rounded-pill px-2.5 py-1 text-dark" onclick="formatContent('list')" title="বুলেট তালিকা">
                                                     <i class="fa-solid fa-list-ul"></i>
                                                 </button>
+                                                <button type="button" class="btn btn-warning rounded-pill px-2.5 py-1 text-dark fw-bold" onclick="runAuthorSpellCheck()" title="প্রমিত বাংলা একাডেমি ও ইংরেজি বানান পরীক্ষা">
+                                                    <i class="fa-solid fa-spell-check text-dark me-1"></i> বানান পরীক্ষা
+                                                </button>
                                             </div>
                                         </div>
                                     </div>
@@ -503,9 +527,12 @@
                                               placeholder="আপনার প্রবন্ধ, গল্প, কবিতা, বই পর্যালোচনা বা মতামত এখানে বিস্তারিত লিখুন... প্রয়োজনমতো উপরের টুলবার দিয়ে বোল্ড, ইটালিক ও হেডিং ব্যবহার করতে পারেন।">{{ old('content', $editPost->content ?? '') }}</textarea>
                                     @error('content')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                     
+                                    <!-- Spell Checker Notification Box for Author -->
+                                    <div id="spell-results-author" class="mt-2.5 d-none"></div>
+
                                     <div class="d-flex align-items-center justify-content-between mt-1 text-muted" style="font-size: 0.76rem;">
                                         <span id="contentStatsText"><i class="fa-solid fa-file-lines me-1"></i>শব্দ: ০ | বর্ণ: ০</span>
-                                        <span class="text-success"><i class="fa-solid fa-check-double me-1"></i>মোবাইল ও পিসিতে ফ্রেন্ডলি</span>
+                                        <span class="text-success"><i class="fa-solid fa-check-double me-1"></i>প্রমিত বানান ও মোবাইল ফ্রেন্ডলি</span>
                                     </div>
                                 </div>
 
@@ -1548,5 +1575,89 @@
         if (subtitleInput) subtitleInput.addEventListener('input', saveLocalDraft);
         if (categorySelect) categorySelect.addEventListener('change', saveLocalDraft);
     });
+
+    // Author Spell Checker Bridge
+    function runAuthorSpellCheck() {
+        const textarea = document.getElementById('blogContentTextarea');
+        const resultsBox = document.getElementById('spell-results-author');
+        if (!textarea || !resultsBox) return;
+
+        const text = textarea.value || '';
+        if (!text.trim()) {
+            resultsBox.classList.remove('d-none');
+            resultsBox.innerHTML = '<div class="alert alert-info py-2 px-3 rounded-3 small">বক্সে কোনো লেখা নেই। লিখুন বা পেস্ট করে বানান পরীক্ষা করুন।</div>';
+            return;
+        }
+
+        const detected = [];
+        for (const [wrong, correct] of Object.entries(BENGALI_SPELL_DICT)) {
+            const regex = new RegExp('(^|[\\s,।!?;:"\'()«»–—\\[\\]])(' + escapeRegExp(wrong) + ')(?=[\\s,।!?;:"\'()«»–—\\[\\]]|$)', 'g');
+            if (regex.test(text)) {
+                detected.push({ wrong, correct });
+            }
+        }
+        for (const [wrong, correct] of Object.entries(ENGLISH_SPELL_DICT)) {
+            const regex = new RegExp('\\b' + escapeRegExp(wrong) + '\\b', 'gi');
+            if (regex.test(text)) {
+                detected.push({ wrong, correct });
+            }
+        }
+
+        resultsBox.classList.remove('d-none');
+        if (detected.length === 0) {
+            resultsBox.innerHTML = `
+                <div class="alert alert-success py-2 px-3 rounded-3 small text-success fw-semibold d-flex align-items-center gap-2">
+                    <i class="fas fa-circle-check fs-5"></i>
+                    <span>চমৎকার! কোনো অপ্রমিত বা ভুল বানান শনাক্ত হয়নি। লেখা পোস্ট করার জন্য প্রস্তুত।</span>
+                </div>`;
+        } else {
+            let chips = '';
+            detected.forEach(item => {
+                chips += `
+                    <button type="button" class="btn btn-sm btn-light border d-inline-flex align-items-center gap-1 py-1 px-2 rounded-pill" 
+                            onclick="fixAuthorMistake('${escapeHtmlAttr(item.wrong)}', '${escapeHtmlAttr(item.correct)}')">
+                        <span class="text-danger text-decoration-line-through">${item.wrong}</span>
+                        <i class="fas fa-arrow-right text-success small"></i>
+                        <span class="text-success fw-bold">${item.correct}</span>
+                    </button>`;
+            });
+
+            resultsBox.innerHTML = `
+                <div class="alert alert-warning p-3 rounded-3 border-0 shadow-xs mb-0" style="background: #fffbeb; border-left: 4px solid #f59e0b !important;">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <span class="fw-bold text-dark small"><i class="fas fa-spell-check text-warning me-1"></i> পোস্ট করার আগে বানানগুলো চেক করে নিন (${detected.length}টি অপ্রমিত রূপ পাওয়া গেছে):</span>
+                        <button type="button" class="btn btn-xs btn-success rounded-pill px-2.5 py-0.5 fw-bold" onclick="fixAllAuthorMistakes()">সবগুলো শুদ্ধ করুন</button>
+                    </div>
+                    <div class="d-flex flex-wrap gap-1.5">${chips}</div>
+                </div>`;
+        }
+    }
+
+    function fixAuthorMistake(wrongWord, rightWord) {
+        const textarea = document.getElementById('blogContentTextarea');
+        if (!textarea) return;
+        const regex = new RegExp(escapeRegExp(wrongWord), 'g');
+        textarea.value = textarea.value.replace(regex, rightWord);
+        updateContentStats();
+        runAuthorSpellCheck();
+    }
+
+    function fixAllAuthorMistakes() {
+        const textarea = document.getElementById('blogContentTextarea');
+        if (!textarea) return;
+        let text = textarea.value;
+        for (const [wrong, correct] of Object.entries(BENGALI_SPELL_DICT)) {
+            const regex = new RegExp(escapeRegExp(wrong), 'g');
+            text = text.replace(regex, correct);
+        }
+        for (const [wrong, correct] of Object.entries(ENGLISH_SPELL_DICT)) {
+            const regex = new RegExp('\\b' + escapeRegExp(wrong) + '\\b', 'gi');
+            text = text.replace(regex, correct);
+        }
+        textarea.value = text;
+        updateContentStats();
+        runAuthorSpellCheck();
+    }
 </script>
+<script src="{{ asset('js/spellchecker.js') }}"></script>
 @endsection

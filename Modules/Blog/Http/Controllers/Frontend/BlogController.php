@@ -13,42 +13,68 @@ class BlogController extends Controller
 {
     public function index(Request $request)
     {
+        $statusFilter = function ($q) {
+            $q->where(function ($sub) {
+                $sub->where('status', 'published')
+                    ->orWhere('status', 'approved')
+                    ->orWhere('mod_status', 'approved')
+                    ->orWhereNull('status');
+            })->where(function ($sub) {
+                $sub->whereNull('mod_status')
+                    ->orWhere('mod_status', 'approved')
+                    ->orWhere('mod_status', '!=', 'rejected');
+            });
+        };
+
         $query = BlogPost::with(['category', 'author', 'tags'])
-            ->where('status', 'published');
+            ->where($statusFilter);
 
         if ($request->filled('search')) {
             $search = $request->string('search')->trim()->value();
             $query->where(function ($sub) use ($search) {
                 $sub->where('title', 'like', "%{$search}%")
+                    ->orWhere('subtitle', 'like', "%{$search}%")
                     ->orWhere('content', 'like', "%{$search}%")
                     ->orWhere('excerpt', 'like', "%{$search}%");
             });
         }
 
         if ($request->filled('category')) {
-            $query->whereHas('category', function ($q) use ($request) {
-                $q->where('slug', $request->category);
+            $catParam = $request->string('category')->trim()->value();
+            $query->where(function($q) use ($catParam) {
+                $q->whereHas('category', function ($sub) use ($catParam) {
+                    $sub->where('slug', $catParam)
+                        ->orWhere('name', $catParam)
+                        ->orWhere('id', $catParam);
+                })->orWhere('category_id', $catParam);
             });
         }
 
         if ($request->sort === 'popular') {
-            $query->orderByDesc('view_count');
+            $query->orderByDesc('view_count')->orderByDesc('id');
         } else {
             $query->orderByDesc('published_at')->latest('id');
         }
 
         $posts = $query->paginate(12)->withQueryString();
         
-        $categories = BlogCategory::withCount(['posts' => function($q) {
-            $q->where('status', 'published');
-        }])->where('is_active', true)->get();
+        $categories = BlogCategory::withCount(['posts' => function($q) use ($statusFilter) {
+            $q->where($statusFilter);
+        }])
+        ->where(function($q) {
+            $q->where('is_active', true)->orWhereNull('is_active');
+        })
+        ->orderByDesc('posts_count')
+        ->get();
 
         $featured = BlogPost::with(['category', 'author'])
-            ->where('status', 'published')
+            ->where($statusFilter)
             ->where(function($q) {
-                $q->where('is_featured', true)->orWhereNotNull('featured_image');
+                $q->where('is_featured', true)
+                  ->orWhereNotNull('featured_image');
             })
             ->latest('published_at')
+            ->latest('id')
             ->limit(5)
             ->get();
 
@@ -57,22 +83,24 @@ class BlogController extends Controller
 
         // Category-wise grouped posts for modern literary magazine structure
         $categoriesWithPosts = collect();
-        if (!$request->filled('search') && !$request->filled('category')) {
-            $categoriesWithPosts = BlogCategory::where('is_active', true)
-                ->whereHas('posts', function($q) {
-                    $q->where('status', 'published');
+        if (!$request->filled('search') && !$request->filled('category') && !$request->filled('sort')) {
+            $categoriesWithPosts = BlogCategory::where(function($q) {
+                    $q->where('is_active', true)->orWhereNull('is_active');
                 })
-                ->with(['posts' => function($q) {
-                    $q->where('status', 'published')
+                ->whereHas('posts', function($q) use ($statusFilter) {
+                    $q->where($statusFilter);
+                })
+                ->with(['posts' => function($q) use ($statusFilter) {
+                    $q->where($statusFilter)
                       ->with(['author', 'category'])
                       ->latest('published_at')
                       ->latest('id')
                       ->take(6);
                 }])
-                ->withCount(['posts' => function($q) {
-                    $q->where('status', 'published');
+                ->withCount(['posts' => function($q) use ($statusFilter) {
+                    $q->where($statusFilter);
                 }])
-                ->orderBy('id')
+                ->orderByDesc('posts_count')
                 ->get();
         }
 

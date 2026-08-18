@@ -21,9 +21,36 @@
                         <div class="alert alert-danger rounded-3"><ul class="mb-0 ps-3">@foreach($errors->all() as $e)<li>{{ $e }}</li>@endforeach</ul></div>
                     @endif
 
-                    <form method="POST" action="{{ route('register.submit', 'author') }}">
+                    <form method="POST" action="{{ route('register.submit', 'author') }}" enctype="multipart/form-data">
                         @csrf
                         
+                        {{-- ══ AUTHOR PHOTO / AVATAR UPLOAD ══ --}}
+                        <div class="mb-4 p-3 bg-light rounded-4 border text-center">
+                            <label class="form-label fw-bold text-dark d-block mb-2">
+                                <i class="fas fa-camera text-success me-1"></i> লেখকের ছবি / প্রোফাইল ফটো <span class="text-muted small fw-normal">(ঐচ্ছিক কিন্তু সুপারিশকৃত)</span>
+                            </label>
+                            
+                            <div class="d-flex flex-column flex-sm-row align-items-center justify-content-center gap-3">
+                                <div class="position-relative">
+                                    <img id="authorAvatarPreview" 
+                                         src="https://placehold.co/150x150/e2e8f0/198754?text=Author+Photo" 
+                                         alt="Author Preview" 
+                                         class="rounded-circle shadow-sm border border-2 border-success object-fit-cover" 
+                                         style="width: 90px; height: 90px;">
+                                </div>
+                                <div class="text-start">
+                                    <input type="file" name="avatar" id="authorAvatarInput" 
+                                           accept="image/jpeg,image/png,image/jpg,image/webp" 
+                                           class="form-control form-control-sm rounded-3 @error('avatar') is-invalid @enderror"
+                                           onchange="previewAuthorAvatar(this)">
+                                    <div class="form-text small text-muted mt-1" style="font-size: 11.5px;">
+                                        <i class="fas fa-circle-info text-success me-1"></i> পাসপোর্ট সাইজ বা স্কয়ার ছবি (JPG/PNG/WebP, সর্বোচ্চ ৪MB)। লেখকের কার্ড ও প্রোফাইলে প্রদর্শিত হবে।
+                                    </div>
+                                    @error('avatar')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="mb-3">
                             <label class="form-label fw-semibold">লেখকের পুরো নাম <span class="text-danger">*</span></label>
                             <input type="text" name="name" class="form-control rounded-3 @error('name') is-invalid @enderror"
@@ -115,4 +142,19 @@
         </div>
     </div>
 </div>
+
+<script>
+function previewAuthorAvatar(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const preview = document.getElementById('authorAvatarPreview');
+            if (preview) {
+                preview.src = e.target.result;
+            }
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+</script>
 @endsection

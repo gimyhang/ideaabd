@@ -561,7 +561,10 @@
 
                                             <div class="vr mx-1"></div>
 
-                                            <!-- Actions & Poetry Helper -->
+                                            <!-- Actions & Poetry & Spell Check Helper -->
+                                            <button type="button" class="btn btn-sm btn-outline-warning border py-1 px-2.5 fw-semibold text-dark" id="spellBtn-{{ $name }}" onclick="toggleSpellChecker('{{ $name }}')" title="প্রমিত বাংলা একাডেমি ও ইংরেজি বানান পরীক্ষা (Spell Check)">
+                                                <i class="fas fa-spell-check text-warning me-1"></i> <span id="spellBtnText-{{ $name }}">বানান পরীক্ষা</span>
+                                            </button>
                                             <button type="button" class="btn btn-sm btn-outline-primary border py-1 px-2.5 fw-semibold" onclick="formatPoetryMode('f-{{ $name }}')" title="কবিতার লাইনবিন্যাস সাজান (Preserve Poetry Verses)">
                                                 <i class="fas fa-feather-alt text-primary me-1"></i> কবিতার লাইন সাজান
                                             </button>
@@ -580,12 +583,16 @@
                                         <div id="editable-{{ $name }}" contenteditable="true" 
                                              class="p-3 bg-white text-dark rich-editor-content" 
                                              style="min-height: 280px; max-height: 550px; overflow-y: auto; outline: none; font-size: 15.5px; line-height: 1.85;"
-                                             oninput="syncEditorToTextarea('{{ $name }}')">{!! $current !!}</div>
+                                             oninput="onEditorInputWithSpellCheck('{{ $name }}')">{!! $current !!}</div>
 
                                         <!-- Hidden/Synced real textarea for form submission -->
                                         <textarea id="f-{{ $name }}" name="{{ $name }}" class="d-none @error($name) is-invalid @enderror">{{ $current }}</textarea>
                                     </div>
-                                    <div class="form-text" style="font-size: 11.5px;">উপরে দেওয়া টুলবার ব্যবহার করে লেখা বোল্ড, ইটালিক, বড়-ছোট এবং ফরম্যাটিং করতে পারবেন।</div>
+
+                                    <!-- Spell Checker Results Notification Box -->
+                                    <div id="spell-results-{{ $name }}" class="mt-2.5 d-none"></div>
+
+                                    <div class="form-text" style="font-size: 11.5px;">উপরে দেওয়া টুলবার ব্যবহার করে লেখা বোল্ড, ইটালিক, বড়-ছোট, কবিতার লাইন ও <strong>প্রমিত বানান পরীক্ষা</strong> করতে পারবেন।</div>
                                     @break
 
                                 @case('select')
@@ -2008,6 +2015,7 @@ function renumberWebzineTocRows() {
     });
 }
 </script>
+<script src="{{ asset('js/spellchecker.js') }}"></script>
 @endpush
 
 @endsection
