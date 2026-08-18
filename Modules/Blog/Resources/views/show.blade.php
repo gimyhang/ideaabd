@@ -92,6 +92,19 @@
     .article-content p {
         margin-bottom: 1.25rem;
     }
+    .article-content .poetry-verse, 
+    .article-content p.poetry-verse {
+        font-size: 1.22rem;
+        line-height: 2.15;
+        margin-bottom: 1.75rem;
+        padding-left: 0.85rem;
+        border-left: 3px solid rgba(2, 132, 199, 0.35);
+        background: rgba(240, 249, 255, 0.4);
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
+        border-radius: 0 8px 8px 0;
+        text-align: left;
+    }
     .article-content b, .article-content strong {
         font-weight: 700;
         color: #0f172a;
@@ -360,7 +373,14 @@
 
                 <!-- Main Book / Article Body -->
                 <div class="article-content mb-5" id="articleBody">
-                    {!! nl2br(strip_tags($post->content, '<b><strong><i><em><u><h3><h4><h5><h6><blockquote><ul><ol><li><p><br><a><span>')) !!}
+                    @php
+                        $cleanContent = strip_tags($post->content, '<p><br><b><strong><i><em><u><s><ul><ol><li><a><h2><h3><h4><h5><h6><blockquote><pre><code><div><span><hr><img>');
+                        // If content is raw text without HTML tags, preserve newlines as linebreaks
+                        if (!str_contains($cleanContent, '<p>') && !str_contains($cleanContent, '<br>') && !str_contains($cleanContent, '<div>')) {
+                            $cleanContent = nl2br($cleanContent);
+                        }
+                    @endphp
+                    {!! $cleanContent !!}
                 </div>
 
                 <!-- Book Page End Ornament -->

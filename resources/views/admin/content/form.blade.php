@@ -519,7 +519,10 @@
 
                                             <div class="vr mx-1"></div>
 
-                                            <!-- Actions -->
+                                            <!-- Actions & Poetry Helper -->
+                                            <button type="button" class="btn btn-sm btn-outline-primary border py-1 px-2.5 fw-semibold" onclick="formatPoetryMode('f-{{ $name }}')" title="কবিতার লাইনবিন্যাস সাজান (Preserve Poetry Verses)">
+                                                <i class="fas fa-feather-alt text-primary me-1"></i> কবিতার লাইন সাজান
+                                            </button>
                                             <button type="button" class="btn btn-sm btn-light border py-1 px-2" onclick="formatDoc('undo', null, 'f-{{ $name }}')" title="আনডু (Ctrl+Z)">
                                                 <i class="fas fa-undo"></i>
                                             </button>
@@ -841,6 +844,41 @@
                     <div class="d-flex align-items-center justify-content-center gap-2">
                         <span id="mockupFinalPrice" class="fw-bold text-primary fs-6">৳০</span>
                         <span id="mockupOriginalPrice" class="text-muted text-decoration-line-through small d-none">৳০</span>
+                    </div>
+                </div>
+            </div>
+        @endif
+
+        {{-- Live Blog Post Mockup --}}
+        @if ($spec['key'] === 'blog')
+            <div class="adm-card p-3 mb-3">
+                <h6 class="fw-bold mb-2 text-dark d-flex align-items-center justify-content-between">
+                    <span><i class="fas fa-feather-pointed me-1.5 text-primary"></i> সাহিত্যপত্র ও পোস্ট প্রিভিউ</span>
+                    <span class="badge bg-success-subtle text-success small rounded-pill">রিয়েল-টাইম</span>
+                </h6>
+                <div class="p-3 bg-light rounded-3 border text-start">
+                    <div class="position-relative mx-auto mb-2 rounded-3 overflow-hidden" style="max-height: 140px; aspect-ratio: 16/9; background: #e2e8f0;">
+                        <img id="mockupCoverImg" 
+                             src="{{ ($editing && !empty($record->featured_image)) ? (str_starts_with($record->featured_image, 'http') ? $record->featured_image : asset('storage/' . ltrim($record->featured_image, '/'))) : asset('images/og-banner.jpg') }}" 
+                             alt="Blog Cover" class="img-fluid w-100 h-100 object-fit-cover">
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between mb-1">
+                        <span id="mockupCategoryBadge" class="badge bg-primary text-white" style="font-size: 0.72rem;">
+                            {{ $editing && $record->category ? $record->category->name : 'সাহিত্য সাময়িকী' }}
+                        </span>
+                        <span class="badge bg-light text-muted border" style="font-size: 0.7rem;">
+                            {{ $editing && $record->published_at ? $record->published_at->format('d M Y') : date('d M Y') }}
+                        </span>
+                    </div>
+                    <div id="mockupTitle" class="fw-bold text-dark text-truncate mb-1" style="font-size: 0.95rem;">
+                        {{ $editing ? ($record->title ?? 'পোস্টের শিরোনাম') : 'পোস্টের শিরোনাম' }}
+                    </div>
+                    <div id="mockupSubtitle" class="small text-secondary mb-1 text-truncate" style="font-size: 0.8rem;">
+                        {{ $editing ? ($record->subtitle ?? '') : '' }}
+                    </div>
+                    <div id="mockupAuthor" class="small text-muted d-flex align-items-center gap-1" style="font-size: 0.78rem;">
+                        <i class="fas fa-pen-nib text-success"></i>
+                        <span>{{ $editing && $record->author ? $record->author->name : 'লেখকের নাম' }}</span>
                     </div>
                 </div>
             </div>
@@ -1314,40 +1352,63 @@ function updateLiveMockupCard() {
     const mockOriginal = document.getElementById('mockupOriginalPrice');
     const mockBadge = document.getElementById('mockupDiscountBadge');
 
+    const mockSubtitle = document.getElementById('mockupSubtitle');
+    const mockCatBadge = document.getElementById('mockupCategoryBadge');
+
     if (!mockTitle) return;
 
     // Title
     const titleVal = titleEl ? titleEl.value.trim() : '';
-    mockTitle.textContent = titleVal || 'বইয়ের শিরোনাম';
+    mockTitle.textContent = titleVal || 'শিরোনাম';
+
+    // Subtitle
+    const subEl = document.getElementById('f-subtitle');
+    if (mockSubtitle) {
+        mockSubtitle.textContent = subEl ? subEl.value.trim() : '';
+    }
+
+    // Category
+    const catSelect = document.getElementById('f-category_id');
+    if (mockCatBadge && catSelect && catSelect.selectedIndex > 0) {
+        mockCatBadge.textContent = catSelect.options[catSelect.selectedIndex].text;
+    }
 
     // Author
     let authorVal = '';
+    const authorIdSelect = document.getElementById('f-author_id');
     const dirRadio = document.getElementById('author-mode-directory');
     if (dirRadio && dirRadio.checked && authorSelect && authorSelect.selectedIndex > 0) {
         authorVal = authorSelect.options[authorSelect.selectedIndex].text;
+    } else if (authorIdSelect && authorIdSelect.selectedIndex > 0) {
+        authorVal = authorIdSelect.options[authorIdSelect.selectedIndex].text;
     } else if (authorCustom) {
         authorVal = authorCustom.value.trim();
     }
-    mockAuthor.textContent = authorVal || 'লেখকের নাম';
+    if (mockAuthor) {
+        mockAuthor.textContent = authorVal || 'লেখকের নাম';
+    }
 
-    // Pricing
-    const price = priceEl ? parseFloat(priceEl.value) || 0 : 0;
-    const discount = discEl ? parseFloat(discEl.value) || 0 : 0;
+    // Pricing (if present)
+    if (mockFinal) {
+        const price = priceEl ? parseFloat(priceEl.value) || 0 : 0;
+        const discount = discEl ? parseFloat(discEl.value) || 0 : 0;
 
-    if (discount > 0 && discount < price) {
-        mockFinal.textContent = '৳' + discount.toLocaleString('bn-BD');
-        mockOriginal.textContent = '৳' + price.toLocaleString('bn-BD');
-        mockOriginal.classList.remove('d-none');
-        
-        const percent = Math.round(((price - discount) / price) * 100);
-        if (mockBadge) {
-            mockBadge.textContent = '-' + percent + '%';
-            mockBadge.classList.remove('d-none');
+        if (discount > 0 && discount < price) {
+            mockFinal.textContent = '৳' + discount.toLocaleString('bn-BD');
+            if (mockOriginal) {
+                mockOriginal.textContent = '৳' + price.toLocaleString('bn-BD');
+                mockOriginal.classList.remove('d-none');
+            }
+            const percent = Math.round(((price - discount) / price) * 100);
+            if (mockBadge) {
+                mockBadge.textContent = '-' + percent + '%';
+                mockBadge.classList.remove('d-none');
+            }
+        } else {
+            mockFinal.textContent = '৳' + price.toLocaleString('bn-BD');
+            if (mockOriginal) mockOriginal.classList.add('d-none');
+            if (mockBadge) mockBadge.classList.add('d-none');
         }
-    } else {
-        mockFinal.textContent = '৳' + price.toLocaleString('bn-BD');
-        mockOriginal.classList.add('d-none');
-        if (mockBadge) mockBadge.classList.add('d-none');
     }
 }
 
@@ -1480,6 +1541,43 @@ function formatDoc(cmd, value, targetTextareaId) {
     }
 }
 
+function formatPoetryMode(targetTextareaId) {
+    const fieldName = targetTextareaId.replace('f-', '');
+    const editorDiv = document.getElementById('editable-' + fieldName);
+    if (!editorDiv) return;
+
+    editorDiv.focus();
+    const sel = window.getSelection();
+    let selectedText = sel ? sel.toString() : '';
+    
+    if (!selectedText) {
+        selectedText = editorDiv.innerText || editorDiv.textContent;
+    }
+
+    if (!selectedText || !selectedText.trim()) {
+        alert('অনুগ্রহ করে কবিতার লাইনগুলো সিলেক্ট করুন বা বক্সে পেস্ট করুন।');
+        return;
+    }
+
+    // Format into poetry verses / stanzas with linebreaks
+    const stanzas = selectedText.trim().split(/\r\n\r\n|\n\n+/);
+    const formattedHtml = stanzas.map(stanza => {
+        const lines = stanza.split(/\r\n|\n|\r/).map(line => {
+            const temp = document.createElement('div');
+            temp.textContent = line.trim();
+            return temp.innerHTML;
+        }).join('<br>');
+        return `<p class="poetry-verse" style="line-height: 2.1; margin-bottom: 1.5rem; font-family: inherit;">${lines}</p>`;
+    }).join('');
+
+    if (sel && sel.rangeCount > 0 && sel.toString()) {
+        document.execCommand('insertHTML', false, formattedHtml);
+    } else {
+        editorDiv.innerHTML = formattedHtml;
+    }
+    syncEditorToTextarea(fieldName);
+}
+
 function insertLinkPrompt(targetTextareaId) {
     const url = prompt("লিংক ইউআরএল (URL) লিখুন:", "https://");
     if (url && url !== "https://") {
@@ -1502,8 +1600,31 @@ function syncEditorToTextarea(fieldName) {
     }
 }
 
-// Global submit sync for all rich editor fields
+// Global submit sync and poetry-preserving paste for all rich editor fields
 document.addEventListener('DOMContentLoaded', function() {
+    // Smart paste to preserve poem lines without turning into continuous prose
+    document.querySelectorAll('.rich-editor-content').forEach(function(editor) {
+        editor.addEventListener('paste', function(e) {
+            e.preventDefault();
+            const text = (e.clipboardData || window.clipboardData).getData('text/plain');
+            if (!text) return;
+            
+            const blocks = text.split(/\r\n\r\n|\n\n+/);
+            const formattedHtml = blocks.map(block => {
+                const lines = block.split(/\r\n|\n|\r/).map(line => {
+                    const temp = document.createElement('div');
+                    temp.textContent = line;
+                    return temp.innerHTML;
+                }).join('<br>');
+                return `<p style="line-height: 2.0; margin-bottom: 1.25rem;">${lines}</p>`;
+            }).join('');
+
+            document.execCommand('insertHTML', false, formattedHtml);
+            const name = editor.id.replace('editable-', '');
+            syncEditorToTextarea(name);
+        });
+    });
+
     const form = document.getElementById('contentMainForm');
     if (form) {
         form.addEventListener('submit', function() {
