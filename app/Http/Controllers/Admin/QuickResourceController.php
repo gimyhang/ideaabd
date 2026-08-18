@@ -19,6 +19,10 @@ class QuickResourceController extends Controller
      */
     public function quickStoreCategory(Request $request): JsonResponse
     {
+        if ($request->input('type') === 'blog' || $request->input('target') === 'blog_categories') {
+            return $this->quickStoreBlogCategory($request);
+        }
+
         $validated = $request->validate([
             'name'        => 'required|string|max:255',
             'parent_id'   => 'nullable|integer|exists:categories,id',

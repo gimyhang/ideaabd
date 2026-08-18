@@ -520,6 +520,30 @@ class ContentController extends Controller
                 continue;
             }
 
+            if ($name === 'category_id' && $spec['key'] === 'blog' && $request->filled('new_blog_category_name')) {
+                $blogCatName = trim((string) $request->input('new_blog_category_name'));
+                if ($blogCatName !== '') {
+                    $catSlug = $this->bengaliToEnglish($blogCatName) ?: Str::random(8);
+                    $existingCat = DB::table('blog_categories')
+                        ->where('name', $blogCatName)
+                        ->orWhere('slug', $catSlug)
+                        ->first();
+                    if ($existingCat) {
+                        $attributes['category_id'] = $existingCat->id;
+                    } else {
+                        $attributes['category_id'] = DB::table('blog_categories')->insertGetId([
+                            'name'        => $blogCatName,
+                            'slug'        => $catSlug,
+                            'icon'        => 'feather-pointed',
+                            'is_active'   => true,
+                            'created_at'  => now(),
+                            'updated_at'  => now(),
+                        ]);
+                    }
+                    continue;
+                }
+            }
+
             if ($name === 'publisher_id' && $request->filled('new_publisher_name')) {
                 $pubName = $request->input('new_publisher_name');
                 $pubSlug = $this->bengaliToEnglish($pubName) ?: Str::random(8);
@@ -542,7 +566,7 @@ class ContentController extends Controller
             }
 
             if ($type === 'editor' || $type === 'textarea') {
-                $value = $value === null ? null : strip_tags((string) $value, '<p><br><strong><em><u><ul><ol><li><a><h2><h3><h4><blockquote><img>');
+                $value = $value === null ? null : strip_tags((string) $value, '<p><br><b><strong><i><em><u><s><ul><ol><li><a><h2><h3><h4><h5><h6><blockquote><pre><code><div><span><hr><img>');
             }
 
             if (($value === '' || $value === null) && isset($field['default'])) {

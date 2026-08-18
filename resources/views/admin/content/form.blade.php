@@ -180,22 +180,25 @@
 
                             @error('author_role')<div class="invalid-feedback d-block mt-1">{{ $message }}</div>@enderror
 
-                        {{-- ══ CATEGORY SELECT WITH QUICK CREATION ═══════════════ --}}
+                        {{-- ══ CATEGORY SELECT WITH DYNAMIC QUICK CREATION ═══════════════ --}}
                         @elseif ($name === 'category_id')
                             @php
-                                $catOptions = $lookups['categories'] ?? [];
+                                $isBlog = ($spec['key'] === 'blog');
+                                $catLookupKey = $field['lookup'] ?? ($isBlog ? 'blog_categories' : 'categories');
+                                $catOptions = $lookups[$catLookupKey] ?? ($lookups['categories'] ?? []);
+                                $targetModalId = $isBlog ? 'quickAddBlogCategoryModal' : 'quickAddCategoryModal';
                             @endphp
                             <div class="d-flex align-items-center justify-content-between mb-1">
                                 <label for="f-category_id" class="form-label small fw-semibold mb-0">
-                                    {{ $field['label'] }}
+                                    <i class="fas fa-shapes text-primary me-1"></i> {{ $field['label'] }}
                                 </label>
                                 <button type="button" class="btn btn-link text-primary p-0 text-decoration-none small fw-semibold"
-                                        data-bs-toggle="modal" data-bs-target="#quickAddCategoryModal">
-                                    <i class="fas fa-plus-circle me-1"></i>নতুন ক্যাটাগরি তৈরি
+                                        data-bs-toggle="modal" data-bs-target="#{{ $targetModalId }}">
+                                    <i class="fas fa-plus-circle me-1"></i>+ নতুন ক্যাটাগরি তৈরি
                                 </button>
                             </div>
                             
-                            <select id="f-category_id" name="category_id" class="form-select @error('category_id') is-invalid @enderror">
+                            <select id="f-category_id" name="category_id" class="form-select @error('category_id') is-invalid @enderror" onchange="updateLiveMockupCard()">
                                 <option value="">— ক্যাটাগরি নির্বাচন করুন —</option>
                                 @foreach ($catOptions as $catId => $catLabel)
                                     <option value="{{ $catId }}" @selected((string) $current === (string) $catId)>
@@ -204,17 +207,56 @@
                                 @endforeach
                             </select>
 
-                            <div class="mt-2 p-2 bg-light rounded border">
-                                <div class="d-flex align-items-center justify-content-between mb-1">
-                                    <label for="f-sub_category_name" class="form-label small fw-semibold text-dark mb-0" style="font-size: 11.5px;">
-                                        <i class="fas fa-folder-tree me-1 text-primary"></i>অথবা নতুন সাব-ক্যাটাগরি লিখুন:
-                                    </label>
+                            @if (!$isBlog)
+                                <div class="mt-2 p-2 bg-light rounded border">
+                                    <div class="d-flex align-items-center justify-content-between mb-1">
+                                        <label for="f-sub_category_name" class="form-label small fw-semibold text-dark mb-0" style="font-size: 11.5px;">
+                                            <i class="fas fa-folder-tree me-1 text-primary"></i>অথবা নতুন সাব-ক্যাটাগরি লিখুন:
+                                        </label>
+                                    </div>
+                                    <input type="text" id="f-sub_category_name" name="sub_category_name" 
+                                           class="form-control form-control-sm" placeholder="উদা: ঐতিহাসিক উপন্যাস / অনুবাদ সাহিত্য">
+                                    <div class="form-text" style="font-size: 11px;">উপরের মেইন ক্যাটাগরি নির্বাচন করে এখানে সাব-ক্যাটাগরির নাম লিখলে স্বয়ংক্রিয়ভাবে তৈরি হবে।</div>
                                 </div>
-                                <input type="text" id="f-sub_category_name" name="sub_category_name" 
-                                       class="form-control form-control-sm" placeholder="উদা: ঐতিহাসিক উপন্যাস / অনুবাদ সাহিত্য">
-                                <div class="form-text" style="font-size: 11px;">উপরের মেইন ক্যাটাগরি নির্বাচন করে এখানে সাব-ক্যাটাগরির নাম লিখলে স্বয়ংক্রিয়ভাবে তৈরি হবে।</div>
-                            </div>
+                            @else
+                                <div class="mt-2 p-2 bg-light rounded border">
+                                    <div class="d-flex align-items-center justify-content-between mb-1">
+                                        <label for="f-new_blog_category_name" class="form-label small fw-semibold text-dark mb-0" style="font-size: 11.5px;">
+                                            <i class="fas fa-feather-pointed me-1 text-primary"></i>অথবা সরাসরি নতুন ক্যাটাগরির নাম লিখুন:
+                                        </label>
+                                    </div>
+                                    <input type="text" id="f-new_blog_category_name" name="new_blog_category_name" 
+                                           class="form-control form-control-sm" placeholder="উদা: কবিতা / গল্প / প্রবন্ধ / রম্যরচনা / অনুবাদ">
+                                    <div class="form-text" style="font-size: 11px;">তালিকায় না থাকলে এখানে লিখলে পোস্ট সেভ করার সময় ক্যাটাগরি স্বয়ংক্রিয়ভাবে তৈরি হয়ে যাবে।</div>
+                                </div>
+                            @endif
                             @error('category_id')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+
+                        {{-- ══ BLOG AUTHOR SELECT WITH QUICK CREATION ═════════════ --}}
+                        @elseif ($name === 'author_id')
+                            @php
+                                $authorOptions = $lookups['authors'] ?? ($lookups['users'] ?? []);
+                            @endphp
+                            <div class="d-flex align-items-center justify-content-between mb-1">
+                                <label for="f-author_id" class="form-label small fw-semibold mb-0">
+                                    <i class="fas fa-pen-nib text-primary me-1"></i> {{ $field['label'] }}
+                                </label>
+                                <button type="button" class="btn btn-link text-primary p-0 text-decoration-none small fw-semibold"
+                                        data-bs-toggle="modal" data-bs-target="#quickAddAuthorModal">
+                                    <i class="fas fa-plus-circle me-1"></i>+ নতুন লেখক যুক্ত করুন
+                                </button>
+                            </div>
+                            
+                            <select id="f-author_id" name="author_id" class="form-select @error('author_id') is-invalid @enderror" onchange="updateLiveMockupCard()">
+                                <option value="">— লেখক নির্বাচন করুন —</option>
+                                @foreach ($authorOptions as $aId => $aName)
+                                    <option value="{{ $aId }}" @selected((string) $current === (string) $aId)>
+                                        {{ $aName }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <div class="form-text" style="font-size: 11px;">তালিকায় লেখক না থাকলে পাশের বাটনে ক্লিক করে সাথে সাথে যুক্ত করতে পারেন।</div>
+                            @error('author_id')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
 
                         {{-- ══ PUBLISHER SELECT WITH QUICK CREATION ══════════════ --}}
                         @elseif ($name === 'publisher_id')
@@ -1748,6 +1790,7 @@ function handleQuickBlogCategorySubmit(e) {
             nameInput.value = '';
             descInput.value = '';
 
+            updateLiveMockupCard();
             alert('ব্লগ ক্যাটাগরি সফলভাবে তৈরি ও নির্বাচিত হয়েছে!');
         } else {
             alertBox.innerHTML = `<div class="alert alert-danger p-2 small mb-2">${data.message || 'ত্রুটি হয়েছে'}</div>`;
@@ -1851,6 +1894,13 @@ function handleQuickAuthorSubmit(e) {
     .then(res => res.json())
     .then(data => {
         if (data.success && data.item) {
+            const blogAuthSelect = document.getElementById('f-author_id');
+            if (blogAuthSelect) {
+                const opt = new Option(data.item.name, data.item.id, true, true);
+                blogAuthSelect.add(opt);
+                blogAuthSelect.value = data.item.id;
+            }
+
             const mainAuthSelect = document.getElementById('f-author_link_id');
             if (mainAuthSelect) {
                 const opt = new Option(data.item.name, data.item.id, true, true);
