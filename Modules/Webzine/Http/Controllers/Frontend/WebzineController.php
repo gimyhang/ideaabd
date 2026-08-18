@@ -68,9 +68,25 @@ class WebzineController extends Controller
 
         $epubUrl = $webzine->epub_url;
         $fileUrl = $epubUrl;
-        $readerType = $epubUrl ? 'epub' : ($articles->count() ? 'articles' : (!empty($webzine->description) ? 'description' : 'preview'));
+        
+        $fileType = 'none';
+        if (!empty($fileUrl)) {
+            $cleanPath = strtolower(parse_url($fileUrl, PHP_URL_PATH) ?? $fileUrl);
+            if (str_ends_with($cleanPath, '.pdf') || str_contains($cleanPath, '.pdf')) {
+                $fileType = 'pdf';
+                $readerType = 'pdf';
+            } elseif (str_ends_with($cleanPath, '.epub') || str_contains($cleanPath, '.epub')) {
+                $fileType = 'epub';
+                $readerType = 'epub';
+            } else {
+                $fileType = 'auto';
+                $readerType = 'auto';
+            }
+        } else {
+            $readerType = $articles->count() ? 'articles' : (!empty($webzine->description) ? 'description' : 'preview');
+        }
 
-        return view('webzine::show', compact('webzine', 'articles', 'relatedIssues', 'epubUrl', 'fileUrl', 'readerType'));
+        return view('webzine::show', compact('webzine', 'articles', 'relatedIssues', 'epubUrl', 'fileUrl', 'fileType', 'readerType'));
     }
 
     public function read($slug)
@@ -97,8 +113,24 @@ class WebzineController extends Controller
 
         $epubUrl = $webzine->epub_url;
         $fileUrl = $epubUrl;
-        $readerType = $epubUrl ? 'epub' : ($articles->count() ? 'articles' : (!empty($webzine->description) ? 'description' : 'preview'));
+        
+        $fileType = 'none';
+        if (!empty($fileUrl)) {
+            $cleanPath = strtolower(parse_url($fileUrl, PHP_URL_PATH) ?? $fileUrl);
+            if (str_ends_with($cleanPath, '.pdf') || str_contains($cleanPath, '.pdf')) {
+                $fileType = 'pdf';
+                $readerType = 'pdf';
+            } elseif (str_ends_with($cleanPath, '.epub') || str_contains($cleanPath, '.epub')) {
+                $fileType = 'epub';
+                $readerType = 'epub';
+            } else {
+                $fileType = 'auto';
+                $readerType = 'auto';
+            }
+        } else {
+            $readerType = $articles->count() ? 'articles' : (!empty($webzine->description) ? 'description' : 'preview');
+        }
 
-        return view('webzine::read', compact('webzine', 'articles', 'epubUrl', 'fileUrl', 'readerType'));
+        return view('webzine::read', compact('webzine', 'articles', 'epubUrl', 'fileUrl', 'fileType', 'readerType'));
     }
 }

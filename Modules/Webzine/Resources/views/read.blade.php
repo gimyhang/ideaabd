@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>{{ $webzine->title }} — সাহিত্য সাময়িকী ই-রিডার</title>
+    <title>{{ $webzine->title }} — সাহিত্য সাময়িকী ডিজিটাল ই-রিডার</title>
     
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
@@ -14,29 +14,41 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
+    <!-- PDF.js v3.11.174 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+        if (typeof pdfjsLib !== 'undefined') {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        }
+    </script>
+
     <!-- Modern JSZip 3.10.1 & ePub.js 0.3.93 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/epubjs@0.3.93/dist/epub.min.js"></script>
 
     <style>
         :root {
-            --reader-bg: #f8fafc;
+            --reader-bg: #f1f5f9;
             --reader-surface: #ffffff;
-            --reader-text: #1e293b;
-            --reader-border: #e2e8f0;
+            --reader-text: #0f172a;
+            --reader-border: #cbd5e1;
             --reader-nav-bg: #ffffff;
             --reader-primary: #0066cc;
             --reader-accent: #0284c7;
+            --reader-shadow: rgba(0, 0, 0, 0.08);
+            --reader-page-bg: #ffffff;
         }
 
         [data-theme="sepia"] {
-            --reader-bg: #f5ebd2;
-            --reader-surface: #fbf0d9;
-            --reader-text: #4a3728;
-            --reader-border: #e2d2b0;
-            --reader-nav-bg: #fbf0d9;
+            --reader-bg: #f4ebd9;
+            --reader-surface: #fbf2e3;
+            --reader-text: #3d2b1f;
+            --reader-border: #ded0b6;
+            --reader-nav-bg: #fbf2e3;
             --reader-primary: #8b5e3c;
             --reader-accent: #b45309;
+            --reader-shadow: rgba(80, 50, 20, 0.12);
+            --reader-page-bg: #fcf6ec;
         }
 
         [data-theme="dark"] {
@@ -47,6 +59,8 @@
             --reader-nav-bg: #0f172a;
             --reader-primary: #38bdf8;
             --reader-accent: #0ea5e9;
+            --reader-shadow: rgba(0, 0, 0, 0.5);
+            --reader-page-bg: #1e293b;
         }
 
         * {
@@ -65,45 +79,71 @@
             overflow: hidden;
             transition: background-color 0.25s ease, color 0.25s ease;
             -webkit-font-smoothing: antialiased;
+            user-select: text;
         }
 
         /* Top Header Navbar */
         .reader-head {
-            height: 58px;
+            height: 56px;
             background-color: var(--reader-nav-bg);
             border-bottom: 1px solid var(--reader-border);
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 1rem;
+            padding: 0 0.85rem;
             z-index: 100;
-            box-shadow: 0 1px 6px rgba(0, 0, 0, 0.04);
+            box-shadow: 0 2px 8px var(--reader-shadow);
             flex-shrink: 0;
+            gap: 0.5rem;
         }
 
         .reader-btn {
-            background: transparent;
+            background: var(--reader-surface);
             border: 1px solid var(--reader-border);
             color: var(--reader-text);
             border-radius: 8px;
             padding: 0.35rem 0.65rem;
-            font-size: 0.84rem;
+            font-size: 0.82rem;
             display: inline-flex;
             align-items: center;
             gap: 0.35rem;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
             font-weight: 500;
             text-decoration: none;
+            line-height: 1.3;
+            white-space: nowrap;
         }
         .reader-btn:hover {
             background-color: var(--reader-border);
             color: var(--reader-primary);
+            border-color: var(--reader-primary);
         }
         .reader-btn.active {
             background-color: var(--reader-primary);
             color: #ffffff !important;
             border-color: var(--reader-primary);
+        }
+        .reader-btn:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        .reader-btn-group {
+            display: inline-flex;
+            border-radius: 8px;
+            border: 1px solid var(--reader-border);
+            overflow: hidden;
+            background: var(--reader-surface);
+        }
+        .reader-btn-group .reader-btn {
+            border: none;
+            border-radius: 0;
+            border-right: 1px solid var(--reader-border);
+        }
+        .reader-btn-group .reader-btn:last-child {
+            border-right: none;
         }
 
         /* Main Reading Area */
@@ -113,24 +153,28 @@
             position: relative;
             overflow: hidden;
             padding: 0.5rem;
+            align-items: center;
+            justify-content: center;
         }
 
-        #epub-viewer-wrapper {
+        /* PDF & EPUB Viewer Wrapper */
+        #viewer-container {
             width: 100%;
             height: 100%;
             max-width: 1440px;
             margin: 0 auto;
             background-color: var(--reader-surface);
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 6px 32px var(--reader-shadow);
             border-radius: 12px;
             position: relative;
             overflow: hidden;
             border: 1px solid var(--reader-border);
-            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
         }
 
         /* Dual Page Spread Center Spine Shadow Effect */
-        #epub-viewer-wrapper.dual-spread-active::after {
+        #viewer-container.dual-spread-active::after {
             content: '';
             position: absolute;
             top: 0;
@@ -139,25 +183,69 @@
             width: 32px;
             transform: translateX(-50%);
             pointer-events: none;
-            background: linear-gradient(to right, rgba(0,0,0,0.01), rgba(0,0,0,0.12) 50%, rgba(0,0,0,0.01));
+            background: linear-gradient(to right, rgba(0,0,0,0.01), rgba(0,0,0,0.14) 50%, rgba(0,0,0,0.01));
             z-index: 10;
             opacity: 0.85;
         }
 
-        [data-theme="sepia"] #epub-viewer-wrapper.dual-spread-active::after {
-            background: linear-gradient(to right, rgba(139,94,60,0.02), rgba(139,94,60,0.18) 50%, rgba(139,94,60,0.02));
+        [data-theme="sepia"] #viewer-container.dual-spread-active::after {
+            background: linear-gradient(to right, rgba(139,94,60,0.02), rgba(139,94,60,0.2) 50%, rgba(139,94,60,0.02));
+        }
+        [data-theme="dark"] #viewer-container.dual-spread-active::after {
+            background: linear-gradient(to right, rgba(0,0,0,0.2), rgba(0,0,0,0.65) 50%, rgba(0,0,0,0.2));
         }
 
-        [data-theme="dark"] #epub-viewer-wrapper.dual-spread-active::after {
-            background: linear-gradient(to right, rgba(0,0,0,0.15), rgba(0,0,0,0.6) 50%, rgba(0,0,0,0.15));
+        /* PDF Canvas Area */
+        #pdf-render-area {
+            flex: 1;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 1rem;
+            position: relative;
+            background-color: var(--reader-bg);
+            scroll-behavior: smooth;
         }
 
+        .pdf-page-canvas-wrapper {
+            margin: 0 auto;
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            align-items: center;
+            max-width: 100%;
+            transition: all 0.2s ease;
+        }
+
+        .pdf-page-canvas-wrapper canvas {
+            background: #ffffff;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            border-radius: 4px;
+            max-width: 100%;
+            height: auto !important;
+            display: block;
+        }
+
+        /* Continuous Scroll PDF Mode */
+        #pdf-render-area.continuous-mode {
+            flex-direction: column;
+            align-items: center;
+            gap: 18px;
+        }
+        #pdf-render-area.continuous-mode .pdf-page-canvas-wrapper {
+            margin-bottom: 1rem;
+        }
+
+        /* EPUB Viewer */
         #epub-viewer {
             width: 100%;
             height: 100%;
         }
 
-        /* Side Navigation Arrows */
+        /* Side Navigation Floating Arrows */
         .nav-arrow {
             position: absolute;
             top: 50%;
@@ -173,8 +261,9 @@
             justify-content: center;
             cursor: pointer;
             z-index: 50;
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+            box-shadow: 0 4px 16px var(--reader-shadow);
             transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            font-size: 1.05rem;
         }
         .nav-arrow:hover {
             background: var(--reader-primary);
@@ -187,23 +276,23 @@
 
         @media (max-width: 768px) {
             .nav-arrow {
-                width: 36px;
-                height: 36px;
-                font-size: 0.85rem;
+                width: 38px;
+                height: 38px;
+                font-size: 0.9rem;
             }
             .nav-prev { left: 4px; }
             .nav-next { right: 4px; }
-            .reader-main { padding: 0.25rem; }
-            #epub-viewer-wrapper { border-radius: 6px; }
-            #epub-viewer-wrapper.dual-spread-active::after { display: none; }
+            .reader-main { padding: 0.2rem; }
+            #viewer-container { border-radius: 6px; }
+            #viewer-container.dual-spread-active::after { display: none; }
         }
 
-        /* TOC Drawer */
+        /* Table of Contents & Page Thumbnails Drawer */
         .toc-drawer {
             position: absolute;
             top: 0;
-            left: -340px;
-            width: 320px;
+            left: -350px;
+            width: 330px;
             height: 100%;
             background: var(--reader-surface);
             border-right: 1px solid var(--reader-border);
@@ -211,10 +300,18 @@
             transition: left 0.3s cubic-bezier(0.16, 1, 0.3, 1);
             display: flex;
             flex-direction: column;
-            box-shadow: 6px 0 25px rgba(0, 0, 0, 0.12);
+            box-shadow: 6px 0 25px rgba(0, 0, 0, 0.15);
         }
         .toc-drawer.open {
             left: 0;
+        }
+        .toc-header {
+            padding: 1rem 1.15rem;
+            border-bottom: 1px solid var(--reader-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-weight: 700;
         }
         .toc-list {
             list-style: none;
@@ -223,37 +320,53 @@
             overflow-y: auto;
             flex: 1;
         }
-        .toc-item a {
-            display: block;
-            padding: 0.75rem 1rem;
+        .toc-item a, .page-thumb-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 1.15rem;
             color: var(--reader-text);
             text-decoration: none;
             border-bottom: 1px solid var(--reader-border);
             font-size: 0.88rem;
             transition: all 0.15s;
+            cursor: pointer;
         }
-        .toc-item a:hover, .toc-item a.active {
+        .toc-item a:hover, .toc-item a.active, .page-thumb-item:hover, .page-thumb-item.active {
             background-color: var(--reader-bg);
             color: var(--reader-primary);
             font-weight: 600;
-            padding-left: 1.25rem;
+            padding-left: 1.35rem;
         }
 
-        /* Articles Reader Container (When no EPUB is attached) */
+        /* Articles Reader Container (When no file or text view) */
         .articles-scroll-container {
             width: 100%;
             height: 100%;
             overflow-y: auto;
-            padding: 1.5rem 1rem;
+            padding: 2rem 1rem;
+            background-color: var(--reader-bg);
         }
         .article-card {
-            max-width: 800px;
+            max-width: 820px;
             margin: 0 auto 2.5rem auto;
             background: var(--reader-surface);
             border: 1px solid var(--reader-border);
             border-radius: 12px;
-            padding: 2rem;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+            padding: 2.25rem;
+            box-shadow: 0 4px 18px var(--reader-shadow);
+        }
+        .article-card h2 {
+            font-size: 1.55rem;
+            font-weight: 700;
+            color: var(--reader-primary);
+            margin-bottom: 0.5rem;
+        }
+        .article-body {
+            font-size: 1.08rem;
+            line-height: 1.85;
+            color: var(--reader-text);
+            text-align: justify;
         }
 
         /* Loading Spinner */
@@ -265,165 +378,185 @@
             text-align: center;
             z-index: 80;
             background: var(--reader-surface);
-            padding: 2rem;
+            padding: 2rem 2.5rem;
             border-radius: 16px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
             border: 1px solid var(--reader-border);
+            max-width: 320px;
         }
 
         /* Bottom Progress bar */
         .reader-foot {
-            height: 34px;
+            height: 36px;
             background-color: var(--reader-nav-bg);
             border-top: 1px solid var(--reader-border);
             display: flex;
             align-items: center;
             justify-content: space-between;
             padding: 0 1rem;
-            font-size: 0.78rem;
+            font-size: 0.8rem;
             color: var(--reader-text);
             flex-shrink: 0;
+            font-weight: 500;
+        }
+
+        /* Page Jump Box */
+        .page-jump-input {
+            width: 48px;
+            padding: 0.15rem 0.35rem;
+            border-radius: 6px;
+            border: 1px solid var(--reader-border);
+            text-align: center;
+            background: var(--reader-surface);
+            color: var(--reader-text);
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+
+        /* Fallback Iframe Viewer */
+        #native-fallback-frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: none;
         }
     </style>
 </head>
 <body>
 
-    <!-- Header Navigation -->
+    <!-- Header Navigation Bar -->
     <header class="reader-head">
+        <!-- Left: Back & Table of Contents -->
         <div class="d-flex align-items-center gap-2">
             <a href="{{ route('webzine.show', $webzine->slug) }}" class="reader-btn" title="ম্যাগাজিন পেজে ফিরে যান">
                 <i class="fa-solid fa-arrow-left"></i> <span class="d-none d-sm-inline">ফিরে যান</span>
             </a>
 
-            @if($readerType === 'epub' || $articles->count() > 0)
-                <button class="reader-btn" id="btn-toggle-toc" title="সূচিপত্র">
-                    <i class="fa-solid fa-list-ul"></i> <span class="d-none d-md-inline">সূচিপত্র</span>
-                </button>
-            @endif
+            <button class="reader-btn" id="btn-toggle-toc" title="সূচিপত্র / পৃষ্ঠা তালিকা">
+                <i class="fa-solid fa-list-ul"></i> <span class="d-none d-md-inline" id="toc-btn-text">সূচিপত্র</span>
+            </button>
 
-            <div class="text-truncate ps-1" style="max-width: 280px;">
-                <span class="fw-bold d-block text-truncate" style="font-size: 0.92rem;">{{ $webzine->title }}</span>
-                <span class="small opacity-75 d-none d-sm-block text-truncate" style="font-size: 0.75rem;">
-                    {{ $webzine->category ?: 'আইডিয়া সাহিত্য সাময়িকী' }} @if($webzine->issue_number) · সংখ্যা #{{ $webzine->issue_number }} @endif
-                </span>
+            <!-- File Format Badge -->
+            <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill px-2.5 py-1 d-none d-lg-inline-block small">
+                <i class="fa-solid fa-book-open me-1"></i>
+                <span id="format-badge-text">{{ strtoupper($fileType !== 'none' ? $fileType : 'সাহিত্যপত্র') }}</span>
+            </span>
+        </div>
+
+        <!-- Center: Pagination & Zoom Controls -->
+        <div class="d-flex align-items-center gap-1.5 gap-sm-2">
+            <!-- Page Spread Toggle (Dual Page vs Single Page) -->
+            <button class="reader-btn" id="btn-toggle-spread" title="১ পাতা / ২ পাতা স্প্রেড">
+                <i class="fa-solid fa-book-open" id="spread-icon"></i>
+                <span class="d-none d-md-inline" id="spread-text">২ পাতা</span>
+            </button>
+
+            <!-- Mode Toggle (Paginated vs Continuous Scroll) -->
+            <button class="reader-btn" id="btn-toggle-flow" title="স্ক্রোল অথবা পাতা মোড পরিবর্তন">
+                <i class="fa-solid fa-file-lines" id="flow-icon"></i>
+                <span class="d-none d-md-inline" id="flow-text">স্ক্রোল মোড</span>
+            </button>
+
+            <!-- Zoom / Font Size Controls -->
+            <div class="reader-btn-group">
+                <button class="reader-btn" id="btn-zoom-out" title="জুম কমান / ফন্ট ছোট"><i class="fa-solid fa-minus"></i></button>
+                <button class="reader-btn d-none d-sm-inline-flex" id="btn-zoom-fit" title="ফিট উইডথ"><i class="fa-solid fa-arrows-left-right-to-line"></i></button>
+                <button class="reader-btn" id="btn-zoom-in" title="জুম বাড়ান / ফন্ট বড়"><i class="fa-solid fa-plus"></i></button>
             </div>
         </div>
 
-        <!-- Controls (Themes, Fonts, Fullscreen) -->
+        <!-- Right: Themes, Fullscreen & Download -->
         <div class="d-flex align-items-center gap-1.5">
-            <!-- Theme Toggles -->
-            <div class="btn-group btn-group-sm" role="group">
-                <button type="button" class="reader-btn active" id="theme-light" title="ডে মোড (সাদা)">
-                    <i class="fa-solid fa-sun"></i>
-                </button>
-                <button type="button" class="reader-btn" id="theme-sepia" title="সেপিয়া মোড (আরামদায়ক)">
-                    <i class="fa-solid fa-book-open"></i>
-                </button>
-                <button type="button" class="reader-btn" id="theme-dark" title="নাইট মোড (ডার্ক)">
-                    <i class="fa-solid fa-moon"></i>
-                </button>
+            <!-- Theme Buttons -->
+            <div class="reader-btn-group d-none d-sm-inline-flex">
+                <button class="reader-btn active" id="theme-light" title="লাইট মোড"><i class="fa-solid fa-sun text-warning"></i></button>
+                <button class="reader-btn" id="theme-sepia" title="সেপিয়া মোড (চোখের আরাম)"><i class="fa-solid fa-book-open-reader text-warning"></i></button>
+                <button class="reader-btn" id="theme-dark" title="ডার্ক মোড"><i class="fa-solid fa-moon text-info"></i></button>
             </div>
 
-            @if($readerType === 'epub')
-                <!-- Spread Mode Toggle (Dual Spread vs Single Page) -->
-                <button type="button" class="reader-btn d-none d-md-inline-flex active" id="btn-toggle-spread" title="পৃষ্ঠা ভিউ (পাশাপাশি ২ পাতা / ১ পাতা)">
-                    <i class="fa-solid fa-book-open" id="spread-icon"></i>
-                    <span id="spread-text">২ পাতা</span>
-                </button>
-
-                <!-- Flow / Pagination Mode -->
-                <button type="button" class="reader-btn d-none d-md-inline-flex" id="btn-toggle-flow" title="পড়ার ধরন (পাতা / স্ক্রোল)">
-                    <i class="fa-solid fa-file-lines" id="flow-icon"></i>
-                    <span id="flow-text">স্ক্রোল</span>
-                </button>
-
-                <!-- Font Size Controls -->
-                <div class="btn-group btn-group-sm d-none d-sm-inline-flex" role="group">
-                    <button type="button" class="reader-btn" id="btn-font-dec" title="ফন্ট ছোট করুন">A-</button>
-                    <button type="button" class="reader-btn" id="btn-font-inc" title="ফন্ট বড় করুন">A+</button>
-                </div>
-            @endif
-
             <!-- Fullscreen -->
-            <button class="reader-btn" id="btn-fullscreen" title="ফুলস্ক্রিন">
+            <button class="reader-btn" id="btn-fullscreen" title="ফুলস্ক্রিন (F)">
                 <i class="fa-solid fa-expand"></i>
             </button>
+
+            @if(!empty($fileUrl))
+                <a href="{{ $fileUrl }}" target="_blank" download class="reader-btn d-none d-md-inline-flex" title="ফাইলটি ডাউনলোড করুন">
+                    <i class="fa-solid fa-download"></i>
+                </a>
+            @endif
         </div>
     </header>
 
-    <!-- Main Content Area -->
+    <!-- Main Reader Workspace -->
     <main class="reader-main">
-        <!-- Table of Contents Drawer -->
-        <div class="toc-drawer" id="toc-drawer">
-            <div class="p-3 border-bottom d-flex align-items-center justify-content-between">
-                <h6 class="fw-bold mb-0 text-dark"><i class="fa-solid fa-list-ul me-2 text-primary"></i>সূচিপত্র</h6>
-                <button class="btn-close btn-sm" id="btn-close-toc"></button>
+        <!-- Floating Navigation Arrows -->
+        <button class="nav-arrow nav-prev" id="nav-prev" title="পূর্ববর্তী পৃষ্ঠা (Left Arrow)">
+            <i class="fa-solid fa-chevron-left"></i>
+        </button>
+        <button class="nav-arrow nav-next" id="nav-next" title="পরবর্তী পৃষ্ঠা (Right Arrow)">
+            <i class="fa-solid fa-chevron-right"></i>
+        </button>
+
+        <!-- Loading Indicator -->
+        <div id="reader-loader">
+            <div class="spinner-border text-primary mb-3" style="width: 2.75rem; height: 2.75rem;" role="status"></div>
+            <h6 class="fw-bold mb-1">সাহিত্য সাময়িকী প্রস্তুত হচ্ছে...</h6>
+            <p class="text-muted small mb-0">অনুগ্রহ করে অপেক্ষা করুন</p>
+        </div>
+
+        <!-- Table of Contents / Pages Drawer -->
+        <aside class="toc-drawer" id="toc-drawer">
+            <div class="toc-header">
+                <span><i class="fa-solid fa-list-ul me-2 text-primary"></i>সূচিপত্র ও পৃষ্ঠা তালিকা</span>
+                <button class="btn-close btn-close-sm" id="btn-close-toc"></button>
             </div>
             <ul class="toc-list" id="toc-list">
-                @if($readerType === 'articles')
-                    @foreach($articles as $art)
-                        <li class="toc-item">
-                            <a href="#article-{{ $art->id }}" onclick="document.getElementById('toc-drawer').classList.remove('open')">
-                                {{ $art->title }}
-                            </a>
-                        </li>
-                    @endforeach
-                @endif
+                <!-- Dynamically populated -->
             </ul>
-        </div>
+        </aside>
 
-        <!-- Loader -->
-        <div id="reader-loader">
-            <div class="spinner-border text-primary mb-2" role="status" style="width: 2.5rem; height: 2.5rem;"></div>
-            <div class="fw-bold text-dark mb-1">সাময়িকী লোড হচ্ছে...</div>
-            <small class="text-muted">ফন্ট ও পৃষ্ঠা লেআউট বিন্যাস করা হচ্ছে</small>
-        </div>
-
-        <!-- EPUB Mode Container -->
-        @if($readerType === 'epub' && $fileUrl)
-            <div id="epub-viewer-wrapper" class="dual-spread-active">
-                <div id="epub-viewer"></div>
+        <!-- Primary Reader Box -->
+        <div id="viewer-container">
+            <!-- 1. PDF Canvas Container -->
+            <div id="pdf-render-area" style="display: none;">
+                <div class="pdf-page-canvas-wrapper" id="pdf-canvas-wrapper">
+                    <!-- Canvases rendered via PDF.js -->
+                </div>
             </div>
-            <button class="nav-arrow nav-prev" id="nav-prev" title="পূর্ববর্তী পৃষ্ঠা">
-                <i class="fa-solid fa-chevron-left"></i>
-            </button>
-            <button class="nav-arrow nav-next" id="nav-next" title="পরবর্তী পৃষ্ঠা">
-                <i class="fa-solid fa-chevron-right"></i>
-            </button>
-        <!-- Articles / Text Reading Mode (When EPUB is not uploaded) -->
-        @elseif($articles->count() > 0 || !empty($webzine->description))
-            <div class="articles-scroll-container" id="text-reader-content">
-                <!-- Magazine Showcase Header inside Reader -->
-                <div class="text-center p-4 bg-white rounded-3 border shadow-xs mb-4">
+
+            <!-- 2. EPUB Container -->
+            <div id="epub-viewer" style="display: none;"></div>
+
+            <!-- 3. Articles / Static Text Container -->
+            <div id="text-reader-content" class="articles-scroll-container" style="display: none;">
+                <div class="article-card text-center mb-4">
                     @if($webzine->cover_url)
-                        <img src="{{ $webzine->cover_url }}" alt="{{ $webzine->title }}" class="rounded-3 shadow mb-3 mx-auto" style="max-height: 280px; aspect-ratio: 3/4; object-fit: cover;">
+                        <img src="{{ $webzine->cover_url }}" alt="{{ $webzine->title }}" class="rounded-3 shadow-xs mb-3" style="max-height: 260px; object-fit: contain;">
                     @endif
                     <div class="badge bg-primary text-white rounded-pill px-3 py-1 mb-2 font-monospace">
                         {{ $webzine->category ?: 'আইডিয়া সাহিত্য সাময়িকী' }} @if($webzine->issue_number) · সংখ্যা #{{ $webzine->issue_number }} @endif
                     </div>
-                    <h1 class="fw-bold text-dark mb-2" style="font-size: 1.8rem;">{{ $webzine->title }}</h1>
+                    <h1 class="fw-bold mb-2">{{ $webzine->title }}</h1>
                     @if($webzine->publication_date)
                         <p class="text-muted small mb-0"><i class="fa-regular fa-calendar me-1"></i>প্রকাশের তারিখ: {{ $webzine->publication_date->format('d M Y') }}</p>
                     @endif
                 </div>
 
-                {{-- Editorial / Description --}}
                 @if(!empty($webzine->description))
-                    <div class="article-item" id="editorial-section">
-                        <div class="article-title text-primary"><i class="fa-solid fa-pen-nib me-2"></i>সম্পাদকের কথা / পরিচিতি</div>
-                        <div class="article-meta">আইডিয়া সাহিত্য প্রকাশনা বিভাগ</div>
+                    <div class="article-card" id="editorial-section">
+                        <h2><i class="fa-solid fa-pen-nib me-2"></i>সম্পাদকের কথা / পরিচিতি</h2>
+                        <div class="text-muted small mb-3">আইডিয়া সাহিত্য প্রকাশনা বিভাগ</div>
                         <div class="article-body">
                             {!! nl2br(e($webzine->description)) !!}
                         </div>
                     </div>
                 @endif
 
-                {{-- Articles List --}}
                 @forelse($articles as $art)
-                    <div class="article-item" id="article-{{ $art->id }}">
-                        <div class="article-title">{{ $art->title }}</div>
-                        <div class="article-meta">
-                            @if($art->author_name) <span><i class="fa-regular fa-user me-1"></i>{{ $art->author_name }}</span> @endif
+                    <div class="article-card" id="article-{{ $art->id }}">
+                        <h2>{{ $art->title }}</h2>
+                        <div class="text-muted small mb-3">
+                            @if($art->author_name) <span><i class="fa-regular fa-user me-1"></i>{{ $art->author_name }}</span> · @endif
                             @if($art->category) <span><i class="fa-solid fa-tag me-1"></i>{{ $art->category }}</span> @endif
                         </div>
                         <div class="article-body">
@@ -432,45 +565,39 @@
                     </div>
                 @empty
                     @if(empty($webzine->description))
-                        <div class="text-center p-5">
-                            <div class="mb-3 text-muted fs-1"><i class="fa-solid fa-book-open"></i></div>
-                            <h5 class="fw-bold">কোনো লেখা পাওয়া যায়নি</h5>
-                            <p class="text-muted">এই সংখ্যাটির ডিজিটাল ফাইল এখনও প্রস্তুত হয়নি।</p>
+                        <div class="article-card text-center py-5">
+                            <i class="fa-solid fa-book-open text-muted fs-1 mb-3"></i>
+                            <h5 class="fw-bold">কোনো ডিজিটাল কনটেন্ট পাওয়া যায়নি</h5>
+                            <p class="text-muted">এই সংখ্যার ফাইলটি শীঘ্রই যুক্ত করা হবে।</p>
                         </div>
                     @endif
                 @endforelse
             </div>
-        <!-- No Content Fallback -->
-        @else
-            <div class="empty-state">
-                <div class="cover-thumb mb-3">
-                    @if($webzine->cover_url)
-                        <img src="{{ $webzine->cover_url }}" alt="{{ $webzine->title }}" class="w-100 h-100 object-fit-cover">
-                    @else
-                        <i class="fa-solid fa-newspaper fs-1 text-primary"></i>
-                    @endif
-                </div>
-                <h4 class="fw-bold mb-2">{{ $webzine->title }}</h4>
-                <p class="text-muted mb-4">এই সংখ্যাটির ই-বুক ফাইল এখনও আপলোড করা হয়নি।</p>
-                <div>
-                    <a href="{{ route('webzine.show', $webzine->slug) }}" class="btn btn-primary rounded-pill px-4">সাময়িকী পেজে ফিরুন</a>
-                </div>
-            </div>
-        @endif
+
+            <!-- 4. Native Fallback Frame (if all else fails) -->
+            <iframe id="native-fallback-frame"></iframe>
+        </div>
     </main>
 
-    <!-- Bottom Reading Progress Bar -->
+    <!-- Bottom Footer Progress Bar -->
     <footer class="reader-foot">
-        <div class="text-truncate" style="max-width: 40%;">{{ $webzine->title }}</div>
-        <div class="small fw-semibold" id="progress-info">পড়ুন ও উপভোগ করুন</div>
-        <div class="text-truncate d-none d-sm-block text-end" style="max-width: 40%;">আইডিয়া ডিজিটাল রিডার</div>
+        <div class="text-truncate" style="max-width: 35%;">{{ $webzine->title }}</div>
+        
+        <div class="d-flex align-items-center gap-2" id="pagination-controls">
+            <span id="page-counter-label" class="fw-semibold">পৃষ্ঠা</span>
+            <input type="number" id="page-jump-input" class="page-jump-input" min="1" value="1" title="নির্দিষ্ট পৃষ্ঠায় যেতে নম্বর লিখে Enter চাপুন">
+            <span id="page-total-label">/ ১</span>
+        </div>
+
+        <div class="text-truncate text-end d-none d-sm-block" style="max-width: 35%;">
+            <span id="progress-percentage-label">পড়ুন ও উপভোগ করুন</span>
+        </div>
     </footer>
 
-    <!-- Comprehensive Bijoy (SutonnyMJ / ANSI) to Bengali Unicode Converter Engine -->
+    <!-- Bijoy (SutonnyMJ / ANSI) to Unicode Bengali Converter Engine -->
     <script>
     function isBijoyEncoded(str) {
         if (!str || typeof str !== 'string' || str.trim().length < 2) return false;
-        // Common Bijoy signatures & ANSI ligature sequences
         const bijoyPatterns = [
             /Avg/i, /Avw/i, /cÖ/i, /Kwe/i, /‡[A-Za-z]/, /w[A-Za-z]/, /[A-Za-z]©/,
             /[²³µ¶·¸¹º»¼½¾¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿ¡¢£¤¥¦§¨ª«¬®¯°±›œŸ]/
@@ -480,107 +607,29 @@
 
     function convertBijoyToUnicode(src) {
         if (!src || typeof src !== 'string') return src;
-
         let text = src;
 
-        // 1. Double letter conversions and special multi-character sequences
         const multiCharBijoy = [
-            ["w¯¿", "স্ত্রি"],
-            ["¯¿", "স্ত্রী"],
-            ["cÖKvk", "প্রকাশ"],
-            ["cÖ", "প্র"],
-            ["K¬", "ক্ল"],
-            ["±", "হৃ"],
-            ["°", "হু"],
-            ["¯", "হ্ল"],
-            ["®", "হ্ম"],
-            ["¬", "হ্ন"],
-            ["«", "স্ব"],
-            ["ª", "স্র"],
-            ["¨", "স্ন"],
-            ["§", "স্ম"],
-            ["¦", "স্ফ"],
-            ["¥", "স্প"],
-            ["¤", "স্থ"],
-            ["£", "ষ্ক্র"],
-            ["¢", "ষ্খ"],
-            ["¡", "ষ্ক"],
-            ["ÿ", "ষ্ণ"],
-            ["þ", "ষ্ঠ"],
-            ["ý", "ষ্ট"],
-            ["ü", "ষ্ফ"],
-            ["û", "ষ্প"],
-            ["ú", "শ্র"],
-            ["ù", "শ্ম"],
-            ["ø", "শ্ছ"],
-            ["÷", "শ্চ"],
-            ["ö", "শু"],
-            ["õ", "ল্ল"],
-            ["ô", "ল্ম"],
-            ["ó", "ল্ব"],
-            ["ò", "ল্ফ"],
-            ["ñ", "ল্প"],
-            ["ð", "ল্ড"],
-            ["ï", "ল্ট"],
-            ["î", "ল্গ"],
-            ["í", "ল্ক"],
-            ["ì", "ম্ল"],
-            ["ë", "ম্ম"],
-            ["ê", "ম্ভ"],
-            ["é", "ম্ব"],
-            ["è", "ম্ফ"],
-            ["ç", "ম্প"],
-            ["æ", "ন্ব"],
-            ["å", "ন্ম"],
-            ["ä", "ন্ধ"],
-            ["ã", "ন্দ্ব"],
-            ["â", "ন্দ"],
-            ["á", "ন্থ"],
-            ["à", "ন্ত্ব"],
-            ["ß", "ন্ত"],
-            ["Þ", "ন্ড"],
-            ["Ý", "ন্ঠ"],
-            ["Ü", "ন্ট"],
-            ["Û", "ধ্ব"],
-            ["Ú", "ধ্ব"],
-            ["Ù", "দ্ম"],
-            ["Ø", "দ্ব"],
-            ["×", "দ্ব"],
-            ["Ö", "ত্র"],
-            ["Õ", "থ্ব"],
-            ["Ô", "ত্ব"],
-            ["Ó", "ত্ম"],
-            ["Ò", "ত্ন"],
-            ["Ñ", "ত্থ"],
-            ["Ð", "ত্ত"],
-            ["Ï", "ণ্ড"],
-            ["Î", "ণ্ঠ"],
-            ["Í", "ণ্ট"],
-            ["Ì", "ণ্ড"],
-            ["Ë", "ড্ড"],
-            ["Ê", "ঠ্ফ"],
-            ["É", "ট্ম"],
-            ["È", "ট্ট"],
-            ["Ç", "ট্ফ"],
-            ["Æ", "ঞ্জ"],
-            ["Å", "ঞ্ছ"],
-            ["Ä", "ঞ্চ"],
-            ["Ã", "জ্ঞ"],
-            ["Â", "জ্ঞ"],
-            ["Á", "চ্ছ্ব"],
-            ["À", "চ্ছ"],
-            ["¿", "চ্চ"],
-            ["¾", "ঙ্ঘ"],
-            ["½", "ঙ্গ"],
-            ["¼", "ঙ্খ"],
-            ["»", "ঙ্ক্ষ"],
-            ["º", "ঙ্ক"],
-            ["¹", "গ্ধ"],
-            ["¸", "গু"],
-            ["¶", "ক্ষ"],
-            ["µ", "ক্র"],
-            ["³", "ক্ত"],
-            ["²", "ক্ষ"]
+            ["w¯¿", "স্ত্রি"], ["¯¿", "স্ত্রী"], ["cÖKvk", "প্রকাশ"], ["cÖ", "প্র"],
+            ["K¬", "ক্ল"], ["±", "হৃ"], ["°", "হু"], ["¯", "হ্ল"], ["®", "হ্ম"],
+            ["¬", "হ্ন"], ["«", "স্ব"], ["ª", "স্র"], ["¨", "স্ন"], ["§", "স্ম"],
+            ["¦", "স্ফ"], ["¥", "স্প"], ["¤", "স্থ"], ["£", "ষ্ক্র"], ["¢", "ষ্খ"],
+            ["¡", "ষ্ক"], ["ÿ", "ষ্ণ"], ["þ", "ষ্ঠ"], ["ý", "ষ্ট"], ["ü", "ষ্ফ"],
+            ["û", "ষ্প"], ["ú", "শ্র"], ["ù", "শ্ম"], ["ø", "শ্ছ"], ["÷", "শ্চ"],
+            ["ö", "শু"], ["õ", "ল্ল"], ["ô", "ল্ম"], ["ó", "ল্ব"], ["ò", "ল্ফ"],
+            ["ñ", "ল্প"], ["ð", "ল্ড"], ["ï", "ল্ট"], ["î", "ল্গ"], ["í", "ল্ক"],
+            ["ì", "ম্ল"], ["ë", "ম্ম"], ["ê", "ম্ভ"], ["é", "ম্ব"], ["è", "ম্ফ"],
+            ["ç", "ম্প"], ["æ", "ন্ব"], ["å", "ন্ম"], ["ä", "ন্ধ"], ["ã", "ন্দ্ব"],
+            ["â", "ন্দ"], ["á", "ন্থ"], ["à", "ন্ত্ব"], ["ß", "ন্ত"], ["Þ", "ন্ড"],
+            ["Ý", "ন্ঠ"], ["Ü", "ন্ট"], ["Û", "ধ্ব"], ["Ú", "ধ্ব"], ["Ù", "দ্ম"],
+            ["Ø", "দ্ব"], ["×", "দ্ব"], ["Ö", "ত্র"], ["Õ", "থ্ব"], ["Ô", "ত্ব"],
+            ["Ó", "ত্ম"], ["Ò", "ত্ন"], ["Ñ", "ত্থ"], ["Ð", "ত্ত"], ["Ï", "ণ্ড"],
+            ["Î", "ণ্ঠ"], ["Í", "ণ্ট"], ["Ì", "ণ্ড"], ["Ë", "ড্ড"], ["Ê", "ঠ্ফ"],
+            ["É", "ট্ম"], ["È", "ট্ট"], ["Ç", "ট্ফ"], ["Æ", "ঞ্জ"], ["Å", "ঞ্ছ"],
+            ["Ä", "ঞ্চ"], ["Ã", "জ্ঞ"], ["Â", "জ্ঞ"], ["Á", "চ্ছ্ব"], ["À", "চ্ছ"],
+            ["¿", "চ্চ"], ["¾", "ঙ্ঘ"], ["½", "ঙ্গ"], ["¼", "ঙ্খ"], ["»", "ঙ্ক্ষ"],
+            ["º", "ঙ্ক"], ["¹", "গ্ধ"], ["¸", "গু"], ["¶", "ক্ষ"], ["µ", "ক্র"],
+            ["³", "ক্ত"], ["²", "ক্ষ"]
         ];
 
         for (let i = 0; i < multiCharBijoy.length; i++) {
@@ -589,23 +638,19 @@
 
         const C = '(?:[\u0980-\u09FF]|(?:[K-NO-TV-YZ_`a-g-k-ro-q][\u09CD&]?)+|[²-ÿ¡-±›œŸ])';
 
-        // 2. Dual vowel markers (O-kar and OU-kar)
         text = text.replace(new RegExp('‡(' + C + ')v', 'g'), '$1ো');
         text = text.replace(new RegExp('†(' + C + ')v', 'g'), '$1ো');
         text = text.replace(new RegExp('‡(' + C + ')Š', 'g'), '$1ৌ');
         text = text.replace(new RegExp('†(' + C + ')Š', 'g'), '$1ৌ');
 
-        // 3. Shift pre-kar AFTER consonant
         text = text.replace(new RegExp('w(' + C + ')', 'g'), '$1w');
         text = text.replace(new RegExp('‡(' + C + ')', 'g'), '$1‡');
         text = text.replace(new RegExp('†(' + C + ')', 'g'), '$1†');
         text = text.replace(new RegExp('ˆ(' + C + ')', 'g'), '$1ˆ');
         text = text.replace(new RegExp('‰(' + C + ')', 'g'), '$1‰');
 
-        // 4. Shift Ref (©) BEFORE consonant
         text = text.replace(new RegExp('(' + C + ')©', 'g'), 'র্$1');
 
-        // 5. Direct Character Mapping
         const singleMap = {
             'Av': 'আ', 'A': 'অ', 'B': 'ই', 'C': 'ঈ', 'D': 'উ', 'E': 'ঊ', 'F': 'ঋ', 'G': 'এ', 'H': 'ঐ', 'I': 'ও', 'J': 'ঔ',
             'K': 'ক', 'L': 'খ', 'M': 'গ', 'N': 'ঘ', 'O': 'ঙ',
@@ -635,11 +680,9 @@
                 result += ch;
             }
         }
-
         return result;
     }
 
-    // Auto-convert all DOM text nodes containing Bijoy/SutonnyMJ
     function processBijoyElements(rootNode) {
         if (!rootNode) return;
         const walker = rootNode.ownerDocument.createTreeWalker(rootNode, NodeFilter.SHOW_TEXT, null, false);
@@ -656,309 +699,551 @@
     }
     </script>
 
-    <!-- Reader Logic Engine -->
+    <!-- Master Reader Application Controller -->
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const fileUrl = @json($fileUrl);
-            const readerType = @json($readerType);
-            const loader = document.getElementById('reader-loader');
+    document.addEventListener("DOMContentLoaded", function() {
+        const fileUrl = @json($fileUrl);
+        let readerType = @json($readerType);
+        const articlesCount = {{ $articles->count() }};
+        const hasDescription = {{ !empty($webzine->description) ? 'true' : 'false' }};
 
-            // Auto-convert any static HTML/Description in Bijoy format
-            const staticReaderContent = document.getElementById('text-reader-content');
-            if (staticReaderContent) {
-                processBijoyElements(staticReaderContent);
+        const loader = document.getElementById('reader-loader');
+        const pdfArea = document.getElementById('pdf-render-area');
+        const epubViewer = document.getElementById('epub-viewer');
+        const textArea = document.getElementById('text-reader-content');
+        const nativeFallback = document.getElementById('native-fallback-frame');
+        const viewerContainer = document.getElementById('viewer-container');
+
+        const prevBtn = document.getElementById('nav-prev');
+        const nextBtn = document.getElementById('nav-next');
+        const pageJumpInput = document.getElementById('page-jump-input');
+        const pageTotalLabel = document.getElementById('page-total-label');
+        const progressPercentageLabel = document.getElementById('progress-percentage-label');
+        const formatBadgeText = document.getElementById('format-badge-text');
+
+        // Check file extension client-side as well
+        if (fileUrl) {
+            const lowerUrl = fileUrl.toLowerCase();
+            if (lowerUrl.includes('.pdf') || lowerUrl.endsWith('.pdf')) {
+                readerType = 'pdf';
+            } else if (lowerUrl.includes('.epub') || lowerUrl.endsWith('.epub')) {
+                readerType = 'epub';
+            }
+        }
+
+        // ==========================================
+        // 1. THEME & FULLSCREEN MANAGEMENT
+        // ==========================================
+        const themeLight = document.getElementById('theme-light');
+        const themeSepia = document.getElementById('theme-sepia');
+        const themeDark  = document.getElementById('theme-dark');
+
+        function applyTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('idea_webzine_theme', theme);
+
+            [themeLight, themeSepia, themeDark].forEach(btn => btn && btn.classList.remove('active'));
+            if (theme === 'light') themeLight && themeLight.classList.add('active');
+            if (theme === 'sepia') themeSepia && themeSepia.classList.add('active');
+            if (theme === 'dark') themeDark && themeDark.classList.add('active');
+
+            if (window.epubRendition) {
+                let textColor = '#0f172a', bgColor = '#ffffff';
+                if (theme === 'sepia') { textColor = '#3d2b1f'; bgColor = '#fbf2e3'; }
+                else if (theme === 'dark') { textColor = '#f1f5f9'; bgColor = '#0f172a'; }
+                window.epubRendition.themes.override('color', textColor);
+                window.epubRendition.themes.override('background', bgColor);
+            }
+        }
+
+        const savedTheme = localStorage.getItem('idea_webzine_theme') || 'light';
+        applyTheme(savedTheme);
+
+        if (themeLight) themeLight.addEventListener('click', () => applyTheme('light'));
+        if (themeSepia) themeSepia.addEventListener('click', () => applyTheme('sepia'));
+        if (themeDark)  themeDark.addEventListener('click',  () => applyTheme('dark'));
+
+        // Fullscreen
+        const btnFullscreen = document.getElementById('btn-fullscreen');
+        if (btnFullscreen) {
+            btnFullscreen.addEventListener('click', function() {
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen().catch(() => {});
+                    btnFullscreen.innerHTML = '<i class="fa-solid fa-compress"></i>';
+                } else {
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen();
+                        btnFullscreen.innerHTML = '<i class="fa-solid fa-expand"></i>';
+                    }
+                }
+            });
+        }
+
+        // ==========================================
+        // 2. PDF.JS RENDERING ENGINE
+        // ==========================================
+        if (readerType === 'pdf' && fileUrl && typeof pdfjsLib !== 'undefined') {
+            if (formatBadgeText) formatBadgeText.textContent = 'PDF ডিজিটাল সংস্করণ';
+            pdfArea.style.display = 'flex';
+
+            let pdfDoc = null;
+            let currentPage = 1;
+            let totalPages = 0;
+            let zoomScale = 1.0;
+            let isDualSpread = window.innerWidth > 992;
+            let isContinuous = false;
+            let isRendering = false;
+
+            const pdfCanvasWrapper = document.getElementById('pdf-canvas-wrapper');
+
+            // Spread & Flow Buttons
+            const btnToggleSpread = document.getElementById('btn-toggle-spread');
+            const spreadIcon = document.getElementById('spread-icon');
+            const spreadText = document.getElementById('spread-text');
+            const btnToggleFlow = document.getElementById('btn-toggle-flow');
+            const flowIcon = document.getElementById('flow-icon');
+            const flowText = document.getElementById('flow-text');
+
+            if (isDualSpread && btnToggleSpread) {
+                btnToggleSpread.classList.add('active');
+                viewerContainer.classList.add('dual-spread-active');
             }
 
-            // Theme Management
-            const themeLight = document.getElementById('theme-light');
-            const themeSepia = document.getElementById('theme-sepia');
-            const themeDark  = document.getElementById('theme-dark');
-
-            function applyTheme(theme) {
-                document.documentElement.setAttribute('data-theme', theme);
-                localStorage.setItem('idea_webzine_reader_theme', theme);
-
-                [themeLight, themeSepia, themeDark].forEach(btn => btn && btn.classList.remove('active'));
-                if (theme === 'light') themeLight && themeLight.classList.add('active');
-                if (theme === 'sepia') themeSepia && themeSepia.classList.add('active');
-                if (theme === 'dark') themeDark && themeDark.classList.add('active');
-
-                // Pass theme colors into EPUB Rendition
-                if (window.rendition) {
-                    let textColor = '#1e293b', bgColor = '#ffffff';
-                    if (theme === 'sepia') {
-                        textColor = '#4a3728'; bgColor = '#fbf0d9';
-                    } else if (theme === 'dark') {
-                        textColor = '#f1f5f9'; bgColor = '#0f172a';
-                    }
-                    window.rendition.themes.override('color', textColor);
-                    window.rendition.themes.override('background', bgColor);
+            function updateSpreadState() {
+                if (isContinuous) {
+                    viewerContainer.classList.remove('dual-spread-active');
+                    if (btnToggleSpread) btnToggleSpread.disabled = true;
+                    return;
+                }
+                if (btnToggleSpread) btnToggleSpread.disabled = false;
+                if (isDualSpread && window.innerWidth > 768) {
+                    viewerContainer.classList.add('dual-spread-active');
+                    if (spreadIcon) spreadIcon.className = 'fa-solid fa-book-open';
+                    if (spreadText) spreadText.textContent = '২ পাতা';
+                    if (btnToggleSpread) btnToggleSpread.classList.add('active');
+                } else {
+                    viewerContainer.classList.remove('dual-spread-active');
+                    if (spreadIcon) spreadIcon.className = 'fa-solid fa-book';
+                    if (spreadText) spreadText.textContent = '১ পাতা';
+                    if (btnToggleSpread) btnToggleSpread.classList.remove('active');
                 }
             }
 
-            const savedTheme = localStorage.getItem('idea_webzine_reader_theme') || 'light';
-            applyTheme(savedTheme);
+            // Load PDF document
+            const loadingTask = pdfjsLib.getDocument({
+                url: fileUrl,
+                cMapUrl: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/cmaps/',
+                cMapPacked: true,
+            });
 
-            if (themeLight) themeLight.addEventListener('click', () => applyTheme('light'));
-            if (themeSepia) themeSepia.addEventListener('click', () => applyTheme('sepia'));
-            if (themeDark)  themeDark.addEventListener('click',  () => applyTheme('dark'));
+            loadingTask.promise.then(function(pdf) {
+                pdfDoc = pdf;
+                totalPages = pdfDoc.numPages;
+                if (pageTotalLabel) pageTotalLabel.textContent = '/ ' + totalPages;
+                if (pageJumpInput) pageJumpInput.max = totalPages;
 
-            // Fullscreen Toggle
-            const btnFullscreen = document.getElementById('btn-fullscreen');
-            if (btnFullscreen) {
-                btnFullscreen.addEventListener('click', function() {
-                    if (!document.fullscreenElement) {
-                        document.documentElement.requestFullscreen().catch(() => {});
-                        btnFullscreen.innerHTML = '<i class="fa-solid fa-compress"></i>';
+                if (loader) loader.style.display = 'none';
+
+                // Populate Page List in Drawer
+                populatePdfThumbnails(totalPages);
+
+                // Initial Render
+                renderPdfView();
+            }).catch(function(err) {
+                console.error("PDF.js loading failed, activating fallback:", err);
+                if (loader) loader.style.display = 'none';
+                activateNativeFallback();
+            });
+
+            async function renderSinglePdfPage(pageNum, container) {
+                const page = await pdfDoc.getPage(pageNum);
+                
+                // Calculate ideal viewport
+                const unscaledViewport = page.getViewport({ scale: 1.0 });
+                const containerWidth = pdfArea.clientWidth - 40;
+                const containerHeight = pdfArea.clientHeight - 40;
+
+                let baseScale = 1.0;
+                if (isDualSpread && !isContinuous && window.innerWidth > 768) {
+                    const maxPageWidth = (containerWidth / 2) - 20;
+                    baseScale = Math.min(maxPageWidth / unscaledViewport.width, containerHeight / unscaledViewport.height);
+                } else {
+                    baseScale = Math.min(containerWidth / unscaledViewport.width, containerHeight / unscaledViewport.height);
+                }
+
+                if (baseScale <= 0) baseScale = 1.0;
+                const finalScale = baseScale * zoomScale;
+                const viewport = page.getViewport({ scale: finalScale });
+
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                // Support High-DPI screens
+                const outputScale = window.devicePixelRatio || 1;
+                canvas.width = Math.floor(viewport.width * outputScale);
+                canvas.height = Math.floor(viewport.height * outputScale);
+                canvas.style.width = Math.floor(viewport.width) + "px";
+                canvas.style.height = Math.floor(viewport.height) + "px";
+
+                const transform = outputScale !== 1 ? [outputScale, 0, 0, outputScale, 0, 0] : null;
+
+                const renderContext = {
+                    canvasContext: ctx,
+                    transform: transform,
+                    viewport: viewport
+                };
+
+                await page.render(renderContext).promise;
+                container.appendChild(canvas);
+            }
+
+            async function renderPdfView() {
+                if (!pdfDoc || isRendering) return;
+                isRendering = true;
+                updateSpreadState();
+
+                pdfCanvasWrapper.innerHTML = '';
+
+                try {
+                    if (isContinuous) {
+                        pdfArea.classList.add('continuous-mode');
+                        for (let p = 1; p <= totalPages; p++) {
+                            const pageWrap = document.createElement('div');
+                            pageWrap.className = 'pdf-page-canvas-wrapper';
+                            pageWrap.dataset.page = p;
+                            pdfCanvasWrapper.appendChild(pageWrap);
+                            await renderSinglePdfPage(p, pageWrap);
+                        }
                     } else {
-                        if (document.exitFullscreen) {
-                            document.exitFullscreen();
-                            btnFullscreen.innerHTML = '<i class="fa-solid fa-expand"></i>';
+                        pdfArea.classList.remove('continuous-mode');
+                        // Single or Dual Page
+                        await renderSinglePdfPage(currentPage, pdfCanvasWrapper);
+
+                        if (isDualSpread && window.innerWidth > 768 && (currentPage + 1) <= totalPages) {
+                            await renderSinglePdfPage(currentPage + 1, pdfCanvasWrapper);
                         }
                     }
+
+                    // Update UI Labels
+                    if (pageJumpInput) pageJumpInput.value = currentPage;
+                    const percent = Math.min(100, Math.round((currentPage / totalPages) * 100));
+                    if (progressPercentageLabel) {
+                        progressPercentageLabel.textContent = percent + '% পড়া হয়েছে';
+                    }
+
+                    // Highlight Active Drawer item
+                    document.querySelectorAll('.page-thumb-item').forEach(el => {
+                        el.classList.toggle('active', parseInt(el.dataset.page) === currentPage);
+                    });
+
+                } catch (e) {
+                    console.warn("PDF render note:", e);
+                } finally {
+                    isRendering = false;
+                }
+            }
+
+            function goToPage(pageNum) {
+                const target = Math.max(1, Math.min(totalPages, parseInt(pageNum) || 1));
+                currentPage = target;
+                renderPdfView();
+            }
+
+            function nextPage() {
+                if (isContinuous) {
+                    pdfArea.scrollBy({ top: 400, behavior: 'smooth' });
+                    return;
+                }
+                const step = (isDualSpread && window.innerWidth > 768) ? 2 : 1;
+                if (currentPage + step <= totalPages) {
+                    currentPage += step;
+                    renderPdfView();
+                } else if (currentPage < totalPages) {
+                    currentPage = totalPages;
+                    renderPdfView();
+                }
+            }
+
+            function prevPage() {
+                if (isContinuous) {
+                    pdfArea.scrollBy({ top: -400, behavior: 'smooth' });
+                    return;
+                }
+                const step = (isDualSpread && window.innerWidth > 768) ? 2 : 1;
+                if (currentPage - step >= 1) {
+                    currentPage -= step;
+                    renderPdfView();
+                } else if (currentPage > 1) {
+                    currentPage = 1;
+                    renderPdfView();
+                }
+            }
+
+            if (prevBtn) prevBtn.addEventListener('click', prevPage);
+            if (nextBtn) nextBtn.addEventListener('click', nextPage);
+
+            // Page input jump
+            if (pageJumpInput) {
+                pageJumpInput.addEventListener('change', (e) => goToPage(e.target.value));
+                pageJumpInput.addEventListener('keyup', (e) => {
+                    if (e.key === 'Enter') goToPage(e.target.value);
                 });
             }
 
-            // Hide loader for non-epub
-            if (readerType !== 'epub') {
-                if (loader) loader.style.display = 'none';
+            // Keyboard navigation
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'ArrowLeft') prevPage();
+                if (e.key === 'ArrowRight') nextPage();
+            });
+
+            // Spread Toggle
+            if (btnToggleSpread) {
+                btnToggleSpread.addEventListener('click', function() {
+                    isDualSpread = !isDualSpread;
+                    renderPdfView();
+                });
             }
 
-            // EPUB Engine Initialization
-            if (readerType === 'epub' && fileUrl && typeof ePub !== 'undefined') {
-                try {
-                    const isMobile = window.innerWidth < 768;
-                    let currentFlow = 'paginated';
-                    let currentSpread = isMobile ? 'none' : 'always';
-
-                    const viewerWrapper = document.getElementById('epub-viewer-wrapper');
-                    if (viewerWrapper) {
-                        if (currentSpread === 'always') {
-                            viewerWrapper.classList.add('dual-spread-active');
-                        } else {
-                            viewerWrapper.classList.remove('dual-spread-active');
-                        }
+            // Flow Toggle
+            if (btnToggleFlow) {
+                btnToggleFlow.addEventListener('click', function() {
+                    isContinuous = !isContinuous;
+                    if (isContinuous) {
+                        if (flowIcon) flowIcon.className = 'fa-solid fa-book';
+                        if (flowText) flowText.textContent = 'পাতা মোড';
+                        if (prevBtn) prevBtn.style.display = 'none';
+                        if (nextBtn) nextBtn.style.display = 'none';
+                    } else {
+                        if (flowIcon) flowIcon.className = 'fa-solid fa-file-lines';
+                        if (flowText) flowText.textContent = 'স্ক্রোল মোড';
+                        if (prevBtn) prevBtn.style.display = 'flex';
+                        if (nextBtn) nextBtn.style.display = 'flex';
                     }
+                    renderPdfView();
+                });
+            }
 
-                    const book = ePub(fileUrl);
-                    const rendition = book.renderTo("epub-viewer", {
-                        width: "100%",
-                        height: "100%",
-                        spread: currentSpread,
-                        minSpreadWidth: 700,
-                        flow: "paginated",
-                        allowScriptedContent: true
+            // Zoom Buttons
+            const btnZoomIn = document.getElementById('btn-zoom-in');
+            const btnZoomOut = document.getElementById('btn-zoom-out');
+            const btnZoomFit = document.getElementById('btn-zoom-fit');
+
+            if (btnZoomIn) {
+                btnZoomIn.addEventListener('click', () => {
+                    if (zoomScale < 2.5) { zoomScale += 0.2; renderPdfView(); }
+                });
+            }
+            if (btnZoomOut) {
+                btnZoomOut.addEventListener('click', () => {
+                    if (zoomScale > 0.6) { zoomScale -= 0.2; renderPdfView(); }
+                });
+            }
+            if (btnZoomFit) {
+                btnZoomFit.addEventListener('click', () => {
+                    zoomScale = 1.0;
+                    renderPdfView();
+                });
+            }
+
+            // Touch Swipe for Mobile
+            let touchStartX = 0;
+            pdfArea.addEventListener('touchstart', function(e) {
+                touchStartX = e.changedTouches[0].screenX;
+            }, { passive: true });
+            pdfArea.addEventListener('touchend', function(e) {
+                let touchEndX = e.changedTouches[0].screenX;
+                if (!isContinuous) {
+                    if (touchEndX < touchStartX - 50) nextPage();
+                    if (touchEndX > touchStartX + 50) prevPage();
+                }
+            }, { passive: true });
+
+            function populatePdfThumbnails(count) {
+                const tocList = document.getElementById('toc-list');
+                if (!tocList) return;
+                tocList.innerHTML = '';
+
+                for (let i = 1; i <= count; i++) {
+                    const li = document.createElement('li');
+                    li.className = 'page-thumb-item';
+                    li.dataset.page = i;
+                    li.innerHTML = `
+                        <span><i class="fa-regular fa-file-lines me-2 text-primary"></i>পৃষ্ঠা #${i}</span>
+                        <span class="badge bg-light text-muted border">${i} / ${count}</span>
+                    `;
+                    li.addEventListener('click', function() {
+                        goToPage(i);
+                        document.getElementById('toc-drawer').classList.remove('open');
                     });
-                    window.rendition = rendition;
-
-                    // INJECT BENGALI FONT, AUTO BIJOY CONVERTER & CLEAN STYLES INTO EPUB CONTENT IFRAMES
-                    rendition.hooks.content.register(function(contents) {
-                        try {
-                            const doc = contents.document;
-                            const head = doc.head;
-                            if (head) {
-                                // Load Google Font Hind Siliguri
-                                const fontLink = doc.createElement('link');
-                                fontLink.rel = 'stylesheet';
-                                fontLink.href = 'https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&display=swap';
-                                head.appendChild(fontLink);
-
-                                // Style override for crisp Bengali typography and auto font fitting
-                                const style = doc.createElement('style');
-                                style.textContent = `
-                                    * {
-                                        font-family: 'Hind Siliguri', 'SolaimanLipi', 'Kalpurush', 'Noto Sans Bengali', -apple-system, BlinkMacSystemFont, sans-serif !important;
-                                        -webkit-font-smoothing: antialiased !important;
-                                        text-rendering: optimizeLegibility !important;
-                                    }
-                                    body {
-                                        font-family: 'Hind Siliguri', 'SolaimanLipi', 'Kalpurush', sans-serif !important;
-                                        line-height: 1.85 !important;
-                                        padding: 12px 24px !important;
-                                        word-wrap: break-word !important;
-                                        overflow-wrap: break-word !important;
-                                        hyphens: auto !important;
-                                    }
-                                    p, div, span, li {
-                                        font-size: 1.05rem !important;
-                                        line-height: 1.85 !important;
-                                        margin-bottom: 1.15em !important;
-                                        text-align: justify !important;
-                                    }
-                                `;
-                                head.appendChild(style);
-                            }
-
-                            // AUTO-DETECT & CONVERT SUTONNYMJ / BIJOY TO UNICODE BENGALI IN EPUB CHAPTER
-                            if (doc.body) {
-                                processBijoyElements(doc.body);
-                            }
-
-                            // Touch Swipe for Mobile
-                            let touchStartX = 0;
-                            contents.document.addEventListener('touchstart', function(e) {
-                                touchStartX = e.changedTouches[0].screenX;
-                            }, false);
-                            contents.document.addEventListener('touchend', function(e) {
-                                let touchEndX = e.changedTouches[0].screenX;
-                                if (touchEndX < touchStartX - 40) rendition.next();
-                                if (touchEndX > touchStartX + 40) rendition.prev();
-                            }, false);
-
-                        } catch (err) {
-                            console.warn("EPUB style/font hook note:", err);
-                        }
-                    });
-
-                    // Display initial rendition
-                    rendition.display().then(() => {
-                        if (loader) loader.style.display = 'none';
-                        applyTheme(document.documentElement.getAttribute('data-theme') || 'light');
-                    }).catch((err) => {
-                        console.error("EPUB display error:", err);
-                        if (loader) loader.style.display = 'none';
-                    });
-
-                    // Spread Toggle Button (Dual Pages vs Single Page)
-                    const btnToggleSpread = document.getElementById('btn-toggle-spread');
-                    const spreadIcon = document.getElementById('spread-icon');
-                    const spreadText = document.getElementById('spread-text');
-                    if (btnToggleSpread) {
-                        btnToggleSpread.addEventListener('click', function() {
-                            if (currentSpread === 'always') {
-                                currentSpread = 'none';
-                                rendition.spread('none');
-                                if (spreadIcon) spreadIcon.className = 'fa-solid fa-book';
-                                if (spreadText) spreadText.textContent = '১ পাতা';
-                                btnToggleSpread.classList.remove('active');
-                                if (viewerWrapper) viewerWrapper.classList.remove('dual-spread-active');
-                            } else {
-                                currentSpread = 'always';
-                                rendition.spread('always');
-                                if (spreadIcon) spreadIcon.className = 'fa-solid fa-book-open';
-                                if (spreadText) spreadText.textContent = '২ পাতা';
-                                btnToggleSpread.classList.add('active');
-                                if (viewerWrapper) viewerWrapper.classList.add('dual-spread-active');
-                            }
-                        });
-                    }
-
-                    // Navigation buttons
-                    const prevBtn = document.getElementById('nav-prev');
-                    const nextBtn = document.getElementById('nav-next');
-                    if (prevBtn) prevBtn.addEventListener('click', () => rendition.prev());
-                    if (nextBtn) nextBtn.addEventListener('click', () => rendition.next());
-
-                    // Keyboard arrows
-                    document.addEventListener('keyup', function(e) {
-                        if (e.key === 'ArrowLeft') rendition.prev();
-                        if (e.key === 'ArrowRight') rendition.next();
-                    });
-
-                    // Location / Progress tracker
-                    book.ready.then(() => {
-                        return book.locations.generate(1000);
-                    }).then(() => {
-                        rendition.on('relocated', function(location) {
-                            const percent = book.locations.percentageFromCfi(location.start.cfi);
-                            const percentFormatted = Math.floor(percent * 100);
-                            const progressInfo = document.getElementById('progress-info');
-                            if (progressInfo) {
-                                progressInfo.textContent = percentFormatted + '% পড়া হয়েছে';
-                            }
-                        });
-                    }).catch(() => {});
-
-                    // Font Size scaling
-                    let currentFontSize = 100;
-                    const fontInc = document.getElementById('btn-font-inc');
-                    const fontDec = document.getElementById('btn-font-dec');
-                    if (fontInc) {
-                        fontInc.addEventListener('click', () => {
-                            if (currentFontSize < 160) {
-                                currentFontSize += 10;
-                                rendition.themes.fontSize(currentFontSize + "%");
-                            }
-                        });
-                    }
-                    if (fontDec) {
-                        fontDec.addEventListener('click', () => {
-                            if (currentFontSize > 70) {
-                                currentFontSize -= 10;
-                                rendition.themes.fontSize(currentFontSize + "%");
-                            }
-                        });
-                    }
-
-                    // Toggle Scroll / Book Page mode
-                    const btnToggleFlow = document.getElementById('btn-toggle-flow');
-                    const flowIcon = document.getElementById('flow-icon');
-                    const flowText = document.getElementById('flow-text');
-                    if (btnToggleFlow) {
-                        btnToggleFlow.addEventListener('click', function() {
-                            if (currentFlow === 'paginated') {
-                                currentFlow = 'scrolled-doc';
-                                rendition.flow('scrolled-doc');
-                                if (prevBtn) prevBtn.style.display = 'none';
-                                if (nextBtn) nextBtn.style.display = 'none';
-                                if (flowIcon) flowIcon.className = 'fa-solid fa-book-open';
-                                if (flowText) flowText.textContent = 'পাতা মোড';
-                                if (viewerWrapper) viewerWrapper.classList.remove('dual-spread-active');
-                            } else {
-                                currentFlow = 'paginated';
-                                rendition.flow('paginated');
-                                if (prevBtn) prevBtn.style.display = 'flex';
-                                if (nextBtn) nextBtn.style.display = 'flex';
-                                if (flowIcon) flowIcon.className = 'fa-solid fa-file-lines';
-                                if (flowText) flowText.textContent = 'স্ক্রোল মোড';
-                                if (currentSpread === 'always' && viewerWrapper) {
-                                    viewerWrapper.classList.add('dual-spread-active');
-                                }
-                            }
-                        });
-                    }
-
-                    // Table of Contents
-                    book.loaded.navigation.then(function(toc) {
-                        const tocList = document.getElementById('toc-list');
-                        if (tocList && toc && toc.toc) {
-                            tocList.innerHTML = '';
-                            toc.toc.forEach(function(chapter) {
-                                const li = document.createElement('li');
-                                li.className = 'toc-item';
-                                const a = document.createElement('a');
-                                a.href = chapter.href;
-                                a.textContent = chapter.label.trim() || 'অধ্যায়';
-                                a.addEventListener('click', function(e) {
-                                    e.preventDefault();
-                                    rendition.display(chapter.href);
-                                    document.getElementById('toc-drawer').classList.remove('open');
-                                    document.querySelectorAll('.toc-item a').forEach(el => el.classList.remove('active'));
-                                    a.classList.add('active');
-                                });
-                                li.appendChild(a);
-                                tocList.appendChild(li);
-                            });
-                        }
-                    });
-
-                    // TOC Drawer Toggle
-                    const toggleTocBtn = document.getElementById('btn-toggle-toc');
-                    const closeTocBtn  = document.getElementById('btn-close-toc');
-                    const tocDrawer    = document.getElementById('toc-drawer');
-                    if (toggleTocBtn && tocDrawer) {
-                        toggleTocBtn.addEventListener('click', () => tocDrawer.classList.toggle('open'));
-                    }
-                    if (closeTocBtn && tocDrawer) {
-                        closeTocBtn.addEventListener('click', () => tocDrawer.classList.remove('open'));
-                    }
-
-                } catch(e) {
-                    console.error("Webzine EPUB Loading error:", e);
-                    if (loader) loader.style.display = 'none';
+                    tocList.appendChild(li);
                 }
             }
-        });
+
+            window.addEventListener('resize', () => {
+                clearTimeout(window.resizePdfTimer);
+                window.resizePdfTimer = setTimeout(() => {
+                    renderPdfView();
+                }, 300);
+            });
+
+        // ==========================================
+        // 3. EPUB.JS RENDERING ENGINE
+        // ==========================================
+        } else if (readerType === 'epub' && fileUrl && typeof ePub !== 'undefined') {
+            if (formatBadgeText) formatBadgeText.textContent = 'EPUB সংস্করণ';
+            epubViewer.style.display = 'block';
+
+            try {
+                let currentSpread = window.innerWidth > 992 ? 'always' : 'none';
+                if (currentSpread === 'always') viewerContainer.classList.add('dual-spread-active');
+
+                const book = ePub(fileUrl);
+                const rendition = book.renderTo("epub-viewer", {
+                    width: "100%",
+                    height: "100%",
+                    spread: currentSpread,
+                    minSpreadWidth: 720,
+                    flow: "paginated",
+                    allowScriptedContent: true
+                });
+                window.epubRendition = rendition;
+
+                rendition.hooks.content.register(function(contents) {
+                    try {
+                        const doc = contents.document;
+                        if (doc && doc.head) {
+                            const fontLink = doc.createElement('link');
+                            fontLink.rel = 'stylesheet';
+                            fontLink.href = 'https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&display=swap';
+                            doc.head.appendChild(fontLink);
+
+                            const style = doc.createElement('style');
+                            style.textContent = `
+                                * { font-family: 'Hind Siliguri', 'SolaimanLipi', sans-serif !important; }
+                                body { padding: 16px 28px !important; line-height: 1.85 !important; }
+                                p, div, span { font-size: 1.05rem !important; line-height: 1.85 !important; text-align: justify !important; }
+                            `;
+                            doc.head.appendChild(style);
+                        }
+                        if (doc && doc.body) {
+                            processBijoyElements(doc.body);
+                        }
+                    } catch(e) {}
+                });
+
+                rendition.display().then(() => {
+                    if (loader) loader.style.display = 'none';
+                    applyTheme(document.documentElement.getAttribute('data-theme') || 'light');
+                }).catch((err) => {
+                    console.error("EPUB display fail:", err);
+                    if (loader) loader.style.display = 'none';
+                    activateNativeFallback();
+                });
+
+                // Prev / Next
+                if (prevBtn) prevBtn.addEventListener('click', () => rendition.prev());
+                if (nextBtn) nextBtn.addEventListener('click', () => rendition.next());
+
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'ArrowLeft') rendition.prev();
+                    if (e.key === 'ArrowRight') rendition.next();
+                });
+
+                // TOC
+                book.loaded.navigation.then(function(nav) {
+                    const tocList = document.getElementById('toc-list');
+                    if (tocList && nav && nav.toc) {
+                        tocList.innerHTML = '';
+                        nav.toc.forEach(function(item) {
+                            const li = document.createElement('li');
+                            li.className = 'toc-item';
+                            const a = document.createElement('a');
+                            a.href = item.href;
+                            a.textContent = item.label.trim() || 'অধ্যায়';
+                            a.addEventListener('click', function(e) {
+                                e.preventDefault();
+                                rendition.display(item.href);
+                                document.getElementById('toc-drawer').classList.remove('open');
+                            });
+                            li.appendChild(a);
+                            tocList.appendChild(li);
+                        });
+                    }
+                });
+
+                // Font +/-
+                let epubFontSize = 100;
+                const btnZoomIn = document.getElementById('btn-zoom-in');
+                const btnZoomOut = document.getElementById('btn-zoom-out');
+                if (btnZoomIn) btnZoomIn.addEventListener('click', () => {
+                    if (epubFontSize < 160) { epubFontSize += 10; rendition.themes.fontSize(epubFontSize + '%'); }
+                });
+                if (btnZoomOut) btnZoomOut.addEventListener('click', () => {
+                    if (epubFontSize > 75) { epubFontSize -= 10; rendition.themes.fontSize(epubFontSize + '%'); }
+                });
+
+            } catch (err) {
+                console.error("EPUB init fail:", err);
+                if (loader) loader.style.display = 'none';
+                activateNativeFallback();
+            }
+
+        // ==========================================
+        // 4. ARTICLES / TEXT READER ENGINE
+        // ==========================================
+        } else {
+            if (loader) loader.style.display = 'none';
+            textArea.style.display = 'block';
+            if (prevBtn) prevBtn.style.display = 'none';
+            if (nextBtn) nextBtn.style.display = 'none';
+            if (formatBadgeText) formatBadgeText.textContent = 'অনলাইন সাহিত্যপত্র';
+
+            // Auto-convert any legacy Bijoy/ANSI
+            processBijoyElements(textArea);
+
+            // Populate TOC for Articles
+            const tocList = document.getElementById('toc-list');
+            if (tocList) {
+                tocList.innerHTML = '';
+                const articles = document.querySelectorAll('.article-card h2');
+                articles.forEach((h2, idx) => {
+                    const li = document.createElement('li');
+                    li.className = 'toc-item';
+                    const a = document.createElement('a');
+                    a.textContent = h2.textContent.trim();
+                    a.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        h2.scrollIntoView({ behavior: 'smooth' });
+                        document.getElementById('toc-drawer').classList.remove('open');
+                    });
+                    li.appendChild(a);
+                    tocList.appendChild(li);
+                });
+            }
+        }
+
+        // ==========================================
+        // 5. FAIL-SAFE NATIVE EMBED FALLBACK
+        // ==========================================
+        function activateNativeFallback() {
+            if (fileUrl) {
+                pdfArea.style.display = 'none';
+                epubViewer.style.display = 'none';
+                nativeFallback.style.display = 'block';
+                nativeFallback.src = fileUrl;
+            } else {
+                textArea.style.display = 'block';
+                processBijoyElements(textArea);
+            }
+        }
+
+        // TOC Drawer Toggle
+        const toggleTocBtn = document.getElementById('btn-toggle-toc');
+        const closeTocBtn  = document.getElementById('btn-close-toc');
+        const tocDrawer    = document.getElementById('toc-drawer');
+        if (toggleTocBtn && tocDrawer) toggleTocBtn.addEventListener('click', () => tocDrawer.classList.toggle('open'));
+        if (closeTocBtn && tocDrawer) closeTocBtn.addEventListener('click', () => tocDrawer.classList.remove('open'));
+    });
     </script>
 </body>
 </html>
