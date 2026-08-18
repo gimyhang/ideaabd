@@ -145,13 +145,16 @@
     
     <!-- Custom JS -->
     <script>
-        // Close alert after 3 seconds
+        // Auto-dismiss top flash notification banners gently after 8 seconds
         document.addEventListener('DOMContentLoaded', function() {
-            const alerts = document.querySelectorAll('.alert');
-            alerts.forEach(alert => {
+            const flashAlerts = document.querySelectorAll('main > .container > .alert.alert-dismissible');
+            flashAlerts.forEach(alert => {
                 setTimeout(() => {
-                    new bootstrap.Alert(alert).close();
-                }, 3000);
+                    try {
+                        const bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
+                        if (bsAlert) bsAlert.close();
+                    } catch(e) {}
+                }, 8000);
             });
         });
     </script>

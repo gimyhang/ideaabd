@@ -165,12 +165,12 @@ class RegistrationController extends Controller
 
         if ($type === 'buyer') {
             auth()->login($user);
-            return redirect('/')->with('success', "স্বাগতম {$user->name}! আপনার মোবাইল নম্বর ({$base['phone']}) সফলভাবে নিবন্ধিত হয়েছে।");
+            return redirect('/')->with('success', "আপনার রেজিস্ট্রেশন সফল হয়েছে! স্বাগতম {$user->name}। আপনার অ্যাকাউন্টটি সক্রিয় রয়েছে।");
         }
 
         // For author, seller, publisher: Do NOT login automatically. Redirect to pending approval notice.
         return redirect()->route('pending.approval')
-            ->with('success', 'আপনার রেজিস্ট্রেশন অনুরোধটি সফলভাবে জমা হয়েছে। অ্যাডমিন অনুমোদন করার পর আপনার ইমেইলে নোটিফিকেশন পৌঁছে যাবে এবং আপনি লগইন করতে পারবেন।');
+            ->with('success', 'আপনার রেজিস্ট্রেশন সফল হয়েছে! অ্যাডমিন পর্যালোচনা ও অনুমোদনের পর আপনি সম্পূর্ণ অ্যাক্সেস পাবেন।');
     }
 
     public function pendingApproval()

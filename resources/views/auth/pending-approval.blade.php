@@ -1,30 +1,37 @@
 @extends('layouts.app')
-@section('title', 'অনুমোদনের অপেক্ষায় - ideaabd')
+@section('title', 'রেজিস্ট্রেশন সফল হয়েছে - ideaabd')
 @section('content')
 <div class="container py-5">
     <div class="row justify-content-center">
-        <div class="col-lg-6 text-center">
-            <div class="card border-0 shadow-sm p-5">
+        <div class="col-lg-6 col-md-8 text-center">
+            <div class="card border-0 shadow-sm p-4 p-md-5 rounded-4">
                 <div class="mb-4">
-                    <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width:80px;height:80px;background:#FFF3CD">
-                        <i class="fas fa-hourglass-half fa-2x text-warning"></i>
+                    <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-3 shadow-xs" style="width:88px;height:88px;background:#e8f5e9;border:3px solid #81c784">
+                        <i class="fas fa-check-circle fa-3x text-success"></i>
                     </div>
-                    <h3 class="fw-bold">রেজিস্ট্রেশন জমা হয়েছে!</h3>
-                    <p class="text-muted">আপনার রেজিস্ট্রেশন অনুরোধ সফলভাবে জমা দেওয়া হয়েছে।</p>
+                    <h3 class="fw-bold text-success mb-2">আপনার রেজিস্ট্রেশন সফল হয়েছে!</h3>
+                    <p class="text-secondary fs-6 mb-0">আপনার অ্যাকাউন্টটি সফলভাবে আইডিয়া প্রকাশন সিস্টেমে জমা হয়েছে।</p>
                 </div>
 
-                <div class="alert alert-warning text-start">
-                    <strong>পরবর্তী ধাপ:</strong>
-                    <ul class="mb-0 mt-2">
-                        <li>আমাদের অ্যাডমিন দল আপনার তথ্য যাচাই করবেন</li>
-                        <li>সাধারণত ২৪-৪৮ ঘণ্টার মধ্যে সিদ্ধান্ত নেওয়া হয়</li>
-                        <li>অনুমোদন বা প্রত্যাখ্যান সম্পর্কে ইমেইলে জানানো হবে</li>
+                <div class="alert alert-warning text-start rounded-3 border-0 bg-warning bg-opacity-10 p-3.5 mb-4">
+                    <div class="d-flex align-items-center gap-2 mb-2 text-dark fw-bold">
+                        <i class="fas fa-hourglass-half text-warning"></i>
+                        <span>অ্যাকাউন্ট ভেরিফিকেশন ও অনুমোদন প্রক্রিয়া:</span>
+                    </div>
+                    <ul class="mb-0 small text-secondary ps-3">
+                        <li class="mb-1">আমাদের সম্পাদকীয় দল আপনার প্রদানকৃত তথ্যাদি পর্যালোচনা করবেন।</li>
+                        <li class="mb-1">সাধারণত খুব দ্রুত (২৪ ঘণ্টার মধ্যে) পর্যালোচনা সম্পন্ন হয়।</li>
+                        <li>অনুমোদন সম্পন্ন হলে আপনার ইমেইল ও মোবাইলে কনফার্মেশন পৌঁছে যাবে এবং আপনি লগইন করে লেখা প্রকাশ করতে পারবেন।</li>
                     </ul>
                 </div>
 
-                <div class="d-flex gap-2 justify-content-center">
-                    <a href="{{ route('home') }}" class="btn btn-outline-primary">হোমপেজে যান</a>
-                    <a href="mailto:support@ideaabd.com" class="btn btn-primary">সাপোর্টে যোগাযোগ করুন</a>
+                <div class="d-flex flex-wrap gap-2 justify-content-center">
+                    <a href="{{ route('home') }}" class="btn btn-outline-primary rounded-pill px-4 py-2 fw-semibold">
+                        <i class="fas fa-home me-1"></i> হোমপেজে যান
+                    </a>
+                    <a href="{{ route('login') }}" class="btn btn-success rounded-pill px-4 py-2 fw-bold">
+                        <i class="fas fa-arrow-right-to-bracket me-1"></i> লগইন পেজ
+                    </a>
                 </div>
             </div>
         </div>

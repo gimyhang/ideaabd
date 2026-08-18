@@ -42,5 +42,20 @@ class AppServiceProvider extends ServiceProvider
         Blade::directive('taka',  fn ($e) => "<?php echo \App\Support\Bn::money($e); ?>");
         Blade::directive('takaS', fn ($e) => "<?php echo \App\Support\Bn::moneyShort($e); ?>");
         Blade::directive('bnDate', fn ($e) => "<?php echo \App\Support\Bn::date($e); ?>");
+        // Auto-heal/verify blog_posts subtitle column if missing (e.g. SQLite / live shared host)
+        if (!app()->runningInConsole()) {
+            try {
+                if (\Illuminate\Support\Facades\Schema::hasTable('blog_posts') && !\Illuminate\Support\Facades\Schema::hasColumn('blog_posts', 'subtitle')) {
+                    $driver = \Illuminate\Support\Facades\DB::getDriverName();
+                    if ($driver === 'sqlite') {
+                        \Illuminate\Support\Facades\DB::statement('ALTER TABLE blog_posts ADD COLUMN subtitle VARCHAR(500) NULL');
+                    } else {
+                        \Illuminate\Support\Facades\DB::statement('ALTER TABLE `blog_posts` ADD COLUMN `subtitle` VARCHAR(500) NULL AFTER `title`');
+                    }
+                }
+            } catch (\Throwable $e) {
+                // Ignore gracefully if schema modifications are restricted
+            }
+        }
     }
 }

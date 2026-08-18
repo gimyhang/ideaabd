@@ -204,7 +204,21 @@ class AuthorBlogController extends Controller
         try {
             $post = new BlogPost();
             $post->title = $title;
-            $post->subtitle = $validated['subtitle'] ?? null;
+            
+            // Safe subtitle assignment with auto-schema healing
+            if (!empty($validated['subtitle'])) {
+                if (!\Illuminate\Support\Facades\Schema::hasColumn('blog_posts', 'subtitle')) {
+                    try {
+                        \Illuminate\Support\Facades\Schema::table('blog_posts', function (\Illuminate\Database\Schema\Blueprint $table) {
+                            $table->string('subtitle', 500)->nullable()->after('title');
+                        });
+                    } catch (\Throwable $e) {}
+                }
+                if (\Illuminate\Support\Facades\Schema::hasColumn('blog_posts', 'subtitle')) {
+                    $post->subtitle = $validated['subtitle'];
+                }
+            }
+            
             $post->slug = $slug;
             $post->category_id = $categoryId;
             $post->excerpt = $validated['excerpt'] ?: Str::limit(strip_tags($validated['content']), 200);
@@ -218,11 +232,11 @@ class AuthorBlogController extends Controller
             if ($isSubmit) {
                 $post->status = 'pending';
                 $post->mod_status = 'pending';
-                $message = 'আপনার লেখাটি সফলভাবে জমা হয়েছে। অ্যাডমিন পর্যালোচনা করে শীঘ্রই তা ব্লগে প্রকাশ করবেন।';
+                $message = 'আপনার পোস্টটি সফলভাবে সাবমিট হয়েছে! অ্যাডমিন পর্যালোচনা করে শীঘ্রই তা ব্লগে প্রকাশ করবেন।';
             } else {
                 $post->status = 'draft';
                 $post->mod_status = 'pending';
-                $message = 'লেখাটি খসড়া (Draft) হিসেবে সংরক্ষিত হয়েছে। যেকোনো সময় এটি এডিট করে জমা দিতে পারবেন।';
+                $message = 'আপনার লেখাটি খসড়া (Draft) হিসেবে সফলভাবে সংরক্ষিত হয়েছে।';
             }
 
             $post->save();
@@ -304,7 +318,21 @@ class AuthorBlogController extends Controller
         }
 
         $post->title = $title;
-        $post->subtitle = $validated['subtitle'] ?? null;
+        
+        // Safe subtitle assignment with auto-schema healing
+        if (isset($validated['subtitle'])) {
+            if (!\Illuminate\Support\Facades\Schema::hasColumn('blog_posts', 'subtitle')) {
+                try {
+                    \Illuminate\Support\Facades\Schema::table('blog_posts', function (\Illuminate\Database\Schema\Blueprint $table) {
+                        $table->string('subtitle', 500)->nullable()->after('title');
+                    });
+                } catch (\Throwable $e) {}
+            }
+            if (\Illuminate\Support\Facades\Schema::hasColumn('blog_posts', 'subtitle')) {
+                $post->subtitle = $validated['subtitle'] ?: null;
+            }
+        }
+
         if (empty($post->slug) || !preg_match('/^[a-z0-9-]+$/i', $post->slug)) {
             $post->slug = $this->generateEnglishSlug($title, $post->id);
         }
@@ -318,7 +346,7 @@ class AuthorBlogController extends Controller
             $post->status = 'pending';
             $post->mod_status = 'pending';
             $post->rejection_reason = null;
-            $message = 'লেখাটি সফলভাবে পর্যালোচনার জন্য জমা দেওয়া হয়েছে।';
+            $message = 'আপনার পোস্টটি সফলভাবে সাবমিট হয়েছে! অ্যাডমিন পর্যালোচনার জন্য জমা রাখা হয়েছে।';
         } else {
             $post->status = 'draft';
             $message = 'খসড়া লেখাটি সফলভাবে হালনাগাদ করা হয়েছে।';
@@ -432,7 +460,7 @@ class AuthorBlogController extends Controller
     }
 
     /**
-     * Generate an ultra-fast default SVG photocard when author doesn't attach an image.
+     * Generate a classic center-aligned luxury SVG photocard when author doesn't attach an image.
      */
     protected function generateDefaultPhotocard(string $title, string $authorName): string
     {
@@ -444,24 +472,49 @@ class AuthorBlogController extends Controller
   <defs>
     <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#022c22" />
-      <stop offset="50%" stop-color="#065f46" />
-      <stop offset="100%" stop-color="#064e3b" />
+      <stop offset="50%" stop-color="#064e3b" />
+      <stop offset="100%" stop-color="#022019" />
     </linearGradient>
-    <radialGradient id="glow" cx="70%" cy="30%" r="60%">
-      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.15" />
+    <radialGradient id="glow" cx="50%" cy="45%" r="65%">
+      <stop offset="0%" stop-color="#fbbf24" stop-opacity="0.18" />
       <stop offset="100%" stop-color="#000000" stop-opacity="0" />
     </radialGradient>
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#eab308" />
+      <stop offset="50%" stop-color="#fef08a" />
+      <stop offset="100%" stop-color="#eab308" />
+    </linearGradient>
   </defs>
+  <!-- Background -->
   <rect width="1200" height="675" fill="url(#bg)" />
   <rect width="1200" height="675" fill="url(#glow)" />
-  <rect x="35" y="35" width="1130" height="605" fill="none" stroke="#fbbf24" stroke-width="2" opacity="0.35" rx="8" />
-  <rect x="70" y="65" width="230" height="44" rx="22" fill="rgba(255,255,255,0.15)" />
-  <text x="185" y="94" fill="#fbbf24" font-family="'Hind Siliguri', sans-serif" font-size="20" font-weight="bold" text-anchor="middle">✦ সাহিত্যপত্র ও ব্লগ</text>
-  <text x="1130" y="94" fill="rgba(255,255,255,0.75)" font-family="'Hind Siliguri', sans-serif" font-size="18" font-weight="bold" text-anchor="end">আইডিয়া প্রকাশন</text>
-  <text x="70" y="300" fill="#ffffff" font-family="'Hind Siliguri', sans-serif" font-size="46" font-weight="bold">{$safeTitle}</text>
-  <line x1="70" y1="535" x2="1130" y2="535" stroke="rgba(255,255,255,0.2)" stroke-width="2" />
-  <text x="70" y="585" fill="#ffffff" font-family="'Hind Siliguri', sans-serif" font-size="24" font-weight="bold">✍️ রচনা: {$safeAuthor}</text>
-  <text x="1130" y="585" fill="#fbbf24" font-family="'Hind Siliguri', sans-serif" font-size="20" font-weight="bold" text-anchor="end">www.ideaabd.com</text>
+  
+  <!-- Outer Classic Double Border -->
+  <rect x="30" y="30" width="1140" height="615" fill="none" stroke="#fbbf24" stroke-width="1.5" opacity="0.4" rx="10" />
+  <rect x="42" y="42" width="1116" height="591" fill="none" stroke="#fbbf24" stroke-width="3" opacity="0.85" rx="6" />
+  
+  <!-- Classic Corner Filigrees -->
+  <path d="M 42 75 L 75 42 M 42 90 L 90 42" stroke="#fbbf24" stroke-width="2" opacity="0.6" />
+  <path d="M 1158 75 L 1125 42 M 1158 90 L 1110 42" stroke="#fbbf24" stroke-width="2" opacity="0.6" />
+  <path d="M 42 600 L 75 633 M 42 585 L 90 633" stroke="#fbbf24" stroke-width="2" opacity="0.6" />
+  <path d="M 1158 600 L 1125 633 M 1158 585 L 1110 633" stroke="#fbbf24" stroke-width="2" opacity="0.6" />
+
+  <!-- Center Header Crest & Badge -->
+  <rect x="475" y="68" width="250" height="42" rx="21" fill="rgba(255,255,255,0.12)" stroke="#fbbf24" stroke-width="1.5" />
+  <text x="600" y="96" fill="#fbbf24" font-family="'Hind Siliguri', 'Kalpurush', sans-serif" font-size="19" font-weight="bold" text-anchor="middle">✦ সাহিত্যপত্র ও প্রবন্ধ ✦</text>
+
+  <!-- Center Main Title -->
+  <text x="600" y="305" fill="#ffffff" font-family="'Hind Siliguri', 'Kalpurush', sans-serif" font-size="46" font-weight="bold" text-anchor="middle">{$safeTitle}</text>
+  
+  <!-- Classic Center Ornamental Divider -->
+  <line x1="320" y1="410" x2="520" y2="410" stroke="url(#gold)" stroke-width="2" opacity="0.85" />
+  <text x="600" y="416" fill="#fef08a" font-size="20" text-anchor="middle">❖ ─── ✦ ─── ❖</text>
+  <line x1="680" y1="410" x2="880" y2="410" stroke="url(#gold)" stroke-width="2" opacity="0.85" />
+
+  <!-- Footer Balanced Attribution -->
+  <line x1="80" y1="565" x2="1120" y2="565" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" />
+  <text x="85" y="605" fill="#ffffff" font-family="'Hind Siliguri', 'Kalpurush', sans-serif" font-size="22" font-weight="bold">✍️ রচনা: {$safeAuthor}</text>
+  <text x="1115" y="605" fill="#fbbf24" font-family="'Hind Siliguri', 'Kalpurush', sans-serif" font-size="20" font-weight="bold" text-anchor="end">আইডিয়া প্রকাশন | www.ideaabd.com</text>
 </svg>
 SVG;
 

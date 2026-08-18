@@ -7,12 +7,12 @@
 
     {{-- Prominent Feedback Alerts (Success, Error with guidance, Validation errors) --}}
     @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show rounded-4 border-0 shadow-sm p-3 mb-4 d-flex align-items-center gap-3 bg-success bg-opacity-10 border-start border-4 border-success" role="alert">
-            <div class="rounded-circle bg-success text-white p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 40px; height: 40px;">
-                <i class="fa-solid fa-check fs-5"></i>
+        <div class="alert alert-success alert-dismissible fade show rounded-4 border-0 shadow-sm p-3.5 mb-4 d-flex align-items-center gap-3 bg-success bg-opacity-10 border-start border-4 border-success" role="alert">
+            <div class="rounded-circle bg-success text-white p-2 d-flex align-items-center justify-content-center flex-shrink-0 shadow-xs" style="width: 44px; height: 44px;">
+                <i class="fa-solid fa-circle-check fs-4"></i>
             </div>
             <div class="flex-grow-1">
-                <div class="fw-bold text-success">সফলভাবে সম্পন্ন হয়েছে!</div>
+                <div class="fw-bold text-success fs-6">🎉 আপনার পোস্ট সাবমিট হয়েছে!</div>
                 <div class="text-dark small">{{ session('success') }}</div>
             </div>
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
@@ -623,72 +623,119 @@
 </div>
 
 {{-- ========================================================================= --}}
-{{-- MODAL: AI / TITLE PHOTOCARD GENERATOR (এআই ফটোকার্ড জেনারেটর)            --}}
+{{-- MODAL: AI / TITLE PHOTOCARD GENERATOR (এআই ফটোকার্ড জেনারেটর - ক্লাসিক ভার্সন)  --}}
 {{-- ========================================================================= --}}
 <div class="modal fade" id="aiPhotocardModal" tabindex="-1" aria-labelledby="aiPhotocardModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
-            <div class="modal-header bg-gradient text-white py-3 px-4" style="background: linear-gradient(135deg, #064e3b 0%, #047857 100%);">
+            <div class="modal-header text-white py-3 px-4" style="background: linear-gradient(135deg, #064e3b 0%, #0f172a 100%);">
                 <div class="d-flex align-items-center gap-2">
-                    <i class="fa-solid fa-wand-magic-sparkles text-warning fs-4"></i>
+                    <div class="rounded-circle bg-warning bg-opacity-25 p-2 d-flex align-items-center justify-content-center text-warning">
+                        <i class="fa-solid fa-wand-magic-sparkles fs-5"></i>
+                    </div>
                     <div>
-                        <h5 class="modal-title fw-bold text-white mb-0" id="aiPhotocardModalLabel">এআই ফটোকার্ড কভার জেনারেটর</h5>
-                        <small class="text-white-50">লেখার শিরোনাম ও বিষয়ের ওপর ভিত্তি করে সরাসরি ফটোকার্ড তৈরি করুন</small>
+                        <h5 class="modal-title fw-bold text-white mb-0" id="aiPhotocardModalLabel">এআই ফটোকার্ড ও কভার জেনারেটর</h5>
+                        <small class="text-white-50">ক্লাসিক সাহিত্যিক স্টাইলে ফটোকার্ড তৈরি ও কালার কাস্টমাইজ করুন</small>
                     </div>
                 </div>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             
-            <div class="modal-body p-4 bg-light">
+            <div class="modal-body p-3 p-md-4 bg-light">
                 <div class="row g-3">
                     <!-- Live Canvas Preview Box -->
                     <div class="col-12 text-center">
                         <div class="p-2 bg-white rounded-4 shadow-sm border mx-auto" style="max-width: 650px;">
-                            <div class="position-relative rounded-3 overflow-hidden" style="aspect-ratio: 16/9; background: #0f172a;">
+                            <div class="position-relative rounded-3 overflow-hidden" style="aspect-ratio: 16/9; background: #022c22;">
                                 <canvas id="aiPhotocardCanvas" width="1200" height="675" style="width: 100%; height: 100%; object-fit: contain;"></canvas>
                             </div>
                             <div class="d-flex align-items-center justify-content-between px-2 pt-2 text-muted" style="font-size: 0.75rem;">
-                                <span><i class="fa-solid fa-expand me-1"></i> রেজোলিউশন: ১২০০ × ৬৭৫ px (আল্ট্রা এইচডি)</span>
-                                <span><i class="fa-solid fa-shield-halved text-success me-1"></i> আইডিয়া সাহিত্যপত্র অফিশিয়াল ফরম্যাট</span>
+                                <span><i class="fa-solid fa-expand me-1 text-primary"></i> ১২০০ × ৬৭৫ px (১৬:৯ আল্ট্রা এইচডি)</span>
+                                <span><i class="fa-solid fa-gem text-warning me-1"></i> ক্লাসিক সাহিত্যপত্র এডিশন</span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Customization Controls -->
+                    <!-- Customization Controls Panel -->
                     <div class="col-12">
-                        <div class="card border-0 rounded-3 p-3 bg-white shadow-xs">
-                            <label class="form-label small fw-bold text-dark mb-2">
-                                <i class="fa-solid fa-palette text-primary me-1"></i> নান্দনিক কালার থিম নির্বাচন করুন:
-                            </label>
-                            <div class="d-flex flex-wrap gap-2 mb-3" id="aiThemeButtons">
-                                <button type="button" class="btn btn-sm btn-outline-success active rounded-pill px-3" onclick="selectAiTheme('emerald')">
-                                    🟢 রাজকীয় সবুজ (Emerald)
-                                </button>
-                                <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3" onclick="selectAiTheme('midnight')">
-                                    🔵 মধ্যরাতের নীল (Midnight)
-                                </button>
-                                <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-3" onclick="selectAiTheme('crimson')">
-                                    🔴 সানসেট ক্রিমসন (Crimson)
-                                </button>
-                                <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" onclick="selectAiTheme('purple')">
-                                    🟣 রয়্যাল পার্পল (Violet)
-                                </button>
-                                <button type="button" class="btn btn-sm btn-outline-warning text-dark rounded-pill px-3" onclick="selectAiTheme('vintage')">
-                                    📜 ক্লাসিক ভিন্টেজ (Parchment)
-                                </button>
-                                <button type="button" class="btn btn-sm btn-outline-dark rounded-pill px-3" onclick="selectAiTheme('slate')">
-                                    ⚫ স্লিক গ্রাফাইট (Onyx)
-                                </button>
+                        <div class="card border-0 rounded-4 p-3 bg-white shadow-xs">
+                            
+                            <!-- 1. Preset Themes -->
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold text-dark mb-1.5 d-flex align-items-center justify-content-between">
+                                    <span><i class="fa-solid fa-palette text-success me-1"></i> ক্লাসিক কালার থিম:</span>
+                                    <span class="text-muted fw-normal" style="font-size: 0.72rem;">পছন্দের থিমে ক্লিক করুন</span>
+                                </label>
+                                <div class="d-flex flex-wrap gap-1.5" id="aiThemeButtons">
+                                    <button type="button" class="btn btn-sm btn-outline-success active rounded-pill px-2.5 py-1" onclick="selectAiTheme('emerald')">
+                                        🌿 হেরিটেজ এমারেল্ড
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-2.5 py-1" onclick="selectAiTheme('navy')">
+                                        👑 রয়্যাল গোল্ড ও নেভি
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-warning text-dark rounded-pill px-2.5 py-1" onclick="selectAiTheme('parchment')">
+                                        📜 ভিন্টেজ পার্চমেন্ট
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-2.5 py-1" onclick="selectAiTheme('crimson')">
+                                        🍷 ক্লাসিক বোরদক্স
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5 py-1" onclick="selectAiTheme('purple')">
+                                        ✒️ ইম্পেরিয়াল ভায়োলেট
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-dark rounded-pill px-2.5 py-1" onclick="selectAiTheme('onyx')">
+                                        🏛️ চারকোল ও সিলভার
+                                    </button>
+                                </div>
                             </div>
 
+                            <!-- 2. Custom Color Picker & Alignment -->
+                            <div class="row g-2 mb-3 align-items-center bg-light p-2.5 rounded-3 border">
+                                <div class="col-12 col-md-6">
+                                    <label class="form-label small fw-bold text-dark mb-1">
+                                        <i class="fa-solid fa-sliders text-primary me-1"></i> কালার কাস্টমাইজেশন:
+                                    </label>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="d-flex align-items-center gap-1">
+                                            <input type="color" id="aiColorBg1" value="#022c22" class="form-control form-control-color p-0.5 border rounded-2" style="width: 32px; height: 32px; cursor: pointer;" title="ব্যাকগ্রাউন্ড কালার ১" onchange="onCustomColorChange()">
+                                            <span class="small text-muted" style="font-size: 0.72rem;">রং ১</span>
+                                        </div>
+                                        <div class="d-flex align-items-center gap-1">
+                                            <input type="color" id="aiColorBg2" value="#064e3b" class="form-control form-control-color p-0.5 border rounded-2" style="width: 32px; height: 32px; cursor: pointer;" title="ব্যাকগ্রাউন্ড কালার ২" onchange="onCustomColorChange()">
+                                            <span class="small text-muted" style="font-size: 0.72rem;">রং ২</span>
+                                        </div>
+                                        <div class="d-flex align-items-center gap-1">
+                                            <input type="color" id="aiColorAccent" value="#fbbf24" class="form-control form-control-color p-0.5 border rounded-2" style="width: 32px; height: 32px; cursor: pointer;" title="বর্ডার ও হাইলাইট গোল্ডেন কালার" onchange="onCustomColorChange()">
+                                            <span class="small text-muted" style="font-size: 0.72rem;">বর্ডার/অ্যাকসেন্ট</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-12 col-md-6">
+                                    <label class="form-label small fw-bold text-dark mb-1">
+                                        <i class="fa-solid fa-align-center text-primary me-1"></i> শিরোনাম সেটিং ও অ্যালাইনমেন্ট:
+                                    </label>
+                                    <div class="btn-group btn-group-sm w-100" role="group" aria-label="Alignment">
+                                        <button type="button" id="alignCenterBtn" class="btn btn-success active fw-semibold" onclick="setAiAlignment('center')">
+                                            <i class="fa-solid fa-align-center me-1"></i> সেন্টার এলাইন (ক্লাসিক)
+                                        </button>
+                                        <button type="button" id="alignLeftBtn" class="btn btn-outline-secondary fw-semibold" onclick="setAiAlignment('left')">
+                                            <i class="fa-solid fa-align-left me-1"></i> লেফট এলাইন
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 3. Title & Subtitle Inputs -->
                             <div class="row g-2">
                                 <div class="col-md-6">
-                                    <label class="form-label small fw-semibold mb-1">কার্ডে প্রদর্শিত শিরোনাম:</label>
-                                    <input type="text" id="aiCardCustomTitle" class="form-control form-control-sm" oninput="renderAiPhotocard()">
+                                    <label class="form-label small fw-semibold mb-1 text-dark">কার্ডের মূল শিরোনাম:</label>
+                                    <input type="text" id="aiCardCustomTitle" class="form-control form-control-sm rounded-2" 
+                                           placeholder="যেমন: আমাদের প্রেম ও কিছু কবিতা" oninput="renderAiPhotocard()">
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label small fw-semibold mb-1">উপ-শিরোনাম / সাব-ট্যাগলাইন:</label>
-                                    <input type="text" id="aiCardCustomSubtitle" class="form-control form-control-sm" oninput="renderAiPhotocard()">
+                                    <label class="form-label small fw-semibold mb-1 text-dark">উপ-শিরোনাম / ট্যাগলাইন (ঐচ্ছিক):</label>
+                                    <input type="text" id="aiCardCustomSubtitle" class="form-control form-control-sm rounded-2" 
+                                           placeholder="যেমন: একটি সাহিত্যিক মূল্যায়ন..." oninput="renderAiPhotocard()">
                                 </div>
                             </div>
                         </div>
@@ -696,12 +743,12 @@
                 </div>
             </div>
 
-            <div class="modal-footer bg-white border-top py-3 px-4 d-flex justify-content-between">
+            <div class="modal-footer bg-white border-top py-3 px-4 d-flex flex-wrap justify-content-between gap-2">
                 <button type="button" class="btn btn-outline-secondary rounded-pill px-3" onclick="downloadGeneratedPhotocard()">
-                    <i class="fa-solid fa-download me-1"></i> ছবি ডাউনলোড করুন
+                    <i class="fa-solid fa-download me-1"></i> ইমেজ ডাউনলোড
                 </button>
                 <div class="d-flex gap-2">
-                    <button type="button" class="btn btn-light rounded-pill px-3" data-bs-dismiss="modal">বাতিল</button>
+                    <button type="button" class="btn btn-light rounded-pill px-3" data-bs-dismiss="modal">বন্ধ করুন</button>
                     <button type="button" class="btn btn-success rounded-pill px-4 fw-bold shadow-sm" onclick="applyGeneratedPhotocardToForm()">
                         <i class="fa-solid fa-check-circle me-1.5"></i> এই ফটোকার্ডটি ব্লগে ব্যবহার করুন
                     </button>
@@ -713,6 +760,8 @@
 
 <script>
     let currentAiTheme = 'emerald';
+    let aiAlignment = 'center'; // Center alignment is default classic
+    let isCustomColor = false;
     const authorNameGlobal = "{{ $user->name }}";
 
     function switchTab(tabName) {
@@ -896,7 +945,7 @@
 
         if (input) {
             input.value = '';
-            input.required = true;
+            input.required = false;
         }
         if (aiInput) aiInput.value = '';
         if (previewImg) previewImg.src = '';
@@ -930,13 +979,88 @@
     }
 
     function selectAiTheme(themeName) {
+        isCustomColor = false;
         currentAiTheme = themeName;
+        
+        const container = document.getElementById('aiThemeButtons');
+        if (container) {
+            container.querySelectorAll('button').forEach(btn => btn.classList.remove('active', 'btn-success', 'btn-primary', 'btn-danger', 'btn-secondary', 'btn-dark', 'btn-warning'));
+            container.querySelectorAll('button').forEach(btn => {
+                if (!btn.className.includes('btn-outline-')) {
+                    btn.classList.add('btn-outline-secondary');
+                }
+            });
+        }
+        if (event && event.currentTarget) {
+            event.currentTarget.classList.add('active');
+        }
+
+        // Sync color pickers with preset
+        const col1 = document.getElementById('aiColorBg1');
+        const col2 = document.getElementById('aiColorBg2');
+        const colAcc = document.getElementById('aiColorAccent');
+
+        switch (themeName) {
+            case 'navy':
+                if (col1) col1.value = '#0a192f';
+                if (col2) col2.value = '#1e3a8a';
+                if (colAcc) colAcc.value = '#fbbf24';
+                break;
+            case 'parchment':
+                if (col1) col1.value = '#38220f';
+                if (col2) col2.value = '#582f0e';
+                if (colAcc) colAcc.value = '#fef08a';
+                break;
+            case 'crimson':
+                if (col1) col1.value = '#450a0a';
+                if (col2) col2.value = '#7f1d1d';
+                if (colAcc) colAcc.value = '#fde047';
+                break;
+            case 'purple':
+                if (col1) col1.value = '#2e1065';
+                if (col2) col2.value = '#581c87';
+                if (colAcc) colAcc.value = '#f0abfc';
+                break;
+            case 'onyx':
+                if (col1) col1.value = '#090d16';
+                if (col2) col2.value = '#1e293b';
+                if (colAcc) colAcc.value = '#38bdf8';
+                break;
+            case 'emerald':
+            default:
+                if (col1) col1.value = '#022c22';
+                if (col2) col2.value = '#064e3b';
+                if (colAcc) colAcc.value = '#fbbf24';
+                break;
+        }
+
+        renderAiPhotocard();
+    }
+
+    function onCustomColorChange() {
+        isCustomColor = true;
         const container = document.getElementById('aiThemeButtons');
         if (container) {
             container.querySelectorAll('button').forEach(btn => btn.classList.remove('active'));
         }
-        if (event && event.target) {
-            event.target.classList.add('active');
+        renderAiPhotocard();
+    }
+
+    function setAiAlignment(align) {
+        aiAlignment = align;
+        const centerBtn = document.getElementById('alignCenterBtn');
+        const leftBtn = document.getElementById('alignLeftBtn');
+
+        if (align === 'center') {
+            centerBtn.classList.add('btn-success', 'active');
+            centerBtn.classList.remove('btn-outline-secondary');
+            leftBtn.classList.remove('btn-success', 'active');
+            leftBtn.classList.add('btn-outline-secondary');
+        } else {
+            leftBtn.classList.add('btn-success', 'active');
+            leftBtn.classList.remove('btn-outline-secondary');
+            centerBtn.classList.remove('btn-success', 'active');
+            centerBtn.classList.add('btn-outline-secondary');
         }
         renderAiPhotocard();
     }
@@ -956,139 +1080,217 @@
         const catSelect = document.querySelector('select[name="category_id"]');
         const category = catSelect && catSelect.selectedIndex > 0 ? catSelect.options[catSelect.selectedIndex].text : 'সাহিত্যপত্র ও ব্লগ';
 
-        // Background Theme Gradients
-        let bgGradient = ctx.createLinearGradient(0, 0, W, H);
-        let accentColor = '#fbbf24';
-        let badgeBg = 'rgba(255, 255, 255, 0.15)';
+        // Colors calculation
+        let bg1, bg2, accentColor;
 
-        switch (currentAiTheme) {
-            case 'midnight':
-                bgGradient.addColorStop(0, '#0f172a');
-                bgGradient.addColorStop(0.5, '#1e3a8a');
-                bgGradient.addColorStop(1, '#1e1b4b');
-                accentColor = '#38bdf8';
-                break;
-            case 'crimson':
-                bgGradient.addColorStop(0, '#450a0a');
-                bgGradient.addColorStop(0.5, '#991b1b');
-                bgGradient.addColorStop(1, '#7f1d1d');
-                accentColor = '#fde047';
-                break;
-            case 'purple':
-                bgGradient.addColorStop(0, '#2e1065');
-                bgGradient.addColorStop(0.5, '#581c87');
-                bgGradient.addColorStop(1, '#3b0764');
-                accentColor = '#e879f9';
-                break;
-            case 'vintage':
-                bgGradient.addColorStop(0, '#451a03');
-                bgGradient.addColorStop(0.5, '#78350f');
-                bgGradient.addColorStop(1, '#291104');
-                accentColor = '#fef08a';
-                break;
-            case 'slate':
-                bgGradient.addColorStop(0, '#090d16');
-                bgGradient.addColorStop(0.5, '#1e293b');
-                bgGradient.addColorStop(1, '#0f172a');
-                accentColor = '#34d399';
-                break;
-            case 'emerald':
-            default:
-                bgGradient.addColorStop(0, '#022c22');
-                bgGradient.addColorStop(0.5, '#065f46');
-                bgGradient.addColorStop(1, '#064e3b');
-                accentColor = '#fbbf24';
-                break;
+        if (isCustomColor) {
+            bg1 = document.getElementById('aiColorBg1')?.value || '#022c22';
+            bg2 = document.getElementById('aiColorBg2')?.value || '#064e3b';
+            accentColor = document.getElementById('aiColorAccent')?.value || '#fbbf24';
+        } else {
+            switch (currentAiTheme) {
+                case 'navy':
+                    bg1 = '#07152b'; bg2 = '#1e3a8a'; accentColor = '#fbbf24';
+                    break;
+                case 'parchment':
+                    bg1 = '#321c0b'; bg2 = '#542c0d'; accentColor = '#fef08a';
+                    break;
+                case 'crimson':
+                    bg1 = '#3b0606'; bg2 = '#7f1d1d'; accentColor = '#fde047';
+                    break;
+                case 'purple':
+                    bg1 = '#200b47'; bg2 = '#581c87'; accentColor = '#f0abfc';
+                    break;
+                case 'onyx':
+                    bg1 = '#090d16'; bg2 = '#1e293b'; accentColor = '#38bdf8';
+                    break;
+                case 'emerald':
+                default:
+                    bg1 = '#022c22'; bg2 = '#064e3b'; accentColor = '#fbbf24';
+                    break;
+            }
         }
 
-        // 1. Draw Background
+        // 1. Background Gradient
+        const bgGradient = ctx.createLinearGradient(0, 0, W, H);
+        bgGradient.addColorStop(0, bg1);
+        bgGradient.addColorStop(0.5, bg2);
+        bgGradient.addColorStop(1, bg1);
         ctx.fillStyle = bgGradient;
         ctx.fillRect(0, 0, W, H);
 
-        // 2. Artistic Vignette & Decorative Lighting Circles
-        const radGrad = ctx.createRadialGradient(W * 0.75, H * 0.3, 50, W * 0.75, H * 0.3, 450);
-        radGrad.addColorStop(0, 'rgba(255, 255, 255, 0.12)');
-        radGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        // 2. Artistic Center Glow
+        const radGrad = ctx.createRadialGradient(W / 2, H * 0.45, 50, W / 2, H * 0.45, 550);
+        radGrad.addColorStop(0, hexToRgba(accentColor, 0.15));
+        radGrad.addColorStop(1, 'rgba(0, 0, 0, 0.45)');
         ctx.fillStyle = radGrad;
         ctx.fillRect(0, 0, W, H);
 
-        // 3. Elegant Decorative Corner Borders
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.18)';
-        ctx.lineWidth = 3;
-        ctx.strokeRect(35, 35, W - 70, H - 70);
+        // 3. Classic Royal Double Borders & Filigree Corners
+        ctx.strokeStyle = hexToRgba(accentColor, 0.35);
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(30, 30, W - 60, H - 60);
 
         ctx.strokeStyle = accentColor;
-        ctx.lineWidth = 4;
-        // Top-left corner
-        ctx.beginPath();
-        ctx.moveTo(35, 85); ctx.lineTo(35, 35); ctx.lineTo(85, 35);
-        ctx.stroke();
-        // Bottom-right corner
-        ctx.beginPath();
-        ctx.moveTo(W - 35, H - 85); ctx.lineTo(W - 35, H - 35); ctx.lineTo(W - 85, H - 35);
-        ctx.stroke();
+        ctx.lineWidth = 3;
+        ctx.strokeRect(42, 42, W - 84, H - 84);
 
-        // 4. Header Badge: Category & Branding
-        ctx.fillStyle = badgeBg;
-        roundRect(ctx, 70, 65, 260, 48, 24, true, false);
+        // Corner ornaments
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = accentColor;
+        // Top Left
+        ctx.beginPath(); ctx.moveTo(42, 75); ctx.lineTo(75, 42); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(42, 90); ctx.lineTo(90, 42); ctx.stroke();
+        // Top Right
+        ctx.beginPath(); ctx.moveTo(W - 42, 75); ctx.lineTo(W - 75, 42); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(W - 42, 90); ctx.lineTo(W - 90, 42); ctx.stroke();
+        // Bottom Left
+        ctx.beginPath(); ctx.moveTo(42, H - 75); ctx.lineTo(75, H - 42); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(42, H - 90); ctx.lineTo(90, H - 42); ctx.stroke();
+        // Bottom Right
+        ctx.beginPath(); ctx.moveTo(W - 42, H - 75); ctx.lineTo(W - 75, H - 42); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(W - 42, H - 90); ctx.lineTo(W - 90, H - 42); ctx.stroke();
 
-        ctx.fillStyle = accentColor;
-        ctx.font = 'bold 22px "Hind Siliguri", "Segoe UI", sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText("✦ " + category, 200, 97);
+        // 4. Header Category Badge
+        if (aiAlignment === 'center') {
+            // Centered Header Badge
+            const badgeW = 280;
+            const badgeH = 42;
+            const badgeX = (W - badgeW) / 2;
+            const badgeY = 68;
 
-        // Right Branding Badge
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
-        ctx.font = '600 20px "Hind Siliguri", sans-serif';
-        ctx.textAlign = 'right';
-        ctx.fillText("আইডিয়া সাহিত্যপত্র ও ব্লগ", W - 70, 97);
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.12)';
+            ctx.strokeStyle = hexToRgba(accentColor, 0.7);
+            ctx.lineWidth = 1.5;
+            roundRect(ctx, badgeX, badgeY, badgeW, badgeH, 21, true, true);
 
-        // 5. Main Title (Auto Wrap Multi-Line)
+            ctx.fillStyle = accentColor;
+            ctx.font = 'bold 20px "Hind Siliguri", "Segoe UI", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText("✦ " + category + " ✦", W / 2, badgeY + 28);
+        } else {
+            // Left Aligned Header Badge
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.12)';
+            ctx.strokeStyle = hexToRgba(accentColor, 0.7);
+            ctx.lineWidth = 1.5;
+            roundRect(ctx, 70, 68, 260, 42, 21, true, true);
+
+            ctx.fillStyle = accentColor;
+            ctx.font = 'bold 20px "Hind Siliguri", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText("✦ " + category, 200, 96);
+
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
+            ctx.font = '600 18px "Hind Siliguri", sans-serif';
+            ctx.textAlign = 'right';
+            ctx.fillText("আইডিয়া সাহিত্যপত্র", W - 70, 96);
+        }
+
+        // 5. Main Title Calculation & Multi-Line Wrapping
+        let fontSize = 54;
+        if (title.length > 35) fontSize = 46;
+        if (title.length > 60) fontSize = 38;
+        if (title.length > 90) fontSize = 32;
+
+        ctx.font = `bold ${fontSize}px "Hind Siliguri", "Kalpurush", "SolaimanLipi", sans-serif`;
         ctx.fillStyle = '#ffffff';
-        ctx.textAlign = 'left';
-        ctx.shadowColor = 'rgba(0, 0, 0, 0.6)';
-        ctx.shadowBlur = 15;
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.75)';
+        ctx.shadowBlur = 16;
         ctx.shadowOffsetX = 2;
         ctx.shadowOffsetY = 4;
 
-        let fontSize = 54;
-        if (title.length > 50) fontSize = 42;
-        if (title.length > 80) fontSize = 36;
-        ctx.font = `bold ${fontSize}px "Hind Siliguri", "Segoe UI", sans-serif`;
-
-        const maxWidth = W - 140;
+        const maxTextWidth = W - 180;
         const lineHeight = fontSize * 1.35;
-        const startY = subtitle ? 230 : 270;
-        wrapText(ctx, title, 70, startY, maxWidth, lineHeight);
+        const startY = subtitle ? (aiAlignment === 'center' ? 240 : 220) : (aiAlignment === 'center' ? 280 : 260);
+
+        if (aiAlignment === 'center') {
+            ctx.textAlign = 'center';
+            wrapTextCenter(ctx, title, W / 2, startY, maxTextWidth, lineHeight);
+        } else {
+            ctx.textAlign = 'left';
+            wrapText(ctx, title, 75, startY, maxTextWidth, lineHeight);
+        }
 
         // Reset Shadow
         ctx.shadowColor = 'transparent';
 
-        // 6. Subtitle / Tagline (If provided)
+        // 6. Subtitle / Tagline
         if (subtitle) {
             ctx.fillStyle = accentColor;
-            ctx.font = 'italic 28px "Hind Siliguri", sans-serif';
-            ctx.fillText(subtitle, 70, startY + (lineHeight * 2.2));
+            ctx.font = 'italic 26px "Hind Siliguri", "Kalpurush", sans-serif';
+            if (aiAlignment === 'center') {
+                ctx.textAlign = 'center';
+                ctx.fillText(`“ ${subtitle} ”`, W / 2, startY + (lineHeight * 1.8) + 15);
+            } else {
+                ctx.textAlign = 'left';
+                ctx.fillText(subtitle, 75, startY + (lineHeight * 1.8) + 15);
+            }
         }
 
-        // 7. Divider Line
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(70, H - 140);
-        ctx.lineTo(W - 70, H - 140);
-        ctx.stroke();
+        // 7. Center Classic Ornamental Divider
+        const dividerY = H - 150;
+        ctx.strokeStyle = hexToRgba(accentColor, 0.5);
+        ctx.lineWidth = 1.5;
 
-        // 8. Footer Credit: Author Name & Idea Logo Mark
+        if (aiAlignment === 'center') {
+            ctx.beginPath(); ctx.moveTo(W / 2 - 250, dividerY); ctx.lineTo(W / 2 - 60, dividerY); ctx.stroke();
+            ctx.fillStyle = accentColor;
+            ctx.font = 'bold 20px "Hind Siliguri", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText("❖ ─── ✦ ─── ❖", W / 2, dividerY + 6);
+            ctx.beginPath(); ctx.moveTo(W / 2 + 60, dividerY); ctx.lineTo(W / 2 + 250, dividerY); ctx.stroke();
+        } else {
+            ctx.beginPath(); ctx.moveTo(75, dividerY); ctx.lineTo(W - 75, dividerY); ctx.stroke();
+        }
+
+        // 8. Footer Credit & Attribution
+        const footerY = H - 85;
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 26px "Hind Siliguri", sans-serif';
+        ctx.font = 'bold 24px "Hind Siliguri", "Kalpurush", sans-serif';
         ctx.textAlign = 'left';
-        ctx.fillText("✍️ রচনা: " + authorNameGlobal, 70, H - 85);
+        ctx.fillText("✍️ রচনা: " + authorNameGlobal, 75, footerY);
 
         ctx.fillStyle = accentColor;
-        ctx.font = 'bold 22px "Hind Siliguri", sans-serif';
+        ctx.font = 'bold 20px "Hind Siliguri", sans-serif';
         ctx.textAlign = 'right';
-        ctx.fillText("www.ideaabd.com", W - 70, H - 85);
+        ctx.fillText("আইডিয়া প্রকাশন | www.ideaabd.com", W - 75, footerY);
+    }
+
+    function hexToRgba(hex, alpha) {
+        let c;
+        if (/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)) {
+            c = hex.substring(1).split('');
+            if (c.length === 3) {
+                c = [c[0], c[0], c[1], c[1], c[2], c[2]];
+            }
+            c = '0x' + c.join('');
+            return 'rgba(' + [(c >> 16) & 255, (c >> 8) & 255, c & 255].join(',') + ',' + alpha + ')';
+        }
+        return hex;
+    }
+
+    function wrapTextCenter(ctx, text, centerX, startY, maxWidth, lineHeight) {
+        const words = text.split(' ');
+        let line = '';
+        const lines = [];
+
+        for (let n = 0; n < words.length; n++) {
+            const testLine = line + words[n] + ' ';
+            const metrics = ctx.measureText(testLine);
+            if (metrics.width > maxWidth && n > 0) {
+                lines.push(line.trim());
+                line = words[n] + ' ';
+            } else {
+                line = testLine;
+            }
+        }
+        lines.push(line.trim());
+
+        let currentY = startY;
+        for (let i = 0; i < lines.length; i++) {
+            ctx.fillText(lines[i], centerX, currentY);
+            currentY += lineHeight;
+        }
     }
 
     function applyGeneratedPhotocardToForm() {
@@ -1110,8 +1312,8 @@
             fileInput.required = false; // File upload is optional since AI card is attached
         }
         if (previewImg) previewImg.src = dataUrl;
-        if (statusBadge) statusBadge.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles me-1"></i>এআই ফটোকার্ড প্রস্তুত';
-        if (dimText) dimText.textContent = 'রেজোলিউশন: ১২০০×৬৭৫ px (অটো-জেনারেটেড এইচডি)';
+        if (statusBadge) statusBadge.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles me-1"></i>ক্লাসিক ফটোকার্ড প্রস্তুত';
+        if (dimText) dimText.textContent = 'রেজোলিউশন: ১২০০×৬৭৫ px (১৬:৯ ক্লাসিক সাহিত্যপত্র)';
         if (previewWrapper) previewWrapper.style.display = 'flex';
         if (errorAlert) errorAlert.classList.add('d-none');
 
@@ -1120,7 +1322,7 @@
             bootstrap.Modal.getInstance(modalEl)?.hide();
         }
 
-        alert("✨ এআই ফটোকার্ডটি সফলভাবে আপনার ব্লগ পোস্টের জন্য যুক্ত হয়েছে!");
+        alert("✨ ক্লাসিক ফটোকার্ডটি সফলভাবে আপনার লেখার কভার ছবি হিসেবে যুক্ত হয়েছে!");
     }
 
     function downloadGeneratedPhotocard() {
@@ -1152,6 +1354,7 @@
         }
         ctx.fillText(line, x, currentY);
     }
+
 
     function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
         ctx.beginPath();
