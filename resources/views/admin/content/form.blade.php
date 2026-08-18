@@ -35,9 +35,36 @@
 @endsection
 
 @section('actions')
-    <a href="{{ route($spec['listRoute']) }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
-        <i class="fas fa-arrow-left me-1"></i> তালিকায় ফিরুন
-    </a>
+    <div class="d-flex flex-wrap align-items-center gap-2">
+        @if ($editing)
+            @if ($spec['key'] === 'webzines')
+                <a href="{{ route('webzine.read', $record->slug ?: $record->id) }}" target="_blank" class="btn btn-outline-info btn-sm rounded-pill px-3 shadow-xs">
+                    <i class="fas fa-book-open me-1"></i> সরাসরি পড়ুন (Reader)
+                </a>
+                <a href="{{ route('webzine.show', $record->slug ?: $record->id) }}" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-xs">
+                    <i class="fas fa-arrow-up-right-from-square me-1"></i> সাইটে দেখুন
+                </a>
+            @elseif ($spec['key'] === 'ebooks')
+                <a href="{{ route('ebooks.read', $record->slug ?: $record->id) }}" target="_blank" class="btn btn-outline-info btn-sm rounded-pill px-3 shadow-xs">
+                    <i class="fas fa-book-open me-1"></i> সরাসরি পড়ুন (Reader)
+                </a>
+                <a href="{{ route('ebooks.show', $record->slug ?: $record->id) }}" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-xs">
+                    <i class="fas fa-arrow-up-right-from-square me-1"></i> সাইটে দেখুন
+                </a>
+            @elseif ($spec['key'] === 'books')
+                <a href="{{ route('books.show', $record->slug ?: $record->id) }}" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-xs">
+                    <i class="fas fa-arrow-up-right-from-square me-1"></i> সাইটে দেখুন
+                </a>
+            @elseif ($spec['key'] === 'blog')
+                <a href="{{ route('blog.show', $record->slug ?: $record->id) }}" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-xs">
+                    <i class="fas fa-arrow-up-right-from-square me-1"></i> সাইটে দেখুন
+                </a>
+            @endif
+        @endif
+        <a href="{{ route($spec['listRoute']) }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="fas fa-arrow-left me-1"></i> তালিকায় ফিরুন
+        </a>
+    </div>
 @endsection
 
 @section('content')
@@ -718,6 +745,43 @@
             </div>
         @endif
 
+        {{-- Live Webzine Card & Reader Mockup --}}
+        @if ($spec['key'] === 'webzines')
+            <div class="adm-card p-3 mb-3">
+                <h6 class="fw-bold mb-2 text-dark d-flex align-items-center justify-content-between">
+                    <span><i class="fas fa-newspaper me-1.5 text-info"></i> ওয়েবজিন লাইভ কার্ড ও রিডার</span>
+                    <span class="badge bg-info-subtle text-info small rounded-pill">লাইভ স্ট্যাটাস</span>
+                </h6>
+                <div class="p-3 bg-light rounded-3 border text-center">
+                    <div class="position-relative mx-auto mb-2" style="max-width: 140px;">
+                        <img id="mockupCoverImg" 
+                             src="{{ ($editing && !empty($record->cover_image)) ? (str_starts_with($record->cover_image, 'http') ? $record->cover_image : asset('storage/' . ltrim($record->cover_image, '/'))) : 'https://placehold.co/300x450/e2e8f0/475569?text=Webzine+Cover' }}" 
+                             alt="Webzine Cover" class="img-fluid rounded shadow-sm border" style="aspect-ratio: 2/3; object-fit: cover; width: 100%;">
+                        <span id="mockupIssueBadge" class="badge bg-primary position-absolute top-0 start-0 m-1 shadow-xs">
+                            {{ $editing ? ($record->issue_number ?? 'সংখ্যা') : '১ম সংখ্যা' }}
+                        </span>
+                    </div>
+                    <div id="mockupTitle" class="fw-bold text-dark text-truncate mb-0.5" style="font-size: 0.95rem;">
+                        {{ $editing ? ($record->title ?? 'ওয়েবজিনের শিরোনাম') : 'ওয়েবজিনের শিরোনাম' }}
+                    </div>
+                    <div id="mockupPublisher" class="small text-muted mb-2 text-truncate" style="font-size: 0.8rem;">
+                        {{ $editing && $record->publisher ? $record->publisher->name : 'আইডিয়া প্রকাশন' }}
+                    </div>
+
+                    @if ($editing)
+                        <div class="d-grid gap-1.5 mt-2">
+                            <a href="{{ route('webzine.read', $record->slug ?: $record->id) }}" target="_blank" class="btn btn-sm btn-info text-white rounded-pill fw-bold">
+                                <i class="fas fa-book-open me-1"></i> সরাসরি রিডারে পড়ুন
+                            </a>
+                            <a href="{{ route('webzine.show', $record->slug ?: $record->id) }}" target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill">
+                                <i class="fas fa-eye me-1"></i> পাবলিক পেজ প্রিভিউ
+                            </a>
+                        </div>
+                    @endif
+                </div>
+            </div>
+        @endif
+
         {{-- Posting on behalf of someone --}}
         <div class="adm-card p-3 mb-3">
             <h2 class="h6 fw-bold mb-1"><i class="fas fa-user-pen me-1 text-muted"></i> কার পক্ষে (কন্ট্রিবিউটর ক্রেডিট)</h2>
@@ -1368,7 +1432,7 @@ function handleQuickCategorySubmit(e) {
 
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-    fetch("{{ route('quick.category') }}", {
+    fetch("{{ route('admin.quick.category') }}", {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -1432,7 +1496,7 @@ function handleQuickBlogCategorySubmit(e) {
 
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-    fetch("{{ route('quick.blog-category') }}", {
+    fetch("{{ route('admin.quick.blog-category') }}", {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -1491,7 +1555,7 @@ function handleQuickPublisherSubmit(e) {
 
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-    fetch("{{ route('quick.publisher') }}", {
+    fetch("{{ route('admin.quick.publisher') }}", {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -1549,7 +1613,7 @@ function handleQuickAuthorSubmit(e) {
 
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-    fetch("{{ route('quick.author') }}", {
+    fetch("{{ route('admin.quick.author') }}", {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
