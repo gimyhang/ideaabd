@@ -14,45 +14,52 @@
     @php
         $defaultSiteName = \App\Support\SiteSetting::name() ?: 'আইডিয়া প্রকাশন';
         $defaultSiteTagline = \App\Support\SiteSetting::tagline() ?: 'অনলাইন বই ও প্রকাশনা প্ল্যাটফর্ম';
-        $defaultSiteImage = \App\Support\SiteSetting::logoUrl() ?: asset('images/logo.svg');
-        if (!str_starts_with($defaultSiteImage, 'http')) {
-            $defaultSiteImage = url($defaultSiteImage);
+        $defaultBanner = asset('images/og-banner.jpg');
+        if (!str_starts_with($defaultBanner, 'http')) {
+            $defaultBanner = url($defaultBanner);
         }
 
         $metaPageTitle = View::hasSection('og_title') ? View::getSection('og_title') : (View::hasSection('title') ? View::getSection('title') : $defaultSiteName);
         $metaPageDescription = View::hasSection('og_description') ? View::getSection('og_description') : (View::hasSection('meta_description') ? View::getSection('meta_description') : $defaultSiteTagline);
-        $metaPageImage = View::hasSection('og_image') ? View::getSection('og_image') : $defaultSiteImage;
-        if (!empty($metaPageImage) && !str_starts_with($metaPageImage, 'http') && !str_starts_with($metaPageImage, 'data:')) {
-            $metaPageImage = url($metaPageImage);
+        
+        $candidateImage = View::hasSection('og_image') ? View::getSection('og_image') : null;
+        if (empty($candidateImage) || str_ends_with(strtolower($candidateImage), '.svg') || str_starts_with($candidateImage, 'data:')) {
+            $metaPageImage = $defaultBanner;
+        } else {
+            $metaPageImage = str_starts_with($candidateImage, 'http') ? $candidateImage : url($candidateImage);
         }
+
         $metaPageUrl = View::hasSection('og_url') ? View::getSection('og_url') : url()->current();
         $metaPageType = View::hasSection('og_type') ? View::getSection('og_type') : 'website';
+
+        $imageExt = strtolower(pathinfo(parse_url($metaPageImage, PHP_URL_PATH) ?? '', PATHINFO_EXTENSION));
+        $imageMime = ($imageExt === 'png') ? 'image/png' : (($imageExt === 'webp') ? 'image/webp' : 'image/jpeg');
     @endphp
 
-    <meta name="description" content="{{ Str::limit(strip_tags($metaPageDescription), 200) }}">
+    <meta name="description" content="{{ Str::limit(strip_tags($metaPageDescription), 220) }}">
     <link rel="canonical" href="{{ $metaPageUrl }}">
 
     <!-- Open Graph / Facebook / WhatsApp / LinkedIn -->
+    <meta property="og:locale" content="bn_BD">
     <meta property="og:type" content="{{ $metaPageType }}">
     <meta property="og:url" content="{{ $metaPageUrl }}">
     <meta property="og:title" content="{{ $metaPageTitle }}">
-    <meta property="og:description" content="{{ Str::limit(strip_tags($metaPageDescription), 200) }}">
-    @if(!empty($metaPageImage))
-        <meta property="og:image" content="{{ $metaPageImage }}">
-        <meta property="og:image:secure_url" content="{{ $metaPageImage }}">
-        <meta property="og:image:alt" content="{{ $metaPageTitle }}">
-    @endif
+    <meta property="og:description" content="{{ Str::limit(strip_tags($metaPageDescription), 220) }}">
+    <meta property="og:image" content="{{ $metaPageImage }}">
+    <meta property="og:image:secure_url" content="{{ $metaPageImage }}">
+    <meta property="og:image:type" content="{{ $imageMime }}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="{{ $metaPageTitle }}">
     <meta property="og:site_name" content="{{ $defaultSiteName }}">
 
     <!-- Twitter / X Cards with Large Image Focus -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:url" content="{{ $metaPageUrl }}">
     <meta name="twitter:title" content="{{ $metaPageTitle }}">
-    <meta name="twitter:description" content="{{ Str::limit(strip_tags($metaPageDescription), 200) }}">
-    @if(!empty($metaPageImage))
-        <meta name="twitter:image" content="{{ $metaPageImage }}">
-        <meta name="twitter:image:alt" content="{{ $metaPageTitle }}">
-    @endif
+    <meta name="twitter:description" content="{{ Str::limit(strip_tags($metaPageDescription), 220) }}">
+    <meta name="twitter:image" content="{{ $metaPageImage }}">
+    <meta name="twitter:image:alt" content="{{ $metaPageTitle }}">
 
     {{-- Dynamic Site Favicon --}}
     @php $siteFaviconUrl = \App\Support\SiteSetting::faviconUrl(); @endphp
