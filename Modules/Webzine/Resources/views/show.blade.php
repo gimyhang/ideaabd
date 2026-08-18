@@ -1,6 +1,16 @@
 @extends('layouts.app')
 
+@php
+    $webzineCover = $webzine->cover_url ?: asset('images/logo.svg');
+    $webzineDesc = !empty($webzine->description) ? Str::limit(strip_tags($webzine->description), 180) : 'আইডিয়া সাহিত্য সাময়িকী ডিজিটাল সংস্করণ পড়ুন।';
+@endphp
+
 @section('title', $webzine->title . ' — সাহিত্য সাময়িকী')
+@section('og_type', 'article')
+@section('og_title', $webzine->title . ' — ' . ($webzine->category ?: 'আইডিয়া সাহিত্য সাময়িকী'))
+@section('og_description', $webzineDesc)
+@section('og_image', $webzineCover)
+@section('og_url', route('webzine.show', $webzine->slug))
 
 @section('content')
 <div class="bg-light py-4 py-lg-5">

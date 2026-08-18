@@ -1,7 +1,5 @@
 @extends('layouts.app')
 
-@section('title', $book->title . ' - বই কেনাকাটা | Idea Prokashon')
-
 @php
     $authorNames = $book->authors->isNotEmpty() 
         ? $book->authors->pluck('name')->join(', ') 
@@ -15,8 +13,17 @@
             ? $cover 
             : (str_starts_with($cover, '/storage/') ? asset(ltrim($cover, '/')) : asset('storage/' . $cover));
     } else {
-        $coverUrl = null;
+        $coverUrl = asset('images/logo.svg');
     }
+    $bookDesc = $book->summary ?: Str::limit(strip_tags($book->description), 180);
+@endphp
+
+@section('title', $book->title . ' — ' . $authorNames . ' | বই কেনাকাটা')
+@section('og_type', 'book')
+@section('og_title', $book->title . ' — ' . $authorNames . ' | আইডিয়া প্রকাশন')
+@section('og_description', $bookDesc ?: 'আইডিয়া প্রকাশনে বইটি অর্ডার করুন ও বিস্তারিত জানুন।')
+@section('og_image', $coverUrl)
+@section('og_url', route('books.show', $book->slug))
 
     $samplePdf = $book->sample_pdf_path;
     if ($samplePdf) {

@@ -1,6 +1,17 @@
 @extends('layouts.app')
 
-@section('title', ($post->title ?? 'সাহিত্যকর্ম') . ' — আইডিয়া ব্লগ ও সাহিত্য সাময়িকী')
+@php
+    $ogCover = $post->cover_url ?: ($post->featured_image ? (str_starts_with($post->featured_image, 'http') ? $post->featured_image : asset('storage/' . ltrim($post->featured_image, '/'))) : asset('images/logo.svg'));
+    $ogDesc = !empty($post->subtitle) ? $post->subtitle : (!empty($post->excerpt) ? $post->excerpt : Str::limit(strip_tags($post->content), 180));
+    $ogAuthor = $post->author ? $post->author->name : 'আইডিয়া প্রকাশন';
+@endphp
+
+@section('title', ($post->title ?? 'সাহিত্যকর্ম') . ' — ' . $ogAuthor)
+@section('og_type', 'article')
+@section('og_title', $post->title . ' — ' . $ogAuthor)
+@section('og_description', $ogDesc)
+@section('og_image', $ogCover)
+@section('og_url', route('blog.show', $post->slug))
 
 @section('content')
 <style>

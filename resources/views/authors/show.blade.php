@@ -1,6 +1,20 @@
 @extends('layouts.app')
 
+@php
+    $photo = $author->avatar ?? $author->photo ?? null;
+    $photoUrl = asset('images/logo.svg');
+    if ($photo) {
+        $photoUrl = str_starts_with($photo, 'http') ? $photo : asset('storage/' . ltrim($photo, '/'));
+    }
+    $authorBio = !empty($author->bio) ? Str::limit(strip_tags($author->bio), 180) : 'আইডিয়া প্রকাশনে ' . $author->name . '-এর প্রোফাইল ও সকল বই দেখুন।';
+@endphp
+
 @section('title', ($author->name ?? 'লেখক প্রোফাইল') . ' — আইডিয়া প্রকাশন')
+@section('og_type', 'profile')
+@section('og_title', $author->name . ' — লেখক প্রোফাইল | আইডিয়া প্রকাশন')
+@section('og_description', $authorBio)
+@section('og_image', $photoUrl)
+@section('og_url', route('authors.show', $author->slug ?: $author->id))
 
 @section('content')
 <div class="container py-4 mb-5">

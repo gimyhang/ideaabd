@@ -1,6 +1,17 @@
 @extends('layouts.app')
 
-@section('title', ($ebook->title ?? 'ই-বুক') . ' — ডিজিটাল পাঠাগার | আইডিয়া প্রকাশন')
+@php
+    $ebookAuthor = $ebook->author ? $ebook->author->name : ($ebook->author_name ?: 'আইডিয়া প্রকাশন');
+    $ebookCover = $ebook->cover_url ?: asset('images/logo.svg');
+    $ebookDesc = !empty($ebook->description) ? Str::limit(strip_tags($ebook->description), 180) : 'আইডিয়া প্রকাশনে ই-বুকটি পড়ুন ও সংগ্রহ করুন।';
+@endphp
+
+@section('title', ($ebook->title ?? 'ই-বুক') . ' — ' . $ebookAuthor . ' | ই-বুক')
+@section('og_type', 'book')
+@section('og_title', $ebook->title . ' — ' . $ebookAuthor . ' | আইডিয়া প্রকাশন')
+@section('og_description', $ebookDesc)
+@section('og_image', $ebookCover)
+@section('og_url', route('ebook.show', $ebook->slug))
 
 @section('content')
 <div class="container py-4 mb-5">

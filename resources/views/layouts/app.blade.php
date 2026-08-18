@@ -10,6 +10,50 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', \App\Support\SiteSetting::name() . ' — ' . \App\Support\SiteSetting::tagline())</title>
 
+    {{-- Universal Social Media Open Graph (Facebook, WhatsApp, LinkedIn) & Twitter / X Cards --}}
+    @php
+        $defaultSiteName = \App\Support\SiteSetting::name() ?: 'আইডিয়া প্রকাশন';
+        $defaultSiteTagline = \App\Support\SiteSetting::tagline() ?: 'অনলাইন বই ও প্রকাশনা প্ল্যাটফর্ম';
+        $defaultSiteImage = \App\Support\SiteSetting::logoUrl() ?: asset('images/logo.svg');
+        if (!str_starts_with($defaultSiteImage, 'http')) {
+            $defaultSiteImage = url($defaultSiteImage);
+        }
+
+        $metaPageTitle = View::hasSection('og_title') ? View::getSection('og_title') : (View::hasSection('title') ? View::getSection('title') : $defaultSiteName);
+        $metaPageDescription = View::hasSection('og_description') ? View::getSection('og_description') : (View::hasSection('meta_description') ? View::getSection('meta_description') : $defaultSiteTagline);
+        $metaPageImage = View::hasSection('og_image') ? View::getSection('og_image') : $defaultSiteImage;
+        if (!empty($metaPageImage) && !str_starts_with($metaPageImage, 'http') && !str_starts_with($metaPageImage, 'data:')) {
+            $metaPageImage = url($metaPageImage);
+        }
+        $metaPageUrl = View::hasSection('og_url') ? View::getSection('og_url') : url()->current();
+        $metaPageType = View::hasSection('og_type') ? View::getSection('og_type') : 'website';
+    @endphp
+
+    <meta name="description" content="{{ Str::limit(strip_tags($metaPageDescription), 200) }}">
+    <link rel="canonical" href="{{ $metaPageUrl }}">
+
+    <!-- Open Graph / Facebook / WhatsApp / LinkedIn -->
+    <meta property="og:type" content="{{ $metaPageType }}">
+    <meta property="og:url" content="{{ $metaPageUrl }}">
+    <meta property="og:title" content="{{ $metaPageTitle }}">
+    <meta property="og:description" content="{{ Str::limit(strip_tags($metaPageDescription), 200) }}">
+    @if(!empty($metaPageImage))
+        <meta property="og:image" content="{{ $metaPageImage }}">
+        <meta property="og:image:secure_url" content="{{ $metaPageImage }}">
+        <meta property="og:image:alt" content="{{ $metaPageTitle }}">
+    @endif
+    <meta property="og:site_name" content="{{ $defaultSiteName }}">
+
+    <!-- Twitter / X Cards with Large Image Focus -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="{{ $metaPageUrl }}">
+    <meta name="twitter:title" content="{{ $metaPageTitle }}">
+    <meta name="twitter:description" content="{{ Str::limit(strip_tags($metaPageDescription), 200) }}">
+    @if(!empty($metaPageImage))
+        <meta name="twitter:image" content="{{ $metaPageImage }}">
+        <meta name="twitter:image:alt" content="{{ $metaPageTitle }}">
+    @endif
+
     {{-- Dynamic Site Favicon --}}
     @php $siteFaviconUrl = \App\Support\SiteSetting::faviconUrl(); @endphp
     @if ($siteFaviconUrl)

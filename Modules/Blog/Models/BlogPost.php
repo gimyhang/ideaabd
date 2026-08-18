@@ -113,4 +113,26 @@ class BlogPost extends Model
     {
         return $query->where('is_featured', true);
     }
+
+    /**
+     * Get fully-qualified cover / photocard URL for social media preview.
+     */
+    public function getCoverUrlAttribute(): ?string
+    {
+        $img = $this->featured_image;
+        if (!$img) {
+            return null;
+        }
+        $img = trim($img);
+        if (str_starts_with($img, 'data:image') || str_starts_with($img, 'http://') || str_starts_with($img, 'https://')) {
+            return $img;
+        }
+        if (str_starts_with($img, 'storage/')) {
+            return asset($img);
+        }
+        if (str_starts_with($img, '/storage/')) {
+            return asset(ltrim($img, '/'));
+        }
+        return asset('storage/' . ltrim($img, '/'));
+    }
 }
