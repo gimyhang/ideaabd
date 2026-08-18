@@ -82,7 +82,19 @@ class BlogController extends Controller
             'published_at' => now(),
         ]);
 
-        return back()->with('success', 'পোস্ট প্রকাশিত হয়েছে।');
+        // Send email notification to author
+        if ($post->author_id) {
+            $author = \App\Models\User::find($post->author_id);
+            if ($author && $author->email && !str_ends_with($author->email, '@buyer.ideaabd.com')) {
+                try {
+                    \Illuminate\Support\Facades\Mail::to($author->email)->send(new \App\Mail\BlogPostApprovedMail($post, $author));
+                } catch (\Throwable $e) {
+                    \Illuminate\Support\Facades\Log::warning("Could not send blog post approval email: " . $e->getMessage());
+                }
+            }
+        }
+
+        return back()->with('success', 'পোস্ট প্রকাশিত হয়েছে এবং লেখককে ইমেইল নোটিফিকেশন পাঠানো হয়েছে।');
     }
 
     public function unpublish(BlogPost $post)

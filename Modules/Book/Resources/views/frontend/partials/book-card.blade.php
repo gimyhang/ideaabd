@@ -45,6 +45,14 @@
             <span></span>
         @endif
 
+        @php
+            $hasHardcover = (isset($book->has_hardcover) && $book->has_hardcover)
+                || in_array($book->cover_type ?? '', ['hardcover', 'both'], true)
+                || (!empty($book->hardcover_price) && (float)$book->hardcover_price > 0)
+                || (($book->format ?? '') === 'hardcover');
+            $isEbook = (($book->format ?? '') === 'ebook' && !$hasHardcover && ($book->cover_type ?? '') !== 'paperback');
+        @endphp
+
         @if($book->stock_status === 'pre_order')
             <span class="badge bg-warning text-dark border border-warning-subtle rounded-pill px-2 py-0.5 small fw-bold shadow-xs" style="font-size: 0.68rem;">
                 <i class="fa-solid fa-clock-rotate-left me-0.5"></i> প্রি-অর্ডার
@@ -53,9 +61,17 @@
             <span class="badge bg-dark bg-opacity-75 text-white rounded-pill px-2 py-0.5 small" style="font-size: 0.7rem;">
                 স্টক আউট
             </span>
-        @elseif($book->format)
+        @elseif($isEbook)
             <span class="badge bg-white text-dark shadow-xs border rounded-pill px-2 py-0.5 small" style="font-size: 0.68rem;">
-                {{ $book->format === 'hardcover' ? 'হার্ডকভার' : ($book->format === 'ebook' ? 'ই-বুক' : 'পেপারব্যাক') }}
+                ই-বুক
+            </span>
+        @elseif($hasHardcover)
+            <span class="badge bg-white text-dark shadow-xs border rounded-pill px-2 py-0.5 small" style="font-size: 0.68rem;">
+                হার্ডকভার
+            </span>
+        @else
+            <span class="badge bg-white text-dark shadow-xs border rounded-pill px-2 py-0.5 small" style="font-size: 0.68rem;">
+                পেপারব্যাক
             </span>
         @endif
     </div>

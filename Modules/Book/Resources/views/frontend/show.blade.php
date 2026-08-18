@@ -41,8 +41,8 @@
     $finalHardcoverPrice = $hasHardcoverDisc ? $hardcoverDisc : $hardcoverPrice;
     $hardcoverDiscPct = ($hasHardcoverDisc && $hardcoverPrice > 0) ? round((($hardcoverPrice - $hardcoverDisc) / $hardcoverPrice) * 100) : 0;
 
-    $hasHardcoverOption = in_array($book->cover_type, ['both', 'hardcover'], true) || ($hardcoverPrice > 0);
-    $activeFormat = ($book->cover_type === 'hardcover' && $hardcoverPrice > 0) ? 'hardcover' : 'paperback';
+    $hasHardcoverOption = in_array($book->cover_type, ['both', 'hardcover'], true) || ($hardcoverPrice > 0) || ($book->format === 'hardcover');
+    $activeFormat = ($book->cover_type === 'hardcover' || $book->format === 'hardcover' || ($hardcoverPrice > 0 && empty($paperbackPrice))) ? 'hardcover' : 'paperback';
 
     $finalPrice = $activeFormat === 'hardcover' ? $finalHardcoverPrice : $finalPaperbackPrice;
     $regularPrice = $activeFormat === 'hardcover' ? $hardcoverPrice : $paperbackPrice;
@@ -88,13 +88,19 @@
                                 <span id="badgeDiscountWrap" class="badge bg-danger rounded-pill shadow-sm px-2.5 py-1.5 fw-bold {{ $hasDiscount ? '' : 'd-none' }}" style="font-size: 0.75rem;">
                                     <span id="badgeDiscountText">@bn($discountPercent)</span>% ছাড়
                                 </span>
-                                @if($book->cover_type === 'hardcover' || $book->format === 'hardcover')
-                                <span class="badge bg-dark rounded-pill shadow-sm px-2.5 py-1.5 text-uppercase fw-semibold" style="font-size: 0.72rem;">
-                                    হার্ডকভার
-                                </span>
-                                @elseif($book->cover_type === 'both')
-                                <span class="badge bg-primary rounded-pill shadow-sm px-2.5 py-1.5 text-uppercase fw-semibold" style="font-size: 0.72rem;">
-                                    হার্ডকভার / পেপারব্যাক
+                                @if($book->has_hardcover || $book->cover_type === 'hardcover' || $book->format === 'hardcover' || ($hardcoverPrice > 0))
+                                    @if($book->cover_type === 'both' && $paperbackPrice > 0)
+                                    <span class="badge bg-primary rounded-pill shadow-sm px-2.5 py-1.5 text-uppercase fw-semibold" style="font-size: 0.72rem;">
+                                        হার্ডকভার ও পেপারব্যাক
+                                    </span>
+                                    @else
+                                    <span class="badge bg-dark rounded-pill shadow-sm px-2.5 py-1.5 text-uppercase fw-semibold" style="font-size: 0.72rem;">
+                                        হার্ডকভার
+                                    </span>
+                                    @endif
+                                @else
+                                <span class="badge bg-secondary rounded-pill shadow-sm px-2.5 py-1.5 text-uppercase fw-semibold" style="font-size: 0.72rem;">
+                                    পেপারব্যাক
                                 </span>
                                 @endif
                             </div>
@@ -227,7 +233,7 @@
                             <div class="mb-3 p-2.5 bg-light rounded-3 border">
                                 <div class="small fw-bold text-dark mb-2 d-flex align-items-center justify-content-between">
                                     <span><i class="fa-solid fa-book me-1 text-primary"></i> বাঁধাইয়ের ধরন নির্বাচন করুন:</span>
-                                    <span class="badge bg-white text-muted border small" id="activeFormatLabel">পেপারব্যাক</span>
+                                    <span class="badge bg-white text-muted border small" id="activeFormatLabel">{{ $activeFormat === 'hardcover' ? 'হার্ডকভার' : 'পেপারব্যাক' }}</span>
                                 </div>
                                 <div class="d-flex flex-wrap gap-2" id="formatSelectorPills">
                                     <button type="button" 
@@ -483,7 +489,7 @@
                                             <tr class="border-bottom">
                                                 <th class="bg-light text-muted py-3 px-3 fw-semibold"><i class="fa-solid fa-book text-primary me-2"></i>বাঁধাই ও কভার</th>
                                                 <td class="text-dark py-3 px-3">
-                                                    @if($book->cover_type === 'hardcover')
+                                                    @if($book->cover_type === 'hardcover' || ($book->has_hardcover && $book->cover_type !== 'both'))
                                                         <span class="badge bg-dark-subtle text-dark border">হার্ডকভার প্রিন্ট (Hardcover)</span>
                                                     @elseif($book->cover_type === 'both')
                                                         <span class="badge bg-primary-subtle text-primary border">হার্ডকভার ও পেপারব্যাক উভয় সংস্করণ উপলব্ধ</span>

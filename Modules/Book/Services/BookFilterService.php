@@ -52,9 +52,30 @@ class BookFilterService
             });
         }
 
-        // Format filter (printed, ebook, both)
+        // Format & Binding filter (hardcover, paperback, ebook, printed, both)
         if (!empty($filters['format'])) {
-            $query->where('format', $filters['format']);
+            $format = $filters['format'];
+            if ($format === 'hardcover') {
+                $query->where(function ($q) {
+                    $q->where('format', 'hardcover')
+                      ->orWhereIn('cover_type', ['hardcover', 'both'])
+                      ->orWhere(function ($q2) {
+                          $q2->whereNotNull('hardcover_price')->where('hardcover_price', '>', 0);
+                      });
+                });
+            } elseif ($format === 'paperback') {
+                $query->where(function ($q) {
+                    $q->where('format', 'paperback')
+                      ->orWhere('cover_type', 'paperback')
+                      ->orWhere(function ($q2) {
+                          $q2->whereNull('cover_type')->where('format', '!=', 'ebook');
+                      });
+                });
+            } elseif ($format === 'ebook') {
+                $query->whereIn('format', ['ebook', 'both']);
+            } else {
+                $query->where('format', $format);
+            }
         }
 
         // Stock availability filter

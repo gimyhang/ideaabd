@@ -34,6 +34,9 @@
                                 <input type="checkbox" name="remember" id="remember" class="form-check-input">
                                 <label for="remember" class="form-check-label small">মনে রাখুন</label>
                             </div>
+                            <a href="{{ route('password.request') }}" class="small text-decoration-none text-primary fw-semibold">
+                                <i class="fa-solid fa-key me-1"></i> পাসওয়ার্ড ভুলে গেছেন?
+                            </a>
                         </div>
                         <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">লগইন করুন</button>
                     </form>

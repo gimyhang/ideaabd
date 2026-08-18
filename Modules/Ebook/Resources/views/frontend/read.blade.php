@@ -2,21 +2,21 @@
 <html lang="bn" data-theme="light">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>{{ $ebook->title }} — অনলাইন ই-বুক রিডার</title>
     
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
     <!-- FontAwesome 6 -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <!-- Google Fonts -->
+    <!-- Google Fonts: Hind Siliguri for perfect Bengali rendering -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <!-- EPUB.js & JSZip for EPUB Rendering -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.5/jszip.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/epubjs/dist/epub.min.js"></script>
+    <!-- Modern JSZip 3.10.1 & ePub.js 0.3.93 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/epubjs@0.3.93/dist/epub.min.js"></script>
 
     <style>
         :root {
@@ -26,24 +26,31 @@
             --reader-border: #e2e8f0;
             --reader-nav-bg: #ffffff;
             --reader-primary: #0066cc;
+            --reader-accent: #0284c7;
         }
 
         [data-theme="sepia"] {
-            --reader-bg: #fbf0d9;
-            --reader-surface: #f4ecd8;
-            --reader-text: #5f4b32;
-            --reader-border: #e5d8b8;
-            --reader-nav-bg: #f4ecd8;
+            --reader-bg: #f5ebd2;
+            --reader-surface: #fbf0d9;
+            --reader-text: #4a3728;
+            --reader-border: #e2d2b0;
+            --reader-nav-bg: #fbf0d9;
             --reader-primary: #8b5e3c;
+            --reader-accent: #b45309;
         }
 
         [data-theme="dark"] {
-            --reader-bg: #0f172a;
-            --reader-surface: #1e293b;
-            --reader-text: #e2e8f0;
-            --reader-border: #334155;
-            --reader-nav-bg: #1e293b;
+            --reader-bg: #090d16;
+            --reader-surface: #0f172a;
+            --reader-text: #f1f5f9;
+            --reader-border: #1e293b;
+            --reader-nav-bg: #0f172a;
             --reader-primary: #38bdf8;
+            --reader-accent: #0ea5e9;
+        }
+
+        * {
+            box-sizing: border-box;
         }
 
         body {
@@ -56,20 +63,22 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            transition: background-color 0.3s ease, color 0.3s ease;
+            transition: background-color 0.25s ease, color 0.25s ease;
+            -webkit-font-smoothing: antialiased;
         }
 
         /* Top Header Navbar */
         .reader-head {
-            height: 60px;
+            height: 58px;
             background-color: var(--reader-nav-bg);
             border-bottom: 1px solid var(--reader-border);
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 1.25rem;
+            padding: 0 1rem;
             z-index: 100;
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 1px 6px rgba(0, 0, 0, 0.04);
+            flex-shrink: 0;
         }
 
         .reader-btn {
@@ -78,12 +87,13 @@
             color: var(--reader-text);
             border-radius: 8px;
             padding: 0.35rem 0.65rem;
-            font-size: 0.85rem;
+            font-size: 0.84rem;
             display: inline-flex;
             align-items: center;
-            gap: 0.4rem;
+            gap: 0.35rem;
             cursor: pointer;
             transition: all 0.2s ease;
+            font-weight: 500;
         }
         .reader-btn:hover {
             background-color: var(--reader-border);
@@ -91,7 +101,7 @@
         }
         .reader-btn.active {
             background-color: var(--reader-primary);
-            color: #ffffff;
+            color: #ffffff !important;
             border-color: var(--reader-primary);
         }
 
@@ -101,38 +111,47 @@
             display: flex;
             position: relative;
             overflow: hidden;
+            padding: 0.5rem;
+        }
+
+        #epub-viewer-wrapper {
+            width: 100%;
+            height: 100%;
+            max-width: 960px;
+            margin: 0 auto;
+            background-color: var(--reader-surface);
+            box-shadow: 0 4px 25px rgba(0, 0, 0, 0.06);
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid var(--reader-border);
         }
 
         #epub-viewer {
             width: 100%;
             height: 100%;
-            max-width: 900px;
-            margin: 0 auto;
-            background-color: var(--reader-surface);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
-            border-radius: 8px;
         }
 
+        /* PDF View */
         .reader-pdf-container {
             width: 100%;
             height: 100%;
             display: flex;
             flex-direction: column;
         }
-
         .pdf-frame {
             width: 100%;
             height: 100%;
             border: 0;
         }
 
-        /* Side Navigation Arrows */
+        /* Side Navigation Arrows (Floating Modern Flip Buttons) */
         .nav-arrow {
             position: absolute;
             top: 50%;
             transform: translateY(-50%);
-            width: 48px;
-            height: 48px;
+            width: 44px;
+            height: 44px;
             background: var(--reader-surface);
             border: 1px solid var(--reader-border);
             color: var(--reader-text);
@@ -142,23 +161,35 @@
             justify-content: center;
             cursor: pointer;
             z-index: 50;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            transition: all 0.2s ease;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .nav-arrow:hover {
             background: var(--reader-primary);
             color: #ffffff;
             border-color: var(--reader-primary);
-            transform: translateY(-50%) scale(1.08);
+            transform: translateY(-50%) scale(1.1);
         }
-        .nav-prev { left: 20px; }
-        .nav-next { right: 20px; }
+        .nav-prev { left: 12px; }
+        .nav-next { right: 12px; }
+
+        @media (max-width: 768px) {
+            .nav-arrow {
+                width: 36px;
+                height: 36px;
+                font-size: 0.85rem;
+            }
+            .nav-prev { left: 4px; }
+            .nav-next { right: 4px; }
+            .reader-main { padding: 0.25rem; }
+            #epub-viewer-wrapper { border-radius: 6px; }
+        }
 
         /* TOC Drawer */
         .toc-drawer {
             position: absolute;
             top: 0;
-            left: -320px;
+            left: -340px;
             width: 320px;
             height: 100%;
             background: var(--reader-surface);
@@ -167,7 +198,7 @@
             transition: left 0.3s cubic-bezier(0.16, 1, 0.3, 1);
             display: flex;
             flex-direction: column;
-            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1);
+            box-shadow: 6px 0 25px rgba(0, 0, 0, 0.12);
         }
         .toc-drawer.open {
             left: 0;
@@ -181,16 +212,18 @@
         }
         .toc-item a {
             display: block;
-            padding: 0.65rem 1rem;
+            padding: 0.75rem 1rem;
             color: var(--reader-text);
             text-decoration: none;
             border-bottom: 1px solid var(--reader-border);
-            font-size: 0.9rem;
-            transition: background 0.15s;
+            font-size: 0.88rem;
+            transition: all 0.15s;
         }
-        .toc-item a:hover {
+        .toc-item a:hover, .toc-item a.active {
             background-color: var(--reader-bg);
             color: var(--reader-primary);
+            font-weight: 600;
+            padding-left: 1.25rem;
         }
 
         /* Loading Spinner */
@@ -201,11 +234,16 @@
             transform: translate(-50%, -50%);
             text-align: center;
             z-index: 80;
+            background: var(--reader-surface);
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--reader-border);
         }
 
         /* Bottom Progress bar */
         .reader-foot {
-            height: 32px;
+            height: 34px;
             background-color: var(--reader-nav-bg);
             border-top: 1px solid var(--reader-border);
             display: flex;
@@ -214,7 +252,7 @@
             padding: 0 1rem;
             font-size: 0.78rem;
             color: var(--reader-text);
-            opacity: 0.85;
+            flex-shrink: 0;
         }
     </style>
 </head>
@@ -222,7 +260,7 @@
 
     <!-- Header Navigation -->
     <header class="reader-head">
-        <div class="d-flex align-items-center gap-3">
+        <div class="d-flex align-items-center gap-2">
             <a href="{{ route('ebook.show', $ebook->slug) }}" class="reader-btn" title="ই-বুক পেজে ফিরে যান">
                 <i class="fa-solid fa-arrow-left"></i> <span class="d-none d-sm-inline">ফিরে যান</span>
             </a>
@@ -233,14 +271,16 @@
                 </button>
             @endif
 
-            <div class="text-truncate" style="max-width: 320px;">
-                <span class="fw-bold d-block text-truncate" style="font-size: 0.95rem;">{{ $ebook->title }}</span>
-                <span class="small opacity-75 d-none d-sm-block text-truncate">{{ $ebook->author ? $ebook->author->name : ($ebook->author_name ?: 'আইডিয়া প্রকাশন') }}</span>
+            <div class="text-truncate ps-1" style="max-width: 280px;">
+                <span class="fw-bold d-block text-truncate" style="font-size: 0.92rem;">{{ $ebook->title }}</span>
+                <span class="small opacity-75 d-none d-sm-block text-truncate" style="font-size: 0.75rem;">
+                    {{ $ebook->author ? $ebook->author->name : ($ebook->author_name ?: 'আইডিয়া প্রকাশন') }}
+                </span>
             </div>
         </div>
 
-        <!-- Controls (Themes, Fonts, Fullscreen) -->
-        <div class="d-flex align-items-center gap-2">
+        <!-- Controls (Themes, Fonts, Fullscreen, Flow Mode) -->
+        <div class="d-flex align-items-center gap-1.5">
             <!-- Theme Toggles -->
             <div class="btn-group btn-group-sm" role="group">
                 <button type="button" class="reader-btn active" id="theme-light" title="ডে মোড (সাদা)">
@@ -255,6 +295,12 @@
             </div>
 
             @if($readerType === 'epub')
+                <!-- Flow / Pagination Mode -->
+                <button type="button" class="reader-btn d-none d-md-inline-flex" id="btn-toggle-flow" title="পড়ার ধরন (বই পাতা / স্ক্রোল)">
+                    <i class="fa-solid fa-file-lines" id="flow-icon"></i>
+                    <span id="flow-text">স্ক্রোল মোড</span>
+                </button>
+
                 <!-- Font Size Controls -->
                 <div class="btn-group btn-group-sm d-none d-sm-inline-flex" role="group">
                     <button type="button" class="reader-btn" id="btn-font-dec" title="ফন্ট ছোট করুন">A-</button>
@@ -270,11 +316,11 @@
     </header>
 
     <!-- Main Content Area -->
-    <main class="reader-main p-2 p-md-3">
+    <main class="reader-main">
         <!-- Table of Contents Drawer (EPUB) -->
         <div class="toc-drawer" id="toc-drawer">
             <div class="p-3 border-bottom d-flex align-items-center justify-content-between">
-                <h6 class="fw-bold mb-0"><i class="fa-solid fa-list-ul me-2 text-primary"></i>সূচিপত্র</h6>
+                <h6 class="fw-bold mb-0 text-dark"><i class="fa-solid fa-list-ul me-2 text-primary"></i>সূচিপত্র</h6>
                 <button class="btn-close btn-sm" id="btn-close-toc"></button>
             </div>
             <ul class="toc-list" id="toc-list"></ul>
@@ -282,17 +328,20 @@
 
         <!-- Loader -->
         <div id="reader-loader">
-            <div class="spinner-border text-primary mb-2" role="status"></div>
-            <div class="small fw-semibold">ই-বুক লোড হচ্ছে...</div>
+            <div class="spinner-border text-primary mb-2" role="status" style="width: 2.5rem; height: 2.5rem;"></div>
+            <div class="fw-bold text-dark mb-1">ই-বুক লোড হচ্ছে...</div>
+            <small class="text-muted">ফন্টের সামঞ্জস্য ও লেআউট প্রস্তুত হচ্ছে</small>
         </div>
 
-        <!-- EPUB Mode -->
+        <!-- EPUB Mode Container -->
         @if($readerType === 'epub' && $fileUrl)
-            <div id="epub-viewer"></div>
-            <button class="nav-arrow nav-prev" id="nav-prev" title="পূর্ববর্তী পৃষ্ঠা">
+            <div id="epub-viewer-wrapper">
+                <div id="epub-viewer"></div>
+            </div>
+            <button class="nav-arrow nav-prev" id="nav-prev" title="পূর্ববর্তী পৃষ্ঠা (Left Arrow)">
                 <i class="fa-solid fa-chevron-left"></i>
             </button>
-            <button class="nav-arrow nav-next" id="nav-next" title="পরবর্তী পৃষ্ঠা">
+            <button class="nav-arrow nav-next" id="nav-next" title="পরবর্তী পৃষ্ঠা (Right Arrow)">
                 <i class="fa-solid fa-chevron-right"></i>
             </button>
         <!-- PDF Mode -->
@@ -300,10 +349,10 @@
             <div class="reader-pdf-container">
                 <iframe src="{{ $fileUrl }}#toolbar=1&navpanes=0" class="pdf-frame" id="pdf-frame"></iframe>
             </div>
-        <!-- Fallback Demo Preview -->
+        <!-- Fallback Preview -->
         @else
-            <div class="card p-5 mx-auto my-auto text-center border-0 shadow-sm rounded-4" style="max-width: 600px; background: var(--reader-surface);">
-                <div class="mx-auto rounded-3 shadow mb-3 overflow-hidden" style="width: 140px; aspect-ratio: 7/10;">
+            <div class="card p-4 p-md-5 mx-auto my-auto text-center border-0 shadow-sm rounded-4" style="max-width: 550px; background: var(--reader-surface);">
+                <div class="mx-auto rounded-3 shadow mb-3 overflow-hidden" style="width: 130px; aspect-ratio: 7/10;">
                     @if($ebook->cover_url)
                         <img src="{{ $ebook->cover_url }}" alt="{{ $ebook->title }}" class="w-100 h-100 object-fit-cover">
                     @else
@@ -311,7 +360,7 @@
                     @endif
                 </div>
                 <h4 class="fw-bold mb-2">{{ $ebook->title }}</h4>
-                <p class="text-muted small mb-4">এই ই-বুকটির ডিজিটাল ফাইল সংযুক্তির অপেক্ষায় রয়েছে। আপনি অ্যাডমিন প্যানেল থেকে এর PDF বা EPUB ফাইল আপলোড করতে পারেন।</p>
+                <p class="text-muted small mb-4">এই ই-বুকটির ডিজিটাল ফাইল সংযুক্তির অপেক্ষায় রয়েছে। আপনি অ্যাডমিন প্যানেল থেকে এর EPUB বা PDF ফাইল আপলোড করতে পারেন।</p>
                 <div class="d-flex justify-content-center gap-2">
                     <a href="{{ route('ebook.show', $ebook->slug) }}" class="btn btn-primary rounded-pill px-4">ই-বুক পেজে ফিরুন</a>
                 </div>
@@ -321,52 +370,50 @@
 
     <!-- Footer Progress / Status Bar -->
     <footer class="reader-foot">
-        <div id="status-info">
-            <i class="fa-solid fa-tablet-screen-button me-1 text-primary"></i>
+        <div id="status-info" class="text-truncate me-2">
+            <i class="fa-solid fa-book-open-reader me-1 text-primary"></i>
             {{ strtoupper($readerType) }} ফরম্যাট রিডার
         </div>
-        <div id="progress-info">
-            আইডিয়া ডিজিটাল পাঠাগার
+        <div id="progress-info" class="fw-semibold">
+            আইডিয়া প্রকাশন ডিজিটাল লাইব্রেরি
         </div>
     </footer>
 
-    <!-- Reader Logic -->
+    <!-- Modern Bengali EPUB Rendering Engine -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const readerType = "{{ $readerType }}";
             const fileUrl = "{{ $fileUrl }}";
             const loader = document.getElementById('reader-loader');
 
-            // Theme Switcher
+            // Theme Management
             const themeLight = document.getElementById('theme-light');
             const themeSepia = document.getElementById('theme-sepia');
-            const themeDark = document.getElementById('theme-dark');
+            const themeDark  = document.getElementById('theme-dark');
 
-            function setTheme(theme) {
+            function applyTheme(theme) {
                 document.documentElement.setAttribute('data-theme', theme);
                 document.querySelectorAll('[id^="theme-"]').forEach(btn => btn.classList.remove('active'));
-                if (theme === 'light') themeLight.classList.add('active');
-                if (theme === 'sepia') themeSepia.classList.add('active');
-                if (theme === 'dark') themeDark.classList.add('active');
+                if (theme === 'light') themeLight && themeLight.classList.add('active');
+                if (theme === 'sepia') themeSepia && themeSepia.classList.add('active');
+                if (theme === 'dark') themeDark && themeDark.classList.add('active');
 
-                // Apply theme inside EPUB rendition if available
+                // Pass theme colors into EPUB Rendition
                 if (window.rendition) {
-                    if (theme === 'dark') {
-                        window.rendition.themes.override('color', '#e2e8f0');
-                        window.rendition.themes.override('background', '#1e293b');
-                    } else if (theme === 'sepia') {
-                        window.rendition.themes.override('color', '#5f4b32');
-                        window.rendition.themes.override('background', '#f4ecd8');
-                    } else {
-                        window.rendition.themes.override('color', '#1e293b');
-                        window.rendition.themes.override('background', '#ffffff');
+                    let textColor = '#1e293b', bgColor = '#ffffff';
+                    if (theme === 'sepia') {
+                        textColor = '#4a3728'; bgColor = '#fbf0d9';
+                    } else if (theme === 'dark') {
+                        textColor = '#f1f5f9'; bgColor = '#0f172a';
                     }
+                    window.rendition.themes.override('color', textColor);
+                    window.rendition.themes.override('background', bgColor);
                 }
             }
 
-            if (themeLight) themeLight.addEventListener('click', () => setTheme('light'));
-            if (themeSepia) themeSepia.addEventListener('click', () => setTheme('sepia'));
-            if (themeDark) themeDark.addEventListener('click', () => setTheme('dark'));
+            if (themeLight) themeLight.addEventListener('click', () => applyTheme('light'));
+            if (themeSepia) themeSepia.addEventListener('click', () => applyTheme('sepia'));
+            if (themeDark)  themeDark.addEventListener('click',  () => applyTheme('dark'));
 
             // Fullscreen Toggle
             const btnFullscreen = document.getElementById('btn-fullscreen');
@@ -384,7 +431,7 @@
                 });
             }
 
-            // Hide loader for PDF & Fallback
+            // Hide loader for non-epub
             if (readerType !== 'epub') {
                 if (loader) loader.style.display = 'none';
             }
@@ -392,32 +439,119 @@
             // EPUB Engine Initialization
             if (readerType === 'epub' && fileUrl && typeof ePub !== 'undefined') {
                 try {
+                    const isMobile = window.innerWidth < 768;
+                    let currentFlow = 'paginated'; // paginated or scrolled-doc
+
                     const book = ePub(fileUrl);
                     const rendition = book.renderTo("epub-viewer", {
                         width: "100%",
                         height: "100%",
-                        spread: "always",
-                        flow: "paginated"
+                        spread: isMobile ? "none" : "auto",
+                        minSpreadWidth: 800,
+                        flow: "paginated",
+                        allowScriptedContent: true
                     });
                     window.rendition = rendition;
 
+                    // INJECT BENGALI FONT & CLEAN STYLES INTO EPUB CONTENT IFRAMES
+                    rendition.hooks.content.register(function(contents) {
+                        try {
+                            const head = contents.document.head;
+                            if (head) {
+                                // Load Google Font
+                                const fontLink = contents.document.createElement('link');
+                                fontLink.rel = 'stylesheet';
+                                fontLink.href = 'https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&display=swap';
+                                head.appendChild(fontLink);
+
+                                // Style override for crisp Bengali typography
+                                const style = contents.document.createElement('style');
+                                style.textContent = `
+                                    * {
+                                        font-family: 'Hind Siliguri', 'SolaimanLipi', 'Kalpurush', -apple-system, BlinkMacSystemFont, sans-serif !important;
+                                        -webkit-font-smoothing: antialiased !important;
+                                        text-rendering: optimizeLegibility !important;
+                                    }
+                                    body {
+                                        font-family: 'Hind Siliguri', 'SolaimanLipi', 'Kalpurush', sans-serif !important;
+                                        line-height: 1.85 !important;
+                                        padding: 10px 18px !important;
+                                        word-wrap: break-word !important;
+                                        overflow-wrap: break-word !important;
+                                    }
+                                    p {
+                                        font-size: 1.05rem !important;
+                                        line-height: 1.85 !important;
+                                        margin-bottom: 1.15em !important;
+                                        text-align: justify !important;
+                                    }
+                                    h1, h2, h3, h4, h5, h6 {
+                                        font-weight: 700 !important;
+                                        line-height: 1.35 !important;
+                                        margin-top: 1.2em !important;
+                                        margin-bottom: 0.5em !important;
+                                    }
+                                    img, svg {
+                                        max-width: 100% !important;
+                                        height: auto !important;
+                                        display: block !important;
+                                        margin: 12px auto !important;
+                                    }
+                                `;
+                                head.appendChild(style);
+                            }
+
+                            // Touch Swipe for Mobile
+                            let touchStartX = 0;
+                            contents.document.addEventListener('touchstart', function(e) {
+                                touchStartX = e.changedTouches[0].screenX;
+                            }, false);
+                            contents.document.addEventListener('touchend', function(e) {
+                                let touchEndX = e.changedTouches[0].screenX;
+                                if (touchEndX < touchStartX - 40) rendition.next();
+                                if (touchEndX > touchStartX + 40) rendition.prev();
+                            }, false);
+
+                        } catch (err) {
+                            console.warn("EPUB style hook note:", err);
+                        }
+                    });
+
+                    // Display initial rendition
                     rendition.display().then(() => {
                         if (loader) loader.style.display = 'none';
-                    }).catch(() => {
+                        // Apply default theme colors
+                        applyTheme(document.documentElement.getAttribute('data-theme') || 'light');
+                    }).catch((err) => {
+                        console.error("EPUB display error:", err);
                         if (loader) loader.style.display = 'none';
                     });
 
-                    // Navigation
+                    // Navigation buttons
                     const prevBtn = document.getElementById('nav-prev');
                     const nextBtn = document.getElementById('nav-next');
                     if (prevBtn) prevBtn.addEventListener('click', () => rendition.prev());
                     if (nextBtn) nextBtn.addEventListener('click', () => rendition.next());
 
-                    // Keyboard Arrows
+                    // Keyboard arrows
                     document.addEventListener('keyup', function(e) {
                         if (e.key === 'ArrowLeft') rendition.prev();
                         if (e.key === 'ArrowRight') rendition.next();
                     });
+
+                    // Location / Progress tracker
+                    book.ready.then(() => {
+                        return book.locations.generate(1000);
+                    }).then(() => {
+                        rendition.on('relocated', function(location) {
+                            const percent = book.locations.percentageFromCfi(location.start.cfi);
+                            const percentFormatted = Math.floor(percent * 100);
+                            const progressInfo = document.getElementById('progress-info');
+                            if (progressInfo) {
+                                progressInfo.textContent = percentFormatted + '% পড়া হয়েছে';
+                            }
+                        });
+                    }).catch(() => {});
 
                     // Font Size scaling
                     let currentFontSize = 100;
@@ -425,8 +559,10 @@
                     const fontDec = document.getElementById('btn-font-dec');
                     if (fontInc) {
                         fontInc.addEventListener('click', () => {
-                            currentFontSize += 10;
-                            rendition.themes.fontSize(currentFontSize + "%");
+                            if (currentFontSize < 160) {
+                                currentFontSize += 10;
+                                rendition.themes.fontSize(currentFontSize + "%");
+                            }
                         });
                     }
                     if (fontDec) {
@@ -438,20 +574,48 @@
                         });
                     }
 
+                    // Toggle Scroll / Book Page mode
+                    const btnToggleFlow = document.getElementById('btn-toggle-flow');
+                    const flowIcon = document.getElementById('flow-icon');
+                    const flowText = document.getElementById('flow-text');
+                    if (btnToggleFlow) {
+                        btnToggleFlow.addEventListener('click', function() {
+                            if (currentFlow === 'paginated') {
+                                currentFlow = 'scrolled-doc';
+                                rendition.flow('scrolled-doc');
+                                if (prevBtn) prevBtn.style.display = 'none';
+                                if (nextBtn) nextBtn.style.display = 'none';
+                                if (flowIcon) flowIcon.className = 'fa-solid fa-book-open';
+                                if (flowText) flowText.textContent = 'পাতা মোড';
+                            } else {
+                                currentFlow = 'paginated';
+                                rendition.flow('paginated');
+                                if (prevBtn) prevBtn.style.display = 'flex';
+                                if (nextBtn) nextBtn.style.display = 'flex';
+                                if (flowIcon) flowIcon.className = 'fa-solid fa-file-lines';
+                                if (flowText) flowText.textContent = 'স্ক্রোল মোড';
+                            }
+                        });
+                    }
+
                     // Table of Contents
                     book.loaded.navigation.then(function(toc) {
                         const tocList = document.getElementById('toc-list');
                         if (tocList && toc && toc.toc) {
+                            tocList.innerHTML = '';
                             toc.toc.forEach(function(chapter) {
                                 const li = document.createElement('li');
                                 li.className = 'toc-item';
                                 const a = document.createElement('a');
                                 a.href = chapter.href;
-                                a.textContent = chapter.label;
+                                a.textContent = chapter.label.trim() || 'অধ্যায়';
                                 a.addEventListener('click', function(e) {
                                     e.preventDefault();
                                     rendition.display(chapter.href);
                                     document.getElementById('toc-drawer').classList.remove('open');
+                                    // Highlight active
+                                    document.querySelectorAll('.toc-item a').forEach(el => el.classList.remove('active'));
+                                    a.classList.add('active');
                                 });
                                 li.appendChild(a);
                                 tocList.appendChild(li);
@@ -459,10 +623,10 @@
                         }
                     });
 
-                    // TOC Toggle
+                    // TOC Drawer Toggle
                     const toggleTocBtn = document.getElementById('btn-toggle-toc');
-                    const closeTocBtn = document.getElementById('btn-close-toc');
-                    const tocDrawer = document.getElementById('toc-drawer');
+                    const closeTocBtn  = document.getElementById('btn-close-toc');
+                    const tocDrawer    = document.getElementById('toc-drawer');
                     if (toggleTocBtn && tocDrawer) {
                         toggleTocBtn.addEventListener('click', () => tocDrawer.classList.toggle('open'));
                     }

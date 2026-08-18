@@ -121,6 +121,39 @@ class QuickResourceController extends Controller
             ],
         ]);
     }
+    /**
+     * Quickly create a new blog category via AJAX.
+     */
+    public function quickStoreBlogCategory(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'name'        => 'required|string|max:255',
+            'icon'        => 'nullable|string|max:100',
+            'description' => 'nullable|string|max:1000',
+        ]);
+
+        $name = trim($validated['name']);
+        $slug = $this->uniqueSlug('blog_categories', $name);
+
+        $category = \Modules\Blog\Models\BlogCategory::create([
+            'name'        => $name,
+            'slug'        => $slug,
+            'icon'        => $validated['icon'] ?: 'feather-pointed',
+            'description' => $validated['description'] ?? null,
+            'is_active'   => true,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => "ব্লগ ক্যাটাগরি '{$category->name}' সফলভাবে তৈরি হয়েছে।",
+            'item'    => [
+                'id'           => $category->id,
+                'name'         => $category->name,
+                'display_name' => $category->name,
+                'slug'         => $category->slug,
+            ],
+        ]);
+    }
 
     /**
      * Generate a unique slug in given table.

@@ -374,12 +374,32 @@
 
                         {{-- ══ সব সাধারণ ফিল্ড ══════════════════════════════ --}}
                         @else
-                            <label for="f-{{ $name }}" class="form-label small fw-semibold">
-                                {{ $field['label'] }}
-                                @if (str_contains($field['rules'] ?? '', 'required'))
-                                    <span class="text-danger">*</span>
+                            <div class="d-flex align-items-center justify-content-between mb-1">
+                                <label for="f-{{ $name }}" class="form-label small fw-semibold mb-0">
+                                    {{ $field['label'] }}
+                                    @if (str_contains($field['rules'] ?? '', 'required'))
+                                        <span class="text-danger">*</span>
+                                    @endif
+                                </label>
+                                @if ($name === 'category_id')
+                                    @if (($field['lookup'] ?? '') === 'blog_categories' || $spec['key'] === 'blog')
+                                        <button type="button" class="btn btn-link text-primary p-0 text-decoration-none small fw-semibold"
+                                                data-bs-toggle="modal" data-bs-target="#quickAddBlogCategoryModal">
+                                            <i class="fas fa-plus-circle me-1"></i>নতুন ক্যাটাগরি তৈরি করুন
+                                        </button>
+                                    @elseif (($field['lookup'] ?? '') === 'categories' || in_array($spec['key'], ['books', 'ebooks'], true))
+                                        <button type="button" class="btn btn-link text-primary p-0 text-decoration-none small fw-semibold"
+                                                data-bs-toggle="modal" data-bs-target="#quickAddCategoryModal">
+                                            <i class="fas fa-plus-circle me-1"></i>নতুন ক্যাটাগরি তৈরি করুন
+                                        </button>
+                                    @endif
+                                @elseif ($name === 'publisher_id' && ($field['lookup'] ?? '') === 'publishers')
+                                    <button type="button" class="btn btn-link text-primary p-0 text-decoration-none small fw-semibold"
+                                            data-bs-toggle="modal" data-bs-target="#quickAddPublisherModal">
+                                        <i class="fas fa-plus-circle me-1"></i>নতুন প্রকাশনী তৈরি করুন
+                                    </button>
                                 @endif
-                            </label>
+                            </div>
 
                             @switch($field['type'])
                                 @case('textarea')
@@ -388,9 +408,112 @@
                                     @break
 
                                 @case('editor')
-                                    <textarea id="f-{{ $name }}" name="{{ $name }}" rows="7"
-                                              class="form-control @error($name) is-invalid @enderror">{{ $current }}</textarea>
-                                    <div class="form-text" style="font-size: 11.5px;">প্যারাগ্রাফ, বুলেট পয়েন্ট, বোল্ড ইত্যাদি ফরম্যাটিং ব্যবহার করুন।</div>
+                                    <div class="rich-editor-wrapper border rounded-3 overflow-hidden shadow-xs mb-2">
+                                        <!-- Formatting Toolbar -->
+                                        <div class="rich-editor-toolbar bg-light p-2 border-bottom d-flex flex-wrap gap-1 align-items-center">
+                                            <!-- Heading Format Selector -->
+                                            <select class="form-select form-select-sm" style="width: auto; min-width: 140px;" onchange="formatDoc('formatBlock', this.value, 'f-{{ $name }}')">
+                                                <option value="p">স্বাভাবিক প্যারাগ্রাফ (P)</option>
+                                                <option value="h1">বড় শিরোনাম (H1)</option>
+                                                <option value="h2">উপ-শিরোনাম (H2)</option>
+                                                <option value="h3">ছোট শিরোনাম (H3)</option>
+                                                <option value="h4">সেকশন হেডিং (H4)</option>
+                                                <option value="blockquote">উদ্ধৃতি (Blockquote)</option>
+                                            </select>
+
+                                            <!-- Font Size Selector -->
+                                            <select class="form-select form-select-sm" style="width: auto; min-width: 110px;" onchange="formatDoc('fontSize', this.value, 'f-{{ $name }}')">
+                                                <option value="3">ফন্ট সাইজ</option>
+                                                <option value="1">খুব ছোট (Small)</option>
+                                                <option value="2">ছোট (13px)</option>
+                                                <option value="3">স্বাভাবিক (15px)</option>
+                                                <option value="4">মাঝারি (18px)</option>
+                                                <option value="5">বড় (24px)</option>
+                                                <option value="6">খুব বড় (32px)</option>
+                                            </select>
+
+                                            <div class="vr mx-1"></div>
+
+                                            <!-- Style buttons -->
+                                            <button type="button" class="btn btn-sm btn-light border py-1 px-2.5 fw-bold" onclick="formatDoc('bold', null, 'f-{{ $name }}')" title="বোল্ড (Ctrl+B)">
+                                                <i class="fas fa-bold"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-light border py-1 px-2.5 fst-italic" onclick="formatDoc('italic', null, 'f-{{ $name }}')" title="ইটালিক (Ctrl+I)">
+                                                <i class="fas fa-italic"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-light border py-1 px-2.5 text-decoration-underline" onclick="formatDoc('underline', null, 'f-{{ $name }}')" title="আন্ডারলাইন (Ctrl+U)">
+                                                <i class="fas fa-underline"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-light border py-1 px-2.5 text-decoration-line-through" onclick="formatDoc('strikeThrough', null, 'f-{{ $name }}')" title="স্ট্রাইকথ্রু">
+                                                <i class="fas fa-strikethrough"></i>
+                                            </button>
+
+                                            <div class="vr mx-1"></div>
+
+                                            <!-- Alignment -->
+                                            <button type="button" class="btn btn-sm btn-light border py-1 px-2" onclick="formatDoc('justifyLeft', null, 'f-{{ $name }}')" title="বাম সারিবদ্ধ">
+                                                <i class="fas fa-align-left"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-light border py-1 px-2" onclick="formatDoc('justifyCenter', null, 'f-{{ $name }}')" title="মাঝে সারিবদ্ধ">
+                                                <i class="fas fa-align-center"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-light border py-1 px-2" onclick="formatDoc('justifyRight', null, 'f-{{ $name }}')" title="ডান সারিবদ্ধ">
+                                                <i class="fas fa-align-right"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-light border py-1 px-2" onclick="formatDoc('justifyFull', null, 'f-{{ $name }}')" title="জাস্টিফাই">
+                                                <i class="fas fa-align-justify"></i>
+                                            </button>
+
+                                            <div class="vr mx-1"></div>
+
+                                            <!-- Lists & Divider -->
+                                            <button type="button" class="btn btn-sm btn-light border py-1 px-2" onclick="formatDoc('insertUnorderedList', null, 'f-{{ $name }}')" title="বুলেট পয়েন্ট">
+                                                <i class="fas fa-list-ul"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-light border py-1 px-2" onclick="formatDoc('insertOrderedList', null, 'f-{{ $name }}')" title="নম্বর লিস্ট">
+                                                <i class="fas fa-list-ol"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-light border py-1 px-2" onclick="formatDoc('insertHorizontalRule', null, 'f-{{ $name }}')" title="বিভাজক রেখা">
+                                                <i class="fas fa-minus"></i>
+                                            </button>
+
+                                            <div class="vr mx-1"></div>
+
+                                            <!-- Link & Media -->
+                                            <button type="button" class="btn btn-sm btn-light border py-1 px-2 text-primary" onclick="insertLinkPrompt('f-{{ $name }}')" title="লিংক যুক্ত করুন">
+                                                <i class="fas fa-link"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-light border py-1 px-2 text-muted" onclick="formatDoc('unlink', null, 'f-{{ $name }}')" title="লিংক মুছুন">
+                                                <i class="fas fa-link-slash"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-light border py-1 px-2 text-success" onclick="insertImagePrompt('f-{{ $name }}')" title="ছবি যুক্ত করুন">
+                                                <i class="fas fa-image"></i>
+                                            </button>
+
+                                            <div class="vr mx-1"></div>
+
+                                            <!-- Actions -->
+                                            <button type="button" class="btn btn-sm btn-light border py-1 px-2" onclick="formatDoc('undo', null, 'f-{{ $name }}')" title="আনডু (Ctrl+Z)">
+                                                <i class="fas fa-undo"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-light border py-1 px-2" onclick="formatDoc('redo', null, 'f-{{ $name }}')" title="রিডু (Ctrl+Y)">
+                                                <i class="fas fa-redo"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-light border py-1 px-2 text-danger" onclick="formatDoc('removeFormat', null, 'f-{{ $name }}')" title="ফরম্যাটিং মুছুন">
+                                                <i class="fas fa-eraser"></i>
+                                            </button>
+                                        </div>
+
+                                        <!-- Contenteditable Live Area -->
+                                        <div id="editable-{{ $name }}" contenteditable="true" 
+                                             class="p-3 bg-white text-dark rich-editor-content" 
+                                             style="min-height: 280px; max-height: 550px; overflow-y: auto; outline: none; font-size: 15.5px; line-height: 1.85;"
+                                             oninput="syncEditorToTextarea('{{ $name }}')">{!! $current !!}</div>
+
+                                        <!-- Hidden/Synced real textarea for form submission -->
+                                        <textarea id="f-{{ $name }}" name="{{ $name }}" class="d-none @error($name) is-invalid @enderror">{{ $current }}</textarea>
+                                    </div>
+                                    <div class="form-text" style="font-size: 11.5px;">উপরে দেওয়া টুলবার ব্যবহার করে লেখা বোল্ড, ইটালিক, বড়-ছোট এবং ফরম্যাটিং করতে পারবেন।</div>
                                     @break
 
                                 @case('select')
@@ -709,6 +832,47 @@
                     <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">বাতিল</button>
                     <button type="submit" id="quickCatBtn" class="btn btn-sm btn-primary">
                         <i class="fas fa-check-circle me-1"></i> ক্যাটাগরি সংরক্ষণ করুন
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{{-- ========================================================================= --}}
+{{-- MODAL 1.5: QUICK ADD BLOG CATEGORY (ব্লগ ক্যাটাগরি কুইক ক্রিয়েটর)          --}}
+{{-- ========================================================================= --}}
+<div class="modal fade" id="quickAddBlogCategoryModal" tabindex="-1" aria-labelledby="quickAddBlogCatLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header bg-primary text-white py-2.5">
+                <h6 class="modal-title fw-bold text-white mb-0" id="quickAddBlogCatLabel">
+                    <i class="fas fa-shapes me-1.5"></i> নতুন ব্লগ ক্যাটাগরি তৈরি করুন
+                </h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="quickBlogCategoryForm" onsubmit="handleQuickBlogCategorySubmit(event)">
+                <div class="modal-body p-3">
+                    <div id="quickBlogCatAlert"></div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">ব্লগ ক্যাটাগরির নাম <span class="text-danger">*</span></label>
+                        <input type="text" id="quick_blog_cat_name" name="name" class="form-control form-control-sm" 
+                               placeholder="উদা: কবিতা / গল্প / প্রবন্ধ / ইতিহাস" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">আইকন ক্লাস (FontAwesome - ঐচ্ছিক)</label>
+                        <input type="text" id="quick_blog_cat_icon" name="icon" class="form-control form-control-sm" 
+                               placeholder="উদা: feather-pointed / book-open-reader / pen-nib" value="feather-pointed">
+                    </div>
+                    <div>
+                        <label class="form-label small fw-semibold">বিবরণ (ঐচ্ছিক)</label>
+                        <textarea id="quick_blog_cat_description" name="description" rows="2" class="form-control form-control-sm" placeholder="সংক্ষিপ্ত বিবরণ বা ভূমিকা..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light py-2">
+                    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">বাতিল</button>
+                    <button type="submit" id="quickBlogCatBtn" class="btn btn-sm btn-primary">
+                        <i class="fas fa-check-circle me-1"></i> ব্লগ ক্যাটাগরি সংরক্ষণ করুন
                     </button>
                 </div>
             </form>
@@ -1140,6 +1304,55 @@ function previewAdminFileInput(input, containerId) {
     }
 }
 
+// WYSIWYG Rich Text Formatting Engine
+function formatDoc(cmd, value, targetTextareaId) {
+    const fieldName = targetTextareaId.replace('f-', '');
+    const editorDiv = document.getElementById('editable-' + fieldName);
+    if (editorDiv) {
+        editorDiv.focus();
+        document.execCommand(cmd, false, value);
+        syncEditorToTextarea(fieldName);
+    }
+}
+
+function insertLinkPrompt(targetTextareaId) {
+    const url = prompt("লিংক ইউআরএল (URL) লিখুন:", "https://");
+    if (url && url !== "https://") {
+        formatDoc('createLink', url, targetTextareaId);
+    }
+}
+
+function insertImagePrompt(targetTextareaId) {
+    const url = prompt("ছবির সরাসরি লিংক (Image URL) দিন:", "https://");
+    if (url && url !== "https://") {
+        formatDoc('insertImage', url, targetTextareaId);
+    }
+}
+
+function syncEditorToTextarea(fieldName) {
+    const editorDiv = document.getElementById('editable-' + fieldName);
+    const textarea = document.getElementById('f-' + fieldName);
+    if (editorDiv && textarea) {
+        textarea.value = editorDiv.innerHTML;
+    }
+}
+
+// Global submit sync for all rich editor fields
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('contentMainForm');
+    if (form) {
+        form.addEventListener('submit', function() {
+            document.querySelectorAll('.rich-editor-content').forEach(function(editor) {
+                const name = editor.id.replace('editable-', '');
+                const textarea = document.getElementById('f-' + name);
+                if (textarea) {
+                    textarea.value = editor.innerHTML;
+                }
+            });
+        });
+    }
+});
+
 // AJAX Quick Category Creator
 function handleQuickCategorySubmit(e) {
     e.preventDefault();
@@ -1155,7 +1368,7 @@ function handleQuickCategorySubmit(e) {
 
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-    fetch("{{ route('admin.quick.category') }}", {
+    fetch("{{ route('quick.category') }}", {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -1204,6 +1417,65 @@ function handleQuickCategorySubmit(e) {
     });
 }
 
+// AJAX Quick Blog Category Creator
+function handleQuickBlogCategorySubmit(e) {
+    e.preventDefault();
+    const btn = document.getElementById('quickBlogCatBtn');
+    const alertBox = document.getElementById('quickBlogCatAlert');
+    const nameInput = document.getElementById('quick_blog_cat_name');
+    const iconInput = document.getElementById('quick_blog_cat_icon');
+    const descInput = document.getElementById('quick_blog_cat_description');
+
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> সংরক্ষণ হচ্ছে...';
+    alertBox.innerHTML = '';
+
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+    fetch("{{ route('quick.blog-category') }}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': csrfToken
+        },
+        body: JSON.stringify({
+            name: nameInput.value,
+            icon: iconInput.value || 'feather-pointed',
+            description: descInput.value || null
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success && data.item) {
+            // Append to main category dropdown and select
+            const mainCatSelect = document.getElementById('f-category_id');
+            if (mainCatSelect) {
+                const opt = new Option(data.item.display_name, data.item.id, true, true);
+                mainCatSelect.add(opt);
+                mainCatSelect.value = data.item.id;
+            }
+
+            // Close modal
+            const modalEl = document.getElementById('quickAddBlogCategoryModal');
+            bootstrap.Modal.getInstance(modalEl)?.hide();
+            nameInput.value = '';
+            descInput.value = '';
+
+            alert('ব্লগ ক্যাটাগরি সফলভাবে তৈরি ও নির্বাচিত হয়েছে!');
+        } else {
+            alertBox.innerHTML = `<div class="alert alert-danger p-2 small mb-2">${data.message || 'ত্রুটি হয়েছে'}</div>`;
+        }
+    })
+    .catch(err => {
+        alertBox.innerHTML = `<div class="alert alert-danger p-2 small mb-2">সার্ভার এরর হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।</div>`;
+    })
+    .finally(() => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-check-circle me-1"></i> ব্লগ ক্যাটাগরি সংরক্ষণ করুন';
+    });
+}
+
 // AJAX Quick Publisher Creator
 function handleQuickPublisherSubmit(e) {
     e.preventDefault();
@@ -1219,7 +1491,7 @@ function handleQuickPublisherSubmit(e) {
 
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-    fetch("{{ route('admin.quick.publisher') }}", {
+    fetch("{{ route('quick.publisher') }}", {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -1277,7 +1549,7 @@ function handleQuickAuthorSubmit(e) {
 
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-    fetch("{{ route('admin.quick.author') }}", {
+    fetch("{{ route('quick.author') }}", {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

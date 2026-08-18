@@ -7,7 +7,6 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Validation\Rules\Password;
 
 class RegistrationController extends Controller
 {
@@ -31,33 +30,63 @@ class RegistrationController extends Controller
         $allowed = ['seller', 'publisher', 'author', 'buyer'];
         abort_unless(in_array($type, $allowed), 404);
 
-        if (in_array($type, ['buyer', 'author'])) {
+        $customMessages = [
+            'name.required'      => 'আপনার পুরো নাম লিখুন।',
+            'phone.required'     => 'মোবাইল নম্বর প্রদান করা বাধ্যতামূলক।',
+            'phone.unique'       => 'এই মোবাইল নম্বরটি দিয়ে ইতিমধ্যে একটি অ্যাকাউন্ট নিবন্ধিত রয়েছে।',
+            'email.required'     => 'আপনার নিজস্ব সক্রিয় ইমেইল এড্রেস প্রদান করা বাধ্যতামূলক।',
+            'email.email'        => 'সঠিক ফরম্যাটের ইমেইল এড্রেস দিন।',
+            'email.unique'       => 'এই ইমেইলটি ইতিমধ্যে ব্যবহৃত হচ্ছে।',
+            'password.required'  => 'পাসওয়ার্ড প্রদান করুন।',
+            'password.min'       => 'পাসওয়ার্ড সর্বনিম্ন ৮ অক্ষরের হতে হবে।',
+            'password.max'       => 'পাসওয়ার্ড সর্বোচ্চ ২৫ অক্ষরের মধ্যে হতে হবে।',
+            'password.regex'     => 'পাসওয়ার্ডে অন্তত একটি স্পেশাল ক্যারেক্টার (যেমন: @, #, $, %, !, *, ?, &) ব্যবহার করতে হবে।',
+            'password.confirmed' => 'পাসওয়ার্ড এবং পাসওয়ার্ড নিশ্চিতকরণ মেলেনি।',
+        ];
+
+        $passwordRules = [
+            'required',
+            'confirmed',
+            'string',
+            'min:8',
+            'max:25',
+            'regex:/[!@#$%^&*(),.?":{}|<>_\-+=]/',
+        ];
+
+        if ($type === 'buyer') {
             $base = $request->validate([
                 'name'     => ['required', 'string', 'max:255'],
-                'phone'    => ['required', 'string', 'max:20'],
-                'email'    => ['nullable', 'email', 'unique:users,email'],
-                'password' => ['required', 'confirmed', Password::min(6)],
-            ]);
+                'phone'    => ['required', 'string', 'max:20', 'unique:users,phone'],
+                'email'    => ['nullable', 'email', 'max:255', 'unique:users,email'],
+                'password' => $passwordRules,
+            ], $customMessages);
 
-            // Auto-assign phone-based email if user didn't specify an email
+            // If buyer didn't specify an email, auto-create a unique placeholder for DB uniqueness
             if (empty($base['email'])) {
                 $cleanPhone = preg_replace('/[^0-9]/', '', $base['phone']);
-                $domain = $type === 'author' ? 'author.ideaabd.com' : 'buyer.ideaabd.com';
-                $generatedEmail = $cleanPhone . '@' . $domain;
-                // ensure unique
+                $generatedEmail = $cleanPhone . '@buyer.ideaabd.com';
                 $existing = User::where('email', $generatedEmail)->first();
                 if ($existing) {
-                    $generatedEmail = $cleanPhone . '_' . rand(100, 999) . '@' . $domain;
+                    $generatedEmail = $cleanPhone . '_' . rand(100, 999) . '@buyer.ideaabd.com';
                 }
                 $base['email'] = $generatedEmail;
             }
-        } else {
+        } elseif ($type === 'author') {
+            // Author MUST provide their own real email and mobile number (acts as username)
             $base = $request->validate([
                 'name'     => ['required', 'string', 'max:255'],
-                'email'    => ['required', 'email', 'unique:users,email'],
-                'phone'    => ['required', 'string', 'max:20'],
-                'password' => ['required', 'confirmed', Password::min(8)],
-            ]);
+                'phone'    => ['required', 'string', 'max:20', 'unique:users,phone'],
+                'email'    => ['required', 'email', 'max:255', 'unique:users,email'],
+                'password' => $passwordRules,
+            ], $customMessages);
+        } else {
+            // Seller / Publisher
+            $base = $request->validate([
+                'name'     => ['required', 'string', 'max:255'],
+                'email'    => ['required', 'email', 'max:255', 'unique:users,email'],
+                'phone'    => ['required', 'string', 'max:20', 'unique:users,phone'],
+                'password' => $passwordRules,
+            ], $customMessages);
         }
 
         // Type-specific validation
@@ -93,7 +122,8 @@ class RegistrationController extends Controller
         // Log SMS dispatch
         Log::info("SMS Verification dispatched to {$base['phone']}: {$smsMessage}");
 
-        $isActive = in_array($type, ['buyer', 'author'], true);
+        // Only buyer is auto-approved immediately. Author, Seller, Publisher must await admin approval!
+        $isActive = ($type === 'buyer');
         $regStatus = $isActive ? User::STATUS_APPROVED : User::STATUS_PENDING;
 
         $user = User::create([
@@ -123,7 +153,7 @@ class RegistrationController extends Controller
                     'bio'         => $extra['bio'] ?? null,
                     'phone'       => $base['phone'],
                     'email'       => $base['email'],
-                    'is_active'   => true,
+                    'is_active'   => false, // Pending admin approval
                     'is_verified' => false,
                     'created_at'  => now(),
                     'updated_at'  => now(),
@@ -133,18 +163,14 @@ class RegistrationController extends Controller
             }
         }
 
-        auth()->login($user);
-
         if ($type === 'buyer') {
+            auth()->login($user);
             return redirect('/')->with('success', "স্বাগতম {$user->name}! আপনার মোবাইল নম্বর ({$base['phone']}) সফলভাবে নিবন্ধিত হয়েছে।");
         }
 
-        if ($type === 'author') {
-            return redirect()->route('my-account')->with('success', "স্বাগতম লেখক {$user->name}! আপনার মোবাইল নম্বরটি ইউজারনেম হিসেবে সেট হয়েছে। আপনি এখন ব্লগ পোস্ট লিখতে ও ড্রাফট করতে পারেন।");
-        }
-
+        // For author, seller, publisher: Do NOT login automatically. Redirect to pending approval notice.
         return redirect()->route('pending.approval')
-            ->with('success', 'আপনার রেজিস্ট্রেশন অনুরোধ জমা হয়েছে। অ্যাডমিন অনুমোদনের অপেক্ষা করুন।');
+            ->with('success', 'আপনার রেজিস্ট্রেশন অনুরোধটি সফলভাবে জমা হয়েছে। অ্যাডমিন অনুমোদন করার পর আপনার ইমেইলে নোটিফিকেশন পৌঁছে যাবে এবং আপনি লগইন করতে পারবেন।');
     }
 
     public function pendingApproval()

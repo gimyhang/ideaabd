@@ -52,12 +52,15 @@
                         <div class="row">
                             <div class="col-sm-6 mb-3">
                                 <label class="form-label fw-semibold">পাসওয়ার্ড <span class="text-danger">*</span></label>
-                                <input type="password" name="password" class="form-control rounded-3 @error('password') is-invalid @enderror" required minlength="6" placeholder="কমপক্ষে ৬ অক্ষর">
+                                <input type="password" name="password" class="form-control rounded-3 @error('password') is-invalid @enderror" required minlength="8" maxlength="25" placeholder="৮-২৫ অক্ষর ও স্পেশাল ক্যারেক্টার">
                                 @error('password')<div class="invalid-feedback">{{ $message }}</div>@enderror
                             </div>
                             <div class="col-sm-6 mb-3">
                                 <label class="form-label fw-semibold">পাসওয়ার্ড নিশ্চিত করুন <span class="text-danger">*</span></label>
-                                <input type="password" name="password_confirmation" class="form-control rounded-3" required minlength="6" placeholder="পুনরায় লিখুন">
+                                <input type="password" name="password_confirmation" class="form-control rounded-3" required minlength="8" maxlength="25" placeholder="পুনরায় লিখুন">
+                            </div>
+                            <div class="col-12">
+                                <div class="form-text small text-muted mt-0 mb-3"><i class="fa-solid fa-shield-halved text-success me-1"></i> পাসওয়ার্ড ৮ থেকে ২৫ অক্ষরের মধ্যে হতে হবে এবং অন্তত একটি স্পেশাল ক্যারেক্টার (যেমন: @, #, $, %, !, *, ?, &) ব্যবহার করুন।</div>
                             </div>
                         </div>
 

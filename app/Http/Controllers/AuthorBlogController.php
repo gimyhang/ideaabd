@@ -35,11 +35,13 @@ class AuthorBlogController extends Controller
             return redirect()->route('home')->with('error', 'আপনার লেখক অ্যাকাউন্টের আবেদনটি অনুমোদিত হয়নি।');
         }
 
-        // Auto assign author role for registered approved users
-        if ($user->role === 'customer' || empty($user->role)) {
-            $user->role = 'author';
-            $user->reg_status = 'approved';
-            $user->save();
+        // If user is a customer/buyer, prompt them to apply as an author
+        if ($user->role === 'customer' || $user->role === 'buyer' || empty($user->role)) {
+            return redirect()->route('register.type', 'author')->with('info', 'ব্লগে নিজের লেখা প্রকাশ করতে অনুগ্রহ করে লেখক হিসেবে রেজিস্ট্রেশন আবেদন জমা দিন। অ্যাডমিন অনুমোদনের পর আপনি লেখা প্রকাশ করতে পারবেন।');
+        }
+
+        if (!$user->isAuthor() && !$user->isAdmin()) {
+            return redirect()->route('home')->with('warning', 'শুধুমাত্র অনুমোদিত লেখকগণ ব্লগে লিখতে পারেন।');
         }
 
         return redirect()->route('author.dashboard', ['tab' => 'write']);
@@ -57,11 +59,17 @@ class AuthorBlogController extends Controller
             return redirect()->route('pending.approval')->with('warning', 'আপনার লেখক অ্যাকাউন্টটি অ্যাডমিন অনুমোদনের অপেক্ষায় রয়েছে।');
         }
 
-        // If user is a general customer visiting author dashboard, auto assign role or approve author access
-        if ($user->role === 'customer' || empty($user->role)) {
-            $user->role = 'author';
-            $user->reg_status = 'approved';
-            $user->save();
+        // If user is rejected
+        if ($user->reg_status === 'rejected' || $user->status === 'rejected') {
+            return redirect()->route('home')->with('error', 'আপনার লেখক অ্যাকাউন্টের আবেদনটি অনুমোদিত হয়নি।');
+        }
+
+        if ($user->role === 'customer' || $user->role === 'buyer' || empty($user->role)) {
+            return redirect()->route('register.type', 'author')->with('info', 'লেখক ড্যাশবোর্ড ব্যবহারের জন্য লেখক হিসেবে রেজিস্ট্রেশন আবেদন করুন।');
+        }
+
+        if (!$user->isAuthor() && !$user->isAdmin()) {
+            return redirect()->route('home')->with('warning', 'শুধুমাত্র অনুমোদিত লেখকগণ ড্যাশবোর্ড ব্যবহার করতে পারেন।');
         }
 
         $filterStatus = $request->input('status', 'all');
@@ -116,28 +124,39 @@ class AuthorBlogController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        $validated = $request->validate([
+        $hasAiImage = !empty($request->input('ai_photocard_data'));
+        $hasUpload = $request->hasFile('featured_image');
+
+        $rules = [
             'title'          => 'required|string|max:255',
             'subtitle'       => 'nullable|string|max:500',
             'category_id'    => 'required|integer|exists:blog_categories,id',
             'excerpt'        => 'nullable|string|max:1000',
             'content'        => 'required|string',
-            'featured_image' => 'required|image|max:4096',
             'action_type'    => 'required|in:draft,submit',
-        ], [
+        ];
+
+        // Featured image is required only if AI generated photocard is not provided
+        if (!$hasAiImage) {
+            $rules['featured_image'] = 'required|image|max:8192';
+        } else {
+            $rules['featured_image'] = 'nullable|image|max:8192';
+        }
+
+        $validated = $request->validate($rules, [
             'title.required'          => 'ব্লগ পোস্টের শিরোনাম দিন।',
             'category_id.required'    => 'লেখার ক্যাটাগরি বা বিষয় নির্বাচন করুন।',
             'content.required'        => 'ব্লগের মূল বিষয়বস্তু বা রচনা লিখুন।',
-            'featured_image.required' => 'লেখার সাথে একটি নির্ধারিত মাপের (১২০০×৬৭৫ বা ৮০০×৪৫০) ফটোকার্ড কভার ছবি নির্বাচন করা বাধ্যতামূলক।',
+            'featured_image.required' => 'লেখার সাথে একটি ফটোকার্ড কভার ছবি নির্বাচন করুন অথবা "এআই দিয়ে ফটোকার্ড তৈরি করুন" অপশনটি ব্যবহার করুন।',
+            'featured_image.image'    => 'ফটোকার্ডটি একটি বৈধ ছবি (JPG, PNG, WebP) হতে হবে।',
+            'featured_image.max'      => 'ছবি ফাইলের সর্বোচ্চ সাইজ ৮ মেগাবাইট হতে পারবে।',
         ]);
 
         $user = auth()->user();
 
-        // Ensure author role
-        if ($user->role !== 'author' && !$user->isAdmin()) {
-            $user->role = 'author';
-            $user->reg_status = 'approved';
-            $user->save();
+        // Ensure author role and approval
+        if (!$user->isAuthor() && !$user->isAdmin() && $user->role !== 'author') {
+            return redirect()->route('home')->with('error', 'শুধুমাত্র অনুমোদিত লেখকগণ লেখা পোস্ট করতে পারেন।');
         }
 
         $isSubmit = $validated['action_type'] === 'submit';
@@ -145,33 +164,56 @@ class AuthorBlogController extends Controller
         // Unique automatic English slug generation
         $slug = $this->generateEnglishSlug($validated['title']);
 
+        // Handle Image: Uploaded File takes precedence, then Base64 AI photocard
         $imagePath = null;
-        if ($request->hasFile('featured_image')) {
-            $imagePath = $request->file('featured_image')->store('blog', 'public');
+        try {
+            if ($hasUpload) {
+                $imagePath = $request->file('featured_image')->store('blog', 'public');
+            } elseif ($hasAiImage) {
+                $imagePath = $this->saveBase64Image($request->input('ai_photocard_data'), 'blog');
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error("Featured image upload/generation error: " . $e->getMessage());
+            return back()->withInput()->with('error', 'ছবি প্রক্রিয়াকরণে সমস্যা হয়েছে। অনুগ্রহ করে পুনরায় ছবি আপলোড বা এআই ফটোকার্ড জেনারেট করুন।');
         }
 
-        $post = new BlogPost();
-        $post->title = $validated['title'];
-        $post->subtitle = $validated['subtitle'] ?? null;
-        $post->slug = $slug;
-        $post->category_id = $validated['category_id'] ?: null;
-        $post->excerpt = $validated['excerpt'] ?: Str::limit(strip_tags($validated['content']), 200);
-        $post->content = $validated['content'];
-        $post->featured_image = $imagePath;
-        $post->author_id = $user->id;
-        $post->submitted_by = $user->id;
-        
-        if ($isSubmit) {
-            $post->status = 'pending';
-            $post->mod_status = 'pending';
-            $message = 'আপনার লেখাটি সফলভাবে জমা হয়েছে। অ্যাডমিন পর্যালোচনা করে শীঘ্রই তা ব্লগে প্রকাশ করবেন।';
-        } else {
-            $post->status = 'draft';
-            $post->mod_status = 'pending';
-            $message = 'লেখাটি খসড়া (Draft) হিসেবে সংরক্ষিত হয়েছে। যেকোনো সময় এটি এডিট করে জমা দিতে পারবেন।';
+        if (empty($imagePath)) {
+            return back()->withInput()->with('error', 'ফটোকার্ড কভার ছবি সংরক্ষণ করা সম্ভব হয়নি। অনুগ্রহ করে পুনরায় ছবি নির্বাচন করুন।');
         }
 
-        $post->save();
+        // Title unique check handling
+        $title = trim($validated['title']);
+        if (BlogPost::where('title', $title)->exists()) {
+            $title = $title . ' (' . Str::random(4) . ')';
+        }
+
+        try {
+            $post = new BlogPost();
+            $post->title = $title;
+            $post->subtitle = $validated['subtitle'] ?? null;
+            $post->slug = $slug;
+            $post->category_id = $validated['category_id'] ?: null;
+            $post->excerpt = $validated['excerpt'] ?: Str::limit(strip_tags($validated['content']), 200);
+            $post->content = $validated['content'];
+            $post->featured_image = $imagePath;
+            $post->author_id = $user->id;
+            $post->submitted_by = $user->id;
+            
+            if ($isSubmit) {
+                $post->status = 'pending';
+                $post->mod_status = 'pending';
+                $message = 'আপনার লেখাটি সফলভাবে জমা হয়েছে। অ্যাডমিন পর্যালোচনা করে শীঘ্রই তা ব্লগে প্রকাশ করবেন।';
+            } else {
+                $post->status = 'draft';
+                $post->mod_status = 'pending';
+                $message = 'লেখাটি খসড়া (Draft) হিসেবে সংরক্ষিত হয়েছে। যেকোনো সময় এটি এডিট করে জমা দিতে পারবেন।';
+            }
+
+            $post->save();
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error("AuthorBlogController store error: " . $e->getMessage());
+            return back()->withInput()->with('error', 'পোস্টটি সংরক্ষণের সময় ত্রুটি ঘটেছে: ' . $e->getMessage());
+        }
 
         return redirect()->route('author.dashboard', ['tab' => 'articles'])->with('success', $message);
     }
@@ -190,34 +232,54 @@ class AuthorBlogController extends Controller
                 ->with('error', 'পোস্টটি অনুমোদনের জন্য অপেক্ষমাণ বা ইতোমধ্যে প্রকাশিত হয়েছে। তাই এটি আর সম্পাদনা করা যাবে না।');
         }
 
+        $hasAiImage = !empty($request->input('ai_photocard_data'));
+        $hasUpload = $request->hasFile('featured_image');
+
         $validated = $request->validate([
             'title'          => 'required|string|max:255',
             'subtitle'       => 'nullable|string|max:500',
             'category_id'    => 'required|integer|exists:blog_categories,id',
             'excerpt'        => 'nullable|string|max:1000',
             'content'        => 'required|string',
-            'featured_image' => 'nullable|image|max:4096',
+            'featured_image' => 'nullable|image|max:8192',
             'action_type'    => 'required|in:draft,submit',
         ], [
             'title.required'       => 'ব্লগ পোস্টের শিরোনাম দিন।',
             'category_id.required' => 'লেখার ক্যাটাগরি বা বিষয় নির্বাচন করুন।',
             'content.required'     => 'ব্লগের মূল বিষয়বস্তু বা রচনা লিখুন।',
+            'featured_image.image' => 'ফটোকার্ডটি একটি বৈধ ছবি (JPG, PNG, WebP) হতে হবে।',
+            'featured_image.max'   => 'ছবি ফাইলের সর্বোচ্চ সাইজ ৮ মেগাবাইট হতে পারবে।',
         ]);
 
         $isSubmit = $validated['action_type'] === 'submit';
 
-        if ($request->hasFile('featured_image')) {
-            if ($post->featured_image) {
-                Storage::disk('public')->delete($post->featured_image);
+        try {
+            if ($hasUpload) {
+                if ($post->featured_image) {
+                    Storage::disk('public')->delete($post->featured_image);
+                }
+                $post->featured_image = $request->file('featured_image')->store('blog', 'public');
+            } elseif ($hasAiImage) {
+                if ($post->featured_image) {
+                    Storage::disk('public')->delete($post->featured_image);
+                }
+                $post->featured_image = $this->saveBase64Image($request->input('ai_photocard_data'), 'blog');
             }
-            $post->featured_image = $request->file('featured_image')->store('blog', 'public');
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error("Featured image update error: " . $e->getMessage());
+            return back()->withInput()->with('error', 'ছবি প্রক্রিয়াকরণে সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।');
         }
 
-        $post->title = $validated['title'];
+        $title = trim($validated['title']);
+        if (BlogPost::where('title', $title)->where('id', '!=', $post->id)->exists()) {
+            $title = $title . ' (' . Str::random(4) . ')';
+        }
+
+        $post->title = $title;
         $post->subtitle = $validated['subtitle'] ?? null;
         // Update slug to clean english if empty or modified
         if (empty($post->slug) || !preg_match('/^[a-z0-9-]+$/i', $post->slug)) {
-            $post->slug = $this->generateEnglishSlug($validated['title'], $post->id);
+            $post->slug = $this->generateEnglishSlug($title, $post->id);
         }
         $post->category_id = $validated['category_id'] ?: null;
         $post->excerpt = $validated['excerpt'] ?: Str::limit(strip_tags($validated['content']), 200);
@@ -233,9 +295,49 @@ class AuthorBlogController extends Controller
             $message = 'খসড়া লেখাটি সফলভাবে হালনাগাদ করা হয়েছে।';
         }
 
-        $post->save();
+        try {
+            $post->save();
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error("AuthorBlogController update error: " . $e->getMessage());
+            return back()->withInput()->with('error', 'পোস্টটি হালনাগাদের সময় ত্রুটি ঘটেছে: ' . $e->getMessage());
+        }
 
         return redirect()->route('author.dashboard', ['tab' => 'articles'])->with('success', $message);
+    }
+
+    /**
+     * Decode and save base64 image data to public storage.
+     */
+    private function saveBase64Image(string $base64Data, string $folder = 'blog'): ?string
+    {
+        if (empty($base64Data)) {
+            return null;
+        }
+
+        try {
+            if (preg_match('/^data:image\/(\w+);base64,/', $base64Data, $type)) {
+                $base64Data = substr($base64Data, strpos($base64Data, ',') + 1);
+                $type = strtolower($type[1]);
+                if (!in_array($type, ['jpg', 'jpeg', 'png', 'webp', 'gif'])) {
+                    $type = 'jpg';
+                }
+            } else {
+                $type = 'jpg';
+            }
+
+            $decoded = base64_decode($base64Data);
+            if ($decoded === false) {
+                return null;
+            }
+
+            $filename = $folder . '/photocard_' . time() . '_' . Str::random(8) . '.' . $type;
+            Storage::disk('public')->put($filename, $decoded);
+
+            return $filename;
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error("Base64 image save error: " . $e->getMessage());
+            return null;
+        }
     }
 
     /**

@@ -64,4 +64,20 @@ class Webzine extends Model
         }
         return asset('storage/' . ltrim($cover, '/'));
     }
+
+    /**
+     * Resolved EPUB URL
+     */
+    public function getEpubUrlAttribute(): ?string
+    {
+        if (!$this->epub_file_path) return null;
+        $path = trim($this->epub_file_path);
+        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
+            return $path;
+        }
+        if (str_starts_with($path, 'storage/')) {
+            return asset($path);
+        }
+        return asset('storage/' . ltrim($path, '/'));
+    }
 }

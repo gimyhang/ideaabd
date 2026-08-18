@@ -45,6 +45,12 @@ Route::get('/login', fn() => view('auth.login'))->name('login')->middleware('gue
 Route::post('/login', [LoginController::class, 'login'])->middleware('guest');
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->middleware('auth');
 
+// --- Password Reset via Mobile OTP (2FA) ---
+Route::get('/forgot-password', [\App\Http\Controllers\Auth\PasswordResetOtpController::class, 'showRequestForm'])->name('password.request')->middleware('guest');
+Route::post('/forgot-password', [\App\Http\Controllers\Auth\PasswordResetOtpController::class, 'sendOtp'])->name('password.send-otp')->middleware('guest');
+Route::get('/reset-password-otp', [\App\Http\Controllers\Auth\PasswordResetOtpController::class, 'showResetForm'])->name('password.reset-otp')->middleware('guest');
+Route::post('/reset-password-otp', [\App\Http\Controllers\Auth\PasswordResetOtpController::class, 'resetPassword'])->name('password.update-otp')->middleware('guest');
+
 // --- Search ------------------------------------------------------------------
 Route::get('/search', [BookController::class, 'index'])->name('search');
 
@@ -264,6 +270,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::prefix('registrations')->name('registrations.')->controller(RegistrationApprovalController::class)->group(function () {
         Route::get('/', 'index')->name('index');
         Route::get('/{user}', 'show')->name('show');
+        Route::get('/{user}/edit', 'edit')->name('edit');
+        Route::put('/{user}', 'update')->name('update');
         Route::patch('/{user}/approve', 'approve')->name('approve');
         Route::patch('/{user}/reject', 'reject')->name('reject');
         Route::delete('/{user}', 'cancel')->name('cancel');
@@ -274,8 +282,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::post('/payments', [PaymentAdminController::class, 'updateGateways'])->name('payments.update');
     Route::patch('/payments/{order}/status', [PaymentAdminController::class, 'updateStatus'])->name('payments.status');
 
-    // Quick AJAX resource creators for books/ebooks forms
+    // Quick AJAX resource creators for books/ebooks/blog forms
     Route::post('/quick/category', [\App\Http\Controllers\Admin\QuickResourceController::class, 'quickStoreCategory'])->name('quick.category');
+    Route::post('/quick/blog-category', [\App\Http\Controllers\Admin\QuickResourceController::class, 'quickStoreBlogCategory'])->name('quick.blog-category');
     Route::post('/quick/author', [\App\Http\Controllers\Admin\QuickResourceController::class, 'quickStoreAuthor'])->name('quick.author');
     Route::post('/quick/publisher', [\App\Http\Controllers\Admin\QuickResourceController::class, 'quickStorePublisher'])->name('quick.publisher');
 

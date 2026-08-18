@@ -11,7 +11,7 @@
                             <i class="fas fa-pen-fancy text-white fs-4"></i>
                         </div>
                         <div>
-                            <h4 class="fw-bold mb-1" style="color:#198754">মোবাইল দিয়ে লেখক রেজিস্ট্রেশন</h4>
+                            <h4 class="fw-bold mb-1" style="color:#198754">লেখক রেজিস্ট্রেশন</h4>
                             <small class="text-muted">আপনার মোবাইল নম্বরটি ইউজারনেম হিসেবে ব্যবহার হবে</small>
                         </div>
                     </div>
@@ -25,7 +25,7 @@
                         @csrf
                         
                         <div class="mb-3">
-                            <label class="form-label fw-semibold">লেখকের নাম <span class="text-danger">*</span></label>
+                            <label class="form-label fw-semibold">লেখকের পুরো নাম <span class="text-danger">*</span></label>
                             <input type="text" name="name" class="form-control rounded-3 @error('name') is-invalid @enderror"
                                    value="{{ old('name') }}" required placeholder="আপনার পুরো নাম">
                             @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
@@ -38,26 +38,33 @@
                                 <input type="tel" name="phone" class="form-control rounded-end-3 @error('phone') is-invalid @enderror"
                                        value="{{ old('phone') }}" required placeholder="01XXXXXXXXX">
                             </div>
-                            <div class="form-text small text-muted"><i class="fa-solid fa-shield-check text-success me-1"></i> এই মোবাইল নম্বরটি দিয়ে আপনি লগইন করতে পারবেন।</div>
+                            <div class="form-text small text-muted"><i class="fa-solid fa-shield-check text-success me-1"></i> এই মোবাইল নম্বরটি দিয়ে আপনি ওয়েবসাইটে লগইন করবেন।</div>
                             @error('phone')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label fw-semibold">ইমেইল <span class="badge bg-light text-muted border">ঐচ্ছিক / Optional</span></label>
-                            <input type="email" name="email" class="form-control rounded-3 @error('email') is-invalid @enderror"
-                                   value="{{ old('email') }}" placeholder="ইমেইল থাকলে দিন (ঐচ্ছিক)">
-                            @error('email')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            <label class="form-label fw-semibold">লেখকের নিজস্ব সক্রিয় ইমেইল <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-envelope text-primary"></i></span>
+                                <input type="email" name="email" class="form-control rounded-end-3 @error('email') is-invalid @enderror"
+                                       value="{{ old('email') }}" required placeholder="yourname@gmail.com">
+                            </div>
+                            <div class="form-text small text-muted"><i class="fa-solid fa-circle-info text-primary me-1"></i> অ্যাকাউন্ট অনুমোদন, পাসওয়ার্ড রিসেট ও লেখা অনুমোদনের নোটিফিকেশন এই ইমেইলে যাবে।</div>
+                            @error('email')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                         </div>
 
                         <div class="row">
                             <div class="col-sm-6 mb-3">
                                 <label class="form-label fw-semibold">পাসওয়ার্ড <span class="text-danger">*</span></label>
-                                <input type="password" name="password" class="form-control rounded-3 @error('password') is-invalid @enderror" required minlength="6" placeholder="কমপক্ষে ৬ অক্ষর">
+                                <input type="password" name="password" class="form-control rounded-3 @error('password') is-invalid @enderror" required minlength="8" maxlength="25" placeholder="৮-২৫ অক্ষর ও স্পেশাল ক্যারেক্টার">
                                 @error('password')<div class="invalid-feedback">{{ $message }}</div>@enderror
                             </div>
                             <div class="col-sm-6 mb-3">
                                 <label class="form-label fw-semibold">পাসওয়ার্ড নিশ্চিত করুন <span class="text-danger">*</span></label>
-                                <input type="password" name="password_confirmation" class="form-control rounded-3" required minlength="6" placeholder="পুনরায় লিখুন">
+                                <input type="password" name="password_confirmation" class="form-control rounded-3" required minlength="8" maxlength="25" placeholder="পুনরায় লিখুন">
+                            </div>
+                            <div class="col-12">
+                                <div class="form-text small text-muted mt-0 mb-3"><i class="fa-solid fa-shield-halved text-success me-1"></i> পাসওয়ার্ড ৮ থেকে ২৫ অক্ষরের মধ্যে হতে হবে এবং অন্তত একটি স্পেশাল ক্যারেক্টার (যেমন: @, #, $, %, !, *, ?, &) ব্যবহার করুন।</div>
                             </div>
                         </div>
 
@@ -89,9 +96,9 @@
                             <input type="text" name="nid" class="form-control rounded-3" value="{{ old('nid') }}" placeholder="ঐচ্ছিক">
                         </div>
 
-                        <div class="alert alert-success small py-2.5 rounded-3 d-flex align-items-center gap-2">
-                            <i class="fas fa-check-circle text-success fs-5"></i>
-                            <span>রেজিস্ট্রেশন সম্পন্ন হলেই আপনি ড্যাশবোর্ডে লগইন করে ব্লগ লেখা পোস্ট বা ড্রাফট করতে পারবেন।</span>
+                        <div class="alert alert-info small py-2.5 rounded-3 d-flex align-items-center gap-2 mb-3">
+                            <i class="fas fa-clock text-info fs-5"></i>
+                            <span>রেজিস্ট্রেশন জমা দেওয়ার পর অ্যাডমিন অ্যাকাউন্টটি অনুমোদন করবেন। অনুমোদন নোটিফিকেশন ও লগইন নির্দেশিকা আপনার ইমেইলে পাঠিয়ে দেওয়া হবে।</span>
                         </div>
 
                         <button type="submit" class="btn w-100 py-2.5 fw-bold text-white rounded-pill shadow-sm" style="background:#198754">

@@ -338,24 +338,52 @@
                                     </div>
 
                                     <div class="col-md-6">
-                                        <label class="form-label fw-bold text-dark">
-                                            ফিচার্ড ফটোকার্ড / কভার ছবি <span class="text-danger">*</span>
-                                        </label>
-                                        <input type="file" name="featured_image" id="featuredImageInput" class="form-control rounded-3 @error('featured_image') is-invalid @enderror" 
-                                               accept="image/jpeg,image/png,image/webp" {{ $editPost && $editPost->featured_image ? '' : 'required' }} onchange="previewPhotocard(this)">
-                                        @error('featured_image')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                                        
-                                        <!-- Mandatory Photocard Guidelines Badge -->
-                                        <div class="mt-2 p-2 bg-light border rounded-3 text-muted small" style="font-size: 0.76rem;">
-                                            <div class="fw-bold text-dark mb-0.5"><i class="fa-solid fa-circle-info text-primary me-1"></i>ফটোকার্ড নির্দেশনা (বাধ্যতামূলক):</div>
-                                            <div>• <strong>নির্ধারিত মাপ:</strong> ১২০০×৬৭৫ পিক্সেল (১৬:৯ রেশিও) বা ৮০০×৪৫০ পিক্সেল</div>
-                                            <div>• <strong>সর্বোচ্চ সাইজ:</strong> ৫০০ KB (কম্প্রেসড JPG/PNG/WebP)</div>
+                                        <div class="d-flex align-items-center justify-content-between mb-1">
+                                            <label class="form-label fw-bold text-dark mb-0">
+                                                ফিচার্ড ফটোকার্ড / কভার ছবি <span class="text-danger">*</span>
+                                            </label>
+                                            <button type="button" class="btn btn-sm btn-outline-success fw-bold rounded-pill px-2.5 py-0.5" 
+                                                    style="font-size: 0.78rem;" onclick="openAiPhotocardGenerator()">
+                                                <i class="fa-solid fa-wand-magic-sparkles me-1 text-warning"></i> এআই ফটোকার্ড তৈরি করুন
+                                            </button>
                                         </div>
 
-                                        <div id="photocardPreviewWrapper" class="mt-2 d-flex align-items-center gap-2" style="{{ $editPost && $editPost->featured_image ? '' : 'display:none;' }}">
+                                        <input type="hidden" name="ai_photocard_data" id="aiPhotocardDataInput" value="">
+                                        
+                                        <!-- Real File Input -->
+                                        <input type="file" name="featured_image" id="featuredImageInput" class="form-control rounded-3 @error('featured_image') is-invalid @enderror" 
+                                               accept="image/jpeg,image/png,image/webp" {{ $editPost && $editPost->featured_image ? '' : 'required' }} onchange="handlePhotocardSelection(this)">
+                                        @error('featured_image')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                        
+                                        <!-- Error Notification Box -->
+                                        <div id="photocardErrorAlert" class="alert alert-danger p-2 small mt-2 d-none rounded-3" style="font-size: 0.8rem;">
+                                            <i class="fa-solid fa-triangle-exclamation me-1"></i>
+                                            <span id="photocardErrorText">ছবি প্রক্রিয়াকরণে সমস্যা হয়েছে। অনুগ্রহ করে পুনরায় সঠিক ফরম্যাটের ছবি আপলোড করুন অথবা এআই দিয়ে ফটোকার্ড তৈরি করুন।</span>
+                                        </div>
+
+                                        <!-- Mandatory Photocard Guidelines Badge -->
+                                        <div class="mt-2 p-2.5 bg-light border rounded-3 text-muted small" style="font-size: 0.76rem;">
+                                            <div class="d-flex align-items-center justify-content-between">
+                                                <span class="fw-bold text-dark"><i class="fa-solid fa-crop-simple text-primary me-1"></i>অটো-ক্রপ ও ফিক্সড সাইজ:</span>
+                                                <span class="badge bg-primary-subtle text-primary border rounded-pill">১৬:৯ ফরম্যাট (১২০০×৬৭৫ px)</span>
+                                            </div>
+                                            <div class="mt-1">
+                                                যেকোনো ছবি দিলে তা স্বয়ংক্রিয়ভাবে ১৬:৯ রেশিওতে ফিক্সড হয়ে যাবে। ছবি না থাকলে উপরের <strong>"এআই ফটোকার্ড তৈরি করুন"</strong> বোতামে ক্লিক করুন।
+                                            </div>
+                                        </div>
+
+                                        <!-- Selected / Cropped Photocard Preview Widget -->
+                                        <div id="photocardPreviewWrapper" class="mt-2 p-2 bg-success bg-opacity-10 border border-success border-opacity-25 rounded-3 d-flex align-items-center gap-2.5" 
+                                             style="{{ $editPost && $editPost->featured_image ? '' : 'display:none;' }}">
                                             <img id="photocardPreviewImg" src="{{ $editPost && $editPost->featured_image ? asset('storage/' . $editPost->featured_image) : '' }}" 
-                                                 alt="Photocard Preview" class="rounded-3 border shadow-xs" style="height: 52px; width: 85px; object-fit: cover;">
-                                            <small class="text-success fw-semibold"><i class="fa-solid fa-check me-1"></i>ফটোকার্ড সিলেক্টেড</small>
+                                                 alt="Photocard Preview" class="rounded-2 border shadow-xs bg-white flex-shrink-0" style="height: 52px; width: 92px; object-fit: cover;">
+                                            <div class="overflow-hidden me-auto">
+                                                <span id="photocardStatusBadge" class="badge bg-success small"><i class="fa-solid fa-check-circle me-1"></i>ফটোকার্ড প্রস্তুত</span>
+                                                <div id="photocardDimensionsText" class="small text-muted text-truncate mt-0.5" style="font-size: 11px;">সাইজ: ১৬:৯ ফিক্সড ক্রপ</div>
+                                            </div>
+                                            <button type="button" class="btn btn-sm btn-outline-danger py-0.5 px-2 rounded-pill fw-semibold" style="font-size: 11px;" onclick="resetPhotocardSelection()">
+                                                <i class="fa-solid fa-arrow-rotate-left me-1"></i>পুনরায় আপলোড
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
@@ -437,7 +465,7 @@
                             </li>
                             <li class="d-flex align-items-start gap-2">
                                 <i class="fas fa-check text-success mt-1"></i>
-                                <span><strong>কভার ছবি:</strong> আকর্ষণীয় কভার ছবি যুক্ত করলে পাঠকদের দৃষ্টি আকর্ষণ সহজ হয়।</span>
+                                <span><strong>কভার ছবি / ফটোকার্ড:</strong> আকর্ষণীয় ফটোকার্ড পাঠকদের দৃষ্টি আকর্ষণ সহজ করে। ফটো না থাকলে <strong>এআই ফটোকার্ড</strong> দিয়ে তৈরি করে নিন।</span>
                             </li>
                             <li class="d-flex align-items-start gap-2">
                                 <i class="fas fa-check text-success mt-1"></i>
@@ -449,9 +477,11 @@
                     <div class="card border-0 shadow-sm rounded-4 p-4 bg-primary text-white">
                         <h6 class="fw-bold mb-2"><i class="fas fa-headset me-2"></i>লেখক সহায়তায় আইডিয়া প্রকাশন</h6>
                         <p class="small opacity-90 mb-3">
-                            কোনো বিষয়ে টেকনিক্যাল সমস্যা বা লেখা সম্পাদনায় সহযোগিতার প্রয়োজন হলে আমাদের সম্পাদকীয় টিমের সাথে যোগাযোগ করুন।
+                            লেখা জমাদানে কোনো কারিগরি অসুবিধা হলে অথবা রিভিউ সংক্রান্ত তথ্যের জন্য সরাসরি আমাদের সম্পাদকীয় দলের সাথে যোগাযোগ করুন।
                         </p>
-                        <div class="small fw-semibold"><i class="fas fa-phone me-1.5"></i> +৮৮০ ১৩১৮ ৬৯২ ৬৯২</div>
+                        <a href="tel:01700000000" class="btn btn-warning text-dark btn-sm rounded-pill fw-bold px-3">
+                            <i class="fas fa-phone me-1"></i> সম্পাদকীয় হেল্পলাইন
+                        </a>
                     </div>
                 </div>
             </div>
@@ -508,7 +538,99 @@
     </div>
 </div>
 
+{{-- ========================================================================= --}}
+{{-- MODAL: AI / TITLE PHOTOCARD GENERATOR (এআই ফটোকার্ড জেনারেটর)            --}}
+{{-- ========================================================================= --}}
+<div class="modal fade" id="aiPhotocardModal" tabindex="-1" aria-labelledby="aiPhotocardModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
+            <div class="modal-header bg-gradient text-white py-3 px-4" style="background: linear-gradient(135deg, #064e3b 0%, #047857 100%);">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-wand-magic-sparkles text-warning fs-4"></i>
+                    <div>
+                        <h5 class="modal-title fw-bold text-white mb-0" id="aiPhotocardModalLabel">এআই ফটোকার্ড কভার জেনারেটর</h5>
+                        <small class="text-white-50">লেখার শিরোনাম ও বিষয়ের ওপর ভিত্তি করে সরাসরি ফটোকার্ড তৈরি করুন</small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            
+            <div class="modal-body p-4 bg-light">
+                <div class="row g-3">
+                    <!-- Live Canvas Preview Box -->
+                    <div class="col-12 text-center">
+                        <div class="p-2 bg-white rounded-4 shadow-sm border mx-auto" style="max-width: 650px;">
+                            <div class="position-relative rounded-3 overflow-hidden" style="aspect-ratio: 16/9; background: #0f172a;">
+                                <canvas id="aiPhotocardCanvas" width="1200" height="675" style="width: 100%; height: 100%; object-fit: contain;"></canvas>
+                            </div>
+                            <div class="d-flex align-items-center justify-content-between px-2 pt-2 text-muted" style="font-size: 0.75rem;">
+                                <span><i class="fa-solid fa-expand me-1"></i> রেজোলিউশন: ১২০০ × ৬৭৫ px (আল্ট্রা এইচডি)</span>
+                                <span><i class="fa-solid fa-shield-halved text-success me-1"></i> আইডিয়া সাহিত্যপত্র অফিশিয়াল ফরম্যাট</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Customization Controls -->
+                    <div class="col-12">
+                        <div class="card border-0 rounded-3 p-3 bg-white shadow-xs">
+                            <label class="form-label small fw-bold text-dark mb-2">
+                                <i class="fa-solid fa-palette text-primary me-1"></i> নান্দনিক কালার থিম নির্বাচন করুন:
+                            </label>
+                            <div class="d-flex flex-wrap gap-2 mb-3" id="aiThemeButtons">
+                                <button type="button" class="btn btn-sm btn-outline-success active rounded-pill px-3" onclick="selectAiTheme('emerald')">
+                                    🟢 রাজকীয় সবুজ (Emerald)
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3" onclick="selectAiTheme('midnight')">
+                                    🔵 মধ্যরাতের নীল (Midnight)
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-3" onclick="selectAiTheme('crimson')">
+                                    🔴 সানসেট ক্রিমসন (Crimson)
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" onclick="selectAiTheme('purple')">
+                                    🟣 রয়্যাল পার্পল (Violet)
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-warning text-dark rounded-pill px-3" onclick="selectAiTheme('vintage')">
+                                    📜 ক্লাসিক ভিন্টেজ (Parchment)
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-dark rounded-pill px-3" onclick="selectAiTheme('slate')">
+                                    ⚫ স্লিক গ্রাফাইট (Onyx)
+                                </button>
+                            </div>
+
+                            <div class="row g-2">
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-semibold mb-1">কার্ডে প্রদর্শিত শিরোনাম:</label>
+                                    <input type="text" id="aiCardCustomTitle" class="form-control form-control-sm" oninput="renderAiPhotocard()">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-semibold mb-1">উপ-শিরোনাম / সাব-ট্যাগলাইন:</label>
+                                    <input type="text" id="aiCardCustomSubtitle" class="form-control form-control-sm" oninput="renderAiPhotocard()">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer bg-white border-top py-3 px-4 d-flex justify-content-between">
+                <button type="button" class="btn btn-outline-secondary rounded-pill px-3" onclick="downloadGeneratedPhotocard()">
+                    <i class="fa-solid fa-download me-1"></i> ছবি ডাউনলোড করুন
+                </button>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-light rounded-pill px-3" data-bs-dismiss="modal">বাতিল</button>
+                    <button type="button" class="btn btn-success rounded-pill px-4 fw-bold shadow-sm" onclick="applyGeneratedPhotocardToForm()">
+                        <i class="fa-solid fa-check-circle me-1.5"></i> এই ফটোকার্ডটি ব্লগে ব্যবহার করুন
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
+    let currentAiTheme = 'emerald';
+    const authorNameGlobal = "{{ $user->name }}";
+
     function switchTab(tabName) {
         if (tabName === 'write') {
             const writeBtn = document.getElementById('write-tab');
@@ -533,6 +655,7 @@
         const excerpt = document.querySelector('textarea[name="excerpt"]')?.value.trim() || '';
         const content = document.querySelector('textarea[name="content"]')?.value.trim() || 'এখানে কোনো বিষয়বস্তু লেখা হয়নি...';
         const fileInput = document.querySelector('input[name="featured_image"]');
+        const aiInput = document.getElementById('aiPhotocardDataInput');
 
         document.getElementById('prevTitle').textContent = title;
         document.getElementById('prevCategoryBadge').textContent = catName;
@@ -557,7 +680,10 @@
         const coverBox = document.getElementById('prevCoverBox');
         const coverImg = document.getElementById('prevCoverImg');
 
-        if (fileInput && fileInput.files && fileInput.files[0]) {
+        if (aiInput && aiInput.value) {
+            coverImg.src = aiInput.value;
+            coverBox.style.display = 'block';
+        } else if (fileInput && fileInput.files && fileInput.files[0]) {
             const reader = new FileReader();
             reader.onload = function(e) {
                 coverImg.src = e.target.result;
@@ -573,17 +699,390 @@
             @endif
         }
 
-    function previewPhotocard(input) {
+        const modalEl = document.getElementById('articlePreviewModal');
+        if (modalEl) {
+            bootstrap.Modal.getOrCreateInstance(modalEl).show();
+        }
+    }
+
+    // Auto-crop & 16:9 fixer for uploaded images
+    function handlePhotocardSelection(input) {
+        const errorAlert = document.getElementById('photocardErrorAlert');
+        const errorText = document.getElementById('photocardErrorText');
         const previewWrapper = document.getElementById('photocardPreviewWrapper');
         const previewImg = document.getElementById('photocardPreviewImg');
-        if (input.files && input.files[0]) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                if (previewImg) previewImg.src = e.target.result;
-                if (previewWrapper) previewWrapper.style.display = 'flex';
-            };
-            reader.readAsDataURL(input.files[0]);
+        const statusBadge = document.getElementById('photocardStatusBadge');
+        const dimText = document.getElementById('photocardDimensionsText');
+        const aiInput = document.getElementById('aiPhotocardDataInput');
+
+        if (errorAlert) errorAlert.classList.add('d-none');
+
+        if (!input.files || !input.files[0]) {
+            return;
         }
+
+        const file = input.files[0];
+
+        // Validate MIME type
+        if (!file.type.startsWith('image/')) {
+            if (errorAlert) {
+                errorText.textContent = "নির্বাচিত ফাইলটি কোনো বৈধ ছবি নয়। অনুগ্রহ করে JPG, PNG অথবা WebP ফরম্যাটের ছবি নির্বাচন করুন।";
+                errorAlert.classList.remove('d-none');
+            }
+            input.value = '';
+            return;
+        }
+
+        // Validate max size 8MB
+        if (file.size > 8 * 1024 * 1024) {
+            if (errorAlert) {
+                errorText.textContent = "ছবির সাইজ ৮ মেগাবাইটের বেশি। অনুগ্রহ করে ছোট সাইজের ছবি নির্বাচন করুন।";
+                errorAlert.classList.remove('d-none');
+            }
+            input.value = '';
+            return;
+        }
+
+        // Client-side 16:9 Canvas auto-crop & compression
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = new Image();
+            img.onload = function() {
+                try {
+                    const canvas = document.createElement('canvas');
+                    const targetWidth = 1200;
+                    const targetHeight = 675; // exact 16:9
+                    canvas.width = targetWidth;
+                    canvas.height = targetHeight;
+                    const ctx = canvas.getContext('2d');
+
+                    // Calculate center crop
+                    const srcAspect = img.width / img.height;
+                    const targetAspect = targetWidth / targetHeight;
+                    let renderWidth, renderHeight, offsetX, offsetY;
+
+                    if (srcAspect > targetAspect) {
+                        renderHeight = img.height;
+                        renderWidth = img.height * targetAspect;
+                        offsetX = (img.width - renderWidth) / 2;
+                        offsetY = 0;
+                    } else {
+                        renderWidth = img.width;
+                        renderHeight = img.width / targetAspect;
+                        offsetX = 0;
+                        offsetY = (img.height - renderHeight) / 2;
+                    }
+
+                    // Draw image centered and cropped
+                    ctx.drawImage(img, offsetX, offsetY, renderWidth, renderHeight, 0, 0, targetWidth, targetHeight);
+
+                    // High-quality JPEG
+                    const croppedDataUrl = canvas.toDataURL('image/jpeg', 0.90);
+
+                    // Clear any previously generated AI photocard
+                    if (aiInput) aiInput.value = '';
+
+                    if (previewImg) previewImg.src = croppedDataUrl;
+                    if (statusBadge) statusBadge.innerHTML = '<i class="fa-solid fa-check-circle me-1"></i>অটো-ক্রপ সম্পন্ন (১৬:৯)';
+                    if (dimText) dimText.textContent = `রেজোলিউশন: ১২০০×৬৭৫ px | সাইজ: ${(file.size / 1024).toFixed(0)} KB`;
+                    if (previewWrapper) previewWrapper.style.display = 'flex';
+                } catch (err) {
+                    console.error("Auto crop error:", err);
+                    if (previewImg) previewImg.src = e.target.result;
+                    if (previewWrapper) previewWrapper.style.display = 'flex';
+                }
+            };
+            img.onerror = function() {
+                if (errorAlert) {
+                    errorText.textContent = "ছবিটি লোড করা সম্ভব হয়নি বা ফাইলটি ত্রুটিপূর্ণ। অনুগ্রহ করে অন্য ছবি নির্বাচন করুন।";
+                    errorAlert.classList.remove('d-none');
+                }
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function resetPhotocardSelection() {
+        const input = document.getElementById('featuredImageInput');
+        const aiInput = document.getElementById('aiPhotocardDataInput');
+        const previewWrapper = document.getElementById('photocardPreviewWrapper');
+        const previewImg = document.getElementById('photocardPreviewImg');
+        const errorAlert = document.getElementById('photocardErrorAlert');
+
+        if (input) {
+            input.value = '';
+            input.required = true;
+        }
+        if (aiInput) aiInput.value = '';
+        if (previewImg) previewImg.src = '';
+        if (previewWrapper) previewWrapper.style.display = 'none';
+        if (errorAlert) errorAlert.classList.add('d-none');
+    }
+
+    // AI Photocard Generator
+    function openAiPhotocardGenerator() {
+        const titleInput = document.querySelector('input[name="title"]');
+        const subtitleInput = document.querySelector('input[name="subtitle"]');
+        const title = titleInput ? titleInput.value.trim() : '';
+        const subtitle = subtitleInput ? subtitleInput.value.trim() : '';
+
+        const customTitleInput = document.getElementById('aiCardCustomTitle');
+        const customSubtitleInput = document.getElementById('aiCardCustomSubtitle');
+
+        if (customTitleInput) {
+            customTitleInput.value = title || 'আইডিয়া সাহিত্যপত্র প্রবন্ধ';
+        }
+        if (customSubtitleInput) {
+            customSubtitleInput.value = subtitle || '';
+        }
+
+        renderAiPhotocard();
+
+        const modalEl = document.getElementById('aiPhotocardModal');
+        if (modalEl) {
+            bootstrap.Modal.getOrCreateInstance(modalEl).show();
+        }
+    }
+
+    function selectAiTheme(themeName) {
+        currentAiTheme = themeName;
+        const container = document.getElementById('aiThemeButtons');
+        if (container) {
+            container.querySelectorAll('button').forEach(btn => btn.classList.remove('active'));
+        }
+        if (event && event.target) {
+            event.target.classList.add('active');
+        }
+        renderAiPhotocard();
+    }
+
+    function renderAiPhotocard() {
+        const canvas = document.getElementById('aiPhotocardCanvas');
+        if (!canvas) return;
+
+        const ctx = canvas.getContext('2d');
+        const W = 1200;
+        const H = 675;
+        canvas.width = W;
+        canvas.height = H;
+
+        const title = document.getElementById('aiCardCustomTitle')?.value.trim() || 'সাহিত্য ও মনন';
+        const subtitle = document.getElementById('aiCardCustomSubtitle')?.value.trim() || '';
+        const catSelect = document.querySelector('select[name="category_id"]');
+        const category = catSelect && catSelect.selectedIndex > 0 ? catSelect.options[catSelect.selectedIndex].text : 'সাহিত্যপত্র ও ব্লগ';
+
+        // Background Theme Gradients
+        let bgGradient = ctx.createLinearGradient(0, 0, W, H);
+        let accentColor = '#fbbf24';
+        let badgeBg = 'rgba(255, 255, 255, 0.15)';
+
+        switch (currentAiTheme) {
+            case 'midnight':
+                bgGradient.addColorStop(0, '#0f172a');
+                bgGradient.addColorStop(0.5, '#1e3a8a');
+                bgGradient.addColorStop(1, '#1e1b4b');
+                accentColor = '#38bdf8';
+                break;
+            case 'crimson':
+                bgGradient.addColorStop(0, '#450a0a');
+                bgGradient.addColorStop(0.5, '#991b1b');
+                bgGradient.addColorStop(1, '#7f1d1d');
+                accentColor = '#fde047';
+                break;
+            case 'purple':
+                bgGradient.addColorStop(0, '#2e1065');
+                bgGradient.addColorStop(0.5, '#581c87');
+                bgGradient.addColorStop(1, '#3b0764');
+                accentColor = '#e879f9';
+                break;
+            case 'vintage':
+                bgGradient.addColorStop(0, '#451a03');
+                bgGradient.addColorStop(0.5, '#78350f');
+                bgGradient.addColorStop(1, '#291104');
+                accentColor = '#fef08a';
+                break;
+            case 'slate':
+                bgGradient.addColorStop(0, '#090d16');
+                bgGradient.addColorStop(0.5, '#1e293b');
+                bgGradient.addColorStop(1, '#0f172a');
+                accentColor = '#34d399';
+                break;
+            case 'emerald':
+            default:
+                bgGradient.addColorStop(0, '#022c22');
+                bgGradient.addColorStop(0.5, '#065f46');
+                bgGradient.addColorStop(1, '#064e3b');
+                accentColor = '#fbbf24';
+                break;
+        }
+
+        // 1. Draw Background
+        ctx.fillStyle = bgGradient;
+        ctx.fillRect(0, 0, W, H);
+
+        // 2. Artistic Vignette & Decorative Lighting Circles
+        const radGrad = ctx.createRadialGradient(W * 0.75, H * 0.3, 50, W * 0.75, H * 0.3, 450);
+        radGrad.addColorStop(0, 'rgba(255, 255, 255, 0.12)');
+        radGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        ctx.fillStyle = radGrad;
+        ctx.fillRect(0, 0, W, H);
+
+        // 3. Elegant Decorative Corner Borders
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.18)';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(35, 35, W - 70, H - 70);
+
+        ctx.strokeStyle = accentColor;
+        ctx.lineWidth = 4;
+        // Top-left corner
+        ctx.beginPath();
+        ctx.moveTo(35, 85); ctx.lineTo(35, 35); ctx.lineTo(85, 35);
+        ctx.stroke();
+        // Bottom-right corner
+        ctx.beginPath();
+        ctx.moveTo(W - 35, H - 85); ctx.lineTo(W - 35, H - 35); ctx.lineTo(W - 85, H - 35);
+        ctx.stroke();
+
+        // 4. Header Badge: Category & Branding
+        ctx.fillStyle = badgeBg;
+        roundRect(ctx, 70, 65, 260, 48, 24, true, false);
+
+        ctx.fillStyle = accentColor;
+        ctx.font = 'bold 22px "Hind Siliguri", "Segoe UI", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText("✦ " + category, 200, 97);
+
+        // Right Branding Badge
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
+        ctx.font = '600 20px "Hind Siliguri", sans-serif';
+        ctx.textAlign = 'right';
+        ctx.fillText("আইডিয়া সাহিত্যপত্র ও ব্লগ", W - 70, 97);
+
+        // 5. Main Title (Auto Wrap Multi-Line)
+        ctx.fillStyle = '#ffffff';
+        ctx.textAlign = 'left';
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.6)';
+        ctx.shadowBlur = 15;
+        ctx.shadowOffsetX = 2;
+        ctx.shadowOffsetY = 4;
+
+        let fontSize = 54;
+        if (title.length > 50) fontSize = 42;
+        if (title.length > 80) fontSize = 36;
+        ctx.font = `bold ${fontSize}px "Hind Siliguri", "Segoe UI", sans-serif`;
+
+        const maxWidth = W - 140;
+        const lineHeight = fontSize * 1.35;
+        const startY = subtitle ? 230 : 270;
+        wrapText(ctx, title, 70, startY, maxWidth, lineHeight);
+
+        // Reset Shadow
+        ctx.shadowColor = 'transparent';
+
+        // 6. Subtitle / Tagline (If provided)
+        if (subtitle) {
+            ctx.fillStyle = accentColor;
+            ctx.font = 'italic 28px "Hind Siliguri", sans-serif';
+            ctx.fillText(subtitle, 70, startY + (lineHeight * 2.2));
+        }
+
+        // 7. Divider Line
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(70, H - 140);
+        ctx.lineTo(W - 70, H - 140);
+        ctx.stroke();
+
+        // 8. Footer Credit: Author Name & Idea Logo Mark
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 26px "Hind Siliguri", sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText("✍️ রচনা: " + authorNameGlobal, 70, H - 85);
+
+        ctx.fillStyle = accentColor;
+        ctx.font = 'bold 22px "Hind Siliguri", sans-serif';
+        ctx.textAlign = 'right';
+        ctx.fillText("www.ideaabd.com", W - 70, H - 85);
+    }
+
+    function applyGeneratedPhotocardToForm() {
+        const canvas = document.getElementById('aiPhotocardCanvas');
+        if (!canvas) return;
+
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
+        const aiInput = document.getElementById('aiPhotocardDataInput');
+        const fileInput = document.getElementById('featuredImageInput');
+        const previewImg = document.getElementById('photocardPreviewImg');
+        const previewWrapper = document.getElementById('photocardPreviewWrapper');
+        const statusBadge = document.getElementById('photocardStatusBadge');
+        const dimText = document.getElementById('photocardDimensionsText');
+        const errorAlert = document.getElementById('photocardErrorAlert');
+
+        if (aiInput) aiInput.value = dataUrl;
+        if (fileInput) {
+            fileInput.value = '';
+            fileInput.required = false; // File upload is optional since AI card is attached
+        }
+        if (previewImg) previewImg.src = dataUrl;
+        if (statusBadge) statusBadge.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles me-1"></i>এআই ফটোকার্ড প্রস্তুত';
+        if (dimText) dimText.textContent = 'রেজোলিউশন: ১২০০×৬৭৫ px (অটো-জেনারেটেড এইচডি)';
+        if (previewWrapper) previewWrapper.style.display = 'flex';
+        if (errorAlert) errorAlert.classList.add('d-none');
+
+        const modalEl = document.getElementById('aiPhotocardModal');
+        if (modalEl) {
+            bootstrap.Modal.getInstance(modalEl)?.hide();
+        }
+
+        alert("✨ এআই ফটোকার্ডটি সফলভাবে আপনার ব্লগ পোস্টের জন্য যুক্ত হয়েছে!");
+    }
+
+    function downloadGeneratedPhotocard() {
+        const canvas = document.getElementById('aiPhotocardCanvas');
+        if (!canvas) return;
+        const link = document.createElement('a');
+        link.download = 'idea_photocard_' + Date.now() + '.jpg';
+        link.href = canvas.toDataURL('image/jpeg', 0.95);
+        link.click();
+    }
+
+    // Canvas Helpers
+    function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
+        const words = text.split(' ');
+        let line = '';
+        let currentY = y;
+
+        for (let n = 0; n < words.length; n++) {
+            const testLine = line + words[n] + ' ';
+            const metrics = ctx.measureText(testLine);
+            const testWidth = metrics.width;
+            if (testWidth > maxWidth && n > 0) {
+                ctx.fillText(line, x, currentY);
+                line = words[n] + ' ';
+                currentY += lineHeight;
+            } else {
+                line = testLine;
+            }
+        }
+        ctx.fillText(line, x, currentY);
+    }
+
+    function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
+        ctx.beginPath();
+        ctx.moveTo(x + radius, y);
+        ctx.lineTo(x + width - radius, y);
+        ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+        ctx.lineTo(x + width, y + height - radius);
+        ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+        ctx.lineTo(x + radius, y + height);
+        ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+        ctx.lineTo(x, y + radius);
+        ctx.quadraticCurveTo(x, y, x + radius, y);
+        ctx.closePath();
+        if (fill) ctx.fill();
+        if (stroke) ctx.stroke();
     }
 
     function formatContent(type) {

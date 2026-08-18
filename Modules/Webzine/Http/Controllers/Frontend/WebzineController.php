@@ -36,8 +36,27 @@ class WebzineController extends Controller
 
     public function show($slug)
     {
-        $webzine = Webzine::where('slug', $slug)->where('is_published', true)->firstOrFail();
-        $webzine->increment('view_count');
+        $webzine = Webzine::where('slug', $slug)->where('is_published', true)->first();
+
+        if (!$webzine && is_numeric($slug)) {
+            $webzine = Webzine::where('id', $slug)->where('is_published', true)->first();
+        }
+
+        if (!$webzine) {
+            $webzine = Webzine::where('is_published', true)
+                ->where(function($q) use ($slug) {
+                    $q->where('title', 'like', "%{$slug}%")
+                      ->orWhere('slug', 'like', "%{$slug}%");
+                })->first();
+        }
+
+        if (!$webzine) {
+            abort(404, 'অনুরোধকৃত সাহিত্য সাময়িকীটি পাওয়া যায়নি।');
+        }
+
+        try {
+            $webzine->increment('view_count');
+        } catch (\Throwable) {}
 
         $articles = $webzine->articles()->orderBy('order')->get();
 
@@ -47,14 +66,39 @@ class WebzineController extends Controller
             ->take(4)
             ->get();
 
-        return view('webzine::show', compact('webzine', 'articles', 'relatedIssues'));
+        $epubUrl = $webzine->epub_url;
+        $fileUrl = $epubUrl;
+        $readerType = $epubUrl ? 'epub' : ($articles->count() ? 'articles' : (!empty($webzine->description) ? 'description' : 'preview'));
+
+        return view('webzine::show', compact('webzine', 'articles', 'relatedIssues', 'epubUrl', 'fileUrl', 'readerType'));
     }
 
     public function read($slug)
     {
-        $webzine = Webzine::where('slug', $slug)->where('is_published', true)->firstOrFail();
+        $webzine = Webzine::where('slug', $slug)->where('is_published', true)->first();
+
+        if (!$webzine && is_numeric($slug)) {
+            $webzine = Webzine::where('id', $slug)->where('is_published', true)->first();
+        }
+
+        if (!$webzine) {
+            $webzine = Webzine::where('is_published', true)
+                ->where(function($q) use ($slug) {
+                    $q->where('title', 'like', "%{$slug}%")
+                      ->orWhere('slug', 'like', "%{$slug}%");
+                })->first();
+        }
+
+        if (!$webzine) {
+            abort(404, 'অনুরোধকৃত সাহিত্য সাময়িকীটি পাওয়া যায়নি।');
+        }
+
         $articles = $webzine->articles()->orderBy('order')->get();
 
-        return view('webzine::read', compact('webzine', 'articles'));
+        $epubUrl = $webzine->epub_url;
+        $fileUrl = $epubUrl;
+        $readerType = $epubUrl ? 'epub' : ($articles->count() ? 'articles' : (!empty($webzine->description) ? 'description' : 'preview'));
+
+        return view('webzine::read', compact('webzine', 'articles', 'epubUrl', 'fileUrl', 'readerType'));
     }
 }

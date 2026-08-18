@@ -128,11 +128,23 @@ class ContentController extends Controller
 
         $attributes += $this->creditAttributes($request, $spec, isNew: true);
 
-        if ($type === 'blog' && ($attributes['status'] ?? null) === 'published' && empty($attributes['published_at'])) {
-            $attributes['published_at'] = now();
+        if ($type === 'blog') {
+            if (empty($attributes['author_id'])) {
+                $attributes['author_id'] = auth()->id() ?: 1;
+            }
+            if (($attributes['status'] ?? null) === 'published' && empty($attributes['published_at'])) {
+                $attributes['published_at'] = now();
+            }
         }
 
-        $record->forceFill($attributes)->save();
+        try {
+            $record->forceFill($attributes)->save();
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error("ContentController store error ({$type}): " . $e->getMessage());
+            return back()->withInput()->withErrors([
+                'error' => "সংরক্ষণ করার সময় ত্রুটি ঘটেছে: " . $e->getMessage(),
+            ]);
+        }
 
         return redirect()
             ->route($spec['listRoute'])
@@ -185,15 +197,27 @@ class ContentController extends Controller
 
         $attributes += $this->creditAttributes($request, $spec, isNew: false);
 
-        if ($type === 'blog' && ($attributes['status'] ?? null) === 'published' && empty($record->published_at)) {
-            $attributes['published_at'] = now();
+        if ($type === 'blog') {
+            if (empty($attributes['author_id'])) {
+                $attributes['author_id'] = $record->author_id ?: (auth()->id() ?: 1);
+            }
+            if (($attributes['status'] ?? null) === 'published' && empty($record->published_at)) {
+                $attributes['published_at'] = now();
+            }
         }
 
-        $record->forceFill($attributes)->save();
+        try {
+            $record->forceFill($attributes)->save();
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error("ContentController update error ({$type} #{$id}): " . $e->getMessage());
+            return back()->withInput()->withErrors([
+                'error' => "হালনাগাদ করার সময় ত্রুটি ঘটেছে: " . $e->getMessage(),
+            ]);
+        }
 
         return redirect()
             ->route($spec['listRoute'])
-            ->with('success', "{$spec['label']} হালনাগাদ করা হয়েছে।");
+            ->with('success', "{$spec['label']} সফলভাবে হালনাগাদ করা হয়েছে।");
     }
 
     // ─── Moderation ─────────────────────────────────────────────────────
@@ -209,7 +233,21 @@ class ContentController extends Controller
         // Approving is also what puts the entry live on the site.
         $this->setVisibility($record, true);
 
-        return back()->with('success', "{$spec['label']} অনুমোদন করা হয়েছে।");
+        // If it's a blog post, dispatch approval email to author
+        if ($type === 'blog' && $record instanceof \Modules\Blog\Models\BlogPost) {
+            if ($record->author_id) {
+                $author = \App\Models\User::find($record->author_id);
+                if ($author && $author->email && !str_ends_with($author->email, '@buyer.ideaabd.com')) {
+                    try {
+                        \Illuminate\Support\Facades\Mail::to($author->email)->send(new \App\Mail\BlogPostApprovedMail($record, $author));
+                    } catch (\Throwable $e) {
+                        \Illuminate\Support\Facades\Log::warning("Could not send blog approval email from ContentController: " . $e->getMessage());
+                    }
+                }
+            }
+        }
+
+        return back()->with('success', "{$spec['label']} অনুমোদন করা হয়েছে এবং সংশ্লিষ্ট লেখককে ইমেইল পাঠানো হয়েছে।");
     }
 
     public function reject(Request $request, string $type, int $id): RedirectResponse
@@ -616,7 +654,7 @@ class ContentController extends Controller
         // contributor's post is filed under the crediting admin and the real
         // name is carried in owner_name.
         if ($spec['table'] === 'blog_posts') {
-            $attributes['author_id'] = $creditedUser ?? auth()->id();
+            $attributes['author_id'] = $creditedUser ?: (auth()->id() ?: 1);
 
             if ($isNew && ! $request->filled('status')) {
                 $attributes['status'] = 'published';

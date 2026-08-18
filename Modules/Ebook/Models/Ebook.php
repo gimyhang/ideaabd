@@ -211,6 +211,9 @@ class Ebook extends Model
         if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
             return $path;
         }
+        if (str_starts_with($path, 'storage/')) {
+            return asset($path);
+        }
         return asset('storage/' . ltrim($path, '/'));
     }
 
@@ -223,6 +226,9 @@ class Ebook extends Model
         if (!$path) return null;
         if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
             return $path;
+        }
+        if (str_starts_with($path, 'storage/')) {
+            return asset($path);
         }
         return asset('storage/' . ltrim($path, '/'));
     }

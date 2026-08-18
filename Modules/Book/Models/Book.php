@@ -225,7 +225,9 @@ class Book extends Model
      */
     public function getHasHardcoverAttribute(): bool
     {
-        return in_array($this->cover_type, ['hardcover', 'both'], true) || ($this->hardcover_price && $this->hardcover_price > 0);
+        return in_array($this->cover_type, ['hardcover', 'both'], true)
+            || ($this->hardcover_price && (float) $this->hardcover_price > 0)
+            || $this->format === 'hardcover';
     }
 
     /**

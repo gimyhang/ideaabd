@@ -66,7 +66,7 @@ class SubAdminController extends Controller
             'email'    => ['required', 'email', 'max:255', 'unique:users,email'],
             'phone'    => ['nullable', 'string', 'max:30'],
             'role'     => ['required', Rule::in(self::MANAGED_ROLES)],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'password' => ['required', 'string', 'min:8', 'max:25', 'regex:/[!@#$%^&*(),.?":{}|<>_\-+=]/', 'confirmed'],
         ], [], [
             'name'     => 'নাম',
             'email'    => 'ইমেইল',
