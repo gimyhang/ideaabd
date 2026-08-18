@@ -12,18 +12,19 @@
                         <i class="fa-solid fa-key text-white fs-4"></i>
                     </div>
                     <h4 class="fw-bold text-white mb-1">পাসওয়ার্ড রিসেট</h4>
-                    <p class="text-white text-opacity-75 small mb-0">মোবাইলে ভেরিফিকেশন কোড পাঠানোর মাধ্যমে পাসওয়ার্ড পুনরুদ্ধার করুন</p>
+                    <p class="text-white text-opacity-75 small mb-0">ইমেইলে ওয়ান-টাইম রিসেট লিংকের মাধ্যমে পাসওয়ার্ড পুনরুদ্ধার করুন</p>
                 </div>
                 
                 <div class="card-body p-4 p-md-4.5">
                     @if(session('status'))
-                        <div class="alert alert-success rounded-3 small mb-3">
-                            <i class="fa-solid fa-circle-check me-1"></i> {{ session('status') }}
+                        <div class="alert alert-success rounded-3 small mb-3 p-3 border-0 bg-success bg-opacity-10 text-success fw-medium">
+                            <i class="fa-solid fa-circle-check me-1 fs-6"></i> {{ session('status') }}
                         </div>
                     @endif
 
                     @if($errors->any())
-                        <div class="alert alert-danger rounded-3 small mb-3">
+                        <div class="alert alert-danger rounded-3 small mb-3 p-3 border-0 bg-danger bg-opacity-10 text-danger">
+                            <div class="fw-bold mb-1"><i class="fa-solid fa-triangle-exclamation me-1"></i> সমস্যা দেখা দিয়েছে:</div>
                             <ul class="mb-0 ps-3">
                                 @foreach($errors->all() as $error)
                                     <li>{{ $error }}</li>
@@ -32,34 +33,34 @@
                         </div>
                     @endif
 
-                    <form method="POST" action="{{ route('password.send-otp') }}">
+                    <form method="POST" action="{{ route('password.email') }}">
                         @csrf
 
                         <div class="mb-3">
-                            <label for="phone" class="form-label fw-semibold text-dark">
-                                নিবন্ধিত মোবাইল নম্বর <span class="text-danger">*</span>
+                            <label for="identity" class="form-label fw-semibold text-dark">
+                                নিবন্ধিত ইমেইল অথবা মোবাইল নম্বর <span class="text-danger">*</span>
                             </label>
                             <div class="input-group">
-                                <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-phone text-primary"></i></span>
+                                <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-envelope text-primary"></i></span>
                                 <input type="text" 
-                                       id="phone" 
-                                       name="phone" 
-                                       class="form-control rounded-end-3 @error('phone') is-invalid @enderror" 
-                                       value="{{ old('phone') }}" 
+                                       id="identity" 
+                                       name="identity" 
+                                       class="form-control rounded-end-3 @error('identity') is-invalid @enderror" 
+                                       value="{{ old('identity') }}" 
                                        required 
                                        autofocus 
-                                       placeholder="01XXXXXXXXX">
+                                       placeholder="example@mail.com অথবা 01XXXXXXXXX">
                             </div>
-                            <div class="form-text small text-muted">
-                                <i class="fa-solid fa-shield-halved text-success me-1"></i> আপনার অ্যাকাউন্টে নিবন্ধিত মোবাইল নম্বরে ৬ ডিজিটের ভেরিফিকেশন কোড পাঠানো হবে।
+                            <div class="form-text small text-muted mt-2">
+                                <i class="fa-solid fa-clock text-warning me-1"></i> আপনার অ্যাকাউন্টে নিবন্ধিত ইমেইলে একটি <strong>ওয়ান-টাইম পাসওয়ার্ড রিসেট লিংক</strong> পাঠানো হবে (যার মেয়াদ থাকবে <strong>৩ মিনিট</strong>)।
                             </div>
-                            @error('phone')
+                            @error('identity')
                                 <div class="invalid-feedback d-block">{{ $message }}</div>
                             @enderror
                         </div>
 
                         <button type="submit" class="btn btn-primary w-100 py-2.5 rounded-pill fw-bold shadow-sm mb-3">
-                            <i class="fa-solid fa-paper-plane me-1.5"></i> ভেরিফিকেশন কোড পাঠান
+                            <i class="fa-solid fa-paper-plane me-1.5"></i> রিসেট লিংক পাঠান
                         </button>
 
                         <div class="text-center">

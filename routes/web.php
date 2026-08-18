@@ -45,11 +45,13 @@ Route::get('/login', fn() => view('auth.login'))->name('login')->middleware('gue
 Route::post('/login', [LoginController::class, 'login'])->middleware('guest');
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->middleware('auth');
 
-// --- Password Reset via Mobile OTP (2FA) ---
-Route::get('/forgot-password', [\App\Http\Controllers\Auth\PasswordResetOtpController::class, 'showRequestForm'])->name('password.request')->middleware('guest');
-Route::post('/forgot-password', [\App\Http\Controllers\Auth\PasswordResetOtpController::class, 'sendOtp'])->name('password.send-otp')->middleware('guest');
-Route::get('/reset-password-otp', [\App\Http\Controllers\Auth\PasswordResetOtpController::class, 'showResetForm'])->name('password.reset-otp')->middleware('guest');
-Route::post('/reset-password-otp', [\App\Http\Controllers\Auth\PasswordResetOtpController::class, 'resetPassword'])->name('password.update-otp')->middleware('guest');
+// --- Password Reset via 3-Minute One-Time Email Link ---
+Route::get('/forgot-password', [\App\Http\Controllers\Auth\PasswordResetController::class, 'showRequestForm'])->name('password.request')->middleware('guest');
+Route::post('/forgot-password', [\App\Http\Controllers\Auth\PasswordResetController::class, 'sendResetLink'])->name('password.email')->middleware('guest');
+Route::post('/forgot-password/send', [\App\Http\Controllers\Auth\PasswordResetController::class, 'sendResetLink'])->name('password.send-otp')->middleware('guest'); // Backwards-compatible alias
+Route::get('/reset-password/{token}', [\App\Http\Controllers\Auth\PasswordResetController::class, 'showResetForm'])->name('password.reset')->middleware('guest');
+Route::post('/reset-password', [\App\Http\Controllers\Auth\PasswordResetController::class, 'resetPassword'])->name('password.update')->middleware('guest');
+
 
 // --- Search ------------------------------------------------------------------
 Route::get('/search', [BookController::class, 'index'])->name('search');

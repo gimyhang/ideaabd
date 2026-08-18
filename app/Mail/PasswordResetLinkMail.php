@@ -1,0 +1,40 @@
+<?php
+
+namespace App\Mail;
+
+use App\Models\User;
+use Illuminate\Bus\Queueable;
+use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Content;
+use Illuminate\Mail\Mailables\Envelope;
+use Illuminate\Queue\SerializesModels;
+
+class PasswordResetLinkMail extends Mailable
+{
+    use Queueable, SerializesModels;
+
+    public function __construct(
+        public User $user,
+        public string $resetUrl,
+        public int $expireMinutes = 3
+    ) {}
+
+    public function envelope(): Envelope
+    {
+        return new Envelope(
+            subject: 'আইডিয়া প্রকাশন — পাসওয়ার্ড রিসেট ওয়ান-টাইম লিংক (মেয়াদ ' . $this->expireMinutes . ' মিনিট)',
+        );
+    }
+
+    public function content(): Content
+    {
+        return new Content(
+            view: 'emails.password-reset-link',
+        );
+    }
+
+    public function attachments(): array
+    {
+        return [];
+    }
+}
