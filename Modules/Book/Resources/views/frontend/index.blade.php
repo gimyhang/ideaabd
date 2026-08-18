@@ -1,6 +1,11 @@
 @extends('layouts.app')
 
 @section('title', 'বই কেনাকাটা — আইডিয়া প্রকাশন')
+@section('og_type', 'website')
+@section('og_title', 'বই সম্ভার ও অনলাইন কেনাকাটা — আইডিয়া প্রকাশন')
+@section('og_description', 'আইডিয়া প্রকাশনের সকল মৌলিক ও জনপ্রিয় বই অনলাইনে অর্ডার করুন। নিশ্চিত ছাড় ও দ্রুত হোম ডেলিভারি।')
+@section('og_image', asset('images/og-banner.jpg'))
+@section('og_url', route('book.index'))
 
 @section('content')
 <div class="container py-4 mb-5">

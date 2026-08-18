@@ -1,6 +1,11 @@
 @extends('layouts.app')
 
 @section('title', 'আইডিয়া ব্লগ ও সাহিত্য পত্রিকা — সমকালীন সাহিত্য, শিল্প ও গবেষণা')
+@section('og_type', 'website')
+@section('og_title', 'আইডিয়া সাহিত্য সাময়িকী ও ব্লগ — সমকালীন সাহিত্য ও চিন্তা')
+@section('og_description', 'আইডিয়া প্রকাশনের সাহিত্য পাতা ও ব্লগে নিয়মিত প্রকাশিত হচ্ছে প্রবন্ধ, গল্প, কবিতা ও সাহিত্য আলোচনা।')
+@section('og_image', asset('images/og-banner.jpg'))
+@section('og_url', route('blog.index'))
 
 @section('content')
 <!-- Literary Blog Custom CSS -->
