@@ -93,6 +93,16 @@ class AuthorBlogController extends Controller
         ];
 
         $blogCategories = BlogCategory::where('is_active', true)->orderBy('name')->get();
+        if ($blogCategories->isEmpty()) {
+            $defaultCategories = ['সাহিত্য ও সংস্কৃতি', 'প্রবন্ধ ও গবেষণা', 'বই পর্যালোচনা ও সমালোচনা', 'কবিতা ও গল্প', 'মতামত ও দর্শন'];
+            foreach ($defaultCategories as $catName) {
+                BlogCategory::firstOrCreate(
+                    ['name' => $catName],
+                    ['is_active' => true, 'slug' => 'cat-' . Str::lower(Str::random(6))]
+                );
+            }
+            $blogCategories = BlogCategory::where('is_active', true)->orderBy('name')->get();
+        }
 
         $editId = $request->input('edit_id') ?: $request->input('edit_post_id');
         $editPost = null;
@@ -130,7 +140,7 @@ class AuthorBlogController extends Controller
         $rules = [
             'title'          => 'required|string|max:255',
             'subtitle'       => 'nullable|string|max:500',
-            'category_id'    => 'required|integer|exists:blog_categories,id',
+            'category_id'    => 'nullable|integer',
             'excerpt'        => 'nullable|string|max:1000',
             'content'        => 'required|string',
             'featured_image' => 'nullable|image|max:8192',
@@ -139,7 +149,6 @@ class AuthorBlogController extends Controller
 
         $validated = $request->validate($rules, [
             'title.required'       => 'ব্লগ পোস্টের শিরোনাম দিন।',
-            'category_id.required' => 'লেখার ক্যাটাগরি বা বিষয় নির্বাচন করুন।',
             'content.required'     => 'ব্লগের মূল বিষয়বস্তু বা রচনা লিখুন।',
             'featured_image.image' => 'ফটোকার্ডটি একটি বৈধ ছবি (JPG, PNG, WebP) হতে হবে।',
             'featured_image.max'   => 'ছবি ফাইলের সর্বোচ্চ সাইজ ৮ মেগাবাইট হতে পারবে।',
@@ -152,10 +161,20 @@ class AuthorBlogController extends Controller
             return redirect()->route('pending.approval')->with('warning', 'আপনার লেখক অ্যাকাউন্টটি এখনও অ্যাডমিন কর্তৃক অনুমোদিত হয়নি। অনুমোদন সম্পন্ন হলে আপনি লেখা পোস্ট করতে পারবেন।');
         }
 
-        $isSubmit = $validated['action_type'] === 'submit';
+        $isSubmit = ($validated['action_type'] ?? 'submit') === 'submit';
 
         // Unique automatic English slug generation
         $slug = $this->generateEnglishSlug($validated['title']);
+
+        // Resilient Category assignment
+        $categoryId = $request->input('category_id');
+        if (!$categoryId || !BlogCategory::where('id', $categoryId)->exists()) {
+            $firstCat = BlogCategory::where('is_active', true)->first() ?: BlogCategory::firstOrCreate(
+                ['name' => 'সাহিত্য ও সংস্কৃতি'],
+                ['is_active' => true, 'slug' => 'literature-culture']
+            );
+            $categoryId = $firstCat->id;
+        }
 
         // Handle Image: Uploaded File takes precedence, then Base64 AI photocard, then Auto-generated title card
         $imagePath = null;
@@ -172,6 +191,10 @@ class AuthorBlogController extends Controller
             $imagePath = $this->generateDefaultPhotocard($validated['title'], $user->name);
         }
 
+        if (empty($imagePath)) {
+            $imagePath = $this->generateDefaultPhotocard($validated['title'], $user->name);
+        }
+
         // Title unique check handling
         $title = trim($validated['title']);
         if (BlogPost::where('title', $title)->exists()) {
@@ -183,12 +206,14 @@ class AuthorBlogController extends Controller
             $post->title = $title;
             $post->subtitle = $validated['subtitle'] ?? null;
             $post->slug = $slug;
-            $post->category_id = $validated['category_id'] ?: null;
+            $post->category_id = $categoryId;
             $post->excerpt = $validated['excerpt'] ?: Str::limit(strip_tags($validated['content']), 200);
             $post->content = $validated['content'];
             $post->featured_image = $imagePath;
             $post->author_id = $user->id;
             $post->submitted_by = $user->id;
+            $post->owner_name = $user->name;
+            $post->owner_phone = $user->phone ?: '';
             
             if ($isSubmit) {
                 $post->status = 'pending';
@@ -202,7 +227,7 @@ class AuthorBlogController extends Controller
 
             $post->save();
         } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::error("AuthorBlogController store error: " . $e->getMessage());
+            \Illuminate\Support\Facades\Log::error("AuthorBlogController store error: " . $e->getMessage() . " in " . $e->getFile() . ":" . $e->getLine());
             return back()->withInput()->with('error', 'পোস্টটি সংরক্ষণের সময় ত্রুটি ঘটেছে: ' . $e->getMessage());
         }
 
@@ -232,20 +257,29 @@ class AuthorBlogController extends Controller
         $validated = $request->validate([
             'title'          => 'required|string|max:255',
             'subtitle'       => 'nullable|string|max:500',
-            'category_id'    => 'required|integer|exists:blog_categories,id',
+            'category_id'    => 'nullable|integer',
             'excerpt'        => 'nullable|string|max:1000',
             'content'        => 'required|string',
             'featured_image' => 'nullable|image|max:8192',
             'action_type'    => 'required|in:draft,submit',
         ], [
             'title.required'       => 'ব্লগ পোস্টের শিরোনাম দিন।',
-            'category_id.required' => 'লেখার ক্যাটাগরি বা বিষয় নির্বাচন করুন।',
             'content.required'     => 'ব্লগের মূল বিষয়বস্তু বা রচনা লিখুন।',
             'featured_image.image' => 'ফটোকার্ডটি একটি বৈধ ছবি (JPG, PNG, WebP) হতে হবে।',
             'featured_image.max'   => 'ছবি ফাইলের সর্বোচ্চ সাইজ ৮ মেগাবাইট হতে পারবে।',
         ]);
 
-        $isSubmit = $validated['action_type'] === 'submit';
+        $isSubmit = ($validated['action_type'] ?? 'submit') === 'submit';
+
+        // Resilient Category assignment
+        $categoryId = $request->input('category_id');
+        if (!$categoryId || !BlogCategory::where('id', $categoryId)->exists()) {
+            $firstCat = BlogCategory::where('is_active', true)->first() ?: BlogCategory::firstOrCreate(
+                ['name' => 'সাহিত্য ও সংস্কৃতি'],
+                ['is_active' => true, 'slug' => 'literature-culture']
+            );
+            $categoryId = $firstCat->id;
+        }
 
         try {
             if ($hasUpload) {
@@ -271,13 +305,14 @@ class AuthorBlogController extends Controller
 
         $post->title = $title;
         $post->subtitle = $validated['subtitle'] ?? null;
-        // Update slug to clean english if empty or modified
         if (empty($post->slug) || !preg_match('/^[a-z0-9-]+$/i', $post->slug)) {
             $post->slug = $this->generateEnglishSlug($title, $post->id);
         }
-        $post->category_id = $validated['category_id'] ?: null;
+        $post->category_id = $categoryId;
         $post->excerpt = $validated['excerpt'] ?: Str::limit(strip_tags($validated['content']), 200);
         $post->content = $validated['content'];
+        $post->owner_name = $user->name;
+        $post->owner_phone = $user->phone ?: '';
 
         if ($isSubmit) {
             $post->status = 'pending';
@@ -292,7 +327,7 @@ class AuthorBlogController extends Controller
         try {
             $post->save();
         } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::error("AuthorBlogController update error: " . $e->getMessage());
+            \Illuminate\Support\Facades\Log::error("AuthorBlogController update error: " . $e->getMessage() . " in " . $e->getFile() . ":" . $e->getLine());
             return back()->withInput()->with('error', 'পোস্টটি হালনাগাদের সময় ত্রুটি ঘটেছে: ' . $e->getMessage());
         }
 

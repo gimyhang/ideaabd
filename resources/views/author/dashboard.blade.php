@@ -5,6 +5,82 @@
 @section('content')
 <div class="container py-4 mb-5">
 
+    {{-- Prominent Feedback Alerts (Success, Error with guidance, Validation errors) --}}
+    @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show rounded-4 border-0 shadow-sm p-3 mb-4 d-flex align-items-center gap-3 bg-success bg-opacity-10 border-start border-4 border-success" role="alert">
+            <div class="rounded-circle bg-success text-white p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 40px; height: 40px;">
+                <i class="fa-solid fa-check fs-5"></i>
+            </div>
+            <div class="flex-grow-1">
+                <div class="fw-bold text-success">সফলভাবে সম্পন্ন হয়েছে!</div>
+                <div class="text-dark small">{{ session('success') }}</div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
+    @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show rounded-4 border-0 shadow-sm p-3 mb-4 d-flex align-items-start gap-3 bg-danger bg-opacity-10 border-start border-4 border-danger" role="alert">
+            <div class="rounded-circle bg-danger text-white p-2 d-flex align-items-center justify-content-center flex-shrink-0 mt-1" style="width: 40px; height: 40px;">
+                <i class="fa-solid fa-triangle-exclamation fs-5"></i>
+            </div>
+            <div class="flex-grow-1">
+                <div class="fw-bold text-danger">পোস্ট সংরক্ষণের সময় সতর্কতা</div>
+                <div class="text-dark small mb-2">{{ session('error') }}</div>
+                <div class="p-2 bg-white rounded-3 small text-muted border">
+                    <strong>সহজ সমাধান:</strong> শিরোনাম ও মূল লেখার বক্স সঠিকভাবে পূরণ করুন। ক্যাটাগরি স্বয়ংক্রিয়ভাবে সেট হয়ে যাবে এবং ছবি না দিলেও স্বয়ংক্রিয়ভাবে আকর্ষণীয় এআই ফটোকার্ড যুক্ত হয়ে যাবে।
+                </div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
+    @if(session('warning'))
+        <div class="alert alert-warning alert-dismissible fade show rounded-4 border-0 shadow-sm p-3 mb-4 d-flex align-items-center gap-3 bg-warning bg-opacity-10 border-start border-4 border-warning" role="alert">
+            <div class="rounded-circle bg-warning text-dark p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 40px; height: 40px;">
+                <i class="fa-solid fa-circle-exclamation fs-5"></i>
+            </div>
+            <div class="flex-grow-1">
+                <div class="fw-bold text-dark">সতর্কবার্তা</div>
+                <div class="text-dark small">{{ session('warning') }}</div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
+    @if($errors->any())
+        <div class="alert alert-danger alert-dismissible fade show rounded-4 border-0 shadow-sm p-3 mb-4" role="alert">
+            <div class="d-flex align-items-center gap-2 fw-bold text-danger mb-1">
+                <i class="fa-solid fa-circle-xmark"></i> অনুগ্রহ করে নিচের বিষয়গুলো সংশোধন করুন:
+            </div>
+            <ul class="mb-0 small text-dark ps-3">
+                @foreach($errors->all() as $err)
+                    <li>{{ $err }}</li>
+                @endforeach
+            </ul>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
+    {{-- LocalStorage Draft Auto-Recovery Notification --}}
+    <div id="draftRecoveryAlert" class="alert alert-info alert-dismissible fade show rounded-4 border-0 shadow-sm p-3 mb-4 d-none align-items-center justify-content-between gap-3 bg-info bg-opacity-10 border-start border-4 border-info" role="alert">
+        <div class="d-flex align-items-center gap-2.5">
+            <i class="fa-solid fa-cloud-arrow-up text-primary fs-4"></i>
+            <div>
+                <strong class="text-dark">অপ্রকাশিত লেখার ড্রাফট সংরক্ষিত আছে!</strong>
+                <div class="text-muted small">আপনার পূর্ববর্তী লেখাটি স্বয়ংক্রিয়ভাবে সংরক্ষিত হয়েছে। আপনি কি এটি পুনরুদ্ধার করতে চান?</div>
+            </div>
+        </div>
+        <div class="d-flex gap-2 flex-shrink-0">
+            <button type="button" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold" onclick="restoreLocalDraft()">
+                <i class="fa-solid fa-rotate-left me-1"></i>ড্রাফট ফিরিয়ে আনুন
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" onclick="discardLocalDraft()">
+                মুছে ফেলুন
+            </button>
+        </div>
+    </div>
+
     {{-- Author Profile Hero Card --}}
     <div class="card p-4 p-md-5 mb-4 border-0 shadow-sm rounded-4 text-white position-relative overflow-hidden" 
          style="background: linear-gradient(135deg, #064e3b 0%, #047857 50%, #059669 100%);">
@@ -1138,7 +1214,93 @@
         const text = textarea.value.trim();
         const chars = text.length;
         const words = text ? text.split(/\s+/).filter(Boolean).length : 0;
-        statsEl.innerHTML = `<i class="fa-solid fa-file-lines me-1"></i>শব্দ: ${words} | বর্ণ: ${chars}`;
+        const readingTimeMinutes = Math.max(1, Math.ceil(words / 130));
+        
+        statsEl.innerHTML = `<i class="fa-solid fa-file-lines me-1"></i>শব্দ: ${words} | বর্ণ: ${chars} | <span class="text-primary fw-semibold"><i class="fa-regular fa-clock me-1"></i>পড়ার সময়: ~${readingTimeMinutes} মিনিট</span>`;
+        
+        // Trigger background draft save
+        saveLocalDraft();
+    }
+
+    // Local Storage Draft Auto-Save System
+    const DRAFT_KEY_PREFIX = 'idea_author_draft_';
+    const isEditMode = {{ $editPost ? 'true' : 'false' }};
+
+    function saveLocalDraft() {
+        if (isEditMode) return; // Do not overwrite with server edit mode
+        const titleInput = document.querySelector('input[name="title"]');
+        const subtitleInput = document.querySelector('input[name="subtitle"]');
+        const contentTextarea = document.getElementById('blogContentTextarea');
+        const categorySelect = document.querySelector('select[name="category_id"]');
+
+        if (!titleInput && !contentTextarea) return;
+
+        const draftData = {
+            title: titleInput ? titleInput.value : '',
+            subtitle: subtitleInput ? subtitleInput.value : '',
+            content: contentTextarea ? contentTextarea.value : '',
+            category_id: categorySelect ? categorySelect.value : '',
+            timestamp: Date.now()
+        };
+
+        if (draftData.title.trim().length > 3 || draftData.content.trim().length > 10) {
+            localStorage.setItem(DRAFT_KEY_PREFIX + 'post', JSON.stringify(draftData));
+        }
+    }
+
+    function checkLocalDraft() {
+        if (isEditMode) return;
+        try {
+            const raw = localStorage.getItem(DRAFT_KEY_PREFIX + 'post');
+            if (!raw) return;
+            const draft = JSON.parse(raw);
+            const titleInput = document.querySelector('input[name="title"]');
+            const contentTextarea = document.getElementById('blogContentTextarea');
+
+            // If current form is empty and draft has content
+            if ((!titleInput || !titleInput.value.trim()) && (!contentTextarea || !contentTextarea.value.trim())) {
+                if (draft.title || draft.content) {
+                    const alertEl = document.getElementById('draftRecoveryAlert');
+                    if (alertEl) alertEl.classList.remove('d-none');
+                }
+            }
+        } catch (e) {
+            console.warn("Draft check note:", e);
+        }
+    }
+
+    function restoreLocalDraft() {
+        try {
+            const raw = localStorage.getItem(DRAFT_KEY_PREFIX + 'post');
+            if (!raw) return;
+            const draft = JSON.parse(raw);
+
+            const titleInput = document.querySelector('input[name="title"]');
+            const subtitleInput = document.querySelector('input[name="subtitle"]');
+            const contentTextarea = document.getElementById('blogContentTextarea');
+            const categorySelect = document.querySelector('select[name="category_id"]');
+
+            if (titleInput && draft.title) titleInput.value = draft.title;
+            if (subtitleInput && draft.subtitle) subtitleInput.value = draft.subtitle;
+            if (contentTextarea && draft.content) contentTextarea.value = draft.content;
+            if (categorySelect && draft.category_id) categorySelect.value = draft.category_id;
+
+            updateContentStats();
+            switchTab('write');
+
+            const alertEl = document.getElementById('draftRecoveryAlert');
+            if (alertEl) alertEl.classList.add('d-none');
+
+            alert("✅ আপনার সংরক্ষিত খসড়াটি সফলভাবে ফিরিয়ে আনা হয়েছে!");
+        } catch (e) {
+            console.error("Draft restore error:", e);
+        }
+    }
+
+    function discardLocalDraft() {
+        localStorage.removeItem(DRAFT_KEY_PREFIX + 'post');
+        const alertEl = document.getElementById('draftRecoveryAlert');
+        if (alertEl) alertEl.classList.add('d-none');
     }
 
     // Auto-attach AI photocard if neither upload nor AI card exists before form submission
@@ -1162,11 +1324,26 @@
                 console.warn("Background auto photocard render:", err);
             }
         }
+
+        // Clear local storage draft upon form submission
+        if (!isEditMode) {
+            localStorage.removeItem(DRAFT_KEY_PREFIX + 'post');
+        }
     }
 
-    // Initialize stats on page load
+    // Initialize stats and draft recovery on page load
     document.addEventListener('DOMContentLoaded', function() {
         updateContentStats();
+        checkLocalDraft();
+
+        // Attach live input listeners for autosaving
+        const titleInput = document.querySelector('input[name="title"]');
+        const subtitleInput = document.querySelector('input[name="subtitle"]');
+        const categorySelect = document.querySelector('select[name="category_id"]');
+
+        if (titleInput) titleInput.addEventListener('input', saveLocalDraft);
+        if (subtitleInput) subtitleInput.addEventListener('input', saveLocalDraft);
+        if (categorySelect) categorySelect.addEventListener('change', saveLocalDraft);
     });
 </script>
 @endsection
