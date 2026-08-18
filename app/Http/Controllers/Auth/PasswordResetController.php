@@ -94,13 +94,40 @@ class PasswordResetController extends Controller
             'email' => $user->email,
         ]);
 
-        // Send Email
+        // Send Email via configured Mailer (with native PHP mail fallback)
+        $mailSent = false;
         try {
             Mail::to($user->email)->send(new PasswordResetLinkMail($user, $resetUrl, $expireMinutes));
-            Log::info("Password reset one-time email link sent to {$user->email} (expires in 3 min): {$resetUrl}");
+            $mailSent = true;
+            Log::info("Password reset one-time email link sent via Mail facade to {$user->email} (expires in 3 min): {$resetUrl}");
         } catch (\Throwable $e) {
-            Log::error("Failed to send password reset email to {$user->email}: " . $e->getMessage());
-            Log::info("Generated fallback password reset URL: {$resetUrl}");
+            Log::error("Failed to send password reset email via Mail facade to {$user->email}: " . $e->getMessage());
+            
+            // Fallback: try native PHP mail() on live server / cPanel
+            try {
+                $subject = "=?UTF-8?B?" . base64_encode("আইডিয়া প্রকাশন — পাসওয়ার্ড রিসেট ওয়ান-টাইম লিংক (মেয়াদ ৩ মিনিট)") . "?=";
+                $htmlBody = view('emails.password-reset-link', [
+                    'user'          => $user,
+                    'resetUrl'      => $resetUrl,
+                    'expireMinutes' => $expireMinutes,
+                ])->render();
+
+                $fromAddress = config('mail.from.address') ?: 'noreply@ideaabd.com';
+                $fromName    = config('mail.from.name') ?: 'আইডিয়া প্রকাশন';
+                
+                $headers = "MIME-Version: 1.0\r\n" .
+                           "Content-type: text/html; charset=UTF-8\r\n" .
+                           "From: =?UTF-8?B?" . base64_encode($fromName) . "?= <{$fromAddress}>\r\n" .
+                           "Reply-To: {$fromAddress}\r\n" .
+                           "X-Mailer: PHP/" . phpversion();
+
+                $mailSent = @mail($user->email, $subject, $htmlBody, $headers);
+                if ($mailSent) {
+                    Log::info("Password reset email sent via native PHP mail() to {$user->email}");
+                }
+            } catch (\Throwable $e2) {
+                Log::error("Fallback native mail() error: " . $e2->getMessage());
+            }
         }
 
         // Mask email for user privacy (e.g. j***e@gmail.com)
