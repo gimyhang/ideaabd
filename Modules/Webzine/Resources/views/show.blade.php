@@ -92,23 +92,41 @@
                     </div>
 
                     @forelse($articles as $article)
-                        <div class="border-bottom pb-4 mb-4 last-border-0">
-                            <h5 class="fw-bold mb-2">
-                                <a href="{{ route('webzine.read', $webzine->slug) }}#article-{{ $article->id }}" class="text-dark text-decoration-none hover-primary">
-                                    {{ $article->title }}
-                                </a>
-                            </h5>
-                            @if($article->author)
+                        @php
+                            $targetPage = $article->page_number ?: 1;
+                            $readUrl = route('webzine.read', [$webzine->slug, 'page' => $targetPage]) . '#page-' . $targetPage;
+                        @endphp
+                        <div class="border-bottom pb-3.5 mb-3.5 last-border-0">
+                            <div class="d-flex flex-wrap align-items-start justify-content-between gap-2 mb-1">
+                                <h5 class="fw-bold mb-0">
+                                    <a href="{{ $readUrl }}" class="text-dark text-decoration-none hover-primary">
+                                        <i class="fa-solid fa-file-lines text-primary me-1.5 small"></i>{{ $article->title }}
+                                    </a>
+                                </h5>
+                                @if($article->page_number)
+                                    <a href="{{ $readUrl }}" class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2.5 py-1 rounded-pill text-decoration-none small">
+                                        <i class="fa-solid fa-bookmark me-1"></i>পৃষ্ঠা {{ $article->page_number }}
+                                    </a>
+                                @endif
+                            </div>
+                            
+                            @if($article->author_name || $article->author)
                                 <p class="text-muted small mb-2">
-                                    <i class="fa-solid fa-pen-nib me-1 text-success"></i>লেখক: <strong>{{ $article->author->name }}</strong>
+                                    <i class="fa-solid fa-pen-nib me-1 text-success"></i>লেখক: <strong>{{ $article->author_name ?: $article->author->name }}</strong>
                                 </p>
                             @endif
-                            <p class="text-secondary small mb-3" style="line-height: 1.7;">
-                                {{ Str::limit(strip_tags($article->content), 180) }}
-                            </p>
-                            <a href="{{ route('webzine.read', $webzine->slug) }}#article-{{ $article->id }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
-                                পড়তে ক্লিক করুন <i class="fa-solid fa-arrow-right ms-1"></i>
-                            </a>
+
+                            @if(!empty($article->content))
+                                <p class="text-secondary small mb-2" style="line-height: 1.7;">
+                                    {{ Str::limit(strip_tags($article->content), 180) }}
+                                </p>
+                            @endif
+
+                            <div>
+                                <a href="{{ $readUrl }}" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 fw-semibold">
+                                    <span>পৃষ্ঠা {{ $targetPage }}-এ পড়ুন</span> <i class="fa-solid fa-arrow-right ms-1"></i>
+                                </a>
+                            </div>
                         </div>
                     @empty
                         <div class="text-center py-5 text-muted">

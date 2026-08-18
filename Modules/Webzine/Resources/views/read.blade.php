@@ -291,8 +291,8 @@
         .toc-drawer {
             position: absolute;
             top: 0;
-            left: -350px;
-            width: 330px;
+            left: -380px;
+            width: 360px;
             height: 100%;
             background: var(--reader-surface);
             border-right: 1px solid var(--reader-border);
@@ -320,7 +320,17 @@
             overflow-y: auto;
             flex: 1;
         }
-        .toc-item a, .page-thumb-item {
+        .toc-section-title {
+            padding: 0.6rem 1.15rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--reader-primary);
+            background-color: var(--reader-bg);
+            border-bottom: 1px solid var(--reader-border);
+        }
+        .toc-item-link, .page-thumb-item {
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -331,8 +341,9 @@
             font-size: 0.88rem;
             transition: all 0.15s;
             cursor: pointer;
+            gap: 8px;
         }
-        .toc-item a:hover, .toc-item a.active, .page-thumb-item:hover, .page-thumb-item.active {
+        .toc-item-link:hover, .toc-item-link.active, .page-thumb-item:hover, .page-thumb-item.active {
             background-color: var(--reader-bg);
             color: var(--reader-primary);
             font-weight: 600;
@@ -402,7 +413,7 @@
 
         /* Page Jump Box */
         .page-jump-input {
-            width: 48px;
+            width: 52px;
             padding: 0.15rem 0.35rem;
             border-radius: 6px;
             border: 1px solid var(--reader-border);
@@ -507,11 +518,11 @@
         <!-- Table of Contents / Pages Drawer -->
         <aside class="toc-drawer" id="toc-drawer">
             <div class="toc-header">
-                <span><i class="fa-solid fa-list-ul me-2 text-primary"></i>সূচিপত্র ও পৃষ্ঠা তালিকা</span>
+                <span><i class="fa-solid fa-list-ol me-2 text-primary"></i>সূচিপত্র ও পৃষ্ঠা তালিকা</span>
                 <button class="btn-close btn-close-sm" id="btn-close-toc"></button>
             </div>
             <ul class="toc-list" id="toc-list">
-                <!-- Dynamically populated -->
+                <!-- Dynamically populated with articles & pages -->
             </ul>
         </aside>
 
@@ -556,8 +567,12 @@
                     <div class="article-card" id="article-{{ $art->id }}">
                         <h2>{{ $art->title }}</h2>
                         <div class="text-muted small mb-3">
-                            @if($art->author_name) <span><i class="fa-regular fa-user me-1"></i>{{ $art->author_name }}</span> · @endif
-                            @if($art->category) <span><i class="fa-solid fa-tag me-1"></i>{{ $art->category }}</span> @endif
+                            @if($art->author_name || $art->author) 
+                                <span><i class="fa-regular fa-user me-1"></i>{{ $art->author_name ?: $art->author->name }}</span> · 
+                            @endif
+                            @if($art->page_number) 
+                                <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2 py-0.5 rounded-pill">পৃষ্ঠা {{ $art->page_number }}</span>
+                            @endif
                         </div>
                         <div class="article-body">
                             {!! $art->content !!}
@@ -704,8 +719,7 @@
     document.addEventListener("DOMContentLoaded", function() {
         const fileUrl = @json($fileUrl);
         let readerType = @json($readerType);
-        const articlesCount = {{ $articles->count() }};
-        const hasDescription = {{ !empty($webzine->description) ? 'true' : 'false' }};
+        const structuredArticles = @json($articles);
 
         const loader = document.getElementById('reader-loader');
         const pdfArea = document.getElementById('pdf-render-area');
@@ -720,6 +734,13 @@
         const pageTotalLabel = document.getElementById('page-total-label');
         const progressPercentageLabel = document.getElementById('progress-percentage-label');
         const formatBadgeText = document.getElementById('format-badge-text');
+
+        // Parse target initial page from URL (?page=5 or #page-5 or #article-3)
+        const urlParams = new URLSearchParams(window.location.search);
+        let initialTargetPage = parseInt(urlParams.get('page')) || 1;
+        if (window.location.hash.startsWith('#page-')) {
+            initialTargetPage = parseInt(window.location.hash.replace('#page-', '')) || initialTargetPage;
+        }
 
         // Check file extension client-side as well
         if (fileUrl) {
@@ -779,6 +800,24 @@
             });
         }
 
+        // Global jump handler across engines
+        window.readerJumpToPage = function(pageNum) {
+            if (window.pdfGoToPage) {
+                window.pdfGoToPage(pageNum);
+            } else if (window.epubRendition) {
+                if (window.epubBook && window.epubBook.locations && window.epubBook.locations.length()) {
+                    try {
+                        const cfi = window.epubBook.locations.cfiFromLocation(pageNum);
+                        if (cfi) window.epubRendition.display(cfi);
+                    } catch(e) {}
+                }
+            } else {
+                const targetEl = document.getElementById('article-' + pageNum) || document.querySelector(`[data-page="${pageNum}"]`);
+                if (targetEl) targetEl.scrollIntoView({ behavior: 'smooth' });
+            }
+            document.getElementById('toc-drawer').classList.remove('open');
+        };
+
         // ==========================================
         // 2. PDF.JS RENDERING ENGINE
         // ==========================================
@@ -787,7 +826,7 @@
             pdfArea.style.display = 'flex';
 
             let pdfDoc = null;
-            let currentPage = 1;
+            let currentPage = initialTargetPage;
             let totalPages = 0;
             let zoomScale = 1.0;
             let isDualSpread = window.innerWidth > 992;
@@ -844,10 +883,11 @@
 
                 if (loader) loader.style.display = 'none';
 
-                // Populate Page List in Drawer
-                populatePdfThumbnails(totalPages);
+                // Populate Unified TOC in Drawer
+                populateUnifiedTocDrawer(totalPages);
 
-                // Initial Render
+                // Initial Render at target page
+                if (currentPage > totalPages) currentPage = 1;
                 renderPdfView();
             }).catch(function(err) {
                 console.error("PDF.js loading failed, activating fallback:", err);
@@ -858,7 +898,6 @@
             async function renderSinglePdfPage(pageNum, container) {
                 const page = await pdfDoc.getPage(pageNum);
                 
-                // Calculate ideal viewport
                 const unscaledViewport = page.getViewport({ scale: 1.0 });
                 const containerWidth = pdfArea.clientWidth - 40;
                 const containerHeight = pdfArea.clientHeight - 40;
@@ -878,7 +917,6 @@
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
                 
-                // Support High-DPI screens
                 const outputScale = window.devicePixelRatio || 1;
                 canvas.width = Math.floor(viewport.width * outputScale);
                 canvas.height = Math.floor(viewport.height * outputScale);
@@ -910,13 +948,13 @@
                         for (let p = 1; p <= totalPages; p++) {
                             const pageWrap = document.createElement('div');
                             pageWrap.className = 'pdf-page-canvas-wrapper';
+                            pageWrap.id = 'pdf-page-' + p;
                             pageWrap.dataset.page = p;
                             pdfCanvasWrapper.appendChild(pageWrap);
                             await renderSinglePdfPage(p, pageWrap);
                         }
                     } else {
                         pdfArea.classList.remove('continuous-mode');
-                        // Single or Dual Page
                         await renderSinglePdfPage(currentPage, pdfCanvasWrapper);
 
                         if (isDualSpread && window.innerWidth > 768 && (currentPage + 1) <= totalPages) {
@@ -931,7 +969,7 @@
                         progressPercentageLabel.textContent = percent + '% পড়া হয়েছে';
                     }
 
-                    // Highlight Active Drawer item
+                    // Highlight Active Drawer items
                     document.querySelectorAll('.page-thumb-item').forEach(el => {
                         el.classList.toggle('active', parseInt(el.dataset.page) === currentPage);
                     });
@@ -946,12 +984,21 @@
             function goToPage(pageNum) {
                 const target = Math.max(1, Math.min(totalPages, parseInt(pageNum) || 1));
                 currentPage = target;
-                renderPdfView();
+                if (isContinuous) {
+                    const targetEl = document.getElementById('pdf-page-' + target);
+                    if (targetEl) targetEl.scrollIntoView({ behavior: 'smooth' });
+                } else {
+                    renderPdfView();
+                }
+                try {
+                    window.history.replaceState(null, null, '?page=' + target + '#page-' + target);
+                } catch(e) {}
             }
+            window.pdfGoToPage = goToPage;
 
             function nextPage() {
                 if (isContinuous) {
-                    pdfArea.scrollBy({ top: 400, behavior: 'smooth' });
+                    pdfArea.scrollBy({ top: 450, behavior: 'smooth' });
                     return;
                 }
                 const step = (isDualSpread && window.innerWidth > 768) ? 2 : 1;
@@ -966,7 +1013,7 @@
 
             function prevPage() {
                 if (isContinuous) {
-                    pdfArea.scrollBy({ top: -400, behavior: 'smooth' });
+                    pdfArea.scrollBy({ top: -450, behavior: 'smooth' });
                     return;
                 }
                 const step = (isDualSpread && window.innerWidth > 768) ? 2 : 1;
@@ -1058,27 +1105,6 @@
                 }
             }, { passive: true });
 
-            function populatePdfThumbnails(count) {
-                const tocList = document.getElementById('toc-list');
-                if (!tocList) return;
-                tocList.innerHTML = '';
-
-                for (let i = 1; i <= count; i++) {
-                    const li = document.createElement('li');
-                    li.className = 'page-thumb-item';
-                    li.dataset.page = i;
-                    li.innerHTML = `
-                        <span><i class="fa-regular fa-file-lines me-2 text-primary"></i>পৃষ্ঠা #${i}</span>
-                        <span class="badge bg-light text-muted border">${i} / ${count}</span>
-                    `;
-                    li.addEventListener('click', function() {
-                        goToPage(i);
-                        document.getElementById('toc-drawer').classList.remove('open');
-                    });
-                    tocList.appendChild(li);
-                }
-            }
-
             window.addEventListener('resize', () => {
                 clearTimeout(window.resizePdfTimer);
                 window.resizePdfTimer = setTimeout(() => {
@@ -1087,106 +1113,127 @@
             });
 
         // ==========================================
-        // 3. EPUB.JS RENDERING ENGINE
+        // 3. EPUB.JS RENDERING ENGINE (ULTRA-RESILIENT)
         // ==========================================
         } else if (readerType === 'epub' && fileUrl && typeof ePub !== 'undefined') {
             if (formatBadgeText) formatBadgeText.textContent = 'EPUB সংস্করণ';
             epubViewer.style.display = 'block';
 
-            try {
-                let currentSpread = window.innerWidth > 992 ? 'always' : 'none';
-                if (currentSpread === 'always') viewerContainer.classList.add('dual-spread-active');
+            // Robust multi-version EPUB loader using ArrayBuffer & fail-safe detection
+            fetch(fileUrl)
+                .then(res => {
+                    if (!res.ok) throw new Error("HTTP error " + res.status);
+                    return res.arrayBuffer();
+                })
+                .then(buffer => {
+                    // Check if file is actually a PDF disguised as EPUB
+                    const uint8 = new Uint8Array(buffer.slice(0, 5));
+                    const header = String.fromCharCode.apply(null, uint8);
+                    if (header.startsWith('%PDF')) {
+                        console.info("Detected PDF header in EPUB file, seamlessly switching to PDF engine...");
+                        epubViewer.style.display = 'none';
+                        pdfArea.style.display = 'flex';
+                        if (formatBadgeText) formatBadgeText.textContent = 'PDF ডিজিটাল সংস্করণ';
+                        
+                        // Render with PDF.js
+                        pdfjsLib.getDocument({ data: buffer }).promise.then(pdf => {
+                            let pdfDoc = pdf;
+                            let totalPages = pdfDoc.numPages;
+                            if (pageTotalLabel) pageTotalLabel.textContent = '/ ' + totalPages;
+                            if (pageJumpInput) pageJumpInput.max = totalPages;
+                            if (loader) loader.style.display = 'none';
+                            populateUnifiedTocDrawer(totalPages);
+                            // Initial Render
+                            const pdfCanvasWrapper = document.getElementById('pdf-canvas-wrapper');
+                            pdfDoc.getPage(1).then(page => {
+                                const viewport = page.getViewport({ scale: 1.2 });
+                                const canvas = document.createElement('canvas');
+                                canvas.width = viewport.width;
+                                canvas.height = viewport.height;
+                                page.render({ canvasContext: canvas.getContext('2d'), viewport: viewport });
+                                pdfCanvasWrapper.appendChild(canvas);
+                            });
+                        });
+                        return;
+                    }
 
-                const book = ePub(fileUrl);
-                const rendition = book.renderTo("epub-viewer", {
-                    width: "100%",
-                    height: "100%",
-                    spread: currentSpread,
-                    minSpreadWidth: 720,
-                    flow: "paginated",
-                    allowScriptedContent: true
-                });
-                window.epubRendition = rendition;
+                    // Initialize ePub.js with ArrayBuffer
+                    let currentSpread = window.innerWidth > 992 ? 'always' : 'none';
+                    if (currentSpread === 'always') viewerContainer.classList.add('dual-spread-active');
 
-                rendition.hooks.content.register(function(contents) {
-                    try {
-                        const doc = contents.document;
-                        if (doc && doc.head) {
-                            const fontLink = doc.createElement('link');
-                            fontLink.rel = 'stylesheet';
-                            fontLink.href = 'https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&display=swap';
-                            doc.head.appendChild(fontLink);
+                    const book = ePub(buffer);
+                    window.epubBook = book;
 
-                            const style = doc.createElement('style');
-                            style.textContent = `
-                                * { font-family: 'Hind Siliguri', 'SolaimanLipi', sans-serif !important; }
-                                body { padding: 16px 28px !important; line-height: 1.85 !important; }
-                                p, div, span { font-size: 1.05rem !important; line-height: 1.85 !important; text-align: justify !important; }
-                            `;
-                            doc.head.appendChild(style);
-                        }
-                        if (doc && doc.body) {
-                            processBijoyElements(doc.body);
-                        }
-                    } catch(e) {}
-                });
+                    const rendition = book.renderTo("epub-viewer", {
+                        width: "100%",
+                        height: "100%",
+                        spread: currentSpread,
+                        minSpreadWidth: 720,
+                        flow: "paginated",
+                        allowScriptedContent: true
+                    });
+                    window.epubRendition = rendition;
 
-                rendition.display().then(() => {
-                    if (loader) loader.style.display = 'none';
-                    applyTheme(document.documentElement.getAttribute('data-theme') || 'light');
-                }).catch((err) => {
-                    console.error("EPUB display fail:", err);
+                    rendition.hooks.content.register(function(contents) {
+                        try {
+                            const doc = contents.document;
+                            if (doc && doc.head) {
+                                const fontLink = doc.createElement('link');
+                                fontLink.rel = 'stylesheet';
+                                fontLink.href = 'https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&display=swap';
+                                doc.head.appendChild(fontLink);
+
+                                const style = doc.createElement('style');
+                                style.textContent = `
+                                    * { font-family: 'Hind Siliguri', 'SolaimanLipi', sans-serif !important; }
+                                    body { padding: 16px 28px !important; line-height: 1.85 !important; }
+                                    p, div, span { font-size: 1.05rem !important; line-height: 1.85 !important; text-align: justify !important; }
+                                `;
+                                doc.head.appendChild(style);
+                            }
+                            if (doc && doc.body) {
+                                processBijoyElements(doc.body);
+                            }
+                        } catch(e) {}
+                    });
+
+                    rendition.display().then(() => {
+                        if (loader) loader.style.display = 'none';
+                        applyTheme(document.documentElement.getAttribute('data-theme') || 'light');
+                    }).catch((err) => {
+                        console.error("EPUB display fail:", err);
+                        if (loader) loader.style.display = 'none';
+                        activateNativeFallback();
+                    });
+
+                    // Prev / Next
+                    if (prevBtn) prevBtn.addEventListener('click', () => rendition.prev());
+                    if (nextBtn) nextBtn.addEventListener('click', () => rendition.next());
+
+                    document.addEventListener('keydown', function(e) {
+                        if (e.key === 'ArrowLeft') rendition.prev();
+                        if (e.key === 'ArrowRight') rendition.next();
+                    });
+
+                    // Populate Drawer for EPUB
+                    populateUnifiedTocDrawer(0, book);
+
+                    // Font +/-
+                    let epubFontSize = 100;
+                    const btnZoomIn = document.getElementById('btn-zoom-in');
+                    const btnZoomOut = document.getElementById('btn-zoom-out');
+                    if (btnZoomIn) btnZoomIn.addEventListener('click', () => {
+                        if (epubFontSize < 160) { epubFontSize += 10; rendition.themes.fontSize(epubFontSize + '%'); }
+                    });
+                    if (btnZoomOut) btnZoomOut.addEventListener('click', () => {
+                        if (epubFontSize > 75) { epubFontSize -= 10; rendition.themes.fontSize(epubFontSize + '%'); }
+                    });
+                })
+                .catch(err => {
+                    console.error("EPUB buffer error:", err);
                     if (loader) loader.style.display = 'none';
                     activateNativeFallback();
                 });
-
-                // Prev / Next
-                if (prevBtn) prevBtn.addEventListener('click', () => rendition.prev());
-                if (nextBtn) nextBtn.addEventListener('click', () => rendition.next());
-
-                document.addEventListener('keydown', function(e) {
-                    if (e.key === 'ArrowLeft') rendition.prev();
-                    if (e.key === 'ArrowRight') rendition.next();
-                });
-
-                // TOC
-                book.loaded.navigation.then(function(nav) {
-                    const tocList = document.getElementById('toc-list');
-                    if (tocList && nav && nav.toc) {
-                        tocList.innerHTML = '';
-                        nav.toc.forEach(function(item) {
-                            const li = document.createElement('li');
-                            li.className = 'toc-item';
-                            const a = document.createElement('a');
-                            a.href = item.href;
-                            a.textContent = item.label.trim() || 'অধ্যায়';
-                            a.addEventListener('click', function(e) {
-                                e.preventDefault();
-                                rendition.display(item.href);
-                                document.getElementById('toc-drawer').classList.remove('open');
-                            });
-                            li.appendChild(a);
-                            tocList.appendChild(li);
-                        });
-                    }
-                });
-
-                // Font +/-
-                let epubFontSize = 100;
-                const btnZoomIn = document.getElementById('btn-zoom-in');
-                const btnZoomOut = document.getElementById('btn-zoom-out');
-                if (btnZoomIn) btnZoomIn.addEventListener('click', () => {
-                    if (epubFontSize < 160) { epubFontSize += 10; rendition.themes.fontSize(epubFontSize + '%'); }
-                });
-                if (btnZoomOut) btnZoomOut.addEventListener('click', () => {
-                    if (epubFontSize > 75) { epubFontSize -= 10; rendition.themes.fontSize(epubFontSize + '%'); }
-                });
-
-            } catch (err) {
-                console.error("EPUB init fail:", err);
-                if (loader) loader.style.display = 'none';
-                activateNativeFallback();
-            }
 
         // ==========================================
         // 4. ARTICLES / TEXT READER ENGINE
@@ -1198,32 +1245,104 @@
             if (nextBtn) nextBtn.style.display = 'none';
             if (formatBadgeText) formatBadgeText.textContent = 'অনলাইন সাহিত্যপত্র';
 
-            // Auto-convert any legacy Bijoy/ANSI
             processBijoyElements(textArea);
+            populateUnifiedTocDrawer(0);
+        }
 
-            // Populate TOC for Articles
+        // ==========================================
+        // 5. UNIFIED TOC DRAWER POPULATION
+        // ==========================================
+        function populateUnifiedTocDrawer(pageCount, epubBookInstance) {
             const tocList = document.getElementById('toc-list');
-            if (tocList) {
-                tocList.innerHTML = '';
-                const articles = document.querySelectorAll('.article-card h2');
-                articles.forEach((h2, idx) => {
+            if (!tocList) return;
+            tocList.innerHTML = '';
+
+            // Section 1: Structured Articles / Chapters from Admin Indexer
+            if (structuredArticles && structuredArticles.length > 0) {
+                const sectionHeader = document.createElement('li');
+                sectionHeader.className = 'toc-section-title';
+                sectionHeader.innerHTML = '<i class="fa-solid fa-feather me-1"></i>সূচিপত্র ও নিবন্ধসমূহ';
+                tocList.appendChild(sectionHeader);
+
+                structuredArticles.forEach((art) => {
                     const li = document.createElement('li');
-                    li.className = 'toc-item';
                     const a = document.createElement('a');
-                    a.textContent = h2.textContent.trim();
+                    a.className = 'toc-item-link';
+
+                    const targetP = art.page_number || 1;
+                    const authorStr = art.author_name || (art.author ? art.author.name : '');
+
+                    a.innerHTML = `
+                        <div class="text-truncate">
+                            <div class="fw-semibold text-dark text-truncate">${art.title}</div>
+                            ${authorStr ? `<small class="text-muted"><i class="fa-solid fa-pen-nib me-1 text-success"></i>${authorStr}</small>` : ''}
+                        </div>
+                        <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill px-2 py-1 small flex-shrink-0">
+                            পৃষ্ঠা ${targetP}
+                        </span>
+                    `;
+
                     a.addEventListener('click', function(e) {
                         e.preventDefault();
-                        h2.scrollIntoView({ behavior: 'smooth' });
-                        document.getElementById('toc-drawer').classList.remove('open');
+                        window.readerJumpToPage(targetP);
                     });
+
                     li.appendChild(a);
                     tocList.appendChild(li);
                 });
             }
+
+            // Section 2: EPUB Internal Navigation Items (if available)
+            if (epubBookInstance && epubBookInstance.loaded && epubBookInstance.loaded.navigation) {
+                epubBookInstance.loaded.navigation.then(function(nav) {
+                    if (nav && nav.toc && nav.toc.length > 0) {
+                        const secHeader = document.createElement('li');
+                        secHeader.className = 'toc-section-title mt-2';
+                        secHeader.innerHTML = '<i class="fa-solid fa-book-bookmark me-1"></i>ইপাব অধ্যায়সমূহ';
+                        tocList.appendChild(secHeader);
+
+                        nav.toc.forEach(function(item) {
+                            const li = document.createElement('li');
+                            const a = document.createElement('a');
+                            a.className = 'toc-item-link';
+                            a.innerHTML = `<span><i class="fa-regular fa-file-lines me-2 text-primary"></i>${item.label.trim() || 'অধ্যায়'}</span>`;
+                            a.addEventListener('click', function(e) {
+                                e.preventDefault();
+                                if (window.epubRendition) window.epubRendition.display(item.href);
+                                document.getElementById('toc-drawer').classList.remove('open');
+                            });
+                            li.appendChild(a);
+                            tocList.appendChild(li);
+                        });
+                    }
+                });
+            }
+
+            // Section 3: All Pages Thumbnails (for PDF)
+            if (pageCount && pageCount > 0) {
+                const secHeader = document.createElement('li');
+                secHeader.className = 'toc-section-title mt-2';
+                secHeader.innerHTML = `<i class="fa-solid fa-layer-group me-1"></i>সকল পৃষ্ঠা (১ - ${pageCount})`;
+                tocList.appendChild(secHeader);
+
+                for (let i = 1; i <= pageCount; i++) {
+                    const li = document.createElement('li');
+                    li.className = 'page-thumb-item';
+                    li.dataset.page = i;
+                    li.innerHTML = `
+                        <span><i class="fa-regular fa-file-lines me-2 text-primary"></i>পৃষ্ঠা #${i}</span>
+                        <span class="badge bg-light text-muted border">${i} / ${pageCount}</span>
+                    `;
+                    li.addEventListener('click', function() {
+                        window.readerJumpToPage(i);
+                    });
+                    tocList.appendChild(li);
+                }
+            }
         }
 
         // ==========================================
-        // 5. FAIL-SAFE NATIVE EMBED FALLBACK
+        // 6. FAIL-SAFE NATIVE EMBED FALLBACK
         // ==========================================
         function activateNativeFallback() {
             if (fileUrl) {

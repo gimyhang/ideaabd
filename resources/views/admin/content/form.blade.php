@@ -708,6 +708,107 @@
 
                     </div>
                 @endforeach
+
+                {{-- ══ WEBZINE TABLE OF CONTENTS & ARTICLE INDEXER ════════════════════════ --}}
+                @if ($spec['key'] === 'webzines')
+                    @php
+                        $existingArticles = $editing && $record ? $record->articles()->orderBy('order')->orderBy('page_number')->get() : collect();
+                        $authorList = $lookups['authors'] ?? [];
+                    @endphp
+                    <div class="col-12 mt-4 pt-3 border-top">
+                        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+                            <div>
+                                <h5 class="fw-bold mb-1 text-dark">
+                                    <i class="fas fa-list-ol text-primary me-2"></i>সূচিপত্র ও পৃষ্ঠা ইনডেক্সার (Table of Contents & Page Indexer)
+                                </h5>
+                                <p class="text-muted small mb-0">
+                                    প্রতিটি লেখার শিরোনাম, লেখক এবং বইয়ের পৃষ্ঠা নম্বর (Page #) লিখে দিন। পাঠক সূচিপত্রে ক্লিক করলেই স্বয়ংক্রিয়ভাবে সেই নির্দিষ্ট পেজে চলে যাবে।
+                                </p>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-primary rounded-pill px-3 shadow-xs" onclick="addWebzineTocRow()">
+                                <i class="fas fa-plus-circle me-1"></i> নতুন সূচি / লেখা যোগ করুন
+                            </button>
+                        </div>
+
+                        <div class="table-responsive rounded-3 border bg-white shadow-xs">
+                            <table class="table table-hover align-middle mb-0" id="webzineTocTable">
+                                <thead class="table-light small fw-bold text-secondary">
+                                    <tr>
+                                        <th style="width: 45px;" class="text-center">#</th>
+                                        <th>লেখার শিরোনাম / অধ্যায় <span class="text-danger">*</span></th>
+                                        <th style="width: 220px;">লেখক (Author)</th>
+                                        <th style="width: 140px;">পৃষ্ঠা নম্বর (Page #) <span class="text-danger">*</span></th>
+                                        <th style="width: 60px;" class="text-center">অ্যাকশন</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="webzineTocBody">
+                                    @forelse($existingArticles as $idx => $art)
+                                        <tr class="webzine-toc-row">
+                                            <td class="text-center fw-bold text-muted row-number">{{ $idx + 1 }}</td>
+                                            <td>
+                                                <input type="hidden" name="toc_articles[{{ $idx }}][id]" value="{{ $art->id }}">
+                                                <input type="hidden" name="toc_articles[{{ $idx }}][order]" class="input-order" value="{{ $art->order ?: ($idx + 1) }}">
+                                                <input type="text" name="toc_articles[{{ $idx }}][title]" class="form-control form-control-sm" value="{{ $art->title }}" placeholder="যেমন: সম্পাদকীয় / ভালোবাসার গল্প..." required>
+                                            </td>
+                                            <td>
+                                                <select name="toc_articles[{{ $idx }}][author_id]" class="form-select form-select-sm">
+                                                    <option value="">— লেখক নির্বাচন করুন (ঐচ্ছিক) —</option>
+                                                    @foreach($authorList as $aId => $aName)
+                                                        <option value="{{ $aId }}" @selected((string)$art->author_id === (string)$aId)>{{ $aName }}</option>
+                                                    @endforeach
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <div class="input-group input-group-sm">
+                                                    <span class="input-group-text bg-light text-muted">পৃষ্ঠা</span>
+                                                    <input type="number" name="toc_articles[{{ $idx }}][page_number]" class="form-control form-control-sm text-center fw-bold" value="{{ $art->page_number ?: ($idx + 1) }}" min="1" placeholder="1" required>
+                                                </div>
+                                            </td>
+                                            <td class="text-center">
+                                                <button type="button" class="btn btn-sm btn-outline-danger p-1 border-0" onclick="removeWebzineTocRow(this)" title="মুছুন">
+                                                    <i class="fas fa-trash-alt"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    @empty
+                                        <tr class="webzine-toc-row">
+                                            <td class="text-center fw-bold text-muted row-number">১</td>
+                                            <td>
+                                                <input type="hidden" name="toc_articles[0][order]" class="input-order" value="1">
+                                                <input type="text" name="toc_articles[0][title]" class="form-control form-control-sm" placeholder="যেমন: সম্পাদকীয় / প্রথম রচনা..." required>
+                                            </td>
+                                            <td>
+                                                <select name="toc_articles[0][author_id]" class="form-select form-select-sm">
+                                                    <option value="">— লেখক নির্বাচন করুন (ঐচ্ছিক) —</option>
+                                                    @foreach($authorList as $aId => $aName)
+                                                        <option value="{{ $aId }}">{{ $aName }}</option>
+                                                    @endforeach
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <div class="input-group input-group-sm">
+                                                    <span class="input-group-text bg-light text-muted">পৃষ্ঠা</span>
+                                                    <input type="number" name="toc_articles[0][page_number]" class="form-control form-control-sm text-center fw-bold" value="1" min="1" placeholder="1" required>
+                                                </div>
+                                            </td>
+                                            <td class="text-center">
+                                                <button type="button" class="btn btn-sm btn-outline-danger p-1 border-0" onclick="removeWebzineTocRow(this)" title="মুছুন">
+                                                    <i class="fas fa-trash-alt"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mt-2">
+                            <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3" onclick="addWebzineTocRow()">
+                                <i class="fas fa-plus me-1"></i> আরো একটি সূচি যোগ করুন
+                            </button>
+                            <span class="small text-muted"><i class="fas fa-info-circle me-1 text-primary"></i>পৃষ্ঠা নম্বর দিলে অনলাইন রিডারে স্বয়ংক্রিয়ভাবে সেই পেজে জাম্প করবে।</span>
+                        </div>
+                    </div>
+                @endif
             </div>
         </div>
     </div>
@@ -1661,6 +1762,78 @@ function handleQuickAuthorSubmit(e) {
     .finally(() => {
         btn.disabled = false;
         btn.innerHTML = '<i class="fas fa-check-circle me-1"></i> লেখক সংরক্ষণ করুন';
+    });
+}
+
+// Dynamic Webzine Table of Contents Row Management
+const authorOptionsJson = @json($lookups['authors'] ?? []);
+
+function addWebzineTocRow() {
+    const tbody = document.getElementById('webzineTocBody');
+    if (!tbody) return;
+
+    const rows = tbody.querySelectorAll('.webzine-toc-row');
+    const newIdx = rows.length;
+    const nextOrder = newIdx + 1;
+
+    let authorOptionsHtml = '<option value="">— লেখক নির্বাচন করুন (ঐচ্ছিক) —</option>';
+    for (const [aId, aName] of Object.entries(authorOptionsJson)) {
+        authorOptionsHtml += `<option value="${aId}">${aName}</option>`;
+    }
+
+    const tr = document.createElement('tr');
+    tr.className = 'webzine-toc-row';
+    tr.innerHTML = `
+        <td class="text-center fw-bold text-muted row-number">${newIdx + 1}</td>
+        <td>
+            <input type="hidden" name="toc_articles[${newIdx}][order]" class="input-order" value="${nextOrder}">
+            <input type="text" name="toc_articles[${newIdx}][title]" class="form-control form-control-sm" placeholder="যেমন: নতুন প্রবন্ধ / গল্প..." required>
+        </td>
+        <td>
+            <select name="toc_articles[${newIdx}][author_id]" class="form-select form-select-sm">
+                ${authorOptionsHtml}
+            </select>
+        </td>
+        <td>
+            <div class="input-group input-group-sm">
+                <span class="input-group-text bg-light text-muted">পৃষ্ঠা</span>
+                <input type="number" name="toc_articles[${newIdx}][page_number]" class="form-control form-control-sm text-center fw-bold" value="${nextOrder}" min="1" placeholder="1" required>
+            </div>
+        </td>
+        <td class="text-center">
+            <button type="button" class="btn btn-sm btn-outline-danger p-1 border-0" onclick="removeWebzineTocRow(this)" title="মুছুন">
+                <i class="fas fa-trash-alt"></i>
+            </button>
+        </td>
+    `;
+    tbody.appendChild(tr);
+    renumberWebzineTocRows();
+}
+
+function removeWebzineTocRow(btn) {
+    const tbody = document.getElementById('webzineTocBody');
+    const row = btn.closest('.webzine-toc-row');
+    if (row && tbody) {
+        if (tbody.querySelectorAll('.webzine-toc-row').length > 1) {
+            row.remove();
+            renumberWebzineTocRows();
+        } else {
+            // Just clear inputs
+            row.querySelector('input[type="text"]').value = '';
+            row.querySelector('select').value = '';
+        }
+    }
+}
+
+function renumberWebzineTocRows() {
+    const tbody = document.getElementById('webzineTocBody');
+    if (!tbody) return;
+    const rows = tbody.querySelectorAll('.webzine-toc-row');
+    rows.forEach((r, idx) => {
+        const numCell = r.querySelector('.row-number');
+        if (numCell) numCell.textContent = idx + 1;
+        const orderInput = r.querySelector('.input-order');
+        if (orderInput) orderInput.value = idx + 1;
     });
 }
 </script>

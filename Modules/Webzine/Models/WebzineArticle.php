@@ -29,4 +29,9 @@ class WebzineArticle extends Model
     {
         return $this->belongsTo(Author::class, 'author_id');
     }
+
+    public function getAuthorNameAttribute(): ?string
+    {
+        return $this->author?->name ?? $this->attributes['author_name'] ?? null;
+    }
 }

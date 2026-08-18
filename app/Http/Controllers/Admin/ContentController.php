@@ -139,6 +139,9 @@ class ContentController extends Controller
 
         try {
             $record->forceFill($attributes)->save();
+            if ($type === 'webzines') {
+                $this->syncWebzineArticles($record, $request);
+            }
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::error("ContentController store error ({$type}): " . $e->getMessage());
             return back()->withInput()->withErrors([
@@ -208,6 +211,9 @@ class ContentController extends Controller
 
         try {
             $record->forceFill($attributes)->save();
+            if ($type === 'webzines') {
+                $this->syncWebzineArticles($record, $request);
+            }
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::error("ContentController update error ({$type} #{$id}): " . $e->getMessage());
             return back()->withInput()->withErrors([
@@ -769,7 +775,76 @@ class ContentController extends Controller
                 ->all();
         }
 
+        if ($spec['table'] === 'webzines' && !isset($lookups['authors']) && Schema::hasTable('authors')) {
+            $lookups['authors'] = DB::table('authors')->orderBy('name')->pluck('name', 'id')->all();
+        }
+
         return $lookups;
+    }
+
+    /**
+     * Synchronize Webzine Table of Contents Articles with page numbers.
+     */
+    private function syncWebzineArticles(Model $webzine, Request $request): void
+    {
+        if (!$request->has('toc_articles')) {
+            return;
+        }
+
+        $rawArticles = $request->input('toc_articles', []);
+        if (!is_array($rawArticles)) {
+            return;
+        }
+
+        try {
+            $existingIds = DB::table('webzine_articles')->where('webzine_id', $webzine->id)->pluck('id')->toArray();
+            $keptIds = [];
+
+            foreach ($rawArticles as $index => $item) {
+                $title = trim((string) ($item['title'] ?? ''));
+                if ($title === '') {
+                    continue;
+                }
+
+                $pageNumber = !empty($item['page_number']) ? (int) $item['page_number'] : ($index + 1);
+                $authorId   = !empty($item['author_id']) ? (int) $item['author_id'] : null;
+                $order      = !empty($item['order']) ? (int) $item['order'] : ($index + 1);
+                $content    = (string) ($item['content'] ?? '');
+
+                $articleId = !empty($item['id']) ? (int) $item['id'] : null;
+
+                if ($articleId && in_array($articleId, $existingIds, true)) {
+                    DB::table('webzine_articles')->where('id', $articleId)->update([
+                        'title'       => $title,
+                        'author_id'   => $authorId,
+                        'page_number' => $pageNumber,
+                        'order'       => $order,
+                        'content'     => $content,
+                        'updated_at'  => now(),
+                    ]);
+                    $keptIds[] = $articleId;
+                } else {
+                    $newId = DB::table('webzine_articles')->insertGetId([
+                        'webzine_id'  => $webzine->id,
+                        'title'       => $title,
+                        'author_id'   => $authorId,
+                        'page_number' => $pageNumber,
+                        'order'       => $order,
+                        'content'     => $content,
+                        'created_at'  => now(),
+                        'updated_at'  => now(),
+                    ]);
+                    $keptIds[] = $newId;
+                }
+            }
+
+            $toDelete = array_diff($existingIds, $keptIds);
+            if (!empty($toDelete)) {
+                DB::table('webzine_articles')->whereIn('id', $toDelete)->delete();
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error("Webzine articles sync error: " . $e->getMessage());
+        }
     }
 
     /**
