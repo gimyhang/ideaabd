@@ -66,6 +66,7 @@ Route::match(['get', 'post'], '/cart/checkout', function (\Illuminate\Http\Reque
     }
     return app(CartController::class)->checkout($request);
 })->name('cart.checkout');
+Route::post('/cart/validate-coupon', [CartController::class, 'validateCoupon'])->name('cart.validate-coupon');
 Route::post('/cart/add', fn() => back())->name('cart.add');
 Route::post('/newsletter/subscribe', fn() => back()->with('success', 'Subscribed successfully!'))->name('newsletter.subscribe');
 Route::get('/webzines/archive', fn() => redirect(route('webzine.index')))->name('webzine.archive');

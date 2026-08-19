@@ -603,6 +603,96 @@
                             </div>
 
                         </div>
+
+                        <!-- Coupon & Special Threshold Offers Row -->
+                        <div class="row g-4 mt-2 pt-3 border-top">
+                            <!-- Coupon Code Settings -->
+                            <div class="col-lg-6">
+                                <div class="p-3.5 bg-light rounded-4 border">
+                                    <div class="d-flex align-items-center justify-content-between mb-3">
+                                        <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                                            <i class="fa-solid fa-ticket text-warning"></i> কুপন কোড ও প্রমোশন সেটিংস
+                                        </h6>
+                                        <div class="form-check form-switch mb-0">
+                                            <input class="form-check-input cursor-pointer" type="checkbox" name="coupon_enabled" value="1" id="couponEnabledSwitch" {{ !empty($ecomSetting['coupon_enabled']) ? 'checked' : '' }}>
+                                            <label class="form-check-label small fw-bold text-dark cursor-pointer ms-1" for="couponEnabledSwitch">সক্রিয় করুন</label>
+                                        </div>
+                                    </div>
+                                    <p class="small text-muted mb-3">এটি অন করলে গ্রাহক কার্ট ও চেকআউটে কুপন কোড লিখে ছাড় উপভোগ করতে পারবেন।</p>
+
+                                    <div class="row g-2 mb-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label small fw-semibold text-muted mb-1">কুপন কোড (Promo Code)</label>
+                                            <input type="text" name="coupon_code" value="{{ $ecomSetting['coupon_code'] ?? 'IDEA2026' }}" class="form-control rounded-3 font-monospace text-uppercase fw-bold" placeholder="যেমন: IDEA2026">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label small fw-semibold text-muted mb-1">ছাড়ের ধরণ</label>
+                                            <select name="coupon_type" class="form-select rounded-3">
+                                                <option value="percent" {{ ($ecomSetting['coupon_type'] ?? 'percent') === 'percent' ? 'selected' : '' }}>শতাংশ ছাড় (%)</option>
+                                                <option value="fixed" {{ ($ecomSetting['coupon_type'] ?? '') === 'fixed' ? 'selected' : '' }}>নির্দিষ্ট টাকা ছাড় (৳)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="row g-2 mb-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label small fw-semibold text-muted mb-1">ছাড়ের পরিমাণ (ডিজিটে)</label>
+                                            <input type="number" step="any" name="coupon_discount" value="{{ $ecomSetting['coupon_discount'] ?? 10 }}" class="form-control rounded-3" placeholder="যেমন: 10 বা 100">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label small fw-semibold text-muted mb-1">ন্যূনতম অর্ডার মূল্য (৳)</label>
+                                            <input type="number" step="any" name="coupon_min_order" value="{{ $ecomSetting['coupon_min_order'] ?? 500 }}" class="form-control rounded-3" placeholder="যেমন: 500">
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label class="form-label small fw-semibold text-muted mb-1">কুপন বার্তা / বর্ণনা</label>
+                                        <input type="text" name="coupon_description" value="{{ $ecomSetting['coupon_description'] ?? 'বিশেষ কুপন ছাড়' }}" class="form-control form-control-sm rounded-3" placeholder="যেমন: বইমেলা উপলক্ষে ১০% বিশেষ ছাড়!">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Special Threshold-based Offer Settings -->
+                            <div class="col-lg-6">
+                                <div class="p-3.5 bg-light rounded-4 border">
+                                    <div class="d-flex align-items-center justify-content-between mb-3">
+                                        <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                                            <i class="fa-solid fa-gift text-primary"></i> নির্ধারিত অর্ডারে বিশেষ অফার
+                                        </h6>
+                                        <div class="form-check form-switch mb-0">
+                                            <input class="form-check-input cursor-pointer" type="checkbox" name="threshold_offer_enabled" value="1" id="thresholdOfferSwitch" {{ !empty($ecomSetting['threshold_offer_enabled']) ? 'checked' : '' }}>
+                                            <label class="form-check-label small fw-bold text-dark cursor-pointer ms-1" for="thresholdOfferSwitch">সক্রিয় করুন</label>
+                                        </div>
+                                    </div>
+                                    <p class="small text-muted mb-3">কার্টের সাবটোটাল নির্ধারিত পরিমাণে পৌঁছালে স্বয়ংক্রিয়ভাবে অফার প্রযোজ্য হবে।</p>
+
+                                    <div class="row g-2 mb-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label small fw-semibold text-muted mb-1">ন্যূনতম ক্রয়ের পরিমাণ (৳)</label>
+                                            <input type="number" step="any" name="threshold_offer_amount" value="{{ $ecomSetting['threshold_offer_amount'] ?? 1000 }}" class="form-control rounded-3" placeholder="যেমন: 1000">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label small fw-semibold text-muted mb-1">অফারের ধরণ</label>
+                                            <select name="threshold_offer_type" class="form-select rounded-3">
+                                                <option value="free_delivery" {{ ($ecomSetting['threshold_offer_type'] ?? 'free_delivery') === 'free_delivery' ? 'selected' : '' }}>ফ্রি ডেলিভারি</option>
+                                                <option value="flat_discount" {{ ($ecomSetting['threshold_offer_type'] ?? '') === 'flat_discount' ? 'selected' : '' }}>অতিরিক্ত টাকা ছাড় (৳)</option>
+                                                <option value="percent_discount" {{ ($ecomSetting['threshold_offer_type'] ?? '') === 'percent_discount' ? 'selected' : '' }}>অতিরিক্ত শতাংশ ছাড় (%)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-semibold text-muted mb-1">অতিরিক্ত ছাড়ের পরিমাণ (টাকা/শতাংশ হলে)</label>
+                                        <input type="number" step="any" name="threshold_offer_discount" value="{{ $ecomSetting['threshold_offer_discount'] ?? 100 }}" class="form-control rounded-3" placeholder="যেমন: 100 বা 10">
+                                    </div>
+
+                                    <div>
+                                        <label class="form-label small fw-semibold text-muted mb-1">অফার ব্যানার শিরোনাম / বার্তা</label>
+                                        <input type="text" name="threshold_offer_title" value="{{ $ecomSetting['threshold_offer_title'] ?? '৳১০০০+ অর্ডারে ফ্রি ডেলিভারি ও বিশেষ উপহার!' }}" class="form-control form-control-sm rounded-3" placeholder="যেমন: ৳১০০০+ অর্ডারে ফ্রি ডেলিভারি!">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Tab: Invoice & Sender Details -->

@@ -115,7 +115,8 @@ class AdminAccessController extends Controller
 
         $noticeSetting = $settings['system_notice'] ?? ['text' => '', 'active' => false, 'type' => 'info'];
         $maintSetting = $settings['maintenance_mode'] ?? ['enabled' => false, 'reason' => ''];
-        $ecomSetting = $settings['ecommerce_settings'] ?? [
+        $rawEcom = $settings['ecommerce_settings'] ?? [];
+        $ecomSetting = array_merge([
             'delivery_dhaka'          => 50,
             'delivery_sub'            => 100,
             'delivery_outside'        => 120,
@@ -128,7 +129,20 @@ class AdminAccessController extends Controller
             'nagad_number'            => '01558712810',
             'rocket_number'           => '01558712810',
             'payment_instruction'     => 'বিকাশ বা নগদ থেকে উল্লেখিত নম্বরে সেন্ড মানি করে TrxID ও পেমেন্ট নম্বর দিন।',
-        ];
+            // Coupon Configuration
+            'coupon_enabled'          => false,
+            'coupon_code'             => 'IDEA2026',
+            'coupon_type'             => 'percent',
+            'coupon_discount'         => 10,
+            'coupon_min_order'        => 500,
+            'coupon_description'      => 'বিশেষ কুপন ছাড়',
+            // Threshold Offer Configuration
+            'threshold_offer_enabled' => false,
+            'threshold_offer_amount'  => 1000,
+            'threshold_offer_type'    => 'free_delivery',
+            'threshold_offer_discount'=> 100,
+            'threshold_offer_title'   => '৳১০০০+ অর্ডারে ফ্রি ডেলিভারি ও বিশেষ উপহার!',
+        ], is_array($rawEcom) ? $rawEcom : []);
         $themeSetting = $settings['theme_settings'] ?? [
             'primary_color' => '#0066cc',
             'secondary_color' => '#0099ff',
@@ -308,7 +322,7 @@ class AdminAccessController extends Controller
                 ]
             );
 
-            // 7. E-commerce & Delivery Settings
+            // 7. E-commerce, Coupon & Threshold Offer Settings
             AdminDashboardSetting::updateOrCreate(
                 ['key' => 'ecommerce_settings'],
                 [
@@ -325,6 +339,19 @@ class AdminAccessController extends Controller
                         'nagad_number'            => $request->input('nagad_number', '01558712810'),
                         'rocket_number'           => $request->input('rocket_number', '01558712810'),
                         'payment_instruction'     => $request->input('payment_instruction', 'বিকাশ বা নগদ থেকে উল্লেখিত নম্বরে সেন্ড মানি করে TrxID ও পেমেন্ট নম্বর দিন।'),
+                        // Coupon Settings
+                        'coupon_enabled'          => $request->boolean('coupon_enabled'),
+                        'coupon_code'             => strtoupper(trim($request->input('coupon_code', 'IDEA2026'))),
+                        'coupon_type'             => $request->input('coupon_type', 'percent'),
+                        'coupon_discount'         => $request->float('coupon_discount', 10),
+                        'coupon_min_order'        => $request->float('coupon_min_order', 500),
+                        'coupon_description'      => $request->input('coupon_description', 'বিশেষ কুপন ছাড়'),
+                        // Threshold Offer Settings
+                        'threshold_offer_enabled' => $request->boolean('threshold_offer_enabled'),
+                        'threshold_offer_amount'  => $request->float('threshold_offer_amount', 1000),
+                        'threshold_offer_type'    => $request->input('threshold_offer_type', 'free_delivery'),
+                        'threshold_offer_discount'=> $request->float('threshold_offer_discount', 100),
+                        'threshold_offer_title'   => $request->input('threshold_offer_title', '৳১০০০+ অর্ডারে ফ্রি ডেলিভারি ও বিশেষ উপহার!'),
                     ],
                     'updated_by' => auth()->id(),
                 ]

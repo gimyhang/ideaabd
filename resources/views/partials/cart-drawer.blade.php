@@ -176,9 +176,26 @@
         const feeOutside = {{ $feeOutside }};
         const freeThreshold = {{ $freeThreshold }};
 
+        function parsePrice(val) {
+            if (typeof val === 'number') return isNaN(val) ? 0 : val;
+            if (!val) return 0;
+            const cleaned = String(val).replace(/[^0-9.]/g, '');
+            const parsed = parseFloat(cleaned);
+            return isNaN(parsed) ? 0 : parsed;
+        }
+
         function getSafeCart() {
             try {
-                return JSON.parse(localStorage.getItem('idea_cart') || '[]');
+                const raw = JSON.parse(localStorage.getItem('idea_cart') || '[]');
+                if (!Array.isArray(raw)) return [];
+                return raw.map(item => ({
+                    id: item.id,
+                    title: item.title || 'বই',
+                    price: parsePrice(item.price),
+                    image: item.image || '',
+                    quantity: Math.max(1, parseInt(item.quantity || item.qty || 1, 10) || 1),
+                    format: item.format || 'paperback'
+                }));
             } catch(e) {
                 return [];
             }
@@ -203,7 +220,7 @@
 
             if (!listEl || !emptyEl || !footerEl) return;
 
-            const totalQty = cart.reduce((sum, item) => sum + (item.quantity || item.qty || 1), 0);
+            const totalQty = cart.reduce((sum, item) => sum + item.quantity, 0);
             if (countTextEl) {
                 countTextEl.textContent = (totalQty).toLocaleString('bn-BD') + ' টি পণ্য';
             }
@@ -220,17 +237,18 @@
 
             let html = '';
             cart.forEach((item, index) => {
-                const qty = item.quantity || item.qty || 1;
-                const price = Number(item.price) || 0;
+                const qty = item.quantity;
+                const price = item.price;
                 const itemTotal = price * qty;
                 const imgSrc = item.image || '/images/default-book.png';
+                const formatLabel = item.format === 'hardcover' ? 'হার্ডকভার' : 'পেপারব্যাক';
 
                 html += `
                     <div class="p-2.5 bg-white border rounded-3 shadow-2xs d-flex align-items-center gap-2.5">
                         <img src="${imgSrc}" alt="${item.title}" class="rounded-2 object-fit-cover flex-shrink-0" style="width: 50px; height: 68px; border: 1px solid #eee;" onerror="this.onerror=null; this.src='/images/default-book.png';">
                         <div class="flex-grow-1 min-w-0">
                             <h6 class="fw-bold text-dark mb-1 small text-truncate" title="${item.title}">${item.title}</h6>
-                            <div class="text-primary fw-bold small mb-2">৳${price.toLocaleString('bn-BD')} <span class="text-muted fw-normal" style="font-size: 11px;">× ${qty} = ৳${itemTotal.toLocaleString('bn-BD')}</span></div>
+                            <div class="text-primary fw-bold small mb-2">৳${price.toLocaleString('bn-BD')} <span class="badge bg-light text-muted border ms-1" style="font-size: 10px;">${formatLabel}</span> <span class="text-muted fw-normal" style="font-size: 11px;">× ${qty} = ৳${itemTotal.toLocaleString('bn-BD')}</span></div>
                             <div class="d-flex align-items-center justify-content-between">
                                 <div class="input-group input-group-sm border rounded-pill bg-light overflow-hidden" style="width: 95px;">
                                     <button class="btn btn-sm btn-light px-2 py-0" type="button" onclick="updateCartItemQty(${index}, -1)">
@@ -257,13 +275,12 @@
         window.updateCartItemQty = function(index, delta) {
             let cart = getSafeCart();
             if (cart[index]) {
-                let current = cart[index].quantity || cart[index].qty || 1;
+                let current = cart[index].quantity;
                 let newQty = current + delta;
                 if (newQty <= 0) {
                     cart.splice(index, 1);
                 } else {
-                    cart[index].quantity = newQty;
-                    cart[index].qty = newQty;
+                    cart[index].quantity = Math.min(99, newQty);
                 }
                 saveSafeCart(cart);
             }
@@ -279,9 +296,7 @@
             const cart = getSafeCart();
             let subtotal = 0;
             cart.forEach(item => {
-                const qty = item.quantity || item.qty || 1;
-                const price = Number(item.price) || 0;
-                subtotal += (price * qty);
+                subtotal += (item.price * item.quantity);
             });
 
             const areaSelect = document.getElementById('drawerDeliveryAreaSelect');
