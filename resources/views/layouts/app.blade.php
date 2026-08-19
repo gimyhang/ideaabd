@@ -29,7 +29,38 @@
             $metaPageImage = str_starts_with($candidateImage, 'http') ? $candidateImage : url($candidateImage);
         }
 
-        $metaPageUrl = View::hasSection('og_url') ? View::getSection('og_url') : url()->current();
+        // Canonical URL resolution (Google Search Console 'Duplicate without user-selected canonical' fix)
+        $canonicalDomain = rtrim(config('app.url', 'https://www.ideaabd.com'), '/');
+        if (str_contains($canonicalDomain, 'localhost') || str_contains($canonicalDomain, '127.0.0.1')) {
+            $canonicalDomain = 'https://www.ideaabd.com';
+        }
+
+        if (View::hasSection('canonical')) {
+            $rawCanonical = trim(View::getSection('canonical'));
+        } elseif (View::hasSection('og_url')) {
+            $rawCanonical = trim(View::getSection('og_url'));
+        } else {
+            $reqPath = request()->path();
+            $rawCanonical = ($reqPath === '/' || $reqPath === '') ? $canonicalDomain . '/' : $canonicalDomain . '/' . ltrim($reqPath, '/');
+            if (request()->filled('page') && (int)request('page') > 1) {
+                $rawCanonical .= '?page=' . (int)request('page');
+            }
+        }
+
+        // Standardize HTTPS and canonical domain
+        if (!str_starts_with($rawCanonical, 'http')) {
+            $rawCanonical = $canonicalDomain . '/' . ltrim($rawCanonical, '/');
+        } else {
+            $parsed = parse_url($rawCanonical);
+            $parsedPath = $parsed['path'] ?? '/';
+            $parsedQuery = isset($parsed['query']) ? '?' . $parsed['query'] : '';
+            $rawCanonical = $canonicalDomain . ($parsedPath === '/' ? '' : $parsedPath) . $parsedQuery;
+            if ($rawCanonical === $canonicalDomain) {
+                $rawCanonical = $canonicalDomain . '/';
+            }
+        }
+
+        $metaPageUrl = $rawCanonical;
         $metaPageType = View::hasSection('og_type') ? View::getSection('og_type') : 'website';
 
         $imageExt = strtolower(pathinfo(parse_url($metaPageImage, PHP_URL_PATH) ?? '', PATHINFO_EXTENSION));
@@ -433,6 +464,18 @@
     </script>
     <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" async defer></script>
     
+    {{-- Floating WhatsApp Quick Chat Button --}}
+    <a href="https://wa.me/8801726976982?text={{ urlencode('আসসালামু আলাইকুম, আইডিয়া প্রকাশন থেকে তথ্য ও বই অর্ডার সংক্রান্ত সহায়তার জন্য যোগাযোগ করছি।') }}" 
+       target="_blank" 
+       rel="noopener" 
+       class="floating-whatsapp-btn shadow-lg d-flex align-items-center justify-content-center text-decoration-none" 
+       title="হোয়াটসঅ্যাপে সরাসরি যোগাযোগ করুন (+8801726976982)"
+       style="position: fixed; bottom: 24px; right: 24px; width: 54px; height: 54px; background-color: #25D366; color: #ffffff; border-radius: 50%; z-index: 1050; box-shadow: 0 4px 14px rgba(37, 211, 102, 0.45); transition: transform 0.25s ease, box-shadow 0.25s ease; font-size: 28px;"
+       onmouseover="this.style.transform='scale(1.1) rotate(5deg)'; this.style.color='#ffffff';"
+       onmouseout="this.style.transform='scale(1) rotate(0deg)'; this.style.color='#ffffff';">
+        <i class="fa-brands fa-whatsapp"></i>
+    </a>
+
     {{-- Both mechanisms are supported: @section('scripts') and @push('scripts') --}}
     @yield('scripts')
     @stack('scripts')

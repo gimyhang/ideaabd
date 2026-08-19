@@ -510,43 +510,53 @@ class ContentController extends Controller
 
             if ($name === 'category_id' && $request->filled('sub_category_name')) {
                 $mainCategoryId = $data['category_id'] ?? null;
-                $subCatName = $request->input('sub_category_name');
-                $subCatSlug = $this->bengaliToEnglish($subCatName) ?: Str::random(8);
+                $subCatName = trim((string) $request->input('sub_category_name'));
                 
-                if ($mainCategoryId) {
+                if ($subCatName !== '') {
                     $existingSubCat = DB::table('categories')
-                        ->where('parent_id', $mainCategoryId)
-                        ->where(function($q) use ($subCatName, $subCatSlug) {
-                            $q->where('name', $subCatName)->orWhere('slug', $subCatSlug);
-                        })->first();
+                        ->where('name', $subCatName)
+                        ->when($mainCategoryId, fn($q) => $q->where('parent_id', $mainCategoryId))
+                        ->first();
                         
                     if ($existingSubCat) {
                         $attributes['category_id'] = $existingSubCat->id;
                     } else {
+                        $baseSlug = Str::slug($this->bengaliToEnglish($subCatName)) ?: 'cat-' . Str::random(6);
+                        $subCatSlug = $baseSlug;
+                        $counter = 1;
+                        while (DB::table('categories')->where('slug', $subCatSlug)->exists()) {
+                            $subCatSlug = $baseSlug . '-' . $counter++;
+                        }
+
                         $attributes['category_id'] = DB::table('categories')->insertGetId([
-                            'parent_id' => $mainCategoryId,
-                            'name' => $subCatName,
-                            'slug' => $subCatSlug,
-                            'is_active' => true,
+                            'parent_id'  => $mainCategoryId ?: null,
+                            'name'       => $subCatName,
+                            'slug'       => $subCatSlug,
+                            'is_active'  => true,
                             'created_at' => now(),
                             'updated_at' => now(),
                         ]);
                     }
+                    continue;
                 }
-                continue;
             }
 
             if ($name === 'category_id' && $spec['key'] === 'blog' && $request->filled('new_blog_category_name')) {
                 $blogCatName = trim((string) $request->input('new_blog_category_name'));
                 if ($blogCatName !== '') {
-                    $catSlug = $this->bengaliToEnglish($blogCatName) ?: Str::random(8);
                     $existingCat = DB::table('blog_categories')
                         ->where('name', $blogCatName)
-                        ->orWhere('slug', $catSlug)
                         ->first();
                     if ($existingCat) {
                         $attributes['category_id'] = $existingCat->id;
                     } else {
+                        $baseSlug = Str::slug($this->bengaliToEnglish($blogCatName)) ?: 'blog-cat-' . Str::random(6);
+                        $catSlug = $baseSlug;
+                        $counter = 1;
+                        while (DB::table('blog_categories')->where('slug', $catSlug)->exists()) {
+                            $catSlug = $baseSlug . '-' . $counter++;
+                        }
+
                         $attributes['category_id'] = DB::table('blog_categories')->insertGetId([
                             'name'        => $blogCatName,
                             'slug'        => $catSlug,
@@ -561,24 +571,32 @@ class ContentController extends Controller
             }
 
             if ($name === 'publisher_id' && $request->filled('new_publisher_name')) {
-                $pubName = $request->input('new_publisher_name');
-                $pubSlug = $this->bengaliToEnglish($pubName) ?: Str::random(8);
-                
-                $existingPub = DB::table('publishers')
-                    ->where('name', $pubName)->orWhere('slug', $pubSlug)->first();
-                    
-                if ($existingPub) {
-                    $attributes['publisher_id'] = $existingPub->id;
-                } else {
-                    $attributes['publisher_id'] = DB::table('publishers')->insertGetId([
-                        'name' => $pubName,
-                        'slug' => $pubSlug,
-                        'is_active' => true,
-                        'created_at' => now(),
-                        'updated_at' => now(),
-                    ]);
+                $pubName = trim((string) $request->input('new_publisher_name'));
+                if ($pubName !== '') {
+                    $existingPub = DB::table('publishers')
+                        ->where('name', $pubName)
+                        ->first();
+                        
+                    if ($existingPub) {
+                        $attributes['publisher_id'] = $existingPub->id;
+                    } else {
+                        $baseSlug = Str::slug($this->bengaliToEnglish($pubName)) ?: 'pub-' . Str::random(6);
+                        $pubSlug = $baseSlug;
+                        $counter = 1;
+                        while (DB::table('publishers')->where('slug', $pubSlug)->exists()) {
+                            $pubSlug = $baseSlug . '-' . $counter++;
+                        }
+
+                        $attributes['publisher_id'] = DB::table('publishers')->insertGetId([
+                            'name'       => $pubName,
+                            'slug'       => $pubSlug,
+                            'is_active'  => true,
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ]);
+                    }
+                    continue;
                 }
-                continue;
             }
 
             if ($type === 'editor' || $type === 'textarea') {

@@ -155,7 +155,7 @@
                         <h5 class="fw-bold mb-0 text-dark">
                             <i class="fas fa-list-check me-2 text-success"></i>পণ্য, বই বা সেবার শিডিউল ও বিবরণ
                         </h5>
-                        <small class="text-muted">বুকশপ থেকে সরাসরি বই নির্বাচন করতে পারেন অথবা কাস্টম পণ্যের বিবরণ লিখতে পারেন।</small>
+                        <small class="text-muted">বুকশপ থেকে বই নির্বাচন করলে লেখক, গায়ের মূল্য ও বুকশপের কমিশন স্বয়ংক্রিয়ভাবে বসে যাবে।</small>
                     </div>
                     <button type="button" class="btn btn-sm btn-success rounded-pill px-3 fw-semibold" onclick="addItemRow()">
                         <i class="fas fa-plus me-1"></i> আরো আইটেম যোগ করুন
@@ -163,15 +163,18 @@
                 </div>
                 <div class="card-body p-3">
                     <div class="table-responsive">
-                        <table class="table table-bordered align-middle" id="itemsTable">
+                        <table class="table table-bordered align-middle mb-0" id="itemsTable">
                             <thead class="table-light">
-                                <tr class="small text-muted text-uppercase">
-                                    <th style="min-width: 240px;">বিবরণ / বই / পণ্যের নাম <span class="text-danger">*</span></th>
-                                    <th style="width: 140px;">ধরন</th>
-                                    <th style="width: 100px;">পরিমাণ <span class="text-danger">*</span></th>
-                                    <th style="width: 120px;">দর / একক মূল্য (৳) <span class="text-danger">*</span></th>
-                                    <th style="width: 120px;">মোট টাকা (৳)</th>
-                                    <th style="width: 45px;"></th>
+                                <tr class="small text-muted text-uppercase" style="font-size: 11px;">
+                                    <th style="min-width: 220px;">বিবরণ / বইয়ের নাম <span class="text-danger">*</span></th>
+                                    <th style="width: 140px;">লেখক</th>
+                                    <th style="width: 110px;">ধরন</th>
+                                    <th style="width: 75px;" class="text-center">পরিমাণ <span class="text-danger">*</span></th>
+                                    <th style="width: 95px;" class="text-end">গায়ের মূল্য (৳)</th>
+                                    <th style="width: 80px;" class="text-center">কমিশন (%)</th>
+                                    <th style="width: 105px;" class="text-end">একক দর (৳) <span class="text-danger">*</span></th>
+                                    <th style="width: 110px;" class="text-end">মোট টাকা (৳)</th>
+                                    <th style="width: 40px;" class="text-center"></th>
                                 </tr>
                             </thead>
                             <tbody id="itemsBody">
@@ -185,13 +188,22 @@
                                     @php
                                         $qty = (float)($item['quantity'] ?? 1);
                                         $price = (float)($item['unit_price'] ?? $item['price'] ?? 0);
+                                        $regPrice = (float)($item['regular_price'] ?? $item['cover_price'] ?? $price);
+                                        $discPct = isset($item['discount_percent']) ? (float)$item['discount_percent'] : 0;
+                                        if ($discPct == 0 && $regPrice > $price && $regPrice > 0) {
+                                            $discPct = round((($regPrice - $price) / $regPrice) * 100);
+                                        }
                                         $lineTotal = $qty * $price;
                                     @endphp
                                     <tr class="item-row" data-row="{{ $i }}">
                                         <td>
                                             <input type="text" name="items[{{ $i }}][title]" class="form-control form-control-sm item-title" 
-                                                   list="booksList" placeholder="বইয়ের নাম অথবা যেকোনো বিবরণ..." value="{{ $item['title'] ?? '' }}" required oninput="onTitleInput(this, {{ $i }})">
+                                                   list="booksList" placeholder="বইয়ের নাম টাইপ বা সিলেক্ট করুন..." value="{{ $item['title'] ?? '' }}" required oninput="onTitleInput(this, {{ $i }})">
                                             <input type="hidden" name="items[{{ $i }}][book_id]" class="item-book-id" value="{{ $item['book_id'] ?? '' }}">
+                                        </td>
+                                        <td>
+                                            <input type="text" name="items[{{ $i }}][author_name]" class="form-control form-control-sm item-author" 
+                                                   placeholder="লেখকের নাম" value="{{ $item['author_name'] ?? $item['author'] ?? '' }}">
                                         </td>
                                         <td>
                                             <select name="items[{{ $i }}][item_type]" class="form-select form-select-sm">
@@ -204,16 +216,24 @@
                                             </select>
                                         </td>
                                         <td>
-                                            <input type="number" step="0.01" name="items[{{ $i }}][quantity]" class="form-control form-control-sm item-qty text-center" 
-                                                   value="{{ $qty }}" min="0.01" required oninput="calcRow({{ $i }})">
+                                            <input type="number" step="0.01" name="items[{{ $i }}][quantity]" class="form-control form-control-sm item-qty text-center font-monospace fw-bold" 
+                                                   value="{{ $qty }}" min="0.01" required oninput="calcRow({{ $i }}, 'qty')">
                                         </td>
                                         <td>
-                                            <input type="number" step="0.01" name="items[{{ $i }}][price]" class="form-control form-control-sm item-price text-end" 
-                                                   value="{{ $price }}" min="0" required oninput="calcRow({{ $i }})">
+                                            <input type="number" step="0.01" name="items[{{ $i }}][regular_price]" class="form-control form-control-sm item-regular-price text-end font-monospace" 
+                                                   value="{{ $regPrice }}" min="0" placeholder="0.00" oninput="calcRow({{ $i }}, 'regular_price')">
                                         </td>
-                                        <td class="text-end fw-bold text-dark item-subtotal">৳{{ number_format($lineTotal, 2) }}</td>
+                                        <td>
+                                            <input type="number" step="0.01" name="items[{{ $i }}][discount_percent]" class="form-control form-control-sm item-discount-percent text-center font-monospace fw-bold text-success" 
+                                                   value="{{ $discPct }}" min="0" max="100" placeholder="0" oninput="calcRow({{ $i }}, 'discount_percent')">
+                                        </td>
+                                        <td>
+                                            <input type="number" step="0.01" name="items[{{ $i }}][price]" class="form-control form-control-sm item-price text-end font-monospace fw-bold text-primary" 
+                                                   value="{{ $price }}" min="0" required oninput="calcRow({{ $i }}, 'unit_price')">
+                                        </td>
+                                        <td class="text-end fw-bold text-dark item-subtotal font-monospace">৳{{ number_format($lineTotal, 2) }}</td>
                                         <td class="text-center">
-                                            <button type="button" class="btn btn-sm btn-outline-danger p-1 border-0" onclick="removeRow(this)">
+                                            <button type="button" class="btn btn-sm btn-outline-danger p-1 border-0" onclick="removeRow(this)" title="মুছুন">
                                                 <i class="fas fa-times"></i>
                                             </button>
                                         </td>
@@ -226,14 +246,24 @@
                     {{-- Datalist of Bookshop Books --}}
                     <datalist id="booksList">
                         @foreach($books as $b)
-                            <option value="{{ $b->title }}" data-id="{{ $b->id }}" data-price="{{ $b->price }}">
-                                (স্টক: {{ $b->stock_quantity }} | মূল্য: ৳{{ $b->price }})
+                            @php
+                                $regPrice = (float)($b->price ?: ($b->hardcover_price ?: 0));
+                                $discPrice = (float)($b->discount_price ?: ($b->hardcover_discount_price ?: $regPrice));
+                                $discPct = ($regPrice > 0 && $discPrice < $regPrice) ? round((($regPrice - $discPrice) / $regPrice) * 100) : 0;
+                            @endphp
+                            <option value="{{ $b->title }}" 
+                                    data-id="{{ $b->id }}" 
+                                    data-author="{{ $b->author_name ?? '' }}"
+                                    data-regular-price="{{ $regPrice }}" 
+                                    data-discount-percent="{{ $discPct }}"
+                                    data-selling-price="{{ $discPrice }}">
+                                {{ $b->title }} @if(!empty($b->author_name)) — {{ $b->author_name }} @endif (গায়ের মূল্য: ৳{{ $regPrice }} | ছাড়: {{ $discPct }}% | দর: ৳{{ $discPrice }})
                             </option>
                         @endforeach
                     </datalist>
 
-                    <div class="mt-2">
-                        <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3" onclick="addItemRow()">
+                    <div class="mt-2.5">
+                        <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-semibold" onclick="addItemRow()">
                             <i class="fas fa-plus me-1"></i> আরো আইটেম যোগ করুন
                         </button>
                     </div>
@@ -246,11 +276,11 @@
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label small fw-semibold text-muted">শর্তাবলী / বিশেষ নোট (ডকুমেন্টে প্রিন্ট হবে)</label>
-                            <textarea name="notes" rows="3" class="form-control rounded-3" placeholder="যেমন: বিক্রিত বই ফেরতযোগ্য নয় বা কুরিয়ারে পাঠানো হলো...">{{ old('notes', $invoice->notes) }}</textarea>
+                            <textarea name="notes" rows="3" class="form-control rounded-3">{{ old('notes', $invoice->notes) }}</textarea>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label small fw-semibold text-muted">দরপত্র / কোটেশনের প্রাতিষ্ঠানিক শর্তাবলী (Terms & Conditions)</label>
-                            <textarea name="terms_conditions" rows="3" class="form-control rounded-3" placeholder="যেমন: ১. সকল বইয়ের প্রচ্ছদ ও বাঁধাই স্ট্যান্ডার্ড হবে। ২. ভ্যাট ও ট্যাক্স সরকারি নিয়ম অনুযায়ী প্রদেয়...">{{ old('terms_conditions', $invoice->terms_conditions) }}</textarea>
+                            <textarea name="terms_conditions" rows="3" class="form-control rounded-3">{{ old('terms_conditions', $invoice->terms_conditions) }}</textarea>
                         </div>
                     </div>
                 </div>
@@ -264,68 +294,88 @@
                     <h5 class="fw-bold mb-0"><i class="fas fa-calculator me-2"></i>হিসাব ও মূল্য নির্ধারণ</h5>
                 </div>
                 <div class="card-body p-4">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <span class="text-muted">মোট উপ-যোগফল (Subtotal):</span>
-                        <span class="fw-bold fs-5 text-dark" id="displaySubtotal">৳{{ number_format((float)$invoice->subtotal, 2) }}</span>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label small fw-semibold text-muted">বিশেষ ছাড় (Discount ৳):</label>
-                        <input type="number" step="0.01" name="discount" id="discountInput" class="form-control text-end" value="{{ old('discount', (float)$invoice->discount) }}" min="0" oninput="calcTotals()">
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label small fw-semibold text-muted">ভ্যাট / ট্যাক্স / সার্ভিস চার্জ (VAT ৳):</label>
-                        <input type="number" step="0.01" name="tax" id="taxInput" class="form-control text-end" value="{{ old('tax', (float)$invoice->tax) }}" min="0" oninput="calcTotals()">
-                    </div>
-
-                    <hr>
-
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <span class="fw-bold">সর্বমোট প্রদেয় (Grand Total):</span>
-                        <span class="fw-bold fs-4 text-primary" id="displayGrandTotal">৳{{ number_format((float)$invoice->grand_total, 2) }}</span>
-                    </div>
-
-                    {{-- Payment fields: shown for invoice & challan --}}
-                    <div id="paymentFieldsSection">
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">পরিশোধের পরিমাণ (Paid ৳):</label>
-                            <div class="input-group">
-                                <input type="number" step="0.01" name="paid_amount" id="paidInput" class="form-control text-end fw-bold text-success fs-5" value="{{ old('paid_amount', (float)$invoice->paid_amount) }}" min="0" oninput="calcTotals()">
-                                <button type="button" class="btn btn-outline-success" onclick="fillFullPaid()">ফুল পেইড</button>
-                            </div>
+                    {{-- Summary Box --}}
+                    <div class="bg-light p-3 rounded-3 mb-3">
+                        <div class="d-flex justify-content-between mb-2 small text-muted">
+                            <span>মোট আইটেম মূল্য (Subtotal):</span>
+                            <strong class="text-dark font-monospace" id="displaySubtotal">৳{{ number_format($invoice->subtotal, 2) }}</strong>
                         </div>
+                        <div class="d-flex justify-content-between mb-2 small text-muted">
+                            <span>বিশেষ ছাড় / কমিশন (Discount):</span>
+                            <strong class="text-danger font-monospace" id="displayDiscount">-৳{{ number_format($invoice->discount ?? 0, 2) }}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2 small text-muted">
+                            <span>ভ্যাট / ট্যাক্স (Tax / VAT):</span>
+                            <strong class="text-info font-monospace" id="displayTax">+৳{{ number_format($invoice->tax ?? 0, 2) }}</strong>
+                        </div>
+                        <hr class="my-2">
+                        <div class="d-flex justify-content-between fs-5 fw-bold text-dark">
+                            <span>সর্বমোট প্রস্তাবিত বিল:</span>
+                            <span class="text-success font-monospace" id="displayGrandTotal">৳{{ number_format($invoice->grand_total, 2) }}</span>
+                        </div>
+                    </div>
 
+                    {{-- Discount & Tax Inputs --}}
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold text-muted">বিশেষ ছাড় (৳)</label>
+                            <input type="number" step="0.01" name="discount" id="discountInput" class="form-control form-control-sm font-monospace text-end" value="{{ old('discount', $invoice->discount ?? 0) }}" min="0" oninput="calcTotals()">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold text-muted">ট্যাক্স / ভ্যাট (৳)</label>
+                            <input type="number" step="0.01" name="tax" id="taxInput" class="form-control form-control-sm font-monospace text-end" value="{{ old('tax', $invoice->tax ?? 0) }}" min="0" oninput="calcTotals()">
+                        </div>
+                    </div>
+
+                    {{-- Payment Fields (Hidden for Quotation / Tender) --}}
+                    <div id="paymentFieldsSection">
+                        <hr class="my-3">
+                        <h6 class="fw-bold text-dark mb-3"><i class="fas fa-money-bill-wave me-2 text-primary"></i>পেমেন্ট ও পরিশোধ</h6>
+                        
                         <div class="mb-3">
-                            <label class="form-label small fw-semibold text-muted">পেমেন্ট মাধ্যম:</label>
-                            <select name="payment_method" class="form-select">
-                                <option value="ক্যাশ / নগদ (Cash)" @selected($invoice->payment_method === 'ক্যাশ / নগদ (Cash)' || $invoice->payment_method === 'cash')>ক্যাশ / নগদ (Cash)</option>
-                                <option value="ব্যাংক একাউন্ট (Bank)" @selected($invoice->payment_method === 'ব্যাংক একাউন্ট (Bank)' || $invoice->payment_method === 'bank')>ব্যাংক একাউন্ট (Bank Transfer)</option>
-                                <option value="বিকাশ (bKash)" @selected($invoice->payment_method === 'বিকাশ (bKash)' || $invoice->payment_method === 'bkash')>বিকাশ (bKash)</option>
-                                <option value="নগদ (Nagad)" @selected($invoice->payment_method === 'নগদ (Nagad)' || $invoice->payment_method === 'nagad')>নগদ (Nagad)</option>
-                                <option value="চেক (Cheque)" @selected($invoice->payment_method === 'চেক (Cheque)' || $invoice->payment_method === 'cheque')>চেক (Cheque)</option>
+                            <label class="form-label small fw-semibold text-muted">পেমেন্ট মাধ্যম <span class="text-danger">*</span></label>
+                            <select name="payment_method" class="form-select form-select-sm">
+                                <option value="ক্যাশ (Cash)" @selected($invoice->payment_method === 'ক্যাশ (Cash)' || $invoice->payment_method === 'ক্যাশ / নগদ (Cash)')>ক্যাশ (Cash)</option>
+                                <option value="ব্যাংক ট্রান্সফার (Bank)" @selected(str_contains($invoice->payment_method ?? '', 'ব্যাংক'))>ব্যাংক ট্রান্সফার (Bank)</option>
+                                <option value="বিকাশ (bKash)" @selected(str_contains($invoice->payment_method ?? '', 'বিকাশ'))>বিকাশ (bKash)</option>
+                                <option value="নগদ (Nagad)" @selected(str_contains($invoice->payment_method ?? '', 'নগদ'))>নগদ (Nagad)</option>
+                                <option value="রকেট (Rocket)" @selected(str_contains($invoice->payment_method ?? '', 'রকেট'))>রকেট (Rocket)</option>
+                                <option value="চেক (Cheque)" @selected(str_contains($invoice->payment_method ?? '', 'চেক'))>চেক (Cheque)</option>
+                                <option value="ক্যাশ অন ডেলিভারি (COD)" @selected(str_contains($invoice->payment_method ?? '', 'ক্যাশ অন ডেলিভারি'))>ক্যাশ অন ডেলিভারি (COD)</option>
+                                <option value="অন্যান্য" @selected($invoice->payment_method === 'অন্যান্য')>অন্যান্য</option>
                             </select>
                         </div>
 
-                        <div class="alert alert-danger p-3 rounded-3 mb-4 d-flex justify-content-between align-items-center" id="dueAlert">
-                            <span class="fw-semibold">বকেয়া (Due):</span>
-                            <span class="fw-bold fs-5 text-danger" id="displayDue">৳{{ number_format((float)$invoice->due_amount, 2) }}</span>
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <label class="form-label small fw-semibold text-muted mb-0">পরিশোধিত টাকা (৳)</label>
+                                <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none small" onclick="fillFullPaid()">
+                                    সম্পূর্ণ পেইড
+                                </button>
+                            </div>
+                            <input type="number" step="0.01" name="paid_amount" id="paidInput" class="form-control form-control-sm font-monospace text-end fw-bold" value="{{ old('paid_amount', $invoice->paid_amount ?? 0) }}" min="0" oninput="calcTotals()">
+                        </div>
+
+                        <div class="p-2.5 rounded-3 bg-danger-subtle border border-danger-subtle d-flex justify-content-between align-items-center mb-3">
+                            <span class="small fw-semibold text-danger">অবশিষ্ট বকেয়া (Due):</span>
+                            <strong class="font-monospace text-danger fs-6" id="displayDue">৳{{ number_format($invoice->due_amount ?? 0, 2) }}</strong>
                         </div>
                     </div>
 
-                    {{-- Quotation Notice --}}
-                    <div id="quotationNoticeSection" class="alert alert-warning p-3 rounded-3 mb-4 d-none">
-                        <div class="d-flex align-items-center gap-2 mb-1 fw-bold text-dark">
-                            <i class="fas fa-info-circle text-warning"></i> কোটেশন / দরপত্র মোড
-                        </div>
-                        <div class="small text-muted">
-                            এটি একটি প্রস্তাবনামূলক দরপত্র। কোটেশন বা দরপত্র পাস/অনুমোদিত হলে পরবর্তীতে সরাসরি এক ক্লিকে মূল বিলে রূপান্তর করা যাবে।
-                        </div>
+                    {{-- Notice for Quotation / Tender --}}
+                    <div id="quotationNoticeSection" class="d-none alert alert-info py-2.5 px-3 rounded-3 small mb-3 border-0">
+                        <i class="fas fa-info-circle me-1.5 text-primary"></i> 
+                        <strong>দরপত্র / কোটেশন মোড:</strong> এই ডকুমেন্ট তৈরির সময় কোনো প্রাথমিক পেমেন্ট বা আয়-ব্যয়ের খতিয়ান আপডেট হবে না।
                     </div>
 
+                    {{-- Submit Button --}}
                     <button type="submit" id="submitBtn" class="btn btn-primary w-100 py-3 rounded-pill fw-bold shadow-sm">
                         <i class="fas fa-save me-1.5"></i> পরিবর্তন সংরক্ষণ করুন
                     </button>
+                    
+                    <a href="{{ route('admin.accounting.invoices.show', $invoice) }}" class="btn btn-outline-secondary w-100 rounded-pill mt-2 py-2 small">
+                        বাতিল করুন
+                    </a>
                 </div>
             </div>
         </div>
@@ -337,9 +387,13 @@
 
     const existingBooksMap = {};
     document.querySelectorAll('#booksList option').forEach(opt => {
-        existingBooksMap[opt.value.trim().toLowerCase()] = {
+        const key = opt.value.trim().toLowerCase();
+        existingBooksMap[key] = {
             id: opt.getAttribute('data-id'),
-            price: opt.getAttribute('data-price')
+            author: opt.getAttribute('data-author') || '',
+            regularPrice: parseFloat(opt.getAttribute('data-regular-price')) || 0,
+            discountPercent: parseFloat(opt.getAttribute('data-discount-percent')) || 0,
+            sellingPrice: parseFloat(opt.getAttribute('data-selling-price')) || 0
         };
     });
 
@@ -397,29 +451,80 @@
         if (!row) return;
 
         const hiddenId = row.querySelector('.item-book-id');
+        const authorInput = row.querySelector('.item-author');
+        const regPriceInput = row.querySelector('.item-regular-price');
+        const discPctInput = row.querySelector('.item-discount-percent');
         const priceInput = row.querySelector('.item-price');
 
         if (existingBooksMap[val]) {
             const b = existingBooksMap[val];
-            hiddenId.value = b.id;
-            if (b.price && (!priceInput.value || priceInput.value == '0')) {
-                priceInput.value = b.price;
-                calcRow(index);
+            hiddenId.value = b.id || '';
+            if (authorInput && b.author) {
+                authorInput.value = b.author;
             }
+            if (regPriceInput && b.regularPrice > 0) {
+                regPriceInput.value = b.regularPrice;
+            }
+            if (discPctInput && b.discountPercent >= 0) {
+                discPctInput.value = b.discountPercent;
+            }
+            if (priceInput) {
+                priceInput.value = b.sellingPrice > 0 ? b.sellingPrice : (b.regularPrice > 0 ? b.regularPrice : 0);
+            }
+            calcRow(index, 'book_select');
         } else {
             hiddenId.value = '';
         }
     }
 
-    function calcRow(index) {
+    function calcRow(index, source) {
         const row = document.querySelector(`tr[data-row="${index}"]`);
         if (!row) return;
 
-        const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
-        const price = parseFloat(row.querySelector('.item-price').value) || 0;
-        const subtotal = qty * price;
+        const qtyInput = row.querySelector('.item-qty');
+        const regPriceInput = row.querySelector('.item-regular-price');
+        const discPctInput = row.querySelector('.item-discount-percent');
+        const priceInput = row.querySelector('.item-price');
+        const subtotalCell = row.querySelector('.item-subtotal');
 
-        row.querySelector('.item-subtotal').textContent = '৳' + subtotal.toFixed(2);
+        const qty = parseFloat(qtyInput?.value) || 0;
+        const regPrice = parseFloat(regPriceInput?.value) || 0;
+        let discPct = parseFloat(discPctInput?.value) || 0;
+        let unitPrice = parseFloat(priceInput?.value) || 0;
+
+        if (source === 'regular_price' || source === 'discount_percent') {
+            if (regPrice > 0) {
+                if (discPct > 0 && discPct <= 100) {
+                    unitPrice = Math.round(regPrice * (1 - (discPct / 100)) * 100) / 100;
+                } else {
+                    unitPrice = regPrice;
+                }
+                if (priceInput) priceInput.value = unitPrice;
+            }
+        } else if (source === 'unit_price') {
+            if (regPrice > 0 && unitPrice > 0 && unitPrice < regPrice) {
+                discPct = Math.round(((regPrice - unitPrice) / regPrice) * 100);
+                if (discPctInput) discPctInput.value = discPct;
+            } else if (unitPrice >= regPrice && regPrice > 0) {
+                if (discPctInput) discPctInput.value = 0;
+            }
+        } else if (source === 'book_select') {
+            // Price already set
+        } else {
+            // General sync
+            if (regPrice > 0 && unitPrice === 0 && discPct > 0) {
+                unitPrice = Math.round(regPrice * (1 - (discPct / 100)) * 100) / 100;
+                if (priceInput) priceInput.value = unitPrice;
+            } else if (unitPrice === 0 && regPrice > 0) {
+                unitPrice = regPrice;
+                if (priceInput) priceInput.value = unitPrice;
+            }
+        }
+
+        const subtotal = qty * unitPrice;
+        if (subtotalCell) {
+            subtotalCell.textContent = '৳' + subtotal.toFixed(2);
+        }
         calcTotals();
     }
 
@@ -436,6 +541,8 @@
         const grandTotal = Math.max(0, subtotal - discount + tax);
 
         document.getElementById('displaySubtotal').textContent = '৳' + subtotal.toFixed(2);
+        document.getElementById('displayDiscount').textContent = '-৳' + discount.toFixed(2);
+        document.getElementById('displayTax').textContent = '+৳' + tax.toFixed(2);
         document.getElementById('displayGrandTotal').textContent = '৳' + grandTotal.toFixed(2);
 
         const paid = parseFloat(document.getElementById('paidInput').value) || 0;
@@ -468,8 +575,12 @@
         tr.innerHTML = `
             <td>
                 <input type="text" name="items[${i}][title]" class="form-control form-control-sm item-title" 
-                       list="booksList" placeholder="বইয়ের নাম অথবা যেকোনো বিবরণ..." required oninput="onTitleInput(this, ${i})">
+                       list="booksList" placeholder="বইয়ের নাম টাইপ বা সিলেক্ট করুন..." required oninput="onTitleInput(this, ${i})">
                 <input type="hidden" name="items[${i}][book_id]" class="item-book-id" value="">
+            </td>
+            <td>
+                <input type="text" name="items[${i}][author_name]" class="form-control form-control-sm item-author" 
+                       placeholder="লেখকের নাম">
             </td>
             <td>
                 <select name="items[${i}][item_type]" class="form-select form-select-sm">

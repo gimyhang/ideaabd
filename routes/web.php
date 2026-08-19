@@ -87,15 +87,15 @@ Route::get('/invoices/view/{token}', [\App\Http\Controllers\Admin\IdeaAccounting
 // হোমপেজ
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
-// Shop Routes
-Route::prefix('shop')->name('shop.')->group(function () {
-    Route::get('/', [BookController::class, 'index'])->name('index');
-    Route::get('/{slug}', [BookController::class, 'show'])->name('show');
-    Route::get('/{slug}/preview', [BookController::class, 'preview'])->name('preview');
-    Route::get('/{id}/quick-view', [BookController::class, 'quickView'])->name('quick-view');
+// Shop Routes (Redirect 301 permanently to /books to prevent duplicate URL canonical issues in Search Console)
+Route::prefix('shop')->group(function () {
+    Route::get('/', fn() => redirect('/books', 301))->name('shop.index');
+    Route::get('/{slug}', fn($slug) => redirect('/books/' . $slug, 301))->name('shop.show');
+    Route::get('/{slug}/preview', fn($slug) => redirect('/books/' . $slug . '/preview', 301))->name('shop.preview');
+    Route::get('/{id}/quick-view', [BookController::class, 'quickView'])->name('shop.quick-view');
 });
 
-// Books Routes
+// Books Routes (Canonical Primary Shop)
 Route::prefix('books')->name('book.')->group(function () {
     Route::get('/', [BookController::class, 'index'])->name('index');
     Route::get('/{slug}', [BookController::class, 'show'])->name('show');

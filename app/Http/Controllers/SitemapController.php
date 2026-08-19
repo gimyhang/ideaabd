@@ -153,6 +153,40 @@ class SitemapController extends Controller
             } catch (\Throwable $e) {}
         }
 
+        // E-books
+        if (\Illuminate\Support\Facades\Schema::hasTable('ebooks')) {
+            try {
+                $ebooks = \Modules\Ebook\Models\Ebook::where('is_active', true)->latest('id')->take(500)->get();
+                foreach ($ebooks as $eb) {
+                    $lastMod = $eb->updated_at ? $eb->updated_at->format('Y-m-d') : $now;
+                    $slug = $eb->slug ?: $eb->id;
+                    $xml .= "  <url>\n";
+                    $xml .= "    <loc>" . htmlspecialchars($baseUrl . '/ebooks/' . $slug) . "</loc>\n";
+                    $xml .= "    <lastmod>{$lastMod}</lastmod>\n";
+                    $xml .= "    <changefreq>weekly</changefreq>\n";
+                    $xml .= "    <priority>0.8</priority>\n";
+                    $xml .= "  </url>\n";
+                }
+            } catch (\Throwable $e) {}
+        }
+
+        // Webzines
+        if (\Illuminate\Support\Facades\Schema::hasTable('webzines')) {
+            try {
+                $webzines = \Modules\Webzine\Models\Webzine::where('is_active', true)->latest('id')->take(500)->get();
+                foreach ($webzines as $wz) {
+                    $lastMod = $wz->updated_at ? $wz->updated_at->format('Y-m-d') : $now;
+                    $slug = $wz->slug ?: $wz->id;
+                    $xml .= "  <url>\n";
+                    $xml .= "    <loc>" . htmlspecialchars($baseUrl . '/webzines/' . $slug) . "</loc>\n";
+                    $xml .= "    <lastmod>{$lastMod}</lastmod>\n";
+                    $xml .= "    <changefreq>monthly</changefreq>\n";
+                    $xml .= "    <priority>0.75</priority>\n";
+                    $xml .= "  </url>\n";
+                }
+            } catch (\Throwable $e) {}
+        }
+
         $xml .= '</urlset>';
         return $xml;
     }

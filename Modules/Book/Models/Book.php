@@ -264,4 +264,41 @@ class Book extends Model
         }
         return (float) ($this->hardcover_price ?? $this->effective_paperback_price);
     }
+
+    /**
+     * Active/Selected binding Regular Price (MRP)
+     */
+    public function getActiveRegularPriceAttribute(): float
+    {
+        if ($this->cover_type === 'hardcover') {
+            return (float) ($this->hardcover_price ?: ($this->price ?: 0));
+        }
+        return (float) ($this->price ?: ($this->hardcover_price ?: 0));
+    }
+
+    /**
+     * Active/Selected binding Selling Price (with discount applied if present)
+     */
+    public function getActiveSellingPriceAttribute(): float
+    {
+        if ($this->cover_type === 'hardcover') {
+            $reg = (float) ($this->hardcover_price ?: $this->price);
+            $disc = (float) ($this->hardcover_discount_price ?: $this->discount_price);
+            return ($disc > 0 && $disc < $reg) ? $disc : $reg;
+        }
+        $reg = (float) ($this->price ?: $this->hardcover_price);
+        $disc = (float) ($this->discount_price ?: $this->hardcover_discount_price);
+        return ($disc > 0 && $disc < $reg) ? $disc : $reg;
+    }
+
+    /**
+     * Active/Selected binding Discount Price
+     */
+    public function getActiveDiscountPriceAttribute(): ?float
+    {
+        if ($this->cover_type === 'hardcover') {
+            return $this->hardcover_discount_price ? (float)$this->hardcover_discount_price : ($this->discount_price ? (float)$this->discount_price : null);
+        }
+        return $this->discount_price ? (float)$this->discount_price : ($this->hardcover_discount_price ? (float)$this->hardcover_discount_price : null);
+    }
 }

@@ -25,10 +25,17 @@
     $authorName = $firstAuthor ? $firstAuthor->name : ($book->author_name ?: 'আইডিয়া প্রকাশন');
     $authorUrl = $firstAuthor ? route('authors.show', $firstAuthor->slug ?? $firstAuthor->id) : null;
     
-    $cardRegularPrice = ($book->price > 0) ? (float)$book->price : (float)($book->hardcover_price ?? 0);
-    $cardDiscPrice = ($book->discount_price > 0 && $book->discount_price < $book->price) 
-        ? (float)$book->discount_price 
-        : (($book->hardcover_discount_price > 0 && $book->hardcover_discount_price < $book->hardcover_price) ? (float)$book->hardcover_discount_price : null);
+    if (($book->cover_type ?? '') === 'hardcover') {
+        $cardRegularPrice = (float)($book->hardcover_price ?: ($book->price ?: 0));
+        $cardDiscPrice = ($book->hardcover_discount_price > 0 && $book->hardcover_discount_price < $cardRegularPrice) 
+            ? (float)$book->hardcover_discount_price 
+            : (($book->discount_price > 0 && $book->discount_price < $cardRegularPrice) ? (float)$book->discount_price : null);
+    } else {
+        $cardRegularPrice = (float)($book->price ?: ($book->hardcover_price ?: 0));
+        $cardDiscPrice = ($book->discount_price > 0 && $book->discount_price < $cardRegularPrice) 
+            ? (float)$book->discount_price 
+            : (($book->hardcover_discount_price > 0 && $book->hardcover_discount_price < $cardRegularPrice) ? (float)$book->hardcover_discount_price : null);
+    }
 
     $discountPercentage = ($cardRegularPrice > 0 && $cardDiscPrice && $cardDiscPrice < $cardRegularPrice)
         ? round((($cardRegularPrice - $cardDiscPrice) / $cardRegularPrice) * 100)

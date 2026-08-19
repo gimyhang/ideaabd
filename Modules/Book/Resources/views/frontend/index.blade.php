@@ -280,9 +280,14 @@
                     <p class="small text-light opacity-75 mb-2" style="font-size: 0.78rem;">
                         যেকোনো বই সরাসরি ফোনে বা হোয়াটসঅ্যাপে অর্ডার করতে যোগাযোগ করুন।
                     </p>
-                    <a href="tel:01700000000" class="btn btn-sm btn-outline-light rounded-pill w-100 fw-bold d-flex align-items-center justify-content-center gap-1.5" style="font-size: 0.78rem;">
-                        <i class="fa-solid fa-phone"></i> 01700-000000
-                    </a>
+                    <div class="d-grid gap-1.5">
+                        <a href="tel:+8801726976982" class="btn btn-sm btn-outline-light rounded-pill w-100 fw-bold d-flex align-items-center justify-content-center gap-1.5" style="font-size: 0.78rem;">
+                            <i class="fa-solid fa-phone"></i> ০১৭২৬-৯৭৬৯৮২
+                        </a>
+                        <a href="https://wa.me/8801726976982" target="_blank" rel="noopener" class="btn btn-sm btn-success rounded-pill w-100 fw-bold d-flex align-items-center justify-content-center gap-1.5" style="font-size: 0.78rem;">
+                            <i class="fa-brands fa-whatsapp"></i> হোয়াটসঅ্যাপ
+                        </a>
+                    </div>
                 </div>
 
             </form>

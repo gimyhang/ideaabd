@@ -20,8 +20,14 @@
                     <p class="mt-1">ideapbd@gmail.com</p>
                 </div>
                 <div class="rounded-2xl bg-slate-50 p-4">
-                    <p class="font-semibold text-slate-900">📞 হেল্পলাইন</p>
-                    <p class="mt-1">+8801726976982</p>
+                    <p class="font-semibold text-slate-900">📞 হেল্পলাইন ও ফোন</p>
+                    <p class="mt-1"><a href="tel:+8801726976982" class="text-primary text-decoration-none font-semibold">+8801726976982</a></p>
+                </div>
+                <div class="rounded-2xl bg-emerald-50 border border-emerald-200 p-4">
+                    <p class="font-semibold text-emerald-900"><i class="fa-brands fa-whatsapp text-emerald-600 me-1"></i> হোয়াটসঅ্যাপ (WhatsApp)</p>
+                    <p class="mt-1">
+                        <a href="https://wa.me/8801726976982" target="_blank" class="text-emerald-700 font-semibold hover:underline">+8801726976982</a>
+                    </p>
                 </div>
             </div>
         </div>

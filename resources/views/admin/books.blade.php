@@ -153,8 +153,20 @@
                                 ? (str_starts_with($cover, 'http') ? $cover : (str_starts_with($cover, 'storage/') ? asset($cover) : asset('storage/' . ltrim($cover, '/'))))
                                 : 'https://placehold.co/100x150/e2e8f0/475569?text=Cover';
                             
-                            $price = (float) $book->price;
-                            $discount = (float) ($book->discount_price ?? 0);
+                            $isHardcover = ($book->cover_type === 'hardcover');
+                            $isBoth = ($book->cover_type === 'both');
+
+                            if ($isHardcover) {
+                                $price = (float) ($book->hardcover_price ?: $book->price);
+                                $discount = (float) ($book->hardcover_discount_price ?: $book->discount_price);
+                            } elseif ($isBoth) {
+                                $price = (float) ($book->hardcover_price ?: $book->price);
+                                $discount = (float) ($book->hardcover_discount_price ?: $book->discount_price);
+                            } else {
+                                $price = (float) ($book->price ?: $book->hardcover_price);
+                                $discount = (float) ($book->discount_price ?: $book->hardcover_discount_price);
+                            }
+
                             $hasDiscount = $discount > 0 && $discount < $price;
                             $discountPercent = $hasDiscount ? round((($price - $discount) / $price) * 100) : 0;
                             $stock = (int) ($book->stock_quantity ?? 0);
@@ -221,14 +233,35 @@
 
                             {{-- Price & Discount --}}
                             <td class="text-end">
-                                @if($hasDiscount)
-                                    <div class="fw-bold text-primary fs-6">৳@bn(number_format($discount, 0))</div>
+                                @if($isBoth && $book->hardcover_price > 0 && $book->price > 0)
+                                    <div>
+                                        <span class="badge bg-warning-subtle text-dark border px-1 py-0.5" style="font-size: 9.5px;">হার্ডকভার</span>
+                                        <span class="fw-bold text-primary font-monospace">৳@bn(number_format(($book->hardcover_discount_price > 0 && $book->hardcover_discount_price < $book->hardcover_price ? $book->hardcover_discount_price : $book->hardcover_price), 0))</span>
+                                    </div>
+                                    <div class="mt-0.5">
+                                        <span class="badge bg-light text-muted border px-1 py-0.5" style="font-size: 9.5px;">পেপারব্যাক</span>
+                                        <span class="fw-bold text-dark font-monospace">৳@bn(number_format(($book->discount_price > 0 && $book->discount_price < $book->price ? $book->discount_price : $book->price), 0))</span>
+                                    </div>
+                                @elseif($hasDiscount)
+                                    <div class="fw-bold text-primary fs-6 font-monospace">৳@bn(number_format($discount, 0))</div>
                                     <div class="d-flex align-items-center justify-content-end gap-1 small">
-                                        <span class="text-muted text-decoration-line-through">৳@bn(number_format($price, 0))</span>
+                                        <span class="text-muted text-decoration-line-through font-monospace">৳@bn(number_format($price, 0))</span>
                                         <span class="badge bg-danger-subtle text-danger rounded-pill" style="font-size: 10px;">-{{ $discountPercent }}%</span>
                                     </div>
+                                    @if($isHardcover)
+                                        <span class="badge bg-warning-subtle text-dark border mt-0.5" style="font-size: 9.5px;">হার্ডকভার</span>
+                                    @elseif($book->cover_type === 'paperback')
+                                        <span class="badge bg-light text-muted border mt-0.5" style="font-size: 9.5px;">পেপারব্যাক</span>
+                                    @endif
+                                @elseif($price > 0)
+                                    <div class="fw-bold text-dark fs-6 font-monospace">৳@bn(number_format($price, 0))</div>
+                                    @if($isHardcover)
+                                        <span class="badge bg-warning-subtle text-dark border mt-0.5" style="font-size: 9.5px;">হার্ডকভার</span>
+                                    @elseif($book->cover_type === 'paperback')
+                                        <span class="badge bg-light text-muted border mt-0.5" style="font-size: 9.5px;">পেপারব্যাক</span>
+                                    @endif
                                 @else
-                                    <div class="fw-bold text-dark fs-6">৳@bn(number_format($price, 0))</div>
+                                    <span class="text-muted small">৳০</span>
                                 @endif
                             </td>
 

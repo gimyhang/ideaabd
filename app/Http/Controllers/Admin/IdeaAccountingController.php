@@ -175,7 +175,10 @@ class IdeaAccountingController extends Controller
      */
     public function createInvoice(Request $request): View
     {
-        $books = Book::where('is_active', true)->select('id', 'title', 'price', 'stock_quantity', 'author_name')->orderBy('title')->get();
+        $books = Book::where('is_active', true)
+            ->select('id', 'title', 'author_name', 'price', 'discount_price', 'hardcover_price', 'hardcover_discount_price', 'stock_quantity')
+            ->orderBy('title')
+            ->get();
         
         $selectedType = $request->query('type', 'invoice');
         if (!in_array($selectedType, ['invoice', 'challan', 'quotation', 'tender'])) {
@@ -221,11 +224,14 @@ class IdeaAccountingController extends Controller
             'notes'                => 'nullable|string|max:1000',
             'terms_conditions'     => 'nullable|string|max:2000',
             'items'                => 'required|array|min:1',
-            'items.*.title'        => 'required|string|max:255',
-            'items.*.item_type'    => 'nullable|string|max:50',
-            'items.*.book_id'      => 'nullable|integer',
-            'items.*.quantity'     => 'required|numeric|min:0.01',
-            'items.*.price'        => 'required|numeric|min:0',
+            'items.*.title'            => 'required|string|max:255',
+            'items.*.author_name'      => 'nullable|string|max:255',
+            'items.*.item_type'        => 'nullable|string|max:50',
+            'items.*.book_id'          => 'nullable|integer',
+            'items.*.quantity'         => 'required|numeric|min:0.01',
+            'items.*.regular_price'    => 'nullable|numeric|min:0',
+            'items.*.discount_percent' => 'nullable|numeric|min:0|max:100',
+            'items.*.price'            => 'required|numeric|min:0',
         ], [
             'customer_name.required' => 'গ্রাহক বা প্রতিনিধির নাম লিখুন।',
             'items.required'         => 'কমপক্ষে একটি আইটেম বা বিবরণ যোগ করুন।',
@@ -239,16 +245,30 @@ class IdeaAccountingController extends Controller
                 foreach ($validated['items'] as $item) {
                     $qty = (float) $item['quantity'];
                     $price = (float) $item['price'];
+                    $regularPrice = isset($item['regular_price']) && is_numeric($item['regular_price']) && (float)$item['regular_price'] > 0 
+                        ? (float)$item['regular_price'] 
+                        : $price;
+                    $discPct = isset($item['discount_percent']) && is_numeric($item['discount_percent']) 
+                        ? (float)$item['discount_percent'] 
+                        : 0.0;
+
+                    if ($discPct == 0 && $regularPrice > $price && $regularPrice > 0) {
+                        $discPct = round((($regularPrice - $price) / $regularPrice) * 100, 2);
+                    }
+
                     $lineTotal = $qty * $price;
                     $subtotal += $lineTotal;
 
                     $itemsProcessed[] = [
-                        'title'      => $item['title'],
-                        'item_type'  => $item['item_type'] ?? 'product',
-                        'book_id'    => !empty($item['book_id']) ? (int)$item['book_id'] : null,
-                        'quantity'   => $qty,
-                        'unit_price' => $price,
-                        'subtotal'   => $lineTotal,
+                        'title'            => $item['title'],
+                        'author_name'      => !empty($item['author_name']) ? trim((string)$item['author_name']) : null,
+                        'item_type'        => $item['item_type'] ?? 'বই (Book)',
+                        'book_id'          => !empty($item['book_id']) ? (int)$item['book_id'] : null,
+                        'quantity'         => $qty,
+                        'regular_price'    => $regularPrice,
+                        'discount_percent' => $discPct,
+                        'unit_price'       => $price,
+                        'subtotal'         => $lineTotal,
                     ];
                 }
 
@@ -338,7 +358,10 @@ class IdeaAccountingController extends Controller
      */
     public function editInvoice(IdeaInvoice $invoice): View
     {
-        $books = Book::where('is_active', true)->select('id', 'title', 'price', 'stock_quantity', 'author_name')->orderBy('title')->get();
+        $books = Book::where('is_active', true)
+            ->select('id', 'title', 'author_name', 'price', 'discount_price', 'hardcover_price', 'hardcover_discount_price', 'stock_quantity')
+            ->orderBy('title')
+            ->get();
         return view('admin.accounting.invoices.edit', compact('invoice', 'books'));
     }
 
@@ -367,11 +390,14 @@ class IdeaAccountingController extends Controller
             'notes'                => 'nullable|string|max:1000',
             'terms_conditions'     => 'nullable|string|max:2000',
             'items'                => 'required|array|min:1',
-            'items.*.title'        => 'required|string|max:255',
-            'items.*.item_type'    => 'nullable|string|max:50',
-            'items.*.book_id'      => 'nullable|integer',
-            'items.*.quantity'     => 'required|numeric|min:0.01',
-            'items.*.price'        => 'required|numeric|min:0',
+            'items.*.title'            => 'required|string|max:255',
+            'items.*.author_name'      => 'nullable|string|max:255',
+            'items.*.item_type'        => 'nullable|string|max:50',
+            'items.*.book_id'          => 'nullable|integer',
+            'items.*.quantity'         => 'required|numeric|min:0.01',
+            'items.*.regular_price'    => 'nullable|numeric|min:0',
+            'items.*.discount_percent' => 'nullable|numeric|min:0|max:100',
+            'items.*.price'            => 'required|numeric|min:0',
         ], [
             'customer_name.required' => 'গ্রাহক বা প্রতিনিধির নাম লিখুন।',
             'items.required'         => 'কমপক্ষে একটি আইটেম বা বিবরণ যোগ করুন।',
@@ -385,16 +411,30 @@ class IdeaAccountingController extends Controller
                 foreach ($validated['items'] as $item) {
                     $qty = (float) $item['quantity'];
                     $price = (float) $item['price'];
+                    $regularPrice = isset($item['regular_price']) && is_numeric($item['regular_price']) && (float)$item['regular_price'] > 0 
+                        ? (float)$item['regular_price'] 
+                        : $price;
+                    $discPct = isset($item['discount_percent']) && is_numeric($item['discount_percent']) 
+                        ? (float)$item['discount_percent'] 
+                        : 0.0;
+
+                    if ($discPct == 0 && $regularPrice > $price && $regularPrice > 0) {
+                        $discPct = round((($regularPrice - $price) / $regularPrice) * 100, 2);
+                    }
+
                     $lineTotal = $qty * $price;
                     $subtotal += $lineTotal;
 
                     $itemsProcessed[] = [
-                        'title'      => $item['title'],
-                        'item_type'  => $item['item_type'] ?? 'product',
-                        'book_id'    => !empty($item['book_id']) ? (int)$item['book_id'] : null,
-                        'quantity'   => $qty,
-                        'unit_price' => $price,
-                        'subtotal'   => $lineTotal,
+                        'title'            => $item['title'],
+                        'author_name'      => !empty($item['author_name']) ? trim((string)$item['author_name']) : null,
+                        'item_type'        => $item['item_type'] ?? 'বই (Book)',
+                        'book_id'          => !empty($item['book_id']) ? (int)$item['book_id'] : null,
+                        'quantity'         => $qty,
+                        'regular_price'    => $regularPrice,
+                        'discount_percent' => $discPct,
+                        'unit_price'       => $price,
+                        'subtotal'         => $lineTotal,
                     ];
                 }
 
@@ -659,6 +699,8 @@ class IdeaAccountingController extends Controller
         ]);
 
         try {
+            IdeaInvoice::ensureColumnsExist();
+
             $invoice->customer_email = $validated['email'];
             if (empty($invoice->access_token)) {
                 $invoice->access_token = Str::random(32);

@@ -54,6 +54,8 @@ class AppServiceProvider extends ServiceProvider
                         \Illuminate\Support\Facades\DB::statement('ALTER TABLE `blog_posts` ADD COLUMN `subtitle` VARCHAR(500) NULL AFTER `title`');
                     }
                 }
+
+                \App\Models\IdeaInvoice::ensureColumnsExist();
             } catch (\Throwable $e) {
                 // Ignore gracefully if schema modifications are restricted
             }

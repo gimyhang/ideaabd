@@ -590,9 +590,14 @@
                         <p class="small opacity-90 mb-3">
                             লেখা জমাদানে কোনো কারিগরি অসুবিধা হলে অথবা রিভিউ সংক্রান্ত তথ্যের জন্য সরাসরি আমাদের সম্পাদকীয় দলের সাথে যোগাযোগ করুন।
                         </p>
-                        <a href="tel:01700000000" class="btn btn-warning text-dark btn-sm rounded-pill fw-bold px-3">
-                            <i class="fas fa-phone me-1"></i> সম্পাদকীয় হেল্পলাইন
-                        </a>
+                        <div class="d-flex flex-wrap gap-2">
+                            <a href="tel:+8801726976982" class="btn btn-warning text-dark btn-sm rounded-pill fw-bold px-3">
+                                <i class="fas fa-phone me-1"></i> সম্পাদকীয় হেল্পলাইন
+                            </a>
+                            <a href="https://wa.me/8801726976982" target="_blank" class="btn btn-success btn-sm rounded-pill fw-bold px-3">
+                                <i class="fab fa-whatsapp me-1"></i> হোয়াটসঅ্যাপ
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>

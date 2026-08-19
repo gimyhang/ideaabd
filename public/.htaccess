@@ -5,6 +5,15 @@
 
     RewriteEngine On
 
+    # 1. Force HTTPS for ideaabd.com
+    RewriteCond %{HTTPS} off
+    RewriteCond %{HTTP_HOST} ^(www\.)?ideaabd\.com$ [NC]
+    RewriteRule ^(.*)$ https://www.ideaabd.com/$1 [L,R=301]
+
+    # 2. Force www.ideaabd.com (Redirect non-www to www canonical)
+    RewriteCond %{HTTP_HOST} ^ideaabd\.com$ [NC]
+    RewriteRule ^(.*)$ https://www.ideaabd.com/$1 [L,R=301]
+
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]

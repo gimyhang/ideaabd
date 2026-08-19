@@ -89,6 +89,10 @@
                     @php $current = $val($name); @endphp
 
                     @if ($spec['key'] === 'books')
+                        @if (in_array($name, ['hardcover_price', 'hardcover_discount_price', 'price', 'discount_price', 'cost_price'], true))
+                            @continue
+                        @endif
+
                         @if ($name === 'title')
                             <div class="col-12 mt-1 mb-1">
                                 <div class="d-flex align-items-center gap-2 pb-1.5 border-bottom text-dark fw-bold" style="font-size: 0.95rem;">
@@ -98,7 +102,7 @@
                         @elseif ($name === 'cover_type')
                             <div class="col-12 mt-3 mb-1">
                                 <div class="d-flex align-items-center gap-2 pb-1.5 border-bottom text-dark fw-bold" style="font-size: 0.95rem;">
-                                    <span class="p-1.5 bg-success-subtle text-success rounded-circle small"><i class="fas fa-gem"></i></span> ২. বাঁধাই, হার্ডকভার (প্রধান) ও মূল্য নির্ধারণ
+                                    <span class="p-1.5 bg-success-subtle text-success rounded-circle small"><i class="fas fa-calculator"></i></span> ২. বাঁধাই, সংস্করণ, মূল্য নির্ধারণ ও ক্রয়-বিক্রয় কমিশন হিসাব
                                 </div>
                             </div>
                         @elseif ($name === 'published_at')
@@ -128,7 +132,7 @@
                         @endif
                     @endif
 
-                    <div class="col-md-{{ $field['col'] ?? 12 }}">
+                    <div class="col-md-{{ ($name === 'cover_type' && $spec['key'] === 'books') ? 12 : ($field['col'] ?? 12) }}">
 
                         {{-- ══ CHECKBOX ══════════════════════════════════════════ --}}
                         @if ($field['type'] === 'checkbox')
@@ -175,7 +179,7 @@
                                            id="author-mode-custom" value="custom"
                                            @checked($curMode === 'custom') onchange="toggleAuthorMode('custom')">
                                     <label class="btn btn-outline-secondary fw-semibold" for="author-mode-custom">
-                                        <i class="fas fa-keyboard me-1"></i> নিজে নতুন নাম লিখুন
+                                        <i class="fas fa-keyboard me-1"></i> নতুন লেখকের নাম লিখুন
                                     </label>
                                 </div>
 
@@ -322,11 +326,233 @@
                                 <div class="form-text" style="font-size: 11px;">তালিকায় না থাকলে এখানে নাম লিখলে স্বয়ংক্রিয়ভাবে প্রকাশনী যুক্ত হবে।</div>
                             </div>
                             @error('publisher_id')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                        {{-- ══ SECTION 2: BINDING, PRICING, SALES DISCOUNT & PURCHASE COMMISSION ENGINE (BOOKS) ══ --}}
+                        @elseif ($name === 'cover_type' && $spec['key'] === 'books')
+                            @php
+                                $curCoverType = old('cover_type', $editing ? ($record->cover_type ?? '') : '');
+                                if (empty($curCoverType)) {
+                                    if ($editing && !empty($record->hardcover_price) && empty($record->price)) {
+                                        $curCoverType = 'hardcover';
+                                    } elseif ($editing && !empty($record->price) && empty($record->hardcover_price)) {
+                                        $curCoverType = 'paperback';
+                                    } elseif ($editing && !empty($record->price) && !empty($record->hardcover_price)) {
+                                        $curCoverType = 'both';
+                                    } else {
+                                        $curCoverType = 'paperback';
+                                    }
+                                }
+                                $valHardcoverPrice = old('hardcover_price', $editing ? $record->hardcover_price : '');
+                                $valHardcoverDiscount = old('hardcover_discount_price', $editing ? $record->hardcover_discount_price : '');
+                                $valPaperbackPrice = old('price', $editing ? $record->price : '');
+                                $valPaperbackDiscount = old('discount_price', $editing ? $record->discount_price : '');
+                                $valCostPrice = old('cost_price', $editing ? $record->cost_price : '');
+                            @endphp
 
-                        {{-- ══ PRICING & DISCOUNT FIELDS WITH 2-WAY % COMMISSION CALCULATOR ══ --}}
+                            <div class="col-12">
+                                <div class="p-3 bg-white rounded-3 border shadow-xs">
+                                    {{-- 1. Binding / Format Switcher --}}
+                                    <div class="mb-3 pb-2.5 border-bottom">
+                                        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+                                            <label class="form-label fw-bold text-dark mb-0 small">
+                                                <i class="fas fa-layer-group text-primary me-1.5"></i> মূল বাঁধাই ও সংস্করণ নির্বাচন (Cover Binding & Edition) <span class="text-danger">*</span>
+                                            </label>
+                                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 small">
+                                                <i class="fas fa-calculator me-1"></i>স্বয়ংক্রিয় কমিশন ও লাভ হিসাব
+                                            </span>
+                                        </div>
+
+                                        <div class="btn-group w-100 flex-wrap" role="group" id="coverTypeToggleGroup">
+                                            <input type="radio" class="btn-check" name="cover_type" id="cover_hardcover" value="hardcover" 
+                                                   @checked($curCoverType === 'hardcover') onchange="onCoverTypeChange()">
+                                            <label class="btn btn-outline-primary py-2 fw-semibold" for="cover_hardcover">
+                                                <i class="fas fa-gem me-1.5 text-warning"></i> হার্ডকভার (Hardcover — প্রধান)
+                                            </label>
+
+                                            <input type="radio" class="btn-check" name="cover_type" id="cover_paperback" value="paperback" 
+                                                   @checked($curCoverType === 'paperback') onchange="onCoverTypeChange()">
+                                            <label class="btn btn-outline-primary py-2 fw-semibold" for="cover_paperback">
+                                                <i class="fas fa-book-open me-1.5 text-info"></i> পেপারব্যাক (Paperback)
+                                            </label>
+
+                                            <input type="radio" class="btn-check" name="cover_type" id="cover_both" value="both" 
+                                                   @checked($curCoverType === 'both') onchange="onCoverTypeChange()">
+                                            <label class="btn btn-outline-primary py-2 fw-semibold" for="cover_both">
+                                                <i class="fas fa-layer-group me-1.5 text-success"></i> উভয় সংস্করণ (হার্ডকভার ও পেপারব্যাক)
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    {{-- 2. Pricing, Discount & Purchase Cost Cards --}}
+                                    <div class="row g-3">
+                                        {{-- Hardcover Card --}}
+                                        <div class="col-12 col-md-6" id="panelHardcoverCard">
+                                            <div class="card h-100 border rounded-3 bg-light overflow-hidden">
+                                                <div class="card-header bg-primary text-white py-2 px-3 d-flex align-items-center justify-content-between">
+                                                    <span class="fw-bold small"><i class="fas fa-gem me-1.5 text-warning"></i> হার্ডকভার সংস্করণ (Hardcover)</span>
+                                                    <span class="badge bg-white text-primary small px-2 py-0.5 rounded-pill" id="badgeHardcoverStatus">প্রধান মূল্য</span>
+                                                </div>
+                                                <div class="card-body p-3">
+                                                    {{-- Regular Price (MRP) --}}
+                                                    <div class="mb-3">
+                                                        <label for="f-hardcover_price" class="form-label small fw-bold text-dark mb-1">
+                                                            গায়ের মূল্য / নিয়মিত বিক্রয়মূল্য (MRP) <span class="text-danger" id="reqStarHardcover">*</span>
+                                                        </label>
+                                                        <div class="input-group">
+                                                            <span class="input-group-text bg-white fw-bold text-primary">৳</span>
+                                                            <input type="number" step="0.01" min="0" id="f-hardcover_price" name="hardcover_price" 
+                                                                   value="{{ $valHardcoverPrice }}" class="form-control fw-bold" placeholder="0.00" 
+                                                                   oninput="onHardcoverPriceChange()">
+                                                        </div>
+                                                        <div class="form-text text-muted" style="font-size: 11px;">বইয়ের গায়ে মুদ্রিত সর্বোচ্চ খুচরা মূল্য।</div>
+                                                    </div>
+
+                                                    {{-- Selling Discount Section --}}
+                                                    <div class="p-2.5 bg-white rounded-3 border mb-3">
+                                                        <div class="d-flex align-items-center justify-content-between mb-1.5">
+                                                            <span class="small fw-bold text-success"><i class="fas fa-tags me-1"></i>গ্রাহক বিক্রয় ছাড় (Sales Discount):</span>
+                                                            <span class="text-muted small" style="font-size: 10.5px;">২-ওয়ে অটো হিসাব</span>
+                                                        </div>
+                                                        <div class="row g-2">
+                                                            <div class="col-6">
+                                                                <label for="f-hardcover_discount_percent" class="form-label small text-muted mb-1" style="font-size: 11px;">ছাড়ের হার (%)</label>
+                                                                <div class="input-group input-group-sm">
+                                                                    <input type="number" step="0.5" min="0" max="100" id="f-hardcover_discount_percent" 
+                                                                           class="form-control" placeholder="যেমন: ২৫" oninput="onHardcoverDiscountPercentChange()">
+                                                                    <span class="input-group-text bg-light fw-bold">%</span>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-6">
+                                                                <label for="f-hardcover_discount_price" class="form-label small text-muted mb-1" style="font-size: 11px;">ছাড়ের পর বিক্রয়মূল্য (৳)</label>
+                                                                <div class="input-group input-group-sm">
+                                                                    <span class="input-group-text bg-light fw-bold">৳</span>
+                                                                    <input type="number" step="0.01" min="0" id="f-hardcover_discount_price" name="hardcover_discount_price" 
+                                                                           value="{{ $valHardcoverDiscount }}" class="form-control fw-semibold" placeholder="0.00" 
+                                                                           oninput="onHardcoverDiscountPriceChange()">
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div id="liveHardcoverDiscountBadge" class="mt-1 small fw-semibold"></div>
+                                                    </div>
+
+                                                    {{-- Purchase & Cost Section --}}
+                                                    <div class="p-2.5 bg-white rounded-3 border border-warning-subtle mb-1">
+                                                        <div class="d-flex align-items-center justify-content-between mb-1.5">
+                                                            <span class="small fw-bold text-dark"><i class="fas fa-coins me-1 text-warning"></i>ক্রয় হিসাব / প্রকাশনী খরচ:</span>
+                                                            <span class="badge bg-warning-subtle text-warning-emphasis small" style="font-size: 10px;">ক্রয়মূল্য কমিশন</span>
+                                                        </div>
+                                                        <div class="row g-2">
+                                                            <div class="col-6">
+                                                                <label for="f-hardcover_cost_discount_percent" class="form-label small text-muted mb-1" style="font-size: 11px;">ক্রয় কমিশন ছাড় (%)</label>
+                                                                <div class="input-group input-group-sm">
+                                                                    <input type="number" step="0.5" min="0" max="100" id="f-hardcover_cost_discount_percent" 
+                                                                           class="form-control" placeholder="যেমন: ৪০" oninput="onHardcoverCostDiscountPercentChange()">
+                                                                    <span class="input-group-text bg-light fw-bold">%</span>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-6">
+                                                                <label for="f-hardcover_cost_price_display" class="form-label small text-muted mb-1" style="font-size: 11px;">ক্রয়মূল্য / খরচ (৳)</label>
+                                                                <div class="input-group input-group-sm">
+                                                                    <span class="input-group-text bg-light fw-bold">৳</span>
+                                                                    <input type="number" step="0.01" min="0" id="f-hardcover_cost_price_display" 
+                                                                           value="{{ $curCoverType !== 'paperback' ? $valCostPrice : '' }}" class="form-control fw-semibold" placeholder="0.00" 
+                                                                           oninput="onHardcoverCostPriceChange()">
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div id="liveHardcoverProfitBadge" class="mt-1.5 small"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {{-- Paperback Card --}}
+                                        <div class="col-12 col-md-6" id="panelPaperbackCard">
+                                            <div class="card h-100 border rounded-3 bg-light overflow-hidden">
+                                                <div class="card-header bg-secondary text-white py-2 px-3 d-flex align-items-center justify-content-between" id="headerPaperback">
+                                                    <span class="fw-bold small"><i class="fas fa-book-open me-1.5 text-info"></i> পেপারব্যাক সংস্করণ (Paperback)</span>
+                                                    <span class="badge bg-white text-secondary small px-2 py-0.5 rounded-pill" id="badgePaperbackStatus">ঐচ্ছিক সংস্করণ</span>
+                                                </div>
+                                                <div class="card-body p-3">
+                                                    {{-- Regular Price (MRP) --}}
+                                                    <div class="mb-3">
+                                                        <label for="f-price" class="form-label small fw-bold text-dark mb-1">
+                                                            গায়ের মূল্য / নিয়মিত বিক্রয়মূল্য (MRP) <span class="text-danger" id="reqStarPaperback" style="display:none;">*</span>
+                                                        </label>
+                                                        <div class="input-group">
+                                                            <span class="input-group-text bg-white fw-bold text-primary">৳</span>
+                                                            <input type="number" step="0.01" min="0" id="f-price" name="price" 
+                                                                   value="{{ $valPaperbackPrice }}" class="form-control fw-bold" placeholder="0.00" 
+                                                                   oninput="onRegularPriceChange()">
+                                                        </div>
+                                                        <div class="form-text text-muted" style="font-size: 11px;">পেপারব্যাক সংস্করণের খুচরা বিক্রয়মূল্য।</div>
+                                                    </div>
+
+                                                    {{-- Selling Discount Section --}}
+                                                    <div class="p-2.5 bg-white rounded-3 border mb-3">
+                                                        <div class="d-flex align-items-center justify-content-between mb-1.5">
+                                                            <span class="small fw-bold text-success"><i class="fas fa-tags me-1"></i>গ্রাহক বিক্রয় ছাড় (Sales Discount):</span>
+                                                            <span class="text-muted small" style="font-size: 10.5px;">২-ওয়ে অটো হিসাব</span>
+                                                        </div>
+                                                        <div class="row g-2">
+                                                            <div class="col-6">
+                                                                <label for="f-discount_percent" class="form-label small text-muted mb-1" style="font-size: 11px;">ছাড়ের হার (%)</label>
+                                                                <div class="input-group input-group-sm">
+                                                                    <input type="number" step="0.5" min="0" max="100" id="f-discount_percent" 
+                                                                           class="form-control" placeholder="যেমন: ২৫" oninput="onDiscountPercentChange()">
+                                                                    <span class="input-group-text bg-light fw-bold">%</span>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-6">
+                                                                <label for="f-discount_price" class="form-label small text-muted mb-1" style="font-size: 11px;">ছাড়ের পর বিক্রয়মূল্য (৳)</label>
+                                                                <div class="input-group input-group-sm">
+                                                                    <span class="input-group-text bg-light fw-bold">৳</span>
+                                                                    <input type="number" step="0.01" min="0" id="f-discount_price" name="discount_price" 
+                                                                           value="{{ $valPaperbackDiscount }}" class="form-control fw-semibold" placeholder="0.00" 
+                                                                           oninput="onDiscountPriceChange()">
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div id="liveDiscountBadge" class="mt-1 small fw-semibold"></div>
+                                                    </div>
+
+                                                    {{-- Purchase & Cost Section --}}
+                                                    <div class="p-2.5 bg-white rounded-3 border border-warning-subtle mb-1">
+                                                        <div class="d-flex align-items-center justify-content-between mb-1.5">
+                                                            <span class="small fw-bold text-dark"><i class="fas fa-coins me-1 text-warning"></i>ক্রয় হিসাব / প্রকাশনী খরচ:</span>
+                                                            <span class="badge bg-warning-subtle text-warning-emphasis small" style="font-size: 10px;">ক্রয়মূল্য কমিশন</span>
+                                                        </div>
+                                                        <div class="row g-2">
+                                                            <div class="col-6">
+                                                                <label for="f-cost_discount_percent" class="form-label small text-muted mb-1" style="font-size: 11px;">ক্রয় কমিশন ছাড় (%)</label>
+                                                                <div class="input-group input-group-sm">
+                                                                    <input type="number" step="0.5" min="0" max="100" id="f-cost_discount_percent" 
+                                                                           class="form-control" placeholder="যেমন: ৪০" oninput="onPaperbackCostDiscountPercentChange()">
+                                                                    <span class="input-group-text bg-light fw-bold">%</span>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-6">
+                                                                <label for="f-cost_price" class="form-label small text-muted mb-1" style="font-size: 11px;">ক্রয়মূল্য / খরচ (৳)</label>
+                                                                <div class="input-group input-group-sm">
+                                                                    <span class="input-group-text bg-light fw-bold">৳</span>
+                                                                    <input type="number" step="0.01" min="0" id="f-cost_price" name="cost_price" 
+                                                                           value="{{ $valCostPrice }}" class="form-control fw-semibold" placeholder="0.00" 
+                                                                           oninput="onPaperbackCostPriceChange()">
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div id="livePaperbackProfitBadge" class="mt-1.5 small"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        {{-- ══ PRICING & DISCOUNT FIELDS (EBOOKS / OTHER CONTENT TYPES) ══ --}}
                         @elseif ($name === 'price')
                             <label for="f-price" class="form-label small fw-semibold">
-                                {{ $field['label'] }} <span class="text-danger" id="reqStarPaperback" style="display:none;">*</span>
+                                {{ $field['label'] }} <span class="text-danger">*</span>
                             </label>
                             <div class="input-group">
                                 <span class="input-group-text bg-light fw-bold">৳</span>
@@ -335,14 +561,12 @@
                                        class="form-control @error('price') is-invalid @enderror"
                                        placeholder="0.00" oninput="onRegularPriceChange()">
                             </div>
-                            <div class="form-text" style="font-size: 11px;" id="helpTextPaperback">পেপারব্যাক সংস্করণ নির্বাচন করা থাকলে নিয়মিত মূল্য পূরণ করা আবশ্যক।</div>
                             @error('price')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
 
-                            {{-- Clean Discount Percentage Field without preset buttons --}}
                             <div class="mt-2.5 p-2 bg-light rounded border">
                                 <div class="d-flex align-items-center justify-content-between mb-1">
                                     <label for="f-discount_percent" class="form-label small fw-semibold text-dark mb-0" style="font-size: 11.5px;">
-                                        <i class="fas fa-percent me-1 text-primary"></i>পেপারব্যাক ছাড়ের শতকরা হার / কমিশন (%):
+                                        <i class="fas fa-percent me-1 text-primary"></i>ছাড়ের শতকরা হার (%):
                                     </label>
                                     <span class="small text-muted" style="font-size: 11px;">স্বয়ংক্রিয় হিসাব</span>
                                 </div>
@@ -366,50 +590,6 @@
                             </div>
                             <div id="liveDiscountBadge" class="mt-1 small fw-semibold"></div>
                             @error('discount_price')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-
-                        {{-- ══ HARDCOVER PRICING & DISCOUNT ══ --}}
-                        @elseif ($name === 'hardcover_price')
-                            <label for="f-hardcover_price" class="form-label small fw-semibold text-dark">
-                                <i class="fas fa-book me-1 text-primary"></i> {{ $field['label'] }} <span class="text-danger" id="reqStarHardcover">*</span>
-                            </label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light fw-bold">৳</span>
-                                <input type="number" step="{{ $field['step'] ?? '1' }}" min="0"
-                                       id="f-hardcover_price" name="hardcover_price" value="{{ $current }}"
-                                       class="form-control @error('hardcover_price') is-invalid @enderror"
-                                       placeholder="0.00" oninput="onHardcoverPriceChange()">
-                            </div>
-                            <div class="form-text" style="font-size: 11px;" id="helpTextHardcover">হার্ডকভার সংস্করণ নির্বাচন করা থাকলে নিয়মিত মূল্য পূরণ করা আবশ্যক।</div>
-                            @error('hardcover_price')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-
-                            {{-- Hardcover Discount Percentage Field --}}
-                            <div class="mt-2.5 p-2 bg-light rounded border">
-                                <div class="d-flex align-items-center justify-content-between mb-1">
-                                    <label for="f-hardcover_discount_percent" class="form-label small fw-semibold text-dark mb-0" style="font-size: 11.5px;">
-                                        <i class="fas fa-percent me-1 text-primary"></i>হার্ডকভার ছাড়ের শতকরা হার / কমিশন (%):
-                                    </label>
-                                    <span class="small text-muted" style="font-size: 11px;">স্বয়ংক্রিয় হিসাব</span>
-                                </div>
-                                <div class="input-group input-group-sm">
-                                    <input type="number" step="0.5" min="0" max="100" id="f-hardcover_discount_percent" 
-                                           class="form-control" placeholder="যেমন: ২৫" oninput="onHardcoverDiscountPercentChange()">
-                                    <span class="input-group-text bg-white fw-bold">%</span>
-                                </div>
-                            </div>
-
-                        @elseif ($name === 'hardcover_discount_price')
-                            <label for="f-hardcover_discount_price" class="form-label small fw-semibold text-dark">
-                                <i class="fas fa-tag me-1 text-success"></i> {{ $field['label'] }}
-                            </label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light fw-bold">৳</span>
-                                <input type="number" step="{{ $field['step'] ?? '1' }}" min="0"
-                                       id="f-hardcover_discount_price" name="hardcover_discount_price" value="{{ $current }}"
-                                       class="form-control @error('hardcover_discount_price') is-invalid @enderror"
-                                       placeholder="0.00" oninput="onHardcoverDiscountPriceChange()">
-                            </div>
-                            <div id="liveHardcoverDiscountBadge" class="mt-1 small fw-semibold"></div>
-                            @error('hardcover_discount_price')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
 
                         {{-- ══ PRE-ORDER FIELDS (সম্ভাব্য তারিখ ও বিশেষ বার্তা) ══ --}}
                         @elseif ($name === 'pre_order_release_date')
@@ -1348,102 +1528,79 @@ function onAuthorDirectoryChange(select) {
 
 // Dynamic requirement indicators for book cover formats (Hardcover, Paperback, Both)
 function updateCoverTypeRequirement() {
-    const coverTypeEl = document.getElementById('f-cover_type');
-    if (!coverTypeEl) return;
-    const val = coverTypeEl.value || 'hardcover';
+    const selectedRadio = document.querySelector('input[name="cover_type"]:checked');
+    const val = selectedRadio ? selectedRadio.value : (document.getElementById('f-cover_type')?.value || 'hardcover');
 
+    const cardHc = document.getElementById('panelHardcoverCard');
+    const cardPb = document.getElementById('panelPaperbackCard');
+    const headerPb = document.getElementById('headerPaperback');
+    const badgeHc = document.getElementById('badgeHardcoverStatus');
+    const badgePb = document.getElementById('badgePaperbackStatus');
     const starHc = document.getElementById('reqStarHardcover');
     const starPb = document.getElementById('reqStarPaperback');
     const inputHc = document.getElementById('f-hardcover_price');
     const inputPb = document.getElementById('f-price');
-    const helpHc = document.getElementById('helpTextHardcover');
-    const helpPb = document.getElementById('helpTextPaperback');
 
     if (val === 'hardcover') {
+        if (cardHc) { cardHc.style.opacity = '1'; }
+        if (cardPb) { cardPb.style.opacity = '0.78'; }
+        if (headerPb) { headerPb.className = 'card-header bg-secondary text-white py-2 px-3 d-flex align-items-center justify-content-between'; }
+        if (badgeHc) { badgeHc.className = 'badge bg-white text-primary small px-2 py-0.5 rounded-pill'; badgeHc.textContent = 'প্রধান সংস্করণ'; }
+        if (badgePb) { badgePb.className = 'badge bg-white text-secondary small px-2 py-0.5 rounded-pill'; badgePb.textContent = 'ঐচ্ছিক সংস্করণ'; }
         if (starHc) starHc.style.display = 'inline';
         if (starPb) starPb.style.display = 'none';
         if (inputHc) inputHc.setAttribute('required', 'required');
         if (inputPb) inputPb.removeAttribute('required');
-        if (helpHc) helpHc.textContent = 'হার্ডকভার সংস্করণ নির্বাচন করা থাকলে নিয়মিত মূল্য বাধ্যতামূলক।';
-        if (helpPb) helpPb.textContent = 'পেপারব্যাক নিয়মিত মূল্য (ঐচ্ছিক)।';
     } else if (val === 'paperback') {
+        if (cardHc) { cardHc.style.opacity = '0.78'; }
+        if (cardPb) { cardPb.style.opacity = '1'; }
+        if (headerPb) { headerPb.className = 'card-header bg-primary text-white py-2 px-3 d-flex align-items-center justify-content-between'; }
+        if (badgeHc) { badgeHc.className = 'badge bg-white text-secondary small px-2 py-0.5 rounded-pill'; badgeHc.textContent = 'ঐচ্ছিক সংস্করণ'; }
+        if (badgePb) { badgePb.className = 'badge bg-white text-primary small px-2 py-0.5 rounded-pill'; badgePb.textContent = 'প্রধান সংস্করণ'; }
         if (starHc) starHc.style.display = 'none';
         if (starPb) starPb.style.display = 'inline';
         if (inputHc) inputHc.removeAttribute('required');
         if (inputPb) inputPb.setAttribute('required', 'required');
-        if (helpHc) helpHc.textContent = 'হার্ডকভার নিয়মিত মূল্য (ঐচ্ছিক)।';
-        if (helpPb) helpPb.textContent = 'পেপারব্যাক সংস্করণ নির্বাচন করা থাকলে নিয়মিত মূল্য বাধ্যতামূলক।';
     } else if (val === 'both') {
+        if (cardHc) { cardHc.style.opacity = '1'; }
+        if (cardPb) { cardPb.style.opacity = '1'; }
+        if (headerPb) { headerPb.className = 'card-header bg-primary text-white py-2 px-3 d-flex align-items-center justify-content-between'; }
+        if (badgeHc) { badgeHc.className = 'badge bg-white text-primary small px-2 py-0.5 rounded-pill'; badgeHc.textContent = 'হার্ডকভার আবশ্যক'; }
+        if (badgePb) { badgePb.className = 'badge bg-white text-primary small px-2 py-0.5 rounded-pill'; badgePb.textContent = 'পেপারব্যাক আবশ্যক'; }
         if (starHc) starHc.style.display = 'inline';
         if (starPb) starPb.style.display = 'inline';
         if (inputHc) inputHc.setAttribute('required', 'required');
         if (inputPb) inputPb.setAttribute('required', 'required');
-        if (helpHc) helpHc.textContent = 'উভয় সংস্করণ নির্বাচন করা হয়েছে — হার্ডকভার নিয়মিত মূল্য বাধ্যতামূলক।';
-        if (helpPb) helpPb.textContent = 'উভয় সংস্করণ নির্বাচন করা হয়েছে — পেপারব্যাক নিয়মিত মূল্য বাধ্যতামূলক।';
     }
 }
 
 function onCoverTypeChange() {
     updateCoverTypeRequirement();
     updateLiveMockupCard();
+    syncActiveCostPrice();
 }
 
-// Paperback Two-way interactive price and discount calculations
-function onRegularPriceChange() {
-    const price = parseFloat(document.getElementById('f-price')?.value) || 0;
-    const pct = parseFloat(document.getElementById('f-discount_percent')?.value) || 0;
-    const discInput = document.getElementById('f-discount_price');
+function syncActiveCostPrice() {
+    const selectedRadio = document.querySelector('input[name="cover_type"]:checked');
+    const val = selectedRadio ? selectedRadio.value : 'hardcover';
+    const hcCostInput = document.getElementById('f-hardcover_cost_price_display');
+    const pbCostInput = document.getElementById('f-cost_price');
 
-    if (price > 0 && pct > 0 && pct <= 100) {
-        const discounted = Math.round(price * (1 - pct / 100));
-        if (discInput) discInput.value = discounted;
-    } else if (discInput && discInput.value) {
-        const disc = parseFloat(discInput.value) || 0;
-        if (price > 0 && disc < price) {
-            const calculatedPct = Math.round(((price - disc) / price) * 100);
-            const pctInput = document.getElementById('f-discount_percent');
-            if (pctInput) pctInput.value = calculatedPct;
-        }
+    if (val === 'hardcover' && hcCostInput && pbCostInput && hcCostInput.value) {
+        pbCostInput.value = hcCostInput.value;
     }
-    calculateLiveDiscount();
 }
 
-function onDiscountPercentChange() {
-    const price = parseFloat(document.getElementById('f-price')?.value) || 0;
-    const pct = parseFloat(document.getElementById('f-discount_percent')?.value) || 0;
-    const discInput = document.getElementById('f-discount_price');
-
-    if (price > 0 && pct >= 0 && pct <= 100) {
-        const discounted = Math.round(price * (1 - pct / 100));
-        if (discInput) discInput.value = discounted;
-    } else if (pct === 0) {
-        if (discInput) discInput.value = price;
-    }
-    calculateLiveDiscount();
-}
-
-function onDiscountPriceChange() {
-    const price = parseFloat(document.getElementById('f-price')?.value) || 0;
-    const disc = parseFloat(document.getElementById('f-discount_price')?.value) || 0;
-    const pctInput = document.getElementById('f-discount_percent');
-
-    if (price > 0 && disc > 0 && disc < price) {
-        const calculatedPct = Math.round(((price - disc) / price) * 100);
-        if (pctInput) pctInput.value = calculatedPct;
-    } else if (disc === 0 || disc >= price) {
-        if (pctInput) pctInput.value = 0;
-    }
-    calculateLiveDiscount();
-}
-
-// Hardcover Two-way interactive price and discount calculations
+// Hardcover Two-way interactive price, discount, cost & profit calculations
 function onHardcoverPriceChange() {
     const price = parseFloat(document.getElementById('f-hardcover_price')?.value) || 0;
-    const pct = parseFloat(document.getElementById('f-hardcover_discount_percent')?.value) || 0;
+    const discPct = parseFloat(document.getElementById('f-hardcover_discount_percent')?.value) || 0;
     const discInput = document.getElementById('f-hardcover_discount_price');
+    const costPct = parseFloat(document.getElementById('f-hardcover_cost_discount_percent')?.value) || 0;
+    const costInput = document.getElementById('f-hardcover_cost_price_display');
 
-    if (price > 0 && pct > 0 && pct <= 100) {
-        const discounted = Math.round(price * (1 - pct / 100));
+    if (price > 0 && discPct > 0 && discPct <= 100) {
+        const discounted = Math.round(price * (1 - discPct / 100) * 100) / 100;
         if (discInput) discInput.value = discounted;
     } else if (discInput && discInput.value) {
         const disc = parseFloat(discInput.value) || 0;
@@ -1453,7 +1610,15 @@ function onHardcoverPriceChange() {
             if (pctInput) pctInput.value = calculatedPct;
         }
     }
+
+    if (price > 0 && costPct > 0 && costPct <= 100) {
+        const costVal = Math.round(price * (1 - costPct / 100) * 100) / 100;
+        if (costInput) costInput.value = costVal;
+        syncActiveCostPrice();
+    }
+
     calculateLiveHardcoverDiscount();
+    calculateLiveHardcoverProfit();
 }
 
 function onHardcoverDiscountPercentChange() {
@@ -1462,12 +1627,13 @@ function onHardcoverDiscountPercentChange() {
     const discInput = document.getElementById('f-hardcover_discount_price');
 
     if (price > 0 && pct >= 0 && pct <= 100) {
-        const discounted = Math.round(price * (1 - pct / 100));
+        const discounted = Math.round(price * (1 - pct / 100) * 100) / 100;
         if (discInput) discInput.value = discounted;
     } else if (pct === 0) {
         if (discInput) discInput.value = price;
     }
     calculateLiveHardcoverDiscount();
+    calculateLiveHardcoverProfit();
 }
 
 function onHardcoverDiscountPriceChange() {
@@ -1482,9 +1648,169 @@ function onHardcoverDiscountPriceChange() {
         if (pctInput) pctInput.value = 0;
     }
     calculateLiveHardcoverDiscount();
+    calculateLiveHardcoverProfit();
 }
 
-// Real-time discount and pricing calculation
+function onHardcoverCostDiscountPercentChange() {
+    const price = parseFloat(document.getElementById('f-hardcover_price')?.value) || 0;
+    const pct = parseFloat(document.getElementById('f-hardcover_cost_discount_percent')?.value) || 0;
+    const costInput = document.getElementById('f-hardcover_cost_price_display');
+
+    if (price > 0 && pct >= 0 && pct <= 100) {
+        const costVal = Math.round(price * (1 - pct / 100) * 100) / 100;
+        if (costInput) costInput.value = costVal;
+        syncActiveCostPrice();
+    }
+    calculateLiveHardcoverProfit();
+}
+
+function onHardcoverCostPriceChange() {
+    const price = parseFloat(document.getElementById('f-hardcover_price')?.value) || 0;
+    const cost = parseFloat(document.getElementById('f-hardcover_cost_price_display')?.value) || 0;
+    const pctInput = document.getElementById('f-hardcover_cost_discount_percent');
+
+    if (price > 0 && cost > 0 && cost < price) {
+        const calculatedPct = Math.round(((price - cost) / price) * 100);
+        if (pctInput) pctInput.value = calculatedPct;
+    } else if (cost === 0 || cost >= price) {
+        if (pctInput) pctInput.value = 0;
+    }
+    syncActiveCostPrice();
+    calculateLiveHardcoverProfit();
+}
+
+function calculateLiveHardcoverProfit() {
+    const price = parseFloat(document.getElementById('f-hardcover_price')?.value) || 0;
+    const disc = parseFloat(document.getElementById('f-hardcover_discount_price')?.value) || 0;
+    const cost = parseFloat(document.getElementById('f-hardcover_cost_price_display')?.value) || 0;
+    const badgeEl = document.getElementById('liveHardcoverProfitBadge');
+
+    if (!badgeEl) return;
+
+    const sellPrice = (disc > 0 && disc <= price) ? disc : price;
+
+    if (sellPrice > 0 && cost > 0) {
+        const profit = sellPrice - cost;
+        const margin = Math.round((profit / sellPrice) * 1000) / 10;
+        if (profit >= 0) {
+            badgeEl.innerHTML = `<span class="badge bg-success-subtle text-success border border-success-subtle p-1.5 w-100 d-flex align-items-center justify-content-between"><span><i class="fas fa-chart-line me-1"></i>আনুমানিক লাভ: <strong>৳${profit.toLocaleString('bn-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</strong></span> <span class="badge bg-success text-white">${margin}% নিট মার্জিন</span></span>`;
+        } else {
+            badgeEl.innerHTML = `<span class="badge bg-danger-subtle text-danger border border-danger-subtle p-1.5 w-100"><i class="fas fa-triangle-exclamation me-1"></i>সতর্কবার্তা: ক্রয়মূল্য বিক্রয়মূল্যের চেয়ে বেশি! ক্ষতি ৳${Math.abs(profit).toFixed(2)}</span>`;
+        }
+    } else {
+        badgeEl.innerHTML = '';
+    }
+}
+
+// Paperback Two-way interactive price, discount, cost & profit calculations
+function onRegularPriceChange() {
+    const price = parseFloat(document.getElementById('f-price')?.value) || 0;
+    const discPct = parseFloat(document.getElementById('f-discount_percent')?.value) || 0;
+    const discInput = document.getElementById('f-discount_price');
+    const costPct = parseFloat(document.getElementById('f-cost_discount_percent')?.value) || 0;
+    const costInput = document.getElementById('f-cost_price');
+
+    if (price > 0 && discPct > 0 && discPct <= 100) {
+        const discounted = Math.round(price * (1 - discPct / 100) * 100) / 100;
+        if (discInput) discInput.value = discounted;
+    } else if (discInput && discInput.value) {
+        const disc = parseFloat(discInput.value) || 0;
+        if (price > 0 && disc < price) {
+            const calculatedPct = Math.round(((price - disc) / price) * 100);
+            const pctInput = document.getElementById('f-discount_percent');
+            if (pctInput) pctInput.value = calculatedPct;
+        }
+    }
+
+    if (price > 0 && costPct > 0 && costPct <= 100) {
+        const costVal = Math.round(price * (1 - costPct / 100) * 100) / 100;
+        if (costInput) costInput.value = costVal;
+    }
+
+    calculateLiveDiscount();
+    calculateLivePaperbackProfit();
+}
+
+function onDiscountPercentChange() {
+    const price = parseFloat(document.getElementById('f-price')?.value) || 0;
+    const pct = parseFloat(document.getElementById('f-discount_percent')?.value) || 0;
+    const discInput = document.getElementById('f-discount_price');
+
+    if (price > 0 && pct >= 0 && pct <= 100) {
+        const discounted = Math.round(price * (1 - pct / 100) * 100) / 100;
+        if (discInput) discInput.value = discounted;
+    } else if (pct === 0) {
+        if (discInput) discInput.value = price;
+    }
+    calculateLiveDiscount();
+    calculateLivePaperbackProfit();
+}
+
+function onDiscountPriceChange() {
+    const price = parseFloat(document.getElementById('f-price')?.value) || 0;
+    const disc = parseFloat(document.getElementById('f-discount_price')?.value) || 0;
+    const pctInput = document.getElementById('f-discount_percent');
+
+    if (price > 0 && disc > 0 && disc < price) {
+        const calculatedPct = Math.round(((price - disc) / price) * 100);
+        if (pctInput) pctInput.value = calculatedPct;
+    } else if (disc === 0 || disc >= price) {
+        if (pctInput) pctInput.value = 0;
+    }
+    calculateLiveDiscount();
+    calculateLivePaperbackProfit();
+}
+
+function onPaperbackCostDiscountPercentChange() {
+    const price = parseFloat(document.getElementById('f-price')?.value) || 0;
+    const pct = parseFloat(document.getElementById('f-cost_discount_percent')?.value) || 0;
+    const costInput = document.getElementById('f-cost_price');
+
+    if (price > 0 && pct >= 0 && pct <= 100) {
+        const costVal = Math.round(price * (1 - pct / 100) * 100) / 100;
+        if (costInput) costInput.value = costVal;
+    }
+    calculateLivePaperbackProfit();
+}
+
+function onPaperbackCostPriceChange() {
+    const price = parseFloat(document.getElementById('f-price')?.value) || 0;
+    const cost = parseFloat(document.getElementById('f-cost_price')?.value) || 0;
+    const pctInput = document.getElementById('f-cost_discount_percent');
+
+    if (price > 0 && cost > 0 && cost < price) {
+        const calculatedPct = Math.round(((price - cost) / price) * 100);
+        if (pctInput) pctInput.value = calculatedPct;
+    } else if (cost === 0 || cost >= price) {
+        if (pctInput) pctInput.value = 0;
+    }
+    calculateLivePaperbackProfit();
+}
+
+function calculateLivePaperbackProfit() {
+    const price = parseFloat(document.getElementById('f-price')?.value) || 0;
+    const disc = parseFloat(document.getElementById('f-discount_price')?.value) || 0;
+    const cost = parseFloat(document.getElementById('f-cost_price')?.value) || 0;
+    const badgeEl = document.getElementById('livePaperbackProfitBadge');
+
+    if (!badgeEl) return;
+
+    const sellPrice = (disc > 0 && disc <= price) ? disc : price;
+
+    if (sellPrice > 0 && cost > 0) {
+        const profit = sellPrice - cost;
+        const margin = Math.round((profit / sellPrice) * 1000) / 10;
+        if (profit >= 0) {
+            badgeEl.innerHTML = `<span class="badge bg-success-subtle text-success border border-success-subtle p-1.5 w-100 d-flex align-items-center justify-content-between"><span><i class="fas fa-chart-line me-1"></i>আনুমানিক লাভ: <strong>৳${profit.toLocaleString('bn-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</strong></span> <span class="badge bg-success text-white">${margin}% নিট মার্জিন</span></span>`;
+        } else {
+            badgeEl.innerHTML = `<span class="badge bg-danger-subtle text-danger border border-danger-subtle p-1.5 w-100"><i class="fas fa-triangle-exclamation me-1"></i>সতর্কবার্তা: ক্রয়মূল্য বিক্রয়মূল্যের চেয়ে বেশি! ক্ষতি ৳${Math.abs(profit).toFixed(2)}</span>`;
+        }
+    } else {
+        badgeEl.innerHTML = '';
+    }
+}
+
+// Real-time discount calculation
 function calculateLiveDiscount() {
     const priceEl = document.getElementById('f-price');
     const discEl = document.getElementById('f-discount_price');
@@ -1595,7 +1921,7 @@ function updateLiveMockupCard() {
         mockAuthor.textContent = authorVal || 'লেখকের নাম';
     }
 
-    // Pricing & Format Badge calculation (prioritize Hardcover)
+    // Pricing & Format Badge calculation (prioritize selected cover type)
     if (mockFinal) {
         const hcPriceEl = document.getElementById('f-hardcover_price');
         const hcDiscEl = document.getElementById('f-hardcover_discount_price');
@@ -1605,30 +1931,46 @@ function updateLiveMockupCard() {
         const pbPrice = priceEl ? parseFloat(priceEl.value) || 0 : 0;
         const pbDisc = discEl ? parseFloat(discEl.value) || 0 : 0;
 
-        const coverTypeSelect = document.getElementById('f-cover_type');
-        const coverType = coverTypeSelect ? coverTypeSelect.value : 'hardcover';
+        const selectedCoverRadio = document.querySelector('input[name="cover_type"]:checked');
+        const coverType = selectedCoverRadio ? selectedCoverRadio.value : 'paperback';
         const mockFmtBadge = document.getElementById('mockupFormatBadge');
 
         let displayPrice = 0;
         let displayOrig = 0;
-        let isHardcover = true;
+        let formatLabel = 'পেপারব্যাক';
 
-        if (coverType === 'paperback' && pbPrice > 0) {
-            isHardcover = false;
-            displayOrig = pbPrice;
-            displayPrice = (pbDisc > 0 && pbDisc < pbPrice) ? pbDisc : pbPrice;
-        } else if (hcPrice > 0) {
-            isHardcover = true;
-            displayOrig = hcPrice;
-            displayPrice = (hcDisc > 0 && hcDisc < hcPrice) ? hcDisc : hcPrice;
-        } else if (pbPrice > 0) {
-            isHardcover = false;
-            displayOrig = pbPrice;
-            displayPrice = (pbDisc > 0 && pbDisc < pbPrice) ? pbDisc : pbPrice;
+        if (coverType === 'hardcover') {
+            formatLabel = 'হার্ডকভার';
+            if (hcPrice > 0) {
+                displayOrig = hcPrice;
+                displayPrice = (hcDisc > 0 && hcDisc < hcPrice) ? hcDisc : hcPrice;
+            } else if (pbPrice > 0) {
+                displayOrig = pbPrice;
+                displayPrice = (pbDisc > 0 && pbDisc < pbPrice) ? pbDisc : pbPrice;
+            }
+        } else if (coverType === 'both') {
+            formatLabel = 'উভয় সংস্করণ';
+            if (hcPrice > 0) {
+                displayOrig = hcPrice;
+                displayPrice = (hcDisc > 0 && hcDisc < hcPrice) ? hcDisc : hcPrice;
+            } else if (pbPrice > 0) {
+                displayOrig = pbPrice;
+                displayPrice = (pbDisc > 0 && pbDisc < pbPrice) ? pbDisc : pbPrice;
+            }
+        } else {
+            // paperback
+            formatLabel = 'পেপারব্যাক';
+            if (pbPrice > 0) {
+                displayOrig = pbPrice;
+                displayPrice = (pbDisc > 0 && pbDisc < pbPrice) ? pbDisc : pbPrice;
+            } else if (hcPrice > 0) {
+                displayOrig = hcPrice;
+                displayPrice = (hcDisc > 0 && hcDisc < hcPrice) ? hcDisc : hcPrice;
+            }
         }
 
         if (mockFmtBadge) {
-            mockFmtBadge.textContent = isHardcover ? 'হার্ডকভার' : 'পেপারব্যাক';
+            mockFmtBadge.textContent = formatLabel;
         }
 
         if (displayPrice > 0 && displayOrig > displayPrice) {
@@ -1877,8 +2219,43 @@ document.addEventListener('DOMContentLoaded', function() {
                     textarea.value = editor.innerHTML;
                 }
             });
+            syncActiveCostPrice();
         });
     }
+
+    // Initialize cover format requirement, discount calculations & profit margins
+    updateCoverTypeRequirement();
+    
+    // Auto-calculate initial percentage badges if prices already exist (e.g. edit mode)
+    const hcPriceInit = parseFloat(document.getElementById('f-hardcover_price')?.value) || 0;
+    const hcDiscInit = parseFloat(document.getElementById('f-hardcover_discount_price')?.value) || 0;
+    const hcCostInit = parseFloat(document.getElementById('f-hardcover_cost_price_display')?.value) || 0;
+    if (hcPriceInit > 0 && hcDiscInit > 0 && hcDiscInit < hcPriceInit) {
+        const hcPctEl = document.getElementById('f-hardcover_discount_percent');
+        if (hcPctEl && !hcPctEl.value) hcPctEl.value = Math.round(((hcPriceInit - hcDiscInit) / hcPriceInit) * 100);
+    }
+    if (hcPriceInit > 0 && hcCostInit > 0 && hcCostInit < hcPriceInit) {
+        const hcCostPctEl = document.getElementById('f-hardcover_cost_discount_percent');
+        if (hcCostPctEl && !hcCostPctEl.value) hcCostPctEl.value = Math.round(((hcPriceInit - hcCostInit) / hcPriceInit) * 100);
+    }
+
+    const pbPriceInit = parseFloat(document.getElementById('f-price')?.value) || 0;
+    const pbDiscInit = parseFloat(document.getElementById('f-discount_price')?.value) || 0;
+    const pbCostInit = parseFloat(document.getElementById('f-cost_price')?.value) || 0;
+    if (pbPriceInit > 0 && pbDiscInit > 0 && pbDiscInit < pbPriceInit) {
+        const pbPctEl = document.getElementById('f-discount_percent');
+        if (pbPctEl && !pbPctEl.value) pbPctEl.value = Math.round(((pbPriceInit - pbDiscInit) / pbPriceInit) * 100);
+    }
+    if (pbPriceInit > 0 && pbCostInit > 0 && pbCostInit < pbPriceInit) {
+        const pbCostPctEl = document.getElementById('f-cost_discount_percent');
+        if (pbCostPctEl && !pbCostPctEl.value) pbCostPctEl.value = Math.round(((pbPriceInit - pbCostInit) / pbPriceInit) * 100);
+    }
+
+    calculateLiveDiscount();
+    calculateLiveHardcoverDiscount();
+    calculateLiveHardcoverProfit();
+    calculateLivePaperbackProfit();
+    updateLiveMockupCard();
 });
 
 // AJAX Quick Category Creator

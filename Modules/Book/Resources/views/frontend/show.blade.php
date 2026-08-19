@@ -412,10 +412,10 @@
                             <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-4 p-2.5 bg-white rounded-3 border">
                                 <span class="small fw-semibold text-dark"><i class="fa-solid fa-headset me-1 text-primary"></i> ফোনে বা হোয়াটসঅ্যাপে সরাসরি অর্ডার:</span>
                                 <div class="d-flex align-items-center gap-2">
-                                    <a href="tel:01711223344" class="btn btn-sm btn-outline-dark rounded-pill px-3 py-1 fw-bold text-decoration-none shadow-2xs">
+                                    <a href="tel:+8801726976982" class="btn btn-sm btn-outline-dark rounded-pill px-3 py-1 fw-bold text-decoration-none shadow-2xs">
                                         <i class="fa-solid fa-phone me-1 text-success"></i> কল করুন
                                     </a>
-                                    <a href="https://wa.me/8801711223344?text={{ urlencode('আসসালামু আলাইকুম, আমি এই বইটি অর্ডার করতে চাই: ' . $book->title . ' ( ' . url()->current() . ' )') }}" target="_blank" rel="noopener" class="btn btn-sm btn-success rounded-pill px-3 py-1 fw-bold text-decoration-none shadow-2xs">
+                                    <a href="https://wa.me/8801726976982?text={{ urlencode('আসসালামু আলাইকুম, আমি এই বইটি অর্ডার করতে চাই: ' . $book->title . ' ( ' . url()->current() . ' )') }}" target="_blank" rel="noopener" class="btn btn-sm btn-success rounded-pill px-3 py-1 fw-bold text-decoration-none shadow-2xs">
                                         <i class="fa-brands fa-whatsapp me-1"></i> WhatsApp
                                     </a>
                                 </div>
@@ -786,9 +786,14 @@
                 <div class="card border-0 shadow-sm rounded-4 text-white p-4 mb-4" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
                     <h6 class="fw-bold text-white mb-2"><i class="fa-solid fa-headset text-warning me-2"></i>অর্ডার সংক্রান্ত যেকোনো সহায়তায়</h6>
                     <p class="small text-light opacity-75 mb-3">আমাদের প্রতিনিধি প্রতিদিন সকাল ৯টা থেকে রাত ১০টা পর্যন্ত সক্রিয় রয়েছেন।</p>
-                    <a href="tel:01700000000" class="btn btn-outline-light rounded-pill w-100 fw-bold d-flex align-items-center justify-content-center gap-2">
-                        <i class="fa-solid fa-phone"></i> কল করুন: 01700-000000
-                    </a>
+                    <div class="d-grid gap-2">
+                        <a href="tel:+8801726976982" class="btn btn-outline-light rounded-pill w-100 fw-bold d-flex align-items-center justify-content-center gap-2">
+                            <i class="fa-solid fa-phone"></i> কল করুন: 01726-976982
+                        </a>
+                        <a href="https://wa.me/8801726976982" target="_blank" rel="noopener" class="btn btn-success rounded-pill w-100 fw-bold d-flex align-items-center justify-content-center gap-2">
+                            <i class="fa-brands fa-whatsapp"></i> হোয়াটসঅ্যাপে মেসেজ দিন
+                        </a>
+                    </div>
                 </div>
 
             </div>

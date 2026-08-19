@@ -58,7 +58,7 @@ final class ContentTypes
                     'language'                => ['label' => 'ভাষা',              'type' => 'text',             'default' => 'বাংলা',      'rules' => 'nullable|string|max:50',         'col' => 4],
 
                     // --- ২. বাঁধাই, হার্ডকভার ও মূল্য নির্ধারণ (Hardcover Primary & Pricing) ---
-                    'cover_type'              => ['label' => 'মূল বাঁধাই ও সংস্করণ', 'type' => 'select',      'default' => 'hardcover',  'rules' => 'nullable|in:hardcover,paperback,both', 'col' => 4,
+                    'cover_type'              => ['label' => 'মূল বাঁধাই ও সংস্করণ', 'type' => 'select',      'default' => 'hardcover',  'rules' => 'nullable|in:hardcover,paperback,both', 'col' => 12,
                                                   'options' => ['hardcover' => 'হার্ডকভার (Hardcover — প্রধান)', 'paperback' => 'পেপারব্যাক (Paperback)', 'both' => 'উভয়ই (হার্ডকভার ও পেপারব্যাক)']],
                     'hardcover_price'         => ['label' => 'হার্ডকভার নিয়মিত মূল্য (৳)',   'type' => 'number', 'step' => '0.01',          'rules' => 'nullable|numeric|min:0|max:9999999', 'col' => 4],
                     'hardcover_discount_price'=> ['label' => 'হার্ডকভার ছাড়ের বিক্রয়মূল্য (৳)', 'type' => 'number', 'step' => '0.01',       'rules' => 'nullable|numeric|min:0|max:9999999', 'col' => 4],

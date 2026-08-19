@@ -62,6 +62,46 @@ class IdeaInvoice extends Model
         });
     }
 
+    public static function ensureColumnsExist(): void
+    {
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('idea_invoices')) {
+                $schema = \Illuminate\Support\Facades\Schema::connection(null);
+                \Illuminate\Support\Facades\Schema::table('idea_invoices', function (\Illuminate\Database\Schema\Blueprint $table) use ($schema) {
+                    if (!$schema->hasColumn('idea_invoices', 'customer_email')) {
+                        $table->string('customer_email', 255)->nullable();
+                    }
+                    if (!$schema->hasColumn('idea_invoices', 'customer_designation')) {
+                        $table->string('customer_designation', 150)->nullable();
+                    }
+                    if (!$schema->hasColumn('idea_invoices', 'access_token')) {
+                        $table->string('access_token', 64)->nullable();
+                    }
+                    if (!$schema->hasColumn('idea_invoices', 'emailed_at')) {
+                        $table->timestamp('emailed_at')->nullable();
+                    }
+                    if (!$schema->hasColumn('idea_invoices', 'customer_org')) {
+                        $table->string('customer_org', 255)->nullable();
+                    }
+                    if (!$schema->hasColumn('idea_invoices', 'subject')) {
+                        $table->string('subject', 255)->nullable();
+                    }
+                    if (!$schema->hasColumn('idea_invoices', 'reference_no')) {
+                        $table->string('reference_no', 100)->nullable();
+                    }
+                    if (!$schema->hasColumn('idea_invoices', 'valid_until')) {
+                        $table->date('valid_until')->nullable();
+                    }
+                    if (!$schema->hasColumn('idea_invoices', 'terms_conditions')) {
+                        $table->text('terms_conditions')->nullable();
+                    }
+                });
+            }
+        } catch (\Throwable $e) {
+            // Ignore if already added or restricted
+        }
+    }
+
     public function getPublicUrlAttribute(): string
     {
         return route('invoices.public.show', $this->access_token ?: $this->invoice_no);
