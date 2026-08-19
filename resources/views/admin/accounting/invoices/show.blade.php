@@ -45,6 +45,23 @@
             <i class="fas fa-print me-1.5"></i> প্রিন্ট কপি (Print / PDF)
         </button>
 
+        {{-- Send Invoice Link to Customer Email Button --}}
+        <button type="button" class="btn btn-success fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#sendInvoiceEmailModal" title="গ্রাহকের ইমেইলে বিল ও চালান লিংক পাঠান">
+            <i class="fas fa-paper-plane me-1.5"></i> ইমেইল পাঠান
+            @if($invoice->emailed_at)
+                <span class="badge bg-white text-success ms-1 px-1.5 py-0.5 rounded-pill" title="ইমেইল প্রেরিত">✓</span>
+            @endif
+        </button>
+
+        {{-- Copy Customer Public Link --}}
+        <button type="button" class="btn btn-outline-info text-dark fw-semibold shadow-sm" onclick="copyCustomerShareLink()" id="btnAdminCopyLink" title="গ্রাহকের জন্য সরাসরি পাবলিক ভিউ লিংক">
+            <i class="fas fa-share-nodes me-1 text-primary"></i> গ্রাহক লিংক কপি
+        </button>
+
+        <a href="{{ $invoice->public_url }}" target="_blank" class="btn btn-outline-primary shadow-sm" title="গ্রাহক যেভাবে দেখবেন">
+            <i class="fas fa-arrow-up-right-from-square me-1"></i> গ্রাহক ভিউ
+        </a>
+
         {{-- Edit Document Button --}}
         <a href="{{ route('admin.accounting.invoices.edit', $invoice->id) }}" class="btn btn-warning text-dark fw-semibold shadow-sm">
             <i class="fas fa-edit me-1"></i> এডিট করুন
@@ -52,7 +69,7 @@
 
         {{-- Customize Memo Header Settings Button --}}
         <button type="button" class="btn btn-outline-secondary shadow-sm" data-bs-toggle="modal" data-bs-target="#invoiceSettingsModal" title="বিল ও মেমোর তথ্য কাস্টমাইজ করুন">
-            <i class="fas fa-palette me-1 text-primary"></i> মেমো ডিজাইন ও সেটিংস
+            <i class="fas fa-palette me-1 text-primary"></i> মেমো সেটিংস
         </button>
 
         {{-- Convert to Invoice/Challan if currently Quotation or Tender --}}
@@ -617,6 +634,61 @@
     </div>
 </div>
 
+{{-- Send Invoice Email to Customer Modal --}}
+<div class="modal fade d-print-none" id="sendInvoiceEmailModal" tabindex="-1" aria-labelledby="sendInvoiceEmailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <form action="{{ route('admin.accounting.invoices.send-email', $invoice->id) }}" method="POST">
+                @csrf
+                <div class="modal-header bg-success text-white py-3">
+                    <h5 class="modal-title fw-bold" id="sendInvoiceEmailModalLabel">
+                        <i class="fas fa-paper-plane me-2"></i>গ্রাহকের ইমেইলে বিল ও চালান প্রেরণ
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="alert alert-info py-2 px-3 small d-flex align-items-center mb-3">
+                        <i class="fas fa-circle-info me-2 fs-5"></i>
+                        <div>
+                            ইমেইল পাঠালে গ্রাহক সরাসরি ক্লিক করে বিল ও চালানের ডিজিটাল কপি দেখতে এবং PDF ডাউনলোড করতে পারবেন।
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">গ্রাহকের নাম</label>
+                        <input type="text" class="form-control bg-light" value="{{ $invoice->customer_name ?? '—' }}" readonly>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">গ্রাহকের ইমেইল ঠিকানা <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-envelope text-muted"></i></span>
+                            <input type="email" name="email" class="form-control" value="{{ $invoice->customer_email }}" placeholder="customer@example.com" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">গ্রাহকের জন্য বিশেষ বার্তা (ঐচ্ছিক)</label>
+                        <textarea name="custom_message" class="form-control" rows="3" placeholder="যেমন: আপনার অর্ডারকৃত বইসমূহ কুরিয়ারে বুকিং দেওয়া হয়েছে..."></textarea>
+                    </div>
+
+                    @if($invoice->emailed_at)
+                        <div class="text-muted small">
+                            <i class="fas fa-history me-1 text-success"></i>সর্বশেষ ইমেইল পাঠানো হয়েছে: <strong>@bnDate($invoice->emailed_at)</strong> ({{ $invoice->emailed_at->diffForHumans() }})
+                        </div>
+                    @endif
+                </div>
+                <div class="modal-footer border-top py-2.5">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">বাতিল</button>
+                    <button type="submit" class="btn btn-success fw-semibold px-4 shadow-sm">
+                        <i class="fas fa-paper-plane me-1.5"></i> ইমেইল পাঠিয়ে দিন
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 {{-- Invoice & Memo Header Settings / Design Modal with 2:1 Cropper --}}
 <div class="modal fade d-print-none" id="invoiceSettingsModal" tabindex="-1" aria-labelledby="invoiceSettingsModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -780,6 +852,20 @@ function updateLivePreview() {
     if (addrEl) addrEl.textContent = addr;
     if (phoneEl) phoneEl.textContent = ph;
     if (emailEl) emailEl.textContent = em;
+}
+
+function copyCustomerShareLink() {
+    const url = "{{ $invoice->public_url }}";
+    navigator.clipboard.writeText(url).then(function() {
+        const btn = document.getElementById('btnAdminCopyLink');
+        if (btn) {
+            const original = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-check me-1 text-success"></i>লিংক কপি হয়েছে!';
+            setTimeout(() => { btn.innerHTML = original; }, 2500);
+        }
+    }).catch(function() {
+        prompt('গ্রাহকের পাবলিক লিংক:', url);
+    });
 }
 
 // 2:1 Aspect Ratio Canvas Cropper Logic

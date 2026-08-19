@@ -104,27 +104,36 @@
                     </div>
 
                     <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">গ্রাহক / ব্যক্তির নাম <span class="text-danger">*</span></label>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">গ্রাহক / প্রাপকের নাম <span class="text-danger">*</span></label>
                             <input type="text" name="customer_name" class="form-control @error('customer_name') is-invalid @enderror" 
                                    placeholder="গ্রাহক বা প্রতিনিধির নাম..." value="{{ old('customer_name', $invoice->customer_name) }}" required>
                             @error('customer_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">প্রতিষ্ঠান / লাইব্রেরি / সংস্থা</label>
-                            <input type="text" name="customer_org" class="form-control" 
-                                   placeholder="লাইব্রেরি, বুকশপ, মন্ত্রণালয় বা প্রতিষ্ঠানের নাম..." value="{{ old('customer_org', $invoice->customer_org) }}">
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">পদবী (Designation)</label>
+                            <input type="text" name="customer_designation" class="form-control" 
+                                   placeholder="উদা: Executive Director, প্রধান শিক্ষক..." value="{{ old('customer_designation', $invoice->customer_designation) }}">
                         </div>
                         <div class="col-md-4">
+                            <label class="form-label fw-semibold">প্রতিষ্ঠান / সংস্থা</label>
+                            <input type="text" name="customer_org" class="form-control" 
+                                   placeholder="লাইব্রেরি, বুকশপ বা প্রতিষ্ঠানের নাম..." value="{{ old('customer_org', $invoice->customer_org) }}">
+                        </div>
+                        <div class="col-md-3">
                             <label class="form-label fw-semibold">মোবাইল নম্বর</label>
                             <input type="text" name="customer_phone" class="form-control" placeholder="017XXXXXXXX" value="{{ old('customer_phone', $invoice->customer_phone) }}">
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">ইমেইল ঠিকানা</label>
+                            <input type="email" name="customer_email" class="form-control" placeholder="customer@example.com" value="{{ old('customer_email', $invoice->customer_email) }}">
+                        </div>
+                        <div class="col-md-3">
                             <label class="form-label fw-semibold">তারিখ <span class="text-danger">*</span></label>
                             <input type="date" name="invoice_date" class="form-control" value="{{ old('invoice_date', $invoice->invoice_date?->format('Y-m-d')) }}" required>
                         </div>
-                        <div class="col-md-4" id="validUntilCol">
-                            <label class="form-label fw-semibold">মেয়াদ / ভ্যালিডিটি তারিখ</label>
+                        <div class="col-md-3" id="validUntilCol">
+                            <label class="form-label fw-semibold">মেয়াদ / ভ্যালিডিটি</label>
                             <input type="date" name="valid_until" class="form-control" value="{{ old('valid_until', $invoice->valid_until?->format('Y-m-d')) }}" title="কোটেশন বা দরপত্রের মেয়াদের শেষ তারিখ">
                         </div>
                         <div class="col-md-8">

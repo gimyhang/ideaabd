@@ -3,11 +3,14 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Mail\CustomerInvoiceMail;
 use App\Models\IdeaAccountingEntry;
 use App\Models\IdeaInvoice;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Modules\Book\Models\Book;
@@ -203,24 +206,26 @@ class IdeaAccountingController extends Controller
             'invoice_no'       => 'required|string|max:50|unique:idea_invoices,invoice_no',
             'subject'          => 'nullable|string|max:255',
             'reference_no'     => 'nullable|string|max:100',
-            'customer_name'    => 'required|string|max:255',
-            'customer_org'     => 'nullable|string|max:255',
-            'customer_phone'   => 'nullable|string|max:50',
-            'customer_address' => 'nullable|string|max:255',
-            'invoice_date'     => 'required|date',
-            'valid_until'      => 'nullable|date',
-            'discount'         => 'nullable|numeric|min:0',
-            'tax'              => 'nullable|numeric|min:0',
-            'paid_amount'      => 'nullable|numeric|min:0',
-            'payment_method'   => 'required|string|max:50',
-            'notes'            => 'nullable|string|max:1000',
-            'terms_conditions' => 'nullable|string|max:2000',
-            'items'            => 'required|array|min:1',
-            'items.*.title'    => 'required|string|max:255',
-            'items.*.item_type'=> 'nullable|string|max:50',
-            'items.*.book_id'  => 'nullable|integer',
-            'items.*.quantity' => 'required|numeric|min:0.01',
-            'items.*.price'    => 'required|numeric|min:0',
+            'customer_name'        => 'required|string|max:255',
+            'customer_designation' => 'nullable|string|max:150',
+            'customer_org'         => 'nullable|string|max:255',
+            'customer_email'       => 'nullable|email|max:255',
+            'customer_phone'       => 'nullable|string|max:50',
+            'customer_address'     => 'nullable|string|max:255',
+            'invoice_date'         => 'required|date',
+            'valid_until'          => 'nullable|date',
+            'discount'             => 'nullable|numeric|min:0',
+            'tax'                  => 'nullable|numeric|min:0',
+            'paid_amount'          => 'nullable|numeric|min:0',
+            'payment_method'       => 'required|string|max:50',
+            'notes'                => 'nullable|string|max:1000',
+            'terms_conditions'     => 'nullable|string|max:2000',
+            'items'                => 'required|array|min:1',
+            'items.*.title'        => 'required|string|max:255',
+            'items.*.item_type'    => 'nullable|string|max:50',
+            'items.*.book_id'      => 'nullable|integer',
+            'items.*.quantity'     => 'required|numeric|min:0.01',
+            'items.*.price'        => 'required|numeric|min:0',
         ], [
             'customer_name.required' => 'গ্রাহক বা প্রতিনিধির নাম লিখুন।',
             'items.required'         => 'কমপক্ষে একটি আইটেম বা বিবরণ যোগ করুন।',
@@ -266,22 +271,24 @@ class IdeaAccountingController extends Controller
                 }
 
                 $invoice = IdeaInvoice::create([
-                    'invoice_no'       => $validated['invoice_no'],
-                    'type'             => $validated['type'],
-                    'subject'          => $validated['subject'] ?? null,
-                    'reference_no'     => $validated['reference_no'] ?? null,
-                    'customer_name'    => $validated['customer_name'],
-                    'customer_org'     => $validated['customer_org'] ?? null,
-                    'customer_phone'   => $validated['customer_phone'] ?? null,
-                    'customer_address' => $validated['customer_address'] ?? null,
-                    'invoice_date'     => $validated['invoice_date'],
-                    'valid_until'      => $validated['valid_until'] ?? null,
-                    'items'            => $itemsProcessed,
-                    'subtotal'         => $subtotal,
-                    'discount'         => $discount,
-                    'tax'              => $tax,
-                    'grand_total'      => $grandTotal,
-                    'paid_amount'      => $paid,
+                    'invoice_no'           => $validated['invoice_no'],
+                    'type'                 => $validated['type'],
+                    'subject'              => $validated['subject'] ?? null,
+                    'reference_no'         => $validated['reference_no'] ?? null,
+                    'customer_name'        => $validated['customer_name'],
+                    'customer_designation' => $validated['customer_designation'] ?? null,
+                    'customer_org'         => $validated['customer_org'] ?? null,
+                    'customer_email'       => $validated['customer_email'] ?? null,
+                    'customer_phone'       => $validated['customer_phone'] ?? null,
+                    'customer_address'     => $validated['customer_address'] ?? null,
+                    'invoice_date'         => $validated['invoice_date'],
+                    'valid_until'          => $validated['valid_until'] ?? null,
+                    'items'                => $itemsProcessed,
+                    'subtotal'             => $subtotal,
+                    'discount'             => $discount,
+                    'tax'                  => $tax,
+                    'grand_total'          => $grandTotal,
+                    'paid_amount'          => $paid,
                     'due_amount'       => $due,
                     'payment_method'   => $validated['payment_method'],
                     'payment_status'   => $paymentStatus,
@@ -345,24 +352,26 @@ class IdeaAccountingController extends Controller
             'invoice_no'       => 'required|string|max:50|unique:idea_invoices,invoice_no,' . $invoice->id,
             'subject'          => 'nullable|string|max:255',
             'reference_no'     => 'nullable|string|max:100',
-            'customer_name'    => 'required|string|max:255',
-            'customer_org'     => 'nullable|string|max:255',
-            'customer_phone'   => 'nullable|string|max:50',
-            'customer_address' => 'nullable|string|max:255',
-            'invoice_date'     => 'required|date',
-            'valid_until'      => 'nullable|date',
-            'discount'         => 'nullable|numeric|min:0',
-            'tax'              => 'nullable|numeric|min:0',
-            'paid_amount'      => 'nullable|numeric|min:0',
-            'payment_method'   => 'required|string|max:50',
-            'notes'            => 'nullable|string|max:1000',
-            'terms_conditions' => 'nullable|string|max:2000',
-            'items'            => 'required|array|min:1',
-            'items.*.title'    => 'required|string|max:255',
-            'items.*.item_type'=> 'nullable|string|max:50',
-            'items.*.book_id'  => 'nullable|integer',
-            'items.*.quantity' => 'required|numeric|min:0.01',
-            'items.*.price'    => 'required|numeric|min:0',
+            'customer_name'        => 'required|string|max:255',
+            'customer_designation' => 'nullable|string|max:150',
+            'customer_org'         => 'nullable|string|max:255',
+            'customer_email'       => 'nullable|email|max:255',
+            'customer_phone'       => 'nullable|string|max:50',
+            'customer_address'     => 'nullable|string|max:255',
+            'invoice_date'         => 'required|date',
+            'valid_until'          => 'nullable|date',
+            'discount'             => 'nullable|numeric|min:0',
+            'tax'                  => 'nullable|numeric|min:0',
+            'paid_amount'          => 'nullable|numeric|min:0',
+            'payment_method'       => 'required|string|max:50',
+            'notes'                => 'nullable|string|max:1000',
+            'terms_conditions'     => 'nullable|string|max:2000',
+            'items'                => 'required|array|min:1',
+            'items.*.title'        => 'required|string|max:255',
+            'items.*.item_type'    => 'nullable|string|max:50',
+            'items.*.book_id'      => 'nullable|integer',
+            'items.*.quantity'     => 'required|numeric|min:0.01',
+            'items.*.price'        => 'required|numeric|min:0',
         ], [
             'customer_name.required' => 'গ্রাহক বা প্রতিনিধির নাম লিখুন।',
             'items.required'         => 'কমপক্ষে একটি আইটেম বা বিবরণ যোগ করুন।',
@@ -403,22 +412,24 @@ class IdeaAccountingController extends Controller
                 }
 
                 $invoice->update([
-                    'invoice_no'       => $validated['invoice_no'],
-                    'type'             => $validated['type'],
-                    'subject'          => $validated['subject'] ?? null,
-                    'reference_no'     => $validated['reference_no'] ?? null,
-                    'customer_name'    => $validated['customer_name'],
-                    'customer_org'     => $validated['customer_org'] ?? null,
-                    'customer_phone'   => $validated['customer_phone'] ?? null,
-                    'customer_address' => $validated['customer_address'] ?? null,
-                    'invoice_date'     => $validated['invoice_date'],
-                    'valid_until'      => $validated['valid_until'] ?? null,
-                    'items'            => $itemsProcessed,
-                    'subtotal'         => $subtotal,
-                    'discount'         => $discount,
-                    'tax'              => $tax,
-                    'grand_total'      => $grandTotal,
-                    'paid_amount'      => $paid,
+                    'invoice_no'           => $validated['invoice_no'],
+                    'type'                 => $validated['type'],
+                    'subject'              => $validated['subject'] ?? null,
+                    'reference_no'         => $validated['reference_no'] ?? null,
+                    'customer_name'        => $validated['customer_name'],
+                    'customer_designation' => $validated['customer_designation'] ?? null,
+                    'customer_org'         => $validated['customer_org'] ?? null,
+                    'customer_email'       => $validated['customer_email'] ?? null,
+                    'customer_phone'       => $validated['customer_phone'] ?? null,
+                    'customer_address'     => $validated['customer_address'] ?? null,
+                    'invoice_date'         => $validated['invoice_date'],
+                    'valid_until'          => $validated['valid_until'] ?? null,
+                    'items'                => $itemsProcessed,
+                    'subtotal'             => $subtotal,
+                    'discount'             => $discount,
+                    'tax'                  => $tax,
+                    'grand_total'          => $grandTotal,
+                    'paid_amount'          => $paid,
                     'due_amount'       => $due,
                     'payment_method'   => $validated['payment_method'],
                     'payment_status'   => $paymentStatus,
@@ -616,6 +627,56 @@ class IdeaAccountingController extends Controller
             return array_merge($default, $stored);
         } catch (\Throwable $e) {
             return $default;
+        }
+    }
+
+    /**
+     * Public / Client View for Invoice & Challan via shared link / QR.
+     */
+    public function publicShow(string $token): View
+    {
+        $invoice = IdeaInvoice::where('access_token', $token)
+            ->orWhere('invoice_no', $token)
+            ->orWhere('id', is_numeric($token) ? $token : 0)
+            ->firstOrFail();
+
+        $invoiceSettings = self::getInvoiceSettings();
+
+        return view('invoices.public-show', compact('invoice', 'invoiceSettings'));
+    }
+
+    /**
+     * Send Invoice & Delivery Challan to Customer Email.
+     */
+    public function sendInvoiceEmail(Request $request, IdeaInvoice $invoice): RedirectResponse
+    {
+        $validated = $request->validate([
+            'email'          => 'required|email|max:255',
+            'custom_message' => 'nullable|string|max:1000',
+        ], [
+            'email.required' => 'গ্রাহকের ইমেইল ঠিকানা প্রদান করুন।',
+            'email.email'    => 'সঠিক ইমেইল ঠিকানা লিখুন।',
+        ]);
+
+        try {
+            $invoice->customer_email = $validated['email'];
+            if (empty($invoice->access_token)) {
+                $invoice->access_token = Str::random(32);
+            }
+            $invoice->emailed_at = now();
+            $invoice->save();
+
+            Mail::to($validated['email'])
+                ->send(new CustomerInvoiceMail(
+                    $invoice,
+                    $validated['custom_message'] ?? null,
+                    self::getInvoiceSettings()
+                ));
+
+            return back()->with('success', "গ্রাহকের ইমেইল ({$validated['email']}) এ সফলভাবে বিল ও চালানের লিংক পাঠানো হয়েছে।");
+        } catch (\Throwable $e) {
+            Log::error("Invoice email failed for #{$invoice->invoice_no}: " . $e->getMessage());
+            return back()->with('error', 'ইমেইল পাঠাতে সমস্যা হয়েছে: ' . $e->getMessage());
         }
     }
 

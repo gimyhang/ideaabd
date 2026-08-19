@@ -81,6 +81,9 @@ Route::get('/storage/{path}', function (string $path) {
     return response()->file($filePath, ['Content-Type' => $mime]);
 })->where('path', '.*')->name('storage.file');
 
+// Public / Client Invoice & Delivery Challan Viewer (Link & QR access)
+Route::get('/invoices/view/{token}', [\App\Http\Controllers\Admin\IdeaAccountingController::class, 'publicShow'])->name('invoices.public.show');
+
 // হোমপেজ
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
@@ -223,6 +226,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::get('/invoices/{invoice}', 'showInvoice')->name('invoices.show');
         Route::get('/invoices/{invoice}/edit', 'editInvoice')->name('invoices.edit');
         Route::put('/invoices/{invoice}', 'updateInvoice')->name('invoices.update');
+        Route::post('/invoices/{invoice}/send-email', 'sendInvoiceEmail')->name('invoices.send-email');
         Route::post('/invoices/{invoice}/convert', 'convertInvoiceType')->name('invoices.convert');
         Route::delete('/invoices/{invoice}', 'destroyInvoice')->name('invoices.destroy');
         Route::post('/settings', 'updateSettings')->name('settings.update');

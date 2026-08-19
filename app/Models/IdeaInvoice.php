@@ -13,11 +13,14 @@ class IdeaInvoice extends Model
 
     protected $fillable = [
         'invoice_no',
+        'access_token',
         'type',
         'subject',
         'reference_no',
         'customer_name',
+        'customer_designation',
         'customer_org',
+        'customer_email',
         'customer_phone',
         'customer_address',
         'invoice_date',
@@ -33,6 +36,7 @@ class IdeaInvoice extends Model
         'payment_status',
         'notes',
         'terms_conditions',
+        'emailed_at',
         'created_by',
     ];
 
@@ -40,6 +44,7 @@ class IdeaInvoice extends Model
         'items'        => 'array',
         'invoice_date' => 'date',
         'valid_until'  => 'date',
+        'emailed_at'   => 'datetime',
         'subtotal'     => 'decimal:2',
         'discount'     => 'decimal:2',
         'tax'          => 'decimal:2',
@@ -47,6 +52,20 @@ class IdeaInvoice extends Model
         'paid_amount'  => 'decimal:2',
         'due_amount'   => 'decimal:2',
     ];
+
+    protected static function booted(): void
+    {
+        static::creating(function ($invoice) {
+            if (empty($invoice->access_token)) {
+                $invoice->access_token = \Illuminate\Support\Str::random(32);
+            }
+        });
+    }
+
+    public function getPublicUrlAttribute(): string
+    {
+        return route('invoices.public.show', $this->access_token ?: $this->invoice_no);
+    }
 
     public function getTypeLabelAttribute(): string
     {
