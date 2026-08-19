@@ -22,11 +22,18 @@ class SiteSetting
                 $rows = DB::table('admin_dashboard_settings')->get();
                 $settings = [];
                 foreach ($rows as $row) {
-                    $decoded = json_decode($row->value, true);
+                    $val = $row->value;
+                    $decoded = json_decode($val, true);
                     if (json_last_error() === JSON_ERROR_NONE) {
+                        if (is_string($decoded)) {
+                            $second = json_decode($decoded, true);
+                            if (json_last_error() === JSON_ERROR_NONE && is_array($second)) {
+                                $decoded = $second;
+                            }
+                        }
                         $settings[$row->key] = $decoded;
                     } else {
-                        $settings[$row->key] = $row->value;
+                        $settings[$row->key] = $val;
                     }
                 }
                 return $settings;

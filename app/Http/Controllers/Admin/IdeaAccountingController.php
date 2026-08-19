@@ -226,86 +226,95 @@ class IdeaAccountingController extends Controller
             'items.required'         => 'কমপক্ষে একটি আইটেম বা বিবরণ যোগ করুন।',
         ]);
 
-        return DB::transaction(function () use ($validated) {
-            $subtotal = 0.0;
-            $itemsProcessed = [];
+        try {
+            return DB::transaction(function () use ($validated) {
+                $subtotal = 0.0;
+                $itemsProcessed = [];
 
-            foreach ($validated['items'] as $item) {
-                $qty = (float) $item['quantity'];
-                $price = (float) $item['price'];
-                $lineTotal = $qty * $price;
-                $subtotal += $lineTotal;
+                foreach ($validated['items'] as $item) {
+                    $qty = (float) $item['quantity'];
+                    $price = (float) $item['price'];
+                    $lineTotal = $qty * $price;
+                    $subtotal += $lineTotal;
 
-                $itemsProcessed[] = [
-                    'title'      => $item['title'],
-                    'item_type'  => $item['item_type'] ?? 'product',
-                    'book_id'    => !empty($item['book_id']) ? (int)$item['book_id'] : null,
-                    'quantity'   => $qty,
-                    'unit_price' => $price,
-                    'subtotal'   => $lineTotal,
-                ];
-            }
+                    $itemsProcessed[] = [
+                        'title'      => $item['title'],
+                        'item_type'  => $item['item_type'] ?? 'product',
+                        'book_id'    => !empty($item['book_id']) ? (int)$item['book_id'] : null,
+                        'quantity'   => $qty,
+                        'unit_price' => $price,
+                        'subtotal'   => $lineTotal,
+                    ];
+                }
 
-            $discount = (float) ($validated['discount'] ?? 0);
-            $tax = (float) ($validated['tax'] ?? 0);
-            $grandTotal = max(0, $subtotal - $discount + $tax);
-            $paid = (float) ($validated['paid_amount'] ?? 0);
-            $due = max(0, $grandTotal - $paid);
+                $discount = (float) ($validated['discount'] ?? 0);
+                $tax = (float) ($validated['tax'] ?? 0);
+                $grandTotal = max(0, $subtotal - $discount + $tax);
+                $paid = (float) ($validated['paid_amount'] ?? 0);
+                $due = max(0, $grandTotal - $paid);
 
-            $paymentStatus = 'unpaid';
-            if ($paid >= $grandTotal && $grandTotal > 0) {
-                $paymentStatus = 'paid';
-            } elseif ($paid > 0 && $due > 0) {
-                $paymentStatus = 'partial';
-            }
+                $paymentStatus = 'unpaid';
+                if ($paid >= $grandTotal && $grandTotal > 0) {
+                    $paymentStatus = 'paid';
+                } elseif ($paid > 0 && $due > 0) {
+                    $paymentStatus = 'partial';
+                }
 
-            $invoice = IdeaInvoice::create([
-                'invoice_no'       => $validated['invoice_no'],
-                'type'             => $validated['type'],
-                'subject'          => $validated['subject'] ?? null,
-                'reference_no'     => $validated['reference_no'] ?? null,
-                'customer_name'    => $validated['customer_name'],
-                'customer_org'     => $validated['customer_org'] ?? null,
-                'customer_phone'   => $validated['customer_phone'] ?? null,
-                'customer_address' => $validated['customer_address'] ?? null,
-                'invoice_date'     => $validated['invoice_date'],
-                'valid_until'      => $validated['valid_until'] ?? null,
-                'items'            => $itemsProcessed,
-                'subtotal'         => $subtotal,
-                'discount'         => $discount,
-                'tax'              => $tax,
-                'grand_total'      => $grandTotal,
-                'paid_amount'      => $paid,
-                'due_amount'       => $due,
-                'payment_method'   => $validated['payment_method'],
-                'payment_status'   => $paymentStatus,
-                'notes'            => $validated['notes'] ?? null,
-                'terms_conditions' => $validated['terms_conditions'] ?? null,
-                'created_by'       => auth()->id(),
-            ]);
+                $userId = auth()->id() ?: null;
+                if ($userId && !\Illuminate\Support\Facades\DB::table('users')->where('id', $userId)->exists()) {
+                    $userId = null;
+                }
 
-            // Auto record payment in Accounting entries if paid amount > 0 and type is invoice/challan
-            if ($paid > 0 && in_array($validated['type'], ['invoice', 'challan'])) {
-                IdeaAccountingEntry::create([
-                    'entry_no'       => 'INC-' . date('Ymd') . '-' . rand(1000, 9999),
-                    'type'           => 'income',
-                    'category'       => $validated['type'] === 'challan' ? 'পাইকারি বিক্রয় ও চালান (Wholesale Sales)' : 'বই বিক্রয় (Book Sales)',
-                    'title'          => "বিল #{$invoice->invoice_no} হতে পেমেন্ট প্রাপ্তি — {$invoice->customer_name}",
-                    'amount'         => $paid,
-                    'entry_date'     => $invoice->invoice_date,
-                    'payment_method' => $validated['payment_method'],
-                    'party_name'     => $invoice->customer_name,
-                    'invoice_id'     => $invoice->id,
-                    'notes'          => "চালান/বিল নম্বর #{$invoice->invoice_no} থেকে প্রাপ্ত অর্থ।",
-                    'created_by'     => auth()->id(),
+                $invoice = IdeaInvoice::create([
+                    'invoice_no'       => $validated['invoice_no'],
+                    'type'             => $validated['type'],
+                    'subject'          => $validated['subject'] ?? null,
+                    'reference_no'     => $validated['reference_no'] ?? null,
+                    'customer_name'    => $validated['customer_name'],
+                    'customer_org'     => $validated['customer_org'] ?? null,
+                    'customer_phone'   => $validated['customer_phone'] ?? null,
+                    'customer_address' => $validated['customer_address'] ?? null,
+                    'invoice_date'     => $validated['invoice_date'],
+                    'valid_until'      => $validated['valid_until'] ?? null,
+                    'items'            => $itemsProcessed,
+                    'subtotal'         => $subtotal,
+                    'discount'         => $discount,
+                    'tax'              => $tax,
+                    'grand_total'      => $grandTotal,
+                    'paid_amount'      => $paid,
+                    'due_amount'       => $due,
+                    'payment_method'   => $validated['payment_method'],
+                    'payment_status'   => $paymentStatus,
+                    'notes'            => $validated['notes'] ?? null,
+                    'terms_conditions' => $validated['terms_conditions'] ?? null,
+                    'created_by'       => $userId,
                 ]);
-            }
 
-            $typeLabel = $invoice->type_label;
+                // Auto record payment in Accounting entries if paid amount > 0 and type is invoice/challan
+                if ($paid > 0 && in_array($validated['type'], ['invoice', 'challan'])) {
+                    IdeaAccountingEntry::create([
+                        'entry_no'       => 'INC-' . date('Ymd') . '-' . rand(1000, 9999),
+                        'type'           => 'income',
+                        'category'       => $validated['type'] === 'challan' ? 'পাইকারি বিক্রয় ও চালান (Wholesale Sales)' : 'বই বিক্রয় (Book Sales)',
+                        'title'          => "বিল #{$invoice->invoice_no} হতে পেমেন্ট প্রাপ্তি — {$invoice->customer_name}",
+                        'amount'         => $paid,
+                        'entry_date'     => $invoice->invoice_date,
+                        'payment_method' => $validated['payment_method'],
+                        'party_name'     => $invoice->customer_name,
+                        'invoice_id'     => $invoice->id,
+                        'notes'          => "চালান/বিল নম্বর #{$invoice->invoice_no} থেকে প্রাপ্ত অর্থ।",
+                        'created_by'     => $userId,
+                    ]);
+                }
 
-            return redirect()->route('admin.accounting.invoices.show', $invoice->id)
-                ->with('success', "{$typeLabel} #{$invoice->invoice_no} সফলভাবে তৈরি হয়েছে।");
-        });
+                $typeLabel = $invoice->type_label;
+
+                return redirect()->route('admin.accounting.invoices.show', $invoice->id)
+                    ->with('success', "{$typeLabel} #{$invoice->invoice_no} সফলভাবে তৈরি হয়েছে।");
+            });
+        } catch (\Throwable $e) {
+            return back()->withInput()->with('error', 'ডকুমেন্ট তৈরিতে সমস্যা হয়েছে: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -359,97 +368,106 @@ class IdeaAccountingController extends Controller
             'items.required'         => 'কমপক্ষে একটি আইটেম বা বিবরণ যোগ করুন।',
         ]);
 
-        return DB::transaction(function () use ($validated, $invoice) {
-            $subtotal = 0.0;
-            $itemsProcessed = [];
+        try {
+            return DB::transaction(function () use ($validated, $invoice) {
+                $subtotal = 0.0;
+                $itemsProcessed = [];
 
-            foreach ($validated['items'] as $item) {
-                $qty = (float) $item['quantity'];
-                $price = (float) $item['price'];
-                $lineTotal = $qty * $price;
-                $subtotal += $lineTotal;
+                foreach ($validated['items'] as $item) {
+                    $qty = (float) $item['quantity'];
+                    $price = (float) $item['price'];
+                    $lineTotal = $qty * $price;
+                    $subtotal += $lineTotal;
 
-                $itemsProcessed[] = [
-                    'title'      => $item['title'],
-                    'item_type'  => $item['item_type'] ?? 'product',
-                    'book_id'    => !empty($item['book_id']) ? (int)$item['book_id'] : null,
-                    'quantity'   => $qty,
-                    'unit_price' => $price,
-                    'subtotal'   => $lineTotal,
-                ];
-            }
-
-            $discount = (float) ($validated['discount'] ?? 0);
-            $tax = (float) ($validated['tax'] ?? 0);
-            $grandTotal = max(0, $subtotal - $discount + $tax);
-            $paid = (float) ($validated['paid_amount'] ?? 0);
-            $due = max(0, $grandTotal - $paid);
-
-            $paymentStatus = 'unpaid';
-            if ($paid >= $grandTotal && $grandTotal > 0) {
-                $paymentStatus = 'paid';
-            } elseif ($paid > 0 && $due > 0) {
-                $paymentStatus = 'partial';
-            }
-
-            $invoice->update([
-                'invoice_no'       => $validated['invoice_no'],
-                'type'             => $validated['type'],
-                'subject'          => $validated['subject'] ?? null,
-                'reference_no'     => $validated['reference_no'] ?? null,
-                'customer_name'    => $validated['customer_name'],
-                'customer_org'     => $validated['customer_org'] ?? null,
-                'customer_phone'   => $validated['customer_phone'] ?? null,
-                'customer_address' => $validated['customer_address'] ?? null,
-                'invoice_date'     => $validated['invoice_date'],
-                'valid_until'      => $validated['valid_until'] ?? null,
-                'items'            => $itemsProcessed,
-                'subtotal'         => $subtotal,
-                'discount'         => $discount,
-                'tax'              => $tax,
-                'grand_total'      => $grandTotal,
-                'paid_amount'      => $paid,
-                'due_amount'       => $due,
-                'payment_method'   => $validated['payment_method'],
-                'payment_status'   => $paymentStatus,
-                'notes'            => $validated['notes'] ?? null,
-                'terms_conditions' => $validated['terms_conditions'] ?? null,
-            ]);
-
-            // Sync accounting entry if exists
-            $entry = IdeaAccountingEntry::where('invoice_id', $invoice->id)->first();
-            if ($paid > 0 && in_array($validated['type'], ['invoice', 'challan'])) {
-                if ($entry) {
-                    $entry->update([
-                        'amount'         => $paid,
-                        'entry_date'     => $invoice->invoice_date,
-                        'payment_method' => $validated['payment_method'],
-                        'party_name'     => $invoice->customer_name,
-                    ]);
-                } else {
-                    IdeaAccountingEntry::create([
-                        'entry_no'       => 'INC-' . date('Ymd') . '-' . rand(1000, 9999),
-                        'type'           => 'income',
-                        'category'       => $validated['type'] === 'challan' ? 'পাইকারি বিক্রয় ও চালান (Wholesale Sales)' : 'বই বিক্রয় (Book Sales)',
-                        'title'          => "বিল #{$invoice->invoice_no} হতে পেমেন্ট প্রাপ্তি — {$invoice->customer_name}",
-                        'amount'         => $paid,
-                        'entry_date'     => $invoice->invoice_date,
-                        'payment_method' => $validated['payment_method'],
-                        'party_name'     => $invoice->customer_name,
-                        'invoice_id'     => $invoice->id,
-                        'notes'          => "চালান/বিল নম্বর #{$invoice->invoice_no} থেকে প্রাপ্ত অর্থ।",
-                        'created_by'     => auth()->id(),
-                    ]);
+                    $itemsProcessed[] = [
+                        'title'      => $item['title'],
+                        'item_type'  => $item['item_type'] ?? 'product',
+                        'book_id'    => !empty($item['book_id']) ? (int)$item['book_id'] : null,
+                        'quantity'   => $qty,
+                        'unit_price' => $price,
+                        'subtotal'   => $lineTotal,
+                    ];
                 }
-            } elseif ($entry && ($paid == 0 || in_array($validated['type'], ['quotation', 'tender']))) {
-                $entry->delete();
-            }
 
-            $typeLabel = $invoice->type_label;
+                $discount = (float) ($validated['discount'] ?? 0);
+                $tax = (float) ($validated['tax'] ?? 0);
+                $grandTotal = max(0, $subtotal - $discount + $tax);
+                $paid = (float) ($validated['paid_amount'] ?? 0);
+                $due = max(0, $grandTotal - $paid);
 
-            return redirect()->route('admin.accounting.invoices.show', $invoice->id)
-                ->with('success', "{$typeLabel} #{$invoice->invoice_no} সফলভাবে আপডেট করা হয়েছে।");
-        });
+                $paymentStatus = 'unpaid';
+                if ($paid >= $grandTotal && $grandTotal > 0) {
+                    $paymentStatus = 'paid';
+                } elseif ($paid > 0 && $due > 0) {
+                    $paymentStatus = 'partial';
+                }
+
+                $invoice->update([
+                    'invoice_no'       => $validated['invoice_no'],
+                    'type'             => $validated['type'],
+                    'subject'          => $validated['subject'] ?? null,
+                    'reference_no'     => $validated['reference_no'] ?? null,
+                    'customer_name'    => $validated['customer_name'],
+                    'customer_org'     => $validated['customer_org'] ?? null,
+                    'customer_phone'   => $validated['customer_phone'] ?? null,
+                    'customer_address' => $validated['customer_address'] ?? null,
+                    'invoice_date'     => $validated['invoice_date'],
+                    'valid_until'      => $validated['valid_until'] ?? null,
+                    'items'            => $itemsProcessed,
+                    'subtotal'         => $subtotal,
+                    'discount'         => $discount,
+                    'tax'              => $tax,
+                    'grand_total'      => $grandTotal,
+                    'paid_amount'      => $paid,
+                    'due_amount'       => $due,
+                    'payment_method'   => $validated['payment_method'],
+                    'payment_status'   => $paymentStatus,
+                    'notes'            => $validated['notes'] ?? null,
+                    'terms_conditions' => $validated['terms_conditions'] ?? null,
+                ]);
+
+                // Sync accounting entry if exists
+                $userId = auth()->id() ?: null;
+                if ($userId && !\Illuminate\Support\Facades\DB::table('users')->where('id', $userId)->exists()) {
+                    $userId = null;
+                }
+
+                $entry = IdeaAccountingEntry::where('invoice_id', $invoice->id)->first();
+                if ($paid > 0 && in_array($validated['type'], ['invoice', 'challan'])) {
+                    if ($entry) {
+                        $entry->update([
+                            'amount'         => $paid,
+                            'entry_date'     => $invoice->invoice_date,
+                            'payment_method' => $validated['payment_method'],
+                            'party_name'     => $invoice->customer_name,
+                        ]);
+                    } else {
+                        IdeaAccountingEntry::create([
+                            'entry_no'       => 'INC-' . date('Ymd') . '-' . rand(1000, 9999),
+                            'type'           => 'income',
+                            'category'       => $validated['type'] === 'challan' ? 'পাইকারি বিক্রয় ও চালান (Wholesale Sales)' : 'বই বিক্রয় (Book Sales)',
+                            'title'          => "বিল #{$invoice->invoice_no} হতে পেমেন্ট প্রাপ্তি — {$invoice->customer_name}",
+                            'amount'         => $paid,
+                            'entry_date'     => $invoice->invoice_date,
+                            'payment_method' => $validated['payment_method'],
+                            'party_name'     => $invoice->customer_name,
+                            'invoice_id'     => $invoice->id,
+                            'notes'          => "চালান/বিল নম্বর #{$invoice->invoice_no} থেকে প্রাপ্ত অর্থ।",
+                            'created_by'     => $userId,
+                        ]);
+                    }
+                } elseif ($entry && ($paid == 0 || in_array($validated['type'], ['quotation', 'tender']))) {
+                    $entry->delete();
+                }
+
+                $typeLabel = $invoice->type_label;
+
+                return redirect()->route('admin.accounting.invoices.show', $invoice->id)
+                    ->with('success', "{$typeLabel} #{$invoice->invoice_no} সফলভাবে আপডেট করা হয়েছে।");
+            });
+        } catch (\Throwable $e) {
+            return back()->withInput()->with('error', 'বিল ও চালান আপডেটে সমস্যা হয়েছে: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -540,11 +558,18 @@ class IdeaAccountingController extends Controller
                 $settings['logo'] = $validated['logo_url'];
             }
 
-            \App\Models\AdminDashboardSetting::updateOrCreate(
+            $userId = auth()->id() ?: null;
+            if ($userId && !\Illuminate\Support\Facades\DB::table('users')->where('id', $userId)->exists()) {
+                $userId = null;
+            }
+
+            \Illuminate\Support\Facades\DB::table('admin_dashboard_settings')->updateOrInsert(
                 ['key' => 'invoice_settings'],
                 [
-                    'value'      => $settings,
-                    'updated_by' => auth()->id(),
+                    'value'      => json_encode($settings, JSON_UNESCAPED_UNICODE),
+                    'updated_by' => $userId,
+                    'updated_at' => now(),
+                    'created_at' => now(),
                 ]
             );
 
@@ -570,14 +595,28 @@ class IdeaAccountingController extends Controller
             'logo'          => '/images/logo.png',
         ];
 
-        $stored = \App\Support\SiteSetting::get('invoice_settings', []);
-        if (is_string($stored)) {
-            $decoded = json_decode($stored, true);
-            if (is_array($decoded)) {
-                $stored = $decoded;
+        try {
+            $stored = \App\Support\SiteSetting::get('invoice_settings', []);
+            if (is_string($stored)) {
+                $decoded = json_decode($stored, true);
+                if (is_array($decoded)) {
+                    $stored = $decoded;
+                } elseif (is_string($decoded)) {
+                    $second = json_decode($decoded, true);
+                    if (is_array($second)) {
+                        $stored = $second;
+                    }
+                }
             }
+
+            if (!is_array($stored)) {
+                $stored = [];
+            }
+
+            return array_merge($default, $stored);
+        } catch (\Throwable $e) {
+            return $default;
         }
-        return array_merge($default, is_array($stored) ? $stored : []);
     }
 
     /**
