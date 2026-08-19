@@ -484,32 +484,76 @@ class IdeaAccountingController extends Controller
             'address'       => 'nullable|string|max:255',
             'phone'         => 'nullable|string|max:100',
             'email'         => 'nullable|string|max:100',
-            'logo_file'     => 'nullable|image|max:2048',
+            'logo_base64'   => 'nullable|string',
+            'logo_file'     => 'nullable|image|max:5120',
             'logo_url'      => 'nullable|string|max:255',
         ]);
 
-        $settings = self::getInvoiceSettings();
-        $settings['business_name'] = $validated['business_name'];
-        $settings['tagline'] = $validated['tagline'] ?? '';
-        $settings['address'] = $validated['address'] ?? '';
-        $settings['phone'] = $validated['phone'] ?? '';
-        $settings['email'] = $validated['email'] ?? '';
+        try {
+            $settings = self::getInvoiceSettings();
+            $settings['business_name'] = $validated['business_name'];
+            $settings['tagline'] = $validated['tagline'] ?? '';
+            $settings['address'] = $validated['address'] ?? '';
+            $settings['phone'] = $validated['phone'] ?? '';
+            $settings['email'] = $validated['email'] ?? '';
 
-        if ($request->hasFile('logo_file')) {
-            $path = $request->file('logo_file')->store('settings', 'public');
-            $settings['logo'] = 'storage/' . $path;
-        } elseif (!empty($validated['logo_url'])) {
-            $settings['logo'] = $validated['logo_url'];
+            // Handle 2:1 cropped base64 image
+            if (!empty($validated['logo_base64']) && str_starts_with($validated['logo_base64'], 'data:image/')) {
+                $base64 = $validated['logo_base64'];
+                if (preg_match('/^data:image\/(\w+);base64,/', $base64, $type)) {
+                    $base64Data = substr($base64, strpos($base64, ',') + 1);
+                    $decoded = base64_decode($base64Data);
+                    if ($decoded !== false) {
+                        $ext = strtolower($type[1] ?? 'png');
+                        if ($ext === 'jpeg') $ext = 'jpg';
+                        $filename = 'invoice_logo_' . time() . '.' . $ext;
+
+                        // Primary target: public/images/settings
+                        $targetDir = public_path('images/settings');
+                        if (!is_dir($targetDir)) {
+                            @mkdir($targetDir, 0777, true);
+                        }
+                        @file_put_contents($targetDir . '/' . $filename, $decoded);
+
+                        // Backup target: storage/app/public/settings
+                        $storageDir = storage_path('app/public/settings');
+                        if (!is_dir($storageDir)) {
+                            @mkdir($storageDir, 0777, true);
+                        }
+                        @file_put_contents($storageDir . '/' . $filename, $decoded);
+
+                        $settings['logo'] = 'images/settings/' . $filename;
+                    }
+                }
+            } elseif ($request->hasFile('logo_file')) {
+                $file = $request->file('logo_file');
+                $ext = $file->getClientOriginalExtension() ?: 'png';
+                $filename = 'invoice_logo_' . time() . '.' . $ext;
+                
+                $targetDir = public_path('images/settings');
+                if (!is_dir($targetDir)) {
+                    @mkdir($targetDir, 0777, true);
+                }
+                $file->move($targetDir, $filename);
+                $settings['logo'] = 'images/settings/' . $filename;
+            } elseif (!empty($validated['logo_url'])) {
+                $settings['logo'] = $validated['logo_url'];
+            }
+
+            \App\Models\AdminDashboardSetting::updateOrCreate(
+                ['key' => 'invoice_settings'],
+                [
+                    'value'      => $settings,
+                    'updated_by' => auth()->id(),
+                ]
+            );
+
+            \App\Support\SiteSetting::clearCache();
+
+            return back()->with('success', 'বিল ও মেমোর অফিশিয়াল তথ্য এবং লোগো সফলভাবে আপডেট করা হয়েছে।');
+        } catch (\Throwable $e) {
+            return back()->with('error', 'তথ্য সংরক্ষণে সমস্যা হয়েছে: ' . $e->getMessage());
         }
-
-        \App\Models\AdminDashboardSetting::updateOrCreate(
-            ['key' => 'invoice_settings'],
-            ['value' => json_encode($settings, JSON_UNESCAPED_UNICODE)]
-        );
-
-        \App\Support\SiteSetting::clearCache();
-
-        return back()->with('success', 'বিল ও মেমোর অফিশিয়াল তথ্য সফলভাবে আপডেট করা হয়েছে।');
     }
 
     /**
@@ -527,6 +571,12 @@ class IdeaAccountingController extends Controller
         ];
 
         $stored = \App\Support\SiteSetting::get('invoice_settings', []);
+        if (is_string($stored)) {
+            $decoded = json_decode($stored, true);
+            if (is_array($decoded)) {
+                $stored = $decoded;
+            }
+        }
         return array_merge($default, is_array($stored) ? $stored : []);
     }
 

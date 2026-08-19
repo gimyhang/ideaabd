@@ -43,7 +43,7 @@
 
         {{-- Customize Memo Header Settings Button --}}
         <button type="button" class="btn btn-outline-secondary shadow-sm" data-bs-toggle="modal" data-bs-target="#invoiceSettingsModal" title="বিল ও মেমোর তথ্য কাস্টমাইজ করুন">
-            <i class="fas fa-gear me-1"></i> মেমো সেটিংস
+            <i class="fas fa-palette me-1 text-primary"></i> মেমো ডিজাইন ও সেটিংস
         </button>
 
         {{-- Convert to Invoice/Challan if currently Quotation or Tender --}}
@@ -117,11 +117,11 @@
         {{-- ========================================================================= --}}
         <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-white mb-4 invoice-page-card" id="pageBillMemo">
             
-            {{-- Institutional / Company Header with Logo on the left --}}
+            {{-- Institutional / Company Header with 2:1 Wide Logo on the left --}}
             <div class="d-flex flex-wrap justify-content-between align-items-start border-bottom pb-4 mb-4 gap-3">
                 <div class="d-flex align-items-center gap-3">
                     <img src="{{ $logoSrc }}" alt="{{ $settings['business_name'] ?? 'আইডিয়া প্রকাশন' }}" 
-                         class="img-fluid" style="height: 60px; max-width: 140px; object-fit: contain;">
+                         class="img-fluid" style="height: 65px; width: 130px; aspect-ratio: 2/1; object-fit: contain;">
                     <div>
                         <h2 class="fw-bold text-primary mb-0">{{ $settings['business_name'] ?? 'আইডিয়া প্রকাশন' }}</h2>
                         <p class="text-muted small mb-0">{{ $settings['tagline'] ?? 'বই প্রকাশনা, মুদ্রণ ও পরিবেশনা' }}</p>
@@ -355,11 +355,11 @@
 
             <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-white mb-4 invoice-page-card" id="pageChallanMemo">
                 
-                {{-- Institutional / Company Header with Logo on the left --}}
+                {{-- Institutional / Company Header with 2:1 Wide Logo on the left --}}
                 <div class="d-flex flex-wrap justify-content-between align-items-start border-bottom pb-4 mb-4 gap-3">
                     <div class="d-flex align-items-center gap-3">
                         <img src="{{ $logoSrc }}" alt="{{ $settings['business_name'] ?? 'আইডিয়া প্রকাশন' }}" 
-                             class="img-fluid" style="height: 60px; max-width: 140px; object-fit: contain;">
+                             class="img-fluid" style="height: 65px; width: 130px; aspect-ratio: 2/1; object-fit: contain;">
                         <div>
                             <h2 class="fw-bold text-primary mb-0">{{ $settings['business_name'] ?? 'আইডিয়া প্রকাশন' }}</h2>
                             <p class="text-muted small mb-0">{{ $settings['tagline'] ?? 'বই প্রকাশনা, মুদ্রণ ও পরিবেশনা' }}</p>
@@ -504,55 +504,109 @@
     </div>
 </div>
 
-{{-- Invoice & Memo Header Settings Modal --}}
+{{-- Invoice & Memo Header Settings / Design Modal with 2:1 Cropper --}}
 <div class="modal fade d-print-none" id="invoiceSettingsModal" tabindex="-1" aria-labelledby="invoiceSettingsModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content rounded-4 border-0 shadow">
-            <form action="{{ route('admin.accounting.settings.update') }}" method="POST" enctype="multipart/form-data">
+            <form action="{{ route('admin.accounting.settings.update') }}" method="POST" enctype="multipart/form-data" id="settingsForm">
                 @csrf
+                <input type="hidden" name="logo_base64" id="logoCroppedBase64">
+
                 <div class="modal-header border-bottom py-3">
                     <h5 class="modal-title fw-bold text-primary" id="invoiceSettingsModalLabel">
-                        <i class="fas fa-gear me-2"></i>বিল ও মেমোর অফিশিয়াল তথ্য কাস্টমাইজ
+                        <i class="fas fa-palette me-2"></i>ইনভয়েস ডিজাইন ও মেমো ব্র্যান্ডিং সেটিংস
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body p-4">
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">কোম্পানি / প্রকাশনীর নাম <span class="text-danger">*</span></label>
-                        <input type="text" name="business_name" class="form-control" value="{{ $settings['business_name'] ?? 'আইডিয়া প্রকাশন' }}" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">ট্যাগলাইন / স্লোগান</label>
-                        <input type="text" name="tagline" class="form-control" value="{{ $settings['tagline'] ?? 'বই প্রকাশনা, মুদ্রণ ও পরিবেশনা' }}">
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">অফিসের ঠিকানা</label>
-                        <input type="text" name="address" class="form-control" value="{{ $settings['address'] ?? 'ঢাকা, বাংলাদেশ' }}">
-                    </div>
-
-                    <div class="row g-2 mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">মোবাইল নম্বর</label>
-                            <input type="text" name="phone" class="form-control" value="{{ $settings['phone'] ?? '018XXXXXXXX' }}">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">ইমেইল ঠিকানা</label>
-                            <input type="email" name="email" class="form-control" value="{{ $settings['email'] ?? 'info@ideaabd.com' }}">
+                    
+                    {{-- Live Preview Header Card --}}
+                    <div class="card border rounded-3 p-3 mb-4 bg-light">
+                        <span class="small fw-bold text-muted text-uppercase mb-2 d-block"><i class="fas fa-eye me-1 text-primary"></i>ইনভয়েস হেডার লাইভ প্রিভিউ (Preview):</span>
+                        <div class="d-flex align-items-center gap-3 p-2 bg-white rounded border">
+                            <img src="{{ $logoSrc }}" id="previewHeaderLogo" alt="Logo Preview" style="height: 55px; width: 110px; aspect-ratio: 2/1; object-fit: contain;">
+                            <div>
+                                <h4 class="fw-bold text-primary mb-0" id="previewHeaderTitle">{{ $settings['business_name'] ?? 'আইডিয়া প্রকাশন' }}</h4>
+                                <p class="text-muted small mb-0" id="previewHeaderTagline">{{ $settings['tagline'] ?? 'বই প্রকাশনা, মুদ্রণ ও পরিবেশনা' }}</p>
+                                <div class="text-muted small mt-0.5" id="previewHeaderMeta" style="font-size: 11.5px;">
+                                    {{ $settings['address'] ?? 'ঢাকা, বাংলাদেশ' }} · মোবাইল: {{ $settings['phone'] ?? '018XXXXXXXX' }} · ইমেইল: {{ $settings['email'] ?? 'info@ideaabd.com' }}
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">লোগো পরিবর্তন করুন (ইমেজ ফাইল আপলোড)</label>
-                        <input type="file" name="logo_file" class="form-control" accept="image/*">
-                        <div class="form-text small">পিএনজি বা জেপিজি ফাইল আপলোড করতে পারেন। খালি রাখলে বর্তমান লোগো থাকবে।</div>
+                    {{-- 2:1 Aspect Ratio Logo Cropper Tool --}}
+                    <div class="card border border-primary-subtle rounded-3 p-3 mb-4 bg-primary-subtle bg-opacity-10">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label class="form-label fw-bold text-primary mb-0">
+                                <i class="fas fa-crop-simple me-1"></i> লোগো আপলোড ও ২:১ ওয়াইড ক্রপ টুল (Wide 2:1 Ratio)
+                            </label>
+                            <span class="badge bg-primary text-white">রেশিও ২:১ (উচ্চতার দ্বিগুণ চওড়া)</span>
+                        </div>
+                        
+                        <input type="file" id="logoFileInput" class="form-control mb-3" accept="image/*">
+                        
+                        <div id="cropperContainer" class="d-none">
+                            <div class="row g-3 align-items-center">
+                                <div class="col-md-7">
+                                    <div class="position-relative bg-dark rounded-3 overflow-hidden d-flex align-items-center justify-content-center" 
+                                         style="height: 180px; width: 100%; border: 2px dashed #0d6efd; cursor: grab;" id="cropDragArea">
+                                        <canvas id="cropCanvas" width="360" height="180" class="w-100 h-100" style="object-fit: contain;"></canvas>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2 mt-2">
+                                        <i class="fas fa-magnifying-glass-minus text-muted small"></i>
+                                        <input type="range" class="form-range" id="cropZoomSlider" min="0.3" max="3.5" step="0.02" value="1">
+                                        <i class="fas fa-magnifying-glass-plus text-muted small"></i>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="resetCrop()" title="রিসেট">
+                                            <i class="fas fa-rotate-left"></i>
+                                        </button>
+                                    </div>
+                                    <small class="text-muted d-block mt-1" style="font-size: 11px;">
+                                        <i class="fas fa-hand me-1"></i>মাউস দিয়ে টেনে পজিশন ঠিক করুন এবং স্লাইডার দিয়ে জুম করুন।
+                                    </small>
+                                </div>
+                                <div class="col-md-5 text-center">
+                                    <span class="small fw-semibold text-muted d-block mb-1">ক্রপ প্রিভিউ (২:১ ওয়াইড):</span>
+                                    <div class="p-2 bg-white rounded border d-inline-block shadow-xs">
+                                        <img id="croppedResultThumb" src="{{ $logoSrc }}" style="height: 60px; width: 120px; aspect-ratio: 2/1; object-fit: contain;" class="rounded">
+                                    </div>
+                                    <div class="text-success small fw-bold mt-1.5"><i class="fas fa-check-circle me-1"></i>পারফেক্ট ২:১ রেশিও প্রস্তুত</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">কোম্পানি / প্রকাশনীর নাম <span class="text-danger">*</span></label>
+                            <input type="text" name="business_name" id="inputBusinessName" class="form-control" value="{{ $settings['business_name'] ?? 'আইডিয়া প্রকাশন' }}" required oninput="updateLivePreview()">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">ট্যাগলাইন / স্লোগান</label>
+                            <input type="text" name="tagline" id="inputTagline" class="form-control" value="{{ $settings['tagline'] ?? 'বই প্রকাশনা, মুদ্রণ ও পরিবেশনা' }}" placeholder="বই প্রকাশনা, মুদ্রণ ও পরিবেশনা..." oninput="updateLivePreview()">
+                        </div>
+
+                        <div class="col-md-12">
+                            <label class="form-label fw-semibold">অফিসের পূর্ণাঙ্গ ঠিকানা</label>
+                            <input type="text" name="address" id="inputAddress" class="form-control" value="{{ $settings['address'] ?? 'ঢাকা, বাংলাদেশ' }}" placeholder="যেমন: সেন্ট্রাল রোড, রংপুর / ৩৮ বাংলাবাজার, ঢাকা..." oninput="updateLivePreview()">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">অফিশিয়াল মোবাইল নম্বর</label>
+                            <input type="text" name="phone" id="inputPhone" class="form-control" value="{{ $settings['phone'] ?? '018XXXXXXXX' }}" placeholder="017XXXXXXXX, 018XXXXXXXX" oninput="updateLivePreview()">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">অফিশিয়াল ইমেইল ঠিকানা</label>
+                            <input type="email" name="email" id="inputEmail" class="form-control" value="{{ $settings['email'] ?? 'info@ideaabd.com' }}" placeholder="info@ideaabd.com" oninput="updateLivePreview()">
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer border-top py-2.5">
                     <button type="button" class="btn btn-light" data-bs-dismiss="modal">বাতিল</button>
-                    <button type="submit" class="btn btn-primary fw-semibold px-4">
-                        <i class="fas fa-save me-1"></i> তথ্য সংরক্ষণ করুন
+                    <button type="submit" class="btn btn-primary fw-semibold px-4 shadow-sm">
+                        <i class="fas fa-save me-1"></i> ডিজাইন ও তথ্য সংরক্ষণ করুন
                     </button>
                 </div>
             </form>
@@ -587,6 +641,162 @@ function setViewMode(mode) {
         pageChallan.classList.remove('d-none');
         btnBoth.classList.add('active');
     }
+}
+
+function updateLivePreview() {
+    const name = document.getElementById('inputBusinessName')?.value || 'আইডিয়া প্রকাশন';
+    const tag = document.getElementById('inputTagline')?.value || '';
+    const addr = document.getElementById('inputAddress')?.value || '';
+    const ph = document.getElementById('inputPhone')?.value || '';
+    const em = document.getElementById('inputEmail')?.value || '';
+
+    const titleEl = document.getElementById('previewHeaderTitle');
+    const tagEl = document.getElementById('previewHeaderTagline');
+    const metaEl = document.getElementById('previewHeaderMeta');
+
+    if (titleEl) titleEl.textContent = name;
+    if (tagEl) tagEl.textContent = tag;
+    if (metaEl) metaEl.textContent = `${addr} · মোবাইল: ${ph} · ইমেইল: ${em}`;
+}
+
+// 2:1 Aspect Ratio Canvas Cropper Logic
+let rawImage = new Image();
+let imageLoaded = false;
+let cropX = 0, cropY = 0;
+let cropScale = 1;
+let isDragging = false;
+let dragStartX = 0, dragStartY = 0;
+
+const fileInput = document.getElementById('logoFileInput');
+const cropperBox = document.getElementById('cropperContainer');
+const canvas = document.getElementById('cropCanvas');
+const ctx = canvas?.getContext('2d');
+const zoomSlider = document.getElementById('cropZoomSlider');
+const base64Input = document.getElementById('logoCroppedBase64');
+const resultThumb = document.getElementById('croppedResultThumb');
+const headerPreviewImg = document.getElementById('previewHeaderLogo');
+const dragArea = document.getElementById('cropDragArea');
+
+if (fileInput) {
+    fileInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+            rawImage = new Image();
+            rawImage.onload = function() {
+                imageLoaded = true;
+                cropperBox.classList.remove('d-none');
+                
+                // Set initial scale to fit canvas
+                const scaleW = canvas.width / rawImage.width;
+                const scaleH = canvas.height / rawImage.height;
+                cropScale = Math.max(scaleW, scaleH);
+                
+                zoomSlider.min = (cropScale * 0.4).toFixed(2);
+                zoomSlider.max = (cropScale * 3.5).toFixed(2);
+                zoomSlider.value = cropScale.toFixed(2);
+                
+                cropX = (canvas.width - rawImage.width * cropScale) / 2;
+                cropY = (canvas.height - rawImage.height * cropScale) / 2;
+
+                renderCrop();
+            };
+            rawImage.src = evt.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
+function renderCrop() {
+    if (!imageLoaded || !ctx) return;
+    
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Draw background grid/fill
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    const drawW = rawImage.width * cropScale;
+    const drawH = rawImage.height * cropScale;
+    
+    ctx.drawImage(rawImage, cropX, cropY, drawW, drawH);
+    
+    // Export 2:1 PNG
+    const dataUrl = canvas.toDataURL('image/png', 0.95);
+    if (base64Input) base64Input.value = dataUrl;
+    if (resultThumb) resultThumb.src = dataUrl;
+    if (headerPreviewImg) headerPreviewImg.src = dataUrl;
+}
+
+if (zoomSlider) {
+    zoomSlider.addEventListener('input', function() {
+        const prevScale = cropScale;
+        cropScale = parseFloat(this.value);
+        
+        // Zoom towards center
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        cropX = centerX - ((centerX - cropX) / prevScale) * cropScale;
+        cropY = centerY - ((centerY - cropY) / prevScale) * cropScale;
+        
+        renderCrop();
+    });
+}
+
+if (dragArea) {
+    dragArea.addEventListener('mousedown', function(e) {
+        isDragging = true;
+        dragStartX = e.clientX - cropX;
+        dragStartY = e.clientY - cropY;
+        dragArea.style.cursor = 'grabbing';
+    });
+
+    window.addEventListener('mousemove', function(e) {
+        if (!isDragging) return;
+        cropX = e.clientX - dragStartX;
+        cropY = e.clientY - dragStartY;
+        renderCrop();
+    });
+
+    window.addEventListener('mouseup', function() {
+        if (isDragging) {
+            isDragging = false;
+            dragArea.style.cursor = 'grab';
+        }
+    });
+
+    // Touch support for mobile/tablets
+    dragArea.addEventListener('touchstart', function(e) {
+        if (e.touches.length === 1) {
+            isDragging = true;
+            dragStartX = e.touches[0].clientX - cropX;
+            dragStartY = e.touches[0].clientY - cropY;
+        }
+    }, {passive: true});
+
+    window.addEventListener('touchmove', function(e) {
+        if (!isDragging || e.touches.length !== 1) return;
+        cropX = e.touches[0].clientX - dragStartX;
+        cropY = e.touches[0].clientY - dragStartY;
+        renderCrop();
+    }, {passive: true});
+
+    window.addEventListener('touchend', function() {
+        isDragging = false;
+    });
+}
+
+function resetCrop() {
+    if (!imageLoaded) return;
+    const scaleW = canvas.width / rawImage.width;
+    const scaleH = canvas.height / rawImage.height;
+    cropScale = Math.max(scaleW, scaleH);
+    zoomSlider.value = cropScale.toFixed(2);
+    cropX = (canvas.width - rawImage.width * cropScale) / 2;
+    cropY = (canvas.height - rawImage.height * cropScale) / 2;
+    renderCrop();
 }
 </script>
 

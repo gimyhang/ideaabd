@@ -282,12 +282,14 @@
     @endif
 </div>
 
-{{-- Invoice & Memo Header Settings / Design Modal --}}
+{{-- Invoice & Memo Header Settings / Design Modal with 2:1 Cropper --}}
 <div class="modal fade" id="invoiceSettingsModal" tabindex="-1" aria-labelledby="invoiceSettingsModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content rounded-4 border-0 shadow">
-            <form action="{{ route('admin.accounting.settings.update') }}" method="POST" enctype="multipart/form-data">
+            <form action="{{ route('admin.accounting.settings.update') }}" method="POST" enctype="multipart/form-data" id="indexSettingsForm">
                 @csrf
+                <input type="hidden" name="logo_base64" id="indexLogoCroppedBase64">
+
                 <div class="modal-header border-bottom py-3">
                     <h5 class="modal-title fw-bold text-primary" id="invoiceSettingsModalLabel">
                         <i class="fas fa-palette me-2"></i>ইনভয়েস ডিজাইন ও মেমো ব্র্যান্ডিং সেটিংস
@@ -300,12 +302,53 @@
                     <div class="card border rounded-3 p-3 mb-4 bg-light">
                         <span class="small fw-bold text-muted text-uppercase mb-2 d-block"><i class="fas fa-eye me-1 text-primary"></i>ইনভয়েস হেডার লাইভ প্রিভিউ (Preview):</span>
                         <div class="d-flex align-items-center gap-3 p-2 bg-white rounded border">
-                            <img src="{{ $logoSrc }}" alt="Logo Preview" style="height: 50px; max-width: 120px; object-fit: contain;">
+                            <img src="{{ $logoSrc }}" id="indexPreviewHeaderLogo" alt="Logo Preview" style="height: 55px; width: 110px; aspect-ratio: 2/1; object-fit: contain;">
                             <div>
-                                <h4 class="fw-bold text-primary mb-0">{{ $settings['business_name'] ?? 'আইডিয়া প্রকাশন' }}</h4>
-                                <p class="text-muted small mb-0">{{ $settings['tagline'] ?? 'বই প্রকাশনা, মুদ্রণ ও পরিবেশনা' }}</p>
-                                <div class="text-muted small mt-0.5" style="font-size: 11.5px;">
+                                <h4 class="fw-bold text-primary mb-0" id="indexPreviewHeaderTitle">{{ $settings['business_name'] ?? 'আইডিয়া প্রকাশন' }}</h4>
+                                <p class="text-muted small mb-0" id="indexPreviewHeaderTagline">{{ $settings['tagline'] ?? 'বই প্রকাশনা, মুদ্রণ ও পরিবেশনা' }}</p>
+                                <div class="text-muted small mt-0.5" id="indexPreviewHeaderMeta" style="font-size: 11.5px;">
                                     {{ $settings['address'] ?? 'ঢাকা, বাংলাদেশ' }} · মোবাইল: {{ $settings['phone'] ?? '018XXXXXXXX' }} · ইমেইল: {{ $settings['email'] ?? 'info@ideaabd.com' }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- 2:1 Aspect Ratio Logo Cropper Tool --}}
+                    <div class="card border border-primary-subtle rounded-3 p-3 mb-4 bg-primary-subtle bg-opacity-10">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label class="form-label fw-bold text-primary mb-0">
+                                <i class="fas fa-crop-simple me-1"></i> লোগো আপলোড ও ২:১ ওয়াইড ক্রপ টুল (Wide 2:1 Ratio)
+                            </label>
+                            <span class="badge bg-primary text-white">রেশিও ২:১ (উচ্চতার দ্বিগুণ চওড়া)</span>
+                        </div>
+                        
+                        <input type="file" id="indexLogoFileInput" class="form-control mb-3" accept="image/*">
+                        
+                        <div id="indexCropperContainer" class="d-none">
+                            <div class="row g-3 align-items-center">
+                                <div class="col-md-7">
+                                    <div class="position-relative bg-dark rounded-3 overflow-hidden d-flex align-items-center justify-content-center" 
+                                         style="height: 180px; width: 100%; border: 2px dashed #0d6efd; cursor: grab;" id="indexCropDragArea">
+                                        <canvas id="indexCropCanvas" width="360" height="180" class="w-100 h-100" style="object-fit: contain;"></canvas>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2 mt-2">
+                                        <i class="fas fa-magnifying-glass-minus text-muted small"></i>
+                                        <input type="range" class="form-range" id="indexCropZoomSlider" min="0.3" max="3.5" step="0.02" value="1">
+                                        <i class="fas fa-magnifying-glass-plus text-muted small"></i>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="indexResetCrop()" title="রিসেট">
+                                            <i class="fas fa-rotate-left"></i>
+                                        </button>
+                                    </div>
+                                    <small class="text-muted d-block mt-1" style="font-size: 11px;">
+                                        <i class="fas fa-hand me-1"></i>মাউস দিয়ে টেনে পজিশন ঠিক করুন এবং স্লাইডার দিয়ে জুম করুন।
+                                    </small>
+                                </div>
+                                <div class="col-md-5 text-center">
+                                    <span class="small fw-semibold text-muted d-block mb-1">ক্রপ প্রিভিউ (২:১ ওয়াইড):</span>
+                                    <div class="p-2 bg-white rounded border d-inline-block shadow-xs">
+                                        <img id="indexCroppedResultThumb" src="{{ $logoSrc }}" style="height: 60px; width: 120px; aspect-ratio: 2/1; object-fit: contain;" class="rounded">
+                                    </div>
+                                    <div class="text-success small fw-bold mt-1.5"><i class="fas fa-check-circle me-1"></i>পারফেক্ট ২:১ রেশিও প্রস্তুত</div>
                                 </div>
                             </div>
                         </div>
@@ -314,39 +357,33 @@
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">কোম্পানি / প্রকাশনীর নাম <span class="text-danger">*</span></label>
-                            <input type="text" name="business_name" class="form-control" value="{{ $settings['business_name'] ?? 'আইডিয়া প্রকাশন' }}" required>
+                            <input type="text" name="business_name" id="indexInputBusinessName" class="form-control" value="{{ $settings['business_name'] ?? 'আইডিয়া প্রকাশন' }}" required oninput="updateIndexLivePreview()">
                         </div>
 
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">ট্যাগলাইন / স্লোগান</label>
-                            <input type="text" name="tagline" class="form-control" value="{{ $settings['tagline'] ?? 'বই প্রকাশনা, মুদ্রণ ও পরিবেশনা' }}" placeholder="বই প্রকাশনা, মুদ্রণ ও পরিবেশনা...">
+                            <input type="text" name="tagline" id="indexInputTagline" class="form-control" value="{{ $settings['tagline'] ?? 'বই প্রকাশনা, মুদ্রণ ও পরিবেশনা' }}" placeholder="বই প্রকাশনা, মুদ্রণ ও পরিবেশনা..." oninput="updateIndexLivePreview()">
                         </div>
 
                         <div class="col-md-12">
                             <label class="form-label fw-semibold">অফিসের পূর্ণাঙ্গ ঠিকানা</label>
-                            <input type="text" name="address" class="form-control" value="{{ $settings['address'] ?? 'ঢাকা, বাংলাদেশ' }}" placeholder="যেমন: সেন্ট্রাল রোড, রংপুর / ৩৮ বাংলাবাজার, ঢাকা...">
+                            <input type="text" name="address" id="indexInputAddress" class="form-control" value="{{ $settings['address'] ?? 'ঢাকা, বাংলাদেশ' }}" placeholder="যেমন: সেন্ট্রাল রোড, রংপুর / ৩৮ বাংলাবাজার, ঢাকা..." oninput="updateIndexLivePreview()">
                         </div>
 
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">অফিশিয়াল মোবাইল নম্বর</label>
-                            <input type="text" name="phone" class="form-control" value="{{ $settings['phone'] ?? '018XXXXXXXX' }}" placeholder="017XXXXXXXX, 018XXXXXXXX">
+                            <input type="text" name="phone" id="indexInputPhone" class="form-control" value="{{ $settings['phone'] ?? '018XXXXXXXX' }}" placeholder="017XXXXXXXX, 018XXXXXXXX" oninput="updateIndexLivePreview()">
                         </div>
 
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">অফিশিয়াল ইমেইল ঠিকানা</label>
-                            <input type="email" name="email" class="form-control" value="{{ $settings['email'] ?? 'info@ideaabd.com' }}" placeholder="info@ideaabd.com">
-                        </div>
-
-                        <div class="col-md-12">
-                            <label class="form-label fw-semibold">নতুন লোগো আপলোড করুন (Image Upload)</label>
-                            <input type="file" name="logo_file" class="form-control" accept="image/*">
-                            <div class="form-text small">পিএনজি (PNG) বা জেপিজি (JPG) লোগো আপলোড করতে পারেন। খালি রাখলে বর্তমান লোগো অপরিবর্তিত থাকবে।</div>
+                            <input type="email" name="email" id="indexInputEmail" class="form-control" value="{{ $settings['email'] ?? 'info@ideaabd.com' }}" placeholder="info@ideaabd.com" oninput="updateIndexLivePreview()">
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer border-top py-2.5">
                     <button type="button" class="btn btn-light" data-bs-dismiss="modal">বাতিল</button>
-                    <button type="submit" class="btn btn-primary fw-semibold px-4">
+                    <button type="submit" class="btn btn-primary fw-semibold px-4 shadow-sm">
                         <i class="fas fa-save me-1"></i> ডিজাইন ও সেটিংস সংরক্ষণ করুন
                     </button>
                 </div>
@@ -354,5 +391,157 @@
         </div>
     </div>
 </div>
+
+<script>
+function updateIndexLivePreview() {
+    const name = document.getElementById('indexInputBusinessName')?.value || 'আইডিয়া প্রকাশন';
+    const tag = document.getElementById('indexInputTagline')?.value || '';
+    const addr = document.getElementById('indexInputAddress')?.value || '';
+    const ph = document.getElementById('indexInputPhone')?.value || '';
+    const em = document.getElementById('indexInputEmail')?.value || '';
+
+    const titleEl = document.getElementById('indexPreviewHeaderTitle');
+    const tagEl = document.getElementById('indexPreviewHeaderTagline');
+    const metaEl = document.getElementById('indexPreviewHeaderMeta');
+
+    if (titleEl) titleEl.textContent = name;
+    if (tagEl) tagEl.textContent = tag;
+    if (metaEl) metaEl.textContent = `${addr} · মোবাইল: ${ph} · ইমেইল: ${em}`;
+}
+
+// 2:1 Aspect Ratio Canvas Cropper Logic for Index
+let indexRawImage = new Image();
+let indexImageLoaded = false;
+let indexCropX = 0, indexCropY = 0;
+let indexCropScale = 1;
+let indexIsDragging = false;
+let indexDragStartX = 0, indexDragStartY = 0;
+
+const idxFileInput = document.getElementById('indexLogoFileInput');
+const idxCropperBox = document.getElementById('indexCropperContainer');
+const idxCanvas = document.getElementById('indexCropCanvas');
+const idxCtx = idxCanvas?.getContext('2d');
+const idxZoomSlider = document.getElementById('indexCropZoomSlider');
+const idxBase64Input = document.getElementById('indexLogoCroppedBase64');
+const idxResultThumb = document.getElementById('indexCroppedResultThumb');
+const idxHeaderPreviewImg = document.getElementById('indexPreviewHeaderLogo');
+const idxDragArea = document.getElementById('indexCropDragArea');
+
+if (idxFileInput) {
+    idxFileInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+            indexRawImage = new Image();
+            indexRawImage.onload = function() {
+                indexImageLoaded = true;
+                idxCropperBox.classList.remove('d-none');
+                
+                const scaleW = idxCanvas.width / indexRawImage.width;
+                const scaleH = idxCanvas.height / indexRawImage.height;
+                indexCropScale = Math.max(scaleW, scaleH);
+                
+                idxZoomSlider.min = (indexCropScale * 0.4).toFixed(2);
+                idxZoomSlider.max = (indexCropScale * 3.5).toFixed(2);
+                idxZoomSlider.value = indexCropScale.toFixed(2);
+                
+                indexCropX = (idxCanvas.width - indexRawImage.width * indexCropScale) / 2;
+                indexCropY = (idxCanvas.height - indexRawImage.height * indexCropScale) / 2;
+
+                renderIndexCrop();
+            };
+            indexRawImage.src = evt.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
+function renderIndexCrop() {
+    if (!indexImageLoaded || !idxCtx) return;
+    
+    idxCtx.clearRect(0, 0, idxCanvas.width, idxCanvas.height);
+    idxCtx.fillStyle = '#ffffff';
+    idxCtx.fillRect(0, 0, idxCanvas.width, idxCanvas.height);
+    
+    const drawW = indexRawImage.width * indexCropScale;
+    const drawH = indexRawImage.height * indexCropScale;
+    
+    idxCtx.drawImage(indexRawImage, indexCropX, indexCropY, drawW, drawH);
+    
+    const dataUrl = idxCanvas.toDataURL('image/png', 0.95);
+    if (idxBase64Input) idxBase64Input.value = dataUrl;
+    if (idxResultThumb) idxResultThumb.src = dataUrl;
+    if (idxHeaderPreviewImg) idxHeaderPreviewImg.src = dataUrl;
+}
+
+if (idxZoomSlider) {
+    idxZoomSlider.addEventListener('input', function() {
+        const prevScale = indexCropScale;
+        indexCropScale = parseFloat(this.value);
+        
+        const centerX = idxCanvas.width / 2;
+        const centerY = idxCanvas.height / 2;
+        indexCropX = centerX - ((centerX - indexCropX) / prevScale) * indexCropScale;
+        indexCropY = centerY - ((centerY - indexCropY) / prevScale) * indexCropScale;
+        
+        renderIndexCrop();
+    });
+}
+
+if (idxDragArea) {
+    idxDragArea.addEventListener('mousedown', function(e) {
+        indexIsDragging = true;
+        indexDragStartX = e.clientX - indexCropX;
+        indexDragStartY = e.clientY - indexCropY;
+        idxDragArea.style.cursor = 'grabbing';
+    });
+
+    window.addEventListener('mousemove', function(e) {
+        if (!indexIsDragging) return;
+        indexCropX = e.clientX - indexDragStartX;
+        indexCropY = e.clientY - indexDragStartY;
+        renderIndexCrop();
+    });
+
+    window.addEventListener('mouseup', function() {
+        if (indexIsDragging) {
+            indexIsDragging = false;
+            idxDragArea.style.cursor = 'grab';
+        }
+    });
+
+    idxDragArea.addEventListener('touchstart', function(e) {
+        if (e.touches.length === 1) {
+            indexIsDragging = true;
+            indexDragStartX = e.touches[0].clientX - indexCropX;
+            indexDragStartY = e.touches[0].clientY - indexCropY;
+        }
+    }, {passive: true});
+
+    window.addEventListener('touchmove', function(e) {
+        if (!indexIsDragging || e.touches.length !== 1) return;
+        indexCropX = e.touches[0].clientX - indexDragStartX;
+        indexCropY = e.touches[0].clientY - indexDragStartY;
+        renderIndexCrop();
+    }, {passive: true});
+
+    window.addEventListener('touchend', function() {
+        indexIsDragging = false;
+    });
+}
+
+function indexResetCrop() {
+    if (!indexImageLoaded) return;
+    const scaleW = idxCanvas.width / indexRawImage.width;
+    const scaleH = idxCanvas.height / indexRawImage.height;
+    indexCropScale = Math.max(scaleW, scaleH);
+    idxZoomSlider.value = indexCropScale.toFixed(2);
+    indexCropX = (idxCanvas.width - indexRawImage.width * indexCropScale) / 2;
+    indexCropY = (idxCanvas.height - indexRawImage.height * indexCropScale) / 2;
+    renderIndexCrop();
+}
+</script>
 
 @endsection
