@@ -92,7 +92,7 @@
                         @if ($name === 'title')
                             <div class="col-12 mt-1 mb-1">
                                 <div class="d-flex align-items-center gap-2 pb-1.5 border-bottom text-dark fw-bold" style="font-size: 0.95rem;">
-                                    <span class="p-1.5 bg-primary-subtle text-primary rounded-circle small"><i class="fas fa-book-bookmark"></i></span> ১. বইয়ের মূল তথ্য ও প্রকাশনা বিবরণ
+                                    <span class="p-1.5 bg-primary-subtle text-primary rounded-circle small"><i class="fas fa-book-bookmark"></i></span> ১. বইয়ের মূল তথ্য ও অবদানকারী (লেখক, অনুবাদক ও সম্পাদক)
                                 </div>
                             </div>
                         @elseif ($name === 'cover_type')
@@ -101,22 +101,28 @@
                                     <span class="p-1.5 bg-success-subtle text-success rounded-circle small"><i class="fas fa-gem"></i></span> ২. বাঁধাই, হার্ডকভার (প্রধান) ও মূল্য নির্ধারণ
                                 </div>
                             </div>
-                        @elseif ($name === 'stock_status')
+                        @elseif ($name === 'published_at')
                             <div class="col-12 mt-3 mb-1">
                                 <div class="d-flex align-items-center gap-2 pb-1.5 border-bottom text-dark fw-bold" style="font-size: 0.95rem;">
-                                    <span class="p-1.5 bg-warning-subtle text-warning rounded-circle small"><i class="fas fa-boxes-stacked"></i></span> ৩. ইনভেন্টরি, স্টক ও শারীরিক বিবরণ
+                                    <span class="p-1.5 bg-warning-subtle text-warning rounded-circle small"><i class="fas fa-calendar-check"></i></span> ৩. প্রকাশনা, রিলিজ ও ইনভেন্টরি
+                                </div>
+                            </div>
+                        @elseif ($name === 'book_size')
+                            <div class="col-12 mt-3 mb-1">
+                                <div class="d-flex align-items-center gap-2 pb-1.5 border-bottom text-dark fw-bold" style="font-size: 0.95rem;">
+                                    <span class="p-1.5 bg-secondary-subtle text-secondary rounded-circle small"><i class="fas fa-ruler-combined"></i></span> ৪. বইয়ের শারীরিক বিবরণ ও পরিমাপ
                                 </div>
                             </div>
                         @elseif ($name === 'cover_image')
                             <div class="col-12 mt-3 mb-1">
                                 <div class="d-flex align-items-center gap-2 pb-1.5 border-bottom text-dark fw-bold" style="font-size: 0.95rem;">
-                                    <span class="p-1.5 bg-info-subtle text-info rounded-circle small"><i class="fas fa-images"></i></span> ৪. কভার, লেখকের ছবি ও নমুনা ফাইল (স্ট্যান্ডার্ড সাইজ)
+                                    <span class="p-1.5 bg-info-subtle text-info rounded-circle small"><i class="fas fa-images"></i></span> ৫. কভার, লেখকের ছবি ও নমুনা ফাইল (স্ট্যান্ডার্ড সাইজ)
                                 </div>
                             </div>
                         @elseif ($name === 'summary')
                             <div class="col-12 mt-3 mb-1">
                                 <div class="d-flex align-items-center gap-2 pb-1.5 border-bottom text-dark fw-bold" style="font-size: 0.95rem;">
-                                    <span class="p-1.5 bg-purple-subtle text-purple rounded-circle small" style="background-color: #f3e8ff; color: #7e22ce;"><i class="fas fa-align-left"></i></span> ৫. সারসংক্ষেপ, বিস্তারিত ফ্ল্যাপ ও লেখক পরিচিতি
+                                    <span class="p-1.5 bg-purple-subtle text-purple rounded-circle small" style="background-color: #f3e8ff; color: #7e22ce;"><i class="fas fa-align-left"></i></span> ৬. সারসংক্ষেপ, বিস্তারিত ফ্ল্যাপ ও লেখক পরিচিতি
                                 </div>
                             </div>
                         @endif
@@ -140,79 +146,73 @@
                                 $curRole       = old('author_role',  $editing ? ($record->author_role  ?? 'author') : 'author');
                                 $curAuthorId   = old('author_link_id', $editing ? ($record->author_link_id ?? '') : '');
                                 $curAuthorName = old('author_name',  $editing ? ($record->author_name  ?? '') : '');
-                                $curMode       = old('author_input_mode', ($curAuthorId ? 'directory' : 'custom'));
                                 $authorOptions = $lookups['authors'] ?? [];
+                                $hasMatchingAuthor = $curAuthorId || ($curAuthorName && in_array($curAuthorName, $authorOptions, true));
+                                $curMode       = old('author_input_mode', ($hasMatchingAuthor || !empty($authorOptions) ? 'directory' : 'custom'));
                             @endphp
 
-                            <div class="d-flex align-items-center justify-content-between mb-1">
-                                <label class="form-label small fw-semibold mb-0">{{ $field['label'] }}</label>
-                                <button type="button" class="btn btn-link text-primary p-0 text-decoration-none small fw-semibold" 
-                                        data-bs-toggle="modal" data-bs-target="#quickAddAuthorModal">
-                                    <i class="fas fa-plus-circle me-1"></i>নতুন লেখক তৈরি করুন
-                                </button>
-                            </div>
-
-                            {{-- ভূমিকা নির্বাচন --}}
-                            <div class="d-flex flex-wrap gap-3 mb-2.5 p-2.5 bg-light rounded border">
-                                @foreach (['author' => 'লেখক', 'translator' => 'অনুবাদক', 'editor' => 'সম্পাদক'] as $roleVal => $roleLabel)
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio"
-                                               id="author-role-{{ $roleVal }}"
-                                               name="author_role" value="{{ $roleVal }}"
-                                               @checked($curRole === $roleVal)>
-                                        <label class="form-check-label fw-semibold" for="author-role-{{ $roleVal }}">
-                                            <i class="fas fa-{{ $roleVal === 'author' ? 'pen-nib' : ($roleVal === 'translator' ? 'language' : 'user-pen') }} me-1 text-muted small"></i>
-                                            {{ $roleLabel }}
-                                        </label>
-                                    </div>
-                                @endforeach
-                            </div>
-
-                            {{-- ইনপুট মোড স্যুইচ --}}
-                            <div class="btn-group btn-group-sm mb-2 w-100" role="group" id="author-mode-tabs">
-                                <input type="radio" class="btn-check" name="author_input_mode"
-                                       id="author-mode-directory" value="directory"
-                                       @checked($curMode === 'directory')>
-                                <label class="btn btn-outline-primary" for="author-mode-directory">
-                                    <i class="fas fa-book-open me-1"></i> লেখক ডিরেক্টরি থেকে বাছাই
-                                </label>
-
-                                <input type="radio" class="btn-check" name="author_input_mode"
-                                       id="author-mode-custom" value="custom"
-                                       @checked($curMode !== 'directory')>
-                                <label class="btn btn-outline-secondary" for="author-mode-custom">
-                                    <i class="fas fa-keyboard me-1"></i> নিজে লিখুন
-                                </label>
-                            </div>
-
-                            {{-- Directory Mode: লেখক ড্রপডাউন --}}
-                            <div id="author-directory-panel" style="{{ $curMode === 'directory' ? '' : 'display:none' }}">
-                                <select name="author_link_id" id="f-author_link_id"
-                                        class="form-select @error('author_link_id') is-invalid @enderror">
-                                    <option value="">— লেখক নির্বাচন করুন —</option>
-                                    @foreach ($authorOptions as $aId => $aName)
-                                        <option value="{{ $aId }}" @selected((string)$curAuthorId === (string)$aId)>
-                                            {{ $aName }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                <div class="form-text" style="font-size: 11.5px;">
-                                    লেখকের প্রোফাইল পেজের সাথে সংযুক্ত থাকবে। তালিকা না পেলে উপরে <strong>“নতুন লেখক তৈরি করুন”</strong> চাপুন।
+                            <div class="p-3 bg-light rounded-3 border">
+                                <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom">
+                                    <label class="form-label small fw-bold text-dark mb-0">
+                                        <i class="fas fa-pen-nib text-primary me-1"></i> প্রধান লেখক নির্বাচন (Author Selection) <span class="text-danger">*</span>
+                                    </label>
+                                    <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2 rounded-pill fw-semibold" 
+                                            data-bs-toggle="modal" data-bs-target="#quickAddAuthorModal" style="font-size: 11.5px;">
+                                        <i class="fas fa-plus-circle me-1"></i>+ নতুন লেখক তৈরি করুন
+                                    </button>
                                 </div>
-                                @error('author_link_id')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-                            </div>
 
-                            {{-- Custom Mode: ফ্রি-টেক্সট --}}
-                            <div id="author-custom-panel" style="{{ $curMode !== 'directory' ? '' : 'display:none' }}">
-                                <input type="text" name="author_name" id="f-author_name"
-                                       value="{{ $curAuthorName }}"
-                                       placeholder="লেখকের নাম লিখুন (যেমন: আনিসুল হক)"
-                                       class="form-control @error('author_name') is-invalid @enderror">
-                                <div class="form-text" style="font-size: 11.5px;">নামটি সরাসরি কার্ডে প্রদর্শিত হবে।</div>
-                                @error('author_name')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-                            </div>
+                                {{-- ইনপুট মোড স্যুইচ --}}
+                                <div class="btn-group btn-group-sm mb-2 w-100" role="group" id="author-mode-tabs">
+                                    <input type="radio" class="btn-check" name="author_input_mode"
+                                           id="author-mode-directory" value="directory"
+                                           @checked($curMode === 'directory') onchange="toggleAuthorMode('directory')">
+                                    <label class="btn btn-outline-primary fw-semibold" for="author-mode-directory">
+                                        <i class="fas fa-address-book me-1"></i> ডিরেক্টরি থেকে বাছাই (ড্রপডাউন)
+                                    </label>
 
-                            @error('author_role')<div class="invalid-feedback d-block mt-1">{{ $message }}</div>@enderror
+                                    <input type="radio" class="btn-check" name="author_input_mode"
+                                           id="author-mode-custom" value="custom"
+                                           @checked($curMode === 'custom') onchange="toggleAuthorMode('custom')">
+                                    <label class="btn btn-outline-secondary fw-semibold" for="author-mode-custom">
+                                        <i class="fas fa-keyboard me-1"></i> নিজে নতুন নাম লিখুন
+                                    </label>
+                                </div>
+
+                                {{-- Directory Mode: লেখক ড্রপডাউন --}}
+                                <div id="author-directory-panel" style="{{ $curMode === 'directory' ? '' : 'display:none' }}">
+                                    <select name="author_link_id" id="f-author_link_id"
+                                            class="form-select @error('author_link_id') is-invalid @enderror"
+                                            onchange="onAuthorDirectoryChange(this)">
+                                        <option value="">— লেখক নির্বাচন করুন (মোট: {{ count($authorOptions) }} জন) —</option>
+                                        @foreach ($authorOptions as $aId => $aName)
+                                            <option value="{{ $aId }}" @selected((string)$curAuthorId === (string)$aId || (!$curAuthorId && $curAuthorName === $aName))>
+                                                {{ $aName }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    <div class="form-text mt-1 text-muted" style="font-size: 11.5px;">
+                                        <i class="fas fa-info-circle text-primary me-1"></i>লেখকের প্রোফাইল ও বইয়ের তালিকার সাথে সরাসরি সংযুক্ত থাকবে। তালিকায় লেখক না থাকলে উপরে <strong>“নতুন লেখক তৈরি করুন”</strong> বাটনে চাপুন।
+                                    </div>
+                                    @error('author_link_id')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                                </div>
+
+                                {{-- Custom Mode: ফ্রি-টেক্সট --}}
+                                <div id="author-custom-panel" style="{{ $curMode === 'custom' ? '' : 'display:none' }}">
+                                    <input type="text" name="author_name" id="f-author_name"
+                                           value="{{ $curAuthorName }}"
+                                           placeholder="লেখকের পুরো নাম লিখুন (যেমন: হুমায়ূন আহমেদ / আনিসুল হক)"
+                                           class="form-control @error('author_name') is-invalid @enderror"
+                                           oninput="updateLiveMockupCard()">
+                                    <div class="form-text mt-1 text-muted" style="font-size: 11.5px;">
+                                        <i class="fas fa-circle-check text-success me-1"></i>নামটি সেভ করার সাথে সাথে লেখক ডিরেক্টরিতে স্বয়ংক্রিয়ভাবে প্রোফাইল তৈরি হয়ে যাবে।
+                                    </div>
+                                    @error('author_name')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                                </div>
+
+                                <input type="hidden" name="author_role" value="author">
+                                @error('author_role')<div class="invalid-feedback d-block mt-1">{{ $message }}</div>@enderror
+                            </div>
 
                         {{-- ══ CATEGORY SELECT WITH DYNAMIC QUICK CREATION ═══════════════ --}}
                         @elseif ($name === 'category_id')
@@ -338,27 +338,18 @@
                             <div class="form-text" style="font-size: 11px;" id="helpTextPaperback">পেপারব্যাক সংস্করণ নির্বাচন করা থাকলে নিয়মিত মূল্য পূরণ করা আবশ্যক।</div>
                             @error('price')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
 
-                            {{-- Dynamic Discount Percentage Field & Quick Presets --}}
+                            {{-- Clean Discount Percentage Field without preset buttons --}}
                             <div class="mt-2.5 p-2 bg-light rounded border">
                                 <div class="d-flex align-items-center justify-content-between mb-1">
                                     <label for="f-discount_percent" class="form-label small fw-semibold text-dark mb-0" style="font-size: 11.5px;">
-                                        <i class="fas fa-percent me-1 text-primary"></i>ছাড়ের শতকরা হার / কমিশন (%):
+                                        <i class="fas fa-percent me-1 text-primary"></i>পেপারব্যাক ছাড়ের শতকরা হার / কমিশন (%):
                                     </label>
                                     <span class="small text-muted" style="font-size: 11px;">স্বয়ংক্রিয় হিসাব</span>
                                 </div>
-                                <div class="input-group input-group-sm mb-1.5">
+                                <div class="input-group input-group-sm">
                                     <input type="number" step="0.5" min="0" max="100" id="f-discount_percent" 
                                            class="form-control" placeholder="যেমন: ২৫" oninput="onDiscountPercentChange()">
                                     <span class="input-group-text bg-white fw-bold">%</span>
-                                </div>
-                                {{-- Quick Presets --}}
-                                <div class="d-flex flex-wrap gap-1">
-                                    @foreach ([10, 15, 20, 25, 30, 40, 50] as $preset)
-                                        <button type="button" class="btn btn-outline-secondary btn-xs py-0 px-1.5" 
-                                                style="font-size: 10.5px;" onclick="applyDiscountPercent({{ $preset }})">
-                                            {{ $preset }}%
-                                        </button>
-                                    @endforeach
                                 </div>
                             </div>
 
@@ -391,6 +382,21 @@
                             <div class="form-text" style="font-size: 11px;" id="helpTextHardcover">হার্ডকভার সংস্করণ নির্বাচন করা থাকলে নিয়মিত মূল্য পূরণ করা আবশ্যক।</div>
                             @error('hardcover_price')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
 
+                            {{-- Hardcover Discount Percentage Field --}}
+                            <div class="mt-2.5 p-2 bg-light rounded border">
+                                <div class="d-flex align-items-center justify-content-between mb-1">
+                                    <label for="f-hardcover_discount_percent" class="form-label small fw-semibold text-dark mb-0" style="font-size: 11.5px;">
+                                        <i class="fas fa-percent me-1 text-primary"></i>হার্ডকভার ছাড়ের শতকরা হার / কমিশন (%):
+                                    </label>
+                                    <span class="small text-muted" style="font-size: 11px;">স্বয়ংক্রিয় হিসাব</span>
+                                </div>
+                                <div class="input-group input-group-sm">
+                                    <input type="number" step="0.5" min="0" max="100" id="f-hardcover_discount_percent" 
+                                           class="form-control" placeholder="যেমন: ২৫" oninput="onHardcoverDiscountPercentChange()">
+                                    <span class="input-group-text bg-white fw-bold">%</span>
+                                </div>
+                            </div>
+
                         @elseif ($name === 'hardcover_discount_price')
                             <label for="f-hardcover_discount_price" class="form-label small fw-semibold text-dark">
                                 <i class="fas fa-tag me-1 text-success"></i> {{ $field['label'] }}
@@ -405,7 +411,30 @@
                             <div id="liveHardcoverDiscountBadge" class="mt-1 small fw-semibold"></div>
                             @error('hardcover_discount_price')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
 
-                        {{-- ══ PRODUCT SUMMARY (সংক্ষেপ / ফ্ল্যাপ - ৪০০ শব্দ) ══ --}}
+                        {{-- ══ PRE-ORDER FIELDS (সম্ভাব্য তারিখ ও বিশেষ বার্তা) ══ --}}
+                        @elseif ($name === 'pre_order_release_date')
+                            <div class="p-2.5 bg-warning-subtle rounded-3 border border-warning">
+                                <label for="f-pre_order_release_date" class="form-label small fw-bold text-dark mb-1">
+                                    <i class="fas fa-truck-fast text-warning-emphasis me-1"></i> {{ $field['label'] }}
+                                </label>
+                                <input type="date" id="f-pre_order_release_date" name="pre_order_release_date" value="{{ $current }}"
+                                       class="form-control form-control-sm @error('pre_order_release_date') is-invalid @enderror">
+                                <div class="form-text text-muted" style="font-size: 11px;">প্রি-অর্ডার চালু থাকলে সম্ভাব্য কোন তারিখে ডেলিভারি শুরু হবে তা উল্লেখ করুন।</div>
+                                @error('pre_order_release_date')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                            </div>
+
+                        @elseif ($name === 'pre_order_note')
+                            <div class="p-2.5 bg-warning-subtle rounded-3 border border-warning">
+                                <label for="f-pre_order_note" class="form-label small fw-bold text-dark mb-1">
+                                    <i class="fas fa-gift text-warning-emphasis me-1"></i> {{ $field['label'] }}
+                                </label>
+                                <textarea id="f-pre_order_note" name="pre_order_note" rows="2"
+                                          placeholder="{{ $field['placeholder'] ?? 'প্রি-অর্ডার বিশেষ নোট বা উপহার সংক্রান্ত বার্তা...' }}"
+                                          class="form-control form-control-sm @error('pre_order_note') is-invalid @enderror">{{ $current }}</textarea>
+                                <div class="form-text text-muted" style="font-size: 11px;">গ্রাহকদের আকর্ষণ করতে প্রি-অর্ডার সংক্রান্ত অফার বা বার্তা লিখুন।</div>
+                                @error('pre_order_note')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                            </div>
+
                         @elseif ($name === 'summary')
                             <div class="d-flex align-items-center justify-content-between mb-1">
                                 <label for="f-summary" class="form-label small fw-semibold text-dark mb-0">
@@ -1020,7 +1049,7 @@
                 <label for="f-submitted_by" class="form-label small fw-semibold mb-1">রেজিস্টার্ড ব্যবহারকারী</label>
                 <select id="f-submitted_by" name="submitted_by" class="form-select form-select-sm @error('submitted_by') is-invalid @enderror">
                     <option value="">— আমি নিজে (অ্যাডমিন) —</option>
-                    @foreach ($creditees as $userId => $userLabel)
+                    @foreach (($creditees ?? []) as $userId => $userLabel)
                         <option value="{{ $userId }}" @selected((string) $val('submitted_by') === (string) $userId)>
                             {{ $userLabel }}
                         </option>
@@ -1253,28 +1282,50 @@
 
 @push('scripts')
 <script>
-(function () {
-    // Author input mode switch
+// Toggle Author Input Mode
+function toggleAuthorMode(mode) {
     const dirPanel  = document.getElementById('author-directory-panel');
     const custPanel = document.getElementById('author-custom-panel');
-    const radios    = document.querySelectorAll('input[name="author_input_mode"]');
+    const isDir = (mode === 'directory');
+    if (dirPanel) dirPanel.style.display  = isDir ? '' : 'none';
+    if (custPanel) custPanel.style.display = isDir ? 'none' : '';
 
-    function applyMode(mode) {
-        const isDir = mode === 'directory';
-        if (dirPanel) dirPanel.style.display  = isDir ? '' : 'none';
-        if (custPanel) custPanel.style.display = isDir ? 'none' : '';
+    const dirRadio = document.getElementById('author-mode-directory');
+    const custRadio = document.getElementById('author-mode-custom');
+    if (dirRadio && isDir) dirRadio.checked = true;
+    if (custRadio && !isDir) custRadio.checked = true;
 
-        const dirInput  = document.getElementById('f-author_link_id');
-        const custInput = document.getElementById('f-author_name');
-        if (dirInput)  dirInput.disabled  = !isDir;
-        if (custInput) custInput.disabled = isDir;
-        updateLiveMockupCard();
+    updateLiveMockupCard();
+}
+
+function onAuthorDirectoryChange(select) {
+    const authorCustom = document.getElementById('f-author_name');
+    if (select && select.selectedIndex > 0) {
+        const text = select.options[select.selectedIndex].text.trim();
+        if (authorCustom && !authorCustom.value) {
+            authorCustom.value = text;
+        }
+    }
+    updateLiveMockupCard();
+}
+
+(function () {
+    // Initial sync of paperback discount percentage on load
+    const initPrice = parseFloat(document.getElementById('f-price')?.value) || 0;
+    const initDisc = parseFloat(document.getElementById('f-discount_price')?.value) || 0;
+    if (initPrice > 0 && initDisc > 0 && initDisc < initPrice) {
+        const initPct = Math.round(((initPrice - initDisc) / initPrice) * 100);
+        const pctInput = document.getElementById('f-discount_percent');
+        if (pctInput) pctInput.value = initPct;
     }
 
-    if (radios.length) {
-        radios.forEach(r => r.addEventListener('change', () => applyMode(r.value)));
-        const checked = document.querySelector('input[name="author_input_mode"]:checked');
-        if (checked) applyMode(checked.value);
+    // Initial sync of hardcover discount percentage on load
+    const initHcPrice = parseFloat(document.getElementById('f-hardcover_price')?.value) || 0;
+    const initHcDisc = parseFloat(document.getElementById('f-hardcover_discount_price')?.value) || 0;
+    if (initHcPrice > 0 && initHcDisc > 0 && initHcDisc < initHcPrice) {
+        const initHcPct = Math.round(((initHcPrice - initHcDisc) / initHcPrice) * 100);
+        const hcPctInput = document.getElementById('f-hardcover_discount_percent');
+        if (hcPctInput) hcPctInput.value = initHcPct;
     }
 
     // Attach listeners for live mockup card updates
@@ -1285,15 +1336,6 @@
     if (titleInput) titleInput.addEventListener('input', updateLiveMockupCard);
     if (authorSelect) authorSelect.addEventListener('change', updateLiveMockupCard);
     if (authorCustom) authorCustom.addEventListener('input', updateLiveMockupCard);
-
-    // Initial sync of discount percentage on load
-    const initPrice = parseFloat(document.getElementById('f-price')?.value) || 0;
-    const initDisc = parseFloat(document.getElementById('f-discount_price')?.value) || 0;
-    if (initPrice > 0 && initDisc > 0 && initDisc < initPrice) {
-        const initPct = Math.round(((initPrice - initDisc) / initPrice) * 100);
-        const pctInput = document.getElementById('f-discount_percent');
-        if (pctInput) pctInput.value = initPct;
-    }
 
     calculateLiveDiscount();
     calculateLiveHardcoverDiscount();
@@ -1346,7 +1388,7 @@ function onCoverTypeChange() {
     updateLiveMockupCard();
 }
 
-// Two-way interactive price and discount calculations
+// Paperback Two-way interactive price and discount calculations
 function onRegularPriceChange() {
     const price = parseFloat(document.getElementById('f-price')?.value) || 0;
     const pct = parseFloat(document.getElementById('f-discount_percent')?.value) || 0;
@@ -1380,14 +1422,6 @@ function onDiscountPercentChange() {
     calculateLiveDiscount();
 }
 
-function applyDiscountPercent(pct) {
-    const pctInput = document.getElementById('f-discount_percent');
-    if (pctInput) {
-        pctInput.value = pct;
-        onDiscountPercentChange();
-    }
-}
-
 function onDiscountPriceChange() {
     const price = parseFloat(document.getElementById('f-price')?.value) || 0;
     const disc = parseFloat(document.getElementById('f-discount_price')?.value) || 0;
@@ -1400,6 +1434,54 @@ function onDiscountPriceChange() {
         if (pctInput) pctInput.value = 0;
     }
     calculateLiveDiscount();
+}
+
+// Hardcover Two-way interactive price and discount calculations
+function onHardcoverPriceChange() {
+    const price = parseFloat(document.getElementById('f-hardcover_price')?.value) || 0;
+    const pct = parseFloat(document.getElementById('f-hardcover_discount_percent')?.value) || 0;
+    const discInput = document.getElementById('f-hardcover_discount_price');
+
+    if (price > 0 && pct > 0 && pct <= 100) {
+        const discounted = Math.round(price * (1 - pct / 100));
+        if (discInput) discInput.value = discounted;
+    } else if (discInput && discInput.value) {
+        const disc = parseFloat(discInput.value) || 0;
+        if (price > 0 && disc < price) {
+            const calculatedPct = Math.round(((price - disc) / price) * 100);
+            const pctInput = document.getElementById('f-hardcover_discount_percent');
+            if (pctInput) pctInput.value = calculatedPct;
+        }
+    }
+    calculateLiveHardcoverDiscount();
+}
+
+function onHardcoverDiscountPercentChange() {
+    const price = parseFloat(document.getElementById('f-hardcover_price')?.value) || 0;
+    const pct = parseFloat(document.getElementById('f-hardcover_discount_percent')?.value) || 0;
+    const discInput = document.getElementById('f-hardcover_discount_price');
+
+    if (price > 0 && pct >= 0 && pct <= 100) {
+        const discounted = Math.round(price * (1 - pct / 100));
+        if (discInput) discInput.value = discounted;
+    } else if (pct === 0) {
+        if (discInput) discInput.value = price;
+    }
+    calculateLiveHardcoverDiscount();
+}
+
+function onHardcoverDiscountPriceChange() {
+    const price = parseFloat(document.getElementById('f-hardcover_price')?.value) || 0;
+    const disc = parseFloat(document.getElementById('f-hardcover_discount_price')?.value) || 0;
+    const pctInput = document.getElementById('f-hardcover_discount_percent');
+
+    if (price > 0 && disc > 0 && disc < price) {
+        const calculatedPct = Math.round(((price - disc) / price) * 100);
+        if (pctInput) pctInput.value = calculatedPct;
+    } else if (disc === 0 || disc >= price) {
+        if (pctInput) pctInput.value = 0;
+    }
+    calculateLiveHardcoverDiscount();
 }
 
 // Real-time discount and pricing calculation
@@ -1418,7 +1500,7 @@ function calculateLiveDiscount() {
             const savings = price - discount;
             const percent = Math.round((savings / price) * 100);
             badgeEl.className = 'mt-1 small fw-semibold text-success';
-            badgeEl.innerHTML = `<i class="fas fa-tags me-1"></i> ${percent}% ছাড়! গ্রাহক বাঁচাবে ৳${savings.toLocaleString('bn-BD')}`;
+            badgeEl.innerHTML = `<i class="fas fa-tags me-1"></i> পেপারব্যাকে ${percent}% ছাড়! গ্রাহক বাঁচাবে ৳${savings.toLocaleString('bn-BD')}`;
         } else if (discount === price) {
             badgeEl.className = 'mt-1 small fw-semibold text-muted';
             badgeEl.innerHTML = `কোনো ছাড় প্রযোজ্য নয়।`;
@@ -1431,14 +1513,6 @@ function calculateLiveDiscount() {
     }
 
     updateLiveMockupCard();
-}
-
-function onHardcoverPriceChange() {
-    calculateLiveHardcoverDiscount();
-}
-
-function onHardcoverDiscountPriceChange() {
-    calculateLiveHardcoverDiscount();
 }
 
 function calculateLiveHardcoverDiscount() {
@@ -1467,6 +1541,8 @@ function calculateLiveHardcoverDiscount() {
     } else {
         badgeEl.innerHTML = '';
     }
+
+    updateLiveMockupCard();
 }
 
 // Live Mockup Card Update

@@ -49,8 +49,11 @@ class Book extends Model
         'published_at',
         'edition',
         'paper_type',
+        'book_size',
         'weight',
         'stock_status',
+        'pre_order_release_date',
+        'pre_order_note',
         'stock_quantity',
         'format', // 'printed', 'ebook', 'both'
         'cover_type', // 'paperback', 'hardcover', 'both'
@@ -86,6 +89,7 @@ class Book extends Model
         'preview_pages' => 'integer',
         'is_active' => 'boolean',
         'published_at' => 'date',
+        'pre_order_release_date' => 'date',
     ];
 
     protected static function booted()

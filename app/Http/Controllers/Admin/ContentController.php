@@ -854,9 +854,9 @@ class ContentController extends Controller
                 ->all();
         }
 
-        if (($spec['table'] === 'webzines' || $spec['key'] === 'blog') && Schema::hasTable('authors')) {
-            $authorList = DB::table('authors')->orderBy('name')->pluck('name', 'id')->all();
-            if (Schema::hasTable('users')) {
+        if (in_array($spec['key'] ?? '', ['books', 'ebooks', 'webzines', 'blog'], true) && Schema::hasTable('authors')) {
+            $authorList = DB::table('authors')->whereNull('deleted_at')->orderBy('name')->pluck('name', 'id')->all();
+            if (($spec['table'] === 'webzines' || $spec['key'] === 'blog') && Schema::hasTable('users')) {
                 $userList = DB::table('users')->orderBy('name')->pluck('name', 'id')->all();
                 foreach ($userList as $uId => $uName) {
                     if (!in_array($uName, $authorList, true)) {

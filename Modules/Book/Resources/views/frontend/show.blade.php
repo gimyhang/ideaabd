@@ -365,7 +365,14 @@
                                     </div>
                                     <div>
                                         <div class="fw-bold text-dark mb-0.5">বইটির প্রি-অর্ডার চলছে (Pre-Order Available)</div>
-                                        <div class="small text-dark-emphasis">বইটি বর্তমানে প্রেসে প্রকাশের প্রক্রিয়ায় রয়েছে। এখন প্রি-অর্ডার করলে প্রকাশের সাথে সাথে অগ্রাধিকারে আপনার ঠিকানায় ক্যাশ অন ডেলিভারিতে পৌঁছে যাবে।</div>
+                                        <div class="small text-dark-emphasis">
+                                            {{ $book->pre_order_note ?: 'বইটি বর্তমানে প্রেসে প্রকাশের প্রক্রিয়ায় রয়েছে। এখন প্রি-অর্ডার করলে প্রকাশের সাথে সাথে অগ্রাধিকারে আপনার ঠিকানায় ক্যাশ অন ডেলিভারিতে পৌঁছে যাবে।' }}
+                                        </div>
+                                        @if($book->pre_order_release_date)
+                                            <div class="badge bg-white text-dark border border-warning-subtle mt-1.5 px-2.5 py-1 small">
+                                                <i class="fa-solid fa-calendar-day text-warning me-1"></i>সম্ভাব্য প্রকাশ ও ডেলিভারি শুরু: @bnDate($book->pre_order_release_date)
+                                            </div>
+                                        @endif
                                     </div>
                                 </div>
                             @endif
@@ -521,6 +528,24 @@
                                                 <th class="bg-light text-muted py-3 px-3 fw-semibold"><i class="fa-solid fa-pen-nib text-primary me-2"></i>লেখক / রচয়িতা</th>
                                                 <td class="text-dark fw-bold py-3 px-3">{{ $authorNames }}</td>
                                             </tr>
+                                            @if($book->translator_name)
+                                            <tr class="border-bottom">
+                                                <th class="bg-light text-muted py-3 px-3 fw-semibold"><i class="fa-solid fa-language text-secondary me-2"></i>অনুবাদ</th>
+                                                <td class="text-dark py-3 px-3 fw-semibold">{{ $book->translator_name }}</td>
+                                            </tr>
+                                            @endif
+                                            @if($book->editor_name)
+                                            <tr class="border-bottom">
+                                                <th class="bg-light text-muted py-3 px-3 fw-semibold"><i class="fa-solid fa-user-pen text-secondary me-2"></i>সম্পাদনা</th>
+                                                <td class="text-dark py-3 px-3 fw-semibold">{{ $book->editor_name }}</td>
+                                            </tr>
+                                            @endif
+                                            @if($book->cover_artist)
+                                            <tr class="border-bottom">
+                                                <th class="bg-light text-muted py-3 px-3 fw-semibold"><i class="fa-solid fa-palette text-secondary me-2"></i>প্রচ্ছদ শিল্পী</th>
+                                                <td class="text-dark py-3 px-3 fw-semibold">{{ $book->cover_artist }}</td>
+                                            </tr>
+                                            @endif
                                             <tr class="border-bottom">
                                                 <th class="bg-light text-muted py-3 px-3 fw-semibold"><i class="fa-solid fa-building text-info me-2"></i>প্রকাশক / প্রকাশনী</th>
                                                 <td class="text-dark py-3 px-3">{{ $book->publisher->name ?? 'আইডিয়া প্রকাশন' }}</td>
@@ -541,10 +566,28 @@
                                                 <td class="text-dark py-3 px-3">@bnDate($book->published_at)</td>
                                             </tr>
                                             @endif
+                                            @if($book->book_size)
+                                            <tr class="border-bottom">
+                                                <th class="bg-light text-muted py-3 px-3 fw-semibold"><i class="fa-solid fa-ruler-combined text-primary me-2"></i>বইয়ের সাইজ / পরিমাপ</th>
+                                                <td class="text-dark py-3 px-3 fw-semibold">{{ $book->book_size }}</td>
+                                            </tr>
+                                            @endif
                                             @if($book->page_count)
                                             <tr class="border-bottom">
                                                 <th class="bg-light text-muted py-3 px-3 fw-semibold"><i class="fa-solid fa-file-lines text-secondary me-2"></i>পৃষ্ঠা সংখ্যা</th>
                                                 <td class="text-dark py-3 px-3">@bn($book->page_count) পৃষ্ঠা</td>
+                                            </tr>
+                                            @endif
+                                            @if($book->paper_type)
+                                            <tr class="border-bottom">
+                                                <th class="bg-light text-muted py-3 px-3 fw-semibold"><i class="fa-solid fa-newspaper text-secondary me-2"></i>কাগজের ধরন</th>
+                                                <td class="text-dark py-3 px-3">{{ $book->paper_type }}</td>
+                                            </tr>
+                                            @endif
+                                            @if($book->weight)
+                                            <tr class="border-bottom">
+                                                <th class="bg-light text-muted py-3 px-3 fw-semibold"><i class="fa-solid fa-weight-hanging text-secondary me-2"></i>ওজন</th>
+                                                <td class="text-dark py-3 px-3">{{ $book->weight }} গ্রাম</td>
                                             </tr>
                                             @endif
                                             <tr class="border-bottom">
