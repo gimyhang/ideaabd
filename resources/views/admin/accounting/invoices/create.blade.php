@@ -103,30 +103,35 @@
 
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold">গ্রাহক / প্রতিষ্ঠানের নাম <span class="text-danger">*</span></label>
+                            <label class="form-label fw-semibold">গ্রাহক / ব্যক্তির নাম <span class="text-danger">*</span></label>
                             <input type="text" name="customer_name" class="form-control @error('customer_name') is-invalid @enderror" 
-                                   placeholder="গ্রাহক, মন্ত্রণালয়, লাইব্রেরি বা প্রতিষ্ঠানের নাম" value="{{ old('customer_name') }}" required>
+                                   placeholder="গ্রাহক বা প্রতিনিধির নাম..." value="{{ old('customer_name') }}" required>
                             @error('customer_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">প্রতিষ্ঠান / লাইব্রেরি / সংস্থা</label>
+                            <input type="text" name="customer_org" class="form-control" 
+                                   placeholder="লাইব্রেরি, বুকশপ, মন্ত্রণালয় বা প্রতিষ্ঠানের নাম..." value="{{ old('customer_org') }}">
+                        </div>
+                        <div class="col-md-4">
                             <label class="form-label fw-semibold">মোবাইল নম্বর</label>
                             <input type="text" name="customer_phone" class="form-control" placeholder="017XXXXXXXX" value="{{ old('customer_phone') }}">
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-4">
                             <label class="form-label fw-semibold">তারিখ <span class="text-danger">*</span></label>
                             <input type="date" name="invoice_date" class="form-control" value="{{ old('invoice_date', date('Y-m-d')) }}" required>
                         </div>
-                        <div class="col-md-5">
+                        <div class="col-md-4" id="validUntilCol">
+                            <label class="form-label fw-semibold">মেয়াদ / ভ্যালিডিটি তারিখ</label>
+                            <input type="date" name="valid_until" class="form-control" value="{{ old('valid_until') }}" title="কোটেশন বা দরপত্রের মেয়াদের শেষ তারিখ">
+                        </div>
+                        <div class="col-md-8">
                             <label class="form-label small fw-semibold text-muted">ঠিকানা / গন্তব্য</label>
                             <input type="text" name="customer_address" class="form-control form-control-sm" placeholder="গ্রাহক বা প্রতিষ্ঠানের পূর্ণাঙ্গ ঠিকানা..." value="{{ old('customer_address') }}">
                         </div>
                         <div class="col-md-4">
                             <label class="form-label small fw-semibold text-muted">ডকুমেন্ট / ইনভয়েস নম্বর <span class="text-danger">*</span></label>
                             <input type="text" name="invoice_no" id="invoiceNoInput" class="form-control form-control-sm font-monospace fw-bold" value="{{ old('invoice_no', $suggestedNo) }}" required>
-                        </div>
-                        <div class="col-md-3" id="validUntilCol">
-                            <label class="form-label small fw-semibold text-muted">মেয়াদ / ভ্যালিডিটি তারিখ</label>
-                            <input type="date" name="valid_until" class="form-control form-control-sm" value="{{ old('valid_until') }}" title="কোটেশন বা দরপত্রের মেয়াদের শেষ তারিখ">
                         </div>
                     </div>
                 </div>

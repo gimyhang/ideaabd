@@ -189,7 +189,12 @@
             <div class="row mb-4 p-3 bg-light rounded-4">
                 <div class="col-md-6 mb-2 mb-md-0">
                     <span class="text-muted small text-uppercase fw-semibold">প্রাপক / প্রতিষ্ঠান তথ্য:</span>
-                    <h5 class="fw-bold text-dark mt-1 mb-1">{{ $invoice->customer_name }}</h5>
+                    @if($invoice->customer_org)
+                        <h5 class="fw-bold text-primary mt-1 mb-0.5"><i class="fas fa-building me-1.5 text-primary"></i>{{ $invoice->customer_org }}</h5>
+                        <div class="text-dark fw-semibold small mb-1"><i class="fas fa-user me-1 text-muted"></i>প্রতিনিধি: {{ $invoice->customer_name }}</div>
+                    @else
+                        <h5 class="fw-bold text-dark mt-1 mb-1"><i class="fas fa-user me-1.5 text-primary"></i>{{ $invoice->customer_name }}</h5>
+                    @endif
                     @if($invoice->customer_phone)
                         <div class="text-muted small"><i class="fas fa-phone me-1"></i>{{ $invoice->customer_phone }}</div>
                     @endif
@@ -382,8 +387,13 @@
                 {{-- Delivery Destination & Client Details --}}
                 <div class="row mb-4 p-3 bg-light rounded-4">
                     <div class="col-md-6 mb-2 mb-md-0">
-                        <span class="text-muted small text-uppercase fw-semibold"><i class="fas fa-truck-ramp-box me-1 text-primary"></i>প্রাপক ও গন্তব্যের ঠিকানা:</span>
-                        <h5 class="fw-bold text-dark mt-1 mb-1">{{ $invoice->customer_name }}</h5>
+                        <span class="text-muted small text-uppercase fw-semibold"><i class="fas fa-truck-ramp-box me-1 text-primary"></i>প্রাপক ও গন্তব্যের তথ্য:</span>
+                        @if($invoice->customer_org)
+                            <h5 class="fw-bold text-primary mt-1 mb-0.5"><i class="fas fa-building me-1.5 text-primary"></i>{{ $invoice->customer_org }}</h5>
+                            <div class="text-dark fw-semibold small mb-1"><i class="fas fa-user me-1 text-muted"></i>প্রতিনিধি: {{ $invoice->customer_name }}</div>
+                        @else
+                            <h5 class="fw-bold text-dark mt-1 mb-1"><i class="fas fa-user me-1.5 text-primary"></i>{{ $invoice->customer_name }}</h5>
+                        @endif
                         @if($invoice->customer_phone)
                             <div class="text-muted small"><i class="fas fa-phone me-1"></i>{{ $invoice->customer_phone }}</div>
                         @endif

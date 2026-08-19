@@ -1,5 +1,11 @@
 @extends('layouts.admin')
 
+@php
+    $settings = $invoiceSettings ?? \App\Http\Controllers\Admin\IdeaAccountingController::getInvoiceSettings();
+    $bizLogo = $settings['logo'] ?? '/images/logo.png';
+    $logoSrc = \App\Support\SiteSetting::resolveImageUrl($bizLogo, 'images/logo.png') ?: asset('images/logo.png');
+@endphp
+
 @section('title', 'আইডিয়া প্রকাশন বিল, চালান ও দরপত্র তালিকা')
 @section('heading', 'আইডিয়া প্রকাশন বিল, চালান, কোটেশন ও দরপত্র তালিকা')
 @section('breadcrumb')
@@ -18,6 +24,9 @@
         <a href="{{ route('admin.accounting.invoices.create', ['type' => 'tender']) }}" class="btn btn-purple text-white fw-semibold shadow-sm" style="background-color: #6f42c1;">
             <i class="fas fa-landmark me-1"></i> + দরপত্র
         </a>
+        <button type="button" class="btn btn-outline-dark fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#invoiceSettingsModal" title="ইনভয়েস ডিজাইন ও অফিশিয়াল তথ্য পরিবর্তন করুন">
+            <i class="fas fa-palette me-1.5 text-primary"></i> ইনভয়েস ডিজাইন ও সেটিংস
+        </button>
         <a href="{{ route('admin.accounting.index') }}" class="btn btn-outline-primary fw-semibold">
             <i class="fas fa-scale-balanced me-1"></i> আয়-ব্যয় খাতা
         </a>
@@ -28,7 +37,7 @@
 
 {{-- Idea Accounting Unified Navigation Bar --}}
 <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white">
-    <div class="card-body p-2">
+    <div class="card-body p-2 d-flex flex-wrap align-items-center justify-content-between gap-2">
         <div class="nav nav-pills gap-1.5 flex-wrap">
             <a href="{{ route('admin.accounting.index') }}" 
                class="nav-link rounded-pill px-3.5 py-2 fw-semibold text-dark hover-bg-light">
@@ -43,6 +52,10 @@
                 <i class="fas fa-file-circle-plus me-1.5"></i> নতুন বিল, চালান ও দরপত্র তৈরি
             </a>
         </div>
+
+        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-semibold" data-bs-toggle="modal" data-bs-target="#invoiceSettingsModal">
+            <i class="fas fa-sliders me-1 text-primary"></i> ইনভয়েস মেমো সেটিংস
+        </button>
     </div>
 </div>
 
@@ -89,7 +102,7 @@
             <div class="col-md-3">
                 <div class="input-group">
                     <span class="input-group-text bg-light"><i class="fas fa-search"></i></span>
-                    <input type="text" name="search" class="form-control" placeholder="ডকুমেন্ট # / বিষয় / গ্রাহকের নাম..." value="{{ $search }}">
+                    <input type="text" name="search" class="form-control" placeholder="ডকুমেন্ট # / প্রতিষ্ঠান / গ্রাহক..." value="{{ $search }}">
                 </div>
             </div>
             <div class="col-md-2">
@@ -138,9 +151,9 @@
                         <th class="ps-3">ডকুমেন্ট নং #</th>
                         <th>ধরন</th>
                         <th>তারিখ</th>
-                        <th>গ্রাহক / প্রতিষ্ঠান</th>
+                        <th>প্রতিষ্ঠান ও গ্রাহক তথ্য</th>
                         <th>আইটেম</th>
-                        <th>মোট প্রস্তাবনা / মূল্য</th>
+                        <th>মোট মূল্য</th>
                         <th>পরিশোধ</th>
                         <th>বকেয়া</th>
                         <th>স্ট্যাটাস</th>
@@ -184,13 +197,21 @@
                                 @endif
                             </td>
                             <td>
-                                <div class="fw-bold text-dark">{{ $inv->customer_name }}</div>
-                                @if($inv->subject)
-                                    <div class="text-muted small" style="font-size: 11.5px; max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="{{ $inv->subject }}">
-                                        {{ $inv->subject }}
+                                @if($inv->customer_org)
+                                    <div class="fw-bold text-primary">
+                                        <i class="fas fa-building me-1 text-primary opacity-75" style="font-size: 11px;"></i>{{ $inv->customer_org }}
                                     </div>
-                                @elseif($inv->customer_phone)
-                                    <div class="text-muted small"><i class="fas fa-phone me-1"></i>{{ $inv->customer_phone }}</div>
+                                    <div class="text-dark small">
+                                        <i class="fas fa-user me-1 text-muted" style="font-size: 10px;"></i>{{ $inv->customer_name }}
+                                    </div>
+                                @else
+                                    <div class="fw-bold text-dark">
+                                        <i class="fas fa-user me-1 text-primary opacity-75" style="font-size: 11px;"></i>{{ $inv->customer_name }}
+                                    </div>
+                                @endif
+
+                                @if($inv->customer_phone)
+                                    <div class="text-muted small" style="font-size: 11px;"><i class="fas fa-phone me-1"></i>{{ $inv->customer_phone }}</div>
                                 @endif
                             </td>
                             <td>
@@ -259,6 +280,79 @@
             </div>
         @endif
     @endif
+</div>
+
+{{-- Invoice & Memo Header Settings / Design Modal --}}
+<div class="modal fade" id="invoiceSettingsModal" tabindex="-1" aria-labelledby="invoiceSettingsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <form action="{{ route('admin.accounting.settings.update') }}" method="POST" enctype="multipart/form-data">
+                @csrf
+                <div class="modal-header border-bottom py-3">
+                    <h5 class="modal-title fw-bold text-primary" id="invoiceSettingsModalLabel">
+                        <i class="fas fa-palette me-2"></i>ইনভয়েস ডিজাইন ও মেমো ব্র্যান্ডিং সেটিংস
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    
+                    {{-- Live Preview Header Card --}}
+                    <div class="card border rounded-3 p-3 mb-4 bg-light">
+                        <span class="small fw-bold text-muted text-uppercase mb-2 d-block"><i class="fas fa-eye me-1 text-primary"></i>ইনভয়েস হেডার লাইভ প্রিভিউ (Preview):</span>
+                        <div class="d-flex align-items-center gap-3 p-2 bg-white rounded border">
+                            <img src="{{ $logoSrc }}" alt="Logo Preview" style="height: 50px; max-width: 120px; object-fit: contain;">
+                            <div>
+                                <h4 class="fw-bold text-primary mb-0">{{ $settings['business_name'] ?? 'আইডিয়া প্রকাশন' }}</h4>
+                                <p class="text-muted small mb-0">{{ $settings['tagline'] ?? 'বই প্রকাশনা, মুদ্রণ ও পরিবেশনা' }}</p>
+                                <div class="text-muted small mt-0.5" style="font-size: 11.5px;">
+                                    {{ $settings['address'] ?? 'ঢাকা, বাংলাদেশ' }} · মোবাইল: {{ $settings['phone'] ?? '018XXXXXXXX' }} · ইমেইল: {{ $settings['email'] ?? 'info@ideaabd.com' }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">কোম্পানি / প্রকাশনীর নাম <span class="text-danger">*</span></label>
+                            <input type="text" name="business_name" class="form-control" value="{{ $settings['business_name'] ?? 'আইডিয়া প্রকাশন' }}" required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">ট্যাগলাইন / স্লোগান</label>
+                            <input type="text" name="tagline" class="form-control" value="{{ $settings['tagline'] ?? 'বই প্রকাশনা, মুদ্রণ ও পরিবেশনা' }}" placeholder="বই প্রকাশনা, মুদ্রণ ও পরিবেশনা...">
+                        </div>
+
+                        <div class="col-md-12">
+                            <label class="form-label fw-semibold">অফিসের পূর্ণাঙ্গ ঠিকানা</label>
+                            <input type="text" name="address" class="form-control" value="{{ $settings['address'] ?? 'ঢাকা, বাংলাদেশ' }}" placeholder="যেমন: সেন্ট্রাল রোড, রংপুর / ৩৮ বাংলাবাজার, ঢাকা...">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">অফিশিয়াল মোবাইল নম্বর</label>
+                            <input type="text" name="phone" class="form-control" value="{{ $settings['phone'] ?? '018XXXXXXXX' }}" placeholder="017XXXXXXXX, 018XXXXXXXX">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">অফিশিয়াল ইমেইল ঠিকানা</label>
+                            <input type="email" name="email" class="form-control" value="{{ $settings['email'] ?? 'info@ideaabd.com' }}" placeholder="info@ideaabd.com">
+                        </div>
+
+                        <div class="col-md-12">
+                            <label class="form-label fw-semibold">নতুন লোগো আপলোড করুন (Image Upload)</label>
+                            <input type="file" name="logo_file" class="form-control" accept="image/*">
+                            <div class="form-text small">পিএনজি (PNG) বা জেপিজি (JPG) লোগো আপলোড করতে পারেন। খালি রাখলে বর্তমান লোগো অপরিবর্তিত থাকবে।</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top py-2.5">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">বাতিল</button>
+                    <button type="submit" class="btn btn-primary fw-semibold px-4">
+                        <i class="fas fa-save me-1"></i> ডিজাইন ও সেটিংস সংরক্ষণ করুন
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 
 @endsection

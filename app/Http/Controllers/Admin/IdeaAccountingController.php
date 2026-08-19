@@ -140,6 +140,7 @@ class IdeaAccountingController extends Controller
                 $q->where(function ($w) use ($like) {
                     $w->where('invoice_no', 'like', $like)
                       ->orWhere('customer_name', 'like', $like)
+                      ->orWhere('customer_org', 'like', $like)
                       ->orWhere('customer_phone', 'like', $like);
                 });
             })
@@ -159,8 +160,10 @@ class IdeaAccountingController extends Controller
             'total_due'        => (float) IdeaInvoice::whereIn('type', ['invoice', 'challan'])->sum('due_amount'),
         ];
 
+        $invoiceSettings = self::getInvoiceSettings();
+
         return view('admin.accounting.invoices.index', compact(
-            'invoices', 'stats', 'type', 'status', 'search', 'dateFrom', 'dateTo'
+            'invoices', 'stats', 'type', 'status', 'search', 'dateFrom', 'dateTo', 'invoiceSettings'
         ));
     }
 
@@ -201,6 +204,7 @@ class IdeaAccountingController extends Controller
             'subject'          => 'nullable|string|max:255',
             'reference_no'     => 'nullable|string|max:100',
             'customer_name'    => 'required|string|max:255',
+            'customer_org'     => 'nullable|string|max:255',
             'customer_phone'   => 'nullable|string|max:50',
             'customer_address' => 'nullable|string|max:255',
             'invoice_date'     => 'required|date',
@@ -218,7 +222,7 @@ class IdeaAccountingController extends Controller
             'items.*.quantity' => 'required|numeric|min:0.01',
             'items.*.price'    => 'required|numeric|min:0',
         ], [
-            'customer_name.required' => 'গ্রাহক বা প্রতিষ্ঠানের নাম লিখুন।',
+            'customer_name.required' => 'গ্রাহক বা প্রতিনিধির নাম লিখুন।',
             'items.required'         => 'কমপক্ষে একটি আইটেম বা বিবরণ যোগ করুন।',
         ]);
 
@@ -261,6 +265,7 @@ class IdeaAccountingController extends Controller
                 'subject'          => $validated['subject'] ?? null,
                 'reference_no'     => $validated['reference_no'] ?? null,
                 'customer_name'    => $validated['customer_name'],
+                'customer_org'     => $validated['customer_org'] ?? null,
                 'customer_phone'   => $validated['customer_phone'] ?? null,
                 'customer_address' => $validated['customer_address'] ?? null,
                 'invoice_date'     => $validated['invoice_date'],
@@ -332,6 +337,7 @@ class IdeaAccountingController extends Controller
             'subject'          => 'nullable|string|max:255',
             'reference_no'     => 'nullable|string|max:100',
             'customer_name'    => 'required|string|max:255',
+            'customer_org'     => 'nullable|string|max:255',
             'customer_phone'   => 'nullable|string|max:50',
             'customer_address' => 'nullable|string|max:255',
             'invoice_date'     => 'required|date',
@@ -349,7 +355,7 @@ class IdeaAccountingController extends Controller
             'items.*.quantity' => 'required|numeric|min:0.01',
             'items.*.price'    => 'required|numeric|min:0',
         ], [
-            'customer_name.required' => 'গ্রাহক বা প্রতিষ্ঠানের নাম লিখুন।',
+            'customer_name.required' => 'গ্রাহক বা প্রতিনিধির নাম লিখুন।',
             'items.required'         => 'কমপক্ষে একটি আইটেম বা বিবরণ যোগ করুন।',
         ]);
 
@@ -392,6 +398,7 @@ class IdeaAccountingController extends Controller
                 'subject'          => $validated['subject'] ?? null,
                 'reference_no'     => $validated['reference_no'] ?? null,
                 'customer_name'    => $validated['customer_name'],
+                'customer_org'     => $validated['customer_org'] ?? null,
                 'customer_phone'   => $validated['customer_phone'] ?? null,
                 'customer_address' => $validated['customer_address'] ?? null,
                 'invoice_date'     => $validated['invoice_date'],

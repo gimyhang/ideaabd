@@ -17,6 +17,7 @@ class IdeaInvoice extends Model
         'subject',
         'reference_no',
         'customer_name',
+        'customer_org',
         'customer_phone',
         'customer_address',
         'invoice_date',
