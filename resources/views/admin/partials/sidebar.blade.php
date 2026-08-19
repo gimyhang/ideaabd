@@ -24,10 +24,10 @@
             ['route' => 'admin.purchases.create',   'icon' => 'cart-plus',           'label' => 'নতুন ক্রয় এন্ট্রি'],
             ['route' => 'admin.purchases.payments', 'icon' => 'hand-holding-dollar', 'label' => 'পরিশোধ ও কিস্তি হিসাব'],
         ],
-        'আইডিয়া হিসাব, বিল ও দরপত্র' => [
+        'আইডিয়া হিসাব' => [
             ['route' => 'admin.accounting.index',           'icon' => 'scale-balanced',     'label' => 'আয়-ব্যয় ও হিসাব খাতা'],
-            ['route' => 'admin.accounting.invoices.create', 'icon' => 'file-circle-plus',   'label' => 'বিল, চালান ও দরপত্র তৈরি'],
             ['route' => 'admin.accounting.invoices.index',  'icon' => 'file-invoice-dollar', 'label' => 'বিল, চালান ও দরপত্র তালিকা'],
+            ['route' => 'admin.accounting.invoices.create', 'icon' => 'file-circle-plus',   'label' => 'বিল, চালান ও দরপত্র তৈরি'],
         ],
         'কনটেন্ট' => [
             ['route' => 'admin.blog',     'icon' => 'blog',      'label' => 'ব্লগ'],

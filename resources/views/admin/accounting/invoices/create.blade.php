@@ -16,6 +16,26 @@
 
 @section('content')
 
+{{-- Idea Accounting Unified Navigation Bar --}}
+<div class="card border-0 shadow-sm rounded-4 mb-4 bg-white">
+    <div class="card-body p-2">
+        <div class="nav nav-pills gap-1.5 flex-wrap">
+            <a href="{{ route('admin.accounting.index') }}" 
+               class="nav-link rounded-pill px-3.5 py-2 fw-semibold text-dark hover-bg-light">
+                <i class="fas fa-scale-balanced me-1.5"></i> আয়-ব্যয় ও হিসাব খাতা
+            </a>
+            <a href="{{ route('admin.accounting.invoices.index') }}" 
+               class="nav-link rounded-pill px-3.5 py-2 fw-semibold text-dark hover-bg-light">
+                <i class="fas fa-file-invoice-dollar me-1.5"></i> বিল, চালান ও দরপত্র তালিকা
+            </a>
+            <a href="{{ route('admin.accounting.invoices.create') }}" 
+               class="nav-link rounded-pill px-3.5 py-2 fw-semibold active bg-primary text-white shadow-sm">
+                <i class="fas fa-file-circle-plus me-1.5"></i> নতুন বিল, চালান ও দরপত্র তৈরি
+            </a>
+        </div>
+    </div>
+</div>
+
 @php
     $currentType = old('type', $selectedType ?? 'invoice');
 @endphp
