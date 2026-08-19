@@ -119,13 +119,13 @@
             
             {{-- Institutional / Company Header with 2:1 Wide Logo on the left --}}
             <div class="d-flex flex-wrap justify-content-between align-items-center border-bottom pb-2 mb-2 gap-2">
-                <div class="d-flex align-items-center gap-2.5 invoice-brand-header">
+                <div class="d-flex align-items-center gap-3.5 invoice-brand-header">
                     <img src="{{ $logoSrc }}" alt="{{ $settings['business_name'] ?? 'আইডিয়া প্রকাশন' }}" 
-                         class="img-fluid invoice-logo-img" style="height: 48px; width: 96px; aspect-ratio: 2/1; object-fit: contain; flex-shrink: 0;">
-                    <div class="d-flex flex-column justify-content-center" style="line-height: 1.25;">
-                        <div class="fw-bold text-primary invoice-brand-name" style="font-size: 15px; margin-bottom: 1px;">{{ $settings['business_name'] ?? 'আইডিয়া প্রকাশন' }}</div>
-                        <div class="text-muted invoice-tagline" style="font-size: 10px; margin-bottom: 1px;">{{ $settings['tagline'] ?? 'বই প্রকাশনা, মুদ্রণ ও পরিবেশনা' }}</div>
-                        <div class="text-muted invoice-contact-info" style="font-size: 9.5px;">
+                         class="img-fluid invoice-logo-img" style="height: 48px; width: 96px; aspect-ratio: 2/1; object-fit: contain; flex-shrink: 0; margin-right: 6px;">
+                    <div class="d-flex flex-column justify-content-center" style="line-height: 1.35; padding-left: 2px;">
+                        <div class="fw-bold text-primary invoice-brand-name" style="font-size: 15.5px; margin-bottom: 2px;">{{ $settings['business_name'] ?? 'আইডিয়া প্রকাশন' }}</div>
+                        <div class="text-muted invoice-tagline" style="font-size: 10.5px; margin-bottom: 2px;">{{ $settings['tagline'] ?? 'বই প্রকাশনা, মুদ্রণ ও পরিবেশনা' }}</div>
+                        <div class="text-muted invoice-contact-info" style="font-size: 10px;">
                             {{ $settings['address'] ?? 'ঢাকা, বাংলাদেশ' }} · মোবাইল: {{ $settings['phone'] ?? '018XXXXXXXX' }} · ইমেইল: {{ $settings['email'] ?? 'info@ideaabd.com' }}
                         </div>
                     </div>
@@ -183,41 +183,61 @@
                 </div>
             @endif
 
-            {{-- Customer & Billed To Info (Compact) --}}
-            <div class="row mb-2 p-1.5 bg-light rounded-2 border g-1" style="font-size: 10px;">
-                <div class="col-6">
-                    <span class="text-muted text-uppercase fw-semibold" style="font-size: 9px;">প্রাপক / প্রতিষ্ঠান:</span>
-                    @if($invoice->customer_org)
-                        <div class="fw-bold text-primary" style="font-size: 11px;"><i class="fas fa-building me-1 text-primary"></i>{{ $invoice->customer_org }}</div>
-                        <div class="text-dark fw-semibold" style="font-size: 10px;">প্রতিনিধি: {{ $invoice->customer_name }}</div>
-                    @else
-                        <div class="fw-bold text-dark" style="font-size: 11px;"><i class="fas fa-user me-1 text-primary"></i>{{ $invoice->customer_name }}</div>
-                    @endif
-                    @if($invoice->customer_phone)
-                        <div class="text-muted"><i class="fas fa-phone me-1"></i>{{ $invoice->customer_phone }}</div>
-                    @endif
-                    @if($invoice->customer_address)
-                        <div class="text-muted"><i class="fas fa-location-dot me-1"></i>{{ $invoice->customer_address }}</div>
-                    @endif
+            {{-- Customer & Billed To Info (Font 12 structured format) --}}
+            <div class="row mb-2.5 p-2 bg-light rounded-2 border g-2 align-items-start" style="font-size: 12px;">
+                <div class="col-7">
+                    <div class="fw-bold text-dark mb-1" style="font-size: 12px;"><i class="fas fa-user-tag me-1 text-primary"></i>প্রাপক:</div>
+                    <table class="table-borderless p-0 m-0 w-100" style="font-size: 12px; line-height: 1.45;">
+                        @if($invoice->customer_name)
+                            <tr>
+                                <td class="text-muted pe-1 text-nowrap" style="width: 110px; vertical-align: top;">প্রাপক নাম:</td>
+                                <td class="fw-bold text-dark">{{ $invoice->customer_name }}</td>
+                            </tr>
+                        @endif
+                        @if(!empty($invoice->customer_designation))
+                            <tr>
+                                <td class="text-muted pe-1 text-nowrap" style="vertical-align: top;">পদবী:</td>
+                                <td class="fw-semibold text-dark">{{ $invoice->customer_designation }}</td>
+                            </tr>
+                        @endif
+                        @if($invoice->customer_org)
+                            <tr>
+                                <td class="text-muted pe-1 text-nowrap" style="vertical-align: top;">প্রতিষ্ঠানের নাম:</td>
+                                <td class="fw-semibold text-primary">{{ $invoice->customer_org }}</td>
+                            </tr>
+                        @endif
+                        @if($invoice->customer_address)
+                            <tr>
+                                <td class="text-muted pe-1 text-nowrap" style="vertical-align: top;">ঠিকানা:</td>
+                                <td class="text-dark">{{ $invoice->customer_address }}</td>
+                            </tr>
+                        @endif
+                        @if($invoice->customer_phone)
+                            <tr>
+                                <td class="text-muted pe-1 text-nowrap" style="vertical-align: top;">মোবাইল:</td>
+                                <td class="text-dark fw-bold font-monospace">{{ $invoice->customer_phone }}</td>
+                            </tr>
+                        @endif
+                    </table>
                 </div>
-                <div class="col-6 text-end">
-                    <span class="text-muted text-uppercase fw-semibold" style="font-size: 9px;">অর্ডার ও পেমেন্ট বিবরণ:</span>
-                    <div>
-                        <div>ধরন: <strong>{{ $invoice->type_label }}</strong> · মাধ্যম: <strong>{{ $invoice->payment_method }}</strong></div>
+                <div class="col-5 text-end">
+                    <div class="text-muted text-uppercase fw-semibold mb-1" style="font-size: 11px;">অর্ডার ও পেমেন্ট বিবরণ:</div>
+                    <div style="font-size: 12px; line-height: 1.5;">
+                        <div>ধরন: <strong>{{ $invoice->type_label }}</strong> · মাধ্যম: <strong>{{ $invoice->payment_method ?? 'ক্যাশ / ব্যাংক' }}</strong></div>
                         @if(in_array($invoice->type, ['invoice', 'challan']))
                             <div>
                                 স্ট্যাটাস: 
                                 @if($invoice->payment_status === 'paid')
-                                    <span class="badge bg-success-subtle text-success border px-1.5 py-0" style="font-size: 9px;">পরিশোধিত</span>
+                                    <span class="badge bg-success-subtle text-success border px-2 py-0.5" style="font-size: 10.5px;">পরিশোধিত</span>
                                 @elseif($invoice->payment_status === 'partial')
-                                    <span class="badge bg-warning-subtle text-dark border px-1.5 py-0" style="font-size: 9px;">আংশিক বকেয়া</span>
+                                    <span class="badge bg-warning-subtle text-dark border px-2 py-0.5" style="font-size: 10.5px;">আংশিক বকেয়া</span>
                                 @else
-                                    <span class="badge bg-danger-subtle text-danger border px-1.5 py-0" style="font-size: 9px;">বকেয়া</span>
+                                    <span class="badge bg-danger-subtle text-danger border px-2 py-0.5" style="font-size: 10.5px;">বকেয়া</span>
                                 @endif
                                 · প্রস্তুতকারী: <strong>{{ $invoice->creator->name ?? 'অ্যাডমিন' }}</strong>
                             </div>
                         @else
-                            <div>প্রস্তাবনা স্ট্যাটাস: <span class="badge bg-primary-subtle text-primary border px-1.5 py-0" style="font-size: 9px;">প্রস্তাবিত</span></div>
+                            <div>প্রস্তাবনা স্ট্যাটাস: <span class="badge bg-primary-subtle text-primary border px-2 py-0.5" style="font-size: 10.5px;">প্রস্তাবিত</span></div>
                         @endif
                     </div>
                 </div>
@@ -353,13 +373,13 @@
                 
                 {{-- Institutional / Company Header with 2:1 Wide Logo on the left --}}
                 <div class="d-flex flex-wrap justify-content-between align-items-center border-bottom pb-2 mb-2 gap-2">
-                    <div class="d-flex align-items-center gap-2.5 invoice-brand-header">
+                    <div class="d-flex align-items-center gap-3.5 invoice-brand-header">
                         <img src="{{ $logoSrc }}" alt="{{ $settings['business_name'] ?? 'আইডিয়া প্রকাশন' }}" 
-                             class="img-fluid invoice-logo-img" style="height: 48px; width: 96px; aspect-ratio: 2/1; object-fit: contain; flex-shrink: 0;">
-                        <div class="d-flex flex-column justify-content-center" style="line-height: 1.25;">
-                            <div class="fw-bold text-primary invoice-brand-name" style="font-size: 15px; margin-bottom: 1px;">{{ $settings['business_name'] ?? 'আইডিয়া প্রকাশন' }}</div>
-                            <div class="text-muted invoice-tagline" style="font-size: 10px; margin-bottom: 1px;">{{ $settings['tagline'] ?? 'বই প্রকাশনা, মুদ্রণ ও পরিবেশনা' }}</div>
-                            <div class="text-muted invoice-contact-info" style="font-size: 9.5px;">
+                             class="img-fluid invoice-logo-img" style="height: 48px; width: 96px; aspect-ratio: 2/1; object-fit: contain; flex-shrink: 0; margin-right: 6px;">
+                        <div class="d-flex flex-column justify-content-center" style="line-height: 1.35; padding-left: 2px;">
+                            <div class="fw-bold text-primary invoice-brand-name" style="font-size: 15.5px; margin-bottom: 2px;">{{ $settings['business_name'] ?? 'আইডিয়া প্রকাশন' }}</div>
+                            <div class="text-muted invoice-tagline" style="font-size: 10.5px; margin-bottom: 2px;">{{ $settings['tagline'] ?? 'বই প্রকাশনা, মুদ্রণ ও পরিবেশনা' }}</div>
+                            <div class="text-muted invoice-contact-info" style="font-size: 10px;">
                                 {{ $settings['address'] ?? 'ঢাকা, বাংলাদেশ' }} · মোবাইল: {{ $settings['phone'] ?? '018XXXXXXXX' }} · ইমেইল: {{ $settings['email'] ?? 'info@ideaabd.com' }}
                             </div>
                         </div>
@@ -378,28 +398,46 @@
                     </div>
                 </div>
 
-                {{-- Delivery Destination & Client Details (Compact) --}}
-                <div class="row mb-2 p-1.5 bg-light rounded-2 border g-1" style="font-size: 10px;">
-                    <div class="col-6">
-                        <span class="text-muted text-uppercase fw-semibold" style="font-size: 9px;"><i class="fas fa-truck-ramp-box me-1 text-primary"></i>প্রাপক ও গন্তব্য:</span>
-                        @if($invoice->customer_org)
-                            <div class="fw-bold text-primary" style="font-size: 11px;"><i class="fas fa-building me-1 text-primary"></i>{{ $invoice->customer_org }}</div>
-                            <div class="text-dark fw-semibold" style="font-size: 10px;">প্রতিনিধি: {{ $invoice->customer_name }}</div>
-                        @else
-                            <div class="fw-bold text-dark" style="font-size: 11px;"><i class="fas fa-user me-1 text-primary"></i>{{ $invoice->customer_name }}</div>
-                        @endif
-                        @if($invoice->customer_phone)
-                            <div class="text-muted"><i class="fas fa-phone me-1"></i>{{ $invoice->customer_phone }}</div>
-                        @endif
-                        @if($invoice->customer_address)
-                            <div class="text-muted fw-semibold text-dark"><i class="fas fa-location-dot me-1 text-danger"></i>{{ $invoice->customer_address }}</div>
-                        @else
-                            <div class="text-muted">গন্তব্য: সরাসরি কাউন্টার ডেলিভারি</div>
-                        @endif
+                {{-- Delivery Destination & Client Details (Font 12 structured format) --}}
+                <div class="row mb-2.5 p-2 bg-light rounded-2 border g-2 align-items-start" style="font-size: 12px;">
+                    <div class="col-7">
+                        <div class="fw-bold text-dark mb-1" style="font-size: 12px;"><i class="fas fa-truck-ramp-box me-1 text-primary"></i>প্রাপক ও গন্তব্য:</div>
+                        <table class="table-borderless p-0 m-0 w-100" style="font-size: 12px; line-height: 1.45;">
+                            @if($invoice->customer_name)
+                                <tr>
+                                    <td class="text-muted pe-1 text-nowrap" style="width: 110px; vertical-align: top;">প্রাপক নাম:</td>
+                                    <td class="fw-bold text-dark">{{ $invoice->customer_name }}</td>
+                                </tr>
+                            @endif
+                            @if(!empty($invoice->customer_designation))
+                                <tr>
+                                    <td class="text-muted pe-1 text-nowrap" style="vertical-align: top;">পদবী:</td>
+                                    <td class="fw-semibold text-dark">{{ $invoice->customer_designation }}</td>
+                                </tr>
+                            @endif
+                            @if($invoice->customer_org)
+                                <tr>
+                                    <td class="text-muted pe-1 text-nowrap" style="vertical-align: top;">প্রতিষ্ঠানের নাম:</td>
+                                    <td class="fw-semibold text-primary">{{ $invoice->customer_org }}</td>
+                                </tr>
+                            @endif
+                            @if($invoice->customer_address)
+                                <tr>
+                                    <td class="text-muted pe-1 text-nowrap" style="vertical-align: top;">ঠিকানা:</td>
+                                    <td class="text-dark">{{ $invoice->customer_address }}</td>
+                                </tr>
+                            @endif
+                            @if($invoice->customer_phone)
+                                <tr>
+                                    <td class="text-muted pe-1 text-nowrap" style="vertical-align: top;">মোবাইল:</td>
+                                    <td class="text-dark fw-bold font-monospace">{{ $invoice->customer_phone }}</td>
+                                </tr>
+                            @endif
+                        </table>
                     </div>
-                    <div class="col-6 text-end">
-                        <span class="text-muted text-uppercase fw-semibold" style="font-size: 9px;">চালান ট্র্যাকিং ও প্রেরণ তথ্য:</span>
-                        <div>
+                    <div class="col-5 text-end">
+                        <div class="text-muted text-uppercase fw-semibold mb-1" style="font-size: 11px;">চালান ট্র্যাকিং ও প্রেরণ তথ্য:</div>
+                        <div style="font-size: 12px; line-height: 1.5;">
                             <div>চালানের ধরন: <strong>পণ্য / বই সরবরাহ চালান</strong></div>
                             <div>মোট আইটেম: <strong>@bn(count($invoice->items ?? [])) টি</strong> · মোট বই: <strong class="text-primary">@bn($totalQuantity) টি</strong></div>
                             <div class="text-muted">প্রেরক / প্যাকার: <strong>{{ $invoice->creator->name ?? 'অ্যাডমিন' }}</strong></div>
@@ -514,12 +552,12 @@
                     {{-- Live Preview Header Card --}}
                     <div class="card border rounded-3 p-3 mb-4 bg-light">
                         <span class="small fw-bold text-muted text-uppercase mb-2 d-block"><i class="fas fa-eye me-1 text-primary"></i>ইনভয়েস হেডার লাইভ প্রিভিউ (Preview):</span>
-                        <div class="d-flex align-items-center gap-2.5 p-2 bg-white rounded border">
-                            <img src="{{ $logoSrc }}" id="previewHeaderLogo" alt="Logo Preview" style="height: 48px; width: 96px; aspect-ratio: 2/1; object-fit: contain; flex-shrink: 0;">
-                            <div class="d-flex flex-column justify-content-center" style="line-height: 1.25;">
-                                <div class="fw-bold text-primary mb-0" id="previewHeaderTitle" style="font-size: 15px;">{{ $settings['business_name'] ?? 'আইডিয়া প্রকাশন' }}</div>
-                                <div class="text-muted small mb-0" id="previewHeaderTagline" style="font-size: 10px;">{{ $settings['tagline'] ?? 'বই প্রকাশনা, মুদ্রণ ও পরিবেশনা' }}</div>
-                                <div class="text-muted small mt-0.5" id="previewHeaderMeta" style="font-size: 9.5px;">
+                        <div class="d-flex align-items-center gap-3.5 p-2 bg-white rounded border">
+                            <img src="{{ $logoSrc }}" id="previewHeaderLogo" alt="Logo Preview" style="height: 48px; width: 96px; aspect-ratio: 2/1; object-fit: contain; flex-shrink: 0; margin-right: 6px;">
+                            <div class="d-flex flex-column justify-content-center" style="line-height: 1.35; padding-left: 2px;">
+                                <div class="fw-bold text-primary mb-0" id="previewHeaderTitle" style="font-size: 15.5px;">{{ $settings['business_name'] ?? 'আইডিয়া প্রকাশন' }}</div>
+                                <div class="text-muted small mb-0" id="previewHeaderTagline" style="font-size: 10.5px;">{{ $settings['tagline'] ?? 'বই প্রকাশনা, মুদ্রণ ও পরিবেশনা' }}</div>
+                                <div class="text-muted small mt-0.5" id="previewHeaderMeta" style="font-size: 10px;">
                                     {{ $settings['address'] ?? 'ঢাকা, বাংলাদেশ' }} · মোবাইল: {{ $settings['phone'] ?? '018XXXXXXXX' }} · ইমেইল: {{ $settings['email'] ?? 'info@ideaabd.com' }}
                                 </div>
                             </div>
