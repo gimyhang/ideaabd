@@ -20,6 +20,15 @@
     foreach($invoice->items ?? [] as $it) {
         $totalQuantity += (float)($it['quantity'] ?? 1);
     }
+
+    // Fetch books map for rich details like author_name, cover price etc.
+    $bookIds = collect($invoice->items ?? [])->pluck('book_id')->filter()->unique()->toArray();
+    $bookTitles = collect($invoice->items ?? [])->pluck('title')->filter()->unique()->toArray();
+    $matchedBooks = \Modules\Book\Models\Book::whereIn('id', $bookIds)
+        ->orWhereIn('title', $bookTitles)
+        ->get()
+        ->keyBy('id');
+    $matchedBooksByTitle = $matchedBooks->keyBy('title');
 @endphp
 
 @section('title', $docTitle)
@@ -248,62 +257,117 @@
                 <table class="table table-bordered table-sm align-middle invoice-table mb-0" style="font-size: 10px;">
                     <thead class="table-light">
                         <tr class="text-muted text-uppercase" style="font-size: 9px;">
-                            <th class="text-center py-1 px-1" style="width: 30px;">#</th>
-                            <th class="py-1 px-1.5">বিবরণ / বই বা সেবার নাম</th>
-                            <th class="text-center py-1 px-1" style="width: 70px;">ধরন</th>
-                            <th class="text-center py-1 px-1" style="width: 55px;">পরিমাণ</th>
-                            <th class="text-end py-1 px-1.5" style="width: 80px;">দর / একক (৳)</th>
-                            <th class="text-end py-1 pe-1.5" style="width: 90px;">মোট টাকা (৳)</th>
+                            <th class="text-center py-1 px-1" style="width: 26px;">#</th>
+                            <th class="py-1 px-1.5">বইয়ের নাম ও বিবরণ</th>
+                            <th class="py-1 px-1" style="width: 105px;">লেখক</th>
+                            <th class="text-center py-1 px-1" style="width: 45px;">পরিমাণ</th>
+                            <th class="text-end py-1 px-1" style="width: 70px;">গায়ের মূল্য</th>
+                            <th class="text-center py-1 px-1" style="width: 55px;">কমিশন %</th>
+                            <th class="text-end py-1 px-1" style="width: 80px;">কমিশন বাদে একক</th>
+                            <th class="text-end py-1 pe-1.5" style="width: 85px;">মোট টাকা (৳)</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach($invoice->items as $idx => $item)
+                            @php
+                                $matchedBook = (!empty($item['book_id']) && isset($matchedBooks[$item['book_id']]))
+                                    ? $matchedBooks[$item['book_id']]
+                                    : ($matchedBooksByTitle[$item['title']] ?? null);
+                                
+                                $authorName = $item['author'] ?? $item['author_name'] ?? ($matchedBook->author_name ?? ($matchedBook->author->name ?? null)) ?? '—';
+                                
+                                $qty = (float)($item['quantity'] ?? 1);
+                                $netUnitPrice = (float)($item['unit_price'] ?? 0);
+                                
+                                $coverPrice = (float)($item['cover_price'] ?? $item['original_price'] ?? ($matchedBook->price ?? $netUnitPrice));
+                                if ($coverPrice <= 0) {
+                                    $coverPrice = $netUnitPrice;
+                                }
+
+                                if (isset($item['discount_percent']) && is_numeric($item['discount_percent'])) {
+                                    $commPercent = (float)$item['discount_percent'];
+                                } elseif (isset($item['commission']) && is_numeric($item['commission'])) {
+                                    $commPercent = (float)$item['commission'];
+                                } elseif ($coverPrice > 0 && $coverPrice > $netUnitPrice) {
+                                    $commPercent = round((($coverPrice - $netUnitPrice) / $coverPrice) * 100, 1);
+                                } else {
+                                    $commPercent = 0;
+                                }
+
+                                $lineSubtotal = (float)($item['subtotal'] ?? ($qty * $netUnitPrice));
+                            @endphp
                             <tr>
                                 <td class="text-center py-0.5 px-1 text-muted">@bn($idx + 1)</td>
                                 <td class="py-0.5 px-1.5">
                                     <span class="fw-semibold text-dark">{{ $item['title'] ?? '—' }}</span>
                                 </td>
-                                <td class="text-center py-0.5 px-1"><span class="badge bg-light text-dark border px-1 py-0" style="font-size: 8.5px;">{{ $item['item_type'] ?? 'বই' }}</span></td>
-                                <td class="text-center py-0.5 px-1 fw-bold">@bn($item['quantity'] ?? 1)</td>
-                                <td class="text-end py-0.5 px-1.5">@taka($item['unit_price'] ?? 0)</td>
-                                <td class="text-end py-0.5 pe-1.5 fw-bold text-dark">@taka($item['subtotal'] ?? 0)</td>
+                                <td class="py-0.5 px-1 text-muted" style="font-size: 9.5px;">{{ $authorName }}</td>
+                                <td class="text-center py-0.5 px-1 fw-bold">@bn($qty)</td>
+                                <td class="text-end py-0.5 px-1">@taka($coverPrice)</td>
+                                <td class="text-center py-0.5 px-1">
+                                    @if($commPercent > 0)
+                                        <span class="badge bg-danger-subtle text-danger border px-1 py-0" style="font-size: 8.5px;">@bn($commPercent)%</span>
+                                    @else
+                                        <span class="text-muted" style="font-size: 8.5px;">—</span>
+                                    @endif
+                                </td>
+                                <td class="text-end py-0.5 px-1 fw-semibold text-dark">@taka($netUnitPrice)</td>
+                                <td class="text-end py-0.5 pe-1.5 fw-bold text-dark">@taka($lineSubtotal)</td>
                             </tr>
                         @endforeach
                     </tbody>
+                    @php
+                        $specialCommPercent = ($invoice->subtotal > 0 && $invoice->discount > 0)
+                            ? round(($invoice->discount / $invoice->subtotal) * 100, 1)
+                            : 0;
+
+                        $tfootRows = 3; // মোট টাকা + বিশেষ কমিশন + সর্বমোট বিল
+                        if ($invoice->tax > 0) $tfootRows++;
+                        if (in_array($invoice->type, ['invoice', 'challan'])) {
+                            $tfootRows++; // পরিশোধিত
+                            if ($invoice->due_amount > 0) $tfootRows++; // অবশিষ্ট বকেয়া
+                        }
+                    @endphp
                     <tfoot>
                         <tr>
-                            <td colspan="4" class="border-0 p-0"></td>
-                            <td class="text-end py-0.5 px-1.5 fw-semibold">উপ-যোগফল:</td>
+                            <td colspan="6" rowspan="{{ $tfootRows }}" class="py-2 px-2.5 border bg-light bg-opacity-25" style="vertical-align: middle;">
+                                <div class="p-1">
+                                    <span class="text-muted fw-bold d-block mb-1" style="font-size: 9.5px;">
+                                        <i class="fas fa-coins me-1 text-primary"></i>টাকা কথায়:
+                                    </span>
+                                    <div class="fw-bold text-dark text-wrap" style="font-size: 11.5px; line-height: 1.45;">
+                                        @takaInWords($invoice->grand_total)
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="text-end py-0.5 px-1.5 fw-semibold">মোট টাকা:</td>
                             <td class="text-end py-0.5 pe-1.5 fw-semibold">@taka($invoice->subtotal)</td>
                         </tr>
-                        @if($invoice->discount > 0)
-                            <tr>
-                                <td colspan="4" class="border-0 p-0"></td>
-                                <td class="text-end py-0.5 px-1.5 text-danger fw-semibold">বিশেষ ছাড়:</td>
-                                <td class="text-end py-0.5 pe-1.5 text-danger fw-semibold">- @taka($invoice->discount)</td>
-                            </tr>
-                        @endif
+                        <tr>
+                            <td class="text-end py-0.5 px-1.5 text-danger fw-semibold">
+                                বিশেষ কমিশন {{ $specialCommPercent > 0 ? '(@bn(' . $specialCommPercent . ')%)' : '' }}:
+                            </td>
+                            <td class="text-end py-0.5 pe-1.5 text-danger fw-semibold">
+                                {{ $invoice->discount > 0 ? '- ' . \App\Support\Bn::money($invoice->discount) : '৳০.০০' }}
+                            </td>
+                        </tr>
                         @if($invoice->tax > 0)
                             <tr>
-                                <td colspan="4" class="border-0 p-0"></td>
                                 <td class="text-end py-0.5 px-1.5 text-muted fw-semibold">ভ্যাট / ট্যাক্স:</td>
                                 <td class="text-end py-0.5 pe-1.5 text-muted fw-semibold">+ @taka($invoice->tax)</td>
                             </tr>
                         @endif
                         <tr class="table-light">
-                            <td colspan="4" class="border-0 p-0"></td>
                             <td class="text-end py-1 px-1.5 fw-bold text-dark">সর্বমোট বিল:</td>
                             <td class="text-end py-1 pe-1.5 fw-bold text-primary" style="font-size: 11.5px;">@taka($invoice->grand_total)</td>
                         </tr>
                         @if(in_array($invoice->type, ['invoice', 'challan']))
                             <tr>
-                                <td colspan="4" class="border-0 p-0"></td>
                                 <td class="text-end py-0.5 px-1.5 text-success fw-bold">পরিশোধিত:</td>
                                 <td class="text-end py-0.5 pe-1.5 text-success fw-bold">@taka($invoice->paid_amount)</td>
                             </tr>
                             @if($invoice->due_amount > 0)
                                 <tr class="table-danger">
-                                    <td colspan="4" class="border-0 p-0"></td>
                                     <td class="text-end py-0.5 px-1.5 text-danger fw-bold">অবশিষ্ট বকেয়া:</td>
                                     <td class="text-end py-0.5 pe-1.5 text-danger fw-bold">@taka($invoice->due_amount)</td>
                                 </tr>
@@ -450,21 +514,29 @@
                     <table class="table table-bordered table-sm align-middle invoice-table mb-0" style="font-size: 10px;">
                         <thead class="table-light">
                             <tr class="text-muted text-uppercase" style="font-size: 9px;">
-                                <th class="text-center py-1 px-1" style="width: 30px;">#</th>
+                                <th class="text-center py-1 px-1" style="width: 28px;">#</th>
                                 <th class="py-1 px-1.5">সরবরাহকৃত পণ্য / বইয়ের বিবরণ</th>
-                                <th class="text-center py-1 px-1" style="width: 75px;">ধরন</th>
-                                <th class="text-center py-1 px-1" style="width: 75px;">পরিমাণ</th>
-                                <th class="text-center py-1 px-1" style="width: 85px;">প্যাকিং অবস্থা</th>
-                                <th class="py-1 px-1.5" style="width: 90px;">মন্তব্য</th>
+                                <th class="py-1 px-1" style="width: 115px;">লেখক</th>
+                                <th class="text-center py-1 px-1" style="width: 60px;">ধরন</th>
+                                <th class="text-center py-1 px-1" style="width: 55px;">পরিমাণ</th>
+                                <th class="text-center py-1 px-1" style="width: 75px;">প্যাকিং অবস্থা</th>
+                                <th class="py-1 px-1.5" style="width: 80px;">মন্তব্য</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach($invoice->items as $idx => $item)
+                                @php
+                                    $matchedBook = (!empty($item['book_id']) && isset($matchedBooks[$item['book_id']]))
+                                        ? $matchedBooks[$item['book_id']]
+                                        : ($matchedBooksByTitle[$item['title']] ?? null);
+                                    $authorName = $item['author'] ?? $item['author_name'] ?? ($matchedBook->author_name ?? ($matchedBook->author->name ?? null)) ?? '—';
+                                @endphp
                                 <tr>
                                     <td class="text-center py-0.5 px-1 text-muted">@bn($idx + 1)</td>
                                     <td class="py-0.5 px-1.5">
                                         <span class="fw-semibold text-dark">{{ $item['title'] ?? '—' }}</span>
                                     </td>
+                                    <td class="py-0.5 px-1 text-muted" style="font-size: 9.5px;">{{ $authorName }}</td>
                                     <td class="text-center py-0.5 px-1"><span class="badge bg-light text-dark border px-1 py-0" style="font-size: 8.5px;">{{ $item['item_type'] ?? 'বই' }}</span></td>
                                     <td class="text-center py-0.5 px-1 fw-bold text-primary">@bn($item['quantity'] ?? 1)</td>
                                     <td class="text-center py-0.5 px-1 text-muted">অক্ষত / নতুন কপি</td>
@@ -474,7 +546,7 @@
                         </tbody>
                         <tfoot>
                             <tr class="table-light">
-                                <td colspan="3" class="text-end py-1 px-1.5 fw-bold">সর্বমোট সরবরাহকৃত বই / পণ্য:</td>
+                                <td colspan="4" class="text-end py-1 px-1.5 fw-bold">সর্বমোট সরবরাহকৃত বই / পণ্য:</td>
                                 <td class="text-center py-1 px-1 fw-bold text-primary" style="font-size: 11px;">@bn($totalQuantity) টি</td>
                                 <td colspan="2" class="py-1 px-1.5 text-muted" style="font-size: 9px;">সম্পূর্ণ লট প্রস্তুত ও প্রেরিত</td>
                             </tr>
@@ -839,11 +911,13 @@ function resetCrop() {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    padding-left: 0.5in !important;
+    padding-right: 0.5in !important;
 }
 
 .invoice-table th,
 .invoice-table td {
-    padding: 2px 5px !important;
+    padding: 2px 4px !important;
     vertical-align: middle;
     line-height: 1.25;
     font-size: 10px;
@@ -860,7 +934,7 @@ function resetCrop() {
 
 @page {
     size: A4 portrait;
-    margin: 5mm 6mm 5mm 6mm;
+    margin: 8mm 0.5in 8mm 0.5in;
 }
 
 @media print {
@@ -897,11 +971,13 @@ function resetCrop() {
         border: none !important;
         box-shadow: none !important;
         padding: 0 !important;
+        padding-left: 0.5in !important;
+        padding-right: 0.5in !important;
         margin: 0 !important;
         width: 100% !important;
         background: #ffffff !important;
-        min-height: 282mm !important;
-        height: 282mm !important;
+        min-height: 280mm !important;
+        height: 280mm !important;
         display: flex !important;
         flex-direction: column !important;
         justify-content: space-between !important;
@@ -911,7 +987,7 @@ function resetCrop() {
 
     .invoice-table th,
     .invoice-table td {
-        padding: 1.5px 4px !important;
+        padding: 1.5px 3.5px !important;
         font-size: 9.5px !important;
         line-height: 1.2 !important;
         border-color: #475569 !important;
@@ -929,7 +1005,7 @@ function resetCrop() {
     }
 
     .invoice-brand-name {
-        font-size: 15px !important;
+        font-size: 15.5px !important;
     }
 
     .invoice-footer-compact {
