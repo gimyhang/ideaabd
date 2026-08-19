@@ -118,7 +118,7 @@
     </div>
 </div>
 
-<div class="row justify-content-center">
+<div class="row justify-content-center" id="invoicePrintWrapper">
     <div class="col-lg-10">
 
         {{-- ========================================================================= --}}
@@ -431,7 +431,7 @@
         {{-- PAGE 2: DELIVERY CHALLAN (স্বয়ংক্রিয় ২য় পেজ চালান - বিলের জন্য)              --}}
         {{-- ========================================================================= --}}
         @if($invoice->type === 'invoice')
-            <div class="page-break d-print-block"></div>
+            <div class="page-break d-print-block" id="invoicePageBreak"></div>
 
             <div class="card border shadow-xs rounded-3 p-3 p-md-4 bg-white mb-3 invoice-page-card" id="pageChallanMemo">
                 
@@ -719,28 +719,32 @@
 function setViewMode(mode) {
     const pageBill = document.getElementById('pageBillMemo');
     const pageChallan = document.getElementById('pageChallanMemo');
+    const pageBreak = document.getElementById('invoicePageBreak');
     const btnBoth = document.getElementById('btnShowBoth');
     const btnBill = document.getElementById('btnShowBill');
     const btnChallan = document.getElementById('btnShowChallan');
 
     if (!pageBill || !pageChallan) return;
 
-    btnBoth.classList.remove('active');
-    btnBill.classList.remove('active');
-    btnChallan.classList.remove('active');
+    if (btnBoth) btnBoth.classList.remove('active');
+    if (btnBill) btnBill.classList.remove('active');
+    if (btnChallan) btnChallan.classList.remove('active');
 
     if (mode === 'bill') {
-        pageBill.classList.remove('d-none');
-        pageChallan.classList.add('d-none');
-        btnBill.classList.add('active');
+        pageBill.classList.remove('d-none', 'd-print-none');
+        pageChallan.classList.add('d-none', 'd-print-none');
+        if (pageBreak) pageBreak.classList.add('d-none', 'd-print-none');
+        if (btnBill) btnBill.classList.add('active');
     } else if (mode === 'challan') {
-        pageBill.classList.add('d-none');
-        pageChallan.classList.remove('d-none');
-        btnChallan.classList.add('active');
+        pageBill.classList.add('d-none', 'd-print-none');
+        pageChallan.classList.remove('d-none', 'd-print-none');
+        if (pageBreak) pageBreak.classList.add('d-none', 'd-print-none');
+        if (btnChallan) btnChallan.classList.add('active');
     } else {
-        pageBill.classList.remove('d-none');
-        pageChallan.classList.remove('d-none');
-        btnBoth.classList.add('active');
+        pageBill.classList.remove('d-none', 'd-print-none');
+        pageChallan.classList.remove('d-none', 'd-print-none');
+        if (pageBreak) pageBreak.classList.remove('d-none', 'd-print-none');
+        if (btnBoth) btnBoth.classList.add('active');
     }
 }
 
@@ -907,7 +911,7 @@ function resetCrop() {
     font-family: 'Kalpurush', 'Nikosh', 'Hind Siliguri', sans-serif;
     font-size: 10px;
     color: #1e293b;
-    min-height: 1020px;
+    min-height: 980px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -933,7 +937,7 @@ function resetCrop() {
 }
 
 @page {
-    size: A4 portrait;
+    size: portrait;
     margin: 8mm 0.5in 8mm 0.5in;
 }
 
@@ -945,29 +949,35 @@ function resetCrop() {
         font-size: 10px !important;
         margin: 0 !important;
         padding: 0 !important;
+        width: 100% !important;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
     }
 
-    .adm-side, .adm-top, .adm-actions, .btn, .breadcrumb, footer, .adm-side__backdrop, .d-print-none, .adm-backdrop {
+    /* Suppress ALL Admin Layout Chrome */
+    .adm-sidebar, .adm-side, .adm-topbar, .adm-top, .adm-backdrop,
+    .adm-header, .breadcrumb, .alert, nav, footer, .btn,
+    .d-print-none, [class*="d-print-none"],
+    .adm-content > .d-flex.mb-4,
+    .adm-content > .alert,
+    .card.d-print-none {
         display: none !important;
+        visibility: hidden !important;
+        height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: hidden !important;
     }
 
-    .adm-main, .adm-content {
+    .adm-main, .adm-content, .container-fluid, .row, .col-lg-10 {
         margin: 0 !important;
         padding: 0 !important;
         width: 100% !important;
         max-width: 100% !important;
+        display: block !important;
     }
 
-    .row, .col-lg-10 {
-        width: 100% !important;
-        max-width: 100% !important;
-        margin: 0 !important;
-        padding: 0 !important;
-    }
-
-    .card, .invoice-page-card {
+    .invoice-page-card {
         border: none !important;
         box-shadow: none !important;
         padding: 0 !important;
@@ -976,11 +986,9 @@ function resetCrop() {
         margin: 0 !important;
         width: 100% !important;
         background: #ffffff !important;
-        min-height: 280mm !important;
-        height: 280mm !important;
-        display: flex !important;
-        flex-direction: column !important;
-        justify-content: space-between !important;
+        min-height: auto !important;
+        height: auto !important;
+        display: block !important;
         page-break-inside: avoid !important;
         break-inside: avoid !important;
     }
@@ -1009,18 +1017,20 @@ function resetCrop() {
     }
 
     .invoice-footer-compact {
-        margin-top: auto !important;
-        max-height: 0.6in !important;
+        margin-top: 15px !important;
         page-break-inside: avoid !important;
+        break-inside: avoid !important;
     }
 
     .page-break {
         display: block !important;
         page-break-before: always !important;
+        page-break-after: avoid !important;
         break-before: page !important;
         height: 0 !important;
         margin: 0 !important;
         padding: 0 !important;
+        border: none !important;
     }
 }
 </style>

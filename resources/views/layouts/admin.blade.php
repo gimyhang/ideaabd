@@ -40,7 +40,7 @@
 
     <div class="adm-content">
         {{-- Page heading + breadcrumb --}}
-        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4 d-print-none">
             <div>
                 <h1 class="h4 fw-bold mb-1">@yield('heading', 'ড্যাশবোর্ড')</h1>
                 <nav aria-label="breadcrumb">
@@ -56,7 +56,7 @@
         {{-- Flash messages --}}
         @foreach (['success' => 'circle-check', 'error' => 'circle-exclamation', 'warning' => 'triangle-exclamation', 'info' => 'circle-info'] as $key => $icon)
             @if (session($key))
-                <div class="alert alert-{{ $key === 'error' ? 'danger' : $key }} alert-dismissible d-flex align-items-center" role="alert">
+                <div class="alert alert-{{ $key === 'error' ? 'danger' : $key }} alert-dismissible d-flex align-items-center d-print-none" role="alert">
                     <i class="fas fa-{{ $icon }} me-2"></i>
                     <div>{{ session($key) }}</div>
                     <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="বন্ধ করুন"></button>
