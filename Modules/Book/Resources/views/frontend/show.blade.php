@@ -35,28 +35,46 @@
         $samplePdfUrl = null;
     }
 
-    // Hardcover Pricing (Main Focus)
-    $hardcoverPrice = (float)($book->hardcover_price ?? 0);
-    $hardcoverDisc = (float)($book->hardcover_discount_price ?? 0);
-    $hasHardcoverDisc = $hardcoverDisc > 0 && $hardcoverDisc < $hardcoverPrice;
-    $finalHardcoverPrice = $hasHardcoverDisc ? $hardcoverDisc : $hardcoverPrice;
-    $hardcoverDiscPct = ($hasHardcoverDisc && $hardcoverPrice > 0) ? round((($hardcoverPrice - $hardcoverDisc) / $hardcoverPrice) * 100) : 0;
-
-    // Paperback Pricing
+    // Paperback / Base Regular Pricing
     $paperbackPrice = (float)($book->price ?? 0);
     $paperbackDisc = (float)($book->discount_price ?? 0);
-    $hasPaperbackDisc = $paperbackDisc > 0 && $paperbackDisc < $paperbackPrice;
+    $hasPaperbackDisc = ($paperbackPrice > 0 && $paperbackDisc > 0 && $paperbackDisc < $paperbackPrice);
     $finalPaperbackPrice = $hasPaperbackDisc ? $paperbackDisc : $paperbackPrice;
     $paperbackDiscPct = ($hasPaperbackDisc && $paperbackPrice > 0) ? round((($paperbackPrice - $paperbackDisc) / $paperbackPrice) * 100) : 0;
 
-    $hasHardcoverOption = in_array($book->cover_type, ['both', 'hardcover'], true) || ($hardcoverPrice > 0) || ($book->format === 'hardcover');
-    // If hardcover option exists or cover_type is hardcover, prioritize hardcover
-    $activeFormat = ($book->cover_type === 'hardcover' || ($hasHardcoverOption && empty($paperbackPrice))) ? 'hardcover' : 'paperback';
+    // Hardcover Dedicated Pricing
+    $hardcoverPrice = (float)($book->hardcover_price ?? 0);
+    $hardcoverDisc = (float)($book->hardcover_discount_price ?? 0);
+    $hasHardcoverDisc = ($hardcoverPrice > 0 && $hardcoverDisc > 0 && $hardcoverDisc < $hardcoverPrice);
+    $finalHardcoverPrice = $hasHardcoverDisc ? $hardcoverDisc : $hardcoverPrice;
+    $hardcoverDiscPct = ($hasHardcoverDisc && $hardcoverPrice > 0) ? round((($hardcoverPrice - $hardcoverDisc) / $hardcoverPrice) * 100) : 0;
 
-    $finalPrice = $activeFormat === 'hardcover' ? $finalHardcoverPrice : $finalPaperbackPrice;
-    $regularPrice = $activeFormat === 'hardcover' ? $hardcoverPrice : $paperbackPrice;
-    $hasDiscount = $activeFormat === 'hardcover' ? $hasHardcoverDisc : $hasPaperbackDisc;
-    $discountPercent = $activeFormat === 'hardcover' ? $hardcoverDiscPct : $paperbackDiscPct;
+    // Smart Format & Option Determination
+    if ($hardcoverPrice > 0 && $paperbackPrice > 0) {
+        $hasHardcoverOption = true;
+        $activeFormat = ($book->cover_type === 'paperback') ? 'paperback' : 'hardcover';
+    } elseif ($hardcoverPrice > 0) {
+        $hasHardcoverOption = false;
+        $activeFormat = 'hardcover';
+    } elseif ($paperbackPrice > 0) {
+        $hasHardcoverOption = false;
+        $activeFormat = 'paperback';
+    } else {
+        $hasHardcoverOption = false;
+        $activeFormat = ($book->cover_type === 'hardcover') ? 'hardcover' : 'paperback';
+    }
+
+    if ($activeFormat === 'hardcover') {
+        $finalPrice = $finalHardcoverPrice > 0 ? $finalHardcoverPrice : $finalPaperbackPrice;
+        $regularPrice = $hardcoverPrice > 0 ? $hardcoverPrice : $paperbackPrice;
+        $hasDiscount = $hasHardcoverDisc || ($hardcoverPrice <= 0 && $hasPaperbackDisc);
+        $discountPercent = $hasHardcoverDisc ? $hardcoverDiscPct : ($hardcoverPrice <= 0 ? $paperbackDiscPct : 0);
+    } else {
+        $finalPrice = $finalPaperbackPrice > 0 ? $finalPaperbackPrice : $finalHardcoverPrice;
+        $regularPrice = $paperbackPrice > 0 ? $paperbackPrice : $hardcoverPrice;
+        $hasDiscount = $hasPaperbackDisc || ($paperbackPrice <= 0 && $hasHardcoverDisc);
+        $discountPercent = $hasPaperbackDisc ? $paperbackDiscPct : ($paperbackPrice <= 0 ? $hardcoverDiscPct : 0);
+    }
 @endphp
 
 @section('content')
@@ -257,6 +275,7 @@
                                     <span class="badge bg-white text-muted border small" id="activeFormatLabel">{{ $activeFormat === 'hardcover' ? 'হার্ডকভার' : 'পেপারব্যাক' }}</span>
                                 </div>
                                 <div class="d-flex flex-wrap gap-2" id="formatSelectorPills">
+                                    @if($paperbackPrice > 0)
                                     <button type="button" 
                                             class="btn btn-sm rounded-pill px-3 py-1.5 fw-semibold {{ $activeFormat === 'paperback' ? 'btn-primary' : 'btn-outline-secondary' }}" 
                                             id="btnFormatPaperback"
@@ -264,8 +283,9 @@
                                         <i class="fa-solid fa-book-open me-1"></i> পেপারব্যাক 
                                         <span class="badge bg-white text-dark ms-1">৳@bn(round($finalPaperbackPrice))</span>
                                     </button>
+                                    @endif
 
-                                    @if($hardcoverPrice > 0 || $book->cover_type === 'hardcover' || $book->cover_type === 'both')
+                                    @if($hardcoverPrice > 0)
                                     <button type="button" 
                                             class="btn btn-sm rounded-pill px-3 py-1.5 fw-semibold {{ $activeFormat === 'hardcover' ? 'btn-primary' : 'btn-outline-secondary' }}" 
                                             id="btnFormatHardcover"
@@ -279,17 +299,24 @@
                             @endif
 
                             <!-- Price Section -->
-                            <div class="p-3 bg-light rounded-4 mb-3 border border-light-subtle">
+                            <div class="p-3.5 bg-light rounded-4 mb-3 border border-light-subtle shadow-2xs">
                                 <div class="d-flex flex-wrap align-items-end justify-content-between gap-3">
                                     <div>
-                                        <div class="d-flex align-items-baseline gap-2 mb-1">
-                                            <span class="display-6 fw-bold text-dark" id="displayFinalPrice">৳ @bn(round($finalPrice))</span>
-                                            <span class="fs-5 text-muted text-decoration-line-through {{ $hasDiscount ? '' : 'd-none' }}" id="displayRegularPrice">৳ @bn(round($regularPrice))</span>
-                                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-1 small fw-bold {{ $hasDiscount ? '' : 'd-none' }}" id="displaySavingsBadge">
-                                                সাশ্রয় ৳ <span id="displaySavingsAmount">@bn(round($regularPrice - $finalPrice))</span> (<span id="displaySavingsPercent">@bn($discountPercent)</span>%)
-                                            </span>
-                                        </div>
-                                        <p class="small text-muted mb-0">সর্বমোট প্রদেয় মূল্য (ক্যাশ অন ডেলিভারি প্রযোজ্য)</p>
+                                        @if($finalPrice > 0)
+                                            <div class="d-flex align-items-baseline gap-2 mb-1">
+                                                <span class="display-6 fw-bold text-dark" id="displayFinalPrice">৳ @bn(round($finalPrice))</span>
+                                                <span class="fs-5 text-muted text-decoration-line-through {{ $hasDiscount ? '' : 'd-none' }}" id="displayRegularPrice">৳ @bn(round($regularPrice))</span>
+                                                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1 small fw-bold {{ $hasDiscount ? '' : 'd-none' }}" id="displaySavingsBadge">
+                                                    <i class="fa-solid fa-tags me-1"></i>সাশ্রয় ৳ <span id="displaySavingsAmount">@bn(round($regularPrice - $finalPrice))</span> (<span id="displaySavingsPercent">@bn($discountPercent)</span>% ছাড়)
+                                                </span>
+                                            </div>
+                                            <p class="small text-muted mb-0"><i class="fa-solid fa-circle-check text-success me-1"></i>সর্বমোট প্রদেয় মূল্য (ক্যাশ অন ডেলিভারি প্রযোজ্য)</p>
+                                        @else
+                                            <div class="d-flex align-items-center gap-2 mb-1">
+                                                <span class="fs-5 fw-bold text-primary"><i class="fa-solid fa-phone-volume me-1.5"></i>মূল্য ও প্রাপ্যতার জন্য যোগাযোগ করুন</span>
+                                            </div>
+                                            <p class="small text-muted mb-0">বইটির মূল্য ও অর্ডার নিশ্চিত করতে সরাসরি কল বা হোয়াটসঅ্যাপ করুন।</p>
+                                        @endif
                                     </div>
 
                                     <!-- Stock Badge -->
@@ -344,7 +371,7 @@
                             @endif
 
                             <!-- Quantity & Purchase Action Buttons -->
-                            <div class="d-flex flex-column flex-sm-row align-items-stretch gap-3 mb-4">
+                            <div class="d-flex flex-column flex-sm-row align-items-stretch gap-3 mb-3">
                                 
                                 <!-- Quantity Controller -->
                                 <div class="input-group input-group-lg border rounded-3 bg-white shadow-xs overflow-hidden" style="max-width: 140px;">
@@ -372,6 +399,19 @@
                                         <i class="fa-solid fa-bolt"></i> সরাসরি অর্ডার করুন
                                     </button>
                                 @endif
+                            </div>
+
+                            <!-- Instant Quick Order via Call or WhatsApp -->
+                            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-4 p-2.5 bg-white rounded-3 border">
+                                <span class="small fw-semibold text-dark"><i class="fa-solid fa-headset me-1 text-primary"></i> ফোনে বা হোয়াটসঅ্যাপে সরাসরি অর্ডার:</span>
+                                <div class="d-flex align-items-center gap-2">
+                                    <a href="tel:01711223344" class="btn btn-sm btn-outline-dark rounded-pill px-3 py-1 fw-bold text-decoration-none shadow-2xs">
+                                        <i class="fa-solid fa-phone me-1 text-success"></i> কল করুন
+                                    </a>
+                                    <a href="https://wa.me/8801711223344?text={{ urlencode('আসসালামু আলাইকুম, আমি এই বইটি অর্ডার করতে চাই: ' . $book->title . ' ( ' . url()->current() . ' )') }}" target="_blank" rel="noopener" class="btn btn-sm btn-success rounded-pill px-3 py-1 fw-bold text-decoration-none shadow-2xs">
+                                        <i class="fa-brands fa-whatsapp me-1"></i> WhatsApp
+                                    </a>
+                                </div>
                             </div>
 
                             <!-- Trust Badges & Guarantee Grid -->
@@ -829,32 +869,7 @@
     </div>
 </div>
 
-<!-- Modal 1: Sample Preview Modal (একটু পড়ে দেখুন) -->
-@if($samplePdfUrl)
-<div class="modal fade" id="samplePreviewModal" tabindex="-1" aria-labelledby="samplePreviewModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
-        <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
-            <div class="modal-header bg-dark text-white border-0 py-3">
-                <h5 class="modal-title fw-bold fs-6 d-flex align-items-center gap-2" id="samplePreviewModalLabel">
-                    <i class="fa-solid fa-book-open-reader text-warning"></i> {{ $book->title }} - একঝলক নমুনা পাঠ
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body p-0 bg-dark position-relative" style="min-height: 70vh;">
-                <iframe src="{{ $samplePdfUrl }}#toolbar=0" class="w-100 h-100 border-0 position-absolute inset-0" title="{{ $book->title }} Preview"></iframe>
-            </div>
-            <div class="modal-footer bg-light border-0 py-2.5 d-flex justify-content-between">
-                <span class="small text-muted"><i class="fa-solid fa-circle-info me-1"></i>সম্পূর্ণ বইটি পড়তে এখনই সরাসরি অর্ডার করুন।</span>
-                <button type="button" class="btn btn-primary btn-sm rounded-pill px-4 fw-bold" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#directOrderModal">
-                    সম্পূর্ণ বইটি অর্ডার করুন
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-@endif
-
-<!-- Modal 2: Direct Order / Quick Buy Modal -->
+<!-- Direct Order / Quick Buy Modal -->
 <div class="modal fade" id="directOrderModal" tabindex="-1" aria-labelledby="directOrderModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
@@ -867,6 +882,9 @@
             <form action="{{ route('orders.store') }}" method="POST" id="orderSubmitForm">
                 @csrf
                 <input type="hidden" name="book_id" value="{{ $book->id }}">
+                <input type="hidden" name="format" id="modalOrderFormat" value="{{ $activeFormat }}">
+                <input type="hidden" name="price" id="modalOrderPrice" value="{{ $finalPrice }}">
+                <input type="hidden" name="quantity" id="modalOrderQty" value="1">
                 
                 <div class="modal-body p-4">
                     <div class="row g-4">
@@ -1152,108 +1170,7 @@
                             </div>
                         </div>
 
-                        <!-- Page 3: Chapter 1 Excerpt -->
-                        <div class="reader-page d-none" id="readerPage3">
-                            <div class="text-center mb-4 pb-3 border-bottom border-secondary border-opacity-25">
-                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-1 fw-bold mb-2">
-                                    নমুনা পাঠ — পাতা ৩ / ৪
-                                </span>
-                                <h4 class="fw-bold text-dark mt-1">প্রথম অধ্যায়: যাত্রার সূচনা</h4>
-                            </div>
-
-                            <div style="text-align: justify; text-indent: 1.5rem;" class="mb-3">
-                                সকালের নরম রোদে যখন চারপাশ ঝলমল করে ওঠে, তখন মনে হয় জীবন এক অনন্ত সম্ভাবনার নাম। প্রতিটি বাঁকে জমে থাকা অভিজ্ঞতা আর উপলব্ধি মানুষকে প্রতিনিয়ত নতুন এক উপলব্ধির মুখোমুখি দাঁড় করিয়ে দেয়। যে পথ আমরা অতিক্রম করে এসেছি, তা কেবল দূরত্বের পরিমাপ নয়, বরং আত্মার রূপান্তর।
-                            </div>
-                            <div style="text-align: justify; text-indent: 1.5rem;" class="mb-3">
-                                নীরবতার নিজস্ব একটি ভাষা আছে। যখন সমস্ত কোলাহল স্তব্ধ হয়ে আসে, তখন মনের গভীর থেকে জেগে ওঠে এক অদ্ভুত অনুভূতি। সেই অনুভূতির ভেতর দিয়েই শুরু হয় নিজেকে নতুন করে চেনার পালা।
-                            </div>
-                            <div style="text-align: justify; text-indent: 1.5rem;" class="mb-4">
-                                মানুষের চিন্তার গভীরতা পরিমাপ করা যায় তার নীরবতার ঘনত্ব দিয়ে। যে যত বেশি গভীরে প্রবেশ করেছে, সে তত বেশি বুঝেছে যে বাহ্যিক কোলাহলের চেয়ে অন্তর্গত প্রশান্তি কতখানি মূল্যবান।
-                            </div>
-
-                            <div class="text-center p-3 bg-light rounded-3 border text-muted small">
-                                <i class="fa-solid fa-ellipsis fs-4 d-block mb-1 opacity-50"></i>
-                                সম্পূর্ণ অধ্যায় ও অবশিষ্ট পৃষ্ঠাসমূহ পড়তে বইটি সরাসরি অর্ডার করুন।
-                            </div>
-                        </div>
-
-                        <!-- Page 4: Author Bio & Specs -->
-                        <div class="reader-page d-none" id="readerPage4">
-                            <div class="text-center mb-4 pb-3 border-bottom border-secondary border-opacity-25">
-                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-1 fw-bold mb-2">
-                                    নমুনা পাঠ — পাতা ৪ / ৪
-                                </span>
-                                <h4 class="fw-bold text-dark mt-1">লেখক ও প্রকাশনা বিবরণ</h4>
-                            </div>
-
-                            <div class="d-flex align-items-center gap-3 p-3 bg-light rounded-4 border mb-4">
-                                <div class="rounded-circle bg-primary-subtle text-primary fw-bold d-flex align-items-center justify-content-center flex-shrink-0 shadow-xs" style="width: 52px; height: 52px; font-size: 1.3rem;">
-                                    {{ mb_substr($authorNames, 0, 1) }}
-                                </div>
-                                <div>
-                                    <h6 class="fw-bold text-dark mb-0">{{ $authorNames }}</h6>
-                                    <p class="small text-muted mb-0">সমকালীন চিন্তাশীল লেখক ও গবেষক। আইডিয়া প্রকাশন থেকে প্রকাশিত একাধিক পাঠকপ্রিয় গ্রন্থের রচয়িতা।</p>
-                                </div>
-                            </div>
-
-                            <div class="table-responsive">
-                                <table class="table table-bordered table-sm align-middle small mb-0">
-                                    <tbody>
-                                        <tr>
-                                            <th class="bg-light text-muted w-50">বইয়ের নাম</th>
-                                            <td class="fw-bold text-dark">{{ $book->title }}</td>
-                                        </tr>
-                                        <tr>
-                                            <th class="bg-light text-muted">প্রকাশনা</th>
-                                            <td>{{ $book->publisher->name ?? 'আইডিয়া প্রকাশন' }}</td>
-                                        </tr>
-                                        <tr>
-                                            <th class="bg-light text-muted">ক্যাটাগরি</th>
-                                            <td>{{ $book->category->name ?? 'সাধারণ' }}</td>
-                                        </tr>
-                                        <tr>
-                                            <th class="bg-light text-muted">মুদ্রিত মূল্য</th>
-                                            <td class="fw-bold text-danger">৳ @bn(round($finalPrice))</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-
-                    </div>
-                @endif
-            </div>
-
-            <!-- Reader Modal Footer (Pagination Controls & Buy Button) -->
-            <div class="modal-footer bg-light border-0 py-3 px-4 d-flex flex-wrap justify-content-between align-items-center gap-2">
-                @if(!$samplePdfUrl)
-                    <!-- Page Flip Controls -->
-                    <div class="d-flex align-items-center gap-2">
-                        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 fw-semibold" id="prevPageBtn" onclick="switchReaderPage(-1)" disabled>
-                            <i class="fa-solid fa-chevron-left me-1"></i> পূর্ববর্তী
-                        </button>
-                        <span class="badge bg-white text-dark border px-2.5 py-1.5 small fw-bold" id="readerPageIndicator">১ / ৪</span>
-                        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 fw-semibold" id="nextPageBtn" onclick="switchReaderPage(1)">
-                            পরবর্তী <i class="fa-solid fa-chevron-right ms-1"></i>
-                        </button>
-                    </div>
-                @else
-                    <div></div>
-                @endif
-
-                <div class="d-flex align-items-center gap-2 ms-auto">
-                    <button type="button" class="btn btn-light rounded-pill px-3 fw-semibold" data-bs-dismiss="modal">বন্ধ করুন</button>
-                    <button type="button" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#directOrderModal">
-                        <i class="fa-solid fa-bolt me-1"></i> বইটি এখনই কিনুন
-                    </button>
-                </div>
-            </div>
-
-        </div>
-    </div>
-</div>
-
-@push('scripts')
+                       @push('scripts')
 <script>
     let BOOK_PRICE = {{ $finalPrice }};
     let currentSelectedPrice = {{ $finalPrice }};
@@ -1269,12 +1186,20 @@
         const formatLabel = document.getElementById('activeFormatLabel');
 
         if (format === 'paperback') {
-            if (btnPaper) btnPaper.className = 'btn btn-sm rounded-pill px-3 py-1.5 fw-semibold btn-primary';
-            if (btnHard) btnHard.className = 'btn btn-sm rounded-pill px-3 py-1.5 fw-semibold btn-outline-secondary';
+            if (btnPaper) {
+                btnPaper.className = 'btn btn-sm rounded-pill px-3 py-1.5 fw-semibold btn-primary';
+            }
+            if (btnHard) {
+                btnHard.className = 'btn btn-sm rounded-pill px-3 py-1.5 fw-semibold btn-outline-secondary';
+            }
             if (formatLabel) formatLabel.textContent = 'পেপারব্যাক';
         } else {
-            if (btnPaper) btnPaper.className = 'btn btn-sm rounded-pill px-3 py-1.5 fw-semibold btn-outline-secondary';
-            if (btnHard) btnHard.className = 'btn btn-sm rounded-pill px-3 py-1.5 fw-semibold btn-primary';
+            if (btnPaper) {
+                btnPaper.className = 'btn btn-sm rounded-pill px-3 py-1.5 fw-semibold btn-outline-secondary';
+            }
+            if (btnHard) {
+                btnHard.className = 'btn btn-sm rounded-pill px-3 py-1.5 fw-semibold btn-primary';
+            }
             if (formatLabel) formatLabel.textContent = 'হার্ডকভার';
         }
 
@@ -1285,8 +1210,10 @@
         const savingsPercent = document.getElementById('displaySavingsPercent');
         const badgeDiscountWrap = document.getElementById('badgeDiscountWrap');
         const badgeDiscountText = document.getElementById('badgeDiscountText');
+        const stickyPrice = document.getElementById('stickyFinalPrice');
 
         if (displayFinal) displayFinal.textContent = `৳ ${finalPrice.toLocaleString('bn-BD')}`;
+        if (stickyPrice) stickyPrice.textContent = `৳ ${finalPrice.toLocaleString('bn-BD')}`;
 
         if (hasDisc && originalPrice > finalPrice) {
             const savings = Math.round(originalPrice - finalPrice);
@@ -1305,8 +1232,31 @@
             if (badgeDiscountWrap) badgeDiscountWrap.classList.add('d-none');
         }
 
+        const modalOrderFormat = document.getElementById('modalOrderFormat');
+        if (modalOrderFormat) modalOrderFormat.value = format;
+        const modalOrderPrice = document.getElementById('modalOrderPrice');
+        if (modalOrderPrice) modalOrderPrice.value = finalPrice;
+
         if (typeof updateModalDeliveryFee === 'function') {
             updateModalDeliveryFee();
+        }
+    }
+
+    function addBundleToCart() {
+        const mainQty = parseInt(document.getElementById('bookQuantity')?.value || 1);
+        if (typeof window.addToCartLive === 'function') {
+            window.addToCartLive({{ $book->id }}, '{{ addslashes($book->title) }}', currentSelectedPrice, '{{ $coverUrl }}', mainQty);
+            
+            @if(isset($frequentlyBoughtTogether) && $frequentlyBoughtTogether->isNotEmpty())
+                @foreach($frequentlyBoughtTogether as $fbtBook)
+                    @php
+                        $fbtPrice = (float)($fbtBook->discount_price > 0 && $fbtBook->discount_price < $fbtBook->price ? $fbtBook->discount_price : $fbtBook->price);
+                        $fbtImg = $fbtBook->cover_image ? (str_starts_with($fbtBook->cover_image, 'http') ? $fbtBook->cover_image : asset('storage/' . $fbtBook->cover_image)) : '';
+                    @endphp
+                    window.addToCartLive({{ $fbtBook->id }}, '{{ addslashes($fbtBook->title) }}', {{ $fbtPrice }}, '{{ $fbtImg }}', 1);
+                @endforeach
+            @endif
+            showToast('কম্বো প্যাকেজ যুক্ত হয়েছে!', 'সবগুলো বই একসাথে আপনার কার্টে যুক্ত করা হয়েছে।');
         }
     }
 
@@ -1322,7 +1272,7 @@
         document.getElementById(`readerPage${newPage}`).classList.remove('d-none');
         currentReaderPage = newPage;
 
-        document.getElementById('readerPageIndicator').textContent = `${currentReaderPage} / ${totalReaderPages}`;
+        document.getElementById('readerPageIndicator').textContent = `${currentReaderPage.toLocaleString('bn-BD')} / ৪`;
         document.getElementById('prevPageBtn').disabled = (currentReaderPage === 1);
         document.getElementById('nextPageBtn').disabled = (currentReaderPage === totalReaderPages);
     }
@@ -1357,6 +1307,7 @@
         let val = parseInt(input.value) || 1;
         if (val < max) {
             input.value = val + 1;
+            updateModalDeliveryFee();
         }
     }
 
@@ -1365,6 +1316,7 @@
         let val = parseInt(input.value) || 1;
         if (val > 1) {
             input.value = val - 1;
+            updateModalDeliveryFee();
         }
     }
 
@@ -1386,17 +1338,31 @@
     }
 
     function updateModalDeliveryFee() {
-        const val = document.getElementById('modalDistrictSelect').value;
-        const isGift = document.getElementById('giftOrderToggle').checked;
+        const districtSelect = document.getElementById('modalDistrictSelect');
+        const isGift = document.getElementById('giftOrderToggle')?.checked || false;
+        const val = districtSelect ? districtSelect.value : 'dhaka';
         let fee = 50;
         if (val === 'dhaka_sub') fee = 100;
         else if (val === 'outside') fee = 120;
 
-        let giftFee = isGift ? 20 : 0;
-        let grandTotal = BOOK_PRICE + fee + giftFee;
+        const mainQty = parseInt(document.getElementById('bookQuantity')?.value || 1);
+        const modalQtyInput = document.getElementById('modalOrderQty');
+        if (modalQtyInput) modalQtyInput.value = mainQty;
 
-        document.getElementById('modalDeliveryChargeText').textContent = '৳ ' + fee;
-        document.getElementById('modalGrandTotalText').textContent = '৳ ' + grandTotal;
+        let giftFee = isGift ? 20 : 0;
+        let bookTotal = BOOK_PRICE * mainQty;
+        let grandTotal = bookTotal + fee + giftFee;
+
+        const modalBookPrice = document.getElementById('modalBookPriceText');
+        if (modalBookPrice) {
+            modalBookPrice.textContent = (mainQty > 1) 
+                ? `৳ ${bookTotal.toLocaleString('bn-BD')} (${mainQty.toLocaleString('bn-BD')} কপি)` 
+                : `৳ ${bookTotal.toLocaleString('bn-BD')}`;
+        }
+        const modalDeliveryCharge = document.getElementById('modalDeliveryChargeText');
+        if (modalDeliveryCharge) modalDeliveryCharge.textContent = '৳ ' + fee.toLocaleString('bn-BD');
+        const modalGrandTotal = document.getElementById('modalGrandTotalText');
+        if (modalGrandTotal) modalGrandTotal.textContent = '৳ ' + grandTotal.toLocaleString('bn-BD');
     }
 
     function toggleGiftOrderFields(checkbox) {
@@ -1436,7 +1402,7 @@
         if (navigator.share) {
             navigator.share({
                 title: title,
-                text: `${title} - আইডিয়া প্রকাশন থেকে বইটি দেখুন`,
+                text: `${title} — আইডিয়া প্রকাশন থেকে বইটি দেখুন`,
                 url: url
             }).catch(() => {});
         } else {
@@ -1534,18 +1500,28 @@
         }
     }
 
-    // Scroll listener for Sticky Buy Bar
+    // Scroll listener for Sticky Buy Bar & Modal setup
     document.addEventListener('DOMContentLoaded', function() {
-        updateHeaderCartCount();
+        if (typeof updateHeaderCartCount === 'function') {
+            updateHeaderCartCount();
+        }
         const stickyBar = document.getElementById('stickyBuyBar');
         window.addEventListener('scroll', function() {
             if (window.scrollY > 450) {
-                stickyBar.classList.remove('d-none');
+                if (stickyBar) stickyBar.classList.remove('d-none');
             } else {
-                stickyBar.classList.add('d-none');
+                if (stickyBar) stickyBar.classList.add('d-none');
             }
         });
+
+        const orderModal = document.getElementById('directOrderModal');
+        if (orderModal) {
+            orderModal.addEventListener('show.bs.modal', function() {
+                updateModalDeliveryFee();
+            });
+        }
     });
 </script>
 @endpush
 @endsection
+

@@ -326,7 +326,7 @@
                         {{-- ══ PRICING & DISCOUNT FIELDS WITH 2-WAY % COMMISSION CALCULATOR ══ --}}
                         @elseif ($name === 'price')
                             <label for="f-price" class="form-label small fw-semibold">
-                                {{ $field['label'] }} <span class="text-danger">*</span>
+                                {{ $field['label'] }} <span class="text-danger" id="reqStarPaperback" style="display:none;">*</span>
                             </label>
                             <div class="input-group">
                                 <span class="input-group-text bg-light fw-bold">৳</span>
@@ -335,6 +335,7 @@
                                        class="form-control @error('price') is-invalid @enderror"
                                        placeholder="0.00" oninput="onRegularPriceChange()">
                             </div>
+                            <div class="form-text" style="font-size: 11px;" id="helpTextPaperback">পেপারব্যাক সংস্করণ নির্বাচন করা থাকলে নিয়মিত মূল্য পূরণ করা আবশ্যক।</div>
                             @error('price')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
 
                             {{-- Dynamic Discount Percentage Field & Quick Presets --}}
@@ -378,16 +379,16 @@
                         {{-- ══ HARDCOVER PRICING & DISCOUNT ══ --}}
                         @elseif ($name === 'hardcover_price')
                             <label for="f-hardcover_price" class="form-label small fw-semibold text-dark">
-                                <i class="fas fa-book me-1 text-primary"></i> {{ $field['label'] }}
+                                <i class="fas fa-book me-1 text-primary"></i> {{ $field['label'] }} <span class="text-danger" id="reqStarHardcover">*</span>
                             </label>
                             <div class="input-group">
                                 <span class="input-group-text bg-light fw-bold">৳</span>
                                 <input type="number" step="{{ $field['step'] ?? '1' }}" min="0"
                                        id="f-hardcover_price" name="hardcover_price" value="{{ $current }}"
                                        class="form-control @error('hardcover_price') is-invalid @enderror"
-                                       placeholder="0.00 (ঐচ্ছিক)" oninput="onHardcoverPriceChange()">
+                                       placeholder="0.00" oninput="onHardcoverPriceChange()">
                             </div>
-                            <div class="form-text" style="font-size: 11px;">হার্ডকভার সংস্করণ থাকলে নিয়মিত মূল্য লিখুন, অন্যথায় খালি রাখুন।</div>
+                            <div class="form-text" style="font-size: 11px;" id="helpTextHardcover">হার্ডকভার সংস্করণ নির্বাচন করা থাকলে নিয়মিত মূল্য পূরণ করা আবশ্যক।</div>
                             @error('hardcover_price')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
 
                         @elseif ($name === 'hardcover_discount_price')
@@ -399,7 +400,7 @@
                                 <input type="number" step="{{ $field['step'] ?? '1' }}" min="0"
                                        id="f-hardcover_discount_price" name="hardcover_discount_price" value="{{ $current }}"
                                        class="form-control @error('hardcover_discount_price') is-invalid @enderror"
-                                       placeholder="0.00 (ঐচ্ছিক)" oninput="onHardcoverDiscountPriceChange()">
+                                       placeholder="0.00" oninput="onHardcoverDiscountPriceChange()">
                             </div>
                             <div id="liveHardcoverDiscountBadge" class="mt-1 small fw-semibold"></div>
                             @error('hardcover_discount_price')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
@@ -634,7 +635,8 @@
                                         $options = $field['options'] ?? ($lookups[$field['lookup'] ?? ''] ?? []);
                                     @endphp
                                     <select id="f-{{ $name }}" name="{{ $name }}"
-                                            class="form-select @error($name) is-invalid @enderror">
+                                            class="form-select @error($name) is-invalid @enderror"
+                                            @if($name === 'cover_type') onchange="onCoverTypeChange()" @endif>
                                         <option value="">— নির্বাচন করুন —</option>
                                         @foreach ($options as $optValue => $optLabel)
                                             <option value="{{ $optValue }}" @selected((string) $current === (string) $optValue)>
@@ -645,7 +647,7 @@
                                     @if ($name === 'stock_status')
                                         <div class="form-text" style="font-size: 11.5px;">গ্রাহকদের জন্য বর্তমান প্রাপ্তিসাধ্যতা (Availability)।</div>
                                     @elseif ($name === 'cover_type')
-                                        <div class="form-text" style="font-size: 11.5px;">পেপারব্যাক বা হার্ডকভার অপশন নির্ধারণ করুন।</div>
+                                        <div class="form-text" style="font-size: 11.5px;">হার্ডকভার, পেপারব্যাক বা উভয় সংস্করণ নির্বাচন করুন।</div>
                                     @endif
                                     @break
 
@@ -1295,11 +1297,54 @@
 
     calculateLiveDiscount();
     calculateLiveHardcoverDiscount();
+    updateCoverTypeRequirement();
     updateLiveMockupCard();
     updateSummaryWordCount();
     updateDescriptionWordCount();
     updateAuthorBioWordCount();
 })();
+
+// Dynamic requirement indicators for book cover formats (Hardcover, Paperback, Both)
+function updateCoverTypeRequirement() {
+    const coverTypeEl = document.getElementById('f-cover_type');
+    if (!coverTypeEl) return;
+    const val = coverTypeEl.value || 'hardcover';
+
+    const starHc = document.getElementById('reqStarHardcover');
+    const starPb = document.getElementById('reqStarPaperback');
+    const inputHc = document.getElementById('f-hardcover_price');
+    const inputPb = document.getElementById('f-price');
+    const helpHc = document.getElementById('helpTextHardcover');
+    const helpPb = document.getElementById('helpTextPaperback');
+
+    if (val === 'hardcover') {
+        if (starHc) starHc.style.display = 'inline';
+        if (starPb) starPb.style.display = 'none';
+        if (inputHc) inputHc.setAttribute('required', 'required');
+        if (inputPb) inputPb.removeAttribute('required');
+        if (helpHc) helpHc.textContent = 'হার্ডকভার সংস্করণ নির্বাচন করা থাকলে নিয়মিত মূল্য বাধ্যতামূলক।';
+        if (helpPb) helpPb.textContent = 'পেপারব্যাক নিয়মিত মূল্য (ঐচ্ছিক)।';
+    } else if (val === 'paperback') {
+        if (starHc) starHc.style.display = 'none';
+        if (starPb) starPb.style.display = 'inline';
+        if (inputHc) inputHc.removeAttribute('required');
+        if (inputPb) inputPb.setAttribute('required', 'required');
+        if (helpHc) helpHc.textContent = 'হার্ডকভার নিয়মিত মূল্য (ঐচ্ছিক)।';
+        if (helpPb) helpPb.textContent = 'পেপারব্যাক সংস্করণ নির্বাচন করা থাকলে নিয়মিত মূল্য বাধ্যতামূলক।';
+    } else if (val === 'both') {
+        if (starHc) starHc.style.display = 'inline';
+        if (starPb) starPb.style.display = 'inline';
+        if (inputHc) inputHc.setAttribute('required', 'required');
+        if (inputPb) inputPb.setAttribute('required', 'required');
+        if (helpHc) helpHc.textContent = 'উভয় সংস্করণ নির্বাচন করা হয়েছে — হার্ডকভার নিয়মিত মূল্য বাধ্যতামূলক।';
+        if (helpPb) helpPb.textContent = 'উভয় সংস্করণ নির্বাচন করা হয়েছে — পেপারব্যাক নিয়মিত মূল্য বাধ্যতামূলক।';
+    }
+}
+
+function onCoverTypeChange() {
+    updateCoverTypeRequirement();
+    updateLiveMockupCard();
+}
 
 // Two-way interactive price and discount calculations
 function onRegularPriceChange() {

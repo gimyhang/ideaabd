@@ -25,11 +25,16 @@
     $authorName = $firstAuthor ? $firstAuthor->name : ($book->author_name ?: 'আইডিয়া প্রকাশন');
     $authorUrl = $firstAuthor ? route('authors.show', $firstAuthor->slug ?? $firstAuthor->id) : null;
     
-    $discountPercentage = ($book->price > 0 && $book->discount_price && $book->discount_price < $book->price)
-        ? round((($book->price - $book->discount_price) / $book->price) * 100)
+    $cardRegularPrice = ($book->price > 0) ? (float)$book->price : (float)($book->hardcover_price ?? 0);
+    $cardDiscPrice = ($book->discount_price > 0 && $book->discount_price < $book->price) 
+        ? (float)$book->discount_price 
+        : (($book->hardcover_discount_price > 0 && $book->hardcover_discount_price < $book->hardcover_price) ? (float)$book->hardcover_discount_price : null);
+
+    $discountPercentage = ($cardRegularPrice > 0 && $cardDiscPrice && $cardDiscPrice < $cardRegularPrice)
+        ? round((($cardRegularPrice - $cardDiscPrice) / $cardRegularPrice) * 100)
         : null;
     $isOutOfStock = isset($book->stock_quantity) && $book->stock_quantity <= 0;
-    $finalPrice = ($book->discount_price && $book->discount_price < $book->price) ? $book->discount_price : $book->price;
+    $finalPrice = ($cardDiscPrice && $cardDiscPrice < $cardRegularPrice) ? $cardDiscPrice : $cardRegularPrice;
 @endphp
 
 <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden hover-lift p-2.5 d-flex flex-column text-center position-relative product-card-modern" 
@@ -152,16 +157,16 @@
 
         <!-- Pricing Row -->
         <div class="mt-auto d-flex align-items-center justify-content-center gap-2 mb-2.5">
-            @if($book->discount_price && $book->discount_price < $book->price)
+            @if($cardDiscPrice && $cardDiscPrice < $cardRegularPrice)
                 <span class="text-muted text-decoration-line-through small" style="font-size: 0.78rem;">
-                    ৳{{ round($book->price) }}
+                    ৳@bn(round($cardRegularPrice))
                 </span>
                 <span class="fw-bold text-danger fs-6">
-                    ৳{{ round($book->discount_price) }}
+                    ৳@bn(round($cardDiscPrice))
                 </span>
             @else
                 <span class="fw-bold text-dark fs-6">
-                    ৳{{ round($book->price) }}
+                    ৳@bn(round($cardRegularPrice))
                 </span>
             @endif
         </div>

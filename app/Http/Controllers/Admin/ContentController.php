@@ -355,6 +355,22 @@ class ContentController extends Controller
             'pending', 'approved', 'rejected',
         ])];
 
+        if (($spec['key'] ?? null) === 'books') {
+            $coverType = $request->input('cover_type', 'hardcover');
+            if ($coverType === 'hardcover') {
+                $rules['hardcover_price'] = ['required', 'numeric', 'min:0', 'max:9999999'];
+                $rules['price'] = ['nullable', 'numeric', 'min:0', 'max:9999999'];
+            } elseif ($coverType === 'paperback') {
+                $rules['price'] = ['required', 'numeric', 'min:0', 'max:9999999'];
+                $rules['hardcover_price'] = ['nullable', 'numeric', 'min:0', 'max:9999999'];
+            } elseif ($coverType === 'both') {
+                $rules['hardcover_price'] = ['required', 'numeric', 'min:0', 'max:9999999'];
+                $rules['price'] = ['required', 'numeric', 'min:0', 'max:9999999'];
+            }
+            $attributes['hardcover_price'] = 'হার্ডকভার নিয়মিত মূল্য';
+            $attributes['price'] = 'পেপারব্যাক নিয়মিত মূল্য';
+        }
+
         $attributes += [
             'slug'         => 'slug',
             'owner_name'   => 'যার পক্ষে',
