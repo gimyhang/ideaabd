@@ -221,8 +221,11 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::get('/invoices/create', 'createInvoice')->name('invoices.create');
         Route::post('/invoices', 'storeInvoice')->name('invoices.store');
         Route::get('/invoices/{invoice}', 'showInvoice')->name('invoices.show');
+        Route::get('/invoices/{invoice}/edit', 'editInvoice')->name('invoices.edit');
+        Route::put('/invoices/{invoice}', 'updateInvoice')->name('invoices.update');
         Route::post('/invoices/{invoice}/convert', 'convertInvoiceType')->name('invoices.convert');
         Route::delete('/invoices/{invoice}', 'destroyInvoice')->name('invoices.destroy');
+        Route::post('/settings', 'updateSettings')->name('settings.update');
     });
 
     Route::get('/orders', [AdminController::class, 'orders'])->name('orders');

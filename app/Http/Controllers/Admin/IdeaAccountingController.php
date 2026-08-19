@@ -308,7 +308,141 @@ class IdeaAccountingController extends Controller
      */
     public function showInvoice(IdeaInvoice $invoice): View
     {
-        return view('admin.accounting.invoices.show', compact('invoice'));
+        $invoiceSettings = self::getInvoiceSettings();
+        return view('admin.accounting.invoices.show', compact('invoice', 'invoiceSettings'));
+    }
+
+    /**
+     * Edit Bill / Challan / Quotation / Tender.
+     */
+    public function editInvoice(IdeaInvoice $invoice): View
+    {
+        $books = Book::where('is_active', true)->select('id', 'title', 'price', 'stock_quantity', 'author_name')->orderBy('title')->get();
+        return view('admin.accounting.invoices.edit', compact('invoice', 'books'));
+    }
+
+    /**
+     * Update Bill / Challan / Quotation / Tender.
+     */
+    public function updateInvoice(Request $request, IdeaInvoice $invoice): RedirectResponse
+    {
+        $validated = $request->validate([
+            'type'             => 'required|in:invoice,challan,quotation,tender',
+            'invoice_no'       => 'required|string|max:50|unique:idea_invoices,invoice_no,' . $invoice->id,
+            'subject'          => 'nullable|string|max:255',
+            'reference_no'     => 'nullable|string|max:100',
+            'customer_name'    => 'required|string|max:255',
+            'customer_phone'   => 'nullable|string|max:50',
+            'customer_address' => 'nullable|string|max:255',
+            'invoice_date'     => 'required|date',
+            'valid_until'      => 'nullable|date',
+            'discount'         => 'nullable|numeric|min:0',
+            'tax'              => 'nullable|numeric|min:0',
+            'paid_amount'      => 'nullable|numeric|min:0',
+            'payment_method'   => 'required|string|max:50',
+            'notes'            => 'nullable|string|max:1000',
+            'terms_conditions' => 'nullable|string|max:2000',
+            'items'            => 'required|array|min:1',
+            'items.*.title'    => 'required|string|max:255',
+            'items.*.item_type'=> 'nullable|string|max:50',
+            'items.*.book_id'  => 'nullable|integer',
+            'items.*.quantity' => 'required|numeric|min:0.01',
+            'items.*.price'    => 'required|numeric|min:0',
+        ], [
+            'customer_name.required' => 'গ্রাহক বা প্রতিষ্ঠানের নাম লিখুন।',
+            'items.required'         => 'কমপক্ষে একটি আইটেম বা বিবরণ যোগ করুন।',
+        ]);
+
+        return DB::transaction(function () use ($validated, $invoice) {
+            $subtotal = 0.0;
+            $itemsProcessed = [];
+
+            foreach ($validated['items'] as $item) {
+                $qty = (float) $item['quantity'];
+                $price = (float) $item['price'];
+                $lineTotal = $qty * $price;
+                $subtotal += $lineTotal;
+
+                $itemsProcessed[] = [
+                    'title'      => $item['title'],
+                    'item_type'  => $item['item_type'] ?? 'product',
+                    'book_id'    => !empty($item['book_id']) ? (int)$item['book_id'] : null,
+                    'quantity'   => $qty,
+                    'unit_price' => $price,
+                    'subtotal'   => $lineTotal,
+                ];
+            }
+
+            $discount = (float) ($validated['discount'] ?? 0);
+            $tax = (float) ($validated['tax'] ?? 0);
+            $grandTotal = max(0, $subtotal - $discount + $tax);
+            $paid = (float) ($validated['paid_amount'] ?? 0);
+            $due = max(0, $grandTotal - $paid);
+
+            $paymentStatus = 'unpaid';
+            if ($paid >= $grandTotal && $grandTotal > 0) {
+                $paymentStatus = 'paid';
+            } elseif ($paid > 0 && $due > 0) {
+                $paymentStatus = 'partial';
+            }
+
+            $invoice->update([
+                'invoice_no'       => $validated['invoice_no'],
+                'type'             => $validated['type'],
+                'subject'          => $validated['subject'] ?? null,
+                'reference_no'     => $validated['reference_no'] ?? null,
+                'customer_name'    => $validated['customer_name'],
+                'customer_phone'   => $validated['customer_phone'] ?? null,
+                'customer_address' => $validated['customer_address'] ?? null,
+                'invoice_date'     => $validated['invoice_date'],
+                'valid_until'      => $validated['valid_until'] ?? null,
+                'items'            => $itemsProcessed,
+                'subtotal'         => $subtotal,
+                'discount'         => $discount,
+                'tax'              => $tax,
+                'grand_total'      => $grandTotal,
+                'paid_amount'      => $paid,
+                'due_amount'       => $due,
+                'payment_method'   => $validated['payment_method'],
+                'payment_status'   => $paymentStatus,
+                'notes'            => $validated['notes'] ?? null,
+                'terms_conditions' => $validated['terms_conditions'] ?? null,
+            ]);
+
+            // Sync accounting entry if exists
+            $entry = IdeaAccountingEntry::where('invoice_id', $invoice->id)->first();
+            if ($paid > 0 && in_array($validated['type'], ['invoice', 'challan'])) {
+                if ($entry) {
+                    $entry->update([
+                        'amount'         => $paid,
+                        'entry_date'     => $invoice->invoice_date,
+                        'payment_method' => $validated['payment_method'],
+                        'party_name'     => $invoice->customer_name,
+                    ]);
+                } else {
+                    IdeaAccountingEntry::create([
+                        'entry_no'       => 'INC-' . date('Ymd') . '-' . rand(1000, 9999),
+                        'type'           => 'income',
+                        'category'       => $validated['type'] === 'challan' ? 'পাইকারি বিক্রয় ও চালান (Wholesale Sales)' : 'বই বিক্রয় (Book Sales)',
+                        'title'          => "বিল #{$invoice->invoice_no} হতে পেমেন্ট প্রাপ্তি — {$invoice->customer_name}",
+                        'amount'         => $paid,
+                        'entry_date'     => $invoice->invoice_date,
+                        'payment_method' => $validated['payment_method'],
+                        'party_name'     => $invoice->customer_name,
+                        'invoice_id'     => $invoice->id,
+                        'notes'          => "চালান/বিল নম্বর #{$invoice->invoice_no} থেকে প্রাপ্ত অর্থ।",
+                        'created_by'     => auth()->id(),
+                    ]);
+                }
+            } elseif ($entry && ($paid == 0 || in_array($validated['type'], ['quotation', 'tender']))) {
+                $entry->delete();
+            }
+
+            $typeLabel = $invoice->type_label;
+
+            return redirect()->route('admin.accounting.invoices.show', $invoice->id)
+                ->with('success', "{$typeLabel} #{$invoice->invoice_no} সফলভাবে আপডেট করা হয়েছে।");
+        });
     }
 
     /**
@@ -330,6 +464,63 @@ class IdeaAccountingController extends Controller
 
         return redirect()->route('admin.accounting.invoices.show', $invoice->id)
             ->with('success', "{$oldTypeLabel} সফলভাবে {$newTypeLabel}-এ রূপান্তর করা হয়েছে।");
+    }
+
+    /**
+     * Update Memo / Invoice Header Business Settings.
+     */
+    public function updateSettings(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'business_name' => 'required|string|max:255',
+            'tagline'       => 'nullable|string|max:255',
+            'address'       => 'nullable|string|max:255',
+            'phone'         => 'nullable|string|max:100',
+            'email'         => 'nullable|string|max:100',
+            'logo_file'     => 'nullable|image|max:2048',
+            'logo_url'      => 'nullable|string|max:255',
+        ]);
+
+        $settings = self::getInvoiceSettings();
+        $settings['business_name'] = $validated['business_name'];
+        $settings['tagline'] = $validated['tagline'] ?? '';
+        $settings['address'] = $validated['address'] ?? '';
+        $settings['phone'] = $validated['phone'] ?? '';
+        $settings['email'] = $validated['email'] ?? '';
+
+        if ($request->hasFile('logo_file')) {
+            $path = $request->file('logo_file')->store('settings', 'public');
+            $settings['logo'] = 'storage/' . $path;
+        } elseif (!empty($validated['logo_url'])) {
+            $settings['logo'] = $validated['logo_url'];
+        }
+
+        \App\Models\AdminDashboardSetting::updateOrCreate(
+            ['key' => 'invoice_settings'],
+            ['value' => json_encode($settings, JSON_UNESCAPED_UNICODE)]
+        );
+
+        \App\Support\SiteSetting::clearCache();
+
+        return back()->with('success', 'বিল ও মেমোর অফিশিয়াল তথ্য সফলভাবে আপডেট করা হয়েছে।');
+    }
+
+    /**
+     * Get Invoice / Memo Header Business Settings.
+     */
+    public static function getInvoiceSettings(): array
+    {
+        $default = [
+            'business_name' => \App\Support\SiteSetting::name(),
+            'tagline'       => \App\Support\SiteSetting::tagline(),
+            'address'       => 'ঢাকা, বাংলাদেশ',
+            'phone'         => '018XXXXXXXX',
+            'email'         => 'info@ideaabd.com',
+            'logo'          => '/images/logo.png',
+        ];
+
+        $stored = \App\Support\SiteSetting::get('invoice_settings', []);
+        return array_merge($default, is_array($stored) ? $stored : []);
     }
 
     /**

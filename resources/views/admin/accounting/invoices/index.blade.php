@@ -235,6 +235,9 @@
                                     <a href="{{ route('admin.accounting.invoices.show', $inv->id) }}" class="btn btn-outline-primary" title="দেখুন ও প্রিন্ট করুন">
                                         <i class="fas fa-eye"></i>
                                     </a>
+                                    <a href="{{ route('admin.accounting.invoices.edit', $inv->id) }}" class="btn btn-outline-warning text-dark" title="সম্পাদন (Edit) করুন">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
                                     <form action="{{ route('admin.accounting.invoices.destroy', $inv->id) }}" method="POST" class="d-inline" onsubmit="return confirm('আপনি কি নিশ্চিতভাবে এই ডকুমেন্টটি মুছে ফেলতে চান?')">
                                         @csrf
                                         @method('DELETE')
