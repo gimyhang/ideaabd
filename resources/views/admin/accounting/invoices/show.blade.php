@@ -293,49 +293,49 @@
                 </table>
             </div>
 
-            {{-- Notes & Terms --}}
-            @if($invoice->notes)
-                <div class="p-1.5 bg-light rounded-2 text-muted mb-2 border" style="font-size: 9.5px; line-height: 1.3;">
-                    <strong class="text-dark"><i class="fas fa-note-sticky me-1 text-primary"></i>বিশেষ নোট:</strong> {{ $invoice->notes }}
-                </div>
-            @endif
+            {{-- Note at end right before signature --}}
+            <div class="p-1.5 bg-light rounded-2 text-muted mb-3 border" style="font-size: 10px; line-height: 1.3;">
+                <strong class="text-dark"><i class="fas fa-circle-info me-1 text-primary"></i>(নোট):</strong> ১. ভ্যাট যুক্ত করা হয়নি।
+                @if($invoice->notes)
+                    · {{ $invoice->notes }}
+                @endif
+                @if($invoice->terms_conditions)
+                    · {{ $invoice->terms_conditions }}
+                @endif
+            </div>
 
-            @if($invoice->terms_conditions)
-                <div class="p-1.5 bg-light rounded-2 text-muted mb-2 border" style="font-size: 9.5px; line-height: 1.3;">
-                    <strong class="text-dark d-block mb-0.5"><i class="fas fa-file-contract me-1 text-primary"></i>শর্তাবলী:</strong>
-                    <div style="white-space: pre-line;">{{ $invoice->terms_conditions }}</div>
-                </div>
-            @endif
-
-            {{-- Institutional Signature & QR Code Footer (Compact .5 inch height) --}}
-            <div class="invoice-footer-compact pt-1 mt-1 border-top" style="min-height: 0.5in;">
-                <div class="row g-2 align-items-center text-center" style="font-size: 9.5px;">
+            {{-- Signature & QR Code Footer (Positioned at A4/Letter page bottom) --}}
+            <div class="invoice-footer-compact pt-2 mt-auto border-top">
+                <div class="row g-2 align-items-end text-center" style="font-size: 10px;">
                     <div class="col-4">
-                        <div class="border-top border-dark pt-1 fw-semibold" style="margin-top: 14px;">
-                            {{ in_array($invoice->type, ['quotation', 'tender']) ? 'গ্রাহক / আহ্বানকারী স্বাক্ষর' : 'পণ্য/বিল গ্রহীতার স্বাক্ষর' }}
+                        <div class="signature-box" style="margin-top: 36px;">
+                            <div class="border-top border-dark pt-1 fw-semibold text-dark">
+                                গ্রাহকের স্বাক্ষর
+                            </div>
                         </div>
                     </div>
 
                     {{-- QR Code & Verification Box --}}
                     <div class="col-4">
-                        <div class="d-inline-flex align-items-center gap-1.5 px-2 py-0.5 rounded border bg-white shadow-xs">
-                            <img src="{{ $qrCodeUrl }}" alt="QR" style="width: 32px; height: 32px; object-fit: contain;">
+                        <div class="d-inline-flex align-items-center gap-1.5 px-2 py-1 rounded border bg-white shadow-xs">
+                            <img src="{{ $qrCodeUrl }}" alt="QR" style="width: 34px; height: 34px; object-fit: contain;">
                             <div class="text-start" style="line-height: 1.15;">
                                 <span class="text-muted fw-semibold d-block" style="font-size: 8px;"><i class="fas fa-qrcode me-0.5"></i>স্ক্যান করে যাচাই</span>
-                                <span class="font-monospace text-dark fw-bold" style="font-size: 8.5px;">#{{ $invoice->invoice_no }}</span>
+                                <span class="font-monospace text-dark fw-bold" style="font-size: 9px;">#{{ $invoice->invoice_no }}</span>
                             </div>
                         </div>
                     </div>
 
                     <div class="col-4">
-                        <div class="border-top border-dark pt-1 fw-semibold" style="margin-top: 14px;">
-                            অনুমোদিত স্বাক্ষর ও সিল<br>
-                            <span class="text-muted" style="font-size: 8.5px;">({{ $settings['business_name'] ?? 'আইডিয়া প্রকাশন' }})</span>
+                        <div class="signature-box" style="margin-top: 36px;">
+                            <div class="border-top border-dark pt-1 fw-semibold text-dark">
+                                বিল প্রস্তুতকারীর স্বাক্ষর
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="text-center text-muted mt-1 d-flex justify-content-between align-items-center" style="font-size: 8px; line-height: 1;">
+                <div class="text-center text-muted mt-2 d-flex justify-content-between align-items-center" style="font-size: 8.5px; line-height: 1;">
                     <span>পৃষ্ঠা ১ / {{ $invoice->type === 'invoice' ? '২ (ক্যাশ মেমো কপি)' : '১' }}</span>
                     <span>{{ $settings['business_name'] ?? 'আইডিয়া প্রকাশন' }} · কম্পিউটার জেনারেটেড বিল</span>
                     <span>আইডি: {{ $invoice->invoice_no }}</span>
@@ -444,42 +444,46 @@
                     </table>
                 </div>
 
-                {{-- Challan Delivery Notes & Terms --}}
-                <div class="p-1.5 bg-light rounded-2 text-muted mb-2 border" style="font-size: 9.5px; line-height: 1.3;">
-                    <strong class="text-dark d-block mb-0.5"><i class="fas fa-circle-check me-1 text-success"></i>শর্তাবলি:</strong>
-                    <div>১. চালান অনুযায়ী বইয়ের সংখ্যা ও বাঁধাই বুঝে নিয়ে রসিদে স্বাক্ষর দিন। ২. কোনো অসঙ্গতি থাকলে তাৎক্ষণিক অবহিত করুন। @if($invoice->notes) ৩. নোট: {{ $invoice->notes }} @endif</div>
+                {{-- Challan Notes --}}
+                <div class="p-1.5 bg-light rounded-2 text-muted mb-3 border" style="font-size: 10px; line-height: 1.3;">
+                    <strong class="text-dark"><i class="fas fa-circle-info me-1 text-success"></i>(নোট):</strong> ১. চালান অনুযায়ী বইয়ের সংখ্যা ও বাঁধাই বুঝে নিয়ে রসিদে স্বাক্ষর দিন।
+                    @if($invoice->notes)
+                        · {{ $invoice->notes }}
+                    @endif
                 </div>
 
-                {{-- Challan Dual Signatures & QR Code (Compact .5 inch height) --}}
-                <div class="invoice-footer-compact pt-1 mt-1 border-top" style="min-height: 0.5in;">
-                    <div class="row g-2 align-items-center text-center" style="font-size: 9.5px;">
+                {{-- Challan Signatures & QR Code (Positioned at A4/Letter page bottom) --}}
+                <div class="invoice-footer-compact pt-2 mt-auto border-top">
+                    <div class="row g-2 align-items-end text-center" style="font-size: 10px;">
                         <div class="col-4">
-                            <div class="border-top border-dark pt-1 fw-semibold" style="margin-top: 14px;">
-                                পণ্য গ্রহণকারীর স্বাক্ষর ও সিল<br>
-                                <span class="text-muted" style="font-size: 8.5px;">(তারিখসহ স্বাক্ষর)</span>
+                            <div class="signature-box" style="margin-top: 36px;">
+                                <div class="border-top border-dark pt-1 fw-semibold text-dark">
+                                    গ্রাহকের স্বাক্ষর
+                                </div>
                             </div>
                         </div>
 
                         {{-- QR Code & Verification Box --}}
                         <div class="col-4">
-                            <div class="d-inline-flex align-items-center gap-1.5 px-2 py-0.5 rounded border bg-white shadow-xs">
-                                <img src="{{ $qrCodeUrl }}" alt="QR" style="width: 32px; height: 32px; object-fit: contain;">
+                            <div class="d-inline-flex align-items-center gap-1.5 px-2 py-1 rounded border bg-white shadow-xs">
+                                <img src="{{ $qrCodeUrl }}" alt="QR" style="width: 34px; height: 34px; object-fit: contain;">
                                 <div class="text-start" style="line-height: 1.15;">
                                     <span class="text-muted fw-semibold d-block" style="font-size: 8px;"><i class="fas fa-qrcode me-0.5"></i>স্ক্যান করে যাচাই</span>
-                                    <span class="font-monospace text-dark fw-bold" style="font-size: 8.5px;">#{{ $invoice->invoice_no }}</span>
+                                    <span class="font-monospace text-dark fw-bold" style="font-size: 9px;">#{{ $invoice->invoice_no }}</span>
                                 </div>
                             </div>
                         </div>
 
                         <div class="col-4">
-                            <div class="border-top border-dark pt-1 fw-semibold" style="margin-top: 14px;">
-                                পণ্য প্রেরণকারীর স্বাক্ষর ও সিল<br>
-                                <span class="text-muted" style="font-size: 8.5px;">({{ $settings['business_name'] ?? 'আইডিয়া প্রকাশন' }})</span>
+                            <div class="signature-box" style="margin-top: 36px;">
+                                <div class="border-top border-dark pt-1 fw-semibold text-dark">
+                                    বিল প্রস্তুতকারীর স্বাক্ষর
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="text-center text-muted mt-1 d-flex justify-content-between align-items-center" style="font-size: 8px; line-height: 1;">
+                    <div class="text-center text-muted mt-2 d-flex justify-content-between align-items-center" style="font-size: 8.5px; line-height: 1;">
                         <span>পৃষ্ঠা ২ / ২ (ডেলিভারি চালান কপি)</span>
                         <span>{{ $settings['business_name'] ?? 'আইডিয়া প্রকাশন' }} · ডেলিভারি চালান</span>
                         <span>আইডি: {{ $invoice->invoice_no }}</span>
@@ -791,18 +795,29 @@ function resetCrop() {
 /* Invoice styling: Screen & Print */
 .invoice-page-card {
     font-family: 'Kalpurush', 'Nikosh', 'Hind Siliguri', sans-serif;
+    font-size: 10px;
     color: #1e293b;
+    min-height: 1020px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
 
 .invoice-table th,
 .invoice-table td {
-    padding: 2.5px 5px !important;
+    padding: 2px 5px !important;
     vertical-align: middle;
     line-height: 1.25;
+    font-size: 10px;
 }
 
 .invoice-footer-compact {
+    margin-top: auto;
     min-height: 0.5in;
+}
+
+.signature-box {
+    margin-top: 36px;
 }
 
 @page {
@@ -815,7 +830,7 @@ function resetCrop() {
         background: #ffffff !important;
         color: #000000 !important;
         font-family: 'Kalpurush', 'Nikosh', 'Hind Siliguri', sans-serif !important;
-        font-size: 9.5px !important;
+        font-size: 10px !important;
         margin: 0 !important;
         padding: 0 !important;
         -webkit-print-color-adjust: exact;
@@ -847,12 +862,19 @@ function resetCrop() {
         margin: 0 !important;
         width: 100% !important;
         background: #ffffff !important;
+        min-height: 282mm !important;
+        height: 282mm !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: space-between !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
     }
 
     .invoice-table th,
     .invoice-table td {
         padding: 1.5px 4px !important;
-        font-size: 9px !important;
+        font-size: 9.5px !important;
         line-height: 1.2 !important;
         border-color: #475569 !important;
     }
@@ -873,7 +895,8 @@ function resetCrop() {
     }
 
     .invoice-footer-compact {
-        max-height: 0.5in !important;
+        margin-top: auto !important;
+        max-height: 0.6in !important;
         page-break-inside: avoid !important;
     }
 
@@ -884,11 +907,6 @@ function resetCrop() {
         height: 0 !important;
         margin: 0 !important;
         padding: 0 !important;
-    }
-
-    .invoice-page-card {
-        page-break-inside: avoid !important;
-        break-inside: avoid !important;
     }
 }
 </style>
