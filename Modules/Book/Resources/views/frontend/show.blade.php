@@ -1167,10 +1167,108 @@
                                     <span class="fw-semibold">৫. উপসংহার ও প্রাসঙ্গিক ভাবনা</span>
                                     <span class="badge bg-light text-muted border">পৃষ্ঠা ১২০</span>
                                 </div>
+                        <!-- Page 3: Chapter 1 Excerpt -->
+                        <div class="reader-page d-none" id="readerPage3">
+                            <div class="text-center mb-4 pb-3 border-bottom border-secondary border-opacity-25">
+                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-1 fw-bold mb-2">
+                                    নমুনা পাঠ — পাতা ৩ / ৪
+                                </span>
+                                <h4 class="fw-bold text-dark mt-1">প্রথম অধ্যায়: যাত্রার সূচনা</h4>
+                            </div>
+
+                            <div style="text-align: justify; text-indent: 1.5rem;" class="mb-3">
+                                সকালের নরম রোদে যখন চারপাশ ঝলমল করে ওঠে, তখন মনে হয় জীবন এক অনন্ত সম্ভাবনার নাম। প্রতিটি বাঁকে জমে থাকা অভিজ্ঞতা আর উপলব্ধি মানুষকে প্রতিনিয়ত নতুন এক উপলব্ধির মুখোমুখি দাঁড় করিয়ে দেয়। যে পথ আমরা অতিক্রম করে এসেছি, তা কেবল দূরত্বের পরিমাপ নয়, বরং আত্মার রূপান্তর।
+                            </div>
+                            <div style="text-align: justify; text-indent: 1.5rem;" class="mb-3">
+                                নীরবতার নিজস্ব একটি ভাষা আছে। যখন সমস্ত কোলাহল স্তব্ধ হয়ে আসে, তখন মনের গভীর থেকে জেগে ওঠে এক অদ্ভুত অনুভূতি। সেই অনুভূতির ভেতর দিয়েই শুরু হয় নিজেকে নতুন করে চেনার পালা।
+                            </div>
+                            <div style="text-align: justify; text-indent: 1.5rem;" class="mb-4">
+                                মানুষের চিন্তার গভীরতা পরিমাপ করা যায় তার নীরবতার ঘনত্ব দিয়ে। যে যত বেশি গভীরে প্রবেশ করেছে, সে তত বেশি বুঝেছে যে বাহ্যিক কোলাহলের চেয়ে অন্তর্গত প্রশান্তি কতখানি মূল্যবান।
+                            </div>
+
+                            <div class="text-center p-3 bg-light rounded-3 border text-muted small">
+                                <i class="fa-solid fa-ellipsis fs-4 d-block mb-1 opacity-50"></i>
+                                সম্পূর্ণ অধ্যায় ও অবশিষ্ট পৃষ্ঠাসমূহ পড়তে বইটি সরাসরি অর্ডার করুন।
                             </div>
                         </div>
 
-                       @push('scripts')
+                        <!-- Page 4: Author Bio & Specs -->
+                        <div class="reader-page d-none" id="readerPage4">
+                            <div class="text-center mb-4 pb-3 border-bottom border-secondary border-opacity-25">
+                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-1 fw-bold mb-2">
+                                    নমুনা পাঠ — পাতা ৪ / ৪
+                                </span>
+                                <h4 class="fw-bold text-dark mt-1">লেখক ও প্রকাশনা বিবরণ</h4>
+                            </div>
+
+                            <div class="d-flex align-items-center gap-3 p-3 bg-light rounded-4 border mb-4">
+                                <div class="rounded-circle bg-primary-subtle text-primary fw-bold d-flex align-items-center justify-content-center flex-shrink-0 shadow-xs" style="width: 52px; height: 52px; font-size: 1.3rem;">
+                                    {{ mb_substr($authorNames, 0, 1) }}
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold text-dark mb-0">{{ $authorNames }}</h6>
+                                    <p class="small text-muted mb-0">সমকালীন চিন্তাশীল লেখক ও গবেষক। আইডিয়া প্রকাশন থেকে প্রকাশিত একাধিক পাঠকপ্রিয় গ্রন্থের রচয়িতা।</p>
+                                </div>
+                            </div>
+
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-sm align-middle small mb-0">
+                                    <tbody>
+                                        <tr>
+                                            <th class="bg-light text-muted w-50">বইয়ের নাম</th>
+                                            <td class="fw-bold text-dark">{{ $book->title }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th class="bg-light text-muted">প্রকাশনা</th>
+                                            <td>{{ $book->publisher->name ?? 'আইডিয়া প্রকাশন' }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th class="bg-light text-muted">ক্যাটাগরি</th>
+                                            <td>{{ $book->category->name ?? 'সাধারণ' }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th class="bg-light text-muted">মুদ্রিত মূল্য</th>
+                                            <td class="fw-bold text-danger">৳ @bn(round($finalPrice))</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                    </div>
+                @endif
+            </div>
+
+            <!-- Reader Modal Footer (Pagination Controls & Buy Button) -->
+            <div class="modal-footer bg-light border-0 py-3 px-4 d-flex flex-wrap justify-content-between align-items-center gap-2">
+                @if(!$samplePdfUrl)
+                    <!-- Page Flip Controls -->
+                    <div class="d-flex align-items-center gap-2">
+                        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 fw-semibold" id="prevPageBtn" onclick="switchReaderPage(-1)" disabled>
+                            <i class="fa-solid fa-chevron-left me-1"></i> পূর্ববর্তী
+                        </button>
+                        <span class="badge bg-white text-dark border px-2.5 py-1.5 small fw-bold" id="readerPageIndicator">১ / ৪</span>
+                        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 fw-semibold" id="nextPageBtn" onclick="switchReaderPage(1)">
+                            পরবর্তী <i class="fa-solid fa-chevron-right ms-1"></i>
+                        </button>
+                    </div>
+                @else
+                    <div></div>
+                @endif
+
+                <div class="d-flex align-items-center gap-2 ms-auto">
+                    <button type="button" class="btn btn-light rounded-pill px-3 fw-semibold" data-bs-dismiss="modal">বন্ধ করুন</button>
+                    <button type="button" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#directOrderModal">
+                        <i class="fa-solid fa-bolt me-1"></i> বইটি এখনই কিনুন
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@push('scripts')
 <script>
     let BOOK_PRICE = {{ $finalPrice }};
     let currentSelectedPrice = {{ $finalPrice }};
