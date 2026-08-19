@@ -20,7 +20,10 @@
     --bg: #f4f7fa;
 }
 
-* { font-family: 'Hind Siliguri', 'Inter', sans-serif; }
+@import url('https://fonts.maateen.me/kalpurush/font.css');
+@import url('https://fonts.maateen.me/nikosh/font.css');
+
+* { font-family: 'Kalpurush', 'Nikosh', 'Hind Siliguri', 'Inter', sans-serif; }
 
 body {
     margin: 0;

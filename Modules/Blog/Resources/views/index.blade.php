@@ -23,13 +23,13 @@
 
     /* Literary Typography */
     .lit-title {
-        font-family: 'Noto Sans Bengali', 'Hind Siliguri', serif;
+        font-family: 'Kalpurush', 'Nikosh', 'Noto Sans Bengali', 'Hind Siliguri', serif;
         font-weight: 700;
         letter-spacing: -0.2px;
     }
 
     .lit-headline {
-        font-family: 'Noto Sans Bengali', 'Hind Siliguri', serif;
+        font-family: 'Kalpurush', 'Nikosh', 'Noto Sans Bengali', 'Hind Siliguri', serif;
         font-weight: 700;
         color: var(--lit-dark);
         line-height: 1.42;

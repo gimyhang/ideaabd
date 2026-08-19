@@ -70,7 +70,9 @@
         <link rel="icon" href="{{ asset('favicon.ico') }}">
     @endif
     
-    <!-- Fonts -->
+    <!-- Fonts: Kalpurush, Nikosh, Hind Siliguri, Noto Sans Bengali & Inter -->
+    <link href="https://fonts.maateen.me/kalpurush/font.css" rel="stylesheet">
+    <link href="https://fonts.maateen.me/nikosh/font.css" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700;800&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -87,10 +89,12 @@
     <!-- Custom Styles -->
     <style>
         * {
-            font-family: 'Hind Siliguri', 'Noto Sans Bengali', sans-serif;
+            font-family: 'Kalpurush', 'Nikosh', 'Hind Siliguri', 'Noto Sans Bengali', sans-serif;
         }
         
         body {
+            font-family: 'Kalpurush', 'Nikosh', 'Hind Siliguri', 'Noto Sans Bengali', sans-serif;
+            font-size: 12px;
             background-color: #f8fafb;
             color: #333;
         }
@@ -297,6 +301,137 @@
                 .catch(err => console.log('Social proof error:', err));
         });
     </script>
+    
+    {{-- Google Translate Element (Hidden from view) --}}
+    <div id="google_translate_element" style="display:none; position:absolute; left:-9999px;"></div>
+
+    <script>
+        // Google Translate Element Initialization
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({
+                pageLanguage: 'bn',
+                includedLanguages: 'bn,en,ar,hi,ur,es,fr,de,zh-CN,ja,tr,ru,pt,it,ko,ms,fa',
+                autoDisplay: false
+            }, 'google_translate_element');
+        }
+
+        // Global Site Language Switcher
+        window.switchSiteLanguage = function(langCode, langName) {
+            function setCookie(name, value, days) {
+                var expires = "";
+                if (days) {
+                    var date = new Date();
+                    date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+                    expires = "; expires=" + date.toUTCString();
+                }
+                var domain = window.location.hostname;
+                document.cookie = name + "=" + (value || "") + expires + "; path=/;";
+                document.cookie = name + "=" + (value || "") + expires + "; path=/; domain=" + domain;
+                if (domain.indexOf('.') !== -1) {
+                    document.cookie = name + "=" + (value || "") + expires + "; path=/; domain=." + domain;
+                }
+            }
+
+            function deleteCookie(name) {
+                var domain = window.location.hostname;
+                document.cookie = name + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                document.cookie = name + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=" + domain;
+                if (domain.indexOf('.') !== -1) {
+                    document.cookie = name + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=." + domain;
+                }
+            }
+
+            if (langCode === 'bn') {
+                deleteCookie('googtrans');
+                setCookie('googtrans', '/bn/bn', 1);
+                localStorage.setItem('site_selected_lang', 'bn');
+                localStorage.setItem('site_selected_lang_name', 'বাংলা');
+                fetch('/lang/bn').catch(function(){});
+                window.location.reload();
+            } else {
+                setCookie('googtrans', '/bn/' + langCode, 30);
+                localStorage.setItem('site_selected_lang', langCode);
+                localStorage.setItem('site_selected_lang_name', langName || langCode);
+                if (langCode === 'en') {
+                    fetch('/lang/en').catch(function(){});
+                }
+
+                var select = document.querySelector('.goog-te-combo');
+                if (select) {
+                    select.value = langCode;
+                    select.dispatchEvent(new Event('change'));
+                    if (window.updateLanguageUI) {
+                        window.updateLanguageUI(langCode, langName);
+                    }
+                } else {
+                    window.location.reload();
+                }
+            }
+        };
+
+        window.updateLanguageUI = function(langCode, langName) {
+            var displayEls = document.querySelectorAll('.current-lang-display');
+            displayEls.forEach(function(el) {
+                if (langName) el.textContent = langName;
+            });
+
+            document.querySelectorAll('.lang-check-icon').forEach(function(icon) {
+                if (icon.getAttribute('data-lang') === langCode) {
+                    icon.classList.remove('d-none');
+                    var item = icon.closest('.lang-item-btn');
+                    if (item) item.classList.add('active');
+                } else {
+                    icon.classList.add('d-none');
+                    var item = icon.closest('.lang-item-btn');
+                    if (item) item.classList.remove('active');
+                }
+            });
+        };
+
+        document.addEventListener('DOMContentLoaded', function() {
+            var cookies = document.cookie.split(';');
+            var currentLang = 'bn';
+            var currentName = 'বাংলা';
+
+            var langMap = {
+                'bn': 'বাংলা',
+                'en': 'English',
+                'ar': 'العربية',
+                'hi': 'हिन्दी',
+                'ur': 'اردو',
+                'es': 'Español',
+                'fr': 'Français',
+                'de': 'Deutsch',
+                'zh-CN': '中文',
+                'ja': '日本語',
+                'tr': 'Türkçe',
+                'ru': 'Русский'
+            };
+
+            for (var i = 0; i < cookies.length; i++) {
+                var c = cookies[i].trim();
+                if (c.indexOf('googtrans=') === 0) {
+                    var val = c.substring('googtrans='.length);
+                    var parts = val.split('/');
+                    if (parts.length >= 3 && parts[2]) {
+                        currentLang = parts[2];
+                        currentName = langMap[currentLang] || currentLang.toUpperCase();
+                    }
+                }
+            }
+
+            if (currentLang === 'bn') {
+                var localLang = localStorage.getItem('site_selected_lang');
+                if (localLang && localLang !== 'bn') {
+                    currentLang = localLang;
+                    currentName = localStorage.getItem('site_selected_lang_name') || langMap[currentLang] || currentLang;
+                }
+            }
+
+            window.updateLanguageUI(currentLang, currentName);
+        });
+    </script>
+    <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" async defer></script>
     
     {{-- Both mechanisms are supported: @section('scripts') and @push('scripts') --}}
     @yield('scripts')

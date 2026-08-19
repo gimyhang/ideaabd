@@ -120,6 +120,100 @@
                     <span>লেখা পোস্ট করুন</span>
                 </a>
 
+                {{-- Language Selector Dropdown (Next to 'লেখা পোস্ট করুন') --}}
+                <div class="dropdown d-inline-block me-2 notranslate" id="siteLanguageSelector">
+                    <button class="btn btn-sm btn-outline-secondary language-selector-btn rounded-pill px-2.5 py-1.5 d-inline-flex align-items-center gap-1.5 shadow-sm border dropdown-toggle" 
+                            type="button" 
+                            id="headerLangDropdownBtn" 
+                            data-bs-toggle="dropdown" 
+                            aria-expanded="false" 
+                            title="ভাষা নির্বাচন / Select Language">
+                        <i class="fas fa-globe text-primary"></i>
+                        <span class="current-lang-display fw-bold">বাংলা</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end language-menu rounded-4 py-2 mt-1 shadow-lg border-0" aria-labelledby="headerLangDropdownBtn" style="min-width: 215px; max-height: 380px; overflow-y: auto;">
+                        <li class="dropdown-header text-uppercase fw-bold text-muted px-3 py-1" style="font-size: 10px; letter-spacing: 0.5px;">
+                            <i class="fas fa-language me-1 text-primary"></i> প্রধান ভাষা / Primary
+                        </li>
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center justify-content-between py-2 px-3 lang-item-btn active" href="javascript:void(0)" onclick="switchSiteLanguage('bn', 'বাংলা')">
+                                <span><span class="me-2">🇧🇩</span><strong>বাংলা</strong> (Bangla)</span>
+                                <i class="fas fa-check text-success lang-check-icon" data-lang="bn"></i>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center justify-content-between py-2 px-3 lang-item-btn" href="javascript:void(0)" onclick="switchSiteLanguage('en', 'English')">
+                                <span><span class="me-2">🇬🇧</span><strong>English</strong></span>
+                                <i class="fas fa-check text-success lang-check-icon d-none" data-lang="en"></i>
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider my-1"></li>
+                        <li class="dropdown-header text-uppercase fw-bold text-muted px-3 py-1" style="font-size: 10px; letter-spacing: 0.5px;">
+                            অন্যান্য ভাষা / Other Languages
+                        </li>
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center justify-content-between py-1.5 px-3 lang-item-btn" href="javascript:void(0)" onclick="switchSiteLanguage('ar', 'العربية')">
+                                <span><span class="me-2">🇸🇦</span>العربية (Arabic)</span>
+                                <i class="fas fa-check text-success lang-check-icon d-none" data-lang="ar"></i>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center justify-content-between py-1.5 px-3 lang-item-btn" href="javascript:void(0)" onclick="switchSiteLanguage('hi', 'हिन्दी')">
+                                <span><span class="me-2">🇮🇳</span>हिन्दी (Hindi)</span>
+                                <i class="fas fa-check text-success lang-check-icon d-none" data-lang="hi"></i>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center justify-content-between py-1.5 px-3 lang-item-btn" href="javascript:void(0)" onclick="switchSiteLanguage('ur', 'اردو')">
+                                <span><span class="me-2">🇵🇰</span>اردو (Urdu)</span>
+                                <i class="fas fa-check text-success lang-check-icon d-none" data-lang="ur"></i>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center justify-content-between py-1.5 px-3 lang-item-btn" href="javascript:void(0)" onclick="switchSiteLanguage('es', 'Español')">
+                                <span><span class="me-2">🇪🇸</span>Español (Spanish)</span>
+                                <i class="fas fa-check text-success lang-check-icon d-none" data-lang="es"></i>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center justify-content-between py-1.5 px-3 lang-item-btn" href="javascript:void(0)" onclick="switchSiteLanguage('fr', 'Français')">
+                                <span><span class="me-2">🇫🇷</span>Français (French)</span>
+                                <i class="fas fa-check text-success lang-check-icon d-none" data-lang="fr"></i>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center justify-content-between py-1.5 px-3 lang-item-btn" href="javascript:void(0)" onclick="switchSiteLanguage('de', 'Deutsch')">
+                                <span><span class="me-2">🇩🇪</span>Deutsch (German)</span>
+                                <i class="fas fa-check text-success lang-check-icon d-none" data-lang="de"></i>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center justify-content-between py-1.5 px-3 lang-item-btn" href="javascript:void(0)" onclick="switchSiteLanguage('zh-CN', '中文')">
+                                <span><span class="me-2">🇨🇳</span>中文 (Chinese)</span>
+                                <i class="fas fa-check text-success lang-check-icon d-none" data-lang="zh-CN"></i>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center justify-content-between py-1.5 px-3 lang-item-btn" href="javascript:void(0)" onclick="switchSiteLanguage('ja', '日本語')">
+                                <span><span class="me-2">🇯🇵</span>日本語 (Japanese)</span>
+                                <i class="fas fa-check text-success lang-check-icon d-none" data-lang="ja"></i>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center justify-content-between py-1.5 px-3 lang-item-btn" href="javascript:void(0)" onclick="switchSiteLanguage('tr', 'Türkçe')">
+                                <span><span class="me-2">🇹🇷</span>Türkçe (Turkish)</span>
+                                <i class="fas fa-check text-success lang-check-icon d-none" data-lang="tr"></i>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center justify-content-between py-1.5 px-3 lang-item-btn" href="javascript:void(0)" onclick="switchSiteLanguage('ru', 'Русский')">
+                                <span><span class="me-2">🇷🇺</span>Русский (Russian)</span>
+                                <i class="fas fa-check text-success lang-check-icon d-none" data-lang="ru"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
                 @auth
                     <div class="dropdown">
                         <button class="site-user dropdown-toggle border-0 shadow-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="padding: 0.35rem 0.9rem 0.35rem 0.35rem;">
@@ -289,7 +383,21 @@
             </a>
         @endforeach
 
-        <div class="d-grid gap-2 mt-4 pt-3 border-top">
+        {{-- Mobile Language Selector --}}
+        <div class="mt-3 p-3 rounded-4 bg-light border notranslate">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="fw-bold text-dark small"><i class="fas fa-globe text-primary me-1.5"></i>ভাষা নির্বাচন / Language:</span>
+                <span class="badge bg-primary px-2.5 py-1 current-lang-display">বাংলা</span>
+            </div>
+            <div class="d-flex flex-wrap gap-1.5">
+                <button type="button" class="btn btn-sm btn-outline-primary py-1 px-2 rounded-pill flex-grow-1" onclick="switchSiteLanguage('bn', 'বাংলা')">🇧🇩 বাংলা</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2 rounded-pill flex-grow-1" onclick="switchSiteLanguage('en', 'English')">🇬🇧 English</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2 rounded-pill flex-grow-1" onclick="switchSiteLanguage('ar', 'العربية')">🇸🇦 العربية</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2 rounded-pill flex-grow-1" onclick="switchSiteLanguage('hi', 'हिन्दी')">🇮🇳 हिन्दी</button>
+            </div>
+        </div>
+
+        <div class="d-grid gap-2 mt-3 pt-3 border-top">
             <a href="{{ route('blog.write') }}" class="btn btn-warning rounded-pill fw-bold text-dark shadow-sm">
                 <i class="fas fa-pen-nib me-1.5"></i> নিজের লেখা পোস্ট করুন
             </a>

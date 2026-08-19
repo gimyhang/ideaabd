@@ -4,6 +4,9 @@
  * Pairs with resources/views/layouts/header.blade.php
  */
 
+@import url('https://fonts.maateen.me/kalpurush/font.css');
+@import url('https://fonts.maateen.me/nikosh/font.css');
+
 :root {
     --sh-brand: #0066cc;
     --sh-brand-2: #0099ff;
@@ -12,6 +15,12 @@
     --sh-muted: #6b7c93;
     --sh-line: #e3edf6;
     --sh-soft: #f4f9fd;
+    --font-bangla: 'Kalpurush', 'Nikosh', 'Hind Siliguri', 'Noto Sans Bengali', sans-serif;
+}
+
+body {
+    font-family: var(--font-bangla);
+    font-size: 12px;
 }
 
 /* ── Shell ─────────────────────────────────────────────────── */
@@ -572,4 +581,75 @@ img {
     cursor: pointer;
 }
 
+/* ── Language Switcher & Google Translate Overrides ────────── */
+.language-selector-btn {
+    transition: all 0.2s ease;
+    border-color: #d1d5db !important;
+    background-color: #fff !important;
+    color: #1f2937 !important;
+    font-size: 12px !important;
+}
 
+.language-selector-btn:hover,
+.language-selector-btn:focus {
+    background-color: #f0f7ff !important;
+    border-color: var(--sh-brand-2) !important;
+    color: var(--sh-brand) !important;
+    box-shadow: 0 4px 12px rgba(0, 102, 204, 0.15) !important;
+}
+
+.language-menu {
+    border: 1px solid rgba(0, 102, 204, 0.12) !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;
+}
+
+.language-menu .dropdown-item {
+    font-size: 12px;
+    padding: 0.45rem 0.85rem;
+    border-radius: 8px;
+    margin: 2px 4px;
+    transition: all 0.15s ease;
+    color: #334155;
+}
+
+.language-menu .dropdown-item:hover {
+    background-color: #f0f7ff;
+    color: var(--sh-brand);
+    font-weight: 500;
+}
+
+.language-menu .dropdown-item.active {
+    background-color: #e0f0ff;
+    color: var(--sh-brand);
+    font-weight: 600;
+}
+
+/* Hide Google Translate toolbar/banner entirely without breaking UI */
+.goog-te-banner-frame,
+.goog-te-banner-frame.skiptranslate,
+#goog-gt-tt,
+.goog-te-balloon-frame,
+.goog-tooltip,
+.goog-tooltip:hover {
+    display: none !important;
+    visibility: hidden !important;
+}
+
+body {
+    top: 0px !important;
+    position: static !important;
+}
+
+.goog-text-highlight {
+    background-color: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+}
+
+#google_translate_element {
+    display: none !important;
+    visibility: hidden !important;
+    position: absolute !important;
+    left: -9999px !important;
+    top: -9999px !important;
+}
