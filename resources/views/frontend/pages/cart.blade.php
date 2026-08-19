@@ -325,7 +325,20 @@
 
                     <!-- Bill Summary Box -->
                     <div class="bg-light rounded-4 p-3.5 mb-4 border">
-                        <h6 class="fw-bold text-dark small mb-3 border-bottom pb-2">খরচের বিস্তারিত হিসাব (Bill Summary)</h6>
+                        <h6 class="fw-bold text-dark small mb-3 border-bottom pb-2 d-flex align-items-center justify-content-between">
+                            <span><i class="fa-solid fa-receipt text-primary me-1"></i> খরচের বিস্তারিত হিসাব (Bill Summary)</span>
+                            <span class="badge bg-white text-muted border rounded-pill small" id="fullCartSummaryItemCount">০ আইটেম</span>
+                        </h6>
+
+                        <!-- Itemized Books Breakdown List -->
+                        <div class="mb-3 p-2.5 bg-white rounded-3 border shadow-2xs" id="fullCartItemizedContainer">
+                            <div class="small fw-bold text-secondary mb-2 border-bottom pb-1" style="font-size: 0.76rem;">
+                                বইয়ের তালিকা (একক দাম × কপি = মোট)
+                            </div>
+                            <div id="fullCartItemizedBreakdownList" class="d-flex flex-column gap-1.5">
+                                <!-- Populated dynamically -->
+                            </div>
+                        </div>
                         
                         <div class="d-flex justify-content-between text-muted small mb-2">
                             <span>পণ্যের উপমোট (Subtotal):</span>
@@ -483,13 +496,14 @@
                                     <h6 class="fw-bold text-dark mb-1 text-truncate" style="font-size: 0.93rem; max-width: 260px;" title="${item.title}">${item.title}</h6>
                                     <div class="d-flex align-items-center gap-1.5 flex-wrap">
                                         <span class="badge bg-light text-secondary border small">${formatLabel}</span>
-                                        <span class="badge bg-light text-muted border small">আইটেম #${toBn(index + 1)}</span>
+                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle small fw-bold">একক দাম: ৳${toBn(Math.round(unitPrice))}</span>
                                     </div>
                                 </div>
                             </div>
                         </td>
                         <td class="text-center">
-                            <span class="fw-bold text-dark fs-6">৳${toBn(Math.round(unitPrice))}</span>
+                            <span class="fw-bold text-dark fs-6 d-block">৳${toBn(Math.round(unitPrice))}</span>
+                            <span class="text-muted small" style="font-size: 0.72rem;">প্রতি কপি</span>
                         </td>
                         <td class="text-center">
                             <div class="input-group input-group-sm border rounded-pill bg-light mx-auto overflow-hidden shadow-2xs" style="width: 110px;">
@@ -502,9 +516,11 @@
                                     <i class="fa-solid fa-plus" style="font-size: 0.75rem;"></i>
                                 </button>
                             </div>
+                            <span class="text-muted small d-block mt-1" style="font-size: 0.75rem;">${toBn(qty)} কপি নির্বাচিত</span>
                         </td>
                         <td class="text-end">
-                            <span class="fw-bold text-primary fs-6">৳${toBn(Math.round(itemTotal))}</span>
+                            <span class="fw-bold text-primary fs-6 d-block">৳${toBn(Math.round(itemTotal))}</span>
+                            <span class="text-muted small d-block" style="font-size: 0.72rem;">(৳${toBn(Math.round(unitPrice))} × ${toBn(qty)})</span>
                         </td>
                         <td class="text-center pe-3.5">
                             <button type="button" class="btn btn-outline-danger btn-sm rounded-circle p-1.5" onclick="removeFullCartItem(${index})" title="আইটেমটি কার্ট থেকে সরান" style="width: 32px; height: 32px;">
@@ -581,9 +597,35 @@
         window.updateFullCartCalculations = function() {
             const cart = getSafeCart();
             let subtotal = 0;
+            let totalItemCount = 0;
+            let itemizedHtml = '';
+
             cart.forEach(item => {
-                subtotal += (item.price * item.quantity);
+                const itemQty = item.quantity;
+                totalItemCount += itemQty;
+                const itemUnitPrice = item.price;
+                const itemLineTotal = itemUnitPrice * itemQty;
+                subtotal += itemLineTotal;
+                const formatSuffix = item.format === 'hardcover' ? ' [হার্ডকভার]' : '';
+
+                itemizedHtml += `
+                    <div class="d-flex justify-content-between align-items-center py-1 border-bottom border-light text-dark" style="font-size: 0.82rem;">
+                        <div class="text-truncate me-2" style="max-width: 210px;" title="${item.title}">
+                            <span class="fw-semibold text-truncate d-inline-block" style="max-width: 150px;">${item.title}</span>
+                            <span class="text-muted small">${formatSuffix}</span>
+                            <div class="text-muted" style="font-size: 0.73rem;">
+                                ৳${toBn(Math.round(itemUnitPrice))} × ${toBn(itemQty)} কপি
+                            </div>
+                        </div>
+                        <span class="fw-bold text-primary text-nowrap">৳${toBn(Math.round(itemLineTotal))}</span>
+                    </div>
+                `;
             });
+
+            const breakdownListEl = document.getElementById('fullCartItemizedBreakdownList');
+            const summaryCountEl = document.getElementById('fullCartSummaryItemCount');
+            if (breakdownListEl) breakdownListEl.innerHTML = itemizedHtml || '<div class="small text-muted py-1">কোনো বই নেই</div>';
+            if (summaryCountEl) summaryCountEl.textContent = toBn(totalItemCount) + ' কপি বই';
 
             // Delivery Area calculation
             const checkedArea = document.querySelector('input[name="area_radio"]:checked');

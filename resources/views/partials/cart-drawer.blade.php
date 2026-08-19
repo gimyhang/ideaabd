@@ -248,7 +248,10 @@
                         <img src="${imgSrc}" alt="${item.title}" class="rounded-2 object-fit-cover flex-shrink-0" style="width: 50px; height: 68px; border: 1px solid #eee;" onerror="this.onerror=null; this.src='/images/default-book.png';">
                         <div class="flex-grow-1 min-w-0">
                             <h6 class="fw-bold text-dark mb-1 small text-truncate" title="${item.title}">${item.title}</h6>
-                            <div class="text-primary fw-bold small mb-2">৳${price.toLocaleString('bn-BD')} <span class="badge bg-light text-muted border ms-1" style="font-size: 10px;">${formatLabel}</span> <span class="text-muted fw-normal" style="font-size: 11px;">× ${qty} = ৳${itemTotal.toLocaleString('bn-BD')}</span></div>
+                            <div class="d-flex align-items-center gap-1.5 mb-1.5 flex-wrap">
+                                <span class="badge bg-light text-secondary border" style="font-size: 10px;">${formatLabel}</span>
+                                <span class="text-muted small" style="font-size: 11px;">একক দাম: ৳${price.toLocaleString('bn-BD')}</span>
+                            </div>
                             <div class="d-flex align-items-center justify-content-between">
                                 <div class="input-group input-group-sm border rounded-pill bg-light overflow-hidden" style="width: 95px;">
                                     <button class="btn btn-sm btn-light px-2 py-0" type="button" onclick="updateCartItemQty(${index}, -1)">
@@ -258,6 +261,10 @@
                                     <button class="btn btn-sm btn-light px-2 py-0" type="button" onclick="updateCartItemQty(${index}, 1)">
                                         <i class="fa-solid fa-plus" style="font-size: 9px;"></i>
                                     </button>
+                                </div>
+                                <div class="text-end">
+                                    <span class="text-primary fw-bold small d-block">৳${itemTotal.toLocaleString('bn-BD')}</span>
+                                    <span class="text-muted" style="font-size: 10px;">(৳${price.toLocaleString('bn-BD')} × ${qty})</span>
                                 </div>
                                 <button type="button" class="btn btn-link text-danger p-0 text-decoration-none small" onclick="removeCartItem(${index})" title="মুছে ফেলুন">
                                     <i class="fa-solid fa-trash-can"></i>
