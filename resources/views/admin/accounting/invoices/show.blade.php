@@ -135,8 +135,12 @@
                         <div class="d-flex flex-column justify-content-center" style="line-height: 1.3; padding-left: 2px;">
                             <div class="fw-bold text-primary invoice-brand-name" style="font-size: 15.5px; margin-bottom: 2px;">{{ $settings['business_name'] ?? 'আইডিয়া প্রকাশন' }}</div>
                             <div class="text-muted invoice-tagline" style="font-size: 10px; margin-bottom: 2px;">{{ $settings['tagline'] ?? 'বই প্রকাশনা, মুদ্রণ ও পরিবেশনা' }}</div>
-                            <div class="text-muted invoice-contact-info" style="font-size: 9.5px;">
-                                {{ $settings['address'] ?? 'ঢাকা, বাংলাদেশ' }} · মোবাইল: {{ $settings['phone'] ?? '018XXXXXXXX' }} · ইমেইল: {{ $settings['email'] ?? 'info@ideaabd.com' }}
+                            <div class="text-muted invoice-contact-info" style="font-size: 9.5px; line-height: 1.35;">
+                                <span><i class="fas fa-location-dot me-0.5 text-danger"></i>{{ $settings['address'] ?? 'ঢাকা, বাংলাদেশ' }}</span>
+                                <span class="mx-1 text-muted">·</span>
+                                <span><i class="fas fa-phone me-0.5 text-primary"></i>{{ $settings['phone'] ?? '018XXXXXXXX' }}</span>
+                                <span class="mx-1 text-muted">·</span>
+                                <span><i class="fas fa-envelope me-0.5 text-primary"></i>{{ $settings['email'] ?? 'info@ideaabd.com' }}</span>
                             </div>
                         </div>
                     </div>
@@ -446,8 +450,12 @@
                             <div class="d-flex flex-column justify-content-center" style="line-height: 1.3; padding-left: 2px;">
                                 <div class="fw-bold text-primary invoice-brand-name" style="font-size: 15.5px; margin-bottom: 2px;">{{ $settings['business_name'] ?? 'আইডিয়া প্রকাশন' }}</div>
                                 <div class="text-muted invoice-tagline" style="font-size: 10px; margin-bottom: 2px;">{{ $settings['tagline'] ?? 'বই প্রকাশনা, মুদ্রণ ও পরিবেশনা' }}</div>
-                                <div class="text-muted invoice-contact-info" style="font-size: 9.5px;">
-                                    {{ $settings['address'] ?? 'ঢাকা, বাংলাদেশ' }} · মোবাইল: {{ $settings['phone'] ?? '018XXXXXXXX' }} · ইমেইল: {{ $settings['email'] ?? 'info@ideaabd.com' }}
+                                <div class="text-muted invoice-contact-info" style="font-size: 9.5px; line-height: 1.35;">
+                                    <span><i class="fas fa-location-dot me-0.5 text-danger"></i>{{ $settings['address'] ?? 'ঢাকা, বাংলাদেশ' }}</span>
+                                    <span class="mx-1 text-muted">·</span>
+                                    <span><i class="fas fa-phone me-0.5 text-primary"></i>{{ $settings['phone'] ?? '018XXXXXXXX' }}</span>
+                                    <span class="mx-1 text-muted">·</span>
+                                    <span><i class="fas fa-envelope me-0.5 text-primary"></i>{{ $settings['email'] ?? 'info@ideaabd.com' }}</span>
                                 </div>
                             </div>
                         </div>
@@ -634,7 +642,11 @@
                                 <div class="fw-bold text-primary mb-0" id="previewHeaderTitle" style="font-size: 15.5px;">{{ $settings['business_name'] ?? 'আইডিয়া প্রকাশন' }}</div>
                                 <div class="text-muted small mb-0" id="previewHeaderTagline" style="font-size: 10.5px;">{{ $settings['tagline'] ?? 'বই প্রকাশনা, মুদ্রণ ও পরিবেশনা' }}</div>
                                 <div class="text-muted small mt-0.5" id="previewHeaderMeta" style="font-size: 10px;">
-                                    {{ $settings['address'] ?? 'ঢাকা, বাংলাদেশ' }} · মোবাইল: {{ $settings['phone'] ?? '018XXXXXXXX' }} · ইমেইল: {{ $settings['email'] ?? 'info@ideaabd.com' }}
+                                    <span><i class="fas fa-location-dot me-0.5 text-danger"></i><span id="previewMetaAddr">{{ $settings['address'] ?? 'ঢাকা, বাংলাদেশ' }}</span></span>
+                                    <span class="mx-1 text-muted">·</span>
+                                    <span><i class="fas fa-phone me-0.5 text-primary"></i><span id="previewMetaPhone">{{ $settings['phone'] ?? '018XXXXXXXX' }}</span></span>
+                                    <span class="mx-1 text-muted">·</span>
+                                    <span><i class="fas fa-envelope me-0.5 text-primary"></i><span id="previewMetaEmail">{{ $settings['email'] ?? 'info@ideaabd.com' }}</span></span>
                                 </div>
                             </div>
                         </div>
@@ -662,20 +674,18 @@
                                         <i class="fas fa-magnifying-glass-minus text-muted small"></i>
                                         <input type="range" class="form-range" id="cropZoomSlider" min="0.3" max="3.5" step="0.02" value="1">
                                         <i class="fas fa-magnifying-glass-plus text-muted small"></i>
-                                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="resetCrop()" title="রিসেট">
-                                            <i class="fas fa-rotate-left"></i>
-                                        </button>
                                     </div>
-                                    <small class="text-muted d-block mt-1" style="font-size: 11px;">
-                                        <i class="fas fa-hand me-1"></i>মাউস দিয়ে টেনে পজিশন ঠিক করুন এবং স্লাইডার দিয়ে জুম করুন।
-                                    </small>
+                                    <div class="d-flex justify-content-between align-items-center mt-1">
+                                        <small class="text-muted"><i class="fas fa-hand-pointer me-1"></i>ছবি ড্র্যাগ করে পজিশন করুন</small>
+                                        <button type="button" class="btn btn-sm btn-link text-decoration-none p-0" onclick="resetCrop()">রিসেট</button>
+                                    </div>
                                 </div>
                                 <div class="col-md-5 text-center">
-                                    <span class="small fw-semibold text-muted d-block mb-1">ক্রপ প্রিভিউ (২:১ ওয়াইড):</span>
-                                    <div class="p-2 bg-white rounded border d-inline-block shadow-xs">
-                                        <img id="croppedResultThumb" src="{{ $logoSrc }}" style="height: 60px; width: 120px; aspect-ratio: 2/1; object-fit: contain;" class="rounded">
+                                    <span class="small fw-semibold text-muted d-block mb-2">ক্রপ প্রিভিউ (২:১ রেশিও):</span>
+                                    <div class="p-2 border rounded-3 bg-white d-inline-block shadow-xs mb-2">
+                                        <img id="cropperPreviewThumb" src="{{ $logoSrc }}" alt="Live Crop Thumb" style="height: 50px; width: 100px; object-fit: contain;">
                                     </div>
-                                    <div class="text-success small fw-bold mt-1.5"><i class="fas fa-check-circle me-1"></i>পারফেক্ট ২:১ রেশিও প্রস্তুত</div>
+                                    <div class="small text-success fw-semibold"><i class="fas fa-circle-check me-1"></i>লোগোটি সেভ করতে প্রস্তুত</div>
                                 </div>
                             </div>
                         </div>
@@ -683,12 +693,12 @@
 
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold">কোম্পানি / প্রকাশনীর নাম <span class="text-danger">*</span></label>
+                            <label class="form-label fw-semibold">প্রতিষ্ঠানের নাম (Header Title)</label>
                             <input type="text" name="business_name" id="inputBusinessName" class="form-control" value="{{ $settings['business_name'] ?? 'আইডিয়া প্রকাশন' }}" required oninput="updateLivePreview()">
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold">ট্যাগলাইন / স্লোগান</label>
+                            <label class="form-label fw-semibold">ট্যাগলাইন (Tagline / Slogan)</label>
                             <input type="text" name="tagline" id="inputTagline" class="form-control" value="{{ $settings['tagline'] ?? 'বই প্রকাশনা, মুদ্রণ ও পরিবেশনা' }}" placeholder="বই প্রকাশনা, মুদ্রণ ও পরিবেশনা..." oninput="updateLivePreview()">
                         </div>
 
@@ -761,11 +771,15 @@ function updateLivePreview() {
 
     const titleEl = document.getElementById('previewHeaderTitle');
     const tagEl = document.getElementById('previewHeaderTagline');
-    const metaEl = document.getElementById('previewHeaderMeta');
+    const addrEl = document.getElementById('previewMetaAddr');
+    const phoneEl = document.getElementById('previewMetaPhone');
+    const emailEl = document.getElementById('previewMetaEmail');
 
     if (titleEl) titleEl.textContent = name;
     if (tagEl) tagEl.textContent = tag;
-    if (metaEl) metaEl.textContent = `${addr} · মোবাইল: ${ph} · ইমেইল: ${em}`;
+    if (addrEl) addrEl.textContent = addr;
+    if (phoneEl) phoneEl.textContent = ph;
+    if (emailEl) emailEl.textContent = em;
 }
 
 // 2:1 Aspect Ratio Canvas Cropper Logic
@@ -973,20 +987,62 @@ function resetCrop() {
         overflow: hidden !important;
     }
 
-    .adm-main, .adm-content, .container-fluid, .row, .col-lg-10 {
+    .adm-main, .adm-content, .container-fluid {
         margin: 0 !important;
         padding: 0 !important;
         width: 100% !important;
         max-width: 100% !important;
-        display: block !important;
+    }
+
+    #invoicePrintWrapper, .col-lg-10 {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    /* Grid Flex Maintenance in Print */
+    .row {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: wrap !important;
+        margin-right: -0.5rem !important;
+        margin-left: -0.5rem !important;
+    }
+
+    .row > * {
+        padding-right: 0.5rem !important;
+        padding-left: 0.5rem !important;
+    }
+
+    .col-7 {
+        flex: 0 0 auto !important;
+        width: 58.33333333% !important;
+        max-width: 58.33333333% !important;
+    }
+
+    .col-5 {
+        flex: 0 0 auto !important;
+        width: 41.66666667% !important;
+        max-width: 41.66666667% !important;
+    }
+
+    .col-6 {
+        flex: 0 0 auto !important;
+        width: 50% !important;
+        max-width: 50% !important;
+    }
+
+    .col-4 {
+        flex: 0 0 auto !important;
+        width: 33.33333333% !important;
+        max-width: 33.33333333% !important;
     }
 
     .invoice-page-card {
         border: none !important;
         box-shadow: none !important;
         padding: 0 !important;
-        padding-left: 0.5in !important;
-        padding-right: 0.5in !important;
         margin: 0 !important;
         width: 100% !important;
         background: #ffffff !important;
