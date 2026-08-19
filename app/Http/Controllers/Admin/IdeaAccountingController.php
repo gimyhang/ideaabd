@@ -149,10 +149,14 @@ class IdeaAccountingController extends Controller
         $invoices = $query->paginate(20)->withQueryString();
 
         $stats = [
-            'total_invoices' => IdeaInvoice::count(),
-            'total_amount'   => (float) IdeaInvoice::sum('grand_total'),
-            'total_paid'     => (float) IdeaInvoice::sum('paid_amount'),
-            'total_due'      => (float) IdeaInvoice::sum('due_amount'),
+            'total_invoices'   => IdeaInvoice::count(),
+            'total_bills'      => IdeaInvoice::where('type', 'invoice')->count(),
+            'total_challans'   => IdeaInvoice::where('type', 'challan')->count(),
+            'total_quotations' => IdeaInvoice::where('type', 'quotation')->count(),
+            'total_tenders'    => IdeaInvoice::where('type', 'tender')->count(),
+            'total_amount'     => (float) IdeaInvoice::whereIn('type', ['invoice', 'challan'])->sum('grand_total'),
+            'total_paid'       => (float) IdeaInvoice::whereIn('type', ['invoice', 'challan'])->sum('paid_amount'),
+            'total_due'        => (float) IdeaInvoice::whereIn('type', ['invoice', 'challan'])->sum('due_amount'),
         ];
 
         return view('admin.accounting.invoices.index', compact(
@@ -161,36 +165,52 @@ class IdeaAccountingController extends Controller
     }
 
     /**
-     * Create Bill or Delivery Challan.
+     * Create Bill, Delivery Challan, Quotation or Tender.
      */
-    public function createInvoice(): View
+    public function createInvoice(Request $request): View
     {
         $books = Book::where('is_active', true)->select('id', 'title', 'price', 'stock_quantity', 'author_name')->orderBy('title')->get();
         
+        $selectedType = $request->query('type', 'invoice');
+        if (!in_array($selectedType, ['invoice', 'challan', 'quotation', 'tender'])) {
+            $selectedType = 'invoice';
+        }
+
+        $prefix = match($selectedType) {
+            'challan'   => 'IDEA-CHL-',
+            'quotation' => 'IDEA-QUO-',
+            'tender'    => 'IDEA-TND-',
+            default     => 'IDEA-INV-',
+        };
+
         $dateStr = date('Ymd');
         $countToday = IdeaInvoice::whereDate('created_at', today())->count() + 1;
-        $suggestedNo = 'IDEA-' . $dateStr . '-' . str_pad((string)$countToday, 3, '0', STR_PAD_LEFT);
+        $suggestedNo = $prefix . $dateStr . '-' . str_pad((string)$countToday, 3, '0', STR_PAD_LEFT);
 
-        return view('admin.accounting.invoices.create', compact('books', 'suggestedNo'));
+        return view('admin.accounting.invoices.create', compact('books', 'suggestedNo', 'selectedType'));
     }
 
     /**
-     * Store Bill / Challan.
+     * Store Bill / Challan / Quotation / Tender.
      */
     public function storeInvoice(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'type'             => 'required|in:invoice,challan',
+            'type'             => 'required|in:invoice,challan,quotation,tender',
             'invoice_no'       => 'required|string|max:50|unique:idea_invoices,invoice_no',
+            'subject'          => 'nullable|string|max:255',
+            'reference_no'     => 'nullable|string|max:100',
             'customer_name'    => 'required|string|max:255',
             'customer_phone'   => 'nullable|string|max:50',
             'customer_address' => 'nullable|string|max:255',
             'invoice_date'     => 'required|date',
+            'valid_until'      => 'nullable|date',
             'discount'         => 'nullable|numeric|min:0',
             'tax'              => 'nullable|numeric|min:0',
             'paid_amount'      => 'nullable|numeric|min:0',
             'payment_method'   => 'required|string|max:50',
             'notes'            => 'nullable|string|max:1000',
+            'terms_conditions' => 'nullable|string|max:2000',
             'items'            => 'required|array|min:1',
             'items.*.title'    => 'required|string|max:255',
             'items.*.item_type'=> 'nullable|string|max:50',
@@ -238,10 +258,13 @@ class IdeaAccountingController extends Controller
             $invoice = IdeaInvoice::create([
                 'invoice_no'       => $validated['invoice_no'],
                 'type'             => $validated['type'],
+                'subject'          => $validated['subject'] ?? null,
+                'reference_no'     => $validated['reference_no'] ?? null,
                 'customer_name'    => $validated['customer_name'],
                 'customer_phone'   => $validated['customer_phone'] ?? null,
                 'customer_address' => $validated['customer_address'] ?? null,
                 'invoice_date'     => $validated['invoice_date'],
+                'valid_until'      => $validated['valid_until'] ?? null,
                 'items'            => $itemsProcessed,
                 'subtotal'         => $subtotal,
                 'discount'         => $discount,
@@ -252,11 +275,12 @@ class IdeaAccountingController extends Controller
                 'payment_method'   => $validated['payment_method'],
                 'payment_status'   => $paymentStatus,
                 'notes'            => $validated['notes'] ?? null,
+                'terms_conditions' => $validated['terms_conditions'] ?? null,
                 'created_by'       => auth()->id(),
             ]);
 
-            // Auto record payment in Accounting entries if paid amount > 0
-            if ($paid > 0) {
+            // Auto record payment in Accounting entries if paid amount > 0 and type is invoice/challan
+            if ($paid > 0 && in_array($validated['type'], ['invoice', 'challan'])) {
                 IdeaAccountingEntry::create([
                     'entry_no'       => 'INC-' . date('Ymd') . '-' . rand(1000, 9999),
                     'type'           => 'income',
@@ -272,7 +296,7 @@ class IdeaAccountingController extends Controller
                 ]);
             }
 
-            $typeLabel = $validated['type'] === 'challan' ? 'ডেলিভারি চালান' : 'বিল / ইনভয়েস';
+            $typeLabel = $invoice->type_label;
 
             return redirect()->route('admin.accounting.invoices.show', $invoice->id)
                 ->with('success', "{$typeLabel} #{$invoice->invoice_no} সফলভাবে তৈরি হয়েছে।");
@@ -280,7 +304,7 @@ class IdeaAccountingController extends Controller
     }
 
     /**
-     * Show & Print Bill / Challan.
+     * Show & Print Bill / Challan / Quotation / Tender.
      */
     public function showInvoice(IdeaInvoice $invoice): View
     {
@@ -288,12 +312,33 @@ class IdeaAccountingController extends Controller
     }
 
     /**
-     * Delete Bill / Challan.
+     * Convert Quotation / Tender into finalized Invoice or Delivery Challan.
+     */
+    public function convertInvoiceType(IdeaInvoice $invoice, Request $request): RedirectResponse
+    {
+        $targetType = $request->input('target_type', 'invoice');
+        if (!in_array($targetType, ['invoice', 'challan'])) {
+            $targetType = 'invoice';
+        }
+
+        $oldTypeLabel = $invoice->type_label;
+        $invoice->update([
+            'type' => $targetType,
+        ]);
+
+        $newTypeLabel = $invoice->type_label;
+
+        return redirect()->route('admin.accounting.invoices.show', $invoice->id)
+            ->with('success', "{$oldTypeLabel} সফলভাবে {$newTypeLabel}-এ রূপান্তর করা হয়েছে।");
+    }
+
+    /**
+     * Delete Bill / Challan / Quotation / Tender.
      */
     public function destroyInvoice(IdeaInvoice $invoice): RedirectResponse
     {
         $invoice->delete();
         return redirect()->route('admin.accounting.invoices.index')
-            ->with('success', 'বিল/চালানটি মুছে ফেলা হয়েছে।');
+            ->with('success', 'ডকুমেন্টটি সফলভাবে মুছে ফেলা হয়েছে।');
     }
 }

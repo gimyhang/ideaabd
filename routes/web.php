@@ -221,6 +221,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::get('/invoices/create', 'createInvoice')->name('invoices.create');
         Route::post('/invoices', 'storeInvoice')->name('invoices.store');
         Route::get('/invoices/{invoice}', 'showInvoice')->name('invoices.show');
+        Route::post('/invoices/{invoice}/convert', 'convertInvoiceType')->name('invoices.convert');
         Route::delete('/invoices/{invoice}', 'destroyInvoice')->name('invoices.destroy');
     });
 
