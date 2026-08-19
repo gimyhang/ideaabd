@@ -202,13 +202,41 @@ class BookController extends Controller
             })
             ->first();
 
+        // If not found active, check if user is admin (to preview drafts/pending books)
+        if (!$book && auth()->check() && (auth()->user()->isAdmin() || auth()->user()->isSubAdmin())) {
+            $book = Book::query()
+                ->with(['category', 'authors', 'publisher', 'reviews.user'])
+                ->withAvg('reviews', 'rating')
+                ->withCount('reviews')
+                ->where(function ($q) use ($slug, $decoded) {
+                    $q->where('slug', $slug)
+                      ->orWhere('slug', $decoded)
+                      ->orWhere('title', $decoded);
+                    if (is_numeric($slug)) {
+                        $q->orWhere('id', (int) $slug);
+                    }
+                })
+                ->first();
+        }
+
+        // Fuzzy fallback for translated/hyphenated slug
         if (!$book) {
+            $cleanSlug = str_replace('-', ' ', $decoded);
             $book = Book::query()
                 ->with(['category', 'authors', 'publisher', 'reviews.user'])
                 ->withAvg('reviews', 'rating')
                 ->withCount('reviews')
                 ->where('is_active', true)
-                ->firstOrFail();
+                ->where(function ($q) use ($cleanSlug, $decoded) {
+                    $q->where('title', 'LIKE', "%{$cleanSlug}%")
+                      ->orWhere('title', 'LIKE', "%{$decoded}%")
+                      ->orWhere('slug', 'LIKE', "%{$decoded}%");
+                })
+                ->first();
+        }
+
+        if (!$book) {
+            abort(404, 'অনুরোধকৃত বইটি পাওয়া যায়নি।');
         }
 
         // ১. একসাথে কেনা উপযোগী বই (Frequently Bought Together)

@@ -45,14 +45,14 @@
                     <i class="fas fa-arrow-up-right-from-square me-1"></i> সাইটে দেখুন
                 </a>
             @elseif ($spec['key'] === 'ebooks')
-                <a href="{{ route('ebooks.read', $record->slug ?: $record->id) }}" target="_blank" class="btn btn-outline-info btn-sm rounded-pill px-3 shadow-xs">
+                <a href="{{ route('ebook.read', $record->slug ?: $record->id) }}" target="_blank" class="btn btn-outline-info btn-sm rounded-pill px-3 shadow-xs">
                     <i class="fas fa-book-open me-1"></i> সরাসরি পড়ুন (Reader)
                 </a>
-                <a href="{{ route('ebooks.show', $record->slug ?: $record->id) }}" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-xs">
+                <a href="{{ route('ebook.show', $record->slug ?: $record->id) }}" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-xs">
                     <i class="fas fa-arrow-up-right-from-square me-1"></i> সাইটে দেখুন
                 </a>
             @elseif ($spec['key'] === 'books')
-                <a href="{{ route('books.show', $record->slug ?: $record->id) }}" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-xs">
+                <a href="{{ route('book.show', $record->slug ?: $record->id) }}" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-xs">
                     <i class="fas fa-arrow-up-right-from-square me-1"></i> সাইটে দেখুন
                 </a>
             @elseif ($spec['key'] === 'blog')
@@ -87,6 +87,40 @@
             <div class="row g-3">
                 @foreach ($spec['fields'] as $name => $field)
                     @php $current = $val($name); @endphp
+
+                    @if ($spec['key'] === 'books')
+                        @if ($name === 'title')
+                            <div class="col-12 mt-1 mb-1">
+                                <div class="d-flex align-items-center gap-2 pb-1.5 border-bottom text-dark fw-bold" style="font-size: 0.95rem;">
+                                    <span class="p-1.5 bg-primary-subtle text-primary rounded-circle small"><i class="fas fa-book-bookmark"></i></span> ১. বইয়ের মূল তথ্য ও প্রকাশনা বিবরণ
+                                </div>
+                            </div>
+                        @elseif ($name === 'cover_type')
+                            <div class="col-12 mt-3 mb-1">
+                                <div class="d-flex align-items-center gap-2 pb-1.5 border-bottom text-dark fw-bold" style="font-size: 0.95rem;">
+                                    <span class="p-1.5 bg-success-subtle text-success rounded-circle small"><i class="fas fa-gem"></i></span> ২. বাঁধাই, হার্ডকভার (প্রধান) ও মূল্য নির্ধারণ
+                                </div>
+                            </div>
+                        @elseif ($name === 'stock_status')
+                            <div class="col-12 mt-3 mb-1">
+                                <div class="d-flex align-items-center gap-2 pb-1.5 border-bottom text-dark fw-bold" style="font-size: 0.95rem;">
+                                    <span class="p-1.5 bg-warning-subtle text-warning rounded-circle small"><i class="fas fa-boxes-stacked"></i></span> ৩. ইনভেন্টরি, স্টক ও শারীরিক বিবরণ
+                                </div>
+                            </div>
+                        @elseif ($name === 'cover_image')
+                            <div class="col-12 mt-3 mb-1">
+                                <div class="d-flex align-items-center gap-2 pb-1.5 border-bottom text-dark fw-bold" style="font-size: 0.95rem;">
+                                    <span class="p-1.5 bg-info-subtle text-info rounded-circle small"><i class="fas fa-images"></i></span> ৪. কভার, লেখকের ছবি ও নমুনা ফাইল (স্ট্যান্ডার্ড সাইজ)
+                                </div>
+                            </div>
+                        @elseif ($name === 'summary')
+                            <div class="col-12 mt-3 mb-1">
+                                <div class="d-flex align-items-center gap-2 pb-1.5 border-bottom text-dark fw-bold" style="font-size: 0.95rem;">
+                                    <span class="p-1.5 bg-purple-subtle text-purple rounded-circle small" style="background-color: #f3e8ff; color: #7e22ce;"><i class="fas fa-align-left"></i></span> ৫. সারসংক্ষেপ, বিস্তারিত ফ্ল্যাপ ও লেখক পরিচিতি
+                                </div>
+                            </div>
+                        @endif
+                    @endif
 
                     <div class="col-md-{{ $field['col'] ?? 12 }}">
 
@@ -876,18 +910,21 @@
                     <span class="badge bg-success-subtle text-success small rounded-pill">রিয়েল-টাইম</span>
                 </h6>
                 <div class="p-3 bg-light rounded-3 border text-center">
-                    <div class="position-relative mx-auto mb-2" style="max-width: 140px;">
+                    <div class="position-relative mx-auto mb-2" style="width: 125px; height: 185px;">
                         <img id="mockupCoverImg" 
                              src="{{ ($editing && !empty($record->cover_image)) ? (str_starts_with($record->cover_image, 'http') ? $record->cover_image : asset('storage/' . ltrim($record->cover_image, '/'))) : 'https://placehold.co/300x450/e2e8f0/475569?text=Cover+Image' }}" 
-                             alt="Book Cover" class="img-fluid rounded shadow-sm border" style="aspect-ratio: 2/3; object-fit: cover; width: 100%;">
-                        <span id="mockupDiscountBadge" class="badge bg-danger position-absolute top-0 start-0 m-1 shadow-xs d-none">
+                             alt="Book Cover" class="rounded shadow-sm border w-100 h-100" style="object-fit: cover; aspect-ratio: 2/3; image-rendering: -webkit-optimize-contrast;">
+                        <span id="mockupDiscountBadge" class="badge bg-danger position-absolute top-0 start-0 m-1 shadow-xs d-none" style="font-size: 0.72rem;">
                             -০%
                         </span>
+                        <span id="mockupFormatBadge" class="badge bg-dark position-absolute bottom-0 start-0 m-1 shadow-xs opacity-90" style="font-size: 0.68rem;">
+                            হার্ডকভার
+                        </span>
                     </div>
-                    <div id="mockupTitle" class="fw-bold text-dark text-truncate mb-0.5" style="font-size: 0.95rem;">
+                    <div id="mockupTitle" class="fw-bold text-dark text-truncate mb-0.5" style="font-size: 0.92rem;">
                         {{ $editing ? ($record->title ?? 'বইয়ের শিরোনাম') : 'বইয়ের শিরোনাম' }}
                     </div>
-                    <div id="mockupAuthor" class="small text-muted mb-2 text-truncate" style="font-size: 0.8rem;">
+                    <div id="mockupAuthor" class="small text-muted mb-1.5 text-truncate" style="font-size: 0.78rem;">
                         {{ $editing ? ($record->author_name ?? 'লেখকের নাম') : 'লেখকের নাম' }}
                     </div>
                     <div class="d-flex align-items-center justify-content-center gap-2">
@@ -1437,24 +1474,59 @@ function updateLiveMockupCard() {
         mockAuthor.textContent = authorVal || 'লেখকের নাম';
     }
 
-    // Pricing (if present)
+    // Pricing & Format Badge calculation (prioritize Hardcover)
     if (mockFinal) {
-        const price = priceEl ? parseFloat(priceEl.value) || 0 : 0;
-        const discount = discEl ? parseFloat(discEl.value) || 0 : 0;
+        const hcPriceEl = document.getElementById('f-hardcover_price');
+        const hcDiscEl = document.getElementById('f-hardcover_discount_price');
+        const hcPrice = hcPriceEl ? parseFloat(hcPriceEl.value) || 0 : 0;
+        const hcDisc = hcDiscEl ? parseFloat(hcDiscEl.value) || 0 : 0;
 
-        if (discount > 0 && discount < price) {
-            mockFinal.textContent = '৳' + discount.toLocaleString('bn-BD');
+        const pbPrice = priceEl ? parseFloat(priceEl.value) || 0 : 0;
+        const pbDisc = discEl ? parseFloat(discEl.value) || 0 : 0;
+
+        const coverTypeSelect = document.getElementById('f-cover_type');
+        const coverType = coverTypeSelect ? coverTypeSelect.value : 'hardcover';
+        const mockFmtBadge = document.getElementById('mockupFormatBadge');
+
+        let displayPrice = 0;
+        let displayOrig = 0;
+        let isHardcover = true;
+
+        if (coverType === 'paperback' && pbPrice > 0) {
+            isHardcover = false;
+            displayOrig = pbPrice;
+            displayPrice = (pbDisc > 0 && pbDisc < pbPrice) ? pbDisc : pbPrice;
+        } else if (hcPrice > 0) {
+            isHardcover = true;
+            displayOrig = hcPrice;
+            displayPrice = (hcDisc > 0 && hcDisc < hcPrice) ? hcDisc : hcPrice;
+        } else if (pbPrice > 0) {
+            isHardcover = false;
+            displayOrig = pbPrice;
+            displayPrice = (pbDisc > 0 && pbDisc < pbPrice) ? pbDisc : pbPrice;
+        }
+
+        if (mockFmtBadge) {
+            mockFmtBadge.textContent = isHardcover ? 'হার্ডকভার' : 'পেপারব্যাক';
+        }
+
+        if (displayPrice > 0 && displayOrig > displayPrice) {
+            mockFinal.textContent = '৳' + displayPrice.toLocaleString('bn-BD');
             if (mockOriginal) {
-                mockOriginal.textContent = '৳' + price.toLocaleString('bn-BD');
+                mockOriginal.textContent = '৳' + displayOrig.toLocaleString('bn-BD');
                 mockOriginal.classList.remove('d-none');
             }
-            const percent = Math.round(((price - discount) / price) * 100);
+            const percent = Math.round(((displayOrig - displayPrice) / displayOrig) * 100);
             if (mockBadge) {
                 mockBadge.textContent = '-' + percent + '%';
                 mockBadge.classList.remove('d-none');
             }
+        } else if (displayPrice > 0) {
+            mockFinal.textContent = '৳' + displayPrice.toLocaleString('bn-BD');
+            if (mockOriginal) mockOriginal.classList.add('d-none');
+            if (mockBadge) mockBadge.classList.add('d-none');
         } else {
-            mockFinal.textContent = '৳' + price.toLocaleString('bn-BD');
+            mockFinal.textContent = '৳০';
             if (mockOriginal) mockOriginal.classList.add('d-none');
             if (mockBadge) mockBadge.classList.add('d-none');
         }

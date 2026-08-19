@@ -91,13 +91,17 @@ Route::prefix('shop')->name('shop.')->group(function () {
     Route::get('/{id}/quick-view', [BookController::class, 'quickView'])->name('quick-view');
 });
 
-// Books Routes
-Route::prefix('books')->name('book.')->group(function () {
-    Route::get('/', [BookController::class, 'index'])->name('index');
-    Route::get('/{slug}', [BookController::class, 'show'])->name('show');
-    Route::get('/{slug}/preview', [BookController::class, 'preview'])->name('preview');
-    Route::get('/{id}/quick-view', [BookController::class, 'quickView'])->name('quick-view');
+// Books Routes (with dual alias for book.* and books.*)
+Route::prefix('books')->group(function () {
+    Route::get('/', [BookController::class, 'index'])->name('book.index');
+    Route::get('/{slug}', [BookController::class, 'show'])->name('book.show');
+    Route::get('/{slug}/preview', [BookController::class, 'preview'])->name('book.preview');
+    Route::get('/{id}/quick-view', [BookController::class, 'quickView'])->name('book.quick-view');
 });
+// Route aliases for backward compatibility (books.*)
+Route::get('/books', [BookController::class, 'index'])->name('books.index');
+Route::get('/books/{slug}', [BookController::class, 'show'])->name('books.show');
+Route::get('/books/{slug}/preview', [BookController::class, 'preview'])->name('books.preview');
 
 Route::post('/book-requests', [\App\Http\Controllers\BookRequestController::class, 'store'])->name('book-requests.store');
 Route::post('/orders', [\App\Http\Controllers\OrderController::class, 'store'])->name('orders.store');
@@ -106,13 +110,18 @@ Route::get('/api/recent-orders', [\App\Http\Controllers\SocialProofController::c
 // Blog routes are defined in the Blog module (Modules/Blog/Routes/web.php), which
 // already registers blog.index / blog.show / blog.category / blog.tag.
 
-// Ebook Routes
-Route::prefix('ebooks')->name('ebook.')->group(function () {
-    Route::get('/', [EbookController::class, 'index'])->name('index');
-    Route::get('/{slug}', [EbookController::class, 'show'])->name('show');
-    Route::get('/{slug}/read', [EbookController::class, 'read'])->name('read');
-    Route::get('/{slug}/download', [EbookController::class, 'download'])->name('download');
+// Ebook Routes (with dual alias for ebook.* and ebooks.*)
+Route::prefix('ebooks')->group(function () {
+    Route::get('/', [EbookController::class, 'index'])->name('ebook.index');
+    Route::get('/{slug}', [EbookController::class, 'show'])->name('ebook.show');
+    Route::get('/{slug}/read', [EbookController::class, 'read'])->name('ebook.read');
+    Route::get('/{slug}/download', [EbookController::class, 'download'])->name('ebook.download');
 });
+// Route aliases for backward compatibility (ebooks.*)
+Route::get('/ebooks', [EbookController::class, 'index'])->name('ebooks.index');
+Route::get('/ebooks/{slug}', [EbookController::class, 'show'])->name('ebooks.show');
+Route::get('/ebooks/{slug}/read', [EbookController::class, 'read'])->name('ebooks.read');
+Route::get('/ebooks/{slug}/download', [EbookController::class, 'download'])->name('ebooks.download');
 
 // Webzine routes are defined in the Webzine module (Modules/Webzine/Routes/web.php)
 // Removed duplicate route group to avoid duplicate route name "webzine.index".

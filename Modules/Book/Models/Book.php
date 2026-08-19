@@ -36,20 +36,27 @@ class Book extends Model
         'author_name',
         'author_role',
         'author_link_id',
+        'translator_name',
+        'editor_name',
+        'cover_artist',
         'author_bio',
         'author_image',
         'slug',
         'isbn',
+        'sku',
         'summary',
         'description',
         'published_at',
         'edition',
+        'paper_type',
+        'weight',
         'stock_status',
         'stock_quantity',
         'format', // 'printed', 'ebook', 'both'
         'cover_type', // 'paperback', 'hardcover', 'both'
         'price', // Paperback regular price or default price
         'discount_price', // Paperback discount price
+        'cost_price', // Cost price / wholesale cost
         'hardcover_price', // Hardcover regular price
         'hardcover_discount_price', // Hardcover discount price
         'page_count',
@@ -69,10 +76,12 @@ class Book extends Model
     protected $casts = [
         'price' => 'decimal:2',
         'discount_price' => 'decimal:2',
+        'cost_price' => 'decimal:2',
         'hardcover_price' => 'decimal:2',
         'hardcover_discount_price' => 'decimal:2',
         'stock_quantity' => 'integer',
         'page_count' => 'integer',
+        'weight' => 'integer',
         'sales_count' => 'integer',
         'preview_pages' => 'integer',
         'is_active' => 'boolean',

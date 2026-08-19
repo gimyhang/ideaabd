@@ -23,8 +23,9 @@
 @section('og_title', $book->title . ' — ' . $authorNames . ' | আইডিয়া প্রকাশন')
 @section('og_description', $bookDesc ?: 'আইডিয়া প্রকাশনে বইটি অর্ডার করুন ও বিস্তারিত জানুন।')
 @section('og_image', $coverUrl)
-@section('og_url', route('books.show', $book->slug))
+@section('og_url', route('book.show', $book->slug ?: $book->id))
 
+@php
     $samplePdf = $book->sample_pdf_path;
     if ($samplePdf) {
         $samplePdfUrl = str_starts_with($samplePdf, 'http') 
@@ -34,6 +35,13 @@
         $samplePdfUrl = null;
     }
 
+    // Hardcover Pricing (Main Focus)
+    $hardcoverPrice = (float)($book->hardcover_price ?? 0);
+    $hardcoverDisc = (float)($book->hardcover_discount_price ?? 0);
+    $hasHardcoverDisc = $hardcoverDisc > 0 && $hardcoverDisc < $hardcoverPrice;
+    $finalHardcoverPrice = $hasHardcoverDisc ? $hardcoverDisc : $hardcoverPrice;
+    $hardcoverDiscPct = ($hasHardcoverDisc && $hardcoverPrice > 0) ? round((($hardcoverPrice - $hardcoverDisc) / $hardcoverPrice) * 100) : 0;
+
     // Paperback Pricing
     $paperbackPrice = (float)($book->price ?? 0);
     $paperbackDisc = (float)($book->discount_price ?? 0);
@@ -41,15 +49,9 @@
     $finalPaperbackPrice = $hasPaperbackDisc ? $paperbackDisc : $paperbackPrice;
     $paperbackDiscPct = ($hasPaperbackDisc && $paperbackPrice > 0) ? round((($paperbackPrice - $paperbackDisc) / $paperbackPrice) * 100) : 0;
 
-    // Hardcover Pricing
-    $hardcoverPrice = (float)($book->hardcover_price ?? 0);
-    $hardcoverDisc = (float)($book->hardcover_discount_price ?? 0);
-    $hasHardcoverDisc = $hardcoverDisc > 0 && $hardcoverDisc < $hardcoverPrice;
-    $finalHardcoverPrice = $hasHardcoverDisc ? $hardcoverDisc : $hardcoverPrice;
-    $hardcoverDiscPct = ($hasHardcoverDisc && $hardcoverPrice > 0) ? round((($hardcoverPrice - $hardcoverDisc) / $hardcoverPrice) * 100) : 0;
-
     $hasHardcoverOption = in_array($book->cover_type, ['both', 'hardcover'], true) || ($hardcoverPrice > 0) || ($book->format === 'hardcover');
-    $activeFormat = ($book->cover_type === 'hardcover' || $book->format === 'hardcover' || ($hardcoverPrice > 0 && empty($paperbackPrice))) ? 'hardcover' : 'paperback';
+    // If hardcover option exists or cover_type is hardcover, prioritize hardcover
+    $activeFormat = ($book->cover_type === 'hardcover' || ($hasHardcoverOption && empty($paperbackPrice))) ? 'hardcover' : 'paperback';
 
     $finalPrice = $activeFormat === 'hardcover' ? $finalHardcoverPrice : $finalPaperbackPrice;
     $regularPrice = $activeFormat === 'hardcover' ? $hardcoverPrice : $paperbackPrice;
@@ -208,6 +210,18 @@
                                     <div class="col-sm-6 d-flex align-items-center gap-2">
                                         <span class="text-muted"><i class="fa-solid fa-file-lines text-secondary me-1"></i>পৃষ্ঠা:</span>
                                         <span class="fw-semibold text-dark">@bn($book->page_count) পৃষ্ঠা</span>
+                                    </div>
+                                    @endif
+                                    @if($book->paper_type)
+                                    <div class="col-sm-6 d-flex align-items-center gap-2">
+                                        <span class="text-muted"><i class="fa-solid fa-scroll text-secondary me-1"></i>কাগজ:</span>
+                                        <span class="fw-semibold text-dark">{{ $book->paper_type }}</span>
+                                    </div>
+                                    @endif
+                                    @if($book->weight)
+                                    <div class="col-sm-6 d-flex align-items-center gap-2">
+                                        <span class="text-muted"><i class="fa-solid fa-weight-hanging text-secondary me-1"></i>ওজন:</span>
+                                        <span class="fw-semibold text-dark">@bn($book->weight) গ্রাম</span>
                                     </div>
                                     @endif
                                     @if($book->isbn)
