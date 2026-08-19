@@ -126,21 +126,23 @@
         {{-- ========================================================================= --}}
         <div class="card border shadow-xs rounded-3 p-3 p-md-4 bg-white mb-3 invoice-page-card" id="pageBillMemo">
             
-            {{-- Institutional / Company Header with 2:1 Wide Logo on the left --}}
-            <div class="d-flex flex-wrap justify-content-between align-items-center border-bottom pb-2 mb-2 gap-2">
-                <div class="d-flex align-items-center gap-3.5 invoice-brand-header">
-                    <img src="{{ $logoSrc }}" alt="{{ $settings['business_name'] ?? 'আইডিয়া প্রকাশন' }}" 
-                         class="img-fluid invoice-logo-img" style="height: 48px; width: 96px; aspect-ratio: 2/1; object-fit: contain; flex-shrink: 0; margin-right: 6px;">
-                    <div class="d-flex flex-column justify-content-center" style="line-height: 1.35; padding-left: 2px;">
-                        <div class="fw-bold text-primary invoice-brand-name" style="font-size: 15.5px; margin-bottom: 2px;">{{ $settings['business_name'] ?? 'আইডিয়া প্রকাশন' }}</div>
-                        <div class="text-muted invoice-tagline" style="font-size: 10.5px; margin-bottom: 2px;">{{ $settings['tagline'] ?? 'বই প্রকাশনা, মুদ্রণ ও পরিবেশনা' }}</div>
-                        <div class="text-muted invoice-contact-info" style="font-size: 10px;">
-                            {{ $settings['address'] ?? 'ঢাকা, বাংলাদেশ' }} · মোবাইল: {{ $settings['phone'] ?? '018XXXXXXXX' }} · ইমেইল: {{ $settings['email'] ?? 'info@ideaabd.com' }}
+            {{-- Institutional / Company Header in 2-Column Single Row (No Wrapping) --}}
+            <div class="row align-items-center border-bottom pb-2 mb-2 g-2">
+                <div class="col-7">
+                    <div class="d-flex align-items-center gap-3 invoice-brand-header">
+                        <img src="{{ $logoSrc }}" alt="{{ $settings['business_name'] ?? 'আইডিয়া প্রকাশন' }}" 
+                             class="img-fluid invoice-logo-img" style="height: 48px; width: 96px; aspect-ratio: 2/1; object-fit: contain; flex-shrink: 0; margin-right: 4px;">
+                        <div class="d-flex flex-column justify-content-center" style="line-height: 1.3; padding-left: 2px;">
+                            <div class="fw-bold text-primary invoice-brand-name" style="font-size: 15.5px; margin-bottom: 2px;">{{ $settings['business_name'] ?? 'আইডিয়া প্রকাশন' }}</div>
+                            <div class="text-muted invoice-tagline" style="font-size: 10px; margin-bottom: 2px;">{{ $settings['tagline'] ?? 'বই প্রকাশনা, মুদ্রণ ও পরিবেশনা' }}</div>
+                            <div class="text-muted invoice-contact-info" style="font-size: 9.5px;">
+                                {{ $settings['address'] ?? 'ঢাকা, বাংলাদেশ' }} · মোবাইল: {{ $settings['phone'] ?? '018XXXXXXXX' }} · ইমেইল: {{ $settings['email'] ?? 'info@ideaabd.com' }}
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="text-md-end">
+                <div class="col-5 text-end">
                     @php
                         $badgeStyles = [
                             'challan'   => 'background-color: #e0f2fe; color: #0369a1; border-color: #7dd3fc;',
@@ -435,21 +437,23 @@
 
             <div class="card border shadow-xs rounded-3 p-3 p-md-4 bg-white mb-3 invoice-page-card" id="pageChallanMemo">
                 
-                {{-- Institutional / Company Header with 2:1 Wide Logo on the left --}}
-                <div class="d-flex flex-wrap justify-content-between align-items-center border-bottom pb-2 mb-2 gap-2">
-                    <div class="d-flex align-items-center gap-3.5 invoice-brand-header">
-                        <img src="{{ $logoSrc }}" alt="{{ $settings['business_name'] ?? 'আইডিয়া প্রকাশন' }}" 
-                             class="img-fluid invoice-logo-img" style="height: 48px; width: 96px; aspect-ratio: 2/1; object-fit: contain; flex-shrink: 0; margin-right: 6px;">
-                        <div class="d-flex flex-column justify-content-center" style="line-height: 1.35; padding-left: 2px;">
-                            <div class="fw-bold text-primary invoice-brand-name" style="font-size: 15.5px; margin-bottom: 2px;">{{ $settings['business_name'] ?? 'আইডিয়া প্রকাশন' }}</div>
-                            <div class="text-muted invoice-tagline" style="font-size: 10.5px; margin-bottom: 2px;">{{ $settings['tagline'] ?? 'বই প্রকাশনা, মুদ্রণ ও পরিবেশনা' }}</div>
-                            <div class="text-muted invoice-contact-info" style="font-size: 10px;">
-                                {{ $settings['address'] ?? 'ঢাকা, বাংলাদেশ' }} · মোবাইল: {{ $settings['phone'] ?? '018XXXXXXXX' }} · ইমেইল: {{ $settings['email'] ?? 'info@ideaabd.com' }}
+                {{-- Institutional / Company Header in 2-Column Single Row (No Wrapping) --}}
+                <div class="row align-items-center border-bottom pb-2 mb-2 g-2">
+                    <div class="col-7">
+                        <div class="d-flex align-items-center gap-3 invoice-brand-header">
+                            <img src="{{ $logoSrc }}" alt="{{ $settings['business_name'] ?? 'আইডিয়া প্রকাশন' }}" 
+                                 class="img-fluid invoice-logo-img" style="height: 48px; width: 96px; aspect-ratio: 2/1; object-fit: contain; flex-shrink: 0; margin-right: 4px;">
+                            <div class="d-flex flex-column justify-content-center" style="line-height: 1.3; padding-left: 2px;">
+                                <div class="fw-bold text-primary invoice-brand-name" style="font-size: 15.5px; margin-bottom: 2px;">{{ $settings['business_name'] ?? 'আইডিয়া প্রকাশন' }}</div>
+                                <div class="text-muted invoice-tagline" style="font-size: 10px; margin-bottom: 2px;">{{ $settings['tagline'] ?? 'বই প্রকাশনা, মুদ্রণ ও পরিবেশনা' }}</div>
+                                <div class="text-muted invoice-contact-info" style="font-size: 9.5px;">
+                                    {{ $settings['address'] ?? 'ঢাকা, বাংলাদেশ' }} · মোবাইল: {{ $settings['phone'] ?? '018XXXXXXXX' }} · ইমেইল: {{ $settings['email'] ?? 'info@ideaabd.com' }}
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="text-md-end">
+                    <div class="col-5 text-end">
                         <span class="badge border px-2 py-0.5 rounded-pill mb-0.5 d-inline-block fw-bold" style="font-size: 10px; background-color: #e0f2fe; color: #0369a1; border-color: #7dd3fc;">
                             ডেলিভারি চালান (DELIVERY CHALLAN)
                         </span>
