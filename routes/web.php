@@ -284,9 +284,12 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::patch('/ecommerce-orders/{order}/status', [AdminController::class, 'updateEcommerceOrderStatus'])->name('ecommerce-orders.status');
     Route::get('/ecommerce-orders/{order}/invoice', [AdminController::class, 'ecommerceOrderInvoice'])->name('ecommerce-orders.invoice');
     Route::get('/ecommerce-orders/{order}/slip', [AdminController::class, 'ecommerceOrderSlip'])->name('ecommerce-orders.slip');
-    Route::delete('/ecommerce-orders/{order}', [AdminController::class, 'destroyEcommerceOrder'])->name('ecommerce-orders.destroy');
     Route::get('/book-requests', [\App\Http\Controllers\BookRequestController::class, 'index'])->name('book-requests.index');
+    Route::post('/book-requests/admin-store', [\App\Http\Controllers\BookRequestController::class, 'storeAdmin'])->name('book-requests.admin-store');
     Route::patch('/book-requests/{id}', [\App\Http\Controllers\BookRequestController::class, 'updateStatus'])->name('book-requests.update');
+    Route::post('/book-requests/{id}/notes', [\App\Http\Controllers\BookRequestController::class, 'updateNotes'])->name('book-requests.notes');
+    Route::delete('/book-requests/{id}', [\App\Http\Controllers\BookRequestController::class, 'destroy'])->name('book-requests.destroy');
+    Route::post('/book-requests/bulk-action', [\App\Http\Controllers\BookRequestController::class, 'bulkAction'])->name('book-requests.bulk-action');
     Route::get('/visitor-reports', [AdminController::class, 'visitorReports'])->name('visitor-reports');
     Route::get('/reports/print', [AdminController::class, 'printReport'])->name('reports.print');
     Route::post('/books/quick-stock', [AdminController::class, 'quickUpdateStock'])->name('books.quick-stock');

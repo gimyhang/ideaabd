@@ -34,6 +34,46 @@ class AdminDashboardService
     }
 
     /**
+     * Real-time actionable alerts for pending items requiring admin approval/handling.
+     */
+    public function getPendingAlerts(): array
+    {
+        $pendingOrders = (int) $this->safe(fn () => Order::where('status', 'pending')->count(), 0);
+        $pendingRegistrations = (int) $this->safe(fn () => User::whereIn('role', ['seller', 'publisher', 'author'])
+            ->where('reg_status', User::STATUS_PENDING)
+            ->count(), 0);
+        
+        $pendingBlogs = 0;
+        if (Schema::hasTable('blog_posts')) {
+            $pendingBlogs = (int) $this->safe(fn () => \Modules\Blog\Models\BlogPost::where(function ($q) {
+                $q->where('status', 'pending')->orWhere('mod_status', 'pending');
+            })->count(), 0);
+        }
+
+        $pendingBookRequests = 0;
+        if (Schema::hasTable('book_requests')) {
+            $pendingBookRequests = (int) $this->safe(fn () => \App\Models\BookRequest::where('status', 'pending')->count(), 0);
+        }
+
+        $pendingSubmissions = 0;
+        if (Schema::hasTable('author_submissions')) {
+            $pendingSubmissions = (int) $this->safe(fn () => \Modules\Author\Models\AuthorSubmission::where('status', 'pending')->count(), 0);
+        }
+
+        $totalCount = $pendingOrders + $pendingRegistrations + $pendingBlogs + $pendingBookRequests + $pendingSubmissions;
+
+        return [
+            'total_count'          => $totalCount,
+            'has_alerts'           => $totalCount > 0,
+            'orders'               => $pendingOrders,
+            'registrations'        => $pendingRegistrations,
+            'blogs'                => $pendingBlogs,
+            'book_requests'        => $pendingBookRequests,
+            'submissions'          => $pendingSubmissions,
+        ];
+    }
+
+    /**
      * Backward-compatible stats() method.
      */
     public function stats(): array
@@ -166,6 +206,7 @@ class AdminDashboardService
             'total_users'         => $this->safe(fn () => User::count(), 0),
             'total_customers'     => $this->safe(fn () => User::whereIn('role', ['customer', 'buyer'])->count(), 0),
             'pending_regs'        => $this->pendingRegistrations(),
+            'pending_alerts'      => $this->getPendingAlerts(),
         ];
     }
 

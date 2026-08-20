@@ -40,6 +40,116 @@
     @endif
 
     {{-- ========================================================================= --}}
+    {{-- REAL-TIME PENDING NOTIFICATION & APPROVAL ALERT HUB                       --}}
+    {{-- ========================================================================= --}}
+    @php
+        $pendingAlerts = $stats['pending_alerts'] ?? ($adminPendingAlerts ?? []);
+        $totalAlertsCount = $pendingAlerts['total_count'] ?? 0;
+    @endphp
+
+    @if($totalAlertsCount > 0)
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white border-start border-4 border-warning">
+            <div class="card-header bg-warning-subtle bg-opacity-50 py-2.5 px-4 border-bottom d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-warning text-dark p-2 rounded-circle">
+                        <i class="fas fa-bell"></i>
+                    </span>
+                    <div>
+                        <h6 class="fw-bold mb-0 text-dark">মনোযোগ আকর্ষণ: @bn($totalAlertsCount)টি নতুন বিষয় আপনার অনুমোদনের অপেক্ষায়</h6>
+                        <small class="text-muted">গ্রাহক অর্ডার, রেজিস্ট্রেশন, পাণ্ডুলিপি বা ব্লগ পোস্ট প্রকাশের আবেদন রিভিউ করুন</small>
+                    </div>
+                </div>
+                <span class="badge bg-warning text-dark fw-bold px-3 py-1.5 rounded-pill small">
+                    Action Required
+                </span>
+            </div>
+            <div class="card-body p-3">
+                <div class="row g-2.5">
+                    {{-- 1. Pending Orders --}}
+                    @if(($pendingAlerts['orders'] ?? 0) > 0)
+                        <div class="col-12 col-md-6 col-xl">
+                            <div class="p-3 bg-light rounded-3 border d-flex align-items-center justify-content-between h-100">
+                                <div class="d-flex align-items-center gap-2.5">
+                                    <div class="rounded-circle bg-warning text-dark p-2.5 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                                        <i class="fas fa-cart-shopping"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold text-dark small">নতুন বই অর্ডার</div>
+                                        <small class="text-muted font-monospace">@bn($pendingAlerts['orders'])টি অপেক্ষমান</small>
+                                    </div>
+                                </div>
+                                <a href="{{ route('admin.ecommerce-orders', ['status' => 'pending']) }}" class="btn btn-warning btn-sm rounded-pill px-2.5 py-1 fw-bold small">
+                                    দেখুন <i class="fas fa-arrow-right ms-1"></i>
+                                </a>
+                            </div>
+                        </div>
+                    @endif
+
+                    {{-- 2. Pending Registrations --}}
+                    @if(($pendingAlerts['registrations'] ?? 0) > 0)
+                        <div class="col-12 col-md-6 col-xl">
+                            <div class="p-3 bg-light rounded-3 border d-flex align-items-center justify-content-between h-100">
+                                <div class="d-flex align-items-center gap-2.5">
+                                    <div class="rounded-circle bg-danger text-white p-2.5 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                                        <i class="fas fa-user-clock"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold text-dark small">রেজিস্ট্রেশন আবেদন</div>
+                                        <small class="text-muted font-monospace">@bn($pendingAlerts['registrations'])টি অনুমোদন বাকি</small>
+                                    </div>
+                                </div>
+                                <a href="{{ route('admin.registrations.index', ['status' => 'pending']) }}" class="btn btn-danger btn-sm rounded-pill px-2.5 py-1 fw-bold small">
+                                    অনুমোদন <i class="fas fa-arrow-right ms-1"></i>
+                                </a>
+                            </div>
+                        </div>
+                    @endif
+
+                    {{-- 3. Pending Blog Posts --}}
+                    @if(($pendingAlerts['blogs'] ?? 0) > 0)
+                        <div class="col-12 col-md-6 col-xl">
+                            <div class="p-3 bg-light rounded-3 border d-flex align-items-center justify-content-between h-100">
+                                <div class="d-flex align-items-center gap-2.5">
+                                    <div class="rounded-circle bg-success text-white p-2.5 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                                        <i class="fas fa-feather-pointed"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold text-dark small">ব্লগ / আইডিয়াপত্র</div>
+                                        <small class="text-muted font-monospace">@bn($pendingAlerts['blogs'])টি রিভিউ বাকি</small>
+                                    </div>
+                                </div>
+                                <a href="{{ route('admin.blog', ['status' => 'pending']) }}" class="btn btn-success btn-sm rounded-pill px-2.5 py-1 fw-bold small">
+                                    রিভিউ <i class="fas fa-arrow-right ms-1"></i>
+                                </a>
+                            </div>
+                        </div>
+                    @endif
+
+                    {{-- 4. Pending Book Requests --}}
+                    @if(($pendingAlerts['book_requests'] ?? 0) > 0)
+                        <div class="col-12 col-md-6 col-xl">
+                            <div class="p-3 bg-light rounded-3 border d-flex align-items-center justify-content-between h-100">
+                                <div class="d-flex align-items-center gap-2.5">
+                                    <div class="rounded-circle bg-info text-white p-2.5 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                                        <i class="fas fa-book-bookmark"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold text-dark small">বইয়ের রিকোয়েস্ট</div>
+                                        <small class="text-muted font-monospace">@bn($pendingAlerts['book_requests'])টি সংগৃহীত নয়</small>
+                                    </div>
+                                </div>
+                                <a href="{{ route('admin.book-requests.index', ['status' => 'pending']) }}" class="btn btn-info btn-sm rounded-pill px-2.5 py-1 fw-bold small text-white">
+                                    সংগ্রহ <i class="fas fa-arrow-right ms-1"></i>
+                                </a>
+                            </div>
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+    @endif
+
+    {{-- ========================================================================= --}}
     {{-- 1. DATE RANGE & PERIOD FILTER BAR (দৈনিক, মাসিক, বাৎসরিক ও কাস্টম ডেট)   --}}
     {{-- ========================================================================= --}}
     <div class="adm-card p-3 bg-white">
@@ -434,7 +544,7 @@
                             <div class="list-group-item d-flex align-items-center justify-content-between p-3">
                                 <div>
                                     <div class="fw-semibold text-dark">{{ $req->book_title }}</div>
-                                    <small class="text-muted">অনুরোধকারী: {{ $req->customer_name }} ({{ $req->phone }})</small>
+                                    <small class="text-muted">অনুরোধকারী: {{ $req->customer_name ?? 'গ্রাহক' }} ({{ $req->customer_phone ?? ($req->phone ?? '—') }})</small>
                                 </div>
                                 <a href="{{ route('admin.content.create', 'books') }}?title={{ urlencode($req->book_title) }}" 
                                    class="btn btn-sm btn-outline-success rounded-pill px-2.5 py-0.5" title="বইটি ক্যাটালগে যুক্ত করুন">

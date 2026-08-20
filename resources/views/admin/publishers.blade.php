@@ -222,11 +222,9 @@
                 <tbody>
                     @forelse ($publishers as $index => $publisher)
                         @php
-                            $logo = $publisher->logo;
-                            $logoUrl = $logo 
-                                ? (str_starts_with($logo, 'http') ? $logo : (str_starts_with($logo, 'storage/') ? asset($logo) : asset('storage/' . ltrim($logo, '/'))))
-                                : 'https://placehold.co/100x100/4f46e5/ffffff?text=' . urlencode(mb_substr($publisher->name, 0, 1));
-                            
+                            $logoUrl = $publisher->logo_url;
+                            $initials = $publisher->initials;
+                            $bgColor = $publisher->logo_bg_color;
                             $catalogVal = (float) ($publisher->total_catalog_price ?? 0);
                             $purchaseSum = (float) ($publisher->total_purchase_sum ?? 0);
                             $dueSum = (float) ($publisher->total_due_sum ?? 0);
@@ -240,9 +238,24 @@
                             <td>
                                 <div class="d-flex align-items-center gap-2.5">
                                     <div class="position-relative flex-shrink-0">
-                                        <a href="{{ route('admin.publishers.show', $publisher->id) }}">
-                                            <img src="{{ $logoUrl }}" alt="{{ $publisher->name }}" id="pubLogoImg_{{ $publisher->id }}"
-                                                 class="rounded-circle border shadow-xs" style="width: 44px; height: 44px; object-fit: cover;">
+                                        <a href="{{ route('admin.publishers.show', $publisher->id) }}" class="text-decoration-none">
+                                            <div class="rounded-circle overflow-hidden border border-2 border-white shadow-xs position-relative" 
+                                                 style="width: 44px; height: 44px; min-width: 44px; min-height: 44px; aspect-ratio: 1 / 1; background: {{ $bgColor }};">
+                                                @if($logoUrl)
+                                                    <img src="{{ $logoUrl }}" alt="{{ $publisher->name }}" id="pubLogoImg_{{ $publisher->id }}"
+                                                         class="w-100 h-100 object-fit-cover position-absolute top-0 start-0"
+                                                         onerror="this.style.display='none'; this.parentElement.querySelector('.logo-fallback').style.display='flex';">
+                                                    <div class="logo-fallback w-100 h-100 align-items-center justify-content-center text-white fw-bold small position-absolute top-0 start-0" 
+                                                         style="display: none; background: {{ $bgColor }}; font-size: 0.95rem;">
+                                                        {{ $initials }}
+                                                    </div>
+                                                @else
+                                                    <div class="w-100 h-100 d-flex align-items-center justify-content-center text-white fw-bold small position-absolute top-0 start-0" 
+                                                         style="background: {{ $bgColor }}; font-size: 0.95rem;">
+                                                        {{ $initials }}
+                                                    </div>
+                                                @endif
+                                            </div>
                                         </a>
                                     </div>
                                     <div class="text-truncate" style="max-width: 220px;">
@@ -694,7 +707,7 @@ const publishersDataMap = {
             website: "{{ addslashes($p->website ?? '') }}",
             description: "{{ addslashes($p->description ?? '') }}",
             is_active: {{ $p->is_active ? 1 : 0 }},
-            logo_url: "{{ $p->logo ? (str_starts_with($p->logo, 'http') ? $p->logo : (str_starts_with($p->logo, 'storage/') ? asset($p->logo) : asset('storage/' . ltrim($p->logo, '/')))) : 'https://placehold.co/90x90/4f46e5/ffffff?text=' . urlencode(mb_substr($p->name, 0, 1)) }}"
+            logo_url: "{{ $p->logo_url ? addslashes($p->logo_url) : '' }}"
         },
     @endforeach
 };
@@ -702,7 +715,7 @@ const publishersDataMap = {
 // 1. Add Publisher Modal
 function openAddPublisherModal() {
     document.getElementById('quickAddPublisherForm').reset();
-    document.getElementById('addPubLogoPreview').src = 'https://placehold.co/90x90/4f46e5/ffffff?text=Logo';
+    document.getElementById('addPubLogoPreview').src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='90' viewBox='0 0 90 90'%3E%3Crect width='90' height='90' fill='%234f46e5'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23ffffff' font-size='14' font-family='sans-serif'%3ELogo%3C/text%3E%3C/svg%3E";
     document.getElementById('addPubAlertBox').innerHTML = '';
     new bootstrap.Modal(document.getElementById('quickAddPublisherModal')).show();
 }
@@ -771,7 +784,7 @@ function openEditPublisherModal(pubId) {
     document.getElementById('editPubWebsite').value = pub.website || '';
     document.getElementById('editPubDescription').value = pub.description || '';
     document.getElementById('editPubIsActive').checked = (pub.is_active === 1);
-    document.getElementById('editPubLogoPreview').src = pub.logo_url;
+    document.getElementById('editPubLogoPreview').src = pub.logo_url || ("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='90' viewBox='0 0 90 90'%3E%3Crect width='90' height='90' fill='%234f46e5'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23ffffff' font-size='28' font-family='sans-serif'%3E" + encodeURIComponent(pub.name ? pub.name.substring(0, 1) : 'প্র') + "%3C/text%3E%3C/svg%3E");
     document.getElementById('editPubAlertBox').innerHTML = '';
 
     new bootstrap.Modal(document.getElementById('quickEditPublisherModal')).show();

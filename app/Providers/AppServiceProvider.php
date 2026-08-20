@@ -30,10 +30,14 @@ class AppServiceProvider extends ServiceProvider
             }
         }
 
-        // Sidebar/topbar badge — resolved once per admin request, not per partial.
-        View::composer(['admin.partials.sidebar', 'admin.partials.topbar'], function ($view) {
+        // Sidebar/topbar badge & notification alerts — resolved once per admin request.
+        View::composer(['admin.partials.sidebar', 'admin.partials.topbar', 'admin.dashboard'], function ($view) {
+            $dashboardService = app(\App\Services\AdminDashboardService::class);
             $view->with('adminPendingRegistrations', once(
-                fn () => app(\App\Services\AdminDashboardService::class)->pendingRegistrations()
+                fn () => $dashboardService->pendingRegistrations()
+            ));
+            $view->with('adminPendingAlerts', once(
+                fn () => $dashboardService->getPendingAlerts()
             ));
         });
 
