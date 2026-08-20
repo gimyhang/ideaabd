@@ -1062,7 +1062,7 @@ class AdminController extends Controller
     public function authorDetails($id): \Illuminate\Http\JsonResponse
     {
         $author = \Modules\Author\Models\Author::with(['books' => function ($q) {
-            $q->select('books.id', 'title', 'price', 'cover_image')->latest()->take(10);
+            $q->select('books.id', 'books.title', 'books.price', 'books.cover_image')->orderByDesc('books.id')->take(10);
         }])->withCount('books')->findOrFail($id);
 
         return response()->json([

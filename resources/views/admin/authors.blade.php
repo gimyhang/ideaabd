@@ -295,9 +295,9 @@
                                     @if($avatarUrl)
                                         <img src="{{ $avatarUrl }}" alt="{{ $author->name }}" 
                                              class="w-100 h-100 object-fit-cover position-absolute top-0 start-0"
-                                             onerror="this.style.display='none'; this.nextElementSibling.classList.remove('d-none');">
-                                        <div class="w-100 h-100 d-none d-flex align-items-center justify-content-center text-white fw-bold position-absolute top-0 start-0"
-                                             style="background: {{ $bgColor }}; font-size: 0.95rem;">
+                                             onerror="this.style.display='none'; this.parentElement.querySelector('.avatar-fallback').style.display='flex';">
+                                        <div class="avatar-fallback w-100 h-100 align-items-center justify-content-center text-white fw-bold position-absolute top-0 start-0"
+                                             style="display: none; background: {{ $bgColor }}; font-size: 0.95rem;">
                                             {{ $initials }}
                                         </div>
                                     @else
@@ -388,14 +388,14 @@
                                                  onclick="previewAuthorAvatar('{{ $avatarUrl }}', '{{ addslashes($author->name) }}')">
                                                 @if($avatarUrl)
                                                     <img src="{{ $avatarUrl }}" alt="{{ $author->name }}" 
-                                                         class="w-100 h-100 object-fit-cover"
-                                                         onerror="this.style.display='none'; this.nextElementSibling.classList.remove('d-none');">
-                                                    <div class="w-100 h-100 d-none d-flex align-items-center justify-content-center text-white fw-bold small"
-                                                         style="background: {{ $bgColor }};">
+                                                         class="w-100 h-100 object-fit-cover position-absolute top-0 start-0"
+                                                         onerror="this.style.display='none'; this.parentElement.querySelector('.avatar-fallback').style.display='flex';">
+                                                    <div class="avatar-fallback w-100 h-100 align-items-center justify-content-center text-white fw-bold small position-absolute top-0 start-0"
+                                                         style="display: none; background: {{ $bgColor }};">
                                                         {{ $initials }}
                                                     </div>
                                                 @else
-                                                    <div class="w-100 h-100 d-flex align-items-center justify-content-center text-white fw-bold small"
+                                                    <div class="w-100 h-100 d-flex align-items-center justify-content-center text-white fw-bold small position-absolute top-0 start-0"
                                                          style="background: {{ $bgColor }};">
                                                         {{ $initials }}
                                                     </div>
