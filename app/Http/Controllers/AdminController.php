@@ -190,15 +190,25 @@ class AdminController extends Controller
         $query = \App\Models\Order::query()
             ->with(['book', 'user', 'affiliate'])
             ->when($search, function ($q, $term) {
-                $like = '%' . $term . '%';
-                $q->where(function ($w) use ($like) {
-                    $w->where('order_number', 'like', $like)
-                      ->orWhere('customer_name', 'like', $like)
-                      ->orWhere('customer_phone', 'like', $like)
-                      ->orWhere('gift_recipient_name', 'like', $like)
-                      ->orWhere('district', 'like', $like)
-                      ->orWhere('tracking_code', 'like', $like);
-                });
+                $searchData = $this->parseSearchKeywords($term);
+                $tokens = $searchData['tokens'];
+                if (!empty($tokens)) {
+                    $q->where(function ($master) use ($tokens) {
+                        foreach ($tokens as $token) {
+                            $like = '%' . $token . '%';
+                            $master->where(function ($w) use ($like) {
+                                $w->where('order_number', 'like', $like)
+                                  ->orWhere('customer_name', 'like', $like)
+                                  ->orWhere('customer_phone', 'like', $like)
+                                  ->orWhere('customer_email', 'like', $like)
+                                  ->orWhere('gift_recipient_name', 'like', $like)
+                                  ->orWhere('district', 'like', $like)
+                                  ->orWhere('tracking_code', 'like', $like)
+                                  ->orWhereHas('book', fn($bq) => $bq->where('title', 'like', $like));
+                            });
+                        }
+                    });
+                }
             })
             ->when($status && $status !== 'all', fn ($q) => $q->where('status', $status))
             ->when($dateFilter === 'today', fn ($q) => $q->whereDate('created_at', today()))
@@ -357,36 +367,173 @@ class AdminController extends Controller
 
     // ─── Catalog & content lists ────────────────────────────────────────
 
+    /**
+     * Normalize search input: converts Bengali numerals to English,
+     * strips unnecessary control characters, and splits into distinct search tokens.
+     *
+     * @return array{raw: string, tokens: array<string>, normalized: string}
+     */
+    private function parseSearchKeywords(string $term): array
+    {
+        $term = trim($term);
+        if ($term === '') {
+            return ['raw' => '', 'tokens' => [], 'normalized' => ''];
+        }
+
+        // Map Bangla digits to English digits
+        $bnDigits = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+        $enDigits = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+        $normalizedDigits = str_replace($bnDigits, $enDigits, $term);
+
+        // Split into tokens by whitespace
+        $words = preg_split('/\s+/', $term, -1, PREG_SPLIT_NO_EMPTY);
+        $tokens = [];
+        foreach ($words as $w) {
+            $w = trim($w);
+            if ($w !== '') {
+                $tokens[] = $w;
+                // Also add digit-normalized variation if it contains numbers
+                $digitVariant = str_replace($bnDigits, $enDigits, $w);
+                if ($digitVariant !== $w && !in_array($digitVariant, $tokens, true)) {
+                    $tokens[] = $digitVariant;
+                }
+            }
+        }
+
+        return [
+            'raw'        => $term,
+            'tokens'     => array_values(array_unique($tokens)),
+            'normalized' => $normalizedDigits,
+        ];
+    }
+
     public function books(Request $request): View
     {
-        $search = $request->string('search')->trim()->value();
-        $categoryId = $request->input('category_id');
-        $stockFilter = $request->string('stock')->trim()->value();
-        $status = $request->input('is_active');
+        $search        = $request->string('search')->trim()->value();
+        $authorId      = $request->input('author_id');
+        $publisherId   = $request->input('publisher_id');
+        $categoryId    = $request->input('category_id');
+        $stockFilter   = $request->string('stock')->trim()->value();
+        $format        = $request->string('format')->trim()->value();
+        $coverType     = $request->string('cover_type')->trim()->value();
+        $minPrice      = $request->filled('min_price') ? $request->float('min_price') : null;
+        $maxPrice      = $request->filled('max_price') ? $request->float('max_price') : null;
+        $discountOnly  = $request->boolean('discount_only') || $request->input('discount_only') === '1';
+        $status        = $request->input('is_active');
+        $sort          = $request->string('sort')->trim()->value() ?: 'latest';
+        $perPage       = in_array((int) $request->input('per_page'), [10, 20, 50, 100, 200], true) ? (int) $request->input('per_page') : 20;
 
         $query = \Modules\Book\Models\Book::query()
-            ->with(['category', 'authorLink'])
+            ->with(['category', 'publisher', 'vendor', 'authorLink', 'authors'])
             ->when($search, function ($q, $term) {
-                $like = '%' . $term . '%';
-                $q->where(function ($w) use ($like) {
-                    $w->where('title', 'like', $like)
-                      ->orWhere('subtitle', 'like', $like)
-                      ->orWhere('author_name', 'like', $like)
-                      ->orWhere('isbn', 'like', $like)
-                      ->orWhere('slug', 'like', $like);
+                $searchData = $this->parseSearchKeywords($term);
+                $tokens = $searchData['tokens'];
+
+                if (!empty($tokens)) {
+                    $q->where(function ($masterQuery) use ($tokens) {
+                        foreach ($tokens as $token) {
+                            $like = '%' . $token . '%';
+                            $masterQuery->where(function ($w) use ($like, $token) {
+                                $w->where('title', 'like', $like)
+                                  ->orWhere('subtitle', 'like', $like)
+                                  ->orWhere('author_name', 'like', $like)
+                                  ->orWhere('translator_name', 'like', $like)
+                                  ->orWhere('editor_name', 'like', $like)
+                                  ->orWhere('cover_artist', 'like', $like)
+                                  ->orWhere('isbn', 'like', $like)
+                                  ->orWhere('sku', 'like', $like)
+                                  ->orWhere('slug', 'like', $like)
+                                  ->orWhere('summary', 'like', $like)
+                                  ->orWhere('description', 'like', $like)
+                                  ->orWhereHas('publisher', function ($pub) use ($like) {
+                                      $pub->where('name', 'like', $like)
+                                          ->orWhere('slug', 'like', $like)
+                                          ->orWhere('phone', 'like', $like)
+                                          ->orWhere('email', 'like', $like);
+                                  })
+                                  ->orWhereHas('vendor', function ($ven) use ($like) {
+                                      $ven->where('shop_name', 'like', $like)
+                                          ->orWhere('business_name', 'like', $like)
+                                          ->orWhere('name', 'like', $like);
+                                  })
+                                  ->orWhereHas('category', function ($cat) use ($like) {
+                                      $cat->where('name', 'like', $like)
+                                          ->orWhere('slug', 'like', $like);
+                                  })
+                                  ->orWhereHas('authorLink', function ($aut) use ($like) {
+                                      $aut->where('name', 'like', $like)
+                                          ->orWhere('slug', 'like', $like)
+                                          ->orWhere('phone', 'like', $like)
+                                          ->orWhere('email', 'like', $like);
+                                  })
+                                  ->orWhereHas('authors', function ($aut) use ($like) {
+                                      $aut->where('name', 'like', $like)
+                                          ->orWhere('slug', 'like', $like);
+                                  })
+                                  ->orWhereHas('tags', function ($tag) use ($like) {
+                                      $tag->where('name', 'like', $like)
+                                          ->orWhere('slug', 'like', $like);
+                                  });
+
+                                // In-house publisher "Idea Prakashon" match for null publisher_id
+                                $lowerToken = mb_strtolower($token);
+                                if (
+                                    str_contains($lowerToken, 'idea') || 
+                                    str_contains($token, 'আইডিয়া') || 
+                                    str_contains($token, 'আইডিয়া') || 
+                                    str_contains($token, 'প্রকাশন') ||
+                                    str_contains($token, 'আইডিয়া প্রকাশন')
+                                ) {
+                                    $w->orWhereNull('publisher_id');
+                                }
+                            });
+                        }
+                    });
+                }
+            })
+            ->when($authorId, function ($q, $aId) {
+                $q->where(function ($sq) use ($aId) {
+                    $sq->where('author_link_id', $aId)
+                       ->orWhereHas('authors', fn($aq) => $aq->where('authors.id', $aId));
                 });
+            })
+            ->when($publisherId, function ($q, $pId) {
+                if ($pId === 'idea' || $pId === 'in_house') {
+                    $q->whereNull('publisher_id');
+                } else {
+                    $q->where('publisher_id', $pId);
+                }
             })
             ->when($categoryId, fn ($q) => $q->where('category_id', $categoryId))
             ->when($stockFilter === 'pre_order', fn ($q) => $q->where('stock_status', 'pre_order'))
             ->when($stockFilter === 'low', fn ($q) => $q->where('stock_quantity', '<=', 5)->where('stock_quantity', '>', 0))
             ->when($stockFilter === 'out', fn ($q) => $q->where('stock_quantity', '<=', 0))
             ->when($stockFilter === 'in_stock', fn ($q) => $q->where('stock_quantity', '>', 5))
-            ->when($status !== null && $status !== '', fn ($q) => $q->where('is_active', (bool) $status))
-            ->latest();
+            ->when($format && in_array($format, ['printed', 'ebook', 'both'], true), fn ($q) => $q->where('format', $format))
+            ->when($coverType && in_array($coverType, ['paperback', 'hardcover', 'both'], true), fn ($q) => $q->where('cover_type', $coverType))
+            ->when($minPrice !== null, fn ($q) => $q->where('price', '>=', $minPrice))
+            ->when($maxPrice !== null, fn ($q) => $q->where('price', '<=', $maxPrice))
+            ->when($discountOnly, fn ($q) => $q->whereNotNull('discount_price')->where('discount_price', '>', 0)->whereColumn('discount_price', '<', 'price'))
+            ->when($status !== null && $status !== '', fn ($q) => $q->where('is_active', (bool) $status));
 
-        $books = $query->paginate(20)->withQueryString();
+        match ($sort) {
+            'oldest'        => $query->oldest('id'),
+            'title_asc'     => $query->orderBy('title', 'asc'),
+            'title_desc'    => $query->orderBy('title', 'desc'),
+            'price_low'     => $query->orderBy('price', 'asc'),
+            'price_high'    => $query->orderBy('price', 'desc'),
+            'sales_high'    => $query->orderByDesc('sales_count'),
+            'stock_low'     => $query->orderBy('stock_quantity', 'asc'),
+            'stock_high'    => $query->orderByDesc('stock_quantity'),
+            'discount_high' => $query->whereNotNull('discount_price')->orderByRaw('(price - discount_price) DESC'),
+            default         => $query->latest('id'),
+        };
 
+        $books = $query->paginate($perPage)->withQueryString();
+
+        $authors    = \Modules\Author\Models\Author::whereNull('deleted_at')->orderBy('name')->pluck('name', 'id')->all();
         $categories = DB::table('categories')->whereNull('deleted_at')->orderBy('name')->pluck('name', 'id')->all();
+        $publishers = \Modules\Publisher\Models\Publisher::whereNull('deleted_at')->orderBy('name')->pluck('name', 'id')->all();
 
         $stats = [
             'total'     => \Modules\Book\Models\Book::count(),
@@ -394,41 +541,98 @@ class AdminController extends Controller
             'pre_order' => \Modules\Book\Models\Book::where('stock_status', 'pre_order')->count(),
             'low_stock' => \Modules\Book\Models\Book::where('stock_quantity', '<=', 5)->where('stock_quantity', '>', 0)->count(),
             'out_stock' => \Modules\Book\Models\Book::where('stock_quantity', '<=', 0)->count(),
+            'discount'  => \Modules\Book\Models\Book::whereNotNull('discount_price')->where('discount_price', '>', 0)->whereColumn('discount_price', '<', 'price')->count(),
         ];
 
-        return view('admin.books', compact('books', 'categories', 'stats'));
+        return view('admin.books', compact('books', 'categories', 'publishers', 'authors', 'stats', 'sort', 'perPage'));
     }
 
     public function ebooks(Request $request): View
     {
-        $search = $request->string('search')->trim()->value();
-        $categoryId = $request->input('category_id');
-        $status = $request->input('is_active');
+        $search      = $request->string('search')->trim()->value();
+        $authorId    = $request->input('author_id');
+        $categoryId  = $request->input('category_id');
+        $publisherId = $request->input('publisher_id');
+        $status      = $request->input('is_active');
+        $priceType   = $request->string('price_type')->trim()->value();
+        $sort        = $request->string('sort')->trim()->value() ?: 'latest';
+        $perPage     = in_array((int) $request->input('per_page'), [10, 20, 50, 100], true) ? (int) $request->input('per_page') : 20;
 
         $query = \Modules\Ebook\Models\Ebook::query()
-            ->with(['category', 'authorLink'])
+            ->with(['category', 'publisher', 'authorLink', 'author'])
             ->when($search, function ($q, $term) {
-                $like = '%' . $term . '%';
-                $q->where(function ($w) use ($like) {
-                    $w->where('title', 'like', $like)
-                      ->orWhere('author_name', 'like', $like)
-                      ->orWhere('slug', 'like', $like);
+                $searchData = $this->parseSearchKeywords($term);
+                $tokens = $searchData['tokens'];
+
+                if (!empty($tokens)) {
+                    $q->where(function ($master) use ($tokens) {
+                        foreach ($tokens as $token) {
+                            $like = '%' . $token . '%';
+                            $master->where(function ($w) use ($like, $token) {
+                                $w->where('title', 'like', $like)
+                                  ->orWhere('author_name', 'like', $like)
+                                  ->orWhere('isbn', 'like', $like)
+                                  ->orWhere('slug', 'like', $like)
+                                  ->orWhere('description', 'like', $like)
+                                  ->orWhereHas('publisher', fn($pub) => $pub->where('name', 'like', $like)->orWhere('slug', 'like', $like))
+                                  ->orWhereHas('category', fn($cat) => $cat->where('name', 'like', $like)->orWhere('slug', 'like', $like))
+                                  ->orWhereHas('authorLink', fn($aut) => $aut->where('name', 'like', $like)->orWhere('slug', 'like', $like))
+                                  ->orWhereHas('author', fn($aut) => $aut->where('name', 'like', $like)->orWhere('slug', 'like', $like));
+
+                                $lowerToken = mb_strtolower($token);
+                                if (
+                                    str_contains($lowerToken, 'idea') || 
+                                    str_contains($token, 'আইডিয়া') || 
+                                    str_contains($token, 'আইডিয়া')
+                                ) {
+                                    $w->orWhereNull('publisher_id');
+                                }
+                            });
+                        }
+                    });
+                }
+            })
+            ->when($authorId, function ($q, $aId) {
+                $q->where(function ($sq) use ($aId) {
+                    $sq->where('author_link_id', $aId)
+                       ->orWhere('author_id', $aId);
                 });
             })
             ->when($categoryId, fn ($q) => $q->where('category_id', $categoryId))
-            ->when($status !== null && $status !== '', fn ($q) => $q->where('is_active', (bool) $status))
-            ->latest();
+            ->when($publisherId, function ($q, $pId) {
+                if ($pId === 'idea' || $pId === 'in_house') {
+                    $q->whereNull('publisher_id');
+                } else {
+                    $q->where('publisher_id', $pId);
+                }
+            })
+            ->when($priceType === 'free', fn ($q) => $q->where(fn($sq) => $sq->whereNull('price')->orWhere('price', '<=', 0)))
+            ->when($priceType === 'paid', fn ($q) => $q->whereNotNull('price')->where('price', '>', 0))
+            ->when($status !== null && $status !== '', fn ($q) => $q->where('is_active', (bool) $status));
 
-        $ebooks = $query->paginate(20)->withQueryString();
+        match ($sort) {
+            'oldest'     => $query->oldest('id'),
+            'title_asc'  => $query->orderBy('title', 'asc'),
+            'title_desc' => $query->orderBy('title', 'desc'),
+            'price_low'  => $query->orderBy('price', 'asc'),
+            'price_high' => $query->orderBy('price', 'desc'),
+            'sales_high' => $query->orderByDesc('sales_count'),
+            default      => $query->latest('id'),
+        };
+
+        $ebooks = $query->paginate($perPage)->withQueryString();
+        $authors    = \Modules\Author\Models\Author::whereNull('deleted_at')->orderBy('name')->pluck('name', 'id')->all();
         $categories = DB::table('categories')->whereNull('deleted_at')->orderBy('name')->pluck('name', 'id')->all();
+        $publishers = \Modules\Publisher\Models\Publisher::whereNull('deleted_at')->orderBy('name')->pluck('name', 'id')->all();
 
         $stats = [
             'total'  => \Modules\Ebook\Models\Ebook::count(),
             'active' => \Modules\Ebook\Models\Ebook::where('is_active', true)->count(),
-            'free'   => \Modules\Ebook\Models\Ebook::where(fn($q) => $q->whereNull('price')->orWhere('price', 0))->count(),
+            'free'   => \Modules\Ebook\Models\Ebook::where(fn($q) => $q->whereNull('price')->orWhere('price', '<=', 0))->count(),
+            'paid'   => \Modules\Ebook\Models\Ebook::whereNotNull('price')->where('price', '>', 0)->count(),
         ];
 
-        return view('admin.ebooks', compact('ebooks', 'categories', 'stats'));
+        return view('admin.ebooks', compact('ebooks', 'categories', 'publishers', 'authors', 'stats', 'sort', 'perPage'));
     }
 
     public function categories(Request $request): View
@@ -436,25 +640,41 @@ class AdminController extends Controller
         $search   = $request->string('search')->trim()->value();
         $status   = $request->input('is_active');
         $parentId = $request->input('parent_id');
+        $sort     = $request->string('sort')->trim()->value() ?: 'sort_order';
+        $perPage  = in_array((int) $request->input('per_page'), [10, 25, 50, 100], true) ? (int) $request->input('per_page') : 25;
 
         $query = \Modules\Book\Models\Category::query()
             ->with(['parent'])
             ->withCount('books')
             ->when($search, function ($q, $term) {
-                $like = '%' . $term . '%';
-                $q->where(function ($w) use ($like) {
-                    $w->where('name', 'like', $like)
-                      ->orWhere('slug', 'like', $like)
-                      ->orWhere('description', 'like', $like);
-                });
+                $searchData = $this->parseSearchKeywords($term);
+                $tokens = $searchData['tokens'];
+                if (!empty($tokens)) {
+                    $q->where(function ($master) use ($tokens) {
+                        foreach ($tokens as $token) {
+                            $like = '%' . $token . '%';
+                            $master->where(function ($w) use ($like) {
+                                $w->where('name', 'like', $like)
+                                  ->orWhere('slug', 'like', $like)
+                                  ->orWhere('description', 'like', $like);
+                            });
+                        }
+                    });
+                }
             })
             ->when($parentId === 'root', fn ($q) => $q->whereNull('parent_id'))
             ->when($parentId && $parentId !== 'root', fn ($q) => $q->where('parent_id', $parentId))
-            ->when($status !== null && $status !== '', fn ($q) => $q->where('is_active', (bool) $status))
-            ->orderBy('sort_order')
-            ->orderBy('name');
+            ->when($status !== null && $status !== '', fn ($q) => $q->where('is_active', (bool) $status));
 
-        $categories = $query->paginate(25)->withQueryString();
+        match ($sort) {
+            'name_asc'   => $query->orderBy('name', 'asc'),
+            'name_desc'  => $query->orderBy('name', 'desc'),
+            'books_desc' => $query->orderByDesc('books_count'),
+            'latest'     => $query->latest('id'),
+            default      => $query->orderBy('sort_order')->orderBy('name'),
+        };
+
+        $categories = $query->paginate($perPage)->withQueryString();
         $parentCategories = \Modules\Book\Models\Category::whereNull('parent_id')->orderBy('name')->pluck('name', 'id')->all();
 
         $stats = [
@@ -464,7 +684,7 @@ class AdminController extends Controller
             'children' => \Modules\Book\Models\Category::whereNotNull('parent_id')->count(),
         ];
 
-        return view('admin.categories', compact('categories', 'parentCategories', 'stats'));
+        return view('admin.categories', compact('categories', 'parentCategories', 'stats', 'sort', 'perPage'));
     }
 
     public function blog(Request $request): View
@@ -475,14 +695,23 @@ class AdminController extends Controller
         $query = \Modules\Blog\Models\BlogPost::query()
             ->with(['category', 'author', 'submitter'])
             ->when($search, function ($q, $term) {
-                $like = '%' . $term . '%';
-                $q->where(function ($w) use ($like) {
-                    $w->where('title', 'like', $like)
-                      ->orWhere('slug', 'like', $like)
-                      ->orWhere('content', 'like', $like)
-                      ->orWhere('owner_name', 'like', $like)
-                      ->orWhereHas('author', fn($a) => $a->where('name', 'like', $like)->orWhere('phone', 'like', $like));
-                });
+                $searchData = $this->parseSearchKeywords($term);
+                $tokens = $searchData['tokens'];
+                if (!empty($tokens)) {
+                    $q->where(function ($master) use ($tokens) {
+                        foreach ($tokens as $token) {
+                            $like = '%' . $token . '%';
+                            $master->where(function ($w) use ($like) {
+                                $w->where('title', 'like', $like)
+                                  ->orWhere('slug', 'like', $like)
+                                  ->orWhere('content', 'like', $like)
+                                  ->orWhere('owner_name', 'like', $like)
+                                  ->orWhereHas('category', fn($c) => $c->where('name', 'like', $like)->orWhere('slug', 'like', $like))
+                                  ->orWhereHas('author', fn($a) => $a->where('name', 'like', $like)->orWhere('phone', 'like', $like));
+                            });
+                        }
+                    });
+                }
             })
             ->when($status && $status !== 'all', function ($q) use ($status) {
                 if ($status === 'published') {
@@ -517,10 +746,20 @@ class AdminController extends Controller
         $query = \Modules\Blog\Models\BlogCategory::query()
             ->withCount(['posts' => fn($q) => $q->where('status', 'published')])
             ->when($search, function ($q, $term) {
-                $like = '%' . $term . '%';
-                $q->where('name', 'like', $like)
-                  ->orWhere('slug', 'like', $like)
-                  ->orWhere('description', 'like', $like);
+                $searchData = $this->parseSearchKeywords($term);
+                $tokens = $searchData['tokens'];
+                if (!empty($tokens)) {
+                    $query->where(function ($master) use ($tokens) {
+                        foreach ($tokens as $token) {
+                            $like = '%' . $token . '%';
+                            $master->where(function ($w) use ($like) {
+                                $w->where('name', 'like', $like)
+                                  ->orWhere('slug', 'like', $like)
+                                  ->orWhere('description', 'like', $like);
+                            });
+                        }
+                    });
+                }
             })
             ->orderBy('name');
 
@@ -543,24 +782,44 @@ class AdminController extends Controller
 
     public function authors(Request $request): View
     {
-        $search = $request->string('search')->trim()->value();
-        $status = $request->input('is_active');
+        $search   = $request->string('search')->trim()->value();
+        $status   = $request->input('is_active');
+        $verified = $request->input('is_verified');
+        $sort     = $request->string('sort')->trim()->value() ?: 'latest';
+        $perPage  = in_array((int) $request->input('per_page'), [10, 20, 50, 100], true) ? (int) $request->input('per_page') : 20;
 
         $query = \Modules\Author\Models\Author::query()
             ->withCount('books')
             ->when($search, function ($q, $term) {
-                $like = '%' . $term . '%';
-                $q->where(function ($w) use ($like) {
-                    $w->where('name', 'like', $like)
-                      ->orWhere('slug', 'like', $like)
-                      ->orWhere('email', 'like', $like)
-                      ->orWhere('phone', 'like', $like);
-                });
+                $searchData = $this->parseSearchKeywords($term);
+                $tokens = $searchData['tokens'];
+                if (!empty($tokens)) {
+                    $q->where(function ($master) use ($tokens) {
+                        foreach ($tokens as $token) {
+                            $like = '%' . $token . '%';
+                            $master->where(function ($w) use ($like) {
+                                $w->where('name', 'like', $like)
+                                  ->orWhere('slug', 'like', $like)
+                                  ->orWhere('email', 'like', $like)
+                                  ->orWhere('phone', 'like', $like)
+                                  ->orWhere('bio', 'like', $like);
+                            });
+                        }
+                    });
+                }
             })
             ->when($status !== null && $status !== '', fn ($q) => $q->where('is_active', (bool) $status))
-            ->latest();
+            ->when($verified !== null && $verified !== '', fn ($q) => $q->where('is_verified', (bool) $verified));
 
-        $authors = $query->paginate(20)->withQueryString();
+        match ($sort) {
+            'oldest'     => $query->oldest('id'),
+            'name_asc'   => $query->orderBy('name', 'asc'),
+            'name_desc'  => $query->orderBy('name', 'desc'),
+            'books_desc' => $query->orderByDesc('books_count'),
+            default      => $query->latest('id'),
+        };
+
+        $authors = $query->paginate($perPage)->withQueryString();
 
         $stats = [
             'total'    => \Modules\Author\Models\Author::count(),
@@ -568,13 +827,542 @@ class AdminController extends Controller
             'verified' => \Modules\Author\Models\Author::where('is_verified', true)->count(),
         ];
 
-        return view('admin.authors', compact('authors', 'stats', 'search', 'status'));
+        return view('admin.authors', compact('authors', 'stats', 'search', 'status', 'verified', 'sort', 'perPage'));
     }
 
     public function publishers(Request $request): View
     {
-        return view('admin.publishers', [
-            'publishers' => $this->listing('publishers', $request, ['name', 'slug']),
+        $search   = $request->string('search')->trim()->value();
+        $status   = $request->input('is_active');
+        $hasDue   = $request->input('has_due');
+        $sort     = $request->string('sort')->trim()->value() ?: 'latest';
+        $perPage  = in_array((int) $request->input('per_page'), [10, 20, 50, 100], true) ? (int) $request->input('per_page') : 20;
+
+        $query = \Modules\Publisher\Models\Publisher::query()
+            ->withCount('books')
+            ->withSum('purchases as total_purchase_sum', 'grand_total')
+            ->withSum('purchases as total_due_sum', 'due_amount')
+            ->withSum('purchases as total_paid_sum', 'paid_amount')
+            ->when($search, function ($q, $term) {
+                $searchData = $this->parseSearchKeywords($term);
+                $tokens = $searchData['tokens'];
+                if (!empty($tokens)) {
+                    $q->where(function ($master) use ($tokens) {
+                        foreach ($tokens as $token) {
+                            $like = '%' . $token . '%';
+                            $master->where(function ($w) use ($like) {
+                                $w->where('name', 'like', $like)
+                                  ->orWhere('slug', 'like', $like)
+                                  ->orWhere('email', 'like', $like)
+                                  ->orWhere('phone', 'like', $like)
+                                  ->orWhere('address', 'like', $like)
+                                  ->orWhere('description', 'like', $like);
+                            });
+                        }
+                    });
+                }
+            })
+            ->when($status !== null && $status !== '', fn ($q) => $q->where('is_active', (bool) $status))
+            ->when($hasDue, function ($q) {
+                $q->whereHas('purchases', fn($pq) => $pq->where('due_amount', '>', 0));
+            });
+
+        match ($sort) {
+            'oldest'        => $query->oldest('id'),
+            'name_asc'      => $query->orderBy('name', 'asc'),
+            'name_desc'     => $query->orderBy('name', 'desc'),
+            'books_desc'    => $query->orderByDesc('books_count'),
+            'purchase_desc' => $query->orderByDesc('total_purchase_sum'),
+            'due_desc'      => $query->orderByDesc('total_due_sum'),
+            default         => $query->latest('id'),
+        };
+
+        $publishers = $query->paginate($perPage)->withQueryString();
+
+        $stats = [
+            'total'               => \Modules\Publisher\Models\Publisher::count(),
+            'active'              => \Modules\Publisher\Models\Publisher::where('is_active', true)->count(),
+            'total_books'         => \Modules\Book\Models\Book::whereNotNull('publisher_id')->count(),
+            'total_purchase_sum'  => (float) \App\Models\PublisherPurchase::sum('grand_total'),
+            'total_due_sum'       => (float) \App\Models\PublisherPurchase::sum('due_amount'),
+        ];
+
+        return view('admin.publishers', compact('publishers', 'stats', 'search', 'status', 'hasDue', 'sort', 'perPage'));
+    }
+
+    public function quickStorePublisher(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $validated = $request->validate([
+            'name'        => 'required|string|max:255',
+            'slug'        => 'nullable|string|max:255|unique:publishers,slug',
+            'phone'       => 'nullable|string|max:50',
+            'email'       => 'nullable|email|max:255',
+            'address'     => 'nullable|string|max:500',
+            'website'     => 'nullable|url|max:255',
+            'description' => 'nullable|string|max:2000',
+            'is_active'   => 'nullable|boolean',
+            'logo_file'   => 'nullable|image|max:3072',
+        ]);
+
+        $slug = !empty($validated['slug']) 
+            ? \Illuminate\Support\Str::slug($validated['slug'])
+            : \Illuminate\Support\Str::slug($validated['name']);
+        
+        if (\Modules\Publisher\Models\Publisher::where('slug', $slug)->exists()) {
+            $slug .= '-' . rand(100, 999);
+        }
+
+        $logoPath = null;
+        if ($request->hasFile('logo_file')) {
+            $logoPath = $request->file('logo_file')->store('publishers/logos', 'public');
+        }
+
+        $publisher = \Modules\Publisher\Models\Publisher::create([
+            'name'        => $validated['name'],
+            'slug'        => $slug,
+            'phone'       => $validated['phone'] ?? null,
+            'email'       => $validated['email'] ?? null,
+            'address'     => $validated['address'] ?? null,
+            'website'     => $validated['website'] ?? null,
+            'description' => $validated['description'] ?? null,
+            'logo'        => $logoPath,
+            'is_active'   => $request->boolean('is_active', true),
+        ]);
+
+        $this->accessService->log('publisher_quick_create', "নতুন প্রকাশক '{$publisher->name}' যুক্ত করা হয়েছে");
+
+        return response()->json([
+            'success'   => true,
+            'message'   => "নতুন প্রকাশক '{$publisher->name}' সফলভাবে তৈরি হয়েছে!",
+            'publisher' => $publisher,
+        ]);
+    }
+
+    public function quickUpdatePublisher(Request $request, $id): \Illuminate\Http\JsonResponse
+    {
+        $publisher = \Modules\Publisher\Models\Publisher::findOrFail($id);
+
+        $validated = $request->validate([
+            'name'        => 'required|string|max:255',
+            'slug'        => 'nullable|string|max:255|unique:publishers,slug,' . $publisher->id,
+            'phone'       => 'nullable|string|max:50',
+            'email'       => 'nullable|email|max:255',
+            'address'     => 'nullable|string|max:500',
+            'website'     => 'nullable|url|max:255',
+            'description' => 'nullable|string|max:2000',
+            'is_active'   => 'nullable|boolean',
+            'logo_file'   => 'nullable|image|max:3072',
+        ]);
+
+        $updates = [
+            'name'        => $validated['name'],
+            'phone'       => $validated['phone'] ?? null,
+            'email'       => $validated['email'] ?? null,
+            'address'     => $validated['address'] ?? null,
+            'website'     => $validated['website'] ?? null,
+            'description' => $validated['description'] ?? null,
+        ];
+
+        if (!empty($validated['slug'])) {
+            $updates['slug'] = \Illuminate\Support\Str::slug($validated['slug']);
+        }
+        if ($request->has('is_active')) {
+            $updates['is_active'] = $request->boolean('is_active');
+        }
+        if ($request->hasFile('logo_file')) {
+            $updates['logo'] = $request->file('logo_file')->store('publishers/logos', 'public');
+        }
+
+        $publisher->update($updates);
+
+        $this->accessService->log('publisher_quick_update', "প্রকাশক '{$publisher->name}' তথ্য আপডেট করা হয়েছে");
+
+        return response()->json([
+            'success'   => true,
+            'message'   => "প্রকাশকের তথ্য সফলভাবে সংরক্ষিত হয়েছে!",
+            'publisher' => $publisher,
+        ]);
+    }
+
+    public function togglePublisherStatus($id): \Illuminate\Http\JsonResponse
+    {
+        $publisher = \Modules\Publisher\Models\Publisher::findOrFail($id);
+        $publisher->is_active = !$publisher->is_active;
+        $publisher->save();
+
+        $statusText = $publisher->is_active ? 'সক্রিয়' : 'নিষ্ক্রিয়';
+        $this->accessService->log('publisher_status_toggle', "প্রকাশক '{$publisher->name}' স্ট্যাটাস পরিবর্তন: {$statusText}");
+
+        return response()->json([
+            'success'   => true,
+            'is_active' => (bool) $publisher->is_active,
+            'message'   => "প্রকাশক এখন {$statusText}",
+        ]);
+    }
+
+    public function quickPublisherPayment(Request $request, $id): \Illuminate\Http\JsonResponse
+    {
+        $publisher = \Modules\Publisher\Models\Publisher::findOrFail($id);
+
+        $validated = $request->validate([
+            'amount'          => 'required|numeric|min:1',
+            'payment_date'    => 'required|date',
+            'payment_method'  => 'required|string|in:cash,bank,bkash,nagad,rocket,cheque,other',
+            'transaction_ref' => 'nullable|string|max:100',
+            'purchase_id'     => 'nullable|integer|exists:publisher_purchases,id',
+            'note'            => 'nullable|string|max:500',
+        ]);
+
+        $paymentNo = 'PAY-' . date('Ymd') . '-' . strtoupper(\Illuminate\Support\Str::random(4));
+
+        $payment = \App\Models\PublisherPayment::create([
+            'payment_no'      => $paymentNo,
+            'publisher_id'    => $publisher->id,
+            'purchase_id'     => $validated['purchase_id'] ?? null,
+            'payment_date'    => $validated['payment_date'],
+            'amount'          => (float) $validated['amount'],
+            'payment_method'  => $validated['payment_method'],
+            'transaction_ref' => $validated['transaction_ref'] ?? null,
+            'note'            => $validated['note'] ?? null,
+            'recorded_by'     => auth()->id(),
+        ]);
+
+        if (!empty($validated['purchase_id'])) {
+            $purchase = \App\Models\PublisherPurchase::find($validated['purchase_id']);
+            if ($purchase) {
+                $newPaid = (float) $purchase->paid_amount + (float) $validated['amount'];
+                $newDue = max(0, (float) $purchase->grand_total - $newPaid);
+                $purchase->paid_amount = $newPaid;
+                $purchase->due_amount = $newDue;
+                $purchase->payment_status = $newDue <= 0 ? 'paid' : ($newPaid > 0 ? 'partial' : 'due');
+                $purchase->save();
+            }
+        }
+
+        $this->accessService->log('publisher_quick_payment', "প্রকাশক '{$publisher->name}' কে ৳{$validated['amount']} পরিশোধ রেকর্ড করা হয়েছে (#{$paymentNo})");
+
+        return response()->json([
+            'success'    => true,
+            'message'    => "৳" . number_format($validated['amount'], 2) . " পরিশোধ সফলভাবে রেকর্ড করা হয়েছে (ভাউচার #{$paymentNo})!",
+            'payment_no' => $paymentNo,
+        ]);
+    }
+
+    public function publisherShow(Request $request, $id): View
+    {
+        $publisher = \Modules\Publisher\Models\Publisher::withCount('books')->findOrFail($id);
+
+        $tab = $request->string('tab')->trim()->value() ?: 'books';
+        $search = $request->string('search')->trim()->value();
+        $stock = $request->string('stock')->trim()->value();
+        $category = $request->input('category_id');
+        $sort = $request->string('sort')->trim()->value() ?: 'latest';
+        $perPage = in_array((int) $request->input('per_page'), [10, 20, 50, 100, 200], true) ? (int) $request->input('per_page') : 20;
+
+        $booksQuery = \Modules\Book\Models\Book::query()
+            ->with(['authorLink', 'authors', 'category'])
+            ->where('publisher_id', $publisher->id)
+            ->when($search, function ($q, $term) {
+                $searchData = $this->parseSearchKeywords($term);
+                $tokens = $searchData['tokens'];
+                if (!empty($tokens)) {
+                    $q->where(function ($master) use ($tokens) {
+                        foreach ($tokens as $token) {
+                            $like = '%' . $token . '%';
+                            $master->where(function ($w) use ($like) {
+                                $w->where('title', 'like', $like)
+                                  ->orWhere('author_name', 'like', $like)
+                                  ->orWhere('isbn', 'like', $like)
+                                  ->orWhere('sku', 'like', $like)
+                                  ->orWhere('edition', 'like', $like);
+                            });
+                        }
+                    });
+                }
+            })
+            ->when($category, fn($q) => $q->where('category_id', $category))
+            ->when($stock, function ($q, $s) {
+                match ($s) {
+                    'in_stock'  => $q->where('stock_quantity', '>', 5),
+                    'low'       => $q->where('stock_quantity', '>', 0)->where('stock_quantity', '<=', 5),
+                    'out'       => $q->where('stock_quantity', '<=', 0),
+                    'pre_order' => $q->where('stock_status', 'pre_order'),
+                    default     => null,
+                };
+            });
+
+        match ($sort) {
+            'oldest'      => $booksQuery->oldest('id'),
+            'title_asc'   => $booksQuery->orderBy('title', 'asc'),
+            'title_desc'  => $booksQuery->orderBy('title', 'desc'),
+            'price_low'   => $booksQuery->orderBy('price', 'asc'),
+            'price_high'  => $booksQuery->orderBy('price', 'desc'),
+            'stock_low'   => $booksQuery->orderBy('stock_quantity', 'asc'),
+            'stock_high'  => $booksQuery->orderBy('stock_quantity', 'desc'),
+            'sales_high'  => $booksQuery->orderByDesc('sales_count'),
+            default       => $booksQuery->latest('id'),
+        };
+
+        $books = $booksQuery->paginate($perPage)->withQueryString();
+
+        // Invoices / Purchases for this publisher
+        $purchases = \App\Models\PublisherPurchase::where('publisher_id', $publisher->id)
+            ->with(['items', 'payments'])
+            ->latest()
+            ->paginate(15, ['*'], 'purchases_page')
+            ->withQueryString();
+
+        // Payments records for this publisher
+        $payments = \App\Models\PublisherPayment::where('publisher_id', $publisher->id)
+            ->with('purchase')
+            ->latest()
+            ->paginate(15, ['*'], 'payments_page')
+            ->withQueryString();
+
+        // Sales & Top Selling Books
+        $topBooks = \Modules\Book\Models\Book::where('publisher_id', $publisher->id)
+            ->where('sales_count', '>', 0)
+            ->orderByDesc('sales_count')
+            ->take(10)
+            ->get();
+
+        // Publisher-specific stats
+        $stats = [
+            'total_books'      => \Modules\Book\Models\Book::where('publisher_id', $publisher->id)->count(),
+            'in_stock'         => \Modules\Book\Models\Book::where('publisher_id', $publisher->id)->where('stock_quantity', '>', 5)->count(),
+            'low_stock'        => \Modules\Book\Models\Book::where('publisher_id', $publisher->id)->where('stock_quantity', '>', 0)->where('stock_quantity', '<=', 5)->count(),
+            'out_stock'        => \Modules\Book\Models\Book::where('publisher_id', $publisher->id)->where('stock_quantity', '<=', 0)->count(),
+            'total_po'         => \App\Models\PublisherPurchase::where('publisher_id', $publisher->id)->count(),
+            'total_po_sum'     => (float) \App\Models\PublisherPurchase::where('publisher_id', $publisher->id)->sum('grand_total'),
+            'total_po_paid'    => (float) \App\Models\PublisherPurchase::where('publisher_id', $publisher->id)->sum('paid_amount'),
+            'total_po_due'     => (float) \App\Models\PublisherPurchase::where('publisher_id', $publisher->id)->sum('due_amount'),
+            'total_sold_copies'=> (int) \Modules\Book\Models\Book::where('publisher_id', $publisher->id)->sum('sales_count'),
+            'total_payments'   => \App\Models\PublisherPayment::where('publisher_id', $publisher->id)->count(),
+        ];
+
+        $categories = \Modules\Book\Models\Category::orderBy('name')->pluck('name', 'id')->all();
+
+        return view('admin.publishers.show', compact('publisher', 'books', 'purchases', 'payments', 'topBooks', 'stats', 'categories', 'tab', 'search', 'stock', 'category', 'sort', 'perPage'));
+    }
+
+    public function sendPublisherPurchaseOrderEmail(Request $request, $id): \Illuminate\Http\JsonResponse
+    {
+        $publisher = \Modules\Publisher\Models\Publisher::findOrFail($id);
+
+        $validated = $request->validate([
+            'recipient_email'  => 'required|email',
+            'subject'          => 'nullable|string|max:255',
+            'delivery_date'    => 'nullable|string|max:100',
+            'notes'            => 'nullable|string|max:1000',
+            'create_invoice'   => 'nullable|boolean',
+            'items'            => 'required|array|min:1',
+            'items.*.book_id'  => 'nullable|integer',
+            'items.*.title'    => 'required|string|max:255',
+            'items.*.author'   => 'nullable|string|max:255',
+            'items.*.edition'  => 'nullable|string|max:100',
+            'items.*.quantity' => 'required|integer|min:1',
+            'items.*.unit_price'          => 'required|numeric|min:0',
+            'items.*.commission_percent'  => 'nullable|numeric|min:0|max:100',
+            'items.*.cost_price'          => 'required|numeric|min:0',
+            'items.*.total_price'         => 'required|numeric|min:0',
+        ]);
+
+        $poDate = date('Ymd');
+        $randomSeq = strtoupper(\Illuminate\Support\Str::random(4));
+        $poNumber = 'PO-' . $poDate . '-' . $randomSeq;
+
+        $orderData = [
+            'po_number'     => $poNumber,
+            'order_date'    => date('d M Y, h:i A'),
+            'delivery_date' => $validated['delivery_date'] ?? null,
+            'subject'       => $validated['subject'] ?? null,
+            'notes'         => $validated['notes'] ?? null,
+            'items'         => $validated['items'],
+        ];
+
+        // Send Email using PublisherPurchaseOrderMail
+        try {
+            \Illuminate\Support\Facades\Mail::to($validated['recipient_email'])
+                ->send(new \App\Mail\PublisherPurchaseOrderMail($publisher, $orderData, $validated['notes'] ?? null));
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error("Purchase Order Email Failed: " . $e->getMessage());
+        }
+
+        // Optionally record in PublisherPurchase table
+        $createdPurchase = null;
+        if ($request->boolean('create_invoice')) {
+            try {
+                $subtotal = 0;
+                $grandTotal = 0;
+                foreach ($validated['items'] as $item) {
+                    $qty = (int) $item['quantity'];
+                    $mrp = (float) $item['unit_price'];
+                    $cost = (float) $item['cost_price'];
+                    $subtotal += ($mrp * $qty);
+                    $grandTotal += ($cost * $qty);
+                }
+
+                $discountAmount = max(0, $subtotal - $grandTotal);
+
+                $purchase = \App\Models\PublisherPurchase::create([
+                    'purchase_no'       => $poNumber,
+                    'publisher_id'      => $publisher->id,
+                    'publisher_name'    => $publisher->name,
+                    'publisher_phone'   => $publisher->phone,
+                    'publisher_address' => $publisher->address,
+                    'purchase_date'     => now()->toDateString(),
+                    'payment_type'      => 'credit',
+                    'payment_status'    => 'due',
+                    'subtotal'          => $subtotal,
+                    'discount_amount'   => $discountAmount,
+                    'tax_amount'        => 0,
+                    'shipping_cost'     => 0,
+                    'grand_total'       => $grandTotal,
+                    'paid_amount'       => 0,
+                    'due_amount'        => $grandTotal,
+                    'notes'             => ($validated['notes'] ?? '') . " [ক্রয় আদেশ ইমেইল মারফত প্রেরিত]",
+                    'created_by'        => auth()->id(),
+                ]);
+
+                foreach ($validated['items'] as $item) {
+                    $qty = (int) $item['quantity'];
+                    $unitPrice = (float) $item['unit_price'];
+                    $costPrice = (float) $item['cost_price'];
+                    $comm = (float) ($item['commission_percent'] ?? 0);
+                    $lineTotal = (float) ($item['total_price'] ?? ($costPrice * $qty));
+
+                    \App\Models\PublisherPurchaseItem::create([
+                        'publisher_purchase_id' => $purchase->id,
+                        'book_id'               => $item['book_id'] ?? null,
+                        'book_title'            => $item['title'],
+                        'book_edition'          => $item['edition'] ?? null,
+                        'author_name'           => $item['author'] ?? null,
+                        'unit_price'            => $unitPrice,
+                        'discount_percent'      => $comm,
+                        'purchase_rate'         => $costPrice,
+                        'quantity'              => $qty,
+                        'total_amount'          => $lineTotal,
+                    ]);
+                }
+
+                $createdPurchase = $purchase;
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error("Failed to auto-create PublisherPurchase: " . $e->getMessage());
+            }
+        }
+
+        $this->accessService->log('publisher_purchase_order', "প্রকাশক '{$publisher->name}' এর কাছে ক্রয় আদেশ #{$poNumber} ইমেইল করা হয়েছে");
+
+        return response()->json([
+            'success'     => true,
+            'message'     => "ক্রয় আদেশ #{$poNumber} সফলভাবে {$validated['recipient_email']} ঠিকানায় ইমেইল করা হয়েছে!",
+            'po_number'   => $poNumber,
+            'purchase_id' => $createdPurchase?->id ?? null,
+        ]);
+    }
+
+    public function quickUpdateBook(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $validated = $request->validate([
+            'book_id'                  => 'required|integer|exists:books,id',
+            'title'                    => 'nullable|string|max:255',
+            'price'                    => 'nullable|numeric|min:0',
+            'discount_price'           => 'nullable|numeric|min:0',
+            'cost_price'               => 'nullable|numeric|min:0',
+            'hardcover_price'          => 'nullable|numeric|min:0',
+            'hardcover_discount_price' => 'nullable|numeric|min:0',
+            'edition'                  => 'nullable|string|max:100',
+            'stock_quantity'           => 'nullable|integer|min:0',
+            'stock_status'             => 'nullable|string|in:in_stock,low,out,pre_order',
+            'is_active'                => 'nullable|boolean',
+            'cover_image_file'         => 'nullable|image|max:5120',
+        ]);
+
+        $book = \Modules\Book\Models\Book::findOrFail($validated['book_id']);
+
+        $updates = [];
+
+        if ($request->has('title') && $validated['title'] !== null) {
+            $updates['title'] = $validated['title'];
+        }
+        if ($request->has('edition')) {
+            $updates['edition'] = $validated['edition'];
+        }
+        if ($request->has('price')) {
+            $updates['price'] = $validated['price'] !== null ? (float) $validated['price'] : 0;
+        }
+        if ($request->has('discount_price')) {
+            $updates['discount_price'] = $validated['discount_price'] !== null && $validated['discount_price'] !== '' ? (float) $validated['discount_price'] : null;
+        }
+        if ($request->has('cost_price')) {
+            $updates['cost_price'] = $validated['cost_price'] !== null && $validated['cost_price'] !== '' ? (float) $validated['cost_price'] : null;
+        }
+        if ($request->has('hardcover_price')) {
+            $updates['hardcover_price'] = $validated['hardcover_price'] !== null && $validated['hardcover_price'] !== '' ? (float) $validated['hardcover_price'] : null;
+        }
+        if ($request->has('hardcover_discount_price')) {
+            $updates['hardcover_discount_price'] = $validated['hardcover_discount_price'] !== null && $validated['hardcover_discount_price'] !== '' ? (float) $validated['hardcover_discount_price'] : null;
+        }
+        if ($request->has('stock_quantity') && $validated['stock_quantity'] !== null) {
+            $qty = (int) $validated['stock_quantity'];
+            $updates['stock_quantity'] = $qty;
+            if (!$request->filled('stock_status')) {
+                $updates['stock_status'] = $qty <= 0 ? 'out' : ($qty <= 5 ? 'low' : 'in_stock');
+            }
+        }
+        if ($request->filled('stock_status')) {
+            $updates['stock_status'] = $validated['stock_status'];
+        }
+        if ($request->has('is_active')) {
+            $updates['is_active'] = $request->boolean('is_active');
+        }
+
+        // Handle direct cover image file upload
+        if ($request->hasFile('cover_image_file')) {
+            $path = $request->file('cover_image_file')->store('books/covers', 'public');
+            $updates['cover_image'] = $path;
+        }
+
+        $book->update($updates);
+
+        $this->accessService->log('book_quick_update', "বই '{$book->title}' (ID: {$book->id}) শর্টকাট তথ্য আপডেট করা হয়েছে");
+
+        // Calculate commissions for response
+        $price = (float) $book->price;
+        $discountPrice = (float) ($book->discount_price ?? 0);
+        $costPrice = (float) ($book->cost_price ?? 0);
+
+        $saleCommissionPercent = ($price > 0 && $discountPrice > 0 && $discountPrice < $price)
+            ? round((($price - $discountPrice) / $price) * 100, 1)
+            : 0;
+
+        $buyCommissionPercent = ($price > 0 && $costPrice > 0 && $costPrice < $price)
+            ? round((($price - $costPrice) / $price) * 100, 1)
+            : 0;
+
+        $coverUrl = $book->cover_image 
+            ? (str_starts_with($book->cover_image, 'http') ? $book->cover_image : asset('storage/' . ltrim($book->cover_image, '/')))
+            : 'https://placehold.co/100x150/e2e8f0/475569?text=Cover';
+
+        return response()->json([
+            'success' => true,
+            'message' => "বইয়ের তথ্য সফলভাবে আপডেট হয়েছে!",
+            'book' => [
+                'id'                      => $book->id,
+                'title'                   => $book->title,
+                'edition'                 => $book->edition,
+                'price'                   => $price,
+                'discount_price'          => $discountPrice,
+                'cost_price'              => $costPrice,
+                'hardcover_price'         => (float) $book->hardcover_price,
+                'hardcover_discount_price'=> (float) $book->hardcover_discount_price,
+                'sale_commission_percent' => $saleCommissionPercent,
+                'buy_commission_percent'  => $buyCommissionPercent,
+                'stock_quantity'          => (int) $book->stock_quantity,
+                'stock_status'            => $book->stock_status,
+                'is_active'               => (bool) $book->is_active,
+                'cover_url'               => $coverUrl,
+            ]
         ]);
     }
 

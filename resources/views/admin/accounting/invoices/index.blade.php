@@ -15,11 +15,8 @@
 
 @section('actions')
     <div class="d-flex flex-wrap gap-2">
-        <a href="{{ route('admin.accounting.invoices.create') }}" class="btn btn-success fw-semibold shadow-sm">
-            <i class="fas fa-plus me-1"></i> নতুন তৈরি করুন
-        </a>
-        <a href="{{ route('admin.accounting.invoices.create', ['type' => 'quotation']) }}" class="btn btn-warning fw-semibold text-dark shadow-sm">
-            <i class="fas fa-file-lines me-1"></i> + কোটেশন
+        <a href="{{ route('admin.accounting.invoices.create', ['type' => 'invoice']) }}" class="btn btn-success fw-semibold shadow-sm">
+            <i class="fas fa-receipt me-1"></i> + বিল ও চালান
         </a>
         <a href="{{ route('admin.accounting.invoices.create', ['type' => 'tender']) }}" class="btn btn-purple text-white fw-semibold shadow-sm" style="background-color: #6f42c1;">
             <i class="fas fa-landmark me-1"></i> + দরপত্র

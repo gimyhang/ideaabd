@@ -124,14 +124,37 @@ class BillingController extends Controller
             return response()->json([]);
         }
 
+        $bnDigits = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+        $enDigits = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+        $normalized = str_replace($bnDigits, $enDigits, $q);
+        $words = preg_split('/\s+/', $q, -1, PREG_SPLIT_NO_EMPTY);
+        $tokens = array_values(array_unique(array_filter(array_merge([$q, $normalized], $words))));
+
         $books = Book::query()
-            ->where(function ($query) use ($q) {
-                $like = '%' . $q . '%';
-                $query->where('title', 'like', $like)
-                      ->orWhere('isbn', 'like', $like)
-                      ->orWhere('author_name', 'like', $like);
+            ->with(['publisher', 'authorLink', 'authors'])
+            ->where(function ($masterQuery) use ($tokens) {
+                foreach ($tokens as $token) {
+                    $like = '%' . $token . '%';
+                    $masterQuery->where(function ($query) use ($like, $token) {
+                        $query->where('title', 'like', $like)
+                              ->orWhere('subtitle', 'like', $like)
+                              ->orWhere('isbn', 'like', $like)
+                              ->orWhere('sku', 'like', $like)
+                              ->orWhere('author_name', 'like', $like)
+                              ->orWhere('translator_name', 'like', $like)
+                              ->orWhere('editor_name', 'like', $like)
+                              ->orWhereHas('authorLink', fn($a) => $a->where('name', 'like', $like))
+                              ->orWhereHas('authors', fn($a) => $a->where('name', 'like', $like))
+                              ->orWhereHas('publisher', fn($p) => $p->where('name', 'like', $like));
+
+                        $lower = mb_strtolower($token);
+                        if (str_contains($lower, 'idea') || str_contains($token, 'আইডিয়া') || str_contains($token, 'আইডিয়া')) {
+                            $query->orWhereNull('publisher_id');
+                        }
+                    });
+                }
             })
-            ->limit(15)
+            ->limit(20)
             ->get(['id', 'title', 'price', 'discount_price', 'stock_quantity', 'cover_type', 'isbn', 'cover_image'])
             ->map(function ($book) {
                 $regularPrice = (float) ($book->price ?? 0);

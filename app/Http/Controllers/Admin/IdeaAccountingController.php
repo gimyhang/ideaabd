@@ -144,7 +144,12 @@ class IdeaAccountingController extends Controller
                     $w->where('invoice_no', 'like', $like)
                       ->orWhere('customer_name', 'like', $like)
                       ->orWhere('customer_org', 'like', $like)
-                      ->orWhere('customer_phone', 'like', $like);
+                      ->orWhere('customer_phone', 'like', $like)
+                      ->orWhere('customer_email', 'like', $like)
+                      ->orWhere('reference_no', 'like', $like)
+                      ->orWhere('subject', 'like', $like)
+                      ->orWhere('notes', 'like', $like)
+                      ->orWhere('items', 'like', $like);
                 });
             })
             ->latest('invoice_date')

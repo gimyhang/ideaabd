@@ -43,4 +43,14 @@ class Publisher extends Model
     {
         return $this->hasMany(\Modules\Ebook\Models\Ebook::class, 'publisher_id');
     }
+
+    public function purchases()
+    {
+        return $this->hasMany(\App\Models\PublisherPurchase::class, 'publisher_id');
+    }
+
+    public function payments()
+    {
+        return $this->hasMany(\App\Models\PublisherPayment::class, 'publisher_id');
+    }
 }

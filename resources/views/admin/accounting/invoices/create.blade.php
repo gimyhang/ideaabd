@@ -37,7 +37,7 @@
 </div>
 
 @php
-    $currentType = old('type', $selectedType ?? 'invoice');
+    $currentType = old('type', $selectedType ?? request('type', 'invoice'));
 @endphp
 
 <form action="{{ route('admin.accounting.invoices.store') }}" method="POST" id="invoiceForm">

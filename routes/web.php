@@ -201,6 +201,12 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::get('/webzines', [AdminController::class, 'webzines'])->name('webzines');
     Route::get('/authors', [AdminController::class, 'authors'])->name('authors');
     Route::get('/publishers', [AdminController::class, 'publishers'])->name('publishers');
+    Route::post('/publishers/quick-store', [AdminController::class, 'quickStorePublisher'])->name('publishers.quick-store');
+    Route::get('/publishers/{id}', [AdminController::class, 'publisherShow'])->name('publishers.show');
+    Route::post('/publishers/{id}/quick-update', [AdminController::class, 'quickUpdatePublisher'])->name('publishers.quick-update');
+    Route::post('/publishers/{id}/toggle-status', [AdminController::class, 'togglePublisherStatus'])->name('publishers.toggle-status');
+    Route::post('/publishers/{id}/quick-payment', [AdminController::class, 'quickPublisherPayment'])->name('publishers.quick-payment');
+    Route::post('/publishers/{id}/send-purchase-order', [AdminController::class, 'sendPublisherPurchaseOrderEmail'])->name('publishers.send-po');
 
     // Publisher Purchases & Payment Installments
     Route::prefix('purchases')->name('purchases.')->controller(\App\Http\Controllers\Admin\PublisherPurchaseController::class)->group(function () {
@@ -245,6 +251,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::get('/visitor-reports', [AdminController::class, 'visitorReports'])->name('visitor-reports');
     Route::get('/reports/print', [AdminController::class, 'printReport'])->name('reports.print');
     Route::post('/books/quick-stock', [AdminController::class, 'quickUpdateStock'])->name('books.quick-stock');
+    Route::post('/books/quick-update', [AdminController::class, 'quickUpdateBook'])->name('books.quick-update');
     Route::get('/customers', [AdminController::class, 'customers'])->name('customers');
     Route::post('/customers/broadcast-message', [AdminController::class, 'broadcastMessage'])->name('customers.broadcast');
 
