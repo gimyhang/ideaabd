@@ -804,7 +804,7 @@
                                                 <option value="blockquote">উদ্ধৃতি (Blockquote)</option>
                                             </select>
 
-                                            <!-- Font Size Selector -->
+                                             <!-- Font Size Selector -->
                                             <select class="form-select form-select-sm" style="width: auto; min-width: 105px;" onchange="formatDoc('fontSize', this.value, 'f-{{ $name }}')">
                                                 <option value="3">ফন্ট সাইজ</option>
                                                 <option value="1">খুব ছোট (12px)</option>
@@ -813,6 +813,33 @@
                                                 <option value="4">মাঝারি (18px)</option>
                                                 <option value="5">বড় (22px)</option>
                                                 <option value="6">খুব বড় (28px)</option>
+                                            </select>
+
+                                            <!-- Line Spacing Selector & Direct Increment/Decrement Controls -->
+                                            <select class="form-select form-select-sm" style="width: auto; min-width: 110px;" onchange="changeLineSpacing('f-{{ $name }}', this.value)" title="লাইনের মধ্যবর্তী ফাঁকা / লাইন হাইট (Line Spacing)">
+                                                <option value="">লাইন স্পেস</option>
+                                                <option value="1.2">অতি ঘন (1.2)</option>
+                                                <option value="1.35">ঘন / খুব কম (1.35)</option>
+                                                <option value="1.5">কম / স্ট্যান্ডার্ড (1.5)</option>
+                                                <option value="1.65">আদর্শ পাঠযোগ্য (1.65)</option>
+                                                <option value="1.85">মাঝারি ফাঁকা (1.85)</option>
+                                                <option value="2.1">অধিক ফাঁকা (2.1)</option>
+                                            </select>
+                                            <button type="button" class="btn btn-sm btn-light border py-1 px-2 text-primary fw-bold" onclick="adjustLineSpacing('f-{{ $name }}', -0.15)" title="লাইন স্পেস কমান (Tighter Line Spacing)">
+                                                <i class="fas fa-arrows-alt-v me-1"></i>স্পেস কমান (-)
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-light border py-1 px-2 text-dark" onclick="adjustLineSpacing('f-{{ $name }}', 0.15)" title="লাইন স্পেস বাড়ান (Looser Line Spacing)">
+                                                <i class="fas fa-arrows-alt-v me-1"></i>স্পেস বাড়ান (+)
+                                            </button>
+
+                                            <!-- Paragraph Spacing Selector -->
+                                            <select class="form-select form-select-sm" style="width: auto; min-width: 105px;" onchange="changeParagraphSpacing('f-{{ $name }}', this.value)" title="প্যারাগ্রাফ / স্তবকের ফাঁকা (Paragraph Gap)">
+                                                <option value="">প্যারা ফাঁকা</option>
+                                                <option value="0.25rem">অতি কম (0.25rem)</option>
+                                                <option value="0.5rem">কম ফাঁকা (0.5rem)</option>
+                                                <option value="0.75rem">আদর্শ ফাঁকা (0.75rem)</option>
+                                                <option value="1.1rem">মাঝারি ফাঁকা (1.1rem)</option>
+                                                <option value="1.5rem">বেশি ফাঁকা (1.5rem)</option>
                                             </select>
 
                                             <div class="vr mx-1"></div>
@@ -910,7 +937,7 @@
                                         <!-- Contenteditable Live Area -->
                                         <div id="editable-{{ $name }}" contenteditable="true" 
                                              class="p-3.5 bg-white text-dark rich-editor-content" 
-                                             style="min-height: 350px; max-height: 650px; overflow-y: auto; outline: none; font-size: 16.5px; line-height: 1.95; font-family: 'Hind Siliguri', 'Kalpurush', 'SolaimanLipi', sans-serif;"
+                                             style="min-height: 350px; max-height: 650px; overflow-y: auto; outline: none; font-size: 16.5px; line-height: 1.55; font-family: 'Hind Siliguri', 'Kalpurush', 'SolaimanLipi', sans-serif;"
                                              oninput="onEditorInputWithSpellCheck('{{ $name }}')">{!! $editorHtml !!}</div>
 
                                         <!-- Hidden/Synced real textarea for form submission -->
@@ -2291,6 +2318,57 @@ function formatDoc(cmd, value, targetTextareaId) {
     }
 }
 
+// Line Height & Spacing Control Functions
+function changeLineSpacing(targetTextareaId, value) {
+    if (!value) return;
+    const fieldName = targetTextareaId.replace('f-', '');
+    const editorDiv = document.getElementById('editable-' + fieldName);
+    if (!editorDiv) return;
+
+    editorDiv.style.lineHeight = value;
+    const elements = editorDiv.querySelectorAll('p, div, blockquote, .poetry-verse');
+    if (elements.length > 0) {
+        elements.forEach(el => {
+            el.style.lineHeight = value;
+        });
+    }
+    syncEditorToTextarea(fieldName);
+}
+
+function adjustLineSpacing(targetTextareaId, delta) {
+    const fieldName = targetTextareaId.replace('f-', '');
+    const editorDiv = document.getElementById('editable-' + fieldName);
+    if (!editorDiv) return;
+
+    let curHeight = 1.55;
+    const firstP = editorDiv.querySelector('p, div');
+    if (firstP && firstP.style.lineHeight) {
+        const pHeight = parseFloat(firstP.style.lineHeight);
+        if (!isNaN(pHeight) && pHeight > 0) curHeight = pHeight;
+    } else if (editorDiv.style.lineHeight) {
+        const divHeight = parseFloat(editorDiv.style.lineHeight);
+        if (!isNaN(divHeight) && divHeight > 0) curHeight = divHeight;
+    }
+
+    let newHeight = Math.max(1.15, Math.min(2.5, +(curHeight + delta).toFixed(2)));
+    changeLineSpacing(targetTextareaId, newHeight.toString());
+}
+
+function changeParagraphSpacing(targetTextareaId, value) {
+    if (!value) return;
+    const fieldName = targetTextareaId.replace('f-', '');
+    const editorDiv = document.getElementById('editable-' + fieldName);
+    if (!editorDiv) return;
+
+    const elements = editorDiv.querySelectorAll('p, div, blockquote, .poetry-verse');
+    if (elements.length > 0) {
+        elements.forEach(el => {
+            el.style.marginBottom = value;
+        });
+    }
+    syncEditorToTextarea(fieldName);
+}
+
 function formatPoetryMode(targetTextareaId) {
     const fieldName = targetTextareaId.replace('f-', '');
     const editorDiv = document.getElementById('editable-' + fieldName);
@@ -2309,7 +2387,7 @@ function formatPoetryMode(targetTextareaId) {
         return;
     }
 
-    // Format into poetry verses / stanzas with linebreaks
+    // Format into poetry verses / stanzas with compact, natural line spacing
     const stanzas = selectedText.trim().split(/\r\n\r\n|\n\n+/);
     const formattedHtml = stanzas.map(stanza => {
         const lines = stanza.split(/\r\n|\n|\r/).map(line => {
@@ -2317,7 +2395,7 @@ function formatPoetryMode(targetTextareaId) {
             temp.textContent = line.trim();
             return temp.innerHTML;
         }).join('<br>');
-        return `<p class="poetry-verse" style="line-height: 2.1; margin-bottom: 1.5rem; text-align: center; font-family: inherit;">${lines}</p>`;
+        return `<p class="poetry-verse" style="line-height: 1.45; margin-bottom: 0.85rem; text-align: left; font-family: inherit;">${lines}</p>`;
     }).join('');
 
     if (sel && sel.rangeCount > 0 && sel.toString()) {
@@ -2351,7 +2429,7 @@ function formatProseMode(targetTextareaId) {
     const formattedHtml = paragraphs.map(p => {
         const temp = document.createElement('div');
         temp.textContent = p.trim().replace(/\s+/g, ' ');
-        return `<p style="line-height: 1.95; margin-bottom: 1.35rem; text-align: justify;">${temp.innerHTML}</p>`;
+        return `<p style="line-height: 1.6; margin-bottom: 0.85rem; text-align: justify;">${temp.innerHTML}</p>`;
     }).join('');
 
     if (sel && sel.rangeCount > 0 && sel.toString()) {
@@ -2381,13 +2459,13 @@ function formatFixLineBreaks(targetTextareaId) {
             temp.textContent = line.trim();
             return temp.innerHTML;
         }).join('<br>');
-        return `<p style="line-height: 2.0; margin-bottom: 1.4rem;">${lines}</p>`;
+        return `<p style="line-height: 1.45; margin-bottom: 0.85rem;">${lines}</p>`;
     }).join('');
 
     editorDiv.innerHTML = formattedHtml;
     syncEditorToTextarea(fieldName);
     updateEditorStats(fieldName);
-    alert('প্যারাগ্রাফ ও লাইনের স্পেসিং স্বয়ংক্রিয়ভাবে সাজানো হয়েছে!');
+    alert('প্যারাগ্রাফ ও লাইনের স্পেস নিখুঁতভাবে কমানো ও মেরামত করা হয়েছে!');
 }
 
 function updateEditorStats(fieldName) {

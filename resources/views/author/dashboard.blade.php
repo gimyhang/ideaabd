@@ -516,6 +516,12 @@
                                                 <button type="button" class="btn btn-light rounded-pill px-2.5 py-1 text-dark" onclick="formatContent('list')" title="বুলেট তালিকা">
                                                     <i class="fa-solid fa-list-ul"></i>
                                                 </button>
+                                                <button type="button" class="btn btn-light rounded-pill px-2.5 py-1 text-primary fw-semibold" onclick="formatContent('poetry')" title="কবিতার লাইন ও স্তবক বিন্যাস (Poetry Mode)">
+                                                    <i class="fa-solid fa-feather-pointed me-1 text-primary"></i> কবিতা
+                                                </button>
+                                                <button type="button" class="btn btn-light rounded-pill px-2.5 py-1 text-dark fw-semibold" onclick="formatContent('tight_lines')" title="লাইনের স্পেস কমান (Tight Spacing)">
+                                                    <i class="fa-solid fa-compress-alt me-1 text-primary"></i> স্পেস কমান
+                                                </button>
                                                 <button type="button" class="btn btn-warning rounded-pill px-2.5 py-1 text-dark fw-bold" onclick="runAuthorSpellCheck()" title="প্রমিত বাংলা একাডেমি ও ইংরেজি বানান পরীক্ষা">
                                                     <i class="fa-solid fa-spell-check text-dark me-1"></i> বানান পরীক্ষা
                                                 </button>
@@ -1757,6 +1763,24 @@
                 break;
             case 'list':
                 replacement = selectedText ? `\n<ul>\n  <li>${selectedText}</li>\n</ul>\n` : '\n<ul>\n  <li>প্রথম পয়েন্ট</li>\n  <li>দ্বিতীয় পয়েন্ট</li>\n</ul>\n';
+                break;
+            case 'poetry':
+                if (selectedText) {
+                    const stanzas = selectedText.trim().split(/\r\n\r\n|\n\n+/);
+                    replacement = stanzas.map(s => {
+                        const lines = s.split(/\r\n|\n|\r/).map(l => l.trim()).join('<br>');
+                        return `<p class="poetry-verse" style="line-height: 1.45; margin-bottom: 0.85rem;">${lines}</p>`;
+                    }).join('\n');
+                } else {
+                    replacement = `<p class="poetry-verse" style="line-height: 1.45; margin-bottom: 0.85rem;">প্রথম চরণের চরণমালা...<br>দ্বিতীয় চরণের ধ্বনিমাধুর্য...</p>`;
+                }
+                break;
+            case 'tight_lines':
+                if (selectedText) {
+                    replacement = `<div style="line-height: 1.4; margin-bottom: 0.75rem;">${selectedText.replace(/\n/g, '<br>')}</div>`;
+                } else {
+                    replacement = `<div style="line-height: 1.4; margin-bottom: 0.75rem;">এখানে কম স্পেসের লাইন লিখুন...</div>`;
+                }
                 break;
             default:
                 replacement = selectedText;

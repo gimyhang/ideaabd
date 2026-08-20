@@ -81,7 +81,7 @@
 
     .article-content {
         font-size: 13pt; /* Standard 13pt literary font */
-        line-height: 1.75; /* Normal, natural Bengali line height */
+        line-height: 1.6; /* Natural, compact Bengali line height */
         color: #1e293b;
         letter-spacing: 0.1px;
         text-align: justify;
@@ -90,18 +90,19 @@
         -webkit-user-select: text !important;
     }
     .article-content p {
-        margin-bottom: 1.25rem;
+        margin-bottom: 0.85rem;
+        line-height: 1.6;
     }
     .article-content .poetry-verse, 
     .article-content p.poetry-verse {
-        font-size: 1.22rem;
-        line-height: 2.15;
-        margin-bottom: 1.75rem;
+        font-size: 1.18rem;
+        line-height: 1.45;
+        margin-bottom: 0.95rem;
         padding-left: 0.85rem;
         border-left: 3px solid rgba(2, 132, 199, 0.35);
         background: rgba(240, 249, 255, 0.4);
-        padding-top: 0.5rem;
-        padding-bottom: 0.5rem;
+        padding-top: 0.4rem;
+        padding-bottom: 0.4rem;
         border-radius: 0 8px 8px 0;
         text-align: left;
     }
