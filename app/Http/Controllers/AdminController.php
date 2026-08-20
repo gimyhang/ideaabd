@@ -890,7 +890,7 @@ class AdminController extends Controller
         $verified = $request->input('is_verified');
         $hasBooks = $request->input('has_books');
         $sort     = $request->string('sort')->trim()->value() ?: 'latest';
-        $perPage  = in_array((int) $request->input('per_page'), [12, 20, 24, 48, 96, 100], true) ? (int) $request->input('per_page') : 24;
+        $perPage  = in_array((int) $request->input('per_page'), [14, 21, 28, 35, 42, 70, 98, 100], true) ? (int) $request->input('per_page') : 28;
 
         $query = \Modules\Author\Models\Author::query()
             ->withCount('books')

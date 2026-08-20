@@ -39,17 +39,17 @@
     {{-- ========================================================================= --}}
     {{-- 1. KPI STAT METRICS CARDS                                                 --}}
     {{-- ========================================================================= --}}
-    <div class="row g-2 g-md-3">
+    <div class="row g-2 g-md-2.5">
         <div class="col-6 col-md-4 col-xl">
             <a href="{{ route('admin.authors') }}" class="text-decoration-none">
-                <div class="card border-0 shadow-xs rounded-4 p-3 bg-white h-100 transition-hover border-start border-4 border-primary {{ !request()->hasAny(['is_active', 'is_verified', 'has_books']) ? 'ring-2 ring-primary' : '' }}">
+                <div class="card border-0 shadow-xs rounded-3 p-2.5 bg-white h-100 transition-hover border-start border-4 border-primary {{ !request()->hasAny(['is_active', 'is_verified', 'has_books']) ? 'ring-2 ring-primary' : '' }}">
                     <div class="d-flex align-items-center justify-content-between">
                         <div>
-                            <span class="text-muted small fw-semibold d-block mb-1">সর্বমোট লেখক</span>
-                            <h4 class="fw-bold mb-0 text-dark">@bn($stats['total'] ?? 0) <small class="fs-6 text-muted fw-normal">জন</small></h4>
+                            <span class="text-muted small fw-semibold d-block" style="font-size: 0.75rem;">সর্বমোট লেখক</span>
+                            <h5 class="fw-bold mb-0 text-dark">@bn($stats['total'] ?? 0) <small class="text-muted fw-normal" style="font-size: 0.72rem;">জন</small></h5>
                         </div>
-                        <div class="rounded-circle bg-primary-subtle text-primary p-2.5 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
-                            <i class="fas fa-pen-fancy fs-5"></i>
+                        <div class="rounded-circle bg-primary-subtle text-primary p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                            <i class="fas fa-pen-fancy small"></i>
                         </div>
                     </div>
                 </div>
@@ -57,14 +57,14 @@
         </div>
         <div class="col-6 col-md-4 col-xl">
             <a href="{{ route('admin.authors', array_merge(request()->except(['is_active', 'page']), ['is_active' => '1'])) }}" class="text-decoration-none">
-                <div class="card border-0 shadow-xs rounded-4 p-3 bg-white h-100 transition-hover border-start border-4 border-success {{ request('is_active') === '1' ? 'ring-2 ring-success' : '' }}">
+                <div class="card border-0 shadow-xs rounded-3 p-2.5 bg-white h-100 transition-hover border-start border-4 border-success {{ request('is_active') === '1' ? 'ring-2 ring-success' : '' }}">
                     <div class="d-flex align-items-center justify-content-between">
                         <div>
-                            <span class="text-muted small fw-semibold d-block mb-1">সক্রিয় লেখক</span>
-                            <h4 class="fw-bold mb-0 text-success">@bn($stats['active'] ?? 0) <small class="fs-6 text-muted fw-normal">জন</small></h4>
+                            <span class="text-muted small fw-semibold d-block" style="font-size: 0.75rem;">সক্রিয় লেখক</span>
+                            <h5 class="fw-bold mb-0 text-success">@bn($stats['active'] ?? 0) <small class="text-muted fw-normal" style="font-size: 0.72rem;">জন</small></h5>
                         </div>
-                        <div class="rounded-circle bg-success-subtle text-success p-2.5 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
-                            <i class="fas fa-user-check fs-5"></i>
+                        <div class="rounded-circle bg-success-subtle text-success p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                            <i class="fas fa-user-check small"></i>
                         </div>
                     </div>
                 </div>
@@ -72,14 +72,14 @@
         </div>
         <div class="col-6 col-md-4 col-xl">
             <a href="{{ route('admin.authors', array_merge(request()->except(['is_verified', 'page']), ['is_verified' => '1'])) }}" class="text-decoration-none">
-                <div class="card border-0 shadow-xs rounded-4 p-3 bg-white h-100 transition-hover border-start border-4 border-info {{ request('is_verified') === '1' ? 'ring-2 ring-info' : '' }}">
+                <div class="card border-0 shadow-xs rounded-3 p-2.5 bg-white h-100 transition-hover border-start border-4 border-info {{ request('is_verified') === '1' ? 'ring-2 ring-info' : '' }}">
                     <div class="d-flex align-items-center justify-content-between">
                         <div>
-                            <span class="text-muted small fw-semibold d-block mb-1">ভেরিফাইড লেখক</span>
-                            <h4 class="fw-bold mb-0 text-info">@bn($stats['verified'] ?? 0) <small class="fs-6 text-muted fw-normal">জন</small></h4>
+                            <span class="text-muted small fw-semibold d-block" style="font-size: 0.75rem;">ভেরিফাইড লেখক</span>
+                            <h5 class="fw-bold mb-0 text-info">@bn($stats['verified'] ?? 0) <small class="text-muted fw-normal" style="font-size: 0.72rem;">জন</small></h5>
                         </div>
-                        <div class="rounded-circle bg-info-subtle text-info p-2.5 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
-                            <i class="fas fa-certificate fs-5"></i>
+                        <div class="rounded-circle bg-info-subtle text-info p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                            <i class="fas fa-certificate small"></i>
                         </div>
                     </div>
                 </div>
@@ -87,28 +87,28 @@
         </div>
         <div class="col-6 col-md-4 col-xl">
             <a href="{{ route('admin.authors', array_merge(request()->except(['has_books', 'page']), ['has_books' => '1'])) }}" class="text-decoration-none">
-                <div class="card border-0 shadow-xs rounded-4 p-3 bg-white h-100 transition-hover border-start border-4 border-warning {{ request('has_books') === '1' ? 'ring-2 ring-warning' : '' }}">
+                <div class="card border-0 shadow-xs rounded-3 p-2.5 bg-white h-100 transition-hover border-start border-4 border-warning {{ request('has_books') === '1' ? 'ring-2 ring-warning' : '' }}">
                     <div class="d-flex align-items-center justify-content-between">
                         <div>
-                            <span class="text-muted small fw-semibold d-block mb-1">বই প্রকাশিত লেখক</span>
-                            <h4 class="fw-bold mb-0 text-warning-emphasis">@bn($stats['with_books'] ?? 0) <small class="fs-6 text-muted fw-normal">জন</small></h4>
+                            <span class="text-muted small fw-semibold d-block" style="font-size: 0.75rem;">বই প্রকাশিত লেখক</span>
+                            <h5 class="fw-bold mb-0 text-warning-emphasis">@bn($stats['with_books'] ?? 0) <small class="text-muted fw-normal" style="font-size: 0.72rem;">জন</small></h5>
                         </div>
-                        <div class="rounded-circle bg-warning-subtle text-warning-emphasis p-2.5 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
-                            <i class="fas fa-book-open fs-5"></i>
+                        <div class="rounded-circle bg-warning-subtle text-warning-emphasis p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                            <i class="fas fa-book-open small"></i>
                         </div>
                     </div>
                 </div>
             </a>
         </div>
         <div class="col-12 col-md-4 col-xl">
-            <div class="card border-0 shadow-xs rounded-4 p-3 bg-white h-100 border-start border-4 border-secondary">
+            <div class="card border-0 shadow-xs rounded-3 p-2.5 bg-white h-100 border-start border-4 border-secondary">
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
-                        <span class="text-muted small fw-semibold d-block mb-1">মোট ক্যাটালগ বই</span>
-                        <h4 class="fw-bold mb-0 text-dark">@bn($stats['total_books'] ?? 0) <small class="fs-6 text-muted fw-normal">টি</small></h4>
+                        <span class="text-muted small fw-semibold d-block" style="font-size: 0.75rem;">মোট ক্যাটালগ বই</span>
+                        <h5 class="fw-bold mb-0 text-dark">@bn($stats['total_books'] ?? 0) <small class="text-muted fw-normal" style="font-size: 0.72rem;">টি</small></h5>
                     </div>
-                    <div class="rounded-circle bg-secondary-subtle text-secondary p-2.5 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
-                        <i class="fas fa-layer-group fs-5"></i>
+                    <div class="rounded-circle bg-secondary-subtle text-secondary p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                        <i class="fas fa-layer-group small"></i>
                     </div>
                 </div>
             </div>
@@ -118,17 +118,17 @@
     {{-- ========================================================================= --}}
     {{-- 2. ADVANCED FILTERS & VIEW MODE SWITCHER                                   --}}
     {{-- ========================================================================= --}}
-    <div class="card border-0 shadow-xs rounded-4 bg-white">
-        <div class="card-body p-3">
+    <div class="card border-0 shadow-xs rounded-3 bg-white">
+        <div class="card-body p-2.5">
             <form action="{{ route('admin.authors') }}" method="GET" id="authorsFilterForm" class="row g-2 align-items-center">
                 {{-- Search Box --}}
                 <div class="col-12 col-lg-4">
-                    <div class="input-group">
-                        <span class="input-group-text bg-light border-end-0 text-muted ps-3">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-light border-end-0 text-muted ps-2.5">
                             <i class="fas fa-search"></i>
                         </span>
                         <input type="search" name="search" class="form-control border-start-0 bg-light" 
-                               placeholder="লেখকের নাম, slug, ফোন, ইমেইল বা বায়ো..." value="{{ request('search') }}">
+                               placeholder="লেখকের নাম, slug, ফোন বা বায়ো..." value="{{ request('search') }}">
                     </div>
                 </div>
 
@@ -158,30 +158,31 @@
                         <option value="name_asc" @selected(request('sort') === 'name_asc')>নাম (ক-হ / A-Z)</option>
                         <option value="name_desc" @selected(request('sort') === 'name_desc')>নাম (হ-ক / Z-A)</option>
                         <option value="books_desc" @selected(request('sort') === 'books_desc')>সর্বাধিক বই</option>
-                        <option value="books_asc" @selected(request('sort') === 'books_asc')>সর্বনিম্ন বই</option>
                     </select>
                 </div>
 
-                {{-- Per Page & View Buttons --}}
+                {{-- Per Page (Multiples of 7) & View Buttons --}}
                 <div class="col-6 col-md-3 col-lg-2 d-flex align-items-center justify-content-end gap-1.5">
-                    <select name="per_page" class="form-select form-select-sm w-auto" onchange="this.form.submit()" title="প্রতি পেজে আইটেম সংখ্যা">
-                        <option value="12" @selected(request('per_page') == 12)>১২</option>
-                        <option value="24" @selected(request('per_page') == 24 || !request('per_page'))>২৪</option>
-                        <option value="48" @selected(request('per_page') == 48)>৪৮</option>
-                        <option value="96" @selected(request('per_page') == 96)>৯৬</option>
+                    <select name="per_page" class="form-select form-select-sm w-auto" onchange="this.form.submit()" title="প্রতি পেজে আইটেম সংখ্যা (৭ এর গুণিতক)">
+                        <option value="14" @selected(request('per_page') == 14)>১৪</option>
+                        <option value="21" @selected(request('per_page') == 21)>২১</option>
+                        <option value="28" @selected(request('per_page') == 28 || !request('per_page'))>২৮</option>
+                        <option value="35" @selected(request('per_page') == 35)>৩৫</option>
+                        <option value="42" @selected(request('per_page') == 42)>৪২</option>
+                        <option value="70" @selected(request('per_page') == 70)>৭০</option>
                     </select>
 
                     <div class="btn-group btn-group-sm shadow-xs" role="group" aria-label="ভিউ মোড">
-                        <button type="button" class="btn btn-outline-primary active" id="btnViewGrid" onclick="switchViewMode('grid')" title="কলাম গ্রিড ভিউ">
-                            <i class="fas fa-grid-2 me-1 d-none d-sm-inline"></i><i class="fas fa-th-large"></i>
+                        <button type="button" class="btn btn-outline-primary active" id="btnViewGrid" onclick="switchViewMode('grid')" title="৭-কলাম গ্রিড ভিউ">
+                            <i class="fas fa-th"></i>
                         </button>
                         <button type="button" class="btn btn-outline-primary" id="btnViewTable" onclick="switchViewMode('table')" title="টেবিল ভিউ">
-                            <i class="fas fa-table-list me-1 d-none d-sm-inline"></i><i class="fas fa-list"></i>
+                            <i class="fas fa-list"></i>
                         </button>
                     </div>
 
                     @if(request()->hasAny(['search', 'is_active', 'is_verified', 'has_books', 'sort', 'per_page']))
-                        <a href="{{ route('admin.authors') }}" class="btn btn-sm btn-light border text-danger" title="ফিল্টার রিসেট করুন">
+                        <a href="{{ route('admin.authors') }}" class="btn btn-sm btn-light border text-danger" title="ফিল্টার রিসেট">
                             <i class="fas fa-rotate-left"></i>
                         </a>
                     @endif
@@ -191,29 +192,29 @@
     </div>
 
     {{-- ========================================================================= --}}
-    {{-- 3. MAIN CONTENT: GRID VIEW & TABLE VIEW                                   --}}
+    {{-- 3. MAIN CONTENT: COMPACT 7-COLUMN GRID VIEW & TABLE VIEW                  --}}
     {{-- ========================================================================= --}}
     @if ($authors->isEmpty())
         <div class="card border-0 shadow-xs rounded-4 bg-white p-5 text-center my-3">
             <div class="mb-3">
-                <div class="rounded-circle bg-light d-inline-flex align-items-center justify-content-center p-4" style="width: 80px; height: 80px;">
-                    <i class="fas fa-pen-fancy fs-2 text-muted opacity-50"></i>
+                <div class="rounded-circle bg-light d-inline-flex align-items-center justify-content-center p-3" style="width: 60px; height: 60px;">
+                    <i class="fas fa-pen-fancy fs-3 text-muted opacity-50"></i>
                 </div>
             </div>
-            <h5 class="fw-bold text-dark mb-1">কোনো লেখক খুঁজে পাওয়া যায়নি</h5>
+            <h6 class="fw-bold text-dark mb-1">কোনো লেখক খুঁজে পাওয়া যায়নি</h6>
             <p class="text-muted small mb-3">আপনার সার্চ ফিল্টার পরিবর্তন করুন অথবা নতুন লেখক যোগ করুন।</p>
             <div class="d-flex justify-content-center gap-2">
-                <a href="{{ route('admin.authors') }}" class="btn btn-sm btn-light border rounded-pill px-4">ফিল্টার মুছুন</a>
-                <button type="button" class="btn btn-sm btn-primary rounded-pill px-4 fw-bold" onclick="openAddAuthorModal()">
+                <a href="{{ route('admin.authors') }}" class="btn btn-sm btn-light border rounded-pill px-3">ফিল্টার মুছুন</a>
+                <button type="button" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold" onclick="openAddAuthorModal()">
                     <i class="fas fa-plus me-1"></i> নতুন লেখক যোগ করুন
                 </button>
             </div>
         </div>
     @else
 
-        {{-- 3A. DYNAMIC COLUMN GRID VIEW --}}
+        {{-- 3A. COMPACT 7-COLUMN GRID VIEW --}}
         <div id="authorsGridView" class="view-container">
-            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-xl-4 g-3 g-xl-4">
+            <div class="authors-7col-grid">
                 @foreach ($authors as $author)
                     @php
                         $avatarUrl = $author->avatar_url;
@@ -221,173 +222,132 @@
                         $bgColor = $author->avatar_bg_color;
                         $booksCount = $author->books_count ?? 0;
                     @endphp
-                    <div class="col" id="authorCard-{{ $author->id }}">
-                        <div class="card h-100 border-0 shadow-xs rounded-4 overflow-hidden author-card position-relative bg-white transition-all">
+                    <div class="author-grid-item" id="authorCard-{{ $author->id }}">
+                        <div class="card h-100 border-0 shadow-xs rounded-3 overflow-hidden author-compact-card position-relative bg-white transition-all">
                             
-                            {{-- Top Banner Gradient Stripe --}}
-                            <div class="author-card-banner position-relative" style="height: 60px; background: {{ $bgColor }};">
-                                {{-- Quick Badges in Header --}}
-                                <div class="position-absolute top-0 start-0 p-2 d-flex gap-1 align-items-center">
+                            {{-- Micro Top Banner Stripe --}}
+                            <div class="author-card-banner position-relative d-flex align-items-center justify-content-between px-2" style="height: 28px; background: {{ $bgColor }};">
+                                {{-- Status & Verified Micro Dots --}}
+                                <div class="d-flex gap-1 align-items-center">
                                     <button type="button" 
-                                            class="badge rounded-pill border-0 shadow-xs cursor-pointer py-1 px-2 {{ $author->is_active ? 'bg-success text-white' : 'bg-secondary text-white' }}"
+                                            class="badge rounded-circle border-0 p-0 d-inline-flex align-items-center justify-content-center cursor-pointer {{ $author->is_active ? 'bg-success' : 'bg-secondary' }}"
+                                            style="width: 14px; height: 14px; font-size: 7px;"
                                             onclick="toggleAuthorStatus({{ $author->id }}, this)"
-                                            title="স্ট্যাটাস পরিবর্তন করতে ক্লিক করুন">
-                                        <i class="fas fa-circle-dot me-1" style="font-size: 8px;"></i>
-                                        <span>{{ $author->is_active ? 'সক্রিয়' : 'নিষ্ক্রিয়' }}</span>
+                                            title="{{ $author->is_active ? 'সক্রিয় (ক্লিক করে নিষ্ক্রিয় করুন)' : 'নিষ্ক্রিয় (ক্লিক করে সক্রিয় করুন)' }}">
+                                        <i class="fas fa-power-off text-white"></i>
                                     </button>
-
-                                    <button type="button" 
-                                            class="badge rounded-pill border-0 shadow-xs cursor-pointer py-1 px-2 {{ $author->is_verified ? 'bg-info text-white' : 'bg-dark-subtle text-dark' }}"
-                                            onclick="toggleAuthorVerified({{ $author->id }}, this)"
-                                            title="ভেরিফিকেশন টগল করতে ক্লিক করুন">
-                                        <i class="fas {{ $author->is_verified ? 'fa-certificate' : 'fa-circle-question' }} me-1"></i>
-                                        <span>{{ $author->is_verified ? 'ভেরিফাইড' : 'সাধারণ' }}</span>
-                                    </button>
-                                </div>
-
-                                {{-- Card Action Menu (Top Right) --}}
-                                <div class="position-absolute top-0 end-0 p-2">
-                                    <div class="dropdown">
-                                        <button class="btn btn-sm btn-light bg-white bg-opacity-75 border-0 rounded-circle shadow-xs p-1 d-flex align-items-center justify-content-center" 
-                                                style="width: 28px; height: 28px;" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                            <i class="fas fa-ellipsis-vertical text-dark small"></i>
-                                        </button>
-                                        <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3 text-small">
-                                            <li>
-                                                <button class="dropdown-item py-1.5" type="button" onclick="openAuthorDetailsModal({{ $author->id }})">
-                                                    <i class="fas fa-id-card text-info me-2"></i>প্রোফাইল বিবরণ
-                                                </button>
-                                            </li>
-                                            <li>
-                                                <button class="dropdown-item py-1.5" type="button" onclick="openEditAuthorModal({{ $author->id }})">
-                                                    <i class="fas fa-pen text-primary me-2"></i>কুইক এডিট
-                                                </button>
-                                            </li>
-                                            <li>
-                                                <a class="dropdown-item py-1.5" href="{{ route('admin.content.edit', ['type' => 'authors', 'id' => $author->id]) }}">
-                                                    <i class="fas fa-sliders text-secondary me-2"></i>ফুল এডিট পেজ
-                                                </a>
-                                            </li>
-                                            <li>
-                                                <a class="dropdown-item py-1.5" href="{{ route('authors.show', $author->slug ?: $author->id) }}" target="_blank" rel="noopener">
-                                                    <i class="fas fa-arrow-up-right-from-square text-muted me-2"></i>সাইটে দেখুন
-                                                </a>
-                                            </li>
-                                            <li><hr class="dropdown-divider my-1"></li>
-                                            <li>
-                                                <form action="{{ route('admin.content.destroy', ['type' => 'authors', 'id' => $author->id]) }}" 
-                                                      method="POST" onsubmit="return confirm('আপনি কি নিশ্চিত যে এই লেখককে মুছে ফেলতে চান?');">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="dropdown-item text-danger py-1.5">
-                                                        <i class="fas fa-trash-can me-2"></i>মুছে ফেলুন
-                                                    </button>
-                                                </form>
-                                            </li>
-                                        </ul>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {{-- Avatar Container (overlapping banner) --}}
-                            <div class="px-3 text-center position-relative" style="margin-top: -38px;">
-                                <div class="author-avatar-wrapper d-inline-block position-relative">
-                                    <div class="rounded-circle overflow-hidden shadow-sm bg-white border border-3 border-white position-relative"
-                                         style="width: 76px; height: 76px; cursor: pointer;"
-                                         onclick="previewAuthorAvatar('{{ $avatarUrl }}', '{{ addslashes($author->name) }}')">
-                                        @if($avatarUrl)
-                                            <img src="{{ $avatarUrl }}" alt="{{ $author->name }}" 
-                                                 class="w-100 h-100 object-fit-cover author-avatar-img"
-                                                 onerror="this.style.display='none'; this.nextElementSibling.classList.remove('d-none');">
-                                            <div class="w-100 h-100 d-none d-flex align-items-center justify-content-center text-white fw-bold fs-4"
-                                                 style="background: {{ $bgColor }};">
-                                                {{ $initials }}
-                                            </div>
-                                        @else
-                                            <div class="w-100 h-100 d-flex align-items-center justify-content-center text-white fw-bold fs-4"
-                                                 style="background: {{ $bgColor }};">
-                                                {{ $initials }}
-                                            </div>
-                                        @endif
-                                    </div>
 
                                     @if($author->is_verified)
-                                        <span class="position-absolute bottom-0 end-0 bg-info text-white rounded-circle p-1 d-flex align-items-center justify-content-center border border-2 border-white shadow-xs" 
-                                              style="width: 22px; height: 22px; font-size: 10px;" title="যাচাইকৃত লেখক">
+                                        <span class="badge bg-white text-info rounded-circle p-0 d-inline-flex align-items-center justify-content-center shadow-xs" 
+                                              style="width: 14px; height: 14px; font-size: 8px;" title="ভেরিফাইড লেখক">
                                             <i class="fas fa-check"></i>
                                         </span>
                                     @endif
                                 </div>
 
-                                {{-- Name & Slug --}}
-                                <div class="mt-2">
-                                    <h6 class="fw-bold text-dark mb-1 text-truncate" title="{{ $author->name }}">
-                                        <a href="javascript:void(0)" onclick="openAuthorDetailsModal({{ $author->id }})" class="text-decoration-none text-dark hover-primary">
-                                            {{ $author->name }}
-                                        </a>
-                                    </h6>
-                                    
-                                    <div class="d-inline-flex align-items-center gap-1 bg-light px-2 py-0.5 rounded-pill small font-monospace text-muted" style="font-size: 0.72rem;">
-                                        <span class="text-truncate" style="max-width: 140px;">{{ $author->slug }}</span>
-                                        <i class="fas fa-copy cursor-pointer text-muted hover-primary" onclick="copyToClipboard('{{ $author->slug }}', 'Slug কপি করা হয়েছে!')" title="কপি করুন"></i>
-                                    </div>
+                                {{-- Dropdown Action Menu --}}
+                                <div class="dropdown">
+                                    <button class="btn btn-xs text-white bg-dark bg-opacity-25 border-0 rounded-circle p-0 d-flex align-items-center justify-content-center" 
+                                            style="width: 18px; height: 18px; font-size: 10px;" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="fas fa-ellipsis-v"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3 text-small" style="font-size: 0.8rem;">
+                                        <li>
+                                            <button class="dropdown-item py-1" type="button" onclick="openAuthorDetailsModal({{ $author->id }})">
+                                                <i class="fas fa-id-card text-info me-1.5"></i>প্রোফাইল
+                                            </button>
+                                        </li>
+                                        <li>
+                                            <button class="dropdown-item py-1" type="button" onclick="openEditAuthorModal({{ $author->id }})">
+                                                <i class="fas fa-pen text-primary me-1.5"></i>কুইক এডিট
+                                            </button>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item py-1" href="{{ route('admin.content.edit', ['type' => 'authors', 'id' => $author->id]) }}">
+                                                <i class="fas fa-sliders text-secondary me-1.5"></i>ফুল এডিট
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item py-1" href="{{ route('authors.show', $author->slug ?: $author->id) }}" target="_blank" rel="noopener">
+                                                <i class="fas fa-arrow-up-right-from-square text-muted me-1.5"></i>সাইটে দেখুন
+                                            </a>
+                                        </li>
+                                        <li><hr class="dropdown-divider my-1"></li>
+                                        <li>
+                                            <form action="{{ route('admin.content.destroy', ['type' => 'authors', 'id' => $author->id]) }}" 
+                                                  method="POST" onsubmit="return confirm('আপনি কি নিশ্চিত যে এই লেখককে মুছে ফেলতে চান?');">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="dropdown-item text-danger py-1">
+                                                    <i class="fas fa-trash-can me-1.5"></i>মুছুন
+                                                </button>
+                                            </form>
+                                        </li>
+                                    </ul>
                                 </div>
                             </div>
 
-                            {{-- Card Body: Contact & Stats --}}
-                            <div class="card-body p-3 pt-2 d-flex flex-column justify-content-between flex-grow-1">
-                                <div>
-                                    {{-- Contact Info Row --}}
-                                    <div class="d-flex flex-column gap-1 small text-muted my-2 pb-2 border-bottom">
-                                        @if($author->phone)
-                                            <div class="d-flex align-items-center gap-2 text-truncate">
-                                                <i class="fas fa-phone-alt text-primary opacity-75" style="width: 14px;"></i>
-                                                <a href="tel:{{ $author->phone }}" class="text-decoration-none text-muted hover-dark text-truncate">{{ $author->phone }}</a>
-                                            </div>
-                                        @endif
-                                        @if($author->email)
-                                            <div class="d-flex align-items-center gap-2 text-truncate">
-                                                <i class="fas fa-envelope text-primary opacity-75" style="width: 14px;"></i>
-                                                <a href="mailto:{{ $author->email }}" class="text-decoration-none text-muted hover-dark text-truncate">{{ $author->email }}</a>
-                                            </div>
-                                        @endif
-                                        @if(!$author->phone && !$author->email)
-                                            <div class="text-muted opacity-50 small fst-italic">যোগাযোগ তথ্য দেওয়া নেই</div>
-                                        @endif
-                                    </div>
-
-                                    {{-- Bio Excerpt --}}
-                                    @if($author->bio)
-                                        <p class="text-muted small mb-2 line-clamp-2" style="font-size: 0.78rem; line-height: 1.45;" title="{{ strip_tags($author->bio) }}">
-                                            {{ Str::limit(strip_tags($author->bio), 75) }}
-                                        </p>
+                            {{-- Avatar (Compact Overlap) --}}
+                            <div class="text-center position-relative px-2" style="margin-top: -22px;">
+                                <div class="rounded-circle overflow-hidden shadow-xs bg-white border border-2 border-white mx-auto position-relative"
+                                     style="width: 44px; height: 44px; cursor: pointer;"
+                                     onclick="previewAuthorAvatar('{{ $avatarUrl }}', '{{ addslashes($author->name) }}')">
+                                    @if($avatarUrl)
+                                        <img src="{{ $avatarUrl }}" alt="{{ $author->name }}" 
+                                             class="w-100 h-100 object-fit-cover"
+                                             onerror="this.style.display='none'; this.nextElementSibling.classList.remove('d-none');">
+                                        <div class="w-100 h-100 d-none d-flex align-items-center justify-content-center text-white fw-bold"
+                                             style="background: {{ $bgColor }}; font-size: 0.95rem;">
+                                            {{ $initials }}
+                                        </div>
                                     @else
-                                        <p class="text-muted opacity-50 small mb-2 fst-italic" style="font-size: 0.75rem;">পরিচিতি বা বায়োগ্রাফি যোগ করা হয়নি।</p>
+                                        <div class="w-100 h-100 d-flex align-items-center justify-content-center text-white fw-bold"
+                                             style="background: {{ $bgColor }}; font-size: 0.95rem;">
+                                            {{ $initials }}
+                                        </div>
                                     @endif
                                 </div>
 
-                                {{-- Publications & Quick Actions Footer --}}
-                                <div>
-                                    <div class="d-flex align-items-center justify-content-between pt-2 border-top">
-                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1 small">
-                                            <i class="fas fa-book-bookmark me-1"></i>@bn($booksCount)টি বই
-                                        </span>
-
-                                        <div class="d-flex gap-1 align-items-center">
-                                            <button type="button" class="btn btn-xs btn-outline-primary rounded-circle p-1 d-flex align-items-center justify-content-center" 
-                                                    style="width: 30px; height: 30px;" onclick="openEditAuthorModal({{ $author->id }})" title="সম্পাদনা করুন">
-                                                <i class="fas fa-pen-to-square small"></i>
-                                            </button>
-                                            <a href="{{ route('authors.show', $author->slug ?: $author->id) }}" target="_blank" rel="noopener" 
-                                               class="btn btn-xs btn-light border rounded-circle p-1 d-flex align-items-center justify-content-center" 
-                                               style="width: 30px; height: 30px;" title="সাইটে দেখুন">
-                                                <i class="fas fa-arrow-up-right-from-square text-muted small"></i>
-                                            </a>
-                                        </div>
+                                {{-- Name & Slug --}}
+                                <div class="mt-1">
+                                    <div class="fw-bold text-dark text-truncate" style="font-size: 0.8rem;" title="{{ $author->name }}">
+                                        <a href="javascript:void(0)" onclick="openAuthorDetailsModal({{ $author->id }})" class="text-decoration-none text-dark hover-primary">
+                                            {{ $author->name }}
+                                        </a>
+                                    </div>
+                                    <div class="text-muted text-truncate font-monospace" style="font-size: 0.65rem;" title="{{ $author->slug }}">
+                                        {{ $author->slug }}
                                     </div>
                                 </div>
-
                             </div>
+
+                            {{-- Compact Card Body --}}
+                            <div class="card-body p-2 pt-1 text-center d-flex flex-column justify-content-between flex-grow-1">
+                                {{-- Book Count Badge --}}
+                                <div class="mb-1">
+                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-0.5" style="font-size: 0.68rem;">
+                                        <i class="fas fa-book-bookmark me-1"></i>@bn($booksCount)টি বই
+                                    </span>
+                                </div>
+
+                                {{-- Action Micro Buttons --}}
+                                <div class="d-flex align-items-center justify-content-center gap-1 pt-1.5 border-top">
+                                    <button type="button" class="btn btn-xs btn-outline-info rounded-circle p-0 d-flex align-items-center justify-content-center" 
+                                            style="width: 22px; height: 22px; font-size: 9px;" onclick="openAuthorDetailsModal({{ $author->id }})" title="বিস্তারিত দেখুন">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-xs btn-outline-primary rounded-circle p-0 d-flex align-items-center justify-content-center" 
+                                            style="width: 22px; height: 22px; font-size: 9px;" onclick="openEditAuthorModal({{ $author->id }})" title="কুইক এডিট">
+                                        <i class="fas fa-pen"></i>
+                                    </button>
+                                    <a href="{{ route('authors.show', $author->slug ?: $author->id) }}" target="_blank" rel="noopener" 
+                                       class="btn btn-xs btn-light border rounded-circle p-0 d-flex align-items-center justify-content-center" 
+                                       style="width: 22px; height: 22px; font-size: 9px;" title="সাইটে দেখুন">
+                                        <i class="fas fa-external-link-alt text-muted"></i>
+                                    </a>
+                                </div>
+                            </div>
+
                         </div>
                     </div>
                 @endforeach
@@ -396,19 +356,19 @@
 
         {{-- 3B. REFINED TABLE VIEW --}}
         <div id="authorsTableView" class="view-container d-none">
-            <div class="card border-0 shadow-xs rounded-4 overflow-hidden bg-white">
+            <div class="card border-0 shadow-xs rounded-3 overflow-hidden bg-white">
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0" id="authorsTable">
                         <thead class="table-light text-muted small text-uppercase">
                             <tr>
-                                <th class="ps-3" style="width: 60px;">#</th>
-                                <th style="min-width: 220px;">লেখক ও পরিচিতি</th>
+                                <th class="ps-3" style="width: 50px;">#</th>
+                                <th style="min-width: 200px;">লেখক ও পরিচিতি</th>
                                 <th>যোগাযোগ</th>
                                 <th>বইয়ের সংখ্যা</th>
                                 <th>ভেরিফিকেশন</th>
                                 <th>অবস্থা</th>
                                 <th>যোগদানের তারিখ</th>
-                                <th class="text-end pe-3" style="min-width: 140px;">অ্যাকশন</th>
+                                <th class="text-end pe-3" style="min-width: 120px;">অ্যাকশন</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -422,9 +382,9 @@
                                 <tr id="authorRow-{{ $author->id }}">
                                     <td class="ps-3 text-muted small">@bn($authors->firstItem() + $n)</td>
                                     <td>
-                                        <div class="d-flex align-items-center gap-2.5">
+                                        <div class="d-flex align-items-center gap-2">
                                             <div class="rounded-circle overflow-hidden shadow-xs flex-shrink-0 position-relative border"
-                                                 style="width: 44px; height: 44px; cursor: pointer;"
+                                                 style="width: 38px; height: 38px; cursor: pointer;"
                                                  onclick="previewAuthorAvatar('{{ $avatarUrl }}', '{{ addslashes($author->name) }}')">
                                                 @if($avatarUrl)
                                                     <img src="{{ $avatarUrl }}" alt="{{ $author->name }}" 
@@ -443,15 +403,15 @@
                                             </div>
 
                                             <div class="min-w-0">
-                                                <div class="fw-bold text-dark text-truncate">
+                                                <div class="fw-bold text-dark text-truncate small">
                                                     <a href="javascript:void(0)" onclick="openAuthorDetailsModal({{ $author->id }})" class="text-decoration-none text-dark hover-primary">
                                                         {{ $author->name }}
                                                     </a>
                                                     @if($author->is_verified)
-                                                        <i class="fas fa-check-circle text-info ms-1 small" title="ভেরিফাইড লেখক"></i>
+                                                        <i class="fas fa-check-circle text-info ms-1" style="font-size: 11px;" title="ভেরিফাইড লেখক"></i>
                                                     @endif
                                                 </div>
-                                                <div class="text-muted font-monospace d-flex align-items-center gap-1" style="font-size: 0.75rem;">
+                                                <div class="text-muted font-monospace d-flex align-items-center gap-1" style="font-size: 0.72rem;">
                                                     <span>{{ $author->slug }}</span>
                                                     <i class="fas fa-copy cursor-pointer text-muted hover-primary" onclick="copyToClipboard('{{ $author->slug }}', 'Slug কপি করা হয়েছে!')" title="কপি করুন"></i>
                                                 </div>
@@ -460,56 +420,58 @@
                                     </td>
                                     <td>
                                         @if($author->phone)
-                                            <div class="small"><i class="fas fa-phone-alt text-muted me-1.5" style="font-size: 11px;"></i>{{ $author->phone }}</div>
+                                            <div class="small" style="font-size: 0.78rem;"><i class="fas fa-phone-alt text-muted me-1" style="font-size: 10px;"></i>{{ $author->phone }}</div>
                                         @endif
                                         @if($author->email)
-                                            <div class="text-muted small"><i class="fas fa-envelope text-muted me-1.5" style="font-size: 11px;"></i>{{ $author->email }}</div>
+                                            <div class="text-muted small" style="font-size: 0.75rem;"><i class="fas fa-envelope text-muted me-1" style="font-size: 10px;"></i>{{ $author->email }}</div>
                                         @endif
                                         @if(!$author->phone && !$author->email)
                                             <span class="text-muted small">—</span>
                                         @endif
                                     </td>
                                     <td>
-                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2.5 py-1 rounded-pill">
+                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-0.5 rounded-pill" style="font-size: 0.72rem;">
                                             <i class="fas fa-book me-1"></i>@bn($booksCount) টি
                                         </span>
                                     </td>
                                     <td>
                                         <button type="button" 
-                                                class="badge rounded-pill border-0 shadow-xs cursor-pointer px-2.5 py-1 {{ $author->is_verified ? 'bg-info text-white' : 'bg-light text-muted border' }}"
+                                                class="badge rounded-pill border-0 shadow-xs cursor-pointer px-2 py-0.5 {{ $author->is_verified ? 'bg-info text-white' : 'bg-light text-muted border' }}"
+                                                style="font-size: 0.70rem;"
                                                 onclick="toggleAuthorVerified({{ $author->id }}, this)"
-                                                title="ক্লিক করে ভেরিফিকেশন পরিবর্তন করুন">
+                                                title="ভেরিফিকেশন পরিবর্তন করুন">
                                             <i class="fas {{ $author->is_verified ? 'fa-certificate' : 'fa-circle-question' }} me-1"></i>
                                             <span>{{ $author->is_verified ? 'ভেরিফাইড' : 'সাধারণ' }}</span>
                                         </button>
                                     </td>
                                     <td>
                                         <button type="button" 
-                                                class="badge rounded-pill border-0 shadow-xs cursor-pointer px-2.5 py-1 {{ $author->is_active ? 'bg-success text-white' : 'bg-secondary text-white' }}"
+                                                class="badge rounded-pill border-0 shadow-xs cursor-pointer px-2 py-0.5 {{ $author->is_active ? 'bg-success text-white' : 'bg-secondary text-white' }}"
+                                                style="font-size: 0.70rem;"
                                                 onclick="toggleAuthorStatus({{ $author->id }}, this)"
-                                                title="ক্লিক করে স্ট্যাটাস পরিবর্তন করুন">
-                                            <i class="fas fa-circle-dot me-1" style="font-size: 8px;"></i>
+                                                title="স্ট্যাটাস পরিবর্তন করুন">
+                                            <i class="fas fa-circle-dot me-1" style="font-size: 7px;"></i>
                                             <span>{{ $author->is_active ? 'সক্রিয়' : 'নিষ্ক্রিয়' }}</span>
                                         </button>
                                     </td>
-                                    <td class="text-muted small">@bnDate($author->created_at)</td>
+                                    <td class="text-muted small" style="font-size: 0.75rem;">@bnDate($author->created_at)</td>
                                     <td class="text-end pe-3">
                                         <div class="d-inline-flex gap-1 align-items-center">
-                                            <button type="button" class="btn btn-sm btn-outline-info px-2 py-1" onclick="openAuthorDetailsModal({{ $author->id }})" title="প্রোফাইল দেখুন">
-                                                <i class="fas fa-eye"></i>
+                                            <button type="button" class="btn btn-xs btn-outline-info p-1" onclick="openAuthorDetailsModal({{ $author->id }})" title="প্রোফাইল দেখুন">
+                                                <i class="fas fa-eye small"></i>
                                             </button>
-                                            <button type="button" class="btn btn-sm btn-outline-primary px-2 py-1" onclick="openEditAuthorModal({{ $author->id }})" title="কুইক এডিট">
-                                                <i class="fas fa-pen-to-square"></i>
+                                            <button type="button" class="btn btn-xs btn-outline-primary p-1" onclick="openEditAuthorModal({{ $author->id }})" title="কুইক এডিট">
+                                                <i class="fas fa-pen-to-square small"></i>
                                             </button>
-                                            <a href="{{ route('authors.show', $author->slug ?: $author->id) }}" target="_blank" rel="noopener" class="btn btn-sm btn-light border px-2 py-1" title="সাইটে দেখুন">
-                                                <i class="fas fa-arrow-up-right-from-square text-muted"></i>
+                                            <a href="{{ route('authors.show', $author->slug ?: $author->id) }}" target="_blank" rel="noopener" class="btn btn-xs btn-light border p-1" title="সাইটে দেখুন">
+                                                <i class="fas fa-arrow-up-right-from-square text-muted small"></i>
                                             </a>
                                             <form action="{{ route('admin.content.destroy', ['type' => 'authors', 'id' => $author->id]) }}" 
                                                   method="POST" class="d-inline" onsubmit="return confirm('আপনি কি নিশ্চিত যে এই লেখককে মুছে ফেলতে চান?');">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" class="btn btn-sm btn-outline-danger px-2 py-1" title="মুছে ফেলুন">
-                                                    <i class="fas fa-trash-can"></i>
+                                                <button type="submit" class="btn btn-xs btn-outline-danger p-1" title="মুছে ফেলুন">
+                                                    <i class="fas fa-trash-can small"></i>
                                                 </button>
                                             </form>
                                         </div>
@@ -524,8 +486,8 @@
 
         {{-- Pagination --}}
         @if ($authors->hasPages())
-            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 p-3 bg-white border-0 shadow-xs rounded-4 mt-3">
-                <span class="text-muted small">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 p-2.5 bg-white border-0 shadow-xs rounded-3 mt-3">
+                <span class="text-muted small" style="font-size: 0.78rem;">
                     মোট @bn($stats['total'] ?? $authors->total()) জনের মধ্যে @bn($authors->firstItem())–@bn($authors->lastItem()) দেখানো হচ্ছে
                 </span>
                 <div>
@@ -587,12 +549,12 @@
                             <label class="form-label small fw-bold text-dark">লেখকের ছবি (Avatar / Photo)</label>
                             <div class="d-flex align-items-center gap-3">
                                 <div class="rounded-circle overflow-hidden bg-light border border-2 border-primary-subtle d-flex align-items-center justify-content-center shadow-xs flex-shrink-0" 
-                                     style="width: 58px; height: 58px;" id="addAvatarPreviewBox">
+                                     style="width: 54px; height: 54px;" id="addAvatarPreviewBox">
                                     <i class="fas fa-image text-muted fs-4"></i>
                                 </div>
                                 <div class="flex-grow-1">
                                     <input type="file" name="avatar_file" class="form-control form-control-sm" accept="image/*" onchange="previewImageInput(this, 'addAvatarPreviewBox')">
-                                    <div class="form-text small text-muted">JPG, PNG বা WebP ফরম্যাট। সর্বোচ্চ সাইজ: 4MB।</div>
+                                    <div class="form-text small text-muted">JPG, PNG বা WebP ফরম্যাট।</div>
                                 </div>
                             </div>
                         </div>
@@ -606,7 +568,7 @@
                         <div class="col-md-6">
                             <div class="form-check form-switch mt-2">
                                 <input class="form-check-input" type="checkbox" name="is_verified" id="addAuthorVerified" value="1">
-                                <label class="form-check-label small fw-semibold" for="addAuthorVerified">যাচাইকৃত (Verified) হিসেবে চিহ্নিত করুন</label>
+                                <label class="form-check-label small fw-semibold" for="addAuthorVerified">যাচাইকৃত (Verified)</label>
                             </div>
                         </div>
                     </div>
@@ -669,12 +631,11 @@
                             <label class="form-label small fw-bold text-dark">লেখকের নতুন ছবি আপলোড</label>
                             <div class="d-flex align-items-center gap-3">
                                 <div class="rounded-circle overflow-hidden bg-light border border-2 border-primary-subtle d-flex align-items-center justify-content-center shadow-xs flex-shrink-0" 
-                                     style="width: 58px; height: 58px;" id="editAvatarPreviewBox">
+                                     style="width: 54px; height: 54px;" id="editAvatarPreviewBox">
                                     <i class="fas fa-image text-muted fs-4"></i>
                                 </div>
                                 <div class="flex-grow-1">
                                     <input type="file" name="avatar_file" class="form-control form-control-sm" accept="image/*" onchange="previewImageInput(this, 'editAvatarPreviewBox')">
-                                    <div class="form-text small text-muted">ছবি পরিবর্তন করতে চাইলে নতুন ফাইল সিলেক্ট করুন।</div>
                                 </div>
                             </div>
                         </div>
@@ -711,7 +672,7 @@
             <div class="modal-header border-0 py-3 px-4 text-white" id="authorDetailsHeader" style="background: linear-gradient(135deg, #1e293b, #334155);">
                 <div class="d-flex align-items-center gap-3">
                     <div class="rounded-circle overflow-hidden shadow-sm border border-2 border-white bg-white flex-shrink-0" 
-                         style="width: 60px; height: 60px;" id="detailsAvatarBox"></div>
+                         style="width: 52px; height: 52px;" id="detailsAvatarBox"></div>
                     <div>
                         <h5 class="modal-title fw-bold mb-0" id="detailsAuthorName">লোড হচ্ছে...</h5>
                         <div class="small opacity-75 font-monospace" id="detailsAuthorSlug"></div>
@@ -747,7 +708,7 @@
             </div>
             <div class="modal-body p-4">
                 <div class="rounded-circle overflow-hidden shadow-lg mx-auto border border-4 border-white mb-2" 
-                     style="width: 180px; height: 180px; background: #334155;">
+                     style="width: 160px; height: 160px; background: #334155;">
                     <img src="" id="avatarLightboxImg" class="w-100 h-100 object-fit-cover" alt="Author Photo">
                 </div>
             </div>
@@ -768,21 +729,33 @@
     </div>
 </div>
 
-{{-- Custom CSS for Rich Grid Layout & Aesthetics --}}
+{{-- Custom CSS for 7-Column Layout & Ultra-Compact Card Height --}}
 <style>
-.author-card {
-    transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+.authors-7col-grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 10px;
 }
-.author-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04) !important;
+@media (max-width: 1400px) {
+    .authors-7col-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
 }
-.author-avatar-wrapper:hover .author-avatar-img {
-    transform: scale(1.06);
-    transition: transform 0.25s ease;
+@media (max-width: 992px) {
+    .authors-7col-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
-.author-avatar-img {
-    transition: transform 0.25s ease;
+@media (max-width: 768px) {
+    .authors-7col-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 576px) {
+    .authors-7col-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+.author-compact-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    min-height: 165px;
+}
+.author-compact-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px -4px rgba(0, 0, 0, 0.1) !important;
 }
 .ring-2 {
     outline: 2px solid;
@@ -794,19 +767,12 @@
 .ring-warning { outline-color: #f59e0b; }
 .cursor-pointer { cursor: pointer; }
 .hover-primary:hover { color: #4f46e5 !important; }
-.hover-dark:hover { color: #0f172a !important; }
-.line-clamp-2 {
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-}
 .shadow-xs {
     box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
 @media print {
     .btn, .breadcrumb, .modal, .toast-container, form { display: none !important; }
-    .author-card { break-inside: avoid; border: 1px solid #ddd !important; }
+    .author-compact-card { break-inside: avoid; border: 1px solid #ddd !important; }
 }
 </style>
 
@@ -815,12 +781,10 @@
 {{-- ========================================================================= --}}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Restore preferred view mode from LocalStorage
     const savedViewMode = localStorage.getItem('admin_authors_view_mode') || 'grid';
     switchViewMode(savedViewMode);
 });
 
-// Switch between Grid and Table View
 function switchViewMode(mode) {
     const gridView = document.getElementById('authorsGridView');
     const tableView = document.getElementById('authorsTableView');
@@ -844,7 +808,6 @@ function switchViewMode(mode) {
     }
 }
 
-// Show Toast
 function showToast(message, isSuccess = true) {
     const toastEl = document.getElementById('actionToast');
     const toastMsg = document.getElementById('toastMessage');
@@ -861,7 +824,6 @@ function showToast(message, isSuccess = true) {
     toast.show();
 }
 
-// Copy to Clipboard helper
 function copyToClipboard(text, successMsg = 'কপি করা হয়েছে!') {
     navigator.clipboard.writeText(text).then(() => {
         showToast(successMsg, true);
@@ -870,7 +832,6 @@ function copyToClipboard(text, successMsg = 'কপি করা হয়েছে
     });
 }
 
-// Open Add Author Modal
 function openAddAuthorModal() {
     const form = document.getElementById('addAuthorForm');
     if (form) form.reset();
@@ -880,7 +841,6 @@ function openAddAuthorModal() {
     modal.show();
 }
 
-// Preview uploaded image input in a box
 function previewImageInput(input, boxId) {
     const box = document.getElementById(boxId);
     if (!box) return;
@@ -894,7 +854,6 @@ function previewImageInput(input, boxId) {
     }
 }
 
-// Generate Slug from Bengali / English text preview
 function generateSlugPreview(text, targetInputId) {
     const target = document.getElementById(targetInputId);
     if (!target) return;
@@ -908,7 +867,6 @@ function generateSlugPreview(text, targetInputId) {
     target.value = slug;
 }
 
-// Submit Add Author via AJAX
 function submitAddAuthor(event) {
     event.preventDefault();
     const form = event.target;
@@ -952,7 +910,6 @@ function submitAddAuthor(event) {
     });
 }
 
-// Open Quick Edit Modal & populate details
 function openEditAuthorModal(id) {
     fetch(`/admin/authors/${id}/details`, {
         headers: { 'Accept': 'application/json' }
@@ -990,7 +947,6 @@ function openEditAuthorModal(id) {
     });
 }
 
-// Submit Edit Author via AJAX
 function submitEditAuthor(event) {
     event.preventDefault();
     const form = event.target;
@@ -1035,7 +991,6 @@ function submitEditAuthor(event) {
     });
 }
 
-// AJAX Toggle Active Status
 function toggleAuthorStatus(id, btnElement) {
     btnElement.disabled = true;
     fetch(`/admin/authors/${id}/toggle-status`, {
@@ -1050,8 +1005,7 @@ function toggleAuthorStatus(id, btnElement) {
         if (data.success) {
             showToast(data.message, true);
             const isActive = data.is_active;
-            btnElement.className = `badge rounded-pill border-0 shadow-xs cursor-pointer px-2.5 py-1 ${isActive ? 'bg-success text-white' : 'bg-secondary text-white'}`;
-            btnElement.innerHTML = `<i class="fas fa-circle-dot me-1" style="font-size: 8px;"></i><span>${isActive ? 'সক্রিয়' : 'নিষ্ক্রিয়'}</span>`;
+            btnElement.className = `badge rounded-circle border-0 p-0 d-inline-flex align-items-center justify-content-center cursor-pointer ${isActive ? 'bg-success' : 'bg-secondary'}`;
         }
     })
     .catch(err => {
@@ -1063,7 +1017,6 @@ function toggleAuthorStatus(id, btnElement) {
     });
 }
 
-// AJAX Toggle Verified Status
 function toggleAuthorVerified(id, btnElement) {
     btnElement.disabled = true;
     fetch(`/admin/authors/${id}/toggle-verified`, {
@@ -1078,7 +1031,7 @@ function toggleAuthorVerified(id, btnElement) {
         if (data.success) {
             showToast(data.message, true);
             const isVerified = data.is_verified;
-            btnElement.className = `badge rounded-pill border-0 shadow-xs cursor-pointer px-2.5 py-1 ${isVerified ? 'bg-info text-white' : 'bg-light text-muted border'}`;
+            btnElement.className = `badge rounded-pill border-0 shadow-xs cursor-pointer px-2 py-0.5 ${isVerified ? 'bg-info text-white' : 'bg-light text-muted border'}`;
             btnElement.innerHTML = `<i class="fas ${isVerified ? 'fa-certificate' : 'fa-circle-question'} me-1"></i><span>${isVerified ? 'ভেরিফাইড' : 'সাধারণ'}</span>`;
         }
     })
@@ -1091,7 +1044,6 @@ function toggleAuthorVerified(id, btnElement) {
     });
 }
 
-// Open Author Details & Books Modal
 function openAuthorDetailsModal(id) {
     const modalEl = document.getElementById('authorDetailsModal');
     const modal = new bootstrap.Modal(modalEl);
@@ -1121,11 +1073,9 @@ function openAuthorDetailsModal(id) {
                 }
             }
 
-            // Edit and View links
             document.getElementById('detailsEditLink').href = `/admin/content/authors/${a.id}/edit`;
             document.getElementById('detailsSiteLink').href = `/authors/${a.slug || a.id}`;
 
-            // Build details body
             let booksHtml = '';
             if (a.books && a.books.length > 0) {
                 booksHtml = `
@@ -1135,7 +1085,7 @@ function openAuthorDetailsModal(id) {
                             ${a.books.map(b => `
                                 <div class="col">
                                     <div class="p-2 border rounded-3 d-flex align-items-center gap-2 bg-light">
-                                        <div class="rounded overflow-hidden bg-white border flex-shrink-0" style="width: 38px; height: 50px;">
+                                        <div class="rounded overflow-hidden bg-white border flex-shrink-0" style="width: 36px; height: 48px;">
                                             ${b.cover_image ? `<img src="/storage/${b.cover_image}" class="w-100 h-100 object-fit-cover">` : '<i class="fas fa-book text-muted m-2"></i>'}
                                         </div>
                                         <div class="min-w-0">
@@ -1195,7 +1145,6 @@ function openAuthorDetailsModal(id) {
     });
 }
 
-// Lightbox Preview of Author Avatar
 function previewAuthorAvatar(url, name) {
     if (!url) return;
     const img = document.getElementById('avatarLightboxImg');
@@ -1206,9 +1155,7 @@ function previewAuthorAvatar(url, name) {
     modal.show();
 }
 
-// Export Authors to CSV
 function exportAuthorsToCSV() {
-    const table = document.getElementById('authorsTable');
     let csv = [];
     csv.push(['ID', 'Name', 'Slug', 'Phone', 'Email', 'Books Count', 'Status', 'Verified']);
 
