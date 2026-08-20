@@ -717,12 +717,25 @@ class AdminController extends Controller
                     $q->where(fn($w) => $w->where('status', 'rejected')->orWhere('mod_status', 'rejected'));
                 } elseif ($status === 'draft') {
                     $q->where('status', 'draft');
+                } elseif ($status === 'featured') {
+                    $q->where('is_featured', true);
                 }
+            })
+            ->when($request->filled('category'), function ($q) use ($request) {
+                $cat = $request->input('category');
+                $q->where(function ($sub) use ($cat) {
+                    $sub->where('category_id', $cat)
+                        ->orWhereHas('category', fn($c) => $c->where('slug', $cat)->orWhere('name', $cat));
+                });
+            })
+            ->when($request->filled('is_featured'), function ($q) use ($request) {
+                $q->where('is_featured', $request->boolean('is_featured'));
             })
             ->orderByRaw("CASE WHEN status = 'pending' OR mod_status = 'pending' THEN 0 ELSE 1 END")
             ->latest('id');
 
-        $posts = $query->paginate(20)->withQueryString();
+        $perPage = in_array((int)$request->input('per_page'), [10, 20, 50, 100], true) ? (int)$request->input('per_page') : 20;
+        $posts = $query->paginate($perPage)->withQueryString();
 
         $stats = [
             'total'     => \Modules\Blog\Models\BlogPost::count(),
@@ -730,11 +743,14 @@ class AdminController extends Controller
             'pending'   => \Modules\Blog\Models\BlogPost::where(fn($w) => $w->where('status', 'pending')->orWhere('mod_status', 'pending'))->count(),
             'draft'     => \Modules\Blog\Models\BlogPost::where('status', 'draft')->count(),
             'rejected'  => \Modules\Blog\Models\BlogPost::where(fn($w) => $w->where('status', 'rejected')->orWhere('mod_status', 'rejected'))->count(),
+            'featured'  => \Modules\Blog\Models\BlogPost::where('is_featured', true)->count(),
         ];
 
+        $categories = \Modules\Blog\Models\BlogCategory::orderBy('name')->get();
         $blogSettings = \App\Support\SiteSetting::blogCustomizer();
+        $blogOgBannerUrl = \App\Support\SiteSetting::blogOgBannerUrl();
 
-        return view('admin.blog', compact('posts', 'stats', 'search', 'status', 'blogSettings'));
+        return view('admin.blog', compact('posts', 'stats', 'search', 'status', 'categories', 'blogSettings', 'blogOgBannerUrl', 'perPage'));
     }
 
     public function updateBlogSettings(Request $request): \Illuminate\Http\RedirectResponse|\Illuminate\Http\JsonResponse
@@ -756,11 +772,12 @@ class AdminController extends Controller
             'enable_share_bar'  => 'nullable|string',
             'show_author_box'   => 'nullable|string',
             'header_gradient'   => 'nullable|string|max:255',
+            'blog_og_banner'    => 'nullable|image|mimes:jpeg,png,jpg,webp|max:4096',
         ]);
 
         $settings = [
             'hero_badge'        => $validated['hero_badge'] ?? 'সাহিত্য, শিল্প-সংস্কৃতি, গবেষণা ও মুক্তচিন্তা',
-            'hero_title'        => $validated['hero_title'] ?? 'আইডিয়া ব্লগ ও সাহিত্যপত্র',
+            'hero_title'        => $validated['hero_title'] ?? 'আইডিয়াপত্র — সমকালীন সাহিত্য ও চিন্তা',
             'hero_subtitle'     => $validated['hero_subtitle'] ?? '',
             'write_button_text' => $validated['write_button_text'] ?? 'নিজের লেখা পোস্ট করুন',
             'write_button_url'  => $validated['write_button_url'] ?? '/blog/write',
@@ -785,19 +802,143 @@ class AdminController extends Controller
             ]
         );
 
+        // Handle Banner Upload if supplied
+        if ($request->boolean('remove_blog_og_banner')) {
+            \App\Models\AdminDashboardSetting::where('key', 'blog_og_banner')->delete();
+        } elseif ($request->hasFile('blog_og_banner') || $request->filled('blog_og_banner_cropped')) {
+            $savedBanner = null;
+            if ($request->filled('blog_og_banner_cropped') && preg_match('/^data:image\/(\w+);base64,/', $request->input('blog_og_banner_cropped'))) {
+                $base64 = substr($request->input('blog_og_banner_cropped'), strpos($request->input('blog_og_banner_cropped'), ',') + 1);
+                $binary = base64_decode($base64);
+                $filename = 'crop_' . uniqid('', true) . '.jpg';
+                \Illuminate\Support\Facades\Storage::disk('public')->put('images/banners/' . $filename, $binary);
+                $savedBanner = 'storage/images/banners/' . $filename;
+            } elseif ($request->hasFile('blog_og_banner')) {
+                $path = $request->file('blog_og_banner')->store('images/banners', 'public');
+                $savedBanner = 'storage/' . $path;
+            }
+
+            if ($savedBanner) {
+                \App\Models\AdminDashboardSetting::updateOrCreate(
+                    ['key' => 'blog_og_banner'],
+                    ['value' => $savedBanner, 'updated_by' => auth()->id()]
+                );
+            }
+        }
+
         \App\Support\SiteSetting::clearCache();
 
-        $this->accessService->log('blog_settings_update', 'ব্লগের ডিজাইন, হেডার ও টাইপোগ্রাফি কাস্টমাইজেশন হালনাগাদ করা হয়েছে');
+        $this->accessService->log('blog_settings_update', 'ব্লগের ডিজাইন, হেডার ও ব্যানার কাস্টমাইজেশন হালনাগাদ করা হয়েছে');
 
         if ($request->wantsJson()) {
             return response()->json([
                 'success'  => true,
-                'message'  => 'ব্লগের ডিজাইন ও টাইপোগ্রাফি সেটিংস সফলভাবে সংরক্ষিত হয়েছে!',
+                'message'  => 'ব্লগের ডিজাইন ও ব্যানার সেটিংস সফলভাবে সংরক্ষিত হয়েছে!',
                 'settings' => $settings,
             ]);
         }
 
-        return back()->with('success', 'ব্লগের ডিজাইন ও টাইপোগ্রাফি সেটিংস সফলভাবে সংরক্ষিত হয়েছে!');
+        return back()->with('success', 'ব্লগের ডিজাইন ও ব্যানার সেটিংস সফলভাবে সংরক্ষিত হয়েছে!');
+    }
+
+    public function togglePostStatus(Request $request, $id): \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
+    {
+        $post = \Modules\Blog\Models\BlogPost::findOrFail($id);
+        $newStatus = $request->input('status', 'published');
+
+        if (!in_array($newStatus, ['published', 'pending', 'draft', 'rejected'], true)) {
+            $newStatus = 'published';
+        }
+
+        $post->status = $newStatus;
+        if ($newStatus === 'published') {
+            $post->mod_status = 'approved';
+            if (!$post->published_at) {
+                $post->published_at = now();
+            }
+        } elseif ($newStatus === 'rejected') {
+            $post->mod_status = 'rejected';
+        } elseif ($newStatus === 'pending') {
+            $post->mod_status = 'pending';
+        }
+
+        $post->save();
+
+        $this->accessService->log('blog_status_toggle', "ব্লগ পোস্ট '{$post->title}' এর স্ট্যাটাস '{$newStatus}' করা হয়েছে");
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => "পোস্টের স্ট্যাটাস সফলভাবে '{$newStatus}' করা হয়েছে।",
+                'status'  => $newStatus,
+            ]);
+        }
+
+        return back()->with('success', "পোস্টের স্ট্যাটাস সফলভাবে আপডেট করা হয়েছে।");
+    }
+
+    public function togglePostFeatured(Request $request, $id): \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
+    {
+        $post = \Modules\Blog\Models\BlogPost::findOrFail($id);
+        $post->is_featured = !$post->is_featured;
+        $post->save();
+
+        $stateText = $post->is_featured ? 'নির্বাচিত (Featured)' : 'সাধারণ (Unfeatured)';
+        $this->accessService->log('blog_featured_toggle', "ব্লগ পোস্ট '{$post->title}' {$stateText} করা হয়েছে");
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success'     => true,
+                'is_featured' => $post->is_featured,
+                'message'     => "পোস্টটি সফলভাবে {$stateText} করা হয়েছে।",
+            ]);
+        }
+
+        return back()->with('success', "পোস্টটি সফলভাবে {$stateText} করা হয়েছে।");
+    }
+
+    public function destroyPost($id): \Illuminate\Http\RedirectResponse
+    {
+        $post = \Modules\Blog\Models\BlogPost::findOrFail($id);
+        $title = $post->title;
+        $post->delete();
+
+        $this->accessService->log('blog_post_delete', "ব্লগ পোস্ট '{$title}' মুছে ফেলা হয়েছে");
+
+        return back()->with('success', "ব্লগ পোস্ট '{$title}' সফলভাবে মুছে ফেলা হয়েছে।");
+    }
+
+    public function bulkBlogAction(Request $request): \Illuminate\Http\RedirectResponse
+    {
+        $ids = $request->input('selected_ids', []);
+        $action = $request->input('bulk_action');
+
+        if (empty($ids) || !is_array($ids)) {
+            return back()->with('error', 'অনুগ্রহ করে কমপক্ষে একটি পোস্ট নির্বাচন করুন।');
+        }
+
+        if ($action === 'publish') {
+            \Modules\Blog\Models\BlogPost::whereIn('id', $ids)->update([
+                'status'       => 'published',
+                'mod_status'   => 'approved',
+                'published_at' => now(),
+            ]);
+            return back()->with('success', count($ids) . 'টি পোস্ট সফলভাবে প্রকাশ ও অনুমোদন করা হয়েছে।');
+        }
+
+        if ($action === 'draft') {
+            \Modules\Blog\Models\BlogPost::whereIn('id', $ids)->update([
+                'status' => 'draft',
+            ]);
+            return back()->with('success', count($ids) . 'টি পোস্ট ড্রাফটে নেওয়া হয়েছে।');
+        }
+
+        if ($action === 'delete') {
+            \Modules\Blog\Models\BlogPost::whereIn('id', $ids)->delete();
+            return back()->with('success', count($ids) . 'টি পোস্ট মুছে ফেলা হয়েছে।');
+        }
+
+        return back()->with('error', 'সঠিক অ্যাকশন নির্বাচন করুন।');
     }
 
     public function bulkNormalizeBlogTypography(Request $request): \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse

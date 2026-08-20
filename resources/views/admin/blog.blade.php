@@ -1,17 +1,81 @@
 @extends('layouts.admin')
 
-@section('title', 'ব্লগ পোস্ট পরিচালনা')
-@section('heading', 'ব্লগ পোস্ট ও কনটেন্ট মডারেশন')
+@section('title', 'আইডিয়াপত্র ও ব্লগ পোস্ট পরিচালনা')
+@section('heading', 'আইডিয়াপত্র — ব্লগ ও কনটেন্ট মডারেশন')
 @section('breadcrumb')
-    <li class="breadcrumb-item active" aria-current="page">ব্লগ পোস্ট</li>
+    <li class="breadcrumb-item active" aria-current="page">আইডিয়াপত্র ও ব্লগ</li>
 @endsection
+
+@push('styles')
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css" />
+<style>
+    .banner-hero-card {
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: #fff;
+    }
+    .banner-thumb-box {
+        width: 100%;
+        max-width: 220px;
+        aspect-ratio: 16 / 9;
+        border-radius: 12px;
+        overflow: hidden;
+        background: #020617;
+        position: relative;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .banner-thumb-box img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+    .banner-thumb-box:hover img {
+        transform: scale(1.05);
+    }
+    .btn-featured-star {
+        background: none;
+        border: none;
+        padding: 0;
+        font-size: 1.15rem;
+        cursor: pointer;
+        color: #cbd5e1;
+        transition: all 0.2s ease;
+    }
+    .btn-featured-star.active {
+        color: #f59e0b;
+        transform: scale(1.1);
+    }
+    .status-select-badge {
+        font-size: 0.82rem;
+        font-weight: 600;
+        border-radius: 50rem;
+        padding: 0.25rem 0.65rem;
+        border: 1px solid transparent;
+        cursor: pointer;
+    }
+    .status-select-badge:focus {
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+    }
+    .cropper-view-box, .cropper-face {
+        border-radius: 8px;
+    }
+    .hover-lift {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .hover-lift:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1) !important;
+    }
+</style>
+@endpush
 
 @section('actions')
     <button type="button" class="btn btn-primary rounded-pill px-3 shadow-xs fw-semibold" data-bs-toggle="modal" data-bs-target="#blogCustomizerModal">
-        <i class="fas fa-palette me-1.5"></i> ব্লগের ডিজাইন ও কাস্টমাইজেশন
+        <i class="fas fa-palette me-1.5"></i> ডিজাইন ও ব্যানার কাস্টমাইজার
     </button>
     <button type="button" class="btn btn-outline-success rounded-pill px-3 shadow-xs fw-semibold" data-bs-toggle="modal" data-bs-target="#bulkTypographyModal">
-        <i class="fas fa-wand-magic-sparkles me-1.5"></i> সকল লেখার স্পেস ঠিক করুন
+        <i class="fas fa-wand-magic-sparkles me-1.5"></i> স্পেস মেরামত ইঞ্জিন
     </button>
     <a href="{{ route('admin.blog-categories') }}" class="btn btn-outline-secondary rounded-pill px-3 shadow-xs">
         <i class="fas fa-shapes me-1"></i> ক্যাটাগরি
@@ -19,7 +83,7 @@
     <a href="{{ route('admin.content.create', 'blog') }}" class="btn btn-dark rounded-pill px-3 shadow-xs fw-semibold">
         <i class="fas fa-plus me-1"></i> নতুন পোস্ট
     </a>
-    <a href="{{ route('blog.index') }}" target="_blank" rel="noopener" class="btn btn-outline-dark rounded-pill px-3 shadow-xs">
+    <a href="{{ route('blog.index') }}" target="_blank" rel="noopener" class="btn btn-outline-primary rounded-pill px-3 shadow-xs">
         <i class="fas fa-arrow-up-right-from-square me-1"></i> ব্লগে দেখুন
     </a>
 @endsection
@@ -28,55 +92,120 @@
 
 {{-- Flash Alert Messages --}}
 @if(session('success'))
-    <div class="alert alert-success alert-dismissible fade show d-flex align-items-center mb-3 rounded-3 shadow-xs" role="alert">
-        <i class="fas fa-circle-check fs-5 me-2 text-success"></i>
-        <div>{{ session('success') }}</div>
+    <div class="alert alert-success alert-dismissible fade show d-flex align-items-center mb-3 rounded-4 shadow-sm" role="alert">
+        <i class="fas fa-circle-check fs-5 me-2.5 text-success"></i>
+        <div class="fw-semibold">{{ session('success') }}</div>
         <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 @endif
 
-{{-- Quick Customizer Summary Banner --}}
-<div class="card border-0 shadow-sm rounded-4 mb-4 bg-white overflow-hidden border-start border-4 border-primary">
-    <div class="card-body p-3.5 d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
-        <div class="d-flex align-items-center gap-3">
-            <div class="rounded-circle bg-primary bg-opacity-10 text-primary p-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 50px; height: 50px;">
-                <i class="fas fa-sliders fs-4"></i>
-            </div>
-            <div>
-                <h6 class="fw-bold mb-1 text-dark">ব্লগ ডিজাইন ও রিডার কাস্টমাইজার কনসোল</h6>
-                <div class="small text-muted">
-                    বর্তমান ফন্ট: <span class="badge bg-light text-dark border">{{ explode(',', $blogSettings['font_family'] ?? '')[0] ?? 'Default' }}</span> | 
-                    লাইভ লাইন স্পেস: <span class="badge bg-light text-primary border">{{ $blogSettings['line_height'] ?? '1.6' }}</span> | 
-                    কবিতা লাইন স্পেস: <span class="badge bg-light text-success border">{{ $blogSettings['poetry_line_height'] ?? '1.45' }}</span>
+@if(session('error'))
+    <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center mb-3 rounded-4 shadow-sm" role="alert">
+        <i class="fas fa-circle-exclamation fs-5 me-2.5 text-danger"></i>
+        <div class="fw-semibold">{{ session('error') }}</div>
+        <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+@endif
+
+{{-- 1. Dynamic Hero Masthead & Management Console --}}
+<div class="card banner-hero-card border-0 shadow rounded-4 mb-4 overflow-hidden position-relative">
+    <div class="card-body p-4">
+        <div class="row g-4 align-items-center">
+            
+            <!-- Left: Current Active Social & Header Banner -->
+            <div class="col-lg-3 col-md-4 text-center text-md-start">
+                <div class="d-inline-block position-relative">
+                    <div class="banner-thumb-box shadow">
+                        <img src="{{ $blogOgBannerUrl }}" alt="Active Ideapatra Banner" id="heroBannerThumb">
+                        <div class="position-absolute bottom-0 start-0 end-0 p-1.5 text-center bg-dark bg-opacity-75" style="font-size: 10px; backdrop-filter: blur(4px);">
+                            <i class="fas fa-share-nodes text-warning me-1"></i> সোশ্যাল ও ব্লগ ব্যানার
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <button type="button" class="btn btn-warning btn-sm rounded-pill px-3 py-1 fw-bold text-dark shadow-xs" 
+                            data-bs-toggle="modal" data-bs-target="#blogCustomizerModal" onclick="switchToBannerTab()">
+                        <i class="fas fa-crop-simple me-1"></i> ব্যানার পরিবর্তন
+                    </button>
                 </div>
             </div>
-        </div>
-        <div class="d-flex align-items-center gap-2">
-            <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-semibold shadow-xs" data-bs-toggle="modal" data-bs-target="#blogCustomizerModal">
-                <i class="fas fa-pen-nib me-1"></i> ডিজাইন পরিবর্তন করুন
-            </button>
-            <button type="button" class="btn btn-outline-success btn-sm rounded-pill px-3 fw-semibold shadow-xs" data-bs-toggle="modal" data-bs-target="#bulkTypographyModal">
-                <i class="fas fa-compress-alt me-1"></i> লেখার স্পেস মেরামত
-            </button>
+
+            <!-- Center: Title, Typography & Live Status -->
+            <div class="col-lg-6 col-md-8">
+                <div class="d-flex align-items-center gap-2 mb-1.5 flex-wrap">
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1 fw-bold">
+                        {{ $blogSettings['hero_badge'] ?? 'সাহিত্য, শিল্প-সংস্কৃতি, গবেষণা ও মুক্তচিন্তা' }}
+                    </span>
+                    <span class="badge bg-white bg-opacity-10 text-white rounded-pill px-2.5 py-1">
+                        <i class="fas fa-font me-1 text-warning"></i> ফন্ট: {{ explode(',', $blogSettings['font_family'] ?? '')[0] ?? 'Hind Siliguri' }}
+                    </span>
+                    <span class="badge bg-white bg-opacity-10 text-white rounded-pill px-2.5 py-1">
+                        <i class="fas fa-arrows-up-down me-1 text-info"></i> লাইন স্পেস: {{ $blogSettings['line_height'] ?? '1.6' }}
+                    </span>
+                </div>
+
+                <h4 class="fw-bold mb-1.5 text-white">
+                    {{ $blogSettings['hero_title'] ?? 'আইডিয়াপত্র — সমকালীন সাহিত্য ও চিন্তা' }}
+                </h4>
+                <p class="text-white-50 small mb-3 line-clamp-2" style="font-size: 0.88rem; max-width: 600px;">
+                    {{ $blogSettings['hero_subtitle'] ?? 'সমকালীন সাহিত্য আলোচনা, প্রবন্ধ, ছোটগল্প, কবিতা, নতুন বইয়ের প্রামাণ্য পর্যালোচনা ও গবেষণামূলক লেখার উন্মুক্ত ডিজিটাল সাময়িকী।' }}
+                </p>
+
+                <!-- Quick Action Pills -->
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <button type="button" class="btn btn-outline-light btn-sm rounded-pill px-3 shadow-xs" data-bs-toggle="modal" data-bs-target="#blogCustomizerModal">
+                        <i class="fas fa-palette text-warning me-1"></i> ডিজাইন পরিবর্তন
+                    </button>
+                    <button type="button" class="btn btn-outline-light btn-sm rounded-pill px-3 shadow-xs" data-bs-toggle="modal" data-bs-target="#bulkTypographyModal">
+                        <i class="fas fa-wand-magic-sparkles text-success me-1"></i> লেখার স্পেস মেরামত
+                    </button>
+                    <a href="{{ route('blog.index') }}" target="_blank" class="btn btn-outline-info btn-sm rounded-pill px-3 shadow-xs">
+                        <i class="fas fa-external-link-alt me-1"></i> লাইভ আইডিয়াপত্র
+                    </a>
+                </div>
+            </div>
+
+            <!-- Right: Quick Stat Summary Ring -->
+            <div class="col-lg-3 text-center text-lg-end">
+                <div class="p-3 rounded-4 bg-white bg-opacity-10 border border-white border-opacity-10 d-inline-block text-start" style="min-width: 200px;">
+                    <div class="d-flex justify-content-between align-items-center mb-1.5">
+                        <span class="small text-white-50">মোট পোস্ট:</span>
+                        <span class="fw-bold fs-6 text-white">@bn($stats['total'] ?? 0)</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-1.5">
+                        <span class="small text-success"><i class="fas fa-check-circle me-1"></i>প্রকাশিত:</span>
+                        <span class="fw-bold text-success">@bn($stats['published'] ?? 0)</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-1.5">
+                        <span class="small text-warning"><i class="fas fa-clock me-1"></i>অপেক্ষমাণ:</span>
+                        <span class="fw-bold text-warning">@bn($stats['pending'] ?? 0)</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="small text-info"><i class="fas fa-star me-1 text-warning"></i>নির্বাচিত:</span>
+                        <span class="fw-bold text-info">@bn($stats['featured'] ?? 0)</span>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 </div>
 
-{{-- Stat Cards --}}
+{{-- 2. Stat Metric Cards --}}
 <div class="row g-3 mb-4">
     <div class="col-6 col-md-3">
-        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-primary">
+        <a href="{{ route('admin.blog') }}" class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-primary text-decoration-none hover-lift h-100">
             <div class="d-flex align-items-center justify-content-between">
                 <div>
-                    <span class="text-muted small fw-semibold">মোট ব্লগ পোস্ট</span>
+                    <span class="text-muted small fw-semibold">মোট লেখা</span>
                     <h3 class="fw-bold mb-0 text-primary">@bn($stats['total'] ?? 0)</h3>
                 </div>
                 <div class="rounded-circle bg-primary-subtle text-primary p-3"><i class="fas fa-blog fs-4"></i></div>
             </div>
-        </div>
+        </a>
     </div>
     <div class="col-6 col-md-3">
-        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-success">
+        <a href="{{ route('admin.blog', ['status' => 'published']) }}" class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-success text-decoration-none hover-lift h-100">
             <div class="d-flex align-items-center justify-content-between">
                 <div>
                     <span class="text-muted small fw-semibold">প্রকাশিত (অনুমোদিত)</span>
@@ -84,225 +213,293 @@
                 </div>
                 <div class="rounded-circle bg-success-subtle text-success p-3"><i class="fas fa-check-double fs-4"></i></div>
             </div>
-        </div>
+        </a>
     </div>
     <div class="col-6 col-md-3">
-        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-warning">
+        <a href="{{ route('admin.blog', ['status' => 'pending']) }}" class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-warning text-decoration-none hover-lift h-100">
             <div class="d-flex align-items-center justify-content-between">
                 <div>
-                    <span class="text-muted small fw-semibold">অপেক্ষমাণ (Pending)</span>
+                    <span class="text-muted small fw-semibold">অনুমোদন অপেক্ষমাণ</span>
                     <h3 class="fw-bold mb-0 text-warning">@bn($stats['pending'] ?? 0)</h3>
                 </div>
                 <div class="rounded-circle bg-warning-subtle text-warning p-3"><i class="fas fa-clock fs-4"></i></div>
             </div>
-        </div>
+        </a>
     </div>
     <div class="col-6 col-md-3">
-        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-danger">
+        <a href="{{ route('admin.blog', ['status' => 'featured']) }}" class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-info text-decoration-none hover-lift h-100">
             <div class="d-flex align-items-center justify-content-between">
                 <div>
-                    <span class="text-muted small fw-semibold">বাতিল (প্রত্যাখ্যাত)</span>
-                    <h3 class="fw-bold mb-0 text-danger">@bn($stats['rejected'] ?? 0)</h3>
+                    <span class="text-muted small fw-semibold">নির্বাচিত ফিচার্ড পোস্ট</span>
+                    <h3 class="fw-bold mb-0 text-info">@bn($stats['featured'] ?? 0)</h3>
                 </div>
-                <div class="rounded-circle bg-danger-subtle text-danger p-3"><i class="fas fa-circle-xmark fs-4"></i></div>
+                <div class="rounded-circle bg-info-subtle text-info p-3"><i class="fas fa-star fs-4 text-warning"></i></div>
             </div>
-        </div>
+        </a>
     </div>
 </div>
 
-{{-- Filters --}}
-<div class="card border-0 shadow-sm rounded-4 mb-4">
+{{-- 3. Advanced Multi-Filter Bar --}}
+<div class="card border-0 shadow-sm rounded-4 mb-4 bg-white">
     <div class="card-body p-3">
-        <form action="{{ route('admin.blog') }}" method="GET" class="row g-2 align-items-center">
-            <div class="col-md-6">
+        <form action="{{ route('admin.blog') }}" method="GET" class="row g-2 align-items-center" id="blogFilterForm">
+            <!-- Search Keyword -->
+            <div class="col-lg-4 col-md-6">
                 <div class="input-group">
                     <span class="input-group-text bg-light border-end-0"><i class="fas fa-search text-muted"></i></span>
                     <input type="search" name="search" class="form-control border-start-0" 
-                           placeholder="পোস্টের শিরোনাম, বিষয় বা slug দিয়ে খুঁজুন..." value="{{ request('search') }}">
+                           placeholder="পোস্টের শিরোনাম, বিষয়, লেখক বা slug..." value="{{ request('search') }}">
                 </div>
             </div>
-            <div class="col-md-4">
+
+            <!-- Category Filter -->
+            <div class="col-lg-2 col-md-3 col-6">
+                <select name="category" class="form-select" onchange="this.form.submit()">
+                    <option value="">সকল ক্যাটাগরি</option>
+                    @foreach($categories as $cat)
+                        <option value="{{ $cat->slug }}" @selected(request('category') == $cat->slug || request('category') == $cat->id)>
+                            {{ $cat->name }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <!-- Status Filter -->
+            <div class="col-lg-2 col-md-3 col-6">
                 <select name="status" class="form-select" onchange="this.form.submit()">
-                    <option value="all" @selected(request('status') === 'all' || !request('status'))>সকল পোস্ট</option>
+                    <option value="all" @selected(request('status') === 'all' || !request('status'))>সকল অবস্থা</option>
                     <option value="published" @selected(request('status') === 'published')>প্রকাশিত (Published)</option>
-                    <option value="pending" @selected(request('status') === 'pending')>অপেক্ষমাণ (Pending Review)</option>
+                    <option value="pending" @selected(request('status') === 'pending')>অপেক্ষমাণ (Pending)</option>
+                    <option value="featured" @selected(request('status') === 'featured')>নির্বাচিত (Featured)</option>
                     <option value="draft" @selected(request('status') === 'draft')>খসড়া (Draft)</option>
                     <option value="rejected" @selected(request('status') === 'rejected')>বাতিল (Rejected)</option>
                 </select>
             </div>
-            <div class="col-md-2 d-flex gap-2">
-                <button type="submit" class="btn btn-primary w-100"><i class="fas fa-filter me-1"></i> ফিল্টার</button>
-                @if(request()->hasAny(['search', 'status']))
-                    <a href="{{ route('admin.blog') }}" class="btn btn-light border" title="রিসেট"><i class="fas fa-rotate-left"></i></a>
+
+            <!-- Items Per Page -->
+            <div class="col-lg-2 col-md-3 col-6">
+                <select name="per_page" class="form-select" onchange="this.form.submit()">
+                    <option value="20" @selected(($perPage ?? 20) == 20)>প্রতি পেজে ২০টি</option>
+                    <option value="50" @selected(($perPage ?? 20) == 50)>প্রতি পেজে ৫০টি</option>
+                    <option value="100" @selected(($perPage ?? 20) == 100)>প্রতি পেজে ১০০টি</option>
+                </select>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="col-lg-2 col-md-3 col-6 d-flex gap-2">
+                <button type="submit" class="btn btn-primary w-100 rounded-3"><i class="fas fa-filter me-1"></i> ফিল্টার</button>
+                @if(request()->hasAny(['search', 'status', 'category', 'is_featured', 'per_page']))
+                    <a href="{{ route('admin.blog') }}" class="btn btn-light border rounded-3" title="রিসেট"><i class="fas fa-rotate-left"></i></a>
                 @endif
             </div>
         </form>
     </div>
 </div>
 
-{{-- Data Table --}}
-<div class="adm-card shadow-sm rounded-4 overflow-hidden">
-    @if ($posts->isEmpty())
-        <div class="empty-state py-5 text-center">
-            <i class="fas fa-blog fs-1 text-muted opacity-50 mb-3"></i>
-            <h5 class="fw-bold text-muted">কোনো ব্লগ পোস্ট পাওয়া যায়নি</h5>
-            <p class="text-muted small">নতুন পোস্ট তৈরি করুন অথবা অন্য ফিল্টার ব্যবহার করুন।</p>
+{{-- 4. Batch Actions Bar & Interactive Post Table --}}
+<form action="{{ route('admin.blog.bulk-action') }}" method="POST" id="bulkActionForm">
+    @csrf
+    
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3 px-1">
+        <div class="d-flex align-items-center gap-2">
+            <div class="form-check me-2">
+                <input class="form-check-input" type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this)">
+                <label class="form-check-label small fw-semibold text-muted" for="selectAllCheckbox">সব নির্বাচন</label>
+            </div>
+            
+            <div class="input-group input-group-sm" style="max-width: 280px;">
+                <select name="bulk_action" id="bulkActionSelect" class="form-select form-select-sm rounded-start-pill">
+                    <option value="">বাল্ক অ্যাকশন বেছে নিন...</option>
+                    <option value="publish">নির্বাচিতগুলো প্রকাশ ও অনুমোদন করুন</option>
+                    <option value="draft">নির্বাচিতগুলো ড্রাফট করুন</option>
+                    <option value="delete">নির্বাচিতগুলো মুছে ফেলুন</option>
+                </select>
+                <button type="submit" class="btn btn-dark btn-sm rounded-end-pill px-3 fw-semibold" onclick="return confirmBulkAction()">
+                    প্রয়োগ
+                </button>
+            </div>
         </div>
-    @else
-        <div class="table-responsive">
-            <table class="table adm-table align-middle mb-0">
-                <thead class="table-light">
-                    <tr>
-                        <th class="ps-3">#</th>
-                        <th>পোস্টের শিরোনাম</th>
-                        <th>লেখক / জমাদানকারী</th>
-                        <th>ক্যাটাগরি</th>
-                        <th>অবস্থা (Status)</th>
-                        <th>ভিউ</th>
-                        <th>তারিখ</th>
-                        <th class="text-end pe-3" style="min-width: 170px;">অ্যাকশন</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach ($posts as $n => $post)
-                        @php
-                            $isPublished = ($post->status === 'published' || $post->mod_status === 'approved');
-                            $isPending = ($post->status === 'pending' || $post->mod_status === 'pending');
-                            $isRejected = ($post->status === 'rejected' || $post->mod_status === 'rejected');
-                            $isDraft = ($post->status === 'draft');
-                        @endphp
+
+        <div class="text-muted small">
+            মোট @bn($posts->total())টি পোস্টের মধ্যে @bn($posts->firstItem() ?? 0)–@bn($posts->lastItem() ?? 0) দেখাচ্ছে
+        </div>
+    </div>
+
+    <div class="adm-card shadow-sm rounded-4 overflow-hidden mb-4 bg-white">
+        @if ($posts->isEmpty())
+            <div class="empty-state py-5 text-center">
+                <i class="fas fa-newspaper fs-1 text-muted opacity-50 mb-3"></i>
+                <h5 class="fw-bold text-muted">কোনো ব্লগ পোস্ট পাওয়া যায়নি</h5>
+                <p class="text-muted small">নতুন পোস্ট তৈরি করুন অথবা অন্য ফিল্টার ব্যবহার করে দেখুন।</p>
+                <a href="{{ route('admin.content.create', 'blog') }}" class="btn btn-primary btn-sm rounded-pill px-4">
+                    <i class="fas fa-plus me-1"></i> নতুন পোস্ট লিখুন
+                </a>
+            </div>
+        @else
+            <div class="table-responsive">
+                <table class="table adm-table align-middle mb-0">
+                    <thead class="table-light">
                         <tr>
-                            <td class="ps-3 text-muted small">@bn($posts->firstItem() + $n)</td>
-                            <td>
-                                <div class="fw-bold text-dark">{{ $post->title }}</div>
-                                <div class="text-muted small">{{ $post->slug }}</div>
-                                @if($isRejected && $post->rejection_reason)
-                                    <div class="small text-danger mt-1">
-                                        <i class="fas fa-info-circle me-1"></i>বাতিলের কারণ: {{ $post->rejection_reason }}
-                                    </div>
-                                @endif
-                            </td>
-                            <td>
-                                <div class="fw-semibold">{{ $post->author?->name ?? $post->submitter?->name ?? '—' }}</div>
-                                @if($post->author?->phone)
-                                    <div class="text-muted small"><i class="fas fa-phone me-1"></i>{{ $post->author->phone }}</div>
-                                @endif
-                            </td>
-                            <td>
-                                <span class="badge bg-light text-dark border">{{ $post->category?->name ?? 'সাধারণ' }}</span>
-                            </td>
-                            <td>
-                                @if($isPublished)
-                                    <span class="badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1 rounded-pill">
-                                        <i class="fas fa-check-circle me-1"></i>প্রকাশিত
-                                    </span>
-                                @elseif($isPending)
-                                    <span class="badge bg-warning-subtle text-warning border border-warning-subtle px-2.5 py-1 rounded-pill">
-                                        <i class="fas fa-clock me-1"></i>অনুমোদন অপেক্ষমাণ
-                                    </span>
-                                @elseif($isRejected)
-                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2.5 py-1 rounded-pill">
-                                        <i class="fas fa-circle-xmark me-1"></i>বাতিল
-                                    </span>
-                                @else
-                                    <span class="badge bg-secondary-subtle text-secondary px-2.5 py-1 rounded-pill">খসড়া</span>
-                                @endif
-                            </td>
-                            <td class="text-muted small">
-                                <i class="fas fa-eye me-1"></i>@bn($post->views_count ?? 0)
-                            </td>
-                            <td class="text-muted small">
-                                {{ $post->created_at ? $post->created_at->format('d M, Y') : '—' }}
-                            </td>
-                            <td class="text-end pe-3">
-                                <div class="d-flex align-items-center justify-content-end gap-1.5">
-                                    {{-- Quick Approve/Reject buttons for pending posts --}}
-                                    @if($isPending)
-                                        <form action="{{ route('admin.content.approve', ['type' => 'blog', 'id' => $post->id]) }}" method="POST" class="d-inline">
-                                            @csrf
-                                            @method('PATCH')
-                                            <button type="submit" class="btn btn-sm btn-success px-2 py-1" title="অনুমোদন ও প্রকাশ করুন">
-                                                <i class="fas fa-check"></i>
-                                            </button>
-                                        </form>
+                            <th class="ps-3" style="width: 40px;"></th>
+                            <th style="width: 40px;">#</th>
+                            <th style="width: 40px;" class="text-center" title="নির্বাচিত পোস্ট">★</th>
+                            <th style="min-width: 260px;">পোস্টের শিরোনাম ও প্রচ্ছদ</th>
+                            <th>লেখক / জমাদানকারী</th>
+                            <th>ক্যাটাগরি</th>
+                            <th>অবস্থা (Status)</th>
+                            <th>ভিউ</th>
+                            <th>তারিখ</th>
+                            <th class="text-end pe-3" style="min-width: 170px;">অ্যাকশন</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($posts as $n => $post)
+                            @php
+                                $isPublished = ($post->status === 'published' || $post->mod_status === 'approved');
+                                $isPending = ($post->status === 'pending' || $post->mod_status === 'pending');
+                                $isRejected = ($post->status === 'rejected' || $post->mod_status === 'rejected');
+                                $isDraft = ($post->status === 'draft');
+                                $coverImg = $post->cover_url ?: ($post->featured_image ? (str_starts_with($post->featured_image, 'http') ? $post->featured_image : asset('storage/' . ltrim($post->featured_image, '/'))) : null);
+                            @endphp
+                            <tr id="postRow{{ $post->id }}">
+                                <!-- Checkbox -->
+                                <td class="ps-3">
+                                    <input class="form-check-input row-checkbox" type="checkbox" name="selected_ids[]" value="{{ $post->id }}">
+                                </td>
 
-                                        <button type="button" class="btn btn-sm btn-outline-danger px-2 py-1" 
-                                                data-bs-toggle="modal" data-bs-target="#rejectModal{{ $post->id }}" title="বাতিল করুন">
-                                            <i class="fas fa-xmark"></i>
-                                        </button>
+                                <!-- Row Number -->
+                                <td class="text-muted small">@bn($posts->firstItem() + $n)</td>
 
-                                        {{-- Reject Reason Modal --}}
-                                        <div class="modal fade text-start" id="rejectModal{{ $post->id }}" tabindex="-1" aria-hidden="true">
-                                            <div class="modal-dialog modal-dialog-centered">
-                                                <div class="modal-content rounded-4 border-0 shadow">
-                                                    <div class="modal-header bg-danger text-white">
-                                                        <h5 class="modal-title fs-6 fw-bold"><i class="fas fa-ban me-2"></i>পোস্ট বাতিল করুন</h5>
-                                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                    </div>
-                                                    <form action="{{ route('admin.content.reject', ['type' => 'blog', 'id' => $post->id]) }}" method="POST">
-                                                        @csrf
-                                                        @method('PATCH')
-                                                        <div class="modal-body p-4">
-                                                            <p class="mb-2 fw-semibold">আপনি কি "<strong>{{ $post->title }}</strong>" পোস্টটি বাতিল করতে চান?</p>
-                                                            <div class="mb-3">
-                                                                <label class="form-label small text-muted">বাতিলকরণের কারণ / মন্তব্য (ঐচ্ছিক):</label>
-                                                                <textarea name="reason" rows="3" class="form-control rounded-3" placeholder="কেন বাতিল করা হলো লিখুন..."></textarea>
-                                                            </div>
-                                                        </div>
-                                                        <div class="modal-footer bg-light py-2">
-                                                            <button type="button" class="btn btn-secondary rounded-pill px-3" data-bs-dismiss="modal">ফিরে যান</button>
-                                                            <button type="submit" class="btn btn-danger rounded-pill px-4">বাতিল করুন</button>
-                                                        </div>
-                                                    </form>
-                                                </div>
+                                <!-- Featured Star Toggle -->
+                                <td class="text-center">
+                                    <button type="button" class="btn-featured-star {{ $post->is_featured ? 'active' : '' }}" 
+                                            id="starBtn{{ $post->id }}"
+                                            onclick="toggleFeatured({{ $post->id }})" 
+                                            title="{{ $post->is_featured ? 'নির্বাচিত পোস্ট (ক্লিক করে আন-ফিচার্ড করুন)' : 'সাধারণ পোস্ট (ক্লিক করে ফিচার্ড করুন)' }}">
+                                        <i class="fa-solid fa-star"></i>
+                                    </button>
+                                </td>
+
+                                <!-- Post Title & Thumbnail -->
+                                <td>
+                                    <div class="d-flex align-items-center gap-2.5">
+                                        @if($coverImg)
+                                            <img src="{{ $coverImg }}" alt="{{ $post->title }}" 
+                                                 class="rounded-3 flex-shrink-0 shadow-xs object-fit-cover" 
+                                                 style="width: 48px; height: 48px; border: 1px solid #e2e8f0;">
+                                        @else
+                                            <div class="rounded-3 bg-light d-flex align-items-center justify-content-center flex-shrink-0 text-muted" 
+                                                 style="width: 48px; height: 48px; border: 1px solid #e2e8f0;">
+                                                <i class="fas fa-file-lines opacity-50"></i>
                                             </div>
+                                        @endif
+                                        <div>
+                                            <a href="{{ route('admin.content.edit', ['type' => 'blog', 'id' => $post->id]) }}" 
+                                               class="fw-bold text-dark text-decoration-none hover-primary d-block line-clamp-1" title="{{ $post->title }}">
+                                                {{ $post->title }}
+                                            </a>
+                                            <div class="text-muted small" style="font-size: 0.78rem;">
+                                                <span class="font-monospace text-muted">{{ $post->slug }}</span>
+                                            </div>
+                                            @if($isRejected && $post->rejection_reason)
+                                                <div class="small text-danger mt-0.5" style="font-size: 0.76rem;">
+                                                    <i class="fas fa-info-circle me-1"></i>{{ $post->rejection_reason }}
+                                                </div>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <!-- Author / Submitter -->
+                                <td>
+                                    <div class="fw-semibold text-dark">{{ $post->author?->name ?? $post->submitter?->name ?? $post->author_name ?? '—' }}</div>
+                                    @if($post->author?->phone)
+                                        <div class="text-muted small" style="font-size: 0.76rem;">
+                                            <a href="https://wa.me/88{{ preg_replace('/[^0-9]/', '', $post->author->phone) }}" target="_blank" class="text-decoration-none text-muted">
+                                                <i class="fab fa-whatsapp text-success me-1"></i>{{ $post->author->phone }}
+                                            </a>
                                         </div>
                                     @endif
+                                </td>
 
-                                    {{-- Edit action --}}
-                                    <a href="{{ route('admin.content.edit', ['type' => 'blog', 'id' => $post->id]) }}" 
-                                       class="btn btn-sm btn-outline-primary px-2 py-1" title="সম্পাদনা করুন">
-                                        <i class="fas fa-pen-to-square"></i>
-                                    </a>
+                                <!-- Category -->
+                                <td>
+                                    <span class="badge bg-light text-dark border rounded-pill px-2.5 py-1">
+                                        {{ $post->category?->name ?? 'সাধারণ' }}
+                                    </span>
+                                </td>
 
-                                    {{-- Delete action --}}
-                                    <form action="{{ route('admin.content.destroy', ['type' => 'blog', 'id' => $post->id]) }}" 
-                                          method="POST" class="d-inline"
-                                          onsubmit="return confirm('আপনি কি নিশ্চিত যে এই ব্লগ পোস্টটি মুছে ফেলতে চান?');">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-outline-danger px-2 py-1" title="মুছে ফেলুন">
+                                <!-- Dynamic Status Dropdown -->
+                                <td>
+                                    <select class="form-select form-select-sm status-select-badge 
+                                            {{ $isPublished ? 'bg-success-subtle text-success border-success-subtle' : ($isPending ? 'bg-warning-subtle text-warning border-warning-subtle' : ($isRejected ? 'bg-danger-subtle text-danger border-danger-subtle' : 'bg-secondary-subtle text-secondary border-secondary-subtle')) }}" 
+                                            id="statusSelect{{ $post->id }}"
+                                            onchange="updatePostStatus({{ $post->id }}, this.value)">
+                                        <option value="published" @selected($isPublished)>✓ প্রকাশিত</option>
+                                        <option value="pending" @selected($isPending)>⏳ অপেক্ষমাণ</option>
+                                        <option value="draft" @selected($isDraft)>📝 খসড়া</option>
+                                        <option value="rejected" @selected($isRejected)>✕ বাতিল</option>
+                                    </select>
+                                </td>
+
+                                <!-- Views -->
+                                <td class="text-muted small">
+                                    <i class="fas fa-eye text-primary me-1"></i>@bn($post->views_count ?? $post->view_count ?? 0)
+                                </td>
+
+                                <!-- Date -->
+                                <td class="text-muted small">
+                                    {{ $post->published_at ? $post->published_at->format('d M, Y') : ($post->created_at ? $post->created_at->format('d M, Y') : '—') }}
+                                </td>
+
+                                <!-- Actions -->
+                                <td class="text-end pe-3">
+                                    <div class="d-flex align-items-center justify-content-end gap-1.5">
+                                        @if($isPending)
+                                            <button type="button" class="btn btn-sm btn-success px-2 py-1 shadow-xs" 
+                                                    onclick="updatePostStatus({{ $post->id }}, 'published')" title="অনুমোদন ও প্রকাশ করুন">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                        @endif
+
+                                        <a href="{{ route('admin.content.edit', ['type' => 'blog', 'id' => $post->id]) }}" 
+                                           class="btn btn-sm btn-outline-primary px-2 py-1 shadow-xs" title="সম্পাদনা করুন">
+                                            <i class="fas fa-pen-to-square"></i>
+                                        </a>
+
+                                        @if($isPublished)
+                                            <a href="{{ route('blog.show', $post->slug) }}" target="_blank" rel="noopener" 
+                                               class="btn btn-sm btn-light border px-2 py-1 shadow-xs text-primary" title="সাইটে পড়ুন">
+                                                <i class="fas fa-arrow-up-right-from-square"></i>
+                                            </a>
+                                        @endif
+
+                                        <button type="button" class="btn btn-sm btn-outline-danger px-2 py-1 shadow-xs" 
+                                                onclick="deletePost({{ $post->id }}, '{{ addslashes($post->title) }}')" title="মুছে ফেলুন">
                                             <i class="fas fa-trash-can"></i>
                                         </button>
-                                    </form>
-
-                                    @if($isPublished)
-                                        <a href="{{ route('blog.show', $post->slug) }}" target="_blank" rel="noopener" 
-                                           class="btn btn-sm btn-light border px-2 py-1" title="সাইটে দেখুন">
-                                            <i class="fas fa-eye text-muted"></i>
-                                        </a>
-                                    @endif
-                                </div>
-                            </td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-
-        @if ($posts->hasPages())
-            <div class="adm-card__foot d-flex flex-wrap justify-content-between align-items-center gap-2 p-3 bg-white border-top">
-                <span class="text-muted small">
-                    মোট @bn($posts->total())টির মধ্যে @bn($posts->firstItem())–@bn($posts->lastItem()) দেখানো হচ্ছে
-                </span>
-                {{ $posts->links() }}
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
             </div>
+
+            @if ($posts->hasPages())
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 p-3 bg-white border-top">
+                    <span class="text-muted small">
+                        মোট @bn($posts->total())টির মধ্যে @bn($posts->firstItem())–@bn($posts->lastItem()) দেখানো হচ্ছে
+                    </span>
+                    {{ $posts->links() }}
+                </div>
+            @endif
         @endif
-    @endif
-</div>
+    </div>
+</form>
 
 {{-- ========================================================================= --}}
-{{-- 1. BLOG DESIGN & TYPOGRAPHY CUSTOMIZER MODAL                              --}}
+{{-- 5. BLOG DESIGN & BANNER CUSTOMIZER MODAL                                  --}}
 {{-- ========================================================================= --}}
 <div class="modal fade" id="blogCustomizerModal" tabindex="-1" aria-labelledby="blogCustomizerModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
@@ -313,14 +510,14 @@
                         <i class="fas fa-palette text-white"></i>
                     </div>
                     <div>
-                        <h5 class="modal-title fw-bold fs-6 mb-0 text-white" id="blogCustomizerModalLabel">ব্লগ ও সাহিত্যপত্র ডাইনামিক ডিজাইন কাস্টমাইজার</h5>
-                        <span class="small text-white-50" style="font-size: 0.78rem;">হেডার ব্যানার, লেখার ফন্ট, লাইন স্পেসিং ও রিডিং লেআউট নিয়ন্ত্রণ করুন</span>
+                        <h5 class="modal-title fw-bold fs-6 mb-0 text-white" id="blogCustomizerModalLabel">আইডিয়াপত্র ও ব্লগ ডাইনামিক ডিজাইন ও ব্যানার কাস্টমাইজার</h5>
+                        <span class="small text-white-50" style="font-size: 0.78rem;">সোশ্যাল ব্যানার, হেডার গ্র্যাডিয়েন্ট, ফন্ট, লাইন স্পেসিং ও রিডিং লেআউট নিয়ন্ত্রণ করুন</span>
                     </div>
                 </div>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
 
-            <form action="{{ route('admin.blog.settings.update') }}" method="POST" id="blogCustomizerForm">
+            <form action="{{ route('admin.blog.settings.update') }}" method="POST" enctype="multipart/form-data" id="blogCustomizerForm">
                 @csrf
                 <div class="modal-body p-4 bg-light">
                     <div class="row g-4">
@@ -331,26 +528,110 @@
                             <!-- Customizer Navigation Tabs -->
                             <ul class="nav nav-pills nav-fill bg-white p-1.5 rounded-pill shadow-xs border mb-3" id="customizerTabs" role="tablist">
                                 <li class="nav-item" role="presentation">
-                                    <button class="nav-link active rounded-pill fw-semibold py-1.5 small" id="tab-typography-btn" data-bs-toggle="pill" data-bs-target="#tab-typography" type="button" role="tab">
-                                        <i class="fas fa-font me-1"></i> ফন্ট ও লাইন স্পেসিং
+                                    <button class="nav-link active rounded-pill fw-semibold py-1.5 small" id="tab-banner-btn" data-bs-toggle="pill" data-bs-target="#tab-banner" type="button" role="tab">
+                                        <i class="fas fa-image me-1 text-warning"></i> ব্যানার ও হেডার
                                     </button>
                                 </li>
                                 <li class="nav-item" role="presentation">
-                                    <button class="nav-link rounded-pill fw-semibold py-1.5 small" id="tab-header-btn" data-bs-toggle="pill" data-bs-target="#tab-header" type="button" role="tab">
-                                        <i class="fas fa-image me-1"></i> হেডার ও ব্যানার
+                                    <button class="nav-link rounded-pill fw-semibold py-1.5 small" id="tab-typography-btn" data-bs-toggle="pill" data-bs-target="#tab-typography" type="button" role="tab">
+                                        <i class="fas fa-font me-1 text-primary"></i> ফন্ট ও লাইন স্পেস
                                     </button>
                                 </li>
                                 <li class="nav-item" role="presentation">
                                     <button class="nav-link rounded-pill fw-semibold py-1.5 small" id="tab-reading-btn" data-bs-toggle="pill" data-bs-target="#tab-reading" type="button" role="tab">
-                                        <i class="fas fa-book-open me-1"></i> রিডার ও লেআউট
+                                        <i class="fas fa-book-open me-1 text-success"></i> রিডার ও লেআউট
                                     </button>
                                 </li>
                             </ul>
 
                             <div class="tab-content" id="customizerTabsContent">
                                 
-                                <!-- Tab 1: Typography & Line Height -->
-                                <div class="tab-pane fade show active" id="tab-typography" role="tabpanel">
+                                <!-- Tab 1: Header & Social Media Open Graph Banner -->
+                                <div class="tab-pane fade show active" id="tab-banner" role="tabpanel">
+                                    <div class="card border-0 shadow-xs rounded-3 p-3.5 bg-white mb-3">
+                                        <h6 class="fw-bold text-dark mb-3 pb-2 border-bottom d-flex align-items-center gap-2">
+                                            <i class="fas fa-share-nodes text-primary"></i>
+                                            <span>সোশ্যাল মিডিয়া ও আইডিয়াপত্র ব্যানার</span>
+                                        </h6>
+
+                                        <div class="row g-3">
+                                            <!-- Current Banner Preview & Uploader -->
+                                            <div class="col-12">
+                                                <div class="p-3 bg-light rounded-4 border mb-3 text-center">
+                                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                                        <span class="badge bg-white text-dark border small fw-bold">
+                                                            <i class="fas fa-crop-simple text-primary me-1"></i> ১২০০ × ৬৩০ px (১৬:৯ রেশিও)
+                                                        </span>
+                                                        <span class="small text-muted">লাইভ ক্রপার সক্রিয়</span>
+                                                    </div>
+
+                                                    <div class="banner-thumb-box mx-auto mb-2 shadow-xs" style="max-width: 320px; aspect-ratio: 16/9;">
+                                                        <img src="{{ $blogOgBannerUrl }}" alt="Banner Preview" id="modalBannerPreview">
+                                                    </div>
+
+                                                    <div class="text-start mt-3">
+                                                        <label class="form-label small fw-bold text-dark mb-1">কাস্টম ব্যানার ফাইল নির্বাচন ও ক্রপ করুন:</label>
+                                                        <input type="file" id="modalBannerInput" name="blog_og_banner" class="form-control rounded-3" accept="image/*" onchange="initBannerCropper(this)">
+                                                        <input type="hidden" name="blog_og_banner_cropped" id="modalBannerCropped">
+                                                        <div class="form-text small text-muted">ফাইল নির্বাচন করলে স্বয়ংক্রিয় ১৬:৯ ক্রপ উইন্ডো ওপেন হবে।</div>
+                                                    </div>
+
+                                                    <div class="form-check text-start mt-2">
+                                                        <input class="form-check-input" type="checkbox" name="remove_blog_og_banner" value="1" id="rmBlogBannerModal">
+                                                        <label class="form-check-label small text-danger fw-semibold" for="rmBlogBannerModal">কাস্টম ব্যানার মুছে ডিফল্ট ব্যানার ব্যবহার করুন</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Header Gradient Scheme -->
+                                            <div class="col-12">
+                                                <label class="form-label small fw-bold text-dark mb-1">হেডার কালার থিম (Header Banner Gradient):</label>
+                                                <select name="header_gradient" id="custHeaderGradient" class="form-select form-select-sm" onchange="updateLivePreview()">
+                                                    <option value="linear-gradient(135deg, #0c4a6e 0%, #0369a1 50%, #0284c7 100%)" @selected(($blogSettings['header_gradient'] ?? '') == 'linear-gradient(135deg, #0c4a6e 0%, #0369a1 50%, #0284c7 100%)')>নীল ও আকাশী (Ocean Blue Gradient)</option>
+                                                    <option value="linear-gradient(135deg, #064e3b 0%, #047857 50%, #059669 100%)" @selected(($blogSettings['header_gradient'] ?? '') == 'linear-gradient(135deg, #064e3b 0%, #047857 50%, #059669 100%)')>সবুজ ও পান্না (Emerald Green Gradient)</option>
+                                                    <option value="linear-gradient(135deg, #312e81 0%, #4338ca 50%, #6366f1 100%)" @selected(($blogSettings['header_gradient'] ?? '') == 'linear-gradient(135deg, #312e81 0%, #4338ca 50%, #6366f1 100%)')>রয়েল ইন্ডিগো (Royal Indigo Gradient)</option>
+                                                    <option value="linear-gradient(135deg, #18181b 0%, #27272a 50%, #3f3f46 100%)" @selected(($blogSettings['header_gradient'] ?? '') == 'linear-gradient(135deg, #18181b 0%, #27272a 50%, #3f3f46 100%)')>ক্লাসিক চারকোল (Classic Dark Graphite)</option>
+                                                    <option value="linear-gradient(135deg, #881337 0%, #9f1239 50%, #be123c 100%)" @selected(($blogSettings['header_gradient'] ?? '') == 'linear-gradient(135deg, #881337 0%, #9f1239 50%, #be123c 100%)')>ডিপ মেরুন (Deep Crimson Velvet)</option>
+                                                </select>
+                                            </div>
+
+                                            <!-- Hero Badge -->
+                                            <div class="col-12">
+                                                <label class="form-label small fw-bold text-dark mb-1">ব্যানার ব্যাজ টেক্সট (Top Badge):</label>
+                                                <input type="text" name="hero_badge" id="custHeroBadge" class="form-control form-control-sm" 
+                                                       value="{{ $blogSettings['hero_badge'] ?? 'সাহিত্য, শিল্প-সংস্কৃতি, গবেষণা ও মুক্তচিন্তা' }}" oninput="updateLivePreview()">
+                                            </div>
+
+                                            <!-- Hero Title -->
+                                            <div class="col-12">
+                                                <label class="form-label small fw-bold text-dark mb-1">মূল শিরোনাম (Hero Title):</label>
+                                                <input type="text" name="hero_title" id="custHeroTitle" class="form-control form-control-sm fw-bold" 
+                                                       value="{{ $blogSettings['hero_title'] ?? 'আইডিয়াপত্র — সমকালীন সাহিত্য ও চিন্তা' }}" oninput="updateLivePreview()">
+                                            </div>
+
+                                            <!-- Hero Subtitle -->
+                                            <div class="col-12">
+                                                <label class="form-label small fw-bold text-dark mb-1">সাব-শিরোনাম ও বিবরণী (Hero Subtitle):</label>
+                                                <textarea name="hero_subtitle" id="custHeroSubtitle" rows="2" class="form-control form-control-sm" oninput="updateLivePreview()">{{ $blogSettings['hero_subtitle'] ?? 'সমকালীন সাহিত্য আলোচনা, প্রবন্ধ, ছোটগল্প, কবিতা, নতুন বইয়ের প্রামাণ্য পর্যালোচনা ও গবেষণামূলক লেখার উন্মুক্ত ডিজিটাল সাময়িকী।' }}</textarea>
+                                            </div>
+
+                                            <!-- Write Button Text & URL -->
+                                            <div class="col-6">
+                                                <label class="form-label small fw-bold text-dark mb-1">লেখা জমা বাটন টেক্সট:</label>
+                                                <input type="text" name="write_button_text" id="custWriteBtnText" class="form-control form-control-sm" 
+                                                       value="{{ $blogSettings['write_button_text'] ?? 'নিজের লেখা পোস্ট করুন' }}" oninput="updateLivePreview()">
+                                            </div>
+                                            <div class="col-6">
+                                                <label class="form-label small fw-bold text-dark mb-1">বাটন লিংক (URL):</label>
+                                                <input type="text" name="write_button_url" id="custWriteBtnUrl" class="form-control form-control-sm" 
+                                                       value="{{ $blogSettings['write_button_url'] ?? '/blog/write' }}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Tab 2: Typography & Line Spacing -->
+                                <div class="tab-pane fade" id="tab-typography" role="tabpanel">
                                     <div class="card border-0 shadow-xs rounded-3 p-3.5 bg-white mb-3">
                                         <h6 class="fw-bold text-dark mb-3 pb-2 border-bottom d-flex align-items-center gap-2">
                                             <i class="fas fa-text-height text-primary"></i>
@@ -422,62 +703,6 @@
                                                     <option value="1.15rem" @selected(($blogSettings['paragraph_margin'] ?? '') == '1.15rem')>স্বাভাবিক গ্যাপ (1.15rem)</option>
                                                     <option value="1.5rem" @selected(($blogSettings['paragraph_margin'] ?? '') == '1.5rem')>বেশি ফাঁকা (1.5rem)</option>
                                                 </select>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Tab 2: Header & Masthead Banner -->
-                                <div class="tab-pane fade" id="tab-header" role="tabpanel">
-                                    <div class="card border-0 shadow-xs rounded-3 p-3.5 bg-white mb-3">
-                                        <h6 class="fw-bold text-dark mb-3 pb-2 border-bottom d-flex align-items-center gap-2">
-                                            <i class="fas fa-heading text-primary"></i>
-                                            <span>ব্লগ ব্যানার ও হেডার কাস্টমাইজেশন</span>
-                                        </h6>
-
-                                        <div class="row g-3">
-                                            <!-- Header Gradient Scheme -->
-                                            <div class="col-12">
-                                                <label class="form-label small fw-bold text-dark mb-1">হেডার কালার থিম (Header Banner Gradient):</label>
-                                                <select name="header_gradient" id="custHeaderGradient" class="form-select form-select-sm" onchange="updateLivePreview()">
-                                                    <option value="linear-gradient(135deg, #0c4a6e 0%, #0369a1 50%, #0284c7 100%)" @selected(($blogSettings['header_gradient'] ?? '') == 'linear-gradient(135deg, #0c4a6e 0%, #0369a1 50%, #0284c7 100%)')>নীল ও আকাশী (Ocean Blue Gradient)</option>
-                                                    <option value="linear-gradient(135deg, #064e3b 0%, #047857 50%, #059669 100%)" @selected(($blogSettings['header_gradient'] ?? '') == 'linear-gradient(135deg, #064e3b 0%, #047857 50%, #059669 100%)')>সবুজ ও পান্না (Emerald Green Gradient)</option>
-                                                    <option value="linear-gradient(135deg, #312e81 0%, #4338ca 50%, #6366f1 100%)" @selected(($blogSettings['header_gradient'] ?? '') == 'linear-gradient(135deg, #312e81 0%, #4338ca 50%, #6366f1 100%)')>রয়েল ইন্ডিগো (Royal Indigo Gradient)</option>
-                                                    <option value="linear-gradient(135deg, #18181b 0%, #27272a 50%, #3f3f46 100%)" @selected(($blogSettings['header_gradient'] ?? '') == 'linear-gradient(135deg, #18181b 0%, #27272a 50%, #3f3f46 100%)')>ক্লাসিক চারকোল (Classic Dark Graphite)</option>
-                                                    <option value="linear-gradient(135deg, #881337 0%, #9f1239 50%, #be123c 100%)" @selected(($blogSettings['header_gradient'] ?? '') == 'linear-gradient(135deg, #881337 0%, #9f1239 50%, #be123c 100%)')>ডিপ মেরুন (Deep Crimson Velvet)</option>
-                                                </select>
-                                            </div>
-
-                                            <!-- Hero Badge -->
-                                            <div class="col-12">
-                                                <label class="form-label small fw-bold text-dark mb-1">ব্যানার ব্যাজ টেক্সট (Top Badge):</label>
-                                                <input type="text" name="hero_badge" id="custHeroBadge" class="form-control form-control-sm" 
-                                                       value="{{ $blogSettings['hero_badge'] ?? 'সাহিত্য, শিল্প-সংস্কৃতি, গবেষণা ও মুক্তচিন্তা' }}" oninput="updateLivePreview()">
-                                            </div>
-
-                                            <!-- Hero Title -->
-                                            <div class="col-12">
-                                                <label class="form-label small fw-bold text-dark mb-1">মূল শিরোনাম (Hero Title):</label>
-                                                <input type="text" name="hero_title" id="custHeroTitle" class="form-control form-control-sm fw-bold" 
-                                                       value="{{ $blogSettings['hero_title'] ?? 'আইডিয়া ব্লগ ও সাহিত্যপত্র' }}" oninput="updateLivePreview()">
-                                            </div>
-
-                                            <!-- Hero Subtitle -->
-                                            <div class="col-12">
-                                                <label class="form-label small fw-bold text-dark mb-1">সাব-শিরোনাম ও বিবরণী (Hero Subtitle):</label>
-                                                <textarea name="hero_subtitle" id="custHeroSubtitle" rows="2" class="form-control form-control-sm" oninput="updateLivePreview()">{{ $blogSettings['hero_subtitle'] ?? 'সমকালীন সাহিত্য আলোচনা, প্রবন্ধ, ছোটগল্প, কবিতা, নতুন বইয়ের প্রামাণ্য পর্যালোচনা ও গবেষণামূলক লেখার উন্মুক্ত ডিজিটাল সাময়িকী।' }}</textarea>
-                                            </div>
-
-                                            <!-- Write Button Text & URL -->
-                                            <div class="col-6">
-                                                <label class="form-label small fw-bold text-dark mb-1">লেখা জমা বাটন টেক্সট:</label>
-                                                <input type="text" name="write_button_text" id="custWriteBtnText" class="form-control form-control-sm" 
-                                                       value="{{ $blogSettings['write_button_text'] ?? 'নিজের লেখা পোস্ট করুন' }}" oninput="updateLivePreview()">
-                                            </div>
-                                            <div class="col-6">
-                                                <label class="form-label small fw-bold text-dark mb-1">বাটন লিংক (URL):</label>
-                                                <input type="text" name="write_button_url" id="custWriteBtnUrl" class="form-control form-control-sm" 
-                                                       value="{{ $blogSettings['write_button_url'] ?? '/blog/write' }}">
                                             </div>
                                         </div>
                                     </div>
@@ -606,7 +831,7 @@
 </div>
 
 {{-- ========================================================================= --}}
-{{-- 2. BULK BLOG TYPOGRAPHY NORMALIZER MODAL                                  --}}
+{{-- 6. BULK BLOG TYPOGRAPHY NORMALIZER MODAL                                  --}}
 {{-- ========================================================================= --}}
 <div class="modal fade" id="bulkTypographyModal" tabindex="-1" aria-labelledby="bulkTypographyModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-md modal-dialog-centered">
@@ -665,8 +890,240 @@
     </div>
 </div>
 
+{{-- ========================================================================= --}}
+{{-- 7. BANNER CROPPER MODAL                                                   --}}
+{{-- ========================================================================= --}}
+<div class="modal fade" id="bannerCropperModal" tabindex="-1" aria-labelledby="bannerCropperModalLabel" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow-lg">
+            <div class="modal-header bg-dark text-white py-2.5 px-4">
+                <h5 class="modal-title fw-bold fs-6 d-flex align-items-center gap-2" id="bannerCropperModalLabel">
+                    <i class="fas fa-crop-simple text-warning"></i>
+                    <span>আইডিয়াপত্র ও সোশ্যাল ব্যানার ক্রপ ও রিসাইজ (১৬:৯)</span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-3 text-center bg-light">
+                <div style="max-height: 440px; overflow: hidden; background: #000; border-radius: 8px;">
+                    <img id="bannerCropperImageEl" src="" alt="Crop Target" style="max-width: 100%; max-height: 440px; display: block; margin: 0 auto;">
+                </div>
+                <div class="d-flex justify-content-center gap-2 mt-3 flex-wrap">
+                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill" onclick="blogCropper && blogCropper.zoom(0.1)" title="জুম ইন">
+                        <i class="fas fa-magnifying-glass-plus me-1"></i> জুম ইন
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill" onclick="blogCropper && blogCropper.zoom(-0.1)" title="জুম আউট">
+                        <i class="fas fa-magnifying-glass-minus me-1"></i> জুম আউট
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill" onclick="blogCropper && blogCropper.rotate(-90)" title="বামে ঘোরান">
+                        <i class="fas fa-rotate-left me-1"></i> বামে ঘোরান
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill" onclick="blogCropper && blogCropper.rotate(90)" title="ডানে ঘোরান">
+                        <i class="fas fa-rotate-right me-1"></i> ডানে ঘোরান
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill" onclick="blogCropper && blogCropper.reset()" title="রিসেট">
+                        <i class="fas fa-arrows-rotate me-1"></i> রিসেট
+                    </button>
+                </div>
+            </div>
+            <div class="modal-footer bg-white py-2.5 px-4 border-top d-flex justify-content-between">
+                <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3" data-bs-dismiss="modal">বাতিল</button>
+                <button type="button" class="btn btn-sm btn-primary rounded-pill px-4 fw-bold shadow-xs" onclick="applyBannerCrop()">
+                    <i class="fas fa-check me-1"></i> ক্রপ নিশ্চিত করুন
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @push('scripts')
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
 <script>
+let blogCropper = null;
+const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+function switchToBannerTab() {
+    const tabBtn = document.getElementById('tab-banner-btn');
+    if (tabBtn) {
+        bootstrap.Tab.getOrCreateInstance(tabBtn).show();
+    }
+}
+
+// Live Banner Cropper Logic
+function initBannerCropper(input) {
+    if (input.files && input.files[0]) {
+        const file = input.files[0];
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const imageEl = document.getElementById('bannerCropperImageEl');
+            imageEl.src = e.target.result;
+
+            const cropModalEl = document.getElementById('bannerCropperModal');
+            const cropModal = bootstrap.Modal.getOrCreateInstance(cropModalEl);
+            cropModal.show();
+
+            cropModalEl.addEventListener('shown.bs.modal', function onShown() {
+                if (blogCropper) {
+                    blogCropper.destroy();
+                }
+                blogCropper = new Cropper(imageEl, {
+                    aspectRatio: 16 / 9,
+                    viewMode: 2,
+                    dragMode: 'move',
+                    autoCropArea: 1,
+                    restore: false,
+                    guides: true,
+                    center: true,
+                    highlight: false,
+                    cropBoxMovable: true,
+                    cropBoxResizable: true,
+                    toggleDragModeOnDblclick: false,
+                });
+                cropModalEl.removeEventListener('shown.bs.modal', onShown);
+            });
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+function applyBannerCrop() {
+    if (!blogCropper) return;
+    const canvas = blogCropper.getCroppedCanvas({
+        width: 1200,
+        height: 630,
+        imageSmoothingEnabled: true,
+        imageSmoothingQuality: 'high',
+    });
+
+    const croppedBase64 = canvas.toDataURL('image/jpeg', 0.92);
+    document.getElementById('modalBannerCropped').value = croppedBase64;
+    
+    // Update live previews
+    const modalPrev = document.getElementById('modalBannerPreview');
+    if (modalPrev) modalPrev.src = croppedBase64;
+    
+    const heroThumb = document.getElementById('heroBannerThumb');
+    if (heroThumb) heroThumb.src = croppedBase64;
+
+    const cropModalEl = document.getElementById('bannerCropperModal');
+    bootstrap.Modal.getInstance(cropModalEl)?.hide();
+}
+
+// AJAX Toggle Post Featured Star
+function toggleFeatured(postId) {
+    const starBtn = document.getElementById('starBtn' + postId);
+    starBtn.disabled = true;
+
+    fetch(`/admin/blog/${postId}/toggle-featured`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': csrfToken
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        starBtn.disabled = false;
+        if (data.success) {
+            if (data.is_featured) {
+                starBtn.classList.add('active');
+                starBtn.title = 'নির্বাচিত পোস্ট (ক্লিক করে আন-ফিচার্ড করুন)';
+            } else {
+                starBtn.classList.remove('active');
+                starBtn.title = 'সাধারণ পোস্ট (ক্লিক করে ফিচার্ড করুন)';
+            }
+        }
+    })
+    .catch(() => {
+        starBtn.disabled = false;
+        alert('সার্ভার এরর হয়েছে।');
+    });
+}
+
+// AJAX Update Post Status
+function updatePostStatus(postId, newStatus) {
+    const select = document.getElementById('statusSelect' + postId);
+    select.disabled = true;
+
+    fetch(`/admin/blog/${postId}/toggle-status`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': csrfToken
+        },
+        body: JSON.stringify({ status: newStatus })
+    })
+    .then(res => res.json())
+    .then(data => {
+        select.disabled = false;
+        if (data.success) {
+            // Update select classes
+            select.className = 'form-select form-select-sm status-select-badge';
+            if (newStatus === 'published') {
+                select.classList.add('bg-success-subtle', 'text-success', 'border-success-subtle');
+            } else if (newStatus === 'pending') {
+                select.classList.add('bg-warning-subtle', 'text-warning', 'border-warning-subtle');
+            } else if (newStatus === 'rejected') {
+                select.classList.add('bg-danger-subtle', 'text-danger', 'border-danger-subtle');
+            } else {
+                select.classList.add('bg-secondary-subtle', 'text-secondary', 'border-secondary-subtle');
+            }
+        }
+    })
+    .catch(() => {
+        select.disabled = false;
+        alert('সার্ভার এরর হয়েছে।');
+    });
+}
+
+// Delete Post Action
+function deletePost(postId, title) {
+    if (!confirm(`আপনি কি নিশ্চিত যে "${title}" পোস্টটি মুছে ফেলতে চান?`)) {
+        return;
+    }
+    
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = `/admin/blog/${postId}`;
+    
+    const csrfInput = document.createElement('input');
+    csrfInput.type = 'hidden';
+    csrfInput.name = '_token';
+    csrfInput.value = csrfToken;
+    form.appendChild(csrfInput);
+
+    const methodInput = document.createElement('input');
+    methodInput.type = 'hidden';
+    methodInput.name = '_method';
+    methodInput.value = 'DELETE';
+    form.appendChild(methodInput);
+
+    document.body.appendChild(form);
+    form.submit();
+}
+
+// Bulk Actions Select All
+function toggleSelectAll(masterCheckbox) {
+    document.querySelectorAll('.row-checkbox').forEach(cb => {
+        cb.checked = masterCheckbox.checked;
+    });
+}
+
+function confirmBulkAction() {
+    const action = document.getElementById('bulkActionSelect').value;
+    if (!action) {
+        alert('অনুগ্রহ করে একটি বাল্ক অ্যাকশন নির্বাচন করুন।');
+        return false;
+    }
+    const checkedCount = document.querySelectorAll('.row-checkbox:checked').length;
+    if (checkedCount === 0) {
+        alert('অনুগ্রহ করে কমপক্ষে একটি পোস্ট নির্বাচন করুন।');
+        return false;
+    }
+    return confirm(`আপনি কি নির্বাচিত ${checkedCount}টি পোস্টের ওপর এই অ্যাকশন প্রয়োগ করতে চান?`);
+}
+
 // Live Preview Controller for Blog Customizer
 function updateLivePreview() {
     const font = document.getElementById('custFontFamily')?.value || 'sans-serif';
@@ -682,7 +1139,6 @@ function updateLivePreview() {
     const writeBtnText = document.getElementById('custWriteBtnText')?.value || '';
     const readingBg = document.getElementById('custReadingBg')?.value || '#ffffff';
 
-    // Update Masthead Box
     const prevHeaderBox = document.getElementById('prevHeaderBox');
     if (prevHeaderBox && headerGradient) prevHeaderBox.style.background = headerGradient;
 
@@ -698,7 +1154,6 @@ function updateLivePreview() {
     const prevWriteBtn = document.getElementById('prevWriteBtn');
     if (prevWriteBtn) prevWriteBtn.querySelector('span').innerText = writeBtnText;
 
-    // Update Book Sheet & Typography
     const prevBookSheet = document.getElementById('prevBookSheet');
     if (prevBookSheet) {
         prevBookSheet.style.backgroundColor = readingBg;
@@ -730,7 +1185,6 @@ function runBulkNormalizeTypography() {
     const target = document.getElementById('bulkTargetSelect')?.value || 'all';
     const progressBox = document.getElementById('bulkProgressBox');
     const resultAlert = document.getElementById('bulkResultAlert');
-    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
     if (!confirm('আপনি কি নিশ্চিত যে সমস্ত লেখার লাইন স্পেস এবং প্যারাগ্রাফ মার্জিন স্বয়ংক্রিয়ভাবে অপ্টিমাইজ করতে চান?')) {
         return;
@@ -769,7 +1223,7 @@ function runBulkNormalizeTypography() {
                 </div>`;
         }
     })
-    .catch(err => {
+    .catch(() => {
         progressBox.classList.add('d-none');
         btn.disabled = false;
         resultAlert.innerHTML = `

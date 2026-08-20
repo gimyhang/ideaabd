@@ -230,6 +230,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::get('/blog', [AdminController::class, 'blog'])->name('blog');
     Route::post('/blog/settings', [AdminController::class, 'updateBlogSettings'])->name('blog.settings.update');
     Route::post('/blog/bulk-normalize-typography', [AdminController::class, 'bulkNormalizeBlogTypography'])->name('blog.bulk-normalize-typography');
+    Route::post('/blog/bulk-action', [AdminController::class, 'bulkBlogAction'])->name('blog.bulk-action');
+    Route::post('/blog/{id}/toggle-status', [AdminController::class, 'togglePostStatus'])->name('blog.toggle-status');
+    Route::post('/blog/{id}/toggle-featured', [AdminController::class, 'togglePostFeatured'])->name('blog.toggle-featured');
+    Route::delete('/blog/{id}', [AdminController::class, 'destroyPost'])->name('blog.destroy');
     Route::get('/blog-categories', [AdminController::class, 'blogCategories'])->name('blog-categories');
     Route::get('/ebooks', [AdminController::class, 'ebooks'])->name('ebooks');
     Route::get('/webzines', [AdminController::class, 'webzines'])->name('webzines');
