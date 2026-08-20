@@ -118,17 +118,19 @@
             <div class="row g-2 align-items-center">
                 <!-- Search Bar -->
                 <div class="col-12 col-lg-4">
-                    <div class="input-group input-group-sm">
-                        <span class="input-group-text bg-white border-end-0 text-muted"><i class="fas fa-search"></i></span>
+                    <div class="input-group input-group-sm shadow-xs rounded-3 overflow-hidden border">
+                        <span class="input-group-text bg-white border-0 text-muted"><i class="fas fa-search text-primary"></i></span>
                         <input type="text" name="search" id="bookSearchInput" value="{{ request('search') }}" 
-                               class="form-control border-start-0 border-end-0 ps-0" 
-                               placeholder="বইয়ের নাম, লেখক, প্রকাশক, ISBN, SKU, ক্যাটাগরি, সংস্করণ..." autocomplete="off">
+                               class="form-control border-0 ps-1" 
+                               placeholder="বইয়ের নাম, লেখক, প্রকাশক, ISBN, SKU, ক্যাটাগরি..." autocomplete="off">
                         @if(request('search'))
-                            <a href="{{ route('admin.books', request()->except('search')) }}" class="input-group-text bg-white border-start-0 text-muted hover-danger" title="সার্চ মুছুন">
-                                <i class="fas fa-times"></i>
+                            <a href="{{ route('admin.books', request()->except('search')) }}" class="input-group-text bg-white border-0 text-muted hover-danger" title="সার্চ মুছুন">
+                                <i class="fas fa-times-circle"></i>
                             </a>
                         @endif
-                        <button type="submit" class="btn btn-primary px-3 fw-semibold">খুঁজুন</button>
+                        <button type="submit" class="btn btn-primary px-3 fw-bold d-flex align-items-center gap-1.5" id="bookSearchBtn">
+                            <span>খুঁজুন</span> <i class="fas fa-arrow-right small"></i>
+                        </button>
                     </div>
                 </div>
 
@@ -874,23 +876,69 @@
 
 @push('scripts')
 <script>
-// Dynamic Debounce Auto Search
-let searchTimeout = null;
+// Dynamic Search & Clean Form Submission Engine
 const searchInput = document.getElementById('bookSearchInput');
+const booksFilterForm = document.getElementById('booksFilterForm');
+
 if (searchInput) {
+    // Instant client-side highlight & filter across loaded table rows while typing (no page reload)
     searchInput.addEventListener('input', function() {
-        clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(() => {
+        const query = this.value.trim().toLowerCase();
+        const rows = document.querySelectorAll('#adminBooksTable tbody tr.book-table-row');
+        
+        if (!rows || rows.length === 0) return;
+
+        rows.forEach(row => {
+            if (!query) {
+                row.style.display = '';
+            } else {
+                const text = row.innerText.toLowerCase();
+                if (text.includes(query)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            }
+        });
+    });
+
+    // Execute full catalog server search on pressing Enter
+    searchInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
             submitFilterForm();
-        }, 500);
+        }
     });
 }
 
 function submitFilterForm() {
     const form = document.getElementById('booksFilterForm');
-    if (form) {
-        form.submit();
-    }
+    if (!form) return;
+
+    // Clean up all empty/blank inputs before submission so URL parameters remain short and clean
+    const inputs = form.querySelectorAll('input, select');
+    inputs.forEach(input => {
+        if (input.type === 'checkbox' && !input.checked) {
+            input.disabled = true;
+        } else if (!input.value || input.value.trim() === '') {
+            input.disabled = true;
+        }
+    });
+
+    form.submit();
+}
+
+if (booksFilterForm) {
+    booksFilterForm.addEventListener('submit', function(e) {
+        const inputs = this.querySelectorAll('input, select');
+        inputs.forEach(input => {
+            if (input.type === 'checkbox' && !input.checked) {
+                input.disabled = true;
+            } else if (!input.value || input.value.trim() === '') {
+                input.disabled = true;
+            }
+        });
+    });
 }
 
 // In-Memory Book Store for Quick Editing

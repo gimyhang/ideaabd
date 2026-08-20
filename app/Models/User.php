@@ -76,4 +76,44 @@ class User extends Authenticatable
     {
         return $this->hasMany(\App\Models\Bill::class, 'seller_id');
     }
+
+    public function wishlists()
+    {
+        return $this->hasMany(\Modules\Book\Models\Wishlist::class, 'user_id');
+    }
+
+    public function getPublisherRecord(): ?\Modules\Publisher\Models\Publisher
+    {
+        $publisher = \Modules\Publisher\Models\Publisher::where('email', $this->email)
+            ->orWhere('phone', $this->phone)
+            ->first();
+
+        if (!$publisher && $this->name) {
+            $publisher = \Modules\Publisher\Models\Publisher::where('name', $this->name)->first();
+        }
+
+        if (!$publisher && !empty($this->reg_data['publisher_name'])) {
+            $publisher = \Modules\Publisher\Models\Publisher::where('name', $this->reg_data['publisher_name'])->first();
+        }
+
+        // Auto-create publisher record if not found but user is approved publisher
+        if (!$publisher && $this->isPublisher()) {
+            $pName = !empty($this->reg_data['publisher_name']) ? $this->reg_data['publisher_name'] : $this->name;
+            $slug = \Illuminate\Support\Str::slug($pName) ?: 'publisher-' . $this->id;
+            if (\Modules\Publisher\Models\Publisher::where('slug', $slug)->exists()) {
+                $slug .= '-' . $this->id;
+            }
+            $publisher = \Modules\Publisher\Models\Publisher::create([
+                'name'        => $pName,
+                'slug'        => $slug,
+                'email'       => $this->email,
+                'phone'       => $this->phone,
+                'address'     => $this->reg_data['address'] ?? null,
+                'is_active'   => true,
+                'is_verified' => true,
+            ]);
+        }
+
+        return $publisher;
+    }
 }

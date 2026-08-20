@@ -156,9 +156,15 @@ Route::post('/register/{type}', [RegistrationController::class, 'register'])->na
 Route::get('/pending-approval', [RegistrationController::class, 'pendingApproval'])
     ->middleware('auth')->name('pending.approval');
 
-// --- User Account & Portal --------------------------------------------------
-Route::get('/my-account', [\App\Http\Controllers\UserController::class, 'dashboard'])
-    ->middleware('auth')->name('my-account');
+// --- User Account & Portal (Buyer / Customer) --------------------------------
+Route::prefix('my-account')->middleware('auth')->group(function () {
+    Route::get('/', [\App\Http\Controllers\UserController::class, 'dashboard'])->name('my-account');
+    Route::post('/profile', [\App\Http\Controllers\UserController::class, 'updateProfile'])->name('my-account.profile.update');
+    Route::post('/address', [\App\Http\Controllers\UserController::class, 'updateAddress'])->name('my-account.address.update');
+    Route::post('/password', [\App\Http\Controllers\UserController::class, 'updatePassword'])->name('my-account.password.update');
+    Route::get('/orders/{id}', [\App\Http\Controllers\UserController::class, 'orderDetails'])->name('my-account.orders.details');
+    Route::post('/wishlist/remove/{id}', [\App\Http\Controllers\UserController::class, 'removeFromWishlist'])->name('my-account.wishlist.remove');
+});
 
 Route::get('/user', function () {
     if (!auth()->check()) {
@@ -171,8 +177,25 @@ Route::get('/user', function () {
     if ($user->isSeller() || $user->isSubAdmin()) {
         return redirect()->route('subadmin.bills.index');
     }
+    if ($user->isPublisher()) {
+        return redirect()->route('publisher.dashboard');
+    }
+    if ($user->isAuthor()) {
+        return redirect()->route('author.dashboard');
+    }
     return redirect()->route('my-account');
 })->name('user.portal');
+
+// --- Publisher Portal & Catalog Management ---
+Route::prefix('publisher')->name('publisher.')->middleware(['auth'])->group(function () {
+    Route::get('/dashboard', [\App\Http\Controllers\Publisher\PublisherPortalController::class, 'dashboard'])->name('dashboard');
+    Route::post('/books', [\App\Http\Controllers\Publisher\PublisherPortalController::class, 'storeBook'])->name('books.store');
+    Route::get('/books/{id}/edit', [\App\Http\Controllers\Publisher\PublisherPortalController::class, 'editBook'])->name('books.edit');
+    Route::put('/books/{id}', [\App\Http\Controllers\Publisher\PublisherPortalController::class, 'updateBook'])->name('books.update');
+    Route::post('/books/{id}/quick-update', [\App\Http\Controllers\Publisher\PublisherPortalController::class, 'quickUpdateBook'])->name('books.quick-update');
+    Route::delete('/books/{id}', [\App\Http\Controllers\Publisher\PublisherPortalController::class, 'destroyBook'])->name('books.destroy');
+    Route::post('/profile', [\App\Http\Controllers\Publisher\PublisherPortalController::class, 'updateProfile'])->name('profile.update');
+});
 
 // --- Author Portal & Blog Management (Dashboard, Write Post, Draft, Edit, Delete) ---
 Route::get('/blog/write', [\App\Http\Controllers\AuthorBlogController::class, 'writeGateway'])->name('blog.write');
@@ -196,6 +219,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::get('/books', [AdminController::class, 'books'])->name('books');
     Route::get('/categories', [AdminController::class, 'categories'])->name('categories');
     Route::get('/blog', [AdminController::class, 'blog'])->name('blog');
+    Route::post('/blog/settings', [AdminController::class, 'updateBlogSettings'])->name('blog.settings.update');
+    Route::post('/blog/bulk-normalize-typography', [AdminController::class, 'bulkNormalizeBlogTypography'])->name('blog.bulk-normalize-typography');
     Route::get('/blog-categories', [AdminController::class, 'blogCategories'])->name('blog-categories');
     Route::get('/ebooks', [AdminController::class, 'ebooks'])->name('ebooks');
     Route::get('/webzines', [AdminController::class, 'webzines'])->name('webzines');

@@ -13,11 +13,22 @@
 @section('og_image', $ogCover)
 @section('og_url', route('blog.show', $post->slug))
 
+@php
+    $blogCustomizer = \App\Support\SiteSetting::blogCustomizer();
+    $custFont = $blogCustomizer['font_family'] ?? "'Hind Siliguri', 'Kalpurush', 'SolaimanLipi', sans-serif";
+    $custFontSize = $blogCustomizer['reading_font_size'] ?? '1.08rem';
+    $custLineHeight = $blogCustomizer['line_height'] ?? '1.6';
+    $custPoetryLineHeight = $blogCustomizer['poetry_line_height'] ?? '1.45';
+    $custPoetryAlign = $blogCustomizer['poetry_align'] ?? 'left';
+    $custParaMargin = $blogCustomizer['paragraph_margin'] ?? '0.85rem';
+    $custReadingBg = $blogCustomizer['reading_bg'] ?? '#ffffff';
+@endphp
+
 @section('content')
 <style>
     /* Book Page Literary Aesthetics */
     .lit-book-sheet {
-        background-color: #fdfdfc;
+        background-color: {{ $custReadingBg }};
         background-image: radial-gradient(#f4ede2 1px, transparent 1px);
         background-size: 24px 24px;
         border: 1px solid #e7e5e4;
@@ -25,6 +36,7 @@
         border-radius: 18px;
         position: relative;
         transition: all 0.3s ease;
+        font-family: {!! $custFont !!};
     }
 
     .lit-book-sheet.sepia-mode {
@@ -80,31 +92,33 @@
     }
 
     .article-content {
-        font-size: 13pt; /* Standard 13pt literary font */
-        line-height: 1.6; /* Natural, compact Bengali line height */
+        font-size: {{ $custFontSize }};
+        line-height: {{ $custLineHeight }};
         color: #1e293b;
         letter-spacing: 0.1px;
         text-align: justify;
         text-justify: inter-word;
+        font-family: {!! $custFont !!};
         user-select: text !important;
         -webkit-user-select: text !important;
     }
     .article-content p {
-        margin-bottom: 0.85rem;
-        line-height: 1.6;
+        margin-bottom: {{ $custParaMargin }};
+        line-height: {{ $custLineHeight }};
     }
     .article-content .poetry-verse, 
     .article-content p.poetry-verse {
         font-size: 1.18rem;
-        line-height: 1.45;
-        margin-bottom: 0.95rem;
+        line-height: {{ $custPoetryLineHeight }};
+        margin-bottom: {{ $custParaMargin }};
         padding-left: 0.85rem;
         border-left: 3px solid rgba(2, 132, 199, 0.35);
         background: rgba(240, 249, 255, 0.4);
         padding-top: 0.4rem;
         padding-bottom: 0.4rem;
         border-radius: 0 8px 8px 0;
-        text-align: left;
+        text-align: {{ $custPoetryAlign }};
+        font-family: inherit;
     }
     .article-content b, .article-content strong {
         font-weight: 700;

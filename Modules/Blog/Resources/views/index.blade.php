@@ -155,11 +155,15 @@
     }
 </style>
 
+@php
+    $blogCustomizer = \App\Support\SiteSetting::blogCustomizer();
+@endphp
+
 <div class="container py-4 mb-5">
 
     <!-- Masthead / Hero Header -->
     <div class="card p-4 p-md-5 mb-4 border-0 shadow-sm rounded-4 position-relative overflow-hidden text-white" 
-         style="background: linear-gradient(135deg, #0c4a6e 0%, #0369a1 50%, #0284c7 100%);">
+         style="background: {{ $blogCustomizer['header_gradient'] ?? 'linear-gradient(135deg, #0c4a6e 0%, #0369a1 50%, #0284c7 100%)' }};">
         <div class="position-absolute end-0 bottom-0 opacity-10 d-none d-md-block pe-4 pb-2" style="pointer-events: none;">
             <i class="fa-solid fa-feather-pointed" style="font-size: 14rem;"></i>
         </div>
@@ -167,20 +171,24 @@
         <div class="position-relative z-1">
             <div class="row align-items-center g-4">
                 <div class="col-lg-8">
-                    <div class="d-inline-flex align-items-center gap-2 px-3 py-1 bg-white bg-opacity-20 rounded-pill mb-3 backdrop-blur shadow-sm">
-                        <i class="fa-solid fa-sparkles text-warning"></i>
-                        <span class="small fw-semibold text-white">সাহিত্য, শিল্প-সংস্কৃতি, গবেষণা ও মুক্তচিন্তা</span>
-                    </div>
-                    <h1 class="fw-bold display-5 mb-2 lit-title">আইডিয়া ব্লগ ও সাহিত্যপত্র</h1>
-                    <p class="fs-6 opacity-90 mb-0 leading-relaxed" style="max-width: 620px;">
-                        সমকালীন সাহিত্য আলোচনা, প্রবন্ধ, ছোটগল্প, কবিতা, নতুন বইয়ের প্রামাণ্য পর্যালোচনা ও গবেষণামূলক লেখার উন্মুক্ত ডিজিটাল সাময়িকী।
-                    </p>
+                    @if(!empty($blogCustomizer['hero_badge']))
+                        <div class="d-inline-flex align-items-center gap-2 px-3 py-1 bg-white bg-opacity-20 rounded-pill mb-3 backdrop-blur shadow-sm">
+                            <i class="fa-solid fa-sparkles text-warning"></i>
+                            <span class="small fw-semibold text-white">{{ $blogCustomizer['hero_badge'] }}</span>
+                        </div>
+                    @endif
+                    <h1 class="fw-bold display-5 mb-2 lit-title">{{ $blogCustomizer['hero_title'] ?? 'আইডিয়া ব্লগ ও সাহিত্যপত্র' }}</h1>
+                    @if(!empty($blogCustomizer['hero_subtitle']))
+                        <p class="fs-6 opacity-90 mb-0 leading-relaxed" style="max-width: 620px;">
+                            {{ $blogCustomizer['hero_subtitle'] }}
+                        </p>
+                    @endif
                 </div>
 
                 <div class="col-lg-4 text-lg-end">
-                    <a href="{{ route('blog.write') }}" class="btn btn-warning text-dark btn-lg rounded-pill px-4 py-2.5 fw-bold shadow-lg d-inline-flex align-items-center gap-2">
+                    <a href="{{ url($blogCustomizer['write_button_url'] ?? '/blog/write') }}" class="btn btn-warning text-dark btn-lg rounded-pill px-4 py-2.5 fw-bold shadow-lg d-inline-flex align-items-center gap-2">
                         <i class="fas fa-feather-pointed fs-5"></i>
-                        <span>নিজের লেখা পোস্ট করুন</span>
+                        <span>{{ $blogCustomizer['write_button_text'] ?? 'নিজের লেখা পোস্ট করুন' }}</span>
                     </a>
                 </div>
             </div>

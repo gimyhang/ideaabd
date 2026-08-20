@@ -100,6 +100,34 @@ class SiteSetting
         return $ecom['helpline_phone'] ?? '01726976982';
     }
 
+    public static function blogCustomizer(): array
+    {
+        $default = [
+            'hero_badge'        => 'সাহিত্য, শিল্প-সংস্কৃতি, গবেষণা ও মুক্তচিন্তা',
+            'hero_title'        => 'আইডিয়া ব্লগ ও সাহিত্যপত্র',
+            'hero_subtitle'     => 'সমকালীন সাহিত্য আলোচনা, প্রবন্ধ, ছোটগল্প, কবিতা, নতুন বইয়ের প্রামাণ্য পর্যালোচনা ও গবেষণামূলক লেখার উন্মুক্ত ডিজিটাল সাময়িকী।',
+            'write_button_text' => 'নিজের লেখা পোস্ট করুন',
+            'write_button_url'  => '/blog/write',
+            'font_family'       => "'Hind Siliguri', 'Kalpurush', 'SolaimanLipi', sans-serif",
+            'reading_font_size' => '1.08rem',
+            'line_height'       => '1.6',
+            'poetry_line_height'=> '1.45',
+            'poetry_align'      => 'left',
+            'paragraph_margin'  => '0.85rem',
+            'reading_bg'        => '#ffffff',
+            'show_reading_bar'  => '1',
+            'enable_share_bar'  => '1',
+            'show_author_box'   => '1',
+            'header_gradient'   => 'linear-gradient(135deg, #0c4a6e 0%, #0369a1 50%, #0284c7 100%)',
+        ];
+
+        $saved = self::get('blog_customizer_settings', []);
+        if (is_array($saved)) {
+            return array_merge($default, $saved);
+        }
+        return $default;
+    }
+
     public static function helplineEmail(): string
     {
         $ecom = self::ecommerce();

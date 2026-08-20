@@ -240,6 +240,19 @@
                                 <li><a class="dropdown-item py-2" href="{{ route('subadmin.bills.index') }}"><i class="fas fa-file-invoice-dollar text-success me-2"></i>সেলার প্যানেল</a></li>
                             @endif
 
+                            @if (($me->isPublisher() || $me->isAdmin() || $me->reg_type === 'publisher') && Route::has('publisher.dashboard'))
+                                <li>
+                                    <a class="dropdown-item py-2 fw-semibold text-emerald-600" href="{{ route('publisher.dashboard') }}">
+                                        <i class="fas fa-building me-2 text-success"></i>পাবলিশার ড্যাশবোর্ড
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item py-2 small text-muted" href="{{ route('publisher.dashboard', ['tab' => 'add-book']) }}">
+                                        <i class="fas fa-plus-circle text-warning me-2"></i>নতুন বই এন্ট্রি দিন
+                                    </a>
+                                </li>
+                            @endif
+
                             @if (($me->isAuthor() || $me->isAdmin() || $me->reg_type === 'author') && Route::has('author.dashboard'))
                                 <li>
                                     <a class="dropdown-item py-2 fw-semibold text-success" href="{{ route('author.dashboard') }}">

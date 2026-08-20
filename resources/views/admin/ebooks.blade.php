@@ -431,23 +431,69 @@
 
 @push('scripts')
 <script>
-// Dynamic Debounce Auto Search
-let searchTimeout = null;
+// Dynamic Search & Clean Form Submission Engine
 const searchInput = document.getElementById('ebookSearchInput');
+const ebooksFilterForm = document.getElementById('ebooksFilterForm');
+
 if (searchInput) {
+    // Instant client-side highlight & filter across loaded table rows while typing (no page reload)
     searchInput.addEventListener('input', function() {
-        clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(() => {
+        const query = this.value.trim().toLowerCase();
+        const rows = document.querySelectorAll('#adminEbooksTable tbody tr');
+        
+        if (!rows || rows.length === 0) return;
+
+        rows.forEach(row => {
+            if (!query) {
+                row.style.display = '';
+            } else {
+                const text = row.innerText.toLowerCase();
+                if (text.includes(query)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            }
+        });
+    });
+
+    // Execute full catalog server search on pressing Enter
+    searchInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
             submitEbookFilterForm();
-        }, 500);
+        }
     });
 }
 
 function submitEbookFilterForm() {
     const form = document.getElementById('ebooksFilterForm');
-    if (form) {
-        form.submit();
-    }
+    if (!form) return;
+
+    // Clean up all empty/blank inputs before submission so URL parameters remain short and clean
+    const inputs = form.querySelectorAll('input, select');
+    inputs.forEach(input => {
+        if (input.type === 'checkbox' && !input.checked) {
+            input.disabled = true;
+        } else if (!input.value || input.value.trim() === '') {
+            input.disabled = true;
+        }
+    });
+
+    form.submit();
+}
+
+if (ebooksFilterForm) {
+    ebooksFilterForm.addEventListener('submit', function(e) {
+        const inputs = this.querySelectorAll('input, select');
+        inputs.forEach(input => {
+            if (input.type === 'checkbox' && !input.checked) {
+                input.disabled = true;
+            } else if (!input.value || input.value.trim() === '') {
+                input.disabled = true;
+            }
+        });
+    });
 }
 
 function exportEbooksToCSV() {

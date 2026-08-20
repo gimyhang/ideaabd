@@ -732,7 +732,115 @@ class AdminController extends Controller
             'rejected'  => \Modules\Blog\Models\BlogPost::where(fn($w) => $w->where('status', 'rejected')->orWhere('mod_status', 'rejected'))->count(),
         ];
 
-        return view('admin.blog', compact('posts', 'stats', 'search', 'status'));
+        $blogSettings = \App\Support\SiteSetting::blogCustomizer();
+
+        return view('admin.blog', compact('posts', 'stats', 'search', 'status', 'blogSettings'));
+    }
+
+    public function updateBlogSettings(Request $request): \Illuminate\Http\RedirectResponse|\Illuminate\Http\JsonResponse
+    {
+        $validated = $request->validate([
+            'hero_badge'        => 'nullable|string|max:255',
+            'hero_title'        => 'nullable|string|max:255',
+            'hero_subtitle'     => 'nullable|string|max:1000',
+            'write_button_text' => 'nullable|string|max:100',
+            'write_button_url'  => 'nullable|string|max:255',
+            'font_family'       => 'nullable|string|max:255',
+            'reading_font_size' => 'nullable|string|max:50',
+            'line_height'       => 'nullable|string|max:50',
+            'poetry_line_height'=> 'nullable|string|max:50',
+            'poetry_align'      => 'nullable|string|in:left,center,justify',
+            'paragraph_margin'  => 'nullable|string|max:50',
+            'reading_bg'        => 'nullable|string|max:50',
+            'show_reading_bar'  => 'nullable|string',
+            'enable_share_bar'  => 'nullable|string',
+            'show_author_box'   => 'nullable|string',
+            'header_gradient'   => 'nullable|string|max:255',
+        ]);
+
+        $settings = [
+            'hero_badge'        => $validated['hero_badge'] ?? 'সাহিত্য, শিল্প-সংস্কৃতি, গবেষণা ও মুক্তচিন্তা',
+            'hero_title'        => $validated['hero_title'] ?? 'আইডিয়া ব্লগ ও সাহিত্যপত্র',
+            'hero_subtitle'     => $validated['hero_subtitle'] ?? '',
+            'write_button_text' => $validated['write_button_text'] ?? 'নিজের লেখা পোস্ট করুন',
+            'write_button_url'  => $validated['write_button_url'] ?? '/blog/write',
+            'font_family'       => $validated['font_family'] ?? "'Hind Siliguri', 'Kalpurush', 'SolaimanLipi', sans-serif",
+            'reading_font_size' => $validated['reading_font_size'] ?? '1.08rem',
+            'line_height'       => $validated['line_height'] ?? '1.6',
+            'poetry_line_height'=> $validated['poetry_line_height'] ?? '1.45',
+            'poetry_align'      => $validated['poetry_align'] ?? 'left',
+            'paragraph_margin'  => $validated['paragraph_margin'] ?? '0.85rem',
+            'reading_bg'        => $validated['reading_bg'] ?? '#ffffff',
+            'show_reading_bar'  => $request->boolean('show_reading_bar') ? '1' : '0',
+            'enable_share_bar'  => $request->boolean('enable_share_bar') ? '1' : '0',
+            'show_author_box'   => $request->boolean('show_author_box') ? '1' : '0',
+            'header_gradient'   => $validated['header_gradient'] ?? 'linear-gradient(135deg, #0c4a6e 0%, #0369a1 50%, #0284c7 100%)',
+        ];
+
+        \App\Models\AdminDashboardSetting::updateOrCreate(
+            ['key' => 'blog_customizer_settings'],
+            [
+                'value'      => $settings,
+                'updated_by' => auth()->id(),
+            ]
+        );
+
+        \App\Support\SiteSetting::clearCache();
+
+        $this->accessService->log('blog_settings_update', 'ব্লগের ডিজাইন, হেডার ও টাইপোগ্রাফি কাস্টমাইজেশন হালনাগাদ করা হয়েছে');
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success'  => true,
+                'message'  => 'ব্লগের ডিজাইন ও টাইপোগ্রাফি সেটিংস সফলভাবে সংরক্ষিত হয়েছে!',
+                'settings' => $settings,
+            ]);
+        }
+
+        return back()->with('success', 'ব্লগের ডিজাইন ও টাইপোগ্রাফি সেটিংস সফলভাবে সংরক্ষিত হয়েছে!');
+    }
+
+    public function bulkNormalizeBlogTypography(Request $request): \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
+    {
+        $target = $request->input('target', 'all');
+        $query = \Modules\Blog\Models\BlogPost::query();
+
+        if ($target === 'published') {
+            $query->where(fn($w) => $w->where('status', 'published')->orWhere('mod_status', 'approved'));
+        }
+
+        $posts = $query->get();
+        $updatedCount = 0;
+
+        foreach ($posts as $post) {
+            $content = $post->content;
+            if (!$content) continue;
+
+            $orig = $content;
+            // 1. Replace inflated poetry line-height and excessive margins
+            $content = preg_replace('/line-height:\s*(2\.[0-9]+|3\.[0-9]+|1\.9[0-9]*);?/i', 'line-height: 1.45;', $content);
+            $content = preg_replace('/margin-bottom:\s*(1\.[5-9]rem|2\.[0-9]+rem);?/i', 'margin-bottom: 0.85rem;', $content);
+            // 2. Clean excessive multiple breaks
+            $content = preg_replace('/(<br\s*\/?>\s*){3,}/i', '<br><br>', $content);
+
+            if ($content !== $orig) {
+                $post->content = $content;
+                $post->save();
+                $updatedCount++;
+            }
+        }
+
+        $this->accessService->log('blog_bulk_typography', "মোট {$updatedCount}টি ব্লগ পোস্টের অতিরিক্ত লাইন স্পেস ও স্তবক বিন্যাস সফলভাবে অপ্টিমাইজ করা হয়েছে");
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => "মোট {$updatedCount}টি লেখার অতিরিক্ত লাইন ও প্যারা স্পেস সফলভাবে মেরামত করা হয়েছে!",
+                'count'   => $updatedCount,
+            ]);
+        }
+
+        return back()->with('success', "মোট {$updatedCount}টি লেখার অতিরিক্ত লাইন ও প্যারা স্পেস সফলভাবে মেরামত করা হয়েছে!");
     }
 
     public function blogCategories(Request $request): View
