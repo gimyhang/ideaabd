@@ -63,10 +63,16 @@ class PublisherPurchaseController extends Controller
      */
     public function create(): View
     {
-        $publishers = Publisher::where('is_active', true)->orderBy('name')->get();
+        $publishers = Publisher::where('is_active', true)
+            ->withCount('books')
+            ->withSum('purchases as total_due', 'due_amount')
+            ->orderBy('name')
+            ->get();
         $authors = \Modules\Author\Models\Author::where('is_active', true)->orderBy('name')->get();
         $categories = Category::where('is_active', true)->orderBy('name')->get();
-        $books = Book::select('id', 'title', 'price', 'stock_quantity', 'publisher_id', 'category_id', 'author_name')->orderBy('title')->get();
+        $books = Book::select('id', 'title', 'subtitle', 'slug', 'price', 'discount_price', 'cost_price', 'stock_quantity', 'publisher_id', 'category_id', 'author_name', 'isbn', 'edition', 'paper_type', 'book_size', 'page_count', 'cover_type', 'cover_image')
+            ->orderBy('title')
+            ->get();
 
         // Auto generate next purchase invoice number
         $dateStr = date('Ymd');
@@ -85,7 +91,9 @@ class PublisherPurchaseController extends Controller
             'publisher_id'                => 'nullable|integer',
             'publisher_name'              => 'nullable|string|max:255',
             'publisher_phone'             => 'nullable|string|max:50',
-            'publisher_address'           => 'nullable|string|max:255',
+            'publisher_email'             => 'nullable|email|max:255',
+            'publisher_address'           => 'nullable|string|max:500',
+            'publisher_website'           => 'nullable|string|max:255',
             'publisher_memo_no'           => 'nullable|string|max:100',
             'purchase_no'                 => 'required|string|max:50|unique:publisher_purchases,purchase_no',
             'purchase_date'               => 'required|date',
@@ -107,6 +115,12 @@ class PublisherPurchaseController extends Controller
             'items.*.cost_price'          => 'required|numeric|min:0',
             'items.*.shop_discount_percent' => 'nullable|numeric|min:0|max:100',
             'items.*.sale_price'          => 'required|numeric|min:0',
+            'items.*.isbn'                => 'nullable|string|max:50',
+            'items.*.edition'             => 'nullable|string|max:100',
+            'items.*.page_count'          => 'nullable|integer|min:0',
+            'items.*.cover_type'          => 'nullable|string|max:50',
+            'items.*.book_size'           => 'nullable|string|max:50',
+            'items.*.paper_type'          => 'nullable|string|max:50',
         ], [
             'purchase_no.required'  => 'ক্রয় ইনভয়েস নম্বর দিন।',
             'purchase_no.unique'    => 'এই ইনভয়েস নম্বরটি পূর্বে ব্যবহার করা হয়েছে।',
@@ -134,10 +148,12 @@ class PublisherPurchaseController extends Controller
                             $slug = $slugBase . '-' . (++$c);
                         }
                         $pub = Publisher::create([
-                            'name' => $publisherName,
-                            'slug' => $slug,
-                            'phone' => $validated['publisher_phone'] ?? null,
-                            'address' => $validated['publisher_address'] ?? null,
+                            'name'      => $publisherName,
+                            'slug'      => $slug,
+                            'phone'     => $validated['publisher_phone'] ?? null,
+                            'email'     => $validated['publisher_email'] ?? null,
+                            'address'   => $validated['publisher_address'] ?? null,
+                            'website'   => $validated['publisher_website'] ?? null,
                             'is_active' => true,
                         ]);
                     }
@@ -192,8 +208,8 @@ class PublisherPurchaseController extends Controller
                             $catSlug = $catSlugBase . '-' . (++$c);
                         }
                         $cat = Category::create([
-                            'name' => $categoryName,
-                            'slug' => $catSlug,
+                            'name'      => $categoryName,
+                            'slug'      => $catSlug,
                             'is_active' => true,
                         ]);
                     }
@@ -220,11 +236,30 @@ class PublisherPurchaseController extends Controller
                     $book->stock_status = 'in_stock';
                     $book->price = $bookRegularPrice;
                     $book->discount_price = $bookDiscountPrice;
+                    $book->cost_price = $cost;
                     if (!$book->publisher_id) {
                         $book->publisher_id = $publisherId;
                     }
                     if ($categoryId && !$book->category_id) {
                         $book->category_id = $categoryId;
+                    }
+                    if (!empty($itemData['isbn'])) {
+                        $book->isbn = $itemData['isbn'];
+                    }
+                    if (!empty($itemData['edition'])) {
+                        $book->edition = $itemData['edition'];
+                    }
+                    if (!empty($itemData['cover_type'])) {
+                        $book->cover_type = $itemData['cover_type'];
+                    }
+                    if (!empty($itemData['page_count'])) {
+                        $book->page_count = (int)$itemData['page_count'];
+                    }
+                    if (!empty($itemData['book_size'])) {
+                        $book->book_size = $itemData['book_size'];
+                    }
+                    if (!empty($itemData['paper_type'])) {
+                        $book->paper_type = $itemData['paper_type'];
                     }
                     if ($authorId) {
                         $book->authors()->syncWithoutDetaching([$authorId]);
@@ -251,6 +286,13 @@ class PublisherPurchaseController extends Controller
                     $newBook->stock_status = 'in_stock';
                     $newBook->price = $bookRegularPrice;
                     $newBook->discount_price = $bookDiscountPrice;
+                    $newBook->cost_price = $cost;
+                    $newBook->isbn = $itemData['isbn'] ?? null;
+                    $newBook->edition = $itemData['edition'] ?? null;
+                    $newBook->cover_type = $itemData['cover_type'] ?? 'paperback';
+                    $newBook->page_count = !empty($itemData['page_count']) ? (int)$itemData['page_count'] : null;
+                    $newBook->book_size = $itemData['book_size'] ?? null;
+                    $newBook->paper_type = $itemData['paper_type'] ?? null;
                     $newBook->is_active = true;
                     $newBook->published_at = now();
                     $newBook->save();
