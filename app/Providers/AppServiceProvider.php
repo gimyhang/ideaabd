@@ -43,6 +43,10 @@ class AppServiceProvider extends ServiceProvider
         Blade::directive('takaS', fn ($e) => "<?php echo \App\Support\Bn::moneyShort($e); ?>");
         Blade::directive('takaInWords', fn ($e) => "<?php echo \App\Support\Bn::inWords($e); ?>");
         Blade::directive('bnDate', fn ($e) => "<?php echo \App\Support\Bn::date($e); ?>");
+
+        // Set modern customized pagination across all views
+        \Illuminate\Pagination\Paginator::defaultView('vendor.pagination.custom');
+        \Illuminate\Pagination\Paginator::defaultSimpleView('vendor.pagination.custom');
         // Auto-heal/verify blog_posts subtitle column if missing (e.g. SQLite / live shared host)
         if (!app()->runningInConsole()) {
             try {

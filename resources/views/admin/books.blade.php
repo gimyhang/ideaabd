@@ -338,15 +338,17 @@
             <table class="table adm-table align-middle mb-0" id="adminBooksTable">
                 <thead class="table-light">
                     <tr>
-                        <th class="ps-3" style="width: 45px;">#</th>
-                        <th style="min-width: 250px;">বই ও কভার</th>
-                        <th style="min-width: 140px;">সংস্করণ ও বাঁধাই</th>
-                        <th style="min-width: 170px;">লেখক ও প্রকাশনী</th>
-                        <th>ক্যাটাগরি</th>
-                        <th class="text-end" style="min-width: 160px;">গায়ের মূল্য ও কমিশন</th>
-                        <th class="text-center" style="min-width: 130px;">স্টক ইনভেন্টরি</th>
-                        <th class="text-center" style="min-width: 80px;">অবস্থা</th>
-                        <th class="text-end pe-3" style="min-width: 140px;">শর্টকাট অ্যাকশন</th>
+                        <th class="ps-3" style="width: 40px;">#</th>
+                        <th style="min-width: 230px;">বই ও কভার</th>
+                        <th style="min-width: 120px;">সংস্করণ</th>
+                        <th style="min-width: 150px;">লেখক ও প্রকাশনী</th>
+                        <th style="min-width: 100px;">ক্যাটাগরি</th>
+                        <th class="text-end" style="min-width: 140px;">📄 পেপারব্যাক মূল্য</th>
+                        <th class="text-end" style="min-width: 140px;">📕 হার্ডকভার মূল্য</th>
+                        <th class="text-end" style="min-width: 150px;">💼 ক্রয় মূল্য ও কমিশন</th>
+                        <th class="text-center" style="min-width: 110px;">স্টক ইনভেন্টরি</th>
+                        <th class="text-center" style="min-width: 75px;">অবস্থা</th>
+                        <th class="text-end pe-3" style="min-width: 135px;">শর্টকাট</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -388,7 +390,7 @@
                             {{-- Book Title & Cover with Instant Cover Edit Pencil --}}
                             <td>
                                 <div class="d-flex align-items-center gap-2.5">
-                                    <div class="position-relative flex-shrink-0 group-hover-parent" style="width: 46px; height: 64px;">
+                                    <div class="position-relative flex-shrink-0 group-hover-parent" style="width: 44px; height: 62px;">
                                         <img src="{{ $coverUrl }}" alt="{{ $book->title }}" id="bookCoverImg_{{ $book->id }}"
                                              class="rounded border shadow-xs" style="width: 100%; height: 100%; object-fit: cover;">
                                         @if($book->format === 'ebook')
@@ -401,7 +403,7 @@
                                             <i class="fas fa-camera"></i>
                                         </button>
                                     </div>
-                                    <div class="text-truncate" style="max-width: 240px;">
+                                    <div class="text-truncate" style="max-width: 220px;">
                                         <a href="{{ route('book.show', $book->slug ?? $book->id) }}" target="_blank" 
                                            class="fw-bold text-dark text-decoration-none hover-primary d-block text-truncate mb-0.5" title="{{ $book->title }}" id="bookTitleDisplay_{{ $book->id }}">
                                             {{ $book->title }}
@@ -413,7 +415,7 @@
                                             @if($book->isbn)
                                                 <span class="badge bg-light text-muted border px-1.5 py-0.5" title="ISBN"><i class="fas fa-barcode me-0.5"></i>{{ $book->isbn }}</span>
                                             @endif
-                                            <span><i class="fas fa-cart-shopping me-0.5 text-secondary"></i> @bn($book->sales_count ?? 0) কপি বিক্রি</span>
+                                            <span><i class="fas fa-cart-shopping me-0.5 text-secondary"></i> @bn($book->sales_count ?? 0) বিক্রি</span>
                                         </div>
                                     </div>
                                 </div>
@@ -422,7 +424,7 @@
                             {{-- Edition & Cover Type --}}
                             <td>
                                 <div class="d-flex flex-column align-items-start gap-1">
-                                    <span class="badge bg-light text-dark border px-2 py-1 cursor-pointer hover-border-primary" 
+                                    <span class="badge bg-light text-dark border px-2 py-0.5 cursor-pointer hover-border-primary" 
                                           id="bookEditionDisplay_{{ $book->id }}"
                                           onclick="openQuickEditModal({{ $book->id }}, 'edition')"
                                           title="সংস্করণ পরিবর্তন করতে ক্লিক করুন">
@@ -440,7 +442,7 @@
 
                             {{-- Author & Publisher --}}
                             <td>
-                                <div class="fw-semibold text-dark small mb-0.5">
+                                <div class="fw-semibold text-dark small mb-0.5 text-truncate" style="max-width: 150px;">
                                     @if($book->authorLink)
                                         <a href="{{ route('admin.books', ['author_id' => $book->authorLink->id]) }}" class="text-decoration-none text-primary hover-underline">
                                             <i class="fas fa-user-pen me-1 text-muted"></i>{{ $book->authorLink->name }}
@@ -455,13 +457,13 @@
                                         <span class="text-dark">{{ $book->author_name ?? '—' }}</span>
                                     @endif
                                 </div>
-                                <div class="small text-muted" style="font-size: 11px;">
+                                <div class="small text-muted text-truncate" style="font-size: 11px; max-width: 150px;">
                                     @if($book->publisher)
                                         <a href="{{ route('admin.publishers.show', $book->publisher->id) }}" class="text-decoration-none text-muted hover-dark" title="এই প্রকাশনীর পেজ দেখুন">
                                             <i class="fas fa-building me-1"></i>{{ $book->publisher->name }}
                                         </a>
                                     @else
-                                        <span class="text-primary"><i class="fas fa-building me-1"></i>IDEA প্রকাশন (ইন-হাউস)</span>
+                                        <span class="text-primary"><i class="fas fa-building me-1"></i>IDEA প্রকাশন</span>
                                     @endif
                                 </div>
                             </td>
@@ -470,8 +472,8 @@
                             <td>
                                 @if($book->category)
                                     <a href="{{ route('admin.books', ['category_id' => $book->category->id]) }}" class="text-decoration-none">
-                                        <span class="badge bg-light text-primary border rounded-pill px-2.5 py-1">
-                                            <i class="fas fa-folder me-1 text-primary-subtle"></i>{{ $book->category->name }}
+                                        <span class="badge bg-light text-primary border rounded-pill px-2 py-0.5" style="font-size: 11px;">
+                                            <i class="fas fa-folder me-0.5 text-primary-subtle"></i>{{ $book->category->name }}
                                         </span>
                                     </a>
                                 @else
@@ -479,112 +481,79 @@
                                 @endif
                             </td>
 
-                            {{-- Price, Sale Commission & Buy Commission (Dynamic Paperback / Hardcover / Both) --}}
+                            {{-- 📄 1. Paperback Pricing Column (MRP & Sale Discount) --}}
                             <td class="text-end">
-                                <div class="cursor-pointer hover-bg-light p-1.5 rounded-3 border border-transparent hover-border-primary" 
+                                <div class="cursor-pointer hover-bg-light p-1 rounded-2 border border-transparent hover-border-primary" 
                                      onclick="openQuickEditModal({{ $book->id }}, 'pricing')" 
-                                     title="মূল্য ও কমিশন পরিবর্তন করতে ক্লিক করুন">
-
-                                    @if($isBoth || $hasBothPrices)
-                                        {{-- BOTH EDITIONS (Paperback & Hardcover) --}}
-                                        <div class="d-flex flex-column gap-1 text-end">
-                                            {{-- Paperback Price --}}
-                                            <div class="pb-1 border-bottom border-light">
-                                                <div class="d-flex align-items-center justify-content-end gap-1">
-                                                    <span class="badge bg-light text-muted border px-1" style="font-size: 9px;">পেপারব্যাক</span>
-                                                    @if($hasPaperDiscount)
-                                                        <span class="fw-bold text-primary font-monospace" style="font-size: 12.5px;">৳@bn(number_format($paperDiscount, 0))</span>
-                                                        <span class="badge bg-danger-subtle text-danger rounded-pill" style="font-size: 8.5px;">-@bn($paperDiscountPercent)%</span>
-                                                    @elseif($paperPrice > 0)
-                                                        <span class="fw-bold text-dark font-monospace" style="font-size: 12.5px;">৳@bn(number_format($paperPrice, 0))</span>
-                                                    @else
-                                                        <span class="text-muted small">৳০</span>
-                                                    @endif
-                                                </div>
-                                                @if($hasPaperDiscount)
-                                                    <div class="small text-muted text-decoration-line-through font-monospace" style="font-size: 10px;">
-                                                        গায়ের মূল্য: ৳@bn(number_format($paperPrice, 0))
-                                                    </div>
-                                                @endif
+                                     title="পেপারব্যাক মূল্য ও সেল ছাড় পরিবর্তন করতে ক্লিক করুন">
+                                    @if($paperPrice > 0)
+                                        <div class="fw-bold text-dark font-monospace" style="font-size: 13px;" id="bookMrpDisplay_{{ $book->id }}">
+                                            ৳@bn(number_format($paperPrice, 0))
+                                        </div>
+                                        @if($hasPaperDiscount)
+                                            <div class="d-flex align-items-center justify-content-end gap-1 mt-0.5">
+                                                <span class="fw-bold text-primary font-monospace" style="font-size: 11.5px;" id="bookSalePriceDisplay_{{ $book->id }}">৳@bn(number_format($paperDiscount, 0))</span>
+                                                <span class="badge bg-danger-subtle text-danger rounded-pill" style="font-size: 8.5px;">-@bn($paperDiscountPercent)%</span>
                                             </div>
-
-                                            {{-- Hardcover Price --}}
-                                            <div>
-                                                <div class="d-flex align-items-center justify-content-end gap-1">
-                                                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-1" style="font-size: 9px;">হার্ডকভার</span>
-                                                    @if($hasHardDiscount)
-                                                        <span class="fw-bold text-primary font-monospace" style="font-size: 12.5px;">৳@bn(number_format($hardDiscount, 0))</span>
-                                                        <span class="badge bg-danger-subtle text-danger rounded-pill" style="font-size: 8.5px;">-@bn($hardDiscountPercent)%</span>
-                                                    @elseif($hardPrice > 0)
-                                                        <span class="fw-bold text-dark font-monospace" style="font-size: 12.5px;">৳@bn(number_format($hardPrice, 0))</span>
-                                                    @else
-                                                        <span class="text-muted small">৳০</span>
-                                                    @endif
-                                                </div>
-                                                @if($hasHardDiscount)
-                                                    <div class="small text-muted text-decoration-line-through font-monospace" style="font-size: 10px;">
-                                                        গায়ের মূল্য: ৳@bn(number_format($hardPrice, 0))
-                                                    </div>
-                                                @endif
-                                            </div>
-                                        </div>
-
-                                    @elseif($isHardcover || ($hardPrice > 0 && $paperPrice <= 0))
-                                        {{-- HARDCOVER ONLY --}}
-                                        <div class="text-end">
-                                            <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-1.5 py-0.5 mb-0.5" style="font-size: 9.5px;">হার্ডকভার</span>
-                                            @if($hasHardDiscount)
-                                                <div class="d-flex align-items-center justify-content-end gap-1">
-                                                    <span class="fw-bold text-primary font-monospace fs-6" id="bookSalePriceDisplay_{{ $book->id }}">৳@bn(number_format($hardDiscount, 0))</span>
-                                                    <span class="badge bg-danger-subtle text-danger rounded-pill" style="font-size: 9.5px;">-@bn($hardDiscountPercent)% ছাড়</span>
-                                                </div>
-                                                <div class="small text-muted text-decoration-line-through font-monospace" style="font-size: 11px;" id="bookMrpDisplay_{{ $book->id }}">
-                                                    গায়ের মূল্য: ৳@bn(number_format($hardPrice, 0))
-                                                </div>
-                                            @else
-                                                <div class="fw-bold text-dark font-monospace fs-6" id="bookMrpDisplay_{{ $book->id }}">
-                                                    গায়ের মূল্য: ৳@bn(number_format($hardPrice, 0))
-                                                </div>
-                                            @endif
-                                        </div>
-
-                                    @elseif($paperPrice > 0)
-                                        {{-- PAPERBACK ONLY --}}
-                                        <div class="text-end">
-                                            @if($hasPaperDiscount)
-                                                <div class="d-flex align-items-center justify-content-end gap-1">
-                                                    <span class="fw-bold text-primary font-monospace fs-6" id="bookSalePriceDisplay_{{ $book->id }}">৳@bn(number_format($paperDiscount, 0))</span>
-                                                    <span class="badge bg-danger-subtle text-danger rounded-pill" style="font-size: 9.5px;">-@bn($paperDiscountPercent)% ছাড়</span>
-                                                </div>
-                                                <div class="small text-muted text-decoration-line-through font-monospace" style="font-size: 11px;" id="bookMrpDisplay_{{ $book->id }}">
-                                                    গায়ের মূল্য: ৳@bn(number_format($paperPrice, 0))
-                                                </div>
-                                            @else
-                                                <div class="fw-bold text-dark font-monospace fs-6" id="bookMrpDisplay_{{ $book->id }}">
-                                                    গায়ের মূল্য: ৳@bn(number_format($paperPrice, 0))
-                                                </div>
-                                            @endif
-                                        </div>
-
-                                    @else
-                                        {{-- NO PRICE ENTERED --}}
-                                        <div class="text-end">
-                                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2 py-1 small">
-                                                <i class="fas fa-exclamation-triangle me-1"></i>মূল্য দিন
-                                            </span>
-                                        </div>
-                                    @endif
-
-                                    {{-- Purchase Cost & Buy Commission --}}
-                                    <div class="small mt-0.5 text-end" style="font-size: 11px;">
-                                        @if($cost > 0)
-                                            <span class="badge bg-info-subtle text-dark border px-1.5 py-0.5" id="bookCostDisplay_{{ $book->id }}" title="ক্রয় খরচ ও কমিশন">
-                                                ক্রয়: ৳@bn(number_format($cost, 0)) @if($buyCommissionPercent > 0) (-@bn($buyCommissionPercent)%) @endif
-                                            </span>
                                         @else
-                                            <span class="badge bg-light text-muted border px-1 py-0.5" style="font-size: 9.5px;">+ ক্রয় দর দিন</span>
+                                            <div class="small text-muted" style="font-size: 10px;">গায়ের মূল্যে বিক্রয়</div>
                                         @endif
-                                    </div>
+                                    @else
+                                        <span class="badge bg-light text-muted border px-1.5 py-0.5" style="font-size: 10px;">+ পেপারব্যাক দিন</span>
+                                    @endif
+                                </div>
+                            </td>
+
+                            {{-- 📕 2. Hardcover Pricing Column (Hardcover MRP & Sale Discount) --}}
+                            <td class="text-end">
+                                <div class="cursor-pointer hover-bg-light p-1 rounded-2 border border-transparent hover-border-primary" 
+                                     onclick="openQuickEditModal({{ $book->id }}, 'pricing')" 
+                                     title="হার্ডকভার মূল্য ও ছাড় পরিবর্তন করতে ক্লিক করুন">
+                                    @if($hardPrice > 0)
+                                        <div class="fw-bold text-dark font-monospace" style="font-size: 13px;">
+                                            ৳@bn(number_format($hardPrice, 0))
+                                        </div>
+                                        @if($hasHardDiscount)
+                                            <div class="d-flex align-items-center justify-content-end gap-1 mt-0.5">
+                                                <span class="fw-bold text-primary font-monospace" style="font-size: 11.5px;">৳@bn(number_format($hardDiscount, 0))</span>
+                                                <span class="badge bg-danger-subtle text-danger rounded-pill" style="font-size: 8.5px;">-@bn($hardDiscountPercent)%</span>
+                                            </div>
+                                        @else
+                                            <div class="small text-muted" style="font-size: 10px;">হার্ডকভার বিক্রয়</div>
+                                        @endif
+                                    @else
+                                        <span class="text-muted opacity-50 small">—</span>
+                                    @endif
+                                </div>
+                            </td>
+
+                            {{-- 💼 3. Purchase Cost & Buy Commission Column --}}
+                            <td class="text-end">
+                                <div class="cursor-pointer hover-bg-light p-1 rounded-2 border border-transparent hover-border-primary" 
+                                     onclick="openQuickEditModal({{ $book->id }}, 'pricing')" 
+                                     title="ক্রয় কমিশন ও খরচ পরিবর্তন করতে ক্লিক করুন">
+                                    @if($cost > 0)
+                                        <div class="fw-bold text-success font-monospace" style="font-size: 13px;" id="bookCostDisplay_{{ $book->id }}">
+                                            ৳@bn(number_format($cost, 0))
+                                        </div>
+                                        @if($effectivePrice > 0 && $cost < $effectivePrice)
+                                            <div class="d-flex align-items-center justify-content-end gap-1 mt-0.5">
+                                                <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle rounded-pill px-1.5 py-0.5" style="font-size: 9px;">
+                                                    কমিশন: -@bn($buyCommissionPercent)%
+                                                </span>
+                                            </div>
+                                        @endif
+                                    @else
+                                        @php
+                                            $defaultEstCost = $effectivePrice > 0 ? ($effectivePrice * 0.6) : 0;
+                                        @endphp
+                                        <span class="badge bg-light text-muted border px-1.5 py-0.5" style="font-size: 10px;">
+                                            <i class="fas fa-plus-circle me-0.5 text-primary"></i>কমিশন দিন (-৪০%)
+                                        </span>
+                                        @if($defaultEstCost > 0)
+                                            <div class="small text-muted font-monospace mt-0.5" style="font-size: 9.5px;">(দর: ৳@bn(number_format($defaultEstCost, 0)))</div>
+                                        @endif
+                                    @endif
                                 </div>
                             </td>
 
@@ -592,28 +561,28 @@
                             <td class="text-center">
                                 <div class="d-inline-flex align-items-center gap-1.5">
                                     @if($book->stock_status === 'pre_order')
-                                        <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill px-2.5 py-1 fw-semibold">
-                                            <i class="fas fa-clock-rotate-left me-1"></i>প্রি-অর্ডার
+                                        <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill px-2 py-0.5 fw-semibold" style="font-size: 11px;">
+                                            <i class="fas fa-clock-rotate-left me-0.5"></i>প্রি-অর্ডার
                                         </span>
                                     @elseif($stock <= 0)
-                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-1">
-                                            <i class="fas fa-times-circle me-1"></i>স্টকআউট
+                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2 py-0.5" style="font-size: 11px;">
+                                            <i class="fas fa-times-circle me-0.5"></i>স্টকআউট
                                         </span>
                                     @elseif($stock <= 5)
-                                        <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2.5 py-1">
-                                            <i class="fas fa-triangle-exclamation me-1"></i>@bn($stock) টি বাকি
+                                        <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2 py-0.5" style="font-size: 11px;">
+                                            <i class="fas fa-triangle-exclamation me-0.5"></i>@bn($stock) টি
                                         </span>
                                     @else
-                                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1">
-                                            @bn($stock) টি ইন-স্টক
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5" style="font-size: 11px;">
+                                            @bn($stock) টি
                                         </span>
                                     @endif
 
                                     <button type="button" class="btn btn-xs btn-outline-secondary rounded-circle" 
-                                            style="width: 26px; height: 26px; padding: 0;"
+                                            style="width: 24px; height: 24px; padding: 0;"
                                             onclick="openQuickEditModal({{ $book->id }}, 'stock')"
                                             title="স্টক পরিবর্তন করুন">
-                                        <i class="fas fa-pen" style="font-size: 10px;"></i>
+                                        <i class="fas fa-pen" style="font-size: 9px;"></i>
                                     </button>
                                 </div>
                             </td>
@@ -621,9 +590,9 @@
                             {{-- Status --}}
                             <td class="text-center">
                                 @if($book->is_active)
-                                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-1"><i class="fas fa-check me-1"></i>লাইভ</span>
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5" style="font-size: 11px;"><i class="fas fa-check me-0.5"></i>লাইভ</span>
                                 @else
-                                    <span class="badge bg-secondary-subtle text-secondary border rounded-pill px-2 py-1">খসড়া</span>
+                                    <span class="badge bg-secondary-subtle text-secondary border rounded-pill px-2 py-0.5" style="font-size: 11px;">খসড়া</span>
                                 @endif
                             </td>
 
@@ -641,7 +610,7 @@
                                         <i class="fas fa-eye"></i>
                                     </a>
                                     <a href="{{ route('admin.content.edit', ['type' => 'books', 'id' => $book->id]) }}" 
-                                       class="btn btn-sm btn-outline-secondary rounded-pill px-2 py-0.5" title="সম্পূর্ণ এডিট">
+                                        class="btn btn-sm btn-outline-secondary rounded-pill px-2 py-0.5" title="সম্পূর্ণ এডিট">
                                         <i class="fas fa-pen-to-square"></i>
                                     </a>
                                     <form action="{{ route('admin.content.destroy', ['type' => 'books', 'id' => $book->id]) }}" method="POST" class="d-inline"
@@ -658,7 +627,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="9">
+                            <td colspan="11">
                                 <div class="empty-state py-5 text-center">
                                     <div class="rounded-circle bg-light d-inline-flex p-4 mb-3">
                                         <i class="fas fa-book-open fs-1 text-muted"></i>
@@ -880,7 +849,7 @@ const booksDataMap = {
             id: {{ $b->id }},
             title: "{{ addslashes($b->title) }}",
             edition: "{{ addslashes($b->edition ?? '') }}",
-            price: {{ (float) ($b->price ?: ($b->hardcover_price ?: ($b->discount_price ?: 0))) }},
+            price: {{ (float) ($b->price ?: 0) }},
             discount_price: {{ (float) ($b->discount_price ?: 0) }},
             cost_price: {{ (float) ($b->cost_price ?: 0) }},
             hardcover_price: {{ (float) ($b->hardcover_price ?: 0) }},
