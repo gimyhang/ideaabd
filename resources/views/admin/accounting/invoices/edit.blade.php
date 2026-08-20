@@ -188,8 +188,33 @@
                                     @php
                                         $qty = (float)($item['quantity'] ?? 1);
                                         $price = (float)($item['unit_price'] ?? $item['price'] ?? 0);
-                                        $regPrice = (float)($item['regular_price'] ?? $item['cover_price'] ?? $price);
-                                        $discPct = isset($item['discount_percent']) ? (float)$item['discount_percent'] : 0;
+                                        
+                                        $bookObj = null;
+                                        if (!empty($item['book_id'])) {
+                                            $bookObj = $books->firstWhere('id', (int)$item['book_id']);
+                                        }
+                                        if (!$bookObj && !empty($item['title'])) {
+                                            $t = mb_strtolower(trim($item['title']));
+                                            $bookObj = $books->first(fn($b) => mb_strtolower(trim($b->title)) === $t);
+                                        }
+
+                                        $authorName = $item['author_name'] ?? $item['author'] ?? ($bookObj ? $bookObj->author_name : '');
+                                        $regPrice = (float)($item['regular_price'] ?? $item['cover_price'] ?? 0);
+                                        if ($regPrice <= 0 && $bookObj) {
+                                            $regPrice = (float)($bookObj->active_regular_price ?: ($bookObj->price ?: ($bookObj->hardcover_price ?: 0)));
+                                        }
+                                        if ($regPrice <= 0) {
+                                            $regPrice = $price;
+                                        }
+
+                                        $discPct = isset($item['discount_percent']) && $item['discount_percent'] !== '' ? (float)$item['discount_percent'] : 0;
+                                        if ($discPct == 0 && $bookObj) {
+                                            $bReg = (float)($bookObj->active_regular_price ?: ($bookObj->price ?: ($bookObj->hardcover_price ?: 0)));
+                                            $bSell = (float)($bookObj->active_selling_price ?: ($bookObj->discount_price ?: ($bookObj->hardcover_discount_price ?: $bReg)));
+                                            if ($bReg > 0 && $bSell < $bReg) {
+                                                $discPct = round((($bReg - $bSell) / $bReg) * 100);
+                                            }
+                                        }
                                         if ($discPct == 0 && $regPrice > $price && $regPrice > 0) {
                                             $discPct = round((($regPrice - $price) / $regPrice) * 100);
                                         }
@@ -198,12 +223,12 @@
                                     <tr class="item-row" data-row="{{ $i }}">
                                         <td>
                                             <input type="text" name="items[{{ $i }}][title]" class="form-control form-control-sm item-title" 
-                                                   list="booksList" placeholder="বইয়ের নাম টাইপ বা সিলেক্ট করুন..." value="{{ $item['title'] ?? '' }}" required oninput="onTitleInput(this, {{ $i }})">
-                                            <input type="hidden" name="items[{{ $i }}][book_id]" class="item-book-id" value="{{ $item['book_id'] ?? '' }}">
+                                                   list="booksList" placeholder="বইয়ের নাম টাইপ বা সিলেক্ট করুন..." value="{{ $item['title'] ?? '' }}" required oninput="onTitleInput(this, {{ $i }})" onchange="onTitleInput(this, {{ $i }})">
+                                            <input type="hidden" name="items[{{ $i }}][book_id]" class="item-book-id" value="{{ $item['book_id'] ?? ($bookObj ? $bookObj->id : '') }}">
                                         </td>
                                         <td>
                                             <input type="text" name="items[{{ $i }}][author_name]" class="form-control form-control-sm item-author" 
-                                                   placeholder="লেখকের নাম" value="{{ $item['author_name'] ?? $item['author'] ?? '' }}">
+                                                   placeholder="লেখকের নাম" value="{{ $authorName }}">
                                         </td>
                                         <td>
                                             <select name="items[{{ $i }}][item_type]" class="form-select form-select-sm">
@@ -247,8 +272,8 @@
                     <datalist id="booksList">
                         @foreach($books as $b)
                             @php
-                                $regPrice = (float)($b->price ?: ($b->hardcover_price ?: 0));
-                                $discPrice = (float)($b->discount_price ?: ($b->hardcover_discount_price ?: $regPrice));
+                                $regPrice = (float)($b->active_regular_price ?: ($b->price ?: ($b->hardcover_price ?: 0)));
+                                $discPrice = (float)($b->active_selling_price ?: ($b->discount_price ?: ($b->hardcover_discount_price ?: $regPrice)));
                                 $discPct = ($regPrice > 0 && $discPrice < $regPrice) ? round((($regPrice - $discPrice) / $regPrice) * 100) : 0;
                             @endphp
                             <option value="{{ $b->title }}" 
@@ -257,7 +282,7 @@
                                     data-regular-price="{{ $regPrice }}" 
                                     data-discount-percent="{{ $discPct }}"
                                     data-selling-price="{{ $discPrice }}">
-                                {{ $b->title }} @if(!empty($b->author_name)) — {{ $b->author_name }} @endif (গায়ের মূল্য: ৳{{ $regPrice }} | ছাড়: {{ $discPct }}% | দর: ৳{{ $discPrice }})
+                                {{ $b->title }} @if(!empty($b->author_name)) — {{ $b->author_name }} @endif (গায়ের মূল্য: ৳{{ $regPrice }} | কমিশন: {{ $discPct }}% | দর: ৳{{ $discPrice }})
                             </option>
                         @endforeach
                     </datalist>
@@ -298,83 +323,88 @@
                     <div class="bg-light p-3 rounded-3 mb-3">
                         <div class="d-flex justify-content-between mb-2 small text-muted">
                             <span>মোট আইটেম মূল্য (Subtotal):</span>
-                            <strong class="text-dark font-monospace" id="displaySubtotal">৳{{ number_format($invoice->subtotal, 2) }}</strong>
+                            <span class="fw-bold text-dark font-monospace" id="displaySubtotal">৳0.00</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2 small text-success">
+                            <span>বিশেষ ছাড় (Flat Discount):</span>
+                            <span class="fw-bold font-monospace" id="displayDiscount">-৳0.00</span>
                         </div>
                         <div class="d-flex justify-content-between mb-2 small text-muted">
-                            <span>বিশেষ ছাড় / কমিশন (Discount):</span>
-                            <strong class="text-danger font-monospace" id="displayDiscount">-৳{{ number_format($invoice->discount ?? 0, 2) }}</strong>
-                        </div>
-                        <div class="d-flex justify-content-between mb-2 small text-muted">
-                            <span>ভ্যাট / ট্যাক্স (Tax / VAT):</span>
-                            <strong class="text-info font-monospace" id="displayTax">+৳{{ number_format($invoice->tax ?? 0, 2) }}</strong>
+                            <span>ভ্যাট / ট্যাক্স (Tax):</span>
+                            <span class="fw-bold font-monospace" id="displayTax">+৳0.00</span>
                         </div>
                         <hr class="my-2">
-                        <div class="d-flex justify-content-between fs-5 fw-bold text-dark">
-                            <span>সর্বমোট প্রস্তাবিত বিল:</span>
-                            <span class="text-success font-monospace" id="displayGrandTotal">৳{{ number_format($invoice->grand_total, 2) }}</span>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="fw-bold text-dark fs-6">সর্বমোট প্রদেয় (Grand Total):</span>
+                            <span class="fw-bold text-primary fs-5 font-monospace" id="displayGrandTotal">৳0.00</span>
                         </div>
                     </div>
 
-                    {{-- Discount & Tax Inputs --}}
+                    {{-- Global Discount & Tax Inputs --}}
                     <div class="row g-2 mb-3">
                         <div class="col-6">
                             <label class="form-label small fw-semibold text-muted">বিশেষ ছাড় (৳)</label>
-                            <input type="number" step="0.01" name="discount" id="discountInput" class="form-control form-control-sm font-monospace text-end" value="{{ old('discount', $invoice->discount ?? 0) }}" min="0" oninput="calcTotals()">
+                            <input type="number" step="0.01" name="discount" id="discountInput" class="form-control form-control-sm font-monospace" 
+                                   value="{{ old('discount', $invoice->discount ?? 0) }}" min="0" oninput="calcTotals()">
                         </div>
                         <div class="col-6">
                             <label class="form-label small fw-semibold text-muted">ট্যাক্স / ভ্যাট (৳)</label>
-                            <input type="number" step="0.01" name="tax" id="taxInput" class="form-control form-control-sm font-monospace text-end" value="{{ old('tax', $invoice->tax ?? 0) }}" min="0" oninput="calcTotals()">
+                            <input type="number" step="0.01" name="tax" id="taxInput" class="form-control form-control-sm font-monospace" 
+                                   value="{{ old('tax', $invoice->tax ?? 0) }}" min="0" oninput="calcTotals()">
                         </div>
                     </div>
 
-                    {{-- Payment Fields (Hidden for Quotation / Tender) --}}
+                    {{-- Payment Fields (Hidden in Tender/Quotation) --}}
                     <div id="paymentFieldsSection">
-                        <hr class="my-3">
-                        <h6 class="fw-bold text-dark mb-3"><i class="fas fa-money-bill-wave me-2 text-primary"></i>পেমেন্ট ও পরিশোধ</h6>
-                        
-                        <div class="mb-3">
-                            <label class="form-label small fw-semibold text-muted">পেমেন্ট মাধ্যম <span class="text-danger">*</span></label>
-                            <select name="payment_method" class="form-select form-select-sm">
-                                <option value="ক্যাশ (Cash)" @selected($invoice->payment_method === 'ক্যাশ (Cash)' || $invoice->payment_method === 'ক্যাশ / নগদ (Cash)')>ক্যাশ (Cash)</option>
-                                <option value="ব্যাংক ট্রান্সফার (Bank)" @selected(str_contains($invoice->payment_method ?? '', 'ব্যাংক'))>ব্যাংক ট্রান্সফার (Bank)</option>
-                                <option value="বিকাশ (bKash)" @selected(str_contains($invoice->payment_method ?? '', 'বিকাশ'))>বিকাশ (bKash)</option>
-                                <option value="নগদ (Nagad)" @selected(str_contains($invoice->payment_method ?? '', 'নগদ'))>নগদ (Nagad)</option>
-                                <option value="রকেট (Rocket)" @selected(str_contains($invoice->payment_method ?? '', 'রকেট'))>রকেট (Rocket)</option>
-                                <option value="চেক (Cheque)" @selected(str_contains($invoice->payment_method ?? '', 'চেক'))>চেক (Cheque)</option>
-                                <option value="ক্যাশ অন ডেলিভারি (COD)" @selected(str_contains($invoice->payment_method ?? '', 'ক্যাশ অন ডেলিভারি'))>ক্যাশ অন ডেলিভারি (COD)</option>
-                                <option value="অন্যান্য" @selected($invoice->payment_method === 'অন্যান্য')>অন্যান্য</option>
-                            </select>
-                        </div>
-
                         <div class="mb-3">
                             <div class="d-flex justify-content-between align-items-center mb-1">
-                                <label class="form-label small fw-semibold text-muted mb-0">পরিশোধিত টাকা (৳)</label>
-                                <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none small" onclick="fillFullPaid()">
-                                    সম্পূর্ণ পেইড
+                                <label class="form-label small fw-semibold text-muted mb-0">জমা / পরিশোধিত টাকা (Paid Amount)</label>
+                                <button type="button" class="btn btn-link btn-sm p-0 text-primary small text-decoration-none fw-semibold" onclick="fillFullPaid()">
+                                    সম্পূর্ণ পরিশোধ
                                 </button>
                             </div>
-                            <input type="number" step="0.01" name="paid_amount" id="paidInput" class="form-control form-control-sm font-monospace text-end fw-bold" value="{{ old('paid_amount', $invoice->paid_amount ?? 0) }}" min="0" oninput="calcTotals()">
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-light fw-bold">৳</span>
+                                <input type="number" step="0.01" name="paid_amount" id="paidInput" class="form-control font-monospace fw-bold text-success" 
+                                       value="{{ old('paid_amount', $invoice->paid_amount ?? 0) }}" min="0" oninput="calcTotals()">
+                            </div>
                         </div>
 
-                        <div class="p-2.5 rounded-3 bg-danger-subtle border border-danger-subtle d-flex justify-content-between align-items-center mb-3">
-                            <span class="small fw-semibold text-danger">অবশিষ্ট বকেয়া (Due):</span>
-                            <strong class="font-monospace text-danger fs-6" id="displayDue">৳{{ number_format($invoice->due_amount ?? 0, 2) }}</strong>
+                        <div class="d-flex justify-content-between align-items-center p-2.5 bg-danger-subtle rounded-3 mb-3 border border-danger-subtle">
+                            <span class="small fw-bold text-danger"><i class="fas fa-clock me-1"></i>অবশিষ্ট বকেয়া (Due):</span>
+                            <span class="fw-bold text-danger font-monospace fs-6" id="displayDue">৳0.00</span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold text-muted">পরিশোধের মাধ্যম</label>
+                            <select name="payment_method" class="form-select form-select-sm">
+                                <option value="ক্যাশ / নগদ (Cash)" @selected(old('payment_method', $invoice->payment_method) === 'ক্যাশ / নগদ (Cash)')>ক্যাশ / নগদ (Cash)</option>
+                                <option value="বিকাশ (bKash)" @selected(old('payment_method', $invoice->payment_method) === 'বিকাশ (bKash)')>বিকাশ (bKash)</option>
+                                <option value="নগদ (Nagad)" @selected(old('payment_method', $invoice->payment_method) === 'নগদ (Nagad)')>নগদ (Nagad)</option>
+                                <option value="রকেট (Rocket)" @selected(old('payment_method', $invoice->payment_method) === 'রকেট (Rocket)')>রকেট (Rocket)</option>
+                                <option value="ব্যাংক ডিপোজিট / ট্রান্সফার" @selected(old('payment_method', $invoice->payment_method) === 'ব্যাংক ডিপোজিট / ট্রান্সফার')>ব্যাংক ডিপোজিট / ট্রান্সফার</option>
+                                <option value="চেক (Cheque)" @selected(old('payment_method', $invoice->payment_method) === 'চেক (Cheque)')>চেক (Cheque)</option>
+                                <option value="অন্যান্য" @selected(old('payment_method', $invoice->payment_method) === 'অন্যান্য')>অন্যান্য</option>
+                            </select>
                         </div>
                     </div>
 
-                    {{-- Notice for Quotation / Tender --}}
-                    <div id="quotationNoticeSection" class="d-none alert alert-info py-2.5 px-3 rounded-3 small mb-3 border-0">
-                        <i class="fas fa-info-circle me-1.5 text-primary"></i> 
-                        <strong>দরপত্র / কোটেশন মোড:</strong> এই ডকুমেন্ট তৈরির সময় কোনো প্রাথমিক পেমেন্ট বা আয়-ব্যয়ের খতিয়ান আপডেট হবে না।
+                    {{-- Quotation Notice Box --}}
+                    <div id="quotationNoticeSection" class="p-3 bg-warning-subtle rounded-3 mb-3 border border-warning-subtle d-none">
+                        <div class="small text-dark fw-semibold mb-1">
+                            <i class="fas fa-circle-info text-warning me-1"></i> দরপত্র ও কোটেশন মোড সক্রিয়
+                        </div>
+                        <div class="text-muted" style="font-size: 11.5px;">
+                            দরপত্র বা কোটেশনের ক্ষেত্রে কোনো তাৎক্ষণিক জমা/পেমেন্ট যুক্ত হয় না। এটি অফার হিসেবে অনুমোদনের জন্য সংরক্ষিত থাকবে।
+                        </div>
                     </div>
 
                     {{-- Submit Button --}}
                     <button type="submit" id="submitBtn" class="btn btn-primary w-100 py-3 rounded-pill fw-bold shadow-sm">
                         <i class="fas fa-save me-1.5"></i> পরিবর্তন সংরক্ষণ করুন
                     </button>
-                    
-                    <a href="{{ route('admin.accounting.invoices.show', $invoice) }}" class="btn btn-outline-secondary w-100 rounded-pill mt-2 py-2 small">
-                        বাতিল করুন
+                    <a href="{{ route('admin.accounting.invoices.show', $invoice) }}" class="btn btn-outline-secondary w-100 py-2 rounded-pill mt-2 small">
+                        বাতিল
                     </a>
                 </div>
             </div>
@@ -387,14 +417,17 @@
 
     const existingBooksMap = {};
     document.querySelectorAll('#booksList option').forEach(opt => {
-        const key = opt.value.trim().toLowerCase();
-        existingBooksMap[key] = {
+        const fullTitle = opt.value.trim();
+        const key = fullTitle.toLowerCase();
+        const bookData = {
             id: opt.getAttribute('data-id'),
+            title: fullTitle,
             author: opt.getAttribute('data-author') || '',
             regularPrice: parseFloat(opt.getAttribute('data-regular-price')) || 0,
             discountPercent: parseFloat(opt.getAttribute('data-discount-percent')) || 0,
             sellingPrice: parseFloat(opt.getAttribute('data-selling-price')) || 0
         };
+        existingBooksMap[key] = bookData;
     });
 
     function updateDocType() {
@@ -407,7 +440,6 @@
         const submitBtn = document.getElementById('submitBtn');
         const rightHeader = document.getElementById('rightCardHeader');
 
-        // Toggle Tender / Quotation Panel
         if (docType === 'quotation' || docType === 'tender') {
             tenderPanel.classList.remove('d-none');
             paymentSection.classList.add('d-none');
@@ -446,7 +478,9 @@
     }
 
     function onTitleInput(input, index) {
-        const val = input.value.trim().toLowerCase();
+        const rawVal = input.value.trim();
+        if (!rawVal) return;
+
         const row = document.querySelector(`tr[data-row="${index}"]`);
         if (!row) return;
 
@@ -456,9 +490,20 @@
         const discPctInput = row.querySelector('.item-discount-percent');
         const priceInput = row.querySelector('.item-price');
 
-        if (existingBooksMap[val]) {
-            const b = existingBooksMap[val];
-            hiddenId.value = b.id || '';
+        const cleanVal = rawVal.split('—')[0].split('(')[0].trim().toLowerCase();
+        
+        let b = existingBooksMap[rawVal.toLowerCase()] || existingBooksMap[cleanVal];
+        if (!b) {
+            for (const [titleKey, bookData] of Object.entries(existingBooksMap)) {
+                if (titleKey === cleanVal || titleKey === rawVal.toLowerCase() || titleKey.includes(cleanVal) || cleanVal.includes(titleKey)) {
+                    b = bookData;
+                    break;
+                }
+            }
+        }
+
+        if (b) {
+            if (hiddenId) hiddenId.value = b.id || '';
             if (authorInput && b.author) {
                 authorInput.value = b.author;
             }
@@ -472,8 +517,6 @@
                 priceInput.value = b.sellingPrice > 0 ? b.sellingPrice : (b.regularPrice > 0 ? b.regularPrice : 0);
             }
             calcRow(index, 'book_select');
-        } else {
-            hiddenId.value = '';
         }
     }
 
@@ -496,7 +539,7 @@
             if (regPrice > 0) {
                 if (discPct > 0 && discPct <= 100) {
                     unitPrice = Math.round(regPrice * (1 - (discPct / 100)) * 100) / 100;
-                } else {
+                } else if (discPct === 0) {
                     unitPrice = regPrice;
                 }
                 if (priceInput) priceInput.value = unitPrice;
@@ -507,17 +550,6 @@
                 if (discPctInput) discPctInput.value = discPct;
             } else if (unitPrice >= regPrice && regPrice > 0) {
                 if (discPctInput) discPctInput.value = 0;
-            }
-        } else if (source === 'book_select') {
-            // Price already set
-        } else {
-            // General sync
-            if (regPrice > 0 && unitPrice === 0 && discPct > 0) {
-                unitPrice = Math.round(regPrice * (1 - (discPct / 100)) * 100) / 100;
-                if (priceInput) priceInput.value = unitPrice;
-            } else if (unitPrice === 0 && regPrice > 0) {
-                unitPrice = regPrice;
-                if (priceInput) priceInput.value = unitPrice;
             }
         }
 
@@ -575,7 +607,7 @@
         tr.innerHTML = `
             <td>
                 <input type="text" name="items[${i}][title]" class="form-control form-control-sm item-title" 
-                       list="booksList" placeholder="বইয়ের নাম টাইপ বা সিলেক্ট করুন..." required oninput="onTitleInput(this, ${i})">
+                       list="booksList" placeholder="বইয়ের নাম টাইপ বা সিলেক্ট করুন..." required oninput="onTitleInput(this, ${i})" onchange="onTitleInput(this, ${i})">
                 <input type="hidden" name="items[${i}][book_id]" class="item-book-id" value="">
             </td>
             <td>
@@ -593,16 +625,24 @@
                 </select>
             </td>
             <td>
-                <input type="number" step="0.01" name="items[${i}][quantity]" class="form-control form-control-sm item-qty text-center" 
-                       value="1" min="0.01" required oninput="calcRow(${i})">
+                <input type="number" step="0.01" name="items[${i}][quantity]" class="form-control form-control-sm item-qty text-center font-monospace fw-bold" 
+                       value="1" min="0.01" required oninput="calcRow(${i}, 'qty')">
             </td>
             <td>
-                <input type="number" step="0.01" name="items[${i}][price]" class="form-control form-control-sm item-price text-end" 
-                       value="0" min="0" required oninput="calcRow(${i})">
+                <input type="number" step="0.01" name="items[${i}][regular_price]" class="form-control form-control-sm item-regular-price text-end font-monospace" 
+                       value="0" min="0" placeholder="0.00" oninput="calcRow(${i}, 'regular_price')">
             </td>
-            <td class="text-end fw-bold text-dark item-subtotal">৳0.00</td>
+            <td>
+                <input type="number" step="0.01" name="items[${i}][discount_percent]" class="form-control form-control-sm item-discount-percent text-center font-monospace fw-bold text-success" 
+                       value="0" min="0" max="100" placeholder="0" oninput="calcRow(${i}, 'discount_percent')">
+            </td>
+            <td>
+                <input type="number" step="0.01" name="items[${i}][price]" class="form-control form-control-sm item-price text-end font-monospace fw-bold text-primary" 
+                       value="0" min="0" required oninput="calcRow(${i}, 'unit_price')">
+            </td>
+            <td class="text-end fw-bold text-dark item-subtotal font-monospace">৳0.00</td>
             <td class="text-center">
-                <button type="button" class="btn btn-sm btn-outline-danger p-1 border-0" onclick="removeRow(this)">
+                <button type="button" class="btn btn-sm btn-outline-danger p-1 border-0" onclick="removeRow(this)" title="মুছুন">
                     <i class="fas fa-times"></i>
                 </button>
             </td>

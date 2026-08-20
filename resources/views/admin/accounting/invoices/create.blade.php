@@ -179,7 +179,7 @@
                                 <tr class="item-row" data-row="0">
                                     <td>
                                         <input type="text" name="items[0][title]" class="form-control form-control-sm item-title" 
-                                               list="booksList" placeholder="বইয়ের নাম টাইপ বা সিলেক্ট করুন..." required oninput="onTitleInput(this, 0)">
+                                               list="booksList" placeholder="বইয়ের নাম টাইপ বা সিলেক্ট করুন..." required oninput="onTitleInput(this, 0)" onchange="onTitleInput(this, 0)">
                                         <input type="hidden" name="items[0][book_id]" class="item-book-id" value="">
                                     </td>
                                     <td>
@@ -367,14 +367,17 @@
 
     const existingBooksMap = {};
     document.querySelectorAll('#booksList option').forEach(opt => {
-        const key = opt.value.trim().toLowerCase();
-        existingBooksMap[key] = {
+        const fullTitle = opt.value.trim();
+        const key = fullTitle.toLowerCase();
+        const bookData = {
             id: opt.getAttribute('data-id'),
+            title: fullTitle,
             author: opt.getAttribute('data-author') || '',
             regularPrice: parseFloat(opt.getAttribute('data-regular-price')) || 0,
             discountPercent: parseFloat(opt.getAttribute('data-discount-percent')) || 0,
             sellingPrice: parseFloat(opt.getAttribute('data-selling-price')) || 0
         };
+        existingBooksMap[key] = bookData;
     });
 
     function updateDocType() {
@@ -441,7 +444,9 @@
     }
 
     function onTitleInput(input, index) {
-        const val = input.value.trim().toLowerCase();
+        const rawVal = input.value.trim();
+        if (!rawVal) return;
+
         const row = document.querySelector(`tr[data-row="${index}"]`);
         if (!row) return;
 
@@ -451,9 +456,20 @@
         const discPctInput = row.querySelector('.item-discount-percent');
         const priceInput = row.querySelector('.item-price');
 
-        if (existingBooksMap[val]) {
-            const b = existingBooksMap[val];
-            hiddenId.value = b.id || '';
+        const cleanVal = rawVal.split('—')[0].split('(')[0].trim().toLowerCase();
+        
+        let b = existingBooksMap[rawVal.toLowerCase()] || existingBooksMap[cleanVal];
+        if (!b) {
+            for (const [titleKey, bookData] of Object.entries(existingBooksMap)) {
+                if (titleKey === cleanVal || titleKey === rawVal.toLowerCase() || titleKey.includes(cleanVal) || cleanVal.includes(titleKey)) {
+                    b = bookData;
+                    break;
+                }
+            }
+        }
+
+        if (b) {
+            if (hiddenId) hiddenId.value = b.id || '';
             if (authorInput && b.author) {
                 authorInput.value = b.author;
             }
@@ -468,7 +484,7 @@
             }
             calcRow(index, 'book_select');
         } else {
-            hiddenId.value = '';
+            if (hiddenId) hiddenId.value = '';
         }
     }
 
@@ -491,7 +507,7 @@
             if (regPrice > 0) {
                 if (discPct > 0 && discPct <= 100) {
                     unitPrice = Math.round(regPrice * (1 - (discPct / 100)) * 100) / 100;
-                } else {
+                } else if (discPct === 0) {
                     unitPrice = regPrice;
                 }
                 if (priceInput) priceInput.value = unitPrice;
@@ -502,17 +518,6 @@
                 if (discPctInput) discPctInput.value = discPct;
             } else if (unitPrice >= regPrice && regPrice > 0) {
                 if (discPctInput) discPctInput.value = 0;
-            }
-        } else if (source === 'book_select') {
-            // Price already set
-        } else {
-            // General sync
-            if (regPrice > 0 && unitPrice === 0 && discPct > 0) {
-                unitPrice = Math.round(regPrice * (1 - (discPct / 100)) * 100) / 100;
-                if (priceInput) priceInput.value = unitPrice;
-            } else if (unitPrice === 0 && regPrice > 0) {
-                unitPrice = regPrice;
-                if (priceInput) priceInput.value = unitPrice;
             }
         }
 
@@ -526,37 +531,43 @@
     function calcTotals() {
         let subtotal = 0;
         document.querySelectorAll('.item-row').forEach(row => {
-            const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
-            const price = parseFloat(row.querySelector('.item-price').value) || 0;
+            const qty = parseFloat(row.querySelector('.item-qty')?.value) || 0;
+            const price = parseFloat(row.querySelector('.item-price')?.value) || 0;
             subtotal += (qty * price);
         });
 
-        const discount = parseFloat(document.getElementById('discountInput').value) || 0;
-        const tax = parseFloat(document.getElementById('taxInput').value) || 0;
+        const discount = parseFloat(document.getElementById('discountInput')?.value) || 0;
+        const tax = parseFloat(document.getElementById('taxInput')?.value) || 0;
         const grandTotal = Math.max(0, subtotal - discount + tax);
 
-        document.getElementById('displaySubtotal').textContent = '৳' + subtotal.toFixed(2);
-        document.getElementById('displayDiscount').textContent = '-৳' + discount.toFixed(2);
-        document.getElementById('displayTax').textContent = '+৳' + tax.toFixed(2);
-        document.getElementById('displayGrandTotal').textContent = '৳' + grandTotal.toFixed(2);
+        const elSubtotal = document.getElementById('displaySubtotal');
+        if (elSubtotal) elSubtotal.textContent = '৳' + subtotal.toFixed(2);
+        const elDisc = document.getElementById('displayDiscount');
+        if (elDisc) elDisc.textContent = '-৳' + discount.toFixed(2);
+        const elTax = document.getElementById('displayTax');
+        if (elTax) elTax.textContent = '+৳' + tax.toFixed(2);
+        const elGrand = document.getElementById('displayGrandTotal');
+        if (elGrand) elGrand.textContent = '৳' + grandTotal.toFixed(2);
 
-        const paid = parseFloat(document.getElementById('paidInput').value) || 0;
+        const paid = parseFloat(document.getElementById('paidInput')?.value) || 0;
         const due = Math.max(0, grandTotal - paid);
 
-        document.getElementById('displayDue').textContent = '৳' + due.toFixed(2);
+        const elDue = document.getElementById('displayDue');
+        if (elDue) elDue.textContent = '৳' + due.toFixed(2);
     }
 
     function fillFullPaid() {
         let subtotal = 0;
         document.querySelectorAll('.item-row').forEach(row => {
-            const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
-            const price = parseFloat(row.querySelector('.item-price').value) || 0;
+            const qty = parseFloat(row.querySelector('.item-qty')?.value) || 0;
+            const price = parseFloat(row.querySelector('.item-price')?.value) || 0;
             subtotal += (qty * price);
         });
-        const discount = parseFloat(document.getElementById('discountInput').value) || 0;
-        const tax = parseFloat(document.getElementById('taxInput').value) || 0;
+        const discount = parseFloat(document.getElementById('discountInput')?.value) || 0;
+        const tax = parseFloat(document.getElementById('taxInput')?.value) || 0;
         const grandTotal = Math.max(0, subtotal - discount + tax);
-        document.getElementById('paidInput').value = grandTotal.toFixed(2);
+        const paidInput = document.getElementById('paidInput');
+        if (paidInput) paidInput.value = grandTotal.toFixed(2);
         calcTotals();
     }
 
@@ -570,7 +581,7 @@
         tr.innerHTML = `
             <td>
                 <input type="text" name="items[${i}][title]" class="form-control form-control-sm item-title" 
-                       list="booksList" placeholder="বইয়ের নাম টাইপ বা সিলেক্ট করুন..." required oninput="onTitleInput(this, ${i})">
+                       list="booksList" placeholder="বইয়ের নাম টাইপ বা সিলেক্ট করুন..." required oninput="onTitleInput(this, ${i})" onchange="onTitleInput(this, ${i})">
                 <input type="hidden" name="items[${i}][book_id]" class="item-book-id" value="">
             </td>
             <td>
@@ -588,16 +599,24 @@
                 </select>
             </td>
             <td>
-                <input type="number" step="0.01" name="items[${i}][quantity]" class="form-control form-control-sm item-qty text-center" 
-                       value="1" min="0.01" required oninput="calcRow(${i})">
+                <input type="number" step="0.01" name="items[${i}][quantity]" class="form-control form-control-sm item-qty text-center font-monospace fw-bold" 
+                       value="1" min="0.01" required oninput="calcRow(${i}, 'qty')">
             </td>
             <td>
-                <input type="number" step="0.01" name="items[${i}][price]" class="form-control form-control-sm item-price text-end" 
-                       value="0" min="0" required oninput="calcRow(${i})">
+                <input type="number" step="0.01" name="items[${i}][regular_price]" class="form-control form-control-sm item-regular-price text-end font-monospace" 
+                       value="0" min="0" placeholder="0.00" oninput="calcRow(${i}, 'regular_price')">
             </td>
-            <td class="text-end fw-bold text-dark item-subtotal">৳0.00</td>
+            <td>
+                <input type="number" step="0.01" name="items[${i}][discount_percent]" class="form-control form-control-sm item-discount-percent text-center font-monospace fw-bold text-success" 
+                       value="0" min="0" max="100" placeholder="0" oninput="calcRow(${i}, 'discount_percent')">
+            </td>
+            <td>
+                <input type="number" step="0.01" name="items[${i}][price]" class="form-control form-control-sm item-price text-end font-monospace fw-bold text-primary" 
+                       value="0" min="0" required oninput="calcRow(${i}, 'unit_price')">
+            </td>
+            <td class="text-end fw-bold text-dark item-subtotal font-monospace">৳0.00</td>
             <td class="text-center">
-                <button type="button" class="btn btn-sm btn-outline-danger p-1 border-0" onclick="removeRow(this)">
+                <button type="button" class="btn btn-sm btn-outline-danger p-1 border-0" onclick="removeRow(this)" title="মুছুন">
                     <i class="fas fa-times"></i>
                 </button>
             </td>
