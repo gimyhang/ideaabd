@@ -147,11 +147,16 @@ class AuthorBlogController extends Controller
             'action_type'    => 'required|in:draft,submit',
         ];
 
+        if ($request->input('action_type') === 'submit') {
+            $rules['agree_policy'] = 'accepted';
+        }
+
         $validated = $request->validate($rules, [
-            'title.required'       => 'ব্লগ পোস্টের শিরোনাম দিন।',
-            'content.required'     => 'ব্লগের মূল বিষয়বস্তু বা রচনা লিখুন।',
-            'featured_image.image' => 'ফটোকার্ডটি একটি বৈধ ছবি (JPG, PNG, WebP) হতে হবে।',
-            'featured_image.max'   => 'ছবি ফাইলের সর্বোচ্চ সাইজ ৮ মেগাবাইট হতে পারবে।',
+            'title.required'        => 'ব্লগ পোস্টের শিরোনাম দিন।',
+            'content.required'      => 'ব্লগের মূল বিষয়বস্তু বা রচনা লিখুন।',
+            'featured_image.image'  => 'ফটোকার্ডটি একটি বৈধ ছবি (JPG, PNG, WebP) হতে হবে।',
+            'featured_image.max'    => 'ছবি ফাইলের সর্বোচ্চ সাইজ ৮ মেগাবাইট হতে পারবে।',
+            'agree_policy.accepted' => 'লেখা জমা দেওয়ার পূর্বে প্রকাশনার শর্তাবলি ও সম্পাদকীয় নীতিমালায় সম্মতি প্রদান করুন।',
         ]);
 
         $user = auth()->user();
@@ -268,7 +273,7 @@ class AuthorBlogController extends Controller
         $hasAiImage = !empty($request->input('ai_photocard_data'));
         $hasUpload = $request->hasFile('featured_image');
 
-        $validated = $request->validate([
+        $rules = [
             'title'          => 'required|string|max:255',
             'subtitle'       => 'nullable|string|max:500',
             'category_id'    => 'nullable|integer',
@@ -276,11 +281,18 @@ class AuthorBlogController extends Controller
             'content'        => 'required|string',
             'featured_image' => 'nullable|image|max:8192',
             'action_type'    => 'required|in:draft,submit',
-        ], [
-            'title.required'       => 'ব্লগ পোস্টের শিরোনাম দিন।',
-            'content.required'     => 'ব্লগের মূল বিষয়বস্তু বা রচনা লিখুন।',
-            'featured_image.image' => 'ফটোকার্ডটি একটি বৈধ ছবি (JPG, PNG, WebP) হতে হবে।',
-            'featured_image.max'   => 'ছবি ফাইলের সর্বোচ্চ সাইজ ৮ মেগাবাইট হতে পারবে।',
+        ];
+
+        if ($request->input('action_type') === 'submit') {
+            $rules['agree_policy'] = 'accepted';
+        }
+
+        $validated = $request->validate($rules, [
+            'title.required'        => 'ব্লগ পোস্টের শিরোনাম দিন।',
+            'content.required'      => 'ব্লগের মূল বিষয়বস্তু বা রচনা লিখুন।',
+            'featured_image.image'  => 'ফটোকার্ডটি একটি বৈধ ছবি (JPG, PNG, WebP) হতে হবে।',
+            'featured_image.max'    => 'ছবি ফাইলের সর্বোচ্চ সাইজ ৮ মেগাবাইট হতে পারবে।',
+            'agree_policy.accepted' => 'লেখা জমা দেওয়ার পূর্বে প্রকাশনার শর্তাবলি ও সম্পাদকীয় নীতিমালায় সম্মতি প্রদান করুন।',
         ]);
 
         $isSubmit = ($validated['action_type'] ?? 'submit') === 'submit';

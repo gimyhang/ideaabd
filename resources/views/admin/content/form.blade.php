@@ -270,31 +270,83 @@
                             @endif
                             @error('category_id')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
 
-                        {{-- ══ BLOG AUTHOR SELECT WITH QUICK CREATION ═════════════ --}}
+                        {{-- ══ BLOG AUTHOR & CONTRIBUTORS SYSTEM (ডাইনামিক ও ক্লাসিক লেখক নির্বাচন) ══ --}}
                         @elseif ($name === 'author_id')
                             @php
-                                $authorOptions = $lookups['authors'] ?? ($lookups['users'] ?? []);
+                                $currentOwnerName = old('owner_name', $editing ? ($record->owner_name ?? '') : '');
+                                $selectedAuthorKey = old('author_id');
+
+                                if ($selectedAuthorKey === null && $editing && $record) {
+                                    // 1. Try to match owner_name with directory authors
+                                    if (!empty($record->owner_name) && Schema::hasTable('authors')) {
+                                        $matchedDir = DB::table('authors')->where('name', $record->owner_name)->whereNull('deleted_at')->first();
+                                        if ($matchedDir) {
+                                            $selectedAuthorKey = 'author_' . $matchedDir->id;
+                                        }
+                                    }
+                                    // 2. If not matched, match by author_id in users
+                                    if (empty($selectedAuthorKey) && !empty($record->author_id)) {
+                                        $selectedAuthorKey = 'user_' . $record->author_id;
+                                    }
+                                }
+
+                                $existingAuthorUser = $editing && $record && $record->author ? $record->author : (!empty($record->author_id) ? \App\Models\User::find($record->author_id) : null);
+                                $displayAuthorName = $currentOwnerName ?: ($existingAuthorUser ? $existingAuthorUser->name : ($record->author_name ?? 'সম্পাদকীয় বিভাগ'));
+                                $authorOptions = $lookups['authors'] ?? [];
                             @endphp
-                            <div class="d-flex align-items-center justify-content-between mb-1">
-                                <label for="f-author_id" class="form-label small fw-semibold mb-0">
-                                    <i class="fas fa-pen-nib text-primary me-1"></i> {{ $field['label'] }}
-                                </label>
-                                <button type="button" class="btn btn-link text-primary p-0 text-decoration-none small fw-semibold"
-                                        data-bs-toggle="modal" data-bs-target="#quickAddAuthorModal">
-                                    <i class="fas fa-plus-circle me-1"></i>+ নতুন লেখক যুক্ত করুন
-                                </button>
+
+                            <div class="p-3 bg-light rounded-3 border">
+                                <div class="d-flex align-items-center justify-content-between mb-2 pb-2 border-bottom">
+                                    <div>
+                                        <label class="form-label small fw-bold text-dark mb-0">
+                                            <i class="fas fa-pen-fancy text-primary me-1"></i> ব্লগের মূল লেখক (Author Selection)
+                                        </label>
+                                        <div class="text-muted mt-0.5" style="font-size: 11.5px;">
+                                            বর্তমান লেখক: <strong class="text-primary" id="currentAuthorBadgeText">{{ $displayAuthorName }}</strong>
+                                            @if($existingAuthorUser)
+                                                <span class="badge bg-primary-subtle text-primary border ms-1">{{ $existingAuthorUser->role === 'author' ? 'নিবন্ধিত লেখক' : $existingAuthorUser->role }}</span>
+                                            @elseif($currentOwnerName)
+                                                <span class="badge bg-secondary-subtle text-secondary border ms-1">কাস্টম অবদানকারী</span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-outline-primary py-1 px-2.5 rounded-pill fw-semibold"
+                                            data-bs-toggle="modal" data-bs-target="#quickAddAuthorModal" style="font-size: 11.5px;">
+                                        <i class="fas fa-plus-circle me-1"></i>+ নতুন লেখক তৈরি
+                                    </button>
+                                </div>
+
+                                {{-- Author Dropdown (Users & Directory Authors) --}}
+                                <div class="mb-2">
+                                    <label for="f-author_id" class="form-label small fw-semibold text-dark mb-1" style="font-size: 12px;">
+                                        তালিকা থেকে লেখক বাছাই করুন:
+                                    </label>
+                                    <select id="f-author_id" name="author_id" class="form-select @error('author_id') is-invalid @enderror" onchange="onBlogAuthorDropdownChange(this)">
+                                        <option value="">— লেখক নির্বাচন করুন (মোট: {{ count($authorOptions) }} জন) —</option>
+                                        @foreach ($authorOptions as $aId => $aName)
+                                            <option value="{{ $aId }}" @selected((string) $selectedAuthorKey === (string) $aId)>
+                                                {{ $aName }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    @error('author_id')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                                </div>
+
+                                {{-- Custom Author Display Name --}}
+                                <div>
+                                    <label for="f-owner_name" class="form-label small fw-semibold text-dark mb-1" style="font-size: 12px;">
+                                        <i class="fas fa-signature text-secondary me-1"></i> সাইটে প্রদর্শিত লেখকের নাম (Display Name / যার নামে প্রকাশিত হবে):
+                                    </label>
+                                    <input type="text" id="f-owner_name" name="owner_name" 
+                                           value="{{ $currentOwnerName }}"
+                                           class="form-control form-control-sm" 
+                                           placeholder="যেমন: কাজী নজরুল ইসলাম / রবীন্দ্রনাথ ঠাকুর / হুমায়ূন আহমেদ"
+                                           oninput="updateLiveMockupCard()">
+                                    <div class="form-text text-muted mt-1" style="font-size: 11px;">
+                                        <i class="fas fa-info-circle text-primary me-1"></i> সাইটের ব্লগে এই নামটি লেখকের ক্রেডিট হিসেবে প্রদর্শিত হবে। ফাঁকা রাখলে নির্বাচিত অ্যাকাউন্টের নাম প্রদর্শিত হবে।
+                                    </div>
+                                </div>
                             </div>
-                            
-                            <select id="f-author_id" name="author_id" class="form-select @error('author_id') is-invalid @enderror" onchange="updateLiveMockupCard()">
-                                <option value="">— লেখক নির্বাচন করুন —</option>
-                                @foreach ($authorOptions as $aId => $aName)
-                                    <option value="{{ $aId }}" @selected((string) $current === (string) $aId)>
-                                        {{ $aName }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            <div class="form-text" style="font-size: 11px;">তালিকায় লেখক না থাকলে পাশের বাটনে ক্লিক করে সাথে সাথে যুক্ত করতে পারেন।</div>
-                            @error('author_id')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
 
                         {{-- ══ PUBLISHER SELECT WITH QUICK CREATION ══════════════ --}}
                         @elseif ($name === 'publisher_id')
@@ -721,11 +773,29 @@
                                     @break
 
                                 @case('editor')
+                                    @php
+                                        $editorHtml = $current;
+                                        if (!empty($editorHtml)) {
+                                            // If content is plain text or lacks standard paragraph / break tags, format newlines into stanzas & linebreaks
+                                            if (!str_contains($editorHtml, '<p>') && !str_contains($editorHtml, '<br>') && !str_contains($editorHtml, '<div>') && !str_contains($editorHtml, '<blockquote')) {
+                                                $rawStanzas = preg_split('/\r\n\r\n|\n\n+|\r\r+/', (string) $editorHtml);
+                                                $formattedStanzas = [];
+                                                foreach ($rawStanzas as $st) {
+                                                    $st = trim($st);
+                                                    if ($st !== '') {
+                                                        $formattedStanzas[] = '<p style="margin-bottom: 1.35rem; line-height: 1.95;">' . nl2br(e($st)) . '</p>';
+                                                    }
+                                                }
+                                                $editorHtml = implode('', $formattedStanzas);
+                                            }
+                                        }
+                                    @endphp
+
                                     <div class="rich-editor-wrapper border rounded-3 overflow-hidden shadow-xs mb-2">
                                         <!-- Formatting Toolbar -->
                                         <div class="rich-editor-toolbar bg-light p-2 border-bottom d-flex flex-wrap gap-1 align-items-center">
                                             <!-- Heading Format Selector -->
-                                            <select class="form-select form-select-sm" style="width: auto; min-width: 140px;" onchange="formatDoc('formatBlock', this.value, 'f-{{ $name }}')">
+                                            <select class="form-select form-select-sm" style="width: auto; min-width: 135px;" onchange="formatDoc('formatBlock', this.value, 'f-{{ $name }}')">
                                                 <option value="p">স্বাভাবিক প্যারাগ্রাফ (P)</option>
                                                 <option value="h1">বড় শিরোনাম (H1)</option>
                                                 <option value="h2">উপ-শিরোনাম (H2)</option>
@@ -735,14 +805,14 @@
                                             </select>
 
                                             <!-- Font Size Selector -->
-                                            <select class="form-select form-select-sm" style="width: auto; min-width: 110px;" onchange="formatDoc('fontSize', this.value, 'f-{{ $name }}')">
+                                            <select class="form-select form-select-sm" style="width: auto; min-width: 105px;" onchange="formatDoc('fontSize', this.value, 'f-{{ $name }}')">
                                                 <option value="3">ফন্ট সাইজ</option>
-                                                <option value="1">খুব ছোট (Small)</option>
-                                                <option value="2">ছোট (13px)</option>
-                                                <option value="3">স্বাভাবিক (15px)</option>
+                                                <option value="1">খুব ছোট (12px)</option>
+                                                <option value="2">ছোট (14px)</option>
+                                                <option value="3">স্বাভাবিক (16px)</option>
                                                 <option value="4">মাঝারি (18px)</option>
-                                                <option value="5">বড় (24px)</option>
-                                                <option value="6">খুব বড় (32px)</option>
+                                                <option value="5">বড় (22px)</option>
+                                                <option value="6">খুব বড় (28px)</option>
                                             </select>
 
                                             <div class="vr mx-1"></div>
@@ -767,13 +837,13 @@
                                             <button type="button" class="btn btn-sm btn-light border py-1 px-2" onclick="formatDoc('justifyLeft', null, 'f-{{ $name }}')" title="বাম সারিবদ্ধ">
                                                 <i class="fas fa-align-left"></i>
                                             </button>
-                                            <button type="button" class="btn btn-sm btn-light border py-1 px-2" onclick="formatDoc('justifyCenter', null, 'f-{{ $name }}')" title="মাঝে সারিবদ্ধ">
+                                            <button type="button" class="btn btn-sm btn-light border py-1 px-2" onclick="formatDoc('justifyCenter', null, 'f-{{ $name }}')" title="মাঝে সারিবদ্ধ (কবিতার জন্য আদর্শ)">
                                                 <i class="fas fa-align-center"></i>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-light border py-1 px-2" onclick="formatDoc('justifyRight', null, 'f-{{ $name }}')" title="ডান সারিবদ্ধ">
                                                 <i class="fas fa-align-right"></i>
                                             </button>
-                                            <button type="button" class="btn btn-sm btn-light border py-1 px-2" onclick="formatDoc('justifyFull', null, 'f-{{ $name }}')" title="জাস্টিফাই">
+                                            <button type="button" class="btn btn-sm btn-light border py-1 px-2" onclick="formatDoc('justifyFull', null, 'f-{{ $name }}')" title="জাস্টিফাই (প্রবন্ধের জন্য)">
                                                 <i class="fas fa-align-justify"></i>
                                             </button>
 
@@ -786,7 +856,7 @@
                                             <button type="button" class="btn btn-sm btn-light border py-1 px-2" onclick="formatDoc('insertOrderedList', null, 'f-{{ $name }}')" title="নম্বর লিস্ট">
                                                 <i class="fas fa-list-ol"></i>
                                             </button>
-                                            <button type="button" class="btn btn-sm btn-light border py-1 px-2" onclick="formatDoc('insertHorizontalRule', null, 'f-{{ $name }}')" title="বিভাজক রেখা">
+                                            <button type="button" class="btn btn-sm btn-light border py-1 px-2" onclick="formatDoc('insertHorizontalRule', null, 'f-{{ $name }}')" title="বিভাজক রেখা (Divider)">
                                                 <i class="fas fa-minus"></i>
                                             </button>
 
@@ -805,13 +875,27 @@
 
                                             <div class="vr mx-1"></div>
 
-                                            <!-- Actions & Poetry & Spell Check Helper -->
+                                            <!-- Literary Poetry & Prose Enhancers -->
+                                            <button type="button" class="btn btn-sm btn-outline-primary border py-1 px-2.5 fw-semibold" onclick="formatPoetryMode('f-{{ $name }}')" title="কবিতার লাইন ও স্তবক বিন্যাস সাজান (Preserve Poetry Stanzas)">
+                                                <i class="fas fa-feather-alt text-primary me-1"></i> কবিতা মোড
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-secondary border py-1 px-2.5 fw-semibold" onclick="formatProseMode('f-{{ $name }}')" title="গদ্য ও প্রবন্ধের অনুচ্ছেদ বিন্যাস (Prose Mode)">
+                                                <i class="fas fa-align-left me-1"></i> গদ্য মোড
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-info border py-1 px-2.5 fw-semibold" onclick="formatFixLineBreaks('f-{{ $name }}')" title="প্যারা ও লাইন স্পেস স্বয়ংক্রিয়ভাবে মেরামত করুন">
+                                                <i class="fas fa-wand-magic-sparkles me-1"></i> স্পেস ঠিক করুন
+                                            </button>
                                             <button type="button" class="btn btn-sm btn-outline-warning border py-1 px-2.5 fw-semibold text-dark" id="spellBtn-{{ $name }}" onclick="toggleSpellChecker('{{ $name }}')" title="প্রমিত বাংলা একাডেমি ও ইংরেজি বানান পরীক্ষা (Spell Check)">
                                                 <i class="fas fa-spell-check text-warning me-1"></i> <span id="spellBtnText-{{ $name }}">বানান পরীক্ষা</span>
                                             </button>
-                                            <button type="button" class="btn btn-sm btn-outline-primary border py-1 px-2.5 fw-semibold" onclick="formatPoetryMode('f-{{ $name }}')" title="কবিতার লাইনবিন্যাস সাজান (Preserve Poetry Verses)">
-                                                <i class="fas fa-feather-alt text-primary me-1"></i> কবিতার লাইন সাজান
-                                            </button>
+                                            @if($spec['key'] === 'blog')
+                                                <button type="button" class="btn btn-sm btn-outline-success border py-1 px-2.5 fw-semibold" onclick="openBlogLivePreviewModal('f-{{ $name }}')" title="সাহিত্যপত্র ও রিডার ভিউতে সরাসরি প্রিভিউ দেখুন">
+                                                    <i class="fas fa-eye me-1"></i> সাহিত্যপত্র প্রিভিউ
+                                                </button>
+                                            @endif
+
+                                            <div class="vr mx-1"></div>
+
                                             <button type="button" class="btn btn-sm btn-light border py-1 px-2" onclick="formatDoc('undo', null, 'f-{{ $name }}')" title="আনডু (Ctrl+Z)">
                                                 <i class="fas fa-undo"></i>
                                             </button>
@@ -825,18 +909,21 @@
 
                                         <!-- Contenteditable Live Area -->
                                         <div id="editable-{{ $name }}" contenteditable="true" 
-                                             class="p-3 bg-white text-dark rich-editor-content" 
-                                             style="min-height: 280px; max-height: 550px; overflow-y: auto; outline: none; font-size: 15.5px; line-height: 1.85;"
-                                             oninput="onEditorInputWithSpellCheck('{{ $name }}')">{!! $current !!}</div>
+                                             class="p-3.5 bg-white text-dark rich-editor-content" 
+                                             style="min-height: 350px; max-height: 650px; overflow-y: auto; outline: none; font-size: 16.5px; line-height: 1.95; font-family: 'Hind Siliguri', 'Kalpurush', 'SolaimanLipi', sans-serif;"
+                                             oninput="onEditorInputWithSpellCheck('{{ $name }}')">{!! $editorHtml !!}</div>
 
                                         <!-- Hidden/Synced real textarea for form submission -->
-                                        <textarea id="f-{{ $name }}" name="{{ $name }}" class="d-none @error($name) is-invalid @enderror">{{ $current }}</textarea>
+                                        <textarea id="f-{{ $name }}" name="{{ $name }}" class="d-none @error($name) is-invalid @enderror">{!! $editorHtml !!}</textarea>
                                     </div>
 
                                     <!-- Spell Checker Results Notification Box -->
                                     <div id="spell-results-{{ $name }}" class="mt-2.5 d-none"></div>
 
-                                    <div class="form-text" style="font-size: 11.5px;">উপরে দেওয়া টুলবার ব্যবহার করে লেখা বোল্ড, ইটালিক, বড়-ছোট, কবিতার লাইন ও <strong>প্রমিত বানান পরীক্ষা</strong> করতে পারবেন।</div>
+                                    <div class="d-flex flex-wrap align-items-center justify-content-between text-muted mt-1" style="font-size: 11.5px;">
+                                        <div><i class="fas fa-circle-info text-primary me-1"></i> কবিতার ক্ষেত্রে <strong>“কবিতা মোড”</strong> অথবা গদ্যে <strong>“গদ্য মোড”</strong> ও <strong>“স্পেস ঠিক করুন”</strong> বাটনে চাপলে প্যারা ও লাইন স্পেসিং স্বয়ংক্রিয়ভাবে সাজানো হবে।</div>
+                                        <div id="editorWordStats-{{ $name }}" class="fw-semibold text-dark"></div>
+                                    </div>
                                     @break
 
                                 @case('select')
@@ -1238,6 +1325,7 @@
                 @error('submitted_by')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
 
+            @if ($spec['key'] !== 'blog')
             <div class="mb-2.5">
                 <label for="f-owner_name" class="form-label small fw-semibold mb-1">অফলাইন ব্যক্তির নাম</label>
                 <input type="text" id="f-owner_name" name="owner_name" value="{{ $val('owner_name') }}"
@@ -1245,6 +1333,7 @@
                        class="form-control form-control-sm @error('owner_name') is-invalid @enderror">
                 @error('owner_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
+            @endif
 
             <div>
                 <label for="f-owner_phone" class="form-label small fw-semibold mb-1">যোগাযোগের ফোন নম্বর</label>
@@ -1456,6 +1545,77 @@
                     </button>
                 </div>
             </form>
+        </div>
+    </div>
+</div>
+
+{{-- ========================================================================= --}}
+{{-- MODAL 4: BLOG LITERARY READER LIVE PREVIEW (সাহিত্যপত্র রিডার প্রিভিউ)      --}}
+{{-- ========================================================================= --}}
+<div class="modal fade" id="blogLivePreviewModal" tabindex="-1" aria-labelledby="blogLivePreviewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
+        <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
+            <div class="modal-header bg-dark text-white py-3 px-4 d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="rounded-circle bg-primary text-white p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                        <i class="fas fa-book-open"></i>
+                    </div>
+                    <div>
+                        <h6 class="modal-title fw-bold text-white mb-0" id="blogLivePreviewModalLabel">সাহিত্যপত্র পাঠ প্রতিক্রিয়া ও সরাসরি প্রিভিউ</h6>
+                        <small class="text-white-50">ওয়েবসাইটে পাঠকরা যেভাবে এই লেখাটি দেখতে পাবেন</small>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-3" onclick="adjustPreviewFontSize(-1)" title="ফন্ট ছোট করুন">A-</button>
+                    <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-3" onclick="adjustPreviewFontSize(1)" title="ফন্ট বড় করুন">A+</button>
+                    <button type="button" class="btn-close btn-close-white ms-2" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+            </div>
+
+            <div class="modal-body p-4 p-md-5" style="background: #faf8f5; font-family: 'Hind Siliguri', 'Kalpurush', sans-serif;">
+                <article class="mx-auto" style="max-width: 820px; background: #ffffff; padding: 40px; border-radius: 12px; box-shadow: 0 10px 35px rgba(0,0,0,0.06); border: 1px solid #ebd9c8;">
+                    
+                    {{-- Header Meta --}}
+                    <div class="text-center pb-3 mb-4 border-bottom border-warning border-opacity-50">
+                        <span id="prevBlogCategory" class="badge bg-primary bg-opacity-10 text-primary px-3 py-1.5 rounded-pill mb-2.5 fw-semibold" style="font-size: 13px;">সাহিত্য ও সংস্কৃতি</span>
+                        <h1 id="prevBlogTitle" class="fw-bold text-dark mb-2" style="font-size: 2.2rem; line-height: 1.35; font-family: 'Hind Siliguri', serif; color: #1e293b;">শিরোনাম লোড হচ্ছে...</h1>
+                        <p id="prevBlogSubtitle" class="text-muted fst-italic fs-6 mb-3 d-none"></p>
+
+                        <div class="d-flex flex-wrap align-items-center justify-content-center gap-3 text-muted small mt-2 pt-2 border-top">
+                            <span><i class="fas fa-pen-nib text-primary me-1"></i> <strong id="prevBlogAuthor" class="text-dark">লেখক</strong></span>
+                            <span>•</span>
+                            <span><i class="far fa-calendar-alt me-1"></i> {{ now()->format('d M, Y') }}</span>
+                            <span>•</span>
+                            <span><i class="far fa-clock me-1"></i> ৩ মিনিট পাঠ</span>
+                        </div>
+                    </div>
+
+                    {{-- Featured Photocard / Cover Preview --}}
+                    <div id="prevBlogCoverWrapper" class="text-center mb-4 d-none">
+                        <img id="prevBlogCoverImg" src="" alt="Cover Preview" class="img-fluid rounded-3 shadow-xs border" style="max-height: 380px; width: auto; object-fit: cover;">
+                    </div>
+
+                    {{-- Excerpt Callout --}}
+                    <div id="prevBlogExcerptWrapper" class="p-3 mb-4 rounded-3 border-start border-4 border-primary bg-light d-none" style="font-style: italic; color: #475569; font-size: 1.05rem; line-height: 1.7;">
+                        <span id="prevBlogExcerpt"></span>
+                    </div>
+
+                    {{-- Content Body --}}
+                    <div id="prevBlogContentBody" class="fs-5 text-dark" style="line-height: 2.0; word-break: break-word; color: #2d3748;">
+                        বিষয়বস্তু লোড হচ্ছে...
+                    </div>
+
+                    {{-- Sign-off ornament --}}
+                    <div class="text-center my-4 text-muted" style="letter-spacing: 4px; font-size: 1.1rem;">
+                        ❖ ─── ✦ ─── ❖
+                    </div>
+                </article>
+            </div>
+
+            <div class="modal-footer bg-light py-2.5 px-4 d-flex justify-content-between">
+                <span class="text-muted small"><i class="fas fa-check-circle text-success me-1"></i> সমস্ত ফরম্যাট এবং স্ট্যানজা লাইভ চেক করা হয়েছে</span>
+                <button type="button" class="btn btn-sm btn-dark px-4 rounded-pill" data-bs-dismiss="modal">বন্ধ করুন</button>
+            </div>
         </div>
     </div>
 </div>
@@ -2151,7 +2311,7 @@ function formatPoetryMode(targetTextareaId) {
             temp.textContent = line.trim();
             return temp.innerHTML;
         }).join('<br>');
-        return `<p class="poetry-verse" style="line-height: 2.1; margin-bottom: 1.5rem; font-family: inherit;">${lines}</p>`;
+        return `<p class="poetry-verse" style="line-height: 2.1; margin-bottom: 1.5rem; text-align: center; font-family: inherit;">${lines}</p>`;
     }).join('');
 
     if (sel && sel.rangeCount > 0 && sel.toString()) {
@@ -2160,6 +2320,170 @@ function formatPoetryMode(targetTextareaId) {
         editorDiv.innerHTML = formattedHtml;
     }
     syncEditorToTextarea(fieldName);
+    updateEditorStats(fieldName);
+}
+
+function formatProseMode(targetTextareaId) {
+    const fieldName = targetTextareaId.replace('f-', '');
+    const editorDiv = document.getElementById('editable-' + fieldName);
+    if (!editorDiv) return;
+
+    editorDiv.focus();
+    const sel = window.getSelection();
+    let selectedText = sel ? sel.toString() : '';
+    
+    if (!selectedText) {
+        selectedText = editorDiv.innerText || editorDiv.textContent;
+    }
+
+    if (!selectedText || !selectedText.trim()) {
+        alert('অনুগ্রহ করে গদ্য বা প্রবন্ধের লেখাটি সিলেক্ট করুন।');
+        return;
+    }
+
+    const paragraphs = selectedText.trim().split(/\r\n\r\n|\n\n+/);
+    const formattedHtml = paragraphs.map(p => {
+        const temp = document.createElement('div');
+        temp.textContent = p.trim().replace(/\s+/g, ' ');
+        return `<p style="line-height: 1.95; margin-bottom: 1.35rem; text-align: justify;">${temp.innerHTML}</p>`;
+    }).join('');
+
+    if (sel && sel.rangeCount > 0 && sel.toString()) {
+        document.execCommand('insertHTML', false, formattedHtml);
+    } else {
+        editorDiv.innerHTML = formattedHtml;
+    }
+    syncEditorToTextarea(fieldName);
+    updateEditorStats(fieldName);
+}
+
+function formatFixLineBreaks(targetTextareaId) {
+    const fieldName = targetTextareaId.replace('f-', '');
+    const editorDiv = document.getElementById('editable-' + fieldName);
+    if (!editorDiv) return;
+
+    let text = editorDiv.innerText || editorDiv.textContent;
+    if (!text || !text.trim()) {
+        alert('বক্সে কোনো লেখা পাওয়া যায়নি।');
+        return;
+    }
+
+    const stanzas = text.trim().split(/\r\n\r\n|\n\n+/);
+    const formattedHtml = stanzas.map(stanza => {
+        const lines = stanza.split(/\r\n|\n|\r/).map(line => {
+            const temp = document.createElement('div');
+            temp.textContent = line.trim();
+            return temp.innerHTML;
+        }).join('<br>');
+        return `<p style="line-height: 2.0; margin-bottom: 1.4rem;">${lines}</p>`;
+    }).join('');
+
+    editorDiv.innerHTML = formattedHtml;
+    syncEditorToTextarea(fieldName);
+    updateEditorStats(fieldName);
+    alert('প্যারাগ্রাফ ও লাইনের স্পেসিং স্বয়ংক্রিয়ভাবে সাজানো হয়েছে!');
+}
+
+function updateEditorStats(fieldName) {
+    const editorDiv = document.getElementById('editable-' + fieldName);
+    const statsBox = document.getElementById('editorWordStats-' + fieldName);
+    if (!editorDiv || !statsBox) return;
+
+    const text = (editorDiv.innerText || editorDiv.textContent || '').trim();
+    const words = text ? text.split(/\s+/).length : 0;
+    const chars = text.length;
+    statsBox.innerHTML = `<i class="fas fa-file-alt text-primary me-1"></i>শব্দ: ${words.toLocaleString('bn-BD')} | বর্ণ: ${chars.toLocaleString('bn-BD')}`;
+}
+
+function openBlogLivePreviewModal(targetTextareaId) {
+    const fieldName = targetTextareaId.replace('f-', '');
+    const editorDiv = document.getElementById('editable-' + fieldName);
+    if (!editorDiv) return;
+
+    // Pull form values
+    const titleVal = document.getElementById('f-title')?.value || document.getElementById('f-name')?.value || 'শিরোনাম দেওয়া হয়নি';
+    const subVal = document.getElementById('f-subtitle')?.value || '';
+    const excerptVal = document.getElementById('f-excerpt')?.value || '';
+    
+    // Author
+    const customAuthor = document.getElementById('f-owner_name')?.value?.trim();
+    const authorSelect = document.getElementById('f-author_id');
+    const selectedAuthorText = authorSelect && authorSelect.selectedIndex > 0 ? authorSelect.options[authorSelect.selectedIndex].text.replace(/\[.*?\]/, '').trim() : '';
+    const authorName = customAuthor || selectedAuthorText || 'সম্পাদকীয় বিভাগ';
+
+    // Category
+    const catSelect = document.getElementById('f-category_id');
+    const catName = catSelect && catSelect.selectedIndex > 0 ? catSelect.options[catSelect.selectedIndex].text.replace(/—\s*/g, '').trim() : 'সাহিত্য ও সংস্কৃতি';
+
+    // Cover Image
+    const coverPreviewImg = document.getElementById('preview-img-image') || document.getElementById('preview-img-cover_image') || document.getElementById('mockupCoverImg');
+    const coverSrc = coverPreviewImg ? coverPreviewImg.src : '';
+
+    // Assign to modal
+    document.getElementById('prevBlogTitle').textContent = titleVal;
+    
+    const subEl = document.getElementById('prevBlogSubtitle');
+    if (subVal) {
+        subEl.textContent = subVal;
+        subEl.classList.remove('d-none');
+    } else {
+        subEl.classList.add('d-none');
+    }
+
+    document.getElementById('prevBlogAuthor').textContent = authorName;
+    document.getElementById('prevBlogCategory').textContent = catName;
+
+    const coverWrap = document.getElementById('prevBlogCoverWrapper');
+    const modalCoverImg = document.getElementById('prevBlogCoverImg');
+    if (coverSrc && coverSrc.length > 20 && !coverSrc.includes('placeholder')) {
+        modalCoverImg.src = coverSrc;
+        coverWrap.classList.remove('d-none');
+    } else {
+        coverWrap.classList.add('d-none');
+    }
+
+    const excerptWrap = document.getElementById('prevBlogExcerptWrapper');
+    const excerptEl = document.getElementById('prevBlogExcerpt');
+    if (excerptVal) {
+        excerptEl.textContent = excerptVal;
+        excerptWrap.classList.remove('d-none');
+    } else {
+        excerptWrap.classList.add('d-none');
+    }
+
+    document.getElementById('prevBlogContentBody').innerHTML = editorDiv.innerHTML;
+
+    // Show modal
+    const modalEl = document.getElementById('blogLivePreviewModal');
+    if (modalEl) {
+        const modal = new bootstrap.Modal(modalEl);
+        modal.show();
+    }
+}
+
+let previewCurrentFontSize = 1.15;
+function adjustPreviewFontSize(delta) {
+    previewCurrentFontSize = Math.max(0.85, Math.min(1.8, previewCurrentFontSize + delta * 0.1));
+    const contentEl = document.getElementById('prevBlogContentBody');
+    if (contentEl) {
+        contentEl.style.fontSize = previewCurrentFontSize + 'rem';
+    }
+}
+
+function onBlogAuthorDropdownChange(select) {
+    if (!select) return;
+    const badgeText = document.getElementById('currentAuthorBadgeText');
+    const ownerInput = document.getElementById('f-owner_name');
+
+    if (select.selectedIndex > 0) {
+        const fullText = select.options[select.selectedIndex].text;
+        const cleanName = fullText.replace(/\[.*?\]/, '').trim();
+        if (badgeText) badgeText.textContent = cleanName;
+        if (ownerInput) {
+            ownerInput.value = cleanName;
+        }
+    }
+    updateLiveMockupCard();
 }
 
 function insertLinkPrompt(targetTextareaId) {

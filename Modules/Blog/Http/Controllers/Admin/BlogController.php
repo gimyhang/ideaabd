@@ -25,14 +25,20 @@ class BlogController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'title' => 'required|unique:blog_posts',
+            'title' => 'required|string|max:255',
             'content' => 'required',
             'excerpt' => 'nullable',
             'category_id' => 'nullable|exists:blog_categories,id',
             'featured_image' => 'nullable|image',
         ]);
 
-        $validated['slug'] = Str::slug($validated['title']);
+        $baseSlug = Str::slug($validated['title']) ?: 'post-' . Str::random(6);
+        $slug = $baseSlug;
+        $counter = 1;
+        while (BlogPost::withTrashed()->where('slug', $slug)->exists()) {
+            $slug = $baseSlug . '-' . (++$counter);
+        }
+        $validated['slug'] = $slug;
         $validated['author_id'] = auth()->id();
 
         if ($request->hasFile('featured_image')) {
@@ -53,7 +59,7 @@ class BlogController extends Controller
     public function update(Request $request, BlogPost $post)
     {
         $validated = $request->validate([
-            'title' => 'required|unique:blog_posts,title,' . $post->id,
+            'title' => 'required|string|max:255',
             'content' => 'required',
             'excerpt' => 'nullable',
             'category_id' => 'nullable|exists:blog_categories,id',

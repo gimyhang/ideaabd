@@ -395,7 +395,7 @@
                         </div>
 
                         <div class="card-body p-4">
-                            <form method="POST" action="{{ $editPost ? route('author.blog.update', $editPost->id) : route('author.blog.store') }}" enctype="multipart/form-data">
+                            <form id="authorBlogWriteForm" method="POST" action="{{ $editPost ? route('author.blog.update', $editPost->id) : route('author.blog.store') }}" enctype="multipart/form-data">
                                 @csrf
                                 @if($editPost)
                                     @method('PUT')
@@ -536,12 +536,40 @@
                                     </div>
                                 </div>
 
+                                {{-- Editorial Policy & Terms of Publication Agreement Box --}}
+                                <div class="p-3.5 bg-white rounded-3 mb-4 border border-primary border-opacity-25 shadow-xs">
+                                    <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2 pb-2.5 mb-2.5 border-bottom">
+                                        <div class="d-flex align-items-center gap-2.5">
+                                            <div class="rounded-circle bg-primary bg-opacity-10 text-primary p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px;">
+                                                <i class="fas fa-file-contract fs-5"></i>
+                                            </div>
+                                            <div>
+                                                <strong class="text-dark d-block" style="font-size: 0.95rem;">আইডিয়া প্রকাশন ব্লগে লেখা প্রকাশের শর্তাবলি ও সম্পাদকীয় নীতিমালা</strong>
+                                                <span class="text-muted" style="font-size: 0.78rem;">কপিরাইট, মতপ্রকাশের স্বাধীনতা ও আইনি সুরক্ষার পূর্ণাঙ্গ সম্পাদকীয় নিয়মাবলি</span>
+                                            </div>
+                                        </div>
+                                        <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1.5 fw-semibold d-inline-flex align-items-center gap-1.5 shadow-xs" onclick="openEditorialPolicyA4Modal()">
+                                            <i class="fas fa-file-lines text-primary"></i> <span>A4 পেজ সাইজে পূর্ণাঙ্গ নীতিমালা পড়ুন</span>
+                                        </button>
+                                    </div>
+
+                                    <div class="form-check pt-1 mb-0">
+                                        <input class="form-check-input @error('agree_policy') is-invalid @enderror" type="checkbox" name="agree_policy" id="agreeEditorialPolicyCheckbox" value="1" {{ old('agree_policy') ? 'checked' : '' }} style="cursor: pointer; width: 1.15em; height: 1.15em; margin-top: 0.15em;">
+                                        <label class="form-check-label fw-bold text-dark small ms-1" for="agreeEditorialPolicyCheckbox" style="cursor: pointer; line-height: 1.6;">
+                                            আমি <a href="javascript:void(0)" onclick="openEditorialPolicyA4Modal()" class="text-primary text-decoration-underline">আইডিয়া প্রকাশন ব্লগে লেখা প্রকাশের শর্তাবলি ও সম্পাদকীয় নীতিমালা</a> মনোযোগ সহকারে পড়েছি এবং এতে পূর্ণ সম্মতি জ্ঞাপন করছি। <span class="text-danger">*</span>
+                                        </label>
+                                        @error('agree_policy')
+                                            <div class="invalid-feedback d-block mt-1"><i class="fas fa-triangle-exclamation me-1"></i>{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+
                                 <div class="p-3 bg-light rounded-3 mb-4 border d-flex align-items-start gap-2 text-muted small">
                                     <i class="fas fa-info-circle text-primary fs-5 mt-0.5"></i>
                                     <div>
                                         <strong>প্রকাশনা নিয়মাবলী:</strong><br>
                                         • <strong>"খসড়া সংরক্ষণ করুন"</strong> চাপলে লেখাটি শুধুমাত্র আপনার কাছে ড্রাফট হিসেবে থাকবে এবং পরবর্তীতে এডিট করতে পারবেন।<br>
-                                        • <strong>"অনুমোদনের জন্য জমা দিন"</strong> চাপলে তা সরাসরি অ্যাডমিন প্যানেলে রিভিউ ও অনুমোদনের জন্য চলে যাবে।
+                                        • <strong>"অনুমোদনের জন্য জমা দিন"</strong> চাপলে তা সরাসরি সম্পাদকীয় প্যানেলে রিভিউ ও অনুমোদনের জন্য চলে যাবে।
                                     </div>
                                 </div>
 
@@ -552,9 +580,10 @@
                                     <button type="submit" name="action_type" value="draft" class="btn btn-outline-secondary px-3 px-md-4 py-2.5 rounded-pill fw-semibold" onclick="ensurePhotocardBeforeSubmit()">
                                         <i class="fas fa-bookmark me-1.5"></i> খসড়া সংরক্ষণ
                                     </button>
-                                    <button type="submit" name="action_type" value="submit" class="btn btn-success px-4 px-md-5 py-2.5 rounded-pill fw-bold shadow-sm" onclick="ensurePhotocardBeforeSubmit()">
+                                    <button type="button" class="btn btn-success px-4 px-md-5 py-2.5 rounded-pill fw-bold shadow-sm" onclick="handleAuthorPostSubmission(event)">
                                         <i class="fas fa-paper-plane me-1.5"></i> অনুমোদনের জন্য জমা দিন
                                     </button>
+                                    <button type="submit" id="realSubmitBtn" name="action_type" value="submit" class="d-none"></button>
                                 </div>
                             </form>
                         </div>
@@ -647,8 +676,305 @@
                     <div id="prevContent" class="fs-6 text-dark leading-relaxed" style="line-height: 1.8; white-space: pre-line;"></div>
                 </article>
             </div>
-            <div class="modal-footer bg-light border-0 py-3 px-4">
-                <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">বন্ধ করুন</button>
+{{-- ========================================================================= --}}
+{{-- MODAL: A4 EDITORIAL POLICY & PUBLICATION GUIDELINES (এ৪ পেজ সাইজ সম্পাদকীয় নীতিমালা) --}}
+{{-- ========================================================================= --}}
+<div class="modal fade" id="editorialPolicyA4Modal" tabindex="-1" aria-labelledby="editorialPolicyA4ModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
+        <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
+            {{-- Modal Header --}}
+            <div class="modal-header bg-dark text-white py-2.5 px-4 border-0 d-flex align-items-center justify-content-between no-print">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="rounded-circle bg-warning text-dark p-2 d-flex align-items-center justify-content-center fw-bold" style="width: 36px; height: 36px;">
+                        <i class="fas fa-file-contract fs-6"></i>
+                    </div>
+                    <div>
+                        <h6 class="modal-title fw-bold text-white mb-0" id="editorialPolicyA4ModalLabel">আইডিয়া প্রকাশন — প্রকাশনার শর্তাবলি ও সম্পাদকীয় নীতিমালা</h6>
+                        <small class="text-white-50">প্রমিত এ৪ পেজ সাইজ (A4 Paper Sheet View)</small>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-2.5 py-1" onclick="adjustPolicyFontSize(-1)" title="ফন্ট ছোট করুন">
+                        <i class="fas fa-font me-1"></i>A-
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-2.5 py-1" onclick="adjustPolicyFontSize(1)" title="ফন্ট বড় করুন">
+                        <i class="fas fa-font me-1"></i>A+
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-warning rounded-pill px-3 py-1 fw-semibold text-warning" onclick="window.print()" title="প্রিন্ট করুন">
+                        <i class="fas fa-print me-1"></i>প্রিন্ট
+                    </button>
+                    <button type="button" class="btn-close btn-close-white ms-2" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+            </div>
+
+            {{-- Modal Body: A4 Sheet Paper Container --}}
+            <div class="modal-body p-3 p-md-4" style="background: #e2e8f0;">
+                <div class="a4-paper-sheet mx-auto" id="a4PolicyDocBody" style="background: #ffffff; max-width: 860px; padding: 50px 55px; border-radius: 4px; box-shadow: 0 10px 30px rgba(0,0,0,0.12); font-family: 'Hind Siliguri', 'Kalpurush', sans-serif; line-height: 1.85; color: #1e293b; font-size: 15.5px;">
+                    
+                    {{-- Official Header & Seal --}}
+                    <div class="text-center pb-3 mb-4 border-bottom border-2 border-primary border-opacity-25">
+                        <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-light border border-secondary border-opacity-25 mb-2">
+                            <span class="fw-bold text-dark" style="font-size: 0.95rem; letter-spacing: 0.5px;">আইডিয়া প্রকাশন • ডিজিটাল সাহিত্য ও ব্লগ প্রকাশনা</span>
+                        </div>
+                        <h1 class="fw-bolder text-dark mb-2" style="font-size: 1.85rem; line-height: 1.35; color: #0f172a;">
+                            আইডিয়া প্রকাশন ব্লগে লেখা প্রকাশের শর্তাবলি ও সম্পাদকীয় নীতিমালা
+                        </h1>
+                        <div class="text-muted small">
+                            <span class="badge bg-primary-subtle text-primary border px-3 py-1.5 rounded-pill fw-semibold" style="font-size: 12.5px;">
+                                <i class="fas fa-globe me-1"></i> প্রযোজ্য ক্ষেত্র: আইডিয়া প্রকাশন ব্লগ, ওয়েবসাইট ও সংশ্লিষ্ট ডিজিটাল প্রকাশনা প্ল্যাটফর্ম
+                            </span>
+                        </div>
+                    </div>
+
+                    {{-- Preamble & Constitutional Foundation --}}
+                    <div class="p-3.5 rounded-3 mb-4 border-start border-4 border-primary" style="background: #f8fafc; font-size: 0.96rem; text-align: justify;">
+                        <p class="mb-2">
+                            আইডিয়া প্রকাশন মতপ্রকাশের স্বাধীনতা, জ্ঞানচর্চা, গবেষণা, সৃজনশীলতা, বহুমতের সহাবস্থান এবং দায়িত্বশীল নাগরিক আলোচনাকে উৎসাহিত করে। এই নীতিমালা বাংলাদেশের প্রচলিত আইন, সংবিধানে স্বীকৃত মতপ্রকাশের স্বাধীনতা এবং আন্তর্জাতিকভাবে স্বীকৃত মানবাধিকার ও সাংবাদিকতা-নৈতিকতার মৌলিক নীতির আলোকে প্রণীত।
+                        </p>
+                        <p class="mb-0 text-muted">
+                            বাংলাদেশের সংবিধানের ৩৯ অনুচ্ছেদে মতপ্রকাশ ও সংবাদপত্রের স্বাধীনতা স্বীকৃত হলেও মানহানি, জনশৃঙ্খলা, রাষ্ট্রীয় নিরাপত্তা, শালীনতা, নৈতিকতা, আদালত অবমাননা ও অপরাধে প্ররোচনার মতো বিষয়ে আইনি সীমাবদ্ধতা রয়েছে। একইভাবে আন্তর্জাতিক মানবাধিকার কাঠামোতে মতপ্রকাশের স্বাধীনতার পাশাপাশি অন্যের অধিকার, সুনাম, গোপনীয়তা ও জনস্বার্থের সুরক্ষাকে গুরুত্ব দেওয়া হয়েছে।
+                        </p>
+                    </div>
+
+                    {{-- Section 1 --}}
+                    <h5 class="fw-bold text-dark mt-4 mb-2 pb-1 border-bottom d-flex align-items-center gap-2" style="color: #1e3a8a;">
+                        <span class="badge bg-primary text-white rounded-pill px-2 py-0.5" style="font-size: 12px;">১</span> মতপ্রকাশের স্বাধীনতা
+                    </h5>
+                    <p class="mb-1.5 text-secondary"><strong>১.১.</strong> আইডিয়া প্রকাশন বিভিন্ন মত, দৃষ্টিভঙ্গি, রাজনৈতিক অবস্থান, সামাজিক বিশ্লেষণ, সাহিত্যিক অভিমত ও সমালোচনামূলক বক্তব্য প্রকাশের সুযোগকে স্বাগত জানায়।</p>
+                    <p class="mb-1.5 text-secondary"><strong>১.২.</strong> কোনো লেখা আইডিয়া প্রকাশনের নিজস্ব মতামত নয়; লেখকের মতামত লেখকের নিজস্ব দায়িত্বে প্রকাশিত হবে।</p>
+                    <p class="mb-1.5 text-secondary"><strong>১.৩.</strong> কোনো রাজনৈতিক দল, সরকার, প্রতিষ্ঠান, ব্যক্তি বা মতাদর্শের সমালোচনা করা নিষিদ্ধ নয়, যদি তা আইনসম্মত, যুক্তিনির্ভর ও দায়িত্বশীলভাবে উপস্থাপিত হয়।</p>
+                    <p class="mb-3 text-secondary"><strong>১.৪.</strong> মতপ্রকাশের স্বাধীনতা অন্যের অধিকার, সুনাম, গোপনীয়তা এবং আইনসম্মত স্বার্থ ক্ষুণ্ন করার অবাধ অধিকার হিসেবে বিবেচিত হবে না।</p>
+
+                    {{-- Section 2 --}}
+                    <h5 class="fw-bold text-dark mt-4 mb-2 pb-1 border-bottom d-flex align-items-center gap-2" style="color: #1e3a8a;">
+                        <span class="badge bg-primary text-white rounded-pill px-2 py-0.5" style="font-size: 12px;">২</span> মৌলিকতা ও কপিরাইট
+                    </h5>
+                    <p class="mb-1.5 text-secondary"><strong>২.১.</strong> জমাকৃত লেখা লেখকের নিজস্ব মৌলিক কাজ হতে হবে।</p>
+                    <p class="mb-1.5 text-secondary"><strong>২.২.</strong> অন্যের লেখা, গবেষণা, অনুবাদ, ছবি, গ্রাফিক্স, তথ্যচিত্র, টেবিল, চার্ট বা সৃজনশীল উপাদান অনুমতি বা যথাযথ স্বীকৃতি ছাড়া ব্যবহার করা যাবে না।</p>
+                    <p class="mb-1.5 text-secondary"><strong>২.৩.</strong> অন্যের বক্তব্য বা লেখা উদ্ধৃত করলে প্রয়োজন অনুযায়ী উদ্ধৃতি চিহ্ন এবং উৎস উল্লেখ করতে হবে।</p>
+                    <p class="mb-1.5 text-secondary"><strong>২.৪.</strong> কপিরাইটযুক্ত উপাদান ব্যবহারের আইনগত অনুমতি লেখককে নিশ্চিত করতে হবে।</p>
+                    <p class="mb-1.5 text-secondary"><strong>২.৫.</strong> কোনো লেখা অন্য কোথাও পূর্বে প্রকাশিত হলে তা জানাতে হবে। পুনঃপ্রকাশের ক্ষেত্রে সংশ্লিষ্ট স্বত্বাধিকার ও অনুমতির বিষয়টি লেখককে নিশ্চিত করতে হবে।</p>
+                    <p class="mb-3 text-secondary"><strong>২.৬.</strong> কপিরাইট সংক্রান্ত বিরোধ দেখা দিলে লেখকের দেওয়া তথ্য, অনুমতি ও স্বত্বসংক্রান্ত দাবির ভিত্তিতে বিষয়টি পর্যালোচনা করা হবে।</p>
+
+                    {{-- Section 3 --}}
+                    <h5 class="fw-bold text-dark mt-4 mb-2 pb-1 border-bottom d-flex align-items-center gap-2" style="color: #1e3a8a;">
+                        <span class="badge bg-primary text-white rounded-pill px-2 py-0.5" style="font-size: 12px;">৩</span> AI ও প্রযুক্তি-সহায়িত লেখা
+                    </h5>
+                    <p class="mb-1.5 text-secondary"><strong>৩.১.</strong> লেখক গবেষণা, ভাষা সম্পাদনা, অনুবাদ, তথ্য সংগঠন বা খসড়া তৈরিতে AI বা অন্য কোনো প্রযুক্তি ব্যবহার করতে পারবেন।</p>
+                    <p class="mb-1.5 text-secondary"><strong>৩.২.</strong> AI ব্যবহার করা হলেও লেখার তথ্যগত যথার্থতা, মৌলিকতা, সূত্রের সত্যতা এবং আইনগত দায় লেখকের ওপর বর্তাবে।</p>
+                    <p class="mb-1.5 text-secondary"><strong>৩.৩.</strong> AI দ্বারা তৈরি বা যাচাই না-করা কাল্পনিক সূত্র, উদ্ধৃতি, পরিসংখ্যান, ব্যক্তি, ঘটনা বা গবেষণার তথ্য প্রকাশ করা যাবে না।</p>
+                    <p class="mb-3 text-secondary"><strong>৩.৪.</strong> কোনো ব্যক্তির লেখা বা গবেষণাকে AI-উৎপাদিত বলে মিথ্যাভাবে উপস্থাপন করা যাবে না।</p>
+
+                    {{-- Section 4 --}}
+                    <h5 class="fw-bold text-dark mt-4 mb-2 pb-1 border-bottom d-flex align-items-center gap-2" style="color: #1e3a8a;">
+                        <span class="badge bg-primary text-white rounded-pill px-2 py-0.5" style="font-size: 12px;">৪</span> তথ্যের যথার্থতা ও যাচাই
+                    </h5>
+                    <p class="mb-1.5 text-secondary"><strong>৪.১.</strong> ঐতিহাসিক, রাজনৈতিক, সামাজিক, বৈজ্ঞানিক, চিকিৎসা, আইন, অর্থনীতি ও গবেষণাধর্মী লেখায় যথাসম্ভব নির্ভরযোগ্য ও যাচাইযোগ্য তথ্য ব্যবহার করতে হবে।</p>
+                    <p class="mb-1.5 text-secondary"><strong>৪.২.</strong> গুরুত্বপূর্ণ দাবি, পরিসংখ্যান, তারিখ, উদ্ধৃতি, গবেষণার ফলাফল এবং ঐতিহাসিক ঘটনার ক্ষেত্রে উৎস উল্লেখ করা বাঞ্ছনীয় এবং প্রয়োজন অনুযায়ী বাধ্যতামূলক হতে পারে।</p>
+                    <p class="mb-1.5 text-secondary"><strong>৪.৩.</strong> মতামত, অনুমান, বিশ্লেষণ, অভিযোগ বা রাজনৈতিক মূল্যায়নকে প্রতিষ্ঠিত তথ্য হিসেবে উপস্থাপন করা যাবে না।</p>
+                    <p class="mb-1.5 text-secondary"><strong>৪.৪.</strong> তথ্যের ক্ষেত্রে সন্দেহ থাকলে লেখককে তা স্পষ্টভাবে উল্লেখ করতে হবে—যেমন “অভিযোগ রয়েছে”, “গবেষকের মতে”, “প্রতিবেদন অনুযায়ী”, “এ বিষয়ে মতভেদ রয়েছে” ইত্যাদি।</p>
+                    <p class="mb-3 text-secondary"><strong>৪.৫.</strong> মিথ্যা, জাল, বিকৃত বা ইচ্ছাকৃতভাবে বিভ্রান্তিকর তথ্য প্রকাশ করা যাবে না।</p>
+
+                    {{-- Section 5 --}}
+                    <h5 class="fw-bold text-dark mt-4 mb-2 pb-1 border-bottom d-flex align-items-center gap-2" style="color: #1e3a8a;">
+                        <span class="badge bg-primary text-white rounded-pill px-2 py-0.5" style="font-size: 12px;">৫</span> রাজনৈতিক, সামাজিক ও সমকালীন লেখা
+                    </h5>
+                    <p class="mb-1.5 text-secondary"><strong>৫.১.</strong> রাজনৈতিক ও সমকালীন বিষয়ে স্বাধীন মতামত প্রকাশ করা যাবে।</p>
+                    <p class="mb-1.5 text-secondary"><strong>৫.২.</strong> সরকার, রাজনৈতিক দল, জনপ্রতিনিধি, সরকারি প্রতিষ্ঠান বা অন্য কোনো সংগঠনের সমালোচনা করা যেতে পারে।</p>
+                    <p class="mb-1.5 text-secondary"><strong>৫.৩.</strong> তবে সমালোচনা যেন মিথ্যা তথ্য, উদ্দেশ্যপ্রণোদিত অপপ্রচার, মানহানি, ব্যক্তিগত আক্রমণ বা সহিংসতায় উসকানিতে পরিণত না হয়।</p>
+                    <p class="mb-1.5 text-secondary"><strong>৫.৪.</strong> কোনো রাজনৈতিক বা সামাজিক দাবির ক্ষেত্রে সম্ভব হলে সংশ্লিষ্ট পক্ষের বক্তব্য বা নির্ভরযোগ্য উৎস বিবেচনা করা হবে।</p>
+                    <p class="mb-3 text-secondary"><strong>৫.৫.</strong> বিতর্কিত ঐতিহাসিক বা রাজনৈতিক বিষয়ে একাধিক মত থাকলে লেখায় তা যথাসম্ভব স্বচ্ছভাবে উপস্থাপন করা উচিত।</p>
+
+                    {{-- Section 6 --}}
+                    <h5 class="fw-bold text-dark mt-4 mb-2 pb-1 border-bottom d-flex align-items-center gap-2" style="color: #1e3a8a;">
+                        <span class="badge bg-primary text-white rounded-pill px-2 py-0.5" style="font-size: 12px;">৬</span> মানহানি ও ব্যক্তির সুনাম
+                    </h5>
+                    <p class="mb-1.5 text-secondary"><strong>৬.১.</strong> কোনো ব্যক্তির বিরুদ্ধে অপরাধ, দুর্নীতি, অনৈতিকতা, যৌন অপরাধ, প্রতারণা বা অন্য কোনো গুরুতর অভিযোগ প্রকাশের ক্ষেত্রে যথাযথ প্রমাণ ও নির্ভরযোগ্য উৎস থাকা প্রয়োজন।</p>
+                    <p class="mb-1.5 text-secondary"><strong>৬.২.</strong> আদালতে অভিযোগ প্রমাণিত হওয়ার আগে কোনো ব্যক্তিকে নিশ্চিতভাবে “অপরাধী”, “দুর্নীতিবাজ”, “খুনি” বা অনুরূপ চূড়ান্ত অভিধায় অভিহিত করা থেকে বিরত থাকতে হবে।</p>
+                    <p class="mb-1.5 text-secondary"><strong>৬.৩.</strong> অভিযোগ থাকলে “অভিযোগ করা হয়েছে”, “মামলায় অভিযোগ রয়েছে”, “তদন্তে বলা হয়েছে” বা “আদালতের নথি অনুযায়ী”—এ ধরনের যথাযথ ভাষা ব্যবহার করতে হবে।</p>
+                    <p class="mb-3 text-secondary"><strong>৬.৪.</strong> বাংলাদেশের দণ্ডবিধির ৪৯৯ ধারায় মানহানির বিধান রয়েছে এবং ৫০০ ধারায় এর শাস্তির বিধান রয়েছে; একই সঙ্গে সত্য ও জনস্বার্থ এবং সদ্ভাবে করা কিছু বক্তব্য আইনে ব্যতিক্রম হিসেবে বিবেচিত হতে পারে।</p>
+
+                    {{-- Section 7 --}}
+                    <h5 class="fw-bold text-dark mt-4 mb-2 pb-1 border-bottom d-flex align-items-center gap-2" style="color: #1e3a8a;">
+                        <span class="badge bg-primary text-white rounded-pill px-2 py-0.5" style="font-size: 12px;">৭</span> নির্দোষিতার পূর্বানুমান
+                    </h5>
+                    <p class="mb-1.5 text-secondary"><strong>৭.১.</strong> কোনো ব্যক্তি আদালতের চূড়ান্ত রায়ে দোষী সাব্যস্ত না হওয়া পর্যন্ত তাঁকে অপরাধী হিসেবে চূড়ান্তভাবে উপস্থাপন করা থেকে বিরত থাকতে হবে।</p>
+                    <p class="mb-1.5 text-secondary"><strong>৭.২.</strong> এটি বিশেষভাবে অপরাধ, দুর্নীতি, যৌন অপরাধ, হত্যা, সন্ত্রাস, রাষ্ট্রবিরোধী কার্যক্রম ও অন্যান্য গুরুতর অভিযোগের ক্ষেত্রে প্রযোজ্য।</p>
+                    <p class="mb-3 text-secondary"><strong>৭.৩.</strong> এই নীতি আন্তর্জাতিক মানবাধিকার কাঠামোর নির্দোষিতার পূর্বানুমানের নীতির সঙ্গে সামঞ্জস্যপূর্ণ।</p>
+
+                    {{-- Section 8 --}}
+                    <h5 class="fw-bold text-dark mt-4 mb-2 pb-1 border-bottom d-flex align-items-center gap-2" style="color: #1e3a8a;">
+                        <span class="badge bg-primary text-white rounded-pill px-2 py-0.5" style="font-size: 12px;">৮</span> ব্যক্তিগত গোপনীয়তা ও ব্যক্তিগত তথ্য
+                    </h5>
+                    <p class="mb-1.5 text-secondary"><strong>৮.১.</strong> কারও ব্যক্তিগত ঠিকানা, ফোন নম্বর, জাতীয় পরিচয়পত্র নম্বর, ব্যাংক তথ্য, ব্যক্তিগত যোগাযোগ, চিকিৎসা-সংক্রান্ত তথ্য বা অন্যান্য সংবেদনশীল তথ্য অপ্রয়োজনে প্রকাশ করা যাবে না।</p>
+                    <p class="mb-1.5 text-secondary"><strong>৮.২.</strong> জনস্বার্থের সঙ্গে সরাসরি সম্পর্ক না থাকলে ব্যক্তিগত জীবনের গোপন তথ্য প্রকাশ করা থেকে বিরত থাকতে হবে।</p>
+                    <p class="mb-1.5 text-secondary"><strong>৮.৩.</strong> শিশু ও অপ্রাপ্তবয়স্ক ব্যক্তির পরিচয় প্রকাশের ক্ষেত্রে বিশেষ সতর্কতা অবলম্বন করতে হবে।</p>
+                    <p class="mb-3 text-secondary"><strong>৮.৪.</strong> ভুক্তভোগী, যৌন অপরাধের শিকার ব্যক্তি ও শিশুদের পরিচয় প্রকাশের ক্ষেত্রে আইন, জনস্বার্থ ও মানবিক বিবেচনা অগ্রাধিকার পাবে।</p>
+
+                    {{-- Section 9 --}}
+                    <h5 class="fw-bold text-dark mt-4 mb-2 pb-1 border-bottom d-flex align-items-center gap-2" style="color: #1e3a8a;">
+                        <span class="badge bg-primary text-white rounded-pill px-2 py-0.5" style="font-size: 12px;">৯</span> ধর্ম, জাতি, বর্ণ, লিঙ্গ ও সম্প্রদায়
+                    </h5>
+                    <p class="mb-1.5 text-secondary"><strong>৯.১.</strong> ধর্ম, জাতি, বর্ণ, ভাষা, লিঙ্গ, জন্মস্থান বা কোনো সামাজিক পরিচয়ের ভিত্তিতে কোনো জনগোষ্ঠীর বিরুদ্ধে ঘৃণা, বৈষম্য বা সহিংসতায় উসকানি দেওয়া যাবে না।</p>
+                    <p class="mb-1.5 text-secondary"><strong>৯.২.</strong> ধর্ম বা মতাদর্শের সমালোচনা করা এবং কোনো ধর্মীয়/সামাজিক জনগোষ্ঠীর বিরুদ্ধে বিদ্বেষ ছড়ানো—দুটি বিষয়কে এক হিসেবে বিবেচনা করা হবে না।</p>
+                    <p class="mb-3 text-secondary"><strong>৯.৩.</strong> আন্তর্জাতিক মানবাধিকার কাঠামোতে মতপ্রকাশের স্বাধীনতার পাশাপাশি জাতীয়, জাতিগত বা ধর্মীয় বিদ্বেষকে বৈষম্য, শত্রুতা বা সহিংসতায় উসকানি দেওয়ার ক্ষেত্রে বিশেষ সীমাবদ্ধতার কথা বলা হয়েছে।</p>
+
+                    {{-- Section 10 --}}
+                    <h5 class="fw-bold text-dark mt-4 mb-2 pb-1 border-bottom d-flex align-items-center gap-2" style="color: #1e3a8a;">
+                        <span class="badge bg-primary text-white rounded-pill px-2 py-0.5" style="font-size: 12px;">১০</span> সহিংসতা, অপরাধ ও বেআইনি কর্মকাণ্ড
+                    </h5>
+                    <p class="mb-1.5 text-secondary">নিম্নোক্ত ধরনের কনটেন্ট প্রকাশ করা হবে না—</p>
+                    <ul class="text-secondary mb-2" style="padding-left: 20px;">
+                        <li>সহিংসতায় সরাসরি উসকানি;</li>
+                        <li>কোনো ব্যক্তি বা গোষ্ঠীর বিরুদ্ধে হামলার আহ্বান;</li>
+                        <li>সন্ত্রাসী বা সহিংস অপরাধকে উৎসাহিত করা;</li>
+                        <li>অপরাধ সংঘটনের ব্যবহারিক নির্দেশনা;</li>
+                        <li>বেআইনি কর্মকাণ্ডের প্রশিক্ষণ বা প্রচারণা;</li>
+                        <li>সহিংসতা বা হত্যাকে মহিমান্বিত করে এমন কনটেন্ট।</li>
+                    </ul>
+                    <p class="mb-3 text-secondary small fst-italic">তবে ইতিহাস, গবেষণা, সাংবাদিকতা, সাহিত্য বা জনস্বার্থের আলোচনার প্রয়োজনে অপরাধ বা সহিংসতার ঘটনা তথ্যভিত্তিকভাবে আলোচনা করা যেতে পারে।</p>
+
+                    {{-- Section 11 --}}
+                    <h5 class="fw-bold text-dark mt-4 mb-2 pb-1 border-bottom d-flex align-items-center gap-2" style="color: #1e3a8a;">
+                        <span class="badge bg-primary text-white rounded-pill px-2 py-0.5" style="font-size: 12px;">১১</span> যৌনতা, শিশু ও সংবেদনশীল কনটেন্ট
+                    </h5>
+                    <p class="mb-1.5 text-secondary"><strong>১১.১.</strong> পর্নোগ্রাফিক বা যৌন উত্তেজনামূলক কনটেন্ট প্রকাশ করা হবে না।</p>
+                    <p class="mb-1.5 text-secondary"><strong>১১.২.</strong> যৌন অপরাধ, শিশু নির্যাতন বা মানবপাচারের মতো বিষয়ে তথ্যভিত্তিক ও জনস্বার্থসংশ্লিষ্ট লেখা প্রকাশ করা যেতে পারে।</p>
+                    <p class="mb-3 text-secondary"><strong>১১.৩.</strong> ভুক্তভোগীর পরিচয়, ছবি বা ব্যক্তিগত তথ্য প্রকাশের ক্ষেত্রে সর্বোচ্চ সতর্কতা অবলম্বন করতে হবে।</p>
+
+                    {{-- Section 12 --}}
+                    <h5 class="fw-bold text-dark mt-4 mb-2 pb-1 border-bottom d-flex align-items-center gap-2" style="color: #1e3a8a;">
+                        <span class="badge bg-primary text-white rounded-pill px-2 py-0.5" style="font-size: 12px;">১২</span> ছবি, ভিডিও ও অন্যান্য ডিজিটাল উপাদান
+                    </h5>
+                    <p class="mb-1.5 text-secondary"><strong>১২.১.</strong> লেখার সঙ্গে ব্যবহৃত ছবি, ভিডিও, অডিও, গ্রাফিক্স, চার্ট বা অন্য কোনো উপাদানের স্বত্ব ও ব্যবহার-অনুমতি লেখককে নিশ্চিত করতে হবে।</p>
+                    <p class="mb-1.5 text-secondary"><strong>১২.২.</strong> কপিরাইটযুক্ত ছবি বা ভিডিও যথাযথ অনুমতি ছাড়া ব্যবহার করা যাবে না।</p>
+                    <p class="mb-1.5 text-secondary"><strong>১২.৩.</strong> প্রয়োজন অনুযায়ী ছবির উৎস, আলোকচিত্রীর নাম, লাইসেন্স বা স্বত্বের তথ্য উল্লেখ করতে হবে।</p>
+                    <p class="mb-3 text-secondary"><strong>১২.৪.</strong> AI-generated image বা altered image ব্যবহার করলে প্রয়োজনে তা উল্লেখ করতে হবে, বিশেষত যদি তা বাস্তব ঘটনা বা ব্যক্তিকে উপস্থাপন করে।</p>
+
+                    {{-- Section 13 --}}
+                    <h5 class="fw-bold text-dark mt-4 mb-2 pb-1 border-bottom d-flex align-items-center gap-2" style="color: #1e3a8a;">
+                        <span class="badge bg-primary text-white rounded-pill px-2 py-0.5" style="font-size: 12px;">১৩</span> বিজ্ঞাপন, স্পনসরশিপ ও স্বার্থের সংঘাত
+                    </h5>
+                    <p class="mb-1.5 text-secondary"><strong>১৩.১.</strong> পণ্য, প্রতিষ্ঠান, ব্যক্তি বা সেবার প্রচারণামূলক লেখা সম্পাদকীয় লেখা হিসেবে গোপনে প্রকাশ করা যাবে না।</p>
+                    <p class="mb-1.5 text-secondary"><strong>১৩.২.</strong> অর্থপ্রাপ্ত বা স্পনসরড কনটেন্ট হলে তা যথাযথভাবে চিহ্নিত করা হবে।</p>
+                    <p class="mb-3 text-secondary"><strong>১৩.৩.</strong> লেখকের কোনো ব্যবসায়িক, রাজনৈতিক, পেশাগত বা ব্যক্তিগত স্বার্থ সংশ্লিষ্ট বিষয়ে লেখা হলে প্রয়োজন অনুযায়ী তা প্রকাশ করা উচিত।</p>
+
+                    {{-- Section 14 --}}
+                    <h5 class="fw-bold text-dark mt-4 mb-2 pb-1 border-bottom d-flex align-items-center gap-2" style="color: #1e3a8a;">
+                        <span class="badge bg-primary text-white rounded-pill px-2 py-0.5" style="font-size: 12px;">১৪</span> লেখকের পরিচয় ও যোগাযোগ
+                    </h5>
+                    <p class="mb-1 text-secondary">লেখার সঙ্গে নিম্নোক্ত তথ্য প্রদান করা বাঞ্ছনীয়—</p>
+                    <ul class="text-secondary mb-2" style="padding-left: 20px;">
+                        <li>পূর্ণ নাম;</li>
+                        <li>সংক্ষিপ্ত পরিচিতি;</li>
+                        <li>পেশা/প্রতিষ্ঠান, প্রযোজ্য ক্ষেত্রে;</li>
+                        <li>যোগাযোগের তথ্য;</li>
+                        <li>লেখকের ছবি, প্রয়োজন অনুযায়ী;</li>
+                        <li>তথ্যসূত্র ও রেফারেন্স।</li>
+                    </ul>
+                    <p class="mb-3 text-secondary small fst-italic">লেখকের অনুরোধ বা নিরাপত্তাজনিত যৌক্তিক কারণে কিছু পরিচয় গোপন রাখার বিষয় সম্পাদকীয়ভাবে বিবেচনা করা যেতে পারে।</p>
+
+                    {{-- Section 15 --}}
+                    <h5 class="fw-bold text-dark mt-4 mb-2 pb-1 border-bottom d-flex align-items-center gap-2" style="color: #1e3a8a;">
+                        <span class="badge bg-primary text-white rounded-pill px-2 py-0.5" style="font-size: 12px;">১৫</span> সম্পাদনা ও তথ্য যাচাইয়ের অধিকার
+                    </h5>
+                    <p class="mb-1.5 text-secondary"><strong>১৫.১.</strong> আইডিয়া প্রকাশন বানান, ব্যাকরণ, ভাষা, শিরোনাম, উপশিরোনাম, বিন্যাস ও প্রয়োজনীয় সম্পাদকীয় সম্পাদনা করতে পারবে।</p>
+                    <p class="mb-1.5 text-secondary"><strong>১৫.২.</strong> তথ্যগত অসঙ্গতি, অস্পষ্টতা বা গুরুতর অভিযোগ থাকলে প্রকাশের আগে লেখকের কাছে ব্যাখ্যা, সূত্র বা সংশোধন চাওয়া হতে পারে।</p>
+                    <p class="mb-1.5 text-secondary"><strong>১৫.৩.</strong> প্রয়োজন হলে প্রকাশের পরও ভুল তথ্য সংশোধন, আপডেট, সংযোজন, প্রত্যাহার বা অপসারণ করা হতে পারে।</p>
+                    <p class="mb-3 text-secondary"><strong>১৫.৪.</strong> কোনো লেখা সম্পাদকীয় নীতিমালা, আইন, জনস্বার্থ বা প্রকাশনার মানদণ্ডের সঙ্গে অসঙ্গতিপূর্ণ হলে প্রকাশ না করার অধিকার আইডিয়া প্রকাশন সংরক্ষণ করে।</p>
+
+                    {{-- Section 16 --}}
+                    <h5 class="fw-bold text-dark mt-4 mb-2 pb-1 border-bottom d-flex align-items-center gap-2" style="color: #1e3a8a;">
+                        <span class="badge bg-primary text-white rounded-pill px-2 py-0.5" style="font-size: 12px;">১৬</span> সংশোধন ও প্রত্যাহার নীতি
+                    </h5>
+                    <p class="mb-1.5 text-secondary"><strong>১৬.১.</strong> প্রকাশিত লেখায় উল্লেখযোগ্য তথ্যগত ভুল প্রমাণিত হলে আইডিয়া প্রকাশন সংশোধনী প্রকাশ করতে পারে।</p>
+                    <p class="mb-1.5 text-secondary"><strong>১৬.২.</strong> গুরুতর ভুল, কপিরাইট লঙ্ঘন, জালিয়াতি, মিথ্যা পরিচয় বা আইনগত ঝুঁকি প্রমাণিত হলে লেখা আংশিক বা সম্পূর্ণ প্রত্যাহার করা যেতে পারে।</p>
+                    <p class="mb-3 text-secondary"><strong>১৬.৩.</strong> সংশোধনের ক্ষেত্রে মূল বক্তব্য অযথা পরিবর্তন না করে ভুল অংশ সংশোধন করা হবে এবং প্রয়োজন অনুযায়ী সংশোধনের নোট দেওয়া হবে।</p>
+
+                    {{-- Section 17 --}}
+                    <h5 class="fw-bold text-dark mt-4 mb-2 pb-1 border-bottom d-flex align-items-center gap-2" style="color: #1e3a8a;">
+                        <span class="badge bg-primary text-white rounded-pill px-2 py-0.5" style="font-size: 12px;">১৭</span> লেখকের দায়বদ্ধতা
+                    </h5>
+                    <p class="mb-1.5 text-secondary"><strong>১৭.১.</strong> লেখক তাঁর জমা দেওয়া লেখার তথ্য, বক্তব্য, উদ্ধৃতি, ছবি, সূত্র এবং স্বত্বসংক্রান্ত দাবির জন্য দায়ী থাকবেন।</p>
+                    <p class="mb-1.5 text-secondary"><strong>১৭.২.</strong> লেখকের মিথ্যা তথ্য, কপিরাইট লঙ্ঘন, মানহানিকর বক্তব্য বা অন্য কোনো বেআইনি উপাদানের কারণে তৃতীয় পক্ষের দাবি বা আইনি বিরোধ সৃষ্টি হলে তার দায় লেখকের ওপর বর্তাতে পারে।</p>
+                    <p class="mb-3 text-secondary"><strong>১৭.৩.</strong> আইডিয়া প্রকাশন কোনো লেখকের ব্যক্তিগত মতামতকে প্রতিষ্ঠানের আনুষ্ঠানিক অবস্থান হিসেবে সমর্থন করে না, যদি না সম্পাদকীয়ভাবে তা স্পষ্টভাবে প্রতিষ্ঠানের বক্তব্য হিসেবে প্রকাশ করা হয়।</p>
+
+                    {{-- Section 18 --}}
+                    <h5 class="fw-bold text-dark mt-4 mb-2 pb-1 border-bottom d-flex align-items-center gap-2" style="color: #1e3a8a;">
+                        <span class="badge bg-primary text-white rounded-pill px-2 py-0.5" style="font-size: 12px;">১৮</span> অভিযোগ ও প্রতিকার
+                    </h5>
+                    <p class="mb-1.5 text-secondary">কোনো প্রকাশিত লেখায় তথ্যগত ভুল, কপিরাইট লঙ্ঘন, মানহানি, গোপনীয়তা লঙ্ঘন বা অন্য কোনো গুরুতর সমস্যা থাকলে সংশ্লিষ্ট ব্যক্তি বা অধিকারী পক্ষ আইডিয়া প্রকাশনের কাছে যথাযথ প্রমাণসহ অভিযোগ জানাতে পারবেন।</p>
+                    <p class="mb-3 text-secondary">অভিযোগ পাওয়ার পর বিষয়টি সম্পাদকীয়ভাবে পর্যালোচনা করা হবে এবং প্রয়োজন অনুযায়ী সংশোধন, বক্তব্য সংযোজন, প্রত্যাহার বা অন্যান্য উপযুক্ত ব্যবস্থা নেওয়া হতে পারে।</p>
+
+                    {{-- Section 19 --}}
+                    <h5 class="fw-bold text-dark mt-4 mb-2 pb-1 border-bottom d-flex align-items-center gap-2" style="color: #1e3a8a;">
+                        <span class="badge bg-primary text-white rounded-pill px-2 py-0.5" style="font-size: 12px;">১৯</span> লেখা প্রকাশের নিশ্চয়তা নেই
+                    </h5>
+                    <p class="mb-1.5 text-secondary">লেখা জমা দেওয়া মানেই তা প্রকাশের নিশ্চয়তা নয়।</p>
+                    <p class="mb-3 text-secondary">বিষয়বস্তুর মান, মৌলিকতা, তথ্যের নির্ভরযোগ্যতা, জনস্বার্থ, সম্পাদকীয় নীতি, আইনগত ঝুঁকি এবং ব্লগের বিষয়গত প্রাসঙ্গিকতা বিবেচনা করে প্রকাশের সিদ্ধান্ত নেওয়া হবে।</p>
+
+                    {{-- Section 20 --}}
+                    <h5 class="fw-bold text-dark mt-4 mb-2 pb-1 border-bottom d-flex align-items-center gap-2" style="color: #1e3a8a;">
+                        <span class="badge bg-primary text-white rounded-pill px-2 py-0.5" style="font-size: 12px;">২০</span> আইন ও নীতিমালার প্রযোজ্যতা
+                    </h5>
+                    <p class="mb-1.5 text-secondary">এই নীতিমালা বাংলাদেশের প্রচলিত আইন, সংবিধান, কপিরাইট ও মানহানি-সংক্রান্ত বিধান এবং আন্তর্জাতিকভাবে স্বীকৃত মতপ্রকাশ ও মানবাধিকার নীতির সঙ্গে সামঞ্জস্য রেখে প্রয়োগ করা হবে।</p>
+                    <p class="mb-3 text-secondary">তবে এই নীতিমালা কোনো আইনগত পরামর্শ বা আইনের বিকল্প নয়। কোনো নির্দিষ্ট বিষয়ে আইনগত প্রশ্ন দেখা দিলে প্রযোজ্য বাংলাদেশের আইন ও আদালতের সিদ্ধান্ত প্রাধান্য পাবে।</p>
+
+                    {{-- Section 21 --}}
+                    <h5 class="fw-bold text-dark mt-4 mb-2 pb-1 border-bottom d-flex align-items-center gap-2" style="color: #1e3a8a;">
+                        <span class="badge bg-primary text-white rounded-pill px-2 py-0.5" style="font-size: 12px;">২১</span> নীতিমালা পরিবর্তন
+                    </h5>
+                    <p class="mb-4 text-secondary">আইন, প্রযুক্তি, সামাজিক বাস্তবতা ও সম্পাদকীয় প্রয়োজনের পরিবর্তনের সঙ্গে সামঞ্জস্য রেখে আইডিয়া প্রকাশন সময় সময় এই নীতিমালা সংশোধন, সংযোজন বা পরিবর্তন করতে পারে।</p>
+
+                    {{-- Core Principles Box (মূলনীতি) --}}
+                    <div class="p-4 rounded-4 shadow-xs" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #ffffff;">
+                        <h4 class="fw-bold mb-3 d-flex align-items-center gap-2 text-warning">
+                            <i class="fas fa-compass"></i> মূলনীতি
+                        </h4>
+                        <ul class="list-unstyled mb-0 d-flex flex-column gap-2" style="font-size: 1.05rem; line-height: 1.7;">
+                            <li class="d-flex align-items-center gap-2">
+                                <i class="fas fa-check-circle text-success"></i> <strong>মতপ্রকাশের স্বাধীনতা থাকবে, কিন্তু মিথ্যা তথ্যের স্বাধীনতা নয়।</strong>
+                            </li>
+                            <li class="d-flex align-items-center gap-2">
+                                <i class="fas fa-check-circle text-success"></i> <strong>সমালোচনার অধিকার থাকবে, কিন্তু মানহানি বা ঘৃণা ছড়ানোর অধিকার নয়।</strong>
+                            </li>
+                            <li class="d-flex align-items-center gap-2">
+                                <i class="fas fa-check-circle text-success"></i> <strong>বিতর্ক থাকবে, কিন্তু তথ্য বিকৃতির সুযোগ নয়।</strong>
+                            </li>
+                            <li class="d-flex align-items-center gap-2">
+                                <i class="fas fa-check-circle text-success"></i> <strong>বহুমত থাকবে, কিন্তু সহিংসতায় উসকানি নয়।</strong>
+                            </li>
+                            <li class="d-flex align-items-center gap-2">
+                                <i class="fas fa-check-circle text-success"></i> <strong>স্বাধীন লেখালেখি থাকবে, কিন্তু অন্যের অধিকার ও আইনের প্রতি সম্মান রেখেই।</strong>
+                            </li>
+                        </ul>
+                        <div class="text-end mt-3 pt-2 border-top border-secondary border-opacity-50">
+                            <span class="badge bg-warning text-dark px-3 py-1.5 rounded-pill fw-bold" style="font-size: 13px;">— আইডিয়া প্রকাশন</span>
+                        </div>
+                    </div>
+
+                    {{-- Document Sign-off --}}
+                    <div class="text-center mt-4 pt-3 text-muted small border-top">
+                        <span>আইডিয়া প্রকাশন সম্পাদকীয় বোর্ড কর্তৃক অনুমোদিত • সংস্করণ ২০২৬</span>
+                    </div>
+
+                </div>
+            </div>
+
+            {{-- Modal Sticky Footer Agreement Action --}}
+            <div class="modal-footer bg-white border-top py-3 px-4 d-flex flex-column flex-md-row align-items-center justify-content-between gap-3 no-print">
+                <div class="form-check mb-0">
+                    <input class="form-check-input" type="checkbox" id="modalAgreePolicyCheckbox" style="cursor: pointer; width: 1.25em; height: 1.25em;">
+                    <label class="form-check-label fw-bold text-dark small ms-1" for="modalAgreePolicyCheckbox" style="cursor: pointer;">
+                        আমি আইডিয়া প্রকাশন ব্লগে লেখা প্রকাশের শর্তাবলি ও সম্পাদকীয় নীতিমালা পড়েছি এবং <strong>এতে সম্মত আছি</strong>।
+                    </label>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">বন্ধ করুন</button>
+                    <button type="button" class="btn btn-sm btn-success rounded-pill px-4 fw-bold shadow-xs" onclick="applyModalAgreementAndSubmit()">
+                        <i class="fas fa-check-double me-1"></i> সম্মতি দিন ও লেখা জমা দিন
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -1563,6 +1889,75 @@
         // Clear local storage draft upon form submission
         if (!isEditMode) {
             localStorage.removeItem(DRAFT_KEY_PREFIX + 'post');
+        }
+    }
+
+    // ══ Editorial Policy & A4 Modal Controller ═════════════════════════════════
+    let policyCurrentFontSize = 15.5;
+    function adjustPolicyFontSize(delta) {
+        policyCurrentFontSize = Math.max(13, Math.min(22, policyCurrentFontSize + delta * 1.5));
+        const bodyEl = document.getElementById('a4PolicyDocBody');
+        if (bodyEl) {
+            bodyEl.style.fontSize = policyCurrentFontSize + 'px';
+        }
+    }
+
+    function openEditorialPolicyA4Modal() {
+        const formCheckbox = document.getElementById('agreeEditorialPolicyCheckbox');
+        const modalCheckbox = document.getElementById('modalAgreePolicyCheckbox');
+        if (formCheckbox && modalCheckbox) {
+            modalCheckbox.checked = formCheckbox.checked;
+        }
+        const modalEl = document.getElementById('editorialPolicyA4Modal');
+        if (modalEl) {
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            modal.show();
+        }
+    }
+
+    function applyModalAgreementAndSubmit() {
+        const formCheckbox = document.getElementById('agreeEditorialPolicyCheckbox');
+        const modalCheckbox = document.getElementById('modalAgreePolicyCheckbox');
+        
+        if (modalCheckbox) {
+            modalCheckbox.checked = true;
+        }
+        if (formCheckbox) {
+            formCheckbox.checked = true;
+        }
+
+        const modalEl = document.getElementById('editorialPolicyA4Modal');
+        if (modalEl) {
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            if (modal) modal.hide();
+        }
+
+        ensurePhotocardBeforeSubmit();
+        const realBtn = document.getElementById('realSubmitBtn');
+        if (realBtn) {
+            realBtn.click();
+        } else {
+            const form = document.getElementById('authorBlogWriteForm');
+            if (form) form.submit();
+        }
+    }
+
+    function handleAuthorPostSubmission(event) {
+        if (event) event.preventDefault();
+        const formCheckbox = document.getElementById('agreeEditorialPolicyCheckbox');
+        
+        if (!formCheckbox || !formCheckbox.checked) {
+            openEditorialPolicyA4Modal();
+            return false;
+        }
+
+        ensurePhotocardBeforeSubmit();
+        const realBtn = document.getElementById('realSubmitBtn');
+        if (realBtn) {
+            realBtn.click();
+        } else {
+            const form = document.getElementById('authorBlogWriteForm');
+            if (form) form.submit();
         }
     }
 

@@ -103,7 +103,7 @@ class ContentController extends Controller
         return view('admin.content.form', [
             'spec'      => $spec,
             'record'    => null,
-            'lookups'   => $this->lookups($spec),
+            'lookups'   => $this->lookups($spec, null),
             'creditees' => $this->creditees(),
         ]);
     }
@@ -173,7 +173,7 @@ class ContentController extends Controller
         return view('admin.content.form', [
             'spec'      => $spec,
             'record'    => $record,
-            'lookups'   => $this->lookups($spec),
+            'lookups'   => $this->lookups($spec, $record),
             'creditees' => $this->creditees(),
         ]);
     }
@@ -340,6 +340,9 @@ class ContentController extends Controller
 
             if (! empty($field['unique'])) {
                 $unique = Rule::unique($spec['table'], $name);
+                if ($this->softDeletes($spec['model'])) {
+                    $unique->withoutTrashed();
+                }
                 $fieldRules[] = $record ? $unique->ignore($record->getKey()) : $unique;
             }
 
@@ -603,6 +606,10 @@ class ContentController extends Controller
                 $value = $value === null ? null : strip_tags((string) $value, '<p><br><b><strong><i><em><u><s><ul><ol><li><a><h2><h3><h4><h5><h6><blockquote><pre><code><div><span><hr><img>');
             }
 
+            if ($spec['key'] === 'blog' && $name === 'excerpt' && empty($value) && !empty($request->input('content'))) {
+                $value = Str::limit(strip_tags((string) $request->input('content')), 200);
+            }
+
             if (($value === '' || $value === null) && isset($field['default'])) {
                 $value = $field['default'];
             }
@@ -719,21 +726,21 @@ class ContentController extends Controller
         if ($spec['table'] === 'blog_posts') {
             $rawAuthorId = $request->input('author_id');
             $authorUserId = null;
+            $ownerName = $request->filled('owner_name') ? trim((string) $request->input('owner_name')) : null;
 
             if ($rawAuthorId) {
-                // 1. Check if $rawAuthorId exists in `users` table
-                $userRow = DB::table('users')->where('id', $rawAuthorId)->first();
-                if ($userRow) {
-                    $authorUserId = (int) $userRow->id;
-                    $attributes['owner_name'] = $userRow->name;
-                } else {
-                    // 2. It's from `authors` table! Find matching user or auto-create shadow user record
-                    $authorRow = DB::table('authors')->where('id', $rawAuthorId)->first();
+                if (str_starts_with((string) $rawAuthorId, 'author_')) {
+                    $dirId = (int) str_replace('author_', '', (string) $rawAuthorId);
+                    $authorRow = DB::table('authors')->where('id', $dirId)->first();
                     if ($authorRow) {
+                        if (empty($ownerName)) {
+                            $ownerName = $authorRow->name;
+                        }
                         $matchingUser = DB::table('users')
                             ->where(function($q) use ($authorRow) {
                                 if (!empty($authorRow->email)) $q->orWhere('email', $authorRow->email);
                                 if (!empty($authorRow->phone)) $q->orWhere('phone', $authorRow->phone);
+                                $q->orWhere('name', $authorRow->name);
                             })->first();
 
                         if ($matchingUser) {
@@ -752,19 +759,60 @@ class ContentController extends Controller
                                 'updated_at' => now(),
                             ]);
                         }
-                        $attributes['owner_name'] = $authorRow->name;
+                    }
+                } elseif (str_starts_with((string) $rawAuthorId, 'user_')) {
+                    $uId = (int) str_replace('user_', '', (string) $rawAuthorId);
+                    $userRow = DB::table('users')->where('id', $uId)->first();
+                    if ($userRow) {
+                        $authorUserId = (int) $userRow->id;
+                        if (empty($ownerName) && $isNew) {
+                            $ownerName = $userRow->name;
+                        }
+                    }
+                } else {
+                    $uId = (int) $rawAuthorId;
+                    $userRow = DB::table('users')->where('id', $uId)->first();
+                    if ($userRow) {
+                        $authorUserId = (int) $userRow->id;
+                        if (empty($ownerName) && $isNew) {
+                            $ownerName = $userRow->name;
+                        }
                     }
                 }
             }
 
-            $attributes['author_id'] = $authorUserId ?: ($creditedUser ?: (auth()->id() ?: 1));
+            if ($authorUserId) {
+                $attributes['author_id'] = $authorUserId;
+            } elseif ($editing && $record && !empty($record->author_id)) {
+                $attributes['author_id'] = $record->author_id;
+            } else {
+                $attributes['author_id'] = $creditedUser ?: (auth()->id() ?: 1);
+            }
+
+            if ($ownerName !== null && $ownerName !== '') {
+                $attributes['owner_name'] = $ownerName;
+            } elseif ($editing && $record && !empty($record->owner_name)) {
+                $attributes['owner_name'] = $record->owner_name;
+            }
 
             if ($isNew && ! $request->filled('status')) {
                 $attributes['status'] = 'published';
+                $attributes['mod_status'] = 'approved';
             }
 
-            if ($request->input('status') === 'published' && empty($attributes['published_at'])) {
-                $attributes['published_at'] = now();
+            if ($request->input('status') === 'published') {
+                $attributes['status'] = 'published';
+                $attributes['mod_status'] = 'approved';
+                $attributes['reviewed_by'] = auth()->id();
+                $attributes['reviewed_at'] = now();
+                if (empty($attributes['published_at']) && ($isNew || empty($record?->published_at))) {
+                    $attributes['published_at'] = now();
+                }
+            } elseif ($request->filled('status')) {
+                $attributes['status'] = $request->input('status');
+                if ($request->input('status') === 'draft') {
+                    $attributes['mod_status'] = 'pending';
+                }
             }
         }
 
@@ -812,9 +860,10 @@ class ContentController extends Controller
      * Options for every select in the form, keyed by lookup table.
      *
      * @param  array<string, mixed>  $spec
-     * @return array<string, array<int, string>>
+     * @param  \Illuminate\Database\Eloquent\Model|null  $record
+     * @return array<string, array<int|string, string>>
      */
-    private function lookups(array $spec): array
+    private function lookups(array $spec, ?Model $record = null): array
     {
         $labels  = ['categories' => 'name', 'publishers' => 'name', 'authors' => 'name', 'blog_categories' => 'name'];
         $lookups = [];
@@ -872,9 +921,50 @@ class ContentController extends Controller
                 ->all();
         }
 
-        if (in_array($spec['key'] ?? '', ['books', 'ebooks', 'webzines', 'blog'], true) && Schema::hasTable('authors')) {
+        if ($spec['key'] === 'blog') {
+            $authorOptions = [];
+
+            // 1. Registered Users (authors, admins, contributors, sellers)
+            if (Schema::hasTable('users')) {
+                $users = DB::table('users')
+                    ->whereIn('role', [User::ROLE_AUTHOR, User::ROLE_ADMIN, User::ROLE_SUB_ADMIN, User::ROLE_PUBLISHER, User::ROLE_SELLER])
+                    ->orWhereNotNull('reg_type')
+                    ->orderBy('name')
+                    ->get(['id', 'name', 'role', 'phone']);
+
+                foreach ($users as $u) {
+                    $roleLabel = ($u->role === 'author' || $u->role === User::ROLE_AUTHOR) ? 'নিবন্ধিত লেখক' : $u->role;
+                    $phoneStr = !empty($u->phone) ? " ({$u->phone})" : '';
+                    $authorOptions['user_' . $u->id] = "{$u->name} [{$roleLabel}{$phoneStr}]";
+                }
+            }
+
+            // 2. Authors Directory
+            if (Schema::hasTable('authors')) {
+                $dirAuthors = DB::table('authors')
+                    ->whereNull('deleted_at')
+                    ->orderBy('name')
+                    ->get(['id', 'name']);
+
+                foreach ($dirAuthors as $da) {
+                    $authorOptions['author_' . $da->id] = "{$da->name} [লেখক ডিরেক্টরি #{$da->id}]";
+                }
+            }
+
+            // 3. Ensure current record's author is in the dropdown if editing
+            if ($record) {
+                if (!empty($record->author_id) && !isset($authorOptions['user_' . $record->author_id])) {
+                    $existingUser = DB::table('users')->where('id', $record->author_id)->first();
+                    if ($existingUser) {
+                        $authorOptions['user_' . $existingUser->id] = "{$existingUser->name} [মূল পোস্টকারী]";
+                    }
+                }
+            }
+
+            $lookups['authors'] = $authorOptions;
+        } elseif (in_array($spec['key'] ?? '', ['books', 'ebooks', 'webzines'], true) && Schema::hasTable('authors')) {
             $authorList = DB::table('authors')->whereNull('deleted_at')->orderBy('name')->pluck('name', 'id')->all();
-            if (($spec['table'] === 'webzines' || $spec['key'] === 'blog') && Schema::hasTable('users')) {
+            if ($spec['table'] === 'webzines' && Schema::hasTable('users')) {
                 $userList = DB::table('users')->orderBy('name')->pluck('name', 'id')->all();
                 foreach ($userList as $uId => $uName) {
                     if (!in_array($uName, $authorList, true)) {
