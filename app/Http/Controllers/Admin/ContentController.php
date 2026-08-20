@@ -126,11 +126,16 @@ class ContentController extends Controller
             null
         );
 
-        $attributes += $this->creditAttributes($request, $spec, isNew: true);
+        $credit = $this->creditAttributes($request, $spec, isNew: true, record: null);
+        foreach ($credit as $k => $v) {
+            $attributes[$k] = $v;
+        }
 
         if ($type === 'blog') {
-            if (empty($attributes['author_id'])) {
-                $attributes['author_id'] = auth()->id() ?: 1;
+            if (empty($attributes['author_id']) || !is_numeric($attributes['author_id'])) {
+                $attributes['author_id'] = (int) (auth()->id() ?: 1);
+            } else {
+                $attributes['author_id'] = (int) $attributes['author_id'];
             }
             if (($attributes['status'] ?? null) === 'published' && empty($attributes['published_at'])) {
                 $attributes['published_at'] = now();
@@ -141,6 +146,24 @@ class ContentController extends Controller
             $record->forceFill($attributes)->save();
             if ($type === 'webzines') {
                 $this->syncWebzineArticles($record, $request);
+            }
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Handle unique constraint on blog_posts.title for SQLite or MySQL
+            if (str_contains($e->getMessage(), 'UNIQUE constraint failed: blog_posts.title') || str_contains($e->getMessage(), 'blog_posts_title_unique') || str_contains($e->getMessage(), 'Duplicate entry')) {
+                try {
+                    $attributes['title'] = $attributes['title'] . ' (' . Str::random(4) . ')';
+                    $record->forceFill($attributes)->save();
+                } catch (\Throwable $e2) {
+                    \Illuminate\Support\Facades\Log::error("ContentController store retry error ({$type}): " . $e2->getMessage());
+                    return back()->withInput()->withErrors([
+                        'error' => "সংরক্ষণ করার সময় ত্রুটি ঘটেছে: " . $e2->getMessage(),
+                    ]);
+                }
+            } else {
+                \Illuminate\Support\Facades\Log::error("ContentController store error ({$type}): " . $e->getMessage());
+                return back()->withInput()->withErrors([
+                    'error' => "সংরক্ষণ করার সময় ত্রুটি ঘটেছে: " . $e->getMessage(),
+                ]);
             }
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::error("ContentController store error ({$type}): " . $e->getMessage());
@@ -198,11 +221,16 @@ class ContentController extends Controller
             $attributes['slug'] = $this->uniqueSlug($spec, (string) $request->input('slug'), $record);
         }
 
-        $attributes += $this->creditAttributes($request, $spec, isNew: false);
+        $credit = $this->creditAttributes($request, $spec, isNew: false, record: $record);
+        foreach ($credit as $k => $v) {
+            $attributes[$k] = $v;
+        }
 
         if ($type === 'blog') {
-            if (empty($attributes['author_id'])) {
-                $attributes['author_id'] = $record->author_id ?: (auth()->id() ?: 1);
+            if (empty($attributes['author_id']) || !is_numeric($attributes['author_id'])) {
+                $attributes['author_id'] = (int) ($record->author_id ?: (auth()->id() ?: 1));
+            } else {
+                $attributes['author_id'] = (int) $attributes['author_id'];
             }
             if (($attributes['status'] ?? null) === 'published' && empty($record->published_at)) {
                 $attributes['published_at'] = now();
@@ -213,6 +241,24 @@ class ContentController extends Controller
             $record->forceFill($attributes)->save();
             if ($type === 'webzines') {
                 $this->syncWebzineArticles($record, $request);
+            }
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Handle unique constraint on blog_posts.title for SQLite or MySQL
+            if (str_contains($e->getMessage(), 'UNIQUE constraint failed: blog_posts.title') || str_contains($e->getMessage(), 'blog_posts_title_unique') || str_contains($e->getMessage(), 'Duplicate entry')) {
+                try {
+                    $attributes['title'] = $attributes['title'] . ' (' . Str::random(4) . ')';
+                    $record->forceFill($attributes)->save();
+                } catch (\Throwable $e2) {
+                    \Illuminate\Support\Facades\Log::error("ContentController update error on retry ({$type} #{$id}): " . $e2->getMessage());
+                    return back()->withInput()->withErrors([
+                        'error' => "হালনাগাদ করার সময় ত্রুটি ঘটেছে: " . $e2->getMessage(),
+                    ]);
+                }
+            } else {
+                \Illuminate\Support\Facades\Log::error("ContentController update error ({$type} #{$id}): " . $e->getMessage());
+                return back()->withInput()->withErrors([
+                    'error' => "হালনাগাদ করার সময় ত্রুটি ঘটেছে: " . $e->getMessage(),
+                ]);
             }
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::error("ContentController update error ({$type} #{$id}): " . $e->getMessage());
@@ -702,7 +748,7 @@ class ContentController extends Controller
      * @param  array<string, mixed>  $spec
      * @return array<string, mixed>
      */
-    private function creditAttributes(Request $request, array $spec, bool $isNew): array
+    private function creditAttributes(Request $request, array $spec, bool $isNew, ?Model $record = null): array
     {
         $creditedUser = $request->integer('submitted_by') ?: null;
         $attributes   = [];
@@ -782,16 +828,16 @@ class ContentController extends Controller
             }
 
             if ($authorUserId) {
-                $attributes['author_id'] = $authorUserId;
-            } elseif ($editing && $record && !empty($record->author_id)) {
-                $attributes['author_id'] = $record->author_id;
+                $attributes['author_id'] = (int) $authorUserId;
+            } elseif (!$isNew && $record && !empty($record->author_id)) {
+                $attributes['author_id'] = (int) $record->author_id;
             } else {
-                $attributes['author_id'] = $creditedUser ?: (auth()->id() ?: 1);
+                $attributes['author_id'] = (int) ($creditedUser ?: (auth()->id() ?: 1));
             }
 
             if ($ownerName !== null && $ownerName !== '') {
                 $attributes['owner_name'] = $ownerName;
-            } elseif ($editing && $record && !empty($record->owner_name)) {
+            } elseif (!$isNew && $record && !empty($record->owner_name)) {
                 $attributes['owner_name'] = $record->owner_name;
             }
 
