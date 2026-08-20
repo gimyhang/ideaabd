@@ -79,7 +79,7 @@
                         </p>
 
                         @php
-                            $authorName = $post->author ? $post->author->name : 'সম্পাদকীয় বিভাগ';
+                            $authorName = $post->author_name ?: 'সম্পাদকীয় বিভাগ';
                             $authorSearchUrl = route('authors.index') . '?search=' . urlencode($authorName);
                         @endphp
                         <div class="mt-auto pt-3 border-top d-flex align-items-center justify-content-between">

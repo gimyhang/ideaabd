@@ -434,10 +434,10 @@
                     <div class="d-flex align-items-center justify-content-between pt-3 border-top">
                         <div class="d-flex align-items-center gap-2">
                             <div class="lit-author-avatar" style="width: 38px; height: 38px; font-size: 1rem;">
-                                {{ mb_substr($heroPost->author ? $heroPost->author->name : 'আ', 0, 1) }}
+                                {{ mb_substr($heroPost->author_name ?: 'আ', 0, 1) }}
                             </div>
                             <div>
-                                <span class="fw-bold text-dark d-block small">{{ $heroPost->author ? $heroPost->author->name : 'সম্পাদকীয় বিভাগ' }}</span>
+                                <span class="fw-bold text-dark d-block small">{{ $heroPost->author_name ?: 'সম্পাদকীয় বিভাগ' }}</span>
                                 <span class="text-muted" style="font-size: 0.72rem;">আইডিয়া প্রকাশন</span>
                             </div>
                         </div>
@@ -536,7 +536,7 @@
 
                                     {{-- Author Icon & Name Linked to Author Directory + Publish Date and Time --}}
                                     @php
-                                        $authorName = $post->author ? $post->author->name : 'সম্পাদকীয় বিভাগ';
+                                        $authorName = $post->author_name ?: 'সম্পাদকীয় বিভাগ';
                                         $authorSearchUrl = route('authors.index') . '?search=' . urlencode($authorName);
                                     @endphp
                                     <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2.5 pb-2 border-bottom text-muted small" style="font-size: 0.76rem;">
@@ -650,7 +650,7 @@
 
                                             {{-- Author Icon & Name Linked to Author Directory + Publish Date and Time --}}
                                             @php
-                                                $catAuthorName = $post->author ? $post->author->name : 'সম্পাদকীয় বিভাগ';
+                                                $catAuthorName = $post->author_name ?: 'সম্পাদকীয় বিভাগ';
                                                 $catAuthorSearchUrl = route('authors.index') . '?search=' . urlencode($catAuthorName);
                                             @endphp
                                             <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2.5 pb-2 border-bottom text-muted small" style="font-size: 0.76rem;">

@@ -74,7 +74,7 @@
                         <div class="mt-auto pt-3 border-top d-flex align-items-center justify-content-between">
                             <span class="small fw-bold text-dark">
                                 <i class="fa-solid fa-pen-nib text-muted me-1"></i>
-                                {{ $post->author ? $post->author->name : 'সম্পাদকীয়' }}
+                                {{ $post->author_name ?: 'সম্পাদকীয়' }}
                             </span>
                             <a href="{{ route('blog.show', $post->slug) }}" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-semibold" style="font-size: 0.8rem;">
                                 পড়ুন →

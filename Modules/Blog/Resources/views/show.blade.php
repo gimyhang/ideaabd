@@ -3,7 +3,7 @@
 @php
     $ogCover = $post->cover_url ?: ($post->featured_image ? (str_starts_with($post->featured_image, 'http') ? $post->featured_image : asset('storage/' . ltrim($post->featured_image, '/'))) : asset('images/logo.svg'));
     $ogDesc = !empty($post->subtitle) ? $post->subtitle : (!empty($post->excerpt) ? $post->excerpt : Str::limit(strip_tags($post->content), 180));
-    $ogAuthor = $post->author ? $post->author->name : 'আইডিয়া প্রকাশন';
+    $ogAuthor = $post->author_name ?: 'আইডিয়া প্রকাশন';
 @endphp
 
 @section('title', ($post->title ?? 'সাহিত্যকর্ম') . ' — ' . $ogAuthor)
@@ -312,7 +312,7 @@
 
                     {{-- Author Details Linked to Author Directory & Exact Publish Date/Time --}}
                     @php
-                        $authorName = $post->author ? $post->author->name : 'সম্পাদকীয় বিভাগ';
+                        $authorName = $post->author_name ?: 'সম্পাদকীয় বিভাগ';
                         $authorSearchUrl = route('authors.index') . '?search=' . urlencode($authorName);
                     @endphp
                     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 text-muted small py-3 my-3 border-top border-bottom" style="background: rgba(0,0,0,0.015); border-color: #e2e8f0 !important;">

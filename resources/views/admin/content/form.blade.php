@@ -1262,7 +1262,7 @@
                     </div>
                     <div id="mockupAuthor" class="small text-muted d-flex align-items-center gap-1" style="font-size: 0.78rem;">
                         <i class="fas fa-pen-nib text-success"></i>
-                        <span>{{ $editing && $record->author ? $record->author->name : 'লেখকের নাম' }}</span>
+                        <span>{{ $editing && $record ? ($record->author_name ?? ($record->author->name ?? 'লেখকের নাম')) : 'লেখকের নাম' }}</span>
                     </div>
                 </div>
             </div>
@@ -2068,17 +2068,23 @@ function updateLiveMockupCard() {
 
     // Author
     let authorVal = '';
+    const ownerNameInput = document.getElementById('f-owner_name');
     const authorIdSelect = document.getElementById('f-author_id');
+    const authorSelect = document.getElementById('f-author_link_id');
+    const authorCustom = document.getElementById('f-author_name');
     const dirRadio = document.getElementById('author-mode-directory');
-    if (dirRadio && dirRadio.checked && authorSelect && authorSelect.selectedIndex > 0) {
-        authorVal = authorSelect.options[authorSelect.selectedIndex].text;
+
+    if (ownerNameInput && ownerNameInput.value.trim()) {
+        authorVal = ownerNameInput.value.trim();
+    } else if (dirRadio && dirRadio.checked && authorSelect && authorSelect.selectedIndex > 0) {
+        authorVal = authorSelect.options[authorSelect.selectedIndex].text.replace(/\[.*?\]/, '').trim();
     } else if (authorIdSelect && authorIdSelect.selectedIndex > 0) {
-        authorVal = authorIdSelect.options[authorIdSelect.selectedIndex].text;
+        authorVal = authorIdSelect.options[authorIdSelect.selectedIndex].text.replace(/\[.*?\]/, '').trim();
     } else if (authorCustom) {
         authorVal = authorCustom.value.trim();
     }
     if (mockAuthor) {
-        mockAuthor.textContent = authorVal || 'লেখকের নাম';
+        mockAuthor.innerHTML = '<i class="fas fa-pen-nib text-success me-1"></i><span>' + (authorVal || 'লেখকের নাম') + '</span>';
     }
 
     // Pricing & Format Badge calculation (prioritize selected cover type)
