@@ -269,14 +269,14 @@
                             <th class="ps-3" style="width: 40px;">
                                 <i class="fas fa-check-square text-muted"></i>
                             </th>
-                            <th style="min-width: 240px;">বই ও কভার</th>
-                            <th style="min-width: 130px;">সংস্করণ</th>
+                            <th style="min-width: 230px;">বই ও কভার</th>
+                            <th style="min-width: 120px;">সংস্করণ</th>
                             <th class="text-center" style="min-width: 100px;">বর্তমান স্টক</th>
-                            <th class="text-end" style="min-width: 110px;">গায়ের মূল্য (MRP)</th>
-                            <th class="text-center" style="min-width: 110px;">ক্রয় কমিশন (%)</th>
+                            <th class="text-center" style="min-width: 140px;">গায়ের মুদ্রিত মূল্য (MRP)</th>
+                            <th class="text-center" style="min-width: 120px;">ক্রয় কমিশন ও দর</th>
                             <th class="text-center" style="min-width: 110px;">অর্ডার সংখ্যা (কপি)</th>
                             <th class="text-end" style="min-width: 120px;">মোট ক্রয়মূল্য</th>
-                            <th class="text-end pe-3" style="min-width: 80px;">অ্যাকশন</th>
+                            <th class="text-end pe-3" style="min-width: 110px;">শর্টকাট</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -287,14 +287,17 @@
                                     ? (str_starts_with($cover, 'http') ? $cover : (str_starts_with($cover, 'storage/') ? asset($cover) : asset('storage/' . ltrim($cover, '/'))))
                                     : 'https://placehold.co/100x150/e2e8f0/475569?text=Cover';
                                 
-                                $price = (float) ($book->price ?: $book->hardcover_price);
+                                $price = (float) ($book->price ?: ($book->hardcover_price ?: ($book->discount_price ?: 0)));
+                                $discount = (float) ($book->discount_price ?: 0);
                                 $costPrice = (float) ($book->cost_price ?: 0);
                                 $defaultCommission = ($price > 0 && $costPrice > 0 && $costPrice < $price)
                                     ? round((($price - $costPrice) / $price) * 100, 1)
                                     : 40;
                                 
+                                $costPerUnit = $price * (1 - ($defaultCommission / 100));
                                 $stock = (int) ($book->stock_quantity ?? 0);
                                 $suggestedOrderQty = ($stock <= 0) ? 10 : (($stock <= 5) ? 5 : 1);
+                                $initialLineTotal = $costPerUnit * $suggestedOrderQty;
                             @endphp
                             <tr id="bookRow_{{ $book->id }}" class="book-item-row" data-book-id="{{ $book->id }}">
                                 {{-- Checkbox --}}
@@ -312,9 +315,9 @@
                                 {{-- Book Title & Cover --}}
                                 <td>
                                     <div class="d-flex align-items-center gap-2.5">
-                                        <img src="{{ $coverUrl }}" alt="{{ $book->title }}" 
+                                        <img src="{{ $coverUrl }}" alt="{{ $book->title }}" id="bookCoverImg_{{ $book->id }}"
                                              class="rounded border shadow-xs flex-shrink-0" style="width: 40px; height: 55px; object-fit: cover;">
-                                        <div class="text-truncate" style="max-width: 260px;">
+                                        <div class="text-truncate" style="max-width: 240px;">
                                             <a href="{{ route('book.show', $book->slug ?? $book->id) }}" target="_blank" 
                                                class="fw-bold text-dark text-decoration-none hover-primary d-block text-truncate mb-0.5" title="{{ $book->title }}">
                                                 {{ $book->title }}
@@ -329,7 +332,7 @@
                                 {{-- Edition --}}
                                 <td>
                                     <span class="badge bg-light text-dark border px-2 py-1" style="font-size: 11px;">
-                                        {{ $book->edition ?: 'সাধারণ' }}
+                                        {{ $book->edition ?: 'সাধারণ সংস্করণ' }}
                                     </span>
                                 </td>
 
@@ -344,20 +347,39 @@
                                     @endif
                                 </td>
 
-                                {{-- Price (MRP) --}}
-                                <td class="text-end">
-                                    <span class="fw-bold text-dark font-monospace" id="mrpDisplay_{{ $book->id }}">৳@bn(number_format($price, 0))</span>
+                                {{-- Printed MRP Price (Editable input & Formatted) --}}
+                                <td class="text-center">
+                                    <div class="input-group input-group-sm d-inline-flex" style="width: 110px;">
+                                        <span class="input-group-text bg-light px-1.5 fw-bold text-muted">৳</span>
+                                        <input type="number" min="0" step="1" 
+                                               id="mrpInput_{{ $book->id }}" 
+                                               value="{{ $price > 0 ? round($price) : '' }}" 
+                                               class="form-control form-control-sm text-center fw-bold row-mrp-input {{ $price <= 0 ? 'border-danger bg-danger-subtle' : '' }}" 
+                                               placeholder="0"
+                                               oninput="recalcRowTotal({{ $book->id }})"
+                                               title="গায়ের মুদ্রিত মূল্য (MRP)">
+                                    </div>
+                                    @if($discount > 0 && $discount < $price)
+                                        <div class="small text-muted text-truncate mt-0.5" style="font-size: 10.5px;">
+                                            বিক্রয়: <strong class="text-primary font-monospace">৳@bn(number_format($discount, 0))</strong>
+                                        </div>
+                                    @endif
                                 </td>
 
-                                {{-- Purchase Commission (%) Input --}}
+                                {{-- Purchase Commission (%) & Calculated Purchase Rate --}}
                                 <td class="text-center">
-                                    <div class="input-group input-group-sm d-inline-flex" style="width: 95px;">
+                                    <div class="input-group input-group-sm d-inline-flex mb-1" style="width: 95px;">
                                         <input type="number" min="0" max="100" step="0.5" 
                                                id="commissionInput_{{ $book->id }}" 
                                                value="{{ $defaultCommission }}" 
                                                class="form-control form-control-sm text-center fw-semibold row-commission-input" 
                                                oninput="recalcRowTotal({{ $book->id }})">
                                         <span class="input-group-text bg-light px-1.5">%</span>
+                                    </div>
+                                    <div class="d-block">
+                                        <span class="badge bg-light text-dark border font-monospace" id="costRateDisplay_{{ $book->id }}" style="font-size: 10px;">
+                                            দর: ৳@bn(number_format($costPerUnit, 0))
+                                        </span>
                                     </div>
                                 </td>
 
@@ -375,11 +397,7 @@
 
                                 {{-- Calculated Row Total --}}
                                 <td class="text-end">
-                                    @php
-                                        $costPerUnit = $price * (1 - ($defaultCommission / 100));
-                                        $initialLineTotal = $costPerUnit * $suggestedOrderQty;
-                                    @endphp
-                                    <span class="fw-bold text-primary font-monospace" id="lineTotal_{{ $book->id }}">
+                                    <span class="fw-bold text-primary font-monospace fs-6" id="lineTotal_{{ $book->id }}">
                                         ৳@bn(number_format($initialLineTotal, 0))
                                     </span>
                                 </td>
@@ -387,9 +405,13 @@
                                 {{-- Actions --}}
                                 <td class="text-end pe-3">
                                     <div class="d-inline-flex align-items-center gap-1">
+                                        <button type="button" class="btn btn-sm btn-primary rounded-pill px-2 py-0.5 fw-bold shadow-xs" 
+                                                onclick="openQuickBookEditModal({{ $book->id }})" title="কভার, মূল্য, কমিশন ও স্টক শর্টকাট এডিট">
+                                            <i class="fas fa-bolt"></i>
+                                        </button>
                                         <a href="{{ route('admin.content.edit', ['type' => 'books', 'id' => $book->id]) }}" target="_blank"
-                                           class="btn btn-xs btn-outline-secondary rounded-circle" style="width:26px; height:26px; padding:0;" title="সম্পাদনা করুন">
-                                            <i class="fas fa-pen" style="font-size: 10px;"></i>
+                                           class="btn btn-sm btn-outline-secondary rounded-pill px-2 py-0.5" title="সম্পূর্ণ এডিট">
+                                            <i class="fas fa-pen"></i>
                                         </a>
                                     </div>
                                 </td>
@@ -589,7 +611,7 @@
                     <tbody>
                         @forelse($topBooks as $idx => $b)
                             @php
-                                $bPrice = (float) ($b->price ?: $b->hardcover_price);
+                                $bPrice = (float) ($b->price ?: ($b->hardcover_price ?: ($b->discount_price ?: 0)));
                                 $salesRev = $bPrice * (int) $b->sales_count;
                             @endphp
                             <tr>
@@ -814,9 +836,192 @@
     </div>
 </div>
 
+{{-- ========================================================================= --}}
+{{-- MODAL: QUICK BOOK SHORTCUT UPDATE (From Publisher Catalog)                 --}}
+{{-- ========================================================================= --}}
+<div class="modal fade" id="quickBookEditModal" tabindex="-1" aria-labelledby="quickBookEditModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header bg-primary text-white py-3">
+                <h5 class="modal-title fw-bold text-white mb-0" id="quickBookEditModalLabel">
+                    <i class="fas fa-bolt me-1.5"></i> বইয়ের দ্রুত শর্টকাট এডিটর
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            
+            <form id="quickBookEditForm" onsubmit="handleQuickBookEditSubmit(event)" enctype="multipart/form-data">
+                <input type="hidden" id="qeBookId" name="book_id">
+                
+                <div class="modal-body p-4">
+                    <div id="qeAlertBox"></div>
+
+                    <div class="row g-4">
+                        {{-- Left Column: Cover Image & Preview --}}
+                        <div class="col-12 col-md-4 border-end-md text-center">
+                            <label class="form-label small fw-bold text-dark d-block">প্রচ্ছদ ছবি (Cover Photo)</label>
+                            <div class="position-relative d-inline-block mb-2.5">
+                                <img src="https://placehold.co/120x170/e2e8f0/475569?text=Cover" 
+                                     id="qeCoverPreview" 
+                                     class="rounded-3 border shadow-sm" 
+                                     style="width: 125px; height: 175px; object-fit: cover;">
+                            </div>
+                            <div>
+                                <label for="qeCoverInput" class="btn btn-sm btn-outline-primary rounded-pill px-3 cursor-pointer">
+                                    <i class="fas fa-upload me-1"></i> নতুন ছবি নির্বাচন
+                                </label>
+                                <input type="file" id="qeCoverInput" name="cover_image_file" accept="image/*" class="d-none" onchange="previewSelectedCover(this)">
+                                <div class="small text-muted mt-1" style="font-size: 11px;">JPG, PNG, WebP (Max 5MB)</div>
+                            </div>
+                        </div>
+
+                        {{-- Right Column: Dynamic Price, Commissions, Edition, Stock --}}
+                        <div class="col-12 col-md-8">
+                            
+                            {{-- Title & Edition --}}
+                            <div class="row g-2 mb-3">
+                                <div class="col-8">
+                                    <label class="form-label small fw-bold text-dark">বইয়ের নাম <span class="text-danger">*</span></label>
+                                    <input type="text" id="qeTitle" name="title" class="form-control form-control-sm fw-bold" required>
+                                </div>
+                                <div class="col-4">
+                                    <label class="form-label small fw-bold text-dark">সংস্করণ (Edition)</label>
+                                    <input type="text" id="qeEdition" name="edition" class="form-control form-control-sm" placeholder="যেমন: ১ম প্রকাশ, ২০২৪">
+                                </div>
+                            </div>
+
+                            {{-- Pricing & Commissions Calculator --}}
+                            <div class="p-3 bg-light rounded-3 mb-3 border">
+                                <h6 class="fw-bold text-primary mb-2.5 small text-uppercase">
+                                    <i class="fas fa-calculator me-1"></i> গায়ের মূল্য, বিক্রয় ছাড় ও ক্রয় কমিশন
+                                </h6>
+                                
+                                <div class="row g-2 mb-2">
+                                    {{-- MRP Price --}}
+                                    <div class="col-4">
+                                        <label class="form-label small fw-bold text-dark">গায়ের মূল্য (MRP) <span class="text-danger">*</span></label>
+                                        <div class="input-group input-group-sm">
+                                            <span class="input-group-text">৳</span>
+                                            <input type="number" id="qePrice" name="price" min="0" step="1" class="form-control fw-bold" required oninput="recalcPricingFromMrp()">
+                                        </div>
+                                    </div>
+
+                                    {{-- Sale Commission % --}}
+                                    <div class="col-4">
+                                        <label class="form-label small fw-semibold text-dark">সেল ছাড় / ডিসকাউন্ট</label>
+                                        <div class="input-group input-group-sm">
+                                            <input type="number" id="qeSaleCommission" min="0" max="100" step="0.5" class="form-control text-center text-danger fw-bold" placeholder="0" oninput="recalcSalePriceFromCommission()">
+                                            <span class="input-group-text bg-white">%</span>
+                                        </div>
+                                    </div>
+
+                                    {{-- Sale Price (Discount Price) --}}
+                                    <div class="col-4">
+                                        <label class="form-label small fw-semibold text-dark">বিক্রয় মূল্য (Sale)</label>
+                                        <div class="input-group input-group-sm">
+                                            <span class="input-group-text">৳</span>
+                                            <input type="number" id="qeDiscountPrice" name="discount_price" min="0" step="1" class="form-control text-primary fw-bold" oninput="recalcSaleCommissionFromPrice()">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row g-2">
+                                    {{-- Hardcover Price (optional) --}}
+                                    <div class="col-4">
+                                        <label class="form-label small text-muted">হার্ডকভার মুদ্রিত মূল্য</label>
+                                        <div class="input-group input-group-sm">
+                                            <span class="input-group-text">৳</span>
+                                            <input type="number" id="qeHardcoverPrice" name="hardcover_price" min="0" step="1" class="form-control" placeholder="0">
+                                        </div>
+                                    </div>
+
+                                    {{-- Buy Commission % --}}
+                                    <div class="col-4">
+                                        <label class="form-label small fw-semibold text-dark">ক্রয় কমিশন (%)</label>
+                                        <div class="input-group input-group-sm">
+                                            <input type="number" id="qeBuyCommission" min="0" max="100" step="0.5" class="form-control text-center text-success fw-bold" placeholder="0" oninput="recalcCostPriceFromCommission()">
+                                            <span class="input-group-text bg-white">%</span>
+                                        </div>
+                                    </div>
+
+                                    {{-- Purchase Cost Price --}}
+                                    <div class="col-4">
+                                        <label class="form-label small fw-semibold text-dark">ক্রয় খরচ / মূল্য (Cost)</label>
+                                        <div class="input-group input-group-sm">
+                                            <span class="input-group-text">৳</span>
+                                            <input type="number" id="qeCostPrice" name="cost_price" min="0" step="1" class="form-control text-success fw-bold" oninput="recalcBuyCommissionFromPrice()">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Inventory & Live Status --}}
+                            <div class="row g-2 align-items-center">
+                                <div class="col-4">
+                                    <label class="form-label small fw-bold text-dark">ইনভেন্টরি স্টক সংখ্যা <span class="text-danger">*</span></label>
+                                    <div class="input-group input-group-sm">
+                                        <input type="number" id="qeStockQuantity" name="stock_quantity" min="0" max="100000" class="form-control fw-bold" required>
+                                        <span class="input-group-text">টি</span>
+                                    </div>
+                                </div>
+
+                                <div class="col-4">
+                                    <label class="form-label small fw-bold text-dark">স্টক অবস্থা</label>
+                                    <select id="qeStockStatus" name="stock_status" class="form-select form-select-sm">
+                                        <option value="in_stock">🟢 ইন-স্টক</option>
+                                        <option value="low">🟡 লো-স্টক</option>
+                                        <option value="out">🔴 স্টক শেষ</option>
+                                        <option value="pre_order">⏳ প্রি-অর্ডার চলছে</option>
+                                    </select>
+                                </div>
+
+                                <div class="col-4 pt-3">
+                                    <div class="form-check form-switch mb-0">
+                                        <input class="form-check-input" type="checkbox" role="switch" id="qeIsActive" name="is_active" value="1">
+                                        <label class="form-check-label small fw-bold text-dark" for="qeIsActive">
+                                            লাইভ ও সক্রিয়
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer bg-light py-2.5">
+                    <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3" data-bs-dismiss="modal">বাতিল</button>
+                    <button type="submit" id="qeSubmitBtn" class="btn btn-sm btn-primary rounded-pill px-4 fw-bold shadow-xs">
+                        <i class="fas fa-check-circle me-1"></i> সংরক্ষণ করুন
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 @push('scripts')
 <script>
 let selectedBooks = {};
+
+// In-Memory Book Store for Publisher Catalog Quick Editing
+const pubBooksDataMap = {
+    @foreach ($books as $b)
+        {{ $b->id }}: {
+            id: {{ $b->id }},
+            title: "{{ addslashes($b->title) }}",
+            edition: "{{ addslashes($b->edition ?? '') }}",
+            price: {{ (float) ($b->price ?: ($b->hardcover_price ?: ($b->discount_price ?: 0))) }},
+            discount_price: {{ (float) ($b->discount_price ?: 0) }},
+            cost_price: {{ (float) ($b->cost_price ?: 0) }},
+            hardcover_price: {{ (float) ($b->hardcover_price ?: 0) }},
+            hardcover_discount_price: {{ (float) ($b->hardcover_discount_price ?: 0) }},
+            stock_quantity: {{ (int) ($b->stock_quantity ?? 0) }},
+            stock_status: "{{ $b->stock_status ?? 'in_stock' }}",
+            is_active: {{ $b->is_active ? 1 : 0 }},
+            cover_url: "{{ $b->cover_image ? (str_starts_with($b->cover_image, 'http') ? $b->cover_image : asset('storage/' . ltrim($b->cover_image, '/'))) : 'https://placehold.co/100x150/e2e8f0/475569?text=Cover' }}"
+        },
+    @endforeach
+};
 
 function handleBookRowSelect(checkbox) {
     const bookId = checkbox.dataset.id;
@@ -827,7 +1032,8 @@ function handleBookRowSelect(checkbox) {
         const title = checkbox.dataset.title;
         const author = checkbox.dataset.author;
         const edition = checkbox.dataset.edition;
-        const price = parseFloat(checkbox.dataset.price) || 0;
+        const mrpInput = document.getElementById('mrpInput_' + bookId);
+        const price = parseFloat(mrpInput ? mrpInput.value : 0) || 0;
         const commission = parseFloat(document.getElementById('commissionInput_' + bookId).value) || 0;
         const qty = parseInt(document.getElementById('qtyInput_' + bookId).value) || 1;
 
@@ -854,21 +1060,22 @@ function handleBookRowSelect(checkbox) {
 }
 
 function recalcRowTotal(bookId) {
-    const checkbox = document.querySelector(`.book-select-checkbox[data-id="${bookId}"]`);
-    if (!checkbox) return;
-    const price = parseFloat(checkbox.dataset.price) || 0;
+    const mrpInput = document.getElementById('mrpInput_' + bookId);
+    const price = parseFloat(mrpInput ? mrpInput.value : 0) || 0;
     const commission = parseFloat(document.getElementById('commissionInput_' + bookId).value) || 0;
     const qty = parseInt(document.getElementById('qtyInput_' + bookId).value) || 1;
 
     const costRate = price * (1 - (commission / 100));
     const lineTotal = costRate * qty;
 
+    const costRateEl = document.getElementById('costRateDisplay_' + bookId);
+    if (costRateEl) costRateEl.textContent = 'দর: ৳' + costRate.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+
     const lineTotalEl = document.getElementById('lineTotal_' + bookId);
-    if (lineTotalEl) {
-        lineTotalEl.textContent = '৳' + lineTotal.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
-    }
+    if (lineTotalEl) lineTotalEl.textContent = '৳' + lineTotal.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 
     if (selectedBooks[bookId]) {
+        selectedBooks[bookId].unit_price = price;
         selectedBooks[bookId].commission_percent = commission;
         selectedBooks[bookId].quantity = qty;
         selectedBooks[bookId].cost_price = costRate;
@@ -1194,6 +1401,130 @@ function handlePublisherDetailPaymentSubmit(e) {
         alertBox.innerHTML = `<div class="alert alert-danger p-2 small mb-3">সার্ভার এরর হয়েছে।</div>`;
         btn.disabled = false;
         btn.innerHTML = '<i class="fas fa-check-circle me-1"></i> পেমেন্ট সংরক্ষণ করুন';
+    });
+}
+
+// Quick Book Edit Modal Functions
+function openQuickBookEditModal(bookId) {
+    const book = pubBooksDataMap[bookId];
+    if (!book) return;
+
+    document.getElementById('qeBookId').value = book.id;
+    document.getElementById('qeTitle').value = book.title;
+    document.getElementById('qeEdition').value = book.edition || '';
+    document.getElementById('qePrice').value = book.price || '';
+    document.getElementById('qeDiscountPrice').value = book.discount_price > 0 ? book.discount_price : '';
+    document.getElementById('qeCostPrice').value = book.cost_price > 0 ? book.cost_price : '';
+    document.getElementById('qeHardcoverPrice').value = book.hardcover_price > 0 ? book.hardcover_price : '';
+    document.getElementById('qeStockQuantity').value = book.stock_quantity;
+    document.getElementById('qeStockStatus').value = book.stock_status || (book.stock_quantity <= 0 ? 'out' : 'in_stock');
+    document.getElementById('qeIsActive').checked = (book.is_active === 1);
+    document.getElementById('qeCoverPreview').src = book.cover_url;
+    document.getElementById('qeCoverInput').value = '';
+    document.getElementById('qeAlertBox').innerHTML = '';
+
+    recalcSaleCommissionFromPrice();
+    recalcBuyCommissionFromPrice();
+
+    new bootstrap.Modal(document.getElementById('quickBookEditModal')).show();
+}
+
+function recalcPricingFromMrp() {
+    recalcSalePriceFromCommission();
+    recalcCostPriceFromCommission();
+}
+
+function recalcSalePriceFromCommission() {
+    const mrp = parseFloat(document.getElementById('qePrice').value) || 0;
+    const comm = parseFloat(document.getElementById('qeSaleCommission').value) || 0;
+    if (mrp > 0 && comm > 0) {
+        const salePrice = mrp * (1 - (comm / 100));
+        document.getElementById('qeDiscountPrice').value = Math.round(salePrice);
+    } else if (comm === 0) {
+        document.getElementById('qeDiscountPrice').value = '';
+    }
+}
+
+function recalcSaleCommissionFromPrice() {
+    const mrp = parseFloat(document.getElementById('qePrice').value) || 0;
+    const salePrice = parseFloat(document.getElementById('qeDiscountPrice').value) || 0;
+    if (mrp > 0 && salePrice > 0 && salePrice < mrp) {
+        const comm = ((mrp - salePrice) / mrp) * 100;
+        document.getElementById('qeSaleCommission').value = comm.toFixed(1);
+    } else {
+        document.getElementById('qeSaleCommission').value = '';
+    }
+}
+
+function recalcCostPriceFromCommission() {
+    const mrp = parseFloat(document.getElementById('qePrice').value) || 0;
+    const comm = parseFloat(document.getElementById('qeBuyCommission').value) || 0;
+    if (mrp > 0 && comm > 0) {
+        const costPrice = mrp * (1 - (comm / 100));
+        document.getElementById('qeCostPrice').value = Math.round(costPrice);
+    } else if (comm === 0) {
+        document.getElementById('qeCostPrice').value = '';
+    }
+}
+
+function recalcBuyCommissionFromPrice() {
+    const mrp = parseFloat(document.getElementById('qePrice').value) || 0;
+    const costPrice = parseFloat(document.getElementById('qeCostPrice').value) || 0;
+    if (mrp > 0 && costPrice > 0 && costPrice < mrp) {
+        const comm = ((mrp - costPrice) / mrp) * 100;
+        document.getElementById('qeBuyCommission').value = comm.toFixed(1);
+    } else {
+        document.getElementById('qeBuyCommission').value = '';
+    }
+}
+
+function previewSelectedCover(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('qeCoverPreview').src = e.target.result;
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+function handleQuickBookEditSubmit(e) {
+    e.preventDefault();
+    const btn = document.getElementById('qeSubmitBtn');
+    const alertBox = document.getElementById('qeAlertBox');
+    const form = document.getElementById('quickBookEditForm');
+    const formData = new FormData(form);
+
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> সংরক্ষণ হচ্ছে...';
+
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+    fetch("{{ route('admin.books.quick-update') }}", {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': csrfToken
+        },
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            alertBox.innerHTML = `<div class="alert alert-success p-2 small mb-3"><i class="fas fa-check-circle me-1"></i> ${data.message}</div>`;
+            setTimeout(() => {
+                location.reload();
+            }, 800);
+        } else {
+            alertBox.innerHTML = `<div class="alert alert-danger p-2 small mb-3">${data.message || 'ত্রুটি হয়েছে'}</div>`;
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-check-circle me-1"></i> সংরক্ষণ করুন';
+        }
+    })
+    .catch(err => {
+        alertBox.innerHTML = `<div class="alert alert-danger p-2 small mb-3">সার্ভার এরর হয়েছে।</div>`;
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-check-circle me-1"></i> সংরক্ষণ করুন';
     });
 }
 </script>
