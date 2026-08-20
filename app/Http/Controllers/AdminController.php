@@ -879,6 +879,9 @@ class AdminController extends Controller
             'total'               => \Modules\Publisher\Models\Publisher::count(),
             'active'              => \Modules\Publisher\Models\Publisher::where('is_active', true)->count(),
             'total_books'         => \Modules\Book\Models\Book::whereNotNull('publisher_id')->count(),
+            'total_catalog_sum'   => (float) \Modules\Book\Models\Book::whereNotNull('publisher_id')
+                ->selectRaw('COALESCE(SUM(COALESCE(NULLIF(price, 0), hardcover_price, 0)), 0) as total')
+                ->value('total'),
             'total_purchase_sum'  => (float) \App\Models\PublisherPurchase::sum('grand_total'),
             'total_due_sum'       => (float) \App\Models\PublisherPurchase::sum('due_amount'),
         ];

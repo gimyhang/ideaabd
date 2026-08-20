@@ -65,8 +65,11 @@
         <div class="col-6 col-md-2-4 col-lg">
             <div class="adm-card p-3 d-flex align-items-center justify-content-between h-100">
                 <div>
-                    <small class="text-muted d-block font-sans">মোট ক্যাটালগ বই</small>
+                    <small class="text-muted d-block font-sans">ক্যাটালগ বই ও মোট মূল্য</small>
                     <h4 class="fw-bold text-dark mb-0">@bn($stats['total_books'] ?? 0) <small class="fs-6 text-muted">টি</small></h4>
+                    <div class="small text-muted font-monospace mt-0.5" style="font-size: 11px;">
+                        মূল্য: <strong class="text-primary">৳@bn(number_format($stats['total_catalog_sum'] ?? 0, 0))</strong>
+                    </div>
                 </div>
                 <span class="p-2 bg-info-subtle text-info rounded-circle fs-5"><i class="fas fa-book-open"></i></span>
             </div>
@@ -206,13 +209,14 @@
                 <thead class="table-light">
                     <tr>
                         <th class="ps-3" style="width: 45px;">#</th>
-                        <th style="min-width: 240px;">প্রকাশক ও লোগো</th>
-                        <th style="min-width: 200px;">যোগাযোগের ঠিকানা</th>
-                        <th class="text-center" style="min-width: 110px;">ক্যাটালগ বই</th>
-                        <th class="text-end" style="min-width: 130px;">মোট কেনাকাটা</th>
-                        <th class="text-end" style="min-width: 140px;">বকেয়া পাওনা (Due)</th>
+                        <th style="min-width: 220px;">প্রকাশক ও লোগো</th>
+                        <th style="min-width: 180px;">যোগাযোগের ঠিকানা</th>
+                        <th class="text-center" style="min-width: 95px;">ক্যাটালগ বই</th>
+                        <th class="text-end" style="min-width: 130px;">ক্যাটালগ মূল্য (MRP)</th>
+                        <th class="text-end" style="min-width: 120px;">মোট কেনাকাটা</th>
+                        <th class="text-end" style="min-width: 130px;">বকেয়া পাওনা (Due)</th>
                         <th class="text-center" style="min-width: 90px;">লাইভ স্ট্যাটাস</th>
-                        <th class="text-end pe-3" style="min-width: 160px;">অ্যাকশনস</th>
+                        <th class="text-end pe-3" style="min-width: 150px;">অ্যাকশনস</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -223,6 +227,7 @@
                                 ? (str_starts_with($logo, 'http') ? $logo : (str_starts_with($logo, 'storage/') ? asset($logo) : asset('storage/' . ltrim($logo, '/'))))
                                 : 'https://placehold.co/100x100/4f46e5/ffffff?text=' . urlencode(mb_substr($publisher->name, 0, 1));
                             
+                            $catalogVal = (float) ($publisher->total_catalog_price ?? 0);
                             $purchaseSum = (float) ($publisher->total_purchase_sum ?? 0);
                             $dueSum = (float) ($publisher->total_due_sum ?? 0);
                         @endphp
@@ -271,18 +276,18 @@
                                 </div>
                             </td>
 
-                            {{-- Books Count & Catalog Value --}}
+                            {{-- Books Count --}}
                             <td class="text-center">
                                 <a href="{{ route('admin.publishers.show', $publisher->id) }}" 
                                    class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1 text-decoration-none fw-bold hover-primary"
                                    title="এই প্রকাশনীর বই ও ক্রয় আদেশ পরিচালনা করুন">
-                                    <i class="fas fa-book me-1"></i>@bn($publisher->books_count ?? 0) টি বই
+                                    <i class="fas fa-book me-1"></i>@bn($publisher->books_count ?? 0) টি
                                 </a>
-                                @if(($publisher->total_catalog_price ?? 0) > 0)
-                                    <div class="small text-muted font-monospace mt-0.5" style="font-size: 10.5px;" title="ক্যাটালগ বইগুলোর মোট মূল্য">
-                                        মূল্য: ৳@bn(number_format($publisher->total_catalog_price, 0))
-                                    </div>
-                                @endif
+                            </td>
+
+                            {{-- Total Catalog Value (MRP) --}}
+                            <td class="text-end">
+                                <span class="fw-bold text-dark font-monospace fs-6">৳@bn(number_format($catalogVal, 0))</span>
                             </td>
 
                             {{-- Total Purchases --}}
