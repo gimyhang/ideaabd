@@ -1,6 +1,11 @@
 @extends('layouts.app')
 
 @section('title', '#' . ($tag->name ?? 'ট্যাগ') . ' — আইডিয়াপত্র (Ideapatra) — আইডিয়া প্রকাশন')
+@section('og_type', 'website')
+@section('og_title', '#' . ($tag->name ?? 'ট্যাগ') . ' — আইডিয়াপত্র (Ideapatra)')
+@section('og_description', 'আইডিয়াপত্রের #' . ($tag->name ?? 'ট্যাগ') . ' সম্পর্কিত সকল নির্বাচিত সাহিত্যকর্ম ও প্রবন্ধাবলী।')
+@section('og_image', asset('images/blog/ideapatra-og.jpg'))
+@section('og_url', route('blog.tag', $tag->slug))
 
 @section('content')
 <div class="container py-4 mb-5">

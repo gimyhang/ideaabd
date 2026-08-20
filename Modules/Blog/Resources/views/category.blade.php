@@ -1,6 +1,11 @@
 @extends('layouts.app')
 
 @section('title', ($category->name ?? 'ক্যাটাগরি') . ' — আইডিয়াপত্র (Ideapatra) — আইডিয়া প্রকাশন')
+@section('og_type', 'website')
+@section('og_title', ($category->name ?? 'ক্যাটাগরি') . ' — আইডিয়াপত্র (Ideapatra)')
+@section('og_description', $category->description ?: 'আইডিয়াপত্রের “' . ($category->name ?? 'বিভাগ') . '” বিভাগে প্রকাশিত সকল নির্বাচিত সাহিত্যকর্ম ও প্রবন্ধাবলী।')
+@section('og_image', asset('images/blog/ideapatra-og.jpg'))
+@section('og_url', route('blog.category', $category->slug))
 
 @section('content')
 <div class="container py-4 mb-5">

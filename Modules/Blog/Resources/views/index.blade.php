@@ -1,10 +1,20 @@
 @extends('layouts.app')
 
+@php
+    $ogBlogImage = asset('images/blog/ideapatra-og.jpg');
+    if (!empty($featured) && $featured->count() > 0) {
+        $firstHero = $featured->first(fn($p) => !empty($p->cover_url) || !empty($p->featured_image));
+        if ($firstHero) {
+            $ogBlogImage = $firstHero->cover_url ?: (str_starts_with($firstHero->featured_image, 'http') ? $firstHero->featured_image : asset('storage/' . ltrim($firstHero->featured_image, '/')));
+        }
+    }
+@endphp
+
 @section('title', 'আইডিয়াপত্র — সাহিত্য, শিল্প-সংস্কৃতি, গবেষণা ও মুক্তচিন্তা (Ideapatra)')
 @section('og_type', 'website')
 @section('og_title', 'আইডিয়াপত্র (Ideapatra) — সমকালীন সাহিত্য ও চিন্তা')
 @section('og_description', 'আইডিয়াপত্রে নিয়মিত প্রকাশিত হচ্ছে সমকালীন প্রবন্ধ, গল্প, কবিতা, গ্রন্থালোচনা ও গবেষণামূলক রচনা।')
-@section('og_image', asset('images/og-banner.jpg'))
+@section('og_image', $ogBlogImage)
 @section('og_url', route('blog.index'))
 
 @section('content')
