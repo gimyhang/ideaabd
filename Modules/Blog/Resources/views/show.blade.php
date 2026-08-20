@@ -243,7 +243,7 @@
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb small mb-0">
                 <li class="breadcrumb-item"><a href="{{ route('home') }}" class="text-decoration-none text-muted"><i class="fas fa-home me-1"></i>হোম</a></li>
-                <li class="breadcrumb-item"><a href="{{ route('blog.index') }}" class="text-decoration-none text-muted">সাহিত্যপত্র ও ব্লগ</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('blog.index') }}" class="text-decoration-none text-muted">আইডিয়াপত্র</a></li>
                 @if($post->category)
                     <li class="breadcrumb-item">
                         <a href="{{ route('blog.category', $post->category->slug) }}" class="text-decoration-none text-muted">
@@ -571,7 +571,7 @@
             <div class="card p-4 border-0 shadow-sm rounded-4 mb-4 no-print">
                 <h5 class="fw-bold text-dark mb-4 pb-2 border-bottom d-flex align-items-center justify-content-between">
                     <span><i class="fa-solid fa-book-open-reader text-primary me-2"></i>আরও পড়ুন</span>
-                    <a href="{{ route('blog.index') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">ব্লগ হোম</a>
+                    <a href="{{ route('blog.index') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">আইডিয়াপত্র হোম</a>
                 </h5>
                 <div class="row row-cols-1 row-cols-md-3 g-3">
                     @foreach($related as $rel)
@@ -601,7 +601,7 @@
             <!-- Author Invitation Box (No Print) -->
             <div class="card p-4 mt-4 border-0 shadow-sm rounded-4 bg-light text-center no-print">
                 <i class="fa-solid fa-feather-pointed fs-2 text-success mb-2"></i>
-                <h5 class="fw-bold text-dark mb-1">আপনিও কি আইডিয়া ব্লগে লিখতে চান?</h5>
+                <h5 class="fw-bold text-dark mb-1">আপনিও কি আইডিয়াপত্রে লিখতে চান?</h5>
                 <p class="small text-muted mb-3">আপনার জ্ঞানগর্ভ প্রবন্ধ, কবিতা, বইয়ের পর্যালোচনা ও সাহিত্যকর্ম প্রকাশ করতে আমাদের লেখক পোর্টালে যুক্ত হোন।</p>
                 <div class="d-flex justify-content-center gap-2">
                     @auth
@@ -687,7 +687,7 @@
                     <div class="card p-3.5 border-0 shadow-sm rounded-4 bg-white">
                         <h6 class="fw-bold text-dark mb-3 pb-2 border-bottom d-flex align-items-center gap-2">
                             <i class="fa-solid fa-shapes text-primary"></i>
-                            <span>ব্লগ ক্যাটাগরি</span>
+                            <span>আইডিয়াপত্র ক্যাটাগরি</span>
                         </h6>
                         <div class="d-flex flex-wrap gap-1.5">
                             @foreach($sidebarCats as $scat)

@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', ($category->name ?? 'ক্যাটাগরি') . ' — ব্লগ — আইডিয়া প্রকাশন')
+@section('title', ($category->name ?? 'ক্যাটাগরি') . ' — আইডিয়াপত্র (Ideapatra) — আইডিয়া প্রকাশন')
 
 @section('content')
 <div class="container py-4 mb-5">
@@ -8,7 +8,7 @@
     <nav aria-label="breadcrumb" class="mb-4">
         <ol class="breadcrumb small">
             <li class="breadcrumb-item"><a href="{{ route('home') }}" class="text-decoration-none text-muted">হোম</a></li>
-            <li class="breadcrumb-item"><a href="{{ route('blog.index') }}" class="text-decoration-none text-muted">ব্লগ</a></li>
+            <li class="breadcrumb-item"><a href="{{ route('blog.index') }}" class="text-decoration-none text-muted">আইডিয়াপত্র</a></li>
             <li class="breadcrumb-item active" aria-current="page">{{ $category->name }}</li>
         </ol>
     </nav>
@@ -16,7 +16,7 @@
     <!-- Header Box -->
     <div class="card p-4 p-md-5 mb-4 border-0 shadow-sm rounded-4 text-white" 
          style="background: linear-gradient(135deg, #0369a1 0%, #0284c7 100%);">
-        <span class="badge bg-white text-primary fw-bold px-3 py-1 mb-2 rounded-pill align-self-start shadow-sm">ব্লগ বিভাগ</span>
+        <span class="badge bg-white text-primary fw-bold px-3 py-1 mb-2 rounded-pill align-self-start shadow-sm">আইডিয়াপত্র বিভাগ</span>
         <h1 class="fw-bold display-6 mb-2">{{ $category->name }}</h1>
         @if($category->description)
             <p class="fs-6 opacity-90 mb-0">{{ $category->description }}</p>

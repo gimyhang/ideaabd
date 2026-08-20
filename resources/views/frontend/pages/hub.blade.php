@@ -13,7 +13,7 @@
         <div class="position-relative z-1" style="max-width: 650px;">
             <span class="badge bg-warning text-dark fw-bold px-3 py-1 mb-2 rounded-pill shadow-sm">আইডিয়া হাব</span>
             <h1 class="fw-bold display-6 mb-2">বিশাল জ্ঞানের ভাণ্ডার</h1>
-            <p class="fs-6 opacity-90 mb-4">আপনার প্রিয় লেখক, গবেষক ও প্রকাশকদের বই, গবেষণাপত্র, সাহিত্য সাময়িকী এবং ব্লগের উন্মুক্ত প্ল্যাটফর্ম।</p>
+            <p class="fs-6 opacity-90 mb-4">আপনার প্রিয় লেখক, গবেষক ও প্রকাশকদের বই, গবেষণাপত্র, সাহিত্য সাময়িকী এবং আইডিয়াপত্রের উন্মুক্ত প্ল্যাটফর্ম।</p>
             <div class="d-flex flex-wrap gap-2">
                 <a href="{{ route('book.index') }}" class="btn btn-light fw-bold rounded-pill px-4 shadow-sm text-primary">
                     <i class="fa-solid fa-book-open me-1"></i> বই ব্রাউজ করুন
@@ -54,7 +54,7 @@
         <div class="col">
             <a href="{{ route('blog.index') }}" class="card text-center p-3 h-100 border-0 shadow-sm rounded-4 text-decoration-none hover-lift" style="background: #fdf2f8;">
                 <span class="fs-1 mb-2 d-block">📝</span>
-                <span class="fw-bold text-dark small">ব্লগ ও প্রবন্ধ</span>
+                <span class="fw-bold text-dark small">আইডিয়াপত্র</span>
             </a>
         </div>
         <div class="col">
@@ -70,9 +70,9 @@
         <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
             <h4 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
                 <i class="fa-solid fa-newspaper text-primary"></i>
-                সর্বশেষ ব্লগ পোস্ট ও নিবন্ধ
+                সর্বশেষ আইডিয়াপত্র ও সাহিত্য নিবন্ধ
             </h4>
-            <a href="{{ route('blog.index') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">সকল ব্লগ দেখুন</a>
+            <a href="{{ route('blog.index') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">সকল আইডিয়াপত্র দেখুন</a>
         </div>
 
         @php

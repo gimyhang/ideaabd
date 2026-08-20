@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', '#' . ($tag->name ?? 'ট্যাগ') . ' — ব্লগ — আইডিয়া প্রকাশন')
+@section('title', '#' . ($tag->name ?? 'ট্যাগ') . ' — আইডিয়াপত্র (Ideapatra) — আইডিয়া প্রকাশন')
 
 @section('content')
 <div class="container py-4 mb-5">
@@ -8,7 +8,7 @@
     <nav aria-label="breadcrumb" class="mb-4">
         <ol class="breadcrumb small">
             <li class="breadcrumb-item"><a href="{{ route('home') }}" class="text-decoration-none text-muted">হোম</a></li>
-            <li class="breadcrumb-item"><a href="{{ route('blog.index') }}" class="text-decoration-none text-muted">ব্লগ</a></li>
+            <li class="breadcrumb-item"><a href="{{ route('blog.index') }}" class="text-decoration-none text-muted">আইডিয়াপত্র</a></li>
             <li class="breadcrumb-item active" aria-current="page">#{{ $tag->name }}</li>
         </ol>
     </nav>
@@ -16,9 +16,9 @@
     <!-- Header Box -->
     <div class="card p-4 p-md-5 mb-4 border-0 shadow-sm rounded-4 text-white" 
          style="background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);">
-        <span class="badge bg-white text-primary fw-bold px-3 py-1 mb-2 rounded-pill align-self-start shadow-sm">ব্লগ ট্যাগ</span>
+        <span class="badge bg-white text-primary fw-bold px-3 py-1 mb-2 rounded-pill align-self-start shadow-sm">আইডিয়াপত্র ট্যাগ</span>
         <h1 class="fw-bold display-6 mb-2">#{{ $tag->name }}</h1>
-        <p class="fs-6 opacity-90 mb-0">“{{ $tag->name }}” ট্যাগযুক্ত সকল ব্লগ পোস্ট ও গবেষণাধর্মী নিবন্ধ।</p>
+        <p class="fs-6 opacity-90 mb-0">“{{ $tag->name }}” ট্যাগযুক্ত সকল লেখা ও গবেষণাধর্মী নিবন্ধ।</p>
     </div>
 
     <!-- Posts Grid -->

@@ -144,6 +144,15 @@ Route::prefix('research')->name('research.')->group(function () {
     Route::get('/{slug}', [ResearchController::class, 'show'])->name('show');
 });
 
+// Ideapatra (আইডিয়াপত্র) Route Aliases
+Route::prefix('ideapatra')->name('ideapatra.')->group(function () {
+    Route::get('/', [\Modules\Blog\Http\Controllers\Frontend\BlogController::class, 'index'])->name('index');
+    Route::get('/category/{slug}', [\Modules\Blog\Http\Controllers\Frontend\BlogController::class, 'category'])->name('category');
+    Route::get('/tag/{slug}', [\Modules\Blog\Http\Controllers\Frontend\BlogController::class, 'tag'])->name('tag');
+    Route::get('/write', [\App\Http\Controllers\AuthorBlogController::class, 'writeGateway'])->name('write');
+    Route::get('/{slug}', [\Modules\Blog\Http\Controllers\Frontend\BlogController::class, 'show'])->name('show');
+});
+
 // Static Pages
 Route::view('/hub', 'frontend.pages.hub')->name('hub');
 Route::view('/about', 'frontend.pages.about')->name('about');

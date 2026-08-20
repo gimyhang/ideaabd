@@ -310,29 +310,6 @@
                                             <div class="form-text small text-muted">ফাইল নির্বাচন করলে ৩:১ রেশিওতে ক্রপ করার অপশন আসবে।</div>
                                         </div>
                                     </div>
-                                        <div class="p-3 bg-light rounded-4 border h-100">
-                                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                                <label class="form-label small fw-bold text-dark mb-0">ব্যানার ২ (ই-বুক / বিশেষ প্রকাশনা)</label>
-                                                <span class="badge bg-white text-muted border small">৩:১ ফিক্সড ফ্রেম</span>
-                                            </div>
-                                            
-                                            <!-- Fixed Aspect Ratio 3:1 Box -->
-                                            <div class="fixed-preview-container banner-preview-box mb-3" id="banner2Container">
-                                                @if($banner2Url)
-                                                    <img src="{{ $banner2Url }}" alt="Banner 2" class="w-100 h-100 object-fit-cover" id="banner2PreviewImg">
-                                                @else
-                                                    <div class="text-muted small text-center p-3" id="banner2PreviewImg">
-                                                        <i class="fa-solid fa-image display-6 opacity-25 d-block mb-1"></i>
-                                                        ব্যানার ২ আপলোড ও ক্রপ করুন
-                                                    </div>
-                                                @endif
-                                            </div>
-
-                                            <input type="file" id="banner2Input" class="form-control form-control-sm rounded-3 mb-1" accept="image/*" onchange="initCropper(this, 'banner_2', 3/1)">
-                                            <div class="form-text small text-muted">ফাইল নির্বাচন করলে ৩:১ রেশিওতে ক্রপ করার অপশন আসবে।</div>
-                                        </div>
-                                    </div>
-
                                 </div>
                             </div>
 

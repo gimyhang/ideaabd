@@ -30,8 +30,8 @@
             ['route' => 'admin.accounting.invoices.create', 'icon' => 'file-circle-plus',   'label' => 'বিল, চালান ও দরপত্র তৈরি'],
         ],
         'কনটেন্ট' => [
-            ['route' => 'admin.blog',     'icon' => 'blog',      'label' => 'ব্লগ'],
-            ['route' => 'admin.webzines', 'icon' => 'newspaper', 'label' => 'ওয়েবজিন'],
+            ['route' => 'admin.blog',     'icon' => 'newspaper', 'label' => 'আইডিয়াপত্র'],
+            ['route' => 'admin.webzines', 'icon' => 'book-open', 'label' => 'ওয়েবজিন'],
         ],
         'বিক্রয়' => [
             ['route' => 'admin.ecommerce-orders', 'icon' => 'cart-shopping', 'label' => 'বইয়ের অর্ডার'],

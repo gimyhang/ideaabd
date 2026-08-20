@@ -39,7 +39,7 @@
                     <li class="mb-2"><a href="{{ route('webzine.index') }}" style="color:#a8c8dc; text-decoration:none;" onmouseover="this.style.color='#66ccff'" onmouseout="this.style.color='#a8c8dc'">ওয়েবজিন</a></li>
                     <li class="mb-2"><a href="{{ route('authors.index') }}" style="color:#a8c8dc; text-decoration:none;" onmouseover="this.style.color='#66ccff'" onmouseout="this.style.color='#a8c8dc'">লেখকবৃন্দ</a></li>
                     <li class="mb-2"><a href="{{ route('publishers.index') }}" style="color:#a8c8dc; text-decoration:none;" onmouseover="this.style.color='#66ccff'" onmouseout="this.style.color='#a8c8dc'">প্রকাশকগণ</a></li>
-                    <li><a href="{{ route('blog.index') }}" style="color:#a8c8dc; text-decoration:none;" onmouseover="this.style.color='#66ccff'" onmouseout="this.style.color='#a8c8dc'">ব্লগ ও সাহিত্য</a></li>
+                    <li><a href="{{ route('blog.index') }}" style="color:#a8c8dc; text-decoration:none;" onmouseover="this.style.color='#66ccff'" onmouseout="this.style.color='#a8c8dc'">আইডিয়াপত্র</a></li>
                 </ul>
             </div>
 

@@ -1,9 +1,9 @@
 @extends('layouts.app')
 
-@section('title', 'আইডিয়া ব্লগ ও সাহিত্য পত্রিকা — সমকালীন সাহিত্য, শিল্প ও গবেষণা')
+@section('title', 'আইডিয়াপত্র — সাহিত্য, শিল্প-সংস্কৃতি, গবেষণা ও মুক্তচিন্তা (Ideapatra)')
 @section('og_type', 'website')
-@section('og_title', 'আইডিয়া সাহিত্য সাময়িকী ও ব্লগ — সমকালীন সাহিত্য ও চিন্তা')
-@section('og_description', 'আইডিয়া প্রকাশনের সাহিত্য পাতা ও ব্লগে নিয়মিত প্রকাশিত হচ্ছে প্রবন্ধ, গল্প, কবিতা ও সাহিত্য আলোচনা।')
+@section('og_title', 'আইডিয়াপত্র (Ideapatra) — সমকালীন সাহিত্য ও চিন্তা')
+@section('og_description', 'আইডিয়াপত্রে নিয়মিত প্রকাশিত হচ্ছে সমকালীন প্রবন্ধ, গল্প, কবিতা, গ্রন্থালোচনা ও গবেষণামূলক রচনা।')
 @section('og_image', asset('images/og-banner.jpg'))
 @section('og_url', route('blog.index'))
 
@@ -363,10 +363,10 @@
                     </div>
                     <div>
                         <div class="d-flex align-items-center gap-2">
-                            <h5 class="fw-bold mb-0 text-dark lit-title">আপনি কি ব্লগে লিখতে চান?</h5>
+                            <h5 class="fw-bold mb-0 text-dark lit-title">আপনি কি আইডিয়াপত্রে লিখতে চান?</h5>
                             <span class="badge bg-success-subtle text-success px-2.5 py-0.5 rounded-pill small fw-bold">লেখক কর্নার</span>
                         </div>
-                        <p class="small text-muted mb-0">আইডিয়া সাহিত্যপত্রে আপনার মৌলিক লেখা, প্রবন্ধ ও সৃজনশীল রচনা প্রকাশ করতে লেখক হিসেবে যোগ দিন।</p>
+                        <p class="small text-muted mb-0">আইডিয়াপত্রে আপনার মৌলিক লেখা, প্রবন্ধ ও সৃজনশীল সাহিত্যকর্ম প্রকাশ করতে লেখক হিসেবে যোগ দিন।</p>
                     </div>
                 </div>
 
@@ -400,11 +400,11 @@
                     @endphp
                     @if($hImgUrl)
                         <img src="{{ $hImgUrl }}" alt="{{ $heroPost->title }}" class="w-100 h-100 object-fit-cover transition-transform"
-                             onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'w-100 h-100 d-flex flex-column align-items-center justify-content-center bg-light text-muted\'><i class=\'fa-solid fa-newspaper fs-1 text-primary opacity-50 mb-2\'></i><span class=\'fw-bold\'>আইডিয়া ব্লগ</span></div>';">
+                             onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'w-100 h-100 d-flex flex-column align-items-center justify-content-center bg-light text-muted\'><i class=\'fa-solid fa-newspaper fs-1 text-primary opacity-50 mb-2\'></i><span class=\'fw-bold\'>আইডিয়াপত্র</span></div>';">
                     @else
                         <div class="w-100 h-100 d-flex flex-column align-items-center justify-content-center bg-light text-muted">
                             <i class="fa-solid fa-newspaper fs-1 text-primary opacity-50 mb-2"></i>
-                            <span class="fw-bold">আইডিয়া সাহিত্যপত্র</span>
+                            <span class="fw-bold">আইডিয়াপত্র</span>
                         </div>
                     @endif
                     @if($heroPost->category)
@@ -708,8 +708,8 @@
                 <div class="rounded-circle bg-success-subtle text-success d-flex align-items-center justify-content-center mx-auto mb-2" style="width: 46px; height: 46px;">
                     <i class="fa-solid fa-feather-pointed fs-4"></i>
                 </div>
-                <h6 class="fw-bold text-dark mb-1 lit-title">ব্লগে লিখতে চান?</h6>
-                <p class="text-muted mb-2.5" style="font-size: 0.78rem; line-height: 1.45;">আইডিয়া সাহিত্যপত্রে আপনার মৌলিক গল্প, কবিতা, প্রবন্ধ ও সাহিত্য আলোচনা প্রকাশ করুন।</p>
+                <h6 class="fw-bold text-dark mb-1 lit-title">আইডিয়াপত্রে লিখতে চান?</h6>
+                <p class="text-muted mb-2.5" style="font-size: 0.78rem; line-height: 1.45;">আইডিয়াপত্রে আপনার মৌলিক গল্প, কবিতা, প্রবন্ধ ও সাহিত্য আলোচনা প্রকাশ করুন।</p>
                 @auth
                     <div class="d-flex flex-column gap-1.5">
                         <a href="{{ route('blog.write') }}" class="btn btn-success btn-sm rounded-pill py-2 fw-bold shadow-sm">
