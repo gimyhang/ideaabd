@@ -15,15 +15,15 @@
                 {{-- Avatar --}}
                 <a href="{{ route('authors.show', $author->slug ?: $author->id) }}" class="text-decoration-none flex-shrink-0 position-relative">
                     <div class="rounded-circle overflow-hidden shadow-xs position-relative border border-2 border-white" 
-                         style="width: 68px; height: 68px; background: {{ $bgColor }};">
+                         style="width: 68px; height: 68px; min-width: 68px; min-height: 68px; aspect-ratio: 1 / 1; background: {{ $bgColor }};">
                         @if($photoUrl)
-                            <img src="{{ $photoUrl }}" alt="{{ $author->name }}" class="w-100 h-100 object-fit-cover transition-all"
+                            <img src="{{ $photoUrl }}" alt="{{ $author->name }}" class="w-100 h-100 object-fit-cover position-absolute top-0 start-0"
                                  onerror="this.style.display='none'; this.nextElementSibling.classList.remove('d-none');">
-                            <div class="w-100 h-100 d-none d-flex align-items-center justify-content-center text-white fs-4 fw-bold" style="background: {{ $bgColor }};">
+                            <div class="w-100 h-100 d-none d-flex align-items-center justify-content-center text-white fs-4 fw-bold position-absolute top-0 start-0" style="background: {{ $bgColor }};">
                                 {{ $initials }}
                             </div>
                         @else
-                            <div class="w-100 h-100 d-flex align-items-center justify-content-center text-white fs-4 fw-bold">
+                            <div class="w-100 h-100 d-flex align-items-center justify-content-center text-white fs-4 fw-bold position-absolute top-0 start-0">
                                 {{ $initials }}
                             </div>
                         @endif

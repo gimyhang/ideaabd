@@ -152,11 +152,13 @@ class AuthorController extends Controller
             $ebooks = $authorRecord->ebooks()->where('is_active', true)->take(6)->get();
         } catch (\Throwable $e) {}
 
-        // Load author blog posts if any
+        // Load author blog posts / Ideapatra articles (connected through author_id, user_id, submitted_by, or owner_name)
         $blogPosts = collect();
         try {
-            $blogPosts = $authorRecord->blogPosts()->where('status', 'published')->latest()->take(4)->get();
-        } catch (\Throwable $e) {}
+            $blogPosts = $authorRecord->getBlogPostsQuery()->take(12)->get();
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning("Could not load author blog posts: " . $e->getMessage());
+        }
 
         // Related Authors (Other authors in similar genres or top authors)
         $relatedAuthors = Author::withCount('books')

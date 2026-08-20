@@ -290,18 +290,18 @@
                             {{-- Avatar (Compact Overlap) --}}
                             <div class="text-center position-relative px-2" style="margin-top: -22px;">
                                 <div class="rounded-circle overflow-hidden shadow-xs bg-white border border-2 border-white mx-auto position-relative"
-                                     style="width: 44px; height: 44px; cursor: pointer;"
+                                     style="width: 44px; height: 44px; min-width: 44px; min-height: 44px; aspect-ratio: 1 / 1; cursor: pointer;"
                                      onclick="previewAuthorAvatar('{{ $avatarUrl }}', '{{ addslashes($author->name) }}')">
                                     @if($avatarUrl)
                                         <img src="{{ $avatarUrl }}" alt="{{ $author->name }}" 
-                                             class="w-100 h-100 object-fit-cover"
+                                             class="w-100 h-100 object-fit-cover position-absolute top-0 start-0"
                                              onerror="this.style.display='none'; this.nextElementSibling.classList.remove('d-none');">
-                                        <div class="w-100 h-100 d-none d-flex align-items-center justify-content-center text-white fw-bold"
+                                        <div class="w-100 h-100 d-none d-flex align-items-center justify-content-center text-white fw-bold position-absolute top-0 start-0"
                                              style="background: {{ $bgColor }}; font-size: 0.95rem;">
                                             {{ $initials }}
                                         </div>
                                     @else
-                                        <div class="w-100 h-100 d-flex align-items-center justify-content-center text-white fw-bold"
+                                        <div class="w-100 h-100 d-flex align-items-center justify-content-center text-white fw-bold position-absolute top-0 start-0"
                                              style="background: {{ $bgColor }}; font-size: 0.95rem;">
                                             {{ $initials }}
                                         </div>

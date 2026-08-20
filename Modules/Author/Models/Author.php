@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Modules\Blog\Models\BlogPost;
+use App\Models\User;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 
@@ -19,6 +20,7 @@ class Author extends Model
         'slug',
         'bio',
         'avatar',
+        'author_image',
         'email',
         'phone',
         'website',
@@ -54,6 +56,7 @@ class Author extends Model
         $email = !empty($data['email']) ? trim(strtolower((string) $data['email'])) : null;
         $phone = !empty($data['phone']) ? trim((string) $data['phone']) : null;
         $slug = !empty($data['slug']) ? trim(Str::slug((string) $data['slug'])) : null;
+        $avatar = $data['avatar'] ?? $data['author_image'] ?? null;
 
         $author = null;
 
@@ -91,8 +94,8 @@ class Author extends Model
             if (empty($author->bio) && !empty($data['bio'])) {
                 $updates['bio'] = $data['bio'];
             }
-            if (empty($author->avatar) && !empty($data['avatar'])) {
-                $updates['avatar'] = $data['avatar'];
+            if (empty($author->avatar) && !empty($avatar)) {
+                $updates['avatar'] = $avatar;
             }
             if (empty($author->website) && !empty($data['website'])) {
                 $updates['website'] = $data['website'];
@@ -122,7 +125,7 @@ class Author extends Model
             'email'       => $email,
             'phone'       => $phone,
             'bio'         => $data['bio'] ?? null,
-            'avatar'      => $data['avatar'] ?? null,
+            'avatar'      => $avatar,
             'website'     => $data['website'] ?? null,
             'is_verified' => !empty($data['is_verified']),
             'is_active'   => $data['is_active'] ?? true,
@@ -154,23 +157,29 @@ class Author extends Model
     }
 
     /**
-     * Dynamic Avatar URL with multiple fallbacks & protocol safety
+     * Dynamic Avatar URL with multiple fallbacks, robust path normalization & protocol safety
      */
     public function getAvatarUrlAttribute(): ?string
     {
-        $avatar = $this->avatar ?? $this->photo ?? $this->image ?? null;
+        $avatar = $this->avatar 
+            ?? $this->author_image 
+            ?? $this->photo 
+            ?? $this->image 
+            ?? null;
+
         if (empty($avatar)) {
             return null;
         }
 
         $avatar = trim((string) $avatar);
+        $avatar = str_replace('\\', '/', $avatar);
 
         // If it's inline data URI
         if (str_starts_with($avatar, 'data:image')) {
             return $avatar;
         }
 
-        // If it's a URL (http/https), check if it points to local/site storage
+        // If it's an absolute URL (http/https), check if it points to local/site storage
         if (str_starts_with($avatar, 'http://') || str_starts_with($avatar, 'https://')) {
             $parsed = parse_url($avatar);
             $host = $parsed['host'] ?? '';
@@ -282,6 +291,46 @@ class Author extends Model
               ->orWhere('phone', 'like', "%{$term}%")
               ->orWhere('bio', 'like', "%{$term}%");
         });
+    }
+
+    /**
+     * Fetch ALL Blog / Ideapatra posts connected to this Author
+     * Checks: direct author_id, associated user_id, submitted_by, owner_name, and owner_phone
+     */
+    public function getBlogPostsQuery()
+    {
+        $name = trim($this->name ?? '');
+        $email = trim($this->email ?? '');
+        $phone = trim($this->phone ?? '');
+        $authorId = $this->id;
+
+        // Find linked user IDs
+        $userIds = [];
+        if ($email || $phone || $name) {
+            $userIds = User::where(function ($q) use ($email, $phone, $name) {
+                if ($email) $q->orWhere('email', $email);
+                if ($phone) $q->orWhere('phone', $phone);
+                if ($name)  $q->orWhere('name', $name);
+            })->pluck('id')->all();
+        }
+
+        return BlogPost::query()
+            ->where('status', 'published')
+            ->where(function ($q) use ($authorId, $userIds, $name, $phone) {
+                $q->where('author_id', $authorId);
+                if (!empty($userIds)) {
+                    $q->orWhereIn('author_id', $userIds)
+                      ->orWhereIn('submitted_by', $userIds);
+                }
+                if (!empty($name)) {
+                    $q->orWhere('owner_name', $name);
+                }
+                if (!empty($phone)) {
+                    $q->orWhere('owner_phone', $phone);
+                }
+            })
+            ->latest('published_at')
+            ->latest('id');
     }
 
     public function blogPosts()
