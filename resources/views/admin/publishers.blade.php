@@ -271,13 +271,18 @@
                                 </div>
                             </td>
 
-                            {{-- Books Count --}}
+                            {{-- Books Count & Catalog Value --}}
                             <td class="text-center">
                                 <a href="{{ route('admin.publishers.show', $publisher->id) }}" 
                                    class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1 text-decoration-none fw-bold hover-primary"
                                    title="এই প্রকাশনীর বই ও ক্রয় আদেশ পরিচালনা করুন">
-                                    <i class="fas fa-book me-1"></i>@bn($publisher->books_count ?? 0) টি
+                                    <i class="fas fa-book me-1"></i>@bn($publisher->books_count ?? 0) টি বই
                                 </a>
+                                @if(($publisher->total_catalog_price ?? 0) > 0)
+                                    <div class="small text-muted font-monospace mt-0.5" style="font-size: 10.5px;" title="ক্যাটালগ বইগুলোর মোট মূল্য">
+                                        মূল্য: ৳@bn(number_format($publisher->total_catalog_price, 0))
+                                    </div>
+                                @endif
                             </td>
 
                             {{-- Total Purchases --}}

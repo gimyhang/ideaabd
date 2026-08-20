@@ -287,14 +287,25 @@
                                     ? (str_starts_with($cover, 'http') ? $cover : (str_starts_with($cover, 'storage/') ? asset($cover) : asset('storage/' . ltrim($cover, '/'))))
                                     : 'https://placehold.co/100x150/e2e8f0/475569?text=Cover';
                                 
-                                $price = (float) ($book->price ?: ($book->hardcover_price ?: ($book->discount_price ?: 0)));
-                                $discount = (float) ($book->discount_price ?: 0);
+                                $coverType = $book->cover_type ?: 'paperback';
+                                $isHardcover = ($coverType === 'hardcover');
+                                $isBoth = ($coverType === 'both');
+
+                                $paperPrice = (float) ($book->price ?: 0);
+                                $paperDiscount = (float) ($book->discount_price ?: 0);
+                                $hardPrice = (float) ($book->hardcover_price ?: 0);
+                                $hardDiscount = (float) ($book->hardcover_discount_price ?: 0);
+
+                                $hasBothPrices = ($paperPrice > 0 && $hardPrice > 0);
+                                $effectivePrice = ($isHardcover && $hardPrice > 0) ? $hardPrice : ($paperPrice > 0 ? $paperPrice : $hardPrice);
+                                $discount = ($isHardcover && $hardDiscount > 0) ? $hardDiscount : $paperDiscount;
+                                
                                 $costPrice = (float) ($book->cost_price ?: 0);
-                                $defaultCommission = ($price > 0 && $costPrice > 0 && $costPrice < $price)
-                                    ? round((($price - $costPrice) / $price) * 100, 1)
+                                $defaultCommission = ($effectivePrice > 0 && $costPrice > 0 && $costPrice < $effectivePrice)
+                                    ? round((($effectivePrice - $costPrice) / $effectivePrice) * 100, 1)
                                     : 40;
                                 
-                                $costPerUnit = $price * (1 - ($defaultCommission / 100));
+                                $costPerUnit = ($costPrice > 0) ? $costPrice : ($effectivePrice * (1 - ($defaultCommission / 100)));
                                 $stock = (int) ($book->stock_quantity ?? 0);
                                 $suggestedOrderQty = ($stock <= 0) ? 10 : (($stock <= 5) ? 5 : 1);
                                 $initialLineTotal = $costPerUnit * $suggestedOrderQty;
@@ -308,7 +319,7 @@
                                            data-title="{{ $book->title }}"
                                            data-author="{{ $book->authorLink?->name ?? $book->author_name ?? '' }}"
                                            data-edition="{{ $book->edition ?? '' }}"
-                                           data-price="{{ $price }}"
+                                           data-price="{{ $effectivePrice }}"
                                            onchange="handleBookRowSelect(this)">
                                 </td>
 
@@ -329,11 +340,20 @@
                                     </div>
                                 </td>
 
-                                {{-- Edition --}}
+                                {{-- Edition & Format --}}
                                 <td>
-                                    <span class="badge bg-light text-dark border px-2 py-1" style="font-size: 11px;">
-                                        {{ $book->edition ?: 'সাধারণ সংস্করণ' }}
-                                    </span>
+                                    <div class="d-flex flex-column align-items-start gap-1">
+                                        <span class="badge bg-light text-dark border px-2 py-0.5" style="font-size: 11px;">
+                                            {{ $book->edition ?: 'সাধারণ সংস্করণ' }}
+                                        </span>
+                                        @if($isHardcover || ($hardPrice > 0 && $paperPrice <= 0))
+                                            <span class="badge bg-warning-subtle text-dark border" style="font-size: 9.5px;">হার্ডকভার</span>
+                                        @elseif($isBoth || $hasBothPrices)
+                                            <span class="badge bg-info-subtle text-dark border" style="font-size: 9.5px;">উভয় সংস্করণ</span>
+                                        @else
+                                            <span class="badge bg-light text-muted border" style="font-size: 9.5px;">পেপারব্যাক</span>
+                                        @endif
+                                    </div>
                                 </td>
 
                                 {{-- Stock --}}
@@ -347,19 +367,57 @@
                                     @endif
                                 </td>
 
-                                {{-- Printed MRP Price (Editable input & Formatted) --}}
+                                {{-- Printed MRP Price (Editable input & Formatted with Paperback/Hardcover/Both) --}}
                                 <td class="text-center">
-                                    <div class="input-group input-group-sm d-inline-flex" style="width: 110px;">
-                                        <span class="input-group-text bg-light px-1.5 fw-bold text-muted">৳</span>
-                                        <input type="number" min="0" step="1" 
-                                               id="mrpInput_{{ $book->id }}" 
-                                               value="{{ $price > 0 ? round($price) : '' }}" 
-                                               class="form-control form-control-sm text-center fw-bold row-mrp-input {{ $price <= 0 ? 'border-danger bg-danger-subtle' : '' }}" 
-                                               placeholder="0"
-                                               oninput="recalcRowTotal({{ $book->id }})"
-                                               title="গায়ের মুদ্রিত মূল্য (MRP)">
-                                    </div>
-                                    @if($discount > 0 && $discount < $price)
+                                    @if($isBoth || $hasBothPrices)
+                                        {{-- Both Editions: Paperback & Hardcover inputs --}}
+                                        <div class="d-flex flex-column gap-1">
+                                            <div class="input-group input-group-sm" title="পেপারব্যাক গায়ের মূল্য">
+                                                <span class="input-group-text bg-light px-1 text-muted" style="font-size: 9px;">পিপার</span>
+                                                <input type="number" min="0" step="1" 
+                                                       id="mrpInput_{{ $book->id }}" 
+                                                       value="{{ $paperPrice > 0 ? round($paperPrice) : '' }}" 
+                                                       class="form-control form-control-sm text-center fw-bold row-mrp-input" 
+                                                       placeholder="0"
+                                                       oninput="recalcRowTotal({{ $book->id }})">
+                                            </div>
+                                            <div class="input-group input-group-sm" title="হার্ডকভার গায়ের মূল্য">
+                                                <span class="input-group-text bg-warning-subtle px-1 text-dark" style="font-size: 9px;">হার্ড</span>
+                                                <input type="number" min="0" step="1" 
+                                                       id="hardMrpInput_{{ $book->id }}" 
+                                                       value="{{ $hardPrice > 0 ? round($hardPrice) : '' }}" 
+                                                       class="form-control form-control-sm text-center fw-bold" 
+                                                       placeholder="0"
+                                                       oninput="recalcRowTotal({{ $book->id }})">
+                                            </div>
+                                        </div>
+                                    @elseif($isHardcover || ($hardPrice > 0 && $paperPrice <= 0))
+                                        {{-- Hardcover Only --}}
+                                        <div class="input-group input-group-sm d-inline-flex" style="width: 110px;">
+                                            <span class="input-group-text bg-warning-subtle px-1.5 fw-bold text-dark">৳</span>
+                                            <input type="number" min="0" step="1" 
+                                                   id="mrpInput_{{ $book->id }}" 
+                                                   value="{{ $hardPrice > 0 ? round($hardPrice) : '' }}" 
+                                                   class="form-control form-control-sm text-center fw-bold row-mrp-input {{ $hardPrice <= 0 ? 'border-danger bg-danger-subtle' : '' }}" 
+                                                   placeholder="0"
+                                                   oninput="recalcRowTotal({{ $book->id }})"
+                                                   title="হার্ডকভার গায়ের মুদ্রিত মূল্য (MRP)">
+                                        </div>
+                                    @else
+                                        {{-- Paperback Only --}}
+                                        <div class="input-group input-group-sm d-inline-flex" style="width: 110px;">
+                                            <span class="input-group-text bg-light px-1.5 fw-bold text-muted">৳</span>
+                                            <input type="number" min="0" step="1" 
+                                                   id="mrpInput_{{ $book->id }}" 
+                                                   value="{{ $paperPrice > 0 ? round($paperPrice) : '' }}" 
+                                                   class="form-control form-control-sm text-center fw-bold row-mrp-input {{ $paperPrice <= 0 ? 'border-danger bg-danger-subtle' : '' }}" 
+                                                   placeholder="0"
+                                                   oninput="recalcRowTotal({{ $book->id }})"
+                                                   title="গায়ের মুদ্রিত মূল্য (MRP)">
+                                        </div>
+                                    @endif
+
+                                    @if($discount > 0 && $discount < $effectivePrice)
                                         <div class="small text-muted text-truncate mt-0.5" style="font-size: 10.5px;">
                                             বিক্রয়: <strong class="text-primary font-monospace">৳@bn(number_format($discount, 0))</strong>
                                         </div>

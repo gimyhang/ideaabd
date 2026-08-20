@@ -835,6 +835,7 @@ class AdminController extends Controller
 
         $query = \Modules\Publisher\Models\Publisher::query()
             ->withCount('books')
+            ->withSum('books as total_catalog_price', 'price')
             ->withSum('purchases as total_purchase_sum', 'grand_total')
             ->withSum('purchases as total_due_sum', 'due_amount')
             ->withSum('purchases as total_paid_sum', 'paid_amount')

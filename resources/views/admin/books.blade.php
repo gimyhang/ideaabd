@@ -360,15 +360,23 @@
                             $isHardcover = ($book->cover_type === 'hardcover');
                             $isBoth = ($book->cover_type === 'both');
 
-                            $price = (float) ($book->price ?: $book->hardcover_price);
-                            $discount = (float) ($book->discount_price ?: 0);
+                            $paperPrice = (float) ($book->price ?: 0);
+                            $paperDiscount = (float) ($book->discount_price ?: 0);
+                            $hardPrice = (float) ($book->hardcover_price ?: 0);
+                            $hardDiscount = (float) ($book->hardcover_discount_price ?: 0);
                             $cost = (float) ($book->cost_price ?: 0);
 
-                            $hasSaleDiscount = $discount > 0 && $discount < $price;
-                            $saleDiscountPercent = $hasSaleDiscount ? round((($price - $discount) / $price) * 100, 1) : 0;
+                            $hasBothPrices = ($paperPrice > 0 && $hardPrice > 0);
 
-                            $hasBuyCommission = $cost > 0 && $cost < $price;
-                            $buyCommissionPercent = $hasBuyCommission ? round((($price - $cost) / $price) * 100, 1) : 0;
+                            $hasPaperDiscount = $paperDiscount > 0 && $paperDiscount < $paperPrice;
+                            $paperDiscountPercent = $hasPaperDiscount ? round((($paperPrice - $paperDiscount) / $paperPrice) * 100, 1) : 0;
+
+                            $hasHardDiscount = $hardDiscount > 0 && $hardDiscount < $hardPrice;
+                            $hardDiscountPercent = $hasHardDiscount ? round((($hardPrice - $hardDiscount) / $hardPrice) * 100, 1) : 0;
+
+                            $effectivePrice = $paperPrice > 0 ? $paperPrice : $hardPrice;
+                            $hasBuyCommission = $cost > 0 && $effectivePrice > 0 && $cost < $effectivePrice;
+                            $buyCommissionPercent = $hasBuyCommission ? round((($effectivePrice - $cost) / $effectivePrice) * 100, 1) : 0;
 
                             $stock = (int) ($book->stock_quantity ?? 0);
                         @endphp
@@ -420,9 +428,9 @@
                                           title="সংস্করণ পরিবর্তন করতে ক্লিক করুন">
                                         <i class="fas fa-bookmark me-1 text-primary-subtle"></i>{{ $book->edition ?: 'সাধারণ সংস্করণ' }}
                                     </span>
-                                    @if($isHardcover)
+                                    @if($isHardcover || ($hardPrice > 0 && $paperPrice <= 0))
                                         <span class="badge bg-warning-subtle text-dark border" style="font-size: 9.5px;">হার্ডকভার</span>
-                                    @elseif($isBoth)
+                                    @elseif($isBoth || $hasBothPrices)
                                         <span class="badge bg-info-subtle text-dark border" style="font-size: 9.5px;">উভয় সংস্করণ</span>
                                     @else
                                         <span class="badge bg-light text-muted border" style="font-size: 9.5px;">পেপারব্যাক</span>
@@ -471,32 +479,110 @@
                                 @endif
                             </td>
 
-                            {{-- Price, Sale Commission & Buy Commission --}}
+                            {{-- Price, Sale Commission & Buy Commission (Dynamic Paperback / Hardcover / Both) --}}
                             <td class="text-end">
-                                <div class="cursor-pointer hover-bg-light p-1 rounded" onclick="openQuickEditModal({{ $book->id }}, 'pricing')" title="মূল্য ও কমিশন পরিবর্তন করুন">
-                                    {{-- MRP & Sale Price --}}
-                                    @if($hasSaleDiscount)
-                                        <div class="d-flex align-items-center justify-content-end gap-1">
-                                            <span class="fw-bold text-primary font-monospace fs-6" id="bookSalePriceDisplay_{{ $book->id }}">৳@bn(number_format($discount, 0))</span>
-                                            <span class="badge bg-danger-subtle text-danger rounded-pill" style="font-size: 9.5px;">-@bn($saleDiscountPercent)% সেল ছাড়</span>
+                                <div class="cursor-pointer hover-bg-light p-1.5 rounded-3 border border-transparent hover-border-primary" 
+                                     onclick="openQuickEditModal({{ $book->id }}, 'pricing')" 
+                                     title="মূল্য ও কমিশন পরিবর্তন করতে ক্লিক করুন">
+
+                                    @if($isBoth || $hasBothPrices)
+                                        {{-- BOTH EDITIONS (Paperback & Hardcover) --}}
+                                        <div class="d-flex flex-column gap-1 text-end">
+                                            {{-- Paperback Price --}}
+                                            <div class="pb-1 border-bottom border-light">
+                                                <div class="d-flex align-items-center justify-content-end gap-1">
+                                                    <span class="badge bg-light text-muted border px-1" style="font-size: 9px;">পেপারব্যাক</span>
+                                                    @if($hasPaperDiscount)
+                                                        <span class="fw-bold text-primary font-monospace" style="font-size: 12.5px;">৳@bn(number_format($paperDiscount, 0))</span>
+                                                        <span class="badge bg-danger-subtle text-danger rounded-pill" style="font-size: 8.5px;">-@bn($paperDiscountPercent)%</span>
+                                                    @elseif($paperPrice > 0)
+                                                        <span class="fw-bold text-dark font-monospace" style="font-size: 12.5px;">৳@bn(number_format($paperPrice, 0))</span>
+                                                    @else
+                                                        <span class="text-muted small">৳০</span>
+                                                    @endif
+                                                </div>
+                                                @if($hasPaperDiscount)
+                                                    <div class="small text-muted text-decoration-line-through font-monospace" style="font-size: 10px;">
+                                                        গায়ের মূল্য: ৳@bn(number_format($paperPrice, 0))
+                                                    </div>
+                                                @endif
+                                            </div>
+
+                                            {{-- Hardcover Price --}}
+                                            <div>
+                                                <div class="d-flex align-items-center justify-content-end gap-1">
+                                                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-1" style="font-size: 9px;">হার্ডকভার</span>
+                                                    @if($hasHardDiscount)
+                                                        <span class="fw-bold text-primary font-monospace" style="font-size: 12.5px;">৳@bn(number_format($hardDiscount, 0))</span>
+                                                        <span class="badge bg-danger-subtle text-danger rounded-pill" style="font-size: 8.5px;">-@bn($hardDiscountPercent)%</span>
+                                                    @elseif($hardPrice > 0)
+                                                        <span class="fw-bold text-dark font-monospace" style="font-size: 12.5px;">৳@bn(number_format($hardPrice, 0))</span>
+                                                    @else
+                                                        <span class="text-muted small">৳০</span>
+                                                    @endif
+                                                </div>
+                                                @if($hasHardDiscount)
+                                                    <div class="small text-muted text-decoration-line-through font-monospace" style="font-size: 10px;">
+                                                        গায়ের মূল্য: ৳@bn(number_format($hardPrice, 0))
+                                                    </div>
+                                                @endif
+                                            </div>
                                         </div>
-                                        <div class="small text-muted text-decoration-line-through font-monospace" style="font-size: 11px;" id="bookMrpDisplay_{{ $book->id }}">
-                                            গায়ের মূল্য: ৳@bn(number_format($price, 0))
+
+                                    @elseif($isHardcover || ($hardPrice > 0 && $paperPrice <= 0))
+                                        {{-- HARDCOVER ONLY --}}
+                                        <div class="text-end">
+                                            <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-1.5 py-0.5 mb-0.5" style="font-size: 9.5px;">হার্ডকভার</span>
+                                            @if($hasHardDiscount)
+                                                <div class="d-flex align-items-center justify-content-end gap-1">
+                                                    <span class="fw-bold text-primary font-monospace fs-6" id="bookSalePriceDisplay_{{ $book->id }}">৳@bn(number_format($hardDiscount, 0))</span>
+                                                    <span class="badge bg-danger-subtle text-danger rounded-pill" style="font-size: 9.5px;">-@bn($hardDiscountPercent)% ছাড়</span>
+                                                </div>
+                                                <div class="small text-muted text-decoration-line-through font-monospace" style="font-size: 11px;" id="bookMrpDisplay_{{ $book->id }}">
+                                                    গায়ের মূল্য: ৳@bn(number_format($hardPrice, 0))
+                                                </div>
+                                            @else
+                                                <div class="fw-bold text-dark font-monospace fs-6" id="bookMrpDisplay_{{ $book->id }}">
+                                                    গায়ের মূল্য: ৳@bn(number_format($hardPrice, 0))
+                                                </div>
+                                            @endif
                                         </div>
+
+                                    @elseif($paperPrice > 0)
+                                        {{-- PAPERBACK ONLY --}}
+                                        <div class="text-end">
+                                            @if($hasPaperDiscount)
+                                                <div class="d-flex align-items-center justify-content-end gap-1">
+                                                    <span class="fw-bold text-primary font-monospace fs-6" id="bookSalePriceDisplay_{{ $book->id }}">৳@bn(number_format($paperDiscount, 0))</span>
+                                                    <span class="badge bg-danger-subtle text-danger rounded-pill" style="font-size: 9.5px;">-@bn($paperDiscountPercent)% ছাড়</span>
+                                                </div>
+                                                <div class="small text-muted text-decoration-line-through font-monospace" style="font-size: 11px;" id="bookMrpDisplay_{{ $book->id }}">
+                                                    গায়ের মূল্য: ৳@bn(number_format($paperPrice, 0))
+                                                </div>
+                                            @else
+                                                <div class="fw-bold text-dark font-monospace fs-6" id="bookMrpDisplay_{{ $book->id }}">
+                                                    গায়ের মূল্য: ৳@bn(number_format($paperPrice, 0))
+                                                </div>
+                                            @endif
+                                        </div>
+
                                     @else
-                                        <div class="fw-bold text-dark font-monospace fs-6" id="bookMrpDisplay_{{ $book->id }}">
-                                            গায়ের মূল্য: ৳@bn(number_format($price, 0))
+                                        {{-- NO PRICE ENTERED --}}
+                                        <div class="text-end">
+                                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2 py-1 small">
+                                                <i class="fas fa-exclamation-triangle me-1"></i>মূল্য দিন
+                                            </span>
                                         </div>
                                     @endif
 
                                     {{-- Purchase Cost & Buy Commission --}}
-                                    <div class="small mt-0.5" style="font-size: 11px;">
+                                    <div class="small mt-0.5 text-end" style="font-size: 11px;">
                                         @if($cost > 0)
                                             <span class="badge bg-info-subtle text-dark border px-1.5 py-0.5" id="bookCostDisplay_{{ $book->id }}" title="ক্রয় খরচ ও কমিশন">
                                                 ক্রয়: ৳@bn(number_format($cost, 0)) @if($buyCommissionPercent > 0) (-@bn($buyCommissionPercent)%) @endif
                                             </span>
                                         @else
-                                            <span class="badge bg-light text-muted border px-1 py-0.5" style="font-size: 9.5px;">+ ক্রয় কমিশন দিন</span>
+                                            <span class="badge bg-light text-muted border px-1 py-0.5" style="font-size: 9.5px;">+ ক্রয় দর দিন</span>
                                         @endif
                                     </div>
                                 </div>
