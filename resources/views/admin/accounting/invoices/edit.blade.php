@@ -167,8 +167,8 @@
                             <thead class="table-light">
                                 <tr class="small text-muted text-uppercase" style="font-size: 11px;">
                                     <th style="min-width: 220px;">বিবরণ / বইয়ের নাম <span class="text-danger">*</span></th>
-                                    <th style="width: 140px;">লেখক</th>
-                                    <th style="width: 110px;">ধরন</th>
+                                    <th style="width: 130px;">লেখক</th>
+                                    <th style="width: 135px;">ধরন / সংস্করণ</th>
                                     <th style="width: 75px;" class="text-center">পরিমাণ <span class="text-danger">*</span></th>
                                     <th style="width: 95px;" class="text-end">গায়ের মূল্য (৳)</th>
                                     <th style="width: 80px;" class="text-center">কমিশন (%)</th>
@@ -181,7 +181,7 @@
                                 @php
                                     $items = old('items', $invoice->items ?? []);
                                     if (empty($items)) {
-                                        $items = [['title' => '', 'item_type' => 'বই (Book)', 'quantity' => 1, 'unit_price' => 0, 'subtotal' => 0]];
+                                        $items = [['title' => '', 'item_type' => 'বই (পেপারব্যাক)', 'quantity' => 1, 'unit_price' => 0, 'subtotal' => 0]];
                                     }
                                 @endphp
                                 @foreach($items as $i => $item)
@@ -195,26 +195,24 @@
                                         }
                                         if (!$bookObj && !empty($item['title'])) {
                                             $t = mb_strtolower(trim($item['title']));
-                                            $bookObj = $books->first(fn($b) => mb_strtolower(trim($b->title)) === $t);
+                                            $tClean = trim(explode('(', explode('—', $t)[0])[0]);
+                                            $bookObj = $books->first(function($b) use ($t, $tClean) {
+                                                $bTitle = mb_strtolower(trim($b->title));
+                                                return $bTitle === $t || $bTitle === $tClean;
+                                            });
                                         }
 
                                         $authorName = $item['author_name'] ?? $item['author'] ?? ($bookObj ? $bookObj->author_name : '');
                                         $regPrice = (float)($item['regular_price'] ?? $item['cover_price'] ?? 0);
                                         if ($regPrice <= 0 && $bookObj) {
-                                            $regPrice = (float)($bookObj->active_regular_price ?: ($bookObj->price ?: ($bookObj->hardcover_price ?: 0)));
+                                            $isHc = str_contains($item['item_type'] ?? '', 'হার্ডকভার') || ($bookObj->cover_type === 'hardcover');
+                                            $regPrice = (float)($isHc ? ($bookObj->hardcover_price ?: $bookObj->price) : ($bookObj->price ?: $bookObj->hardcover_price));
                                         }
                                         if ($regPrice <= 0) {
                                             $regPrice = $price;
                                         }
 
                                         $discPct = isset($item['discount_percent']) && $item['discount_percent'] !== '' ? (float)$item['discount_percent'] : 0;
-                                        if ($discPct == 0 && $bookObj) {
-                                            $bReg = (float)($bookObj->active_regular_price ?: ($bookObj->price ?: ($bookObj->hardcover_price ?: 0)));
-                                            $bSell = (float)($bookObj->active_selling_price ?: ($bookObj->discount_price ?: ($bookObj->hardcover_discount_price ?: $bReg)));
-                                            if ($bReg > 0 && $bSell < $bReg) {
-                                                $discPct = round((($bReg - $bSell) / $bReg) * 100);
-                                            }
-                                        }
                                         if ($discPct == 0 && $regPrice > $price && $regPrice > 0) {
                                             $discPct = round((($regPrice - $price) / $regPrice) * 100);
                                         }
@@ -231,8 +229,10 @@
                                                    placeholder="লেখকের নাম" value="{{ $authorName }}">
                                         </td>
                                         <td>
-                                            <select name="items[{{ $i }}][item_type]" class="form-select form-select-sm">
-                                                <option value="বই (Book)" @selected(($item['item_type'] ?? '') === 'বই (Book)' || ($item['item_type'] ?? '') === 'বই')>বই (Book)</option>
+                                            <select name="items[{{ $i }}][item_type]" class="form-select form-select-sm item-type-select" onchange="onTypeChange(this, {{ $i }})">
+                                                <option value="বই (পেপারব্যাক)" @selected(($item['item_type'] ?? '') === 'বই (পেপারব্যাক)' || ($item['item_type'] ?? '') === 'বই (Book)' || ($item['item_type'] ?? '') === 'বই')>বই (পেপারব্যাক)</option>
+                                                <option value="বই (হার্ডকভার)" @selected(($item['item_type'] ?? '') === 'বই (হার্ডকভার)')>বই (হার্ডকভার)</option>
+                                                <option value="বই (সাধারণ)" @selected(($item['item_type'] ?? '') === 'বই (সাধারণ)')>বই (সাধারণ)</option>
                                                 <option value="পণ্য (Product)" @selected(($item['item_type'] ?? '') === 'পণ্য (Product)' || ($item['item_type'] ?? '') === 'পণ্য')>পণ্য (Product)</option>
                                                 <option value="কাগজ/কাঁচামাল" @selected(($item['item_type'] ?? '') === 'কাগজ/কাঁচামাল')>কাগজ/কাঁচামাল</option>
                                                 <option value="মুদ্রণ ও বাঁধাই" @selected(($item['item_type'] ?? '') === 'মুদ্রণ ও বাঁধাই')>মুদ্রণ ও বাঁধাই</option>
@@ -268,22 +268,49 @@
                         </table>
                     </div>
 
-                    {{-- Datalist of Bookshop Books --}}
+                    {{-- Datalist of Bookshop Books with Edition details --}}
                     <datalist id="booksList">
                         @foreach($books as $b)
                             @php
-                                $regPrice = (float)($b->active_regular_price ?: ($b->price ?: ($b->hardcover_price ?: 0)));
-                                $discPrice = (float)($b->active_selling_price ?: ($b->discount_price ?: ($b->hardcover_discount_price ?: $regPrice)));
-                                $discPct = ($regPrice > 0 && $discPrice < $regPrice) ? round((($regPrice - $discPrice) / $regPrice) * 100) : 0;
+                                $pbReg = (float)($b->price ?: ($b->hardcover_price ?: 0));
+                                $pbDisc = (float)($b->discount_price ?: 0);
+                                $pbSell = ($pbDisc > 0 && $pbDisc < $pbReg) ? $pbDisc : $pbReg;
+                                $pbDiscPct = ($pbReg > 0 && $pbSell < $pbReg) ? round((($pbReg - $pbSell) / $pbReg) * 100) : 0;
+
+                                $hcReg = (float)($b->hardcover_price ?: ($b->price ?: 0));
+                                $hcDisc = (float)($b->hardcover_discount_price ?: 0);
+                                $hcSell = ($hcDisc > 0 && $hcDisc < $hcReg) ? $hcDisc : ($pbSell ?: $hcReg);
+                                $hcDiscPct = ($hcReg > 0 && $hcSell < $hcReg) ? round((($hcReg - $hcSell) / $hcReg) * 100) : 0;
+                                
+                                $hasHardcover = ($b->hardcover_price > 0 || in_array($b->cover_type, ['hardcover', 'both']));
+                                $hasPaperback = ($b->price > 0 || in_array($b->cover_type, ['paperback', 'both']) || !$hasHardcover);
                             @endphp
-                            <option value="{{ $b->title }}" 
-                                    data-id="{{ $b->id }}" 
-                                    data-author="{{ $b->author_name ?? '' }}"
-                                    data-regular-price="{{ $regPrice }}" 
-                                    data-discount-percent="{{ $discPct }}"
-                                    data-selling-price="{{ $discPrice }}">
-                                {{ $b->title }} @if(!empty($b->author_name)) — {{ $b->author_name }} @endif (গায়ের মূল্য: ৳{{ $regPrice }} | কমিশন: {{ $discPct }}% | দর: ৳{{ $discPrice }})
-                            </option>
+
+                            @if($hasPaperback && $hasHardcover)
+                                <option value="{{ $b->title }} (পেপারব্যাক)">
+                                    {{ $b->title }} [পেপারব্যাক] @if(!empty($b->author_name)) — {{ $b->author_name }} @endif (গায়ের মূল্য: ৳{{ $pbReg }} | কমিশন: {{ $pbDiscPct }}% | বিক্রয়মূল্য: ৳{{ $pbSell }})
+                                </option>
+                                <option value="{{ $b->title }} (হার্ডকভার)">
+                                    {{ $b->title }} [হার্ডকভার] @if(!empty($b->author_name)) — {{ $b->author_name }} @endif (গায়ের মূল্য: ৳{{ $hcReg }} | কমিশন: {{ $hcDiscPct }}% | বিক্রয়মূল্য: ৳{{ $hcSell }})
+                                </option>
+                                <option value="{{ $b->title }}">
+                                    {{ $b->title }} @if(!empty($b->author_name)) — {{ $b->author_name }} @endif (পেপারব্যাক: ৳{{ $pbSell }} | হার্ডকভার: ৳{{ $hcSell }})
+                                </option>
+                            @elseif($hasHardcover)
+                                <option value="{{ $b->title }} (হার্ডকভার)">
+                                    {{ $b->title }} [হার্ডকভার] @if(!empty($b->author_name)) — {{ $b->author_name }} @endif (গায়ের মূল্য: ৳{{ $hcReg }} | কমিশন: {{ $hcDiscPct }}% | বিক্রয়মূল্য: ৳{{ $hcSell }})
+                                </option>
+                                <option value="{{ $b->title }}">
+                                    {{ $b->title }} @if(!empty($b->author_name)) — {{ $b->author_name }} @endif (গায়ের মূল্য: ৳{{ $hcReg }} | কমিশন: {{ $hcDiscPct }}% | বিক্রয়মূল্য: ৳{{ $hcSell }})
+                                </option>
+                            @else
+                                <option value="{{ $b->title }} (পেপারব্যাক)">
+                                    {{ $b->title }} [পেপারব্যাক] @if(!empty($b->author_name)) — {{ $b->author_name }} @endif (গায়ের মূল্য: ৳{{ $pbReg }} | কমিশন: {{ $pbDiscPct }}% | বিক্রয়মূল্য: ৳{{ $pbSell }})
+                                </option>
+                                <option value="{{ $b->title }}">
+                                    {{ $b->title }} @if(!empty($b->author_name)) — {{ $b->author_name }} @endif (গায়ের মূল্য: ৳{{ $pbReg }} | কমিশন: {{ $pbDiscPct }}% | বিক্রয়মূল্য: ৳{{ $pbSell }})
+                                </option>
+                            @endif
                         @endforeach
                     </datalist>
 
@@ -415,20 +442,41 @@
 <script>
     let rowCounter = {{ count($items) + 10 }};
 
-    const existingBooksMap = {};
-    document.querySelectorAll('#booksList option').forEach(opt => {
-        const fullTitle = opt.value.trim();
-        const key = fullTitle.toLowerCase();
-        const bookData = {
-            id: opt.getAttribute('data-id'),
-            title: fullTitle,
-            author: opt.getAttribute('data-author') || '',
-            regularPrice: parseFloat(opt.getAttribute('data-regular-price')) || 0,
-            discountPercent: parseFloat(opt.getAttribute('data-discount-percent')) || 0,
-            sellingPrice: parseFloat(opt.getAttribute('data-selling-price')) || 0
-        };
-        existingBooksMap[key] = bookData;
-    });
+    const booksCatalog = {
+        @foreach($books as $b)
+            @php
+                $pbReg = (float)($b->price ?: ($b->hardcover_price ?: 0));
+                $pbDisc = (float)($b->discount_price ?: 0);
+                $pbSell = ($pbDisc > 0 && $pbDisc < $pbReg) ? $pbDisc : $pbReg;
+                $pbDiscPct = ($pbReg > 0 && $pbSell < $pbReg) ? round((($pbReg - $pbSell) / $pbReg) * 100) : 0;
+
+                $hcReg = (float)($b->hardcover_price ?: ($b->price ?: 0));
+                $hcDisc = (float)($b->hardcover_discount_price ?: 0);
+                $hcSell = ($hcDisc > 0 && $hcDisc < $hcReg) ? $hcDisc : ($pbSell ?: $hcReg);
+                $hcDiscPct = ($hcReg > 0 && $hcSell < $hcReg) ? round((($hcReg - $hcSell) / $hcReg) * 100) : 0;
+                
+                $hasHardcover = ($b->hardcover_price > 0 || in_array($b->cover_type, ['hardcover', 'both']));
+                $hasPaperback = ($b->price > 0 || in_array($b->cover_type, ['paperback', 'both']) || !$hasHardcover);
+            @endphp
+            "{{ $b->id }}": {
+                id: {{ $b->id }},
+                title: @json($b->title),
+                author: @json($b->author_name ?? ''),
+                hasHardcover: @json($hasHardcover),
+                hasPaperback: @json($hasPaperback),
+                paperback: {
+                    regularPrice: {{ $pbReg }},
+                    sellingPrice: {{ $pbSell }},
+                    discountPercent: {{ $pbDiscPct }}
+                },
+                hardcover: {
+                    regularPrice: {{ $hcReg }},
+                    sellingPrice: {{ $hcSell }},
+                    discountPercent: {{ $hcDiscPct }}
+                }
+            },
+        @endforeach
+    };
 
     function updateDocType() {
         const typeEl = document.querySelector('input[name="type"]:checked');
@@ -441,19 +489,19 @@
         const rightHeader = document.getElementById('rightCardHeader');
 
         if (docType === 'quotation' || docType === 'tender') {
-            tenderPanel.classList.remove('d-none');
+            if(tenderPanel) tenderPanel.classList.remove('d-none');
             paymentSection.classList.add('d-none');
             quotationNotice.classList.remove('d-none');
 
             if (docType === 'tender') {
-                tenderPanelTitle.textContent = 'দরপত্র সংক্রান্ত বিস্তারিত বিবরণী (Tender Schedule)';
+                if(tenderPanelTitle) tenderPanelTitle.textContent = 'দরপত্র সংক্রান্ত বিস্তারিত বিবরণী (Tender Schedule)';
                 submitBtn.innerHTML = '<i class="fas fa-save me-1.5"></i> দরপত্র পরিবর্তন সংরক্ষণ করুন';
                 submitBtn.className = 'btn btn-purple w-100 py-3 rounded-pill fw-bold shadow-sm text-white';
                 submitBtn.style.backgroundColor = '#6f42c1';
                 rightHeader.className = 'card-header bg-purple text-white py-3 rounded-top-4';
                 rightHeader.style.backgroundColor = '#6f42c1';
             } else {
-                tenderPanelTitle.textContent = 'কোটেশন সংক্রান্ত বিষয় ও স্মারক (Quotation Details)';
+                if(tenderPanelTitle) tenderPanelTitle.textContent = 'কোটেশন সংক্রান্ত বিষয় ও স্মারক (Quotation Details)';
                 submitBtn.innerHTML = '<i class="fas fa-save me-1.5"></i> কোটেশন পরিবর্তন সংরক্ষণ করুন';
                 submitBtn.className = 'btn btn-warning w-100 py-3 rounded-pill fw-bold shadow-sm text-dark';
                 submitBtn.style.backgroundColor = '#ffc107';
@@ -461,7 +509,7 @@
                 rightHeader.style.backgroundColor = '#ffc107';
             }
         } else {
-            tenderPanel.classList.add('d-none');
+            if(tenderPanel) tenderPanel.classList.add('d-none');
             paymentSection.classList.remove('d-none');
             quotationNotice.classList.add('d-none');
             submitBtn.className = 'btn btn-primary w-100 py-3 rounded-pill fw-bold shadow-sm';
@@ -486,37 +534,79 @@
 
         const hiddenId = row.querySelector('.item-book-id');
         const authorInput = row.querySelector('.item-author');
+        const typeSelect = row.querySelector('.item-type-select');
         const regPriceInput = row.querySelector('.item-regular-price');
         const discPctInput = row.querySelector('.item-discount-percent');
         const priceInput = row.querySelector('.item-price');
 
-        const cleanVal = rawVal.split('—')[0].split('(')[0].trim().toLowerCase();
-        
-        let b = existingBooksMap[rawVal.toLowerCase()] || existingBooksMap[cleanVal];
-        if (!b) {
-            for (const [titleKey, bookData] of Object.entries(existingBooksMap)) {
-                if (titleKey === cleanVal || titleKey === rawVal.toLowerCase() || titleKey.includes(cleanVal) || cleanVal.includes(titleKey)) {
-                    b = bookData;
-                    break;
-                }
+        const isHcSelected = rawVal.includes('হার্ডকভার') || rawVal.toLowerCase().includes('hardcover');
+        const isPbSelected = rawVal.includes('পেপারব্যাক') || rawVal.toLowerCase().includes('paperback');
+        const cleanVal = rawVal.replace(/\(পেপারব্যাক\)|\(হার্ডকভার\)|\[পেপারব্যাক\]|\[হার্ডকভার\]/g, '').split('—')[0].split('(')[0].trim().toLowerCase();
+
+        let matchedBook = null;
+        let matchedEdition = 'paperback';
+
+        for (const [id, book] of Object.entries(booksCatalog)) {
+            const bTitle = book.title.trim().toLowerCase();
+            if (bTitle === cleanVal || bTitle === rawVal.toLowerCase() || cleanVal.includes(bTitle) || bTitle.includes(cleanVal)) {
+                matchedBook = book;
+                break;
             }
         }
 
-        if (b) {
-            if (hiddenId) hiddenId.value = b.id || '';
-            if (authorInput && b.author) {
-                authorInput.value = b.author;
+        if (matchedBook) {
+            if (isHcSelected && matchedBook.hasHardcover) {
+                matchedEdition = 'hardcover';
+            } else if (isPbSelected && matchedBook.hasPaperback) {
+                matchedEdition = 'paperback';
+            } else if (matchedBook.hasHardcover && !matchedBook.hasPaperback) {
+                matchedEdition = 'hardcover';
+            } else {
+                matchedEdition = 'paperback';
             }
-            if (regPriceInput && b.regularPrice > 0) {
-                regPriceInput.value = b.regularPrice;
+
+            if (hiddenId) hiddenId.value = matchedBook.id;
+            if (authorInput && matchedBook.author) authorInput.value = matchedBook.author;
+
+            const editionData = matchedEdition === 'hardcover' ? matchedBook.hardcover : matchedBook.paperback;
+
+            if (typeSelect) {
+                typeSelect.value = matchedEdition === 'hardcover' ? 'বই (হার্ডকভার)' : 'বই (পেপারব্যাক)';
             }
-            if (discPctInput && b.discountPercent >= 0) {
-                discPctInput.value = b.discountPercent;
-            }
-            if (priceInput) {
-                priceInput.value = b.sellingPrice > 0 ? b.sellingPrice : (b.regularPrice > 0 ? b.regularPrice : 0);
-            }
+            if (regPriceInput) regPriceInput.value = editionData.regularPrice;
+            if (discPctInput) discPctInput.value = editionData.discountPercent;
+            if (priceInput) priceInput.value = editionData.sellingPrice;
             calcRow(index, 'book_select');
+        }
+    }
+
+    function onTypeChange(selectEl, index) {
+        const row = document.querySelector(`tr[data-row="${index}"]`);
+        if (!row) return;
+
+        const hiddenId = row.querySelector('.item-book-id');
+        const bookId = hiddenId ? hiddenId.value : null;
+
+        if (bookId && booksCatalog[bookId]) {
+            const book = booksCatalog[bookId];
+            const val = selectEl.value;
+            const regPriceInput = row.querySelector('.item-regular-price');
+            const discPctInput = row.querySelector('.item-discount-percent');
+            const priceInput = row.querySelector('.item-price');
+
+            let editionData = null;
+            if (val === 'বই (হার্ডকভার)' || val.includes('হার্ডকভার')) {
+                editionData = book.hardcover;
+            } else if (val === 'বই (পেপারব্যাক)' || val.includes('পেপারব্যাক') || val.includes('বই')) {
+                editionData = book.paperback;
+            }
+
+            if (editionData) {
+                if (regPriceInput) regPriceInput.value = editionData.regularPrice;
+                if (discPctInput) discPctInput.value = editionData.discountPercent;
+                if (priceInput) priceInput.value = editionData.sellingPrice;
+                calcRow(index, 'book_select');
+            }
         }
     }
 
@@ -563,37 +653,43 @@
     function calcTotals() {
         let subtotal = 0;
         document.querySelectorAll('.item-row').forEach(row => {
-            const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
-            const price = parseFloat(row.querySelector('.item-price').value) || 0;
+            const qty = parseFloat(row.querySelector('.item-qty')?.value) || 0;
+            const price = parseFloat(row.querySelector('.item-price')?.value) || 0;
             subtotal += (qty * price);
         });
 
-        const discount = parseFloat(document.getElementById('discountInput').value) || 0;
-        const tax = parseFloat(document.getElementById('taxInput').value) || 0;
+        const discount = parseFloat(document.getElementById('discountInput')?.value) || 0;
+        const tax = parseFloat(document.getElementById('taxInput')?.value) || 0;
         const grandTotal = Math.max(0, subtotal - discount + tax);
 
-        document.getElementById('displaySubtotal').textContent = '৳' + subtotal.toFixed(2);
-        document.getElementById('displayDiscount').textContent = '-৳' + discount.toFixed(2);
-        document.getElementById('displayTax').textContent = '+৳' + tax.toFixed(2);
-        document.getElementById('displayGrandTotal').textContent = '৳' + grandTotal.toFixed(2);
+        const elSubtotal = document.getElementById('displaySubtotal');
+        if (elSubtotal) elSubtotal.textContent = '৳' + subtotal.toFixed(2);
+        const elDisc = document.getElementById('displayDiscount');
+        if (elDisc) elDisc.textContent = '-৳' + discount.toFixed(2);
+        const elTax = document.getElementById('displayTax');
+        if (elTax) elTax.textContent = '+৳' + tax.toFixed(2);
+        const elGrand = document.getElementById('displayGrandTotal');
+        if (elGrand) elGrand.textContent = '৳' + grandTotal.toFixed(2);
 
-        const paid = parseFloat(document.getElementById('paidInput').value) || 0;
+        const paid = parseFloat(document.getElementById('paidInput')?.value) || 0;
         const due = Math.max(0, grandTotal - paid);
 
-        document.getElementById('displayDue').textContent = '৳' + due.toFixed(2);
+        const elDue = document.getElementById('displayDue');
+        if (elDue) elDue.textContent = '৳' + due.toFixed(2);
     }
 
     function fillFullPaid() {
         let subtotal = 0;
         document.querySelectorAll('.item-row').forEach(row => {
-            const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
-            const price = parseFloat(row.querySelector('.item-price').value) || 0;
+            const qty = parseFloat(row.querySelector('.item-qty')?.value) || 0;
+            const price = parseFloat(row.querySelector('.item-price')?.value) || 0;
             subtotal += (qty * price);
         });
-        const discount = parseFloat(document.getElementById('discountInput').value) || 0;
-        const tax = parseFloat(document.getElementById('taxInput').value) || 0;
+        const discount = parseFloat(document.getElementById('discountInput')?.value) || 0;
+        const tax = parseFloat(document.getElementById('taxInput')?.value) || 0;
         const grandTotal = Math.max(0, subtotal - discount + tax);
-        document.getElementById('paidInput').value = grandTotal.toFixed(2);
+        const paidInput = document.getElementById('paidInput');
+        if (paidInput) paidInput.value = grandTotal.toFixed(2);
         calcTotals();
     }
 
@@ -615,8 +711,10 @@
                        placeholder="লেখকের নাম">
             </td>
             <td>
-                <select name="items[${i}][item_type]" class="form-select form-select-sm">
-                    <option value="বই (Book)">বই (Book)</option>
+                <select name="items[${i}][item_type]" class="form-select form-select-sm item-type-select" onchange="onTypeChange(this, ${i})">
+                    <option value="বই (পেপারব্যাক)">বই (পেপারব্যাক)</option>
+                    <option value="বই (হার্ডকভার)">বই (হার্ডকভার)</option>
+                    <option value="বই (সাধারণ)">বই (সাধারণ)</option>
                     <option value="পণ্য (Product)">পণ্য (Product)</option>
                     <option value="কাগজ/কাঁচামাল">কাগজ/কাঁচামাল</option>
                     <option value="মুদ্রণ ও বাঁধাই">মুদ্রণ ও বাঁধাই</option>

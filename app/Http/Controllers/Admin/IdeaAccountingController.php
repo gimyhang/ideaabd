@@ -176,7 +176,7 @@ class IdeaAccountingController extends Controller
     public function createInvoice(Request $request): View
     {
         $books = Book::where('is_active', true)
-            ->select('id', 'title', 'author_name', 'price', 'discount_price', 'hardcover_price', 'hardcover_discount_price', 'stock_quantity')
+            ->select('id', 'title', 'subtitle', 'author_name', 'cover_type', 'format', 'price', 'discount_price', 'hardcover_price', 'hardcover_discount_price', 'stock_quantity')
             ->orderBy('title')
             ->get();
         
@@ -359,7 +359,7 @@ class IdeaAccountingController extends Controller
     public function editInvoice(IdeaInvoice $invoice): View
     {
         $books = Book::where('is_active', true)
-            ->select('id', 'title', 'author_name', 'price', 'discount_price', 'hardcover_price', 'hardcover_discount_price', 'stock_quantity')
+            ->select('id', 'title', 'subtitle', 'author_name', 'cover_type', 'format', 'price', 'discount_price', 'hardcover_price', 'hardcover_discount_price', 'stock_quantity')
             ->orderBy('title')
             ->get();
         return view('admin.accounting.invoices.edit', compact('invoice', 'books'));
