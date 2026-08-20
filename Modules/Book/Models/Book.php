@@ -94,9 +94,22 @@ class Book extends Model
 
     protected static function booted()
     {
+        static::saving(function ($book) {
+            // Auto resolve or unify author if author_name is provided but author_link_id is missing
+            if (empty($book->author_link_id) && !empty($book->author_name)) {
+                $author = \Modules\Author\Models\Author::findOrCreateUnified([
+                    'name'      => trim((string) $book->author_name),
+                    'is_active' => true,
+                ]);
+                $book->author_link_id = $author->id;
+                $book->author_name = $author->name;
+            } elseif (!empty($book->author_link_id) && empty($book->author_name)) {
+                $book->author_name = \Modules\Author\Models\Author::where('id', $book->author_link_id)->value('name');
+            }
+        });
+
         static::saved(function ($book) {
-            // When saved from admin panel (ContentController), if author_link_id is provided, sync it to the pivot table
-            // so frontend $book->authors logic works consistently.
+            // When saved anywhere, sync author_link_id to book_author pivot table
             if ($book->author_link_id && \Illuminate\Support\Facades\Schema::hasTable('book_author')) {
                 $book->authors()->syncWithoutDetaching([$book->author_link_id]);
             }

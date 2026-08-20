@@ -943,7 +943,7 @@ class AdminController extends Controller
     {
         $validated = $request->validate([
             'name'        => 'required|string|max:255',
-            'slug'        => 'nullable|string|max:255|unique:authors,slug',
+            'slug'        => 'nullable|string|max:255',
             'phone'       => 'nullable|string|max:50',
             'email'       => 'nullable|email|max:255',
             'website'     => 'nullable|url|max:255',
@@ -953,23 +953,14 @@ class AdminController extends Controller
             'avatar_file' => 'nullable|image|max:4096',
         ]);
 
-        $name = trim($validated['name']);
-        $slug = !empty($validated['slug']) 
-            ? \Illuminate\Support\Str::slug($validated['slug'])
-            : (\Illuminate\Support\Str::slug($this->bengaliToEnglish($name)) ?: 'author-' . \Illuminate\Support\Str::random(6));
-        
-        if (\Modules\Author\Models\Author::where('slug', $slug)->exists()) {
-            $slug .= '-' . rand(100, 999);
-        }
-
         $avatarPath = null;
         if ($request->hasFile('avatar_file')) {
             $avatarPath = $request->file('avatar_file')->store('authors', 'public');
         }
 
-        $author = \Modules\Author\Models\Author::create([
-            'name'        => $name,
-            'slug'        => $slug,
+        $author = \Modules\Author\Models\Author::findOrCreateUnified([
+            'name'        => $validated['name'],
+            'slug'        => $validated['slug'] ?? null,
             'phone'       => $validated['phone'] ?? null,
             'email'       => $validated['email'] ?? null,
             'website'     => $validated['website'] ?? null,
@@ -979,11 +970,11 @@ class AdminController extends Controller
             'is_verified' => $request->boolean('is_verified', false),
         ]);
 
-        $this->accessService->log('author_quick_create', "নতুন লেখক '{$author->name}' যুক্ত করা হয়েছে");
+        $this->accessService->log('author_quick_create', "লেখক '{$author->name}' ডিরেক্টরিতে সিঙ্ক/যুক্ত করা হয়েছে");
 
         return response()->json([
             'success' => true,
-            'message' => "নতুন লেখক '{$author->name}' সফলভাবে তৈরি হয়েছে!",
+            'message' => "লেখক '{$author->name}' সফলভাবে সংরক্ষিত ও সিঙ্ক হয়েছে!",
             'author'  => $author,
         ]);
     }

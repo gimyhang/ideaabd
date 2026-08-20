@@ -147,28 +147,21 @@ class RegistrationController extends Controller
             'email_verified_at' => $isActive ? now() : null,
         ]);
 
-        // Auto create/sync entry in authors table if type is author
+        // Auto create/sync entry in authors table if type is author using Unified registration
         if ($type === 'author') {
             try {
                 $authorName = !empty($extra['pen_name']) ? $extra['pen_name'] : $base['name'];
-                $authorSlug = \Illuminate\Support\Str::slug($authorName) ?: 'author-' . $user->id;
-                if (\Illuminate\Support\Facades\DB::table('authors')->where('slug', $authorSlug)->exists()) {
-                    $authorSlug .= '-' . $user->id;
-                }
-                \Illuminate\Support\Facades\DB::table('authors')->insertOrIgnore([
-                    'name'         => $authorName,
-                    'slug'         => $authorSlug,
-                    'bio'          => $extra['bio'] ?? null,
-                    'author_image' => $avatarPath,
-                    'phone'        => $base['phone'],
-                    'email'        => $base['email'],
-                    'is_active'    => false, // Pending admin approval
-                    'is_verified'  => false,
-                    'created_at'   => now(),
-                    'updated_at'   => now(),
+                \Modules\Author\Models\Author::findOrCreateUnified([
+                    'name'        => $authorName,
+                    'phone'       => $base['phone'],
+                    'email'       => $base['email'],
+                    'bio'         => $extra['bio'] ?? null,
+                    'avatar'      => $avatarPath,
+                    'is_active'   => false, // Pending admin approval
+                    'is_verified' => false,
                 ]);
             } catch (\Throwable $e) {
-                Log::warning("Could not auto-create directory author entry: " . $e->getMessage());
+                Log::warning("Could not sync unified author entry on registration: " . $e->getMessage());
             }
         }
 

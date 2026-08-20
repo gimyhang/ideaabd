@@ -144,6 +144,12 @@ class ContentController extends Controller
 
         try {
             $record->forceFill($attributes)->save();
+            if ($type === 'books' && !empty($record->author_link_id)) {
+                DB::table('book_author')->updateOrInsert(
+                    ['book_id' => $record->id, 'author_id' => $record->author_link_id],
+                    ['created_at' => now(), 'updated_at' => now()]
+                );
+            }
             if ($type === 'webzines') {
                 $this->syncWebzineArticles($record, $request);
             }
@@ -239,6 +245,12 @@ class ContentController extends Controller
 
         try {
             $record->forceFill($attributes)->save();
+            if ($type === 'books' && !empty($record->author_link_id)) {
+                DB::table('book_author')->updateOrInsert(
+                    ['book_id' => $record->id, 'author_id' => $record->author_link_id],
+                    ['created_at' => now(), 'updated_at' => now()]
+                );
+            }
             if ($type === 'webzines') {
                 $this->syncWebzineArticles($record, $request);
             }
@@ -502,30 +514,19 @@ class ContentController extends Controller
                         $attributes['author_name'] = null;
                     }
                 } else {
-                    // Custom mode: Auto-create author if it doesn't exist
-                    $authorName = $request->input('author_name');
-                    if ($authorName) {
-                        $authorSlug = $this->bengaliToEnglish($authorName) ?: Str::random(8);
-                        $existingAuthor = DB::table('authors')->where('name', $authorName)->orWhere('slug', $authorSlug)->first();
-                        
-                        if ($existingAuthor) {
-                            $linkId = $existingAuthor->id;
-                            $authorName = $existingAuthor->name;
-                        } else {
-                            $linkId = DB::table('authors')->insertGetId([
-                                'name' => $authorName,
-                                'slug' => $authorSlug,
-                                'is_active' => true,
-                                'created_at' => now(),
-                                'updated_at' => now(),
-                            ]);
-                        }
+                    // Custom mode or text input: Unified Author lookup / creation
+                    $authorName = trim((string) $request->input('author_name'));
+                    if ($authorName !== '') {
+                        $author = \Modules\Author\Models\Author::findOrCreateUnified([
+                            'name'      => $authorName,
+                            'is_active' => true,
+                        ]);
                         
                         if (Schema::hasColumn($spec['table'], 'author_link_id')) {
-                            $attributes['author_link_id'] = $linkId;
+                            $attributes['author_link_id'] = $author->id;
                         }
                         if (Schema::hasColumn($spec['table'], 'author_name')) {
-                            $attributes['author_name'] = $authorName;
+                            $attributes['author_name'] = $author->name;
                         }
                     } else {
                         if (Schema::hasColumn($spec['table'], 'author_link_id')) {

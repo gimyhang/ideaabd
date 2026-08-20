@@ -171,19 +171,14 @@ class RegistrationApprovalController extends Controller
         if ($user->role === 'author') {
             try {
                 $authorName = !empty($regData['pen_name']) ? $regData['pen_name'] : $user->name;
-                $authorSlug = Str::slug($authorName) ?: 'author-' . $user->id;
-                DB::table('authors')->updateOrInsert(
-                    ['email' => $user->email],
-                    [
-                        'name'        => $authorName,
-                        'slug'        => $authorSlug,
-                        'phone'       => $user->phone,
-                        'bio'         => $regData['bio'] ?? null,
-                        'is_active'   => $user->is_active,
-                        'is_verified' => ($user->reg_status === 'approved'),
-                        'updated_at'  => now(),
-                    ]
-                );
+                \Modules\Author\Models\Author::findOrCreateUnified([
+                    'name'        => $authorName,
+                    'email'       => $user->email,
+                    'phone'       => $user->phone,
+                    'bio'         => $regData['bio'] ?? null,
+                    'is_active'   => $user->is_active,
+                    'is_verified' => ($user->reg_status === 'approved'),
+                ]);
             } catch (\Throwable $e) {
                 Log::warning("Could not sync updated author directory: " . $e->getMessage());
             }
@@ -228,25 +223,20 @@ class RegistrationApprovalController extends Controller
             'email_verified_at'=> $user->email_verified_at ?: now(),
         ]);
 
-        // If user is author, activate their entry in authors table
+        // If user is author, activate their entry in authors table using unified resolution
         if ($user->role === 'author') {
             try {
                 $regData = is_array($user->reg_data) ? $user->reg_data : [];
                 $authorName = !empty($regData['pen_name']) ? $regData['pen_name'] : $user->name;
-                $authorSlug = Str::slug($authorName) ?: 'author-' . $user->id;
 
-                DB::table('authors')->updateOrInsert(
-                    ['email' => $user->email],
-                    [
-                        'name'        => $authorName,
-                        'slug'        => $authorSlug,
-                        'phone'       => $user->phone,
-                        'bio'         => $regData['bio'] ?? null,
-                        'is_active'   => true,
-                        'is_verified' => true,
-                        'updated_at'  => now(),
-                    ]
-                );
+                \Modules\Author\Models\Author::findOrCreateUnified([
+                    'name'        => $authorName,
+                    'email'       => $user->email,
+                    'phone'       => $user->phone,
+                    'bio'         => $regData['bio'] ?? null,
+                    'is_active'   => true,
+                    'is_verified' => true,
+                ]);
             } catch (\Throwable $e) {
                 Log::warning("Could not sync author entry on approval: " . $e->getMessage());
             }

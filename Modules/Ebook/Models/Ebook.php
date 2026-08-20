@@ -91,6 +91,24 @@ class Ebook extends Model
         'is_active' => 'boolean',
     ];
 
+    protected static function booted()
+    {
+        static::saving(function ($ebook) {
+            // Auto resolve or unify author if author_name is provided but author_id/author_link_id is missing
+            if (empty($ebook->author_id) && empty($ebook->author_link_id) && !empty($ebook->author_name)) {
+                $author = \Modules\Author\Models\Author::findOrCreateUnified([
+                    'name'      => trim((string) $ebook->author_name),
+                    'is_active' => true,
+                ]);
+                $ebook->author_id = $author->id;
+                $ebook->author_link_id = $author->id;
+                $ebook->author_name = $author->name;
+            } elseif (!empty($ebook->author_id) && empty($ebook->author_name)) {
+                $ebook->author_name = \Modules\Author\Models\Author::where('id', $ebook->author_id)->value('name');
+            }
+        });
+    }
+
     /**
      * Category Relationship
      */

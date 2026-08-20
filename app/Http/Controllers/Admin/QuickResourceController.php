@@ -68,12 +68,8 @@ class QuickResourceController extends Controller
             'bio'     => 'nullable|string|max:2000',
         ]);
 
-        $name = trim($validated['name']);
-        $slug = $this->uniqueSlug('authors', $name);
-
-        $author = Author::create([
-            'name'      => $name,
-            'slug'      => $slug,
+        $author = Author::findOrCreateUnified([
+            'name'      => $validated['name'],
             'phone'     => $validated['phone'] ?? null,
             'email'     => $validated['email'] ?? null,
             'bio'       => $validated['bio'] ?? null,
@@ -82,7 +78,7 @@ class QuickResourceController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => "লেখক '{$author->name}' সফলভাবে যুক্ত হয়েছে।",
+            'message' => "লেখক '{$author->name}' সফলভাবে সংরক্ষিত ও সিঙ্ক হয়েছে।",
             'item'    => [
                 'id'   => $author->id,
                 'name' => $author->name,

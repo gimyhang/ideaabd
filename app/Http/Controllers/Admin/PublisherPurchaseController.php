@@ -200,23 +200,13 @@ class PublisherPurchaseController extends Controller
                     $categoryId = $cat->id;
                 }
 
-                // Auto resolve or create Author in Author directory
+                // Auto resolve or create Author in Author directory using Unified registration
                 $authorId = null;
                 if (!empty($authorName)) {
-                    $author = \Modules\Author\Models\Author::where('name', $authorName)->first();
-                    if (!$author) {
-                        $authSlugBase = $this->bengaliToEnglish($authorName) ?: 'author-' . uniqid();
-                        $authSlug = $authSlugBase;
-                        $c = 1;
-                        while (\Modules\Author\Models\Author::where('slug', $authSlug)->exists()) {
-                            $authSlug = $authSlugBase . '-' . (++$c);
-                        }
-                        $author = \Modules\Author\Models\Author::create([
-                            'name' => $authorName,
-                            'slug' => $authSlug,
-                            'is_active' => true,
-                        ]);
-                    }
+                    $author = \Modules\Author\Models\Author::findOrCreateUnified([
+                        'name'      => $authorName,
+                        'is_active' => true,
+                    ]);
                     $authorId = $author->id;
                 }
 
@@ -459,23 +449,13 @@ class PublisherPurchaseController extends Controller
                     $categoryId = $cat->id;
                 }
 
-                // Auto resolve or create Author
+                // Auto resolve or create Author using Unified registration
                 $authorId = null;
                 if (!empty($authorName)) {
-                    $author = \Modules\Author\Models\Author::where('name', $authorName)->first();
-                    if (!$author) {
-                        $authSlugBase = $this->bengaliToEnglish($authorName) ?: 'author-' . uniqid();
-                        $authSlug = $authSlugBase;
-                        $c = 1;
-                        while (\Modules\Author\Models\Author::where('slug', $authSlug)->exists()) {
-                            $authSlug = $authSlugBase . '-' . (++$c);
-                        }
-                        $author = \Modules\Author\Models\Author::create([
-                            'name' => $authorName,
-                            'slug' => $authSlug,
-                            'is_active' => true,
-                        ]);
-                    }
+                    $author = \Modules\Author\Models\Author::findOrCreateUnified([
+                        'name'      => $authorName,
+                        'is_active' => true,
+                    ]);
                     $authorId = $author->id;
                 }
 

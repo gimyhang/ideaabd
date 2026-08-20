@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Modules\Blog\Models\BlogPost;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 
 class Author extends Model
 {
@@ -24,6 +25,10 @@ class Author extends Model
         'social_links',
         'is_verified',
         'is_active',
+        'owner_name',
+        'owner_phone',
+        'submitted_by',
+        'mod_status',
     ];
 
     protected $casts = [
@@ -37,6 +42,116 @@ class Author extends Model
         'initials',
         'avatar_bg_color',
     ];
+
+    /**
+     * UNIFIED AUTHOR FIND OR CREATE / SYNC
+     * Ensures only a SINGLE author record exists regardless of where it was initiated:
+     * (Admin Directory, Book Entry, Publisher Portal, or User Registration)
+     */
+    public static function findOrCreateUnified(array $data): self
+    {
+        $name = trim($data['name'] ?? '');
+        $email = !empty($data['email']) ? trim(strtolower((string) $data['email'])) : null;
+        $phone = !empty($data['phone']) ? trim((string) $data['phone']) : null;
+        $slug = !empty($data['slug']) ? trim(Str::slug((string) $data['slug'])) : null;
+
+        $author = null;
+
+        // 1. Search by exact or normalized Name
+        if (!empty($name)) {
+            $author = self::where('name', $name)
+                ->orWhere(DB::raw('TRIM(name)'), $name)
+                ->first();
+        }
+
+        // 2. Search by Phone (if provided and valid)
+        if (!$author && !empty($phone)) {
+            $author = self::where('phone', $phone)->first();
+        }
+
+        // 3. Search by Email (if provided and valid)
+        if (!$author && !empty($email)) {
+            $author = self::where('email', $email)->first();
+        }
+
+        // 4. Search by Slug (if provided)
+        if (!$author && !empty($slug)) {
+            $author = self::where('slug', $slug)->first();
+        }
+
+        // If author already exists, enrich empty fields without overwriting valid data
+        if ($author) {
+            $updates = [];
+            if (empty($author->email) && $email) {
+                $updates['email'] = $email;
+            }
+            if (empty($author->phone) && $phone) {
+                $updates['phone'] = $phone;
+            }
+            if (empty($author->bio) && !empty($data['bio'])) {
+                $updates['bio'] = $data['bio'];
+            }
+            if (empty($author->avatar) && !empty($data['avatar'])) {
+                $updates['avatar'] = $data['avatar'];
+            }
+            if (empty($author->website) && !empty($data['website'])) {
+                $updates['website'] = $data['website'];
+            }
+            if (!empty($data['is_verified']) && !$author->is_verified) {
+                $updates['is_verified'] = true;
+            }
+            if (isset($data['is_active']) && $data['is_active'] && !$author->is_active) {
+                $updates['is_active'] = true;
+            }
+
+            if (!empty($updates)) {
+                $author->update($updates);
+            }
+
+            return $author;
+        }
+
+        // If author does NOT exist, generate unique slug and create cleanly
+        if (empty($slug)) {
+            $slug = self::generateUniqueSlug($name);
+        }
+
+        return self::create([
+            'name'        => $name,
+            'slug'        => $slug,
+            'email'       => $email,
+            'phone'       => $phone,
+            'bio'         => $data['bio'] ?? null,
+            'avatar'      => $data['avatar'] ?? null,
+            'website'     => $data['website'] ?? null,
+            'is_verified' => !empty($data['is_verified']),
+            'is_active'   => $data['is_active'] ?? true,
+        ]);
+    }
+
+    /**
+     * Generate a unique slug for author (Bengali -> Phonetic English conversion)
+     */
+    public static function generateUniqueSlug(string $name, ?int $ignoreId = null): string
+    {
+        $bengali = ['অ','আ','ই','ঈ','উ','ঊ','ঋ','এ','ঐ','ও','ঔ','ক','খ','গ','ঘ','ঙ','চ','ছ','জ','ঝ','ঞ','ট','ঠ','ড','ঢ','ণ','ত','থ','দ','ধ','ন','প','ফ','ব','ভ','ম','য','র','ল','শ','ষ','স','হ','ড়','ঢ়','য়','ৎ','ং','ঃ','ঁ','া','ি','ী','ু','ূ','ৃ','ে','ৈ','ো','ৌ','্'];
+        $english = ['a','a','i','i','u','u','ri','e','oi','o','ou','k','kh','g','gh','ng','ch','ch','j','jh','n','t','th','d','dh','n','t','th','d','dh','n','p','f','b','bh','m','z','r','l','sh','sh','s','h','r','rh','y','t','ng','h','n','a','i','i','u','u','ri','e','oi','o','ou',''];
+        
+        $converted = str_replace($bengali, $english, $name);
+        $base = Str::slug($converted) ?: Str::slug(Str::random(8));
+        $slug = $base;
+        $count = 1;
+
+        while (
+            self::where('slug', $slug)
+                ->when($ignoreId, fn($q) => $q->where('id', '!=', $ignoreId))
+                ->exists()
+        ) {
+            $slug = $base . '-' . (++$count);
+        }
+
+        return $slug;
+    }
 
     /**
      * Dynamic Avatar URL with multiple fallbacks & protocol safety
