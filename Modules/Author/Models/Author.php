@@ -50,8 +50,27 @@ class Author extends Model
 
         $avatar = trim((string) $avatar);
 
-        // If it's already an absolute URL or inline data URI
-        if (str_starts_with($avatar, 'http://') || str_starts_with($avatar, 'https://') || str_starts_with($avatar, 'data:image')) {
+        // If it's inline data URI
+        if (str_starts_with($avatar, 'data:image')) {
+            return $avatar;
+        }
+
+        // If it's a URL (http/https), check if it points to local/site storage
+        if (str_starts_with($avatar, 'http://') || str_starts_with($avatar, 'https://')) {
+            $parsed = parse_url($avatar);
+            $host = $parsed['host'] ?? '';
+            $path = $parsed['path'] ?? '';
+
+            // If it belongs to local dev host (127.0.0.1/localhost) or contains /storage/, resolve dynamically
+            if (in_array($host, ['127.0.0.1', 'localhost', 'ideaabd.com', 'www.ideaabd.com'], true) || str_contains($path, '/storage/')) {
+                $cleanPath = ltrim($path, '/');
+                if (str_starts_with($cleanPath, 'storage/')) {
+                    return asset($cleanPath);
+                }
+                return asset('storage/' . $cleanPath);
+            }
+
+            // External third-party CDN / Gravatar / image link
             return $avatar;
         }
 

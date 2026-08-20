@@ -17,9 +17,9 @@ class AuthorController extends Controller
         $query = Author::query()
             ->withCount('books')
             ->with(['books' => function ($q) {
-                $q->select('books.id', 'title', 'slug', 'cover_image', 'price')
-                  ->where('is_active', true)
-                  ->latest()
+                $q->select('books.id', 'books.title', 'books.slug', 'books.cover_image', 'books.price')
+                  ->where('books.is_active', true)
+                  ->orderByDesc('books.id')
                   ->take(3);
             }])
             ->where('is_active', true);
@@ -32,7 +32,7 @@ class AuthorController extends Controller
                     ->orWhere('slug', 'like', '%' . $term . '%')
                     ->orWhere('bio', 'like', '%' . $term . '%')
                     ->orWhereHas('books', function ($bq) use ($term) {
-                        $bq->where('title', 'like', '%' . $term . '%');
+                        $bq->where('books.title', 'like', '%' . $term . '%');
                     });
             });
         }
@@ -47,7 +47,7 @@ class AuthorController extends Controller
         if ($request->filled('category_id')) {
             $catId = (int) $request->category_id;
             $query->whereHas('books', function ($bq) use ($catId) {
-                $bq->where('category_id', $catId);
+                $bq->where('books.category_id', $catId);
             });
         }
 
@@ -143,7 +143,7 @@ class AuthorController extends Controller
         // Paginate author books
         $books = $authorRecord->books()
             ->where('books.is_active', true)
-            ->latest('books.id')
+            ->orderByDesc('books.id')
             ->paginate(12);
 
         // Load author ebooks if Ebook relation exists

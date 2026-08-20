@@ -75,7 +75,7 @@
                     </div>
                     <div class="d-flex align-items-center gap-2 overflow-hidden">
                         @foreach($authorBooks->take(3) as $bk)
-                            <a href="{{ route('books.show', $bk->slug ?: $bk->id) }}" class="text-decoration-none" title="{{ $bk->title }}">
+                            <a href="{{ route('book.show', $bk->slug ?: $bk->id) }}" class="text-decoration-none" title="{{ $bk->title }}">
                                 <div class="rounded overflow-hidden shadow-xs bg-white border border-light" style="width: 36px; height: 48px; flex-shrink: 0;">
                                     @if(!empty($bk->cover_image))
                                         <img src="{{ asset('storage/' . ltrim($bk->cover_image, '/')) }}" alt="{{ $bk->title }}" class="w-100 h-100 object-fit-cover">
