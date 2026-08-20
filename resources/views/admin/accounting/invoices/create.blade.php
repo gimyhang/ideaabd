@@ -326,11 +326,15 @@
 
                     {{-- Discount & Tax Inputs --}}
                     <div class="row g-2 mb-3">
-                        <div class="col-6">
-                            <label class="form-label small fw-semibold text-muted">বিশেষ ছাড় (৳)</label>
-                            <input type="number" step="0.01" name="discount" id="discountInput" class="form-control form-control-sm font-monospace text-end" value="{{ old('discount', 0) }}" min="0" oninput="calcTotals()">
+                        <div class="col-4">
+                            <label class="form-label small fw-semibold text-muted">কমিশন (%)</label>
+                            <input type="number" step="0.01" id="discountPercentInput" class="form-control form-control-sm font-monospace text-center text-danger fw-bold" value="0" min="0" max="100" placeholder="0" oninput="onSpecialDiscPercentChange()">
                         </div>
-                        <div class="col-6">
+                        <div class="col-4">
+                            <label class="form-label small fw-semibold text-muted">বিশেষ ছাড় (৳)</label>
+                            <input type="number" step="0.01" name="discount" id="discountInput" class="form-control form-control-sm font-monospace text-end text-danger fw-bold" value="{{ old('discount', 0) }}" min="0" placeholder="0.00" oninput="onSpecialDiscAmountChange()">
+                        </div>
+                        <div class="col-4">
                             <label class="form-label small fw-semibold text-muted">ট্যাক্স / ভ্যাট (৳)</label>
                             <input type="number" step="0.01" name="tax" id="taxInput" class="form-control form-control-sm font-monospace text-end" value="{{ old('tax', 0) }}" min="0" oninput="calcTotals()">
                         </div>
@@ -624,6 +628,39 @@
         const subtotal = qty * unitPrice;
         if (subtotalCell) {
             subtotalCell.textContent = '৳' + subtotal.toFixed(2);
+        }
+        calcTotals();
+    }
+
+    function onSpecialDiscPercentChange() {
+        let subtotal = 0;
+        document.querySelectorAll('.item-row').forEach(row => {
+            const qty = parseFloat(row.querySelector('.item-qty')?.value) || 0;
+            const price = parseFloat(row.querySelector('.item-price')?.value) || 0;
+            subtotal += (qty * price);
+        });
+        const pct = parseFloat(document.getElementById('discountPercentInput')?.value) || 0;
+        const discAmount = (subtotal > 0 && pct > 0) ? Math.round((subtotal * (pct / 100)) * 100) / 100 : 0;
+        const discInput = document.getElementById('discountInput');
+        if (discInput) discInput.value = discAmount;
+        calcTotals();
+    }
+
+    function onSpecialDiscAmountChange() {
+        let subtotal = 0;
+        document.querySelectorAll('.item-row').forEach(row => {
+            const qty = parseFloat(row.querySelector('.item-qty')?.value) || 0;
+            const price = parseFloat(row.querySelector('.item-price')?.value) || 0;
+            subtotal += (qty * price);
+        });
+        const amount = parseFloat(document.getElementById('discountInput')?.value) || 0;
+        const pctInput = document.getElementById('discountPercentInput');
+        if (pctInput) {
+            if (subtotal > 0 && amount > 0) {
+                pctInput.value = Math.round((amount / subtotal) * 1000) / 10;
+            } else {
+                pctInput.value = 0;
+            }
         }
         calcTotals();
     }

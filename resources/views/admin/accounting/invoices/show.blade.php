@@ -368,7 +368,7 @@
                         </tr>
                         <tr>
                             <td class="text-end py-0.5 px-1.5 text-danger fw-semibold">
-                                বিশেষ কমিশন {{ $specialCommPercent > 0 ? '(@bn(' . $specialCommPercent . ')%)' : '' }}:
+                                বিশেষ কমিশন @if($specialCommPercent > 0)(@bn($specialCommPercent)%)@endif:
                             </td>
                             <td class="text-end py-0.5 pe-1.5 text-danger fw-semibold">
                                 {{ $invoice->discount > 0 ? '- ' . \App\Support\Bn::money($invoice->discount) : '৳০.০০' }}
