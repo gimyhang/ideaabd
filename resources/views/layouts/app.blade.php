@@ -14,7 +14,7 @@
     @php
         $defaultSiteName = \App\Support\SiteSetting::name() ?: 'আইডিয়া প্রকাশন';
         $defaultSiteTagline = \App\Support\SiteSetting::tagline() ?: 'অনলাইন বই ও প্রকাশনা প্ল্যাটফর্ম';
-        $defaultBanner = asset('images/og-banner.jpg');
+        $defaultBanner = \App\Support\SiteSetting::blogOgBannerUrl() ?: asset('images/og-banner.jpg');
         if (!str_starts_with($defaultBanner, 'http')) {
             $defaultBanner = url($defaultBanner);
         }

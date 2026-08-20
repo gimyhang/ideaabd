@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @php
-    $ogBlogImage = asset('images/blog/ideapatra-og.jpg');
+    $ogBlogImage = \App\Support\SiteSetting::blogOgBannerUrl();
     if (!empty($featured) && $featured->count() > 0) {
         $firstHero = $featured->first(fn($p) => !empty($p->cover_url) || !empty($p->featured_image));
         if ($firstHero) {

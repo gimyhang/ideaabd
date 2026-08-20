@@ -39,6 +39,11 @@
         height: 60px;
         aspect-ratio: 1 / 1;
     }
+    .og-preview-box {
+        width: 100%;
+        max-width: 460px;
+        aspect-ratio: 16 / 9;
+    }
     .cropper-view-box,
     .cropper-face {
         border-radius: 6px;
@@ -51,6 +56,7 @@
     $banner1Url = \App\Support\SiteSetting::banner1Url();
     $banner2Url = \App\Support\SiteSetting::banner2Url();
     $faviconUrl = \App\Support\SiteSetting::faviconUrl();
+    $blogOgBannerUrl = \App\Support\SiteSetting::blogOgBannerUrl();
 @endphp
 
 @section('content')
@@ -308,13 +314,56 @@
 
                                             <input type="file" id="banner2Input" name="banner_2" class="form-control form-control-sm rounded-3 mb-1" accept="image/*" onchange="initCropper(this, 'banner_2', 3/1)">
                                             <div class="form-text small text-muted">ফাইল নির্বাচন করলে ৩:১ রেশিওতে ক্রপ করার অপশন আসবে।</div>
+                                <!-- Social Media & Ideapatra Open Graph Banner Section -->
+                                <div class="col-12 pt-4 border-top mt-2">
+                                    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+                                        <div>
+                                            <h6 class="fw-bold text-dark mb-1">
+                                                <i class="fa-solid fa-share-nodes text-primary me-2"></i>আইডিয়াপত্র ও সোশ্যাল মিডিয়া শেয়ারিং ব্যানার (Social Open Graph Banner)
+                                            </h6>
+                                            <p class="small text-muted mb-0">ফেসবুক, হোয়াটসঅ্যাপ, এক্স/টুইটার বা লিংকডইনে ওয়েবসাইট ও ব্লগ পেজ শেয়ার করলে এই ব্যানারটি কার্ড হিসেবে দেখাবে।</p>
+                                        </div>
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1.5 fw-bold">
+                                            ১২০০ × ৬৩০ px (১৬:৯ বা ১.৯১:১ অনুপাত)
+                                        </span>
+                                    </div>
+
+                                    <div class="p-4 bg-light rounded-4 border">
+                                        <div class="row g-3 align-items-center">
+                                            <div class="col-lg-6">
+                                                <!-- Fixed Aspect Ratio 16:9 / 1.91:1 Preview Box -->
+                                                <div class="fixed-preview-container og-preview-box shadow-sm mx-auto" id="blogOgContainer" style="max-height: 240px; border-radius: 14px; overflow: hidden; background: #0f172a;">
+                                                    @if($blogOgBannerUrl)
+                                                        <img src="{{ $blogOgBannerUrl }}" alt="Social Share Banner" class="w-100 h-100 object-fit-cover" id="blog_ogPreviewImg">
+                                                    @else
+                                                        <div class="text-muted small text-center p-3 text-white-50" id="blog_ogPreviewImg">
+                                                            <i class="fa-solid fa-image display-6 opacity-25 d-block mb-1"></i>
+                                                            সোশ্যাল শেয়ার ব্যানার আপলোড ও ক্রপ করুন
+                                                        </div>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                            <div class="col-lg-6">
+                                                <label class="form-label small fw-bold text-dark mb-1">আপনার ডিজাইনকৃত ব্যানার ফাইল নির্বাচন করুন:</label>
+                                                <input type="file" id="blogOgInput" name="blog_og_banner" class="form-control rounded-3 mb-2" accept="image/*" onchange="initCropper(this, 'blog_og', 16/9)">
+                                                <div class="form-text small text-muted mb-3">
+                                                    <i class="fa-solid fa-lightbulb text-warning me-1"></i>
+                                                    আপনার ডিজাইন করা যে কোনো ১২০০×৬৩০ (বা ১৬:৯) সাইজের ইমেজ আপলোড করতে পারেন। ফাইল সিলেক্ট করার সাথে সাথেই লাইভ ক্রপ টুল ওপেন হবে।
+                                                </div>
+                                                <div class="d-flex align-items-center gap-2">
+                                                    @if($blogOgBannerUrl)
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="checkbox" name="remove_blog_og_banner" value="1" id="rmBlogOg">
+                                                            <label class="form-check-label small text-danger fw-semibold" for="rmBlogOg">কাস্টম ব্যানার মুছে ডিফল্ট ব্যানার ব্যবহার করুন</label>
+                                                        </div>
+                                                    @endif
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-
                         </div>
-                    </div>
 
                     <!-- Tab 2: Theme & Colors Customizer -->
                     <div class="tab-pane fade" id="tab-theme" role="tabpanel">

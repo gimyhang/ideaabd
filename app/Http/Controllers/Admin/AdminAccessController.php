@@ -236,6 +236,7 @@ class AdminAccessController extends Controller
             'site_favicon'    => 'nullable|image|mimes:jpeg,png,jpg,svg,webp,ico|max:1024',
             'banner_1'        => 'nullable|image|mimes:jpeg,png,jpg,webp|max:3072',
             'banner_2'        => 'nullable|image|mimes:jpeg,png,jpg,webp|max:3072',
+            'blog_og_banner'  => 'nullable|image|mimes:jpeg,png,jpg,webp|max:4096',
             'delivery_dhaka'  => 'nullable|numeric|min:0',
             'delivery_sub'    => 'nullable|numeric|min:0',
             'delivery_outside'=> 'nullable|numeric|min:0',
@@ -307,6 +308,19 @@ class AdminAccessController extends Controller
                     ['key' => 'home_banner_2'],
                     ['value' => $savedBanner2, 'updated_by' => auth()->id()]
                 );
+            }
+
+            // 5.1 Handle Blog / Social OG Share Banner
+            if ($request->boolean('remove_blog_og_banner')) {
+                AdminDashboardSetting::where('key', 'blog_og_banner')->delete();
+            } else {
+                $savedBlogOg = $this->saveImageOrBase64($request->file('blog_og_banner'), $request->input('blog_og_banner_cropped'), 'images/banners');
+                if ($savedBlogOg) {
+                    AdminDashboardSetting::updateOrCreate(
+                        ['key' => 'blog_og_banner'],
+                        ['value' => $savedBlogOg, 'updated_by' => auth()->id()]
+                    );
+                }
             }
 
             // 6. System Notice

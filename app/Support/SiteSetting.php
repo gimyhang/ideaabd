@@ -88,6 +88,12 @@ class SiteSetting
         return self::resolveImageUrl($banner);
     }
 
+    public static function blogOgBannerUrl(): ?string
+    {
+        $banner = self::get('blog_og_banner') ?: self::get('social_og_banner');
+        return self::resolveImageUrl($banner, 'images/blog/ideapatra-og.jpg');
+    }
+
     public static function ecommerce(): array
     {
         $ecom = self::get('ecommerce_settings', []);
