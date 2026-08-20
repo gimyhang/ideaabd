@@ -134,12 +134,21 @@ class RegistrationApprovalController extends Controller
             'publisher_name' => ['nullable', 'string', 'max:255'],
             'address'        => ['nullable', 'string'],
             'trade_license'  => ['nullable', 'string', 'max:100'],
+            'website'        => ['nullable', 'url', 'max:255'],
+            'avatar'         => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:4096'],
         ]);
 
         $regData = is_array($user->reg_data) ? $user->reg_data : [];
 
+        // Handle avatar upload if provided
+        if ($request->hasFile('avatar')) {
+            $avatarPath = $request->file('avatar')->store('authors', 'public');
+            $user->avatar = $avatarPath;
+            $regData['avatar'] = $avatarPath;
+        }
+
         // Update extra reg_data fields
-        foreach (['pen_name', 'genre', 'bio', 'nid', 'shop_name', 'publisher_name', 'address', 'trade_license'] as $field) {
+        foreach (['pen_name', 'genre', 'bio', 'nid', 'shop_name', 'publisher_name', 'address', 'trade_license', 'website'] as $field) {
             if ($request->has($field)) {
                 $regData[$field] = $request->input($field);
             }
@@ -176,6 +185,8 @@ class RegistrationApprovalController extends Controller
                     'email'       => $user->email,
                     'phone'       => $user->phone,
                     'bio'         => $regData['bio'] ?? null,
+                    'avatar'      => $user->avatar ?: ($regData['avatar'] ?? null),
+                    'website'     => $regData['website'] ?? null,
                     'is_active'   => $user->is_active,
                     'is_verified' => ($user->reg_status === 'approved'),
                 ]);

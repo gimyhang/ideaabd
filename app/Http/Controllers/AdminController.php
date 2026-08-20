@@ -1018,6 +1018,15 @@ class AdminController extends Controller
 
         $author->update($updates);
 
+        // Sync linked user account avatar if exists
+        if (!empty($updates['avatar'])) {
+            \App\Models\User::where(function ($q) use ($author) {
+                if ($author->email) $q->orWhere('email', $author->email);
+                if ($author->phone) $q->orWhere('phone', $author->phone);
+                if ($author->name)  $q->orWhere('name', $author->name);
+            })->update(['avatar' => $updates['avatar']]);
+        }
+
         $this->accessService->log('author_quick_update', "লেখক '{$author->name}' এর তথ্য আপডেট করা হয়েছে");
 
         return response()->json([
