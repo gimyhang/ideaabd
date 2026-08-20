@@ -700,86 +700,137 @@
                         <div class="col-12 col-md-8">
                             
                             {{-- Title & Edition --}}
-                            <div class="row g-2 mb-3">
+                            <div class="row g-2 mb-2.5">
                                 <div class="col-8">
-                                    <label class="form-label small fw-bold text-dark">বইয়ের নাম <span class="text-danger">*</span></label>
+                                    <label class="form-label small fw-bold text-dark mb-1">বইয়ের নাম <span class="text-danger">*</span></label>
                                     <input type="text" id="qeTitle" name="title" class="form-control form-control-sm fw-bold" required>
                                 </div>
                                 <div class="col-4">
-                                    <label class="form-label small fw-bold text-dark">সংস্করণ (Edition)</label>
+                                    <label class="form-label small fw-bold text-dark mb-1">সংস্করণ (Edition)</label>
                                     <input type="text" id="qeEdition" name="edition" class="form-control form-control-sm" placeholder="যেমন: ১ম প্রকাশ, ২০২৪">
                                 </div>
                             </div>
 
+                            {{-- Cover Type Selection Tabs in Modal --}}
+                            <div class="mb-2.5 pb-2 border-bottom">
+                                <label class="form-label small fw-bold text-dark d-block mb-1">
+                                    <i class="fas fa-layer-group text-primary me-1"></i> মূল বাঁধাই ও সংস্করণ (Cover Binding) <span class="text-danger">*</span>
+                                </label>
+                                <div class="btn-group w-100" role="group">
+                                    <input type="radio" class="btn-check" name="cover_type" id="qeCoverType_paperback" value="paperback" onchange="onQeCoverTypeChange()">
+                                    <label class="btn btn-outline-primary btn-sm py-1 fw-semibold" for="qeCoverType_paperback">
+                                        <i class="fas fa-book-open me-1 text-info"></i> পেপারব্যাক
+                                    </label>
+
+                                    <input type="radio" class="btn-check" name="cover_type" id="qeCoverType_hardcover" value="hardcover" onchange="onQeCoverTypeChange()">
+                                    <label class="btn btn-outline-primary btn-sm py-1 fw-semibold" for="qeCoverType_hardcover">
+                                        <i class="fas fa-gem me-1 text-warning"></i> হার্ডকভার
+                                    </label>
+
+                                    <input type="radio" class="btn-check" name="cover_type" id="qeCoverType_both" value="both" onchange="onQeCoverTypeChange()">
+                                    <label class="btn btn-outline-primary btn-sm py-1 fw-semibold" for="qeCoverType_both">
+                                        <i class="fas fa-layer-group me-1 text-success"></i> উভয় সংস্করণ
+                                    </label>
+                                </div>
+                            </div>
+
                             {{-- Pricing & Commissions Calculator --}}
-                            <div class="p-3 bg-light rounded-3 mb-3 border">
-                                <h6 class="fw-bold text-primary mb-2.5 small text-uppercase">
-                                    <i class="fas fa-calculator me-1"></i> গায়ের মূল্য, বিক্রয় ছাড় ও ক্রয় কমিশন
-                                </h6>
+                            <div class="p-2.5 bg-light rounded-3 mb-3 border">
                                 
-                                <div class="row g-2 mb-2">
-                                    {{-- MRP Price --}}
-                                    <div class="col-4">
-                                        <label class="form-label small fw-bold text-dark">গায়ের মূল্য (MRP) <span class="text-danger">*</span></label>
-                                        <div class="input-group input-group-sm">
-                                            <span class="input-group-text">৳</span>
-                                            <input type="number" id="qePrice" name="price" min="0" step="1" class="form-control fw-bold" required oninput="recalcPricingFromMrp()">
+                                {{-- 1. Paperback Pricing Block --}}
+                                <div id="qePaperbackPriceBlock" class="mb-2">
+                                    <div class="d-flex align-items-center justify-content-between mb-1">
+                                        <span class="badge bg-light text-dark border px-2 py-0.5 small fw-bold" style="font-size: 11px;">
+                                            <i class="fas fa-book-open text-primary me-1"></i> পেপারব্যাক মূল্য
+                                        </span>
+                                    </div>
+                                    <div class="row g-2">
+                                        <div class="col-4">
+                                            <label class="form-label small fw-bold text-dark mb-1">গায়ের মুদ্রিত মূল্য (MRP)</label>
+                                            <div class="input-group input-group-sm">
+                                                <span class="input-group-text bg-white">৳</span>
+                                                <input type="number" id="qePrice" name="price" min="0" step="1" class="form-control fw-bold" placeholder="0" oninput="recalcPricingFromMrp()">
+                                            </div>
+                                        </div>
+                                        <div class="col-4">
+                                            <label class="form-label small fw-semibold text-dark mb-1">সেল ছাড় / ডিসকাউন্ট</label>
+                                            <div class="input-group input-group-sm">
+                                                <input type="number" id="qeSaleCommission" min="0" max="100" step="0.5" class="form-control text-center text-danger fw-bold" placeholder="0" oninput="recalcSalePriceFromCommission()">
+                                                <span class="input-group-text bg-white">%</span>
+                                            </div>
+                                        </div>
+                                        <div class="col-4">
+                                            <label class="form-label small fw-semibold text-dark mb-1">বিক্রয় মূল্য (Sale)</label>
+                                            <div class="input-group input-group-sm">
+                                                <span class="input-group-text bg-white">৳</span>
+                                                <input type="number" id="qeDiscountPrice" name="discount_price" min="0" step="1" class="form-control text-primary fw-bold" placeholder="0" oninput="recalcSaleCommissionFromPrice()">
+                                            </div>
                                         </div>
                                     </div>
+                                </div>
 
-                                    {{-- Sale Commission % --}}
-                                    <div class="col-4">
-                                        <label class="form-label small fw-semibold text-dark">সেল ছাড় / ডিসকাউন্ট</label>
-                                        <div class="input-group input-group-sm">
-                                            <input type="number" id="qeSaleCommission" min="0" max="100" step="0.5" class="form-control text-center text-danger fw-bold" placeholder="0" oninput="recalcSalePriceFromCommission()">
-                                            <span class="input-group-text bg-white">%</span>
-                                        </div>
+                                {{-- 2. Hardcover Pricing Block --}}
+                                <div id="qeHardcoverPriceBlock" class="mb-2">
+                                    <div class="d-flex align-items-center justify-content-between mb-1">
+                                        <span class="badge bg-warning-subtle text-dark border border-warning-subtle px-2 py-0.5 small fw-bold" style="font-size: 11px;">
+                                            <i class="fas fa-gem text-warning me-1"></i> হার্ডকভার মূল্য
+                                        </span>
                                     </div>
-
-                                    {{-- Sale Price (Discount Price) --}}
-                                    <div class="col-4">
-                                        <label class="form-label small fw-semibold text-dark">বিক্রয় মূল্য (Sale)</label>
-                                        <div class="input-group input-group-sm">
-                                            <span class="input-group-text">৳</span>
-                                            <input type="number" id="qeDiscountPrice" name="discount_price" min="0" step="1" class="form-control text-primary fw-bold" oninput="recalcSaleCommissionFromPrice()">
+                                    <div class="row g-2">
+                                        <div class="col-4">
+                                            <label class="form-label small fw-bold text-dark mb-1">হার্ডকভার গায়ের মূল্য (MRP)</label>
+                                            <div class="input-group input-group-sm">
+                                                <span class="input-group-text bg-white">৳</span>
+                                                <input type="number" id="qeHardcoverPrice" name="hardcover_price" min="0" step="1" class="form-control fw-bold" placeholder="0" oninput="recalcHardcoverPricingFromMrp()">
+                                            </div>
+                                        </div>
+                                        <div class="col-4">
+                                            <label class="form-label small fw-semibold text-dark mb-1">হার্ডকভার ছাড়</label>
+                                            <div class="input-group input-group-sm">
+                                                <input type="number" id="qeHardcoverSaleCommission" min="0" max="100" step="0.5" class="form-control text-center text-danger fw-bold" placeholder="0" oninput="recalcHardcoverSalePriceFromCommission()">
+                                                <span class="input-group-text bg-white">%</span>
+                                            </div>
+                                        </div>
+                                        <div class="col-4">
+                                            <label class="form-label small fw-semibold text-dark mb-1">হার্ডকভার বিক্রয় মূল্য</label>
+                                            <div class="input-group input-group-sm">
+                                                <span class="input-group-text bg-white">৳</span>
+                                                <input type="number" id="qeHardcoverDiscountPrice" name="hardcover_discount_price" min="0" step="1" class="form-control text-primary fw-bold" placeholder="0" oninput="recalcHardcoverSaleCommissionFromPrice()">
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div class="row g-2">
-                                    {{-- Hardcover Price (optional) --}}
-                                    <div class="col-4">
-                                        <label class="form-label small text-muted">হার্ডকভার মুদ্রিত মূল্য</label>
-                                        <div class="input-group input-group-sm">
-                                            <span class="input-group-text">৳</span>
-                                            <input type="number" id="qeHardcoverPrice" name="hardcover_price" min="0" step="1" class="form-control" placeholder="0">
+                                {{-- 3. Wholesale Buy Commission & Cost Price --}}
+                                <div class="pt-2 border-top">
+                                    <div class="row g-2 align-items-center">
+                                        <div class="col-6">
+                                            <label class="form-label small fw-bold text-dark mb-1">
+                                                <i class="fas fa-hand-holding-dollar text-success me-1"></i> ক্রয় কমিশন (%)
+                                            </label>
+                                            <div class="input-group input-group-sm">
+                                                <input type="number" id="qeBuyCommission" min="0" max="100" step="0.5" class="form-control text-center text-success fw-bold" placeholder="40" oninput="recalcCostPriceFromCommission()">
+                                                <span class="input-group-text bg-white">%</span>
+                                            </div>
                                         </div>
-                                    </div>
-
-                                    {{-- Buy Commission % --}}
-                                    <div class="col-4">
-                                        <label class="form-label small fw-semibold text-dark">ক্রয় কমিশন (%)</label>
-                                        <div class="input-group input-group-sm">
-                                            <input type="number" id="qeBuyCommission" min="0" max="100" step="0.5" class="form-control text-center text-success fw-bold" placeholder="0" oninput="recalcCostPriceFromCommission()">
-                                            <span class="input-group-text bg-white">%</span>
-                                        </div>
-                                    </div>
-
-                                    {{-- Purchase Cost Price --}}
-                                    <div class="col-4">
-                                        <label class="form-label small fw-semibold text-dark">ক্রয় খরচ / মূল্য (Cost)</label>
-                                        <div class="input-group input-group-sm">
-                                            <span class="input-group-text">৳</span>
-                                            <input type="number" id="qeCostPrice" name="cost_price" min="0" step="1" class="form-control text-success fw-bold" oninput="recalcBuyCommissionFromPrice()">
+                                        <div class="col-6">
+                                            <label class="form-label small fw-bold text-dark mb-1">
+                                                <i class="fas fa-money-bill-wave text-success me-1"></i> ক্রয় খরচ / দর (Cost)
+                                            </label>
+                                            <div class="input-group input-group-sm">
+                                                <span class="input-group-text bg-white">৳</span>
+                                                <input type="number" id="qeCostPrice" name="cost_price" min="0" step="1" class="form-control text-success fw-bold" placeholder="0" oninput="recalcBuyCommissionFromPrice()">
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
+
                             </div>
 
                             {{-- Inventory & Live Status --}}
                             <div class="row g-2 align-items-center">
                                 <div class="col-4">
-                                    <label class="form-label small fw-bold text-dark">ইনভেন্টরি স্টক সংখ্যা <span class="text-danger">*</span></label>
+                                    <label class="form-label small fw-bold text-dark mb-1">ইনভেন্টরি স্টক <span class="text-danger">*</span></label>
                                     <div class="input-group input-group-sm">
                                         <input type="number" id="qeStockQuantity" name="stock_quantity" min="0" max="100000" class="form-control fw-bold" required>
                                         <span class="input-group-text">টি</span>
@@ -787,7 +838,7 @@
                                 </div>
 
                                 <div class="col-4">
-                                    <label class="form-label small fw-bold text-dark">স্টক অবস্থা</label>
+                                    <label class="form-label small fw-bold text-dark mb-1">স্টক অবস্থা</label>
                                     <select id="qeStockStatus" name="stock_status" class="form-select form-select-sm">
                                         <option value="in_stock">🟢 ইন-স্টক</option>
                                         <option value="low">🟡 লো-স্টক</option>
@@ -849,6 +900,7 @@ const booksDataMap = {
             id: {{ $b->id }},
             title: "{{ addslashes($b->title) }}",
             edition: "{{ addslashes($b->edition ?? '') }}",
+            cover_type: "{{ $b->cover_type ?: (($b->hardcover_price > 0 && !$b->price) ? 'hardcover' : 'paperback') }}",
             price: {{ (float) ($b->price ?: 0) }},
             discount_price: {{ (float) ($b->discount_price ?: 0) }},
             cost_price: {{ (float) ($b->cost_price ?: 0) }},
@@ -862,6 +914,26 @@ const booksDataMap = {
     @endforeach
 };
 
+function onQeCoverTypeChange() {
+    const isHardcover = document.getElementById('qeCoverType_hardcover').checked;
+    const isPaperback = document.getElementById('qeCoverType_paperback').checked;
+    const isBoth = document.getElementById('qeCoverType_both').checked;
+
+    const paperBlock = document.getElementById('qePaperbackPriceBlock');
+    const hardBlock = document.getElementById('qeHardcoverPriceBlock');
+
+    if (isBoth) {
+        paperBlock.style.display = 'block';
+        hardBlock.style.display = 'block';
+    } else if (isHardcover) {
+        paperBlock.style.display = 'none';
+        hardBlock.style.display = 'block';
+    } else {
+        paperBlock.style.display = 'block';
+        hardBlock.style.display = 'none';
+    }
+}
+
 function openQuickEditModal(bookId, focusTab = 'all') {
     const book = booksDataMap[bookId];
     if (!book) return;
@@ -873,6 +945,7 @@ function openQuickEditModal(bookId, focusTab = 'all') {
     document.getElementById('qeDiscountPrice').value = book.discount_price > 0 ? book.discount_price : '';
     document.getElementById('qeCostPrice').value = book.cost_price > 0 ? book.cost_price : '';
     document.getElementById('qeHardcoverPrice').value = book.hardcover_price > 0 ? book.hardcover_price : '';
+    document.getElementById('qeHardcoverDiscountPrice').value = book.hardcover_discount_price > 0 ? book.hardcover_discount_price : '';
     document.getElementById('qeStockQuantity').value = book.stock_quantity;
     document.getElementById('qeStockStatus').value = book.stock_status || (book.stock_quantity <= 0 ? 'out' : 'in_stock');
     document.getElementById('qeIsActive').checked = (book.is_active === 1);
@@ -880,8 +953,26 @@ function openQuickEditModal(bookId, focusTab = 'all') {
     document.getElementById('qeCoverInput').value = '';
     document.getElementById('qeAlertBox').innerHTML = '';
 
+    // Set Binding Cover Type
+    let cType = book.cover_type || 'paperback';
+    if (book.hardcover_price > 0 && book.price > 0) {
+        cType = 'both';
+    } else if (book.hardcover_price > 0 && (!book.price || book.price <= 0)) {
+        cType = 'hardcover';
+    }
+
+    if (cType === 'both') {
+        document.getElementById('qeCoverType_both').checked = true;
+    } else if (cType === 'hardcover') {
+        document.getElementById('qeCoverType_hardcover').checked = true;
+    } else {
+        document.getElementById('qeCoverType_paperback').checked = true;
+    }
+    onQeCoverTypeChange();
+
     // Calculate initial commission percentages
     recalcSaleCommissionFromPrice();
+    recalcHardcoverSaleCommissionFromPrice();
     recalcBuyCommissionFromPrice();
 
     const modalEl = document.getElementById('quickBookEditModal');
@@ -893,14 +984,18 @@ function openQuickEditModal(bookId, focusTab = 'all') {
         if (focusTab === 'edition') {
             document.getElementById('qeEdition').focus();
         } else if (focusTab === 'pricing') {
-            document.getElementById('qePrice').focus();
+            if (cType === 'hardcover') {
+                document.getElementById('qeHardcoverPrice').focus();
+            } else {
+                document.getElementById('qePrice').focus();
+            }
         } else if (focusTab === 'stock') {
             document.getElementById('qeStockQuantity').focus();
         }
     }, 400);
 }
 
-// Commission Dual Calculators
+// 1. Paperback Dual Commission Calculators
 function recalcPricingFromMrp() {
     const mrp = parseFloat(document.getElementById('qePrice').value) || 0;
     const saleComm = parseFloat(document.getElementById('qeSaleCommission').value) || 0;
@@ -941,8 +1036,60 @@ function recalcSaleCommissionFromPrice() {
     }
 }
 
+// 2. Hardcover Dual Commission Calculators
+function recalcHardcoverPricingFromMrp() {
+    const mrp = parseFloat(document.getElementById('qeHardcoverPrice').value) || 0;
+    const saleComm = parseFloat(document.getElementById('qeHardcoverSaleCommission').value) || 0;
+    const discountPrice = parseFloat(document.getElementById('qeHardcoverDiscountPrice').value) || 0;
+
+    if (saleComm > 0) {
+        recalcHardcoverSalePriceFromCommission();
+    } else if (discountPrice > 0 && mrp > 0) {
+        recalcHardcoverSaleCommissionFromPrice();
+    }
+
+    const isHardcover = document.getElementById('qeCoverType_hardcover').checked;
+    if (isHardcover) {
+        const buyComm = parseFloat(document.getElementById('qeBuyCommission').value) || 0;
+        const costPrice = parseFloat(document.getElementById('qeCostPrice').value) || 0;
+        if (buyComm > 0) {
+            recalcCostPriceFromCommission();
+        } else if (costPrice > 0 && mrp > 0) {
+            recalcBuyCommissionFromPrice();
+        }
+    }
+}
+
+function recalcHardcoverSalePriceFromCommission() {
+    const mrp = parseFloat(document.getElementById('qeHardcoverPrice').value) || 0;
+    const comm = parseFloat(document.getElementById('qeHardcoverSaleCommission').value) || 0;
+    if (mrp > 0 && comm > 0) {
+        const salePrice = mrp * (1 - (comm / 100));
+        document.getElementById('qeHardcoverDiscountPrice').value = Math.round(salePrice);
+    }
+}
+
+function recalcHardcoverSaleCommissionFromPrice() {
+    const mrp = parseFloat(document.getElementById('qeHardcoverPrice').value) || 0;
+    const salePrice = parseFloat(document.getElementById('qeHardcoverDiscountPrice').value) || 0;
+    if (mrp > 0 && salePrice > 0 && salePrice < mrp) {
+        const comm = ((mrp - salePrice) / mrp) * 100;
+        document.getElementById('qeHardcoverSaleCommission').value = comm.toFixed(1);
+    } else if (salePrice <= 0) {
+        document.getElementById('qeHardcoverSaleCommission').value = '';
+    }
+}
+
+// 3. Buy Commission & Cost Price Calculators
+function getEffectiveMrpForCost() {
+    const isHardcover = document.getElementById('qeCoverType_hardcover').checked;
+    const paperMrp = parseFloat(document.getElementById('qePrice').value) || 0;
+    const hardMrp = parseFloat(document.getElementById('qeHardcoverPrice').value) || 0;
+    return (isHardcover && hardMrp > 0) ? hardMrp : (paperMrp > 0 ? paperMrp : hardMrp);
+}
+
 function recalcCostPriceFromCommission() {
-    const mrp = parseFloat(document.getElementById('qePrice').value) || 0;
+    const mrp = getEffectiveMrpForCost();
     const comm = parseFloat(document.getElementById('qeBuyCommission').value) || 0;
     if (mrp > 0 && comm > 0) {
         const costPrice = mrp * (1 - (comm / 100));
@@ -951,7 +1098,7 @@ function recalcCostPriceFromCommission() {
 }
 
 function recalcBuyCommissionFromPrice() {
-    const mrp = parseFloat(document.getElementById('qePrice').value) || 0;
+    const mrp = getEffectiveMrpForCost();
     const costPrice = parseFloat(document.getElementById('qeCostPrice').value) || 0;
     if (mrp > 0 && costPrice > 0 && costPrice < mrp) {
         const comm = ((mrp - costPrice) / mrp) * 100;
@@ -1022,7 +1169,7 @@ function exportBooksToCSV() {
         const cols = row.querySelectorAll('th, td');
         let rowData = [];
         cols.forEach((col, idx) => {
-            if (idx === 8) return; // skip action column
+            if (idx === 10) return; // skip action column
             let text = col.innerText.replace(/"/g, '""').replace(/\n/g, ' ').trim();
             rowData.push('"' + text + '"');
         });

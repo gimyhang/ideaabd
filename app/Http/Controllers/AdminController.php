@@ -1265,6 +1265,7 @@ class AdminController extends Controller
         $validated = $request->validate([
             'book_id'                  => 'required|integer|exists:books,id',
             'title'                    => 'nullable|string|max:255',
+            'cover_type'               => 'nullable|string|in:paperback,hardcover,both',
             'price'                    => 'nullable|numeric|min:0',
             'discount_price'           => 'nullable|numeric|min:0',
             'cost_price'               => 'nullable|numeric|min:0',
@@ -1283,6 +1284,9 @@ class AdminController extends Controller
 
         if ($request->has('title') && $validated['title'] !== null) {
             $updates['title'] = $validated['title'];
+        }
+        if ($request->has('cover_type') && $validated['cover_type'] !== null) {
+            $updates['cover_type'] = $validated['cover_type'];
         }
         if ($request->has('edition')) {
             $updates['edition'] = $validated['edition'];
