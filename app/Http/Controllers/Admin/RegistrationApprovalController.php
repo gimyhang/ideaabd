@@ -126,15 +126,20 @@ class RegistrationApprovalController extends Controller
             'role'           => ['required', 'in:author,seller,publisher,buyer'],
             'reg_status'     => ['required', 'in:pending,approved,rejected'],
             'is_active'      => ['nullable', 'boolean'],
+            'full_name'      => ['nullable', 'string', 'max:255'],
             'pen_name'       => ['nullable', 'string', 'max:255'],
             'genre'          => ['nullable', 'string', 'max:255'],
             'bio'            => ['nullable', 'string'],
             'nid'            => ['nullable', 'string', 'max:50'],
             'shop_name'      => ['nullable', 'string', 'max:255'],
+            'zone'           => ['nullable', 'string', 'max:255'],
             'publisher_name' => ['nullable', 'string', 'max:255'],
             'address'        => ['nullable', 'string'],
             'trade_license'  => ['nullable', 'string', 'max:100'],
-            'website'        => ['nullable', 'url', 'max:255'],
+            'website'        => ['nullable', 'string', 'max:255'],
+            'facebook'       => ['nullable', 'string', 'max:255'],
+            'twitter'        => ['nullable', 'string', 'max:255'],
+            'youtube'        => ['nullable', 'string', 'max:255'],
             'avatar'         => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:4096'],
         ]);
 
@@ -148,7 +153,7 @@ class RegistrationApprovalController extends Controller
         }
 
         // Update extra reg_data fields
-        foreach (['pen_name', 'genre', 'bio', 'nid', 'shop_name', 'publisher_name', 'address', 'trade_license', 'website'] as $field) {
+        foreach (['full_name', 'pen_name', 'genre', 'bio', 'nid', 'shop_name', 'zone', 'publisher_name', 'address', 'trade_license', 'website', 'facebook', 'twitter', 'youtube'] as $field) {
             if ($request->has($field)) {
                 $regData[$field] = $request->input($field);
             }
@@ -179,16 +184,23 @@ class RegistrationApprovalController extends Controller
         // Update authors table if role is author
         if ($user->role === 'author') {
             try {
-                $authorName = !empty($regData['pen_name']) ? $regData['pen_name'] : $user->name;
+                $authorName = $user->name;
+                $socialLinks = array_filter([
+                    'facebook' => $request->input('facebook') ?: ($regData['facebook'] ?? null),
+                    'twitter'  => $request->input('twitter') ?: ($regData['twitter'] ?? null),
+                    'youtube'  => $request->input('youtube') ?: ($regData['youtube'] ?? null),
+                ]);
+
                 \Modules\Author\Models\Author::findOrCreateUnified([
-                    'name'        => $authorName,
-                    'email'       => $user->email,
-                    'phone'       => $user->phone,
-                    'bio'         => $regData['bio'] ?? null,
-                    'avatar'      => $user->avatar ?: ($regData['avatar'] ?? null),
-                    'website'     => $regData['website'] ?? null,
-                    'is_active'   => $user->is_active,
-                    'is_verified' => ($user->reg_status === 'approved'),
+                    'name'         => $authorName,
+                    'email'        => $user->email,
+                    'phone'        => $user->phone,
+                    'bio'          => $regData['bio'] ?? null,
+                    'avatar'       => $user->avatar ?: ($regData['avatar'] ?? null),
+                    'website'      => $regData['website'] ?? null,
+                    'social_links' => $socialLinks,
+                    'is_active'    => $user->is_active,
+                    'is_verified'  => ($user->reg_status === 'approved'),
                 ]);
             } catch (\Throwable $e) {
                 Log::warning("Could not sync updated author directory: " . $e->getMessage());
