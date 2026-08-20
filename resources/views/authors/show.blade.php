@@ -1,11 +1,7 @@
 @extends('layouts.app')
 
 @php
-    $photo = $author->avatar ?? $author->photo ?? null;
-    $photoUrl = asset('images/logo.svg');
-    if ($photo) {
-        $photoUrl = str_starts_with($photo, 'http') ? $photo : asset('storage/' . ltrim($photo, '/'));
-    }
+    $photoUrl = $author->avatar_url ?: asset('images/logo.svg');
     $authorBio = !empty($author->bio) ? Str::limit(strip_tags($author->bio), 180) : 'আইডিয়া প্রকাশনে ' . $author->name . '-এর প্রোফাইল ও সকল বই দেখুন।';
 @endphp
 
@@ -32,20 +28,17 @@
         <div class="p-4 p-md-5" style="background: linear-gradient(135deg, #1e293b 0%, #334155 50%, #475569 100%); color: #fff;">
             <div class="d-flex flex-column flex-md-row align-items-center align-items-md-start gap-4">
                 <!-- Avatar -->
-                <div class="rounded-circle overflow-hidden shadow-lg border border-4 border-white flex-shrink-0" 
-                     style="width: 120px; height: 120px; background: linear-gradient(135deg, #e0e7ff, #c7d2fe);">
-                    @php
-                        $photo = $author->avatar ?? $author->photo ?? null;
-                        $photoUrl = null;
-                        if ($photo) {
-                            $photoUrl = str_starts_with($photo, 'http') ? $photo : asset('storage/' . $photo);
-                        }
-                    @endphp
-                    @if($photoUrl)
-                        <img src="{{ $photoUrl }}" alt="{{ $author->name }}" class="w-100 h-100 object-fit-cover">
+                <div class="rounded-circle overflow-hidden shadow-lg border border-4 border-white flex-shrink-0 position-relative" 
+                     style="width: 120px; height: 120px; background: {{ $author->avatar_bg_color }};">
+                    @if($author->avatar_url)
+                        <img src="{{ $author->avatar_url }}" alt="{{ $author->name }}" class="w-100 h-100 object-fit-cover"
+                             onerror="this.style.display='none'; this.nextElementSibling.classList.remove('d-none');">
+                        <div class="w-100 h-100 d-none d-flex align-items-center justify-content-center text-white fs-1 fw-bold" style="background: {{ $author->avatar_bg_color }};">
+                            {{ $author->initials }}
+                        </div>
                     @else
-                        <div class="w-100 h-100 d-flex align-items-center justify-content-center text-primary fs-1 fw-bold">
-                            {{ mb_substr($author->name ?? 'লে', 0, 1) }}
+                        <div class="w-100 h-100 d-flex align-items-center justify-content-center text-white fs-1 fw-bold">
+                            {{ $author->initials }}
                         </div>
                     @endif
                 </div>

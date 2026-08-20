@@ -888,8 +888,9 @@ class AdminController extends Controller
         $search   = $request->string('search')->trim()->value();
         $status   = $request->input('is_active');
         $verified = $request->input('is_verified');
+        $hasBooks = $request->input('has_books');
         $sort     = $request->string('sort')->trim()->value() ?: 'latest';
-        $perPage  = in_array((int) $request->input('per_page'), [10, 20, 50, 100], true) ? (int) $request->input('per_page') : 20;
+        $perPage  = in_array((int) $request->input('per_page'), [12, 20, 24, 48, 96, 100], true) ? (int) $request->input('per_page') : 24;
 
         $query = \Modules\Author\Models\Author::query()
             ->withCount('books')
@@ -912,25 +913,171 @@ class AdminController extends Controller
                 }
             })
             ->when($status !== null && $status !== '', fn ($q) => $q->where('is_active', (bool) $status))
-            ->when($verified !== null && $verified !== '', fn ($q) => $q->where('is_verified', (bool) $verified));
+            ->when($verified !== null && $verified !== '', fn ($q) => $q->where('is_verified', (bool) $verified))
+            ->when($hasBooks === '1', fn ($q) => $q->has('books'))
+            ->when($hasBooks === '0', fn ($q) => $q->doesntHave('books'));
 
         match ($sort) {
             'oldest'     => $query->oldest('id'),
             'name_asc'   => $query->orderBy('name', 'asc'),
             'name_desc'  => $query->orderBy('name', 'desc'),
             'books_desc' => $query->orderByDesc('books_count'),
+            'books_asc'  => $query->orderBy('books_count', 'asc'),
             default      => $query->latest('id'),
         };
 
         $authors = $query->paginate($perPage)->withQueryString();
 
         $stats = [
-            'total'    => \Modules\Author\Models\Author::count(),
-            'active'   => \Modules\Author\Models\Author::where('is_active', true)->count(),
-            'verified' => \Modules\Author\Models\Author::where('is_verified', true)->count(),
+            'total'       => \Modules\Author\Models\Author::count(),
+            'active'      => \Modules\Author\Models\Author::where('is_active', true)->count(),
+            'verified'    => \Modules\Author\Models\Author::where('is_verified', true)->count(),
+            'with_books'  => \Modules\Author\Models\Author::has('books')->count(),
+            'total_books' => Schema::hasTable('book_author') ? DB::table('book_author')->distinct('book_id')->count('book_id') : 0,
         ];
 
-        return view('admin.authors', compact('authors', 'stats', 'search', 'status', 'verified', 'sort', 'perPage'));
+        return view('admin.authors', compact('authors', 'stats', 'search', 'status', 'verified', 'hasBooks', 'sort', 'perPage'));
+    }
+
+    public function quickStoreAuthor(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $validated = $request->validate([
+            'name'        => 'required|string|max:255',
+            'slug'        => 'nullable|string|max:255|unique:authors,slug',
+            'phone'       => 'nullable|string|max:50',
+            'email'       => 'nullable|email|max:255',
+            'website'     => 'nullable|url|max:255',
+            'bio'         => 'nullable|string|max:20000',
+            'is_active'   => 'nullable|boolean',
+            'is_verified' => 'nullable|boolean',
+            'avatar_file' => 'nullable|image|max:4096',
+        ]);
+
+        $name = trim($validated['name']);
+        $slug = !empty($validated['slug']) 
+            ? \Illuminate\Support\Str::slug($validated['slug'])
+            : (\Illuminate\Support\Str::slug($this->bengaliToEnglish($name)) ?: 'author-' . \Illuminate\Support\Str::random(6));
+        
+        if (\Modules\Author\Models\Author::where('slug', $slug)->exists()) {
+            $slug .= '-' . rand(100, 999);
+        }
+
+        $avatarPath = null;
+        if ($request->hasFile('avatar_file')) {
+            $avatarPath = $request->file('avatar_file')->store('authors', 'public');
+        }
+
+        $author = \Modules\Author\Models\Author::create([
+            'name'        => $name,
+            'slug'        => $slug,
+            'phone'       => $validated['phone'] ?? null,
+            'email'       => $validated['email'] ?? null,
+            'website'     => $validated['website'] ?? null,
+            'bio'         => $validated['bio'] ?? null,
+            'avatar'      => $avatarPath,
+            'is_active'   => $request->boolean('is_active', true),
+            'is_verified' => $request->boolean('is_verified', false),
+        ]);
+
+        $this->accessService->log('author_quick_create', "নতুন লেখক '{$author->name}' যুক্ত করা হয়েছে");
+
+        return response()->json([
+            'success' => true,
+            'message' => "নতুন লেখক '{$author->name}' সফলভাবে তৈরি হয়েছে!",
+            'author'  => $author,
+        ]);
+    }
+
+    public function quickUpdateAuthor(Request $request, $id): \Illuminate\Http\JsonResponse
+    {
+        $author = \Modules\Author\Models\Author::findOrFail($id);
+
+        $validated = $request->validate([
+            'name'        => 'required|string|max:255',
+            'slug'        => 'nullable|string|max:255|unique:authors,slug,' . $author->id,
+            'phone'       => 'nullable|string|max:50',
+            'email'       => 'nullable|email|max:255',
+            'website'     => 'nullable|url|max:255',
+            'bio'         => 'nullable|string|max:20000',
+            'is_active'   => 'nullable|boolean',
+            'is_verified' => 'nullable|boolean',
+            'avatar_file' => 'nullable|image|max:4096',
+        ]);
+
+        $updates = [
+            'name'    => $validated['name'],
+            'phone'   => $validated['phone'] ?? null,
+            'email'   => $validated['email'] ?? null,
+            'website' => $validated['website'] ?? null,
+            'bio'     => $validated['bio'] ?? null,
+        ];
+
+        if (!empty($validated['slug'])) {
+            $updates['slug'] = \Illuminate\Support\Str::slug($validated['slug']);
+        }
+        if ($request->has('is_active')) {
+            $updates['is_active'] = $request->boolean('is_active');
+        }
+        if ($request->has('is_verified')) {
+            $updates['is_verified'] = $request->boolean('is_verified');
+        }
+        if ($request->hasFile('avatar_file')) {
+            $updates['avatar'] = $request->file('avatar_file')->store('authors', 'public');
+        }
+
+        $author->update($updates);
+
+        $this->accessService->log('author_quick_update', "লেখক '{$author->name}' এর তথ্য আপডেট করা হয়েছে");
+
+        return response()->json([
+            'success' => true,
+            'message' => "লেখকের তথ্য সফলভাবে সংরক্ষিত হয়েছে!",
+            'author'  => $author,
+        ]);
+    }
+
+    public function toggleAuthorStatus($id): \Illuminate\Http\JsonResponse
+    {
+        $author = \Modules\Author\Models\Author::findOrFail($id);
+        $author->is_active = !$author->is_active;
+        $author->save();
+
+        $statusText = $author->is_active ? 'সক্রিয়' : 'নিষ্ক্রিয়';
+        $this->accessService->log('author_status_toggle', "লেখক '{$author->name}' {$statusText} করা হয়েছে");
+
+        return response()->json([
+            'success'   => true,
+            'is_active' => $author->is_active,
+            'message'   => "লেখক '{$author->name}' এখন {$statusText}",
+        ]);
+    }
+
+    public function toggleAuthorVerified($id): \Illuminate\Http\JsonResponse
+    {
+        $author = \Modules\Author\Models\Author::findOrFail($id);
+        $author->is_verified = !$author->is_verified;
+        $author->save();
+
+        $vText = $author->is_verified ? 'যাচাইকৃত (Verified)' : 'সাধারণ (Unverified)';
+        $this->accessService->log('author_verified_toggle', "লেখক '{$author->name}' কে {$vText} হিসেবে চিহ্নিত করা হয়েছে");
+
+        return response()->json([
+            'success'     => true,
+            'is_verified' => $author->is_verified,
+            'message'     => "লেখক '{$author->name}' এখন {$vText}",
+        ]);
+    }
+
+    public function authorDetails($id): \Illuminate\Http\JsonResponse
+    {
+        $author = \Modules\Author\Models\Author::with(['books' => function ($q) {
+            $q->select('books.id', 'title', 'price', 'cover_image')->latest()->take(10);
+        }])->withCount('books')->findOrFail($id);
+
+        return response()->json([
+            'success' => true,
+            'author'  => $author,
+        ]);
     }
 
     public function publishers(Request $request): View

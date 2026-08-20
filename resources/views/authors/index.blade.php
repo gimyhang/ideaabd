@@ -155,14 +155,17 @@
                 </h6>
                 <div class="d-flex flex-column gap-3">
                     @foreach($topAuthors as $top)
-                        <a href="{{ route('authors.show', $top->id ?? $top->slug) }}" class="d-flex align-items-center gap-2 text-decoration-none text-dark hover-primary">
-                            <div class="rounded-circle overflow-hidden shadow-sm flex-shrink-0" style="width: 42px; height: 42px; background: #e2e8f0;">
-                                @php $tPhoto = $top->avatar ?? $top->photo ?? null; @endphp
-                                @if($tPhoto)
-                                    <img src="{{ str_starts_with($tPhoto, 'http') ? $tPhoto : asset('storage/' . $tPhoto) }}" class="w-100 h-100 object-fit-cover">
+                        <a href="{{ route('authors.show', $top->slug ?: $top->id) }}" class="d-flex align-items-center gap-2 text-decoration-none text-dark hover-primary">
+                            <div class="rounded-circle overflow-hidden shadow-sm flex-shrink-0 position-relative" style="width: 42px; height: 42px; background: {{ $top->avatar_bg_color ?? '#e2e8f0' }};">
+                                @if($top->avatar_url)
+                                    <img src="{{ $top->avatar_url }}" class="w-100 h-100 object-fit-cover"
+                                         onerror="this.style.display='none'; this.nextElementSibling.classList.remove('d-none');">
+                                    <div class="w-100 h-100 d-none d-flex align-items-center justify-content-center text-white fw-bold small" style="background: {{ $top->avatar_bg_color ?? '#4f46e5' }};">
+                                        {{ $top->initials ?? mb_substr($top->name, 0, 1) }}
+                                    </div>
                                 @else
-                                    <div class="w-100 h-100 d-flex align-items-center justify-content-center text-primary fw-bold">
-                                        {{ mb_substr($top->name, 0, 1) }}
+                                    <div class="w-100 h-100 d-flex align-items-center justify-content-center text-white fw-bold small">
+                                        {{ $top->initials ?? mb_substr($top->name, 0, 1) }}
                                     </div>
                                 @endif
                             </div>

@@ -28,16 +28,19 @@ class AuthorController extends Controller
     public function storeRegistration()
     {
         $validated = request()->validate([
-            'name' => 'required|unique:authors',
-            'email' => 'required|email|unique:authors',
-            'bio' => 'required',
-            'phone' => 'nullable',
+            'name'    => 'required|unique:authors,name',
+            'email'   => 'required|email|unique:authors,email',
+            'bio'     => 'required|string',
+            'phone'   => 'nullable|string',
             'website' => 'nullable|url',
         ]);
 
-        $validated['slug'] = \Illuminate\Support\Str::slug($validated['name']);
+        $validated['slug'] = \Illuminate\Support\Str::slug($validated['name']) ?: 'author-' . \Illuminate\Support\Str::random(6);
+        $validated['is_active'] = false;
+        $validated['is_verified'] = false;
+
         Author::create($validated);
 
-        return redirect('/')->with('success', 'লেখক হিসেবে সফলভাবে নিবন্ধন সম্পন্ন হয়েছে।');
+        return redirect('/')->with('success', 'লেখক হিসেবে আপনার নিবন্ধন আবেদন সফলভাবে জমা হয়েছে। অ্যাডমিন পর্যালোচনা ও অনুমোদনের পর প্রোফাইলটি সক্রিয় হবে।');
     }
 }

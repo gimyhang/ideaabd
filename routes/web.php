@@ -234,6 +234,11 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::get('/ebooks', [AdminController::class, 'ebooks'])->name('ebooks');
     Route::get('/webzines', [AdminController::class, 'webzines'])->name('webzines');
     Route::get('/authors', [AdminController::class, 'authors'])->name('authors');
+    Route::post('/authors/quick-store', [AdminController::class, 'quickStoreAuthor'])->name('authors.quick-store');
+    Route::get('/authors/{id}/details', [AdminController::class, 'authorDetails'])->name('authors.details');
+    Route::post('/authors/{id}/quick-update', [AdminController::class, 'quickUpdateAuthor'])->name('authors.quick-update');
+    Route::post('/authors/{id}/toggle-status', [AdminController::class, 'toggleAuthorStatus'])->name('authors.toggle-status');
+    Route::post('/authors/{id}/toggle-verified', [AdminController::class, 'toggleAuthorVerified'])->name('authors.toggle-verified');
     Route::get('/publishers', [AdminController::class, 'publishers'])->name('publishers');
     Route::post('/publishers/quick-store', [AdminController::class, 'quickStorePublisher'])->name('publishers.quick-store');
     Route::get('/publishers/{id}', [AdminController::class, 'publisherShow'])->name('publishers.show');
@@ -321,11 +326,14 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     // Registration approval (admin only)
     Route::prefix('registrations')->name('registrations.')->controller(RegistrationApprovalController::class)->group(function () {
         Route::get('/', 'index')->name('index');
+        Route::get('/{user}/details', 'details')->name('details');
         Route::get('/{user}', 'show')->name('show');
         Route::get('/{user}/edit', 'edit')->name('edit');
         Route::put('/{user}', 'update')->name('update');
+        Route::post('/{user}/quick-update', 'quickUpdate')->name('quick-update');
         Route::patch('/{user}/approve', 'approve')->name('approve');
         Route::patch('/{user}/reject', 'reject')->name('reject');
+        Route::patch('/{user}/toggle-status', 'toggleStatus')->name('toggle-status');
         Route::delete('/{user}', 'cancel')->name('cancel');
     });
 

@@ -30,6 +30,7 @@ class User extends Authenticatable
         'name', 'email', 'phone', 'password',
         'role', 'avatar', 'is_active',
         'reg_status', 'reg_type', 'reg_data',
+        'approved_by', 'approved_at', 'rejection_reason',
         'loyalty_points', 'affiliate_balance',
     ];
 
