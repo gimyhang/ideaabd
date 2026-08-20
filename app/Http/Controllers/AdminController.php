@@ -424,7 +424,7 @@ class AdminController extends Controller
         $perPage       = in_array((int) $request->input('per_page'), [10, 20, 50, 100, 200], true) ? (int) $request->input('per_page') : 20;
 
         $query = \Modules\Book\Models\Book::query()
-            ->with(['category', 'publisher', 'vendor', 'authorLink', 'authors'])
+            ->with(['category', 'publisher', 'authorLink', 'authors'])
             ->when($search, function ($q, $term) {
                 $searchData = $this->parseSearchKeywords($term);
                 $tokens = $searchData['tokens'];
@@ -450,11 +450,6 @@ class AdminController extends Controller
                                           ->orWhere('slug', 'like', $like)
                                           ->orWhere('phone', 'like', $like)
                                           ->orWhere('email', 'like', $like);
-                                  })
-                                  ->orWhereHas('vendor', function ($ven) use ($like) {
-                                      $ven->where('shop_name', 'like', $like)
-                                          ->orWhere('business_name', 'like', $like)
-                                          ->orWhere('name', 'like', $like);
                                   })
                                   ->orWhereHas('category', function ($cat) use ($like) {
                                       $cat->where('name', 'like', $like)

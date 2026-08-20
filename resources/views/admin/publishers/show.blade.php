@@ -1412,7 +1412,7 @@ function openQuickBookEditModal(bookId) {
     document.getElementById('qeBookId').value = book.id;
     document.getElementById('qeTitle').value = book.title;
     document.getElementById('qeEdition').value = book.edition || '';
-    document.getElementById('qePrice').value = book.price || '';
+    document.getElementById('qePrice').value = book.price > 0 ? book.price : '';
     document.getElementById('qeDiscountPrice').value = book.discount_price > 0 ? book.discount_price : '';
     document.getElementById('qeCostPrice').value = book.cost_price > 0 ? book.cost_price : '';
     document.getElementById('qeHardcoverPrice').value = book.hardcover_price > 0 ? book.hardcover_price : '';
@@ -1430,8 +1430,23 @@ function openQuickBookEditModal(bookId) {
 }
 
 function recalcPricingFromMrp() {
-    recalcSalePriceFromCommission();
-    recalcCostPriceFromCommission();
+    const mrp = parseFloat(document.getElementById('qePrice').value) || 0;
+    const saleComm = parseFloat(document.getElementById('qeSaleCommission').value) || 0;
+    const buyComm = parseFloat(document.getElementById('qeBuyCommission').value) || 0;
+    const discountPrice = parseFloat(document.getElementById('qeDiscountPrice').value) || 0;
+    const costPrice = parseFloat(document.getElementById('qeCostPrice').value) || 0;
+
+    if (saleComm > 0) {
+        recalcSalePriceFromCommission();
+    } else if (discountPrice > 0 && mrp > 0) {
+        recalcSaleCommissionFromPrice();
+    }
+
+    if (buyComm > 0) {
+        recalcCostPriceFromCommission();
+    } else if (costPrice > 0 && mrp > 0) {
+        recalcBuyCommissionFromPrice();
+    }
 }
 
 function recalcSalePriceFromCommission() {
@@ -1440,8 +1455,6 @@ function recalcSalePriceFromCommission() {
     if (mrp > 0 && comm > 0) {
         const salePrice = mrp * (1 - (comm / 100));
         document.getElementById('qeDiscountPrice').value = Math.round(salePrice);
-    } else if (comm === 0) {
-        document.getElementById('qeDiscountPrice').value = '';
     }
 }
 
@@ -1451,7 +1464,7 @@ function recalcSaleCommissionFromPrice() {
     if (mrp > 0 && salePrice > 0 && salePrice < mrp) {
         const comm = ((mrp - salePrice) / mrp) * 100;
         document.getElementById('qeSaleCommission').value = comm.toFixed(1);
-    } else {
+    } else if (salePrice <= 0) {
         document.getElementById('qeSaleCommission').value = '';
     }
 }
@@ -1462,8 +1475,6 @@ function recalcCostPriceFromCommission() {
     if (mrp > 0 && comm > 0) {
         const costPrice = mrp * (1 - (comm / 100));
         document.getElementById('qeCostPrice').value = Math.round(costPrice);
-    } else if (comm === 0) {
-        document.getElementById('qeCostPrice').value = '';
     }
 }
 
@@ -1473,7 +1484,7 @@ function recalcBuyCommissionFromPrice() {
     if (mrp > 0 && costPrice > 0 && costPrice < mrp) {
         const comm = ((mrp - costPrice) / mrp) * 100;
         document.getElementById('qeBuyCommission').value = comm.toFixed(1);
-    } else {
+    } else if (costPrice <= 0) {
         document.getElementById('qeBuyCommission').value = '';
     }
 }

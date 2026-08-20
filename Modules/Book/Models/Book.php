@@ -112,15 +112,7 @@ class Book extends Model
     }
 
     /**
-     * Vendor Relationship (বইটি কোন প্রকাশনী/ভেন্ডরের)
-     */
-    public function vendor(): BelongsTo
-    {
-        return $this->belongsTo(Vendor::class);
-    }
-
-    /**
-     * Author Relationship (Pivot Table: book_author)
+     * Publisher Relationship
      */
     public function publisher(): BelongsTo
     {
