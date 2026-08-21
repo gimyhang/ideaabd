@@ -636,7 +636,7 @@
                     <label for="f-category_id" class="form-label text-dark fw-bold mb-1" style="font-size: 11.5px;">
                         ১. মূল ক্যাটাগরি (Primary Category) <span class="text-danger">*</span>
                     </label>
-                    <select id="f-category_id" name="category_id" class="form-select form-select-sm @error('category_id') is-invalid @enderror" onchange="updateLiveMockupCard()">
+                    <select id="f-category_id" name="category_id" required class="form-select form-select-sm @error('category_id') is-invalid @enderror" onchange="updateLiveMockupCard()">
                         <option value="">— Select Category —</option>
                         @foreach (($lookups['categories'] ?? []) as $catId => $catLabel)
                             <option value="{{ $catId }}" @selected((string)$val('category_id') === (string)$catId)>{{ $catLabel }}</option>

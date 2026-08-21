@@ -85,16 +85,21 @@
                     <!-- Categories Filter -->
                     @if(isset($categories) && $categories->isNotEmpty())
                     <div class="mb-3">
-                        <label class="form-label small fw-semibold text-muted mb-2 text-uppercase" style="font-size: 0.75rem;">ক্যাটাগরি</label>
-                        <div class="d-flex flex-column gap-1 overflow-y-auto custom-scrollbar pe-1" style="max-height: 200px;">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <label class="form-label small fw-bold text-dark text-uppercase mb-0" style="font-size: 0.8rem;">
+                                <i class="fas fa-layer-group text-primary me-1"></i> বিষয় ও ক্যাটাগরি
+                            </label>
+                            <span class="badge bg-light text-muted border" style="font-size: 10px;">{{ $categories->count() }}টি</span>
+                        </div>
+                        <div class="d-flex flex-column gap-1 overflow-y-auto custom-scrollbar pe-1" style="max-height: 250px;">
                             @foreach($categories as $category)
-                            <label class="form-check-label d-flex align-items-center justify-content-between p-1 rounded hover-bg-light cursor-pointer small">
+                            <label class="form-check-label d-flex align-items-center justify-content-between p-1.5 rounded-2 hover-bg-light cursor-pointer" style="font-size: 13px;">
                                 <span class="d-flex align-items-center gap-2">
                                     <input type="radio" name="category" value="{{ $category->slug }}" onchange="this.form.submit()" 
-                                           {{ request('category') == $category->slug ? 'checked' : '' }} class="form-check-input mt-0">
-                                    <span class="text-secondary text-truncate" style="max-width: 140px;">{{ $category->name }}</span>
+                                           {{ request('category') == $category->slug || request('category') == $category->id ? 'checked' : '' }} class="form-check-input mt-0">
+                                    <span class="text-dark fw-medium text-truncate" style="max-width: 150px;" title="{{ $category->name }}">{{ $category->name }}</span>
                                 </span>
-                                <span class="badge bg-light text-muted border small">{{ $category->books_count }}</span>
+                                <span class="badge bg-light text-muted border px-1.5 py-0.5 fw-semibold" style="font-size: 11px;">@bn($category->books_count)</span>
                             </label>
                             @endforeach
                         </div>
@@ -103,17 +108,22 @@
 
                     <!-- Authors Filter -->
                     @if(isset($sidebarAuthors) && $sidebarAuthors->isNotEmpty())
-                    <div class="mb-3 pt-2 border-top">
-                        <label class="form-label small fw-semibold text-muted mb-2 text-uppercase" style="font-size: 0.75rem;">লেখক</label>
-                        <div class="d-flex flex-column gap-1 overflow-y-auto custom-scrollbar pe-1" style="max-height: 180px;">
+                    <div class="mb-3 pt-2.5 border-top">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <label class="form-label small fw-bold text-dark text-uppercase mb-0" style="font-size: 0.8rem;">
+                                <i class="fas fa-feather-pointed text-info me-1"></i> লেখক
+                            </label>
+                            <span class="badge bg-light text-muted border" style="font-size: 10px;">{{ $sidebarAuthors->count() }}জন</span>
+                        </div>
+                        <div class="d-flex flex-column gap-1 overflow-y-auto custom-scrollbar pe-1" style="max-height: 250px;">
                             @foreach($sidebarAuthors as $author)
-                            <label class="form-check-label d-flex align-items-center justify-content-between p-1 rounded hover-bg-light cursor-pointer small">
+                            <label class="form-check-label d-flex align-items-center justify-content-between p-1.5 rounded-2 hover-bg-light cursor-pointer" style="font-size: 13px;">
                                 <span class="d-flex align-items-center gap-2">
                                     <input type="radio" name="author" value="{{ $author->slug }}" onchange="this.form.submit()" 
-                                           {{ request('author') == $author->slug ? 'checked' : '' }} class="form-check-input mt-0">
-                                    <span class="text-secondary text-truncate" style="max-width: 140px;">{{ $author->name }}</span>
+                                           {{ request('author') == $author->slug || request('author') == $author->id ? 'checked' : '' }} class="form-check-input mt-0">
+                                    <span class="text-dark fw-medium text-truncate" style="max-width: 150px;" title="{{ $author->name }}">{{ $author->name }}</span>
                                 </span>
-                                <span class="badge bg-light text-muted border small">{{ $author->books_count }}</span>
+                                <span class="badge bg-light text-muted border px-1.5 py-0.5 fw-semibold" style="font-size: 11px;">@bn($author->books_count)</span>
                             </label>
                             @endforeach
                         </div>
@@ -122,17 +132,22 @@
 
                     <!-- Publishers Filter -->
                     @if(isset($sidebarPublishers) && $sidebarPublishers->isNotEmpty())
-                    <div class="mb-3 pt-2 border-top">
-                        <label class="form-label small fw-semibold text-muted mb-2 text-uppercase" style="font-size: 0.75rem;">প্রকাশক</label>
-                        <div class="d-flex flex-column gap-1 overflow-y-auto custom-scrollbar pe-1" style="max-height: 180px;">
+                    <div class="mb-3 pt-2.5 border-top">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <label class="form-label small fw-bold text-dark text-uppercase mb-0" style="font-size: 0.8rem;">
+                                <i class="fas fa-building text-warning me-1"></i> প্রকাশক
+                            </label>
+                            <span class="badge bg-light text-muted border" style="font-size: 10px;">{{ $sidebarPublishers->count() }}টি</span>
+                        </div>
+                        <div class="d-flex flex-column gap-1 overflow-y-auto custom-scrollbar pe-1" style="max-height: 250px;">
                             @foreach($sidebarPublishers as $publisher)
-                            <label class="form-check-label d-flex align-items-center justify-content-between p-1 rounded hover-bg-light cursor-pointer small">
+                            <label class="form-check-label d-flex align-items-center justify-content-between p-1.5 rounded-2 hover-bg-light cursor-pointer" style="font-size: 13px;">
                                 <span class="d-flex align-items-center gap-2">
                                     <input type="radio" name="publisher" value="{{ $publisher->slug }}" onchange="this.form.submit()" 
-                                           {{ request('publisher') == $publisher->slug ? 'checked' : '' }} class="form-check-input mt-0">
-                                    <span class="text-secondary text-truncate" style="max-width: 140px;">{{ $publisher->name }}</span>
+                                           {{ request('publisher') == $publisher->slug || request('publisher') == $publisher->id ? 'checked' : '' }} class="form-check-input mt-0">
+                                    <span class="text-dark fw-medium text-truncate" style="max-width: 150px;" title="{{ $publisher->name }}">{{ $publisher->name }}</span>
                                 </span>
-                                <span class="badge bg-light text-muted border small">{{ $publisher->books_count }}</span>
+                                <span class="badge bg-light text-muted border px-1.5 py-0.5 fw-semibold" style="font-size: 11px;">@bn($publisher->books_count)</span>
                             </label>
                             @endforeach
                         </div>

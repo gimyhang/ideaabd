@@ -44,11 +44,27 @@ class BookController extends Controller
         if ($canUseBooks) {
             $categories = Category::query()
                 ->where('is_active', true)
-                ->withCount('books')
+                ->withCount(['books' => fn($q) => $q->where('is_active', true)])
+                ->orderByDesc('books_count')
+                ->orderBy('name')
                 ->get(['id', 'name', 'slug']);
 
-            $sidebarAuthors = Author::query()->where('is_active', true)->withCount('books')->orderByDesc('books_count')->take(15)->get(['id', 'name', 'slug']);
-            $sidebarPublishers = Publisher::query()->where('is_active', true)->withCount('books')->orderByDesc('books_count')->take(15)->get(['id', 'name', 'slug']);
+            $sidebarAuthors = Author::query()
+                ->where('is_active', true)
+                ->withCount(['books' => fn($q) => $q->where('is_active', true)])
+                ->orderByDesc('books_count')
+                ->orderBy('name')
+                ->take(50)
+                ->get(['id', 'name', 'slug']);
+
+            $sidebarPublishers = Publisher::query()
+                ->where('is_active', true)
+                ->withCount(['books' => fn($q) => $q->where('is_active', true)])
+                ->orderByDesc('books_count')
+                ->orderBy('name')
+                ->take(50)
+                ->get(['id', 'name', 'slug']);
+
             $topSeller = Book::query()->with('authors')->where('is_active', true)->orderByDesc('sales_count')->first();
 
             // Dynamic Categories with active books
@@ -57,7 +73,7 @@ class BookController extends Controller
                 ->whereHas('books', fn($q) => $q->where('is_active', true))
                 ->withCount(['books' => fn($q) => $q->where('is_active', true)])
                 ->orderByDesc('books_count')
-                ->take(12)
+                ->take(16)
                 ->get(['id', 'name', 'slug']);
 
             // Base books query with robust filtering

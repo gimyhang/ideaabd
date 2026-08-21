@@ -423,6 +423,7 @@ class ContentController extends Controller
         ])];
 
         if (($spec['key'] ?? null) === 'books') {
+            $rules['category_id'] = ['required', 'integer', 'exists:categories,id'];
             $rules['price'] = ['nullable', 'numeric', 'min:0', 'max:9999999'];
             $rules['hardcover_price'] = ['nullable', 'numeric', 'min:0', 'max:9999999'];
             $rules['cost_price'] = ['nullable', 'numeric', 'min:0', 'max:9999999'];
@@ -433,6 +434,7 @@ class ContentController extends Controller
                 $rules['price'] = ['required', 'numeric', 'min:0', 'max:9999999'];
             }
             
+            $attributes['category_id'] = 'মূল ক্যাটাগরি';
             $attributes['hardcover_price'] = 'হার্ডকভার নিয়মিত মূল্য';
             $attributes['price'] = 'নিয়মিত মূল্য (List Price)';
         }
