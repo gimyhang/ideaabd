@@ -310,16 +310,24 @@
 
         <!-- Main Content Column -->
         <main class="col-lg-9 col-12">
-            @if(isset($isSearchMode) && $isSearchMode || request()->anyFilled(['category', 'author', 'publisher', 'in_stock', 'rating', 'sort', 'search']))
-                <!-- Search / Filter Results Header -->
+            @if(isset($isSearchMode) && $isSearchMode || request()->anyFilled(['category', 'author', 'publisher', 'in_stock', 'rating', 'sort', 'search', 'page']))
+                <!-- Search / Filter / Paginated Catalog Results Header -->
                 <div class="card p-3 p-md-4 mb-4 border-0 shadow-sm rounded-4 bg-white">
                     <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 mb-3 pb-2 border-bottom">
-                        <h5 class="fw-bold text-dark mb-0">
-                            অনুসন্ধানের ফলাফল
-                            @if(isset($books) && $books instanceof \Illuminate\Pagination\LengthAwarePaginator)
-                                <span class="badge bg-light text-muted border ms-2">@bn($books->total())টি বই</span>
+                        <div class="d-flex align-items-center gap-2">
+                            <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                                <i class="fa-solid fa-book-open text-primary"></i> 
+                                {{ $activeFilterTitle ?? 'বইয়ের তালিকা (Book Catalog)' }}
+                                @if(isset($books) && $books instanceof \Illuminate\Pagination\LengthAwarePaginator)
+                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill ms-1 px-2.5 py-1" style="font-size: 12px;">@bn($books->total())টি বই</span>
+                                @endif
+                            </h5>
+                            @if(request()->anyFilled(['category', 'author', 'publisher', 'search', 'min_price', 'max_price', 'rating', 'format', 'in_stock']))
+                                <a href="{{ route('book.index') }}" class="badge bg-light text-danger border text-decoration-none px-2 py-1 small" title="রিসেট করুন">
+                                    <i class="fas fa-times me-1"></i>ফিল্টার মুছুন
+                                </a>
                             @endif
-                        </h5>
+                        </div>
 
                         <div class="d-flex align-items-center gap-2">
                             <label for="sort" class="small text-muted text-nowrap fw-semibold">সাজান:</label>
@@ -343,9 +351,9 @@
                         @empty
                             <div class="col-12 w-100 text-center py-5">
                                 <div class="fs-1 text-muted mb-2 opacity-50">📖</div>
-                                <h5 class="fw-bold text-dark">কোনো বই পাওয়া যায়নি</h5>
-                                <p class="text-muted small mb-3">অনুগ্রহ করে ভিন্ন ক্যাটাগরি বা শব্দ দিয়ে চেষ্টা করুন।</p>
-                                <a href="{{ route('book.index') }}" class="btn btn-primary btn-sm rounded-pill px-4">সকল বই দেখুন</a>
+                                <h5 class="fw-bold text-dark mb-1">এই ক্যাটাগরিতে এখনো কোনো বই যুক্ত করা হয়নি</h5>
+                                <p class="text-muted small mb-3">শীঘ্রই এই ক্যাটাগরিতে নতুন বই যুক্ত হবে। আপনি অন্যান্য ক্যাটাগরি বা সকল বই দেখতে পারেন।</p>
+                                <a href="{{ route('book.index') }}" class="btn btn-primary btn-sm rounded-pill px-4 shadow-sm">সকল বই দেখুন</a>
                             </div>
                         @endforelse
                     </div>

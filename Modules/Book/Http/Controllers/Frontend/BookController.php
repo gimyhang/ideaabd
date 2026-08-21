@@ -39,7 +39,9 @@ class BookController extends Controller
         $sidebarAuthors = collect();
         $sidebarPublishers = collect();
         $topSeller = null;
-        $isSearchMode = $request->anyFilled(['search', 'category', 'author', 'publisher', 'in_stock', 'min_price', 'max_price', 'rating', 'format', 'discount_min', 'sort']);
+        $isSearchMode = $request->anyFilled(['search', 'category', 'author', 'publisher', 'in_stock', 'min_price', 'max_price', 'rating', 'format', 'discount_min', 'sort']) || ($request->has('page') && (int)$request->get('page') > 1);
+
+        $activeFilterTitle = null;
 
         if ($canUseBooks) {
             $categories = Category::query()
@@ -76,6 +78,25 @@ class BookController extends Controller
                 ->take(16)
                 ->get(['id', 'name', 'slug']);
 
+            // Resolve human-readable active filter title
+            if ($request->filled('category')) {
+                $catVal = $request->string('category')->trim()->value();
+                $matchedCat = $categories->first(fn($c) => $c->slug === $catVal || (string)$c->id === $catVal || $c->name === $catVal);
+                $activeFilterTitle = $matchedCat ? $matchedCat->name : $catVal;
+            } elseif ($request->filled('author')) {
+                $authVal = $request->string('author')->trim()->value();
+                $matchedAuth = $sidebarAuthors->first(fn($a) => $a->slug === $authVal || (string)$a->id === $authVal || $a->name === $authVal);
+                $activeFilterTitle = $matchedAuth ? $matchedAuth->name : $authVal;
+            } elseif ($request->filled('publisher')) {
+                $pubVal = $request->string('publisher')->trim()->value();
+                $matchedPub = $sidebarPublishers->first(fn($p) => $p->slug === $pubVal || (string)$p->id === $pubVal || $p->name === $pubVal);
+                $activeFilterTitle = $matchedPub ? $matchedPub->name : $pubVal;
+            } elseif ($request->filled('search')) {
+                $activeFilterTitle = 'অনুসন্ধান: "' . $request->string('search')->trim()->value() . '"';
+            } elseif ($request->has('page') && (int)$request->get('page') > 1) {
+                $activeFilterTitle = 'সকল বই (পৃষ্ঠা ' . $request->get('page') . ')';
+            }
+
             // Base books query with robust filtering
             $booksQuery = Book::query()
                 ->with(['category', 'authors', 'publisher'])
@@ -86,9 +107,13 @@ class BookController extends Controller
                     $catVal = $request->string('category')->trim()->value();
                     $q->where(function ($sub) use ($catVal) {
                         $sub->where('category_id', $catVal)
+                            ->orWhere('sub_category_name', 'LIKE', "%{$catVal}%")
+                            ->orWhere('genre_category', 'LIKE', "%{$catVal}%")
+                            ->orWhere('ekushey_category', 'LIKE', "%{$catVal}%")
+                            ->orWhere('audience_category', 'LIKE', "%{$catVal}%")
                             ->orWhereHas('category', function ($cat) use ($catVal) {
                                 $cat->where('slug', $catVal)
-                                    ->orWhere('name', $catVal)
+                                    ->orWhere('name', 'LIKE', "%{$catVal}%")
                                     ->orWhere('id', $catVal);
                             });
                     });
@@ -209,7 +234,7 @@ class BookController extends Controller
         }
 
         return view('book::frontend.index', compact(
-            'books', 'categories', 'isSearchMode', 'recentlySold', 'bestSellerEbooks', 'categoryBooks', 'sidebarAuthors', 'sidebarPublishers', 'flashSales', 'recentlyViewedBooks', 'topSeller', 'dynamicCategories'
+            'books', 'categories', 'isSearchMode', 'recentlySold', 'bestSellerEbooks', 'categoryBooks', 'sidebarAuthors', 'sidebarPublishers', 'flashSales', 'recentlyViewedBooks', 'topSeller', 'dynamicCategories', 'activeFilterTitle'
         ));
     }
 

@@ -3511,7 +3511,148 @@ function renumberWebzineTocRows() {
         if (orderInput) orderInput.value = idx + 1;
     });
 }
+
+// ══════════════════════════════════════════════════════════════════════════════
+// AUTO-FOCUS & SMOOTH SCROLL TO UNFILLED / INVALID REQUIRED FIELDS
+// ══════════════════════════════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', function () {
+    // 1. Auto focus on page load if validation errors exist
+    const firstError = document.querySelector('.is-invalid, .invalid-feedback:not(:empty)');
+    if (firstError) {
+        let target = firstError;
+        if (firstError.classList.contains('invalid-feedback')) {
+            target = firstError.previousElementSibling || firstError.closest('.input-group')?.querySelector('input, select, textarea') || firstError.closest('.col-12, .col-md-6')?.querySelector('input, select, textarea') || firstError;
+        }
+        if (target && typeof target.focus === 'function') {
+            target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            setTimeout(() => {
+                target.focus({ preventScroll: true });
+                highlightField(target);
+            }, 300);
+        }
+    }
+
+    // 2. Intercept submit and automatically jump/focus cursor to the exact unfilled required field
+    const mainForm = document.getElementById('contentMainForm');
+    if (mainForm) {
+        mainForm.addEventListener('submit', function (e) {
+            const isBookForm = {{ ($spec['key'] ?? '') === 'books' ? 'true' : 'false' }};
+            if (isBookForm) {
+                // Check Title
+                const titleInput = document.getElementById('f-title');
+                if (titleInput && (!titleInput.value || titleInput.value.trim() === '')) {
+                    e.preventDefault();
+                    titleInput.classList.add('is-invalid');
+                    focusAndHighlight(titleInput, 'অনুগ্রহ করে বইয়ের নাম (Title) লিখুন।');
+                    return false;
+                }
+
+                // Check Author Name
+                const authorInputs = mainForm.querySelectorAll('input[name="author_names[]"]');
+                let hasAuthor = false;
+                authorInputs.forEach(inp => {
+                    if (inp.value && inp.value.trim() !== '') hasAuthor = true;
+                });
+                const authorSelects = mainForm.querySelectorAll('select[name="author_ids[]"]');
+                authorSelects.forEach(sel => {
+                    if (sel.value && sel.value !== '') hasAuthor = true;
+                });
+
+                if (!hasAuthor && authorInputs.length > 0) {
+                    e.preventDefault();
+                    const firstAuthInput = authorInputs[0];
+                    firstAuthInput.classList.add('is-invalid');
+                    focusAndHighlight(firstAuthInput, 'অনুগ্রহ করে কমপক্ষে একজন লেখকের নাম (Author Name) লিখুন।');
+                    return false;
+                }
+
+                // Check Category
+                const catSelect = document.getElementById('f-category_id');
+                if (catSelect && (!catSelect.value || catSelect.value === '')) {
+                    e.preventDefault();
+                    catSelect.classList.add('is-invalid');
+                    focusAndHighlight(catSelect, 'অনুগ্রহ করে মূল ক্যাটাগরি (Category) নির্বাচন করুন।');
+                    return false;
+                }
+
+                // Check Price (at least one price)
+                const priceInput = document.getElementById('f-price');
+                const hcPriceInput = document.getElementById('f-hardcover_price');
+                const hasPrice = (priceInput && priceInput.value && parseFloat(priceInput.value) >= 0) ||
+                                 (hcPriceInput && hcPriceInput.value && parseFloat(hcPriceInput.value) >= 0);
+                if (!hasPrice) {
+                    e.preventDefault();
+                    const targetPrice = priceInput || hcPriceInput;
+                    if (targetPrice) {
+                        targetPrice.classList.add('is-invalid');
+                        focusAndHighlight(targetPrice, 'অনুগ্রহ করে নিয়মিত বিক্রয় মূল্য (Price) উল্লেখ করুন।');
+                        return false;
+                    }
+                }
+            }
+
+            // Native HTML5 validation fallback
+            if (!mainForm.checkValidity()) {
+                e.preventDefault();
+                const firstInvalid = mainForm.querySelector(':invalid');
+                if (firstInvalid) {
+                    focusAndHighlight(firstInvalid, 'অনুগ্রহ করে প্রয়োজনীয় তথ্য পূরণ করুন।');
+                }
+                return false;
+            }
+        });
+    }
+});
+
+function focusAndHighlight(element, message = null) {
+    if (!element) return;
+    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    setTimeout(() => {
+        try {
+            element.focus({ preventScroll: true });
+        } catch (err) {}
+        highlightField(element);
+        if (message) {
+            showValidationToast(message);
+        }
+    }, 200);
+}
+
+function highlightField(el) {
+    if (!el) return;
+    el.classList.add('pulse-focus-highlight');
+    setTimeout(() => el.classList.remove('pulse-focus-highlight'), 3000);
+}
+
+function showValidationToast(msg) {
+    let toast = document.getElementById('formValidationToast');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'formValidationToast';
+        toast.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:99999;background:#dc2626;color:#fff;padding:12px 20px;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.25);font-weight:600;font-size:13.5px;display:flex;align-items:center;gap:10px;transition:all 0.3s ease;';
+        document.body.appendChild(toast);
+    }
+    toast.innerHTML = `<i class="fas fa-circle-exclamation fs-5"></i> <span>${msg}</span>`;
+    toast.style.opacity = '1';
+    toast.style.transform = 'translateY(0)';
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(20px)';
+    }, 4500);
+}
 </script>
+
+<style>
+@keyframes pulseGlowRed {
+    0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7); border-color: #dc2626; }
+    50% { box-shadow: 0 0 0 8px rgba(220, 38, 38, 0.25); border-color: #dc2626; }
+    100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); border-color: #dc2626; }
+}
+.pulse-focus-highlight {
+    animation: pulseGlowRed 1.2s ease-in-out 2 !important;
+    border-color: #dc2626 !important;
+}
+</style>
 <script src="{{ asset('js/spellchecker.js') }}"></script>
 @endpush
 

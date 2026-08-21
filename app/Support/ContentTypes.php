@@ -54,6 +54,7 @@ final class ContentTypes
                     'author_role_group'       => ['label' => 'Authors / Contributors', 'type' => 'author_role_group', 'lookup' => 'authors', 'rules' => 'nullable|string|max:30', 'col' => 12],
                     'translator_name'         => ['label' => 'Translator (if any)', 'type' => 'text',          'placeholder' => 'e.g. Translator Name', 'rules' => 'nullable|string|max:255', 'col' => 4],
                     'editor_name'             => ['label' => 'Editor / Compiler (if any)', 'type' => 'text',    'placeholder' => 'e.g. Editor Name', 'rules' => 'nullable|string|max:255', 'col' => 4],
+                    'rewriter_name'           => ['label' => 'Rewriter / Adapter (if any)', 'type' => 'text',  'placeholder' => 'e.g. Rewriter Name', 'rules' => 'nullable|string|max:255', 'col' => 4],
                     'cover_artist'            => ['label' => 'Cover Artist',      'type' => 'text',             'placeholder' => 'e.g. Artist Name', 'rules' => 'nullable|string|max:255', 'col' => 4],
                     'category_id'             => ['label' => 'Category',          'type' => 'select',           'lookup' => 'categories',  'rules' => 'nullable|integer',              'col' => 4],
                     'publisher_id'            => ['label' => 'Publisher',         'type' => 'select',           'lookup' => 'publishers',  'rules' => 'nullable|integer',              'col' => 4],

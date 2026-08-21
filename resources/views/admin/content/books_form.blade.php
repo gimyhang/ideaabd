@@ -104,25 +104,38 @@
 
                 <div id="authorsRepeaterContainer" class="vstack gap-1.5">
                     @php
-                        $existingAuthors = [];
-                        if ($val('author_name')) {
-                            $existingAuthors = array_map('trim', explode(',', (string)$val('author_name')));
+                        $existingAuthors = old('author_names');
+                        $existingAuthorIds = old('author_ids', []);
+                        if (!is_array($existingAuthors) || empty(array_filter($existingAuthors))) {
+                            $existingAuthors = [];
+                            $existingAuthorIds = [];
+                            if (isset($record) && $record && method_exists($record, 'authors') && $record->authors && $record->authors->isNotEmpty()) {
+                                foreach ($record->authors as $ra) {
+                                    $existingAuthors[] = $ra->name;
+                                    $existingAuthorIds[] = $ra->id;
+                                }
+                            } elseif ($val('author_name')) {
+                                $existingAuthors = array_map('trim', explode(',', (string)$val('author_name')));
+                                $existingAuthorIds = [(string)($record->author_link_id ?? '')];
+                            }
                         }
                         if (empty($existingAuthors)) {
                             $existingAuthors = [''];
+                            $existingAuthorIds = [''];
                         }
                     @endphp
                     @foreach($existingAuthors as $aIdx => $aName)
+                        @php $aIdVal = $existingAuthorIds[$aIdx] ?? ''; @endphp
                         <div class="input-group input-group-sm author-field-row">
                             <select name="author_ids[]" class="form-select form-select-sm" style="max-width: 140px;" onchange="onAuthorSelectRowChange(this)">
                                 <option value="">— Directory —</option>
                                 @foreach (($lookups['authors'] ?? []) as $aId => $aLookupName)
-                                    <option value="{{ $aId }}" @selected((string)old('author_link_id', $record->author_link_id ?? '') === (string)$aId || $aName === $aLookupName)>
+                                    <option value="{{ $aId }}" @selected((string)$aIdVal === (string)$aId || ((string)old('author_link_id', $record->author_link_id ?? '') === (string)$aId && $aIdx === 0) || $aName === $aLookupName)>
                                         {{ $aLookupName }}
                                     </option>
                                 @endforeach
                             </select>
-                            <input type="text" name="author_names[]" class="form-control form-control-sm author-name-input" 
+                            <input type="text" name="author_names[]" class="form-control form-control-sm author-name-input @error('author_names') is-invalid @enderror" 
                                    value="{{ $aName }}" placeholder="লেখকের নাম লিখুন..." oninput="updateLiveMockupCard()">
                             @if($aIdx === 0)
                                 <button type="button" class="btn btn-outline-secondary" onclick="addAuthorField()"><i class="fas fa-plus text-success"></i></button>
@@ -132,6 +145,7 @@
                         </div>
                     @endforeach
                 </div>
+                @error('author_names')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                 @error('author_link_id')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
             </div>
 
@@ -148,9 +162,12 @@
 
                 <div id="translatorsRepeaterContainer" class="vstack gap-1.5">
                     @php
-                        $existingTranslators = [];
-                        if ($val('translator_name')) {
-                            $existingTranslators = array_map('trim', explode(',', (string)$val('translator_name')));
+                        $existingTranslators = old('translator_names');
+                        if (!is_array($existingTranslators) || empty(array_filter($existingTranslators))) {
+                            $existingTranslators = [];
+                            if ($val('translator_name')) {
+                                $existingTranslators = array_map('trim', explode(',', (string)$val('translator_name')));
+                            }
                         }
                         if (empty($existingTranslators)) {
                             $existingTranslators = [''];
@@ -168,6 +185,7 @@
                         </div>
                     @endforeach
                 </div>
+                @error('translator_names')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                 @error('translator_name')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
             </div>
 
@@ -185,9 +203,12 @@
 
                 <div id="editorsRepeaterContainer" class="vstack gap-1.5">
                     @php
-                        $existingEditors = [];
-                        if ($val('editor_name')) {
-                            $existingEditors = array_map('trim', explode(',', (string)$val('editor_name')));
+                        $existingEditors = old('editor_names');
+                        if (!is_array($existingEditors) || empty(array_filter($existingEditors))) {
+                            $existingEditors = [];
+                            if ($val('editor_name')) {
+                                $existingEditors = array_map('trim', explode(',', (string)$val('editor_name')));
+                            }
                         }
                         if (empty($existingEditors)) {
                             $existingEditors = [''];
@@ -205,6 +226,7 @@
                         </div>
                     @endforeach
                 </div>
+                @error('editor_names')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                 @error('editor_name')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
             </div>
 
@@ -221,9 +243,12 @@
 
                 <div id="rewritersRepeaterContainer" class="vstack gap-1.5">
                     @php
-                        $existingRewriters = [];
-                        if ($val('rewriter_name')) {
-                            $existingRewriters = array_map('trim', explode(',', (string)$val('rewriter_name')));
+                        $existingRewriters = old('rewriter_names');
+                        if (!is_array($existingRewriters) || empty(array_filter($existingRewriters))) {
+                            $existingRewriters = [];
+                            if ($val('rewriter_name')) {
+                                $existingRewriters = array_map('trim', explode(',', (string)$val('rewriter_name')));
+                            }
                         }
                         if (empty($existingRewriters)) {
                             $existingRewriters = [''];
@@ -241,6 +266,7 @@
                         </div>
                     @endforeach
                 </div>
+                @error('rewriter_names')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                 @error('rewriter_name')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
             </div>
 

@@ -149,8 +149,17 @@ class ContentController extends Controller
                 if (!empty($record->author_link_id) && !in_array($record->author_link_id, $authorIds)) {
                     $authorIds[] = (int) $record->author_link_id;
                 }
+                if ($request->has('author_names')) {
+                    $rawNames = array_filter(array_map('trim', (array) $request->input('author_names')));
+                    foreach ($rawNames as $rName) {
+                        $authId = DB::table('authors')->where('name', $rName)->value('id');
+                        if ($authId && !in_array($authId, $authorIds)) {
+                            $authorIds[] = (int) $authId;
+                        }
+                    }
+                }
                 if (!empty($authorIds)) {
-                    $record->authors()->sync($authorIds);
+                    $record->authors()->sync(array_values(array_unique($authorIds)));
                 }
             }
             if ($type === 'webzines') {
@@ -253,8 +262,17 @@ class ContentController extends Controller
                 if (!empty($record->author_link_id) && !in_array($record->author_link_id, $authorIds)) {
                     $authorIds[] = (int) $record->author_link_id;
                 }
+                if ($request->has('author_names')) {
+                    $rawNames = array_filter(array_map('trim', (array) $request->input('author_names')));
+                    foreach ($rawNames as $rName) {
+                        $authId = DB::table('authors')->where('name', $rName)->value('id');
+                        if ($authId && !in_array($authId, $authorIds)) {
+                            $authorIds[] = (int) $authId;
+                        }
+                    }
+                }
                 if (!empty($authorIds)) {
-                    $record->authors()->sync($authorIds);
+                    $record->authors()->sync(array_values(array_unique($authorIds)));
                 }
             }
             if ($type === 'webzines') {
@@ -429,6 +447,18 @@ class ContentController extends Controller
             $rules['cost_price'] = ['nullable', 'numeric', 'min:0', 'max:9999999'];
             $rules['discount_price'] = ['nullable', 'numeric', 'min:0', 'max:9999999'];
             
+            // Allow multiple contributors arrays
+            $rules['author_names'] = ['nullable', 'array'];
+            $rules['author_names.*'] = ['nullable', 'string', 'max:255'];
+            $rules['author_ids'] = ['nullable', 'array'];
+            $rules['translator_names'] = ['nullable', 'array'];
+            $rules['translator_names.*'] = ['nullable', 'string', 'max:255'];
+            $rules['editor_names'] = ['nullable', 'array'];
+            $rules['editor_names.*'] = ['nullable', 'string', 'max:255'];
+            $rules['rewriter_names'] = ['nullable', 'array'];
+            $rules['rewriter_names.*'] = ['nullable', 'string', 'max:255'];
+            $rules['rewriter_name'] = ['nullable', 'string', 'max:255'];
+
             // Require at least one price (List Price / MRP)
             if (!$request->filled('price') && !$request->filled('hardcover_price')) {
                 $rules['price'] = ['required', 'numeric', 'min:0', 'max:9999999'];
@@ -437,6 +467,10 @@ class ContentController extends Controller
             $attributes['category_id'] = 'মূল ক্যাটাগরি';
             $attributes['hardcover_price'] = 'হার্ডকভার নিয়মিত মূল্য';
             $attributes['price'] = 'নিয়মিত মূল্য (List Price)';
+            $attributes['author_names'] = 'লেখকের নাম';
+            $attributes['translator_names'] = 'অনুবাদকের নাম';
+            $attributes['editor_names'] = 'সম্পাদকের নাম';
+            $attributes['rewriter_names'] = 'পুনর্লেখকের নাম';
         }
 
         $attributes += [
@@ -716,48 +750,96 @@ class ContentController extends Controller
                 }
             }
 
-            // Handle Multiple Authors
-            if ($request->has('author_names')) {
-                $authorNames = array_filter(array_map('trim', (array) $request->input('author_names')));
-                if (!empty($authorNames)) {
-                    $attributes['author_name'] = implode(', ', $authorNames);
+            // Handle Multiple Authors & Unified Author Directory Sync
+            $allAuthorNames = [];
+            $allAuthorIds = [];
+
+            // 1. Collect from author_names and author_ids array inputs
+            $rawNames = (array) $request->input('author_names', []);
+            $rawIds = (array) $request->input('author_ids', []);
+            $maxCount = max(count($rawNames), count($rawIds));
+
+            for ($i = 0; $i < $maxCount; $i++) {
+                $name = isset($rawNames[$i]) ? trim((string)$rawNames[$i]) : '';
+                $id = isset($rawIds[$i]) && is_numeric($rawIds[$i]) ? (int)$rawIds[$i] : null;
+
+                if ($id) {
+                    $authorRecord = DB::table('authors')->where('id', $id)->first();
+                    if ($authorRecord) {
+                        $allAuthorIds[] = $authorRecord->id;
+                        $allAuthorNames[] = $name !== '' ? $name : $authorRecord->name;
+                        continue;
+                    }
                 }
+
+                if ($name !== '') {
+                    $author = \Modules\Author\Models\Author::findOrCreateUnified([
+                        'name'      => $name,
+                        'is_active' => true,
+                    ]);
+                    $allAuthorIds[] = $author->id;
+                    $allAuthorNames[] = $author->name;
+                }
+            }
+
+            // Fallback to single author_name / author_link_id if arrays were empty
+            if (empty($allAuthorNames)) {
+                $singleName = trim((string)$request->input('author_name', ''));
+                $singleId = $request->integer('author_link_id');
+                if ($singleId) {
+                    $authorRecord = DB::table('authors')->where('id', $singleId)->first();
+                    if ($authorRecord) {
+                        $allAuthorIds[] = $authorRecord->id;
+                        $allAuthorNames[] = $singleName !== '' ? $singleName : $authorRecord->name;
+                    }
+                } elseif ($singleName !== '') {
+                    $author = \Modules\Author\Models\Author::findOrCreateUnified([
+                        'name'      => $singleName,
+                        'is_active' => true,
+                    ]);
+                    $allAuthorIds[] = $author->id;
+                    $allAuthorNames[] = $author->name;
+                }
+            }
+
+            $allAuthorIds = array_values(array_unique(array_filter($allAuthorIds)));
+            $allAuthorNames = array_values(array_unique(array_filter($allAuthorNames)));
+
+            if (!empty($allAuthorNames)) {
+                $attributes['author_name'] = implode(', ', $allAuthorNames);
+                $attributes['author_link_id'] = $allAuthorIds[0] ?? null;
+            } else {
+                $attributes['author_name'] = null;
+                $attributes['author_link_id'] = null;
             }
 
             // Handle Multiple Translators
             if ($request->has('translator_names')) {
-                $translators = array_filter(array_map('trim', (array) $request->input('translator_names')));
-                if (!empty($translators)) {
-                    $attributes['translator_name'] = implode(', ', $translators);
-                } elseif (!$request->filled('translator_name')) {
-                    $attributes['translator_name'] = null;
-                }
+                $translators = array_values(array_unique(array_filter(array_map('trim', (array) $request->input('translator_names')))));
+                $attributes['translator_name'] = !empty($translators) ? implode(', ', $translators) : null;
             } elseif ($request->filled('translator_name')) {
-                $attributes['translator_name'] = $request->input('translator_name');
+                $attributes['translator_name'] = trim((string)$request->input('translator_name'));
             }
 
             // Handle Multiple Editors
             if ($request->has('editor_names')) {
-                $editors = array_filter(array_map('trim', (array) $request->input('editor_names')));
-                if (!empty($editors)) {
-                    $attributes['editor_name'] = implode(', ', $editors);
-                } elseif (!$request->filled('editor_name')) {
-                    $attributes['editor_name'] = null;
-                }
+                $editors = array_values(array_unique(array_filter(array_map('trim', (array) $request->input('editor_names')))));
+                $attributes['editor_name'] = !empty($editors) ? implode(', ', $editors) : null;
             } elseif ($request->filled('editor_name')) {
-                $attributes['editor_name'] = $request->input('editor_name');
+                $attributes['editor_name'] = trim((string)$request->input('editor_name'));
             }
 
             // Handle Multiple Rewriters
             if ($request->has('rewriter_names')) {
-                $rewriters = array_filter(array_map('trim', (array) $request->input('rewriter_names')));
-                if (!empty($rewriters)) {
-                    $attributes['rewriter_name'] = implode(', ', $rewriters);
-                } elseif (!$request->filled('rewriter_name')) {
-                    $attributes['rewriter_name'] = null;
-                }
+                $rewriters = array_values(array_unique(array_filter(array_map('trim', (array) $request->input('rewriter_names')))));
+                $attributes['rewriter_name'] = !empty($rewriters) ? implode(', ', $rewriters) : null;
             } elseif ($request->filled('rewriter_name')) {
-                $attributes['rewriter_name'] = $request->input('rewriter_name');
+                $attributes['rewriter_name'] = trim((string)$request->input('rewriter_name'));
+            }
+
+            // Handle Cover Artist
+            if ($request->filled('cover_artist')) {
+                $attributes['cover_artist'] = trim((string)$request->input('cover_artist'));
             }
 
             // Handle Height and Width (cm)
