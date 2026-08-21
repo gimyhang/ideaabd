@@ -75,6 +75,9 @@
         @method('PUT')
     @endif
 
+@if ($spec['key'] === 'books')
+    @include('admin.content.books_form')
+@else
     <div class="col-12 col-lg-8">
         <div class="adm-card p-3 p-md-4">
             <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
@@ -1419,6 +1422,7 @@
         </div>
         </div>
     </div>
+@endif
 </form>
 
 {{-- ========================================================================= --}}
@@ -1661,6 +1665,111 @@
 
 @push('scripts')
 <script>
+// Pricing Engine Interactive Calculations (Rokomari-style)
+function onMainPriceChange() {
+    const mrp = parseFloat(document.getElementById('f-price')?.value) || 0;
+    const purchDiscPct = parseFloat(document.getElementById('f-purchase_discount_percent')?.value) || 0;
+    
+    if (mrp > 0 && purchDiscPct > 0) {
+        const cost = mrp - (mrp * (purchDiscPct / 100));
+        const costInput = document.getElementById('f-cost_price');
+        if (costInput) costInput.value = cost.toFixed(2);
+    }
+    
+    calculateLiveSummaryPricing();
+    updateLiveMockupCard();
+}
+
+function onPurchaseDiscountPercentChange() {
+    const mrp = parseFloat(document.getElementById('f-price')?.value) || 0;
+    const purchDiscPct = parseFloat(document.getElementById('f-purchase_discount_percent')?.value) || 0;
+    if (mrp > 0) {
+        const cost = mrp - (mrp * (purchDiscPct / 100));
+        const costInput = document.getElementById('f-cost_price');
+        if (costInput) costInput.value = cost.toFixed(2);
+    }
+    calculateLiveSummaryPricing();
+}
+
+function onCostPriceChange() {
+    const mrp = parseFloat(document.getElementById('f-price')?.value) || 0;
+    const cost = parseFloat(document.getElementById('f-cost_price')?.value) || 0;
+    if (mrp > 0 && cost > 0 && cost <= mrp) {
+        const pct = ((mrp - cost) / mrp) * 100;
+        const purchInput = document.getElementById('f-purchase_discount_percent');
+        if (purchInput) purchInput.value = pct.toFixed(1);
+    }
+    calculateLiveSummaryPricing();
+}
+
+function onSoldPercentChange() {
+    calculateLiveSummaryPricing();
+    updateLiveMockupCard();
+}
+
+function calculateLiveSummaryPricing() {
+    const mrp = parseFloat(document.getElementById('f-price')?.value) || 0;
+    const soldPct = parseFloat(document.getElementById('f-sold_percent')?.value) || 0;
+    const cost = parseFloat(document.getElementById('f-cost_price')?.value) || 0;
+    
+    const offerPrice = soldPct > 0 ? (mrp - (mrp * (soldPct / 100))) : mrp;
+    const offerSpan = document.getElementById('liveCalculatedOfferPrice');
+    if (offerSpan) offerSpan.textContent = '৳' + offerPrice.toFixed(2);
+    
+    const profitSpan = document.getElementById('liveCalculatedProfit');
+    if (profitSpan) {
+        const profit = offerPrice - cost;
+        const profitPct = cost > 0 ? ((profit / cost) * 100).toFixed(1) : 0;
+        profitSpan.textContent = '৳' + profit.toFixed(2) + ' (' + profitPct + '%)';
+    }
+}
+
+function toggleLookInsideFormat(val) {
+    const pdfPanel = document.getElementById('lookInsidePdfPanel');
+    const imgPanel = document.getElementById('lookInsideImagesPanel');
+    if (val === 'images') {
+        if (pdfPanel) pdfPanel.classList.add('d-none');
+        if (imgPanel) imgPanel.classList.remove('d-none');
+    } else {
+        if (pdfPanel) pdfPanel.classList.remove('d-none');
+        if (imgPanel) imgPanel.classList.add('d-none');
+    }
+}
+
+function previewAdminMultiImages(input) {
+    const container = document.getElementById('multiImagesPreviewContainer');
+    if (!container) return;
+    container.innerHTML = '';
+    if (input.files && input.files.length > 0) {
+        Array.from(input.files).forEach((file, idx) => {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const thumb = document.createElement('div');
+                thumb.className = 'position-relative border rounded p-1 bg-white shadow-xs';
+                thumb.style.width = '60px';
+                thumb.style.height = '85px';
+                thumb.innerHTML = `<img src="${e.target.result}" class="w-100 h-100 object-fit-cover rounded"><span class="badge bg-dark position-absolute bottom-0 start-0 m-0.5" style="font-size: 8px;">#${idx+1}</span>`;
+                container.appendChild(thumb);
+            }
+            reader.readAsDataURL(file);
+        });
+    }
+}
+
+function toggleAdminPreOrderFields(val) {
+    const box = document.getElementById('adminPreOrderContainer');
+    if (box) {
+        if (val === 'pre_order') {
+            box.classList.remove('d-none');
+        } else {
+            box.classList.add('d-none');
+        }
+    }
+}
+
+function onCoverTypeDropdownChange(val) {
+    updateLiveMockupCard();
+}
 // Toggle Author Input Mode
 function toggleAuthorMode(mode) {
     const dirPanel  = document.getElementById('author-directory-panel');
@@ -2068,6 +2177,243 @@ function calculateLiveHardcoverDiscount() {
     }
 
     updateLiveMockupCard();
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// DYNAMIC MULTI-CONTRIBUTOR REPEATER MANAGERS (AUTHOR, TRANSLATOR, EDITOR, REWRITER)
+// ══════════════════════════════════════════════════════════════════════════════
+function addAuthorField() {
+    const container = document.getElementById('authorsRepeaterContainer');
+    if (!container) return;
+    const authorLookups = @json($lookups['authors'] ?? []);
+    let optionsHtml = '<option value="">— Directory —</option>';
+    for (const [aId, aName] of Object.entries(authorLookups)) {
+        optionsHtml += `<option value="${aId}">${aName}</option>`;
+    }
+    const div = document.createElement('div');
+    div.className = 'input-group input-group-sm author-field-row';
+    div.innerHTML = `
+        <select name="author_ids[]" class="form-select form-select-sm" style="max-width: 140px;" onchange="onAuthorSelectRowChange(this)">
+            ${optionsHtml}
+        </select>
+        <input type="text" name="author_names[]" class="form-control form-control-sm author-name-input" 
+               placeholder="লেখকের নাম লিখুন..." oninput="updateLiveMockupCard()">
+        <button type="button" class="btn btn-outline-danger" onclick="removeRepeaterRow(this); updateLiveMockupCard();">
+            <i class="fas fa-times"></i>
+        </button>
+    `;
+    container.appendChild(div);
+}
+
+function onAuthorSelectRowChange(select) {
+    const row = select.closest('.author-field-row');
+    if (!row) return;
+    const input = row.querySelector('.author-name-input');
+    if (input && select.selectedIndex > 0) {
+        input.value = select.options[select.selectedIndex].text.trim();
+        updateLiveMockupCard();
+    }
+}
+
+function addTranslatorField() {
+    const container = document.getElementById('translatorsRepeaterContainer');
+    if (!container) return;
+    const div = document.createElement('div');
+    div.className = 'input-group input-group-sm translator-field-row';
+    div.innerHTML = `
+        <input type="text" name="translator_names[]" class="form-control form-control-sm" placeholder="অনুবাদকের নাম...">
+        <button type="button" class="btn btn-outline-danger" onclick="removeRepeaterRow(this)">
+            <i class="fas fa-times"></i>
+        </button>
+    `;
+    container.appendChild(div);
+}
+
+function addEditorField() {
+    const container = document.getElementById('editorsRepeaterContainer');
+    if (!container) return;
+    const div = document.createElement('div');
+    div.className = 'input-group input-group-sm editor-field-row';
+    div.innerHTML = `
+        <input type="text" name="editor_names[]" class="form-control form-control-sm" placeholder="সম্পাদকের নাম...">
+        <button type="button" class="btn btn-outline-danger" onclick="removeRepeaterRow(this)">
+            <i class="fas fa-times"></i>
+        </button>
+    `;
+    container.appendChild(div);
+}
+
+function addRewriterField() {
+    const container = document.getElementById('rewritersRepeaterContainer');
+    if (!container) return;
+    const div = document.createElement('div');
+    div.className = 'input-group input-group-sm rewriter-field-row';
+    div.innerHTML = `
+        <input type="text" name="rewriter_names[]" class="form-control form-control-sm" placeholder="পুনর্লিখনকারী / রূপান্তরকারীর নাম...">
+        <button type="button" class="btn btn-outline-danger" onclick="removeRepeaterRow(this)">
+            <i class="fas fa-times"></i>
+        </button>
+    `;
+    container.appendChild(div);
+}
+
+function removeRepeaterRow(btn) {
+    const row = btn.closest('.input-group');
+    if (row) {
+        row.remove();
+    }
+}
+
+// Sync Book Height & Width cm to combined size
+function syncBookSizeCombined() {
+    const h = document.getElementById('f-book_height_cm')?.value?.trim();
+    const w = document.getElementById('f-book_width_cm')?.value?.trim();
+    const hiddenSize = document.getElementById('f-book_size');
+    if (!hiddenSize) return;
+    if (h && w) {
+        hiddenSize.value = `${h} cm × ${w} cm`;
+    } else if (h) {
+        hiddenSize.value = `${h} cm`;
+    } else if (w) {
+        hiddenSize.value = `${w} cm`;
+    } else {
+        hiddenSize.value = '';
+    }
+}
+
+// Rokomari Pricing Engine Calculations
+function onMainPriceChange() {
+    const price = parseFloat(document.getElementById('f-price')?.value) || 0;
+    const pDiscPct = parseFloat(document.getElementById('f-purchase_discount_percent')?.value) || 0;
+    const costInput = document.getElementById('f-cost_price');
+    const soldPct = parseFloat(document.getElementById('f-sold_percent')?.value) || 0;
+
+    if (price > 0 && pDiscPct > 0 && pDiscPct <= 100) {
+        const costVal = Math.round(price * (1 - pDiscPct / 100) * 100) / 100;
+        if (costInput) costInput.value = costVal;
+    }
+
+    updateRokomariCalculations();
+    updateLiveMockupCard();
+}
+
+function onPurchaseDiscountPercentChange() {
+    const price = parseFloat(document.getElementById('f-price')?.value) || 0;
+    const pDiscPct = parseFloat(document.getElementById('f-purchase_discount_percent')?.value) || 0;
+    const costInput = document.getElementById('f-cost_price');
+
+    if (price > 0 && pDiscPct >= 0 && pDiscPct <= 100) {
+        const costVal = Math.round(price * (1 - pDiscPct / 100) * 100) / 100;
+        if (costInput) costInput.value = costVal;
+    }
+    updateRokomariCalculations();
+}
+
+function onCostPriceChange() {
+    const price = parseFloat(document.getElementById('f-price')?.value) || 0;
+    const cost = parseFloat(document.getElementById('f-cost_price')?.value) || 0;
+    const pDiscInput = document.getElementById('f-purchase_discount_percent');
+
+    if (price > 0 && cost > 0 && cost < price) {
+        const pct = Math.round(((price - cost) / price) * 100);
+        if (pDiscInput) pDiscInput.value = pct;
+    }
+    updateRokomariCalculations();
+}
+
+function onSoldPercentChange() {
+    updateRokomariCalculations();
+    updateLiveMockupCard();
+}
+
+function updateRokomariCalculations() {
+    const price = parseFloat(document.getElementById('f-price')?.value) || 0;
+    const soldPct = parseFloat(document.getElementById('f-sold_percent')?.value) || 0;
+    const cost = parseFloat(document.getElementById('f-cost_price')?.value) || 0;
+
+    const offerEl = document.getElementById('liveCalculatedOfferPrice');
+    const profitEl = document.getElementById('liveCalculatedProfit');
+
+    let offerPrice = price;
+    if (price > 0 && soldPct > 0 && soldPct <= 100) {
+        offerPrice = Math.round(price * (1 - soldPct / 100) * 100) / 100;
+    }
+
+    if (offerEl) {
+        offerEl.textContent = '৳' + offerPrice.toFixed(2);
+    }
+
+    if (profitEl) {
+        if (offerPrice > 0 && cost > 0) {
+            const profit = offerPrice - cost;
+            const margin = Math.round((profit / offerPrice) * 1000) / 10;
+            if (profit >= 0) {
+                profitEl.className = 'text-success fw-bold';
+                profitEl.textContent = `৳${profit.toFixed(2)} (${margin}%)`;
+            } else {
+                profitEl.className = 'text-danger fw-bold';
+                profitEl.textContent = `Loss ৳${Math.abs(profit).toFixed(2)} (${margin}%)`;
+            }
+        } else {
+            profitEl.textContent = '৳0.00 (0%)';
+        }
+    }
+}
+
+// Toggle format for look inside
+function toggleLookInsideFormat(type) {
+    const pdfPanel = document.getElementById('lookInsidePdfPanel');
+    const imagesPanel = document.getElementById('lookInsideImagesPanel');
+    if (pdfPanel && imagesPanel) {
+        if (type === 'images') {
+            pdfPanel.classList.add('d-none');
+            imagesPanel.classList.remove('d-none');
+        } else {
+            pdfPanel.classList.remove('d-none');
+            imagesPanel.classList.add('d-none');
+        }
+    }
+}
+
+function toggleAdminPreOrderFields(stockStatus) {
+    const container = document.getElementById('adminPreOrderContainer');
+    if (!container) return;
+    if (stockStatus === 'pre_order') {
+        container.classList.remove('d-none');
+    } else {
+        container.classList.add('d-none');
+    }
+}
+
+// Preview Multi Images
+function previewAdminMultiImages(input) {
+    const container = document.getElementById('multiImagesPreviewContainer');
+    if (!container || !input.files) return;
+    container.innerHTML = '';
+    Array.from(input.files).forEach((file, idx) => {
+        if (file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const badge = document.createElement('div');
+                badge.className = 'position-relative border rounded p-1 text-center bg-white shadow-xs';
+                badge.style.width = '70px';
+                badge.innerHTML = `
+                    <img src="${e.target.result}" class="img-fluid rounded" style="height: 60px; object-fit: cover;">
+                    <div class="small text-muted text-truncate" style="font-size: 9px;">Page ${idx + 1}</div>
+                `;
+                container.appendChild(badge);
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+}
+
+function previewAdminCoverInput(input) {
+    previewAdminFileInput(input, 'preview-container-cover_image');
+}
+
+function previewAdminPdfInput(input) {
+    previewAdminFileInput(input, 'preview-container-sample_pdf_path');
 }
 
 // Live Mockup Card Update

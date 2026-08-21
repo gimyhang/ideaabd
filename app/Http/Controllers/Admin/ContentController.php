@@ -451,9 +451,10 @@ class ContentController extends Controller
         if ($request->filled('summary')) {
             $summaryClean = trim(strip_tags((string) $request->input('summary')));
             $words = preg_split('/\s+/u', $summaryClean, -1, PREG_SPLIT_NO_EMPTY);
-            if (count($words) > 400) {
+            $limit = (($spec['key'] ?? null) === 'books') ? 1000 : 400;
+            if (count($words) > $limit) {
                 throw \Illuminate\Validation\ValidationException::withMessages([
-                    'summary' => 'বইয়ের সারসংক্ষেপ (Product Summary) সর্বোচ্চ ৪০০ শব্দের মধ্যে হতে হবে। বর্তমানে ' . count($words) . ' টি শব্দ রয়েছে।',
+                    'summary' => "বইয়ের সারসংক্ষেপ (Product Summary) সর্বোচ্চ {$limit} শব্দের মধ্যে হতে হবে। বর্তমানে " . count($words) . ' টি শব্দ রয়েছে।',
                 ]);
             }
         }
@@ -688,6 +689,99 @@ class ContentController extends Controller
                 $attributes['format'] = 'epub';
             } else {
                 $attributes['format'] = 'pdf';
+            }
+        }
+
+        if ($spec['key'] === 'books') {
+            if ($request->filled('title_en')) {
+                $attributes['title_en'] = $request->input('title_en');
+            }
+
+            // Handle Multiple Authors
+            if ($request->has('author_names')) {
+                $authorNames = array_filter(array_map('trim', (array) $request->input('author_names')));
+                if (!empty($authorNames)) {
+                    $attributes['author_name'] = implode(', ', $authorNames);
+                }
+            }
+
+            // Handle Multiple Translators
+            if ($request->has('translator_names')) {
+                $translators = array_filter(array_map('trim', (array) $request->input('translator_names')));
+                if (!empty($translators)) {
+                    $attributes['translator_name'] = implode(', ', $translators);
+                } elseif (!$request->filled('translator_name')) {
+                    $attributes['translator_name'] = null;
+                }
+            } elseif ($request->filled('translator_name')) {
+                $attributes['translator_name'] = $request->input('translator_name');
+            }
+
+            // Handle Multiple Editors
+            if ($request->has('editor_names')) {
+                $editors = array_filter(array_map('trim', (array) $request->input('editor_names')));
+                if (!empty($editors)) {
+                    $attributes['editor_name'] = implode(', ', $editors);
+                } elseif (!$request->filled('editor_name')) {
+                    $attributes['editor_name'] = null;
+                }
+            } elseif ($request->filled('editor_name')) {
+                $attributes['editor_name'] = $request->input('editor_name');
+            }
+
+            // Handle Multiple Rewriters
+            if ($request->has('rewriter_names')) {
+                $rewriters = array_filter(array_map('trim', (array) $request->input('rewriter_names')));
+                if (!empty($rewriters)) {
+                    $attributes['rewriter_name'] = implode(', ', $rewriters);
+                } elseif (!$request->filled('rewriter_name')) {
+                    $attributes['rewriter_name'] = null;
+                }
+            } elseif ($request->filled('rewriter_name')) {
+                $attributes['rewriter_name'] = $request->input('rewriter_name');
+            }
+
+            // Handle Height and Width (cm)
+            if ($request->filled('book_height_cm') || $request->filled('book_width_cm')) {
+                $h = $request->input('book_height_cm');
+                $w = $request->input('book_width_cm');
+                $attributes['book_height_cm'] = $h ? (float)$h : null;
+                $attributes['book_width_cm'] = $w ? (float)$w : null;
+                if ($h && $w) {
+                    $attributes['book_size'] = "{$h} cm × {$w} cm";
+                } elseif ($h) {
+                    $attributes['book_size'] = "{$h} cm (Height)";
+                } elseif ($w) {
+                    $attributes['book_size'] = "{$w} cm (Width)";
+                }
+            }
+
+            if ($request->filled('sub_category_name')) {
+                $attributes['sub_category_name'] = $request->input('sub_category_name');
+            }
+            if ($request->filled('ekushey_category')) {
+                $attributes['ekushey_category'] = $request->input('ekushey_category');
+            }
+            if ($request->filled('genre_category')) {
+                $attributes['genre_category'] = $request->input('genre_category');
+            }
+            if ($request->filled('audience_category')) {
+                $attributes['audience_category'] = $request->input('audience_category');
+            }
+            if ($request->filled('look_inside_type')) {
+                $attributes['look_inside_type'] = $request->input('look_inside_type');
+            }
+            if ($request->hasFile('look_inside_images')) {
+                $imagePaths = [];
+                $files = (array) $request->file('look_inside_images');
+                foreach ($files as $imgFile) {
+                    if ($imgFile instanceof \Illuminate\Http\UploadedFile) {
+                        $imagePaths[] = $imgFile->store('books/look_inside', 'public');
+                    }
+                }
+                if (!empty($imagePaths)) {
+                    $attributes['look_inside_images'] = json_encode($imagePaths);
+                }
             }
         }
 

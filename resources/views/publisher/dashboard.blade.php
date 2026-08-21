@@ -667,7 +667,7 @@
                 <div class="row g-4">
                     
                     {{-- ═════════════════════════════════════════════════════════ --}}
-                    {{-- LEFT COLUMN: PRODUCT SPECIFICATIONS & FORMS (8 COLS)      --}}
+                    {{-- LEFT COLUMN: 10 STRUCTURED GRID ROWS (8 COLS)             --}}
                     {{-- ═════════════════════════════════════════════════════════ --}}
                     <div class="col-12 col-xl-8 col-lg-8">
                         <div class="card border-0 shadow-sm rounded-4 bg-white overflow-hidden mb-4">
@@ -690,393 +690,618 @@
                             </div>
 
                             <div class="card-body p-4">
-                                
-                                {{-- ── SECTION 1: PRODUCT TYPE & BASIC INFO ── --}}
-                                <div class="mb-4">
-                                    <div class="d-flex align-items-center gap-2 pb-2 border-bottom mb-3 text-dark fw-bold" style="font-size: 0.95rem;">
-                                        <span class="badge bg-primary-subtle text-primary rounded-circle p-1.5"><i class="fas fa-shapes"></i></span>
-                                        <span>1. Product Type & Basic Information</span>
+                                <div class="row g-3">
+                                    {{-- ROW 1: Product Type * & Order Type * (2 columns in 1 row) --}}
+                                    <div class="col-12 col-md-6">
+                                        <label for="pubProductType" class="form-label small fw-bold text-dark mb-1">
+                                            <i class="fas fa-box text-primary me-1"></i> Product Type <span class="text-danger">*</span>
+                                        </label>
+                                        <select name="product_type" id="pubProductType" class="form-select form-select-sm rounded-3" required onchange="onProductTypeChange()">
+                                            <option value="book" @selected(old('product_type', $editBook->product_type ?? 'book') === 'book')>📚 Book (বই)</option>
+                                            <option value="stationery" @selected(old('product_type', $editBook->product_type ?? '') === 'stationery')>✏️ Stationery (স্টেশনারি)</option>
+                                            <option value="islamic_gift" @selected(old('product_type', $editBook->product_type ?? '') === 'islamic_gift')>🎁 Islamic Gift (ইসলামিক গিফট)</option>
+                                            <option value="other" @selected(old('product_type', $editBook->product_type ?? '') === 'other')>📦 Other Item (অন্যান্য পণ্য)</option>
+                                        </select>
                                     </div>
 
-                                    <div class="row g-3">
-                                        {{-- Product Type --}}
-                                        <div class="col-md-4">
-                                            <label class="form-label small fw-bold text-dark mb-1">
-                                                Product Type <span class="text-danger">*</span>
+                                    <div class="col-12 col-md-6">
+                                        <label for="pubStockStatus" class="form-label small fw-bold text-dark mb-1">
+                                            <i class="fas fa-dolly text-success me-1"></i> Order Type <span class="text-danger">*</span>
+                                        </label>
+                                        <select name="stock_status" id="pubStockStatus" class="form-select form-select-sm rounded-3" required onchange="onOrderTypeChange()">
+                                            <option value="in_stock" @selected(old('stock_status', $editBook->stock_status ?? 'in_stock') === 'in_stock')>🟢 Buy Now / In Stock (সরাসরি ক্রয়)</option>
+                                            <option value="pre_order" @selected(old('stock_status', $editBook->stock_status ?? '') === 'pre_order')>⏳ Pre-Order (প্রি-অর্ডার)</option>
+                                            <option value="low" @selected(old('stock_status', $editBook->stock_status ?? '') === 'low')>🟡 Low Stock (সীমিত স্টক)</option>
+                                            <option value="out" @selected(old('stock_status', $editBook->stock_status ?? '') === 'out')>🔴 Out of Stock (স্টক শেষ)</option>
+                                            <option value="upcoming" @selected(old('stock_status', $editBook->stock_status ?? '') === 'upcoming')>📅 Upcoming (শীঘ্রই আসছে)</option>
+                                        </select>
+                                    </div>
+
+                                    {{-- Pre-Order Dynamic Details Box --}}
+                                    <div class="col-12" id="preOrderDetailsBox" style="{{ old('stock_status', $editBook->stock_status ?? '') === 'pre_order' ? '' : 'display:none;' }}">
+                                        <div class="p-2.5 bg-warning-subtle border border-warning rounded-3">
+                                            <div class="row g-2">
+                                                <div class="col-md-6">
+                                                    <label class="form-label small fw-bold text-dark mb-1"><i class="fas fa-calendar-day me-1"></i>Pre-Order Release / Delivery Date</label>
+                                                    <input type="date" name="pre_order_release_date" class="form-control form-control-sm rounded-2" 
+                                                           value="{{ old('pre_order_release_date', ($editBook && $editBook->pre_order_release_date ? $editBook->pre_order_release_date->format('Y-m-d') : '')) }}">
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label class="form-label small fw-bold text-dark mb-1"><i class="fas fa-gift me-1"></i>Pre-Order Note / Gift Offer</label>
+                                                    <input type="text" name="pre_order_note" class="form-control form-control-sm rounded-2" 
+                                                           value="{{ old('pre_order_note', $editBook->pre_order_note ?? '') }}" placeholder="e.g. লেখক অটোগ্রাফ ও ফ্রি বুকমার্ক...">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {{-- ROW 2: Title / Product Name (BN) * & Product Name (EN) * (2 columns in 1 row) --}}
+                                    <div class="col-12 col-md-6">
+                                        <label class="form-label small fw-bold text-dark mb-1">
+                                            <i class="fas fa-book text-primary me-1"></i> Title / Product Name (BN) <span class="text-danger">*</span>
+                                        </label>
+                                        <input type="text" name="title" id="pubBookTitleInput" class="form-control form-control-sm rounded-3 fw-bold" 
+                                               value="{{ old('title', $editBook->title ?? '') }}" required placeholder="বইয়ের বাংলা নাম (যেমন: পথের পাঁচালী)" oninput="updatePubMockup()">
+                                    </div>
+
+                                    <div class="col-12 col-md-6">
+                                        <label class="form-label small fw-bold text-dark mb-1">
+                                            <i class="fas fa-language text-secondary me-1"></i> Product Name (EN) <span class="text-danger">*</span>
+                                        </label>
+                                        <input type="text" name="title_en" id="pubTitleEnInput" class="form-control form-control-sm rounded-3" 
+                                               value="{{ old('title_en', $editBook->title_en ?? ($editBook->subtitle ?? '')) }}" placeholder="Product Name in English (e.g. Pather Panchali)">
+                                    </div>
+
+                                    {{-- ROW 3: Author Name * & Translator Name (2 columns in 1 row) --}}
+                                    <div class="col-12 col-md-6">
+                                        <div class="d-flex align-items-center justify-content-between mb-1">
+                                            <label class="form-label small fw-bold text-dark mb-0">
+                                                <i class="fas fa-pen-nib text-primary me-1"></i> Author Name <span class="text-danger">*</span>
                                             </label>
-                                            <select name="product_type" id="pubProductType" class="form-select rounded-3" required onchange="onProductTypeChange()">
-                                                <option value="book" @selected(old('product_type', $editBook->product_type ?? 'book') === 'book')>📚 Book (বই)</option>
-                                                <option value="stationery" @selected(old('product_type', $editBook->product_type ?? '') === 'stationery')>✏️ Stationery (স্টেশনারি)</option>
-                                                <option value="islamic_gift" @selected(old('product_type', $editBook->product_type ?? '') === 'islamic_gift')>🎁 Islamic Gift (ইসলামিক গিফট)</option>
-                                                <option value="other" @selected(old('product_type', $editBook->product_type ?? '') === 'other')>📦 Other Item (অন্যান্য পণ্য)</option>
-                                            </select>
+                                            <button type="button" class="btn btn-outline-primary btn-sm py-0 px-2 rounded-pill fw-semibold" 
+                                                    data-bs-toggle="modal" data-bs-target="#pubQuickAuthorModal" style="font-size: 11px;">
+                                                <i class="fas fa-plus-circle me-0.5"></i>+ Add Author
+                                            </button>
                                         </div>
 
-                                        {{-- Title --}}
-                                        <div class="col-md-8">
-                                            <label class="form-label small fw-bold text-dark mb-1">
-                                                <span id="labelTitle">Book Title</span> <span class="text-danger">*</span>
+                                        {{-- Multi-author chips --}}
+                                        <div id="pubSelectedAuthorsContainer" class="d-flex flex-wrap gap-1.5 mb-1.5 p-1.5 bg-light rounded-2 border" style="min-height: 32px;">
+                                            @php
+                                    {{-- ROW 3: Author Name * & Translator Name (2 columns with + dynamic adder) --}}
+                                    <div class="col-12 col-md-6">
+                                        <div class="d-flex align-items-center justify-content-between mb-1">
+                                            <label class="form-label small fw-bold text-dark mb-0">
+                                                <i class="fas fa-pen-nib text-primary me-1"></i> Author Name <span class="text-danger">*</span>
                                             </label>
-                                            <input type="text" name="title" id="pubBookTitleInput" class="form-control rounded-3 fw-bold" 
-                                                   value="{{ old('title', $editBook->title ?? '') }}" required placeholder="e.g. Stories of Resilience" oninput="updatePubMockup()">
-                                        </div>
-
-                                        {{-- Subtitle --}}
-                                        <div class="col-md-7">
-                                            <label class="form-label small fw-semibold text-dark mb-1">Subtitle / Tagline (Optional)</label>
-                                            <input type="text" name="subtitle" id="pubSubtitleInput" class="form-control rounded-3" 
-                                                   value="{{ old('subtitle', $editBook->subtitle ?? '') }}" placeholder="e.g. A Collection of Short Essays" oninput="updatePubMockup()">
-                                        </div>
-
-                                        {{-- Category Select with Quick Modal Trigger --}}
-                                        <div class="col-md-5">
-                                            <div class="d-flex align-items-center justify-content-between mb-1">
-                                                <label class="form-label small fw-bold text-dark mb-0">
-                                                    Category / Genre <span class="text-danger">*</span>
-                                                </label>
-                                                <button type="button" class="btn btn-link text-primary p-0 text-decoration-none small fw-semibold" 
-                                                        data-bs-toggle="modal" data-bs-target="#pubQuickCategoryModal" style="font-size: 11.5px;">
-                                                    <i class="fas fa-plus-circle me-1"></i>+ Add Category
+                                            <div class="d-flex align-items-center gap-1.5">
+                                                <button type="button" class="btn btn-sm btn-outline-success py-0 px-2 rounded-pill fw-semibold" 
+                                                        onclick="addPubAuthorField()" style="font-size: 11px;">
+                                                    <i class="fas fa-plus me-0.5"></i>+ Add Author
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2 rounded-pill fw-semibold" 
+                                                        data-bs-toggle="modal" data-bs-target="#pubQuickAuthorModal" style="font-size: 11px;">
+                                                    <i class="fas fa-user-plus me-0.5"></i>New
                                                 </button>
                                             </div>
-                                            <select name="category_id" id="pubCategorySelect" class="form-select rounded-3" required onchange="updatePubMockup()">
-                                                <option value="">— Select Category —</option>
-                                                @foreach($categories as $cId => $cName)
-                                                    <option value="{{ $cId }}" @selected(old('category_id', $editBook->category_id ?? '') == $cId)>{{ $cName }}</option>
-                                                @endforeach
-                                            </select>
                                         </div>
 
-                                        {{-- SKU and ISBN --}}
-                                        <div class="col-md-6">
-                                            <label class="form-label small fw-semibold text-dark mb-1">Item Code / SKU</label>
-                                            <input type="text" name="sku" class="form-control form-control-sm rounded-3" 
-                                                   value="{{ old('sku', $editBook->sku ?? '') }}" placeholder="Leave blank to auto-generate">
-                                        </div>
-
-                                        <div class="col-md-6">
-                                            <label class="form-label small fw-semibold text-dark mb-1">ISBN / Barcode</label>
-                                            <input type="text" name="isbn" class="form-control form-control-sm rounded-3" 
-                                                   value="{{ old('isbn', $editBook->isbn ?? '') }}" placeholder="978-984-...">
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {{-- ── SECTION 2: MULTIPLE AUTHORS & CONTRIBUTORS ── --}}
-                                <div class="mb-4">
-                                    <div class="d-flex align-items-center justify-content-between pb-2 border-bottom mb-3 text-dark fw-bold" style="font-size: 0.95rem;">
-                                        <div class="d-flex align-items-center gap-2">
-                                            <span class="badge bg-success-subtle text-success rounded-circle p-1.5"><i class="fas fa-users-pen"></i></span>
-                                            <span>2. Authors & Contributors (একাধিক লেখক যুক্ত করুন)</span>
-                                        </div>
-                                        <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-2.5 py-0.5 fw-semibold" 
-                                                data-bs-toggle="modal" data-bs-target="#pubQuickAuthorModal" style="font-size: 11.5px;">
-                                            <i class="fas fa-plus-circle me-1"></i>+ Add New Author
-                                        </button>
-                                    </div>
-
-                                    <div class="p-3 bg-light rounded-3 border mb-3">
-                                        {{-- Active Selected Authors Chips Container --}}
-                                        <label class="form-label small fw-bold text-dark mb-1">
-                                            Selected Authors (একাধিক লেখক তালিকা):
-                                        </label>
-                                        <div id="pubSelectedAuthorsContainer" class="d-flex flex-wrap gap-2 min-h-35 mb-2.5 p-2 bg-white rounded-2 border">
+                                        <div id="pubAuthorsRepeaterContainer" class="vstack gap-1.5">
                                             @php
-                                                $selectedAuthorIds = old('author_ids', ($editBook && $editBook->authors ? $editBook->authors->pluck('id')->toArray() : []));
-                                                if ($editBook && $editBook->author_link_id && !in_array($editBook->author_link_id, $selectedAuthorIds)) {
-                                                    $selectedAuthorIds[] = $editBook->author_link_id;
+                                                $existingAuthors = [];
+                                                if (old('author_name', $editBook->author_name ?? '')) {
+                                                    $existingAuthors = array_map('trim', explode(',', (string)old('author_name', $editBook->author_name ?? '')));
+                                                }
+                                                if (empty($existingAuthors)) {
+                                                    $existingAuthors = [''];
                                                 }
                                             @endphp
-                                            @forelse($selectedAuthorIds as $sId)
-                                                @if(isset($authors[$sId]))
-                                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1.5 d-inline-flex align-items-center gap-1.5 author-chip" data-id="{{ $sId }}">
-                                                        <i class="fas fa-user-pen text-primary small"></i>
-                                                        <span class="fw-semibold">{{ $authors[$sId] }}</span>
-                                                        <input type="hidden" name="author_ids[]" value="{{ $sId }}">
-                                                        <button type="button" class="btn-close btn-close-xs ms-1" style="font-size: 8px;" onclick="removeAuthorChip(this, '{{ $sId }}')"></button>
-                                                    </span>
-                                                @endif
-                                            @empty
-                                                <span class="text-muted small my-auto fst-italic" id="noAuthorsBadge">No authors selected yet. Choose from dropdown below.</span>
-                                            @endforelse
+                                            @foreach($existingAuthors as $aIdx => $aName)
+                                                <div class="input-group input-group-sm pub-author-field-row">
+                                                    <select name="author_ids[]" class="form-select form-select-sm rounded-start-2" style="max-width: 140px;" onchange="onPubAuthorSelectRowChange(this)">
+                                                        <option value="">— Directory —</option>
+                                                        @foreach ($authors as $aId => $aLookupName)
+                                                            <option value="{{ $aId }}" @selected((string)old('author_id', $editBook->author_link_id ?? '') === (string)$aId || $aName === $aLookupName)>
+                                                                {{ $aLookupName }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+                                                    <input type="text" name="author_names[]" class="form-control form-control-sm pub-author-name-input" 
+                                                           value="{{ $aName }}" placeholder="লেখকের নাম লিখুন..." oninput="updatePubMockup()">
+                                                    @if($aIdx === 0)
+                                                        <button type="button" class="btn btn-outline-secondary" onclick="addPubAuthorField()"><i class="fas fa-plus text-success"></i></button>
+                                                    @else
+                                                        <button type="button" class="btn btn-outline-danger" onclick="this.closest('.pub-author-field-row').remove(); updatePubMockup();"><i class="fas fa-times"></i></button>
+                                                    @endif
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+
+                                    <div class="col-12 col-md-6">
+                                        <div class="d-flex align-items-center justify-content-between mb-1">
+                                            <label class="form-label small fw-bold text-dark mb-0">
+                                                <i class="fas fa-language text-info me-1"></i> Translator Name
+                                            </label>
+                                            <button type="button" class="btn btn-sm btn-outline-success py-0 px-2 rounded-pill fw-semibold" 
+                                                    onclick="addPubTranslatorField()" style="font-size: 11px;">
+                                                <i class="fas fa-plus me-0.5"></i>+ Add Translator
+                                            </button>
                                         </div>
 
-                                        {{-- Add Author from Dropdown --}}
-                                        <div class="row g-2 align-items-center">
-                                            <div class="col-md-7">
-                                                <select id="pubAuthorPickerSelect" class="form-select form-select-sm rounded-2" onchange="onAddAuthorFromPicker(this)">
-                                                    <option value="">— Choose Author from Directory to Add (+ Add More) —</option>
-                                                    @foreach($authors as $aId => $aName)
-                                                        <option value="{{ $aId }}">{{ $aName }}</option>
-                                                    @endforeach
-                                                </select>
+                                        <div id="pubTranslatorsRepeaterContainer" class="vstack gap-1.5">
+                                            @php
+                                                $existingTranslators = [];
+                                                if (old('translator_name', $editBook->translator_name ?? '')) {
+                                                    $existingTranslators = array_map('trim', explode(',', (string)old('translator_name', $editBook->translator_name ?? '')));
+                                                }
+                                                if (empty($existingTranslators)) {
+                                                    $existingTranslators = [''];
+                                                }
+                                            @endphp
+                                            @foreach($existingTranslators as $tIdx => $tName)
+                                                <div class="input-group input-group-sm pub-translator-field-row">
+                                                    <input type="text" name="translator_names[]" class="form-control form-control-sm" 
+                                                           value="{{ $tName }}" placeholder="অনুবাদকের নাম...">
+                                                    @if($tIdx === 0)
+                                                        <button type="button" class="btn btn-outline-secondary" onclick="addPubTranslatorField()"><i class="fas fa-plus text-success"></i></button>
+                                                    @else
+                                                        <button type="button" class="btn btn-outline-danger" onclick="this.closest('.pub-translator-field-row').remove()"><i class="fas fa-times"></i></button>
+                                                    @endif
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+
+                                    {{-- ROW 4: Editor Name & Rewriter Name (2 columns with + dynamic adder) --}}
+                                    <div class="col-12 col-md-6">
+                                        <div class="d-flex align-items-center justify-content-between mb-1">
+                                            <label class="form-label small fw-bold text-dark mb-0">
+                                                <i class="fas fa-user-pen text-secondary me-1"></i> Editor Name
+                                            </label>
+                                            <button type="button" class="btn btn-sm btn-outline-success py-0 px-2 rounded-pill fw-semibold" 
+                                                    onclick="addPubEditorField()" style="font-size: 11px;">
+                                                <i class="fas fa-plus me-0.5"></i>+ Add Editor
+                                            </button>
+                                        </div>
+
+                                        <div id="pubEditorsRepeaterContainer" class="vstack gap-1.5">
+                                            @php
+                                                $existingEditors = [];
+                                                if (old('editor_name', $editBook->editor_name ?? '')) {
+                                                    $existingEditors = array_map('trim', explode(',', (string)old('editor_name', $editBook->editor_name ?? '')));
+                                                }
+                                                if (empty($existingEditors)) {
+                                                    $existingEditors = [''];
+                                                }
+                                            @endphp
+                                            @foreach($existingEditors as $eIdx => $eName)
+                                                <div class="input-group input-group-sm pub-editor-field-row">
+                                                    <input type="text" name="editor_names[]" class="form-control form-control-sm" 
+                                                           value="{{ $eName }}" placeholder="সম্পাদকের নাম...">
+                                                    @if($eIdx === 0)
+                                                        <button type="button" class="btn btn-outline-secondary" onclick="addPubEditorField()"><i class="fas fa-plus text-success"></i></button>
+                                                    @else
+                                                        <button type="button" class="btn btn-outline-danger" onclick="this.closest('.pub-editor-field-row').remove()"><i class="fas fa-times"></i></button>
+                                                    @endif
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+
+                                    <div class="col-12 col-md-6">
+                                        <div class="d-flex align-items-center justify-content-between mb-1">
+                                            <label class="form-label small fw-bold text-dark mb-0">
+                                                <i class="fas fa-pen-fancy text-secondary me-1"></i> Rewriter Name
+                                            </label>
+                                            <button type="button" class="btn btn-sm btn-outline-success py-0 px-2 rounded-pill fw-semibold" 
+                                                    onclick="addPubRewriterField()" style="font-size: 11px;">
+                                                <i class="fas fa-plus me-0.5"></i>+ Add Rewriter
+                                            </button>
+                                        </div>
+
+                                        <div id="pubRewritersRepeaterContainer" class="vstack gap-1.5">
+                                            @php
+                                                $existingRewriters = [];
+                                                if (old('rewriter_name', $editBook->rewriter_name ?? '')) {
+                                                    $existingRewriters = array_map('trim', explode(',', (string)old('rewriter_name', $editBook->rewriter_name ?? '')));
+                                                }
+                                                if (empty($existingRewriters)) {
+                                                    $existingRewriters = [''];
+                                                }
+                                            @endphp
+                                            @foreach($existingRewriters as $rIdx => $rName)
+                                                <div class="input-group input-group-sm pub-rewriter-field-row">
+                                                    <input type="text" name="rewriter_names[]" class="form-control form-control-sm" 
+                                                           value="{{ $rName }}" placeholder="পুনর্লিখনকারী / রূপান্তরকারীর নাম...">
+                                                    @if($rIdx === 0)
+                                                        <button type="button" class="btn btn-outline-secondary" onclick="addPubRewriterField()"><i class="fas fa-plus text-success"></i></button>
+                                                    @else
+                                                        <button type="button" class="btn btn-outline-danger" onclick="this.closest('.pub-rewriter-field-row').remove()"><i class="fas fa-times"></i></button>
+                                                    @endif
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+
+                                    {{-- ROW 5: Language * & Country (2 columns in 1 row - Dropdowns) --}}
+                                    <div class="col-12 col-md-6">
+                                        <label class="form-label small fw-bold text-dark mb-1">
+                                            <i class="fas fa-globe text-primary me-1"></i> Language <span class="text-danger">*</span>
+                                        </label>
+                                        <select name="language" class="form-select form-select-sm rounded-3" required>
+                                            <option value="Bengali" @selected(old('language', $editBook->language ?? 'Bengali') === 'Bengali')>বাংলা (Bengali)</option>
+                                            <option value="English" @selected(old('language', $editBook->language ?? '') === 'English')>ইংরেজি (English)</option>
+                                            <option value="Arabic" @selected(old('language', $editBook->language ?? '') === 'Arabic')>আরবি (Arabic)</option>
+                                            <option value="Urdu" @selected(old('language', $editBook->language ?? '') === 'Urdu')>উর্দু (Urdu)</option>
+                                            <option value="Hindi" @selected(old('language', $editBook->language ?? '') === 'Hindi')>হিন্দি (Hindi)</option>
+                                            <option value="Persian" @selected(old('language', $editBook->language ?? '') === 'Persian')>ফারসি (Persian)</option>
+                                            <option value="Other" @selected(old('language', $editBook->language ?? '') === 'Other')>অন্যান্য (Other)</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="col-12 col-md-6">
+                                        <label class="form-label small fw-bold text-dark mb-1">
+                                            <i class="fas fa-flag text-danger me-1"></i> Country
+                                        </label>
+                                        <select name="country" class="form-select form-select-sm rounded-3">
+                                            <option value="Bangladesh" @selected(old('country', $editBook->country ?? 'Bangladesh') === 'Bangladesh')>বাংলাদেশ (Bangladesh)</option>
+                                            <option value="India" @selected(old('country', $editBook->country ?? '') === 'India')>ভারত (India)</option>
+                                            <option value="Saudi Arabia" @selected(old('country', $editBook->country ?? '') === 'Saudi Arabia')>সৌদি আরব (Saudi Arabia)</option>
+                                            <option value="Egypt" @selected(old('country', $editBook->country ?? '') === 'Egypt')>মিশর (Egypt)</option>
+                                            <option value="United Kingdom" @selected(old('country', $editBook->country ?? '') === 'United Kingdom')>যুক্তরাজ্য (UK)</option>
+                                            <option value="United States" @selected(old('country', $editBook->country ?? '') === 'United States')>যুক্তরাষ্ট্র (USA)</option>
+                                            <option value="Other" @selected(old('country', $editBook->country ?? '') === 'Other')>অন্যান্য (Other)</option>
+                                        </select>
+                                    </div>
+
+                                    {{-- ROW 6: Binding * / Paper Quality (Offset, Newsprint, Glossy 50-300 GSM) / Edition * (3 columns in 1 row) --}}
+                                    <div class="col-12 col-md-4">
+                                        <label class="form-label small fw-bold text-dark mb-1">
+                                            <i class="fas fa-book-bookmark text-primary me-1"></i> Binding <span class="text-danger">*</span>
+                                        </label>
+                                        <select name="cover_type" id="pubCoverType" class="form-select form-select-sm rounded-3" required onchange="toggleCoverPricing()">
+                                            <option value="paperback" @selected(old('cover_type', $editBook->cover_type ?? 'paperback') === 'paperback')>পেপারব্যাক (Paperback)</option>
+                                            <option value="hardcover" @selected(old('cover_type', $editBook->cover_type ?? '') === 'hardcover')>হার্ডকভার (Hardcover)</option>
+                                            <option value="board_book" @selected(old('cover_type', $editBook->cover_type ?? '') === 'board_book')>বোর্ড বুক (Board Book)</option>
+                                            <option value="spiral" @selected(old('cover_type', $editBook->cover_type ?? '') === 'spiral')>স্পাইরাল (Spiral Bound)</option>
+                                            <option value="both" @selected(old('cover_type', $editBook->cover_type ?? '') === 'both')>উভয় (Hard & Paperback)</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="col-12 col-md-4">
+                                        <label class="form-label small fw-bold text-dark mb-1">
+                                            <i class="fas fa-scroll text-secondary me-1"></i> Paper Quality (কাগজের মান ও GSM)
+                                        </label>
+                                        <select name="paper_type" class="form-select form-select-sm rounded-3">
+                                            <optgroup label="── অফসেট পেপার (Offset Paper) ──">
+                                                <option value="50 GSM Offset" @selected(old('paper_type', $editBook->paper_type ?? '') === '50 GSM Offset')>৫০ GSM অফসেট পেপার (50 GSM Offset)</option>
+                                                <option value="55 GSM Offset" @selected(old('paper_type', $editBook->paper_type ?? '') === '55 GSM Offset')>৫৫ GSM অফসেট পেপার (55 GSM Offset)</option>
+                                                <option value="60 GSM Offset" @selected(old('paper_type', $editBook->paper_type ?? '') === '60 GSM Offset')>৬০ GSM অফসেট পেপার (60 GSM Offset)</option>
+                                                <option value="65 GSM Offset" @selected(old('paper_type', $editBook->paper_type ?? '') === '65 GSM Offset')>৬৫ GSM অফসেট পেপার (65 GSM Offset)</option>
+                                                <option value="70 GSM Offset" @selected(old('paper_type', $editBook->paper_type ?? '') === '70 GSM Offset')>৭০ GSM অফসেট পেপার (70 GSM Offset)</option>
+                                                <option value="80 GSM Offset" @selected(old('paper_type', $editBook->paper_type ?? '80 GSM Offset') === '80 GSM Offset')>৮০ GSM অফসেট পেপার (80 GSM Offset)</option>
+                                                <option value="100 GSM Offset" @selected(old('paper_type', $editBook->paper_type ?? '') === '100 GSM Offset')>১০০ GSM অফসেট পেপার (100 GSM Offset)</option>
+                                                <option value="120 GSM Offset" @selected(old('paper_type', $editBook->paper_type ?? '') === '120 GSM Offset')>১২০ GSM অফসেট পেপার (120 GSM Offset)</option>
+                                            </optgroup>
+                                            <optgroup label="── নিউজপ্রিন্ট (Newsprint Paper) ──">
+                                                <option value="50 GSM Newsprint" @selected(old('paper_type', $editBook->paper_type ?? '') === '50 GSM Newsprint')>৫০ GSM নিউজপ্রিন্ট (50 GSM Newsprint)</option>
+                                                <option value="55 GSM Newsprint" @selected(old('paper_type', $editBook->paper_type ?? '') === '55 GSM Newsprint')>৫৫ GSM নিউজপ্রিন্ট (55 GSM Newsprint)</option>
+                                                <option value="60 GSM Newsprint" @selected(old('paper_type', $editBook->paper_type ?? '') === '60 GSM Newsprint')>৬০ GSM নিউজপ্রিন্ট (60 GSM Newsprint)</option>
+                                                <option value="70 GSM Newsprint" @selected(old('paper_type', $editBook->paper_type ?? '') === '70 GSM Newsprint')>৭০ GSM নিউজপ্রিন্ট (70 GSM Newsprint)</option>
+                                            </optgroup>
+                                            <optgroup label="── গ্লোসি পেপার / আর্ট পেপার (Glossy / Art Paper) ──">
+                                                <option value="100 GSM Glossy Paper" @selected(old('paper_type', $editBook->paper_type ?? '') === '100 GSM Glossy Paper')>১০০ GSM গ্লোসি পেপার (100 GSM Glossy)</option>
+                                                <option value="120 GSM Glossy Paper" @selected(old('paper_type', $editBook->paper_type ?? '') === '120 GSM Glossy Paper')>১২০ GSM গ্লোসি পেপার (120 GSM Glossy)</option>
+                                                <option value="130 GSM Glossy Paper" @selected(old('paper_type', $editBook->paper_type ?? '') === '130 GSM Glossy Paper')>১৩০ GSM গ্লোসি পেপার (130 GSM Glossy)</option>
+                                                <option value="150 GSM Glossy Paper" @selected(old('paper_type', $editBook->paper_type ?? '') === '150 GSM Glossy Paper')>১৫০ GSM গ্লোসি পেপার (150 GSM Glossy)</option>
+                                                <option value="170 GSM Glossy Paper" @selected(old('paper_type', $editBook->paper_type ?? '') === '170 GSM Glossy Paper')>১৭০ GSM গ্লোসি পেপার (170 GSM Glossy)</option>
+                                                <option value="200 GSM Glossy Paper" @selected(old('paper_type', $editBook->paper_type ?? '') === '200 GSM Glossy Paper')>২০০ GSM গ্লোসি পেপার (200 GSM Glossy)</option>
+                                                <option value="250 GSM Glossy Paper" @selected(old('paper_type', $editBook->paper_type ?? '') === '250 GSM Glossy Paper')>২৫০ GSM গ্লোসি পেপার (250 GSM Glossy)</option>
+                                                <option value="300 GSM Glossy Paper" @selected(old('paper_type', $editBook->paper_type ?? '') === '300 GSM Glossy Paper')>৩০০ GSM গ্লোসি পেপার / বোর্ড (300 GSM)</option>
+                                            </optgroup>
+                                            <optgroup label="── অন্যান্য পেপার কোয়ালিটি ──">
+                                                <option value="100 GSM Cream Paper" @selected(old('paper_type', $editBook->paper_type ?? '') === '100 GSM Cream Paper')>১০০ GSM ক্রিম / বুক পেপার (Cream Paper)</option>
+                                                <option value="Other" @selected(old('paper_type', $editBook->paper_type ?? '') === 'Other')>Other Quality / কাস্টম পেপার</option>
+                                            </optgroup>
+                                        </select>
+                                    </div>
+
+                                    <div class="col-12 col-md-4">
+                                        <label class="form-label small fw-bold text-dark mb-1">
+                                            <i class="fas fa-tag text-info me-1"></i> Edition <span class="text-danger">*</span>
+                                        </label>
+                                        <input type="text" name="edition" class="form-control form-control-sm rounded-3" 
+                                               value="{{ old('edition', $editBook->edition ?? ('1st Edition ' . date('Y'))) }}" required placeholder="e.g. 1st Edition 2026">
+                                    </div>
+
+                                    {{-- ROW 7: Supplier / Publisher / Number of Pages * / Book Size (2-Column cm Dimensions) --}}
+                                    <div class="col-12 col-md-4">
+                                        <label class="form-label small fw-bold text-dark mb-1">
+                                            <i class="fas fa-building text-primary me-1"></i> Supplier / Publisher
+                                        </label>
+                                        <input type="text" class="form-control form-control-sm rounded-3 bg-light fw-semibold" 
+                                               value="{{ $publisher->name ?? 'Idea Publication' }}" readonly>
+                                    </div>
+
+                                    <div class="col-12 col-md-3">
+                                        <label class="form-label small fw-bold text-dark mb-1">
+                                            <i class="fas fa-file-lines text-secondary me-1"></i> Number of Pages <span class="text-danger">*</span>
+                                        </label>
+                                        <input type="number" name="page_count" class="form-control form-control-sm rounded-3" min="1" required
+                                               value="{{ old('page_count', $editBook->page_count ?? ($editBook->number_of_pages ?? 0)) }}" placeholder="মোট পৃষ্ঠা সংখ্যা">
+                                    </div>
+
+                                    {{-- Book Size: 2 Columns for Height (cm) & Width (cm) --}}
+                                    <div class="col-12 col-md-5">
+                                        <label class="form-label small fw-bold text-dark mb-1">
+                                            <i class="fas fa-ruler-combined text-secondary me-1"></i> Book Size / Dimensions (মাপ ২-কলামে)
+                                        </label>
+                                        <div class="row g-1.5">
+                                            <div class="col-6">
+                                                <div class="input-group input-group-sm">
+                                                    <span class="input-group-text bg-light text-muted" style="font-size: 11px;">Height</span>
+                                                    <input type="number" step="0.1" min="0" id="pubBookHeightCm" name="book_height_cm" 
+                                                           value="{{ old('book_height_cm', $editBook->book_height_cm ?? '') }}" class="form-control form-control-sm" placeholder="21.5" oninput="syncPubBookSizeCombined()">
+                                                    <span class="input-group-text bg-light text-muted" style="font-size: 11px;">cm</span>
+                                                </div>
                                             </div>
-                                            <div class="col-md-5">
-                                                <input type="text" name="author_name" id="pubCustomAuthorInput" class="form-control form-control-sm rounded-2" 
-                                                       value="{{ old('author_name', $editBook->author_name ?? '') }}" 
-                                                       placeholder="Or type custom author name..." oninput="updatePubMockup()">
+                                            <div class="col-6">
+                                                <div class="input-group input-group-sm">
+                                                    <span class="input-group-text bg-light text-muted" style="font-size: 11px;">Width</span>
+                                                    <input type="number" step="0.1" min="0" id="pubBookWidthCm" name="book_width_cm" 
+                                                           value="{{ old('book_width_cm', $editBook->book_width_cm ?? '') }}" class="form-control form-control-sm" placeholder="14.0" oninput="syncPubBookSizeCombined()">
+                                                    <span class="input-group-text bg-light text-muted" style="font-size: 11px;">cm</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <input type="hidden" id="pubBookSizeHidden" name="book_size" value="{{ old('book_size', $editBook->book_size ?? '') }}">
+                                    </div>
+
+                                    {{-- ROW 8: List Price* / Purchase Discount Percent / Purchase Amount / Sold % (4 columns in 1 row) --}}
+                                    <div class="col-12">
+                                        <div class="p-3 bg-light rounded-3 border border-primary-subtle shadow-xs">
+                                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                                <span class="small fw-bold text-dark"><i class="fas fa-calculator text-primary me-1.5"></i> মূল্য নির্ধারণ ও ক্রয়-বিক্রয় লাভ হিসাব (Pricing Engine)</span>
+                                                <span class="badge bg-primary-subtle text-primary small">2-Way Auto Sync</span>
+                                            </div>
+                                            <div class="row g-2">
+                                                <div class="col-12 col-md-3">
+                                                    <label class="form-label small fw-bold text-dark mb-1">
+                                                        List Price (MRP ৳) <span class="text-danger">*</span>
+                                                    </label>
+                                                    <div class="input-group input-group-sm">
+                                                        <span class="input-group-text bg-white fw-bold text-primary">৳</span>
+                                                        <input type="number" step="0.01" min="0" id="pubPriceInput" name="price" 
+                                                               value="{{ old('price', $editBook ? ($editBook->price > 0 ? $editBook->price : $editBook->hardcover_price) : '') }}" required
+                                                               class="form-control form-control-sm fw-bold" placeholder="0.00" oninput="onPubPriceChange()">
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-12 col-md-3">
+                                                    <label class="form-label small fw-bold text-dark mb-1">
+                                                        Purchase Discount (%)
+                                                    </label>
+                                                    <div class="input-group input-group-sm">
+                                                        <input type="number" step="0.5" min="0" max="100" id="pubPurchaseDiscPct" 
+                                                               class="form-control form-control-sm" placeholder="e.g. 40" oninput="onPubPurchaseDiscountChange()">
+                                                        <span class="input-group-text bg-white fw-bold">%</span>
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-12 col-md-3">
+                                                    <label class="form-label small fw-bold text-dark mb-1">
+                                                        Purchase Amount (Cost ৳)
+                                                    </label>
+                                                    <div class="input-group input-group-sm">
+                                                        <span class="input-group-text bg-white fw-bold text-success">৳</span>
+                                                        <input type="number" step="0.01" min="0" id="pubCostPriceInput" name="cost_price" 
+                                                               value="{{ old('cost_price', $editBook->cost_price ?? '') }}" class="form-control form-control-sm fw-semibold" 
+                                                               placeholder="0.00" oninput="onPubCostChange()">
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-12 col-md-3">
+                                                    <label class="form-label small fw-bold text-dark mb-1">
+                                                        Sold % (Sale Discount)
+                                                    </label>
+                                                    <div class="input-group input-group-sm">
+                                                        <input type="number" step="0.5" min="0" max="100" id="pubSoldPct" 
+                                                               class="form-control form-control-sm" placeholder="e.g. 25" oninput="onPubSoldPctChange()">
+                                                        <span class="input-group-text bg-white fw-bold">%</span>
+                                                    </div>
+                                                    <input type="hidden" id="pubDiscountPriceInput" name="discount_price" value="{{ old('discount_price', $editBook->discount_price ?? '') }}">
+                                                </div>
+                                            </div>
+                                            <div class="d-flex align-items-center justify-content-between mt-2 pt-1 border-top" style="font-size: 11.5px;">
+                                                <span class="text-muted">Customer Offer Price: <strong class="text-primary" id="pubCalculatedOfferPrice">৳0.00</strong></span>
+                                                <span class="text-muted">Estimated Margin/Profit: <strong class="text-success" id="pubCalculatedProfit">৳0.00 (0%)</strong></span>
                                             </div>
                                         </div>
                                     </div>
 
-                                    {{-- Translator, Editor, Cover Artist --}}
-                                    <div class="row g-3">
-                                        <div class="col-md-4">
-                                            <label class="form-label small fw-semibold text-dark mb-1">Translator (অনুবাদক)</label>
-                                            <input type="text" name="translator_name" class="form-control form-control-sm rounded-3" 
-                                                   value="{{ old('translator_name', $editBook->translator_name ?? '') }}" placeholder="Translator's name...">
+                                    {{-- ROW 9: Publication/Edition Start Date & ISBN (2 columns in 1 row) --}}
+                                    <div class="col-12 col-md-6">
+                                        <label class="form-label small fw-bold text-dark mb-1">
+                                            <i class="fas fa-calendar-check text-warning me-1"></i> Publication / Edition Start Date
+                                        </label>
+                                        <input type="date" name="published_at" class="form-control form-control-sm rounded-3" 
+                                               value="{{ old('published_at', ($editBook && $editBook->published_at ? $editBook->published_at->format('Y-m-d') : '')) }}">
+                                    </div>
+
+                                    <div class="col-12 col-md-6">
+                                        <label class="form-label small fw-bold text-dark mb-1">
+                                            <i class="fas fa-barcode text-secondary me-1"></i> ISBN / Barcode
+                                        </label>
+                                        <input type="text" name="isbn" class="form-control form-control-sm rounded-3" 
+                                               value="{{ old('isbn', $editBook->isbn ?? '') }}" placeholder="e.g. 978-984-XXXX-XX-X">
+                                    </div>
+
+                                    {{-- ROW 10: Summary (1000 words limit) --}}
+                                    <div class="col-12">
+                                        <div class="d-flex align-items-center justify-content-between mb-1">
+                                            <label class="form-label small fw-bold text-dark mb-0">
+                                                <i class="fas fa-align-left text-primary me-1"></i> Product Summary (বইয়ের সংক্ষেপ — সর্বোচ্চ ১০০০ শব্দ)
+                                            </label>
+                                            <div class="word-counter-badge safe" id="pubSummaryWordBadge">
+                                                <i class="fas fa-font me-1"></i> Words: <span id="pubSummaryWordCount">0</span> / 1000
+                                            </div>
                                         </div>
-                                        <div class="col-md-4">
-                                            <label class="form-label small fw-semibold text-dark mb-1">Editor / Compiler (সম্পাদক)</label>
-                                            <input type="text" name="editor_name" class="form-control form-control-sm rounded-3" 
-                                                   value="{{ old('editor_name', $editBook->editor_name ?? '') }}" placeholder="Editor's name...">
+                                        <textarea name="summary" id="pubSummaryInput" rows="5" class="form-control rounded-3" 
+                                                  placeholder="বইয়ের সংক্ষেপ বা আকর্ষণীয় সারসংক্ষেপ লিখুন (সর্বোচ্চ ১০০০ শব্দ)..."
+                                                  oninput="updateGenericWordCount(this, 1000, 'pubSummaryWordCount', 'pubSummaryWordBadge', 'pubSummaryProgressBar', 'pubSummaryWarning')">{{ old('summary', $editBook->summary ?? '') }}</textarea>
+                                        <div class="word-counter-progress mt-1">
+                                            <div class="word-counter-progress__bar" id="pubSummaryProgressBar"></div>
                                         </div>
-                                        <div class="col-md-4">
-                                            <label class="form-label small fw-semibold text-dark mb-1">Cover Artist (প্রচ্ছদ শিল্পী)</label>
-                                            <input type="text" name="cover_artist" class="form-control form-control-sm rounded-3" 
-                                                   value="{{ old('cover_artist', $editBook->cover_artist ?? '') }}" placeholder="Artist's name...">
+                                        <div class="d-flex justify-content-between align-items-center mt-1">
+                                            <div class="form-text text-muted mb-0" style="font-size: 11px;">বইয়ের সারাংশ ও ফ্ল্যাপ বর্ণনা (সর্বোচ্চ ১০০০ শব্দ)।</div>
+                                            <div id="pubSummaryWarning" class="text-danger small fw-bold d-none"></div>
                                         </div>
                                     </div>
+
+                                </div>
+                            </div>
+
+                            {{-- ═════════════════════════════════════════════════════════════════════ --}}
+                            {{-- BANGLADESHI LEGAL & PUBLISHING COMPLIANCE AGREEMENT (BELOW SUMMARY)   --}}
+                            {{-- ═════════════════════════════════════════════════════════════════════ --}}
+                            <div class="card border-0 shadow-sm rounded-4 bg-white p-3.5 p-md-4 mb-4 border-start border-4 border-success shadow-xs">
+                                <div class="d-flex align-items-center gap-2 mb-2.5 text-dark fw-bold" style="font-size: 0.95rem;">
+                                    <i class="fas fa-scale-balanced text-success fs-5"></i>
+                                    <span>বাংলাদেশে বই প্রকাশ ও মুদ্রণ আইন ও নীতিমালা সম্মতি</span>
                                 </div>
 
-                                {{-- ── SECTION 3: COMPACT SPECIFICATION DROPDOWNS (স্থান সাশ্রয়ী) ── --}}
-                                <div class="mb-4">
-                                    <div class="d-flex align-items-center gap-2 pb-2 border-bottom mb-3 text-dark fw-bold" style="font-size: 0.95rem;">
-                                        <span class="badge bg-warning-subtle text-warning-emphasis rounded-circle p-1.5"><i class="fas fa-sliders"></i></span>
-                                        <span>3. Specifications in Compact Dropdowns (স্থান সাশ্রয়ী ড্রপডাউন)</span>
-                                    </div>
-
-                                    <div class="row g-3">
-                                        {{-- Language Dropdown --}}
-                                        <div class="col-md-3 col-6">
-                                            <label class="form-label small fw-bold text-dark mb-1">Language *</label>
-                                            <select name="language" class="form-select form-select-sm rounded-3" required>
-                                                <option value="Bengali" @selected(old('language', $editBook->language ?? 'Bengali') === 'Bengali')>বাংলা (Bengali)</option>
-                                                <option value="English" @selected(old('language', $editBook->language ?? '') === 'English')>ইংরেজি (English)</option>
-                                                <option value="Arabic" @selected(old('language', $editBook->language ?? '') === 'Arabic')>আরবি (Arabic)</option>
-                                                <option value="Urdu" @selected(old('language', $editBook->language ?? '') === 'Urdu')>উর্দু (Urdu)</option>
-                                                <option value="Hindi" @selected(old('language', $editBook->language ?? '') === 'Hindi')>হিন্দি (Hindi)</option>
-                                                <option value="Persian" @selected(old('language', $editBook->language ?? '') === 'Persian')>ফারসি (Persian)</option>
-                                                <option value="Other" @selected(old('language', $editBook->language ?? '') === 'Other')>অন্যান্য (Other)</option>
-                                            </select>
-                                        </div>
-
-                                        {{-- Country Dropdown --}}
-                                        <div class="col-md-3 col-6">
-                                            <label class="form-label small fw-bold text-dark mb-1">Country</label>
-                                            <select name="country" class="form-select form-select-sm rounded-3">
-                                                <option value="Bangladesh" @selected(old('country', $editBook->country ?? 'Bangladesh') === 'Bangladesh')>বাংলাদেশ (Bangladesh)</option>
-                                                <option value="India" @selected(old('country', $editBook->country ?? '') === 'India')>ভারত (India)</option>
-                                                <option value="Saudi Arabia" @selected(old('country', $editBook->country ?? '') === 'Saudi Arabia')>সৌদি আরব (Saudi Arabia)</option>
-                                                <option value="Egypt" @selected(old('country', $editBook->country ?? '') === 'Egypt')>মিশর (Egypt)</option>
-                                                <option value="United Kingdom" @selected(old('country', $editBook->country ?? '') === 'United Kingdom')>যুক্তরাজ্য (UK)</option>
-                                                <option value="United States" @selected(old('country', $editBook->country ?? '') === 'United States')>যুক্তরাষ্ট্র (USA)</option>
-                                                <option value="Other" @selected(old('country', $editBook->country ?? '') === 'Other')>অন্যান্য (Other)</option>
-                                            </select>
-                                        </div>
-
-                                        {{-- Binding Dropdown --}}
-                                        <div class="col-md-3 col-6">
-                                            <label class="form-label small fw-bold text-dark mb-1">Binding *</label>
-                                            <select name="cover_type" id="pubCoverType" class="form-select form-select-sm rounded-3" required onchange="toggleCoverPricing()">
-                                                <option value="paperback" @selected(old('cover_type', $editBook->cover_type ?? 'paperback') === 'paperback')>পেপারব্যাক (Paperback)</option>
-                                                <option value="hardcover" @selected(old('cover_type', $editBook->cover_type ?? '') === 'hardcover')>হার্ডকভার (Hardcover)</option>
-                                                <option value="board_book" @selected(old('cover_type', $editBook->cover_type ?? '') === 'board_book')>বোর্ড বুক (Board Book)</option>
-                                                <option value="spiral" @selected(old('cover_type', $editBook->cover_type ?? '') === 'spiral')>স্পাইরাল (Spiral Bound)</option>
-                                                <option value="both" @selected(old('cover_type', $editBook->cover_type ?? '') === 'both')>উভয় (Hard & Paperback)</option>
-                                            </select>
-                                        </div>
-
-                                        {{-- Order Type Dropdown --}}
-                                        <div class="col-md-3 col-6">
-                                            <label class="form-label small fw-bold text-dark mb-1">Order Type *</label>
-                                            <select name="stock_status" id="pubStockStatus" class="form-select form-select-sm rounded-3" required onchange="onOrderTypeChange()">
-                                                <option value="in_stock" @selected(old('stock_status', $editBook->stock_status ?? 'in_stock') === 'in_stock')>🟢 Buy Now / In Stock</option>
-                                                <option value="pre_order" @selected(old('stock_status', $editBook->stock_status ?? '') === 'pre_order')>⏳ Pre-Order (প্রি-অর্ডার)</option>
-                                                <option value="low" @selected(old('stock_status', $editBook->stock_status ?? '') === 'low')>🟡 Low Stock (সীমিত)</option>
-                                                <option value="out" @selected(old('stock_status', $editBook->stock_status ?? '') === 'out')>🔴 Out of Stock</option>
-                                                <option value="upcoming" @selected(old('stock_status', $editBook->stock_status ?? '') === 'upcoming')>📅 Upcoming Release</option>
-                                            </select>
-                                        </div>
-
-                                        {{-- Pre-Order Dynamic Details (Shown only when Pre-Order selected) --}}
-                                        <div class="col-12" id="preOrderDetailsBox" style="{{ old('stock_status', $editBook->stock_status ?? '') === 'pre_order' ? '' : 'display:none;' }}">
-                                            <div class="p-3 bg-warning-subtle border border-warning rounded-3">
-                                                <div class="row g-2.5">
-                                                    <div class="col-md-6">
-                                                        <label class="form-label small fw-bold text-dark mb-1"><i class="fas fa-calendar-day me-1"></i>Pre-Order Release / Delivery Date</label>
-                                                        <input type="date" name="pre_order_release_date" class="form-control form-control-sm rounded-2" 
-                                                               value="{{ old('pre_order_release_date', ($editBook && $editBook->pre_order_release_date ? $editBook->pre_order_release_date->format('Y-m-d') : '')) }}">
-                                                    </div>
-                                                    <div class="col-md-6">
-                                                        <label class="form-label small fw-bold text-dark mb-1"><i class="fas fa-gift me-1"></i>Pre-Order Note / Gift Offer</label>
-                                                        <input type="text" name="pre_order_note" class="form-control form-control-sm rounded-2" 
-                                                               value="{{ old('pre_order_note', $editBook->pre_order_note ?? '') }}" placeholder="e.g. Free Bookmark & Author Signature...">
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {{-- Stock, Edition, Pages, Paper --}}
-                                        <div class="col-md-3 col-6">
-                                            <label class="form-label small fw-semibold text-dark mb-1">Stock Quantity (Units) *</label>
-                                            <input type="number" name="stock_quantity" value="{{ old('stock_quantity', $editBook->stock_quantity ?? 50) }}" min="0" max="100000" class="form-control form-control-sm rounded-3 fw-bold" required>
-                                        </div>
-
-                                        <div class="col-md-3 col-6">
-                                            <label class="form-label small fw-semibold text-dark mb-1">Edition / Print</label>
-                                            <input type="text" name="edition" class="form-control form-control-sm rounded-3" value="{{ old('edition', $editBook->edition ?? '1st Edition ' . date('Y')) }}" placeholder="e.g. 1st Edition">
-                                        </div>
-
-                                        <div class="col-md-3 col-6">
-                                            <label class="form-label small fw-semibold text-dark mb-1">Total Page Count</label>
-                                            <input type="number" name="number_of_pages" value="{{ old('number_of_pages', $editBook->page_count ?? ($editBook->number_of_pages ?? '')) }}" min="1" class="form-control form-control-sm rounded-3" placeholder="e.g. 240">
-                                        </div>
-
-                                        <div class="col-md-3 col-6">
-                                            <label class="form-label small fw-semibold text-dark mb-1">Paper Type / Quality</label>
-                                            <input type="text" name="paper_type" class="form-control form-control-sm rounded-3" value="{{ old('paper_type', $editBook->paper_type ?? '') }}" placeholder="e.g. 80 GSM Offset">
-                                        </div>
-                                    </div>
+                                <div class="p-3 bg-light rounded-3 border mb-3 small text-secondary" style="font-size: 11.5px; line-height: 1.6; max-height: 220px; overflow-y: auto;">
+                                    <p class="mb-2"><strong>১. সাধারণ বিধি ও নৈতিকতা:</strong> বাংলাদেশে বই প্রকাশ ও মুদ্রণের ক্ষেত্রে প্রেস ও প্রকাশনা, কপিরাইট, দণ্ডবিধি, অশ্লীল প্রকাশনা এবং ডিজিটাল মাধ্যমে প্রকাশিত কনটেন্টসংক্রান্ত প্রচলিত আইন ও বিধি মানা আবশ্যক। প্রকাশনা ও মুদ্রণ প্রতিষ্ঠানের প্রয়োজনীয় নিবন্ধন/অনুমোদন থাকতে হবে এবং বইয়ের বিষয়বস্তু রাষ্ট্রীয় নিরাপত্তা, জনশৃঙ্খলা, ধর্মীয় অনুভূতি, নৈতিকতা ও শালীনতার পরিপন্থী হওয়া যাবে না।</p>
+                                    <p class="mb-2"><strong>২. দণ্ডবিধি ও প্রকাশনা আইন:</strong> দণ্ডবিধি, ১৮৬০-এর ২৯২, ২৯৩ ও ৫০৫ ধারায় অশ্লীল প্রকাশনা, অপ্রাপ্তবয়স্কদের কাছে অশ্লীল উপাদান সরবরাহ এবং জনশৃঙ্খলা বিনষ্টকারী বক্তব্যের বিষয়ে বিধান রয়েছে। মুদ্রণ ও প্রকাশনা আইন, ১৯৭৩-এর সংশ্লিষ্ট বিধান অনুযায়ী প্রেস পরিচালনা ও প্রকাশনার ক্ষেত্রে প্রয়োজনীয় অনুমোদন এবং সরকারি নির্দেশনা অনুসরণ করতে হবে।</p>
+                                    <p class="mb-2"><strong>৩. কপিরাইট ও মেধাস্বত্ব:</strong> কপিরাইট আইন, ২০০০ অনুযায়ী অন্যের লেখা, ছবি, ডিজাইন বা মেধাস্বত্ব অনুমতি ছাড়া ব্যবহার বা প্রকাশ করা যাবে না। প্রযোজ্য ক্ষেত্রে কপিরাইট নিবন্ধন, ISBN গ্রহণ এবং প্রকাশিত বইয়ের বাধ্যতামূলক কপি জাতীয় গ্রন্থাগারে জমা দেওয়ার বিধানও অনুসরণ করতে হবে। ডিজিটাল মাধ্যমে প্রকাশের ক্ষেত্রে সংশ্লিষ্ট সাইবার ও প্রচলিত আইনও প্রযোজ্য।</p>
+                                    <p class="mb-2"><strong>৪. দায়বদ্ধতা ও বিতরণব্যবস্থা:</strong> বইয়ের তথ্য, বক্তব্য ও উপাদান যথাসম্ভব নির্ভুল, দায়িত্বশীল ও আইনসম্মত হতে হবে। প্রকাশনা বাজারজাতকরণে পরিবেশক/বিক্রেতার সঙ্গে প্রয়োজনীয় চুক্তি ও স্বচ্ছ বিতরণব্যবস্থা নিশ্চিত করা উচিত।</p>
+                                    <p class="mb-0"><strong>৫. পর্যালোচনা ও প্রত্যাহার নীতি:</strong> আইডিয়া প্রকাশন / প্ল্যাটফর্মে কোনো বইয়ের বিষয়বস্তু নিয়ে অভিযোগ বা সংশয় দেখা দিলে, বইটি সাময়িকভাবে প্রদর্শন থেকে সরিয়ে নির্ধারিত পর্যালোচনা টিমের মাধ্যমে মূল্যায়ন করা হতে পারে। পর্যালোচনার ভিত্তিতে বইটি স্থায়ীভাবে অপসারণ অথবা পুনরায় প্রদর্শনের সিদ্ধান্ত নেওয়া হবে।</p>
                                 </div>
 
-                                {{-- ── SECTION 4: PRICING, COMMISSIONS & PROFIT CALCULATOR ── --}}
-                                <div class="mb-4">
-                                    <div class="d-flex align-items-center gap-2 pb-2 border-bottom mb-3 text-dark fw-bold" style="font-size: 0.95rem;">
-                                        <span class="badge bg-success-subtle text-success rounded-circle p-1.5"><i class="fas fa-calculator"></i></span>
-                                        <span>4. Dual Two-Way Pricing & Commission Calculator</span>
-                                    </div>
-
-                                    <div class="card border rounded-3 p-3 bg-light">
-                                        <div class="row g-3">
-                                            
-                                            {{-- Paperback Pricing Block --}}
-                                            <div class="col-md-6" id="paperPriceBlock">
-                                                <div class="p-3 bg-white rounded-3 border h-100">
-                                                    <div class="fw-bold text-dark small mb-2 d-flex align-items-center justify-content-between">
-                                                        <span><i class="fas fa-book text-primary me-1"></i> Paperback / Standard Pricing</span>
-                                                        <span class="badge bg-light text-muted border small">MRP & Discount</span>
-                                                    </div>
-                                                    
-                                                    <div class="mb-2">
-                                                        <label class="form-label small text-dark fw-semibold mb-1">Printed Price (MRP ৳) <span class="text-danger">*</span></label>
-                                                        <div class="input-group input-group-sm">
-                                                            <span class="input-group-text bg-light fw-bold">৳</span>
-                                                            <input type="number" name="price" id="pubPrice" value="{{ old('price', $editBook->price ?? '') }}" min="0" step="1" class="form-control fw-bold" placeholder="300" oninput="recalcPublisherPricing('paper')">
-                                                        </div>
-                                                    </div>
-
-                                                    <div class="row g-2">
-                                                        <div class="col-6">
-                                                            <label class="form-label small text-muted mb-1" style="font-size: 11px;">Sale Discount (%)</label>
-                                                            <div class="input-group input-group-sm">
-                                                                <input type="number" id="pubDiscountPercent" min="0" max="100" step="0.5" class="form-control" placeholder="25" oninput="onPubDiscountPercentChange('paper')">
-                                                                <span class="input-group-text bg-light">%</span>
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-6">
-                                                            <label class="form-label small text-muted mb-1" style="font-size: 11px;">Offer Price (৳)</label>
-                                                            <div class="input-group input-group-sm">
-                                                                <span class="input-group-text bg-light">৳</span>
-                                                                <input type="number" name="discount_price" id="pubDiscountPrice" value="{{ old('discount_price', $editBook->discount_price ?? '') }}" min="0" step="1" class="form-control text-success fw-bold" placeholder="225" oninput="onPubDiscountPriceChange('paper')">
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            {{-- Hardcover Pricing Block (Shown when Hardcover or Both selected) --}}
-                                            <div class="col-md-6" id="hardPriceBlock" style="display: none;">
-                                                <div class="p-3 bg-white rounded-3 border h-100">
-                                                    <div class="fw-bold text-dark small mb-2 d-flex align-items-center justify-content-between">
-                                                        <span><i class="fas fa-book-bookmark text-warning me-1"></i> Hardcover Edition Pricing</span>
-                                                        <span class="badge bg-warning-subtle text-dark border small">Hardcover MRP</span>
-                                                    </div>
-                                                    
-                                                    <div class="mb-2">
-                                                        <label class="form-label small text-dark fw-semibold mb-1">Hardcover MRP (৳)</label>
-                                                        <div class="input-group input-group-sm">
-                                                            <span class="input-group-text bg-warning-subtle fw-bold text-dark">৳</span>
-                                                            <input type="number" name="hardcover_price" id="pubHardPrice" value="{{ old('hardcover_price', $editBook->hardcover_price ?? '') }}" min="0" step="1" class="form-control fw-bold" placeholder="450" oninput="recalcPublisherPricing('hard')">
-                                                        </div>
-                                                    </div>
-
-                                                    <div class="row g-2">
-                                                        <div class="col-6">
-                                                            <label class="form-label small text-muted mb-1" style="font-size: 11px;">Sale Discount (%)</label>
-                                                            <div class="input-group input-group-sm">
-                                                                <input type="number" id="pubHardDiscountPercent" min="0" max="100" step="0.5" class="form-control" placeholder="25" oninput="onPubDiscountPercentChange('hard')">
-                                                                <span class="input-group-text bg-light">%</span>
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-6">
-                                                            <label class="form-label small text-muted mb-1" style="font-size: 11px;">Offer Price (৳)</label>
-                                                            <div class="input-group input-group-sm">
-                                                                <span class="input-group-text bg-light">৳</span>
-                                                                <input type="number" name="hardcover_discount_price" id="pubHardDiscountPrice" value="{{ old('hardcover_discount_price', $editBook->hardcover_discount_price ?? '') }}" min="0" step="1" class="form-control text-success fw-bold" placeholder="340" oninput="onPubDiscountPriceChange('hard')">
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            {{-- Cost Price / Wholesale Commission --}}
-                                            <div class="col-12">
-                                                <div class="p-3 bg-white rounded-3 border border-warning-subtle">
-                                                    <div class="row g-3 align-items-center">
-                                                        <div class="col-md-6">
-                                                            <label class="form-label small fw-bold text-dark mb-1">
-                                                                <i class="fas fa-coins text-warning me-1"></i> Publisher Purchase / Cost Price (৳)
-                                                            </label>
-                                                            <div class="input-group input-group-sm">
-                                                                <span class="input-group-text bg-light fw-bold text-success">৳</span>
-                                                                <input type="number" name="cost_price" id="pubCostPrice" value="{{ old('cost_price', $editBook->cost_price ?? '') }}" min="0" step="1" class="form-control text-success fw-bold" placeholder="180" oninput="onPubCostPriceChange()">
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-md-6">
-                                                            <label class="form-label small fw-bold text-dark mb-1">Purchase Commission (%)</label>
-                                                            <div class="input-group input-group-sm">
-                                                                <input type="number" id="pubCostCommissionPercent" min="0" max="100" step="0.5" class="form-control" placeholder="40" oninput="onPubCostCommissionChange()">
-                                                                <span class="input-group-text bg-light">%</span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                        </div>
-                                    </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="pubComplianceCheck" name="compliance_agreed" value="1" checked required>
+                                    <label class="form-check-label small text-dark fw-bold" for="pubComplianceCheck" style="font-size: 12px; line-height: 1.5;">
+                                        উপরোক্ত সকল শর্ত ও প্রযোজ্য আইন-বিধি মেনে বই প্রকাশের বিষয়ে আমি সম্মত।
+                                    </label>
                                 </div>
+                            </div>
 
-                                {{-- ── SECTION 5: SUMMARY & DESCRIPTION ── --}}
-                                <div class="mb-2">
-                                    <div class="d-flex align-items-center gap-2 pb-2 border-bottom mb-3 text-dark fw-bold" style="font-size: 0.95rem;">
-                                        <span class="badge bg-info-subtle text-info rounded-circle p-1.5"><i class="fas fa-align-left"></i></span>
-                                        <span>5. Book Summary, Description & Table of Contents</span>
-                                    </div>
-
-                                    <div class="mb-3">
-                                        <label class="form-label small fw-bold text-dark mb-1">Short Summary / Book Flap Teaser</label>
-                                        <textarea name="summary" rows="2" class="form-control rounded-3" placeholder="Teaser, back-cover blurb, or hook for readers...">{{ old('summary', $editBook->summary ?? '') }}</textarea>
-                                    </div>
-
+                            {{-- ═════════════════════════════════════════════════════════════════════ --}}
+                            {{-- PUBLISHED & SAVE BUTTON (MOVED HERE AT THE END OF MAIN FORM)          --}}
+                            {{-- ═════════════════════════════════════════════════════════════════════ --}}
+                            <div class="card border-0 shadow-sm rounded-4 bg-white p-3 p-md-4 mb-4">
+                                <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
                                     <div>
-                                        <label class="form-label small fw-bold text-dark mb-1">Full Description & Table of Contents</label>
-                                        <textarea name="description" rows="5" class="form-control rounded-3" placeholder="Full overview, table of contents, preface, and author background...">{{ old('description', $editBook->description ?? '') }}</textarea>
+                                        <h6 class="fw-bold mb-0 text-dark">Save & Publish to Catalog</h6>
+                                        <small class="text-muted">Review specifications and publish the book directly to your store.</small>
+                                    </div>
+                                    <div class="d-flex flex-wrap align-items-center gap-2">
+                                        <button type="button" class="btn btn-outline-secondary rounded-pill px-3.5 py-2 fw-semibold" onclick="switchPublisherTab('books')">
+                                            <i class="fas fa-times me-1"></i> Cancel
+                                        </button>
+                                        <button type="submit" id="pubSubmitBookBtn" class="btn btn-success btn-lg rounded-pill px-4 py-2.5 fw-bold shadow-sm d-flex align-items-center gap-2">
+                                            <i class="fas fa-circle-check fs-5"></i>
+                                            <span>{{ $editBook ? "Save & Update Product" : "Publish & Save Book" }}</span>
+                                        </button>
                                     </div>
                                 </div>
-
                             </div>
                         </div>
                     </div>
 
                     {{-- ═════════════════════════════════════════════════════════ --}}
-                    {{-- RIGHT COLUMN: STICKY SIDEBAR (COVER, PDF, COMPLIANCE)     --}}
+                    {{-- RIGHT COLUMN: STICKY SIDEBAR (5-ROW CATEGORY, COVER, LOOK INSIDE) --}}
                     {{-- ═════════════════════════════════════════════════════════ --}}
                     <div class="col-12 col-xl-4 col-lg-4">
                         <div style="position: sticky; top: 20px; z-index: 1020;">
                             
-                            {{-- Card 1: 3D Live Mockup & Cover Image Upload --}}
+                            {{-- 1. ADD CATEGORY * (৫টি রোতে ক্যাটাগরি সিস্টেম) --}}
+                            <div class="card border-0 shadow-sm rounded-4 bg-white p-3 mb-3 border-start border-4 border-primary shadow-xs">
+                                <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom">
+                                    <span class="fw-bold text-dark small"><i class="fas fa-shapes text-primary me-1.5"></i> Add Category * (৫টি লেভেল)</span>
+                                    <button type="button" class="btn btn-sm btn-link text-primary p-0 text-decoration-none fw-semibold" 
+                                            data-bs-toggle="modal" data-bs-target="#pubQuickCategoryModal" style="font-size: 11px;">
+                                        <i class="fas fa-plus-circle me-0.5"></i>+ Add New
+                                    </button>
+                                </div>
+
+                                <div class="vstack gap-2">
+                                    {{-- Row 1: ১ নম্বরে ক্যাটাগরি (Primary Category *) --}}
+                                    <div>
+                                        <label for="pubCategorySelect" class="form-label text-dark fw-bold mb-1" style="font-size: 11.5px;">
+                                            ১. মূল ক্যাটাগরি (Primary Category) <span class="text-danger">*</span>
+                                        </label>
+                                        <select name="category_id" id="pubCategorySelect" class="form-select form-select-sm rounded-3" required onchange="updatePubMockup()">
+                                            <option value="">— Select Category —</option>
+                                            @foreach($categories as $cId => $cName)
+                                                <option value="{{ $cId }}" @selected(old('category_id', $editBook->category_id ?? '') == $cId)>{{ $cName }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+
+                                    {{-- Row 2: ২ নম্বরে সাব ক্যাটাগরি (Sub-Category) --}}
+                                    <div>
+                                        <label for="pubSubCategoryName" class="form-label text-dark fw-bold mb-1" style="font-size: 11.5px;">
+                                            ২. সাব-ক্যাটাগরি (Sub-Category)
+                                        </label>
+                                        <input type="text" id="pubSubCategoryName" name="sub_category_name" 
+                                               value="{{ old('sub_category_name', $editBook->sub_category_name ?? '') }}"
+                                               class="form-control form-control-sm rounded-3" placeholder="e.g. সমকালীন উপন্যাস / চিরায়ত কবিতা">
+                                    </div>
+
+                                    {{-- Row 3: ৩. অমর একুশে বইমেলা ক্যাটাগরি (Ekushey Boimela Category / Year) --}}
+                                    <div>
+                                        <label for="pubEkusheyCategory" class="form-label text-dark fw-bold mb-1" style="font-size: 11.5px;">
+                                            <i class="fas fa-monument text-danger me-1"></i> ৩. অমর একুশে বইমেলা ক্যাটাগরি
+                                        </label>
+                                        <select id="pubEkusheyCategory" name="ekushey_category" class="form-select form-select-sm rounded-3">
+                                            <option value="">— একুশে বইমেলা নির্বাচন করুন —</option>
+                                            <option value="boimela_2026" @selected(old('ekushey_category', $editBook->ekushey_category ?? '') === 'boimela_2026')>অমর একুশে বইমেলা ২০২৬</option>
+                                            <option value="boimela_2025" @selected(old('ekushey_category', $editBook->ekushey_category ?? '') === 'boimela_2025')>অমর একুশে বইমেলা ২০২৫</option>
+                                            <option value="boimela_2024" @selected(old('ekushey_category', $editBook->ekushey_category ?? '') === 'boimela_2024')>অমর একুশে বইমেলা ২০২৪</option>
+                                            <option value="boimela_previous" @selected(old('ekushey_category', $editBook->ekushey_category ?? '') === 'boimela_previous')>পূর্ববর্তী বইমেলাসমূহ</option>
+                                            <option value="boimela_pavilion" @selected(old('ekushey_category', $editBook->ekushey_category ?? '') === 'boimela_pavilion')>প্যাভিলিয়ন ও বিশেষ প্রদর্শনী</option>
+                                        </select>
+                                    </div>
+
+                                    {{-- Row 4: ৪. বিষয় ও ধারা (Subject / Genre) --}}
+                                    <div>
+                                        <label for="pubGenreCategory" class="form-label text-dark fw-bold mb-1" style="font-size: 11.5px;">
+                                            <i class="fas fa-layer-group text-info me-1"></i> ৪. বিষয় ও ধারা (Genre / Theme)
+                                        </label>
+                                        <select id="pubGenreCategory" name="genre_category" class="form-select form-select-sm rounded-3">
+                                            <option value="">— বিষয় ও ধারা নির্বাচন করুন —</option>
+                                            <option value="novel" @selected(old('genre_category', $editBook->genre_category ?? '') === 'novel')>উপন্যাস (Novel)</option>
+                                            <option value="story" @selected(old('genre_category', $editBook->genre_category ?? '') === 'story')>গল্পগ্রন্থ (Short Stories)</option>
+                                            <option value="poetry" @selected(old('genre_category', $editBook->genre_category ?? '') === 'poetry')>কবিতা (Poetry)</option>
+                                            <option value="essay_research" @selected(old('genre_category', $editBook->genre_category ?? '') === 'essay_research')>প্রবন্ধ ও গবেষণা (Essays & Research)</option>
+                                            <option value="history_liberation" @selected(old('genre_category', $editBook->genre_category ?? '') === 'history_liberation')>মুক্তিযুদ্ধ ও ইতিহাস (History & Liberation War)</option>
+                                            <option value="islamic" @selected(old('genre_category', $editBook->genre_category ?? '') === 'islamic')>ইসলামিক ও ধর্মীয় (Islamic & Religious)</option>
+                                            <option value="juvenile_comics" @selected(old('genre_category', $editBook->genre_category ?? '') === 'juvenile_comics')>শিশু-কিশোর ও কমিক্স (Juvenile & Comics)</option>
+                                            <option value="scifi_thriller" @selected(old('genre_category', $editBook->genre_category ?? '') === 'scifi_thriller')>সায়েন্স ফিকশন ও থ্রিলার (Sci-Fi & Thriller)</option>
+                                            <option value="motivation_selfhelp" @selected(old('genre_category', $editBook->genre_category ?? '') === 'motivation_selfhelp')>আত্মউন্নয়ন ও মোটিভেশন (Self-Help & Motivation)</option>
+                                            <option value="translated" @selected(old('genre_category', $editBook->genre_category ?? '') === 'translated')>অনুবাদ সাহিত্য (Translated Literature)</option>
+                                        </select>
+                                    </div>
+
+                                    {{-- Row 5: ৫. বয়স ও পাঠক স্তর (Target Audience / Reader Level) --}}
+                                    <div>
+                                        <label for="pubAudienceCategory" class="form-label text-dark fw-bold mb-1" style="font-size: 11.5px;">
+                                            <i class="fas fa-users text-success me-1"></i> ৫. বয়স ও পাঠক স্তর (Target Audience)
+                                        </label>
+                                        <select id="pubAudienceCategory" name="audience_category" class="form-select form-select-sm rounded-3">
+                                            <option value="">— পাঠক স্তর নির্বাচন করুন —</option>
+                                            <option value="general" @selected(old('audience_category', $editBook->audience_category ?? '') === 'general')>সাধারণ পাঠক (General Readers)</option>
+                                            <option value="children_5_12" @selected(old('audience_category', $editBook->audience_category ?? '') === 'children_5_12')>শিশু-কিশোর (৫-১২ বছর)</option>
+                                            <option value="teen_13_18" @selected(old('audience_category', $editBook->audience_category ?? '') === 'teen_13_18')>তরুণ ও কিশোর (১৩-১৮ বছর)</option>
+                                            <option value="adult" @selected(old('audience_category', $editBook->audience_category ?? '') === 'adult')>প্রাপ্তবয়স্ক / সার্বজনীন</option>
+                                            <option value="academic" @selected(old('audience_category', $editBook->audience_category ?? '') === 'academic')>অ্যাকাডেমিক ও গবেষক</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- 2. UPLOAD COVER IMAGE * --}}
                             <div class="card border-0 shadow-sm rounded-4 bg-white p-3 mb-3">
                                 <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom">
                                     <span class="fw-bold text-dark small"><i class="fas fa-image text-primary me-1.5"></i> Upload Cover Image *</span>
@@ -1084,9 +1309,9 @@
                                 </div>
 
                                 {{-- Live Realistic Card Mockup --}}
-                                <div class="p-3 bg-light rounded-3 border text-center mb-3">
-                                    <div class="position-relative mx-auto mb-2.5 shadow-sm rounded-2 overflow-hidden" 
-                                         style="width: 130px; height: 190px; background: #e2e8f0; border-left: 4px solid #1e293b;">
+                                <div class="p-2.5 bg-light rounded-3 border text-center mb-2.5">
+                                    <div class="position-relative mx-auto mb-2 shadow-sm rounded-2 overflow-hidden" 
+                                         style="width: 120px; height: 175px; background: #e2e8f0; border-left: 4px solid #1e293b;">
                                         @php
                                             $currCoverUrl = ($editBook && !empty($editBook->cover_image))
                                                 ? (str_starts_with($editBook->cover_image, 'http') ? $editBook->cover_image : asset('storage/' . ltrim($editBook->cover_image, '/')))
@@ -1101,77 +1326,75 @@
                                     <div id="pubMockupTitle" class="fw-bold text-dark text-truncate small mb-0.5">
                                         {{ $editBook ? ($editBook->title ?? 'Book Title') : 'Book Title' }}
                                     </div>
-                                    <div id="pubMockupAuthor" class="small text-muted text-truncate mb-1.5" style="font-size: 11.5px;">
+                                    <div id="pubMockupAuthor" class="small text-muted text-truncate mb-1" style="font-size: 11px;">
                                         {{ $editBook ? ($editBook->author_name ?? 'Author Name') : 'Author Name' }}
                                     </div>
                                     <div class="d-flex align-items-center justify-content-center gap-1.5">
-                                        <span id="pubMockupPrice" class="fw-bold text-primary fs-6">৳{{ $editBook ? ($editBook->discount_price ?: ($editBook->price ?: 0)) : 0 }}</span>
-                                        <span id="pubMockupOldPrice" class="text-muted text-decoration-line-through small d-none">৳0</span>
+                                        <span id="pubMockupPrice" class="fw-bold text-primary small">৳{{ $editBook ? ($editBook->discount_price ?: ($editBook->price ?: 0)) : 0 }}</span>
                                     </div>
                                 </div>
 
                                 {{-- Drag & Drop Upload Zone --}}
-                                <div class="border border-2 border-dashed rounded-3 p-3 text-center bg-light bg-opacity-50 position-relative cursor-pointer hover-border-primary" 
+                                <div class="border border-2 border-dashed rounded-3 p-2.5 text-center bg-light bg-opacity-50 position-relative cursor-pointer hover-border-primary" 
                                      onclick="document.getElementById('pubCoverFileInput').click()">
                                     <input type="file" id="pubCoverFileInput" name="cover_image" accept="image/*" class="d-none" onchange="previewPubBookCover(this)">
-                                    <i class="fas fa-cloud-arrow-up fs-3 text-primary mb-1 d-block"></i>
-                                    <span class="fw-bold text-dark small d-block">Click to browse or drop cover here</span>
-                                    <span class="text-muted" style="font-size: 11px;">JPG, PNG, WebP (Max 4MB)</span>
+                                    <i class="fas fa-cloud-arrow-up fs-4 text-primary mb-1 d-block"></i>
+                                    <span class="fw-bold text-dark small d-block">Upload Cover Image *</span>
+                                    <span class="text-muted" style="font-size: 11px;">* JPG, JPEG, BMP, PNG (Max. 10MB)</span>
                                 </div>
                             </div>
 
-                            {{-- Card 2: Upload Look Inside (লুক ইনসাইড) --}}
-                            <div class="card border-0 shadow-sm rounded-4 bg-white p-3 mb-3">
+                            {{-- 3. UPLOAD LOOK INSIDE (PDF / MULTI-IMAGES FORMAT SWITCHER) --}}
+                            <div class="card border-0 shadow-sm rounded-4 bg-white p-3 mb-3 border-start border-4 border-info">
                                 <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom">
-                                    <span class="fw-bold text-dark small"><i class="fas fa-file-pdf text-danger me-1.5"></i> Upload Look Inside (লুক ইনসাইড)</span>
-                                    <span class="badge bg-danger-subtle text-danger rounded-pill small">PDF Preview</span>
-                                </div>
-                                <div class="border border-2 border-dashed rounded-3 p-2.5 text-center bg-light bg-opacity-50 position-relative cursor-pointer"
-                                     onclick="document.getElementById('pubPdfFileInput').click()">
-                                    <input type="file" id="pubPdfFileInput" name="pdf_sample" accept=".pdf" class="d-none" onchange="previewPubPdfName(this)">
-                                    <i class="fas fa-book-open-reader fs-4 text-danger mb-1 d-block"></i>
-                                    <span class="fw-bold text-dark small d-block" id="pubPdfFilenameText">Choose Sample PDF for Inside Preview</span>
-                                    <span class="text-muted" style="font-size: 11px;">Max 20MB (PDF)</span>
-                                </div>
-                                @if($editBook && $editBook->sample_pdf_path)
-                                    <div class="mt-2 text-success small d-flex align-items-center gap-1">
-                                        <i class="fas fa-check-circle"></i> Sample PDF file attached
-                                    </div>
-                                @endif
-                            </div>
-
-                            {{-- Card 3: Compliance & Legal Agreement Checkbox --}}
-                            <div class="card border-0 shadow-sm rounded-4 bg-white p-3 mb-3 border-start border-4 border-success shadow-xs">
-                                <div class="d-flex align-items-center gap-2 mb-2 text-dark fw-bold" style="font-size: 0.88rem;">
-                                    <i class="fas fa-scale-balanced text-success"></i>
-                                    <span>আইন ও প্রকাশনা নীতিমালা সম্মতি</span>
+                                    <span class="fw-bold text-dark small"><i class="fas fa-book-open text-info me-1.5"></i> Upload Look Inside (লুক ইনসাইড)</span>
+                                    <span class="badge bg-info-subtle text-info rounded-pill small">Preview</span>
                                 </div>
 
-                                <div class="p-2.5 bg-light rounded-3 border mb-2.5 small text-secondary" style="font-size: 11px; line-height: 1.55; max-height: 180px; overflow-y: auto;">
-                                    <p class="mb-1.5"><strong>১. সাধারণ বিধি ও নৈতিকতা:</strong> বাংলাদেশে বই প্রকাশ ও মুদ্রণের ক্ষেত্রে প্রেস ও প্রকাশনা, কপিরাইট, দণ্ডবিধি, অশ্লীল প্রকাশনা এবং ডিজিটাল মাধ্যমে প্রকাশিত কনটেন্টসংক্রান্ত প্রচলিত আইন ও বিধি মানা আবশ্যক। প্রকাশনা ও মুদ্রণ প্রতিষ্ঠানের প্রয়োজনীয় নিবন্ধন/অনুমোদন থাকতে হবে এবং বইয়ের বিষয়বস্তু রাষ্ট্রীয় নিরাপত্তা, জনশৃঙ্খলা, ধর্মীয় অনুভূতি, নৈতিকতা ও শালীনতার পরিপন্থী হওয়া যাবে না।</p>
-                                    <p class="mb-1.5"><strong>২. দণ্ডবিধি ও প্রকাশনা আইন:</strong> দণ্ডবিধি, ১৮৬০-এর ২৯২, ২৯৩ ও ৫০৫ ধারায় অশ্লীল প্রকাশনা, অপ্রাপ্তবয়স্কদের কাছে অশ্লীল উপাদান সরবরাহ এবং জনশৃঙ্খলা বিনষ্টকারী বক্তব্যের বিষয়ে বিধান রয়েছে। মুদ্রণ ও প্রকাশনা আইন, ১৯৭৩-এর সংশ্লিষ্ট বিধান অনুযায়ী প্রেস পরিচালনা ও প্রকাশনার ক্ষেত্রে প্রয়োজনীয় অনুমোদন এবং সরকারি নির্দেশনা অনুসরণ করতে হবে।</p>
-                                    <p class="mb-1.5"><strong>৩. কপিরাইট ও মেধাস্বত্ব:</strong> কপিরাইট আইন, ২০০০ অনুযায়ী অন্যের লেখা, ছবি, ডিজাইন বা মেধাস্বত্ব অনুমতি ছাড়া ব্যবহার বা প্রকাশ করা যাবে না। প্রযোজ্য ক্ষেত্রে কপিরাইট নিবন্ধন, ISBN গ্রহণ এবং প্রকাশিত বইয়ের বাধ্যতামূলক কপি জাতীয় গ্রন্থাগারে জমা দেওয়ার বিধানও অনুসরণ করতে হবে। ডিজিটাল মাধ্যমে প্রকাশের ক্ষেত্রে সংশ্লিষ্ট সাইবার ও প্রচলিত আইনও প্রযোজ্য।</p>
-                                    <p class="mb-1.5"><strong>৪. দায়বদ্ধতা ও বিতরণব্যবস্থা:</strong> বইয়ের তথ্য, বক্তব্য ও উপাদান যথাসম্ভব নির্ভুল, দায়িত্বশীল ও আইনসম্মত হতে হবে। প্রকাশনা বাজারজাতকরণে পরিবেশক/বিক্রেতার সঙ্গে প্রয়োজনীয় চুক্তি ও স্বচ্ছ বিতরণব্যবস্থা নিশ্চিত করা উচিত।</p>
-                                    <p class="mb-0"><strong>৫. পর্যালোচনা ও প্রত্যাহার নীতি:</strong> আইডিয়া প্রকাশন / প্ল্যাটফর্মে কোনো বইয়ের বিষয়বস্তু নিয়ে অভিযোগ বা সংশয় দেখা দিলে, বইটি সাময়িকভাবে প্রদর্শন থেকে সরিয়ে নির্ধারিত পর্যালোচনা টিমের মাধ্যমে মূল্যায়ন করা হতে পারে। পর্যালোচনার ভিত্তিতে বইটি স্থায়ীভাবে অপসারণ অথবা পুনরায় প্রদর্শনের সিদ্ধান্ত নেওয়া হবে।</p>
-                                </div>
-
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="pubComplianceCheck" name="compliance_agreed" value="1" checked required>
-                                    <label class="form-check-label small text-dark fw-bold" for="pubComplianceCheck" style="font-size: 11.5px; line-height: 1.45;">
-                                        উপরোক্ত সকল শর্ত ও প্রযোজ্য আইন-বিধি মেনে বই প্রকাশের বিষয়ে আমি সম্মত।
+                                {{-- Format Selector Dropdown --}}
+                                <div class="mb-2">
+                                    <label class="form-label small fw-bold text-dark mb-1">
+                                        Select Format (ড্রপডাউন অপশন)
                                     </label>
+                                    <select name="look_inside_type" id="pubLookInsideType" class="form-select form-select-sm rounded-3" onchange="togglePubLookInsideFormat(this.value)">
+                                        <option value="pdf" @selected(old('look_inside_type', $editBook->look_inside_type ?? 'pdf') === 'pdf')>Choose PDF (পিডিএফ ফাইল আপলোড)</option>
+                                        <option value="images" @selected(old('look_inside_type', $editBook->look_inside_type ?? '') === 'images')>Choose Images (একাধিক ইমেজ আপলোড)</option>
+                                    </select>
                                 </div>
-                            </div>
 
-                            {{-- Card 4: Prominent Submit & Publish Button --}}
-                            <div class="d-grid gap-2">
-                                <button type="submit" id="pubSubmitBookBtn" class="btn btn-success btn-lg rounded-pill py-3 fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2">
-                                    <i class="fas fa-circle-check fs-5"></i>
-                                    <span>{{ $editBook ? "Save & Update Product" : "Publish Product to Catalog" }}</span>
-                                </button>
-                                <button type="button" class="btn btn-outline-secondary rounded-pill py-2" onclick="switchPublisherTab('books')">
-                                    Cancel & Return to List
-                                </button>
+                                {{-- PDF Upload Panel --}}
+                                <div id="pubLookInsidePdfPanel" class="{{ old('look_inside_type', $editBook->look_inside_type ?? 'pdf') === 'images' ? 'd-none' : '' }}">
+                                    <div class="border border-2 border-dashed rounded-3 p-2 text-center bg-light bg-opacity-50 position-relative cursor-pointer mb-2"
+                                         onclick="document.getElementById('pubPdfFileInput').click()">
+                                        <input type="file" id="pubPdfFileInput" name="pdf_sample" accept=".pdf" class="d-none" onchange="previewPubPdfName(this)">
+                                        <i class="fas fa-file-pdf fs-4 text-danger mb-1 d-block"></i>
+                                        <span class="fw-bold text-dark small d-block" id="pubPdfFilenameText">Upload Sample PDF File</span>
+                                        <span class="text-muted" style="font-size: 11px;">PDF Format (Max. 10MB)</span>
+                                    </div>
+                                </div>
+
+                                {{-- Multi-Image Upload Panel --}}
+                                <div id="pubLookInsideImagesPanel" class="{{ old('look_inside_type', $editBook->look_inside_type ?? 'pdf') === 'images' ? '' : 'd-none' }}">
+                                    <div class="border border-2 border-dashed rounded-3 p-2 text-center bg-light bg-opacity-50 position-relative cursor-pointer mb-2"
+                                         onclick="document.getElementById('pubMultiImagesInput').click()">
+                                        <input type="file" id="pubMultiImagesInput" name="look_inside_images[]" accept="image/jpeg,image/png,image/bmp,image/webp" multiple class="d-none" onchange="previewPubMultiImages(this)">
+                                        <i class="fas fa-images fs-4 text-info mb-1 d-block"></i>
+                                        <span class="fw-bold text-dark small d-block">Upload Sample Page Images</span>
+                                        <span class="text-muted" style="font-size: 11px;">Select images in order (img-1.jpg, img-2.jpg...)</span>
+                                    </div>
+                                    <div id="pubMultiImagesPreviewContainer" class="d-flex flex-wrap gap-1.5 mb-2"></div>
+                                </div>
+
+                                {{-- File Specifications Box --}}
+                                <div class="p-2.5 bg-light rounded-3 border text-secondary" style="font-size: 11px; line-height: 1.5;">
+                                    <div class="fw-bold text-dark mb-1"><i class="fas fa-circle-info text-primary me-1"></i> File Specification:</div>
+                                    <ol class="ps-3 mb-0">
+                                        <li><strong>File Format:</strong> JPG, JPEG, BMP, PNG or PDF</li>
+                                        <li><strong>File Max Size:</strong> image-500kb & PDF-10MB</li>
+                                        <li><strong>Image Dimensions:</strong> Width: 700px to 1000px , Height: 1100px to 1600px</li>
+                                        <li><strong>Naming Order:</strong> Image names should be in increasing order (e.g. img-1.jpg, img-2.jpg)</li>
+                                    </ol>
+                                </div>
                             </div>
 
                         </div>
@@ -1530,86 +1753,265 @@ function onPubDiscountPercentChange(type) {
         const hp = parseFloat(document.getElementById('pubHardPrice')?.value) || 0;
         const pct = parseFloat(document.getElementById('pubHardDiscountPercent')?.value) || 0;
         const hDiscPriceInput = document.getElementById('pubHardDiscountPrice');
-        if (hp > 0 && hDiscPriceInput) {
-            const finalPrice = Math.round(hp * (1 - pct / 100));
-            hDiscPriceInput.value = finalPrice > 0 ? finalPrice : hp;
-        }
+// ── 2-Way Pricing and Calculation Engine for Publisher ──
+function onPubPriceChange() {
+    const listPrice = parseFloat(document.getElementById('pubPriceInput')?.value) || 0;
+    const discPct = parseFloat(document.getElementById('pubPurchaseDiscPct')?.value) || 0;
+    const soldPct = parseFloat(document.getElementById('pubSoldPct')?.value) || 0;
+
+    if (listPrice > 0 && discPct > 0) {
+        const costPrice = listPrice - (listPrice * (discPct / 100));
+        const costInput = document.getElementById('pubCostPriceInput');
+        if (costInput) costInput.value = costPrice.toFixed(2);
     }
+
+    if (listPrice > 0 && soldPct > 0) {
+        const offerPrice = listPrice - (listPrice * (soldPct / 100));
+        const discInput = document.getElementById('pubDiscountPriceInput');
+        if (discInput) discInput.value = offerPrice.toFixed(2);
+    }
+    updatePubCalculatedStats();
     updatePubMockup();
 }
 
-function onPubDiscountPriceChange(type) {
-    if (type === 'paper') {
-        const p = parseFloat(document.getElementById('pubPrice')?.value) || 0;
-        const discPrice = parseFloat(document.getElementById('pubDiscountPrice')?.value) || 0;
-        const discPercentInput = document.getElementById('pubDiscountPercent');
-        if (p > 0 && discPercentInput) {
-            const pct = Math.round(((p - discPrice) / p) * 100);
-            discPercentInput.value = pct > 0 ? pct : 0;
-        }
-    } else if (type === 'hard') {
-        const hp = parseFloat(document.getElementById('pubHardPrice')?.value) || 0;
-        const hDiscPrice = parseFloat(document.getElementById('pubHardDiscountPrice')?.value) || 0;
-        const hDiscPercentInput = document.getElementById('pubHardDiscountPercent');
-        if (hp > 0 && hDiscPercentInput) {
-            const pct = Math.round(((hp - hDiscPrice) / hp) * 100);
-            hDiscPercentInput.value = pct > 0 ? pct : 0;
-        }
+function onPubPurchaseDiscountChange() {
+    const listPrice = parseFloat(document.getElementById('pubPriceInput')?.value) || 0;
+    const discPct = parseFloat(document.getElementById('pubPurchaseDiscPct')?.value) || 0;
+
+    if (listPrice > 0) {
+        const costPrice = listPrice - (listPrice * (discPct / 100));
+        const costInput = document.getElementById('pubCostPriceInput');
+        if (costInput) costInput.value = costPrice.toFixed(2);
     }
+    updatePubCalculatedStats();
+}
+
+function onPubCostChange() {
+    const listPrice = parseFloat(document.getElementById('pubPriceInput')?.value) || 0;
+    const costPrice = parseFloat(document.getElementById('pubCostPriceInput')?.value) || 0;
+
+    if (listPrice > 0 && costPrice <= listPrice) {
+        const discPct = ((listPrice - costPrice) / listPrice) * 100;
+        const discPctInput = document.getElementById('pubPurchaseDiscPct');
+        if (discPctInput) discPctInput.value = discPct.toFixed(1);
+    }
+    updatePubCalculatedStats();
+}
+
+function onPubSoldPctChange() {
+    const listPrice = parseFloat(document.getElementById('pubPriceInput')?.value) || 0;
+    const soldPct = parseFloat(document.getElementById('pubSoldPct')?.value) || 0;
+
+    if (listPrice > 0) {
+        const offerPrice = listPrice - (listPrice * (soldPct / 100));
+        const discInput = document.getElementById('pubDiscountPriceInput');
+        if (discInput) discInput.value = offerPrice.toFixed(2);
+    }
+    updatePubCalculatedStats();
     updatePubMockup();
 }
 
-function onPubCostPriceChange() {
-    const p = parseFloat(document.getElementById('pubPrice')?.value) || 0;
-    const cost = parseFloat(document.getElementById('pubCostPrice')?.value) || 0;
-    const commInput = document.getElementById('pubCostCommissionPercent');
-    if (p > 0 && commInput) {
-        const comm = Math.round(((p - cost) / p) * 100);
-        commInput.value = comm > 0 ? comm : 0;
+function updatePubCalculatedStats() {
+    const listPrice = parseFloat(document.getElementById('pubPriceInput')?.value) || 0;
+    const costPrice = parseFloat(document.getElementById('pubCostPriceInput')?.value) || 0;
+    const soldPct = parseFloat(document.getElementById('pubSoldPct')?.value) || 0;
+
+    const offerPrice = listPrice > 0 ? (listPrice - (listPrice * (soldPct / 100))) : 0;
+    const profit = offerPrice > costPrice ? (offerPrice - costPrice) : 0;
+    const marginPct = offerPrice > 0 ? ((profit / offerPrice) * 100) : 0;
+
+    const offerEl = document.getElementById('pubCalculatedOfferPrice');
+    const profitEl = document.getElementById('pubCalculatedProfit');
+
+    if (offerEl) offerEl.innerText = '৳' + offerPrice.toFixed(2);
+    if (profitEl) profitEl.innerText = '৳' + profit.toFixed(2) + ' (' + marginPct.toFixed(1) + '%)';
+}
+
+// ── Look Inside Format Switcher ──
+function togglePubLookInsideFormat(type) {
+    const pdfPanel = document.getElementById('pubLookInsidePdfPanel');
+    const imgPanel = document.getElementById('pubLookInsideImagesPanel');
+
+    if (type === 'images') {
+        if (pdfPanel) pdfPanel.classList.add('d-none');
+        if (imgPanel) imgPanel.classList.remove('d-none');
+    } else {
+        if (pdfPanel) pdfPanel.classList.remove('d-none');
+        if (imgPanel) imgPanel.classList.add('d-none');
     }
 }
 
-function onPubCostCommissionChange() {
-    const p = parseFloat(document.getElementById('pubPrice')?.value) || 0;
-    const comm = parseFloat(document.getElementById('pubCostCommissionPercent')?.value) || 0;
-    const costInput = document.getElementById('pubCostPrice');
-    if (p > 0 && costInput) {
-        const cost = Math.round(p * (1 - comm / 100));
-        costInput.value = cost > 0 ? cost : 0;
+function previewPubMultiImages(input) {
+    const container = document.getElementById('pubMultiImagesPreviewContainer');
+    if (!container) return;
+    container.innerHTML = '';
+
+    if (input.files) {
+        Array.from(input.files).forEach((file, index) => {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const badge = document.createElement('div');
+                badge.className = 'position-relative d-inline-block border rounded p-1 bg-white shadow-xs';
+                badge.innerHTML = `
+                    <img src="${e.target.result}" style="width: 48px; height: 65px; object-fit: cover;" class="rounded">
+                    <span class="badge bg-dark position-absolute top-0 start-0 m-0.5" style="font-size: 8px;">#${index + 1}</span>
+                `;
+                container.appendChild(badge);
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+}
+
+// ── Generic Word Counter for 1000 limit ──
+function updateGenericWordCount(textarea, maxWords, countId, badgeId, barId, warningId) {
+    const text = (textarea.value || '').trim();
+    const words = text ? text.split(/\s+/).filter(Boolean) : [];
+    const count = words.length;
+
+    const countEl = document.getElementById(countId);
+    const badgeEl = document.getElementById(badgeId);
+    const barEl = document.getElementById(barId);
+    const warnEl = document.getElementById(warningId);
+
+    if (countEl) countEl.textContent = count;
+
+    const pct = Math.min(100, (count / maxWords) * 100);
+    if (barEl) barEl.style.width = pct + '%';
+
+    if (count > maxWords) {
+        if (badgeEl) { badgeEl.className = 'word-counter-badge exceeded'; }
+        if (barEl) { barEl.className = 'word-counter-progress__bar exceeded'; }
+        if (warnEl) {
+            warnEl.textContent = `শব্দসীমা (${maxWords}) অতিক্রম করেছে (${count} শব্দ)! অনুগ্রহ করে সংক্ষিপ্ত করুন।`;
+            warnEl.classList.remove('d-none');
+        }
+    } else if (count >= maxWords * 0.9) {
+        if (badgeEl) { badgeEl.className = 'word-counter-badge warning'; }
+        if (barEl) { barEl.className = 'word-counter-progress__bar warning'; }
+        if (warnEl) { warnEl.classList.add('d-none'); }
+    } else {
+        if (badgeEl) { badgeEl.className = 'word-counter-badge safe'; }
+        if (barEl) { barEl.className = 'word-counter-progress__bar'; }
+        if (warnEl) { warnEl.classList.add('d-none'); }
+    }
+}
+
+// ── Dynamic Multi-Contributor Repeaters (Author, Translator, Editor, Rewriter) ──
+function addPubAuthorField() {
+    const container = document.getElementById('pubAuthorsRepeaterContainer');
+    if (!container) return;
+    const authors = @json($authors ?? []);
+    let optionsHtml = '<option value="">— Directory —</option>';
+    for (const [aId, aName] of Object.entries(authors)) {
+        optionsHtml += `<option value="${aId}">${aName}</option>`;
+    }
+    const div = document.createElement('div');
+    div.className = 'input-group input-group-sm pub-author-field-row';
+    div.innerHTML = `
+        <select name="author_ids[]" class="form-select form-select-sm rounded-start-2" style="max-width: 140px;" onchange="onPubAuthorSelectRowChange(this)">
+            ${optionsHtml}
+        </select>
+        <input type="text" name="author_names[]" class="form-control form-control-sm pub-author-name-input" 
+               placeholder="লেখকের নাম লিখুন..." oninput="updatePubMockup()">
+        <button type="button" class="btn btn-outline-danger" onclick="this.closest('.pub-author-field-row').remove(); updatePubMockup();">
+            <i class="fas fa-times"></i>
+        </button>
+    `;
+    container.appendChild(div);
+}
+
+function onPubAuthorSelectRowChange(select) {
+    const row = select.closest('.pub-author-field-row');
+    if (!row) return;
+    const input = row.querySelector('.pub-author-name-input');
+    if (input && select.selectedIndex > 0) {
+        input.value = select.options[select.selectedIndex].text.trim();
+        updatePubMockup();
+    }
+}
+
+function addPubTranslatorField() {
+    const container = document.getElementById('pubTranslatorsRepeaterContainer');
+    if (!container) return;
+    const div = document.createElement('div');
+    div.className = 'input-group input-group-sm pub-translator-field-row';
+    div.innerHTML = `
+        <input type="text" name="translator_names[]" class="form-control form-control-sm" placeholder="অনুবাদকের নাম...">
+        <button type="button" class="btn btn-outline-danger" onclick="this.closest('.pub-translator-field-row').remove()">
+            <i class="fas fa-times"></i>
+        </button>
+    `;
+    container.appendChild(div);
+}
+
+function addPubEditorField() {
+    const container = document.getElementById('pubEditorsRepeaterContainer');
+    if (!container) return;
+    const div = document.createElement('div');
+    div.className = 'input-group input-group-sm pub-editor-field-row';
+    div.innerHTML = `
+        <input type="text" name="editor_names[]" class="form-control form-control-sm" placeholder="সম্পাদকের নাম...">
+        <button type="button" class="btn btn-outline-danger" onclick="this.closest('.pub-editor-field-row').remove()">
+            <i class="fas fa-times"></i>
+        </button>
+    `;
+    container.appendChild(div);
+}
+
+function addPubRewriterField() {
+    const container = document.getElementById('pubRewritersRepeaterContainer');
+    if (!container) return;
+    const div = document.createElement('div');
+    div.className = 'input-group input-group-sm pub-rewriter-field-row';
+    div.innerHTML = `
+        <input type="text" name="rewriter_names[]" class="form-control form-control-sm" placeholder="পুনর্লিখনকারী / রূপান্তরকারীর নাম...">
+        <button type="button" class="btn btn-outline-danger" onclick="this.closest('.pub-rewriter-field-row').remove()">
+            <i class="fas fa-times"></i>
+        </button>
+    `;
+    container.appendChild(div);
+}
+
+// Sync Book Height & Width cm to combined size
+function syncPubBookSizeCombined() {
+    const h = document.getElementById('pubBookHeightCm')?.value?.trim();
+    const w = document.getElementById('pubBookWidthCm')?.value?.trim();
+    const hiddenSize = document.getElementById('pubBookSizeHidden');
+    if (!hiddenSize) return;
+    if (h && w) {
+        hiddenSize.value = `${h} cm × ${w} cm`;
+    } else if (h) {
+        hiddenSize.value = `${h} cm`;
+    } else if (w) {
+        hiddenSize.value = `${w} cm`;
+    } else {
+        hiddenSize.value = '';
     }
 }
 
 // ── Live Mockup Updates ──
 function updatePubMockup() {
     const title = document.getElementById('pubBookTitleInput')?.value || 'Book Title';
-    const authorCustom = document.getElementById('pubCustomAuthorInput')?.value;
-    const chips = document.querySelectorAll('#pubSelectedAuthorsContainer .author-chip span.fw-semibold');
+    const authorInputs = document.querySelectorAll('#pubAuthorsRepeaterContainer input.pub-author-name-input');
     let authorNames = [];
-    chips.forEach(c => authorNames.push(c.innerText.trim()));
-    if (authorCustom) authorNames.push(authorCustom.trim());
+    authorInputs.forEach(i => {
+        if (i.value && i.value.trim()) authorNames.push(i.value.trim());
+    });
     const author = authorNames.length ? authorNames.join(', ') : 'Author Name';
 
-    const p = parseFloat(document.getElementById('pubPrice')?.value) || 0;
-    const dp = parseFloat(document.getElementById('pubDiscountPrice')?.value) || p;
+    const p = parseFloat(document.getElementById('pubPriceInput')?.value) || 0;
+    const dp = parseFloat(document.getElementById('pubDiscountPriceInput')?.value) || p;
     const pct = p > 0 && dp < p ? Math.round(((p - dp) / p) * 100) : 0;
 
     const mockTitle = document.getElementById('pubMockupTitle');
     const mockAuthor = document.getElementById('pubMockupAuthor');
     const mockPrice = document.getElementById('pubMockupPrice');
-    const mockOldPrice = document.getElementById('pubMockupOldPrice');
     const mockBadge = document.getElementById('pubMockupDiscountBadge');
 
     if (mockTitle) mockTitle.innerText = title;
     if (mockAuthor) mockAuthor.innerText = author;
     if (mockPrice) mockPrice.innerText = `৳${dp}`;
-    if (mockOldPrice) {
-        if (p > dp) {
-            mockOldPrice.innerText = `৳${p}`;
-            mockOldPrice.classList.remove('d-none');
-        } else {
-            mockOldPrice.classList.add('d-none');
-        }
-    }
     if (mockBadge) {
         if (pct > 0) {
             mockBadge.innerText = `-${pct}%`;
@@ -1666,9 +2068,18 @@ function submitQuickAuthor() {
     const val = input ? input.value.trim() : '';
     if (!val) return;
 
-    const customInput = document.getElementById('pubCustomAuthorInput');
-    if (customInput) {
-        customInput.value = val;
+    // Add directly to repeater
+    const container = document.getElementById('pubAuthorsRepeaterContainer');
+    if (container) {
+        const firstEmpty = container.querySelector('input.pub-author-name-input[value=""]');
+        if (firstEmpty && !firstEmpty.value) {
+            firstEmpty.value = val;
+        } else {
+            addPubAuthorField();
+            const inputs = container.querySelectorAll('input.pub-author-name-input');
+            const last = inputs[inputs.length - 1];
+            if (last) last.value = val;
+        }
     }
     input.value = '';
     const modalEl = document.getElementById('pubQuickAuthorModal');
@@ -1679,12 +2090,23 @@ function submitQuickAuthor() {
     updatePubMockup();
 }
 
+function onOrderTypeChange() {
+    const status = document.getElementById('pubStockStatus')?.value;
+    const preOrderBox = document.getElementById('preOrderDetailsBox');
+    if (preOrderBox) {
+        preOrderBox.style.display = status === 'pre_order' ? 'block' : 'none';
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
-    toggleCoverPricing();
     onOrderTypeChange();
-    onProductTypeChange();
-    recalcPublisherPricing('paper');
+    onPubPriceChange();
+    syncPubBookSizeCombined();
     updatePubMockup();
+    const summaryInput = document.getElementById('pubSummaryInput');
+    if (summaryInput) {
+        updateGenericWordCount(summaryInput, 1000, 'pubSummaryWordCount', 'pubSummaryWordBadge', 'pubSummaryProgressBar', 'pubSummaryWarning');
+    }
 });
 </script>
 @endpush
