@@ -423,19 +423,18 @@ class ContentController extends Controller
         ])];
 
         if (($spec['key'] ?? null) === 'books') {
-            $coverType = $request->input('cover_type', 'hardcover');
-            if ($coverType === 'hardcover') {
-                $rules['hardcover_price'] = ['required', 'numeric', 'min:0', 'max:9999999'];
-                $rules['price'] = ['nullable', 'numeric', 'min:0', 'max:9999999'];
-            } elseif ($coverType === 'paperback') {
-                $rules['price'] = ['required', 'numeric', 'min:0', 'max:9999999'];
-                $rules['hardcover_price'] = ['nullable', 'numeric', 'min:0', 'max:9999999'];
-            } elseif ($coverType === 'both') {
-                $rules['hardcover_price'] = ['required', 'numeric', 'min:0', 'max:9999999'];
+            $rules['price'] = ['nullable', 'numeric', 'min:0', 'max:9999999'];
+            $rules['hardcover_price'] = ['nullable', 'numeric', 'min:0', 'max:9999999'];
+            $rules['cost_price'] = ['nullable', 'numeric', 'min:0', 'max:9999999'];
+            $rules['discount_price'] = ['nullable', 'numeric', 'min:0', 'max:9999999'];
+            
+            // Require at least one price (List Price / MRP)
+            if (!$request->filled('price') && !$request->filled('hardcover_price')) {
                 $rules['price'] = ['required', 'numeric', 'min:0', 'max:9999999'];
             }
+            
             $attributes['hardcover_price'] = 'হার্ডকভার নিয়মিত মূল্য';
-            $attributes['price'] = 'পেপারব্যাক নিয়মিত মূল্য';
+            $attributes['price'] = 'নিয়মিত মূল্য (List Price)';
         }
 
         $attributes += [
@@ -695,6 +694,24 @@ class ContentController extends Controller
         if ($spec['key'] === 'books') {
             if ($request->filled('title_en')) {
                 $attributes['title_en'] = $request->input('title_en');
+            }
+
+            // Sync price and hardcover_price
+            $p = $request->input('price');
+            $hp = $request->input('hardcover_price');
+            if ($p !== null && $p !== '' && ($hp === null || $hp === '')) {
+                $attributes['hardcover_price'] = (float)$p;
+            } elseif ($hp !== null && $hp !== '' && ($p === null || $p === '')) {
+                $attributes['price'] = (float)$hp;
+            }
+
+            // Auto calculate discount_price if sold_percent is given
+            if ($request->filled('sold_percent') && ($p || $hp)) {
+                $basePrice = (float)($p ?: $hp);
+                $soldPct = (float)$request->input('sold_percent');
+                if ($soldPct > 0 && $soldPct <= 100) {
+                    $attributes['discount_price'] = round($basePrice * (1 - $soldPct / 100), 2);
+                }
             }
 
             // Handle Multiple Authors

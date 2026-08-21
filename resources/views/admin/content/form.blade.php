@@ -2388,18 +2388,33 @@ function toggleAdminPreOrderFields(stockStatus) {
 // Preview Multi Images
 function previewAdminMultiImages(input) {
     const container = document.getElementById('multiImagesPreviewContainer');
+    const summary = document.getElementById('multiImagesSummaryReport');
+    const countText = document.getElementById('multiImagesCountText');
     if (!container || !input.files) return;
     container.innerHTML = '';
+
+    const count = input.files.length;
+    if (count > 0) {
+        if (summary) summary.classList.remove('d-none');
+        if (countText) countText.textContent = count;
+    } else {
+        if (summary) summary.classList.add('d-none');
+    }
+
     Array.from(input.files).forEach((file, idx) => {
         if (file.type.startsWith('image/')) {
             const reader = new FileReader();
             reader.onload = function(e) {
                 const badge = document.createElement('div');
-                badge.className = 'position-relative border rounded p-1 text-center bg-white shadow-xs';
-                badge.style.width = '70px';
+                badge.className = 'position-relative border rounded-3 p-1 text-center bg-white shadow-xs';
+                badge.style.width = '74px';
                 badge.innerHTML = `
-                    <img src="${e.target.result}" class="img-fluid rounded" style="height: 60px; object-fit: cover;">
-                    <div class="small text-muted text-truncate" style="font-size: 9px;">Page ${idx + 1}</div>
+                    <div class="position-relative rounded overflow-hidden" style="height: 64px;">
+                        <img src="${e.target.result}" class="w-100 h-100 object-fit-cover rounded">
+                        <span class="badge bg-dark position-absolute top-0 start-0 m-0.5" style="font-size: 8px;">#${idx + 1}</span>
+                    </div>
+                    <div class="text-dark fw-semibold text-truncate mt-1" style="font-size: 9.5px;" title="${file.name}">Page ${idx + 1}</div>
+                    <div class="text-muted" style="font-size: 8.5px;">${(file.size/1024).toFixed(0)} KB</div>
                 `;
                 container.appendChild(badge);
             };
@@ -2408,12 +2423,32 @@ function previewAdminMultiImages(input) {
     });
 }
 
+function clearAdminMultiImages() {
+    const input = document.getElementById('f-look_inside_images');
+    if (input) input.value = '';
+    const container = document.getElementById('multiImagesPreviewContainer');
+    if (container) container.innerHTML = '';
+    const summary = document.getElementById('multiImagesSummaryReport');
+    if (summary) summary.classList.add('d-none');
+}
+
 function previewAdminCoverInput(input) {
     previewAdminFileInput(input, 'preview-container-cover_image');
 }
 
 function previewAdminPdfInput(input) {
     previewAdminFileInput(input, 'preview-container-sample_pdf_path');
+}
+
+function clearAdminFileInput(inputId, containerId, mockupImgId) {
+    const input = document.getElementById(inputId);
+    if (input) input.value = '';
+    const container = document.getElementById(containerId);
+    if (container) container.classList.add('d-none');
+    if (mockupImgId) {
+        const mockup = document.getElementById(mockupImgId);
+        if (mockup) mockup.src = 'https://placehold.co/300x450/e2e8f0/475569?text=Cover+Image';
+    }
 }
 
 // Live Mockup Card Update
@@ -2631,34 +2666,38 @@ function updateDescriptionWordCount(textarea) {
     updateGenericWordCount(textarea || document.getElementById('f-description'), 400, 'descriptionWordCount', 'descriptionWordBadge', 'descriptionProgressBar', 'descriptionWarning');
 }
 
-// Preview file input
 function previewAdminFileInput(input, containerId) {
     if (!input.files || !input.files[0]) return;
     const file = input.files[0];
-    const container = document.getElementById(containerId);
-    if (!container) return;
-
     const name = input.name;
+    const container = document.getElementById(containerId);
+
     const img = document.getElementById('preview-img-' + name);
     const fname = document.getElementById('preview-filename-' + name);
     const fsize = document.getElementById('preview-filesize-' + name);
     const mockupImg = document.getElementById('mockupCoverImg');
 
+    const formattedSize = file.size >= 1048576 
+        ? (file.size / (1024 * 1024)).toFixed(2) + ' MB' 
+        : (file.size / 1024).toFixed(1) + ' KB';
+
     if (file.type.startsWith('image/')) {
         const reader = new FileReader();
         reader.onload = function(e) {
             if (img) img.src = e.target.result;
-            if (mockupImg && (name === 'cover_image' || name === 'image')) mockupImg.src = e.target.result;
+            if (mockupImg && (name === 'cover_image' || name === 'image')) {
+                mockupImg.src = e.target.result;
+            }
             if (fname) fname.textContent = file.name;
-            if (fsize) fsize.textContent = (file.size / 1024).toFixed(1) + ' KB | ' + file.type;
-            container.classList.remove('d-none');
+            if (fsize) fsize.textContent = formattedSize + ' • ' + (file.type.split('/')[1] || 'IMAGE').toUpperCase();
+            if (container) container.classList.remove('d-none');
         };
         reader.readAsDataURL(file);
     } else {
         if (img) img.src = '';
         if (fname) fname.textContent = file.name;
-        if (fsize) fsize.textContent = (file.size / 1024).toFixed(1) + ' KB | ' + (file.type || 'PDF Document');
-        container.classList.remove('d-none');
+        if (fsize) fsize.textContent = formattedSize + ' • ' + (file.type ? file.type.toUpperCase() : 'PDF Document');
+        if (container) container.classList.remove('d-none');
     }
 }
 
@@ -2981,7 +3020,19 @@ document.addEventListener('DOMContentLoaded', function() {
                     textarea.value = editor.innerHTML;
                 }
             });
-            syncActiveCostPrice();
+            if (typeof syncBookSizeCombined === 'function') {
+                syncBookSizeCombined();
+            }
+            if (typeof syncActiveCostPrice === 'function') {
+                syncActiveCostPrice();
+            }
+
+            // Provide immediate visual feedback & prevent duplicate submits
+            const submitBtns = form.querySelectorAll('button[type="submit"]');
+            submitBtns.forEach(function(btn) {
+                btn.classList.add('disabled');
+                btn.innerHTML = `<span class="spinner-border spinner-border-sm me-1.5" role="status" aria-hidden="true"></span> সংরক্ষন করা হচ্ছে...`;
+            });
         });
     }
 

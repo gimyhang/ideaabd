@@ -973,15 +973,15 @@
                                             <i class="fas fa-scroll text-secondary me-1"></i> Paper Quality (কাগজের মান ও GSM)
                                         </label>
                                         <select name="paper_type" class="form-select form-select-sm rounded-3">
-                                            <optgroup label="── অফসেট পেপার (Offset Paper) ──">
-                                                <option value="50 GSM Offset" @selected(old('paper_type', $editBook->paper_type ?? '') === '50 GSM Offset')>৫০ GSM অফসেট পেপার (50 GSM Offset)</option>
-                                                <option value="55 GSM Offset" @selected(old('paper_type', $editBook->paper_type ?? '') === '55 GSM Offset')>৫৫ GSM অফসেট পেপার (55 GSM Offset)</option>
-                                                <option value="60 GSM Offset" @selected(old('paper_type', $editBook->paper_type ?? '') === '60 GSM Offset')>৬০ GSM অফসেট পেপার (60 GSM Offset)</option>
-                                                <option value="65 GSM Offset" @selected(old('paper_type', $editBook->paper_type ?? '') === '65 GSM Offset')>৬৫ GSM অফসেট পেপার (65 GSM Offset)</option>
-                                                <option value="70 GSM Offset" @selected(old('paper_type', $editBook->paper_type ?? '') === '70 GSM Offset')>৭০ GSM অফসেট পেপার (70 GSM Offset)</option>
-                                                <option value="80 GSM Offset" @selected(old('paper_type', $editBook->paper_type ?? '80 GSM Offset') === '80 GSM Offset')>৮০ GSM অফসেট পেপার (80 GSM Offset)</option>
-                                                <option value="100 GSM Offset" @selected(old('paper_type', $editBook->paper_type ?? '') === '100 GSM Offset')>১০০ GSM অফসেট পেপার (100 GSM Offset)</option>
-                                                <option value="120 GSM Offset" @selected(old('paper_type', $editBook->paper_type ?? '') === '120 GSM Offset')>১২০ GSM অফসেট পেপার (120 GSM Offset)</option>
+                                            <optgroup label="── অফহোয়াইট পেপার (Off-white Paper) ──">
+                                                <option value="50 GSM Off-white" @selected(old('paper_type', $editBook->paper_type ?? '') === '50 GSM Off-white' || old('paper_type', $editBook->paper_type ?? '') === '50 GSM Offset')>৫০ GSM অফহোয়াইট পেপার (50 GSM Off-white)</option>
+                                                <option value="55 GSM Off-white" @selected(old('paper_type', $editBook->paper_type ?? '') === '55 GSM Off-white' || old('paper_type', $editBook->paper_type ?? '') === '55 GSM Offset')>৫৫ GSM অফহোয়াইট পেপার (55 GSM Off-white)</option>
+                                                <option value="60 GSM Off-white" @selected(old('paper_type', $editBook->paper_type ?? '') === '60 GSM Off-white' || old('paper_type', $editBook->paper_type ?? '') === '60 GSM Offset')>৬০ GSM অফহোয়াইট পেপার (60 GSM Off-white)</option>
+                                                <option value="65 GSM Off-white" @selected(old('paper_type', $editBook->paper_type ?? '') === '65 GSM Off-white' || old('paper_type', $editBook->paper_type ?? '') === '65 GSM Offset')>৬৫ GSM অফহোয়াইট পেপার (65 GSM Off-white)</option>
+                                                <option value="70 GSM Off-white" @selected(old('paper_type', $editBook->paper_type ?? '') === '70 GSM Off-white' || old('paper_type', $editBook->paper_type ?? '') === '70 GSM Offset')>৭০ GSM অফহোয়াইট পেপার (70 GSM Off-white)</option>
+                                                <option value="80 GSM Off-white" @selected(old('paper_type', $editBook->paper_type ?? '80 GSM Off-white') === '80 GSM Off-white' || old('paper_type', $editBook->paper_type ?? '') === '80 GSM Offset')>৮০ GSM অফহোয়াইট পেপার (80 GSM Off-white)</option>
+                                                <option value="100 GSM Off-white" @selected(old('paper_type', $editBook->paper_type ?? '') === '100 GSM Off-white' || old('paper_type', $editBook->paper_type ?? '') === '100 GSM Offset')>১০০ GSM অফহোয়াইট পেপার (100 GSM Off-white)</option>
+                                                <option value="120 GSM Off-white" @selected(old('paper_type', $editBook->paper_type ?? '') === '120 GSM Off-white' || old('paper_type', $editBook->paper_type ?? '') === '120 GSM Offset')>১২০ GSM অফহোয়াইট পেপার (120 GSM Off-white)</option>
                                             </optgroup>
                                             <optgroup label="── নিউজপ্রিন্ট (Newsprint Paper) ──">
                                                 <option value="50 GSM Newsprint" @selected(old('paper_type', $editBook->paper_type ?? '') === '50 GSM Newsprint')>৫০ GSM নিউজপ্রিন্ট (50 GSM Newsprint)</option>

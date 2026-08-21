@@ -289,15 +289,15 @@
                     <i class="fas fa-scroll text-secondary me-1"></i> Paper Quality (কাগজের মান ও GSM)
                 </label>
                 <select id="f-paper_type" name="paper_type" class="form-select form-select-sm @error('paper_type') is-invalid @enderror">
-                    <optgroup label="── অফসেট পেপার (Offset Paper) ──">
-                        <option value="50 GSM Offset" @selected($val('paper_type') === '50 GSM Offset')>৫০ GSM অফসেট পেপার (50 GSM Offset)</option>
-                        <option value="55 GSM Offset" @selected($val('paper_type') === '55 GSM Offset')>৫৫ GSM অফসেট পেপার (55 GSM Offset)</option>
-                        <option value="60 GSM Offset" @selected($val('paper_type') === '60 GSM Offset')>৬০ GSM অফসেট পেপার (60 GSM Offset)</option>
-                        <option value="65 GSM Offset" @selected($val('paper_type') === '65 GSM Offset')>৬৫ GSM অফসেট পেপার (65 GSM Offset)</option>
-                        <option value="70 GSM Offset" @selected($val('paper_type') === '70 GSM Offset')>৭০ GSM অফসেট পেপার (70 GSM Offset)</option>
-                        <option value="80 GSM Offset" @selected($val('paper_type', '80 GSM Offset') === '80 GSM Offset')>৮০ GSM অফসেট পেপার (80 GSM Offset)</option>
-                        <option value="100 GSM Offset" @selected($val('paper_type') === '100 GSM Offset')>১০০ GSM অফসেট পেপার (100 GSM Offset)</option>
-                        <option value="120 GSM Offset" @selected($val('paper_type') === '120 GSM Offset')>১২০ GSM অফসেট পেপার (120 GSM Offset)</option>
+                    <optgroup label="── অফহোয়াইট পেপার (Off-white Paper) ──">
+                        <option value="50 GSM Off-white" @selected($val('paper_type') === '50 GSM Off-white' || $val('paper_type') === '50 GSM Offset')>৫০ GSM অফহোয়াইট পেপার (50 GSM Off-white)</option>
+                        <option value="55 GSM Off-white" @selected($val('paper_type') === '55 GSM Off-white' || $val('paper_type') === '55 GSM Offset')>৫৫ GSM অফহোয়াইট পেপার (55 GSM Off-white)</option>
+                        <option value="60 GSM Off-white" @selected($val('paper_type') === '60 GSM Off-white' || $val('paper_type') === '60 GSM Offset')>৬০ GSM অফহোয়াইট পেপার (60 GSM Off-white)</option>
+                        <option value="65 GSM Off-white" @selected($val('paper_type') === '65 GSM Off-white' || $val('paper_type') === '65 GSM Offset')>৬৫ GSM অফহোয়াইট পেপার (65 GSM Off-white)</option>
+                        <option value="70 GSM Off-white" @selected($val('paper_type') === '70 GSM Off-white' || $val('paper_type') === '70 GSM Offset')>৭০ GSM অফহোয়াইট পেপার (70 GSM Off-white)</option>
+                        <option value="80 GSM Off-white" @selected($val('paper_type', '80 GSM Off-white') === '80 GSM Off-white' || $val('paper_type') === '80 GSM Offset')>৮০ GSM অফহোয়াইট পেপার (80 GSM Off-white)</option>
+                        <option value="100 GSM Off-white" @selected($val('paper_type') === '100 GSM Off-white' || $val('paper_type') === '100 GSM Offset')>১০০ GSM অফহোয়াইট পেপার (100 GSM Off-white)</option>
+                        <option value="120 GSM Off-white" @selected($val('paper_type') === '120 GSM Off-white' || $val('paper_type') === '120 GSM Offset')>১২০ GSM অফহোয়াইট পেপার (120 GSM Off-white)</option>
                     </optgroup>
                     <optgroup label="── নিউজপ্রিন্ট (Newsprint Paper) ──">
                         <option value="50 GSM Newsprint" @selected($val('paper_type') === '50 GSM Newsprint')>৫০ GSM নিউজপ্রিন্ট (50 GSM Newsprint)</option>
@@ -674,9 +674,26 @@
                 <input type="file" id="f-cover_image" name="cover_image" accept="image/*"
                        class="adm-dropzone__file-input"
                        onchange="previewAdminCoverInput(this)">
-                <div class="adm-dropzone__icon"><i class="fas fa-image text-primary"></i></div>
+                <div class="adm-dropzone__icon"><i class="fas fa-cloud-arrow-up text-primary fs-4"></i></div>
                 <div class="fw-bold text-dark small">Upload Cover Image *</div>
-                <div class="text-muted small" style="font-size: 11px;">* JPG, JPEG, BMP, PNG (Max. 10MB)</div>
+                <div class="text-muted small" style="font-size: 11px;">* JPG, JPEG, BMP, PNG, WebP (Max. 10MB)</div>
+            </div>
+            
+            {{-- Cover Image Upload Report & Action Bar --}}
+            <div id="preview-container-cover_image" class="mt-2 p-2 bg-light rounded-3 border d-none">
+                <div class="d-flex align-items-center gap-2">
+                    <img id="preview-img-cover_image" src="" class="rounded border shadow-xs" style="width: 42px; height: 58px; object-fit: cover;">
+                    <div class="flex-grow-1 overflow-hidden" style="min-width: 0;">
+                        <div class="d-flex align-items-center gap-1 mb-0.5">
+                            <span class="badge bg-success-subtle text-success border border-success-subtle py-0.5 px-1.5" style="font-size: 9.5px;">Ready to Upload</span>
+                            <span id="preview-filesize-cover_image" class="text-muted small fw-semibold" style="font-size: 10.5px;"></span>
+                        </div>
+                        <div id="preview-filename-cover_image" class="text-dark small fw-bold text-truncate" style="font-size: 11.5px;"></div>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-danger py-1 px-2 rounded-pill shadow-xs" onclick="clearAdminFileInput('f-cover_image', 'preview-container-cover_image', 'mockupCoverImg')" title="Remove Cover">
+                        <i class="fas fa-trash-can"></i>
+                    </button>
+                </div>
             </div>
             @error('cover_image')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
         </div>
@@ -708,9 +725,28 @@
                     <input type="file" id="f-sample_pdf_path" name="sample_pdf_path" accept="application/pdf"
                            class="adm-dropzone__file-input"
                            onchange="previewAdminPdfInput(this)">
-                    <div class="adm-dropzone__icon"><i class="fas fa-file-pdf text-danger"></i></div>
+                    <div class="adm-dropzone__icon"><i class="fas fa-file-pdf text-danger fs-4"></i></div>
                     <div class="fw-bold text-dark small">Upload Sample PDF File</div>
                     <div class="text-muted small" style="font-size: 11px;">PDF Format (Max. 10MB)</div>
+                </div>
+
+                {{-- PDF Upload Report Card --}}
+                <div id="preview-container-sample_pdf_path" class="p-2 bg-light rounded-3 border mb-2 d-none">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="bg-danger-subtle text-danger rounded-2 p-2 text-center shadow-xs" style="width: 40px; height: 44px;">
+                            <i class="fas fa-file-pdf fs-5"></i>
+                        </div>
+                        <div class="flex-grow-1 overflow-hidden" style="min-width: 0;">
+                            <div class="d-flex align-items-center gap-1 mb-0.5">
+                                <span class="badge bg-danger text-white py-0.5 px-1.5" style="font-size: 9.5px;">PDF Attached</span>
+                                <span id="preview-filesize-sample_pdf_path" class="text-muted small fw-semibold" style="font-size: 10.5px;"></span>
+                            </div>
+                            <div id="preview-filename-sample_pdf_path" class="text-dark small fw-bold text-truncate" style="font-size: 11.5px;"></div>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-danger py-1 px-2 rounded-pill shadow-xs" onclick="clearAdminFileInput('f-sample_pdf_path', 'preview-container-sample_pdf_path', null)" title="Remove PDF">
+                            <i class="fas fa-trash-can"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -723,11 +759,21 @@
                     <input type="file" id="f-look_inside_images" name="look_inside_images[]" accept="image/jpeg,image/png,image/bmp,image/webp" multiple
                            class="adm-dropzone__file-input"
                            onchange="previewAdminMultiImages(this)">
-                    <div class="adm-dropzone__icon"><i class="fas fa-images text-info"></i></div>
+                    <div class="adm-dropzone__icon"><i class="fas fa-images text-info fs-4"></i></div>
                     <div class="fw-bold text-dark small">Upload Sample Page Images</div>
                     <div class="text-muted small" style="font-size: 11px;">Select multiple images in order (img-1.jpg, img-2.jpg...)</div>
                 </div>
-                <div id="multiImagesPreviewContainer" class="d-flex flex-wrap gap-1.5 mb-2"></div>
+
+                {{-- Multi-images summary report & Clear --}}
+                <div id="multiImagesSummaryReport" class="p-2 bg-light rounded-3 border mb-2 d-none">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <span class="small fw-bold text-dark"><i class="fas fa-images text-info me-1"></i> <span id="multiImagesCountText">0</span> টি পৃষ্ঠা প্রিভিউয়ের জন্য প্রস্তুত</span>
+                        <button type="button" class="btn btn-sm btn-outline-danger py-0.5 px-2 rounded-pill" onclick="clearAdminMultiImages()" style="font-size: 11px;">
+                            <i class="fas fa-trash-can me-1"></i> Clear All
+                        </button>
+                    </div>
+                </div>
+                <div id="multiImagesPreviewContainer" class="d-flex flex-wrap gap-2 mb-2"></div>
             </div>
 
             {{-- Explicit File Specifications Notice Box --}}
@@ -740,6 +786,8 @@
                     <li><strong>Naming Order:</strong> Image names should be in increasing order. For example: img-1.jpg, img-2.jpg</li>
                 </ol>
             </div>
+        </div>
+
         {{-- 4. MODERATION & URL --}}
         <div class="adm-card p-3 mb-3">
             <h2 class="h6 fw-bold mb-2 text-dark"><i class="fas fa-circle-check me-1 text-muted"></i> Moderation & URL</h2>
