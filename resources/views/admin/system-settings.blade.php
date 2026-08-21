@@ -1,11 +1,11 @@
 @extends('layouts.admin')
 
-@section('title', 'সিস্টেম সেটিংস ও থিম কন্ট্রোল')
-@section('heading', 'সিস্টেম সেটিংস ও থিম কন্ট্রোল প্যানেল')
+@section('title', 'System Settings & Theme Control')
+@section('heading', 'System Settings & Theme Control Panel')
 
 @section('breadcrumb')
-    <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">অ্যাডমিন</a></li>
-    <li class="breadcrumb-item active">সিস্টেম সেটিংস</li>
+    <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>
+    <li class="breadcrumb-item active">System Settings</li>
 @endsection
 
 @push('styles')
@@ -67,25 +67,25 @@
         <div class="card-body p-4 d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
             <div>
                 <h5 class="fw-bold text-dark mb-1 d-flex align-items-center gap-2">
-                    <i class="fa-solid fa-sliders text-primary"></i> সিস্টেম সেটিংস, ইমেজ ক্রপার ও থিম কন্ট্রোল
+                    <i class="fa-solid fa-sliders text-primary"></i> System Settings, Image Cropper & Theme Control
                 </h5>
-                <p class="text-muted small mb-0">লোগো, ব্যানার ক্রপিং ও রিসাইজিং, ডেলিভারি চার্জ, নোটিশ এবং থিম কালারসমূহ নিয়ন্ত্রণ করুন।</p>
+                <p class="text-muted small mb-0">Control logos, promotional banners, delivery fees, notice bar, invoice details, and color palettes.</p>
             </div>
             <div class="d-flex flex-wrap align-items-center gap-2">
                 <!-- Save Button in Top Header -->
                 <button type="submit" form="systemSettingsForm" class="btn btn-primary btn-sm rounded-pill px-3.5 py-2 fw-bold d-inline-flex align-items-center gap-1.5 shadow-sm">
-                    <i class="fa-solid fa-floppy-disk"></i> সংরক্ষণ করুন
+                    <i class="fa-solid fa-floppy-disk"></i> Save Changes
                 </button>
                 <!-- Clear Cache Form -->
-                <form action="{{ route('admin.system-settings.clear-cache') }}" method="POST" onsubmit="return confirm('আপনি কি নিশ্চিত যে সকল ক্যাশ ক্লিয়ার করতে চান?');">
+                <form action="{{ route('admin.system-settings.clear-cache') }}" method="POST" onsubmit="return confirm('Are you sure you want to clear system cache?');">
                     @csrf
                     <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3 py-2 fw-semibold d-inline-flex align-items-center gap-1.5 shadow-xs">
-                        <i class="fa-solid fa-broom"></i> ক্যাশ ক্লিয়ার
+                        <i class="fa-solid fa-broom"></i> Clear Cache
                     </button>
                 </form>
                 <!-- Live Site Link -->
                 <a href="{{ route('home') }}" target="_blank" class="btn btn-outline-secondary btn-sm rounded-pill px-3 py-2 fw-semibold d-inline-flex align-items-center gap-1.5 shadow-xs">
-                    <i class="fa-solid fa-arrow-up-right-from-square"></i> সাইট দেখুন
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i> View Website
                 </a>
             </div>
         </div>
@@ -110,49 +110,49 @@
                         <button class="nav-link active rounded-pill fw-semibold py-2.5 px-3 d-flex align-items-center justify-content-center gap-2" 
                                 id="tab-brand-btn" data-bs-toggle="pill" data-bs-target="#tab-brand" type="button" role="tab">
                             <i class="fa-solid fa-crop-simple text-primary"></i>
-                            <span>ব্র্যান্ডিং, লোগো ও ক্রপার</span>
+                            <span>Branding, Logo & Cropper</span>
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
                         <button class="nav-link rounded-pill fw-semibold py-2.5 px-3 d-flex align-items-center justify-content-center gap-2" 
                                 id="tab-theme-btn" data-bs-toggle="pill" data-bs-target="#tab-theme" type="button" role="tab">
                             <i class="fa-solid fa-wand-magic-sparkles text-info"></i>
-                            <span>থিম ও কালার</span>
+                            <span>Theme & Colors</span>
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
                         <button class="nav-link rounded-pill fw-semibold py-2.5 px-3 d-flex align-items-center justify-content-center gap-2" 
                                 id="tab-notice-btn" data-bs-toggle="pill" data-bs-target="#tab-notice" type="button" role="tab">
                             <i class="fa-solid fa-bullhorn text-warning"></i>
-                            <span>নোটিশ ব্যানার</span>
+                            <span>Notice Banner</span>
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
                         <button class="nav-link rounded-pill fw-semibold py-2.5 px-3 d-flex align-items-center justify-content-center gap-2" 
                                 id="tab-ecom-btn" data-bs-toggle="pill" data-bs-target="#tab-ecom" type="button" role="tab">
                             <i class="fa-solid fa-truck-fast text-success"></i>
-                            <span>ডেলিভারি ও হেল্পলাইন</span>
+                            <span>Delivery & Helpline</span>
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
                         <button class="nav-link rounded-pill fw-semibold py-2.5 px-3 d-flex align-items-center justify-content-center gap-2" 
                                 id="tab-invoice-btn" data-bs-toggle="pill" data-bs-target="#tab-invoice" type="button" role="tab">
                             <i class="fa-solid fa-file-invoice-dollar text-primary"></i>
-                            <span>ইনভয়েস ও প্রেরক তথ্য</span>
+                            <span>Invoice & Sender Info</span>
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
                         <button class="nav-link rounded-pill fw-semibold py-2.5 px-3 d-flex align-items-center justify-content-center gap-2" 
                                 id="tab-payment-btn" data-bs-toggle="pill" data-bs-target="#tab-payment" type="button" role="tab">
                             <i class="fa-solid fa-credit-card text-danger"></i>
-                            <span>পেমেন্ট গেটওয়ে কাস্টমাইজ</span>
+                            <span>Payment Gateways</span>
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
                         <button class="nav-link rounded-pill fw-semibold py-2.5 px-3 d-flex align-items-center justify-content-center gap-2" 
                                 id="tab-system-btn" data-bs-toggle="pill" data-bs-target="#tab-system" type="button" role="tab">
                             <i class="fa-solid fa-server text-secondary"></i>
-                            <span>সার্ভার ডায়াগনস্টিকস</span>
+                            <span>Server Diagnostics</span>
                         </button>
                     </li>
                 </ul>
@@ -168,23 +168,23 @@
                             
                             <!-- Left: Site Name & Tagline & Favicon -->
                             <div class="col-lg-6">
-                                <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-signature text-primary me-2"></i>সাইটের নাম ও বিবরণ</h6>
+                                <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-signature text-primary me-2"></i>Site Name & Identity</h6>
                                 
                                 <div class="mb-3">
-                                    <label class="form-label small fw-semibold text-muted">ওয়েবসাইটের মূল নাম</label>
-                                    <input type="text" name="site_name" value="{{ $settings['site_name'] ?? config('brand.name', 'আইডিয়া প্রকাশন') }}" class="form-control rounded-3" placeholder="যেমন: আইডিয়া প্রকাশন">
+                                    <label class="form-label small fw-semibold text-muted">Website Name</label>
+                                    <input type="text" name="site_name" value="{{ $settings['site_name'] ?? config('brand.name', 'Idea Prakashan') }}" class="form-control rounded-3" placeholder="e.g. Idea Prakashan">
                                 </div>
 
                                 <div class="mb-4">
-                                    <label class="form-label small fw-semibold text-muted">ট্যাগলাইন / স্লোগান</label>
-                                    <input type="text" name="site_tagline" value="{{ $settings['site_tagline'] ?? 'বই ও মুক্তচিন্তার ডিজিটাল প্রকাশনা' }}" class="form-control rounded-3" placeholder="যেমন: বই ও মুক্তচিন্তার ডিজিটাল প্রকাশনা">
+                                    <label class="form-label small fw-semibold text-muted">Tagline / Slogan</label>
+                                    <input type="text" name="site_tagline" value="{{ $settings['site_tagline'] ?? 'Books & Digital Publications' }}" class="form-control rounded-3" placeholder="e.g. Books & Digital Publications">
                                 </div>
 
                                 <!-- Favicon Upload Box with Fixed Container & Cropper -->
                                 <div class="p-3 bg-light rounded-4 border mb-3">
                                     <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <label class="form-label small fw-bold text-dark mb-0">ফেভিকন (Favicon Icon - 1:1)</label>
-                                        <span class="badge bg-white text-muted border rounded-pill px-2.5 py-0.5 small">বর্গাকার ১:১</span>
+                                        <label class="form-label small fw-bold text-dark mb-0">Favicon Icon (1:1 Aspect Ratio)</label>
+                                        <span class="badge bg-white text-muted border rounded-pill px-2.5 py-0.5 small">Square 1:1</span>
                                     </div>
                                     <div class="d-flex align-items-center gap-3">
                                         <!-- Fixed 1:1 Favicon Preview Container -->
@@ -197,11 +197,11 @@
                                         </div>
                                         <div class="flex-grow-1">
                                             <input type="file" id="faviconInput" name="site_favicon" class="form-control form-control-sm rounded-3 mb-1" accept="image/*" onchange="initCropper(this, 'favicon', 1)">
-                                            <div class="form-text small text-muted">ফাইল সিলেক্ট করলে ক্রপ ও রিসাইজ উইন্ডো আসবে।</div>
+                                            <div class="form-text small text-muted">Selecting an image will open the crop & resize tool.</div>
                                             @if($faviconUrl)
                                                 <div class="form-check mt-1">
                                                     <input class="form-check-input" type="checkbox" name="remove_site_favicon" value="1" id="rmFavicon">
-                                                    <label class="form-check-label small text-danger fw-semibold" for="rmFavicon">ফেভিকন মুছুন</label>
+                                                    <label class="form-check-label small text-danger fw-semibold" for="rmFavicon">Remove Favicon</label>
                                                 </div>
                                             @endif
                                         </div>
@@ -211,14 +211,14 @@
 
                             <!-- Right: Fixed Frame Logo Upload & Interactive Cropper -->
                             <div class="col-lg-6">
-                                <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-image text-primary me-2"></i>প্রতিষ্ঠানের মূল লোগো (Site Logo)</h6>
+                                <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-image text-primary me-2"></i>Primary Site Logo</h6>
                                 
                                 <div class="p-4 bg-light rounded-4 border text-center">
                                     <div class="d-flex justify-content-between align-items-center mb-3">
                                         <span class="badge bg-white text-dark border rounded-pill px-3 py-1 small fw-semibold">
-                                            <i class="fa-solid fa-arrows-to-dot text-primary me-1"></i> ফিক্সড হেডস্পেস ফ্রেম
+                                            <i class="fa-solid fa-arrows-to-dot text-primary me-1"></i> Fixed Navbar Frame
                                         </span>
-                                        <span class="small text-muted">অটো-ফিট মোড সক্রিয়</span>
+                                        <span class="small text-muted">Auto-Fit Active</span>
                                     </div>
                                     
                                     <!-- Fixed Frame Logo Box (Simulating Navbar Height) -->
@@ -228,25 +228,25 @@
                                                  style="max-height: 52px; max-width: 220px; width: auto; height: auto; object-fit: contain;">
                                         @else
                                             <div class="d-flex align-items-center gap-2 text-primary" id="logoPreviewImg">
-                                                <span class="badge bg-primary text-white p-2 rounded fs-5">আই</span>
-                                                <span class="fw-bold fs-5">আইডিয়া প্রকাশন</span>
+                                                <span class="badge bg-primary text-white p-2 rounded fs-5">ID</span>
+                                                <span class="fw-bold fs-5">Idea Prakashan</span>
                                             </div>
                                         @endif
                                     </div>
 
                                     <div class="text-start mb-2">
-                                        <label class="form-label small fw-semibold text-muted">লোগো ফাইল সিলেক্ট বা ক্রপ করুন:</label>
+                                        <label class="form-label small fw-semibold text-muted">Select or crop logo image:</label>
                                         <input type="file" id="logoInput" name="site_logo" class="form-control rounded-3" accept="image/*" onchange="initCropper(this, 'logo', NaN)">
                                     </div>
                                     <div class="d-flex justify-content-between align-items-center">
                                         <p class="small text-muted mb-0 text-start">
                                             <i class="fa-solid fa-circle-check text-success me-1"></i>
-                                            হেডারের নির্দিষ্ট সাইজে সুন্দরভাবে ফিক্সড হয়ে বসে যাবে।
+                                            Optimally adjusted to navbar header height.
                                         </p>
                                         @if($logoUrl)
                                             <div class="form-check">
                                                 <input class="form-check-input" type="checkbox" name="remove_site_logo" value="1" id="rmLogo">
-                                                <label class="form-check-label small text-danger fw-semibold" for="rmLogo">লোগো মুছুন</label>
+                                                <label class="form-check-label small text-danger fw-semibold" for="rmLogo">Remove Logo</label>
                                             </div>
                                         @endif
                                     </div>
@@ -257,11 +257,11 @@
                             <div class="col-12 pt-3 border-top">
                                 <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
                                     <div>
-                                        <h6 class="fw-bold text-dark mb-1"><i class="fa-solid fa-rectangle-ad text-primary me-2"></i>হোমপেজ প্রমোশনাল ব্যানার (Fixed 3:1 Aspect Ratio)</h6>
-                                        <p class="small text-muted mb-0">ব্যানার আপলোড করলে স্বয়ংক্রিয় ৩:১ রেশিওতে ক্রপ করে নেওয়া যাবে যাতে কোনো ডিভাইসে ফেটে না যায়।</p>
+                                        <h6 class="fw-bold text-dark mb-1"><i class="fa-solid fa-rectangle-ad text-primary me-2"></i>Homepage Promotional Banners (Fixed 3:1 Aspect Ratio)</h6>
+                                        <p class="small text-muted mb-0">Banners are automatically cropped to 3:1 ratio to preserve perfect responsive alignment across all devices.</p>
                                     </div>
                                     <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-1.5 fw-bold">
-                                        ১২০০ × ৪০০ px (৩:১ অনুপাত)
+                                        1200 × 400 px (3:1 Ratio)
                                     </span>
                                 </div>
                                 
@@ -271,8 +271,8 @@
                                     <div class="col-md-6">
                                         <div class="p-3 bg-light rounded-4 border h-100">
                                             <div class="d-flex justify-content-between align-items-center mb-2">
-                                                <label class="form-label small fw-bold text-dark mb-0">ব্যানার ১ (অফার / মেগা সেল)</label>
-                                                <span class="badge bg-white text-muted border small">৩:১ ফিক্সড ফ্রেম</span>
+                                                <label class="form-label small fw-bold text-dark mb-0">Banner 1 (Featured Promotion / Offers)</label>
+                                                <span class="badge bg-white text-muted border small">3:1 Fixed Frame</span>
                                             </div>
                                             
                                             <!-- Fixed Aspect Ratio 3:1 Box -->
@@ -282,13 +282,13 @@
                                                 @else
                                                     <div class="text-muted small text-center p-3" id="banner1PreviewImg">
                                                         <i class="fa-solid fa-image display-6 opacity-25 d-block mb-1"></i>
-                                                        ব্যানার ১ আপলোড ও ক্রপ করুন
+                                                        Upload & Crop Banner 1
                                                     </div>
                                                 @endif
                                             </div>
 
                                             <input type="file" id="banner1Input" name="banner_1" class="form-control form-control-sm rounded-3 mb-1" accept="image/*" onchange="initCropper(this, 'banner_1', 3/1)">
-                                            <div class="form-text small text-muted">ফাইল নির্বাচন করলে ৩:১ রেশিওতে ক্রপ করার অপশন আসবে।</div>
+                                            <div class="form-text small text-muted">Selecting an image will open the 3:1 aspect ratio crop tool.</div>
                                         </div>
                                     </div>
 
@@ -296,8 +296,8 @@
                                     <div class="col-md-6">
                                         <div class="p-3 bg-light rounded-4 border h-100">
                                             <div class="d-flex justify-content-between align-items-center mb-2">
-                                                <label class="form-label small fw-bold text-dark mb-0">ব্যানার ২ (ই-বুক / বিশেষ অফার)</label>
-                                                <span class="badge bg-white text-muted border small">৩:১ ফিক্সড ফ্রেম</span>
+                                                <label class="form-label small fw-bold text-dark mb-0">Banner 2 (E-Books / Special Campaigns)</label>
+                                                <span class="badge bg-white text-muted border small">3:1 Fixed Frame</span>
                                             </div>
                                             
                                             <!-- Fixed Aspect Ratio 3:1 Box -->
@@ -307,54 +307,58 @@
                                                 @else
                                                     <div class="text-muted small text-center p-3" id="banner2PreviewImg">
                                                         <i class="fa-solid fa-image display-6 opacity-25 d-block mb-1"></i>
-                                                        ব্যানার ২ আপলোড ও ক্রপ করুন
+                                                        Upload & Crop Banner 2
                                                     </div>
                                                 @endif
                                             </div>
 
                                             <input type="file" id="banner2Input" name="banner_2" class="form-control form-control-sm rounded-3 mb-1" accept="image/*" onchange="initCropper(this, 'banner_2', 3/1)">
-                                            <div class="form-text small text-muted">ফাইল নির্বাচন করলে ৩:১ রেশিওতে ক্রপ করার অপশন আসবে।</div>
-                                <!-- Social Media & Ideapatra Open Graph Banner Section -->
-                                <div class="col-12 pt-4 border-top mt-2">
+                                            <div class="form-text small text-muted">Selecting an image will open the 3:1 aspect ratio crop tool.</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Social Media & Open Graph Banner Section -->
+                                <div class="col-12 pt-4 border-top mt-3">
                                     <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
                                         <div>
                                             <h6 class="fw-bold text-dark mb-1">
-                                                <i class="fa-solid fa-share-nodes text-primary me-2"></i>আইডিয়াপত্র ও সোশ্যাল মিডিয়া শেয়ারিং ব্যানার (Social Open Graph Banner)
+                                                <i class="fa-solid fa-share-nodes text-primary me-2"></i>Social Open Graph Sharing Banner
                                             </h6>
-                                            <p class="small text-muted mb-0">ফেসবুক, হোয়াটসঅ্যাপ, এক্স/টুইটার বা লিংকডইনে ওয়েবসাইট ও ব্লগ পেজ শেয়ার করলে এই ব্যানারটি কার্ড হিসেবে দেখাবে।</p>
+                                            <p class="small text-muted mb-0">Displayed as preview card when website or blog links are shared on Facebook, WhatsApp, X/Twitter, or LinkedIn.</p>
                                         </div>
                                         <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1.5 fw-bold">
-                                            ১২০০ × ৬৩০ px (১৬:৯ বা ১.৯১:১ অনুপাত)
+                                            1200 × 630 px (16:9 / 1.91:1)
                                         </span>
                                     </div>
 
                                     <div class="p-4 bg-light rounded-4 border">
                                         <div class="row g-3 align-items-center">
                                             <div class="col-lg-6">
-                                                <!-- Fixed Aspect Ratio 16:9 / 1.91:1 Preview Box -->
+                                                <!-- Fixed Aspect Ratio 16:9 Preview Box -->
                                                 <div class="fixed-preview-container og-preview-box shadow-sm mx-auto" id="blogOgContainer" style="max-height: 240px; border-radius: 14px; overflow: hidden; background: #0f172a;">
                                                     @if($blogOgBannerUrl)
                                                         <img src="{{ $blogOgBannerUrl }}" alt="Social Share Banner" class="w-100 h-100 object-fit-cover" id="blog_ogPreviewImg">
                                                     @else
                                                         <div class="text-muted small text-center p-3 text-white-50" id="blog_ogPreviewImg">
                                                             <i class="fa-solid fa-image display-6 opacity-25 d-block mb-1"></i>
-                                                            সোশ্যাল শেয়ার ব্যানার আপলোড ও ক্রপ করুন
+                                                            Upload & Crop Social Share Banner
                                                         </div>
                                                     @endif
                                                 </div>
                                             </div>
                                             <div class="col-lg-6">
-                                                <label class="form-label small fw-bold text-dark mb-1">আপনার ডিজাইনকৃত ব্যানার ফাইল নির্বাচন করুন:</label>
+                                                <label class="form-label small fw-bold text-dark mb-1">Select Banner Image:</label>
                                                 <input type="file" id="blogOgInput" name="blog_og_banner" class="form-control rounded-3 mb-2" accept="image/*" onchange="initCropper(this, 'blog_og', 16/9)">
                                                 <div class="form-text small text-muted mb-3">
                                                     <i class="fa-solid fa-lightbulb text-warning me-1"></i>
-                                                    আপনার ডিজাইন করা যে কোনো ১২০০×৬৩০ (বা ১৬:৯) সাইজের ইমেজ আপলোড করতে পারেন। ফাইল সিলেক্ট করার সাথে সাথেই লাইভ ক্রপ টুল ওপেন হবে।
+                                                    Upload any 1200×630 (or 16:9) image. The live cropper will open automatically upon selection.
                                                 </div>
                                                 <div class="d-flex align-items-center gap-2">
                                                     @if($blogOgBannerUrl)
                                                         <div class="form-check">
                                                             <input class="form-check-input" type="checkbox" name="remove_blog_og_banner" value="1" id="rmBlogOg">
-                                                            <label class="form-check-label small text-danger fw-semibold" for="rmBlogOg">কাস্টম ব্যানার মুছে ডিফল্ট ব্যানার ব্যবহার করুন</label>
+                                                            <label class="form-check-label small text-danger fw-semibold" for="rmBlogOg">Remove custom banner & use default</label>
                                                         </div>
                                                     @endif
                                                 </div>
@@ -364,14 +368,15 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
 
                     <!-- Tab 2: Theme & Colors Customizer -->
                     <div class="tab-pane fade" id="tab-theme" role="tabpanel">
                         <div class="row g-4">
                             
                             <div class="col-lg-6">
-                                <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-swatchbook text-primary me-2"></i>ব্র্যান্ড কালার স্কিম</h6>
-                                <p class="small text-muted mb-3">এক ক্লিকে আপনার ওয়েবসাইটের প্রাইমারি ব্র্যান্ড কালার প্যালেট নির্বাচন করুন:</p>
+                                <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-swatchbook text-primary me-2"></i>Brand Color Palettes</h6>
+                                <p class="small text-muted mb-3">Select your website's primary brand theme with a single click:</p>
 
                                 <div class="d-flex flex-column gap-2 mb-4">
                                     <button type="button" class="btn btn-outline-light text-dark p-3 rounded-4 border d-flex align-items-center justify-content-between hover-lift transition-all" 
@@ -379,11 +384,11 @@
                                         <div class="d-flex align-items-center gap-3">
                                             <div class="rounded-circle shadow-xs" style="width: 28px; height: 28px; background: #0066cc;"></div>
                                             <div class="text-start">
-                                                <div class="fw-bold fs-6">ইন্ডিগো ক্লাসিক (Classic Royal Blue)</div>
-                                                <div class="small text-muted">স্ট্যান্ডার্ড ডিজিটাল পাবলিকেশন থিম</div>
+                                                <div class="fw-bold fs-6">Classic Indigo (Royal Blue)</div>
+                                                <div class="small text-muted">Standard digital publishing theme</div>
                                             </div>
                                         </div>
-                                        <span class="badge bg-primary rounded-pill px-3 py-1.5">ডিফল্ট</span>
+                                        <span class="badge bg-primary rounded-pill px-3 py-1.5">Default</span>
                                     </button>
 
                                     <button type="button" class="btn btn-outline-light text-dark p-3 rounded-4 border d-flex align-items-center justify-content-between hover-lift transition-all" 
@@ -391,8 +396,8 @@
                                         <div class="d-flex align-items-center gap-3">
                                             <div class="rounded-circle shadow-xs" style="width: 28px; height: 28px; background: #059669;"></div>
                                             <div class="text-start">
-                                                <div class="fw-bold fs-6">পান্না সবুজ (Emerald Green)</div>
-                                                <div class="small text-muted">প্রাকৃতিক ও মননশীল আভা</div>
+                                                <div class="fw-bold fs-6">Emerald Green</div>
+                                                <div class="small text-muted">Clean & natural aesthetic</div>
                                             </div>
                                         </div>
                                     </button>
@@ -402,8 +407,8 @@
                                         <div class="d-flex align-items-center gap-3">
                                             <div class="rounded-circle shadow-xs" style="width: 28px; height: 28px; background: #4f46e5;"></div>
                                             <div class="text-start">
-                                                <div class="fw-bold fs-6">ভায়োলেট পার্পল (Deep Violet)</div>
-                                                <div class="small text-muted">মডার্ন ও ক্রিয়েটিভ লুক</div>
+                                                <div class="fw-bold fs-6">Deep Violet</div>
+                                                <div class="small text-muted">Modern & creative feel</div>
                                             </div>
                                         </div>
                                     </button>
@@ -413,8 +418,8 @@
                                         <div class="d-flex align-items-center gap-3">
                                             <div class="rounded-circle shadow-xs" style="width: 28px; height: 28px; background: #be123c;"></div>
                                             <div class="text-start">
-                                                <div class="fw-bold fs-6">ক্রিমসন রোজ (Crimson Rose)</div>
-                                                <div class="small text-muted">আকর্ষণীয় ও প্রাণবন্ত স্টাইল</div>
+                                                <div class="fw-bold fs-6">Crimson Rose</div>
+                                                <div class="small text-muted">Vibrant & energetic look</div>
                                             </div>
                                         </div>
                                     </button>
@@ -422,17 +427,17 @@
 
                                 <!-- Custom Color Hex Inputs -->
                                 <div class="p-3 bg-light rounded-4 border">
-                                    <label class="form-label small fw-bold text-dark mb-2">কাস্টম কালার কোড (Custom HEX)</label>
+                                    <label class="form-label small fw-bold text-dark mb-2">Custom Color Codes (HEX)</label>
                                     <div class="row g-3">
                                         <div class="col-6">
-                                            <label class="small text-muted">প্রাইমারি কালার</label>
+                                            <label class="small text-muted">Primary Color</label>
                                             <div class="d-flex align-items-center gap-2">
                                                 <input type="color" id="primaryColorPicker" value="{{ $themeSetting['primary_color'] ?? '#0066cc' }}" class="form-control form-control-color border-0 p-0 rounded-circle" style="width: 36px; height: 36px;" onchange="document.getElementById('primaryColorInput').value = this.value">
                                                 <input type="text" name="primary_color" id="primaryColorInput" value="{{ $themeSetting['primary_color'] ?? '#0066cc' }}" class="form-control form-control-sm rounded-3 font-monospace">
                                             </div>
                                         </div>
                                         <div class="col-6">
-                                            <label class="small text-muted">সেকেন্ডারি কালার</label>
+                                            <label class="small text-muted">Secondary Color</label>
                                             <div class="d-flex align-items-center gap-2">
                                                 <input type="color" id="secondaryColorPicker" value="{{ $themeSetting['secondary_color'] ?? '#0099ff' }}" class="form-control form-control-color border-0 p-0 rounded-circle" style="width: 36px; height: 36px;" onchange="document.getElementById('secondaryColorInput').value = this.value">
                                                 <input type="text" name="secondary_color" id="secondaryColorInput" value="{{ $themeSetting['secondary_color'] ?? '#0099ff' }}" class="form-control form-control-sm rounded-3 font-monospace">
@@ -442,9 +447,9 @@
                                 </div>
                             </div>
 
-                            <!-- Right: Live Theme Mode Switch & Simulation -->
+                            <!-- Right: Live Theme Mode Switch -->
                             <div class="col-lg-6">
-                                <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-moon text-primary me-2"></i>ডিফল্ট ডিসপ্লে মোড</h6>
+                                <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-moon text-primary me-2"></i>Default Display Mode</h6>
                                 
                                 <div class="p-4 bg-light rounded-4 border mb-4">
                                     <div class="row g-3">
@@ -452,16 +457,16 @@
                                             <label class="card p-3 border-2 rounded-4 text-center cursor-pointer hover-lift transition-all {{ ($themeSetting['default_mode'] ?? 'light') === 'light' ? 'border-primary bg-white shadow-xs' : 'border-transparent bg-white' }}">
                                                 <input type="radio" name="default_mode" value="light" class="d-none" {{ ($themeSetting['default_mode'] ?? 'light') === 'light' ? 'checked' : '' }}>
                                                 <i class="fa-solid fa-sun fs-2 text-warning mb-2"></i>
-                                                <div class="fw-bold fs-6">লাইট মোড</div>
-                                                <span class="small text-muted">স্বচ্ছ ও পরিচ্ছন্ন রিডিং</span>
+                                                <div class="fw-bold fs-6">Light Mode</div>
+                                                <span class="small text-muted">Clean & bright reading</span>
                                             </label>
                                         </div>
                                         <div class="col-6">
                                             <label class="card p-3 border-2 rounded-4 text-center cursor-pointer hover-lift transition-all {{ ($themeSetting['default_mode'] ?? '') === 'dark' ? 'border-primary bg-white shadow-xs' : 'border-transparent bg-white' }}">
                                                 <input type="radio" name="default_mode" value="dark" class="d-none" {{ ($themeSetting['default_mode'] ?? '') === 'dark' ? 'checked' : '' }}>
                                                 <i class="fa-solid fa-moon fs-2 text-indigo-500 mb-2"></i>
-                                                <div class="fw-bold fs-6">ডার্ক মোড</div>
-                                                <span class="small text-muted">চোখের জন্য আরামদায়ক</span>
+                                                <div class="fw-bold fs-6">Dark Mode</div>
+                                                <span class="small text-muted">Easy on the eyes</span>
                                             </label>
                                         </div>
                                     </div>
@@ -476,28 +481,28 @@
                         <div class="row g-4">
                             
                             <div class="col-lg-7">
-                                <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-bullhorn text-warning me-2"></i>নোটিশ মেসেজ ও কনফিগারেশন</h6>
+                                <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-bullhorn text-warning me-2"></i>Notice Message & Configuration</h6>
                                 
                                 <div class="mb-3">
-                                    <label class="form-label small fw-semibold text-muted">নোটিশ টেক্সট (বার্তা)</label>
-                                    <textarea name="notice_text" id="noticeTextInput" class="form-control rounded-3" rows="4" placeholder="যেমন: পবিত্র ঈদ উপলক্ষে সকল বইয়ে ২৫% ছাড়! ক্যাশ অন ডেলিভারি সারা দেশে।" oninput="updateLiveNoticePreview()">{{ $noticeSetting['text'] ?? '' }}</textarea>
+                                    <label class="form-label small fw-semibold text-muted">Notice Text</label>
+                                    <textarea name="notice_text" id="noticeTextInput" class="form-control rounded-3" rows="4" placeholder="e.g. 25% Special Discount on all books! Cash on Delivery nationwide." oninput="updateLiveNoticePreview()">{{ $noticeSetting['text'] ?? '' }}</textarea>
                                 </div>
 
                                 <div class="row g-3 mb-3">
                                     <div class="col-md-6">
-                                        <label class="form-label small fw-semibold text-muted">নোটিশের ধরণ / ভিজ্যুয়াল স্টাইল</label>
+                                        <label class="form-label small fw-semibold text-muted">Notice Style / Type</label>
                                         <select name="notice_type" id="noticeTypeSelect" class="form-select rounded-3" onchange="updateLiveNoticePreview()">
-                                            <option value="info" {{ ($noticeSetting['type'] ?? '') === 'info' ? 'selected' : '' }}>তথ্যমূলক (নীল)</option>
-                                            <option value="warning" {{ ($noticeSetting['type'] ?? '') === 'warning' ? 'selected' : '' }}>সতর্কতা / ঘোষণা (হলুদ)</option>
-                                            <option value="success" {{ ($noticeSetting['type'] ?? '') === 'success' ? 'selected' : '' }}>অফার / সেলিব্রেশন (সবুজ)</option>
-                                            <option value="danger" {{ ($noticeSetting['type'] ?? '') === 'danger' ? 'selected' : '' }}>জরুরি নোটিশ (লাল)</option>
+                                            <option value="info" {{ ($noticeSetting['type'] ?? '') === 'info' ? 'selected' : '' }}>Informational (Blue)</option>
+                                            <option value="warning" {{ ($noticeSetting['type'] ?? '') === 'warning' ? 'selected' : '' }}>Announcement (Yellow)</option>
+                                            <option value="success" {{ ($noticeSetting['type'] ?? '') === 'success' ? 'selected' : '' }}>Promotion / Offer (Green)</option>
+                                            <option value="danger" {{ ($noticeSetting['type'] ?? '') === 'danger' ? 'selected' : '' }}>Urgent Alert (Red)</option>
                                         </select>
                                     </div>
                                     <div class="col-md-6">
-                                        <label class="form-label small fw-semibold text-muted">স্ট্যাটাস</label>
+                                        <label class="form-label small fw-semibold text-muted">Status</label>
                                         <div class="form-check form-switch p-2 bg-light rounded-3 px-3 d-flex align-items-center justify-content-between border">
                                             <label class="form-check-label small fw-bold text-dark cursor-pointer ms-0 me-2" for="noticeActiveSwitch">
-                                                নোটিশ প্রদর্শন করুন
+                                                Display Notice
                                             </label>
                                             <input class="form-check-input cursor-pointer" type="checkbox" role="switch" id="noticeActiveSwitch" name="notice_active" value="1" {{ !empty($noticeSetting['active']) ? 'checked' : '' }} onchange="updateLiveNoticePreview()">
                                         </div>
@@ -507,15 +512,15 @@
 
                             <!-- Right: Live Notice Preview -->
                             <div class="col-lg-5">
-                                <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-eye text-primary me-2"></i>লাইভ প্রিভিউ (ওয়েবসাইটে যেমন দেখাবে)</h6>
+                                <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-eye text-primary me-2"></i>Live Preview</h6>
                                 
                                 <div class="p-4 bg-light rounded-4 border">
                                     <div id="noticePreviewBox" class="alert alert-{{ $noticeSetting['type'] ?? 'info' }} rounded-3 shadow-xs d-flex align-items-center gap-2 mb-0 {{ empty($noticeSetting['active']) ? 'opacity-50' : '' }}">
                                         <i class="fa-solid fa-circle-info fs-5" id="noticePreviewIcon"></i>
-                                        <span id="noticePreviewText">{{ $noticeSetting['text'] ?? 'এখানে নোটিশ বার্তাটি লাইভ প্রদর্শিত হবে।' }}</span>
+                                        <span id="noticePreviewText">{{ $noticeSetting['text'] ?? 'The announcement message will appear here in real-time.' }}</span>
                                     </div>
                                     <span class="small text-muted mt-2 d-block" id="noticeStatusText">
-                                        {{ !empty($noticeSetting['active']) ? '🟢 বর্তমানে সাইটে নোটিশ সক্রিয় রয়েছে' : '⚪ নোটিশটি বর্তমানে বন্ধ রাখা হয়েছে' }}
+                                        {{ !empty($noticeSetting['active']) ? '🟢 Notice is currently active on live website' : '⚪ Notice is currently disabled' }}
                                     </span>
                                 </div>
                             </div>
@@ -529,10 +534,10 @@
                             
                             <!-- Delivery Charges -->
                             <div class="col-lg-6">
-                                <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-truck-ramp-box text-success me-2"></i>ডেলিভারি চার্জ কনফিগারেশন</h6>
+                                <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-truck-ramp-box text-success me-2"></i>Delivery Fee Configuration</h6>
                                 
                                 <div class="mb-3">
-                                    <label class="form-label small fw-semibold text-muted">ঢাকা সিটি কর্পোরেশন ডেলিভারি চার্জ (৳)</label>
+                                    <label class="form-label small fw-semibold text-muted">Dhaka City Delivery Fee (৳)</label>
                                     <div class="input-group">
                                         <span class="input-group-text bg-light fw-bold">৳</span>
                                         <input type="number" name="delivery_dhaka" value="{{ $ecomSetting['delivery_dhaka'] ?? 50 }}" class="form-control rounded-end-3">
@@ -540,7 +545,7 @@
                                 </div>
 
                                 <div class="mb-3">
-                                    <label class="form-label small fw-semibold text-muted">ঢাকা উপশহর / সাভার / গাজীপুর (৳)</label>
+                                    <label class="form-label small fw-semibold text-muted">Dhaka Suburbs / Savar / Gazipur (৳)</label>
                                     <div class="input-group">
                                         <span class="input-group-text bg-light fw-bold">৳</span>
                                         <input type="number" name="delivery_sub" value="{{ $ecomSetting['delivery_sub'] ?? 100 }}" class="form-control rounded-end-3">
@@ -548,7 +553,7 @@
                                 </div>
 
                                 <div class="mb-3">
-                                    <label class="form-label small fw-semibold text-muted">ঢাকার বাইরে সমগ্র বাংলাদেশ (৳)</label>
+                                    <label class="form-label small fw-semibold text-muted">Outside Dhaka / Nationwide (৳)</label>
                                     <div class="input-group">
                                         <span class="input-group-text bg-light fw-bold">৳</span>
                                         <input type="number" name="delivery_outside" value="{{ $ecomSetting['delivery_outside'] ?? 120 }}" class="form-control rounded-end-3">
@@ -556,7 +561,7 @@
                                 </div>
 
                                 <div class="mb-3">
-                                    <label class="form-label small fw-semibold text-muted">গিফট র‍্যাপিং চার্জ (৳)</label>
+                                    <label class="form-label small fw-semibold text-muted">Gift Wrapping Fee (৳)</label>
                                     <div class="input-group">
                                         <span class="input-group-text bg-light fw-bold">৳</span>
                                         <input type="number" name="gift_wrap_fee" value="{{ $ecomSetting['gift_wrap_fee'] ?? 20 }}" class="form-control rounded-end-3">
@@ -564,21 +569,21 @@
                                 </div>
 
                                 <div class="mb-3">
-                                    <label class="form-label small fw-semibold text-muted">ফ্রি ডেলিভারির ন্যূনতম অর্ডার লিমিট (৳)</label>
+                                    <label class="form-label small fw-semibold text-muted">Free Delivery Minimum Order (৳)</label>
                                     <div class="input-group">
                                         <span class="input-group-text bg-light fw-bold">৳</span>
                                         <input type="number" name="free_delivery_threshold" value="{{ $ecomSetting['free_delivery_threshold'] ?? 1500 }}" class="form-control rounded-end-3">
                                     </div>
-                                    <div class="form-text small">এই পরিমাণের বেশি অর্ডারে স্বয়ংক্রিয়ভাবে ফ্রি ডেলিভারি অফার হবে।</div>
+                                    <div class="form-text small">Orders exceeding this amount receive free delivery automatically.</div>
                                 </div>
                             </div>
 
                             <!-- Customer Support Contacts -->
                             <div class="col-lg-6">
-                                <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-headset text-primary me-2"></i>অর্ডার হেল্পলাইন ও সাপোর্ট তথ্য</h6>
+                                <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-headset text-primary me-2"></i>Helpline & Support Contacts</h6>
                                 
                                 <div class="mb-3">
-                                    <label class="form-label small fw-semibold text-muted">অফিসিয়াল হেল্পলাইন নম্বর</label>
+                                    <label class="form-label small fw-semibold text-muted">Official Helpline Number</label>
                                     <div class="input-group">
                                         <span class="input-group-text bg-light"><i class="fa-solid fa-phone text-success"></i></span>
                                         <input type="text" name="helpline_phone" value="{{ $ecomSetting['helpline_phone'] ?? '01726976982' }}" class="form-control rounded-end-3">
@@ -586,7 +591,7 @@
                                 </div>
 
                                 <div class="mb-3">
-                                    <label class="form-label small fw-semibold text-muted">হোয়াটসঅ্যাপ অর্ডার নম্বর</label>
+                                    <label class="form-label small fw-semibold text-muted">WhatsApp Order Number</label>
                                     <div class="input-group">
                                         <span class="input-group-text bg-light"><i class="fa-brands fa-whatsapp text-success"></i></span>
                                         <input type="text" name="whatsapp_number" value="{{ $ecomSetting['whatsapp_number'] ?? '01726976982' }}" class="form-control rounded-end-3">
@@ -594,7 +599,7 @@
                                 </div>
 
                                 <div class="mb-3">
-                                    <label class="form-label small fw-semibold text-muted">অফিসিয়াল সাপোর্ট ইমেইল</label>
+                                    <label class="form-label small fw-semibold text-muted">Official Support Email</label>
                                     <div class="input-group">
                                         <span class="input-group-text bg-light"><i class="fa-solid fa-envelope text-primary"></i></span>
                                         <input type="email" name="helpline_email" value="{{ $ecomSetting['helpline_email'] ?? 'ideapbd@gmail.com' }}" class="form-control rounded-end-3">
@@ -602,28 +607,28 @@
                                 </div>
 
                                 <div class="p-3 bg-white rounded-3 border border-2 border-danger-subtle mt-3">
-                                    <h6 class="fw-bold text-dark mb-2"><i class="fa-solid fa-mobile-screen-button text-danger me-1"></i> অনলাইন পেমেন্ট গেটওয়ে নম্বর</h6>
+                                    <h6 class="fw-bold text-dark mb-2"><i class="fa-solid fa-mobile-screen-button text-danger me-1"></i> Online Mobile Banking Accounts</h6>
                                     
                                     <div class="row g-2 mb-2">
                                         <div class="col-md-6">
-                                            <label class="form-label small fw-semibold text-muted mb-1">বিকাশ (bKash) নম্বর</label>
+                                            <label class="form-label small fw-semibold text-muted mb-1">bKash Number</label>
                                             <div class="input-group input-group-sm">
-                                                <span class="input-group-text bg-pink text-white fw-bold" style="background:#d82a6f;">বিকাশ</span>
+                                                <span class="input-group-text text-white fw-bold" style="background:#d82a6f;">bKash</span>
                                                 <input type="text" name="bkash_number" value="{{ $ecomSetting['bkash_number'] ?? '01558712810' }}" class="form-control rounded-end-3 font-monospace">
                                             </div>
                                         </div>
                                         <div class="col-md-6">
-                                            <label class="form-label small fw-semibold text-muted mb-1">নগদ (Nagad) নম্বর</label>
+                                            <label class="form-label small fw-semibold text-muted mb-1">Nagad Number</label>
                                             <div class="input-group input-group-sm">
-                                                <span class="input-group-text text-white fw-bold" style="background:#e8590c;">নগদ</span>
+                                                <span class="input-group-text text-white fw-bold" style="background:#e8590c;">Nagad</span>
                                                 <input type="text" name="nagad_number" value="{{ $ecomSetting['nagad_number'] ?? '01558712810' }}" class="form-control rounded-end-3 font-monospace">
                                             </div>
                                         </div>
                                     </div>
 
                                     <div>
-                                        <label class="form-label small fw-semibold text-muted mb-1">পেমেন্ট নির্দেশনা (গ্রাহকদের প্রদর্শিত হবে)</label>
-                                        <input type="text" name="payment_instruction" value="{{ $ecomSetting['payment_instruction'] ?? 'বিকাশ বা নগদ থেকে উল্লেখিত নম্বরে সেন্ড মানি করে TrxID ও পেমেন্ট নম্বর দিন।' }}" class="form-control form-control-sm rounded-3">
+                                        <label class="form-label small fw-semibold text-muted mb-1">Payment Instructions (Shown to customers)</label>
+                                        <input type="text" name="payment_instruction" value="{{ $ecomSetting['payment_instruction'] ?? 'Send money to the provided number and enter TrxID and sending number.' }}" class="form-control form-control-sm rounded-3">
                                     </div>
                                 </div>
                             </div>
@@ -637,43 +642,43 @@
                                 <div class="p-3.5 bg-light rounded-4 border">
                                     <div class="d-flex align-items-center justify-content-between mb-3">
                                         <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
-                                            <i class="fa-solid fa-ticket text-warning"></i> কুপন কোড ও প্রমোশন সেটিংস
+                                            <i class="fa-solid fa-ticket text-warning"></i> Coupon Code & Promotions
                                         </h6>
                                         <div class="form-check form-switch mb-0">
                                             <input class="form-check-input cursor-pointer" type="checkbox" name="coupon_enabled" value="1" id="couponEnabledSwitch" {{ !empty($ecomSetting['coupon_enabled']) ? 'checked' : '' }}>
-                                            <label class="form-check-label small fw-bold text-dark cursor-pointer ms-1" for="couponEnabledSwitch">সক্রিয় করুন</label>
+                                            <label class="form-check-label small fw-bold text-dark cursor-pointer ms-1" for="couponEnabledSwitch">Enable</label>
                                         </div>
                                     </div>
-                                    <p class="small text-muted mb-3">এটি অন করলে গ্রাহক কার্ট ও চেকআউটে কুপন কোড লিখে ছাড় উপভোগ করতে পারবেন।</p>
+                                    <p class="small text-muted mb-3">Allow customers to apply promo codes at checkout for discounts.</p>
 
                                     <div class="row g-2 mb-3">
                                         <div class="col-md-6">
-                                            <label class="form-label small fw-semibold text-muted mb-1">কুপন কোড (Promo Code)</label>
-                                            <input type="text" name="coupon_code" value="{{ $ecomSetting['coupon_code'] ?? 'IDEA2026' }}" class="form-control rounded-3 font-monospace text-uppercase fw-bold" placeholder="যেমন: IDEA2026">
+                                            <label class="form-label small fw-semibold text-muted mb-1">Coupon Code (Promo)</label>
+                                            <input type="text" name="coupon_code" value="{{ $ecomSetting['coupon_code'] ?? 'IDEA2026' }}" class="form-control rounded-3 font-monospace text-uppercase fw-bold" placeholder="e.g. IDEA2026">
                                         </div>
                                         <div class="col-md-6">
-                                            <label class="form-label small fw-semibold text-muted mb-1">ছাড়ের ধরণ</label>
+                                            <label class="form-label small fw-semibold text-muted mb-1">Discount Type</label>
                                             <select name="coupon_type" class="form-select rounded-3">
-                                                <option value="percent" {{ ($ecomSetting['coupon_type'] ?? 'percent') === 'percent' ? 'selected' : '' }}>শতাংশ ছাড় (%)</option>
-                                                <option value="fixed" {{ ($ecomSetting['coupon_type'] ?? '') === 'fixed' ? 'selected' : '' }}>নির্দিষ্ট টাকা ছাড় (৳)</option>
+                                                <option value="percent" {{ ($ecomSetting['coupon_type'] ?? 'percent') === 'percent' ? 'selected' : '' }}>Percentage (%)</option>
+                                                <option value="fixed" {{ ($ecomSetting['coupon_type'] ?? '') === 'fixed' ? 'selected' : '' }}>Fixed Amount (৳)</option>
                                             </select>
                                         </div>
                                     </div>
 
                                     <div class="row g-2 mb-3">
                                         <div class="col-md-6">
-                                            <label class="form-label small fw-semibold text-muted mb-1">ছাড়ের পরিমাণ (ডিজিটে)</label>
-                                            <input type="number" step="any" name="coupon_discount" value="{{ $ecomSetting['coupon_discount'] ?? 10 }}" class="form-control rounded-3" placeholder="যেমন: 10 বা 100">
+                                            <label class="form-label small fw-semibold text-muted mb-1">Discount Value</label>
+                                            <input type="number" step="any" name="coupon_discount" value="{{ $ecomSetting['coupon_discount'] ?? 10 }}" class="form-control rounded-3" placeholder="e.g. 10 or 100">
                                         </div>
                                         <div class="col-md-6">
-                                            <label class="form-label small fw-semibold text-muted mb-1">ন্যূনতম অর্ডার মূল্য (৳)</label>
-                                            <input type="number" step="any" name="coupon_min_order" value="{{ $ecomSetting['coupon_min_order'] ?? 500 }}" class="form-control rounded-3" placeholder="যেমন: 500">
+                                            <label class="form-label small fw-semibold text-muted mb-1">Minimum Order Amount (৳)</label>
+                                            <input type="number" step="any" name="coupon_min_order" value="{{ $ecomSetting['coupon_min_order'] ?? 500 }}" class="form-control rounded-3" placeholder="e.g. 500">
                                         </div>
                                     </div>
 
                                     <div>
-                                        <label class="form-label small fw-semibold text-muted mb-1">কুপন বার্তা / বর্ণনা</label>
-                                        <input type="text" name="coupon_description" value="{{ $ecomSetting['coupon_description'] ?? 'বিশেষ কুপন ছাড়' }}" class="form-control form-control-sm rounded-3" placeholder="যেমন: বইমেলা উপলক্ষে ১০% বিশেষ ছাড়!">
+                                        <label class="form-label small fw-semibold text-muted mb-1">Coupon Description</label>
+                                        <input type="text" name="coupon_description" value="{{ $ecomSetting['coupon_description'] ?? 'Special Promo Discount' }}" class="form-control form-control-sm rounded-3" placeholder="e.g. 10% Book Fair Special Discount!">
                                     </div>
                                 </div>
                             </div>
@@ -683,38 +688,38 @@
                                 <div class="p-3.5 bg-light rounded-4 border">
                                     <div class="d-flex align-items-center justify-content-between mb-3">
                                         <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
-                                            <i class="fa-solid fa-gift text-primary"></i> নির্ধারিত অর্ডারে বিশেষ অফার
+                                            <i class="fa-solid fa-gift text-primary"></i> Tiered Order Special Offers
                                         </h6>
                                         <div class="form-check form-switch mb-0">
                                             <input class="form-check-input cursor-pointer" type="checkbox" name="threshold_offer_enabled" value="1" id="thresholdOfferSwitch" {{ !empty($ecomSetting['threshold_offer_enabled']) ? 'checked' : '' }}>
-                                            <label class="form-check-label small fw-bold text-dark cursor-pointer ms-1" for="thresholdOfferSwitch">সক্রিয় করুন</label>
+                                            <label class="form-check-label small fw-bold text-dark cursor-pointer ms-1" for="thresholdOfferSwitch">Enable</label>
                                         </div>
                                     </div>
-                                    <p class="small text-muted mb-3">কার্টের সাবটোটাল নির্ধারিত পরিমাণে পৌঁছালে স্বয়ংক্রিয়ভাবে অফার প্রযোজ্য হবে।</p>
+                                    <p class="small text-muted mb-3">Automatically reward customers when cart subtotal reaches specific amounts.</p>
 
                                     <div class="row g-2 mb-3">
                                         <div class="col-md-6">
-                                            <label class="form-label small fw-semibold text-muted mb-1">ন্যূনতম ক্রয়ের পরিমাণ (৳)</label>
-                                            <input type="number" step="any" name="threshold_offer_amount" value="{{ $ecomSetting['threshold_offer_amount'] ?? 1000 }}" class="form-control rounded-3" placeholder="যেমন: 1000">
+                                            <label class="form-label small fw-semibold text-muted mb-1">Minimum Order Threshold (৳)</label>
+                                            <input type="number" step="any" name="threshold_offer_amount" value="{{ $ecomSetting['threshold_offer_amount'] ?? 1000 }}" class="form-control rounded-3" placeholder="e.g. 1000">
                                         </div>
                                         <div class="col-md-6">
-                                            <label class="form-label small fw-semibold text-muted mb-1">অফারের ধরণ</label>
+                                            <label class="form-label small fw-semibold text-muted mb-1">Reward Type</label>
                                             <select name="threshold_offer_type" class="form-select rounded-3">
-                                                <option value="free_delivery" {{ ($ecomSetting['threshold_offer_type'] ?? 'free_delivery') === 'free_delivery' ? 'selected' : '' }}>ফ্রি ডেলিভারি</option>
-                                                <option value="flat_discount" {{ ($ecomSetting['threshold_offer_type'] ?? '') === 'flat_discount' ? 'selected' : '' }}>অতিরিক্ত টাকা ছাড় (৳)</option>
-                                                <option value="percent_discount" {{ ($ecomSetting['threshold_offer_type'] ?? '') === 'percent_discount' ? 'selected' : '' }}>অতিরিক্ত শতাংশ ছাড় (%)</option>
+                                                <option value="free_delivery" {{ ($ecomSetting['threshold_offer_type'] ?? 'free_delivery') === 'free_delivery' ? 'selected' : '' }}>Free Delivery</option>
+                                                <option value="flat_discount" {{ ($ecomSetting['threshold_offer_type'] ?? '') === 'flat_discount' ? 'selected' : '' }}>Flat Discount (৳)</option>
+                                                <option value="percent_discount" {{ ($ecomSetting['threshold_offer_type'] ?? '') === 'percent_discount' ? 'selected' : '' }}>Percentage Discount (%)</option>
                                             </select>
                                         </div>
                                     </div>
 
                                     <div class="mb-3">
-                                        <label class="form-label small fw-semibold text-muted mb-1">অতিরিক্ত ছাড়ের পরিমাণ (টাকা/শতাংশ হলে)</label>
-                                        <input type="number" step="any" name="threshold_offer_discount" value="{{ $ecomSetting['threshold_offer_discount'] ?? 100 }}" class="form-control rounded-3" placeholder="যেমন: 100 বা 10">
+                                        <label class="form-label small fw-semibold text-muted mb-1">Reward Value (if discount applied)</label>
+                                        <input type="number" step="any" name="threshold_offer_discount" value="{{ $ecomSetting['threshold_offer_discount'] ?? 100 }}" class="form-control rounded-3" placeholder="e.g. 100 or 10">
                                     </div>
 
                                     <div>
-                                        <label class="form-label small fw-semibold text-muted mb-1">অফার ব্যানার শিরোনাম / বার্তা</label>
-                                        <input type="text" name="threshold_offer_title" value="{{ $ecomSetting['threshold_offer_title'] ?? '৳১০০০+ অর্ডারে ফ্রি ডেলিভারি ও বিশেষ উপহার!' }}" class="form-control form-control-sm rounded-3" placeholder="যেমন: ৳১০০০+ অর্ডারে ফ্রি ডেলিভারি!">
+                                        <label class="form-label small fw-semibold text-muted mb-1">Offer Banner Title</label>
+                                        <input type="text" name="threshold_offer_title" value="{{ $ecomSetting['threshold_offer_title'] ?? 'Free Delivery on Orders Over ৳1000!' }}" class="form-control form-control-sm rounded-3" placeholder="e.g. Free Delivery on Orders Over ৳1000!">
                                     </div>
                                 </div>
                             </div>
@@ -727,35 +732,35 @@
                             
                             <!-- Sender Information Form -->
                             <div class="col-lg-7">
-                                <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-building-user text-primary me-2"></i>বিলের প্রেরক (Sender) ও মেমো কনফিগারেশন</h6>
-                                <p class="small text-muted mb-3">প্রতিটি প্রিন্টকৃত ইনভয়েস ও মেমোর বাম পাশে এই প্রেরকের নাম, ঠিকানা ও যোগাযোগের তথ্য প্রদর্শিত হবে।</p>
+                                <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-building-user text-primary me-2"></i>Invoice Sender & Memo Configuration</h6>
+                                <p class="small text-muted mb-3">Sender name, address, and contact details displayed on all printed invoices and delivery challans.</p>
 
                                 <div class="mb-3">
-                                    <label class="form-label small fw-semibold text-muted">প্রেরক / প্রকাশনীর নাম <span class="text-danger">*</span></label>
+                                    <label class="form-label small fw-semibold text-muted">Sender / Company Name <span class="text-danger">*</span></label>
                                     <div class="input-group">
                                         <span class="input-group-text bg-light"><i class="fa-solid fa-book-open text-primary"></i></span>
-                                        <input type="text" name="invoice_sender_name" id="invSenderName" value="{{ $invoiceSetting['sender_name'] ?? 'আইডিয়া প্রকাশন' }}" class="form-control rounded-end-3" required oninput="updateInvoicePreview()">
+                                        <input type="text" name="invoice_sender_name" id="invSenderName" value="{{ $invoiceSetting['sender_name'] ?? 'Idea Prakashan' }}" class="form-control rounded-end-3" required oninput="updateInvoicePreview()">
                                     </div>
                                 </div>
 
                                 <div class="mb-3">
-                                    <label class="form-label small fw-semibold text-muted">প্রেরকের পূর্ণাঙ্গ ঠিকানা <span class="text-danger">*</span></label>
+                                    <label class="form-label small fw-semibold text-muted">Full Address <span class="text-danger">*</span></label>
                                     <div class="input-group">
                                         <span class="input-group-text bg-light"><i class="fa-solid fa-location-dot text-danger"></i></span>
-                                        <input type="text" name="invoice_sender_address" id="invSenderAddress" value="{{ $invoiceSetting['sender_address'] ?? 'সেন্ট্রাল রোড, রংপুর ৫৪০০, বাংলাদেশ' }}" class="form-control rounded-end-3" required oninput="updateInvoicePreview()">
+                                        <input type="text" name="invoice_sender_address" id="invSenderAddress" value="{{ $invoiceSetting['sender_address'] ?? 'Central Road, Rangpur 5400, Bangladesh' }}" class="form-control rounded-end-3" required oninput="updateInvoicePreview()">
                                     </div>
                                 </div>
 
                                 <div class="row g-3 mb-3">
                                     <div class="col-md-6">
-                                        <label class="form-label small fw-semibold text-muted">প্রেরকের মোবাইল নম্বর <span class="text-danger">*</span></label>
+                                        <label class="form-label small fw-semibold text-muted">Phone Number <span class="text-danger">*</span></label>
                                         <div class="input-group">
                                             <span class="input-group-text bg-light"><i class="fa-solid fa-phone text-success"></i></span>
                                             <input type="text" name="invoice_sender_phone" id="invSenderPhone" value="{{ $invoiceSetting['sender_phone'] ?? '01558712870' }}" class="form-control rounded-end-3" required oninput="updateInvoicePreview()">
                                         </div>
                                     </div>
                                     <div class="col-md-6">
-                                        <label class="form-label small fw-semibold text-muted">অফিসিয়াল ইমেইল</label>
+                                        <label class="form-label small fw-semibold text-muted">Official Email</label>
                                         <div class="input-group">
                                             <span class="input-group-text bg-light"><i class="fa-solid fa-envelope text-primary"></i></span>
                                             <input type="email" name="invoice_sender_email" id="invSenderEmail" value="{{ $invoiceSetting['sender_email'] ?? 'ideapbd@gmail.com' }}" class="form-control rounded-end-3" oninput="updateInvoicePreview()">
@@ -765,49 +770,49 @@
 
                                 <div class="row g-3 mb-3">
                                     <div class="col-md-6">
-                                        <label class="form-label small fw-semibold text-muted">ওয়েবসাইট ঠিকানা</label>
+                                        <label class="form-label small fw-semibold text-muted">Website Address</label>
                                         <div class="input-group">
                                             <span class="input-group-text bg-light"><i class="fa-solid fa-globe text-info"></i></span>
                                             <input type="text" name="invoice_sender_website" id="invSenderWebsite" value="{{ $invoiceSetting['sender_website'] ?? 'www.ideaabd.com' }}" class="form-control rounded-end-3" oninput="updateInvoicePreview()">
                                         </div>
                                     </div>
                                     <div class="col-md-6">
-                                        <label class="form-label small fw-semibold text-muted">ইনভয়েস শিরোনাম (Header Title)</label>
-                                        <input type="text" name="invoice_title" id="invTitle" value="{{ $invoiceSetting['invoice_title'] ?? 'ক্যাশ মেমো / ইনভয়েস' }}" class="form-control rounded-3" oninput="updateInvoicePreview()">
+                                        <label class="form-label small fw-semibold text-muted">Invoice Title</label>
+                                        <input type="text" name="invoice_title" id="invTitle" value="{{ $invoiceSetting['invoice_title'] ?? 'Cash Memo / Invoice' }}" class="form-control rounded-3" oninput="updateInvoicePreview()">
                                     </div>
                                 </div>
 
                                 <div class="mb-3">
-                                    <label class="form-label small fw-semibold text-muted">ইনভয়েসের শর্তাবলী ও চেক পলিসি (Terms)</label>
-                                    <textarea name="invoice_terms" id="invTerms" rows="2" class="form-control rounded-3" oninput="updateInvoicePreview()">{{ $invoiceSetting['invoice_terms'] ?? 'পণ্য গ্রহণের সময় অনুগ্রহ করে চেক করে নিন। কোনো ত্রুটি থাকলে ডেলিভারি ম্যানের সামনেই হেল্পলাইনে যোগাযোগ করুন।' }}</textarea>
+                                    <label class="form-label small fw-semibold text-muted">Terms & Return Policy</label>
+                                    <textarea name="invoice_terms" id="invTerms" rows="2" class="form-control rounded-3" oninput="updateInvoicePreview()">{{ $invoiceSetting['invoice_terms'] ?? 'Please inspect books upon delivery. For queries, contact helpline immediately.' }}</textarea>
                                 </div>
 
                                 <div class="mb-3">
-                                    <label class="form-label small fw-semibold text-muted">পাদটীকা / শুভেচ্ছা বার্তা (Footer Message)</label>
-                                    <input type="text" name="invoice_footer" id="invFooter" value="{{ $invoiceSetting['invoice_footer'] ?? 'বই পড়ার আনন্দ ছড়িয়ে পড়ুক সবার মাঝে। ideaabd-এর সাথে থাকার জন্য ধন্যবাদ!' }}" class="form-control rounded-3" oninput="updateInvoicePreview()">
+                                    <label class="form-label small fw-semibold text-muted">Footer Greeting / Remarks</label>
+                                    <input type="text" name="invoice_footer" id="invFooter" value="{{ $invoiceSetting['invoice_footer'] ?? 'Thank you for choosing ideaabd!' }}" class="form-control rounded-3" oninput="updateInvoicePreview()">
                                 </div>
                             </div>
 
                             <!-- Live Invoice Sender Preview -->
                             <div class="col-lg-5">
-                                <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-file-invoice text-primary me-2"></i>ইনভয়েস প্রেরক অংশ (লাইভ প্রিভিউ)</h6>
+                                <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-file-invoice text-primary me-2"></i>Invoice Header Preview</h6>
                                 <div class="p-4 bg-light rounded-4 border">
                                     <div class="card border border-2 border-primary-subtle rounded-3 shadow-xs overflow-hidden">
                                         <div class="card-header bg-primary text-white py-2 px-3 d-flex justify-content-between align-items-center">
-                                            <span class="small fw-bold" id="prevInvTitle">{{ $invoiceSetting['invoice_title'] ?? 'ক্যাশ মেমো / ইনভয়েস' }}</span>
+                                            <span class="small fw-bold" id="prevInvTitle">{{ $invoiceSetting['invoice_title'] ?? 'Cash Memo / Invoice' }}</span>
                                             <span class="badge bg-white text-primary font-monospace small">#IDP-2026-1001</span>
                                         </div>
                                         <div class="card-body p-3 bg-white">
                                             <div class="d-flex align-items-center gap-2 mb-2 pb-2 border-bottom">
                                                 <img src="{{ asset('images/logo.svg') }}" alt="Logo" style="height: 28px; width: auto;" onerror="this.style.display='none'">
                                                 <div>
-                                                    <div class="fw-bold text-dark fs-6 mb-0" id="prevSenderName">{{ $invoiceSetting['sender_name'] ?? 'আইডিয়া প্রকাশন' }}</div>
+                                                    <div class="fw-bold text-dark fs-6 mb-0" id="prevSenderName">{{ $invoiceSetting['sender_name'] ?? 'Idea Prakashan' }}</div>
                                                     <div class="small text-muted" id="prevSenderWebsite">{{ $invoiceSetting['sender_website'] ?? 'www.ideaabd.com' }}</div>
                                                 </div>
                                             </div>
                                             <div class="small text-secondary mb-1">
                                                 <i class="fa-solid fa-location-dot text-danger me-1"></i>
-                                                <span id="prevSenderAddress">{{ $invoiceSetting['sender_address'] ?? 'সেন্ট্রাল রোড, রংপুর ৫৪০০, বাংলাদেশ' }}</span>
+                                                <span id="prevSenderAddress">{{ $invoiceSetting['sender_address'] ?? 'Central Road, Rangpur 5400, Bangladesh' }}</span>
                                             </div>
                                             <div class="small text-secondary mb-1">
                                                 <i class="fa-solid fa-phone text-success me-1"></i>
@@ -819,14 +824,14 @@
                                             </div>
                                             <div class="p-2 bg-light rounded text-muted" style="font-size: 0.75rem;">
                                                 <i class="fa-solid fa-circle-info text-info me-1"></i>
-                                                <span id="prevInvTerms">{{ $invoiceSetting['invoice_terms'] ?? 'পণ্য গ্রহণের সময় অনুগ্রহ করে চেক করে নিন।' }}</span>
+                                                <span id="prevInvTerms">{{ $invoiceSetting['invoice_terms'] ?? 'Please inspect books upon delivery.' }}</span>
                                             </div>
                                         </div>
                                         <div class="card-footer bg-light py-1.5 px-3 text-center border-top">
-                                            <span class="text-muted small" style="font-size: 0.72rem;" id="prevInvFooter">{{ $invoiceSetting['invoice_footer'] ?? 'ideaabd-এর সাথে থাকার জন্য ধন্যবাদ!' }}</span>
+                                            <span class="text-muted small" style="font-size: 0.72rem;" id="prevInvFooter">{{ $invoiceSetting['invoice_footer'] ?? 'Thank you for choosing ideaabd!' }}</span>
                                         </div>
                                     </div>
-                                    <small class="text-muted d-block text-center mt-2">অর্ডার প্রিন্ট করার সময় এই তথ্য বিলের বাম পাশে স্বয়ংক্রিয়ভাবে প্রদর্শিত হবে।</small>
+                                    <small class="text-muted d-block text-center mt-2">These details are rendered automatically on invoices and challans.</small>
                                 </div>
                             </div>
 
@@ -837,8 +842,8 @@
                     <div class="tab-pane fade" id="tab-payment" role="tabpanel">
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <div>
-                                <h6 class="fw-bold text-dark mb-1"><i class="fa-solid fa-credit-card text-danger me-2"></i>পেমেন্ট মেথড ও গেটওয়ে কাস্টমাইজেশন</h6>
-                                <p class="small text-muted mb-0">গ্রাহকদের জন্য বিকাশ, নগদ, রকেট, ব্যাংক ও ক্যাশ অন ডেলিভারি নম্বর ও নিয়মাবলী নিয়ন্ত্রণ করুন।</p>
+                                <h6 class="fw-bold text-dark mb-1"><i class="fa-solid fa-credit-card text-danger me-2"></i>Payment Gateways & Methods</h6>
+                                <p class="small text-muted mb-0">Configure bKash, Nagad, Rocket, Bank Transfer, and Cash on Delivery settings.</p>
                             </div>
                         </div>
 
@@ -848,8 +853,8 @@
                                 <div class="p-3 bg-light rounded-4 border h-100 border-2" style="border-color: #fce7f3 !important;">
                                     <div class="d-flex justify-content-between align-items-center mb-2">
                                         <div class="d-flex align-items-center gap-2">
-                                            <span class="badge text-white px-2.5 py-1 fw-bold" style="background:#d82a6f;">bKash বিকাশ</span>
-                                            <span class="fw-bold text-dark small">বিকাশ পেমেন্ট</span>
+                                            <span class="badge text-white px-2.5 py-1 fw-bold" style="background:#d82a6f;">bKash</span>
+                                            <span class="fw-bold text-dark small">bKash Payment</span>
                                         </div>
                                         <div class="form-check form-switch mb-0">
                                             <input class="form-check-input" type="checkbox" name="gateways[bkash][enabled]" value="1" {{ !empty($paymentGateways['bkash']['enabled']) ? 'checked' : '' }}>
@@ -858,21 +863,21 @@
 
                                     <div class="row g-2 mb-2">
                                         <div class="col-7">
-                                            <label class="form-label small fw-semibold text-muted mb-1">বিকাশ নম্বর</label>
+                                            <label class="form-label small fw-semibold text-muted mb-1">bKash Number</label>
                                             <input type="text" name="gateways[bkash][number]" value="{{ $paymentGateways['bkash']['number'] ?? '01558712810' }}" class="form-control form-control-sm font-monospace rounded-3">
                                         </div>
                                         <div class="col-5">
-                                            <label class="form-label small fw-semibold text-muted mb-1">অ্যাকাউন্ট টাইপ</label>
+                                            <label class="form-label small fw-semibold text-muted mb-1">Account Type</label>
                                             <select name="gateways[bkash][type]" class="form-select form-select-sm rounded-3">
-                                                <option value="personal" {{ ($paymentGateways['bkash']['type'] ?? '') === 'personal' ? 'selected' : '' }}>Personal (সেন্ড মানি)</option>
-                                                <option value="merchant" {{ ($paymentGateways['bkash']['type'] ?? '') === 'merchant' ? 'selected' : '' }}>Merchant (পেমেন্ট)</option>
-                                                <option value="agent" {{ ($paymentGateways['bkash']['type'] ?? '') === 'agent' ? 'selected' : '' }}>Agent (ক্যাশ আউট)</option>
+                                                <option value="personal" {{ ($paymentGateways['bkash']['type'] ?? '') === 'personal' ? 'selected' : '' }}>Personal (Send Money)</option>
+                                                <option value="merchant" {{ ($paymentGateways['bkash']['type'] ?? '') === 'merchant' ? 'selected' : '' }}>Merchant (Payment)</option>
+                                                <option value="agent" {{ ($paymentGateways['bkash']['type'] ?? '') === 'agent' ? 'selected' : '' }}>Agent (Cash Out)</option>
                                             </select>
                                         </div>
                                     </div>
                                     <div>
-                                        <label class="form-label small fw-semibold text-muted mb-1">পেমেন্ট নির্দেশিকা</label>
-                                        <input type="text" name="gateways[bkash][instructions]" value="{{ $paymentGateways['bkash']['instructions'] ?? 'বিকাশ অ্যাপ থেকে Send Money অপশনে গিয়ে উপরে উল্লেখিত নম্বরে সর্বমোট বিল পাঠান।' }}" class="form-control form-control-sm rounded-3">
+                                        <label class="form-label small fw-semibold text-muted mb-1">Payment Instructions</label>
+                                        <input type="text" name="gateways[bkash][instructions]" value="{{ $paymentGateways['bkash']['instructions'] ?? 'Use Send Money in bKash app to transfer bill total to the provided number.' }}" class="form-control form-control-sm rounded-3">
                                     </div>
                                 </div>
                             </div>
@@ -882,8 +887,8 @@
                                 <div class="p-3 bg-light rounded-4 border h-100 border-2" style="border-color: #ffedd5 !important;">
                                     <div class="d-flex justify-content-between align-items-center mb-2">
                                         <div class="d-flex align-items-center gap-2">
-                                            <span class="badge text-white px-2.5 py-1 fw-bold" style="background:#e8590c;">Nagad নগদ</span>
-                                            <span class="fw-bold text-dark small">নগদ পেমেন্ট</span>
+                                            <span class="badge text-white px-2.5 py-1 fw-bold" style="background:#e8590c;">Nagad</span>
+                                            <span class="fw-bold text-dark small">Nagad Payment</span>
                                         </div>
                                         <div class="form-check form-switch mb-0">
                                             <input class="form-check-input" type="checkbox" name="gateways[nagad][enabled]" value="1" {{ !empty($paymentGateways['nagad']['enabled']) ? 'checked' : '' }}>
@@ -892,21 +897,21 @@
 
                                     <div class="row g-2 mb-2">
                                         <div class="col-7">
-                                            <label class="form-label small fw-semibold text-muted mb-1">নগদ নম্বর</label>
+                                            <label class="form-label small fw-semibold text-muted mb-1">Nagad Number</label>
                                             <input type="text" name="gateways[nagad][number]" value="{{ $paymentGateways['nagad']['number'] ?? '01558712810' }}" class="form-control form-control-sm font-monospace rounded-3">
                                         </div>
                                         <div class="col-5">
-                                            <label class="form-label small fw-semibold text-muted mb-1">অ্যাকাউন্ট টাইপ</label>
+                                            <label class="form-label small fw-semibold text-muted mb-1">Account Type</label>
                                             <select name="gateways[nagad][type]" class="form-select form-select-sm rounded-3">
-                                                <option value="personal" {{ ($paymentGateways['nagad']['type'] ?? '') === 'personal' ? 'selected' : '' }}>Personal (সেন্ড মানি)</option>
-                                                <option value="merchant" {{ ($paymentGateways['nagad']['type'] ?? '') === 'merchant' ? 'selected' : '' }}>Merchant (পেমেন্ট)</option>
+                                                <option value="personal" {{ ($paymentGateways['nagad']['type'] ?? '') === 'personal' ? 'selected' : '' }}>Personal (Send Money)</option>
+                                                <option value="merchant" {{ ($paymentGateways['nagad']['type'] ?? '') === 'merchant' ? 'selected' : '' }}>Merchant (Payment)</option>
                                                 <option value="agent" {{ ($paymentGateways['nagad']['type'] ?? '') === 'agent' ? 'selected' : '' }}>Agent</option>
                                             </select>
                                         </div>
                                     </div>
                                     <div>
-                                        <label class="form-label small fw-semibold text-muted mb-1">পেমেন্ট নির্দেশিকা</label>
-                                        <input type="text" name="gateways[nagad][instructions]" value="{{ $paymentGateways['nagad']['instructions'] ?? 'নগদ অ্যাপ থেকে Send Money অপশনে গিয়ে উপরে উল্লেখিত নম্বরে সর্বমোট বিল পাঠান।' }}" class="form-control form-control-sm rounded-3">
+                                        <label class="form-label small fw-semibold text-muted mb-1">Payment Instructions</label>
+                                        <input type="text" name="gateways[nagad][instructions]" value="{{ $paymentGateways['nagad']['instructions'] ?? 'Use Send Money in Nagad app to transfer bill total to the provided number.' }}" class="form-control form-control-sm rounded-3">
                                     </div>
                                 </div>
                             </div>
@@ -916,8 +921,8 @@
                                 <div class="p-3 bg-light rounded-4 border h-100">
                                     <div class="d-flex justify-content-between align-items-center mb-2">
                                         <div class="d-flex align-items-center gap-2">
-                                            <span class="badge bg-purple text-white px-2.5 py-1 fw-bold" style="background:#8b5cf6;">Rocket রকেট</span>
-                                            <span class="fw-bold text-dark small">রকেট পেমেন্ট</span>
+                                            <span class="badge text-white px-2.5 py-1 fw-bold" style="background:#8b5cf6;">Rocket</span>
+                                            <span class="fw-bold text-dark small">Rocket Payment</span>
                                         </div>
                                         <div class="form-check form-switch mb-0">
                                             <input class="form-check-input" type="checkbox" name="gateways[rocket][enabled]" value="1" {{ !empty($paymentGateways['rocket']['enabled']) ? 'checked' : '' }}>
@@ -925,11 +930,11 @@
                                     </div>
                                     <div class="row g-2 mb-2">
                                         <div class="col-7">
-                                            <label class="form-label small fw-semibold text-muted mb-1">রকেট নম্বর (১২ ডিজিট)</label>
+                                            <label class="form-label small fw-semibold text-muted mb-1">Rocket Number (12 Digits)</label>
                                             <input type="text" name="gateways[rocket][number]" value="{{ $paymentGateways['rocket']['number'] ?? '01558712810' }}" class="form-control form-control-sm font-monospace rounded-3">
                                         </div>
                                         <div class="col-5">
-                                            <label class="form-label small fw-semibold text-muted mb-1">অ্যাকাউন্ট টাইপ</label>
+                                            <label class="form-label small fw-semibold text-muted mb-1">Account Type</label>
                                             <select name="gateways[rocket][type]" class="form-select form-select-sm rounded-3">
                                                 <option value="personal">Personal</option>
                                                 <option value="merchant">Merchant</option>
@@ -937,8 +942,8 @@
                                         </div>
                                     </div>
                                     <div>
-                                        <label class="form-label small fw-semibold text-muted mb-1">পেমেন্ট নির্দেশিকা</label>
-                                        <input type="text" name="gateways[rocket][instructions]" value="{{ $paymentGateways['rocket']['instructions'] ?? 'রকেট একাউন্ট থেকে সেন্ড মানি করুন।' }}" class="form-control form-control-sm rounded-3">
+                                        <label class="form-label small fw-semibold text-muted mb-1">Payment Instructions</label>
+                                        <input type="text" name="gateways[rocket][instructions]" value="{{ $paymentGateways['rocket']['instructions'] ?? 'Transfer bill amount via Rocket Send Money.' }}" class="form-control form-control-sm rounded-3">
                                     </div>
                                 </div>
                             </div>
@@ -948,20 +953,20 @@
                                 <div class="p-3 bg-light rounded-4 border h-100 border-2" style="border-color: #dcfce7 !important;">
                                     <div class="d-flex justify-content-between align-items-center mb-2">
                                         <div class="d-flex align-items-center gap-2">
-                                            <span class="badge bg-success text-white px-2.5 py-1 fw-bold">COD ক্যাশ অন ডেলিভারি</span>
-                                            <span class="fw-bold text-dark small">হাতে পেয়ে পরিশোধ</span>
+                                            <span class="badge bg-success text-white px-2.5 py-1 fw-bold">COD Cash on Delivery</span>
+                                            <span class="fw-bold text-dark small">Pay on Receipt</span>
                                         </div>
                                         <div class="form-check form-switch mb-0">
                                             <input class="form-check-input" type="checkbox" name="gateways[cod][enabled]" value="1" {{ !empty($paymentGateways['cod']['enabled']) ? 'checked' : '' }}>
                                         </div>
                                     </div>
                                     <div class="mb-2">
-                                        <label class="form-label small fw-semibold text-muted mb-1">পদ্ধতির নাম</label>
-                                        <input type="text" name="gateways[cod][name]" value="{{ $paymentGateways['cod']['name'] ?? 'ক্যাশ অন ডেলিভারি (Cash on Delivery)' }}" class="form-control form-control-sm rounded-3">
+                                        <label class="form-label small fw-semibold text-muted mb-1">Method Display Name</label>
+                                        <input type="text" name="gateways[cod][name]" value="{{ $paymentGateways['cod']['name'] ?? 'Cash on Delivery (COD)' }}" class="form-control form-control-sm rounded-3">
                                     </div>
                                     <div>
-                                        <label class="form-label small fw-semibold text-muted mb-1">নির্দেশনা</label>
-                                        <input type="text" name="gateways[cod][instructions]" value="{{ $paymentGateways['cod']['instructions'] ?? 'বই হাতে পেয়ে মূল্য পরিশোধ করুন।' }}" class="form-control form-control-sm rounded-3">
+                                        <label class="form-label small fw-semibold text-muted mb-1">Instructions</label>
+                                        <input type="text" name="gateways[cod][instructions]" value="{{ $paymentGateways['cod']['instructions'] ?? 'Pay cash directly upon book delivery.' }}" class="form-control form-control-sm rounded-3">
                                     </div>
                                 </div>
                             </div>
@@ -971,8 +976,8 @@
                                 <div class="p-3 bg-light rounded-4 border">
                                     <div class="d-flex justify-content-between align-items-center mb-2">
                                         <div class="d-flex align-items-center gap-2">
-                                            <span class="badge bg-secondary text-white px-2.5 py-1 fw-bold"><i class="fa-solid fa-building-columns me-1"></i> ব্যাংক ট্রান্সফার</span>
-                                            <span class="fw-bold text-dark small">সরাসরি ব্যাংক ডিপোজিট</span>
+                                            <span class="badge bg-secondary text-white px-2.5 py-1 fw-bold"><i class="fa-solid fa-building-columns me-1"></i> Bank Transfer</span>
+                                            <span class="fw-bold text-dark small">Direct Bank Deposit</span>
                                         </div>
                                         <div class="form-check form-switch mb-0">
                                             <input class="form-check-input" type="checkbox" name="gateways[bank][enabled]" value="1" {{ !empty($paymentGateways['bank']['enabled']) ? 'checked' : '' }}>
@@ -980,25 +985,25 @@
                                     </div>
                                     <div class="row g-2 mb-2">
                                         <div class="col-md-3">
-                                            <label class="form-label small fw-semibold text-muted mb-1">ব্যাংকের নাম</label>
+                                            <label class="form-label small fw-semibold text-muted mb-1">Bank Name</label>
                                             <input type="text" name="gateways[bank][bank_name]" value="{{ $paymentGateways['bank']['bank_name'] ?? 'Islami Bank Bangladesh Ltd' }}" class="form-control form-control-sm rounded-3">
                                         </div>
                                         <div class="col-md-3">
-                                            <label class="form-label small fw-semibold text-muted mb-1">হিসাবের নাম (Account Name)</label>
-                                            <input type="text" name="gateways[bank][account_name]" value="{{ $paymentGateways['bank']['account_name'] ?? 'Idea Prokashon' }}" class="form-control form-control-sm rounded-3">
+                                            <label class="form-label small fw-semibold text-muted mb-1">Account Name</label>
+                                            <input type="text" name="gateways[bank][account_name]" value="{{ $paymentGateways['bank']['account_name'] ?? 'Idea Prakashan' }}" class="form-control form-control-sm rounded-3">
                                         </div>
                                         <div class="col-md-3">
-                                            <label class="form-label small fw-semibold text-muted mb-1">হিসাব নম্বর (Account No)</label>
+                                            <label class="form-label small fw-semibold text-muted mb-1">Account Number</label>
                                             <input type="text" name="gateways[bank][account_no]" value="{{ $paymentGateways['bank']['account_no'] ?? '2050XXXXXXXXX' }}" class="form-control form-control-sm font-monospace rounded-3">
                                         </div>
                                         <div class="col-md-3">
-                                            <label class="form-label small fw-semibold text-muted mb-1">শাখা (Branch Name)</label>
+                                            <label class="form-label small fw-semibold text-muted mb-1">Branch Name</label>
                                             <input type="text" name="gateways[bank][branch]" value="{{ $paymentGateways['bank']['branch'] ?? 'Rangpur Branch' }}" class="form-control form-control-sm rounded-3">
                                         </div>
                                     </div>
                                     <div>
-                                        <label class="form-label small fw-semibold text-muted mb-1">ব্যাংক ট্রান্সফার নির্দেশিকা</label>
-                                        <input type="text" name="gateways[bank][instructions]" value="{{ $paymentGateways['bank']['instructions'] ?? 'ব্যাংক ডিপোজিট করে রসিদ স্লিপ বা রেফারেন্স নম্বর দিন।' }}" class="form-control form-control-sm rounded-3">
+                                        <label class="form-label small fw-semibold text-muted mb-1">Bank Deposit Instructions</label>
+                                        <input type="text" name="gateways[bank][instructions]" value="{{ $paymentGateways['bank']['instructions'] ?? 'Deposit amount in bank and provide receipt slip or reference number.' }}" class="form-control form-control-sm rounded-3">
                                     </div>
                                 </div>
                             </div>
@@ -1011,37 +1016,37 @@
                             
                             <!-- Diagnostics Table -->
                             <div class="col-lg-7">
-                                <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-gauge-high text-secondary me-2"></i>সার্ভার ও সিস্টেম ডায়াগনস্টিকস</h6>
+                                <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-gauge-high text-secondary me-2"></i>Server & System Diagnostics</h6>
                                 
                                 <div class="table-responsive">
                                     <table class="table table-striped table-hover align-middle mb-0">
                                         <tbody>
                                             <tr>
-                                                <th class="text-muted fw-semibold">PHP ভার্সন</th>
+                                                <th class="text-muted fw-semibold">PHP Version</th>
                                                 <td class="text-dark fw-bold font-monospace">{{ $diagnostics['php_version'] }}</td>
                                             </tr>
                                             <tr>
-                                                <th class="text-muted fw-semibold">Laravel ফ্রেমওয়ার্ক</th>
+                                                <th class="text-muted fw-semibold">Laravel Framework</th>
                                                 <td class="text-dark fw-bold font-monospace">{{ $diagnostics['laravel_version'] }}</td>
                                             </tr>
                                             <tr>
-                                                <th class="text-muted fw-semibold">ডাটাবেজ ড্রাইভার</th>
+                                                <th class="text-muted fw-semibold">Database Driver</th>
                                                 <td class="text-dark fw-bold text-uppercase">{{ $diagnostics['db_connection'] }}</td>
                                             </tr>
                                             <tr>
-                                                <th class="text-muted fw-semibold">এনভায়রনমেন্ট মোড</th>
+                                                <th class="text-muted fw-semibold">Environment Mode</th>
                                                 <td><span class="badge bg-info-subtle text-info border border-info-subtle">{{ strtoupper($diagnostics['app_env']) }}</span></td>
                                             </tr>
                                             <tr>
-                                                <th class="text-muted fw-semibold">ডিবাগ মোড</th>
+                                                <th class="text-muted fw-semibold">Debug Mode</th>
                                                 <td>{{ $diagnostics['app_debug'] }}</td>
                                             </tr>
                                             <tr>
-                                                <th class="text-muted fw-semibold">পাবলিক ফাইল স্টোরেজ</th>
+                                                <th class="text-muted fw-semibold">Public File Storage</th>
                                                 <td><span class="badge bg-success-subtle text-success border border-success-subtle">{{ $diagnostics['storage_link'] }}</span></td>
                                             </tr>
                                             <tr>
-                                                <th class="text-muted fw-semibold">হোস্ট অপারেটিং সিস্টেম</th>
+                                                <th class="text-muted fw-semibold">Operating System</th>
                                                 <td class="text-dark">{{ $diagnostics['server_os'] }}</td>
                                             </tr>
                                         </tbody>
@@ -1051,18 +1056,18 @@
 
                             <!-- Maintenance Mode Switch -->
                             <div class="col-lg-5">
-                                <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-screwdriver-wrench text-danger me-2"></i>মেইনটেন্যান্স মোড</h6>
+                                <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-screwdriver-wrench text-danger me-2"></i>Maintenance Mode</h6>
                                 
                                 <div class="p-4 bg-light rounded-4 border">
                                     <div class="form-check form-switch mb-3">
                                         <input class="form-check-input cursor-pointer" type="checkbox" name="maintenance_mode" value="1" id="maintSwitch" {{ !empty($maintSetting['enabled']) ? 'checked' : '' }}>
                                         <label class="form-check-label fw-bold text-dark cursor-pointer" for="maintSwitch">
-                                            মেইনটেন্যান্স মোড সক্রিয় করুন
+                                            Enable Maintenance Mode
                                         </label>
                                     </div>
                                     <div class="mb-0">
-                                        <label class="form-label small text-muted">রক্ষণাবেক্ষণ বার্তা (ভিজিটররা যা দেখবেন)</label>
-                                        <textarea name="maintenance_reason" class="form-control rounded-3" rows="3" placeholder="ওয়েবসাইটে নিয়মিত সিস্টেম আপডেট চলছে। কিছুক্ষণের মধ্যেই সাইট উন্মুক্ত হবে।">{{ $maintSetting['reason'] ?? '' }}</textarea>
+                                        <label class="form-label small text-muted">Maintenance Message (Seen by visitors)</label>
+                                        <textarea name="maintenance_reason" class="form-control rounded-3" rows="3" placeholder="We are performing scheduled system maintenance. Please check back shortly.">{{ $maintSetting['reason'] ?? '' }}</textarea>
                                     </div>
                                 </div>
                             </div>
@@ -1076,10 +1081,10 @@
             <!-- Footer Save Button Bar -->
             <div class="card-footer bg-light border-top p-3.5 d-flex justify-content-between align-items-center">
                 <span class="small text-muted d-none d-sm-inline">
-                    <i class="fa-solid fa-shield-halved text-success me-1"></i> সেটিংস পরিবর্তনের সাথে সাথে তা সর্বত্র কার্যকর হবে।
+                    <i class="fa-solid fa-shield-halved text-success me-1"></i> Changes take effect immediately upon saving.
                 </span>
                 <button type="submit" class="btn btn-primary btn-lg rounded-pill px-5 fw-bold shadow-sm ms-auto">
-                    <i class="fa-solid fa-floppy-disk me-1.5"></i> সেটিংস সংরক্ষণ করুন
+                    <i class="fa-solid fa-floppy-disk me-1.5"></i> Save Settings
                 </button>
             </div>
 
@@ -1090,17 +1095,17 @@
              style="background: rgba(255, 255, 255, 0.96) !important; backdrop-filter: blur(10px); border: 1px solid #e2e8f0 !important;">
             <div class="d-flex align-items-center gap-2">
                 <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1.5 small fw-semibold">
-                    <i class="fa-solid fa-circle-check me-1"></i> সেটিংস প্রস্তুত
+                    <i class="fa-solid fa-circle-check me-1"></i> Settings Ready
                 </span>
-                <span class="small text-muted d-none d-md-inline">যে কোনো ট্যাবের পরিবর্তন এক ক্লিকেই সংরক্ষণ করুন।</span>
+                <span class="small text-muted d-none d-md-inline">Save modifications across all tabs with one click.</span>
             </div>
             <div class="d-flex align-items-center gap-2 ms-auto">
                 <button type="reset" class="btn btn-outline-secondary rounded-pill px-3.5 py-2 fw-semibold">
-                    <i class="fa-solid fa-rotate-left me-1"></i> রিসেট
+                    <i class="fa-solid fa-rotate-left me-1"></i> Reset
                 </button>
                 <button type="submit" class="btn btn-primary btn-lg rounded-pill px-4 py-2 fw-bold shadow-sm d-inline-flex align-items-center gap-2">
                     <i class="fa-solid fa-floppy-disk"></i>
-                    <span>সেটিংস সংরক্ষণ করুন</span>
+                    <span>Save Settings</span>
                 </button>
             </div>
         </div>
@@ -1113,7 +1118,7 @@
         <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
             <div class="modal-header bg-dark text-white border-0 py-3">
                 <h5 class="modal-title fw-bold fs-6 d-flex align-items-center gap-2" id="imageCropperModalLabel">
-                    <i class="fa-solid fa-crop-simple text-primary"></i> ইমেজ ক্রপ ও সাইজ অ্যাডজাস্টমেন্ট
+                    <i class="fa-solid fa-crop-simple text-primary"></i> Image Crop & Size Adjustment
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -1126,27 +1131,27 @@
             <div class="modal-footer bg-light border-0 py-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
                 <!-- Control Buttons -->
                 <div class="btn-group shadow-xs">
-                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="cropper.zoom(0.1)" title="জুম ইন">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="cropper.zoom(0.1)" title="Zoom In">
                         <i class="fa-solid fa-magnifying-glass-plus"></i>
                     </button>
-                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="cropper.zoom(-0.1)" title="জুম আউট">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="cropper.zoom(-0.1)" title="Zoom Out">
                         <i class="fa-solid fa-magnifying-glass-minus"></i>
                     </button>
-                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="cropper.rotate(-90)" title="বামে ঘোরান">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="cropper.rotate(-90)" title="Rotate Left">
                         <i class="fa-solid fa-rotate-left"></i>
                     </button>
-                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="cropper.rotate(90)" title="ডানে ঘোরান">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="cropper.rotate(90)" title="Rotate Right">
                         <i class="fa-solid fa-rotate-right"></i>
                     </button>
-                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="cropper.reset()" title="রিসেট">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="cropper.reset()" title="Reset">
                         <i class="fa-solid fa-arrows-rotate"></i>
                     </button>
                 </div>
 
                 <div class="d-flex gap-2">
-                    <button type="button" class="btn btn-light rounded-pill px-3 fw-semibold" data-bs-dismiss="modal">বাতিল</button>
+                    <button type="button" class="btn btn-light rounded-pill px-3 fw-semibold" data-bs-dismiss="modal">Cancel</button>
                     <button type="button" class="btn btn-primary rounded-pill px-4 fw-bold shadow-xs" onclick="applyCroppedImage()">
-                        <i class="fa-solid fa-check me-1.5"></i> ক্রপ সম্পন্ন করুন
+                        <i class="fa-solid fa-check me-1.5"></i> Apply Crop
                     </button>
                 </div>
             </div>
@@ -1248,7 +1253,7 @@
     }
 
     function updateLiveNoticePreview() {
-        const text = document.getElementById('noticeTextInput').value || 'এখানে নোটিশ বার্তাটি লাইভ প্রদর্শিত হবে।';
+        const text = document.getElementById('noticeTextInput').value || 'The announcement message will appear here in real-time.';
         const type = document.getElementById('noticeTypeSelect').value;
         const isActive = document.getElementById('noticeActiveSwitch').checked;
         const box = document.getElementById('noticePreviewBox');
@@ -1257,18 +1262,18 @@
 
         box.className = `alert alert-${type} rounded-3 shadow-xs d-flex align-items-center gap-2 mb-0 ${!isActive ? 'opacity-50' : ''}`;
         textEl.textContent = text;
-        statusEl.textContent = isActive ? '🟢 বর্তমানে সাইটে নোটিশ সক্রিয় রয়েছে' : '⚪ নোটিশটি বর্তমানে বন্ধ রাখা হয়েছে';
+        statusEl.textContent = isActive ? '🟢 Notice is currently active on live website' : '⚪ Notice is currently disabled';
     }
 
     function updateInvoicePreview() {
-        const name = document.getElementById('invSenderName')?.value || 'আইডিয়া প্রকাশন';
-        const addr = document.getElementById('invSenderAddress')?.value || 'সেন্ট্রাল রোড, রংপুর ৫৪০০, বাংলাদেশ';
+        const name = document.getElementById('invSenderName')?.value || 'Idea Prakashan';
+        const addr = document.getElementById('invSenderAddress')?.value || 'Central Road, Rangpur 5400, Bangladesh';
         const phone = document.getElementById('invSenderPhone')?.value || '01558712870';
         const email = document.getElementById('invSenderEmail')?.value || 'ideapbd@gmail.com';
         const website = document.getElementById('invSenderWebsite')?.value || 'www.ideaabd.com';
-        const title = document.getElementById('invTitle')?.value || 'ক্যাশ মেমো / ইনভয়েস';
-        const terms = document.getElementById('invTerms')?.value || 'পণ্য গ্রহণের সময় অনুগ্রহ করে চেক করে নিন।';
-        const footer = document.getElementById('invFooter')?.value || 'ideaabd-এর সাথে থাকার জন্য ধন্যবাদ!';
+        const title = document.getElementById('invTitle')?.value || 'Cash Memo / Invoice';
+        const terms = document.getElementById('invTerms')?.value || 'Please inspect books upon delivery.';
+        const footer = document.getElementById('invFooter')?.value || 'Thank you for choosing ideaabd!';
 
         if (document.getElementById('prevSenderName')) document.getElementById('prevSenderName').textContent = name;
         if (document.getElementById('prevSenderAddress')) document.getElementById('prevSenderAddress').textContent = addr;

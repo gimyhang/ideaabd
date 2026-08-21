@@ -1,25 +1,25 @@
 @extends('layouts.admin')
 
-@section('title', 'লেখক ও গবেষক পরিচালনা')
-@section('heading', 'লেখক ও গবেষক ডিরেক্টরি ব্যবস্থাপনা')
+@section('title', 'Authors & Researchers Directory')
+@section('heading', 'Authors & Researchers Directory Management')
 
 @section('breadcrumb')
-    <li class="breadcrumb-item active" aria-current="page">লেখক ডিরেক্টরি</li>
+    <li class="breadcrumb-item active" aria-current="page">Authors Directory</li>
 @endsection
 
 @section('actions')
     <div class="d-flex flex-wrap align-items-center gap-2">
-        <button type="button" class="btn btn-outline-success btn-sm rounded-pill px-3 shadow-xs" onclick="exportAuthorsToCSV()" title="CSV ফাইলে এক্সপোর্ট করুন">
-            <i class="fas fa-file-csv me-1"></i> এক্সপোর্ট (CSV)
+        <button type="button" class="btn btn-outline-success btn-sm rounded-pill px-3 shadow-xs" onclick="exportAuthorsToCSV()" title="Export to CSV file">
+            <i class="fas fa-file-csv me-1"></i> Export (CSV)
         </button>
-        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-xs" onclick="window.print()" title="তালিকা প্রিন্ট করুন">
-            <i class="fas fa-print me-1"></i> প্রিন্ট
+        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-xs" onclick="window.print()" title="Print List">
+            <i class="fas fa-print me-1"></i> Print
         </button>
         <button type="button" class="btn btn-primary btn-sm rounded-pill px-3 fw-bold shadow-xs" onclick="openAddAuthorModal()">
-            <i class="fas fa-plus-circle me-1"></i> নতুন লেখক যোগ করুন
+            <i class="fas fa-plus-circle me-1"></i> Add New Author
         </button>
         <a href="{{ route('authors.index') }}" target="_blank" rel="noopener" class="btn btn-outline-dark btn-sm rounded-pill px-3 shadow-xs">
-            <i class="fas fa-arrow-up-right-from-square me-1"></i> সাইটে দেখুন
+            <i class="fas fa-arrow-up-right-from-square me-1"></i> View on Storefront
         </a>
     </div>
 @endsection
@@ -45,8 +45,8 @@
                 <div class="card border-0 shadow-xs rounded-3 p-2.5 bg-white h-100 transition-hover border-start border-4 border-primary {{ !request()->hasAny(['is_active', 'is_verified', 'has_books']) ? 'ring-2 ring-primary' : '' }}">
                     <div class="d-flex align-items-center justify-content-between">
                         <div>
-                            <span class="text-muted small fw-semibold d-block" style="font-size: 0.75rem;">সর্বমোট লেখক</span>
-                            <h5 class="fw-bold mb-0 text-dark">@bn($stats['total'] ?? 0) <small class="text-muted fw-normal" style="font-size: 0.72rem;">জন</small></h5>
+                            <span class="text-muted small fw-semibold d-block" style="font-size: 0.75rem;">Total Authors</span>
+                            <h5 class="fw-bold mb-0 text-dark">{{ number_format($stats['total'] ?? 0) }} <small class="text-muted fw-normal" style="font-size: 0.72rem;">authors</small></h5>
                         </div>
                         <div class="rounded-circle bg-primary-subtle text-primary p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
                             <i class="fas fa-pen-fancy small"></i>
@@ -60,8 +60,8 @@
                 <div class="card border-0 shadow-xs rounded-3 p-2.5 bg-white h-100 transition-hover border-start border-4 border-success {{ request('is_active') === '1' ? 'ring-2 ring-success' : '' }}">
                     <div class="d-flex align-items-center justify-content-between">
                         <div>
-                            <span class="text-muted small fw-semibold d-block" style="font-size: 0.75rem;">সক্রিয় লেখক</span>
-                            <h5 class="fw-bold mb-0 text-success">@bn($stats['active'] ?? 0) <small class="text-muted fw-normal" style="font-size: 0.72rem;">জন</small></h5>
+                            <span class="text-muted small fw-semibold d-block" style="font-size: 0.75rem;">Active Authors</span>
+                            <h5 class="fw-bold mb-0 text-success">{{ number_format($stats['active'] ?? 0) }} <small class="text-muted fw-normal" style="font-size: 0.72rem;">authors</small></h5>
                         </div>
                         <div class="rounded-circle bg-success-subtle text-success p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
                             <i class="fas fa-user-check small"></i>
@@ -75,8 +75,8 @@
                 <div class="card border-0 shadow-xs rounded-3 p-2.5 bg-white h-100 transition-hover border-start border-4 border-info {{ request('is_verified') === '1' ? 'ring-2 ring-info' : '' }}">
                     <div class="d-flex align-items-center justify-content-between">
                         <div>
-                            <span class="text-muted small fw-semibold d-block" style="font-size: 0.75rem;">ভেরিফাইড লেখক</span>
-                            <h5 class="fw-bold mb-0 text-info">@bn($stats['verified'] ?? 0) <small class="text-muted fw-normal" style="font-size: 0.72rem;">জন</small></h5>
+                            <span class="text-muted small fw-semibold d-block" style="font-size: 0.75rem;">Verified Authors</span>
+                            <h5 class="fw-bold mb-0 text-info">{{ number_format($stats['verified'] ?? 0) }} <small class="text-muted fw-normal" style="font-size: 0.72rem;">authors</small></h5>
                         </div>
                         <div class="rounded-circle bg-info-subtle text-info p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
                             <i class="fas fa-certificate small"></i>
@@ -90,8 +90,8 @@
                 <div class="card border-0 shadow-xs rounded-3 p-2.5 bg-white h-100 transition-hover border-start border-4 border-warning {{ request('has_books') === '1' ? 'ring-2 ring-warning' : '' }}">
                     <div class="d-flex align-items-center justify-content-between">
                         <div>
-                            <span class="text-muted small fw-semibold d-block" style="font-size: 0.75rem;">বই প্রকাশিত লেখক</span>
-                            <h5 class="fw-bold mb-0 text-warning-emphasis">@bn($stats['with_books'] ?? 0) <small class="text-muted fw-normal" style="font-size: 0.72rem;">জন</small></h5>
+                            <span class="text-muted small fw-semibold d-block" style="font-size: 0.75rem;">Published Authors</span>
+                            <h5 class="fw-bold mb-0 text-warning-emphasis">{{ number_format($stats['with_books'] ?? 0) }} <small class="text-muted fw-normal" style="font-size: 0.72rem;">authors</small></h5>
                         </div>
                         <div class="rounded-circle bg-warning-subtle text-warning-emphasis p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
                             <i class="fas fa-book-open small"></i>
@@ -104,8 +104,8 @@
             <div class="card border-0 shadow-xs rounded-3 p-2.5 bg-white h-100 border-start border-4 border-secondary">
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
-                        <span class="text-muted small fw-semibold d-block" style="font-size: 0.75rem;">মোট ক্যাটালগ বই</span>
-                        <h5 class="fw-bold mb-0 text-dark">@bn($stats['total_books'] ?? 0) <small class="text-muted fw-normal" style="font-size: 0.72rem;">টি</small></h5>
+                        <span class="text-muted small fw-semibold d-block" style="font-size: 0.75rem;">Total Catalog Books</span>
+                        <h5 class="fw-bold mb-0 text-dark">{{ number_format($stats['total_books'] ?? 0) }} <small class="text-muted fw-normal" style="font-size: 0.72rem;">books</small></h5>
                     </div>
                     <div class="rounded-circle bg-secondary-subtle text-secondary p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
                         <i class="fas fa-layer-group small"></i>
@@ -128,61 +128,61 @@
                             <i class="fas fa-search"></i>
                         </span>
                         <input type="search" name="search" class="form-control border-start-0 bg-light" 
-                               placeholder="লেখকের নাম, slug, ফোন বা বায়ো..." value="{{ request('search') }}">
+                               placeholder="Search by author name, slug, phone or bio..." value="{{ request('search') }}">
                     </div>
                 </div>
 
                 {{-- Status Filter --}}
                 <div class="col-6 col-md-3 col-lg-2">
                     <select name="is_active" class="form-select form-select-sm" onchange="this.form.submit()">
-                        <option value="" @selected(request('is_active') === null || request('is_active') === '')>সকল অবস্থা</option>
-                        <option value="1" @selected(request('is_active') === '1')>🟢 সক্রিয়</option>
-                        <option value="0" @selected(request('is_active') === '0')>🔴 নিষ্ক্রিয়</option>
+                        <option value="" @selected(request('is_active') === null || request('is_active') === '')>All Status</option>
+                        <option value="1" @selected(request('is_active') === '1')>🟢 Active</option>
+                        <option value="0" @selected(request('is_active') === '0')>🔴 Inactive</option>
                     </select>
                 </div>
 
                 {{-- Verification Filter --}}
                 <div class="col-6 col-md-3 col-lg-2">
                     <select name="is_verified" class="form-select form-select-sm" onchange="this.form.submit()">
-                        <option value="" @selected(request('is_verified') === null || request('is_verified') === '')>সকল ভেরিফিকেশন</option>
-                        <option value="1" @selected(request('is_verified') === '1')>✓ ভেরিফাইড</option>
-                        <option value="0" @selected(request('is_verified') === '0')>সাধারণ (আন-ভেরিফাইড)</option>
+                        <option value="" @selected(request('is_verified') === null || request('is_verified') === '')>All Verifications</option>
+                        <option value="1" @selected(request('is_verified') === '1')>✓ Verified</option>
+                        <option value="0" @selected(request('is_verified') === '0')>Unverified</option>
                     </select>
                 </div>
 
                 {{-- Sort Filter --}}
                 <div class="col-6 col-md-3 col-lg-2">
                     <select name="sort" class="form-select form-select-sm" onchange="this.form.submit()">
-                        <option value="latest" @selected(request('sort') === 'latest' || !request('sort'))>সর্বশেষ যোগকৃত</option>
-                        <option value="oldest" @selected(request('sort') === 'oldest')>প্রাচীনতম</option>
-                        <option value="name_asc" @selected(request('sort') === 'name_asc')>নাম (ক-হ / A-Z)</option>
-                        <option value="name_desc" @selected(request('sort') === 'name_desc')>নাম (হ-ক / Z-A)</option>
-                        <option value="books_desc" @selected(request('sort') === 'books_desc')>সর্বাধিক বই</option>
+                        <option value="latest" @selected(request('sort') === 'latest' || !request('sort'))>Newest Added</option>
+                        <option value="oldest" @selected(request('sort') === 'oldest')>Oldest First</option>
+                        <option value="name_asc" @selected(request('sort') === 'name_asc')>Name (A-Z)</option>
+                        <option value="name_desc" @selected(request('sort') === 'name_desc')>Name (Z-A)</option>
+                        <option value="books_desc" @selected(request('sort') === 'books_desc')>Most Books</option>
                     </select>
                 </div>
 
-                {{-- Per Page (Multiples of 7) & View Buttons --}}
+                {{-- Per Page & View Buttons --}}
                 <div class="col-6 col-md-3 col-lg-2 d-flex align-items-center justify-content-end gap-1.5">
-                    <select name="per_page" class="form-select form-select-sm w-auto" onchange="this.form.submit()" title="প্রতি পেজে আইটেম সংখ্যা (৭ এর গুণিতক)">
-                        <option value="14" @selected(request('per_page') == 14)>১৪</option>
-                        <option value="21" @selected(request('per_page') == 21)>২১</option>
-                        <option value="28" @selected(request('per_page') == 28 || !request('per_page'))>২৮</option>
-                        <option value="35" @selected(request('per_page') == 35)>৩৫</option>
-                        <option value="42" @selected(request('per_page') == 42)>৪২</option>
-                        <option value="70" @selected(request('per_page') == 70)>৭০</option>
+                    <select name="per_page" class="form-select form-select-sm w-auto" onchange="this.form.submit()" title="Items per page">
+                        <option value="14" @selected(request('per_page') == 14)>14</option>
+                        <option value="21" @selected(request('per_page') == 21)>21</option>
+                        <option value="28" @selected(request('per_page') == 28 || !request('per_page'))>28</option>
+                        <option value="35" @selected(request('per_page') == 35)>35</option>
+                        <option value="42" @selected(request('per_page') == 42)>42</option>
+                        <option value="70" @selected(request('per_page') == 70)>70</option>
                     </select>
 
-                    <div class="btn-group btn-group-sm shadow-xs" role="group" aria-label="ভিউ মোড">
-                        <button type="button" class="btn btn-outline-primary active" id="btnViewGrid" onclick="switchViewMode('grid')" title="৭-কলাম গ্রিড ভিউ">
+                    <div class="btn-group btn-group-sm shadow-xs" role="group" aria-label="View Mode">
+                        <button type="button" class="btn btn-outline-primary active" id="btnViewGrid" onclick="switchViewMode('grid')" title="7-Column Grid View">
                             <i class="fas fa-th"></i>
                         </button>
-                        <button type="button" class="btn btn-outline-primary" id="btnViewTable" onclick="switchViewMode('table')" title="টেবিল ভিউ">
+                        <button type="button" class="btn btn-outline-primary" id="btnViewTable" onclick="switchViewMode('table')" title="Table View">
                             <i class="fas fa-list"></i>
                         </button>
                     </div>
 
                     @if(request()->hasAny(['search', 'is_active', 'is_verified', 'has_books', 'sort', 'per_page']))
-                        <a href="{{ route('admin.authors') }}" class="btn btn-sm btn-light border text-danger" title="ফিল্টার রিসেট">
+                        <a href="{{ route('admin.authors') }}" class="btn btn-sm btn-light border text-danger" title="Reset Filters">
                             <i class="fas fa-rotate-left"></i>
                         </a>
                     @endif
@@ -201,12 +201,12 @@
                     <i class="fas fa-pen-fancy fs-3 text-muted opacity-50"></i>
                 </div>
             </div>
-            <h6 class="fw-bold text-dark mb-1">কোনো লেখক খুঁজে পাওয়া যায়নি</h6>
-            <p class="text-muted small mb-3">আপনার সার্চ ফিল্টার পরিবর্তন করুন অথবা নতুন লেখক যোগ করুন।</p>
+            <h6 class="fw-bold text-dark mb-1">No Authors Found</h6>
+            <p class="text-muted small mb-3">Adjust your search filters or add a new author to the directory.</p>
             <div class="d-flex justify-content-center gap-2">
-                <a href="{{ route('admin.authors') }}" class="btn btn-sm btn-light border rounded-pill px-3">ফিল্টার মুছুন</a>
+                <a href="{{ route('admin.authors') }}" class="btn btn-sm btn-light border rounded-pill px-3">Clear Filters</a>
                 <button type="button" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold" onclick="openAddAuthorModal()">
-                    <i class="fas fa-plus me-1"></i> নতুন লেখক যোগ করুন
+                    <i class="fas fa-plus me-1"></i> Add New Author
                 </button>
             </div>
         </div>
@@ -233,13 +233,13 @@
                                             class="badge rounded-circle border-0 p-0 d-inline-flex align-items-center justify-content-center cursor-pointer {{ $author->is_active ? 'bg-success' : 'bg-secondary' }}"
                                             style="width: 14px; height: 14px; font-size: 7px;"
                                             onclick="toggleAuthorStatus({{ $author->id }}, this)"
-                                            title="{{ $author->is_active ? 'সক্রিয় (ক্লিক করে নিষ্ক্রিয় করুন)' : 'নিষ্ক্রিয় (ক্লিক করে সক্রিয় করুন)' }}">
+                                            title="{{ $author->is_active ? 'Active (Click to disable)' : 'Inactive (Click to enable)' }}">
                                         <i class="fas fa-power-off text-white"></i>
                                     </button>
 
                                     @if($author->is_verified)
                                         <span class="badge bg-white text-info rounded-circle p-0 d-inline-flex align-items-center justify-content-center shadow-xs" 
-                                              style="width: 14px; height: 14px; font-size: 8px;" title="ভেরিফাইড লেখক">
+                                              style="width: 14px; height: 14px; font-size: 8px;" title="Verified Author">
                                             <i class="fas fa-check"></i>
                                         </span>
                                     @endif
@@ -254,32 +254,32 @@
                                     <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3 text-small" style="font-size: 0.8rem;">
                                         <li>
                                             <button class="dropdown-item py-1" type="button" onclick="openAuthorDetailsModal({{ $author->id }})">
-                                                <i class="fas fa-id-card text-info me-1.5"></i>প্রোফাইল
+                                                <i class="fas fa-id-card text-info me-1.5"></i>Profile
                                             </button>
                                         </li>
                                         <li>
                                             <button class="dropdown-item py-1" type="button" onclick="openEditAuthorModal({{ $author->id }})">
-                                                <i class="fas fa-pen text-primary me-1.5"></i>কুইক এডিট
+                                                <i class="fas fa-pen text-primary me-1.5"></i>Quick Edit
                                             </button>
                                         </li>
                                         <li>
                                             <a class="dropdown-item py-1" href="{{ route('admin.content.edit', ['type' => 'authors', 'id' => $author->id]) }}">
-                                                <i class="fas fa-sliders text-secondary me-1.5"></i>ফুল এডিট
+                                                <i class="fas fa-sliders text-secondary me-1.5"></i>Full Edit
                                             </a>
                                         </li>
                                         <li>
                                             <a class="dropdown-item py-1" href="{{ route('authors.show', $author->slug ?: $author->id) }}" target="_blank" rel="noopener">
-                                                <i class="fas fa-arrow-up-right-from-square text-muted me-1.5"></i>সাইটে দেখুন
+                                                <i class="fas fa-arrow-up-right-from-square text-muted me-1.5"></i>View on Site
                                             </a>
                                         </li>
                                         <li><hr class="dropdown-divider my-1"></li>
                                         <li>
                                             <form action="{{ route('admin.content.destroy', ['type' => 'authors', 'id' => $author->id]) }}" 
-                                                  method="POST" onsubmit="return confirm('আপনি কি নিশ্চিত যে এই লেখককে মুছে ফেলতে চান?');">
+                                                  method="POST" onsubmit="return confirm('Are you sure you want to delete this author?');">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="dropdown-item text-danger py-1">
-                                                    <i class="fas fa-trash-can me-1.5"></i>মুছুন
+                                                    <i class="fas fa-trash-can me-1.5"></i>Delete
                                                 </button>
                                             </form>
                                         </li>
@@ -326,23 +326,23 @@
                                 {{-- Book Count Badge --}}
                                 <div class="mb-1">
                                     <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-0.5" style="font-size: 0.68rem;">
-                                        <i class="fas fa-book-bookmark me-1"></i>@bn($booksCount)টি বই
+                                        <i class="fas fa-book-bookmark me-1"></i>{{ $booksCount }} books
                                     </span>
                                 </div>
 
                                 {{-- Action Micro Buttons --}}
                                 <div class="d-flex align-items-center justify-content-center gap-1 pt-1.5 border-top">
                                     <button type="button" class="btn btn-xs btn-outline-info rounded-circle p-0 d-flex align-items-center justify-content-center" 
-                                            style="width: 22px; height: 22px; font-size: 9px;" onclick="openAuthorDetailsModal({{ $author->id }})" title="বিস্তারিত দেখুন">
+                                            style="width: 22px; height: 22px; font-size: 9px;" onclick="openAuthorDetailsModal({{ $author->id }})" title="View Details">
                                         <i class="fas fa-eye"></i>
                                     </button>
                                     <button type="button" class="btn btn-xs btn-outline-primary rounded-circle p-0 d-flex align-items-center justify-content-center" 
-                                            style="width: 22px; height: 22px; font-size: 9px;" onclick="openEditAuthorModal({{ $author->id }})" title="কুইক এডিট">
+                                            style="width: 22px; height: 22px; font-size: 9px;" onclick="openEditAuthorModal({{ $author->id }})" title="Quick Edit">
                                         <i class="fas fa-pen"></i>
                                     </button>
                                     <a href="{{ route('authors.show', $author->slug ?: $author->id) }}" target="_blank" rel="noopener" 
                                        class="btn btn-xs btn-light border rounded-circle p-0 d-flex align-items-center justify-content-center" 
-                                       style="width: 22px; height: 22px; font-size: 9px;" title="সাইটে দেখুন">
+                                       style="width: 22px; height: 22px; font-size: 9px;" title="View on Site">
                                         <i class="fas fa-external-link-alt text-muted"></i>
                                     </a>
                                 </div>
@@ -362,13 +362,13 @@
                         <thead class="table-light text-muted small text-uppercase">
                             <tr>
                                 <th class="ps-3" style="width: 50px;">#</th>
-                                <th style="min-width: 200px;">লেখক ও পরিচিতি</th>
-                                <th>যোগাযোগ</th>
-                                <th>বইয়ের সংখ্যা</th>
-                                <th>ভেরিফিকেশন</th>
-                                <th>অবস্থা</th>
-                                <th>যোগদানের তারিখ</th>
-                                <th class="text-end pe-3" style="min-width: 120px;">অ্যাকশন</th>
+                                <th style="min-width: 200px;">Author & Slug</th>
+                                <th>Contact</th>
+                                <th>Books Count</th>
+                                <th>Verification</th>
+                                <th>Status</th>
+                                <th>Joined Date</th>
+                                <th class="text-end pe-3" style="min-width: 120px;">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -380,7 +380,7 @@
                                     $booksCount = $author->books_count ?? 0;
                                 @endphp
                                 <tr id="authorRow-{{ $author->id }}">
-                                    <td class="ps-3 text-muted small">@bn($authors->firstItem() + $n)</td>
+                                    <td class="ps-3 text-muted small">{{ $authors->firstItem() + $n }}</td>
                                     <td>
                                         <div class="d-flex align-items-center gap-2">
                                             <div class="rounded-circle overflow-hidden shadow-xs flex-shrink-0 position-relative border"
@@ -408,12 +408,12 @@
                                                         {{ $author->name }}
                                                     </a>
                                                     @if($author->is_verified)
-                                                        <i class="fas fa-check-circle text-info ms-1" style="font-size: 11px;" title="ভেরিফাইড লেখক"></i>
+                                                        <i class="fas fa-check-circle text-info ms-1" style="font-size: 11px;" title="Verified Author"></i>
                                                     @endif
                                                 </div>
                                                 <div class="text-muted font-monospace d-flex align-items-center gap-1" style="font-size: 0.72rem;">
                                                     <span>{{ $author->slug }}</span>
-                                                    <i class="fas fa-copy cursor-pointer text-muted hover-primary" onclick="copyToClipboard('{{ $author->slug }}', 'Slug কপি করা হয়েছে!')" title="কপি করুন"></i>
+                                                    <i class="fas fa-copy cursor-pointer text-muted hover-primary" onclick="copyToClipboard('{{ $author->slug }}', 'Slug copied to clipboard!')" title="Copy Slug"></i>
                                                 </div>
                                             </div>
                                         </div>
@@ -431,7 +431,7 @@
                                     </td>
                                     <td>
                                         <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-0.5 rounded-pill" style="font-size: 0.72rem;">
-                                            <i class="fas fa-book me-1"></i>@bn($booksCount) টি
+                                            <i class="fas fa-book me-1"></i>{{ $booksCount }} books
                                         </span>
                                     </td>
                                     <td>
@@ -439,9 +439,9 @@
                                                 class="badge rounded-pill border-0 shadow-xs cursor-pointer px-2 py-0.5 {{ $author->is_verified ? 'bg-info text-white' : 'bg-light text-muted border' }}"
                                                 style="font-size: 0.70rem;"
                                                 onclick="toggleAuthorVerified({{ $author->id }}, this)"
-                                                title="ভেরিফিকেশন পরিবর্তন করুন">
+                                                title="Toggle Verification">
                                             <i class="fas {{ $author->is_verified ? 'fa-certificate' : 'fa-circle-question' }} me-1"></i>
-                                            <span>{{ $author->is_verified ? 'ভেরিফাইড' : 'সাধারণ' }}</span>
+                                            <span>{{ $author->is_verified ? 'Verified' : 'Regular' }}</span>
                                         </button>
                                     </td>
                                     <td>
@@ -449,28 +449,28 @@
                                                 class="badge rounded-pill border-0 shadow-xs cursor-pointer px-2 py-0.5 {{ $author->is_active ? 'bg-success text-white' : 'bg-secondary text-white' }}"
                                                 style="font-size: 0.70rem;"
                                                 onclick="toggleAuthorStatus({{ $author->id }}, this)"
-                                                title="স্ট্যাটাস পরিবর্তন করুন">
+                                                title="Toggle Status">
                                             <i class="fas fa-circle-dot me-1" style="font-size: 7px;"></i>
-                                            <span>{{ $author->is_active ? 'সক্রিয়' : 'নিষ্ক্রিয়' }}</span>
+                                            <span>{{ $author->is_active ? 'Active' : 'Inactive' }}</span>
                                         </button>
                                     </td>
-                                    <td class="text-muted small" style="font-size: 0.75rem;">@bnDate($author->created_at)</td>
+                                    <td class="text-muted small" style="font-size: 0.75rem;">{{ $author->created_at ? $author->created_at->format('d M, Y') : '—' }}</td>
                                     <td class="text-end pe-3">
                                         <div class="d-inline-flex gap-1 align-items-center">
-                                            <button type="button" class="btn btn-xs btn-outline-info p-1" onclick="openAuthorDetailsModal({{ $author->id }})" title="প্রোফাইল দেখুন">
+                                            <button type="button" class="btn btn-xs btn-outline-info p-1" onclick="openAuthorDetailsModal({{ $author->id }})" title="View Profile">
                                                 <i class="fas fa-eye small"></i>
                                             </button>
-                                            <button type="button" class="btn btn-xs btn-outline-primary p-1" onclick="openEditAuthorModal({{ $author->id }})" title="কুইক এডিট">
+                                            <button type="button" class="btn btn-xs btn-outline-primary p-1" onclick="openEditAuthorModal({{ $author->id }})" title="Quick Edit">
                                                 <i class="fas fa-pen-to-square small"></i>
                                             </button>
-                                            <a href="{{ route('authors.show', $author->slug ?: $author->id) }}" target="_blank" rel="noopener" class="btn btn-xs btn-light border p-1" title="সাইটে দেখুন">
+                                            <a href="{{ route('authors.show', $author->slug ?: $author->id) }}" target="_blank" rel="noopener" class="btn btn-xs btn-light border p-1" title="View on Site">
                                                 <i class="fas fa-arrow-up-right-from-square text-muted small"></i>
                                             </a>
                                             <form action="{{ route('admin.content.destroy', ['type' => 'authors', 'id' => $author->id]) }}" 
-                                                  method="POST" class="d-inline" onsubmit="return confirm('আপনি কি নিশ্চিত যে এই লেখককে মুছে ফেলতে চান?');">
+                                                  method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this author?');">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" class="btn btn-xs btn-outline-danger p-1" title="মুছে ফেলুন">
+                                                <button type="submit" class="btn btn-xs btn-outline-danger p-1" title="Delete Author">
                                                     <i class="fas fa-trash-can small"></i>
                                                 </button>
                                             </form>
@@ -488,7 +488,7 @@
         @if ($authors->hasPages())
             <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 p-2.5 bg-white border-0 shadow-xs rounded-3 mt-3">
                 <span class="text-muted small" style="font-size: 0.78rem;">
-                    মোট @bn($stats['total'] ?? $authors->total()) জনের মধ্যে @bn($authors->firstItem())–@bn($authors->lastItem()) দেখানো হচ্ছে
+                    Showing {{ $authors->firstItem() }}–{{ $authors->lastItem() }} of {{ number_format($stats['total'] ?? $authors->total()) }} authors
                 </span>
                 <div>
                     {{ $authors->links() }}
@@ -509,7 +509,7 @@
         <div class="modal-content border-0 shadow-lg rounded-4">
             <div class="modal-header bg-light border-0 py-3 px-4 rounded-top-4">
                 <h5 class="modal-title fw-bold text-dark" id="addAuthorModalLabel">
-                    <i class="fas fa-user-pen text-primary me-2"></i>নতুন লেখক যোগ করুন
+                    <i class="fas fa-user-pen text-primary me-2"></i>Add New Author
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -518,35 +518,35 @@
                 <div class="modal-body p-4">
                     <div class="row g-3">
                         <div class="col-md-7">
-                            <label class="form-label small fw-bold text-dark">লেখকের নাম <span class="text-danger">*</span></label>
-                            <input type="text" name="name" class="form-control" placeholder="যেমন: হুমায়ূন আহমেদ" required oninput="generateSlugPreview(this.value, 'addAuthorSlug')">
+                            <label class="form-label small fw-bold text-dark">Author Name <span class="text-danger">*</span></label>
+                            <input type="text" name="name" class="form-control" placeholder="e.g. Humayun Ahmed" required oninput="generateSlugPreview(this.value, 'addAuthorSlug')">
                         </div>
                         <div class="col-md-5">
-                            <label class="form-label small fw-bold text-dark">ইউআরএল Slug (ঐচ্ছিক)</label>
+                            <label class="form-label small fw-bold text-dark">URL Slug (Optional)</label>
                             <input type="text" name="slug" id="addAuthorSlug" class="form-control font-monospace" placeholder="humayun-ahmed">
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold text-dark">ফোন নম্বর</label>
+                            <label class="form-label small fw-bold text-dark">Phone Number</label>
                             <input type="text" name="phone" class="form-control" placeholder="017XXXXXXXX">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold text-dark">ইমেইল ঠিকানা</label>
+                            <label class="form-label small fw-bold text-dark">Email Address</label>
                             <input type="email" name="email" class="form-control" placeholder="author@example.com">
                         </div>
 
                         <div class="col-md-12">
-                            <label class="form-label small fw-bold text-dark">ব্যক্তিগত ওয়েবসাইট / পোর্টফোলিও</label>
+                            <label class="form-label small fw-bold text-dark">Personal Website / Portfolio</label>
                             <input type="url" name="website" class="form-control" placeholder="https://...">
                         </div>
 
                         <div class="col-md-12">
-                            <label class="form-label small fw-bold text-dark">লেখকের পরিচিতি ও সংক্ষিপ্ত বায়োগ্রাফি</label>
-                            <textarea name="bio" class="form-control" rows="3" placeholder="লেখকের কর্মজীবন, সাহিত্যকর্ম ও পরিচিতি..."></textarea>
+                            <label class="form-label small fw-bold text-dark">Author Biography & Introduction</label>
+                            <textarea name="bio" class="form-control" rows="3" placeholder="Author background, literary career and profile..."></textarea>
                         </div>
 
                         <div class="col-md-12">
-                            <label class="form-label small fw-bold text-dark">লেখকের ছবি (Avatar / Photo)</label>
+                            <label class="form-label small fw-bold text-dark">Author Photo (Avatar)</label>
                             <div class="d-flex align-items-center gap-3">
                                 <div class="rounded-circle overflow-hidden bg-light border border-2 border-primary-subtle d-flex align-items-center justify-content-center shadow-xs flex-shrink-0" 
                                      style="width: 54px; height: 54px;" id="addAvatarPreviewBox">
@@ -554,7 +554,7 @@
                                 </div>
                                 <div class="flex-grow-1">
                                     <input type="file" name="avatar_file" class="form-control form-control-sm" accept="image/*" onchange="previewImageInput(this, 'addAvatarPreviewBox')">
-                                    <div class="form-text small text-muted">JPG, PNG বা WebP ফরম্যাট।</div>
+                                    <div class="form-text small text-muted">JPG, PNG or WebP format.</div>
                                 </div>
                             </div>
                         </div>
@@ -562,21 +562,21 @@
                         <div class="col-md-6">
                             <div class="form-check form-switch mt-2">
                                 <input class="form-check-input" type="checkbox" name="is_active" id="addAuthorActive" value="1" checked>
-                                <label class="form-check-label small fw-semibold" for="addAuthorActive">সাইটে সক্রিয় রাখুন</label>
+                                <label class="form-check-label small fw-semibold" for="addAuthorActive">Active on Storefront</label>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-check form-switch mt-2">
                                 <input class="form-check-input" type="checkbox" name="is_verified" id="addAuthorVerified" value="1">
-                                <label class="form-check-label small fw-semibold" for="addAuthorVerified">যাচাইকৃত (Verified)</label>
+                                <label class="form-check-label small fw-semibold" for="addAuthorVerified">Verified Author</label>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer bg-light border-0 py-3 px-4 rounded-bottom-4">
-                    <button type="button" class="btn btn-light border rounded-pill px-4" data-bs-dismiss="modal">বাতিল</button>
+                    <button type="button" class="btn btn-light border rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold" id="btnAddAuthorSubmit">
-                        <i class="fas fa-save me-1"></i> সংরক্ষণ করুন
+                        <i class="fas fa-save me-1"></i> Save Author
                     </button>
                 </div>
             </form>
@@ -590,7 +590,7 @@
         <div class="modal-content border-0 shadow-lg rounded-4">
             <div class="modal-header bg-light border-0 py-3 px-4 rounded-top-4">
                 <h5 class="modal-title fw-bold text-dark" id="editAuthorModalLabel">
-                    <i class="fas fa-pen-to-square text-primary me-2"></i>লেখক তথ্য সম্পাদনা
+                    <i class="fas fa-pen-to-square text-primary me-2"></i>Edit Author Information
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -600,35 +600,35 @@
                 <div class="modal-body p-4">
                     <div class="row g-3">
                         <div class="col-md-7">
-                            <label class="form-label small fw-bold text-dark">লেখকের নাম <span class="text-danger">*</span></label>
+                            <label class="form-label small fw-bold text-dark">Author Name <span class="text-danger">*</span></label>
                             <input type="text" name="name" id="editAuthorName" class="form-control" required>
                         </div>
                         <div class="col-md-5">
-                            <label class="form-label small fw-bold text-dark">ইউআরএল Slug</label>
+                            <label class="form-label small fw-bold text-dark">URL Slug</label>
                             <input type="text" name="slug" id="editAuthorSlug" class="form-control font-monospace">
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold text-dark">ফোন নম্বর</label>
+                            <label class="form-label small fw-bold text-dark">Phone Number</label>
                             <input type="text" name="phone" id="editAuthorPhone" class="form-control">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold text-dark">ইমেইল ঠিকানা</label>
+                            <label class="form-label small fw-bold text-dark">Email Address</label>
                             <input type="email" name="email" id="editAuthorEmail" class="form-control">
                         </div>
 
                         <div class="col-md-12">
-                            <label class="form-label small fw-bold text-dark">ব্যক্তিগত ওয়েবসাইট / পোর্টফোলিও</label>
+                            <label class="form-label small fw-bold text-dark">Personal Website / Portfolio</label>
                             <input type="url" name="website" id="editAuthorWebsite" class="form-control">
                         </div>
 
                         <div class="col-md-12">
-                            <label class="form-label small fw-bold text-dark">লেখকের পরিচিতি ও সংক্ষিপ্ত বায়োগ্রাফি</label>
+                            <label class="form-label small fw-bold text-dark">Author Biography & Introduction</label>
                             <textarea name="bio" id="editAuthorBio" class="form-control" rows="3"></textarea>
                         </div>
 
                         <div class="col-md-12">
-                            <label class="form-label small fw-bold text-dark">লেখকের নতুন ছবি আপলোড</label>
+                            <label class="form-label small fw-bold text-dark">Upload New Author Photo</label>
                             <div class="d-flex align-items-center gap-3">
                                 <div class="rounded-circle overflow-hidden bg-light border border-2 border-primary-subtle d-flex align-items-center justify-content-center shadow-xs flex-shrink-0" 
                                      style="width: 54px; height: 54px;" id="editAvatarPreviewBox">
@@ -643,21 +643,21 @@
                         <div class="col-md-6">
                             <div class="form-check form-switch mt-2">
                                 <input class="form-check-input" type="checkbox" name="is_active" id="editAuthorActive" value="1">
-                                <label class="form-check-label small fw-semibold" for="editAuthorActive">সাইটে সক্রিয়</label>
+                                <label class="form-check-label small fw-semibold" for="editAuthorActive">Active on Site</label>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-check form-switch mt-2">
                                 <input class="form-check-input" type="checkbox" name="is_verified" id="editAuthorVerified" value="1">
-                                <label class="form-check-label small fw-semibold" for="editAuthorVerified">যাচাইকৃত (Verified)</label>
+                                <label class="form-check-label small fw-semibold" for="editAuthorVerified">Verified Author</label>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer bg-light border-0 py-3 px-4 rounded-bottom-4">
-                    <button type="button" class="btn btn-light border rounded-pill px-4" data-bs-dismiss="modal">বাতিল</button>
+                    <button type="button" class="btn btn-light border rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold" id="btnEditAuthorSubmit">
-                        <i class="fas fa-save me-1"></i> আপডেট সংরক্ষণ করুন
+                        <i class="fas fa-save me-1"></i> Update Author
                     </button>
                 </div>
             </form>
@@ -674,7 +674,7 @@
                     <div class="rounded-circle overflow-hidden shadow-sm border border-2 border-white bg-white flex-shrink-0" 
                          style="width: 52px; height: 52px;" id="detailsAvatarBox"></div>
                     <div>
-                        <h5 class="modal-title fw-bold mb-0" id="detailsAuthorName">লোড হচ্ছে...</h5>
+                        <h5 class="modal-title fw-bold mb-0" id="detailsAuthorName">Loading...</h5>
                         <div class="small opacity-75 font-monospace" id="detailsAuthorSlug"></div>
                     </div>
                 </div>
@@ -683,15 +683,15 @@
             <div class="modal-body p-4" id="authorDetailsBody">
                 <div class="text-center py-4">
                     <div class="spinner-border text-primary" role="status"></div>
-                    <div class="small text-muted mt-2">লেখকের তথ্য ও বই লোড হচ্ছে...</div>
+                    <div class="small text-muted mt-2">Loading author profile and catalog books...</div>
                 </div>
             </div>
             <div class="modal-footer bg-light border-0 py-3 px-4">
                 <a href="#" id="detailsSiteLink" target="_blank" rel="noopener" class="btn btn-outline-primary btn-sm rounded-pill px-3">
-                    <i class="fas fa-arrow-up-right-from-square me-1"></i> সাইটে প্রোফাইল দেখুন
+                    <i class="fas fa-arrow-up-right-from-square me-1"></i> View Store Profile
                 </a>
                 <a href="#" id="detailsEditLink" class="btn btn-primary btn-sm rounded-pill px-3 fw-bold">
-                    <i class="fas fa-pen-to-square me-1"></i> ফুল এডিট
+                    <i class="fas fa-pen-to-square me-1"></i> Full Edit
                 </a>
             </div>
         </div>
@@ -703,7 +703,7 @@
     <div class="modal-dialog modal-dialog-centered modal-sm">
         <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden bg-dark text-white text-center">
             <div class="modal-header border-0 pb-0">
-                <h6 class="modal-title small fw-bold text-white-50" id="avatarLightboxTitle">লেখকের ছবি</h6>
+                <h6 class="modal-title small fw-bold text-white-50" id="avatarLightboxTitle">Author Photo</h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body p-4">
@@ -722,7 +722,7 @@
         <div class="d-flex">
             <div class="toast-body d-flex align-items-center gap-2">
                 <i class="fas fa-circle-check text-success fs-5" id="toastIcon"></i>
-                <span id="toastMessage">অপারেশন সফল হয়েছে</span>
+                <span id="toastMessage">Operation completed successfully</span>
             </div>
             <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
         </div>
@@ -824,7 +824,7 @@ function showToast(message, isSuccess = true) {
     toast.show();
 }
 
-function copyToClipboard(text, successMsg = 'কপি করা হয়েছে!') {
+function copyToClipboard(text, successMsg = 'Copied to clipboard!') {
     navigator.clipboard.writeText(text).then(() => {
         showToast(successMsg, true);
     }).catch(err => {
@@ -875,7 +875,7 @@ function submitAddAuthor(event) {
 
     if (submitBtn) {
         submitBtn.disabled = true;
-        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>সংরক্ষণ হচ্ছে...';
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Saving...';
     }
 
     fetch("{{ route('admin.authors.quick-store') }}", {
@@ -895,17 +895,17 @@ function submitAddAuthor(event) {
             if (modal) modal.hide();
             setTimeout(() => { window.location.reload(); }, 600);
         } else {
-            showToast(data.message || 'ত্রুটি ঘটেছে', false);
+            showToast(data.message || 'An error occurred', false);
         }
     })
     .catch(err => {
         console.error(err);
-        showToast('সার্ভার রেসপন্স দিতে ব্যর্থ হয়েছে।', false);
+        showToast('Server failed to respond.', false);
     })
     .finally(() => {
         if (submitBtn) {
             submitBtn.disabled = false;
-            submitBtn.innerHTML = '<i class="fas fa-save me-1"></i> সংরক্ষণ করুন';
+            submitBtn.innerHTML = '<i class="fas fa-save me-1"></i> Save Author';
         }
     });
 }
@@ -943,7 +943,7 @@ function openEditAuthorModal(id) {
     })
     .catch(err => {
         console.error(err);
-        showToast('লেখকের তথ্য লোড করা যায়নি', false);
+        showToast('Failed to load author data', false);
     });
 }
 
@@ -956,7 +956,7 @@ function submitEditAuthor(event) {
 
     if (submitBtn) {
         submitBtn.disabled = true;
-        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>সংরক্ষণ হচ্ছে...';
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Saving...';
     }
 
     fetch(`/admin/authors/${authorId}/quick-update`, {
@@ -976,17 +976,17 @@ function submitEditAuthor(event) {
             if (modal) modal.hide();
             setTimeout(() => { window.location.reload(); }, 600);
         } else {
-            showToast(data.message || 'আপডেট করতে ব্যর্থ হয়েছে', false);
+            showToast(data.message || 'Failed to update author', false);
         }
     })
     .catch(err => {
         console.error(err);
-        showToast('সার্ভার ত্রুটি ঘটেছে।', false);
+        showToast('Server error occurred.', false);
     })
     .finally(() => {
         if (submitBtn) {
             submitBtn.disabled = false;
-            submitBtn.innerHTML = '<i class="fas fa-save me-1"></i> আপডেট সংরক্ষণ করুন';
+            submitBtn.innerHTML = '<i class="fas fa-save me-1"></i> Update Author';
         }
     });
 }
@@ -1010,7 +1010,7 @@ function toggleAuthorStatus(id, btnElement) {
     })
     .catch(err => {
         console.error(err);
-        showToast('স্ট্যাটাস পরিবর্তন করা যায়নি', false);
+        showToast('Could not toggle status', false);
     })
     .finally(() => {
         btnElement.disabled = false;
@@ -1032,12 +1032,12 @@ function toggleAuthorVerified(id, btnElement) {
             showToast(data.message, true);
             const isVerified = data.is_verified;
             btnElement.className = `badge rounded-pill border-0 shadow-xs cursor-pointer px-2 py-0.5 ${isVerified ? 'bg-info text-white' : 'bg-light text-muted border'}`;
-            btnElement.innerHTML = `<i class="fas ${isVerified ? 'fa-certificate' : 'fa-circle-question'} me-1"></i><span>${isVerified ? 'ভেরিফাইড' : 'সাধারণ'}</span>`;
+            btnElement.innerHTML = `<i class="fas ${isVerified ? 'fa-certificate' : 'fa-circle-question'} me-1"></i><span>${isVerified ? 'Verified' : 'Regular'}</span>`;
         }
     })
     .catch(err => {
         console.error(err);
-        showToast('ভেরিফিকেশন পরিবর্তন করা যায়নি', false);
+        showToast('Could not toggle verification', false);
     })
     .finally(() => {
         btnElement.disabled = false;
@@ -1080,7 +1080,7 @@ function openAuthorDetailsModal(id) {
             if (a.books && a.books.length > 0) {
                 booksHtml = `
                     <div class="mt-4 pt-3 border-top">
-                        <h6 class="fw-bold text-dark mb-3"><i class="fas fa-book text-primary me-2"></i>ক্যাটালগ বইসমূহ (${a.books.length}টি দেখানো হচ্ছে)</h6>
+                        <h6 class="fw-bold text-dark mb-3"><i class="fas fa-book text-primary me-2"></i>Catalog Books (${a.books.length} listed)</h6>
                         <div class="row row-cols-1 row-cols-sm-2 g-2">
                             ${a.books.map(b => `
                                 <div class="col">
@@ -1102,7 +1102,7 @@ function openAuthorDetailsModal(id) {
                 booksHtml = `
                     <div class="mt-4 pt-3 border-top text-center text-muted small py-3">
                         <i class="fas fa-book-open opacity-50 mb-1 d-block fs-4"></i>
-                        এই লেখকের নামে কোনো বই এখনো যুক্ত করা হয়নি।
+                        No books listed under this author yet.
                     </div>
                 `;
             }
@@ -1110,28 +1110,28 @@ function openAuthorDetailsModal(id) {
             document.getElementById('authorDetailsBody').innerHTML = `
                 <div class="row g-3">
                     <div class="col-sm-6">
-                        <small class="text-muted d-block">ফোন নম্বর</small>
+                        <small class="text-muted d-block">Phone Number</small>
                         <div class="fw-semibold text-dark">${a.phone || '<span class="text-muted">—</span>'}</div>
                     </div>
                     <div class="col-sm-6">
-                        <small class="text-muted d-block">ইমেইল</small>
+                        <small class="text-muted d-block">Email Address</small>
                         <div class="fw-semibold text-dark">${a.email || '<span class="text-muted">—</span>'}</div>
                     </div>
                     <div class="col-sm-6">
-                        <small class="text-muted d-block">ব্যক্তিগত ওয়েবসাইট</small>
+                        <small class="text-muted d-block">Website / Portfolio</small>
                         <div>${a.website ? `<a href="${a.website}" target="_blank" class="text-decoration-none text-primary small text-truncate d-inline-block" style="max-width: 250px;">${a.website}</a>` : '<span class="text-muted">—</span>'}</div>
                     </div>
                     <div class="col-sm-6">
-                        <small class="text-muted d-block">স্ট্যাটাস ও ভেরিফিকেশন</small>
+                        <small class="text-muted d-block">Status & Verification</small>
                         <div class="d-flex gap-2 align-items-center mt-1">
-                            <span class="badge ${a.is_active ? 'bg-success' : 'bg-secondary'} rounded-pill">${a.is_active ? 'সক্রিয়' : 'নিষ্ক্রিয়'}</span>
-                            <span class="badge ${a.is_verified ? 'bg-info' : 'bg-light text-dark border'} rounded-pill">${a.is_verified ? 'ভেরিফাইড' : 'সাধারণ'}</span>
+                            <span class="badge ${a.is_active ? 'bg-success' : 'bg-secondary'} rounded-pill">${a.is_active ? 'Active' : 'Inactive'}</span>
+                            <span class="badge ${a.is_verified ? 'bg-info' : 'bg-light text-dark border'} rounded-pill">${a.is_verified ? 'Verified' : 'Regular'}</span>
                         </div>
                     </div>
                     <div class="col-12">
-                        <small class="text-muted d-block">বায়োগ্রাফি / পরিচিতি</small>
+                        <small class="text-muted d-block">Biography & Summary</small>
                         <div class="bg-light p-3 rounded-3 small text-dark mt-1" style="max-height: 160px; overflow-y: auto;">
-                            ${a.bio ? a.bio : '<em class="text-muted">কোনো বায়োগ্রাফি দেওয়া নেই</em>'}
+                            ${a.bio ? a.bio : '<em class="text-muted">No biography provided</em>'}
                         </div>
                     </div>
                 </div>
@@ -1141,7 +1141,7 @@ function openAuthorDetailsModal(id) {
     })
     .catch(err => {
         console.error(err);
-        document.getElementById('authorDetailsBody').innerHTML = '<div class="alert alert-danger mb-0">লেখকের বিস্তারিত লোড করা সম্ভব হয়নি।</div>';
+        document.getElementById('authorDetailsBody').innerHTML = '<div class="alert alert-danger mb-0">Could not load author details.</div>';
     });
 }
 
@@ -1150,7 +1150,7 @@ function previewAuthorAvatar(url, name) {
     const img = document.getElementById('avatarLightboxImg');
     const title = document.getElementById('avatarLightboxTitle');
     if (img) img.src = url;
-    if (title) title.textContent = name || 'লেখকের ছবি';
+    if (title) title.textContent = name || 'Author Photo';
     const modal = new bootstrap.Modal(document.getElementById('avatarLightboxModal'));
     modal.show();
 }
@@ -1180,7 +1180,7 @@ function exportAuthorsToCSV() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    showToast('CSV ফাইল সফলভাবে ডাউনলোড হয়েছে!', true);
+    showToast('CSV export downloaded successfully!', true);
 }
 </script>
 @endsection

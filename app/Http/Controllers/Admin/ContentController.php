@@ -144,11 +144,14 @@ class ContentController extends Controller
 
         try {
             $record->forceFill($attributes)->save();
-            if ($type === 'books' && !empty($record->author_link_id)) {
-                DB::table('book_author')->updateOrInsert(
-                    ['book_id' => $record->id, 'author_id' => $record->author_link_id],
-                    ['created_at' => now(), 'updated_at' => now()]
-                );
+            if ($type === 'books') {
+                $authorIds = array_filter((array) $request->input('author_ids', []));
+                if (!empty($record->author_link_id) && !in_array($record->author_link_id, $authorIds)) {
+                    $authorIds[] = (int) $record->author_link_id;
+                }
+                if (!empty($authorIds)) {
+                    $record->authors()->sync($authorIds);
+                }
             }
             if ($type === 'webzines') {
                 $this->syncWebzineArticles($record, $request);
@@ -245,11 +248,14 @@ class ContentController extends Controller
 
         try {
             $record->forceFill($attributes)->save();
-            if ($type === 'books' && !empty($record->author_link_id)) {
-                DB::table('book_author')->updateOrInsert(
-                    ['book_id' => $record->id, 'author_id' => $record->author_link_id],
-                    ['created_at' => now(), 'updated_at' => now()]
-                );
+            if ($type === 'books') {
+                $authorIds = array_filter((array) $request->input('author_ids', []));
+                if (!empty($record->author_link_id) && !in_array($record->author_link_id, $authorIds)) {
+                    $authorIds[] = (int) $record->author_link_id;
+                }
+                if (!empty($authorIds)) {
+                    $record->authors()->sync($authorIds);
+                }
             }
             if ($type === 'webzines') {
                 $this->syncWebzineArticles($record, $request);

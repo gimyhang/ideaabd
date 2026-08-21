@@ -16,7 +16,7 @@
 
 @php
     $editing = $record !== null;
-    $heading = $editing ? "{$spec['label']} সম্পাদনা" : "নতুন {$spec['label']}";
+    $heading = $editing ? "Edit {$spec['label']}" : "New {$spec['label']}";
     $action  = $editing
         ? route('admin.content.update', ['type' => $spec['key'], 'id' => $record->getKey()])
         : route('admin.content.store', ['type' => $spec['key']]);
@@ -31,7 +31,7 @@
 @section('heading', $heading)
 @section('breadcrumb')
     <li class="breadcrumb-item"><a href="{{ route($spec['listRoute']) }}" class="text-decoration-none">{{ $spec['label'] }}</a></li>
-    <li class="breadcrumb-item active" aria-current="page">{{ $editing ? 'সম্পাদনা' : 'নতুন' }}</li>
+    <li class="breadcrumb-item active" aria-current="page">{{ $editing ? 'Edit' : 'Create' }}</li>
 @endsection
 
 @section('actions')
@@ -39,30 +39,30 @@
         @if ($editing)
             @if ($spec['key'] === 'webzines')
                 <a href="{{ route('webzine.read', $record->slug ?: $record->id) }}" target="_blank" class="btn btn-outline-info btn-sm rounded-pill px-3 shadow-xs">
-                    <i class="fas fa-book-open me-1"></i> সরাসরি পড়ুন (Reader)
+                    <i class="fas fa-book-open me-1"></i> Reader View
                 </a>
                 <a href="{{ route('webzine.show', $record->slug ?: $record->id) }}" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-xs">
-                    <i class="fas fa-arrow-up-right-from-square me-1"></i> সাইটে দেখুন
+                    <i class="fas fa-arrow-up-right-from-square me-1"></i> View on Site
                 </a>
             @elseif ($spec['key'] === 'ebooks')
                 <a href="{{ route('ebook.read', $record->slug ?: $record->id) }}" target="_blank" class="btn btn-outline-info btn-sm rounded-pill px-3 shadow-xs">
-                    <i class="fas fa-book-open me-1"></i> সরাসরি পড়ুন (Reader)
+                    <i class="fas fa-book-open me-1"></i> Reader View
                 </a>
                 <a href="{{ route('ebook.show', $record->slug ?: $record->id) }}" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-xs">
-                    <i class="fas fa-arrow-up-right-from-square me-1"></i> সাইটে দেখুন
+                    <i class="fas fa-arrow-up-right-from-square me-1"></i> View on Site
                 </a>
             @elseif ($spec['key'] === 'books')
                 <a href="{{ route('book.show', $record->slug ?: $record->id) }}" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-xs">
-                    <i class="fas fa-arrow-up-right-from-square me-1"></i> সাইটে দেখুন
+                    <i class="fas fa-arrow-up-right-from-square me-1"></i> View on Site
                 </a>
             @elseif ($spec['key'] === 'blog')
                 <a href="{{ route('blog.show', $record->slug ?: $record->id) }}" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-xs">
-                    <i class="fas fa-arrow-up-right-from-square me-1"></i> সাইটে দেখুন
+                    <i class="fas fa-arrow-up-right-from-square me-1"></i> View on Site
                 </a>
             @endif
         @endif
         <a href="{{ route($spec['listRoute']) }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
-            <i class="fas fa-arrow-left me-1"></i> তালিকায় ফিরুন
+            <i class="fas fa-arrow-left me-1"></i> Back to List
         </a>
     </div>
 @endsection
@@ -79,9 +79,9 @@
         <div class="adm-card p-3 p-md-4">
             <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
                 <h2 class="h6 fw-bold mb-0 text-dark">
-                    <i class="fas fa-{{ $spec['icon'] }} me-1.5 text-primary"></i> {{ $spec['label'] }} সংক্রান্ত বিবরণ ও তথ্য
+                    <i class="fas fa-{{ $spec['icon'] }} me-1.5 text-primary"></i> {{ $spec['label'] }} Details & Information
                 </h2>
-                <span class="badge bg-light text-muted border small">প্রয়োজনীয় ফিল্ডগুলো পূরণ করুন</span>
+                <span class="badge bg-light text-muted border small">Fields marked * are required</span>
             </div>
 
             <div class="row g-3">
@@ -96,25 +96,19 @@
                         @if ($name === 'title')
                             <div class="col-12 mt-1 mb-1">
                                 <div class="d-flex align-items-center gap-2 pb-1.5 border-bottom text-dark fw-bold" style="font-size: 0.95rem;">
-                                    <span class="p-1.5 bg-primary-subtle text-primary rounded-circle small"><i class="fas fa-book-bookmark"></i></span> ১. বইয়ের মূল তথ্য ও অবদানকারী (লেখক, অনুবাদক ও সম্পাদক)
-                                </div>
-                            </div>
-                        @elseif ($name === 'cover_type')
-                            <div class="col-12 mt-3 mb-1">
-                                <div class="d-flex align-items-center gap-2 pb-1.5 border-bottom text-dark fw-bold" style="font-size: 0.95rem;">
-                                    <span class="p-1.5 bg-success-subtle text-success rounded-circle small"><i class="fas fa-calculator"></i></span> ২. বাঁধাই, সংস্করণ, মূল্য নির্ধারণ ও ক্রয়-বিক্রয় কমিশন হিসাব
+                                    <span class="p-1.5 bg-primary-subtle text-primary rounded-circle small"><i class="fas fa-book-bookmark"></i></span> ১. প্রাথমিক তথ্য ও লেখক/অবদানকারী (Basic Information & Contributors)
                                 </div>
                             </div>
                         @elseif ($name === 'published_at')
                             <div class="col-12 mt-3 mb-1">
                                 <div class="d-flex align-items-center gap-2 pb-1.5 border-bottom text-dark fw-bold" style="font-size: 0.95rem;">
-                                    <span class="p-1.5 bg-warning-subtle text-warning rounded-circle small"><i class="fas fa-calendar-check"></i></span> ৩. প্রকাশনা, রিলিজ ও ইনভেন্টরি
+                                    <span class="p-1.5 bg-warning-subtle text-warning rounded-circle small"><i class="fas fa-calendar-check"></i></span> ৩. প্রকাশনা, অর্ডার টাইপ ও স্টক (Publication, Order & Stock)
                                 </div>
                             </div>
                         @elseif ($name === 'book_size')
                             <div class="col-12 mt-3 mb-1">
                                 <div class="d-flex align-items-center gap-2 pb-1.5 border-bottom text-dark fw-bold" style="font-size: 0.95rem;">
-                                    <span class="p-1.5 bg-secondary-subtle text-secondary rounded-circle small"><i class="fas fa-ruler-combined"></i></span> ৪. বইয়ের শারীরিক বিবরণ ও পরিমাপ
+                                    <span class="p-1.5 bg-secondary-subtle text-secondary rounded-circle small"><i class="fas fa-ruler-combined"></i></span> ৪. বইয়ের মাপ ও শারীরিক বিবরণ (Physical Specifications)
                                 </div>
                             </div>
                         @elseif ($name === 'cover_image')
@@ -126,7 +120,7 @@
                         @elseif ($name === 'summary')
                             <div class="col-12 mt-3 mb-1">
                                 <div class="d-flex align-items-center gap-2 pb-1.5 border-bottom text-dark fw-bold" style="font-size: 0.95rem;">
-                                    <span class="p-1.5 bg-purple-subtle text-purple rounded-circle small" style="background-color: #f3e8ff; color: #7e22ce;"><i class="fas fa-align-left"></i></span> ৬. সারসংক্ষেপ, বিস্তারিত ফ্ল্যাপ ও লেখক পরিচিতি
+                                    <span class="p-1.5 bg-purple-subtle text-purple rounded-circle small" style="background-color: #f3e8ff; color: #7e22ce;"><i class="fas fa-align-left"></i></span> ৬. বইয়ের সংক্ষেপ (Product Summary — সর্বোচ্চ ১০০০ শব্দ)
                                 </div>
                             </div>
                         @endif
@@ -144,15 +138,13 @@
                                 <label class="form-check-label fw-semibold" for="f-{{ $name }}">{{ $field['label'] }}</label>
                             </div>
 
-                        {{-- ══ AUTHOR ROLE GROUP (লেখক / অনুবাদক / সম্পাদক) ══ --}}
+                        {{-- ══ AUTHOR ROLE GROUP (প্রধান লেখক নির্বাচন — ড্রপডাউন) ══ --}}
                         @elseif ($field['type'] === 'author_role_group')
                             @php
                                 $curRole       = old('author_role',  $editing ? ($record->author_role  ?? 'author') : 'author');
                                 $curAuthorId   = old('author_link_id', $editing ? ($record->author_link_id ?? '') : '');
                                 $curAuthorName = old('author_name',  $editing ? ($record->author_name  ?? '') : '');
                                 $authorOptions = $lookups['authors'] ?? [];
-                                $hasMatchingAuthor = $curAuthorId || ($curAuthorName && in_array($curAuthorName, $authorOptions, true));
-                                $curMode       = old('author_input_mode', ($hasMatchingAuthor || !empty($authorOptions) ? 'directory' : 'custom'));
                             @endphp
 
                             <div class="p-3 bg-light rounded-3 border">
@@ -160,62 +152,45 @@
                                     <label class="form-label small fw-bold text-dark mb-0">
                                         <i class="fas fa-pen-nib text-primary me-1"></i> প্রধান লেখক নির্বাচন (Author Selection) <span class="text-danger">*</span>
                                     </label>
-                                    <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2 rounded-pill fw-semibold" 
+                                    <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2.5 rounded-pill fw-semibold" 
                                             data-bs-toggle="modal" data-bs-target="#quickAddAuthorModal" style="font-size: 11.5px;">
-                                        <i class="fas fa-plus-circle me-1"></i>+ নতুন লেখক তৈরি করুন
+                                        <i class="fas fa-plus-circle me-1"></i>+ Add New Author
                                     </button>
                                 </div>
 
-                                {{-- ইনপুট মোড স্যুইচ --}}
-                                <div class="btn-group btn-group-sm mb-2 w-100" role="group" id="author-mode-tabs">
-                                    <input type="radio" class="btn-check" name="author_input_mode"
-                                           id="author-mode-directory" value="directory"
-                                           @checked($curMode === 'directory') onchange="toggleAuthorMode('directory')">
-                                    <label class="btn btn-outline-primary fw-semibold" for="author-mode-directory">
-                                        <i class="fas fa-address-book me-1"></i> ডিরেক্টরি থেকে বাছাই (ড্রপডাউন)
-                                    </label>
-
-                                    <input type="radio" class="btn-check" name="author_input_mode"
-                                           id="author-mode-custom" value="custom"
-                                           @checked($curMode === 'custom') onchange="toggleAuthorMode('custom')">
-                                    <label class="btn btn-outline-secondary fw-semibold" for="author-mode-custom">
-                                        <i class="fas fa-keyboard me-1"></i> নতুন লেখকের নাম লিখুন
-                                    </label>
-                                </div>
-
-                                {{-- Directory Mode: লেখক ড্রপডাউন --}}
-                                <div id="author-directory-panel" style="{{ $curMode === 'directory' ? '' : 'display:none' }}">
+                                {{-- Direct Clean Author Dropdown --}}
+                                <div class="mb-2">
                                     <select name="author_link_id" id="f-author_link_id"
                                             class="form-select @error('author_link_id') is-invalid @enderror"
                                             onchange="onAuthorDirectoryChange(this)">
-                                        <option value="">— লেখক নির্বাচন করুন (মোট: {{ count($authorOptions) }} জন) —</option>
+                                        <option value="">— Select Author from Directory (Total: {{ count($authorOptions) }}) —</option>
                                         @foreach ($authorOptions as $aId => $aName)
                                             <option value="{{ $aId }}" @selected((string)$curAuthorId === (string)$aId || (!$curAuthorId && $curAuthorName === $aName))>
                                                 {{ $aName }}
                                             </option>
                                         @endforeach
                                     </select>
-                                    <div class="form-text mt-1 text-muted" style="font-size: 11.5px;">
-                                        <i class="fas fa-info-circle text-primary me-1"></i>লেখকের প্রোফাইল ও বইয়ের তালিকার সাথে সরাসরি সংযুক্ত থাকবে। তালিকায় লেখক না থাকলে উপরে <strong>“নতুন লেখক তৈরি করুন”</strong> বাটনে চাপুন।
+                                    <div class="form-text mt-1 text-muted" style="font-size: 11px;">
+                                        <i class="fas fa-info-circle text-primary me-1"></i>তালিকা থেকে লেখক নির্বাচন করুন। লেখক তালিকায় না থাকলে <strong>“+ Add New Author”</strong> ক্লিক করুন।
                                     </div>
                                     @error('author_link_id')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                                 </div>
 
-                                {{-- Custom Mode: ফ্রি-টেক্সট --}}
-                                <div id="author-custom-panel" style="{{ $curMode === 'custom' ? '' : 'display:none' }}">
+                                {{-- Unlisted Author Name Fallback Input --}}
+                                <div class="mt-2 pt-2 border-top">
+                                    <label for="f-author_name" class="form-label small fw-semibold text-dark mb-1" style="font-size: 11.5px;">
+                                        <i class="fas fa-keyboard text-muted me-1"></i> অথবা কাস্টম লেখক নাম (যদি তালিকায় না থাকে):
+                                    </label>
                                     <input type="text" name="author_name" id="f-author_name"
                                            value="{{ $curAuthorName }}"
-                                           placeholder="লেখকের পুরো নাম লিখুন (যেমন: হুমায়ূন আহমেদ / আনিসুল হক)"
-                                           class="form-control @error('author_name') is-invalid @enderror"
+                                           placeholder="Enter unlisted author name..."
+                                           class="form-control form-control-sm @error('author_name') is-invalid @enderror"
                                            oninput="updateLiveMockupCard()">
-                                    <div class="form-text mt-1 text-muted" style="font-size: 11.5px;">
-                                        <i class="fas fa-circle-check text-success me-1"></i>নামটি সেভ করার সাথে সাথে লেখক ডিরেক্টরিতে স্বয়ংক্রিয়ভাবে প্রোফাইল তৈরি হয়ে যাবে।
-                                    </div>
                                     @error('author_name')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                                 </div>
 
                                 <input type="hidden" name="author_role" value="author">
-                                @error('author_role')<div class="invalid-feedback d-block mt-1">{{ $message }}</div>@enderror
+                            </div>            @error('author_role')<div class="invalid-feedback d-block mt-1">{{ $message }}</div>@enderror
                             </div>
 
                         {{-- ══ CATEGORY SELECT WITH DYNAMIC QUICK CREATION ═══════════════ --}}
@@ -232,12 +207,12 @@
                                 </label>
                                 <button type="button" class="btn btn-link text-primary p-0 text-decoration-none small fw-semibold"
                                         data-bs-toggle="modal" data-bs-target="#{{ $targetModalId }}">
-                                    <i class="fas fa-plus-circle me-1"></i>+ নতুন ক্যাটাগরি তৈরি
+                                    <i class="fas fa-plus-circle me-1"></i>+ Add Category
                                 </button>
                             </div>
                             
                             <select id="f-category_id" name="category_id" class="form-select @error('category_id') is-invalid @enderror" onchange="updateLiveMockupCard()">
-                                <option value="">— ক্যাটাগরি নির্বাচন করুন —</option>
+                                <option value="">— Select Category —</option>
                                 @foreach ($catOptions as $catId => $catLabel)
                                     <option value="{{ $catId }}" @selected((string) $current === (string) $catId)>
                                         {{ $catLabel }}
@@ -249,49 +224,47 @@
                                 <div class="mt-2 p-2 bg-light rounded border">
                                     <div class="d-flex align-items-center justify-content-between mb-1">
                                         <label for="f-sub_category_name" class="form-label small fw-semibold text-dark mb-0" style="font-size: 11.5px;">
-                                            <i class="fas fa-folder-tree me-1 text-primary"></i>অথবা নতুন সাব-ক্যাটাগরি লিখুন:
+                                            <i class="fas fa-folder-tree me-1 text-primary"></i>Or write new Sub-Category name:
                                         </label>
                                     </div>
                                     <input type="text" id="f-sub_category_name" name="sub_category_name" 
-                                           class="form-control form-control-sm" placeholder="উদা: ঐতিহাসিক উপন্যাস / অনুবাদ সাহিত্য">
-                                    <div class="form-text" style="font-size: 11px;">উপরের মেইন ক্যাটাগরি নির্বাচন করে এখানে সাব-ক্যাটাগরির নাম লিখলে স্বয়ংক্রিয়ভাবে তৈরি হবে।</div>
+                                           class="form-control form-control-sm" placeholder="e.g. Historical Fiction / Poetry / Science">
+                                    <div class="form-text" style="font-size: 11px;">Select a parent category above and enter a sub-category here to auto-create it.</div>
                                 </div>
                             @else
                                 <div class="mt-2 p-2 bg-light rounded border">
                                     <div class="d-flex align-items-center justify-content-between mb-1">
                                         <label for="f-new_blog_category_name" class="form-label small fw-semibold text-dark mb-0" style="font-size: 11.5px;">
-                                            <i class="fas fa-feather-pointed me-1 text-primary"></i>অথবা সরাসরি নতুন ক্যাটাগরির নাম লিখুন:
+                                            <i class="fas fa-feather-pointed me-1 text-primary"></i>Or enter new Blog Category name:
                                         </label>
                                     </div>
                                     <input type="text" id="f-new_blog_category_name" name="new_blog_category_name" 
-                                           class="form-control form-control-sm" placeholder="উদা: কবিতা / গল্প / প্রবন্ধ / রম্যরচনা / অনুবাদ">
-                                    <div class="form-text" style="font-size: 11px;">তালিকায় না থাকলে এখানে লিখলে পোস্ট সেভ করার সময় ক্যাটাগরি স্বয়ংক্রিয়ভাবে তৈরি হয়ে যাবে।</div>
+                                           class="form-control form-control-sm" placeholder="e.g. Poetry / Essays / Short Stories / Translation">
+                                    <div class="form-text" style="font-size: 11px;">If not in the list, write here and it will be created automatically.</div>
                                 </div>
                             @endif
                             @error('category_id')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
 
-                        {{-- ══ BLOG AUTHOR & CONTRIBUTORS SYSTEM (ডাইনামিক ও ক্লাসিক লেখক নির্বাচন) ══ --}}
+                        {{-- ══ BLOG AUTHOR & CONTRIBUTORS SYSTEM ══ --}}
                         @elseif ($name === 'author_id')
                             @php
                                 $currentOwnerName = old('owner_name', $editing ? ($record->owner_name ?? '') : '');
                                 $selectedAuthorKey = old('author_id');
 
                                 if ($selectedAuthorKey === null && $editing && $record) {
-                                    // 1. Try to match owner_name with directory authors
                                     if (!empty($record->owner_name) && Schema::hasTable('authors')) {
                                         $matchedDir = DB::table('authors')->where('name', $record->owner_name)->whereNull('deleted_at')->first();
                                         if ($matchedDir) {
                                             $selectedAuthorKey = 'author_' . $matchedDir->id;
                                         }
                                     }
-                                    // 2. If not matched, match by author_id in users
                                     if (empty($selectedAuthorKey) && !empty($record->author_id)) {
                                         $selectedAuthorKey = 'user_' . $record->author_id;
                                     }
                                 }
 
                                 $existingAuthorUser = $editing && $record && $record->author ? $record->author : (!empty($record->author_id) ? \App\Models\User::find($record->author_id) : null);
-                                $displayAuthorName = $currentOwnerName ?: ($existingAuthorUser ? $existingAuthorUser->name : ($record->author_name ?? 'সম্পাদকীয় বিভাগ'));
+                                $displayAuthorName = $currentOwnerName ?: ($existingAuthorUser ? $existingAuthorUser->name : ($record->author_name ?? 'Editorial Department'));
                                 $authorOptions = $lookups['authors'] ?? [];
                             @endphp
 
@@ -299,30 +272,30 @@
                                 <div class="d-flex align-items-center justify-content-between mb-2 pb-2 border-bottom">
                                     <div>
                                         <label class="form-label small fw-bold text-dark mb-0">
-                                            <i class="fas fa-pen-fancy text-primary me-1"></i> ব্লগের মূল লেখক (Author Selection)
+                                            <i class="fas fa-pen-fancy text-primary me-1"></i> Primary Blog Author
                                         </label>
                                         <div class="text-muted mt-0.5" style="font-size: 11.5px;">
-                                            বর্তমান লেখক: <strong class="text-primary" id="currentAuthorBadgeText">{{ $displayAuthorName }}</strong>
+                                            Current Author: <strong class="text-primary" id="currentAuthorBadgeText">{{ $displayAuthorName }}</strong>
                                             @if($existingAuthorUser)
-                                                <span class="badge bg-primary-subtle text-primary border ms-1">{{ $existingAuthorUser->role === 'author' ? 'নিবন্ধিত লেখক' : $existingAuthorUser->role }}</span>
+                                                <span class="badge bg-primary-subtle text-primary border ms-1">{{ $existingAuthorUser->role === 'author' ? 'Registered Author' : $existingAuthorUser->role }}</span>
                                             @elseif($currentOwnerName)
-                                                <span class="badge bg-secondary-subtle text-secondary border ms-1">কাস্টম অবদানকারী</span>
+                                                <span class="badge bg-secondary-subtle text-secondary border ms-1">Custom Contributor</span>
                                             @endif
                                         </div>
                                     </div>
                                     <button type="button" class="btn btn-sm btn-outline-primary py-1 px-2.5 rounded-pill fw-semibold"
                                             data-bs-toggle="modal" data-bs-target="#quickAddAuthorModal" style="font-size: 11.5px;">
-                                        <i class="fas fa-plus-circle me-1"></i>+ নতুন লেখক তৈরি
+                                        <i class="fas fa-plus-circle me-1"></i>+ Add New Author
                                     </button>
                                 </div>
 
                                 {{-- Author Dropdown (Users & Directory Authors) --}}
                                 <div class="mb-2">
                                     <label for="f-author_id" class="form-label small fw-semibold text-dark mb-1" style="font-size: 12px;">
-                                        তালিকা থেকে লেখক বাছাই করুন:
+                                        Select Author from Directory:
                                     </label>
                                     <select id="f-author_id" name="author_id" class="form-select @error('author_id') is-invalid @enderror" onchange="onBlogAuthorDropdownChange(this)">
-                                        <option value="">— লেখক নির্বাচন করুন (মোট: {{ count($authorOptions) }} জন) —</option>
+                                        <option value="">— Select Author (Total: {{ count($authorOptions) }}) —</option>
                                         @foreach ($authorOptions as $aId => $aName)
                                             <option value="{{ $aId }}" @selected((string) $selectedAuthorKey === (string) $aId)>
                                                 {{ $aName }}
@@ -335,15 +308,15 @@
                                 {{-- Custom Author Display Name --}}
                                 <div>
                                     <label for="f-owner_name" class="form-label small fw-semibold text-dark mb-1" style="font-size: 12px;">
-                                        <i class="fas fa-signature text-secondary me-1"></i> সাইটে প্রদর্শিত লেখকের নাম (Display Name / যার নামে প্রকাশিত হবে):
+                                        <i class="fas fa-signature text-secondary me-1"></i> Display Author Name (Byline credit on website):
                                     </label>
                                     <input type="text" id="f-owner_name" name="owner_name" 
                                            value="{{ $currentOwnerName }}"
                                            class="form-control form-control-sm" 
-                                           placeholder="যেমন: কাজী নজরুল ইসলাম / রবীন্দ্রনাথ ঠাকুর / হুমায়ূন আহমেদ"
+                                           placeholder="e.g., Kazi Nazrul Islam / Rabindranath Tagore / Humayun Ahmed"
                                            oninput="updateLiveMockupCard()">
                                     <div class="form-text text-muted mt-1" style="font-size: 11px;">
-                                        <i class="fas fa-info-circle text-primary me-1"></i> সাইটের ব্লগে এই নামটি লেখকের ক্রেডিট হিসেবে প্রদর্শিত হবে। ফাঁকা রাখলে নির্বাচিত অ্যাকাউন্টের নাম প্রদর্শিত হবে।
+                                        <i class="fas fa-info-circle text-primary me-1"></i> This name will appear on the blog as the primary author credit. If left empty, selected account name is used.
                                     </div>
                                 </div>
                             </div>
@@ -359,12 +332,12 @@
                                 </label>
                                 <button type="button" class="btn btn-link text-primary p-0 text-decoration-none small fw-semibold"
                                         data-bs-toggle="modal" data-bs-target="#quickAddPublisherModal">
-                                    <i class="fas fa-plus-circle me-1"></i>নতুন প্রকাশনী তৈরি
+                                    <i class="fas fa-plus-circle me-1"></i>+ Add Publisher
                                 </button>
                             </div>
 
                             <select id="f-publisher_id" name="publisher_id" class="form-select @error('publisher_id') is-invalid @enderror">
-                                <option value="">— প্রকাশক / প্রকাশনী নির্বাচন করুন —</option>
+                                <option value="">— Select Publisher —</option>
                                 @foreach ($pubOptions as $pId => $pName)
                                     <option value="{{ $pId }}" @selected((string) $current === (string) $pId)>
                                         {{ $pName }}
@@ -374,8 +347,8 @@
 
                             <div class="mt-2 p-2 bg-light rounded border">
                                 <input type="text" id="f-new_publisher_name" name="new_publisher_name" 
-                                       class="form-control form-control-sm" placeholder="অথবা নতুন প্রকাশনীর নাম লিখুন...">
-                                <div class="form-text" style="font-size: 11px;">তালিকায় না থাকলে এখানে নাম লিখলে স্বয়ংক্রিয়ভাবে প্রকাশনী যুক্ত হবে।</div>
+                                       class="form-control form-control-sm" placeholder="Or enter new publisher name...">
+                                <div class="form-text" style="font-size: 11px;">If not in the list, write the name here and it will be created automatically.</div>
                             </div>
                             @error('publisher_id')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                         {{-- ══ SECTION 2: BINDING, PRICING, SALES DISCOUNT & PURCHASE COMMISSION ENGINE (BOOKS) ══ --}}
@@ -401,204 +374,216 @@
                             @endphp
 
                             <div class="col-12">
-                                <div class="p-3 bg-white rounded-3 border shadow-xs">
-                                    {{-- 1. Binding / Format Switcher --}}
-                                    <div class="mb-3 pb-2.5 border-bottom">
-                                        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
-                                            <label class="form-label fw-bold text-dark mb-0 small">
-                                                <i class="fas fa-layer-group text-primary me-1.5"></i> মূল বাঁধাই ও সংস্করণ নির্বাচন (Cover Binding & Edition) <span class="text-danger">*</span>
-                                            </label>
-                                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 small">
-                                                <i class="fas fa-calculator me-1"></i>স্বয়ংক্রিয় কমিশন ও লাভ হিসাব
-                                            </span>
+                                <details class="border rounded-3 bg-white shadow-xs p-3.5 mb-2 overflow-hidden" open>
+                                    <summary class="fw-bold text-dark cursor-pointer d-flex align-items-center justify-content-between pb-2" style="font-size: 0.95rem; user-select: none;">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="p-1.5 bg-success-subtle text-success rounded-circle small"><i class="fas fa-calculator"></i></span>
+                                            <span>২. বাঁধাই, সংস্করণ, মূল্য নির্ধারণ ও ক্রয়-বিক্রয় কমিশন হিসাব (Binding & Pricing Dropdown)</span>
+                                        </div>
+                                        <span class="badge bg-success-subtle text-success small rounded-pill px-2.5 py-1">
+                                            <i class="fas fa-chevron-down me-1"></i> ড্রপডাউন টগল
+                                        </span>
+                                    </summary>
+
+                                    <div class="pt-3 border-top">
+                                        {{-- 1. Binding / Format Switcher --}}
+                                        <div class="mb-3 pb-2.5 border-bottom">
+                                            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+                                                <label class="form-label fw-bold text-dark mb-0 small">
+                                                    <i class="fas fa-layer-group text-primary me-1.5"></i> Cover Binding & Edition Selection <span class="text-danger">*</span>
+                                                </label>
+                                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 small">
+                                                    <i class="fas fa-calculator me-1"></i>Automatic Margin & Profit Calculation
+                                                </span>
+                                            </div>
+
+                                            <div class="btn-group w-100 flex-wrap" role="group" id="coverTypeToggleGroup">
+                                                <input type="radio" class="btn-check" name="cover_type" id="cover_hardcover" value="hardcover" 
+                                                       @checked($curCoverType === 'hardcover') onchange="onCoverTypeChange()">
+                                                <label class="btn btn-outline-primary py-2 fw-semibold" for="cover_hardcover">
+                                                    <i class="fas fa-gem me-1.5 text-warning"></i> Hardcover (Primary)
+                                                </label>
+
+                                                <input type="radio" class="btn-check" name="cover_type" id="cover_paperback" value="paperback" 
+                                                       @checked($curCoverType === 'paperback') onchange="onCoverTypeChange()">
+                                                <label class="btn btn-outline-primary py-2 fw-semibold" for="cover_paperback">
+                                                    <i class="fas fa-book-open me-1.5 text-info"></i> Paperback
+                                                </label>
+
+                                                <input type="radio" class="btn-check" name="cover_type" id="cover_both" value="both" 
+                                                       @checked($curCoverType === 'both') onchange="onCoverTypeChange()">
+                                                <label class="btn btn-outline-primary py-2 fw-semibold" for="cover_both">
+                                                    <i class="fas fa-layer-group me-1.5 text-success"></i> Both Editions (Hardcover & Paperback)
+                                                </label>
+                                            </div>
                                         </div>
 
-                                        <div class="btn-group w-100 flex-wrap" role="group" id="coverTypeToggleGroup">
-                                            <input type="radio" class="btn-check" name="cover_type" id="cover_hardcover" value="hardcover" 
-                                                   @checked($curCoverType === 'hardcover') onchange="onCoverTypeChange()">
-                                            <label class="btn btn-outline-primary py-2 fw-semibold" for="cover_hardcover">
-                                                <i class="fas fa-gem me-1.5 text-warning"></i> হার্ডকভার (Hardcover — প্রধান)
-                                            </label>
+                                        {{-- 2. Pricing, Discount & Purchase Cost Cards --}}
+                                        <div class="row g-3">
+                                            {{-- Hardcover Card --}}
+                                            <div class="col-12 col-md-6" id="panelHardcoverCard">
+                                                <div class="card h-100 border rounded-3 bg-light overflow-hidden">
+                                                    <div class="card-header bg-primary text-white py-2 px-3 d-flex align-items-center justify-content-between">
+                                                        <span class="fw-bold small"><i class="fas fa-gem me-1.5 text-warning"></i> Hardcover Edition</span>
+                                                        <span class="badge bg-white text-primary small px-2 py-0.5 rounded-pill" id="badgeHardcoverStatus">Primary Price</span>
+                                                    </div>
+                                                    <div class="card-body p-3">
+                                                        {{-- Regular Price (MRP) --}}
+                                                        <div class="mb-3">
+                                                            <label for="f-hardcover_price" class="form-label small fw-bold text-dark mb-1">
+                                                                Printed Price / Regular MRP <span class="text-danger" id="reqStarHardcover">*</span>
+                                                            </label>
+                                                            <div class="input-group">
+                                                                <span class="input-group-text bg-white fw-bold text-primary">৳</span>
+                                                                <input type="number" step="0.01" min="0" id="f-hardcover_price" name="hardcover_price" 
+                                                                       value="{{ $valHardcoverPrice }}" class="form-control fw-bold" placeholder="0.00" 
+                                                                       oninput="onHardcoverPriceChange()">
+                                                            </div>
+                                                            <div class="form-text text-muted" style="font-size: 11px;">Maximum retail price printed on the book.</div>
+                                                        </div>
 
-                                            <input type="radio" class="btn-check" name="cover_type" id="cover_paperback" value="paperback" 
-                                                   @checked($curCoverType === 'paperback') onchange="onCoverTypeChange()">
-                                            <label class="btn btn-outline-primary py-2 fw-semibold" for="cover_paperback">
-                                                <i class="fas fa-book-open me-1.5 text-info"></i> পেপারব্যাক (Paperback)
-                                            </label>
+                                                        {{-- Selling Discount Section --}}
+                                                        <div class="p-2.5 bg-white rounded-3 border mb-3">
+                                                            <div class="d-flex align-items-center justify-content-between mb-1.5">
+                                                                <span class="small fw-bold text-success"><i class="fas fa-tags me-1"></i>Customer Sales Discount:</span>
+                                                                <span class="text-muted small" style="font-size: 10.5px;">2-Way Auto Sync</span>
+                                                            </div>
+                                                            <div class="row g-2">
+                                                                <div class="col-6">
+                                                                    <label for="f-hardcover_discount_percent" class="form-label small text-muted mb-1" style="font-size: 11px;">Discount (%)</label>
+                                                                    <div class="input-group input-group-sm">
+                                                                        <input type="number" step="0.5" min="0" max="100" id="f-hardcover_discount_percent" 
+                                                                               class="form-control" placeholder="e.g. 25" oninput="onHardcoverDiscountPercentChange()">
+                                                                        <span class="input-group-text bg-light fw-bold">%</span>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-6">
+                                                                    <label for="f-hardcover_discount_price" class="form-label small text-muted mb-1" style="font-size: 11px;">Offer Price (৳)</label>
+                                                                    <div class="input-group input-group-sm">
+                                                                        <span class="input-group-text bg-light fw-bold">৳</span>
+                                                                        <input type="number" step="0.01" min="0" id="f-hardcover_discount_price" name="hardcover_discount_price" 
+                                                                               value="{{ $valHardcoverDiscount }}" class="form-control fw-semibold" placeholder="0.00" 
+                                                                               oninput="onHardcoverDiscountPriceChange()">
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div id="liveHardcoverDiscountBadge" class="mt-1 small fw-semibold"></div>
+                                                        </div>
 
-                                            <input type="radio" class="btn-check" name="cover_type" id="cover_both" value="both" 
-                                                   @checked($curCoverType === 'both') onchange="onCoverTypeChange()">
-                                            <label class="btn btn-outline-primary py-2 fw-semibold" for="cover_both">
-                                                <i class="fas fa-layer-group me-1.5 text-success"></i> উভয় সংস্করণ (হার্ডকভার ও পেপারব্যাক)
-                                            </label>
-                                        </div>
-                                    </div>
-
-                                    {{-- 2. Pricing, Discount & Purchase Cost Cards --}}
-                                    <div class="row g-3">
-                                        {{-- Hardcover Card --}}
-                                        <div class="col-12 col-md-6" id="panelHardcoverCard">
-                                            <div class="card h-100 border rounded-3 bg-light overflow-hidden">
-                                                <div class="card-header bg-primary text-white py-2 px-3 d-flex align-items-center justify-content-between">
-                                                    <span class="fw-bold small"><i class="fas fa-gem me-1.5 text-warning"></i> হার্ডকভার সংস্করণ (Hardcover)</span>
-                                                    <span class="badge bg-white text-primary small px-2 py-0.5 rounded-pill" id="badgeHardcoverStatus">প্রধান মূল্য</span>
+                                                        {{-- Purchase & Cost Section --}}
+                                                        <div class="p-2.5 bg-white rounded-3 border border-warning-subtle mb-1">
+                                                            <div class="d-flex align-items-center justify-content-between mb-1.5">
+                                                                <span class="small fw-bold text-dark"><i class="fas fa-coins me-1 text-warning"></i>Publisher Purchase / Cost:</span>
+                                                                <span class="badge bg-warning-subtle text-warning-emphasis small" style="font-size: 10px;">Purchase Commission</span>
+                                                            </div>
+                                                            <div class="row g-2">
+                                                                <div class="col-6">
+                                                                    <label for="f-hardcover_cost_discount_percent" class="form-label small text-muted mb-1" style="font-size: 11px;">Purchase Comm. (%)</label>
+                                                                    <div class="input-group input-group-sm">
+                                                                        <input type="number" step="0.5" min="0" max="100" id="f-hardcover_cost_discount_percent" 
+                                                                               class="form-control" placeholder="e.g. 40" oninput="onHardcoverCostDiscountPercentChange()">
+                                                                        <span class="input-group-text bg-light fw-bold">%</span>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-6">
+                                                                    <label for="f-hardcover_cost_price_display" class="form-label small text-muted mb-1" style="font-size: 11px;">Cost Price (৳)</label>
+                                                                    <div class="input-group input-group-sm">
+                                                                        <span class="input-group-text bg-light fw-bold">৳</span>
+                                                                        <input type="number" step="0.01" min="0" id="f-hardcover_cost_price_display" 
+                                                                               value="{{ $curCoverType !== 'paperback' ? $valCostPrice : '' }}" class="form-control fw-semibold" placeholder="0.00" 
+                                                                               oninput="onHardcoverCostPriceChange()">
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div id="liveHardcoverProfitBadge" class="mt-1.5 small"></div>
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                                <div class="card-body p-3">
-                                                    {{-- Regular Price (MRP) --}}
-                                                    <div class="mb-3">
-                                                        <label for="f-hardcover_price" class="form-label small fw-bold text-dark mb-1">
-                                                            গায়ের মূল্য / নিয়মিত বিক্রয়মূল্য (MRP) <span class="text-danger" id="reqStarHardcover">*</span>
-                                                        </label>
-                                                        <div class="input-group">
-                                                            <span class="input-group-text bg-white fw-bold text-primary">৳</span>
-                                                            <input type="number" step="0.01" min="0" id="f-hardcover_price" name="hardcover_price" 
-                                                                   value="{{ $valHardcoverPrice }}" class="form-control fw-bold" placeholder="0.00" 
-                                                                   oninput="onHardcoverPriceChange()">
-                                                        </div>
-                                                        <div class="form-text text-muted" style="font-size: 11px;">বইয়ের গায়ে মুদ্রিত সর্বোচ্চ খুচরা মূল্য।</div>
-                                                    </div>
+                                            </div>
 
-                                                    {{-- Selling Discount Section --}}
-                                                    <div class="p-2.5 bg-white rounded-3 border mb-3">
-                                                        <div class="d-flex align-items-center justify-content-between mb-1.5">
-                                                            <span class="small fw-bold text-success"><i class="fas fa-tags me-1"></i>গ্রাহক বিক্রয় ছাড় (Sales Discount):</span>
-                                                            <span class="text-muted small" style="font-size: 10.5px;">২-ওয়ে অটো হিসাব</span>
-                                                        </div>
-                                                        <div class="row g-2">
-                                                            <div class="col-6">
-                                                                <label for="f-hardcover_discount_percent" class="form-label small text-muted mb-1" style="font-size: 11px;">ছাড়ের হার (%)</label>
-                                                                <div class="input-group input-group-sm">
-                                                                    <input type="number" step="0.5" min="0" max="100" id="f-hardcover_discount_percent" 
-                                                                           class="form-control" placeholder="যেমন: ২৫" oninput="onHardcoverDiscountPercentChange()">
-                                                                    <span class="input-group-text bg-light fw-bold">%</span>
-                                                                </div>
-                                                            </div>
-                                                            <div class="col-6">
-                                                                <label for="f-hardcover_discount_price" class="form-label small text-muted mb-1" style="font-size: 11px;">ছাড়ের পর বিক্রয়মূল্য (৳)</label>
-                                                                <div class="input-group input-group-sm">
-                                                                    <span class="input-group-text bg-light fw-bold">৳</span>
-                                                                    <input type="number" step="0.01" min="0" id="f-hardcover_discount_price" name="hardcover_discount_price" 
-                                                                           value="{{ $valHardcoverDiscount }}" class="form-control fw-semibold" placeholder="0.00" 
-                                                                           oninput="onHardcoverDiscountPriceChange()">
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <div id="liveHardcoverDiscountBadge" class="mt-1 small fw-semibold"></div>
+                                            {{-- Paperback Card --}}
+                                            <div class="col-12 col-md-6" id="panelPaperbackCard">
+                                                <div class="card h-100 border rounded-3 bg-light overflow-hidden">
+                                                    <div class="card-header bg-secondary text-white py-2 px-3 d-flex align-items-center justify-content-between" id="headerPaperback">
+                                                        <span class="fw-bold small"><i class="fas fa-book-open me-1.5 text-info"></i> Paperback Edition</span>
+                                                        <span class="badge bg-white text-secondary small px-2 py-0.5 rounded-pill" id="badgePaperbackStatus">Optional Edition</span>
                                                     </div>
+                                                    <div class="card-body p-3">
+                                                        {{-- Regular Price (MRP) --}}
+                                                        <div class="mb-3">
+                                                            <label for="f-price" class="form-label small fw-bold text-dark mb-1">
+                                                                Printed Price / Regular MRP <span class="text-danger" id="reqStarPaperback" style="display:none;">*</span>
+                                                            </label>
+                                                            <div class="input-group">
+                                                                <span class="input-group-text bg-white fw-bold text-primary">৳</span>
+                                                                <input type="number" step="0.01" min="0" id="f-price" name="price" 
+                                                                       value="{{ $valPaperbackPrice }}" class="form-control fw-bold" placeholder="0.00" 
+                                                                       oninput="onRegularPriceChange()">
+                                                            </div>
+                                                            <div class="form-text text-muted" style="font-size: 11px;">Maximum retail price for paperback edition.</div>
+                                                        </div>
 
-                                                    {{-- Purchase & Cost Section --}}
-                                                    <div class="p-2.5 bg-white rounded-3 border border-warning-subtle mb-1">
-                                                        <div class="d-flex align-items-center justify-content-between mb-1.5">
-                                                            <span class="small fw-bold text-dark"><i class="fas fa-coins me-1 text-warning"></i>ক্রয় হিসাব / প্রকাশনী খরচ:</span>
-                                                            <span class="badge bg-warning-subtle text-warning-emphasis small" style="font-size: 10px;">ক্রয়মূল্য কমিশন</span>
-                                                        </div>
-                                                        <div class="row g-2">
-                                                            <div class="col-6">
-                                                                <label for="f-hardcover_cost_discount_percent" class="form-label small text-muted mb-1" style="font-size: 11px;">ক্রয় কমিশন ছাড় (%)</label>
-                                                                <div class="input-group input-group-sm">
-                                                                    <input type="number" step="0.5" min="0" max="100" id="f-hardcover_cost_discount_percent" 
-                                                                           class="form-control" placeholder="যেমন: ৪০" oninput="onHardcoverCostDiscountPercentChange()">
-                                                                    <span class="input-group-text bg-light fw-bold">%</span>
+                                                        {{-- Selling Discount Section --}}
+                                                        <div class="p-2.5 bg-white rounded-3 border mb-3">
+                                                            <div class="d-flex align-items-center justify-content-between mb-1.5">
+                                                                <span class="small fw-bold text-success"><i class="fas fa-tags me-1"></i>Customer Sales Discount:</span>
+                                                                <span class="text-muted small" style="font-size: 10.5px;">2-Way Auto Sync</span>
+                                                            </div>
+                                                            <div class="row g-2">
+                                                                <div class="col-6">
+                                                                    <label for="f-discount_percent" class="form-label small text-muted mb-1" style="font-size: 11px;">Discount (%)</label>
+                                                                    <div class="input-group input-group-sm">
+                                                                        <input type="number" step="0.5" min="0" max="100" id="f-discount_percent" 
+                                                                               class="form-control" placeholder="e.g. 25" oninput="onDiscountPercentChange()">
+                                                                        <span class="input-group-text bg-light fw-bold">%</span>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-6">
+                                                                    <label for="f-discount_price" class="form-label small text-muted mb-1" style="font-size: 11px;">Offer Price (৳)</label>
+                                                                    <div class="input-group input-group-sm">
+                                                                        <span class="input-group-text bg-light fw-bold">৳</span>
+                                                                        <input type="number" step="0.01" min="0" id="f-discount_price" name="discount_price" 
+                                                                               value="{{ $valPaperbackDiscount }}" class="form-control fw-semibold" placeholder="0.00" 
+                                                                               oninput="onDiscountPriceChange()">
+                                                                    </div>
                                                                 </div>
                                                             </div>
-                                                            <div class="col-6">
-                                                                <label for="f-hardcover_cost_price_display" class="form-label small text-muted mb-1" style="font-size: 11px;">ক্রয়মূল্য / খরচ (৳)</label>
-                                                                <div class="input-group input-group-sm">
-                                                                    <span class="input-group-text bg-light fw-bold">৳</span>
-                                                                    <input type="number" step="0.01" min="0" id="f-hardcover_cost_price_display" 
-                                                                           value="{{ $curCoverType !== 'paperback' ? $valCostPrice : '' }}" class="form-control fw-semibold" placeholder="0.00" 
-                                                                           oninput="onHardcoverCostPriceChange()">
+                                                            <div id="liveDiscountBadge" class="mt-1 small fw-semibold"></div>
+                                                        </div>
+
+                                                        {{-- Purchase & Cost Section --}}
+                                                        <div class="p-2.5 bg-white rounded-3 border border-warning-subtle mb-1">
+                                                            <div class="d-flex align-items-center justify-content-between mb-1.5">
+                                                                <span class="small fw-bold text-dark"><i class="fas fa-coins me-1 text-warning"></i>Publisher Purchase / Cost:</span>
+                                                                <span class="badge bg-warning-subtle text-warning-emphasis small" style="font-size: 10px;">Purchase Commission</span>
+                                                            </div>
+                                                            <div class="row g-2">
+                                                                <div class="col-6">
+                                                                    <label for="f-cost_discount_percent" class="form-label small text-muted mb-1" style="font-size: 11px;">Purchase Comm. (%)</label>
+                                                                    <div class="input-group input-group-sm">
+                                                                        <input type="number" step="0.5" min="0" max="100" id="f-cost_discount_percent" 
+                                                                               class="form-control" placeholder="e.g. 40" oninput="onPaperbackCostDiscountPercentChange()">
+                                                                        <span class="input-group-text bg-light fw-bold">%</span>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-6">
+                                                                    <label for="f-cost_price" class="form-label small text-muted mb-1" style="font-size: 11px;">Cost Price (৳)</label>
+                                                                    <div class="input-group input-group-sm">
+                                                                        <span class="input-group-text bg-light fw-bold">৳</span>
+                                                                        <input type="number" step="0.01" min="0" id="f-cost_price" name="cost_price" 
+                                                                               value="{{ $valCostPrice }}" class="form-control fw-semibold" placeholder="0.00" 
+                                                                               oninput="onPaperbackCostPriceChange()">
+                                                                    </div>
                                                                 </div>
                                                             </div>
+                                                            <div id="livePaperbackProfitBadge" class="mt-1.5 small"></div>
                                                         </div>
-                                                        <div id="liveHardcoverProfitBadge" class="mt-1.5 small"></div>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
-
-                                        {{-- Paperback Card --}}
-                                        <div class="col-12 col-md-6" id="panelPaperbackCard">
-                                            <div class="card h-100 border rounded-3 bg-light overflow-hidden">
-                                                <div class="card-header bg-secondary text-white py-2 px-3 d-flex align-items-center justify-content-between" id="headerPaperback">
-                                                    <span class="fw-bold small"><i class="fas fa-book-open me-1.5 text-info"></i> পেপারব্যাক সংস্করণ (Paperback)</span>
-                                                    <span class="badge bg-white text-secondary small px-2 py-0.5 rounded-pill" id="badgePaperbackStatus">ঐচ্ছিক সংস্করণ</span>
-                                                </div>
-                                                <div class="card-body p-3">
-                                                    {{-- Regular Price (MRP) --}}
-                                                    <div class="mb-3">
-                                                        <label for="f-price" class="form-label small fw-bold text-dark mb-1">
-                                                            গায়ের মূল্য / নিয়মিত বিক্রয়মূল্য (MRP) <span class="text-danger" id="reqStarPaperback" style="display:none;">*</span>
-                                                        </label>
-                                                        <div class="input-group">
-                                                            <span class="input-group-text bg-white fw-bold text-primary">৳</span>
-                                                            <input type="number" step="0.01" min="0" id="f-price" name="price" 
-                                                                   value="{{ $valPaperbackPrice }}" class="form-control fw-bold" placeholder="0.00" 
-                                                                   oninput="onRegularPriceChange()">
-                                                        </div>
-                                                        <div class="form-text text-muted" style="font-size: 11px;">পেপারব্যাক সংস্করণের খুচরা বিক্রয়মূল্য।</div>
-                                                    </div>
-
-                                                    {{-- Selling Discount Section --}}
-                                                    <div class="p-2.5 bg-white rounded-3 border mb-3">
-                                                        <div class="d-flex align-items-center justify-content-between mb-1.5">
-                                                            <span class="small fw-bold text-success"><i class="fas fa-tags me-1"></i>গ্রাহক বিক্রয় ছাড় (Sales Discount):</span>
-                                                            <span class="text-muted small" style="font-size: 10.5px;">২-ওয়ে অটো হিসাব</span>
-                                                        </div>
-                                                        <div class="row g-2">
-                                                            <div class="col-6">
-                                                                <label for="f-discount_percent" class="form-label small text-muted mb-1" style="font-size: 11px;">ছাড়ের হার (%)</label>
-                                                                <div class="input-group input-group-sm">
-                                                                    <input type="number" step="0.5" min="0" max="100" id="f-discount_percent" 
-                                                                           class="form-control" placeholder="যেমন: ২৫" oninput="onDiscountPercentChange()">
-                                                                    <span class="input-group-text bg-light fw-bold">%</span>
-                                                                </div>
-                                                            </div>
-                                                            <div class="col-6">
-                                                                <label for="f-discount_price" class="form-label small text-muted mb-1" style="font-size: 11px;">ছাড়ের পর বিক্রয়মূল্য (৳)</label>
-                                                                <div class="input-group input-group-sm">
-                                                                    <span class="input-group-text bg-light fw-bold">৳</span>
-                                                                    <input type="number" step="0.01" min="0" id="f-discount_price" name="discount_price" 
-                                                                           value="{{ $valPaperbackDiscount }}" class="form-control fw-semibold" placeholder="0.00" 
-                                                                           oninput="onDiscountPriceChange()">
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <div id="liveDiscountBadge" class="mt-1 small fw-semibold"></div>
-                                                    </div>
-
-                                                    {{-- Purchase & Cost Section --}}
-                                                    <div class="p-2.5 bg-white rounded-3 border border-warning-subtle mb-1">
-                                                        <div class="d-flex align-items-center justify-content-between mb-1.5">
-                                                            <span class="small fw-bold text-dark"><i class="fas fa-coins me-1 text-warning"></i>ক্রয় হিসাব / প্রকাশনী খরচ:</span>
-                                                            <span class="badge bg-warning-subtle text-warning-emphasis small" style="font-size: 10px;">ক্রয়মূল্য কমিশন</span>
-                                                        </div>
-                                                        <div class="row g-2">
-                                                            <div class="col-6">
-                                                                <label for="f-cost_discount_percent" class="form-label small text-muted mb-1" style="font-size: 11px;">ক্রয় কমিশন ছাড় (%)</label>
-                                                                <div class="input-group input-group-sm">
-                                                                    <input type="number" step="0.5" min="0" max="100" id="f-cost_discount_percent" 
-                                                                           class="form-control" placeholder="যেমন: ৪০" oninput="onPaperbackCostDiscountPercentChange()">
-                                                                    <span class="input-group-text bg-light fw-bold">%</span>
-                                                                </div>
-                                                            </div>
-                                                            <div class="col-6">
-                                                                <label for="f-cost_price" class="form-label small text-muted mb-1" style="font-size: 11px;">ক্রয়মূল্য / খরচ (৳)</label>
-                                                                <div class="input-group input-group-sm">
-                                                                    <span class="input-group-text bg-light fw-bold">৳</span>
-                                                                    <input type="number" step="0.01" min="0" id="f-cost_price" name="cost_price" 
-                                                                           value="{{ $valCostPrice }}" class="form-control fw-semibold" placeholder="0.00" 
-                                                                           oninput="onPaperbackCostPriceChange()">
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <div id="livePaperbackProfitBadge" class="mt-1.5 small"></div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
                                     </div>
-                                </div>
+                                </details>
                             </div>
 
                         {{-- ══ PRICING & DISCOUNT FIELDS (EBOOKS / OTHER CONTENT TYPES) ══ --}}
@@ -618,20 +603,20 @@
                             <div class="mt-2.5 p-2 bg-light rounded border">
                                 <div class="d-flex align-items-center justify-content-between mb-1">
                                     <label for="f-discount_percent" class="form-label small fw-semibold text-dark mb-0" style="font-size: 11.5px;">
-                                        <i class="fas fa-percent me-1 text-primary"></i>ছাড়ের শতকরা হার (%):
+                                        <i class="fas fa-percent me-1 text-primary"></i>Discount Percentage (%):
                                     </label>
-                                    <span class="small text-muted" style="font-size: 11px;">স্বয়ংক্রিয় হিসাব</span>
+                                    <span class="small text-muted" style="font-size: 11px;">Auto Calculate</span>
                                 </div>
                                 <div class="input-group input-group-sm">
                                     <input type="number" step="0.5" min="0" max="100" id="f-discount_percent" 
-                                           class="form-control" placeholder="যেমন: ২৫" oninput="onDiscountPercentChange()">
+                                           class="form-control" placeholder="e.g. 25" oninput="onDiscountPercentChange()">
                                     <span class="input-group-text bg-white fw-bold">%</span>
                                 </div>
                             </div>
 
                         @elseif ($name === 'discount_price')
                             <label for="f-discount_price" class="form-label small fw-semibold">
-                                {{ $field['label'] }} (ছাড়ের পর বিক্রয়মূল্য)
+                                {{ $field['label'] }} (Sale / Discounted Price)
                             </label>
                             <div class="input-group">
                                 <span class="input-group-text bg-light fw-bold">৳</span>
@@ -643,7 +628,7 @@
                             <div id="liveDiscountBadge" class="mt-1 small fw-semibold"></div>
                             @error('discount_price')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
 
-                        {{-- ══ PRE-ORDER FIELDS (সম্ভাব্য তারিখ ও বিশেষ বার্তা) ══ --}}
+                        {{-- ══ PRE-ORDER FIELDS ══ --}}
                         @elseif ($name === 'pre_order_release_date')
                             <div class="p-2.5 bg-warning-subtle rounded-3 border border-warning">
                                 <label for="f-pre_order_release_date" class="form-label small fw-bold text-dark mb-1">
@@ -651,7 +636,7 @@
                                 </label>
                                 <input type="date" id="f-pre_order_release_date" name="pre_order_release_date" value="{{ $current }}"
                                        class="form-control form-control-sm @error('pre_order_release_date') is-invalid @enderror">
-                                <div class="form-text text-muted" style="font-size: 11px;">প্রি-অর্ডার চালু থাকলে সম্ভাব্য কোন তারিখে ডেলিভারি শুরু হবে তা উল্লেখ করুন।</div>
+                                <div class="form-text text-muted" style="font-size: 11px;">Specify the estimated shipping / release date for pre-orders.</div>
                                 @error('pre_order_release_date')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                             </div>
 
@@ -661,30 +646,31 @@
                                     <i class="fas fa-gift text-warning-emphasis me-1"></i> {{ $field['label'] }}
                                 </label>
                                 <textarea id="f-pre_order_note" name="pre_order_note" rows="2"
-                                          placeholder="{{ $field['placeholder'] ?? 'প্রি-অর্ডার বিশেষ নোট বা উপহার সংক্রান্ত বার্তা...' }}"
+                                          placeholder="{{ $field['placeholder'] ?? 'Special gifts, autograph note, or pre-order bonuses...' }}"
                                           class="form-control form-control-sm @error('pre_order_note') is-invalid @enderror">{{ $current }}</textarea>
-                                <div class="form-text text-muted" style="font-size: 11px;">গ্রাহকদের আকর্ষণ করতে প্রি-অর্ডার সংক্রান্ত অফার বা বার্তা লিখুন।</div>
+                                <div class="form-text text-muted" style="font-size: 11px;">Promotional message or gift note for pre-order buyers.</div>
                                 @error('pre_order_note')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                             </div>
 
+                        {{-- ══ SUMMARY WITH 1000 WORDS LIMIT & PROGRESS ══ --}}
                         @elseif ($name === 'summary')
                             <div class="d-flex align-items-center justify-content-between mb-1">
                                 <label for="f-summary" class="form-label small fw-semibold text-dark mb-0">
-                                    <i class="fas fa-feather-pointed text-primary me-1"></i> {{ $field['label'] }}
+                                    <i class="fas fa-file-lines text-primary me-1"></i> Product Summary (বইয়ের সংক্ষেপ — ১০০০ শব্দ)
                                 </label>
                                 <div class="word-counter-badge safe" id="summaryWordBadge">
-                                    <i class="fas fa-font me-1"></i> শব্দ: <span id="summaryWordCount">০</span> / ৪০০
+                                    <i class="fas fa-font me-1"></i> Words: <span id="summaryWordCount">0</span> / 1000
                                 </div>
                             </div>
-                            <textarea id="f-summary" name="summary" rows="3"
+                            <textarea id="f-summary" name="summary" rows="5"
                                       class="form-control @error('summary') is-invalid @enderror"
-                                      placeholder="বইয়ের মূল আকর্ষণ বা সংক্ষেপ — যা পণ্যের পেজের শুরুতে সুন্দর হাইলাইট বক্সে প্রদর্শিত হবে (সর্বোচ্চ ৪০০ শব্দ)..."
-                                      oninput="updateGenericWordCount(this, 400, 'summaryWordCount', 'summaryWordBadge', 'summaryProgressBar', 'summaryWarning')">{{ $current }}</textarea>
+                                      placeholder="বইয়ের সংক্ষেপ, মূল পটভূমি বা আকর্ষণীয় সারসংক্ষেপ লিখুন (সর্বোচ্চ ১০০০ শব্দ)..."
+                                      oninput="updateGenericWordCount(this, 1000, 'summaryWordCount', 'summaryWordBadge', 'summaryProgressBar', 'summaryWarning')">{{ $current }}</textarea>
                             <div class="word-counter-progress">
                                 <div class="word-counter-progress__bar" id="summaryProgressBar"></div>
                             </div>
                             <div class="d-flex justify-content-between align-items-center mt-1">
-                                <div class="form-text text-muted mb-0" style="font-size: 11.5px;">বইয়ের সংক্ষিপ্ত সারসংক্ষেপ বা আকর্ষণীয় উদ্ধৃতি লিখুন (সর্বোচ্চ ৪০০ শব্দ)।</div>
+                                <div class="form-text text-muted mb-0" style="font-size: 11.5px;">Short book teaser or attractive excerpt (up to 400 words).</div>
                                 <div id="summaryWarning" class="text-danger small fw-bold d-none"></div>
                             </div>
                             @error('summary')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
@@ -696,43 +682,43 @@
                                     <i class="fas fa-address-card text-primary me-1"></i> {{ $field['label'] }}
                                 </label>
                                 <div class="word-counter-badge safe" id="authorBioWordBadge">
-                                    <i class="fas fa-font me-1"></i> শব্দ: <span id="authorBioWordCount">০</span> / ৩০০
+                                    <i class="fas fa-font me-1"></i> Words: <span id="authorBioWordCount">0</span> / 300
                                 </div>
                             </div>
                             <textarea id="f-author_bio" name="author_bio" rows="4"
                                       class="form-control @error('author_bio') is-invalid @enderror"
-                                      placeholder="কাস্টম লেখকের পরিচিতি, কর্মজীবন বা সংক্ষিপ্ত জীবনী লিখুন (সর্বোচ্চ ৩০০ শব্দ)..."
+                                      placeholder="Author biography, literary background and key achievements (max 300 words)..."
                                       oninput="updateGenericWordCount(this, 300, 'authorBioWordCount', 'authorBioWordBadge', 'authorBioProgressBar', 'authorBioWarning')">{{ $current }}</textarea>
                             <div class="word-counter-progress">
                                 <div class="word-counter-progress__bar" id="authorBioProgressBar"></div>
                             </div>
                             <div class="d-flex justify-content-between align-items-center mt-1">
                                 <div class="form-text text-muted mb-0" style="font-size: 11.5px;">
-                                    ডিরেক্টরি ছাড়া সরাসরি কাস্টম লেখকের বায়ো/পরিচিতি দিতে চাইলে এখানে লিখুন (সর্বোচ্চ ৩০০ শব্দ)।
+                                    Optional custom author bio (up to 300 words).
                                 </div>
                                 <div id="authorBioWarning" class="text-danger small fw-bold d-none"></div>
                             </div>
                             @error('author_bio')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
 
-                        {{-- ══ DESCRIPTION / FLAP (বিস্তারিত বিবরণ - ৪০০ শব্দ) ══ --}}
+                        {{-- ══ DESCRIPTION / FLAP (400 WORDS LIMIT) ══ --}}
                         @elseif ($name === 'description')
                             <div class="d-flex align-items-center justify-content-between mb-1">
                                 <label for="f-description" class="form-label small fw-semibold text-dark mb-0">
                                     <i class="fas fa-align-left text-primary me-1"></i> {{ $field['label'] }}
                                 </label>
                                 <div class="word-counter-badge safe" id="descriptionWordBadge">
-                                    <i class="fas fa-font me-1"></i> শব্দ: <span id="descriptionWordCount">০</span> / ৪০০
+                                    <i class="fas fa-font me-1"></i> Words: <span id="descriptionWordCount">0</span> / 400
                                 </div>
                             </div>
                             <textarea id="f-description" name="description" rows="7"
                                       class="form-control @error('description') is-invalid @enderror"
-                                      placeholder="বইয়ের বিস্তারিত ফ্ল্যাপ ও সূচিপত্র/পরিচিতি লিখুন (সর্বোচ্চ ৪০০ শব্দ)..."
+                                      placeholder="Complete book flap, table of contents or overview (max 400 words)..."
                                       oninput="updateGenericWordCount(this, 400, 'descriptionWordCount', 'descriptionWordBadge', 'descriptionProgressBar', 'descriptionWarning')">{{ $current }}</textarea>
                             <div class="word-counter-progress">
                                 <div class="word-counter-progress__bar" id="descriptionProgressBar"></div>
                             </div>
                             <div class="d-flex justify-content-between align-items-center mt-1">
-                                <div class="form-text text-muted mb-0" style="font-size: 11.5px;">বইয়ের পূর্ণাঙ্গ ফ্ল্যাপ ও বিবরণ লিখুন (সর্বোচ্চ ৪০০ শব্দ)।</div>
+                                <div class="form-text text-muted mb-0" style="font-size: 11.5px;">Full book flap and detailed description (max 400 words).</div>
                                 <div id="descriptionWarning" class="text-danger small fw-bold d-none"></div>
                             </div>
                             @error('description')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
@@ -750,18 +736,18 @@
                                     @if (($field['lookup'] ?? '') === 'blog_categories' || $spec['key'] === 'blog')
                                         <button type="button" class="btn btn-link text-primary p-0 text-decoration-none small fw-semibold"
                                                 data-bs-toggle="modal" data-bs-target="#quickAddBlogCategoryModal">
-                                            <i class="fas fa-plus-circle me-1"></i>নতুন ক্যাটাগরি তৈরি করুন
+                                            <i class="fas fa-plus-circle me-1"></i>+ Add New Category
                                         </button>
                                     @elseif (($field['lookup'] ?? '') === 'categories' || in_array($spec['key'], ['books', 'ebooks'], true))
                                         <button type="button" class="btn btn-link text-primary p-0 text-decoration-none small fw-semibold"
                                                 data-bs-toggle="modal" data-bs-target="#quickAddCategoryModal">
-                                            <i class="fas fa-plus-circle me-1"></i>নতুন ক্যাটাগরি তৈরি করুন
+                                            <i class="fas fa-plus-circle me-1"></i>+ Add New Category
                                         </button>
                                     @endif
                                 @elseif ($name === 'publisher_id' && ($field['lookup'] ?? '') === 'publishers')
                                     <button type="button" class="btn btn-link text-primary p-0 text-decoration-none small fw-semibold"
                                             data-bs-toggle="modal" data-bs-target="#quickAddPublisherModal">
-                                        <i class="fas fa-plus-circle me-1"></i>নতুন প্রকাশনী তৈরি করুন
+                                        <i class="fas fa-plus-circle me-1"></i>+ Add New Publisher
                                     </button>
                                 @endif
                             </div>
@@ -776,7 +762,6 @@
                                     @php
                                         $editorHtml = $current;
                                         if (!empty($editorHtml)) {
-                                            // If content is plain text or lacks standard paragraph / break tags, format newlines into stanzas & linebreaks
                                             if (!str_contains($editorHtml, '<p>') && !str_contains($editorHtml, '<br>') && !str_contains($editorHtml, '<div>') && !str_contains($editorHtml, '<blockquote')) {
                                                 $rawStanzas = preg_split('/\r\n\r\n|\n\n+|\r\r+/', (string) $editorHtml);
                                                 $formattedStanzas = [];
@@ -796,140 +781,140 @@
                                         <div class="rich-editor-toolbar bg-light p-2 border-bottom d-flex flex-wrap gap-1 align-items-center">
                                             <!-- Heading Format Selector -->
                                             <select class="form-select form-select-sm" style="width: auto; min-width: 135px;" onchange="formatDoc('formatBlock', this.value, 'f-{{ $name }}')">
-                                                <option value="p">স্বাভাবিক প্যারাগ্রাফ (P)</option>
-                                                <option value="h1">বড় শিরোনাম (H1)</option>
-                                                <option value="h2">উপ-শিরোনাম (H2)</option>
-                                                <option value="h3">ছোট শিরোনাম (H3)</option>
-                                                <option value="h4">সেকশন হেডিং (H4)</option>
-                                                <option value="blockquote">উদ্ধৃতি (Blockquote)</option>
+                                                <option value="p">Paragraph (P)</option>
+                                                <option value="h1">Heading 1 (H1)</option>
+                                                <option value="h2">Heading 2 (H2)</option>
+                                                <option value="h3">Heading 3 (H3)</option>
+                                                <option value="h4">Section (H4)</option>
+                                                <option value="blockquote">Quote (Blockquote)</option>
                                             </select>
 
                                              <!-- Font Size Selector -->
                                             <select class="form-select form-select-sm" style="width: auto; min-width: 105px;" onchange="formatDoc('fontSize', this.value, 'f-{{ $name }}')">
-                                                <option value="3">ফন্ট সাইজ</option>
-                                                <option value="1">খুব ছোট (12px)</option>
-                                                <option value="2">ছোট (14px)</option>
-                                                <option value="3">স্বাভাবিক (16px)</option>
-                                                <option value="4">মাঝারি (18px)</option>
-                                                <option value="5">বড় (22px)</option>
-                                                <option value="6">খুব বড় (28px)</option>
+                                                <option value="3">Font Size</option>
+                                                <option value="1">Tiny (12px)</option>
+                                                <option value="2">Small (14px)</option>
+                                                <option value="3">Regular (16px)</option>
+                                                <option value="4">Medium (18px)</option>
+                                                <option value="5">Large (22px)</option>
+                                                <option value="6">Extra Large (28px)</option>
                                             </select>
 
                                             <!-- Line Spacing Selector & Direct Increment/Decrement Controls -->
-                                            <select class="form-select form-select-sm" style="width: auto; min-width: 110px;" onchange="changeLineSpacing('f-{{ $name }}', this.value)" title="লাইনের মধ্যবর্তী ফাঁকা / লাইন হাইট (Line Spacing)">
-                                                <option value="">লাইন স্পেস</option>
-                                                <option value="1.2">অতি ঘন (1.2)</option>
-                                                <option value="1.35">ঘন / খুব কম (1.35)</option>
-                                                <option value="1.5">কম / স্ট্যান্ডার্ড (1.5)</option>
-                                                <option value="1.65">আদর্শ পাঠযোগ্য (1.65)</option>
-                                                <option value="1.85">মাঝারি ফাঁকা (1.85)</option>
-                                                <option value="2.1">অধিক ফাঁকা (2.1)</option>
+                                            <select class="form-select form-select-sm" style="width: auto; min-width: 110px;" onchange="changeLineSpacing('f-{{ $name }}', this.value)" title="Line Spacing">
+                                                <option value="">Line Spacing</option>
+                                                <option value="1.2">Compact (1.2)</option>
+                                                <option value="1.35">Tight (1.35)</option>
+                                                <option value="1.5">Standard (1.5)</option>
+                                                <option value="1.65">Readable (1.65)</option>
+                                                <option value="1.85">Relaxed (1.85)</option>
+                                                <option value="2.1">Loose (2.1)</option>
                                             </select>
-                                            <button type="button" class="btn btn-sm btn-light border py-1 px-2 text-primary fw-bold" onclick="adjustLineSpacing('f-{{ $name }}', -0.15)" title="লাইন স্পেস কমান (Tighter Line Spacing)">
-                                                <i class="fas fa-arrows-alt-v me-1"></i>স্পেস কমান (-)
+                                            <button type="button" class="btn btn-sm btn-light border py-1 px-2 text-primary fw-bold" onclick="adjustLineSpacing('f-{{ $name }}', -0.15)" title="Tighter Line Spacing">
+                                                <i class="fas fa-arrows-alt-v me-1"></i>Tighten (-)
                                             </button>
-                                            <button type="button" class="btn btn-sm btn-light border py-1 px-2 text-dark" onclick="adjustLineSpacing('f-{{ $name }}', 0.15)" title="লাইন স্পেস বাড়ান (Looser Line Spacing)">
-                                                <i class="fas fa-arrows-alt-v me-1"></i>স্পেস বাড়ান (+)
+                                            <button type="button" class="btn btn-sm btn-light border py-1 px-2 text-dark" onclick="adjustLineSpacing('f-{{ $name }}', 0.15)" title="Looser Line Spacing">
+                                                <i class="fas fa-arrows-alt-v me-1"></i>Loosen (+)
                                             </button>
 
                                             <!-- Paragraph Spacing Selector -->
-                                            <select class="form-select form-select-sm" style="width: auto; min-width: 105px;" onchange="changeParagraphSpacing('f-{{ $name }}', this.value)" title="প্যারাগ্রাফ / স্তবকের ফাঁকা (Paragraph Gap)">
-                                                <option value="">প্যারা ফাঁকা</option>
-                                                <option value="0.25rem">অতি কম (0.25rem)</option>
-                                                <option value="0.5rem">কম ফাঁকা (0.5rem)</option>
-                                                <option value="0.75rem">আদর্শ ফাঁকা (0.75rem)</option>
-                                                <option value="1.1rem">মাঝারি ফাঁকা (1.1rem)</option>
-                                                <option value="1.5rem">বেশি ফাঁকা (1.5rem)</option>
+                                            <select class="form-select form-select-sm" style="width: auto; min-width: 105px;" onchange="changeParagraphSpacing('f-{{ $name }}', this.value)" title="Paragraph Gap">
+                                                <option value="">Para Gap</option>
+                                                <option value="0.25rem">Minimal (0.25rem)</option>
+                                                <option value="0.5rem">Small (0.5rem)</option>
+                                                <option value="0.75rem">Standard (0.75rem)</option>
+                                                <option value="1.1rem">Medium (1.1rem)</option>
+                                                <option value="1.5rem">Large (1.5rem)</option>
                                             </select>
 
                                             <div class="vr mx-1"></div>
 
                                             <!-- Style buttons -->
-                                            <button type="button" class="btn btn-sm btn-light border py-1 px-2.5 fw-bold" onclick="formatDoc('bold', null, 'f-{{ $name }}')" title="বোল্ড (Ctrl+B)">
+                                            <button type="button" class="btn btn-sm btn-light border py-1 px-2.5 fw-bold" onclick="formatDoc('bold', null, 'f-{{ $name }}')" title="Bold (Ctrl+B)">
                                                 <i class="fas fa-bold"></i>
                                             </button>
-                                            <button type="button" class="btn btn-sm btn-light border py-1 px-2.5 fst-italic" onclick="formatDoc('italic', null, 'f-{{ $name }}')" title="ইটালিক (Ctrl+I)">
+                                            <button type="button" class="btn btn-sm btn-light border py-1 px-2.5 fst-italic" onclick="formatDoc('italic', null, 'f-{{ $name }}')" title="Italic (Ctrl+I)">
                                                 <i class="fas fa-italic"></i>
                                             </button>
-                                            <button type="button" class="btn btn-sm btn-light border py-1 px-2.5 text-decoration-underline" onclick="formatDoc('underline', null, 'f-{{ $name }}')" title="আন্ডারলাইন (Ctrl+U)">
+                                            <button type="button" class="btn btn-sm btn-light border py-1 px-2.5 text-decoration-underline" onclick="formatDoc('underline', null, 'f-{{ $name }}')" title="Underline (Ctrl+U)">
                                                 <i class="fas fa-underline"></i>
                                             </button>
-                                            <button type="button" class="btn btn-sm btn-light border py-1 px-2.5 text-decoration-line-through" onclick="formatDoc('strikeThrough', null, 'f-{{ $name }}')" title="স্ট্রাইকথ্রু">
+                                            <button type="button" class="btn btn-sm btn-light border py-1 px-2.5 text-decoration-line-through" onclick="formatDoc('strikeThrough', null, 'f-{{ $name }}')" title="Strikethrough">
                                                 <i class="fas fa-strikethrough"></i>
                                             </button>
 
                                             <div class="vr mx-1"></div>
 
                                             <!-- Alignment -->
-                                            <button type="button" class="btn btn-sm btn-light border py-1 px-2" onclick="formatDoc('justifyLeft', null, 'f-{{ $name }}')" title="বাম সারিবদ্ধ">
+                                            <button type="button" class="btn btn-sm btn-light border py-1 px-2" onclick="formatDoc('justifyLeft', null, 'f-{{ $name }}')" title="Align Left">
                                                 <i class="fas fa-align-left"></i>
                                             </button>
-                                            <button type="button" class="btn btn-sm btn-light border py-1 px-2" onclick="formatDoc('justifyCenter', null, 'f-{{ $name }}')" title="মাঝে সারিবদ্ধ (কবিতার জন্য আদর্শ)">
+                                            <button type="button" class="btn btn-sm btn-light border py-1 px-2" onclick="formatDoc('justifyCenter', null, 'f-{{ $name }}')" title="Align Center">
                                                 <i class="fas fa-align-center"></i>
                                             </button>
-                                            <button type="button" class="btn btn-sm btn-light border py-1 px-2" onclick="formatDoc('justifyRight', null, 'f-{{ $name }}')" title="ডান সারিবদ্ধ">
+                                            <button type="button" class="btn btn-sm btn-light border py-1 px-2" onclick="formatDoc('justifyRight', null, 'f-{{ $name }}')" title="Align Right">
                                                 <i class="fas fa-align-right"></i>
                                             </button>
-                                            <button type="button" class="btn btn-sm btn-light border py-1 px-2" onclick="formatDoc('justifyFull', null, 'f-{{ $name }}')" title="জাস্টিফাই (প্রবন্ধের জন্য)">
+                                            <button type="button" class="btn btn-sm btn-light border py-1 px-2" onclick="formatDoc('justifyFull', null, 'f-{{ $name }}')" title="Justify">
                                                 <i class="fas fa-align-justify"></i>
                                             </button>
 
                                             <div class="vr mx-1"></div>
 
                                             <!-- Lists & Divider -->
-                                            <button type="button" class="btn btn-sm btn-light border py-1 px-2" onclick="formatDoc('insertUnorderedList', null, 'f-{{ $name }}')" title="বুলেট পয়েন্ট">
+                                            <button type="button" class="btn btn-sm btn-light border py-1 px-2" onclick="formatDoc('insertUnorderedList', null, 'f-{{ $name }}')" title="Bullet List">
                                                 <i class="fas fa-list-ul"></i>
                                             </button>
-                                            <button type="button" class="btn btn-sm btn-light border py-1 px-2" onclick="formatDoc('insertOrderedList', null, 'f-{{ $name }}')" title="নম্বর লিস্ট">
+                                            <button type="button" class="btn btn-sm btn-light border py-1 px-2" onclick="formatDoc('insertOrderedList', null, 'f-{{ $name }}')" title="Numbered List">
                                                 <i class="fas fa-list-ol"></i>
                                             </button>
-                                            <button type="button" class="btn btn-sm btn-light border py-1 px-2" onclick="formatDoc('insertHorizontalRule', null, 'f-{{ $name }}')" title="বিভাজক রেখা (Divider)">
+                                            <button type="button" class="btn btn-sm btn-light border py-1 px-2" onclick="formatDoc('insertHorizontalRule', null, 'f-{{ $name }}')" title="Divider Line">
                                                 <i class="fas fa-minus"></i>
                                             </button>
 
                                             <div class="vr mx-1"></div>
 
                                             <!-- Link & Media -->
-                                            <button type="button" class="btn btn-sm btn-light border py-1 px-2 text-primary" onclick="insertLinkPrompt('f-{{ $name }}')" title="লিংক যুক্ত করুন">
+                                            <button type="button" class="btn btn-sm btn-light border py-1 px-2 text-primary" onclick="insertLinkPrompt('f-{{ $name }}')" title="Insert Link">
                                                 <i class="fas fa-link"></i>
                                             </button>
-                                            <button type="button" class="btn btn-sm btn-light border py-1 px-2 text-muted" onclick="formatDoc('unlink', null, 'f-{{ $name }}')" title="লিংক মুছুন">
+                                            <button type="button" class="btn btn-sm btn-light border py-1 px-2 text-muted" onclick="formatDoc('unlink', null, 'f-{{ $name }}')" title="Remove Link">
                                                 <i class="fas fa-link-slash"></i>
                                             </button>
-                                            <button type="button" class="btn btn-sm btn-light border py-1 px-2 text-success" onclick="insertImagePrompt('f-{{ $name }}')" title="ছবি যুক্ত করুন">
+                                            <button type="button" class="btn btn-sm btn-light border py-1 px-2 text-success" onclick="insertImagePrompt('f-{{ $name }}')" title="Insert Image">
                                                 <i class="fas fa-image"></i>
                                             </button>
 
                                             <div class="vr mx-1"></div>
 
                                             <!-- Literary Poetry & Prose Enhancers -->
-                                            <button type="button" class="btn btn-sm btn-outline-primary border py-1 px-2.5 fw-semibold" onclick="formatPoetryMode('f-{{ $name }}')" title="কবিতার লাইন ও স্তবক বিন্যাস সাজান (Preserve Poetry Stanzas)">
-                                                <i class="fas fa-feather-alt text-primary me-1"></i> কবিতা মোড
+                                            <button type="button" class="btn btn-sm btn-outline-primary border py-1 px-2.5 fw-semibold" onclick="formatPoetryMode('f-{{ $name }}')" title="Preserve Poetry Stanzas">
+                                                <i class="fas fa-feather-alt text-primary me-1"></i> Poetry Mode
                                             </button>
-                                            <button type="button" class="btn btn-sm btn-outline-secondary border py-1 px-2.5 fw-semibold" onclick="formatProseMode('f-{{ $name }}')" title="গদ্য ও প্রবন্ধের অনুচ্ছেদ বিন্যাস (Prose Mode)">
-                                                <i class="fas fa-align-left me-1"></i> গদ্য মোড
+                                            <button type="button" class="btn btn-sm btn-outline-secondary border py-1 px-2.5 fw-semibold" onclick="formatProseMode('f-{{ $name }}')" title="Prose Mode">
+                                                <i class="fas fa-align-left me-1"></i> Prose Mode
                                             </button>
-                                            <button type="button" class="btn btn-sm btn-outline-info border py-1 px-2.5 fw-semibold" onclick="formatFixLineBreaks('f-{{ $name }}')" title="প্যারা ও লাইন স্পেস স্বয়ংক্রিয়ভাবে মেরামত করুন">
-                                                <i class="fas fa-wand-magic-sparkles me-1"></i> স্পেস ঠিক করুন
+                                            <button type="button" class="btn btn-sm btn-outline-info border py-1 px-2.5 fw-semibold" onclick="formatFixLineBreaks('f-{{ $name }}')" title="Auto Repair Line & Para Spacing">
+                                                <i class="fas fa-wand-magic-sparkles me-1"></i> Fix Spacing
                                             </button>
-                                            <button type="button" class="btn btn-sm btn-outline-warning border py-1 px-2.5 fw-semibold text-dark" id="spellBtn-{{ $name }}" onclick="toggleSpellChecker('{{ $name }}')" title="প্রমিত বাংলা একাডেমি ও ইংরেজি বানান পরীক্ষা (Spell Check)">
-                                                <i class="fas fa-spell-check text-warning me-1"></i> <span id="spellBtnText-{{ $name }}">বানান পরীক্ষা</span>
+                                            <button type="button" class="btn btn-sm btn-outline-warning border py-1 px-2.5 fw-semibold text-dark" id="spellBtn-{{ $name }}" onclick="toggleSpellChecker('{{ $name }}')" title="Spell Checker">
+                                                <i class="fas fa-spell-check text-warning me-1"></i> <span id="spellBtnText-{{ $name }}">Spell Check</span>
                                             </button>
                                             @if($spec['key'] === 'blog')
-                                                <button type="button" class="btn btn-sm btn-outline-success border py-1 px-2.5 fw-semibold" onclick="openBlogLivePreviewModal('f-{{ $name }}')" title="সাহিত্যপত্র ও রিডার ভিউতে সরাসরি প্রিভিউ দেখুন">
-                                                    <i class="fas fa-eye me-1"></i> সাহিত্যপত্র প্রিভিউ
+                                                <button type="button" class="btn btn-sm btn-outline-success border py-1 px-2.5 fw-semibold" onclick="openBlogLivePreviewModal('f-{{ $name }}')" title="Live Article Reader Preview">
+                                                    <i class="fas fa-eye me-1"></i> Reader Preview
                                                 </button>
                                             @endif
 
                                             <div class="vr mx-1"></div>
 
-                                            <button type="button" class="btn btn-sm btn-light border py-1 px-2" onclick="formatDoc('undo', null, 'f-{{ $name }}')" title="আনডু (Ctrl+Z)">
+                                            <button type="button" class="btn btn-sm btn-light border py-1 px-2" onclick="formatDoc('undo', null, 'f-{{ $name }}')" title="Undo (Ctrl+Z)">
                                                 <i class="fas fa-undo"></i>
                                             </button>
-                                            <button type="button" class="btn btn-sm btn-light border py-1 px-2" onclick="formatDoc('redo', null, 'f-{{ $name }}')" title="রিডু (Ctrl+Y)">
+                                            <button type="button" class="btn btn-sm btn-light border py-1 px-2" onclick="formatDoc('redo', null, 'f-{{ $name }}')" title="Redo (Ctrl+Y)">
                                                 <i class="fas fa-redo"></i>
                                             </button>
-                                            <button type="button" class="btn btn-sm btn-light border py-1 px-2 text-danger" onclick="formatDoc('removeFormat', null, 'f-{{ $name }}')" title="ফরম্যাটিং মুছুন">
+                                            <button type="button" class="btn btn-sm btn-light border py-1 px-2 text-danger" onclick="formatDoc('removeFormat', null, 'f-{{ $name }}')" title="Clear Formatting">
                                                 <i class="fas fa-eraser"></i>
                                             </button>
                                         </div>
@@ -948,7 +933,7 @@
                                     <div id="spell-results-{{ $name }}" class="mt-2.5 d-none"></div>
 
                                     <div class="d-flex flex-wrap align-items-center justify-content-between text-muted mt-1" style="font-size: 11.5px;">
-                                        <div><i class="fas fa-circle-info text-primary me-1"></i> কবিতার ক্ষেত্রে <strong>“কবিতা মোড”</strong> অথবা গদ্যে <strong>“গদ্য মোড”</strong> ও <strong>“স্পেস ঠিক করুন”</strong> বাটনে চাপলে প্যারা ও লাইন স্পেসিং স্বয়ংক্রিয়ভাবে সাজানো হবে।</div>
+                                        <div><i class="fas fa-circle-info text-primary me-1"></i> Use <strong>“Poetry Mode”</strong> for verse formatting or <strong>“Prose Mode”</strong> & <strong>“Fix Spacing”</strong> for clean stanzas.</div>
                                         <div id="editorWordStats-{{ $name }}" class="fw-semibold text-dark"></div>
                                     </div>
                                     @break
@@ -960,7 +945,7 @@
                                     <select id="f-{{ $name }}" name="{{ $name }}"
                                             class="form-select @error($name) is-invalid @enderror"
                                             @if($name === 'cover_type') onchange="onCoverTypeChange()" @endif>
-                                        <option value="">— নির্বাচন করুন —</option>
+                                        <option value="">— Select Option —</option>
                                         @foreach ($options as $optValue => $optLabel)
                                             <option value="{{ $optValue }}" @selected((string) $current === (string) $optValue)>
                                                 {{ $optLabel }}
@@ -968,9 +953,9 @@
                                         @endforeach
                                     </select>
                                     @if ($name === 'stock_status')
-                                        <div class="form-text" style="font-size: 11.5px;">গ্রাহকদের জন্য বর্তমান প্রাপ্তিসাধ্যতা (Availability)।</div>
+                                        <div class="form-text" style="font-size: 11.5px;">Current product availability for customers.</div>
                                     @elseif ($name === 'cover_type')
-                                        <div class="form-text" style="font-size: 11.5px;">হার্ডকভার, পেপারব্যাক বা উভয় সংস্করণ নির্বাচন করুন।</div>
+                                        <div class="form-text" style="font-size: 11.5px;">Select hardcover, paperback, or both editions.</div>
                                     @endif
                                     @break
 
@@ -982,11 +967,11 @@
 
                                         $guideText = '';
                                         if ($isCover) {
-                                            $guideText = 'মাপ: ৬০০ × ৯০০ px (২:৩), JPG/PNG/WebP, সর্বোচ্চ ৪MB';
+                                            $guideText = 'Dimensions: 600 × 900 px (2:3), JPG/PNG/WebP, max 4MB';
                                         } elseif ($isAvatar) {
-                                            $guideText = 'মাপ: ৪০০ × ৪০০ px (১:১ স্কয়ার), সর্বোচ্চ ৪MB';
+                                            $guideText = 'Dimensions: 400 × 400 px (1:1 square), max 4MB';
                                         } elseif ($isPdf) {
-                                            $guideText = 'PDF / EPUB ফরম্যাট, সর্বোচ্চ ২০MB';
+                                            $guideText = 'PDF / EPUB format, max 20MB';
                                         }
                                     @endphp
 
@@ -1014,10 +999,10 @@
                                         </div>
 
                                         <div class="fw-bold text-dark mb-0.5" style="font-size: 0.9rem;">
-                                            {{ $field['label'] }} আপলোড করুন
+                                            Upload {{ $field['label'] }}
                                         </div>
                                         <div class="text-muted small mb-1" style="font-size: 0.8rem;">
-                                            ফাইল নির্বাচন করতে ক্লিক করুন অথবা এখানে টেনে আনুন
+                                            Click to browse or drag and drop file here
                                         </div>
 
                                         @if ($guideText)
@@ -1038,7 +1023,7 @@
                                                 </div>
                                             @endif
                                             <div class="overflow-hidden">
-                                                <span class="badge bg-success mb-1"><i class="fas fa-check-circle me-1"></i> নতুন ফাইল প্রস্তুত</span>
+                                                <span class="badge bg-success mb-1"><i class="fas fa-check-circle me-1"></i> New file ready</span>
                                                 <div id="preview-filename-{{ $name }}" class="small fw-bold text-dark text-truncate" style="max-width: 250px;"></div>
                                                 <div id="preview-filesize-{{ $name }}" class="small text-muted"></div>
                                             </div>
@@ -1063,17 +1048,17 @@
                                             @endif
                                             <div class="overflow-hidden me-auto">
                                                 <div class="small fw-bold text-dark mb-0.5 text-truncate" style="max-width: 220px;">
-                                                    বর্তমান ফাইল সংরক্ষিত আছে
+                                                    Current file stored
                                                 </div>
                                                 <a href="{{ $fileUrl }}" target="_blank" rel="noopener"
                                                    class="btn btn-sm btn-outline-primary py-0.5 px-2 rounded-pill fw-semibold text-decoration-none" style="font-size: 11px;">
-                                                    <i class="fas fa-arrow-up-right-from-square me-1"></i> ফাইল ওপেন / ভিউ
+                                                    <i class="fas fa-arrow-up-right-from-square me-1"></i> View / Open File
                                                 </a>
                                             </div>
                                             <div class="form-check form-switch mb-0">
                                                 <input class="form-check-input" type="checkbox" role="switch"
                                                        id="rm-{{ $name }}" name="remove_{{ $name }}" value="1">
-                                                <label class="form-check-label small text-danger fw-semibold" for="rm-{{ $name }}">মুছুন</label>
+                                                <label class="form-check-label small text-danger fw-semibold" for="rm-{{ $name }}">Remove</label>
                                             </div>
                                         </div>
                                     @endif
@@ -1084,9 +1069,9 @@
                                            id="f-{{ $name }}" name="{{ $name }}" value="{{ $current }}"
                                            class="form-control @error($name) is-invalid @enderror">
                                     @if ($name === 'page_count')
-                                        <div class="form-text" style="font-size: 11px;">বইটির সর্বমোট পৃষ্ঠা সংখ্যা (যেমন: ২৫৬)।</div>
+                                        <div class="form-text" style="font-size: 11px;">Total number of pages (e.g. 256).</div>
                                     @elseif ($name === 'preview_pages')
-                                        <div class="form-text" style="font-size: 11px;">নমুনায় কত পৃষ্ঠা পড়তে পারবে।</div>
+                                        <div class="form-text" style="font-size: 11px;">Number of pages readable in sample preview.</div>
                                     @endif
                                     @break
 
@@ -1095,7 +1080,7 @@
                                            value="{{ $current instanceof \DateTimeInterface ? $current->format('Y-m-d') : $current }}"
                                            class="form-control @error($name) is-invalid @enderror">
                                     @if ($name === 'published_at')
-                                        <div class="form-text" style="font-size: 11px;">বইটির মূল প্রকাশের তারিখ।</div>
+                                        <div class="form-text" style="font-size: 11px;">Original publication / release date.</div>
                                     @endif
                                     @break
 
@@ -1104,11 +1089,11 @@
                                            class="form-control @error($name) is-invalid @enderror"
                                            oninput="updateLiveMockupCard()">
                                     @if ($name === 'subtitle')
-                                        <div class="form-text" style="font-size: 11.5px;">বইয়ের উপশিরোনাম বা বিশেষ সংস্করণ ট্যাগ (ঐচ্ছিক)।</div>
+                                        <div class="form-text" style="font-size: 11.5px;">Subtitle or edition tagline (optional).</div>
                                     @elseif ($name === 'edition')
-                                        <div class="form-text" style="font-size: 11.5px;">যেমন: ১ম সংস্করণ (২০২৪), ২য় মুদ্রণ ইত্যাদি।</div>
+                                        <div class="form-text" style="font-size: 11.5px;">e.g., 1st Edition (2024), 2nd Print, etc.</div>
                                     @elseif ($name === 'language')
-                                        <div class="form-text" style="font-size: 11.5px;">যেমন: বাংলা, ইংরেজি, আরবি ইত্যাদি।</div>
+                                        <div class="form-text" style="font-size: 11.5px;">e.g., Bengali, English, Arabic, etc.</div>
                                     @endif
                             @endswitch
 
@@ -1130,14 +1115,14 @@
                         <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
                             <div>
                                 <h5 class="fw-bold mb-1 text-dark">
-                                    <i class="fas fa-list-ol text-primary me-2"></i>সূচিপত্র ও পৃষ্ঠা ইনডেক্সার (Table of Contents & Page Indexer)
+                                    <i class="fas fa-list-ol text-primary me-2"></i>Table of Contents & Page Indexer
                                 </h5>
                                 <p class="text-muted small mb-0">
-                                    প্রতিটি লেখার শিরোনাম, লেখক এবং বইয়ের পৃষ্ঠা নম্বর (Page #) লিখে দিন। পাঠক সূচিপত্রে ক্লিক করলেই স্বয়ংক্রিয়ভাবে সেই নির্দিষ্ট পেজে চলে যাবে।
+                                    Add article titles, authors, and page numbers. Readers can jump directly to any page from the interactive Table of Contents.
                                 </p>
                             </div>
                             <button type="button" class="btn btn-sm btn-primary rounded-pill px-3 shadow-xs" onclick="addWebzineTocRow()">
-                                <i class="fas fa-plus-circle me-1"></i> নতুন সূচি / লেখা যোগ করুন
+                                <i class="fas fa-plus-circle me-1"></i>+ Add TOC Entry / Article
                             </button>
                         </div>
 
@@ -1146,10 +1131,10 @@
                                 <thead class="table-light small fw-bold text-secondary">
                                     <tr>
                                         <th style="width: 45px;" class="text-center">#</th>
-                                        <th>লেখার শিরোনাম / অধ্যায় <span class="text-danger">*</span></th>
-                                        <th style="width: 220px;">লেখক (Author)</th>
-                                        <th style="width: 140px;">পৃষ্ঠা নম্বর (Page #) <span class="text-danger">*</span></th>
-                                        <th style="width: 60px;" class="text-center">অ্যাকশন</th>
+                                        <th>Article / Chapter Title <span class="text-danger">*</span></th>
+                                        <th style="width: 220px;">Author</th>
+                                        <th style="width: 140px;">Page # <span class="text-danger">*</span></th>
+                                        <th style="width: 60px;" class="text-center">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody id="webzineTocBody">
@@ -1159,11 +1144,11 @@
                                             <td>
                                                 <input type="hidden" name="toc_articles[{{ $idx }}][id]" value="{{ $art->id }}">
                                                 <input type="hidden" name="toc_articles[{{ $idx }}][order]" class="input-order" value="{{ $art->order ?: ($idx + 1) }}">
-                                                <input type="text" name="toc_articles[{{ $idx }}][title]" class="form-control form-control-sm" value="{{ $art->title }}" placeholder="যেমন: সম্পাদকীয় / ভালোবাসার গল্প..." required>
+                                                <input type="text" name="toc_articles[{{ $idx }}][title]" class="form-control form-control-sm" value="{{ $art->title }}" placeholder="e.g. Editorial / Feature Story..." required>
                                             </td>
                                             <td>
                                                 <select name="toc_articles[{{ $idx }}][author_id]" class="form-select form-select-sm">
-                                                    <option value="">— লেখক নির্বাচন করুন (ঐচ্ছিক) —</option>
+                                                    <option value="">— Select Author (Optional) —</option>
                                                     @foreach($authorList as $aId => $aName)
                                                         <option value="{{ $aId }}" @selected((string)$art->author_id === (string)$aId)>{{ $aName }}</option>
                                                     @endforeach
@@ -1171,26 +1156,26 @@
                                             </td>
                                             <td>
                                                 <div class="input-group input-group-sm">
-                                                    <span class="input-group-text bg-light text-muted">পৃষ্ঠা</span>
+                                                    <span class="input-group-text bg-light text-muted">Page</span>
                                                     <input type="number" name="toc_articles[{{ $idx }}][page_number]" class="form-control form-control-sm text-center fw-bold" value="{{ $art->page_number ?: ($idx + 1) }}" min="1" placeholder="1" required>
                                                 </div>
                                             </td>
                                             <td class="text-center">
-                                                <button type="button" class="btn btn-sm btn-outline-danger p-1 border-0" onclick="removeWebzineTocRow(this)" title="মুছুন">
+                                                <button type="button" class="btn btn-sm btn-outline-danger p-1 border-0" onclick="removeWebzineTocRow(this)" title="Delete">
                                                     <i class="fas fa-trash-alt"></i>
                                                 </button>
                                             </td>
                                         </tr>
                                     @empty
                                         <tr class="webzine-toc-row">
-                                            <td class="text-center fw-bold text-muted row-number">১</td>
+                                            <td class="text-center fw-bold text-muted row-number">1</td>
                                             <td>
                                                 <input type="hidden" name="toc_articles[0][order]" class="input-order" value="1">
-                                                <input type="text" name="toc_articles[0][title]" class="form-control form-control-sm" placeholder="যেমন: সম্পাদকীয় / প্রথম রচনা..." required>
+                                                <input type="text" name="toc_articles[0][title]" class="form-control form-control-sm" placeholder="e.g. Editorial / Opening Piece..." required>
                                             </td>
                                             <td>
                                                 <select name="toc_articles[0][author_id]" class="form-select form-select-sm">
-                                                    <option value="">— লেখক নির্বাচন করুন (ঐচ্ছিক) —</option>
+                                                    <option value="">— Select Author (Optional) —</option>
                                                     @foreach($authorList as $aId => $aName)
                                                         <option value="{{ $aId }}">{{ $aName }}</option>
                                                     @endforeach
@@ -1198,12 +1183,12 @@
                                             </td>
                                             <td>
                                                 <div class="input-group input-group-sm">
-                                                    <span class="input-group-text bg-light text-muted">পৃষ্ঠা</span>
+                                                    <span class="input-group-text bg-light text-muted">Page</span>
                                                     <input type="number" name="toc_articles[0][page_number]" class="form-control form-control-sm text-center fw-bold" value="1" min="1" placeholder="1" required>
                                                 </div>
                                             </td>
                                             <td class="text-center">
-                                                <button type="button" class="btn btn-sm btn-outline-danger p-1 border-0" onclick="removeWebzineTocRow(this)" title="মুছুন">
+                                                <button type="button" class="btn btn-sm btn-outline-danger p-1 border-0" onclick="removeWebzineTocRow(this)" title="Delete">
                                                     <i class="fas fa-trash-alt"></i>
                                                 </button>
                                             </td>
@@ -1214,9 +1199,9 @@
                         </div>
                         <div class="d-flex justify-content-between align-items-center mt-2">
                             <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3" onclick="addWebzineTocRow()">
-                                <i class="fas fa-plus me-1"></i> আরো একটি সূচি যোগ করুন
+                                <i class="fas fa-plus me-1"></i> Add Another Entry
                             </button>
-                            <span class="small text-muted"><i class="fas fa-info-circle me-1 text-primary"></i>পৃষ্ঠা নম্বর দিলে অনলাইন রিডারে স্বয়ংক্রিয়ভাবে সেই পেজে জাম্প করবে।</span>
+                            <span class="small text-muted"><i class="fas fa-info-circle me-1 text-primary"></i>Page number links directly to the page in the digital reader.</span>
                         </div>
                     </div>
                 @endif
@@ -1226,13 +1211,14 @@
 
     <!-- Right Sidebar (Live Mockup, Moderation, Submit) -->
     <div class="col-12 col-lg-4">
+        <div style="position: sticky; top: 20px; z-index: 1020;">
         
         {{-- Live Book / Ebook Card Mockup --}}
         @if ($isBookOrEbook)
             <div class="adm-card p-3 mb-3">
                 <h6 class="fw-bold mb-2 text-dark d-flex align-items-center justify-content-between">
-                    <span><i class="fas fa-eye me-1.5 text-primary"></i> লাইভ প্রিভিউ (Live Card)</span>
-                    <span class="badge bg-success-subtle text-success small rounded-pill">রিয়েল-টাইম</span>
+                    <span><i class="fas fa-eye me-1.5 text-primary"></i> Live Card Preview</span>
+                    <span class="badge bg-success-subtle text-success small rounded-pill">Real-Time</span>
                 </h6>
                 <div class="p-3 bg-light rounded-3 border text-center">
                     <div class="position-relative mx-auto mb-2" style="width: 125px; height: 185px;">
@@ -1240,21 +1226,21 @@
                              src="{{ ($editing && !empty($record->cover_image)) ? (str_starts_with($record->cover_image, 'http') ? $record->cover_image : asset('storage/' . ltrim($record->cover_image, '/'))) : 'https://placehold.co/300x450/e2e8f0/475569?text=Cover+Image' }}" 
                              alt="Book Cover" class="rounded shadow-sm border w-100 h-100" style="object-fit: cover; aspect-ratio: 2/3; image-rendering: -webkit-optimize-contrast;">
                         <span id="mockupDiscountBadge" class="badge bg-danger position-absolute top-0 start-0 m-1 shadow-xs d-none" style="font-size: 0.72rem;">
-                            -০%
+                            -0%
                         </span>
                         <span id="mockupFormatBadge" class="badge bg-dark position-absolute bottom-0 start-0 m-1 shadow-xs opacity-90" style="font-size: 0.68rem;">
-                            হার্ডকভার
+                            Hardcover
                         </span>
                     </div>
                     <div id="mockupTitle" class="fw-bold text-dark text-truncate mb-0.5" style="font-size: 0.92rem;">
-                        {{ $editing ? ($record->title ?? 'বইয়ের শিরোনাম') : 'বইয়ের শিরোনাম' }}
+                        {{ $editing ? ($record->title ?? 'Book Title') : 'Book Title' }}
                     </div>
                     <div id="mockupAuthor" class="small text-muted mb-1.5 text-truncate" style="font-size: 0.78rem;">
-                        {{ $editing ? ($record->author_name ?? 'লেখকের নাম') : 'লেখকের নাম' }}
+                        {{ $editing ? ($record->author_name ?? 'Author Name') : 'Author Name' }}
                     </div>
                     <div class="d-flex align-items-center justify-content-center gap-2">
-                        <span id="mockupFinalPrice" class="fw-bold text-primary fs-6">৳০</span>
-                        <span id="mockupOriginalPrice" class="text-muted text-decoration-line-through small d-none">৳০</span>
+                        <span id="mockupFinalPrice" class="fw-bold text-primary fs-6">৳0</span>
+                        <span id="mockupOriginalPrice" class="text-muted text-decoration-line-through small d-none">৳0</span>
                     </div>
                 </div>
             </div>
@@ -1264,8 +1250,8 @@
         @if ($spec['key'] === 'blog')
             <div class="adm-card p-3 mb-3">
                 <h6 class="fw-bold mb-2 text-dark d-flex align-items-center justify-content-between">
-                    <span><i class="fas fa-feather-pointed me-1.5 text-primary"></i> সাহিত্যপত্র ও পোস্ট প্রিভিউ</span>
-                    <span class="badge bg-success-subtle text-success small rounded-pill">রিয়েল-টাইম</span>
+                    <span><i class="fas fa-feather-pointed me-1.5 text-primary"></i> Article & Card Preview</span>
+                    <span class="badge bg-success-subtle text-success small rounded-pill">Real-Time</span>
                 </h6>
                 <div class="p-3 bg-light rounded-3 border text-start">
                     <div class="position-relative mx-auto mb-2 rounded-3 overflow-hidden" style="max-height: 140px; aspect-ratio: 16/9; background: #e2e8f0;">
@@ -1275,21 +1261,21 @@
                     </div>
                     <div class="d-flex align-items-center justify-content-between mb-1">
                         <span id="mockupCategoryBadge" class="badge bg-primary text-white" style="font-size: 0.72rem;">
-                            {{ $editing && $record->category ? $record->category->name : 'সাহিত্য সাময়িকী' }}
+                            {{ $editing && $record->category ? $record->category->name : 'Literature' }}
                         </span>
                         <span class="badge bg-light text-muted border" style="font-size: 0.7rem;">
                             {{ $editing && $record->published_at ? $record->published_at->format('d M Y') : date('d M Y') }}
                         </span>
                     </div>
                     <div id="mockupTitle" class="fw-bold text-dark text-truncate mb-1" style="font-size: 0.95rem;">
-                        {{ $editing ? ($record->title ?? 'পোস্টের শিরোনাম') : 'পোস্টের শিরোনাম' }}
+                        {{ $editing ? ($record->title ?? 'Post Title') : 'Post Title' }}
                     </div>
                     <div id="mockupSubtitle" class="small text-secondary mb-1 text-truncate" style="font-size: 0.8rem;">
                         {{ $editing ? ($record->subtitle ?? '') : '' }}
                     </div>
                     <div id="mockupAuthor" class="small text-muted d-flex align-items-center gap-1" style="font-size: 0.78rem;">
                         <i class="fas fa-pen-nib text-success"></i>
-                        <span>{{ $editing && $record ? ($record->author_name ?? ($record->author->name ?? 'লেখকের নাম')) : 'লেখকের নাম' }}</span>
+                        <span>{{ $editing && $record ? ($record->author_name ?? ($record->author->name ?? 'Author Name')) : 'Author Name' }}</span>
                     </div>
                 </div>
             </div>
@@ -1299,8 +1285,8 @@
         @if ($spec['key'] === 'webzines')
             <div class="adm-card p-3 mb-3">
                 <h6 class="fw-bold mb-2 text-dark d-flex align-items-center justify-content-between">
-                    <span><i class="fas fa-newspaper me-1.5 text-info"></i> ওয়েবজিন লাইভ কার্ড ও রিডার</span>
-                    <span class="badge bg-info-subtle text-info small rounded-pill">লাইভ স্ট্যাটাস</span>
+                    <span><i class="fas fa-newspaper me-1.5 text-info"></i> Webzine Card & Reader</span>
+                    <span class="badge bg-info-subtle text-info small rounded-pill">Live Status</span>
                 </h6>
                 <div class="p-3 bg-light rounded-3 border text-center">
                     <div class="position-relative mx-auto mb-2" style="max-width: 140px;">
@@ -1308,23 +1294,23 @@
                              src="{{ ($editing && !empty($record->cover_image)) ? (str_starts_with($record->cover_image, 'http') ? $record->cover_image : asset('storage/' . ltrim($record->cover_image, '/'))) : 'https://placehold.co/300x450/e2e8f0/475569?text=Webzine+Cover' }}" 
                              alt="Webzine Cover" class="img-fluid rounded shadow-sm border" style="aspect-ratio: 2/3; object-fit: cover; width: 100%;">
                         <span id="mockupIssueBadge" class="badge bg-primary position-absolute top-0 start-0 m-1 shadow-xs">
-                            {{ $editing ? ($record->issue_number ?? 'সংখ্যা') : '১ম সংখ্যা' }}
+                            {{ $editing ? ($record->issue_number ?? 'Issue') : 'Issue 1' }}
                         </span>
                     </div>
                     <div id="mockupTitle" class="fw-bold text-dark text-truncate mb-0.5" style="font-size: 0.95rem;">
-                        {{ $editing ? ($record->title ?? 'ওয়েবজিনের শিরোনাম') : 'ওয়েবজিনের শিরোনাম' }}
+                        {{ $editing ? ($record->title ?? 'Webzine Title') : 'Webzine Title' }}
                     </div>
                     <div id="mockupPublisher" class="small text-muted mb-2 text-truncate" style="font-size: 0.8rem;">
-                        {{ $editing && $record->publisher ? $record->publisher->name : 'আইডিয়া প্রকাশন' }}
+                        {{ $editing && $record->publisher ? $record->publisher->name : 'Idea Prakashan' }}
                     </div>
 
                     @if ($editing)
                         <div class="d-grid gap-1.5 mt-2">
                             <a href="{{ route('webzine.read', $record->slug ?: $record->id) }}" target="_blank" class="btn btn-sm btn-info text-white rounded-pill fw-bold">
-                                <i class="fas fa-book-open me-1"></i> সরাসরি রিডারে পড়ুন
+                                <i class="fas fa-book-open me-1"></i> Open in Digital Reader
                             </a>
                             <a href="{{ route('webzine.show', $record->slug ?: $record->id) }}" target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill">
-                                <i class="fas fa-eye me-1"></i> পাবলিক পেজ প্রিভিউ
+                                <i class="fas fa-eye me-1"></i> Public Page Preview
                             </a>
                         </div>
                     @endif
@@ -1334,15 +1320,15 @@
 
         {{-- Posting on behalf of someone --}}
         <div class="adm-card p-3 mb-3">
-            <h2 class="h6 fw-bold mb-1"><i class="fas fa-user-pen me-1 text-muted"></i> কার পক্ষে (কন্ট্রিবিউটর ক্রেডিট)</h2>
+            <h2 class="h6 fw-bold mb-1"><i class="fas fa-user-pen me-1 text-muted"></i> On Behalf of (Contributor Credit)</h2>
             <p class="text-muted small mb-3" style="font-size: 11.5px;">
-                যিনি অনলাইনে রেজিস্ট্রেশন করতে পারেন না, তাঁর নাম এখানে লিখলে এন্ট্রিটি তাঁর নামে সংরক্ষিত থাকবে।
+                Credit this entry to an offline contributor or another registered user account.
             </p>
 
             <div class="mb-2.5">
-                <label for="f-submitted_by" class="form-label small fw-semibold mb-1">রেজিস্টার্ড ব্যবহারকারী</label>
+                <label for="f-submitted_by" class="form-label small fw-semibold mb-1">Registered User</label>
                 <select id="f-submitted_by" name="submitted_by" class="form-select form-select-sm @error('submitted_by') is-invalid @enderror">
-                    <option value="">— আমি নিজে (অ্যাডমিন) —</option>
+                    <option value="">— Myself (Admin) —</option>
                     @foreach (($creditees ?? []) as $userId => $userLabel)
                         <option value="{{ $userId }}" @selected((string) $val('submitted_by') === (string) $userId)>
                             {{ $userLabel }}
@@ -1354,16 +1340,16 @@
 
             @if ($spec['key'] !== 'blog')
             <div class="mb-2.5">
-                <label for="f-owner_name" class="form-label small fw-semibold mb-1">অফলাইন ব্যক্তির নাম</label>
+                <label for="f-owner_name" class="form-label small fw-semibold mb-1">Offline Contributor Name</label>
                 <input type="text" id="f-owner_name" name="owner_name" value="{{ $val('owner_name') }}"
-                       placeholder="যেমন: মোঃ আনিসুর রহমান"
+                       placeholder="e.g., Md. Anisur Rahman"
                        class="form-control form-control-sm @error('owner_name') is-invalid @enderror">
                 @error('owner_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
             @endif
 
             <div>
-                <label for="f-owner_phone" class="form-label small fw-semibold mb-1">যোগাযোগের ফোন নম্বর</label>
+                <label for="f-owner_phone" class="form-label small fw-semibold mb-1">Contact Phone</label>
                 <input type="text" id="f-owner_phone" name="owner_phone" value="{{ $val('owner_phone') }}"
                        placeholder="01XXXXXXXXX"
                        class="form-control form-control-sm @error('owner_phone') is-invalid @enderror">
@@ -1373,12 +1359,12 @@
 
         {{-- Moderation & Slug --}}
         <div class="adm-card p-3 mb-3">
-            <h2 class="h6 fw-bold mb-2.5"><i class="fas fa-circle-check me-1 text-muted"></i> অনুমোদন ও ইউআরএল</h2>
+            <h2 class="h6 fw-bold mb-2.5"><i class="fas fa-circle-check me-1 text-muted"></i> Moderation & URL</h2>
 
             <div class="mb-3">
-                <label for="f-mod_status" class="form-label small fw-semibold mb-1">স্ট্যাটাস</label>
+                <label for="f-mod_status" class="form-label small fw-semibold mb-1">Status</label>
                 <select id="f-mod_status" name="mod_status" class="form-select form-select-sm">
-                    @foreach (['approved' => 'অনুমোদিত (সরাসরি লাইভ)', 'pending' => 'অপেক্ষমাণ (রিভিউ)', 'rejected' => 'বাতিল'] as $value => $text)
+                    @foreach (['approved' => 'Approved (Live on site)', 'pending' => 'Pending (Under Review)', 'rejected' => 'Rejected'] as $value => $text)
                         <option value="{{ $value }}" @selected($val('mod_status', 'approved') === $value)>{{ $text }}</option>
                     @endforeach
                 </select>
@@ -1386,38 +1372,64 @@
 
             @if ($editing && $record->rejection_reason)
                 <div class="alert alert-warning small mt-2 mb-2 p-2">
-                    <strong>বাতিলের কারণ:</strong> {{ $record->rejection_reason }}
+                    <strong>Rejection Reason:</strong> {{ $record->rejection_reason }}
                 </div>
             @endif
 
             <div>
-                <label for="f-slug" class="form-label small fw-semibold mb-1">কাস্টম Slug (URL)</label>
+                <label for="f-slug" class="form-label small fw-semibold mb-1">Custom Slug (URL)</label>
                 <input type="text" id="f-slug" name="slug" value="{{ $val('slug') }}"
-                       placeholder="খালি রাখলে নাম থেকে তৈরি হবে"
+                       placeholder="Leave blank to auto-generate"
                        class="form-control form-control-sm @error('slug') is-invalid @enderror">
-                <div class="form-text" style="font-size: 11px;">ইংরেজি বা বাংলায় এসইও-বান্ধব ইউআরএল।</div>
+                <div class="form-text" style="font-size: 11px;">SEO-friendly URL identifier.</div>
                 @error('slug')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
         </div>
 
+        {{-- Legal & Publishing Compliance Declaration for Books --}}
+        @if ($spec['key'] === 'books')
+            <div class="adm-card p-3 mb-3 border-start border-4 border-success shadow-xs">
+                <div class="d-flex align-items-center gap-2 mb-2 text-dark fw-bold" style="font-size: 0.88rem;">
+                    <i class="fas fa-scale-balanced text-success"></i>
+                    <span>আইন ও প্রকাশনা নীতিমালা সম্মতি</span>
+                </div>
+
+                <div class="p-2.5 bg-light rounded-3 border mb-2.5 small text-secondary" style="font-size: 11px; line-height: 1.55; max-height: 180px; overflow-y: auto;">
+                    <p class="mb-1.5"><strong>১. সাধারণ বিধি ও নৈতিকতা:</strong> বাংলাদেশে বই প্রকাশ ও মুদ্রণের ক্ষেত্রে প্রেস ও প্রকাশনা, কপিরাইট, দণ্ডবিধি, অশ্লীল প্রকাশনা এবং ডিজিটাল মাধ্যমে প্রকাশিত কনটেন্টসংক্রান্ত প্রচলিত আইন ও বিধি মানা আবশ্যক। প্রকাশনা ও মুদ্রণ প্রতিষ্ঠানের প্রয়োজনীয় নিবন্ধন/অনুমোদন থাকতে হবে এবং বইয়ের বিষয়বস্তু রাষ্ট্রীয় নিরাপত্তা, জনশৃঙ্খলা, ধর্মীয় অনুভূতি, নৈতিকতা ও শালীনতার পরিপন্থী হওয়া যাবে না।</p>
+                    <p class="mb-1.5"><strong>২. দণ্ডবিধি ও প্রকাশনা আইন:</strong> দণ্ডবিধি, ১৮৬০-এর ২৯২, ২৯৩ ও ৫০৫ ধারায় অশ্লীল প্রকাশনা, অপ্রাপ্তবয়স্কদের কাছে অশ্লীল উপাদান সরবরাহ এবং জনশৃঙ্খলা বিনষ্টকারী বক্তব্যের বিষয়ে বিধান রয়েছে। মুদ্রণ ও প্রকাশনা আইন, ১৯৭৩-এর সংশ্লিষ্ট বিধান অনুযায়ী প্রেস পরিচালনা ও প্রকাশনার ক্ষেত্রে প্রয়োজনীয় অনুমোদন এবং সরকারি নির্দেশনা অনুসরণ করতে হবে।</p>
+                    <p class="mb-1.5"><strong>৩. কপিরাইট ও মেধাস্বত্ব:</strong> কপিরাইট আইন, ২০০০ অনুযায়ী অন্যের লেখা, ছবি, ডিজাইন বা মেধাস্বত্ব অনুমতি ছাড়া ব্যবহার বা প্রকাশ করা যাবে না। প্রযোজ্য ক্ষেত্রে কপিরাইট নিবন্ধন, ISBN গ্রহণ এবং প্রকাশিত বইয়ের বাধ্যতামূলক কপি জাতীয় গ্রন্থাগারে জমা দেওয়ার বিধানও অনুসরণ করতে হবে। ডিজিটাল মাধ্যমে প্রকাশের ক্ষেত্রে সংশ্লিষ্ট সাইবার ও প্রচলিত আইনও প্রযোজ্য।</p>
+                    <p class="mb-1.5"><strong>৪. দায়বদ্ধতা ও বিতরণব্যবস্থা:</strong> বইয়ের তথ্য, বক্তব্য ও উপাদান যথাসম্ভব নির্ভুল, দায়িত্বশীল ও আইনসম্মত হতে হবে। প্রকাশনা বাজারজাতকরণে পরিবেশক/বিক্রেতার সঙ্গে প্রয়োজনীয় চুক্তি ও স্বচ্ছ বিতরণব্যবস্থা নিশ্চিত করা উচিত।</p>
+                    <p class="mb-0"><strong>৫. পর্যালোচনা ও প্রত্যাহার নীতি:</strong> আইডিয়া প্রকাশন / প্ল্যাটফর্মে কোনো বইয়ের বিষয়বস্তু নিয়ে অভিযোগ বা সংশয় দেখা দিলে, বইটি সাময়িকভাবে প্রদর্শন থেকে সরিয়ে নির্ধারিত পর্যালোচনা টিমের মাধ্যমে মূল্যায়ন করা হতে পারে। পর্যালোচনার ভিত্তিতে বইটি স্থায়ীভাবে অপসারণ অথবা পুনরায় প্রদর্শনের সিদ্ধান্ত নেওয়া হবে।</p>
+                </div>
+
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="adminComplianceCheck" name="compliance_agreed" value="1" checked required>
+                    <label class="form-check-label small text-dark fw-bold" for="adminComplianceCheck" style="font-size: 11.5px; line-height: 1.45;">
+                        উপরোক্ত সকল শর্ত ও প্রযোজ্য আইন-বিধি মেনে বই প্রকাশের বিষয়ে আমি সম্মত।
+                    </label>
+                </div>
+            </div>
+        @endif
+
         <div class="d-grid gap-2">
             <button type="submit" class="btn btn-primary rounded-pill py-2.5 fw-bold shadow-xs">
-                <i class="fas fa-floppy-disk me-1.5"></i> {{ $editing ? 'হালনাগাদ সম্পন্ন করুন' : 'সংরক্ষণ ও প্রকাশ করুন' }}
+                <i class="fas fa-floppy-disk me-1.5"></i> {{ $editing ? 'Save Changes' : 'Publish & Save' }}
             </button>
-            <a href="{{ route($spec['listRoute']) }}" class="btn btn-outline-secondary rounded-pill py-2">বাতিল করুন</a>
+            <a href="{{ route($spec['listRoute']) }}" class="btn btn-outline-secondary rounded-pill py-2">Cancel</a>
+        </div>
         </div>
     </div>
 </form>
 
 {{-- ========================================================================= --}}
-{{-- MODAL 1: QUICK ADD CATEGORY (ক্যাটাগরি কুইক ক্রিয়েটর)                      --}}
+{{-- MODAL 1: QUICK ADD CATEGORY                                               --}}
 {{-- ========================================================================= --}}
 <div class="modal fade" id="quickAddCategoryModal" tabindex="-1" aria-labelledby="quickAddCatLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header bg-primary text-white py-2.5">
                 <h6 class="modal-title fw-bold text-white mb-0" id="quickAddCatLabel">
-                    <i class="fas fa-folder-plus me-1.5"></i> নতুন ক্যাটাগরি তৈরি করুন
+                    <i class="fas fa-folder-plus me-1.5"></i> Create New Category
                 </h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -1425,29 +1437,29 @@
                 <div class="modal-body p-3">
                     <div id="quickCatAlert"></div>
                     <div class="mb-3">
-                        <label class="form-label small fw-semibold">ক্যাটাগরির নাম <span class="text-danger">*</span></label>
+                        <label class="form-label small fw-semibold">Category Name <span class="text-danger">*</span></label>
                         <input type="text" id="quick_cat_name" name="name" class="form-control form-control-sm" 
-                               placeholder="উদা: অনুবাদ সাহিত্য / রম্যরচনা / বিজ্ঞান কল্পকাহিনী" required>
+                               placeholder="e.g. Translated Fiction / Science / Poetry" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label small fw-semibold">মূল ক্যাটাগরি (Parent Category - ঐচ্ছিক)</label>
+                        <label class="form-label small fw-semibold">Parent Category (Optional)</label>
                         <select id="quick_cat_parent_id" name="parent_id" class="form-select form-select-sm">
-                            <option value="">— এটিই মূল ক্যাটাগরি (No Parent) —</option>
+                            <option value="">— Primary Category (No Parent) —</option>
                             @foreach ($lookups['categories'] ?? [] as $cId => $cName)
                                 <option value="{{ $cId }}">{{ $cName }}</option>
                             @endforeach
                         </select>
-                        <div class="form-text" style="font-size: 11px;">কোনো ক্যাটাগরির অধীনে সাব-ক্যাটাগরি বানাতে চাইলে মূল ক্যাটাগরি সিলেক্ট করুন।</div>
+                        <div class="form-text" style="font-size: 11px;">Select a parent category to create a sub-category under it.</div>
                     </div>
                     <div>
-                        <label class="form-label small fw-semibold">বিবরণ (ঐচ্ছিক)</label>
-                        <textarea id="quick_cat_description" name="description" rows="2" class="form-control form-control-sm" placeholder="সংক্ষিপ্ত বিবরণ..."></textarea>
+                        <label class="form-label small fw-semibold">Description (Optional)</label>
+                        <textarea id="quick_cat_description" name="description" rows="2" class="form-control form-control-sm" placeholder="Short description..."></textarea>
                     </div>
                 </div>
                 <div class="modal-footer bg-light py-2">
-                    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">বাতিল</button>
+                    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" id="quickCatBtn" class="btn btn-sm btn-primary">
-                        <i class="fas fa-check-circle me-1"></i> ক্যাটাগরি সংরক্ষণ করুন
+                        <i class="fas fa-check-circle me-1"></i> Save Category
                     </button>
                 </div>
             </form>
@@ -1456,14 +1468,14 @@
 </div>
 
 {{-- ========================================================================= --}}
-{{-- MODAL 1.5: QUICK ADD BLOG CATEGORY (ব্লগ ক্যাটাগরি কুইক ক্রিয়েটর)          --}}
+{{-- MODAL 1.5: QUICK ADD BLOG CATEGORY                                        --}}
 {{-- ========================================================================= --}}
 <div class="modal fade" id="quickAddBlogCategoryModal" tabindex="-1" aria-labelledby="quickAddBlogCatLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header bg-primary text-white py-2.5">
                 <h6 class="modal-title fw-bold text-white mb-0" id="quickAddBlogCatLabel">
-                    <i class="fas fa-shapes me-1.5"></i> নতুন ব্লগ ক্যাটাগরি তৈরি করুন
+                    <i class="fas fa-shapes me-1.5"></i> Create New Blog Category
                 </h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -1471,24 +1483,24 @@
                 <div class="modal-body p-3">
                     <div id="quickBlogCatAlert"></div>
                     <div class="mb-3">
-                        <label class="form-label small fw-semibold">ব্লগ ক্যাটাগরির নাম <span class="text-danger">*</span></label>
+                        <label class="form-label small fw-semibold">Blog Category Name <span class="text-danger">*</span></label>
                         <input type="text" id="quick_blog_cat_name" name="name" class="form-control form-control-sm" 
-                               placeholder="উদা: কবিতা / গল্প / প্রবন্ধ / ইতিহাস" required>
+                               placeholder="e.g. Poetry / Short Stories / Essays / History" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label small fw-semibold">আইকন ক্লাস (FontAwesome - ঐচ্ছিক)</label>
+                        <label class="form-label small fw-semibold">Icon Class (FontAwesome - Optional)</label>
                         <input type="text" id="quick_blog_cat_icon" name="icon" class="form-control form-control-sm" 
-                               placeholder="উদা: feather-pointed / book-open-reader / pen-nib" value="feather-pointed">
+                               placeholder="e.g. feather-pointed / book-open-reader / pen-nib" value="feather-pointed">
                     </div>
                     <div>
-                        <label class="form-label small fw-semibold">বিবরণ (ঐচ্ছিক)</label>
-                        <textarea id="quick_blog_cat_description" name="description" rows="2" class="form-control form-control-sm" placeholder="সংক্ষিপ্ত বিবরণ বা ভূমিকা..."></textarea>
+                        <label class="form-label small fw-semibold">Description (Optional)</label>
+                        <textarea id="quick_blog_cat_description" name="description" rows="2" class="form-control form-control-sm" placeholder="Short description or intro..."></textarea>
                     </div>
                 </div>
                 <div class="modal-footer bg-light py-2">
-                    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">বাতিল</button>
+                    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" id="quickBlogCatBtn" class="btn btn-sm btn-primary">
-                        <i class="fas fa-check-circle me-1"></i> ব্লগ ক্যাটাগরি সংরক্ষণ করুন
+                        <i class="fas fa-check-circle me-1"></i> Save Blog Category
                     </button>
                 </div>
             </form>
@@ -1497,14 +1509,14 @@
 </div>
 
 {{-- ========================================================================= --}}
-{{-- MODAL 2: QUICK ADD PUBLISHER (প্রকাশনী কুইক ক্রিয়েটর)                    --}}
+{{-- MODAL 2: QUICK ADD PUBLISHER                                              --}}
 {{-- ========================================================================= --}}
 <div class="modal fade" id="quickAddPublisherModal" tabindex="-1" aria-labelledby="quickAddPubLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header bg-primary text-white py-2.5">
                 <h6 class="modal-title fw-bold text-white mb-0" id="quickAddPubLabel">
-                    <i class="fas fa-building me-1.5"></i> নতুন প্রকাশনী যুক্ত করুন
+                    <i class="fas fa-building me-1.5"></i> Add New Publisher
                 </h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -1512,23 +1524,23 @@
                 <div class="modal-body p-3">
                     <div id="quickPubAlert"></div>
                     <div class="mb-3">
-                        <label class="form-label small fw-semibold">প্রকাশনীর নাম <span class="text-danger">*</span></label>
+                        <label class="form-label small fw-semibold">Publisher Name <span class="text-danger">*</span></label>
                         <input type="text" id="quick_pub_name" name="name" class="form-control form-control-sm" 
-                               placeholder="উদা: সময় প্রকাশন / বাতিঘর / ইত্যাদি" required>
+                               placeholder="e.g. Somoy Prokashon / Batighar / Anupam" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label small fw-semibold">মোবাইল / ফোন নম্বর</label>
+                        <label class="form-label small fw-semibold">Phone Number</label>
                         <input type="text" id="quick_pub_phone" name="phone" class="form-control form-control-sm" placeholder="01XXXXXXXXX">
                     </div>
                     <div>
-                        <label class="form-label small fw-semibold">ঠিকানা</label>
-                        <input type="text" id="quick_pub_address" name="address" class="form-control form-control-sm" placeholder="বাংলাবাজার, ঢাকা">
+                        <label class="form-label small fw-semibold">Address</label>
+                        <input type="text" id="quick_pub_address" name="address" class="form-control form-control-sm" placeholder="Banglabazar, Dhaka">
                     </div>
                 </div>
                 <div class="modal-footer bg-light py-2">
-                    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">বাতিল</button>
+                    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" id="quickPubBtn" class="btn btn-sm btn-primary">
-                        <i class="fas fa-check-circle me-1"></i> প্রকাশনী সংরক্ষণ করুন
+                        <i class="fas fa-check-circle me-1"></i> Save Publisher
                     </button>
                 </div>
             </form>
@@ -1537,14 +1549,14 @@
 </div>
 
 {{-- ========================================================================= --}}
-{{-- MODAL 3: QUICK ADD AUTHOR (লেখক কুইক ক্রিয়েটর)                          --}}
+{{-- MODAL 3: QUICK ADD AUTHOR                                                 --}}
 {{-- ========================================================================= --}}
 <div class="modal fade" id="quickAddAuthorModal" tabindex="-1" aria-labelledby="quickAddAuthLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header bg-primary text-white py-2.5">
                 <h6 class="modal-title fw-bold text-white mb-0" id="quickAddAuthLabel">
-                    <i class="fas fa-pen-nib me-1.5"></i> নতুন লেখক যুক্ত করুন
+                    <i class="fas fa-pen-nib me-1.5"></i> Add New Author
                 </h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -1552,23 +1564,23 @@
                 <div class="modal-body p-3">
                     <div id="quickAuthAlert"></div>
                     <div class="mb-3">
-                        <label class="form-label small fw-semibold">লেখকের পূর্ণ নাম <span class="text-danger">*</span></label>
+                        <label class="form-label small fw-semibold">Author Full Name <span class="text-danger">*</span></label>
                         <input type="text" id="quick_auth_name" name="name" class="form-control form-control-sm" 
-                               placeholder="উদা: হুমায়ূন আহমেদ / জাফর ইকবাল" required>
+                               placeholder="e.g. Humayun Ahmed / Muhammad Zafar Iqbal" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label small fw-semibold">ফোন নম্বর</label>
+                        <label class="form-label small fw-semibold">Phone Number</label>
                         <input type="text" id="quick_auth_phone" name="phone" class="form-control form-control-sm" placeholder="01XXXXXXXXX">
                     </div>
                     <div>
-                        <label class="form-label small fw-semibold">সংক্ষিপ্ত পরিচিতি (Bio)</label>
-                        <textarea id="quick_auth_bio" name="bio" rows="2" class="form-control form-control-sm" placeholder="লেখকের সংক্ষিপ্ত জীবনী..."></textarea>
+                        <label class="form-label small fw-semibold">Biography (Bio)</label>
+                        <textarea id="quick_auth_bio" name="bio" rows="2" class="form-control form-control-sm" placeholder="Author short biography..."></textarea>
                     </div>
                 </div>
                 <div class="modal-footer bg-light py-2">
-                    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">বাতিল</button>
+                    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" id="quickAuthBtn" class="btn btn-sm btn-primary">
-                        <i class="fas fa-check-circle me-1"></i> লেখক সংরক্ষণ করুন
+                        <i class="fas fa-check-circle me-1"></i> Save Author
                     </button>
                 </div>
             </form>
@@ -1577,7 +1589,7 @@
 </div>
 
 {{-- ========================================================================= --}}
-{{-- MODAL 4: BLOG LITERARY READER LIVE PREVIEW (সাহিত্যপত্র রিডার প্রিভিউ)      --}}
+{{-- MODAL 4: BLOG LITERARY READER LIVE PREVIEW                                --}}
 {{-- ========================================================================= --}}
 <div class="modal fade" id="blogLivePreviewModal" tabindex="-1" aria-labelledby="blogLivePreviewModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
@@ -1588,13 +1600,13 @@
                         <i class="fas fa-book-open"></i>
                     </div>
                     <div>
-                        <h6 class="modal-title fw-bold text-white mb-0" id="blogLivePreviewModalLabel">সাহিত্যপত্র পাঠ প্রতিক্রিয়া ও সরাসরি প্রিভিউ</h6>
-                        <small class="text-white-50">ওয়েবসাইটে পাঠকরা যেভাবে এই লেখাটি দেখতে পাবেন</small>
+                        <h6 class="modal-title fw-bold text-white mb-0" id="blogLivePreviewModalLabel">Article Reader Live Preview</h6>
+                        <small class="text-white-50">How readers will see this content on the public site</small>
                     </div>
                 </div>
                 <div class="d-flex align-items-center gap-2">
-                    <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-3" onclick="adjustPreviewFontSize(-1)" title="ফন্ট ছোট করুন">A-</button>
-                    <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-3" onclick="adjustPreviewFontSize(1)" title="ফন্ট বড় করুন">A+</button>
+                    <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-3" onclick="adjustPreviewFontSize(-1)" title="Decrease font size">A-</button>
+                    <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-3" onclick="adjustPreviewFontSize(1)" title="Increase font size">A+</button>
                     <button type="button" class="btn-close btn-close-white ms-2" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
             </div>
@@ -1604,16 +1616,16 @@
                     
                     {{-- Header Meta --}}
                     <div class="text-center pb-3 mb-4 border-bottom border-warning border-opacity-50">
-                        <span id="prevBlogCategory" class="badge bg-primary bg-opacity-10 text-primary px-3 py-1.5 rounded-pill mb-2.5 fw-semibold" style="font-size: 13px;">সাহিত্য ও সংস্কৃতি</span>
-                        <h1 id="prevBlogTitle" class="fw-bold text-dark mb-2" style="font-size: 2.2rem; line-height: 1.35; font-family: 'Hind Siliguri', serif; color: #1e293b;">শিরোনাম লোড হচ্ছে...</h1>
+                        <span id="prevBlogCategory" class="badge bg-primary bg-opacity-10 text-primary px-3 py-1.5 rounded-pill mb-2.5 fw-semibold" style="font-size: 13px;">Literature & Culture</span>
+                        <h1 id="prevBlogTitle" class="fw-bold text-dark mb-2" style="font-size: 2.2rem; line-height: 1.35; font-family: 'Hind Siliguri', serif; color: #1e293b;">Loading title...</h1>
                         <p id="prevBlogSubtitle" class="text-muted fst-italic fs-6 mb-3 d-none"></p>
 
                         <div class="d-flex flex-wrap align-items-center justify-content-center gap-3 text-muted small mt-2 pt-2 border-top">
-                            <span><i class="fas fa-pen-nib text-primary me-1"></i> <strong id="prevBlogAuthor" class="text-dark">লেখক</strong></span>
+                            <span><i class="fas fa-pen-nib text-primary me-1"></i> <strong id="prevBlogAuthor" class="text-dark">Author</strong></span>
                             <span>•</span>
                             <span><i class="far fa-calendar-alt me-1"></i> {{ now()->format('d M, Y') }}</span>
                             <span>•</span>
-                            <span><i class="far fa-clock me-1"></i> ৩ মিনিট পাঠ</span>
+                            <span><i class="far fa-clock me-1"></i> 3 min read</span>
                         </div>
                     </div>
 
@@ -1629,7 +1641,7 @@
 
                     {{-- Content Body --}}
                     <div id="prevBlogContentBody" class="fs-5 text-dark" style="line-height: 2.0; word-break: break-word; color: #2d3748;">
-                        বিষয়বস্তু লোড হচ্ছে...
+                        Loading content...
                     </div>
 
                     {{-- Sign-off ornament --}}
@@ -1640,8 +1652,8 @@
             </div>
 
             <div class="modal-footer bg-light py-2.5 px-4 d-flex justify-content-between">
-                <span class="text-muted small"><i class="fas fa-check-circle text-success me-1"></i> সমস্ত ফরম্যাট এবং স্ট্যানজা লাইভ চেক করা হয়েছে</span>
-                <button type="button" class="btn btn-sm btn-dark px-4 rounded-pill" data-bs-dismiss="modal">বন্ধ করুন</button>
+                <span class="text-muted small"><i class="fas fa-check-circle text-success me-1"></i> Formats and stanzas verified live</span>
+                <button type="button" class="btn btn-sm btn-dark px-4 rounded-pill" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
@@ -1732,8 +1744,8 @@ function updateCoverTypeRequirement() {
         if (cardHc) { cardHc.style.opacity = '1'; }
         if (cardPb) { cardPb.style.opacity = '0.78'; }
         if (headerPb) { headerPb.className = 'card-header bg-secondary text-white py-2 px-3 d-flex align-items-center justify-content-between'; }
-        if (badgeHc) { badgeHc.className = 'badge bg-white text-primary small px-2 py-0.5 rounded-pill'; badgeHc.textContent = 'প্রধান সংস্করণ'; }
-        if (badgePb) { badgePb.className = 'badge bg-white text-secondary small px-2 py-0.5 rounded-pill'; badgePb.textContent = 'ঐচ্ছিক সংস্করণ'; }
+        if (badgeHc) { badgeHc.className = 'badge bg-white text-primary small px-2 py-0.5 rounded-pill'; badgeHc.textContent = 'Primary Edition'; }
+        if (badgePb) { badgePb.className = 'badge bg-white text-secondary small px-2 py-0.5 rounded-pill'; badgePb.textContent = 'Optional Edition'; }
         if (starHc) starHc.style.display = 'inline';
         if (starPb) starPb.style.display = 'none';
         if (inputHc) inputHc.setAttribute('required', 'required');
@@ -1742,8 +1754,8 @@ function updateCoverTypeRequirement() {
         if (cardHc) { cardHc.style.opacity = '0.78'; }
         if (cardPb) { cardPb.style.opacity = '1'; }
         if (headerPb) { headerPb.className = 'card-header bg-primary text-white py-2 px-3 d-flex align-items-center justify-content-between'; }
-        if (badgeHc) { badgeHc.className = 'badge bg-white text-secondary small px-2 py-0.5 rounded-pill'; badgeHc.textContent = 'ঐচ্ছিক সংস্করণ'; }
-        if (badgePb) { badgePb.className = 'badge bg-white text-primary small px-2 py-0.5 rounded-pill'; badgePb.textContent = 'প্রধান সংস্করণ'; }
+        if (badgeHc) { badgeHc.className = 'badge bg-white text-secondary small px-2 py-0.5 rounded-pill'; badgeHc.textContent = 'Optional Edition'; }
+        if (badgePb) { badgePb.className = 'badge bg-white text-primary small px-2 py-0.5 rounded-pill'; badgePb.textContent = 'Primary Edition'; }
         if (starHc) starHc.style.display = 'none';
         if (starPb) starPb.style.display = 'inline';
         if (inputHc) inputHc.removeAttribute('required');
@@ -1752,8 +1764,8 @@ function updateCoverTypeRequirement() {
         if (cardHc) { cardHc.style.opacity = '1'; }
         if (cardPb) { cardPb.style.opacity = '1'; }
         if (headerPb) { headerPb.className = 'card-header bg-primary text-white py-2 px-3 d-flex align-items-center justify-content-between'; }
-        if (badgeHc) { badgeHc.className = 'badge bg-white text-primary small px-2 py-0.5 rounded-pill'; badgeHc.textContent = 'হার্ডকভার আবশ্যক'; }
-        if (badgePb) { badgePb.className = 'badge bg-white text-primary small px-2 py-0.5 rounded-pill'; badgePb.textContent = 'পেপারব্যাক আবশ্যক'; }
+        if (badgeHc) { badgeHc.className = 'badge bg-white text-primary small px-2 py-0.5 rounded-pill'; badgeHc.textContent = 'Hardcover Required'; }
+        if (badgePb) { badgePb.className = 'badge bg-white text-primary small px-2 py-0.5 rounded-pill'; badgePb.textContent = 'Paperback Required'; }
         if (starHc) starHc.style.display = 'inline';
         if (starPb) starPb.style.display = 'inline';
         if (inputHc) inputHc.setAttribute('required', 'required');
@@ -1880,9 +1892,9 @@ function calculateLiveHardcoverProfit() {
         const profit = sellPrice - cost;
         const margin = Math.round((profit / sellPrice) * 1000) / 10;
         if (profit >= 0) {
-            badgeEl.innerHTML = `<span class="badge bg-success-subtle text-success border border-success-subtle p-1.5 w-100 d-flex align-items-center justify-content-between"><span><i class="fas fa-chart-line me-1"></i>আনুমানিক লাভ: <strong>৳${profit.toLocaleString('bn-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</strong></span> <span class="badge bg-success text-white">${margin}% নিট মার্জিন</span></span>`;
+            badgeEl.innerHTML = `<span class="badge bg-success-subtle text-success border border-success-subtle p-1.5 w-100 d-flex align-items-center justify-content-between"><span><i class="fas fa-chart-line me-1"></i>Est. Profit: <strong>৳${profit.toFixed(2)}</strong></span> <span class="badge bg-success text-white">${margin}% Net Margin</span></span>`;
         } else {
-            badgeEl.innerHTML = `<span class="badge bg-danger-subtle text-danger border border-danger-subtle p-1.5 w-100"><i class="fas fa-triangle-exclamation me-1"></i>সতর্কবার্তা: ক্রয়মূল্য বিক্রয়মূল্যের চেয়ে বেশি! ক্ষতি ৳${Math.abs(profit).toFixed(2)}</span>`;
+            badgeEl.innerHTML = `<span class="badge bg-danger-subtle text-danger border border-danger-subtle p-1.5 w-100"><i class="fas fa-triangle-exclamation me-1"></i>Warning: Cost exceeds selling price! Loss ৳${Math.abs(profit).toFixed(2)}</span>`;
         }
     } else {
         badgeEl.innerHTML = '';
@@ -1988,9 +2000,9 @@ function calculateLivePaperbackProfit() {
         const profit = sellPrice - cost;
         const margin = Math.round((profit / sellPrice) * 1000) / 10;
         if (profit >= 0) {
-            badgeEl.innerHTML = `<span class="badge bg-success-subtle text-success border border-success-subtle p-1.5 w-100 d-flex align-items-center justify-content-between"><span><i class="fas fa-chart-line me-1"></i>আনুমানিক লাভ: <strong>৳${profit.toLocaleString('bn-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</strong></span> <span class="badge bg-success text-white">${margin}% নিট মার্জিন</span></span>`;
+            badgeEl.innerHTML = `<span class="badge bg-success-subtle text-success border border-success-subtle p-1.5 w-100 d-flex align-items-center justify-content-between"><span><i class="fas fa-chart-line me-1"></i>Est. Profit: <strong>৳${profit.toFixed(2)}</strong></span> <span class="badge bg-success text-white">${margin}% Net Margin</span></span>`;
         } else {
-            badgeEl.innerHTML = `<span class="badge bg-danger-subtle text-danger border border-danger-subtle p-1.5 w-100"><i class="fas fa-triangle-exclamation me-1"></i>সতর্কবার্তা: ক্রয়মূল্য বিক্রয়মূল্যের চেয়ে বেশি! ক্ষতি ৳${Math.abs(profit).toFixed(2)}</span>`;
+            badgeEl.innerHTML = `<span class="badge bg-danger-subtle text-danger border border-danger-subtle p-1.5 w-100"><i class="fas fa-triangle-exclamation me-1"></i>Warning: Cost exceeds selling price! Loss ৳${Math.abs(profit).toFixed(2)}</span>`;
         }
     } else {
         badgeEl.innerHTML = '';
@@ -2013,13 +2025,13 @@ function calculateLiveDiscount() {
             const savings = price - discount;
             const percent = Math.round((savings / price) * 100);
             badgeEl.className = 'mt-1 small fw-semibold text-success';
-            badgeEl.innerHTML = `<i class="fas fa-tags me-1"></i> পেপারব্যাকে ${percent}% ছাড়! গ্রাহক বাঁচাবে ৳${savings.toLocaleString('bn-BD')}`;
+            badgeEl.innerHTML = `<i class="fas fa-tags me-1"></i> ${percent}% discount on paperback! Customer saves ৳${savings.toFixed(2)}`;
         } else if (discount === price) {
             badgeEl.className = 'mt-1 small fw-semibold text-muted';
-            badgeEl.innerHTML = `কোনো ছাড় প্রযোজ্য নয়।`;
+            badgeEl.innerHTML = `No discount applied.`;
         } else {
             badgeEl.className = 'mt-1 small fw-semibold text-danger';
-            badgeEl.innerHTML = `<i class="fas fa-triangle-exclamation me-1"></i> সতর্কবার্তা: ছাড়ের মূল্য মূল দামের চেয়ে বেশি!`;
+            badgeEl.innerHTML = `<i class="fas fa-triangle-exclamation me-1"></i> Warning: Discounted price exceeds original price!`;
         }
     } else {
         badgeEl.innerHTML = '';
@@ -2043,13 +2055,13 @@ function calculateLiveHardcoverDiscount() {
             const savings = price - discount;
             const percent = Math.round((savings / price) * 100);
             badgeEl.className = 'mt-1 small fw-semibold text-success';
-            badgeEl.innerHTML = `<i class="fas fa-tags me-1"></i> হার্ডকভারে ${percent}% ছাড়! গ্রাহক বাঁচাবে ৳${savings.toLocaleString('bn-BD')}`;
+            badgeEl.innerHTML = `<i class="fas fa-tags me-1"></i> ${percent}% discount on hardcover! Customer saves ৳${savings.toFixed(2)}`;
         } else if (discount === price) {
             badgeEl.className = 'mt-1 small fw-semibold text-muted';
-            badgeEl.innerHTML = `কোনো ছাড় প্রযোজ্য নয়।`;
+            badgeEl.innerHTML = `No discount applied.`;
         } else {
             badgeEl.className = 'mt-1 small fw-semibold text-danger';
-            badgeEl.innerHTML = `<i class="fas fa-triangle-exclamation me-1"></i> হার্ডকভার ছাড়ের মূল্য মূল দামের চেয়ে বেশি!`;
+            badgeEl.innerHTML = `<i class="fas fa-triangle-exclamation me-1"></i> Hardcover discount price exceeds original price!`;
         }
     } else {
         badgeEl.innerHTML = '';
@@ -2079,7 +2091,7 @@ function updateLiveMockupCard() {
 
     // Title
     const titleVal = titleEl ? titleEl.value.trim() : '';
-    mockTitle.textContent = titleVal || 'শিরোনাম';
+    mockTitle.textContent = titleVal || 'Title';
 
     // Subtitle
     const subEl = document.getElementById('f-subtitle');
@@ -2097,8 +2109,6 @@ function updateLiveMockupCard() {
     let authorVal = '';
     const ownerNameInput = document.getElementById('f-owner_name');
     const authorIdSelect = document.getElementById('f-author_id');
-    const authorSelect = document.getElementById('f-author_link_id');
-    const authorCustom = document.getElementById('f-author_name');
     const dirRadio = document.getElementById('author-mode-directory');
 
     if (ownerNameInput && ownerNameInput.value.trim()) {
@@ -2111,7 +2121,7 @@ function updateLiveMockupCard() {
         authorVal = authorCustom.value.trim();
     }
     if (mockAuthor) {
-        mockAuthor.innerHTML = '<i class="fas fa-pen-nib text-success me-1"></i><span>' + (authorVal || 'লেখকের নাম') + '</span>';
+        mockAuthor.innerHTML = '<i class="fas fa-pen-nib text-success me-1"></i><span>' + (authorVal || 'Author Name') + '</span>';
     }
 
     // Pricing & Format Badge calculation (prioritize selected cover type)
@@ -2130,10 +2140,10 @@ function updateLiveMockupCard() {
 
         let displayPrice = 0;
         let displayOrig = 0;
-        let formatLabel = 'পেপারব্যাক';
+        let formatLabel = 'Paperback';
 
         if (coverType === 'hardcover') {
-            formatLabel = 'হার্ডকভার';
+            formatLabel = 'Hardcover';
             if (hcPrice > 0) {
                 displayOrig = hcPrice;
                 displayPrice = (hcDisc > 0 && hcDisc < hcPrice) ? hcDisc : hcPrice;
@@ -2142,7 +2152,7 @@ function updateLiveMockupCard() {
                 displayPrice = (pbDisc > 0 && pbDisc < pbPrice) ? pbDisc : pbPrice;
             }
         } else if (coverType === 'both') {
-            formatLabel = 'উভয় সংস্করণ';
+            formatLabel = 'Both Editions';
             if (hcPrice > 0) {
                 displayOrig = hcPrice;
                 displayPrice = (hcDisc > 0 && hcDisc < hcPrice) ? hcDisc : hcPrice;
@@ -2151,8 +2161,7 @@ function updateLiveMockupCard() {
                 displayPrice = (pbDisc > 0 && pbDisc < pbPrice) ? pbDisc : pbPrice;
             }
         } else {
-            // paperback
-            formatLabel = 'পেপারব্যাক';
+            formatLabel = 'Paperback';
             if (pbPrice > 0) {
                 displayOrig = pbPrice;
                 displayPrice = (pbDisc > 0 && pbDisc < pbPrice) ? pbDisc : pbPrice;
@@ -2167,9 +2176,9 @@ function updateLiveMockupCard() {
         }
 
         if (displayPrice > 0 && displayOrig > displayPrice) {
-            mockFinal.textContent = '৳' + displayPrice.toLocaleString('bn-BD');
+            mockFinal.textContent = '৳' + displayPrice.toFixed(2);
             if (mockOriginal) {
-                mockOriginal.textContent = '৳' + displayOrig.toLocaleString('bn-BD');
+                mockOriginal.textContent = '৳' + displayOrig.toFixed(2);
                 mockOriginal.classList.remove('d-none');
             }
             const percent = Math.round(((displayOrig - displayPrice) / displayOrig) * 100);
@@ -2178,11 +2187,11 @@ function updateLiveMockupCard() {
                 mockBadge.classList.remove('d-none');
             }
         } else if (displayPrice > 0) {
-            mockFinal.textContent = '৳' + displayPrice.toLocaleString('bn-BD');
+            mockFinal.textContent = '৳' + displayPrice.toFixed(2);
             if (mockOriginal) mockOriginal.classList.add('d-none');
             if (mockBadge) mockBadge.classList.add('d-none');
         } else {
-            mockFinal.textContent = '৳০';
+            mockFinal.textContent = '৳0';
             if (mockOriginal) mockOriginal.classList.add('d-none');
             if (mockBadge) mockBadge.classList.add('d-none');
         }
@@ -2229,7 +2238,7 @@ function updateGenericWordCount(textarea, maxWords, countId, badgeId, barId, war
     const progressEl = document.getElementById(barId);
     const warningEl = document.getElementById(warningId);
 
-    if (countEl) countEl.textContent = count.toLocaleString('bn-BD');
+    if (countEl) countEl.textContent = count;
 
     const pct = Math.min(100, Math.round((count / maxWords) * 100));
     if (progressEl) {
@@ -2256,7 +2265,7 @@ function updateGenericWordCount(textarea, maxWords, countId, badgeId, barId, war
     if (warningEl) {
         if (count > maxWords) {
             warningEl.classList.remove('d-none');
-            warningEl.innerHTML = `<i class="fas fa-triangle-exclamation me-1"></i> শব্দসীমা অতিক্রম হয়েছে! (${count - maxWords} শব্দ বেশি)`;
+            warningEl.innerHTML = `<i class="fas fa-triangle-exclamation me-1"></i> Word limit exceeded! (${count - maxWords} words extra)`;
         } else {
             warningEl.classList.add('d-none');
             warningEl.innerHTML = '';
@@ -2383,11 +2392,10 @@ function formatPoetryMode(targetTextareaId) {
     }
 
     if (!selectedText || !selectedText.trim()) {
-        alert('অনুগ্রহ করে কবিতার লাইনগুলো সিলেক্ট করুন বা বক্সে পেস্ট করুন।');
+        alert('Please select or paste poetry text into the editor.');
         return;
     }
 
-    // Format into poetry verses / stanzas with compact, natural line spacing
     const stanzas = selectedText.trim().split(/\r\n\r\n|\n\n+/);
     const formattedHtml = stanzas.map(stanza => {
         const lines = stanza.split(/\r\n|\n|\r/).map(line => {
@@ -2421,7 +2429,7 @@ function formatProseMode(targetTextareaId) {
     }
 
     if (!selectedText || !selectedText.trim()) {
-        alert('অনুগ্রহ করে গদ্য বা প্রবন্ধের লেখাটি সিলেক্ট করুন।');
+        alert('Please select prose/essay text to format.');
         return;
     }
 
@@ -2448,7 +2456,7 @@ function formatFixLineBreaks(targetTextareaId) {
 
     let text = editorDiv.innerText || editorDiv.textContent;
     if (!text || !text.trim()) {
-        alert('বক্সে কোনো লেখা পাওয়া যায়নি।');
+        alert('No text found in editor.');
         return;
     }
 
@@ -2465,7 +2473,7 @@ function formatFixLineBreaks(targetTextareaId) {
     editorDiv.innerHTML = formattedHtml;
     syncEditorToTextarea(fieldName);
     updateEditorStats(fieldName);
-    alert('প্যারাগ্রাফ ও লাইনের স্পেস নিখুঁতভাবে কমানো ও মেরামত করা হয়েছে!');
+    alert('Paragraph and line spacing fixed successfully!');
 }
 
 function updateEditorStats(fieldName) {
@@ -2476,7 +2484,7 @@ function updateEditorStats(fieldName) {
     const text = (editorDiv.innerText || editorDiv.textContent || '').trim();
     const words = text ? text.split(/\s+/).length : 0;
     const chars = text.length;
-    statsBox.innerHTML = `<i class="fas fa-file-alt text-primary me-1"></i>শব্দ: ${words.toLocaleString('bn-BD')} | বর্ণ: ${chars.toLocaleString('bn-BD')}`;
+    statsBox.innerHTML = `<i class="fas fa-file-alt text-primary me-1"></i>Words: ${words} | Chars: ${chars}`;
 }
 
 function openBlogLivePreviewModal(targetTextareaId) {
@@ -2485,7 +2493,7 @@ function openBlogLivePreviewModal(targetTextareaId) {
     if (!editorDiv) return;
 
     // Pull form values
-    const titleVal = document.getElementById('f-title')?.value || document.getElementById('f-name')?.value || 'শিরোনাম দেওয়া হয়নি';
+    const titleVal = document.getElementById('f-title')?.value || document.getElementById('f-name')?.value || 'Untitled';
     const subVal = document.getElementById('f-subtitle')?.value || '';
     const excerptVal = document.getElementById('f-excerpt')?.value || '';
     
@@ -2493,11 +2501,11 @@ function openBlogLivePreviewModal(targetTextareaId) {
     const customAuthor = document.getElementById('f-owner_name')?.value?.trim();
     const authorSelect = document.getElementById('f-author_id');
     const selectedAuthorText = authorSelect && authorSelect.selectedIndex > 0 ? authorSelect.options[authorSelect.selectedIndex].text.replace(/\[.*?\]/, '').trim() : '';
-    const authorName = customAuthor || selectedAuthorText || 'সম্পাদকীয় বিভাগ';
+    const authorName = customAuthor || selectedAuthorText || 'Editorial Desk';
 
     // Category
     const catSelect = document.getElementById('f-category_id');
-    const catName = catSelect && catSelect.selectedIndex > 0 ? catSelect.options[catSelect.selectedIndex].text.replace(/—\s*/g, '').trim() : 'সাহিত্য ও সংস্কৃতি';
+    const catName = catSelect && catSelect.selectedIndex > 0 ? catSelect.options[catSelect.selectedIndex].text.replace(/—\s*/g, '').trim() : 'Literature & Culture';
 
     // Cover Image
     const coverPreviewImg = document.getElementById('preview-img-image') || document.getElementById('preview-img-cover_image') || document.getElementById('mockupCoverImg');
@@ -2571,14 +2579,14 @@ function onBlogAuthorDropdownChange(select) {
 }
 
 function insertLinkPrompt(targetTextareaId) {
-    const url = prompt("লিংক ইউআরএল (URL) লিখুন:", "https://");
+    const url = prompt("Enter Link URL:", "https://");
     if (url && url !== "https://") {
         formatDoc('createLink', url, targetTextareaId);
     }
 }
 
 function insertImagePrompt(targetTextareaId) {
-    const url = prompt("ছবির সরাসরি লিংক (Image URL) দিন:", "https://");
+    const url = prompt("Enter Direct Image URL:", "https://");
     if (url && url !== "https://") {
         formatDoc('insertImage', url, targetTextareaId);
     }
@@ -2676,7 +2684,7 @@ function handleQuickCategorySubmit(e) {
     const descInput = document.getElementById('quick_cat_description');
 
     btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> সংরক্ষণ হচ্ছে...';
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Saving...';
     alertBox.innerHTML = '';
 
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
@@ -2716,17 +2724,17 @@ function handleQuickCategorySubmit(e) {
             nameInput.value = '';
             descInput.value = '';
 
-            alert('ক্যাটাগরি সফলভাবে তৈরি ও নির্বাচিত হয়েছে!');
+            alert('Category created and selected successfully!');
         } else {
-            alertBox.innerHTML = `<div class="alert alert-danger p-2 small mb-2">${data.message || 'ত্রুটি হয়েছে'}</div>`;
+            alertBox.innerHTML = `<div class="alert alert-danger p-2 small mb-2">${data.message || 'An error occurred'}</div>`;
         }
     })
     .catch(err => {
-        alertBox.innerHTML = `<div class="alert alert-danger p-2 small mb-2">সার্ভার এরর হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।</div>`;
+        alertBox.innerHTML = `<div class="alert alert-danger p-2 small mb-2">Server error. Please try again.</div>`;
     })
     .finally(() => {
         btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-check-circle me-1"></i> ক্যাটাগরি সংরক্ষণ করুন';
+        btn.innerHTML = '<i class="fas fa-check-circle me-1"></i> Save Category';
     });
 }
 
@@ -2740,7 +2748,7 @@ function handleQuickBlogCategorySubmit(e) {
     const descInput = document.getElementById('quick_blog_cat_description');
 
     btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> সংরক্ষণ হচ্ছে...';
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Saving...';
     alertBox.innerHTML = '';
 
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
@@ -2776,17 +2784,17 @@ function handleQuickBlogCategorySubmit(e) {
             descInput.value = '';
 
             updateLiveMockupCard();
-            alert('ব্লগ ক্যাটাগরি সফলভাবে তৈরি ও নির্বাচিত হয়েছে!');
+            alert('Blog Category created and selected successfully!');
         } else {
-            alertBox.innerHTML = `<div class="alert alert-danger p-2 small mb-2">${data.message || 'ত্রুটি হয়েছে'}</div>`;
+            alertBox.innerHTML = `<div class="alert alert-danger p-2 small mb-2">${data.message || 'An error occurred'}</div>`;
         }
     })
     .catch(err => {
-        alertBox.innerHTML = `<div class="alert alert-danger p-2 small mb-2">সার্ভার এরর হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।</div>`;
+        alertBox.innerHTML = `<div class="alert alert-danger p-2 small mb-2">Server error. Please try again.</div>`;
     })
     .finally(() => {
         btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-check-circle me-1"></i> ব্লগ ক্যাটাগরি সংরক্ষণ করুন';
+        btn.innerHTML = '<i class="fas fa-check-circle me-1"></i> Save Blog Category';
     });
 }
 
@@ -2800,7 +2808,7 @@ function handleQuickPublisherSubmit(e) {
     const addressInput = document.getElementById('quick_pub_address');
 
     btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> সংরক্ষণ হচ্ছে...';
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Saving...';
     alertBox.innerHTML = '';
 
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
@@ -2834,17 +2842,17 @@ function handleQuickPublisherSubmit(e) {
             phoneInput.value = '';
             addressInput.value = '';
 
-            alert('প্রকাশনী সফলভাবে যুক্ত ও নির্বাচিত হয়েছে!');
+            alert('Publisher added and selected successfully!');
         } else {
-            alertBox.innerHTML = `<div class="alert alert-danger p-2 small mb-2">${data.message || 'ত্রুটি হয়েছে'}</div>`;
+            alertBox.innerHTML = `<div class="alert alert-danger p-2 small mb-2">${data.message || 'An error occurred'}</div>`;
         }
     })
     .catch(err => {
-        alertBox.innerHTML = `<div class="alert alert-danger p-2 small mb-2">সার্ভার এরর হয়েছে।</div>`;
+        alertBox.innerHTML = `<div class="alert alert-danger p-2 small mb-2">Server error.</div>`;
     })
     .finally(() => {
         btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-check-circle me-1"></i> প্রকাশনী সংরক্ষণ করুন';
+        btn.innerHTML = '<i class="fas fa-check-circle me-1"></i> Save Publisher';
     });
 }
 
@@ -2858,7 +2866,7 @@ function handleQuickAuthorSubmit(e) {
     const bioInput = document.getElementById('quick_auth_bio');
 
     btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> সংরক্ষণ হচ্ছে...';
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Saving...';
     alertBox.innerHTML = '';
 
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
@@ -2907,17 +2915,17 @@ function handleQuickAuthorSubmit(e) {
             bioInput.value = '';
 
             updateLiveMockupCard();
-            alert('লেখক সফলভাবে যুক্ত ও নির্বাচিত হয়েছে!');
+            alert('Author added and selected successfully!');
         } else {
-            alertBox.innerHTML = `<div class="alert alert-danger p-2 small mb-2">${data.message || 'ত্রুটি হয়েছে'}</div>`;
+            alertBox.innerHTML = `<div class="alert alert-danger p-2 small mb-2">${data.message || 'An error occurred'}</div>`;
         }
     })
     .catch(err => {
-        alertBox.innerHTML = `<div class="alert alert-danger p-2 small mb-2">সার্ভার এরর হয়েছে।</div>`;
+        alertBox.innerHTML = `<div class="alert alert-danger p-2 small mb-2">Server error.</div>`;
     })
     .finally(() => {
         btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-check-circle me-1"></i> লেখক সংরক্ষণ করুন';
+        btn.innerHTML = '<i class="fas fa-check-circle me-1"></i> Save Author';
     });
 }
 
@@ -2932,7 +2940,7 @@ function addWebzineTocRow() {
     const newIdx = rows.length;
     const nextOrder = newIdx + 1;
 
-    let authorOptionsHtml = '<option value="">— লেখক নির্বাচন করুন (ঐচ্ছিক) —</option>';
+    let authorOptionsHtml = '<option value="">— Select Author (Optional) —</option>';
     for (const [aId, aName] of Object.entries(authorOptionsJson)) {
         authorOptionsHtml += `<option value="${aId}">${aName}</option>`;
     }
@@ -2943,7 +2951,7 @@ function addWebzineTocRow() {
         <td class="text-center fw-bold text-muted row-number">${newIdx + 1}</td>
         <td>
             <input type="hidden" name="toc_articles[${newIdx}][order]" class="input-order" value="${nextOrder}">
-            <input type="text" name="toc_articles[${newIdx}][title]" class="form-control form-control-sm" placeholder="যেমন: নতুন প্রবন্ধ / গল্প..." required>
+            <input type="text" name="toc_articles[${newIdx}][title]" class="form-control form-control-sm" placeholder="e.g. New Article / Story..." required>
         </td>
         <td>
             <select name="toc_articles[${newIdx}][author_id]" class="form-select form-select-sm">
@@ -2952,12 +2960,12 @@ function addWebzineTocRow() {
         </td>
         <td>
             <div class="input-group input-group-sm">
-                <span class="input-group-text bg-light text-muted">পৃষ্ঠা</span>
+                <span class="input-group-text bg-light text-muted">Page</span>
                 <input type="number" name="toc_articles[${newIdx}][page_number]" class="form-control form-control-sm text-center fw-bold" value="${nextOrder}" min="1" placeholder="1" required>
             </div>
         </td>
         <td class="text-center">
-            <button type="button" class="btn btn-sm btn-outline-danger p-1 border-0" onclick="removeWebzineTocRow(this)" title="মুছুন">
+            <button type="button" class="btn btn-sm btn-outline-danger p-1 border-0" onclick="removeWebzineTocRow(this)" title="Delete">
                 <i class="fas fa-trash-alt"></i>
             </button>
         </td>

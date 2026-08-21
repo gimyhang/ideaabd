@@ -2,12 +2,12 @@
 
 @php
     $typeTitles = [
-        'challan'   => 'ডেলিভারি চালান #',
-        'quotation' => 'কোটেশন / প্রফর্মা #',
-        'tender'    => 'দরপত্র প্রস্তাবনা #',
-        'invoice'   => 'বিল ও চালান #'
+        'challan'   => 'Delivery Challan #',
+        'quotation' => 'Quotation / Proforma #',
+        'tender'    => 'Tender Proposal #',
+        'invoice'   => 'Bill & Invoice #'
     ];
-    $docTitle = ($typeTitles[$invoice->type] ?? 'ইনভয়েস #') . $invoice->invoice_no;
+    $docTitle = ($typeTitles[$invoice->type] ?? 'Invoice #') . $invoice->invoice_no;
     
     $settings = $invoiceSettings ?? \App\Http\Controllers\Admin\IdeaAccountingController::getInvoiceSettings();
     $bizLogo = $settings['logo'] ?? '/images/logo.png';
@@ -32,69 +32,69 @@
 @endphp
 
 @section('title', $docTitle)
-@section('heading', $invoice->type_label . ($invoice->type === 'invoice' ? ' ও ডেলিভারি চালান' : ''))
+@section('heading', $docTitle)
 @section('breadcrumb')
-    <li class="breadcrumb-item"><a href="{{ route('admin.accounting.index') }}">আইডিয়া হিসাব</a></li>
-    <li class="breadcrumb-item"><a href="{{ route('admin.accounting.invoices.index') }}">বিল, চালান ও দরপত্র</a></li>
+    <li class="breadcrumb-item"><a href="{{ route('admin.accounting.index') }}">Accounting</a></li>
+    <li class="breadcrumb-item"><a href="{{ route('admin.accounting.invoices.index') }}">Invoices & Challans</a></li>
     <li class="breadcrumb-item active" aria-current="page">#{{ $invoice->invoice_no }}</li>
 @endsection
 
 @section('actions')
     <div class="d-flex flex-wrap gap-2">
-        <button type="button" class="btn btn-primary shadow-sm fw-semibold" onclick="window.print()">
-            <i class="fas fa-print me-1.5"></i> প্রিন্ট কপি (Print / PDF)
+        <button type="button" class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm fw-semibold" onclick="window.print()">
+            <i class="fas fa-print me-1.5"></i> Print / PDF
         </button>
 
         {{-- Send Invoice Link to Customer Email Button --}}
-        <button type="button" class="btn btn-success fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#sendInvoiceEmailModal" title="গ্রাহকের ইমেইলে বিল ও চালান লিংক পাঠান">
-            <i class="fas fa-paper-plane me-1.5"></i> ইমেইল পাঠান
+        <button type="button" class="btn btn-success btn-sm rounded-pill px-3 fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#sendInvoiceEmailModal" title="Send digital invoice link to customer email">
+            <i class="fas fa-paper-plane me-1.5"></i> Send Email
             @if($invoice->emailed_at)
-                <span class="badge bg-white text-success ms-1 px-1.5 py-0.5 rounded-pill" title="ইমেইল প্রেরিত">✓</span>
+                <span class="badge bg-white text-success ms-1 px-1.5 py-0.5 rounded-pill" title="Email sent">✓</span>
             @endif
         </button>
 
         {{-- Copy Customer Public Link --}}
-        <button type="button" class="btn btn-outline-info text-dark fw-semibold shadow-sm" onclick="copyCustomerShareLink()" id="btnAdminCopyLink" title="গ্রাহকের জন্য সরাসরি পাবলিক ভিউ লিংক">
-            <i class="fas fa-share-nodes me-1 text-primary"></i> গ্রাহক লিংক কপি
+        <button type="button" class="btn btn-outline-info text-dark btn-sm rounded-pill px-3 fw-semibold shadow-sm" onclick="copyCustomerShareLink()" id="btnAdminCopyLink" title="Copy public share link for customer">
+            <i class="fas fa-share-nodes me-1 text-primary"></i> Copy Link
         </button>
 
-        <a href="{{ $invoice->public_url }}" target="_blank" class="btn btn-outline-primary shadow-sm" title="গ্রাহক যেভাবে দেখবেন">
-            <i class="fas fa-arrow-up-right-from-square me-1"></i> গ্রাহক ভিউ
+        <a href="{{ $invoice->public_url }}" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-sm" title="Preview public view">
+            <i class="fas fa-arrow-up-right-from-square me-1"></i> Customer View
         </a>
 
         {{-- Edit Document Button --}}
-        <a href="{{ route('admin.accounting.invoices.edit', $invoice->id) }}" class="btn btn-warning text-dark fw-semibold shadow-sm">
-            <i class="fas fa-edit me-1"></i> এডিট করুন
+        <a href="{{ route('admin.accounting.invoices.edit', $invoice->id) }}" class="btn btn-warning text-dark btn-sm rounded-pill px-3 fw-semibold shadow-sm">
+            <i class="fas fa-edit me-1"></i> Edit Document
         </a>
 
         {{-- Customize Memo Header Settings Button --}}
-        <button type="button" class="btn btn-outline-secondary shadow-sm" data-bs-toggle="modal" data-bs-target="#invoiceSettingsModal" title="বিল ও মেমোর তথ্য কাস্টমাইজ করুন">
-            <i class="fas fa-palette me-1 text-primary"></i> মেমো সেটিংস
+        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#invoiceSettingsModal" title="Customize invoice branding header">
+            <i class="fas fa-palette me-1 text-primary"></i> Memo Settings
         </button>
 
         {{-- Convert to Invoice/Challan if currently Quotation or Tender --}}
         @if(in_array($invoice->type, ['quotation', 'tender']))
             <form action="{{ route('admin.accounting.invoices.convert', $invoice->id) }}" method="POST" class="d-inline"
-                  onsubmit="return confirm('আপনি কি এই দরপত্র/কোটেশনটিকে চূড়ান্ত বিল/ইনভয়েসে রূপান্তর করতে চান?')">
+                  onsubmit="return confirm('Convert this quotation/tender into a finalized invoice/bill?')">
                 @csrf
                 <input type="hidden" name="target_type" value="invoice">
-                <button type="submit" class="btn btn-success fw-semibold shadow-sm">
-                    <i class="fas fa-receipt me-1"></i> বিলে রূপান্তর
+                <button type="submit" class="btn btn-success btn-sm rounded-pill px-3 fw-semibold shadow-sm">
+                    <i class="fas fa-receipt me-1"></i> Convert to Bill
                 </button>
             </form>
 
             <form action="{{ route('admin.accounting.invoices.convert', $invoice->id) }}" method="POST" class="d-inline"
-                  onsubmit="return confirm('আপনি কি এই দরপত্র/কোটেশনটিকে ডেলিভারি চালানে রূপান্তর করতে চান?')">
+                  onsubmit="return confirm('Convert this quotation/tender into a delivery challan?')">
                 @csrf
                 <input type="hidden" name="target_type" value="challan">
-                <button type="submit" class="btn btn-info text-white fw-semibold shadow-sm">
-                    <i class="fas fa-truck me-1"></i> চালানে রূপান্তর
+                <button type="submit" class="btn btn-info text-white btn-sm rounded-pill px-3 fw-semibold shadow-sm">
+                    <i class="fas fa-truck me-1"></i> Convert to Challan
                 </button>
             </form>
         @endif
 
-        <a href="{{ route('admin.accounting.invoices.index') }}" class="btn btn-outline-secondary">
-            <i class="fas fa-arrow-left me-1"></i> তালিকায় ফিরুন
+        <a href="{{ route('admin.accounting.invoices.index') }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-xs">
+            <i class="fas fa-arrow-left me-1"></i> Back to List
         </a>
     </div>
 @endsection
@@ -107,28 +107,28 @@
         <div class="nav nav-pills gap-1.5 flex-wrap">
             <a href="{{ route('admin.accounting.index') }}" 
                class="nav-link rounded-pill px-3.5 py-2 fw-semibold text-dark hover-bg-light">
-                <i class="fas fa-scale-balanced me-1.5"></i> আয়-ব্যয় ও হিসাব খাতা
+                <i class="fas fa-scale-balanced me-1.5"></i> Income & Expense Ledger
             </a>
             <a href="{{ route('admin.accounting.invoices.index') }}" 
                class="nav-link rounded-pill px-3.5 py-2 fw-semibold text-dark hover-bg-light">
-                <i class="fas fa-file-invoice-dollar me-1.5"></i> বিল, চালান ও দরপত্র তালিকা
+                <i class="fas fa-file-invoice-dollar me-1.5"></i> Invoices, Challans & Quotations
             </a>
             <a href="{{ route('admin.accounting.invoices.create') }}" 
                class="nav-link rounded-pill px-3.5 py-2 fw-semibold text-dark hover-bg-light">
-                <i class="fas fa-file-circle-plus me-1.5"></i> নতুন বিল, চালান ও দরপত্র তৈরি
+                <i class="fas fa-file-circle-plus me-1.5"></i> Create New Invoice
             </a>
         </div>
 
         @if($invoice->type === 'invoice')
             <div class="btn-group btn-group-sm">
                 <button type="button" class="btn btn-outline-primary active" id="btnShowBoth" onclick="setViewMode('both')">
-                    <i class="fas fa-file-lines me-1"></i>উভয় পেজ (বিল ও চালান)
+                    <i class="fas fa-file-lines me-1"></i>Both Pages (Bill & Challan)
                 </button>
                 <button type="button" class="btn btn-outline-primary" id="btnShowBill" onclick="setViewMode('bill')">
-                    <i class="fas fa-receipt me-1"></i>১ম পেজ (বিল)
+                    <i class="fas fa-receipt me-1"></i>Page 1 (Bill)
                 </button>
                 <button type="button" class="btn btn-outline-primary" id="btnShowChallan" onclick="setViewMode('challan')">
-                    <i class="fas fa-truck me-1"></i>২য় পেজ (চালান)
+                    <i class="fas fa-truck me-1"></i>Page 2 (Challan)
                 </button>
             </div>
         @endif
@@ -147,13 +147,13 @@
             <div class="row align-items-center border-bottom pb-2 mb-2 g-2">
                 <div class="col-7">
                     <div class="d-flex align-items-center gap-3 invoice-brand-header">
-                        <img src="{{ $logoSrc }}" alt="{{ $settings['business_name'] ?? 'আইডিয়া প্রকাশন' }}" 
+                        <img src="{{ $logoSrc }}" alt="{{ $settings['business_name'] ?? 'Idea Publication' }}" 
                              class="img-fluid invoice-logo-img" style="height: 48px; width: 96px; aspect-ratio: 2/1; object-fit: contain; flex-shrink: 0; margin-right: 4px;">
                         <div class="d-flex flex-column justify-content-center" style="line-height: 1.3; padding-left: 2px;">
-                            <div class="fw-bold text-primary invoice-brand-name" style="font-size: 15.5px; margin-bottom: 2px;">{{ $settings['business_name'] ?? 'আইডিয়া প্রকাশন' }}</div>
-                            <div class="text-muted invoice-tagline" style="font-size: 10px; margin-bottom: 2px;">{{ $settings['tagline'] ?? 'বই প্রকাশনা, মুদ্রণ ও পরিবেশনা' }}</div>
+                            <div class="fw-bold text-primary invoice-brand-name" style="font-size: 15.5px; margin-bottom: 2px;">{{ $settings['business_name'] ?? 'Idea Publication' }}</div>
+                            <div class="text-muted invoice-tagline" style="font-size: 10px; margin-bottom: 2px;">{{ $settings['tagline'] ?? 'Book Publication, Printing & Distribution' }}</div>
                             <div class="text-muted invoice-contact-info" style="font-size: 9.5px; line-height: 1.35;">
-                                <span><i class="fas fa-location-dot me-0.5 text-danger"></i>{{ $settings['address'] ?? 'ঢাকা, বাংলাদেশ' }}</span>
+                                <span><i class="fas fa-location-dot me-0.5 text-danger"></i>{{ $settings['address'] ?? 'Dhaka, Bangladesh' }}</span>
                                 <span class="mx-1 text-muted">·</span>
                                 <span><i class="fas fa-phone me-0.5 text-primary"></i>{{ $settings['phone'] ?? '018XXXXXXXX' }}</span>
                                 <span class="mx-1 text-muted">·</span>
@@ -172,29 +172,29 @@
                             'invoice'   => 'background-color: #dcfce7; color: #15803d; border-color: #86efac;',
                         ];
                         $badgeTitles = [
-                            'challan'   => 'ডেলিভারি চালান (DELIVERY CHALLAN)',
-                            'quotation' => 'মূল্য কোটেশন (PRICE QUOTATION)',
-                            'tender'    => 'দরপত্র প্রস্তাবনা (TENDER PROPOSAL)',
-                            'invoice'   => 'ক্যাশ মেমো / বিল (INVOICE / BILL)',
+                            'challan'   => 'DELIVERY CHALLAN',
+                            'quotation' => 'PRICE QUOTATION',
+                            'tender'    => 'TENDER PROPOSAL',
+                            'invoice'   => 'INVOICE / BILL',
                         ];
                         $computerGeneratedLabels = [
-                            'challan'   => 'কম্পিউটার জেনারেটেড ডেলিভারি চালান',
-                            'quotation' => 'কম্পিউটার জেনারেটেড কোটেশন',
-                            'tender'    => 'কম্পিউটার জেনারেটেড দরপত্র',
-                            'invoice'   => 'কম্পিউটার জেনারেট বিল',
+                            'challan'   => 'Computer-generated delivery challan',
+                            'quotation' => 'Computer-generated quotation',
+                            'tender'    => 'Computer-generated tender',
+                            'invoice'   => 'Computer-generated bill',
                         ];
                     @endphp
                     <span class="badge border px-2 py-0.5 rounded-pill mb-0.5 d-inline-block fw-bold" style="font-size: 10px; {{ $badgeStyles[$invoice->type] ?? $badgeStyles['invoice'] }}">
-                        {{ $badgeTitles[$invoice->type] ?? 'বিল / ক্যাশ মেমো' }}
+                        {{ $badgeTitles[$invoice->type] ?? 'INVOICE / BILL' }}
                     </span>
                     <div class="fw-bold text-dark mb-0 font-monospace invoice-no-text" style="font-size: 13pt; line-height: 1.2;">#{{ $invoice->invoice_no }}</div>
                     
                     <div class="text-muted fw-semibold" style="font-size: 9.5px; line-height: 1.2;">
-                        <i class="fas fa-desktop me-1"></i>{{ $computerGeneratedLabels[$invoice->type] ?? 'কম্পিউটার জেনারেট বিল' }}
-                        · তারিখ: <strong>@bnDate($invoice->invoice_date)</strong>
+                        <i class="fas fa-desktop me-1"></i>{{ $computerGeneratedLabels[$invoice->type] ?? 'Computer-generated bill' }}
+                        · Date: <strong>{{ $invoice->invoice_date ? $invoice->invoice_date->format('d M, Y') : '—' }}</strong>
                     </div>
                     @if($invoice->valid_until)
-                        <div class="text-danger fw-semibold" style="font-size: 9px;"><i class="fas fa-hourglass-half me-0.5"></i>মেয়াদ: @bnDate($invoice->valid_until)</div>
+                        <div class="text-danger fw-semibold" style="font-size: 9px;"><i class="fas fa-hourglass-half me-0.5"></i>Valid until: {{ $invoice->valid_until->format('d M, Y') }}</div>
                     @endif
                 </div>
             </div>
@@ -204,90 +204,90 @@
                 <div class="p-1.5 bg-light rounded-2 border mb-2" style="font-size: 10px;">
                     @if($invoice->reference_no)
                         <div class="text-muted mb-0.5">
-                            <strong class="text-dark">দরপত্র / স্মারক নং:</strong> <span class="font-monospace fw-bold text-dark">{{ $invoice->reference_no }}</span>
+                            <strong class="text-dark">Tender / Ref No:</strong> <span class="font-monospace fw-bold text-dark">{{ $invoice->reference_no }}</span>
                         </div>
                     @endif
                     @if($invoice->subject)
                         <div>
-                            <strong class="text-dark">বিষয়:</strong> <span class="fw-bold text-primary">{{ $invoice->subject }}</span>
+                            <strong class="text-dark">Subject:</strong> <span class="fw-bold text-primary">{{ $invoice->subject }}</span>
                         </div>
                     @endif
                 </div>
             @endif
 
-            {{-- Customer & Billed To Info (Font 12 structured format) --}}
+            {{-- Customer & Billed To Info --}}
             <div class="row mb-2.5 p-2 bg-light rounded-2 border g-2 align-items-start" style="font-size: 12px;">
                 <div class="col-7">
-                    <div class="fw-bold text-dark mb-1" style="font-size: 12px;"><i class="fas fa-user-tag me-1 text-primary"></i>প্রাপক:</div>
+                    <div class="fw-bold text-dark mb-1" style="font-size: 12px;"><i class="fas fa-user-tag me-1 text-primary"></i>Recipient / Billed To:</div>
                     <table class="table-borderless p-0 m-0 w-100" style="font-size: 12px; line-height: 1.45;">
                         @if($invoice->customer_name)
                             <tr>
-                                <td class="text-muted pe-1 text-nowrap" style="width: 110px; vertical-align: top;">প্রাপক নাম:</td>
+                                <td class="text-muted pe-1 text-nowrap" style="width: 110px; vertical-align: top;">Name:</td>
                                 <td class="fw-bold text-dark">{{ $invoice->customer_name }}</td>
                             </tr>
                         @endif
                         @if(!empty($invoice->customer_designation))
                             <tr>
-                                <td class="text-muted pe-1 text-nowrap" style="vertical-align: top;">পদবী:</td>
+                                <td class="text-muted pe-1 text-nowrap" style="vertical-align: top;">Designation:</td>
                                 <td class="fw-semibold text-dark">{{ $invoice->customer_designation }}</td>
                             </tr>
                         @endif
                         @if($invoice->customer_org)
                             <tr>
-                                <td class="text-muted pe-1 text-nowrap" style="vertical-align: top;">প্রতিষ্ঠানের নাম:</td>
+                                <td class="text-muted pe-1 text-nowrap" style="vertical-align: top;">Organization:</td>
                                 <td class="fw-semibold text-primary">{{ $invoice->customer_org }}</td>
                             </tr>
                         @endif
                         @if($invoice->customer_address)
                             <tr>
-                                <td class="text-muted pe-1 text-nowrap" style="vertical-align: top;">ঠিকানা:</td>
+                                <td class="text-muted pe-1 text-nowrap" style="vertical-align: top;">Address:</td>
                                 <td class="text-dark">{{ $invoice->customer_address }}</td>
                             </tr>
                         @endif
                         @if($invoice->customer_phone)
                             <tr>
-                                <td class="text-muted pe-1 text-nowrap" style="vertical-align: top;">মোবাইল:</td>
+                                <td class="text-muted pe-1 text-nowrap" style="vertical-align: top;">Phone:</td>
                                 <td class="text-dark fw-bold font-monospace">{{ $invoice->customer_phone }}</td>
                             </tr>
                         @endif
                     </table>
                 </div>
                 <div class="col-5 text-end">
-                    <div class="text-muted text-uppercase fw-semibold mb-1" style="font-size: 11px;">অর্ডার ও পেমেন্ট বিবরণ:</div>
+                    <div class="text-muted text-uppercase fw-semibold mb-1" style="font-size: 11px;">Order & Payment Details:</div>
                     <div style="font-size: 12px; line-height: 1.5;">
-                        <div>ধরন: <strong>{{ $invoice->type_label }}</strong> · মাধ্যম: <strong>{{ $invoice->payment_method ?? 'ক্যাশ / ব্যাংক' }}</strong></div>
+                        <div>Type: <strong>{{ ucfirst($invoice->type) }}</strong> · Method: <strong>{{ $invoice->payment_method ?? 'Cash / Bank' }}</strong></div>
                         @if(in_array($invoice->type, ['invoice', 'challan']))
                             <div>
-                                স্ট্যাটাস: 
+                                Status: 
                                 @if($invoice->payment_status === 'paid')
-                                    <span class="badge bg-success-subtle text-success border px-2 py-0.5" style="font-size: 10.5px;">পরিশোধিত</span>
+                                    <span class="badge bg-success-subtle text-success border px-2 py-0.5" style="font-size: 10.5px;">Paid</span>
                                 @elseif($invoice->payment_status === 'partial')
-                                    <span class="badge bg-warning-subtle text-dark border px-2 py-0.5" style="font-size: 10.5px;">আংশিক বকেয়া</span>
+                                    <span class="badge bg-warning-subtle text-dark border px-2 py-0.5" style="font-size: 10.5px;">Partially Paid</span>
                                 @else
-                                    <span class="badge bg-danger-subtle text-danger border px-2 py-0.5" style="font-size: 10.5px;">বকেয়া</span>
+                                    <span class="badge bg-danger-subtle text-danger border px-2 py-0.5" style="font-size: 10.5px;">Due</span>
                                 @endif
-                                · প্রস্তুতকারী: <strong>{{ $invoice->creator->name ?? 'অ্যাডমিন' }}</strong>
+                                · Prepared by: <strong>{{ $invoice->creator->name ?? 'Admin' }}</strong>
                             </div>
                         @else
-                            <div>প্রস্তাবনা স্ট্যাটাস: <span class="badge bg-primary-subtle text-primary border px-2 py-0.5" style="font-size: 10.5px;">প্রস্তাবিত</span></div>
+                            <div>Proposal Status: <span class="badge bg-primary-subtle text-primary border px-2 py-0.5" style="font-size: 10.5px;">Proposed</span></div>
                         @endif
                     </div>
                 </div>
             </div>
 
-            {{-- Items / Price Schedule Table (Compact for 25-30 items per A4 page) --}}
+            {{-- Items / Price Schedule Table --}}
             <div class="table-responsive mb-2">
                 <table class="table table-bordered table-sm align-middle invoice-table mb-0" style="font-size: 10px;">
                     <thead class="table-light">
                         <tr class="text-muted text-uppercase" style="font-size: 9px;">
                             <th class="text-center py-1 px-1" style="width: 26px;">#</th>
-                            <th class="py-1 px-1.5">বইয়ের নাম ও বিবরণ</th>
-                            <th class="py-1 px-1" style="width: 105px;">লেখক</th>
-                            <th class="text-center py-1 px-1" style="width: 45px;">পরিমাণ</th>
-                            <th class="text-end py-1 px-1" style="width: 70px;">গায়ের মূল্য</th>
-                            <th class="text-center py-1 px-1" style="width: 55px;">কমিশন %</th>
-                            <th class="text-end py-1 px-1" style="width: 80px;">কমিশন বাদে একক</th>
-                            <th class="text-end py-1 pe-1.5" style="width: 85px;">মোট টাকা (৳)</th>
+                            <th class="py-1 px-1.5">Book Title & Description</th>
+                            <th class="py-1 px-1" style="width: 105px;">Author</th>
+                            <th class="text-center py-1 px-1" style="width: 45px;">Qty</th>
+                            <th class="text-end py-1 px-1" style="width: 70px;">Cover Price</th>
+                            <th class="text-center py-1 px-1" style="width: 55px;">Comm %</th>
+                            <th class="text-end py-1 px-1" style="width: 80px;">Unit Price</th>
+                            <th class="text-end py-1 pe-1.5" style="width: 85px;">Total (৳)</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -320,22 +320,22 @@
                                 $lineSubtotal = (float)($item['subtotal'] ?? ($qty * $netUnitPrice));
                             @endphp
                             <tr>
-                                <td class="text-center py-0.5 px-1 text-muted">@bn($idx + 1)</td>
+                                <td class="text-center py-0.5 px-1 text-muted">{{ $idx + 1 }}</td>
                                 <td class="py-0.5 px-1.5">
                                     <span class="fw-semibold text-dark">{{ $item['title'] ?? '—' }}</span>
                                 </td>
                                 <td class="py-0.5 px-1 text-muted" style="font-size: 9.5px;">{{ $authorName }}</td>
-                                <td class="text-center py-0.5 px-1 fw-bold">@bn($qty)</td>
-                                <td class="text-end py-0.5 px-1">@taka($coverPrice)</td>
+                                <td class="text-center py-0.5 px-1 fw-bold">{{ $qty }}</td>
+                                <td class="text-end py-0.5 px-1">৳{{ number_format($coverPrice, 2) }}</td>
                                 <td class="text-center py-0.5 px-1">
                                     @if($commPercent > 0)
-                                        <span class="badge bg-danger-subtle text-danger border px-1 py-0" style="font-size: 8.5px;">@bn($commPercent)%</span>
+                                        <span class="badge bg-danger-subtle text-danger border px-1 py-0" style="font-size: 8.5px;">{{ $commPercent }}%</span>
                                     @else
                                         <span class="text-muted" style="font-size: 8.5px;">—</span>
                                     @endif
                                 </td>
-                                <td class="text-end py-0.5 px-1 fw-semibold text-dark">@taka($netUnitPrice)</td>
-                                <td class="text-end py-0.5 pe-1.5 fw-bold text-dark">@taka($lineSubtotal)</td>
+                                <td class="text-end py-0.5 px-1 fw-semibold text-dark">৳{{ number_format($netUnitPrice, 2) }}</td>
+                                <td class="text-end py-0.5 pe-1.5 fw-bold text-dark">৳{{ number_format($lineSubtotal, 2) }}</td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -344,11 +344,11 @@
                             ? round(($invoice->discount / $invoice->subtotal) * 100, 1)
                             : 0;
 
-                        $tfootRows = 3; // মোট টাকা + বিশেষ কমিশন + সর্বমোট বিল
+                        $tfootRows = 3; // Subtotal + Special Discount + Grand Total
                         if ($invoice->tax > 0) $tfootRows++;
                         if (in_array($invoice->type, ['invoice', 'challan'])) {
-                            $tfootRows++; // পরিশোধিত
-                            if ($invoice->due_amount > 0) $tfootRows++; // অবশিষ্ট বকেয়া
+                            $tfootRows++; // Paid
+                            if ($invoice->due_amount > 0) $tfootRows++; // Due
                         }
                     @endphp
                     <tfoot>
@@ -356,43 +356,43 @@
                             <td colspan="6" rowspan="{{ $tfootRows }}" class="py-2 px-2.5 border bg-light bg-opacity-25" style="vertical-align: middle;">
                                 <div class="p-1">
                                     <span class="text-muted fw-bold d-block mb-1" style="font-size: 9.5px;">
-                                        <i class="fas fa-coins me-1 text-primary"></i>টাকা কথায়:
+                                        <i class="fas fa-coins me-1 text-primary"></i>Total in Words:
                                     </span>
                                     <div class="fw-bold text-dark text-wrap" style="font-size: 11.5px; line-height: 1.45;">
                                         @takaInWords($invoice->grand_total)
                                     </div>
                                 </div>
                             </td>
-                            <td class="text-end py-0.5 px-1.5 fw-semibold">মোট টাকা:</td>
-                            <td class="text-end py-0.5 pe-1.5 fw-semibold">@taka($invoice->subtotal)</td>
+                            <td class="text-end py-0.5 px-1.5 fw-semibold">Subtotal:</td>
+                            <td class="text-end py-0.5 pe-1.5 fw-semibold">৳{{ number_format($invoice->subtotal, 2) }}</td>
                         </tr>
                         <tr>
                             <td class="text-end py-0.5 px-1.5 text-danger fw-semibold">
-                                বিশেষ কমিশন @if($specialCommPercent > 0)(@bn($specialCommPercent)%)@endif:
+                                Special Discount @if($specialCommPercent > 0)({{ $specialCommPercent }}%)@endif:
                             </td>
                             <td class="text-end py-0.5 pe-1.5 text-danger fw-semibold">
-                                {{ $invoice->discount > 0 ? '- ' . \App\Support\Bn::money($invoice->discount) : '৳০.০০' }}
+                                {{ $invoice->discount > 0 ? '- ৳' . number_format($invoice->discount, 2) : '৳0.00' }}
                             </td>
                         </tr>
                         @if($invoice->tax > 0)
                             <tr>
-                                <td class="text-end py-0.5 px-1.5 text-muted fw-semibold">ভ্যাট / ট্যাক্স:</td>
-                                <td class="text-end py-0.5 pe-1.5 text-muted fw-semibold">+ @taka($invoice->tax)</td>
+                                <td class="text-end py-0.5 px-1.5 text-muted fw-semibold">VAT / Tax:</td>
+                                <td class="text-end py-0.5 pe-1.5 text-muted fw-semibold">+ ৳{{ number_format($invoice->tax, 2) }}</td>
                             </tr>
                         @endif
                         <tr class="table-light">
-                            <td class="text-end py-1 px-1.5 fw-bold text-dark">সর্বমোট বিল:</td>
-                            <td class="text-end py-1 pe-1.5 fw-bold text-primary" style="font-size: 11.5px;">@taka($invoice->grand_total)</td>
+                            <td class="text-end py-1 px-1.5 fw-bold text-dark">Grand Total:</td>
+                            <td class="text-end py-1 pe-1.5 fw-bold text-primary" style="font-size: 11.5px;">৳{{ number_format($invoice->grand_total, 2) }}</td>
                         </tr>
                         @if(in_array($invoice->type, ['invoice', 'challan']))
                             <tr>
-                                <td class="text-end py-0.5 px-1.5 text-success fw-bold">পরিশোধিত:</td>
-                                <td class="text-end py-0.5 pe-1.5 text-success fw-bold">@taka($invoice->paid_amount)</td>
+                                <td class="text-end py-0.5 px-1.5 text-success fw-bold">Amount Paid:</td>
+                                <td class="text-end py-0.5 pe-1.5 text-success fw-bold">৳{{ number_format($invoice->paid_amount, 2) }}</td>
                             </tr>
                             @if($invoice->due_amount > 0)
                                 <tr class="table-danger">
-                                    <td class="text-end py-0.5 px-1.5 text-danger fw-bold">অবশিষ্ট বকেয়া:</td>
-                                    <td class="text-end py-0.5 pe-1.5 text-danger fw-bold">@taka($invoice->due_amount)</td>
+                                    <td class="text-end py-0.5 px-1.5 text-danger fw-bold">Due Balance:</td>
+                                    <td class="text-end py-0.5 pe-1.5 text-danger fw-bold">৳{{ number_format($invoice->due_amount, 2) }}</td>
                                 </tr>
                             @endif
                         @endif
@@ -402,7 +402,7 @@
 
             {{-- Note at end right before signature --}}
             <div class="p-1.5 bg-light rounded-2 text-muted mb-3 border" style="font-size: 10px; line-height: 1.3;">
-                <strong class="text-dark"><i class="fas fa-circle-info me-1 text-primary"></i>(নোট):</strong> ১. ভ্যাট যুক্ত করা হয়নি।
+                <strong class="text-dark"><i class="fas fa-circle-info me-1 text-primary"></i>(Note):</strong> 1. VAT not included unless specified.
                 @if($invoice->notes)
                     · {{ $invoice->notes }}
                 @endif
@@ -417,7 +417,7 @@
                     <div class="col-4">
                         <div class="signature-box" style="margin-top: 36px;">
                             <div class="border-top border-dark pt-1 fw-semibold text-dark">
-                                গ্রাহকের স্বাক্ষর
+                                Customer's Signature
                             </div>
                         </div>
                     </div>
@@ -427,7 +427,7 @@
                         <div class="d-inline-flex align-items-center gap-1.5 px-2 py-1 rounded border bg-white shadow-xs">
                             <img src="{{ $qrCodeUrl }}" alt="QR" style="width: 34px; height: 34px; object-fit: contain;">
                             <div class="text-start" style="line-height: 1.15;">
-                                <span class="text-muted fw-semibold d-block" style="font-size: 8px;"><i class="fas fa-qrcode me-0.5"></i>স্ক্যান করে যাচাই</span>
+                                <span class="text-muted fw-semibold d-block" style="font-size: 8px;"><i class="fas fa-qrcode me-0.5"></i>Scan to Verify</span>
                                 <span class="font-monospace text-dark fw-bold" style="font-size: 9px;">#{{ $invoice->invoice_no }}</span>
                             </div>
                         </div>
@@ -436,22 +436,22 @@
                     <div class="col-4">
                         <div class="signature-box" style="margin-top: 36px;">
                             <div class="border-top border-dark pt-1 fw-semibold text-dark">
-                                বিল প্রস্তুতকারীর স্বাক্ষর
+                                Authorized Signature
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <div class="text-center text-muted mt-2 d-flex justify-content-between align-items-center" style="font-size: 8.5px; line-height: 1;">
-                    <span>পৃষ্ঠা ১ / {{ $invoice->type === 'invoice' ? '২ (ক্যাশ মেমো কপি)' : '১' }}</span>
-                    <span>{{ $settings['business_name'] ?? 'আইডিয়া প্রকাশন' }} · কম্পিউটার জেনারেটেড বিল</span>
-                    <span>আইডি: {{ $invoice->invoice_no }}</span>
+                    <span>Page 1 / {{ $invoice->type === 'invoice' ? '2 (Invoice Copy)' : '1' }}</span>
+                    <span>{{ $settings['business_name'] ?? 'Idea Publication' }} · Computer Generated Document</span>
+                    <span>ID: {{ $invoice->invoice_no }}</span>
                 </div>
             </div>
         </div>
 
         {{-- ========================================================================= --}}
-        {{-- PAGE 2: DELIVERY CHALLAN (স্বয়ংক্রিয় ২য় পেজ চালান - বিলের জন্য)              --}}
+        {{-- PAGE 2: DELIVERY CHALLAN (Automatic 2nd page for Invoices)                --}}
         {{-- ========================================================================= --}}
         @if($invoice->type === 'invoice')
             <div class="page-break d-print-block" id="invoicePageBreak"></div>
@@ -462,13 +462,13 @@
                 <div class="row align-items-center border-bottom pb-2 mb-2 g-2">
                     <div class="col-7">
                         <div class="d-flex align-items-center gap-3 invoice-brand-header">
-                            <img src="{{ $logoSrc }}" alt="{{ $settings['business_name'] ?? 'আইডিয়া প্রকাশন' }}" 
+                            <img src="{{ $logoSrc }}" alt="{{ $settings['business_name'] ?? 'Idea Publication' }}" 
                                  class="img-fluid invoice-logo-img" style="height: 48px; width: 96px; aspect-ratio: 2/1; object-fit: contain; flex-shrink: 0; margin-right: 4px;">
                             <div class="d-flex flex-column justify-content-center" style="line-height: 1.3; padding-left: 2px;">
-                                <div class="fw-bold text-primary invoice-brand-name" style="font-size: 15.5px; margin-bottom: 2px;">{{ $settings['business_name'] ?? 'আইডিয়া প্রকাশন' }}</div>
-                                <div class="text-muted invoice-tagline" style="font-size: 10px; margin-bottom: 2px;">{{ $settings['tagline'] ?? 'বই প্রকাশনা, মুদ্রণ ও পরিবেশনা' }}</div>
+                                <div class="fw-bold text-primary invoice-brand-name" style="font-size: 15.5px; margin-bottom: 2px;">{{ $settings['business_name'] ?? 'Idea Publication' }}</div>
+                                <div class="text-muted invoice-tagline" style="font-size: 10px; margin-bottom: 2px;">{{ $settings['tagline'] ?? 'Book Publication, Printing & Distribution' }}</div>
                                 <div class="text-muted invoice-contact-info" style="font-size: 9.5px; line-height: 1.35;">
-                                    <span><i class="fas fa-location-dot me-0.5 text-danger"></i>{{ $settings['address'] ?? 'ঢাকা, বাংলাদেশ' }}</span>
+                                    <span><i class="fas fa-location-dot me-0.5 text-danger"></i>{{ $settings['address'] ?? 'Dhaka, Bangladesh' }}</span>
                                     <span class="mx-1 text-muted">·</span>
                                     <span><i class="fas fa-phone me-0.5 text-primary"></i>{{ $settings['phone'] ?? '018XXXXXXXX' }}</span>
                                     <span class="mx-1 text-muted">·</span>
@@ -480,76 +480,76 @@
 
                     <div class="col-5 text-end">
                         <span class="badge border px-2 py-0.5 rounded-pill mb-0.5 d-inline-block fw-bold" style="font-size: 10px; background-color: #e0f2fe; color: #0369a1; border-color: #7dd3fc;">
-                            ডেলিভারি চালান (DELIVERY CHALLAN)
+                            DELIVERY CHALLAN
                         </span>
                         <div class="fw-bold text-dark mb-0 font-monospace invoice-no-text" style="font-size: 13pt; line-height: 1.2;">#{{ $invoice->invoice_no }}</div>
                         
                         <div class="text-muted fw-semibold" style="font-size: 9.5px; line-height: 1.2;">
-                            <i class="fas fa-truck me-1"></i>কম্পিউটার জেনারেটেড চালান · তারিখ: <strong>@bnDate($invoice->invoice_date)</strong>
+                            <i class="fas fa-truck me-1"></i>Computer-generated delivery challan · Date: <strong>{{ $invoice->invoice_date ? $invoice->invoice_date->format('d M, Y') : '—' }}</strong>
                         </div>
-                        <div class="text-muted" style="font-size: 9px;">সম্পর্কিত বিল নং: <strong>#{{ $invoice->invoice_no }}</strong></div>
+                        <div class="text-muted" style="font-size: 9px;">Linked Bill #: <strong>#{{ $invoice->invoice_no }}</strong></div>
                     </div>
                 </div>
 
-                {{-- Delivery Destination & Client Details (Font 12 structured format) --}}
+                {{-- Delivery Destination & Client Details --}}
                 <div class="row mb-2.5 p-2 bg-light rounded-2 border g-2 align-items-start" style="font-size: 12px;">
                     <div class="col-7">
-                        <div class="fw-bold text-dark mb-1" style="font-size: 12px;"><i class="fas fa-truck-ramp-box me-1 text-primary"></i>প্রাপক ও গন্তব্য:</div>
+                        <div class="fw-bold text-dark mb-1" style="font-size: 12px;"><i class="fas fa-truck-ramp-box me-1 text-primary"></i>Delivery Destination & Recipient:</div>
                         <table class="table-borderless p-0 m-0 w-100" style="font-size: 12px; line-height: 1.45;">
                             @if($invoice->customer_name)
                                 <tr>
-                                    <td class="text-muted pe-1 text-nowrap" style="width: 110px; vertical-align: top;">প্রাপক নাম:</td>
+                                    <td class="text-muted pe-1 text-nowrap" style="width: 110px; vertical-align: top;">Recipient Name:</td>
                                     <td class="fw-bold text-dark">{{ $invoice->customer_name }}</td>
                                 </tr>
                             @endif
                             @if(!empty($invoice->customer_designation))
                                 <tr>
-                                    <td class="text-muted pe-1 text-nowrap" style="vertical-align: top;">পদবী:</td>
+                                    <td class="text-muted pe-1 text-nowrap" style="vertical-align: top;">Designation:</td>
                                     <td class="fw-semibold text-dark">{{ $invoice->customer_designation }}</td>
                                 </tr>
                             @endif
                             @if($invoice->customer_org)
                                 <tr>
-                                    <td class="text-muted pe-1 text-nowrap" style="vertical-align: top;">প্রতিষ্ঠানের নাম:</td>
+                                    <td class="text-muted pe-1 text-nowrap" style="vertical-align: top;">Organization:</td>
                                     <td class="fw-semibold text-primary">{{ $invoice->customer_org }}</td>
                                 </tr>
                             @endif
                             @if($invoice->customer_address)
                                 <tr>
-                                    <td class="text-muted pe-1 text-nowrap" style="vertical-align: top;">ঠিকানা:</td>
+                                    <td class="text-muted pe-1 text-nowrap" style="vertical-align: top;">Address:</td>
                                     <td class="text-dark">{{ $invoice->customer_address }}</td>
                                 </tr>
                             @endif
                             @if($invoice->customer_phone)
                                 <tr>
-                                    <td class="text-muted pe-1 text-nowrap" style="vertical-align: top;">মোবাইল:</td>
+                                    <td class="text-muted pe-1 text-nowrap" style="vertical-align: top;">Phone:</td>
                                     <td class="text-dark fw-bold font-monospace">{{ $invoice->customer_phone }}</td>
                                 </tr>
                             @endif
                         </table>
                     </div>
                     <div class="col-5 text-end">
-                        <div class="text-muted text-uppercase fw-semibold mb-1" style="font-size: 11px;">চালান ট্র্যাকিং ও প্রেরণ তথ্য:</div>
+                        <div class="text-muted text-uppercase fw-semibold mb-1" style="font-size: 11px;">Challan Tracking & Dispatch Info:</div>
                         <div style="font-size: 12px; line-height: 1.5;">
-                            <div>চালানের ধরন: <strong>পণ্য / বই সরবরাহ চালান</strong></div>
-                            <div>মোট আইটেম: <strong>@bn(count($invoice->items ?? [])) টি</strong> · মোট বই: <strong class="text-primary">@bn($totalQuantity) টি</strong></div>
-                            <div class="text-muted">প্রেরক / প্যাকার: <strong>{{ $invoice->creator->name ?? 'অ্যাডমিন' }}</strong></div>
+                            <div>Challan Type: <strong>Goods / Book Delivery</strong></div>
+                            <div>Total Items: <strong>{{ count($invoice->items ?? []) }} items</strong> · Total Qty: <strong class="text-primary">{{ $totalQuantity }} pcs</strong></div>
+                            <div class="text-muted">Dispatcher / Packer: <strong>{{ $invoice->creator->name ?? 'Admin' }}</strong></div>
                         </div>
                     </div>
                 </div>
 
-                {{-- Delivery Items Table (Compact for 25-30 items per A4 page) --}}
+                {{-- Delivery Items Table --}}
                 <div class="table-responsive mb-2">
                     <table class="table table-bordered table-sm align-middle invoice-table mb-0" style="font-size: 10px;">
                         <thead class="table-light">
                             <tr class="text-muted text-uppercase" style="font-size: 9px;">
                                 <th class="text-center py-1 px-1" style="width: 28px;">#</th>
-                                <th class="py-1 px-1.5">সরবরাহকৃত পণ্য / বইয়ের বিবরণ</th>
-                                <th class="py-1 px-1" style="width: 115px;">লেখক</th>
-                                <th class="text-center py-1 px-1" style="width: 60px;">ধরন</th>
-                                <th class="text-center py-1 px-1" style="width: 55px;">পরিমাণ</th>
-                                <th class="text-center py-1 px-1" style="width: 75px;">প্যাকিং অবস্থা</th>
-                                <th class="py-1 px-1.5" style="width: 80px;">মন্তব্য</th>
+                                <th class="py-1 px-1.5">Delivered Item / Book Description</th>
+                                <th class="py-1 px-1" style="width: 115px;">Author</th>
+                                <th class="text-center py-1 px-1" style="width: 60px;">Type</th>
+                                <th class="text-center py-1 px-1" style="width: 55px;">Qty</th>
+                                <th class="text-center py-1 px-1" style="width: 75px;">Condition</th>
+                                <th class="py-1 px-1.5" style="width: 80px;">Remarks</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -561,23 +561,23 @@
                                     $authorName = $item['author'] ?? $item['author_name'] ?? ($matchedBook->author_name ?? ($matchedBook->author->name ?? null)) ?? '—';
                                 @endphp
                                 <tr>
-                                    <td class="text-center py-0.5 px-1 text-muted">@bn($idx + 1)</td>
+                                    <td class="text-center py-0.5 px-1 text-muted">{{ $idx + 1 }}</td>
                                     <td class="py-0.5 px-1.5">
                                         <span class="fw-semibold text-dark">{{ $item['title'] ?? '—' }}</span>
                                     </td>
                                     <td class="py-0.5 px-1 text-muted" style="font-size: 9.5px;">{{ $authorName }}</td>
-                                    <td class="text-center py-0.5 px-1"><span class="badge bg-light text-dark border px-1 py-0" style="font-size: 8.5px;">{{ $item['item_type'] ?? 'বই' }}</span></td>
-                                    <td class="text-center py-0.5 px-1 fw-bold text-primary">@bn($item['quantity'] ?? 1)</td>
-                                    <td class="text-center py-0.5 px-1 text-muted">অক্ষত / নতুন কপি</td>
-                                    <td class="py-0.5 px-1.5 text-muted">যাচাইকৃত</td>
+                                    <td class="text-center py-0.5 px-1"><span class="badge bg-light text-dark border px-1 py-0" style="font-size: 8.5px;">{{ $item['item_type'] ?? 'Book' }}</span></td>
+                                    <td class="text-center py-0.5 px-1 fw-bold text-primary">{{ $item['quantity'] ?? 1 }}</td>
+                                    <td class="text-center py-0.5 px-1 text-muted">Brand New</td>
+                                    <td class="py-0.5 px-1.5 text-muted">Verified</td>
                                 </tr>
                             @endforeach
                         </tbody>
                         <tfoot>
                             <tr class="table-light">
-                                <td colspan="4" class="text-end py-1 px-1.5 fw-bold">সর্বমোট সরবরাহকৃত বই / পণ্য:</td>
-                                <td class="text-center py-1 px-1 fw-bold text-primary" style="font-size: 11px;">@bn($totalQuantity) টি</td>
-                                <td colspan="2" class="py-1 px-1.5 text-muted" style="font-size: 9px;">সম্পূর্ণ লট প্রস্তুত ও প্রেরিত</td>
+                                <td colspan="4" class="text-end py-1 px-1.5 fw-bold">Total Delivered Books / Items:</td>
+                                <td class="text-center py-1 px-1 fw-bold text-primary" style="font-size: 11px;">{{ $totalQuantity }} pcs</td>
+                                <td colspan="2" class="py-1 px-1.5 text-muted" style="font-size: 9px;">Complete lot dispatched</td>
                             </tr>
                         </tfoot>
                     </table>
@@ -585,19 +585,19 @@
 
                 {{-- Challan Notes --}}
                 <div class="p-1.5 bg-light rounded-2 text-muted mb-3 border" style="font-size: 10px; line-height: 1.3;">
-                    <strong class="text-dark"><i class="fas fa-circle-info me-1 text-success"></i>(নোট):</strong> ১. চালান অনুযায়ী বইয়ের সংখ্যা ও বাঁধাই বুঝে নিয়ে রসিদে স্বাক্ষর দিন।
+                    <strong class="text-dark"><i class="fas fa-circle-info me-1 text-success"></i>(Note):</strong> 1. Please verify the quantity and binding condition before signing receipt.
                     @if($invoice->notes)
                         · {{ $invoice->notes }}
                     @endif
                 </div>
 
-                {{-- Challan Signatures & QR Code (Positioned at A4/Letter page bottom) --}}
+                {{-- Challan Signatures & QR Code --}}
                 <div class="invoice-footer-compact pt-2 mt-auto border-top">
                     <div class="row g-2 align-items-end text-center" style="font-size: 10px;">
                         <div class="col-4">
                             <div class="signature-box" style="margin-top: 36px;">
                                 <div class="border-top border-dark pt-1 fw-semibold text-dark">
-                                    গ্রাহকের স্বাক্ষর
+                                    Recipient's Signature
                                 </div>
                             </div>
                         </div>
@@ -607,7 +607,7 @@
                             <div class="d-inline-flex align-items-center gap-1.5 px-2 py-1 rounded border bg-white shadow-xs">
                                 <img src="{{ $qrCodeUrl }}" alt="QR" style="width: 34px; height: 34px; object-fit: contain;">
                                 <div class="text-start" style="line-height: 1.15;">
-                                    <span class="text-muted fw-semibold d-block" style="font-size: 8px;"><i class="fas fa-qrcode me-0.5"></i>স্ক্যান করে যাচাই</span>
+                                    <span class="text-muted fw-semibold d-block" style="font-size: 8px;"><i class="fas fa-qrcode me-0.5"></i>Scan to Verify</span>
                                     <span class="font-monospace text-dark fw-bold" style="font-size: 9px;">#{{ $invoice->invoice_no }}</span>
                                 </div>
                             </div>
@@ -616,16 +616,16 @@
                         <div class="col-4">
                             <div class="signature-box" style="margin-top: 36px;">
                                 <div class="border-top border-dark pt-1 fw-semibold text-dark">
-                                    বিল প্রস্তুতকারীর স্বাক্ষর
+                                    Authorized Signature
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <div class="text-center text-muted mt-2 d-flex justify-content-between align-items-center" style="font-size: 8.5px; line-height: 1;">
-                        <span>পৃষ্ঠা ২ / ২ (ডেলিভারি চালান কপি)</span>
-                        <span>{{ $settings['business_name'] ?? 'আইডিয়া প্রকাশন' }} · ডেলিভারি চালান</span>
-                        <span>আইডি: {{ $invoice->invoice_no }}</span>
+                        <span>Page 2 / 2 (Delivery Challan Copy)</span>
+                        <span>{{ $settings['business_name'] ?? 'Idea Publication' }} · Delivery Challan</span>
+                        <span>ID: {{ $invoice->invoice_no }}</span>
                     </div>
                 </div>
             </div>
@@ -642,7 +642,7 @@
                 @csrf
                 <div class="modal-header bg-success text-white py-3">
                     <h5 class="modal-title fw-bold" id="sendInvoiceEmailModalLabel">
-                        <i class="fas fa-paper-plane me-2"></i>গ্রাহকের ইমেইলে বিল ও চালান প্রেরণ
+                        <i class="fas fa-paper-plane me-2"></i>Send Invoice Link to Customer
                     </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
@@ -650,17 +650,17 @@
                     <div class="alert alert-info py-2 px-3 small d-flex align-items-center mb-3">
                         <i class="fas fa-circle-info me-2 fs-5"></i>
                         <div>
-                            ইমেইল পাঠালে গ্রাহক সরাসরি ক্লিক করে বিল ও চালানের ডিজিটাল কপি দেখতে এবং PDF ডাউনলোড করতে পারবেন।
+                            The customer will receive an email with a direct link to view their digital invoice and download a PDF copy.
                         </div>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">গ্রাহকের নাম</label>
+                        <label class="form-label fw-semibold">Customer Name</label>
                         <input type="text" class="form-control bg-light" value="{{ $invoice->customer_name ?? '—' }}" readonly>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">গ্রাহকের ইমেইল ঠিকানা <span class="text-danger">*</span></label>
+                        <label class="form-label fw-semibold">Customer Email Address <span class="text-danger">*</span></label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="fas fa-envelope text-muted"></i></span>
                             <input type="email" name="email" class="form-control" value="{{ $invoice->customer_email }}" placeholder="customer@example.com" required>
@@ -668,20 +668,20 @@
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">গ্রাহকের জন্য বিশেষ বার্তা (ঐচ্ছিক)</label>
-                        <textarea name="custom_message" class="form-control" rows="3" placeholder="যেমন: আপনার অর্ডারকৃত বইসমূহ কুরিয়ারে বুকিং দেওয়া হয়েছে..."></textarea>
+                        <label class="form-label fw-semibold">Custom Message (Optional)</label>
+                        <textarea name="custom_message" class="form-control" rows="3" placeholder="e.g. Your ordered books have been dispatched via courier..."></textarea>
                     </div>
 
                     @if($invoice->emailed_at)
                         <div class="text-muted small">
-                            <i class="fas fa-history me-1 text-success"></i>সর্বশেষ ইমেইল পাঠানো হয়েছে: <strong>@bnDate($invoice->emailed_at)</strong> ({{ $invoice->emailed_at->diffForHumans() }})
+                            <i class="fas fa-history me-1 text-success"></i>Last email sent: <strong>{{ $invoice->emailed_at->format('d M, Y h:i A') }}</strong> ({{ $invoice->emailed_at->diffForHumans() }})
                         </div>
                     @endif
                 </div>
                 <div class="modal-footer border-top py-2.5">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">বাতিল</button>
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-success fw-semibold px-4 shadow-sm">
-                        <i class="fas fa-paper-plane me-1.5"></i> ইমেইল পাঠিয়ে দিন
+                        <i class="fas fa-paper-plane me-1.5"></i> Send Email
                     </button>
                 </div>
             </form>
@@ -699,7 +699,7 @@
 
                 <div class="modal-header border-bottom py-3">
                     <h5 class="modal-title fw-bold text-primary" id="invoiceSettingsModalLabel">
-                        <i class="fas fa-palette me-2"></i>ইনভয়েস ডিজাইন ও মেমো ব্র্যান্ডিং সেটিংস
+                        <i class="fas fa-palette me-2"></i>Invoice Design & Memo Branding Settings
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
@@ -707,14 +707,14 @@
                     
                     {{-- Live Preview Header Card --}}
                     <div class="card border rounded-3 p-3 mb-4 bg-light">
-                        <span class="small fw-bold text-muted text-uppercase mb-2 d-block"><i class="fas fa-eye me-1 text-primary"></i>ইনভয়েস হেডার লাইভ প্রিভিউ (Preview):</span>
+                        <span class="small fw-bold text-muted text-uppercase mb-2 d-block"><i class="fas fa-eye me-1 text-primary"></i>Invoice Header Live Preview:</span>
                         <div class="d-flex align-items-center gap-3.5 p-2 bg-white rounded border">
                             <img src="{{ $logoSrc }}" id="previewHeaderLogo" alt="Logo Preview" style="height: 48px; width: 96px; aspect-ratio: 2/1; object-fit: contain; flex-shrink: 0; margin-right: 6px;">
                             <div class="d-flex flex-column justify-content-center" style="line-height: 1.35; padding-left: 2px;">
-                                <div class="fw-bold text-primary mb-0" id="previewHeaderTitle" style="font-size: 15.5px;">{{ $settings['business_name'] ?? 'আইডিয়া প্রকাশন' }}</div>
-                                <div class="text-muted small mb-0" id="previewHeaderTagline" style="font-size: 10.5px;">{{ $settings['tagline'] ?? 'বই প্রকাশনা, মুদ্রণ ও পরিবেশনা' }}</div>
+                                <div class="fw-bold text-primary mb-0" id="previewHeaderTitle" style="font-size: 15.5px;">{{ $settings['business_name'] ?? 'Idea Publication' }}</div>
+                                <div class="text-muted small mb-0" id="previewHeaderTagline" style="font-size: 10.5px;">{{ $settings['tagline'] ?? 'Book Publication, Printing & Distribution' }}</div>
                                 <div class="text-muted small mt-0.5" id="previewHeaderMeta" style="font-size: 10px;">
-                                    <span><i class="fas fa-location-dot me-0.5 text-danger"></i><span id="previewMetaAddr">{{ $settings['address'] ?? 'ঢাকা, বাংলাদেশ' }}</span></span>
+                                    <span><i class="fas fa-location-dot me-0.5 text-danger"></i><span id="previewMetaAddr">{{ $settings['address'] ?? 'Dhaka, Bangladesh' }}</span></span>
                                     <span class="mx-1 text-muted">·</span>
                                     <span><i class="fas fa-phone me-0.5 text-primary"></i><span id="previewMetaPhone">{{ $settings['phone'] ?? '018XXXXXXXX' }}</span></span>
                                     <span class="mx-1 text-muted">·</span>
@@ -728,9 +728,9 @@
                     <div class="card border border-primary-subtle rounded-3 p-3 mb-4 bg-primary-subtle bg-opacity-10">
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <label class="form-label fw-bold text-primary mb-0">
-                                <i class="fas fa-crop-simple me-1"></i> লোগো আপলোড ও ২:১ ওয়াইড ক্রপ টুল (Wide 2:1 Ratio)
+                                <i class="fas fa-crop-simple me-1"></i> Logo Upload & 2:1 Wide Crop Tool
                             </label>
-                            <span class="badge bg-primary text-white">রেশিও ২:১ (উচ্চতার দ্বিগুণ চওড়া)</span>
+                            <span class="badge bg-primary text-white">Ratio 2:1 (Double Width)</span>
                         </div>
                         
                         <input type="file" id="logoFileInput" class="form-control mb-3" accept="image/*">
@@ -748,16 +748,16 @@
                                         <i class="fas fa-magnifying-glass-plus text-muted small"></i>
                                     </div>
                                     <div class="d-flex justify-content-between align-items-center mt-1">
-                                        <small class="text-muted"><i class="fas fa-hand-pointer me-1"></i>ছবি ড্র্যাগ করে পজিশন করুন</small>
-                                        <button type="button" class="btn btn-sm btn-link text-decoration-none p-0" onclick="resetCrop()">রিসেট</button>
+                                        <small class="text-muted"><i class="fas fa-hand-pointer me-1"></i>Drag to reposition, slider to zoom</small>
+                                        <button type="button" class="btn btn-sm btn-link text-decoration-none p-0" onclick="resetCrop()">Reset</button>
                                     </div>
                                 </div>
                                 <div class="col-md-5 text-center">
-                                    <span class="small fw-semibold text-muted d-block mb-2">ক্রপ প্রিভিউ (২:১ রেশিও):</span>
+                                    <span class="small fw-semibold text-muted d-block mb-2">Crop Preview (2:1 Ratio):</span>
                                     <div class="p-2 border rounded-3 bg-white d-inline-block shadow-xs mb-2">
                                         <img id="cropperPreviewThumb" src="{{ $logoSrc }}" alt="Live Crop Thumb" style="height: 50px; width: 100px; object-fit: contain;">
                                     </div>
-                                    <div class="small text-success fw-semibold"><i class="fas fa-circle-check me-1"></i>লোগোটি সেভ করতে প্রস্তুত</div>
+                                    <div class="small text-success fw-semibold"><i class="fas fa-circle-check me-1"></i>Logo ready to save</div>
                                 </div>
                             </div>
                         </div>
@@ -765,35 +765,35 @@
 
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold">প্রতিষ্ঠানের নাম (Header Title)</label>
-                            <input type="text" name="business_name" id="inputBusinessName" class="form-control" value="{{ $settings['business_name'] ?? 'আইডিয়া প্রকাশন' }}" required oninput="updateLivePreview()">
+                            <label class="form-label fw-semibold">Company / Imprint Name (Header Title)</label>
+                            <input type="text" name="business_name" id="inputBusinessName" class="form-control" value="{{ $settings['business_name'] ?? 'Idea Publication' }}" required oninput="updateLivePreview()">
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold">ট্যাগলাইন (Tagline / Slogan)</label>
-                            <input type="text" name="tagline" id="inputTagline" class="form-control" value="{{ $settings['tagline'] ?? 'বই প্রকাশনা, মুদ্রণ ও পরিবেশনা' }}" placeholder="বই প্রকাশনা, মুদ্রণ ও পরিবেশনা..." oninput="updateLivePreview()">
+                            <label class="form-label fw-semibold">Tagline / Slogan</label>
+                            <input type="text" name="tagline" id="inputTagline" class="form-control" value="{{ $settings['tagline'] ?? 'Book Publication, Printing & Distribution' }}" placeholder="Book Publication, Printing..." oninput="updateLivePreview()">
                         </div>
 
                         <div class="col-md-12">
-                            <label class="form-label fw-semibold">অফিসের পূর্ণাঙ্গ ঠিকানা</label>
-                            <input type="text" name="address" id="inputAddress" class="form-control" value="{{ $settings['address'] ?? 'ঢাকা, বাংলাদেশ' }}" placeholder="যেমন: সেন্ট্রাল রোড, রংপুর / ৩৮ বাংলাবাজার, ঢাকা..." oninput="updateLivePreview()">
+                            <label class="form-label fw-semibold">Full Official Address</label>
+                            <input type="text" name="address" id="inputAddress" class="form-control" value="{{ $settings['address'] ?? 'Dhaka, Bangladesh' }}" placeholder="e.g. 38 Banglabazar, Dhaka..." oninput="updateLivePreview()">
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold">অফিশিয়াল মোবাইল নম্বর</label>
+                            <label class="form-label fw-semibold">Official Phone Number</label>
                             <input type="text" name="phone" id="inputPhone" class="form-control" value="{{ $settings['phone'] ?? '018XXXXXXXX' }}" placeholder="017XXXXXXXX, 018XXXXXXXX" oninput="updateLivePreview()">
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold">অফিশিয়াল ইমেইল ঠিকানা</label>
+                            <label class="form-label fw-semibold">Official Email Address</label>
                             <input type="email" name="email" id="inputEmail" class="form-control" value="{{ $settings['email'] ?? 'info@ideaabd.com' }}" placeholder="info@ideaabd.com" oninput="updateLivePreview()">
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer border-top py-2.5">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">বাতিল</button>
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-primary fw-semibold px-4 shadow-sm">
-                        <i class="fas fa-save me-1"></i> ডিজাইন ও তথ্য সংরক্ষণ করুন
+                        <i class="fas fa-save me-1"></i> Save Design & Settings
                     </button>
                 </div>
             </form>
@@ -835,7 +835,7 @@ function setViewMode(mode) {
 }
 
 function updateLivePreview() {
-    const name = document.getElementById('inputBusinessName')?.value || 'আইডিয়া প্রকাশন';
+    const name = document.getElementById('inputBusinessName')?.value || 'Idea Publication';
     const tag = document.getElementById('inputTagline')?.value || '';
     const addr = document.getElementById('inputAddress')?.value || '';
     const ph = document.getElementById('inputPhone')?.value || '';
@@ -860,11 +860,11 @@ function copyCustomerShareLink() {
         const btn = document.getElementById('btnAdminCopyLink');
         if (btn) {
             const original = btn.innerHTML;
-            btn.innerHTML = '<i class="fas fa-check me-1 text-success"></i>লিংক কপি হয়েছে!';
+            btn.innerHTML = '<i class="fas fa-check me-1 text-success"></i>Link Copied!';
             setTimeout(() => { btn.innerHTML = original; }, 2500);
         }
     }).catch(function() {
-        prompt('গ্রাহকের পাবলিক লিংক:', url);
+        prompt('Customer Public Link:', url);
     });
 }
 
@@ -882,7 +882,7 @@ const canvas = document.getElementById('cropCanvas');
 const ctx = canvas?.getContext('2d');
 const zoomSlider = document.getElementById('cropZoomSlider');
 const base64Input = document.getElementById('logoCroppedBase64');
-const resultThumb = document.getElementById('croppedResultThumb');
+const resultThumb = document.getElementById('cropperPreviewThumb');
 const headerPreviewImg = document.getElementById('previewHeaderLogo');
 const dragArea = document.getElementById('cropDragArea');
 
@@ -1012,7 +1012,6 @@ function resetCrop() {
 <style>
 /* Invoice styling: Screen & Print */
 .invoice-page-card {
-    font-family: 'Kalpurush', 'Nikosh', 'Hind Siliguri', sans-serif;
     font-size: 10px;
     color: #1e293b;
     min-height: 980px;
@@ -1049,7 +1048,6 @@ function resetCrop() {
     html, body {
         background: #ffffff !important;
         color: #000000 !important;
-        font-family: 'Kalpurush', 'Nikosh', 'Hind Siliguri', sans-serif !important;
         font-size: 10px !important;
         margin: 0 !important;
         padding: 0 !important;

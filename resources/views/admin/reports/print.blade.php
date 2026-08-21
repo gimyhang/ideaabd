@@ -1,17 +1,17 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>বিক্রয় ও ভিজিটর অ্যানালিটিক্স রিপোর্ট — আইডিয়া প্রকাশন</title>
+    <title>Sales & Visitor Analytics Report — Idea Prokashon</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body {
-            font-family: 'Hind Siliguri', 'Inter', sans-serif;
+            font-family: 'Inter', sans-serif;
             background-color: #f8fafc;
             color: #1e293b;
             padding: 20px;
@@ -62,12 +62,12 @@
     
     <!-- Action Bar (hidden in print) -->
     <div class="d-flex align-items-center justify-content-between mb-4 pb-3 border-bottom no-print">
-        <a href="{{ route('admin.dashboard') }}" class="btn btn-outline-secondary btn-sm">
-            <i class="fas fa-arrow-left me-1"></i> ড্যাশবোর্ডে ফিরুন
+        <a href="{{ route('admin.dashboard') }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
         </a>
         <div class="d-flex gap-2">
-            <button onclick="window.print()" class="btn btn-primary btn-sm px-3 fw-bold">
-                <i class="fas fa-print me-1.5"></i> প্রিন্ট / PDF সংরক্ষণ করুন
+            <button onclick="window.print()" class="btn btn-primary btn-sm rounded-pill px-3 fw-bold shadow-xs">
+                <i class="fas fa-print me-1.5"></i> Print / Save PDF
             </button>
         </div>
     </div>
@@ -75,14 +75,14 @@
     <!-- Letterhead -->
     <div class="row align-items-center mb-4 pb-3 border-bottom">
         <div class="col-7">
-            <div class="header-logo mb-1">আইডিয়া প্রকাশন</div>
-            <div class="text-muted small">স্মার্ট ই-কমার্স ও ডিজিটাল প্রকাশনা প্ল্যাটফর্ম</div>
-            <div class="text-muted small">ওয়েবসাইট: ideaabd.com | ফোন: 01558712810</div>
+            <div class="header-logo mb-1">IDEA PROKASHON</div>
+            <div class="text-muted small">Smart E-Commerce & Publishing Platform</div>
+            <div class="text-muted small">Website: ideaabd.com | Phone: 01558712810</div>
         </div>
         <div class="col-5 text-end">
-            <h5 class="fw-bold text-dark mb-1">এক্সিকিউটিভ পারফরম্যান্স রিপোর্ট</h5>
-            <div class="badge bg-primary text-white p-1.5 mb-1">{{ $stats['filter_label'] }}</div>
-            <div class="text-muted small">রিপোর্ট তৈরির সময়: {{ now()->format('d M Y, h:i A') }}</div>
+            <h5 class="fw-bold text-dark mb-1">Executive Performance Report</h5>
+            <div class="badge bg-primary text-white p-1.5 mb-1 rounded-pill">{{ $stats['filter_label'] }}</div>
+            <div class="text-muted small">Generated: {{ now()->format('d M Y, h:i A') }}</div>
         </div>
     </div>
 
@@ -90,44 +90,44 @@
     <div class="row g-3 mb-4">
         <div class="col-3">
             <div class="stat-card">
-                <small class="text-muted d-block">মোট বিক্রয় রাজস্ব</small>
-                <h4 class="fw-bold text-primary mb-0">৳@bn(number_format($stats['filtered_revenue'], 0))</h4>
-                <small class="text-success fw-semibold">পরিশোধিত: ৳@bn(number_format($stats['paid_revenue'], 0))</small>
+                <small class="text-muted d-block fw-semibold">Total Sales Revenue</small>
+                <h4 class="fw-bold text-primary mb-0 font-monospace">৳{{ number_format($stats['filtered_revenue'], 2) }}</h4>
+                <small class="text-success fw-semibold">Paid: ৳{{ number_format($stats['paid_revenue'], 2) }}</small>
             </div>
         </div>
         <div class="col-3">
             <div class="stat-card">
-                <small class="text-muted d-block">মোট অর্ডার সংখ্যা</small>
-                <h4 class="fw-bold text-dark mb-0">@bn($stats['filtered_orders']) টি</h4>
-                <small class="text-muted">ডেলিভারড: @bn($stats['delivered_orders']) টি</small>
+                <small class="text-muted d-block fw-semibold">Total Orders</small>
+                <h4 class="fw-bold text-dark mb-0 font-monospace">{{ number_format($stats['filtered_orders']) }}</h4>
+                <small class="text-muted">Delivered: {{ number_format($stats['delivered_orders']) }}</small>
             </div>
         </div>
         <div class="col-3">
             <div class="stat-card">
-                <small class="text-muted d-block">মোট পেজভিউ</small>
-                <h4 class="fw-bold text-info mb-0">@bn($stats['visitor']['filtered_views'])</h4>
-                <small class="text-muted">আজকে: @bn($stats['visitor']['today_views']) ভিউ</small>
+                <small class="text-muted d-block fw-semibold">Total Pageviews</small>
+                <h4 class="fw-bold text-info mb-0 font-monospace">{{ number_format($stats['visitor']['filtered_views']) }}</h4>
+                <small class="text-muted">Today: {{ number_format($stats['visitor']['today_views']) }} views</small>
             </div>
         </div>
         <div class="col-3">
             <div class="stat-card">
-                <small class="text-muted d-block">ইউনিক ভিজিটর</small>
-                <h4 class="fw-bold text-success mb-0">@bn($stats['visitor']['filtered_uniques']) জন</h4>
-                <small class="text-muted">আজকে: @bn($stats['visitor']['today_uniques']) জন</small>
+                <small class="text-muted d-block fw-semibold">Unique Visitors</small>
+                <h4 class="fw-bold text-success mb-0 font-monospace">{{ number_format($stats['visitor']['filtered_uniques']) }}</h4>
+                <small class="text-muted">Today: {{ number_format($stats['visitor']['today_uniques']) }} visitors</small>
             </div>
         </div>
     </div>
 
     <!-- Payment Gateways Collection Breakdown -->
     <div class="mb-4">
-        <h6 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="fas fa-credit-card me-1.5 text-primary"></i> পেমেন্ট গেটওয়ে কালেকশন সামারি</h6>
+        <h6 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="fas fa-credit-card me-1.5 text-primary"></i> Payment Gateways Collection Summary</h6>
         <div class="table-responsive">
-            <table class="table table-bordered align-middle">
-                <thead>
+            <table class="table table-bordered align-middle mb-0">
+                <thead class="table-light">
                     <tr>
-                        <th>পেমেন্ট মেথড</th>
-                        <th class="text-end">সংগৃহীত বিল (৳)</th>
-                        <th class="text-end">শতকরা হার (%)</th>
+                        <th>Payment Method</th>
+                        <th class="text-end">Collected Amount (৳)</th>
+                        <th class="text-end">Share (%)</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -139,29 +139,29 @@
                         $codPct = round(($stats['payment_split']['cod'] / $totRev) * 100, 1);
                     @endphp
                     <tr>
-                        <td><strong>বিকাশ (bKash)</strong></td>
-                        <td class="text-end fw-bold">৳@bn(number_format($stats['payment_split']['bkash'], 0))</td>
-                        <td class="text-end">@bn($bkashPct)%</td>
+                        <td><strong>bKash (Mobile Banking)</strong></td>
+                        <td class="text-end fw-bold font-monospace">৳{{ number_format($stats['payment_split']['bkash'], 2) }}</td>
+                        <td class="text-end font-monospace">{{ $bkashPct }}%</td>
                     </tr>
                     <tr>
-                        <td><strong>নগদ (Nagad)</strong></td>
-                        <td class="text-end fw-bold">৳@bn(number_format($stats['payment_split']['nagad'], 0))</td>
-                        <td class="text-end">@bn($nagadPct)%</td>
+                        <td><strong>Nagad (Mobile Banking)</strong></td>
+                        <td class="text-end fw-bold font-monospace">৳{{ number_format($stats['payment_split']['nagad'], 2) }}</td>
+                        <td class="text-end font-monospace">{{ $nagadPct }}%</td>
                     </tr>
                     <tr>
-                        <td><strong>রকেট (Rocket)</strong></td>
-                        <td class="text-end fw-bold">৳@bn(number_format($stats['payment_split']['rocket'], 0))</td>
-                        <td class="text-end">@bn($rocketPct)%</td>
+                        <td><strong>Rocket (Dutch-Bangla)</strong></td>
+                        <td class="text-end fw-bold font-monospace">৳{{ number_format($stats['payment_split']['rocket'], 2) }}</td>
+                        <td class="text-end font-monospace">{{ $rocketPct }}%</td>
                     </tr>
                     <tr>
-                        <td><strong>ক্যাশ অন ডেলিভারি (COD)</strong></td>
-                        <td class="text-end fw-bold">৳@bn(number_format($stats['payment_split']['cod'], 0))</td>
-                        <td class="text-end">@bn($codPct)%</td>
+                        <td><strong>Cash on Delivery (COD)</strong></td>
+                        <td class="text-end fw-bold font-monospace">৳{{ number_format($stats['payment_split']['cod'], 2) }}</td>
+                        <td class="text-end font-monospace">{{ $codPct }}%</td>
                     </tr>
                     <tr class="table-light fw-bold">
-                        <td>সর্বমোট কালেকশন</td>
-                        <td class="text-end text-primary">৳@bn(number_format($stats['filtered_revenue'], 0))</td>
-                        <td class="text-end">১০০%</td>
+                        <td>Total Collections</td>
+                        <td class="text-end text-primary font-monospace">৳{{ number_format($stats['filtered_revenue'], 2) }}</td>
+                        <td class="text-end font-monospace">100%</td>
                     </tr>
                 </tbody>
             </table>
@@ -170,17 +170,17 @@
 
     <!-- Recent Orders in this timeframe -->
     <div class="mb-4">
-        <h6 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="fas fa-receipt me-1.5 text-primary"></i> সাম্প্রতিক অর্ডার বিবরণী</h6>
+        <h6 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="fas fa-receipt me-1.5 text-primary"></i> Recent Orders Breakdown</h6>
         <div class="table-responsive">
-            <table class="table table-bordered table-sm align-middle">
-                <thead>
+            <table class="table table-bordered table-sm align-middle mb-0">
+                <thead class="table-light">
                     <tr>
-                        <th>অর্ডার নং</th>
-                        <th>গ্রাহকের নাম ও ফোন</th>
-                        <th>বইয়ের বিবরণ</th>
-                        <th>পেমেন্ট</th>
-                        <th class="text-end">মোট বিল</th>
-                        <th>তারিখ</th>
+                        <th>Order No.</th>
+                        <th>Customer Name & Phone</th>
+                        <th>Book Details</th>
+                        <th>Payment</th>
+                        <th class="text-end">Total Amount</th>
+                        <th>Date</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -188,19 +188,19 @@
                         <tr>
                             <td><strong>#{{ $o->order_number }}</strong></td>
                             <td>
-                                {{ $o->customer_name }}
-                                <div class="small text-muted">{{ $o->customer_phone }}</div>
+                                <div class="fw-semibold text-dark">{{ $o->customer_name }}</div>
+                                <div class="small text-muted font-monospace">{{ $o->customer_phone }}</div>
                             </td>
-                            <td>{{ $o->book?->title ?? 'বই' }}</td>
+                            <td>{{ $o->book?->title ?? 'Book Order' }}</td>
                             <td>
-                                <span class="badge bg-light text-dark border text-uppercase">{{ $o->payment_method ?? 'COD' }}</span>
+                                <span class="badge bg-light text-dark border text-uppercase rounded-pill px-2">{{ $o->payment_method ?? 'COD' }}</span>
                             </td>
-                            <td class="text-end fw-bold">৳@bn(number_format($o->total_amount, 0))</td>
+                            <td class="text-end fw-bold font-monospace">৳{{ number_format($o->total_amount, 2) }}</td>
                             <td class="small text-muted">{{ $o->created_at?->format('d/m/Y h:i A') }}</td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="text-center text-muted py-3">এই সময়সীমায় কোনো অর্ডার পাওয়া যায়নি।</td>
+                            <td colspan="6" class="text-center text-muted py-3">No orders found in this timeframe.</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -211,12 +211,12 @@
     <!-- Footer Signature Area -->
     <div class="row mt-5 pt-4 border-top">
         <div class="col-6">
-            <div class="text-muted small">স্বয়ংক্রিয়ভাবে জেনারেটকৃত সিস্টেম রিপোর্ট</div>
-            <div class="text-muted small">আইডিয়া প্রকাশন © {{ date('Y') }}</div>
+            <div class="text-muted small">System generated executive report</div>
+            <div class="text-muted small">Idea Prokashon © {{ date('Y') }}</div>
         </div>
         <div class="col-6 text-end">
             <div class="d-inline-block border-top border-dark px-4 pt-1 small fw-bold">
-                অনুমোদনকারী কর্মকর্তার স্বাক্ষর
+                Authorized Executive Signature
             </div>
         </div>
     </div>

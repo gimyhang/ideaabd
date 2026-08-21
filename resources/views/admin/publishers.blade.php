@@ -1,25 +1,25 @@
 @extends('layouts.admin')
 
-@section('title', 'প্রকাশক ও প্রকাশনী ব্যবস্থাপনা')
-@section('heading', 'প্রকাশক ডিরেক্টরি, বই ক্যাটালগ ও হিসাব লেজার')
+@section('title', 'Publishers & Imprints Management')
+@section('heading', 'Publisher Directory, Catalog & Accounts Ledger')
 
 @section('breadcrumb')
-    <li class="breadcrumb-item active" aria-current="page">প্রকাশক তালিকা</li>
+    <li class="breadcrumb-item active" aria-current="page">Publishers Directory</li>
 @endsection
 
 @section('actions')
     <div class="d-flex align-items-center gap-2">
-        <button type="button" class="btn btn-outline-success btn-sm rounded-pill px-3 shadow-xs" onclick="exportPublishersToCSV()" title="CSV ফাইলে এক্সপোর্ট করুন">
-            <i class="fas fa-file-csv me-1"></i> এক্সপোর্ট (CSV)
+        <button type="button" class="btn btn-outline-success btn-sm rounded-pill px-3 shadow-xs" onclick="exportPublishersToCSV()" title="Export to CSV file">
+            <i class="fas fa-file-csv me-1"></i> Export (CSV)
         </button>
-        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-xs" onclick="window.print()" title="তালিকা প্রিন্ট করুন">
-            <i class="fas fa-print me-1"></i> প্রিন্ট
+        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-xs" onclick="window.print()" title="Print List">
+            <i class="fas fa-print me-1"></i> Print
         </button>
         <button type="button" class="btn btn-primary btn-sm rounded-pill px-3 fw-bold shadow-xs" onclick="openAddPublisherModal()">
-            <i class="fas fa-plus-circle me-1"></i> নতুন প্রকাশক যোগ করুন
+            <i class="fas fa-plus-circle me-1"></i> Add New Publisher
         </button>
         <a href="{{ route('publishers.index') }}" target="_blank" rel="noopener" class="btn btn-outline-dark btn-sm rounded-pill px-3 shadow-xs">
-            <i class="fas fa-arrow-up-right-from-square me-1"></i> শপে দেখুন
+            <i class="fas fa-arrow-up-right-from-square me-1"></i> View Storefront
         </a>
     </div>
 @endsection
@@ -44,8 +44,8 @@
             <a href="{{ route('admin.publishers') }}" class="text-decoration-none">
                 <div class="adm-card p-3 d-flex align-items-center justify-content-between h-100 {{ !request()->hasAny(['is_active', 'has_due']) ? 'border-primary border-2' : '' }}">
                     <div>
-                        <small class="text-muted d-block font-sans">সর্বমোট প্রকাশক</small>
-                        <h4 class="fw-bold text-dark mb-0">@bn($stats['total'] ?? 0) <small class="fs-6 text-muted">টি</small></h4>
+                        <small class="text-muted d-block font-sans">Total Publishers</small>
+                        <h4 class="fw-bold text-dark mb-0">{{ number_format($stats['total'] ?? 0) }} <small class="fs-6 text-muted">publishers</small></h4>
                     </div>
                     <span class="p-2 bg-primary-subtle text-primary rounded-circle fs-5"><i class="fas fa-building"></i></span>
                 </div>
@@ -55,8 +55,8 @@
             <a href="{{ route('admin.publishers', array_merge(request()->except(['is_active', 'page']), ['is_active' => '1'])) }}" class="text-decoration-none">
                 <div class="adm-card p-3 d-flex align-items-center justify-content-between h-100 {{ request('is_active') === '1' ? 'border-success border-2' : '' }}">
                     <div>
-                        <small class="text-muted d-block font-sans">সক্রিয় প্রকাশনী</small>
-                        <h4 class="fw-bold text-success mb-0">@bn($stats['active'] ?? 0) <small class="fs-6 text-muted">টি</small></h4>
+                        <small class="text-muted d-block font-sans">Active Publishers</small>
+                        <h4 class="fw-bold text-success mb-0">{{ number_format($stats['active'] ?? 0) }} <small class="fs-6 text-muted">active</small></h4>
                     </div>
                     <span class="p-2 bg-success-subtle text-success rounded-circle fs-5"><i class="fas fa-circle-check"></i></span>
                 </div>
@@ -65,10 +65,10 @@
         <div class="col-6 col-md-2-4 col-lg">
             <div class="adm-card p-3 d-flex align-items-center justify-content-between h-100">
                 <div>
-                    <small class="text-muted d-block font-sans">ক্যাটালগ বই ও মোট মূল্য</small>
-                    <h4 class="fw-bold text-dark mb-0">@bn($stats['total_books'] ?? 0) <small class="fs-6 text-muted">টি</small></h4>
+                    <small class="text-muted d-block font-sans">Catalog Books & Value</small>
+                    <h4 class="fw-bold text-dark mb-0">{{ number_format($stats['total_books'] ?? 0) }} <small class="fs-6 text-muted">books</small></h4>
                     <div class="small text-muted font-monospace mt-0.5" style="font-size: 11px;">
-                        মূল্য: <strong class="text-primary">৳@bn(number_format($stats['total_catalog_sum'] ?? 0, 0))</strong>
+                        Value: <strong class="text-primary">৳{{ number_format($stats['total_catalog_sum'] ?? 0, 0) }}</strong>
                     </div>
                 </div>
                 <span class="p-2 bg-info-subtle text-info rounded-circle fs-5"><i class="fas fa-book-open"></i></span>
@@ -77,8 +77,8 @@
         <div class="col-6 col-md-2-4 col-lg">
             <div class="adm-card p-3 d-flex align-items-center justify-content-between h-100">
                 <div>
-                    <small class="text-muted d-block font-sans">মোট কেনাকাটা (চালান)</small>
-                    <h4 class="fw-bold text-primary mb-0 font-monospace">৳@bn(number_format($stats['total_purchase_sum'] ?? 0, 0))</h4>
+                    <small class="text-muted d-block font-sans">Total Purchases (Challans)</small>
+                    <h4 class="fw-bold text-primary mb-0 font-monospace">৳{{ number_format($stats['total_purchase_sum'] ?? 0, 0) }}</h4>
                 </div>
                 <span class="p-2 bg-primary-subtle text-primary rounded-circle fs-5"><i class="fas fa-cart-flatbed"></i></span>
             </div>
@@ -87,8 +87,8 @@
             <a href="{{ route('admin.publishers', array_merge(request()->except(['has_due', 'page']), ['has_due' => '1'])) }}" class="text-decoration-none">
                 <div class="adm-card p-3 d-flex align-items-center justify-content-between h-100 {{ request('has_due') === '1' ? 'border-danger border-2 bg-danger-subtle bg-opacity-25' : '' }}">
                     <div>
-                        <small class="text-muted d-block font-sans">মোট প্রদেয় বকেয়া (Due)</small>
-                        <h4 class="fw-bold text-danger mb-0 font-monospace">৳@bn(number_format($stats['total_due_sum'] ?? 0, 0))</h4>
+                        <small class="text-muted d-block font-sans">Total Due Balance</small>
+                        <h4 class="fw-bold text-danger mb-0 font-monospace">৳{{ number_format($stats['total_due_sum'] ?? 0, 0) }}</h4>
                     </div>
                     <span class="p-2 bg-danger-subtle text-danger rounded-circle fs-5"><i class="fas fa-hand-holding-dollar"></i></span>
                 </div>
@@ -108,54 +108,54 @@
                     <span class="input-group-text bg-white border-end-0 text-muted"><i class="fas fa-search"></i></span>
                     <input type="text" name="search" id="publisherSearchInput" value="{{ request('search') }}" 
                            class="form-control border-start-0 border-end-0 ps-0" 
-                           placeholder="প্রকাশনীর নাম, ফোন, ইমেইল, ঠিকানা, স্লাগ..." autocomplete="off">
+                           placeholder="Search by publisher name, phone, email, address, slug..." autocomplete="off">
                     @if(request('search'))
-                        <a href="{{ route('admin.publishers', request()->except('search')) }}" class="input-group-text bg-white border-start-0 text-muted hover-danger" title="সার্চ মুছুন">
+                        <a href="{{ route('admin.publishers', request()->except('search')) }}" class="input-group-text bg-white border-start-0 text-muted hover-danger" title="Clear Search">
                             <i class="fas fa-times"></i>
                         </a>
                     @endif
-                    <button type="submit" class="btn btn-primary px-3 fw-semibold">খুঁজুন</button>
+                    <button type="submit" class="btn btn-primary px-3 fw-semibold">Search</button>
                 </div>
             </div>
 
             {{-- Status Filter --}}
             <div class="col-6 col-md-2">
                 <select name="is_active" class="form-select form-select-sm" onchange="submitPubFilter()">
-                    <option value="">— সকল স্ট্যাটাস —</option>
-                    <option value="1" @selected(request('is_active') === '1')>🟢 সক্রিয় প্রকাশক</option>
-                    <option value="0" @selected(request('is_active') === '0')>🔴 নিষ্ক্রিয় প্রকাশক</option>
+                    <option value="">— All Status —</option>
+                    <option value="1" @selected(request('is_active') === '1')>🟢 Active Publishers</option>
+                    <option value="0" @selected(request('is_active') === '0')>🔴 Inactive Publishers</option>
                 </select>
             </div>
 
             {{-- Due Filter --}}
             <div class="col-6 col-md-2">
                 <select name="has_due" class="form-select form-select-sm" onchange="submitPubFilter()">
-                    <option value="">— সকল হিসাব —</option>
-                    <option value="1" @selected(request('has_due') === '1')>🔴 বকেয়া পাওনাদার রয়েছে</option>
+                    <option value="">— All Accounts —</option>
+                    <option value="1" @selected(request('has_due') === '1')>🔴 Has Due Balance</option>
                 </select>
             </div>
 
             {{-- Sort By --}}
             <div class="col-6 col-md-2">
                 <select name="sort" class="form-select form-select-sm" onchange="submitPubFilter()">
-                    <option value="latest" @selected(request('sort') === 'latest' || !request('sort'))>নতুন প্রকাশক প্রথমে</option>
-                    <option value="oldest" @selected(request('sort') === 'oldest')>পুরাতন প্রথমে</option>
-                    <option value="name_asc" @selected(request('sort') === 'name_asc')>নাম: ক থেকে ক্ষ (A-Z)</option>
-                    <option value="name_desc" @selected(request('sort') === 'name_desc')>নাম: Z থেকে A</option>
-                    <option value="books_desc" @selected(request('sort') === 'books_desc')>সর্বোচ্চ বই সংখ্যা</option>
-                    <option value="purchase_desc" @selected(request('sort') === 'purchase_desc')>সর্বোচ্চ কেনাকাটা</option>
-                    <option value="due_desc" @selected(request('sort') === 'due_desc')>সর্বোচ্চ বকেয়া পাওনা</option>
+                    <option value="latest" @selected(request('sort') === 'latest' || !request('sort'))>Newest First</option>
+                    <option value="oldest" @selected(request('sort') === 'oldest')>Oldest First</option>
+                    <option value="name_asc" @selected(request('sort') === 'name_asc')>Name: A to Z</option>
+                    <option value="name_desc" @selected(request('sort') === 'name_desc')>Name: Z to A</option>
+                    <option value="books_desc" @selected(request('sort') === 'books_desc')>Most Books</option>
+                    <option value="purchase_desc" @selected(request('sort') === 'purchase_desc')>Highest Purchases</option>
+                    <option value="due_desc" @selected(request('sort') === 'due_desc')>Highest Due Balance</option>
                 </select>
             </div>
 
             {{-- Per Page & Reset --}}
             <div class="col-6 col-md-2 d-flex gap-1">
                 <select name="per_page" class="form-select form-select-sm flex-fill" onchange="submitPubFilter()">
-                    <option value="20" @selected(request('per_page') == 20 || !request('per_page'))>২০ টি</option>
-                    <option value="50" @selected(request('per_page') == 50)>৫০ টি</option>
-                    <option value="100" @selected(request('per_page') == 100)>১০০ টি</option>
+                    <option value="20" @selected(request('per_page') == 20 || !request('per_page'))>20 per page</option>
+                    <option value="50" @selected(request('per_page') == 50)>50 per page</option>
+                    <option value="100" @selected(request('per_page') == 100)>100 per page</option>
                 </select>
-                <a href="{{ route('admin.publishers') }}" class="btn btn-sm btn-outline-secondary px-2.5" title="সকল ফিল্টার রিসেট">
+                <a href="{{ route('admin.publishers') }}" class="btn btn-sm btn-outline-secondary px-2.5" title="Reset Filters">
                     <i class="fas fa-rotate-left"></i>
                 </a>
             </div>
@@ -169,31 +169,31 @@
 
         @if($hasActiveFilters)
             <div class="d-flex flex-wrap align-items-center gap-1.5 pt-2.5 mt-2 border-top">
-                <span class="small fw-semibold text-muted me-1"><i class="fas fa-sliders me-1"></i>সক্রিয় ফিল্টারসমূহ:</span>
+                <span class="small fw-semibold text-muted me-1"><i class="fas fa-sliders me-1"></i>Active Filters:</span>
                 
                 @if(request('search'))
                     <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill py-1 px-2.5 d-inline-flex align-items-center gap-1">
-                        সার্চ: "{{ request('search') }}"
+                        Search: "{{ request('search') }}"
                         <a href="{{ route('admin.publishers', request()->except('search')) }}" class="text-primary text-decoration-none"><i class="fas fa-times-circle"></i></a>
                     </span>
                 @endif
 
                 @if(request('is_active') !== null && request('is_active') !== '')
                     <span class="badge bg-light text-dark border rounded-pill py-1 px-2.5 d-inline-flex align-items-center gap-1">
-                        অবস্থা: {{ request('is_active') === '1' ? 'সক্রিয়' : 'নিষ্ক্রিয়' }}
+                        Status: {{ request('is_active') === '1' ? 'Active' : 'Inactive' }}
                         <a href="{{ route('admin.publishers', request()->except('is_active')) }}" class="text-dark text-decoration-none"><i class="fas fa-times-circle"></i></a>
                     </span>
                 @endif
 
                 @if(request('has_due') === '1')
                     <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill py-1 px-2.5 d-inline-flex align-items-center gap-1">
-                        শুধুমাত্র বকেয়া পাওনাদার
+                        Has Due Balance Only
                         <a href="{{ route('admin.publishers', request()->except('has_due')) }}" class="text-danger text-decoration-none"><i class="fas fa-times-circle"></i></a>
                     </span>
                 @endif
 
                 <a href="{{ route('admin.publishers') }}" class="btn btn-link btn-xs text-danger text-decoration-none fw-bold ms-auto">
-                    <i class="fas fa-trash-can me-1"></i> সকল ফিল্টার মুছুন
+                    <i class="fas fa-trash-can me-1"></i> Clear All Filters
                 </a>
             </div>
         @endif
@@ -209,14 +209,14 @@
                 <thead class="table-light">
                     <tr>
                         <th class="ps-3" style="width: 45px;">#</th>
-                        <th style="min-width: 220px;">প্রকাশক ও লোগো</th>
-                        <th style="min-width: 180px;">যোগাযোগের ঠিকানা</th>
-                        <th class="text-center" style="min-width: 95px;">ক্যাটালগ বই</th>
-                        <th class="text-end" style="min-width: 130px;">ক্যাটালগ মূল্য (MRP)</th>
-                        <th class="text-end" style="min-width: 120px;">মোট কেনাকাটা</th>
-                        <th class="text-end" style="min-width: 130px;">বকেয়া পাওনা (Due)</th>
-                        <th class="text-center" style="min-width: 90px;">লাইভ স্ট্যাটাস</th>
-                        <th class="text-end pe-3" style="min-width: 150px;">অ্যাকশনস</th>
+                        <th style="min-width: 220px;">Publisher & Logo</th>
+                        <th style="min-width: 180px;">Contact & Address</th>
+                        <th class="text-center" style="min-width: 95px;">Catalog Books</th>
+                        <th class="text-end" style="min-width: 130px;">Catalog Value (MRP)</th>
+                        <th class="text-end" style="min-width: 120px;">Total Purchases</th>
+                        <th class="text-end" style="min-width: 130px;">Due Balance</th>
+                        <th class="text-center" style="min-width: 90px;">Live Status</th>
+                        <th class="text-end pe-3" style="min-width: 150px;">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -231,7 +231,7 @@
                         @endphp
                         <tr id="publisherRow_{{ $publisher->id }}" class="pub-table-row">
                             <td class="ps-3 text-muted small">
-                                @bn(($publishers->currentPage() - 1) * $publishers->perPage() + $index + 1)
+                                {{ ($publishers->currentPage() - 1) * $publishers->perPage() + $index + 1 }}
                             </td>
 
                             {{-- Name & Logo --}}
@@ -275,7 +275,7 @@
                             <td>
                                 <div class="small">
                                     @if($publisher->phone)
-                                        <div class="text-dark"><i class="fas fa-phone me-1 text-primary" style="font-size: 10px;"></i>@bn($publisher->phone)</div>
+                                        <div class="text-dark"><i class="fas fa-phone me-1 text-primary" style="font-size: 10px;"></i>{{ $publisher->phone }}</div>
                                     @endif
                                     @if($publisher->email)
                                         <div class="text-muted text-truncate" style="max-width: 200px;"><i class="fas fa-envelope me-1 text-secondary" style="font-size: 10px;"></i>{{ $publisher->email }}</div>
@@ -293,19 +293,19 @@
                             <td class="text-center">
                                 <a href="{{ route('admin.publishers.show', $publisher->id) }}" 
                                    class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1 text-decoration-none fw-bold hover-primary"
-                                   title="এই প্রকাশনীর বই ও ক্রয় আদেশ পরিচালনা করুন">
-                                    <i class="fas fa-book me-1"></i>@bn($publisher->books_count ?? 0) টি
+                                   title="Manage catalog books and purchase orders">
+                                    <i class="fas fa-book me-1"></i>{{ number_format($publisher->books_count ?? 0) }} books
                                 </a>
                             </td>
 
                             {{-- Total Catalog Value (MRP) --}}
                             <td class="text-end">
-                                <span class="fw-bold text-dark font-monospace fs-6">৳@bn(number_format($catalogVal, 0))</span>
+                                <span class="fw-bold text-dark font-monospace fs-6">৳{{ number_format($catalogVal, 0) }}</span>
                             </td>
 
                             {{-- Total Purchases --}}
                             <td class="text-end">
-                                <span class="fw-bold text-dark font-monospace">৳@bn(number_format($purchaseSum, 0))</span>
+                                <span class="fw-bold text-dark font-monospace">৳{{ number_format($purchaseSum, 0) }}</span>
                             </td>
 
                             {{-- Due Payable Balance --}}
@@ -313,18 +313,18 @@
                                 @if($dueSum > 0)
                                     <div class="d-inline-flex align-items-center gap-1.5 justify-content-end">
                                         <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2 py-1 font-monospace fw-bold">
-                                            ৳@bn(number_format($dueSum, 0))
+                                            ৳{{ number_format($dueSum, 0) }}
                                         </span>
                                         <button type="button" class="btn btn-xs btn-outline-danger rounded-circle" 
                                                 style="width: 24px; height: 24px; padding: 0;" 
                                                 onclick="openQuickPaymentModal({{ $publisher->id }}, '{{ addslashes($publisher->name) }}', {{ $dueSum }})"
-                                                title="পেমেন্ট পরিশোধ রেকর্ড করুন">
+                                                title="Record Payment Settlement">
                                             <i class="fas fa-money-bill-wave" style="font-size: 9px;"></i>
                                         </button>
                                     </div>
                                 @else
                                     <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5" style="font-size: 11px;">
-                                        <i class="fas fa-check me-0.5"></i>পরিশোধিত
+                                        <i class="fas fa-check me-0.5"></i>Paid
                                     </span>
                                 @endif
                             </td>
@@ -343,26 +343,26 @@
                             <td class="text-end pe-3">
                                 <div class="d-inline-flex align-items-center gap-1">
                                     <a href="{{ route('admin.publishers.show', $publisher->id) }}" 
-                                       class="btn btn-sm btn-primary rounded-pill px-2.5 py-0.5 fw-semibold" title="বই তালিকা ও ক্রয় আদেশ (PO)">
-                                        <i class="fas fa-file-invoice-dollar me-1"></i> বই ও PO
+                                       class="btn btn-sm btn-primary rounded-pill px-2.5 py-0.5 fw-semibold" title="Books & Purchase Orders">
+                                        <i class="fas fa-file-invoice-dollar me-1"></i> Books & PO
                                     </a>
                                     <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-2 py-0.5" 
-                                            onclick="openEditPublisherModal({{ $publisher->id }})" title="প্রকাশক তথ্য সম্পাদনা">
+                                            onclick="openEditPublisherModal({{ $publisher->id }})" title="Edit Publisher">
                                         <i class="fas fa-pen-to-square"></i>
                                     </button>
                                     <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-2 py-0.5" 
-                                            onclick="openQuickPaymentModal({{ $publisher->id }}, '{{ addslashes($publisher->name) }}', {{ $dueSum }})" title="পেমেন্ট ভাউচার এন্ট্রি">
+                                            onclick="openQuickPaymentModal({{ $publisher->id }}, '{{ addslashes($publisher->name) }}', {{ $dueSum }})" title="Record Payment">
                                         <i class="fas fa-hand-holding-dollar"></i>
                                     </button>
                                     <a href="{{ route('publishers.show', $publisher->slug ?? $publisher->id) }}" target="_blank" 
-                                       class="btn btn-sm btn-outline-secondary rounded-pill px-2 py-0.5" title="সাইটে দেখুন">
+                                       class="btn btn-sm btn-outline-secondary rounded-pill px-2 py-0.5" title="View Storefront">
                                         <i class="fas fa-eye"></i>
                                     </a>
                                     <form action="{{ route('admin.content.destroy', ['type' => 'publishers', 'id' => $publisher->id]) }}" method="POST" class="d-inline"
-                                          onsubmit="return confirm('আপনি কি নিশ্চিত যে এই প্রকাশকটি মুছে ফেলতে চান?');">
+                                          onsubmit="return confirm('Are you sure you want to delete this publisher?');">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-2 py-0.5" title="মুছে ফেলুন">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-2 py-0.5" title="Delete Publisher">
                                             <i class="fas fa-trash-can"></i>
                                         </button>
                                     </form>
@@ -377,10 +377,10 @@
                                     <div class="rounded-circle bg-light d-inline-flex p-4 mb-3">
                                         <i class="fas fa-building fs-1 text-muted"></i>
                                     </div>
-                                    <h5 class="fw-bold text-dark mb-1">কোনো প্রকাশক পাওয়া যায়নি</h5>
-                                    <p class="text-muted small mb-3">নতুন প্রকাশক যোগ করুন অথবা আপনার সার্চ ফিল্টার পরিবর্তন করুন।</p>
+                                    <h5 class="fw-bold text-dark mb-1">No Publishers Found</h5>
+                                    <p class="text-muted small mb-3">Add a new publisher to catalog or adjust your search filter.</p>
                                     <button type="button" class="btn btn-sm btn-primary rounded-pill px-3" onclick="openAddPublisherModal()">
-                                        <i class="fas fa-plus me-1"></i> নতুন প্রকাশক যোগ করুন
+                                        <i class="fas fa-plus me-1"></i> Add New Publisher
                                     </button>
                                 </div>
                             </td>
@@ -394,7 +394,7 @@
         @if ($publishers->hasPages())
             <div class="p-3 border-top d-flex flex-column flex-md-row align-items-center justify-content-between gap-2 bg-light bg-opacity-50">
                 <div class="small text-muted">
-                    মোট @bn($publishers->total()) টির মধ্যে @bn($publishers->firstItem()) - @bn($publishers->lastItem()) দেখানো হচ্ছে
+                    Showing {{ $publishers->firstItem() }} - {{ $publishers->lastItem() }} of {{ number_format($publishers->total()) }} publishers
                 </div>
                 <div>{{ $publishers->links() }}</div>
             </div>
@@ -411,7 +411,7 @@
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header bg-primary text-white py-3">
                 <h5 class="modal-title fw-bold text-white mb-0">
-                    <i class="fas fa-building-circle-arrow-right me-1.5"></i> নতুন প্রকাশক / প্রকাশনী যুক্ত করুন
+                    <i class="fas fa-building-circle-arrow-right me-1.5"></i> Add New Publisher / Imprint
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -427,7 +427,7 @@
                         </div>
                         <div>
                             <label for="addPubLogoInput" class="btn btn-xs btn-outline-primary rounded-pill px-3 cursor-pointer">
-                                <i class="fas fa-camera me-1"></i> লোগো আপলোড
+                                <i class="fas fa-camera me-1"></i> Upload Logo
                             </label>
                             <input type="file" id="addPubLogoInput" name="logo_file" accept="image/*" class="d-none" onchange="previewAddPubLogo(this)">
                         </div>
@@ -435,42 +435,42 @@
 
                     <div class="row g-2.5">
                         <div class="col-12">
-                            <label class="form-label small fw-bold text-dark">প্রকাশনীর নাম <span class="text-danger">*</span></label>
-                            <input type="text" name="name" class="form-control form-control-sm fw-bold" required placeholder="যেমন: ইত্যাদি গ্রন্থ প্রকাশ">
+                            <label class="form-label small fw-bold text-dark">Publisher Name <span class="text-danger">*</span></label>
+                            <input type="text" name="name" class="form-control form-control-sm fw-bold" required placeholder="e.g. Penguin Random House">
                         </div>
                         <div class="col-6">
-                            <label class="form-label small text-muted">ফোন নম্বর</label>
+                            <label class="form-label small text-muted">Phone Number</label>
                             <input type="text" name="phone" class="form-control form-control-sm" placeholder="017XXXXXXXX">
                         </div>
                         <div class="col-6">
-                            <label class="form-label small text-muted">ইমেইল ঠিকানা</label>
+                            <label class="form-label small text-muted">Email Address</label>
                             <input type="email" name="email" class="form-control form-control-sm" placeholder="contact@publisher.com">
                         </div>
                         <div class="col-12">
-                            <label class="form-label small text-muted">ঠিকানা</label>
-                            <input type="text" name="address" class="form-control form-control-sm" placeholder="যেমন: ৩৮/৪ বাংলাবাজার, ঢাকা">
+                            <label class="form-label small text-muted">Address</label>
+                            <input type="text" name="address" class="form-control form-control-sm" placeholder="e.g. 38/4 Banglabazar, Dhaka">
                         </div>
                         <div class="col-12">
-                            <label class="form-label small text-muted">ওয়েবসাইট (Website)</label>
+                            <label class="form-label small text-muted">Website URL</label>
                             <input type="url" name="website" class="form-control form-control-sm" placeholder="https://example.com">
                         </div>
                         <div class="col-12">
-                            <label class="form-label small text-muted">সংক্ষিপ্ত বিবরণ</label>
-                            <textarea name="description" class="form-control form-control-sm" rows="2" placeholder="প্রকাশনীর সংক্ষিপ্ত পরিচিতি..."></textarea>
+                            <label class="form-label small text-muted">Description & Bio</label>
+                            <textarea name="description" class="form-control form-control-sm" rows="2" placeholder="Brief introduction..."></textarea>
                         </div>
                         <div class="col-12 pt-1">
                             <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" role="switch" id="addPubIsActive" name="is_active" value="1" checked>
-                                <label class="form-check-label small fw-bold text-dark" for="addPubIsActive">সক্রিয় ও শপে দৃশ্যমান</label>
+                                <label class="form-check-label small fw-bold text-dark" for="addPubIsActive">Active & Visible in Storefront</label>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <div class="modal-footer bg-light py-2.5">
-                    <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3" data-bs-dismiss="modal">বাতিল</button>
+                    <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" id="addPubSubmitBtn" class="btn btn-sm btn-primary rounded-pill px-4 fw-bold shadow-xs">
-                        <i class="fas fa-plus-circle me-1"></i> সংরক্ষণ করুন
+                        <i class="fas fa-plus-circle me-1"></i> Save Publisher
                     </button>
                 </div>
             </form>
@@ -486,7 +486,7 @@
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header bg-dark text-white py-3">
                 <h5 class="modal-title fw-bold text-white mb-0">
-                    <i class="fas fa-pen-to-square me-1.5 text-primary-subtle"></i> প্রকাশকের তথ্য সম্পাদনা
+                    <i class="fas fa-pen-to-square me-1.5 text-primary-subtle"></i> Edit Publisher Information
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -504,7 +504,7 @@
                         </div>
                         <div>
                             <label for="editPubLogoInput" class="btn btn-xs btn-outline-primary rounded-pill px-3 cursor-pointer">
-                                <i class="fas fa-camera me-1"></i> নতুন লোগো পরিবর্তন
+                                <i class="fas fa-camera me-1"></i> Change Logo
                             </label>
                             <input type="file" id="editPubLogoInput" name="logo_file" accept="image/*" class="d-none" onchange="previewEditPubLogo(this)">
                         </div>
@@ -512,46 +512,46 @@
 
                     <div class="row g-2.5">
                         <div class="col-8">
-                            <label class="form-label small fw-bold text-dark">প্রকাশনীর নাম <span class="text-danger">*</span></label>
+                            <label class="form-label small fw-bold text-dark">Publisher Name <span class="text-danger">*</span></label>
                             <input type="text" id="editPubName" name="name" class="form-control form-control-sm fw-bold" required>
                         </div>
                         <div class="col-4">
-                            <label class="form-label small text-muted">স্লাগ (Slug)</label>
+                            <label class="form-label small text-muted">URL Slug</label>
                             <input type="text" id="editPubSlug" name="slug" class="form-control form-control-sm font-monospace">
                         </div>
                         <div class="col-6">
-                            <label class="form-label small text-muted">ফোন নম্বর</label>
+                            <label class="form-label small text-muted">Phone Number</label>
                             <input type="text" id="editPubPhone" name="phone" class="form-control form-control-sm">
                         </div>
                         <div class="col-6">
-                            <label class="form-label small text-muted">ইমেইল ঠিকানা</label>
+                            <label class="form-label small text-muted">Email Address</label>
                             <input type="email" id="editPubEmail" name="email" class="form-control form-control-sm">
                         </div>
                         <div class="col-12">
-                            <label class="form-label small text-muted">ঠিকানা</label>
+                            <label class="form-label small text-muted">Address</label>
                             <input type="text" id="editPubAddress" name="address" class="form-control form-control-sm">
                         </div>
                         <div class="col-12">
-                            <label class="form-label small text-muted">ওয়েবসাইট (Website)</label>
+                            <label class="form-label small text-muted">Website URL</label>
                             <input type="url" id="editPubWebsite" name="website" class="form-control form-control-sm">
                         </div>
                         <div class="col-12">
-                            <label class="form-label small text-muted">সংক্ষিপ্ত বিবরণ</label>
+                            <label class="form-label small text-muted">Description</label>
                             <textarea id="editPubDescription" name="description" class="form-control form-control-sm" rows="2"></textarea>
                         </div>
                         <div class="col-12 pt-1">
                             <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" role="switch" id="editPubIsActive" name="is_active" value="1">
-                                <label class="form-check-label small fw-bold text-dark" for="editPubIsActive">সক্রিয় ও শপে দৃশ্যমান</label>
+                                <label class="form-check-label small fw-bold text-dark" for="editPubIsActive">Active & Visible in Storefront</label>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <div class="modal-footer bg-light py-2.5">
-                    <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3" data-bs-dismiss="modal">বাতিল</button>
+                    <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" id="editPubSubmitBtn" class="btn btn-sm btn-primary rounded-pill px-4 fw-bold shadow-xs">
-                        <i class="fas fa-check-circle me-1"></i> আপডেট করুন
+                        <i class="fas fa-check-circle me-1"></i> Update Publisher
                     </button>
                 </div>
             </form>
@@ -567,7 +567,7 @@
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header bg-success text-white py-3">
                 <h5 class="modal-title fw-bold text-white mb-0">
-                    <i class="fas fa-hand-holding-dollar me-1.5"></i> প্রকাশককে পেমেন্ট পরিশোধ ভাউচার
+                    <i class="fas fa-hand-holding-dollar me-1.5"></i> Record Payment Settlement to Publisher
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -579,47 +579,47 @@
                     <div id="payPubAlertBox"></div>
 
                     <div class="p-3 bg-light rounded-3 mb-3 border">
-                        <span class="text-muted small d-block">প্রকাশকের নাম:</span>
+                        <span class="text-muted small d-block">Publisher Name:</span>
                         <h5 class="fw-bold text-dark mb-1" id="payPubName">—</h5>
                         <div class="small text-muted">
-                            বর্তমান বকেয়া পাওনা: <strong class="text-danger font-monospace fs-6" id="payPubDueAmount">৳০</strong>
+                            Current Due Balance: <strong class="text-danger font-monospace fs-6" id="payPubDueAmount">৳0</strong>
                         </div>
                     </div>
 
                     <div class="row g-2.5">
                         <div class="col-6">
-                            <label class="form-label small fw-bold text-dark">পরিশোধের পরিমাণ (৳) <span class="text-danger">*</span></label>
+                            <label class="form-label small fw-bold text-dark">Payment Amount (৳) <span class="text-danger">*</span></label>
                             <input type="number" id="payAmountInput" name="amount" min="1" step="1" class="form-control form-control-sm fw-bold text-success font-monospace fs-6" required>
                         </div>
                         <div class="col-6">
-                            <label class="form-label small fw-bold text-dark">পরিশোধের তারিখ <span class="text-danger">*</span></label>
+                            <label class="form-label small fw-bold text-dark">Payment Date <span class="text-danger">*</span></label>
                             <input type="date" name="payment_date" class="form-control form-control-sm" value="{{ date('Y-m-d') }}" required>
                         </div>
                         <div class="col-6">
-                            <label class="form-label small fw-bold text-dark">পেমেন্ট মাধ্যম <span class="text-danger">*</span></label>
+                            <label class="form-label small fw-bold text-dark">Payment Method <span class="text-danger">*</span></label>
                             <select name="payment_method" class="form-select form-select-sm" required>
-                                <option value="cash">নগদ (Cash)</option>
-                                <option value="bank">ব্যাংক ট্রান্সফার (Bank)</option>
-                                <option value="bkash">বিকাশ (bKash)</option>
-                                <option value="nagad">নগদ (Nagad)</option>
-                                <option value="cheque">চেক (Cheque)</option>
+                                <option value="cash">Cash</option>
+                                <option value="bank">Bank Transfer</option>
+                                <option value="bkash">bKash</option>
+                                <option value="nagad">Nagad</option>
+                                <option value="cheque">Cheque</option>
                             </select>
                         </div>
                         <div class="col-6">
-                            <label class="form-label small text-muted">ট্রানজেকশন / চেক নং</label>
+                            <label class="form-label small text-muted">Transaction / Cheque #</label>
                             <input type="text" name="transaction_ref" class="form-control form-control-sm" placeholder="Trx ID / Cheque #">
                         </div>
                         <div class="col-12">
-                            <label class="form-label small text-muted">মন্তব্য / নোট</label>
-                            <input type="text" name="note" class="form-control form-control-sm" placeholder="যেমন: আগস্ট মাসের বই ক্রয়ের কিস্তি...">
+                            <label class="form-label small text-muted">Notes / Remarks</label>
+                            <input type="text" name="note" class="form-control form-control-sm" placeholder="e.g. Monthly books settlement installment...">
                         </div>
                     </div>
                 </div>
 
                 <div class="modal-footer bg-light py-2.5">
-                    <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3" data-bs-dismiss="modal">বাতিল</button>
+                    <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" id="payPubSubmitBtn" class="btn btn-sm btn-success rounded-pill px-4 fw-bold shadow-xs">
-                        <i class="fas fa-check-circle me-1"></i> পেমেন্ট সংরক্ষণ করুন
+                        <i class="fas fa-check-circle me-1"></i> Save Payment Voucher
                     </button>
                 </div>
             </form>
@@ -738,7 +738,7 @@ function handleAddPublisherSubmit(e) {
     const formData = new FormData(form);
 
     btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> সেভ হচ্ছে...';
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Saving...';
 
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
@@ -758,15 +758,15 @@ function handleAddPublisherSubmit(e) {
                 location.reload();
             }, 800);
         } else {
-            alertBox.innerHTML = `<div class="alert alert-danger p-2 small mb-3">${data.message || 'ত্রুটি হয়েছে'}</div>`;
+            alertBox.innerHTML = `<div class="alert alert-danger p-2 small mb-3">${data.message || 'An error occurred'}</div>`;
             btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-plus-circle me-1"></i> সংরক্ষণ করুন';
+            btn.innerHTML = '<i class="fas fa-plus-circle me-1"></i> Save Publisher';
         }
     })
     .catch(err => {
-        alertBox.innerHTML = `<div class="alert alert-danger p-2 small mb-3">সার্ভার এরর হয়েছে।</div>`;
+        alertBox.innerHTML = `<div class="alert alert-danger p-2 small mb-3">Server error occurred.</div>`;
         btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-plus-circle me-1"></i> সংরক্ষণ করুন';
+        btn.innerHTML = '<i class="fas fa-plus-circle me-1"></i> Save Publisher';
     });
 }
 
@@ -784,7 +784,7 @@ function openEditPublisherModal(pubId) {
     document.getElementById('editPubWebsite').value = pub.website || '';
     document.getElementById('editPubDescription').value = pub.description || '';
     document.getElementById('editPubIsActive').checked = (pub.is_active === 1);
-    document.getElementById('editPubLogoPreview').src = pub.logo_url || ("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='90' viewBox='0 0 90 90'%3E%3Crect width='90' height='90' fill='%234f46e5'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23ffffff' font-size='28' font-family='sans-serif'%3E" + encodeURIComponent(pub.name ? pub.name.substring(0, 1) : 'প্র') + "%3C/text%3E%3C/svg%3E");
+    document.getElementById('editPubLogoPreview').src = pub.logo_url || ("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='90' viewBox='0 0 90 90'%3E%3Crect width='90' height='90' fill='%234f46e5'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23ffffff' font-size='28' font-family='sans-serif'%3E" + encodeURIComponent(pub.name ? pub.name.substring(0, 1) : 'P') + "%3C/text%3E%3C/svg%3E");
     document.getElementById('editPubAlertBox').innerHTML = '';
 
     new bootstrap.Modal(document.getElementById('quickEditPublisherModal')).show();
@@ -809,7 +809,7 @@ function handleEditPublisherSubmit(e) {
     const formData = new FormData(form);
 
     btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> আপডেট হচ্ছে...';
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Updating...';
 
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
@@ -829,15 +829,15 @@ function handleEditPublisherSubmit(e) {
                 location.reload();
             }, 800);
         } else {
-            alertBox.innerHTML = `<div class="alert alert-danger p-2 small mb-3">${data.message || 'ত্রুটি হয়েছে'}</div>`;
+            alertBox.innerHTML = `<div class="alert alert-danger p-2 small mb-3">${data.message || 'An error occurred'}</div>`;
             btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-check-circle me-1"></i> আপডেট করুন';
+            btn.innerHTML = '<i class="fas fa-check-circle me-1"></i> Update Publisher';
         }
     })
     .catch(err => {
-        alertBox.innerHTML = `<div class="alert alert-danger p-2 small mb-3">সার্ভার এরর হয়েছে।</div>`;
+        alertBox.innerHTML = `<div class="alert alert-danger p-2 small mb-3">Server error occurred.</div>`;
         btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-check-circle me-1"></i> আপডেট করুন';
+        btn.innerHTML = '<i class="fas fa-check-circle me-1"></i> Update Publisher';
     });
 }
 
@@ -862,7 +862,7 @@ function handleQuickPaymentSubmit(e) {
     const formData = new FormData(form);
 
     btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> পেমেন্ট হচ্ছে...';
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Recording payment...';
 
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
@@ -882,15 +882,15 @@ function handleQuickPaymentSubmit(e) {
                 location.reload();
             }, 1000);
         } else {
-            alertBox.innerHTML = `<div class="alert alert-danger p-2 small mb-3">${data.message || 'ত্রুটি হয়েছে'}</div>`;
+            alertBox.innerHTML = `<div class="alert alert-danger p-2 small mb-3">${data.message || 'An error occurred'}</div>`;
             btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-check-circle me-1"></i> পেমেন্ট সংরক্ষণ করুন';
+            btn.innerHTML = '<i class="fas fa-check-circle me-1"></i> Save Payment Voucher';
         }
     })
     .catch(err => {
-        alertBox.innerHTML = `<div class="alert alert-danger p-2 small mb-3">সার্ভার এরর হয়েছে।</div>`;
+        alertBox.innerHTML = `<div class="alert alert-danger p-2 small mb-3">Server error occurred.</div>`;
         btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-check-circle me-1"></i> পেমেন্ট সংরক্ষণ করুন';
+        btn.innerHTML = '<i class="fas fa-check-circle me-1"></i> Save Payment Voucher';
     });
 }
 
@@ -909,12 +909,12 @@ function togglePublisherActive(pubId, checkbox) {
     .then(data => {
         if (!data.success) {
             checkbox.checked = !checkbox.checked;
-            alert(data.message || 'স্ট্যাটাস পরিবর্তন করা সম্ভব হয়নি');
+            alert(data.message || 'Status could not be updated');
         }
     })
     .catch(() => {
         checkbox.checked = !checkbox.checked;
-        alert('সার্ভার এরর হয়েছে');
+        alert('Server error occurred');
     });
 }
 

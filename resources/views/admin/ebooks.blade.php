@@ -1,22 +1,22 @@
 @extends('layouts.admin')
 
-@section('title', 'ই-বুক পরিচালনা ও অনুসন্ধান')
-@section('heading', 'ই-বুক ও ডিজিটাল প্রকাশনা ম্যানেজমেন্ট')
+@section('title', 'E-Books Management & Search')
+@section('heading', 'E-Books & Digital Publications')
 
 @section('breadcrumb')
-    <li class="breadcrumb-item active" aria-current="page">ই-বুক তালিকা</li>
+    <li class="breadcrumb-item active" aria-current="page">E-Books Directory</li>
 @endsection
 
 @section('actions')
     <div class="d-flex align-items-center gap-2">
-        <button type="button" class="btn btn-outline-success btn-sm rounded-pill px-3 shadow-xs" onclick="exportEbooksToCSV()" title="CSV এক্সপোর্ট">
-            <i class="fas fa-file-csv me-1"></i> এক্সপোর্ট (CSV)
+        <button type="button" class="btn btn-outline-success btn-sm rounded-pill px-3 shadow-xs" onclick="exportEbooksToCSV()" title="CSV Export">
+            <i class="fas fa-file-csv me-1"></i> Export (CSV)
         </button>
         <a href="{{ route('admin.content.create', 'ebooks') }}" class="btn btn-primary btn-sm rounded-pill px-3 fw-bold shadow-xs">
-            <i class="fas fa-plus-circle me-1"></i> নতুন ই-বুক আপলোড করুন
+            <i class="fas fa-plus-circle me-1"></i> Upload New E-Book
         </a>
         <a href="{{ route('ebook.index') }}" target="_blank" rel="noopener" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-xs">
-            <i class="fas fa-arrow-up-right-from-square me-1"></i> ডিজিটাল লাইব্রেরি দেখুন
+            <i class="fas fa-arrow-up-right-from-square me-1"></i> View Library
         </a>
     </div>
 @endsection
@@ -34,15 +34,15 @@
     @endif
 
     {{-- ========================================================================= --}}
-    {{-- 1. KPI SUMMARY STRIP (ই-বুক মেট্রিক্স)                                     --}}
+    {{-- 1. KPI SUMMARY STRIP                                                      --}}
     {{-- ========================================================================= --}}
     <div class="row g-2">
         <div class="col-6 col-md-3">
             <a href="{{ route('admin.ebooks') }}" class="text-decoration-none">
-                <div class="adm-card p-3 d-flex align-items-center justify-content-between h-100 {{ !request()->hasAny(['price_type', 'is_active']) ? 'border-primary border-2' : '' }}">
+                <div class="adm-card p-3 d-flex align-items-center justify-content-between h-100 bg-white rounded-4 shadow-sm border-0 {{ !request()->hasAny(['price_type', 'is_active']) ? 'border-primary border-2' : '' }}">
                     <div>
-                        <small class="text-muted d-block font-sans">মোট ই-বুক</small>
-                        <h4 class="fw-bold text-dark mb-0">@bn($stats['total'] ?? 0) <small class="fs-6 text-muted">টি</small></h4>
+                        <small class="text-muted d-block font-sans">Total E-Books</small>
+                        <h4 class="fw-bold text-dark mb-0">{{ number_format($stats['total'] ?? 0) }}</h4>
                     </div>
                     <span class="p-2 bg-primary-subtle text-primary rounded-circle fs-5"><i class="fas fa-tablet-screen-button"></i></span>
                 </div>
@@ -50,10 +50,10 @@
         </div>
         <div class="col-6 col-md-3">
             <a href="{{ route('admin.ebooks', array_merge(request()->except(['is_active', 'page']), ['is_active' => '1'])) }}" class="text-decoration-none">
-                <div class="adm-card p-3 d-flex align-items-center justify-content-between h-100 {{ request('is_active') === '1' ? 'border-success border-2' : '' }}">
+                <div class="adm-card p-3 d-flex align-items-center justify-content-between h-100 bg-white rounded-4 shadow-sm border-0 {{ request('is_active') === '1' ? 'border-success border-2' : '' }}">
                     <div>
-                        <small class="text-muted d-block font-sans">সক্রিয় ও লাইভ</small>
-                        <h4 class="fw-bold text-success mb-0">@bn($stats['active'] ?? 0) <small class="fs-6 text-muted">টি</small></h4>
+                        <small class="text-muted d-block font-sans">Active & Live</small>
+                        <h4 class="fw-bold text-success mb-0">{{ number_format($stats['active'] ?? 0) }}</h4>
                     </div>
                     <span class="p-2 bg-success-subtle text-success rounded-circle fs-5"><i class="fas fa-circle-check"></i></span>
                 </div>
@@ -61,10 +61,10 @@
         </div>
         <div class="col-6 col-md-3">
             <a href="{{ route('admin.ebooks', array_merge(request()->except(['price_type', 'page']), ['price_type' => 'free'])) }}" class="text-decoration-none">
-                <div class="adm-card p-3 d-flex align-items-center justify-content-between h-100 {{ request('price_type') === 'free' ? 'border-info border-2' : '' }}">
+                <div class="adm-card p-3 d-flex align-items-center justify-content-between h-100 bg-white rounded-4 shadow-sm border-0 {{ request('price_type') === 'free' ? 'border-info border-2' : '' }}">
                     <div>
-                        <small class="text-muted d-block font-sans">ফ্রি / উন্মুক্ত পাঠ</small>
-                        <h4 class="fw-bold text-info mb-0">@bn($stats['free'] ?? 0) <small class="fs-6 text-muted">টি</small></h4>
+                        <small class="text-muted d-block font-sans">Free Reading</small>
+                        <h4 class="fw-bold text-info mb-0">{{ number_format($stats['free'] ?? 0) }}</h4>
                     </div>
                     <span class="p-2 bg-info-subtle text-info rounded-circle fs-5"><i class="fas fa-gift"></i></span>
                 </div>
@@ -72,10 +72,10 @@
         </div>
         <div class="col-6 col-md-3">
             <a href="{{ route('admin.ebooks', array_merge(request()->except(['price_type', 'page']), ['price_type' => 'paid'])) }}" class="text-decoration-none">
-                <div class="adm-card p-3 d-flex align-items-center justify-content-between h-100 {{ request('price_type') === 'paid' ? 'border-warning border-2' : '' }}">
+                <div class="adm-card p-3 d-flex align-items-center justify-content-between h-100 bg-white rounded-4 shadow-sm border-0 {{ request('price_type') === 'paid' ? 'border-warning border-2' : '' }}">
                     <div>
-                        <small class="text-muted d-block font-sans">পেইড ই-বুক</small>
-                        <h4 class="fw-bold text-warning-emphasis mb-0">@bn($stats['paid'] ?? 0) <small class="fs-6 text-muted">টি</small></h4>
+                        <small class="text-muted d-block font-sans">Paid E-Books</small>
+                        <h4 class="fw-bold text-warning-emphasis mb-0">{{ number_format($stats['paid'] ?? 0) }}</h4>
                     </div>
                     <span class="p-2 bg-warning-subtle text-warning rounded-circle fs-5"><i class="fas fa-sack-dollar"></i></span>
                 </div>
@@ -86,7 +86,7 @@
     {{-- ========================================================================= --}}
     {{-- 2. ADVANCED FILTER & SEARCH TOOLBAR                                       --}}
     {{-- ========================================================================= --}}
-    <div class="adm-card p-3 shadow-sm border-0">
+    <div class="adm-card p-3 shadow-sm border-0 bg-white rounded-4">
         <form action="{{ route('admin.ebooks') }}" method="GET" id="ebooksFilterForm" class="d-flex flex-column gap-2.5">
             
             <div class="row g-2 align-items-center">
@@ -96,20 +96,20 @@
                         <span class="input-group-text bg-white border-end-0 text-muted"><i class="fas fa-search"></i></span>
                         <input type="text" name="search" id="ebookSearchInput" value="{{ request('search') }}" 
                                class="form-control border-start-0 border-end-0 ps-0" 
-                               placeholder="ই-বুকের নাম, লেখক, প্রকাশক, ISBN..." autocomplete="off">
+                               placeholder="Search title, author, publisher, ISBN..." autocomplete="off">
                         @if(request('search'))
-                            <a href="{{ route('admin.ebooks', request()->except('search')) }}" class="input-group-text bg-white border-start-0 text-muted hover-danger" title="সার্চ মুছুন">
+                            <a href="{{ route('admin.ebooks', request()->except('search')) }}" class="input-group-text bg-white border-start-0 text-muted hover-danger" title="Clear Search">
                                 <i class="fas fa-times"></i>
                             </a>
                         @endif
-                        <button type="submit" class="btn btn-primary px-3 fw-semibold">খুঁজুন</button>
+                        <button type="submit" class="btn btn-primary px-3 fw-semibold">Search</button>
                     </div>
                 </div>
 
                 <!-- Author Filter -->
                 <div class="col-6 col-md-4 col-lg-3">
                     <select name="author_id" class="form-select form-select-sm" onchange="submitEbookFilterForm()">
-                        <option value="">— সকল লেখক —</option>
+                        <option value="">— All Authors —</option>
                         @foreach ($authors as $aId => $aName)
                             <option value="{{ $aId }}" @selected(request('author_id') == $aId)>{{ $aName }}</option>
                         @endforeach
@@ -119,8 +119,8 @@
                 <!-- Publisher Filter -->
                 <div class="col-6 col-md-4 col-lg-3">
                     <select name="publisher_id" class="form-select form-select-sm" onchange="submitEbookFilterForm()">
-                        <option value="">— সকল প্রকাশনী —</option>
-                        <option value="idea" @selected(request('publisher_id') === 'idea')>⭐ আইডিয়া প্রকাশন (ইন-হাউস)</option>
+                        <option value="">— All Publishers —</option>
+                        <option value="idea" @selected(request('publisher_id') === 'idea')>⭐ Idea Prakashan (In-House)</option>
                         @foreach ($publishers as $pId => $pName)
                             <option value="{{ $pId }}" @selected(request('publisher_id') == $pId)>{{ $pName }}</option>
                         @endforeach
@@ -130,7 +130,7 @@
                 <!-- Category Filter -->
                 <div class="col-12 col-md-4 col-lg-2">
                     <select name="category_id" class="form-select form-select-sm" onchange="submitEbookFilterForm()">
-                        <option value="">— সকল ক্যাটাগরি —</option>
+                        <option value="">— All Categories —</option>
                         @foreach ($categories as $cId => $cName)
                             <option value="{{ $cId }}" @selected(request('category_id') == $cId)>{{ $cName }}</option>
                         @endforeach
@@ -142,42 +142,42 @@
                 <!-- Price Type Filter -->
                 <div class="col-6 col-md-3">
                     <select name="price_type" class="form-select form-select-sm" onchange="submitEbookFilterForm()">
-                        <option value="">— সকল মূল্য টাইপ —</option>
-                        <option value="free" @selected(request('price_type') === 'free')>বিনামূল্যে (Free)</option>
-                        <option value="paid" @selected(request('price_type') === 'paid')>পেইড (Paid)</option>
+                        <option value="">— All Price Types —</option>
+                        <option value="free" @selected(request('price_type') === 'free')>Free</option>
+                        <option value="paid" @selected(request('price_type') === 'paid')>Paid</option>
                     </select>
                 </div>
 
                 <!-- Status Filter -->
                 <div class="col-6 col-md-3">
                     <select name="is_active" class="form-select form-select-sm" onchange="submitEbookFilterForm()">
-                        <option value="">— লাইভ অবস্থা —</option>
-                        <option value="1" @selected(request('is_active') === '1')>সক্রিয় / লাইভ</option>
-                        <option value="0" @selected(request('is_active') === '0')>নিষ্ক্রিয় / খসড়া</option>
+                        <option value="">— All Statuses —</option>
+                        <option value="1" @selected(request('is_active') === '1')>Active / Live</option>
+                        <option value="0" @selected(request('is_active') === '0')>Inactive / Draft</option>
                     </select>
                 </div>
 
                 <!-- Sort By -->
                 <div class="col-6 col-md-3">
                     <select name="sort" class="form-select form-select-sm" onchange="submitEbookFilterForm()">
-                        <option value="latest" @selected(request('sort') === 'latest' || !request('sort'))>নতুন ই-বুক প্রথমে</option>
-                        <option value="oldest" @selected(request('sort') === 'oldest')>পুরাতন ই-বুক প্রথমে</option>
-                        <option value="title_asc" @selected(request('sort') === 'title_asc')>নাম: ক থেকে ক্ষ (A-Z)</option>
-                        <option value="title_desc" @selected(request('sort') === 'title_desc')>নাম: Z থেকে A</option>
-                        <option value="price_low" @selected(request('sort') === 'price_low')>মূল্য: কম থেকে বেশি</option>
-                        <option value="price_high" @selected(request('sort') === 'price_high')>মূল্য: বেশি থেকে কম</option>
-                        <option value="sales_high" @selected(request('sort') === 'sales_high')>সর্বোচ্চ পঠিত / বিক্রিত</option>
+                        <option value="latest" @selected(request('sort') === 'latest' || !request('sort'))>Newest First</option>
+                        <option value="oldest" @selected(request('sort') === 'oldest')>Oldest First</option>
+                        <option value="title_asc" @selected(request('sort') === 'title_asc')>Title (A-Z)</option>
+                        <option value="title_desc" @selected(request('sort') === 'title_desc')>Title (Z-A)</option>
+                        <option value="price_low" @selected(request('sort') === 'price_low')>Price: Low to High</option>
+                        <option value="price_high" @selected(request('sort') === 'price_high')>Price: High to Low</option>
+                        <option value="sales_high" @selected(request('sort') === 'sales_high')>Most Read / Sold</option>
                     </select>
                 </div>
 
                 <!-- Per Page & Reset -->
                 <div class="col-6 col-md-3 d-flex gap-1">
                     <select name="per_page" class="form-select form-select-sm flex-fill" onchange="submitEbookFilterForm()">
-                        <option value="20" @selected(request('per_page') == 20 || !request('per_page'))>২০ টি</option>
-                        <option value="50" @selected(request('per_page') == 50)>৫০ টি</option>
-                        <option value="100" @selected(request('per_page') == 100)>১০০ টি</option>
+                        <option value="20" @selected(request('per_page') == 20 || !request('per_page'))>20 per page</option>
+                        <option value="50" @selected(request('per_page') == 50)>50 per page</option>
+                        <option value="100" @selected(request('per_page') == 100)>100 per page</option>
                     </select>
-                    <a href="{{ route('admin.ebooks') }}" class="btn btn-sm btn-outline-secondary px-2.5" title="সকল ফিল্টার রিসেট করুন">
+                    <a href="{{ route('admin.ebooks') }}" class="btn btn-sm btn-outline-secondary px-2.5" title="Reset All Filters">
                         <i class="fas fa-rotate-left"></i>
                     </a>
                 </div>
@@ -192,52 +192,52 @@
 
         @if($hasEbookFilters)
             <div class="d-flex flex-wrap align-items-center gap-1.5 pt-2.5 mt-2 border-top">
-                <span class="small fw-semibold text-muted me-1"><i class="fas fa-sliders me-1"></i>সক্রিয় ফিল্টারসমূহ:</span>
+                <span class="small fw-semibold text-muted me-1"><i class="fas fa-sliders me-1"></i>Active Filters:</span>
                 
                 @if(request('search'))
                     <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill py-1 px-2.5 d-inline-flex align-items-center gap-1">
-                        সার্চ: "{{ request('search') }}"
+                        Search: "{{ request('search') }}"
                         <a href="{{ route('admin.ebooks', request()->except('search')) }}" class="text-primary text-decoration-none"><i class="fas fa-times-circle"></i></a>
                     </span>
                 @endif
 
                 @if(request('author_id') && isset($authors[request('author_id')]))
                     <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle rounded-pill py-1 px-2.5 d-inline-flex align-items-center gap-1">
-                        লেখক: {{ $authors[request('author_id')] }}
+                        Author: {{ $authors[request('author_id')] }}
                         <a href="{{ route('admin.ebooks', request()->except('author_id')) }}" class="text-dark text-decoration-none"><i class="fas fa-times-circle"></i></a>
                     </span>
                 @endif
 
                 @if(request('publisher_id'))
                     <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill py-1 px-2.5 d-inline-flex align-items-center gap-1">
-                        প্রকাশনী: {{ request('publisher_id') === 'idea' ? 'আইডিয়া প্রকাশন' : ($publishers[request('publisher_id')] ?? request('publisher_id')) }}
+                        Publisher: {{ request('publisher_id') === 'idea' ? 'Idea Prakashan' : ($publishers[request('publisher_id')] ?? request('publisher_id')) }}
                         <a href="{{ route('admin.ebooks', request()->except('publisher_id')) }}" class="text-dark text-decoration-none"><i class="fas fa-times-circle"></i></a>
                     </span>
                 @endif
 
                 @if(request('category_id') && isset($categories[request('category_id')]))
                     <span class="badge bg-secondary-subtle text-dark border rounded-pill py-1 px-2.5 d-inline-flex align-items-center gap-1">
-                        ক্যাটাগরি: {{ $categories[request('category_id')] }}
+                        Category: {{ $categories[request('category_id')] }}
                         <a href="{{ route('admin.ebooks', request()->except('category_id')) }}" class="text-dark text-decoration-none"><i class="fas fa-times-circle"></i></a>
                     </span>
                 @endif
 
                 @if(request('price_type'))
                     <span class="badge bg-light text-dark border rounded-pill py-1 px-2.5 d-inline-flex align-items-center gap-1">
-                        মূল্য: {{ request('price_type') === 'free' ? 'ফ্রি' : 'পেইড' }}
+                        Price: {{ request('price_type') === 'free' ? 'Free' : 'Paid' }}
                         <a href="{{ route('admin.ebooks', request()->except('price_type')) }}" class="text-dark text-decoration-none"><i class="fas fa-times-circle"></i></a>
                     </span>
                 @endif
 
                 @if(request('is_active') !== null && request('is_active') !== '')
                     <span class="badge bg-light text-dark border rounded-pill py-1 px-2.5 d-inline-flex align-items-center gap-1">
-                        অবস্থা: {{ request('is_active') === '1' ? 'লাইভ' : 'খসড়া' }}
+                        Status: {{ request('is_active') === '1' ? 'Live' : 'Draft' }}
                         <a href="{{ route('admin.ebooks', request()->except('is_active')) }}" class="text-dark text-decoration-none"><i class="fas fa-times-circle"></i></a>
                     </span>
                 @endif
 
                 <a href="{{ route('admin.ebooks') }}" class="btn btn-link btn-xs text-danger text-decoration-none fw-bold ms-auto">
-                    <i class="fas fa-trash-can me-1"></i> সকল ফিল্টার মুছুন
+                    <i class="fas fa-trash-can me-1"></i> Clear All
                 </a>
             </div>
         @endif
@@ -245,21 +245,21 @@
     </div>
 
     {{-- ========================================================================= --}}
-    {{-- 3. ULTRA-MODERN E-BOOK MANAGEMENT TABLE                                   --}}
+    {{-- 3. E-BOOK MANAGEMENT TABLE                                                --}}
     {{-- ========================================================================= --}}
-    <div class="adm-card p-0 overflow-hidden shadow-sm border-0 rounded-4">
+    <div class="adm-card p-0 overflow-hidden shadow-sm border-0 rounded-4 bg-white">
         <div class="table-responsive">
             <table class="table adm-table align-middle mb-0" id="adminEbooksTable">
                 <thead class="table-light">
                     <tr>
                         <th class="ps-3" style="width: 50px;">#</th>
-                        <th style="min-width: 260px;">ই-বুক ও কভার</th>
-                        <th style="min-width: 180px;">লেখক ও প্রকাশনী</th>
-                        <th>ক্যাটাগরি</th>
-                        <th>ফাইল ফরম্যাট ও সাইজ</th>
-                        <th class="text-end" style="min-width: 120px;">মূল্য</th>
-                        <th class="text-center" style="min-width: 90px;">অবস্থা</th>
-                        <th class="text-end pe-3" style="min-width: 120px;">অ্যাকশন</th>
+                        <th style="min-width: 260px;">E-Book & Cover</th>
+                        <th style="min-width: 180px;">Author & Publisher</th>
+                        <th>Category</th>
+                        <th>File Format & Size</th>
+                        <th class="text-end" style="min-width: 120px;">Price</th>
+                        <th class="text-center" style="min-width: 90px;">Status</th>
+                        <th class="text-end pe-3" style="min-width: 120px;">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -277,7 +277,7 @@
                         @endphp
                         <tr>
                             <td class="ps-3 text-muted small">
-                                @bn(($ebooks->currentPage() - 1) * $ebooks->perPage() + $index + 1)
+                                {{ ($ebooks->currentPage() - 1) * $ebooks->perPage() + $index + 1 }}
                             </td>
                             
                             {{-- Ebook Cover & Title --}}
@@ -299,7 +299,7 @@
                                             @if($ebook->isbn)
                                                 <span class="badge bg-light text-muted border px-1.5 py-0.5"><i class="fas fa-barcode me-1"></i>{{ $ebook->isbn }}</span>
                                             @endif
-                                            <span><i class="fas fa-download me-0.5 text-secondary"></i> @bn($ebook->download_count ?? 0) বার পঠিত</span>
+                                            <span><i class="fas fa-download me-0.5 text-secondary"></i> {{ number_format($ebook->download_count ?? 0) }} reads</span>
                                         </div>
                                     </div>
                                 </div>
@@ -324,7 +324,7 @@
                                     @if($ebook->publisher)
                                         <i class="fas fa-building me-1"></i>{{ $ebook->publisher->name }}
                                     @else
-                                        <i class="fas fa-building me-1 text-primary"></i>আইডিয়া প্রকাশন (ইন-হাউস)
+                                        <i class="fas fa-building me-1 text-primary"></i>Idea Prakashan (In-House)
                                     @endif
                                 </div>
                             </td>
@@ -355,21 +355,21 @@
                             {{-- Pricing --}}
                             <td class="text-end">
                                 @if($isFree)
-                                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1 fw-bold">বিনামূল্যে (Free)</span>
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1 fw-bold">Free</span>
                                 @elseif($hasDiscount)
-                                    <div class="fw-bold text-primary fs-6 font-monospace">৳@bn(number_format($discount, 0))</div>
-                                    <div class="small text-muted text-decoration-line-through font-monospace">৳@bn(number_format($price, 0))</div>
+                                    <div class="fw-bold text-primary fs-6 font-monospace">৳{{ number_format($discount, 2) }}</div>
+                                    <div class="small text-muted text-decoration-line-through font-monospace">৳{{ number_format($price, 2) }}</div>
                                 @else
-                                    <div class="fw-bold text-dark fs-6 font-monospace">৳@bn(number_format($price, 0))</div>
+                                    <div class="fw-bold text-dark fs-6 font-monospace">৳{{ number_format($price, 2) }}</div>
                                 @endif
                             </td>
 
                             {{-- Status --}}
                             <td class="text-center">
                                 @if($ebook->is_active)
-                                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-1"><i class="fas fa-check me-1"></i>লাইভ</span>
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-1"><i class="fas fa-check me-1"></i>Live</span>
                                 @else
-                                    <span class="badge bg-secondary-subtle text-secondary border rounded-pill px-2 py-1">খসড়া</span>
+                                    <span class="badge bg-secondary-subtle text-secondary border rounded-pill px-2 py-1">Draft</span>
                                 @endif
                             </td>
 
@@ -377,18 +377,18 @@
                             <td class="text-end pe-3">
                                 <div class="d-inline-flex align-items-center gap-1">
                                     <a href="{{ route('ebook.show', $ebook->slug ?? $ebook->id) }}" target="_blank" 
-                                       class="btn btn-sm btn-outline-secondary rounded-pill px-2 py-0.5" title="ডিজিটাল রিডারে দেখুন">
+                                       class="btn btn-sm btn-outline-secondary rounded-pill px-2 py-0.5" title="View in Digital Reader">
                                         <i class="fas fa-eye"></i>
                                     </a>
                                     <a href="{{ route('admin.content.edit', ['type' => 'ebooks', 'id' => $ebook->id]) }}" 
-                                       class="btn btn-sm btn-outline-primary rounded-pill px-2 py-0.5" title="সম্পাদনা করুন">
+                                       class="btn btn-sm btn-outline-primary rounded-pill px-2 py-0.5" title="Edit">
                                         <i class="fas fa-pen-to-square"></i>
                                     </a>
                                     <form action="{{ route('admin.content.destroy', ['type' => 'ebooks', 'id' => $ebook->id]) }}" method="POST" class="d-inline"
-                                          onsubmit="return confirm('আপনি কি নিশ্চিত যে এই ই-বুকটি মুছে ফেলতে চান?');">
+                                          onsubmit="return confirm('Are you sure you want to delete this e-book?');">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-2 py-0.5" title="মুছে ফেলুন">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-2 py-0.5" title="Delete">
                                             <i class="fas fa-trash-can"></i>
                                         </button>
                                     </form>
@@ -403,10 +403,10 @@
                                     <div class="rounded-circle bg-light d-inline-flex p-4 mb-3">
                                         <i class="fas fa-tablet-screen-button fs-1 text-muted"></i>
                                     </div>
-                                    <h5 class="fw-bold text-dark mb-1">কোনো ই-বুক পাওয়া যায়নি</h5>
-                                    <p class="text-muted small mb-3">আপনার সার্চ ফিল্টার পরিবর্তন করুন অথবা নতুন ডিজিটাল ফাইল আপলোড করুন।</p>
+                                    <h5 class="fw-bold text-dark mb-1">No E-Books Found</h5>
+                                    <p class="text-muted small mb-3">Try adjusting your search filters or upload a new digital e-book.</p>
                                     <a href="{{ route('admin.ebooks') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
-                                        <i class="fas fa-rotate-left me-1"></i> সকল ফিল্টার ক্লিয়ার করুন
+                                        <i class="fas fa-rotate-left me-1"></i> Clear All Filters
                                     </a>
                                 </div>
                             </td>
@@ -420,7 +420,7 @@
         @if ($ebooks->hasPages())
             <div class="p-3 border-top d-flex flex-column flex-md-row align-items-center justify-content-between gap-2 bg-light bg-opacity-50">
                 <div class="small text-muted">
-                    মোট @bn($ebooks->total()) টির মধ্যে @bn($ebooks->firstItem()) - @bn($ebooks->lastItem()) দেখানো হচ্ছে
+                    Showing {{ $ebooks->firstItem() }} to {{ $ebooks->lastItem() }} of {{ $ebooks->total() }} e-books
                 </div>
                 <div>{{ $ebooks->links() }}</div>
             </div>
@@ -436,7 +436,6 @@ const searchInput = document.getElementById('ebookSearchInput');
 const ebooksFilterForm = document.getElementById('ebooksFilterForm');
 
 if (searchInput) {
-    // Instant client-side highlight & filter across loaded table rows while typing (no page reload)
     searchInput.addEventListener('input', function() {
         const query = this.value.trim().toLowerCase();
         const rows = document.querySelectorAll('#adminEbooksTable tbody tr');
@@ -457,7 +456,6 @@ if (searchInput) {
         });
     });
 
-    // Execute full catalog server search on pressing Enter
     searchInput.addEventListener('keydown', function(e) {
         if (e.key === 'Enter') {
             e.preventDefault();
@@ -470,7 +468,6 @@ function submitEbookFilterForm() {
     const form = document.getElementById('ebooksFilterForm');
     if (!form) return;
 
-    // Clean up all empty/blank inputs before submission so URL parameters remain short and clean
     const inputs = form.querySelectorAll('input, select');
     inputs.forEach(input => {
         if (input.type === 'checkbox' && !input.checked) {
@@ -529,4 +526,3 @@ function exportEbooksToCSV() {
 @endpush
 
 @endsection
-

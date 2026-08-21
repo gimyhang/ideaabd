@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
     <meta name="theme-color" content="#1e293b">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="robots" content="noindex, nofollow">
-    <title>@yield('title', 'অ্যাডমিন প্যানেল') — {{ \App\Support\SiteSetting::name() }}</title>
+    <title>@yield('title', 'Admin Panel') — {{ \App\Support\SiteSetting::name() }}</title>
 
     {{-- Dynamic Site Favicon --}}
     @php $adminFaviconUrl = \App\Support\SiteSetting::faviconUrl(); @endphp
@@ -17,8 +17,6 @@
         <link rel="icon" href="{{ asset('favicon.ico') }}">
     @endif
 
-    <link href="https://fonts.maateen.me/kalpurush/font.css" rel="stylesheet">
-    <link href="https://fonts.maateen.me/nikosh/font.css" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -42,10 +40,10 @@
         {{-- Page heading + breadcrumb --}}
         <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4 d-print-none">
             <div>
-                <h1 class="h4 fw-bold mb-1">@yield('heading', 'ড্যাশবোর্ড')</h1>
+                <h1 class="h4 fw-bold mb-1">@yield('heading', 'Dashboard')</h1>
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb mb-0 small">
-                        <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}" class="text-decoration-none">অ্যাডমিন</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}" class="text-decoration-none">Admin</a></li>
                         @yield('breadcrumb')
                     </ol>
                 </nav>
@@ -59,20 +57,20 @@
                 <div class="alert alert-{{ $key === 'error' ? 'danger' : $key }} alert-dismissible d-flex align-items-center d-print-none" role="alert">
                     <i class="fas fa-{{ $icon }} me-2"></i>
                     <div>{{ session($key) }}</div>
-                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="বন্ধ করুন"></button>
+                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             @endif
         @endforeach
 
         @if (isset($errors) && $errors->any())
             <div class="alert alert-danger alert-dismissible">
-                <strong><i class="fas fa-circle-exclamation me-1"></i> কিছু তথ্য ঠিক করতে হবে:</strong>
+                <strong><i class="fas fa-circle-exclamation me-1"></i> Please fix the following errors:</strong>
                 <ul class="mb-0 mt-2 ps-3">
                     @foreach ($errors->all() as $error)
                         <li>{{ $error }}</li>
                     @endforeach
                 </ul>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="বন্ধ করুন"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         @endif
 

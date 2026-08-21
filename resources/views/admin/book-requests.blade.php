@@ -1,20 +1,20 @@
 @extends('layouts.admin')
 
-@section('title', 'বই রিকোয়েস্ট হাব')
-@section('heading', 'ইউজারদের স্পেশাল বই রিকোয়েস্ট হাব')
+@section('title', 'Book Requests Hub')
+@section('heading', 'Special Book Requests Hub')
 
 @section('breadcrumb')
-    <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">ড্যাশবোর্ড</a></li>
-    <li class="breadcrumb-item active" aria-current="page">বই রিকোয়েস্ট</li>
+    <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Book Requests</li>
 @endsection
 
 @section('actions')
     <div class="d-flex gap-2">
         <button type="button" class="btn btn-primary btn-sm rounded-pill px-3.5 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#addRequestModal">
-            <i class="fas fa-plus-circle me-1.5"></i> নতুন রিকোয়েস্ট যোগ করুন
+            <i class="fas fa-plus-circle me-1.5"></i> Add New Request
         </button>
         <a href="{{ route('admin.purchases.create') }}" class="btn btn-outline-success btn-sm rounded-pill px-3 fw-semibold">
-            <i class="fas fa-cart-plus me-1.5"></i> প্রকাশনী ক্রয় এন্ট্রি
+            <i class="fas fa-cart-plus me-1.5"></i> Purchase Order
         </a>
     </div>
 @endsection
@@ -30,8 +30,8 @@
             <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100 transition-hover border-start border-4 border-primary">
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
-                        <span class="text-muted small fw-semibold">মোট রিকোয়েস্ট</span>
-                        <h3 class="fw-bold text-dark mb-0 mt-1">@bn($stats['total'])</h3>
+                        <span class="text-muted small fw-semibold">Total Requests</span>
+                        <h3 class="fw-bold text-dark mb-0 mt-1">{{ number_format($stats['total']) }}</h3>
                     </div>
                     <div class="rounded-circle bg-primary-subtle text-primary p-3 d-flex align-items-center justify-content-center" style="width: 46px; height: 46px;">
                         <i class="fas fa-book-open fs-5"></i>
@@ -46,8 +46,8 @@
             <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100 transition-hover border-start border-4 border-warning">
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
-                        <span class="text-muted small fw-semibold">অপেক্ষমান</span>
-                        <h3 class="fw-bold text-warning mb-0 mt-1">@bn($stats['pending'])</h3>
+                        <span class="text-muted small fw-semibold">Pending</span>
+                        <h3 class="fw-bold text-warning mb-0 mt-1">{{ number_format($stats['pending']) }}</h3>
                     </div>
                     <div class="rounded-circle bg-warning-subtle text-warning p-3 d-flex align-items-center justify-content-center" style="width: 46px; height: 46px;">
                         <i class="fas fa-clock fs-5"></i>
@@ -62,8 +62,8 @@
             <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100 transition-hover border-start border-4 border-info">
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
-                        <span class="text-muted small fw-semibold">প্রক্রিয়াধীন</span>
-                        <h3 class="fw-bold text-info mb-0 mt-1">@bn($stats['processing'])</h3>
+                        <span class="text-muted small fw-semibold">Processing</span>
+                        <h3 class="fw-bold text-info mb-0 mt-1">{{ number_format($stats['processing']) }}</h3>
                     </div>
                     <div class="rounded-circle bg-info-subtle text-info p-3 d-flex align-items-center justify-content-center" style="width: 46px; height: 46px;">
                         <i class="fas fa-spinner fs-5"></i>
@@ -78,8 +78,8 @@
             <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100 transition-hover border-start border-4 border-success">
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
-                        <span class="text-muted small fw-semibold">সংগৃহীত / প্রস্তুত</span>
-                        <h3 class="fw-bold text-success mb-0 mt-1">@bn($stats['available'])</h3>
+                        <span class="text-muted small fw-semibold">Available / Ready</span>
+                        <h3 class="fw-bold text-success mb-0 mt-1">{{ number_format($stats['available']) }}</h3>
                     </div>
                     <div class="rounded-circle bg-success-subtle text-success p-3 d-flex align-items-center justify-content-center" style="width: 46px; height: 46px;">
                         <i class="fas fa-check-circle fs-5"></i>
@@ -94,8 +94,8 @@
             <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100 transition-hover border-start border-4 border-secondary">
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
-                        <span class="text-muted small fw-semibold">সম্পন্ন / বন্ধ</span>
-                        <h3 class="fw-bold text-secondary mb-0 mt-1">@bn($stats['closed'])</h3>
+                        <span class="text-muted small fw-semibold">Closed / Completed</span>
+                        <h3 class="fw-bold text-secondary mb-0 mt-1">{{ number_format($stats['closed']) }}</h3>
                     </div>
                     <div class="rounded-circle bg-secondary-subtle text-secondary p-3 d-flex align-items-center justify-content-center" style="width: 46px; height: 46px;">
                         <i class="fas fa-circle-xmark fs-5"></i>
@@ -118,7 +118,7 @@
                 <div class="input-group">
                     <span class="input-group-text bg-light border-end-0 text-muted"><i class="fas fa-magnifying-glass"></i></span>
                     <input type="text" name="search" class="form-control border-start-0 ps-0 bg-light" 
-                           placeholder="বইয়ের নাম, লেখক, কাস্টমার বা ফোন..." value="{{ $search }}">
+                           placeholder="Search book title, author, customer or phone..." value="{{ $search }}">
                     @if($search)
                         <a href="{{ route('admin.book-requests.index', array_filter(['status' => $status, 'date_from' => $dateFrom, 'date_to' => $dateTo])) }}" class="input-group-text bg-light text-muted text-decoration-none">
                             <i class="fas fa-times"></i>
@@ -130,29 +130,29 @@
             {{-- Status Filter --}}
             <div class="col-6 col-md-2">
                 <select name="status" class="form-select bg-light" onchange="this.form.submit()">
-                    <option value="">সকল স্ট্যাটাস</option>
-                    <option value="pending" @selected($status === 'pending')>⏳ অপেক্ষমান (Pending)</option>
-                    <option value="processing" @selected($status === 'processing')>⚙️ প্রক্রিয়াধীন (Processing)</option>
-                    <option value="available" @selected($status === 'available')>✅ প্রস্তুত (Available)</option>
-                    <option value="closed" @selected($status === 'closed')>❌ সম্পন্ন/বন্ধ (Closed)</option>
+                    <option value="">All Statuses</option>
+                    <option value="pending" @selected($status === 'pending')>⏳ Pending</option>
+                    <option value="processing" @selected($status === 'processing')>⚙️ Processing</option>
+                    <option value="available" @selected($status === 'available')>✅ Available</option>
+                    <option value="closed" @selected($status === 'closed')>❌ Closed</option>
                 </select>
             </div>
 
             {{-- Date Range --}}
             <div class="col-6 col-md-2">
-                <input type="date" name="date_from" class="form-control bg-light" value="{{ $dateFrom }}" placeholder="শুরুর তারিখ" onchange="this.form.submit()">
+                <input type="date" name="date_from" class="form-control bg-light" value="{{ $dateFrom }}" placeholder="From Date" onchange="this.form.submit()">
             </div>
             <div class="col-6 col-md-2">
-                <input type="date" name="date_to" class="form-control bg-light" value="{{ $dateTo }}" placeholder="শেষ তারিখ" onchange="this.form.submit()">
+                <input type="date" name="date_to" class="form-control bg-light" value="{{ $dateTo }}" placeholder="To Date" onchange="this.form.submit()">
             </div>
 
             {{-- Actions --}}
             <div class="col-6 col-md-2 d-flex gap-2">
                 <button type="submit" class="btn btn-primary w-100 rounded-3 fw-semibold">
-                    <i class="fas fa-filter me-1"></i> ফিল্টার
+                    <i class="fas fa-filter me-1"></i> Filter
                 </button>
                 @if($search || $status || $dateFrom || $dateTo)
-                    <a href="{{ route('admin.book-requests.index') }}" class="btn btn-light border rounded-3 text-danger" title="ফিল্টার মুছুন">
+                    <a href="{{ route('admin.book-requests.index') }}" class="btn btn-light border rounded-3 text-danger" title="Clear Filters">
                         <i class="fas fa-rotate-left"></i>
                     </a>
                 @endif
@@ -172,20 +172,20 @@
         
         <div id="bulkActionBar" class="p-2.5 bg-primary-subtle border-bottom d-flex align-items-center justify-content-between px-3" style="display: none;">
             <div class="d-flex align-items-center gap-2">
-                <span class="badge bg-primary rounded-pill px-2.5" id="selectedCountBadge">০</span>
-                <span class="small fw-bold text-primary">টি রিকোয়েস্ট নির্বাচিত</span>
+                <span class="badge bg-primary rounded-pill px-2.5" id="selectedCountBadge">0</span>
+                <span class="small fw-bold text-primary">request(s) selected</span>
             </div>
             <div class="d-flex align-items-center gap-2">
                 <select name="bulk_action" class="form-select form-select-sm rounded-pill" style="width: 170px;" required>
-                    <option value="">অ্যাকশন নির্বাচন করুন</option>
-                    <option value="pending">স্ট্যাটাস: Pending</option>
-                    <option value="processing">স্ট্যাটাস: Processing</option>
-                    <option value="available">স্ট্যাটাস: Available</option>
-                    <option value="closed">স্ট্যাটাস: Closed</option>
-                    <option value="delete">🗑️ নির্বাচিতগুলো মুছুন</option>
+                    <option value="">Choose action...</option>
+                    <option value="pending">Status: Pending</option>
+                    <option value="processing">Status: Processing</option>
+                    <option value="available">Status: Available</option>
+                    <option value="closed">Status: Closed</option>
+                    <option value="delete">🗑️ Delete Selected</option>
                 </select>
                 <button type="submit" class="btn btn-primary btn-sm rounded-pill px-3 fw-bold" onclick="return confirmBulkAction()">
-                    প্রয়োগ করুন
+                    Apply
                 </button>
             </div>
         </div>
@@ -197,20 +197,20 @@
                         <th class="ps-3" style="width: 40px;">
                             <input type="checkbox" class="form-check-input" id="selectAllCheckbox" onchange="toggleSelectAll(this)">
                         </th>
-                        <th style="min-width: 220px;">বই ও লেখকের তথ্য</th>
-                        <th style="min-width: 180px;">কাস্টমার বিবরণ</th>
-                        <th style="min-width: 180px;">কাস্টমার নোট</th>
-                        <th style="min-width: 160px;">অ্যাডমিন নোট</th>
-                        <th style="min-width: 140px;">বর্তমান স্ট্যাটাস</th>
-                        <th style="min-width: 110px;">তারিখ</th>
-                        <th class="text-end pe-3" style="min-width: 130px;">অ্যাকশন</th>
+                        <th style="min-width: 220px;">Book & Author Details</th>
+                        <th style="min-width: 180px;">Customer Info</th>
+                        <th style="min-width: 180px;">Customer Notes</th>
+                        <th style="min-width: 160px;">Admin Notes</th>
+                        <th style="min-width: 140px;">Status</th>
+                        <th style="min-width: 110px;">Date</th>
+                        <th class="text-end pe-3" style="min-width: 130px;">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($requests as $req)
                         @php
                             $cleanPhone = $req->clean_phone;
-                            $waText = urlencode("প্রিয় গ্রাহক, আইডিয়া প্রকাশনে আপনার রিকোয়েস্টকৃত বই '{$req->book_title}'-এর বিষয়ে যোগাযোগ করা হলো।");
+                            $waText = urlencode("Dear customer, regarding your requested book '{$req->book_title}' at Idea Prakashan.");
                         @endphp
                         <tr id="reqRow-{{ $req->id }}">
                             {{-- Checkbox --}}
@@ -235,25 +235,25 @@
                                 {{-- Quick Link to check in catalog / purchase --}}
                                 <div class="mt-1">
                                     <a href="{{ route('admin.books', ['search' => $req->book_title]) }}" target="_blank" class="text-decoration-none small text-muted hover-primary" style="font-size: 0.73rem;">
-                                        <i class="fas fa-search me-0.5"></i>ক্যাটালগে খুঁজুন
+                                        <i class="fas fa-search me-0.5"></i>Check Catalog
                                     </a>
                                     <span class="text-muted mx-1">•</span>
                                     <a href="{{ route('admin.purchases.create') }}" class="text-decoration-none small text-success hover-underline" style="font-size: 0.73rem;">
-                                        <i class="fas fa-cart-plus me-0.5"></i>ক্রয় এন্ট্রি
+                                        <i class="fas fa-cart-plus me-0.5"></i>Purchase Entry
                                     </a>
                                 </div>
                             </td>
 
                             {{-- Customer Info --}}
                             <td>
-                                <div class="fw-semibold text-dark">{{ $req->customer_name ?: 'নামহীন কাস্টমার' }}</div>
+                                <div class="fw-semibold text-dark">{{ $req->customer_name ?: 'Unnamed Customer' }}</div>
                                 @if($req->customer_phone)
                                     <div class="d-flex align-items-center gap-1.5 mt-0.5">
                                         <span class="small font-monospace text-muted">{{ $req->customer_phone }}</span>
-                                        <a href="tel:{{ $req->customer_phone }}" class="badge bg-primary-subtle text-primary p-1 rounded-circle text-decoration-none" title="সরাসরি কল করুন">
+                                        <a href="tel:{{ $req->customer_phone }}" class="badge bg-primary-subtle text-primary p-1 rounded-circle text-decoration-none" title="Call directly">
                                             <i class="fas fa-phone" style="font-size: 9px;"></i>
                                         </a>
-                                        <a href="https://wa.me/{{ $cleanPhone }}?text={{ $waText }}" target="_blank" class="badge bg-success-subtle text-success p-1 rounded-circle text-decoration-none" title="হোয়াটসঅ্যাপে মেসেজ পাঠান">
+                                        <a href="https://wa.me/{{ $cleanPhone }}?text={{ $waText }}" target="_blank" class="badge bg-success-subtle text-success p-1 rounded-circle text-decoration-none" title="Send WhatsApp message">
                                             <i class="fab fa-whatsapp" style="font-size: 10px;"></i>
                                         </a>
                                     </div>
@@ -280,9 +280,9 @@
                             <td>
                                 <div class="d-flex align-items-center gap-1">
                                     <div class="small text-dark font-monospace line-clamp-2" style="font-size: 0.78rem;" id="notesText-{{ $req->id }}" title="{{ $req->admin_notes }}">
-                                        {{ $req->admin_notes ?: 'নোট নেই' }}
+                                        {{ $req->admin_notes ?: 'No notes' }}
                                     </div>
-                                    <button type="button" class="btn btn-xs btn-light border-0 p-1 text-muted" onclick="openNotesModal({{ $req->id }}, '{{ addslashes($req->admin_notes ?? '') }}')" title="নোট লিখুন/সম্পাদনা করুন">
+                                    <button type="button" class="btn btn-xs btn-light border-0 p-1 text-muted" onclick="openNotesModal({{ $req->id }}, '{{ addslashes($req->admin_notes ?? '') }}')" title="Edit Note">
                                         <i class="fas fa-pen" style="font-size: 10px;"></i>
                                     </button>
                                 </div>
@@ -302,7 +302,7 @@
 
                             {{-- Created Date --}}
                             <td>
-                                <div class="small text-dark">@bnDate($req->created_at)</div>
+                                <div class="small text-dark">{{ $req->created_at->format('d M, Y') }}</div>
                                 <small class="text-muted" style="font-size: 0.7rem;">{{ $req->created_at->diffForHumans() }}</small>
                             </td>
 
@@ -310,15 +310,15 @@
                             <td class="text-end pe-3">
                                 <div class="d-flex align-items-center justify-content-end gap-1">
                                     <button type="button" class="btn btn-sm btn-light border p-1 rounded-circle shadow-xs" 
-                                            onclick="openViewModal({{ json_encode($req) }})" title="বিস্তারিত দেখুন">
+                                            onclick="openViewModal({{ json_encode($req) }})" title="View Details">
                                         <i class="fas fa-eye text-primary" style="font-size: 11px;"></i>
                                     </button>
 
                                     <form action="{{ route('admin.book-requests.destroy', $req->id) }}" method="POST" 
-                                          onsubmit="return confirm('আপনি কি নিশ্চিত যে এই রিকোয়েস্টটি মুছে ফেলতে চান?');" class="d-inline">
+                                          onsubmit="return confirm('Are you sure you want to delete this book request?');" class="d-inline">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-light border p-1 rounded-circle shadow-xs text-danger" title="মুছুন">
+                                        <button type="submit" class="btn btn-sm btn-light border p-1 rounded-circle shadow-xs text-danger" title="Delete">
                                             <i class="fas fa-trash-can" style="font-size: 11px;"></i>
                                         </button>
                                     </form>
@@ -330,10 +330,10 @@
                             <td colspan="8" class="text-center py-5 text-muted">
                                 <div class="p-4">
                                     <i class="fas fa-book-open fs-1 opacity-25 mb-3 d-block"></i>
-                                    <h6 class="fw-bold text-dark">কোনো বইয়ের রিকোয়েস্ট খুঁজে পাওয়া যায়নি</h6>
-                                    <p class="small text-muted mb-3">নতুন রিকোয়েস্ট আসলে স্বয়ংক্রিয়ভাবে এখানে তালিকাভুক্ত হবে।</p>
+                                    <h6 class="fw-bold text-dark">No Book Requests Found</h6>
+                                    <p class="small text-muted mb-3">Requests submitted by readers will appear here automatically.</p>
                                     <button type="button" class="btn btn-sm btn-primary rounded-pill px-3.5" data-bs-toggle="modal" data-bs-target="#addRequestModal">
-                                        <i class="fas fa-plus me-1"></i> নতুন রিকোয়েস্ট যোগ করুন
+                                        <i class="fas fa-plus me-1"></i> Add New Request
                                     </button>
                                 </div>
                             </td>
@@ -348,7 +348,7 @@
     @if($requests->hasPages())
         <div class="card-footer bg-white border-top py-3 d-flex flex-wrap align-items-center justify-content-between gap-2">
             <div class="text-muted small">
-                মোট <strong>@bn($requests->total())</strong>টির মধ্যে <strong>@bn($requests->firstItem()) - @bn($requests->lastItem())</strong>টি দেখানো হচ্ছে
+                Showing <strong>{{ $requests->firstItem() }} - {{ $requests->lastItem() }}</strong> of <strong>{{ $requests->total() }}</strong> requests
             </div>
             <div>
                 {{ $requests->links() }}
@@ -365,7 +365,7 @@
         <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
             <div class="modal-header bg-primary text-white py-3 px-4">
                 <h5 class="modal-title fw-bold" id="addRequestModalLabel">
-                    <i class="fas fa-plus-circle me-1.5"></i> নতুন বই রিকোয়েস্ট এন্ট্রি
+                    <i class="fas fa-plus-circle me-1.5"></i> New Book Request Entry
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -373,61 +373,61 @@
                 @csrf
                 <div class="modal-body p-4">
                     <div class="mb-3">
-                        <label class="form-label small fw-bold">বইয়ের নাম <span class="text-danger">*</span></label>
-                        <input type="text" name="book_title" class="form-control rounded-3" placeholder="বইয়ের পূর্ণাঙ্গ শিরোনাম..." required>
+                        <label class="form-label small fw-bold">Book Title <span class="text-danger">*</span></label>
+                        <input type="text" name="book_title" class="form-control rounded-3" placeholder="Full book title..." required>
                     </div>
 
                     <div class="row g-2 mb-3">
                         <div class="col-sm-6">
-                            <label class="form-label small fw-bold">লেখকের নাম</label>
-                            <input type="text" name="author_name" class="form-control rounded-3" placeholder="লেখকের নাম...">
+                            <label class="form-label small fw-bold">Author Name</label>
+                            <input type="text" name="author_name" class="form-control rounded-3" placeholder="Author name...">
                         </div>
                         <div class="col-sm-6">
-                            <label class="form-label small fw-bold">সংস্করণ / প্রকাশ সাল</label>
-                            <input type="text" name="edition" class="form-control rounded-3" placeholder="যেমন: ১ম প্রকাশ / ২০২৬">
+                            <label class="form-label small fw-bold">Edition / Year</label>
+                            <input type="text" name="edition" class="form-control rounded-3" placeholder="e.g. 1st Edition / 2026">
                         </div>
                     </div>
 
                     <div class="row g-2 mb-3">
                         <div class="col-sm-6">
-                            <label class="form-label small fw-bold">কাস্টমারের নাম</label>
-                            <input type="text" name="customer_name" class="form-control rounded-3" placeholder="গ্রাহকের নাম...">
+                            <label class="form-label small fw-bold">Customer Name</label>
+                            <input type="text" name="customer_name" class="form-control rounded-3" placeholder="Customer name...">
                         </div>
                         <div class="col-sm-6">
-                            <label class="form-label small fw-bold">মোবাইল নম্বর <span class="text-danger">*</span></label>
-                            <input type="text" name="customer_phone" class="form-control rounded-3 font-monospace" placeholder="০১৭১০..." required>
+                            <label class="form-label small fw-bold">Phone Number <span class="text-danger">*</span></label>
+                            <input type="text" name="customer_phone" class="form-control rounded-3 font-monospace" placeholder="01710..." required>
                         </div>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label small fw-bold">ইমেইল এড্রেস</label>
+                        <label class="form-label small fw-bold">Email Address</label>
                         <input type="email" name="customer_email" class="form-control rounded-3" placeholder="customer@gmail.com">
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label small fw-bold">কাস্টমার অতিরিক্ত বিবরণ / নোট</label>
-                        <textarea name="additional_info" rows="2" class="form-control rounded-3" placeholder="কোনো বিশেষ সংস্করণ বা তথ্য থাকলে..."></textarea>
+                        <label class="form-label small fw-bold">Customer Notes / Additional Details</label>
+                        <textarea name="additional_info" rows="2" class="form-control rounded-3" placeholder="Specific notes or requirements..."></textarea>
                     </div>
 
                     <div class="row g-2">
                         <div class="col-sm-6">
-                            <label class="form-label small fw-bold">স্ট্যাটাস</label>
+                            <label class="form-label small fw-bold">Status</label>
                             <select name="status" class="form-select rounded-3">
-                                <option value="pending">⏳ Pending (অপেক্ষমান)</option>
-                                <option value="processing">⚙️ Processing (খোঁজা হচ্ছে)</option>
-                                <option value="available">✅ Available (প্রস্তুত)</option>
-                                <option value="closed">❌ Closed (বন্ধ)</option>
+                                <option value="pending">⏳ Pending</option>
+                                <option value="processing">⚙️ Processing</option>
+                                <option value="available">✅ Available</option>
+                                <option value="closed">❌ Closed</option>
                             </select>
                         </div>
                         <div class="col-sm-6">
-                            <label class="form-label small fw-bold">অ্যাডমিন নোট (অভ্যন্তরীণ)</label>
-                            <input type="text" name="admin_notes" class="form-control rounded-3" placeholder="বাংলাবাজারে যোগাযোগ...">
+                            <label class="form-label small fw-bold">Admin Notes (Internal)</label>
+                            <input type="text" name="admin_notes" class="form-control rounded-3" placeholder="Internal remarks...">
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer bg-light py-2.5 px-4 border-top">
-                    <button type="button" class="btn btn-light border rounded-pill px-3" data-bs-dismiss="modal">বাতিল</button>
-                    <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold">সংরক্ষণ করুন</button>
+                    <button type="button" class="btn btn-light border rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold">Save Request</button>
                 </div>
             </form>
         </div>
@@ -441,17 +441,17 @@
     <div class="modal-dialog modal-dialog-centered modal-sm">
         <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
             <div class="modal-header bg-dark text-white py-2.5 px-3">
-                <h6 class="modal-title fw-bold mb-0"><i class="fas fa-note-sticky text-warning me-1.5"></i>অ্যাডমিন নোট</h6>
+                <h6 class="modal-title fw-bold mb-0"><i class="fas fa-note-sticky text-warning me-1.5"></i>Admin Notes</h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <form id="notesForm" onsubmit="saveAdminNotes(event)">
                 <div class="modal-body p-3">
                     <input type="hidden" id="notesReqId" value="">
-                    <textarea id="notesTextarea" class="form-control rounded-3" rows="4" placeholder="অভ্যন্তরীণ ট্র্যাকিং নোট লিখুন..."></textarea>
+                    <textarea id="notesTextarea" class="form-control rounded-3" rows="4" placeholder="Internal tracking notes..."></textarea>
                 </div>
                 <div class="modal-footer bg-light p-2 border-top">
-                    <button type="button" class="btn btn-light btn-sm border rounded-pill px-3" data-bs-dismiss="modal">বন্ধ</button>
-                    <button type="submit" class="btn btn-primary btn-sm rounded-pill px-3 fw-bold">সেভ করুন</button>
+                    <button type="button" class="btn btn-light btn-sm border rounded-pill px-3" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary btn-sm rounded-pill px-3 fw-bold">Save Notes</button>
                 </div>
             </form>
         </div>
@@ -466,44 +466,44 @@
         <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
             <div class="modal-header bg-light py-3 px-4 border-bottom">
                 <h5 class="modal-title fw-bold text-dark mb-0">
-                    <i class="fas fa-circle-info text-primary me-1.5"></i>রিকোয়েস্ট বিস্তারিত (#<span id="vReqId"></span>)
+                    <i class="fas fa-circle-info text-primary me-1.5"></i>Request Details (#<span id="vReqId"></span>)
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body p-4">
                 <div class="p-3 bg-light rounded-3 mb-3 border">
-                    <span class="text-muted small fw-bold d-block">বইয়ের শিরোনাম:</span>
+                    <span class="text-muted small fw-bold d-block">Book Title:</span>
                     <h5 class="fw-bold text-dark mb-1" id="vBookTitle"></h5>
                     <div class="text-muted small" id="vAuthorName"></div>
                 </div>
 
                 <div class="row g-3 mb-3">
                     <div class="col-sm-6">
-                        <span class="text-muted small d-block">কাস্টমার নাম:</span>
+                        <span class="text-muted small d-block">Customer Name:</span>
                         <div class="fw-bold text-dark" id="vCustomerName"></div>
                     </div>
                     <div class="col-sm-6">
-                        <span class="text-muted small d-block">মোবাইল নম্বর:</span>
+                        <span class="text-muted small d-block">Phone Number:</span>
                         <div class="fw-bold text-dark font-monospace" id="vCustomerPhone"></div>
                     </div>
                     <div class="col-12" id="vEmailWrapper">
-                        <span class="text-muted small d-block">ইমেইল:</span>
+                        <span class="text-muted small d-block">Email:</span>
                         <div class="text-dark" id="vCustomerEmail"></div>
                     </div>
                 </div>
 
                 <div class="mb-3">
-                    <span class="text-muted small d-block">কাস্টমার অতিরিক্ত তথ্য:</span>
+                    <span class="text-muted small d-block">Customer Additional Details:</span>
                     <div class="p-2.5 bg-light rounded-3 text-dark small" id="vAdditionalInfo"></div>
                 </div>
 
                 <div class="mb-2">
-                    <span class="text-muted small d-block">অ্যাডমিন নোট:</span>
+                    <span class="text-muted small d-block">Admin Notes:</span>
                     <div class="p-2.5 bg-warning-subtle rounded-3 text-dark small font-monospace" id="vAdminNotes"></div>
                 </div>
             </div>
             <div class="modal-footer bg-light py-2.5 px-4 border-top">
-                <button type="button" class="btn btn-secondary btn-sm rounded-pill px-4" data-bs-dismiss="modal">বন্ধ করুন</button>
+                <button type="button" class="btn btn-secondary btn-sm rounded-pill px-4" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
@@ -526,10 +526,10 @@ function updateRequestStatus(id, newStatus, selectEl) {
             selectEl.className = `form-select form-select-sm rounded-pill fw-semibold ${data.badge_class}`;
             showToast(data.message);
         } else {
-            alert('স্ট্যাটাস আপডেট করা সম্ভব হয়নি।');
+            alert('Failed to update status.');
         }
     })
-    .catch(() => alert('সার্ভার যোগাযোগে ত্রুটি ঘটেছে।'));
+    .catch(() => alert('Server connection error.'));
 }
 
 function openNotesModal(id, currentNotes) {
@@ -556,23 +556,23 @@ function saveAdminNotes(e) {
     .then(data => {
         if (data.success) {
             const noteEl = document.getElementById(`notesText-${id}`);
-            if (noteEl) noteEl.textContent = notes || 'নোট নেই';
+            if (noteEl) noteEl.textContent = notes || 'No notes';
             bootstrap.Modal.getInstance(document.getElementById('notesModal')).hide();
-            showToast('অ্যাডমিন নোট সংরক্ষিত হয়েছে!');
+            showToast('Admin notes saved successfully!');
         }
     })
-    .catch(() => alert('নোট সেভ করতে সমস্যা হয়েছে।'));
+    .catch(() => alert('Failed to save notes.'));
 }
 
 function openViewModal(req) {
     document.getElementById('vReqId').textContent = req.id;
     document.getElementById('vBookTitle').textContent = req.book_title;
-    document.getElementById('vAuthorName').textContent = req.author_name ? 'লেখক: ' + req.author_name : 'লেখকের নাম উল্লেখ নেই';
-    document.getElementById('vCustomerName').textContent = req.customer_name || 'নামহীন';
+    document.getElementById('vAuthorName').textContent = req.author_name ? 'Author: ' + req.author_name : 'Author not specified';
+    document.getElementById('vCustomerName').textContent = req.customer_name || 'Unnamed';
     document.getElementById('vCustomerPhone').textContent = req.customer_phone || '-';
     document.getElementById('vCustomerEmail').textContent = req.customer_email || '-';
-    document.getElementById('vAdditionalInfo').textContent = req.additional_info || 'কোনো অতিরিক্ত তথ্য নেই';
-    document.getElementById('vAdminNotes').textContent = req.admin_notes || 'কোনো অভ্যন্তরীণ নোট নেই';
+    document.getElementById('vAdditionalInfo').textContent = req.additional_info || 'No additional information';
+    document.getElementById('vAdminNotes').textContent = req.admin_notes || 'No internal notes';
     new bootstrap.Modal(document.getElementById('viewRequestModal')).show();
 }
 
@@ -596,7 +596,7 @@ function onRowCheckboxChange() {
 }
 
 function confirmBulkAction() {
-    return confirm('আপনি কি নিশ্চিত যে নির্বাচিত রিকোয়েস্টগুলোতে এই অ্যাকশন প্রয়োগ করতে চান?');
+    return confirm('Are you sure you want to apply this action on selected requests?');
 }
 
 function showToast(msg) {

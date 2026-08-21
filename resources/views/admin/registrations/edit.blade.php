@@ -1,21 +1,21 @@
 @extends('layouts.admin')
 
-@section('title', 'রেজিস্ট্রেশন এডিট — ' . $user->name)
-@section('heading', 'রেজিস্ট্রেশন তথ্য সংশোধন ও ছবি ব্যবস্থাপনা')
+@section('title', 'Edit Registration — ' . $user->name)
+@section('heading', 'Edit Registration & Photo Management')
 
 @section('breadcrumb')
-    <li class="breadcrumb-item"><a href="{{ route('admin.registrations.index') }}" class="text-decoration-none">রেজিস্ট্রেশন</a></li>
+    <li class="breadcrumb-item"><a href="{{ route('admin.registrations.index') }}" class="text-decoration-none">Registrations</a></li>
     <li class="breadcrumb-item"><a href="{{ route('admin.registrations.show', $user) }}" class="text-decoration-none">{{ $user->name }}</a></li>
-    <li class="breadcrumb-item active" aria-current="page">সম্পাদনা</li>
+    <li class="breadcrumb-item active" aria-current="page">Edit</li>
 @endsection
 
 @section('actions')
     <div class="d-flex gap-2">
         <a href="{{ route('admin.registrations.show', $user) }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
-            <i class="fas fa-arrow-left me-1"></i> ফিরে যান
+            <i class="fas fa-arrow-left me-1"></i> Back
         </a>
         <a href="{{ route('admin.registrations.index') }}" class="btn btn-light border btn-sm rounded-pill px-3">
-            <i class="fas fa-list me-1"></i> সকল আবেদন
+            <i class="fas fa-list me-1"></i> All Requests
         </a>
     </div>
 @endsection
@@ -26,9 +26,9 @@
         <div class="card-header bg-light border-0 py-3.5 px-4 d-flex flex-wrap align-items-center justify-content-between gap-2">
             <div>
                 <h5 class="fw-bold mb-0 text-dark">
-                    <i class="fas fa-user-pen text-primary me-2"></i>আবেদনকারী ও লেখকের তথ্য সম্পাদনা
+                    <i class="fas fa-user-pen text-primary me-2"></i> Edit Applicant & Profile Information
                 </h5>
-                <small class="text-muted">ইউজার আইডি: #{{ $user->id }} • সাবমিট হয়েছে: @bnDate($user->created_at)</small>
+                <small class="text-muted">User ID: #{{ $user->id }} • Submitted: {{ $user->created_at->format('d M, Y') }}</small>
             </div>
             <div class="d-flex align-items-center gap-2">
                 <span class="badge {{ $user->reg_status === 'approved' ? 'bg-success' : ($user->reg_status === 'pending' ? 'bg-warning text-dark' : 'bg-danger') }} rounded-pill px-3 py-1.5 shadow-xs">
@@ -45,7 +45,7 @@
                 <div class="alert alert-danger rounded-4 mb-4 border-0 shadow-xs">
                     <div class="fw-bold mb-1 d-flex align-items-center gap-1.5">
                         <i class="fas fa-circle-exclamation text-danger"></i>
-                        <span>অনুগ্রহ করে নিচের ত্রুটিগুলো সংশোধন করুন:</span>
+                        <span>Please fix the following errors:</span>
                     </div>
                     <ul class="mb-0 ps-3 small mt-2">
                         @foreach($errors->all() as $e)
@@ -88,14 +88,14 @@
                         <div class="flex-grow-1 w-100">
                             <label class="form-label fw-bold text-dark mb-1 d-flex align-items-center gap-1.5">
                                 <i class="fas fa-camera text-primary"></i>
-                                <span>লেখকের ছবি / আবেদনকারীর প্রোফাইল ফটো</span>
+                                <span>Author / Applicant Profile Photo</span>
                             </label>
                             <input type="file" name="avatar" id="avatarInput" 
                                    class="form-control form-control-sm rounded-3 mb-1" 
                                    accept="image/jpeg,image/png,image/jpg,image/webp" 
                                    onchange="previewAvatar(this, 'avatarPreviewBox')">
                             <div class="text-muted small" style="font-size: 0.76rem;">
-                                <i class="fas fa-circle-info me-1 text-primary"></i>JPG, PNG বা WebP ফরম্যাট। আপলোডকৃত যেকোনো সাইজের ছবি স্বয়ংক্রিয়ভাবে পারফেক্ট ফ্রেমে ক্রপ হয়ে বসবে।
+                                <i class="fas fa-circle-info me-1 text-primary"></i> JPG, PNG or WebP format. Uploaded image will be centered in a 1:1 circle preview.
                             </div>
                         </div>
                     </div>
@@ -107,65 +107,65 @@
                 <div class="mb-4">
                     <h6 class="fw-bold text-dark mb-3 pb-2 border-bottom d-flex align-items-center gap-2">
                         <i class="fas fa-id-card-clip text-primary"></i>
-                        <span>প্রাথমিক অ্যাকাউন্ট ও পরিচিতি তথ্য</span>
+                        <span>Basic Account & Identity Credentials</span>
                     </h6>
 
                     <div class="row g-3">
-                        {{-- লেখক নাম (Author Display Name) --}}
+                        {{-- Display Name --}}
                         <div class="col-md-6">
                             <label class="form-label small fw-bold text-dark">
-                                লেখক নাম <span class="text-danger">*</span>
+                                Author / Display Name <span class="text-danger">*</span>
                             </label>
-                            <input type="text" name="name" class="form-control rounded-3" value="{{ old('name', $user->name) }}" placeholder="যেমন: আল-আমিন ইসলাম / হুমায়ূন আহমেদ" required>
-                            <div class="text-muted" style="font-size: 0.72rem;">সাইটের বই, প্রবন্ধ ও লেখক ডিরেক্টরিতে এই নামটি প্রদর্শিত হবে।</div>
+                            <input type="text" name="name" class="form-control rounded-3" value="{{ old('name', $user->name) }}" placeholder="e.g. Humayun Ahmed" required>
+                            <div class="text-muted" style="font-size: 0.72rem;">This name will appear on published books, articles and author directory.</div>
                         </div>
 
-                        {{-- ইমেইল এড্রেস --}}
+                        {{-- Email Address --}}
                         <div class="col-md-6">
                             <label class="form-label small fw-bold text-dark">
-                                ইমেইল এড্রেস <span class="text-danger">*</span>
+                                Email Address <span class="text-danger">*</span>
                             </label>
                             <input type="email" name="email" class="form-control rounded-3" value="{{ old('email', $user->email) }}" required>
                         </div>
 
-                        {{-- মোবাইল নম্বর --}}
+                        {{-- Phone Number --}}
                         <div class="col-md-6">
                             <label class="form-label small fw-bold text-dark">
-                                মোবাইল নম্বর (লগইন ইউজারনেম) <span class="text-danger">*</span>
+                                Phone Number (Login Username) <span class="text-danger">*</span>
                             </label>
                             <input type="text" name="phone" class="form-control rounded-3 font-monospace" value="{{ old('phone', $user->phone) }}" required>
                         </div>
 
-                        {{-- অ্যাকাউন্ট ধরন --}}
+                        {{-- Role --}}
                         <div class="col-md-3">
                             <label class="form-label small fw-bold text-dark">
-                                অ্যাকাউন্ট ধরন <span class="text-danger">*</span>
+                                Account Role <span class="text-danger">*</span>
                             </label>
-                            <select name="role" class="form-select rounded-3" id="roleSelector" onchange="switchRoleSections(this.value)">
-                                <option value="author" @selected(old('role', $user->role) === 'author')>লেখক (Author)</option>
-                                <option value="seller" @selected(old('role', $user->role) === 'seller')>সেলার (Seller)</option>
-                                <option value="publisher" @selected(old('role', $user->role) === 'publisher')>প্রকাশক (Publisher)</option>
+                            <select name="role" class="form-select rounded-3" id="roleSelector">
+                                <option value="author" @selected(old('role', $user->role) === 'author')>Author</option>
+                                <option value="seller" @selected(old('role', $user->role) === 'seller')>Seller</option>
+                                <option value="publisher" @selected(old('role', $user->role) === 'publisher')>Publisher</option>
                             </select>
                         </div>
 
-                        {{-- অনুমোদন স্ট্যাটাস --}}
+                        {{-- Status --}}
                         <div class="col-md-3">
                             <label class="form-label small fw-bold text-dark">
-                                অনুমোদন স্ট্যাটাস <span class="text-danger">*</span>
+                                Verification Status <span class="text-danger">*</span>
                             </label>
                             <select name="reg_status" class="form-select rounded-3">
-                                <option value="pending" @selected(old('reg_status', $user->reg_status) === 'pending')>⏳ অপেক্ষমান (Pending)</option>
-                                <option value="approved" @selected(old('reg_status', $user->reg_status) === 'approved')>✅ অনুমোদিত (Approved)</option>
-                                <option value="rejected" @selected(old('reg_status', $user->reg_status) === 'rejected')>❌ প্রত্যাখ্যাত (Rejected)</option>
+                                <option value="pending" @selected(old('reg_status', $user->reg_status) === 'pending')>⏳ Pending</option>
+                                <option value="approved" @selected(old('reg_status', $user->reg_status) === 'approved')>✅ Approved</option>
+                                <option value="rejected" @selected(old('reg_status', $user->reg_status) === 'rejected')>❌ Rejected</option>
                             </select>
                         </div>
 
-                        {{-- অ্যাকাউন্ট সক্রিয় সুইচ --}}
+                        {{-- Active Switch --}}
                         <div class="col-12">
                             <div class="form-check form-switch p-2 bg-light rounded-3 border ps-5">
                                 <input class="form-check-input ms-n4" type="checkbox" name="is_active" id="isActiveSwitch" value="1" @checked(old('is_active', $user->is_active))>
                                 <label class="form-check-label small fw-semibold text-dark" for="isActiveSwitch">
-                                    অ্যাকাউন্ট সক্রিয় রাখুন (সক্রিয় ও অনুমোদিত হলে ইউজার সাইটে লগইন ও পোস্ট করতে পারবে)
+                                    Keep Account Active (Active & approved users can log in and manage content)
                                 </label>
                             </div>
                         </div>
@@ -173,114 +173,110 @@
                 </div>
 
                 {{-- ========================================================= --}}
-                {{-- 3. AUTHOR DEDICATED FIELDS (লেখক সংক্রান্ত বিস্তারিত তথ্য) --}}
+                {{-- 3. AUTHOR DEDICATED FIELDS (Author Details)               --}}
                 {{-- ========================================================= --}}
                 <div id="authorDetailsCard" class="mb-4">
                     <h6 class="fw-bold text-dark mb-3 pb-2 border-bottom d-flex align-items-center gap-2">
                         <i class="fas fa-feather-pointed text-success"></i>
-                        <span>লেখক ও সাহিত্য সংক্রান্ত বিস্তারিত তথ্য</span>
+                        <span>Author & Literary Specialty Information</span>
                     </h6>
 
                     <div class="row g-3">
-                        {{-- প্রকৃত বা পুরো নাম --}}
+                        {{-- Full Legal Name --}}
                         <div class="col-md-6">
                             <label class="form-label small fw-bold text-dark">
-                                প্রকৃত বা পুরো নাম (Full Legal Name)
+                                Full Legal Name
                             </label>
                             <input type="text" name="full_name" class="form-control rounded-3" 
                                    value="{{ old('full_name', $regData['full_name'] ?? '') }}" 
-                                   placeholder="জাতীয় পরিচয়পত্র অনুযায়ী পুরো নাম">
+                                   placeholder="Full legal name as on National ID">
                         </div>
 
-                        {{-- লেখকের ছদ্মনাম / পেন-নেম (আলাদা ঘর) --}}
+                        {{-- Pen Name --}}
                         <div class="col-md-6">
                             <label class="form-label small fw-bold text-dark">
-                                ছদ্মনাম / কলমনাম (Pen Name / Pseudonym)
+                                Pen Name / Pseudonym
                             </label>
                             <input type="text" name="pen_name" class="form-control rounded-3" 
                                    value="{{ old('pen_name', $regData['pen_name'] ?? '') }}" 
-                                   placeholder="যদি কোনো ছদ্মনাম থাকে">
+                                   placeholder="If author uses a pen name">
                         </div>
 
-                        {{-- সাহিত্য ঘরানা / বিষয় --}}
+                        {{-- Genre --}}
                         <div class="col-md-6">
                             <label class="form-label small fw-bold text-dark">
-                                সাহিত্য ঘরানা / লেখার বিষয়
+                                Genre / Writing Topics
                             </label>
                             <input type="text" name="genre" class="form-control rounded-3" 
                                    value="{{ old('genre', $regData['genre'] ?? '') }}" 
-                                   placeholder="যেমন: উপন্যাস, গল্প, কবিতা, প্রবন্ধ, গবেষণা...">
+                                   placeholder="e.g. Fiction, Poetry, Research, Essays...">
                         </div>
 
-                        {{-- জাতীয় পরিচয়পত্র নম্বর (NID) --}}
+                        {{-- NID --}}
                         <div class="col-md-6">
                             <label class="form-label small fw-bold text-dark">
-                                জাতীয় পরিচয়পত্র নম্বর (NID)
+                                National ID (NID)
                             </label>
                             <input type="text" name="nid" class="form-control rounded-3 font-monospace" 
                                    value="{{ old('nid', $regData['nid'] ?? '') }}" 
-                                   placeholder="এনআইডি নম্বর">
+                                   placeholder="NID number">
                         </div>
 
-                        {{-- লেখক পরিচিতি ও জীবনবৃত্তান্ত (Bio) --}}
+                        {{-- Bio --}}
                         <div class="col-12">
                             <div class="d-flex justify-content-between align-items-center mb-1">
                                 <label class="form-label small fw-bold text-dark mb-0">
-                                    লেখক পরিচিতি ও বায়োগ্রাফি (Bio)
+                                    Author Bio & Literary Background
                                 </label>
-                                <span class="text-muted small" id="bioCounter" style="font-size: 0.72rem;">০ অক্ষর</span>
+                                <span class="text-muted small" id="bioCounter" style="font-size: 0.72rem;">0 characters</span>
                             </div>
                             <textarea name="bio" id="authorBioInput" rows="4" class="form-control rounded-3" 
-                                      placeholder="লেখকের জীবনবৃত্তান্ত, কর্মজীবন, সাহিত্যসাধনা ও প্রকাশিত বই সম্পর্কিত তথ্য..." 
+                                      placeholder="Author biography, literary achievements, published works..." 
                                       oninput="updateCharCount(this, 'bioCounter')">{{ old('bio', $regData['bio'] ?? '') }}</textarea>
                         </div>
                     </div>
                 </div>
 
                 {{-- ========================================================= --}}
-                {{-- 4. SOCIAL MEDIA & WEB LINKS (সোস্যাল মিডিয়া ও ওয়েব লিংক)  --}}
+                {{-- 4. SOCIAL MEDIA & WEB LINKS                               --}}
                 {{-- ========================================================= --}}
                 <div class="mb-4">
                     <h6 class="fw-bold text-dark mb-3 pb-2 border-bottom d-flex align-items-center gap-2">
                         <i class="fas fa-share-nodes text-info"></i>
-                        <span>সোশ্যাল মিডিয়া ও ওয়েবসাইট লিংক</span>
+                        <span>Social Media & Web Links</span>
                     </h6>
 
                     <div class="row g-3">
-                        {{-- ফেসবুক প্রোফাইল / পেইজ লিংক --}}
                         <div class="col-md-6">
                             <label class="form-label small fw-bold text-dark">
-                                <i class="fab fa-facebook text-primary me-1"></i> ফেসবুক প্রোফাইল / পেইজ লিংক
+                                <i class="fab fa-facebook text-primary me-1"></i> Facebook Profile / Page URL
                             </label>
                             <input type="text" name="facebook" class="form-control rounded-3" 
                                    value="{{ old('facebook', $regData['facebook'] ?? '') }}" 
                                    placeholder="https://facebook.com/your-page">
                         </div>
 
-                        {{-- ব্যক্তিগত ওয়েবসাইট --}}
                         <div class="col-md-6">
                             <label class="form-label small fw-bold text-dark">
-                                <i class="fas fa-globe text-success me-1"></i> ব্যক্তিগত ওয়েবসাইট / পোর্টফোলিও
+                                <i class="fas fa-globe text-success me-1"></i> Personal Website / Portfolio
                             </label>
                             <input type="text" name="website" class="form-control rounded-3" 
                                    value="{{ old('website', $regData['website'] ?? '') }}" 
                                    placeholder="https://yourwebsite.com">
                         </div>
 
-                        {{-- টুইটার / এক্স লিংক --}}
                         <div class="col-md-6">
                             <label class="form-label small fw-bold text-dark">
-                                <i class="fab fa-x-twitter text-dark me-1"></i> টুইটার / এক্স (X) প্রোফাইল লিংক
+                                <i class="fab fa-x-twitter text-dark me-1"></i> Twitter / X Profile URL
                             </label>
                             <input type="text" name="twitter" class="form-control rounded-3" 
                                    value="{{ old('twitter', $regData['twitter'] ?? '') }}" 
                                    placeholder="https://x.com/username">
                         </div>
 
-                        {{-- ইউটিউব চ্যানেল --}}
                         <div class="col-md-6">
                             <label class="form-label small fw-bold text-dark">
-                                <i class="fab fa-youtube text-danger me-1"></i> ইউটিউব চ্যানেল লিংক
+                                <i class="fab fa-youtube text-danger me-1"></i> YouTube Channel URL
                             </label>
                             <input type="text" name="youtube" class="form-control rounded-3" 
                                    value="{{ old('youtube', $regData['youtube'] ?? '') }}" 
@@ -295,57 +291,52 @@
                 <div id="businessDetailsCard" class="mb-4">
                     <h6 class="fw-bold text-dark mb-3 pb-2 border-bottom d-flex align-items-center gap-2">
                         <i class="fas fa-shop text-warning"></i>
-                        <span>দোকান, ব্যবসা ও জোন (সেলার ও প্রকাশকদের জন্য)</span>
+                        <span>Store, Business & Trade Details (Sellers & Publishers)</span>
                     </h6>
 
                     <div class="row g-3">
-                        {{-- দোকান / ব্যবসার নাম / জোন (সেলারদের জন্য) --}}
                         <div class="col-md-6">
                             <label class="form-label small fw-bold text-dark">
-                                দোকান / ব্যবসার নাম (সেলারদের জন্য)
+                                Shop / Bookstore Name (Sellers)
                             </label>
                             <input type="text" name="shop_name" class="form-control rounded-3" 
                                    value="{{ old('shop_name', $regData['shop_name'] ?? '') }}" 
-                                   placeholder="বইয়ের দোকানের নাম">
+                                   placeholder="Bookstore Name">
                         </div>
 
-                        {{-- জোন (সেলারদের জন্য) --}}
                         <div class="col-md-6">
                             <label class="form-label small fw-bold text-dark">
-                                জোন / এলাকা (সেলারদের জন্য)
+                                Zone / Area (Sellers)
                             </label>
                             <input type="text" name="zone" class="form-control rounded-3" 
                                    value="{{ old('zone', $regData['zone'] ?? '') }}" 
-                                   placeholder="যেমন: ঢাকা জোন, চট্টগ্রাম জোন...">
+                                   placeholder="e.g. Dhaka Zone, Chittagong Zone...">
                         </div>
 
-                        {{-- প্রকাশনীর নাম (প্রকাশকদের জন্য) --}}
                         <div class="col-md-6">
                             <label class="form-label small fw-bold text-dark">
-                                প্রকাশনীর নাম (প্রকাশকদের জন্য)
+                                Publishing House Name (Publishers)
                             </label>
                             <input type="text" name="publisher_name" class="form-control rounded-3" 
                                    value="{{ old('publisher_name', $regData['publisher_name'] ?? '') }}" 
-                                   placeholder="প্রকাশনা সংস্থার নাম">
+                                   placeholder="Publishing Agency Name">
                         </div>
 
-                        {{-- ট্রেড লাইসেন্স নম্বর --}}
                         <div class="col-md-6">
                             <label class="form-label small fw-bold text-dark">
-                                ট্রেড লাইসেন্স নম্বর
+                                Trade License Number
                             </label>
                             <input type="text" name="trade_license" class="form-control rounded-3 font-monospace" 
                                    value="{{ old('trade_license', $regData['trade_license'] ?? '') }}" 
-                                   placeholder="লাইসেন্স নম্বর">
+                                   placeholder="Trade License Number">
                         </div>
 
-                        {{-- পূর্ণাঙ্গ ঠিকানা --}}
                         <div class="col-12">
                             <label class="form-label small fw-bold text-dark">
-                                পূর্ণাঙ্গ ব্যবসায়িক বা আবাসিক ঠিকানা
+                                Business or Residential Address
                             </label>
                             <textarea name="address" rows="2" class="form-control rounded-3" 
-                                      placeholder="ঠিকানা, থানা, জেলা...">{{ old('address', $regData['address'] ?? '') }}</textarea>
+                                      placeholder="Address, Street, City...">{{ old('address', $regData['address'] ?? '') }}</textarea>
                         </div>
                     </div>
                 </div>
@@ -355,10 +346,10 @@
                 {{-- ========================================================= --}}
                 <div class="d-flex align-items-center justify-content-end gap-2 pt-3 border-top">
                     <a href="{{ route('admin.registrations.show', $user) }}" class="btn btn-light border px-4 rounded-pill">
-                        বাতিল
+                        Cancel
                     </a>
                     <button type="submit" class="btn btn-primary px-4 rounded-pill fw-bold shadow-sm" id="submitBtn">
-                        <i class="fas fa-save me-1"></i> তথ্য ও ছবি হালনাগাদ করুন
+                        <i class="fas fa-save me-1"></i> Save Changes & Photo
                     </button>
                 </div>
             </form>
@@ -383,7 +374,7 @@ function previewAvatar(input, previewBoxId) {
 function updateCharCount(el, counterId) {
     const counter = document.getElementById(counterId);
     if (counter) {
-        counter.textContent = el.value.length + ' অক্ষর';
+        counter.textContent = el.value.length + ' characters';
     }
 }
 

@@ -204,6 +204,16 @@ Route::prefix('publisher')->name('publisher.')->middleware(['auth'])->group(func
     Route::post('/books/{id}/quick-update', [\App\Http\Controllers\Publisher\PublisherPortalController::class, 'quickUpdateBook'])->name('books.quick-update');
     Route::delete('/books/{id}', [\App\Http\Controllers\Publisher\PublisherPortalController::class, 'destroyBook'])->name('books.destroy');
     Route::post('/profile', [\App\Http\Controllers\Publisher\PublisherPortalController::class, 'updateProfile'])->name('profile.update');
+    Route::get('/purchases/{id}/challan', [\App\Http\Controllers\Publisher\PublisherPortalController::class, 'printChallan'])->name('purchases.challan');
+});
+
+// Company Panel route alias (Rokomari style seller/company-panel redirect)
+Route::middleware(['auth'])->group(function () {
+    Route::get('/company-panel', fn() => redirect()->route('publisher.dashboard', ['tab' => 'overview']))->name('company-panel');
+    Route::get('/company-panel/today-purchase-list', fn() => redirect()->route('publisher.dashboard', ['tab' => 'today-purchases', 'date_filter' => 'today']))->name('company-panel.today-purchases');
+    Route::get('/company-panel/book-list', fn() => redirect()->route('publisher.dashboard', ['tab' => 'books']))->name('company-panel.books');
+    Route::get('/company-panel/add-book', fn() => redirect()->route('publisher.dashboard', ['tab' => 'add-book']))->name('company-panel.add-book');
+    Route::get('/company-panel/product-entry', fn() => redirect()->route('publisher.dashboard', ['tab' => 'add-book']))->name('company-panel.product-entry');
 });
 
 // --- Author Portal & Blog Management (Dashboard, Write Post, Draft, Edit, Delete) ---

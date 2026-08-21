@@ -64,6 +64,8 @@ class Book extends Model
         'hardcover_discount_price', // Hardcover discount price
         'page_count',
         'language',
+        'country',
+        'product_type',
         'cover_image',
         'sample_pdf_path',
         'preview_pages',

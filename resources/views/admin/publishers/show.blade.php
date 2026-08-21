@@ -1,26 +1,26 @@
 @extends('layouts.admin')
 
-@section('title', $publisher->name . ' — প্রকাশনীর হাব ও ক্যাটালগ')
+@section('title', $publisher->name . ' — Publisher Hub & Catalog')
 @section('heading', $publisher->name)
 
 @section('breadcrumb')
-    <li class="breadcrumb-item"><a href="{{ route('admin.publishers') }}" class="text-decoration-none">প্রকাশক তালিকা</a></li>
+    <li class="breadcrumb-item"><a href="{{ route('admin.publishers') }}" class="text-decoration-none">Publishers</a></li>
     <li class="breadcrumb-item active" aria-current="page">{{ $publisher->name }}</li>
 @endsection
 
 @section('actions')
     <div class="d-flex align-items-center gap-2">
         <a href="{{ route('admin.publishers') }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-xs">
-            <i class="fas fa-arrow-left me-1"></i> সকল প্রকাশক
+            <i class="fas fa-arrow-left me-1"></i> All Publishers
         </a>
         <button type="button" class="btn btn-outline-success btn-sm rounded-pill px-3 shadow-xs" onclick="openMakePaymentModal()">
-            <i class="fas fa-hand-holding-dollar me-1"></i> পেমেন্ট পরিশোধ
+            <i class="fas fa-hand-holding-dollar me-1"></i> Make Payment
         </button>
         <a href="{{ route('admin.content.create', 'books') }}?publisher_id={{ $publisher->id }}" class="btn btn-primary btn-sm rounded-pill px-3 fw-bold shadow-xs">
-            <i class="fas fa-plus-circle me-1"></i> নতুন বই যোগ
+            <i class="fas fa-plus-circle me-1"></i> Add New Book
         </a>
         <a href="{{ route('publishers.show', $publisher->slug ?? $publisher->id) }}" target="_blank" rel="noopener" class="btn btn-outline-dark btn-sm rounded-pill px-3 shadow-xs">
-            <i class="fas fa-arrow-up-right-from-square me-1"></i> শপে দেখুন
+            <i class="fas fa-arrow-up-right-from-square me-1"></i> View in Shop
         </a>
     </div>
 @endsection
@@ -57,9 +57,9 @@
                 <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
                     <h4 class="fw-bold text-dark mb-0">{{ $publisher->name }}</h4>
                     @if($publisher->is_active)
-                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-0.5">সক্রিয় প্রকাশক</span>
+                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-0.5">Active Publisher</span>
                     @else
-                        <span class="badge bg-secondary-subtle text-secondary border rounded-pill px-2.5 py-0.5">নিষ্ক্রিয়</span>
+                        <span class="badge bg-secondary-subtle text-secondary border rounded-pill px-2.5 py-0.5">Inactive</span>
                     @endif
                 </div>
                 <div class="d-flex flex-wrap align-items-center gap-3 text-muted small mt-1">
@@ -83,15 +83,15 @@
             <div class="col-12 col-md-auto border-start ps-md-4">
                 <div class="d-flex flex-row flex-md-column gap-2 text-start">
                     <div>
-                        <span class="text-muted small d-block">মোট কেনাকাটা (চালান):</span>
+                        <span class="text-muted small d-block">Total Purchases:</span>
                         <strong class="text-dark fs-6 font-monospace">৳@bn(number_format($stats['total_po_sum'] ?? 0, 2))</strong>
                     </div>
                     <div>
-                        <span class="text-muted small d-block">পরিশোধিত টাকা:</span>
+                        <span class="text-muted small d-block">Paid Amount:</span>
                         <strong class="text-success fs-6 font-monospace">৳@bn(number_format($stats['total_po_paid'] ?? 0, 2))</strong>
                     </div>
                     <div>
-                        <span class="text-muted small d-block">বর্তমান বকেয়া (Payable Due):</span>
+                        <span class="text-muted small d-block">Payable Due:</span>
                         <strong class="text-danger fs-5 font-monospace">৳@bn(number_format($stats['total_po_due'] ?? 0, 2))</strong>
                     </div>
                 </div>
@@ -104,8 +104,8 @@
         <div class="col-6 col-md-3">
             <div class="adm-card p-3 d-flex align-items-center justify-content-between h-100 border-primary border-2">
                 <div>
-                    <small class="text-muted d-block font-sans">ক্যাটালগভুক্ত মোট বই</small>
-                    <h4 class="fw-bold text-dark mb-0">@bn($stats['total_books'] ?? 0) <small class="fs-6 text-muted">টি</small></h4>
+                    <small class="text-muted d-block font-sans">Total Catalog Books</small>
+                    <h4 class="fw-bold text-dark mb-0">@bn($stats['total_books'] ?? 0) <small class="fs-6 text-muted"></small></h4>
                 </div>
                 <span class="p-2 bg-primary-subtle text-primary rounded-circle fs-5"><i class="fas fa-book"></i></span>
             </div>
@@ -113,8 +113,8 @@
         <div class="col-6 col-md-3">
             <div class="adm-card p-3 d-flex align-items-center justify-content-between h-100">
                 <div>
-                    <small class="text-muted d-block font-sans">মোট বিক্রিত কপি</small>
-                    <h4 class="fw-bold text-success mb-0">@bn($stats['total_sold_copies'] ?? 0) <small class="fs-6 text-muted">কপি</small></h4>
+                    <small class="text-muted d-block font-sans">Total Sold Copies</small>
+                    <h4 class="fw-bold text-success mb-0">@bn($stats['total_sold_copies'] ?? 0) <small class="fs-6 text-muted"> copies</small></h4>
                 </div>
                 <span class="p-2 bg-success-subtle text-success rounded-circle fs-5"><i class="fas fa-cart-shopping"></i></span>
             </div>
@@ -122,8 +122,8 @@
         <div class="col-6 col-md-3">
             <div class="adm-card p-3 d-flex align-items-center justify-content-between h-100">
                 <div>
-                    <small class="text-muted d-block font-sans">মোট ক্রয় চালান (Invoices)</small>
-                    <h4 class="fw-bold text-info mb-0">@bn($stats['total_po'] ?? 0) <small class="fs-6 text-muted">টি</small></h4>
+                    <small class="text-muted d-block font-sans">Purchase Invoices</small>
+                    <h4 class="fw-bold text-info mb-0">@bn($stats['total_po'] ?? 0) <small class="fs-6 text-muted"></small></h4>
                 </div>
                 <span class="p-2 bg-info-subtle text-info rounded-circle fs-5"><i class="fas fa-file-invoice"></i></span>
             </div>
@@ -131,8 +131,8 @@
         <div class="col-6 col-md-3">
             <div class="adm-card p-3 d-flex align-items-center justify-content-between h-100">
                 <div>
-                    <small class="text-muted d-block font-sans">পরিশোধ ভাউচার (Payments)</small>
-                    <h4 class="fw-bold text-warning-emphasis mb-0">@bn($stats['total_payments'] ?? 0) <small class="fs-6 text-muted">টি</small></h4>
+                    <small class="text-muted d-block font-sans">Payment Vouchers</small>
+                    <h4 class="fw-bold text-warning-emphasis mb-0">@bn($stats['total_payments'] ?? 0) <small class="fs-6 text-muted"></small></h4>
                 </div>
                 <span class="p-2 bg-warning-subtle text-warning rounded-circle fs-5"><i class="fas fa-receipt"></i></span>
             </div>
@@ -150,25 +150,25 @@
         <li class="nav-item flex-fill text-center" role="presentation">
             <a class="nav-link rounded-pill fw-bold py-2.5 {{ $activeTab === 'books' ? 'active' : 'text-dark' }}" 
                href="{{ route('admin.publishers.show', array_merge(['id' => $publisher->id], request()->except('tab'), ['tab' => 'books'])) }}">
-                <i class="fas fa-book me-1.5"></i> বই ক্যাটালগ ও ক্রয় আদেশ (PO) (@bn($stats['total_books']))
+                <i class="fas fa-book me-1.5"></i> Books Catalog & Purchase Orders (PO) (@bn($stats['total_books']))
             </a>
         </li>
         <li class="nav-item flex-fill text-center" role="presentation">
             <a class="nav-link rounded-pill fw-bold py-2.5 {{ $activeTab === 'purchases' ? 'active' : 'text-dark' }}" 
                href="{{ route('admin.publishers.show', array_merge(['id' => $publisher->id], request()->except('tab'), ['tab' => 'purchases'])) }}">
-                <i class="fas fa-file-invoice-dollar me-1.5"></i> ক্রয় চালান ও ইনভয়েস ইতিহাস (@bn($stats['total_po']))
+                <i class="fas fa-file-invoice-dollar me-1.5"></i> Purchase Invoices & History (@bn($stats['total_po']))
             </a>
         </li>
         <li class="nav-item flex-fill text-center" role="presentation">
             <a class="nav-link rounded-pill fw-bold py-2.5 {{ $activeTab === 'payments' ? 'active' : 'text-dark' }}" 
                href="{{ route('admin.publishers.show', array_merge(['id' => $publisher->id], request()->except('tab'), ['tab' => 'payments'])) }}">
-                <i class="fas fa-receipt me-1.5"></i> পেমেন্ট ও লেজার খতিয়ান (@bn($stats['total_payments']))
+                <i class="fas fa-receipt me-1.5"></i> Payments & Ledger Statement (@bn($stats['total_payments']))
             </a>
         </li>
         <li class="nav-item flex-fill text-center" role="presentation">
             <a class="nav-link rounded-pill fw-bold py-2.5 {{ $activeTab === 'analytics' ? 'active' : 'text-dark' }}" 
                href="{{ route('admin.publishers.show', array_merge(['id' => $publisher->id], request()->except('tab'), ['tab' => 'analytics'])) }}">
-                <i class="fas fa-chart-line me-1.5"></i> বিক্রয় ও বেস্টসেলার
+                <i class="fas fa-chart-line me-1.5"></i> Sales & Bestsellers
             </a>
         </li>
     </ul>
@@ -185,19 +185,19 @@
                         <span class="input-group-text bg-white border-end-0 text-muted"><i class="fas fa-search"></i></span>
                         <input type="text" name="search" id="pubBookSearchInput" value="{{ request('search') }}" 
                                class="form-control border-start-0 border-end-0 ps-0" 
-                               placeholder="বইয়ের নাম, লেখক, ISBN, সংস্করণ দিয়ে খুঁজুন..." autocomplete="off">
+                               placeholder="Search by book title, author, ISBN, edition..." autocomplete="off">
                         @if(request('search'))
                             <a href="{{ route('admin.publishers.show', array_merge(['id' => $publisher->id], request()->except('search'))) }}" class="input-group-text bg-white border-start-0 text-muted hover-danger">
                                 <i class="fas fa-times"></i>
                             </a>
                         @endif
-                        <button type="submit" class="btn btn-primary px-3 fw-semibold">খুঁজুন</button>
+                        <button type="submit" class="btn btn-primary px-3 fw-semibold">Search</button>
                     </div>
                 </div>
 
                 <div class="col-6 col-md-3">
                     <select name="category_id" class="form-select form-select-sm" onchange="this.form.submit()">
-                        <option value="">— সকল ক্যাটাগরি —</option>
+                        <option value="">— All Categories —</option>
                         @foreach ($categories as $cId => $cName)
                             <option value="{{ $cId }}" @selected(request('category_id') == $cId)>{{ $cName }}</option>
                         @endforeach
@@ -206,25 +206,25 @@
 
                 <div class="col-6 col-md-2">
                     <select name="stock" class="form-select form-select-sm" onchange="this.form.submit()">
-                        <option value="">— সকল স্টক —</option>
-                        <option value="in_stock" @selected(request('stock') === 'in_stock')>🟢 ইন-স্টক</option>
-                        <option value="low" @selected(request('stock') === 'low')>🟡 লো-স্টক</option>
-                        <option value="out" @selected(request('stock') === 'out')>🔴 স্টক শেষ</option>
+                        <option value="">— All Stock Statuses —</option>
+                        <option value="in_stock" @selected(request('stock') === 'in_stock')>🟢 In Stock</option>
+                        <option value="low" @selected(request('stock') === 'low')>🟡 Low Stock</option>
+                        <option value="out" @selected(request('stock') === 'out')>🔴 Out of Stock</option>
                     </select>
                 </div>
 
                 <div class="col-6 col-md-2">
                     <select name="sort" class="form-select form-select-sm" onchange="this.form.submit()">
-                        <option value="latest" @selected(request('sort') === 'latest' || !request('sort'))>নতুন বই প্রথমে</option>
-                        <option value="title_asc" @selected(request('sort') === 'title_asc')>নাম: ক থেকে ক্ষ</option>
-                        <option value="sales_high" @selected(request('sort') === 'sales_high')>সর্বোচ্চ বিক্রিত</option>
-                        <option value="stock_low" @selected(request('sort') === 'stock_low')>স্টক: কম থেকে বেশি</option>
-                        <option value="stock_high" @selected(request('sort') === 'stock_high')>স্টক: বেশি থেকে কম</option>
+                        <option value="latest" @selected(request('sort') === 'latest' || !request('sort'))>Newest First</option>
+                        <option value="title_asc" @selected(request('sort') === 'title_asc')>Name (A-Z)</option>
+                        <option value="sales_high" @selected(request('sort') === 'sales_high')>Top Selling</option>
+                        <option value="stock_low" @selected(request('sort') === 'stock_low')>Stock (Low to High)</option>
+                        <option value="stock_high" @selected(request('sort') === 'stock_high')>Stock (High to Low)</option>
                     </select>
                 </div>
 
                 <div class="col-6 col-md-1 d-flex gap-1">
-                    <a href="{{ route('admin.publishers.show', ['id' => $publisher->id, 'tab' => 'books']) }}" class="btn btn-sm btn-outline-secondary w-100" title="সকল ফিল্টার রিসেট">
+                    <a href="{{ route('admin.publishers.show', ['id' => $publisher->id, 'tab' => 'books']) }}" class="btn btn-sm btn-outline-secondary w-100" title="Reset Filters">
                         <i class="fas fa-rotate-left"></i>
                     </a>
                 </div>
@@ -238,26 +238,26 @@
                     <div class="form-check mb-0">
                         <input class="form-check-input" type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this)">
                         <label class="form-check-label fw-bold text-dark small" for="selectAllCheckbox">
-                            সবগুলো বই নির্বাচন করুন
+                            Select all books
                         </label>
                     </div>
-                    <span class="badge bg-primary text-white rounded-pill px-2.5" id="selectedCountBadge" style="display:none;">০ টি নির্বাচিত</span>
+                    <span class="badge bg-primary text-white rounded-pill px-2.5" id="selectedCountBadge" style="display:none;">0 selected</span>
                 </div>
                 
                 {{-- Bulk Commission Setter --}}
                 <div class="d-flex align-items-center gap-2">
                     <div class="input-group input-group-sm" style="max-width: 220px;">
-                        <span class="input-group-text bg-white small">বাল্ক কমিশন:</span>
+                        <span class="input-group-text bg-white small">Bulk Commission:</span>
                         <input type="number" id="bulkCommissionInput" class="form-control text-center" placeholder="40" min="0" max="100" step="0.5">
-                        <button type="button" class="btn btn-outline-primary" onclick="applyBulkCommission()" title="নির্বাচিত বইগুলোতে এই কমিশন সেট করুন">
-                            প্রয়োগ
+                        <button type="button" class="btn btn-outline-primary" onclick="applyBulkCommission()" title="Apply bulk commission to selected books">
+                            Apply
                         </button>
                     </div>
                     <button type="button" class="btn btn-sm btn-success rounded-pill px-3 fw-bold shadow-xs" onclick="openPurchaseOrderModal()" id="sendPoBtn" disabled>
-                        <i class="fas fa-paper-plane me-1"></i> ক্রয় আদেশ (PO) ইমেইল
+                        <i class="fas fa-paper-plane me-1"></i> Send PO via Email
                     </button>
                     <button type="button" class="btn btn-sm btn-dark rounded-pill px-3 shadow-xs" onclick="printPurchaseOrderSlip()" id="printPoBtn" disabled>
-                        <i class="fas fa-print me-1"></i> প্রিন্ট PO
+                        <i class="fas fa-print me-1"></i> Print PO Slip
                     </button>
                 </div>
             </div>
@@ -269,14 +269,14 @@
                             <th class="ps-3" style="width: 40px;">
                                 <i class="fas fa-check-square text-muted"></i>
                             </th>
-                            <th style="min-width: 230px;">বই ও কভার</th>
-                            <th style="min-width: 120px;">সংস্করণ</th>
-                            <th class="text-center" style="min-width: 100px;">বর্তমান স্টক</th>
-                            <th class="text-center" style="min-width: 140px;">গায়ের মুদ্রিত মূল্য (MRP)</th>
-                            <th class="text-center" style="min-width: 120px;">ক্রয় কমিশন ও দর</th>
-                            <th class="text-center" style="min-width: 110px;">অর্ডার সংখ্যা (কপি)</th>
-                            <th class="text-end" style="min-width: 120px;">মোট ক্রয়মূল্য</th>
-                            <th class="text-end pe-3" style="min-width: 110px;">শর্টকাট</th>
+                            <th style="min-width: 230px;">Book Title & Cover</th>
+                            <th style="min-width: 120px;">Edition</th>
+                            <th class="text-center" style="min-width: 100px;">Stock</th>
+                            <th class="text-center" style="min-width: 140px;">Printed MRP</th>
+                            <th class="text-center" style="min-width: 120px;">Buy Commission & Rate</th>
+                            <th class="text-center" style="min-width: 110px;">Order Qty</th>
+                            <th class="text-end" style="min-width: 120px;">Line Total</th>
+                            <th class="text-end pe-3" style="min-width: 110px;">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -344,14 +344,14 @@
                                 <td>
                                     <div class="d-flex flex-column align-items-start gap-1">
                                         <span class="badge bg-light text-dark border px-2 py-0.5" style="font-size: 11px;">
-                                            {{ $book->edition ?: 'সাধারণ সংস্করণ' }}
+                                            {{ $book->edition ?: 'সাধারণ Edition' }}
                                         </span>
                                         @if($isHardcover || ($hardPrice > 0 && $paperPrice <= 0))
-                                            <span class="badge bg-warning-subtle text-dark border" style="font-size: 9.5px;">হার্ডকভার</span>
+                                            <span class="badge bg-warning-subtle text-dark border" style="font-size: 9.5px;">Hardcover</span>
                                         @elseif($isBoth || $hasBothPrices)
-                                            <span class="badge bg-info-subtle text-dark border" style="font-size: 9.5px;">উভয় সংস্করণ</span>
+                                            <span class="badge bg-info-subtle text-dark border" style="font-size: 9.5px;">উভয় Edition</span>
                                         @else
-                                            <span class="badge bg-light text-muted border" style="font-size: 9.5px;">পেপারব্যাক</span>
+                                            <span class="badge bg-light text-muted border" style="font-size: 9.5px;">Paperback</span>
                                         @endif
                                     </div>
                                 </td>
@@ -359,11 +359,11 @@
                                 {{-- Stock --}}
                                 <td class="text-center">
                                     @if($stock <= 0)
-                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2 py-0.5">স্টকআউট</span>
+                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2 py-0.5">Out of Stock</span>
                                     @elseif($stock <= 5)
-                                        <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2 py-0.5">@bn($stock) টি</span>
+                                        <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2 py-0.5">@bn($stock) </span>
                                     @else
-                                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5">@bn($stock) টি</span>
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5">@bn($stock) </span>
                                     @endif
                                 </td>
 
@@ -372,8 +372,8 @@
                                     @if($isBoth || $hasBothPrices)
                                         {{-- Both Editions: Paperback & Hardcover inputs --}}
                                         <div class="d-flex flex-column gap-1">
-                                            <div class="input-group input-group-sm" title="পেপারব্যাক গায়ের মূল্য">
-                                                <span class="input-group-text bg-light px-1 text-muted" style="font-size: 9px;">পিপার</span>
+                                            <div class="input-group input-group-sm" title="Paperback MRP Price">
+                                                <span class="input-group-text bg-light px-1 text-muted" style="font-size: 9px;">Paper</span>
                                                 <input type="number" min="0" step="1" 
                                                        id="mrpInput_{{ $book->id }}" 
                                                        value="{{ $paperPrice > 0 ? round($paperPrice) : '' }}" 
@@ -381,8 +381,8 @@
                                                        placeholder="0"
                                                        oninput="recalcRowTotal({{ $book->id }})">
                                             </div>
-                                            <div class="input-group input-group-sm" title="হার্ডকভার গায়ের মূল্য">
-                                                <span class="input-group-text bg-warning-subtle px-1 text-dark" style="font-size: 9px;">হার্ড</span>
+                                            <div class="input-group input-group-sm" title="Hardcover MRP Price">
+                                                <span class="input-group-text bg-warning-subtle px-1 text-dark" style="font-size: 9px;">Hard</span>
                                                 <input type="number" min="0" step="1" 
                                                        id="hardMrpInput_{{ $book->id }}" 
                                                        value="{{ $hardPrice > 0 ? round($hardPrice) : '' }}" 
@@ -401,7 +401,7 @@
                                                    class="form-control form-control-sm text-center fw-bold row-mrp-input {{ $hardPrice <= 0 ? 'border-danger bg-danger-subtle' : '' }}" 
                                                    placeholder="0"
                                                    oninput="recalcRowTotal({{ $book->id }})"
-                                                   title="হার্ডকভার গায়ের মুদ্রিত মূল্য (MRP)">
+                                                   title="Hardcover Printed MRP">
                                         </div>
                                     @else
                                         {{-- Paperback Only --}}
@@ -413,13 +413,13 @@
                                                    class="form-control form-control-sm text-center fw-bold row-mrp-input {{ $paperPrice <= 0 ? 'border-danger bg-danger-subtle' : '' }}" 
                                                    placeholder="0"
                                                    oninput="recalcRowTotal({{ $book->id }})"
-                                                   title="গায়ের মুদ্রিত মূল্য (MRP)">
+                                                   title="Printed MRP">
                                         </div>
                                     @endif
 
                                     @if($discount > 0 && $discount < $effectivePrice)
                                         <div class="small text-muted text-truncate mt-0.5" style="font-size: 10.5px;">
-                                            বিক্রয়: <strong class="text-primary font-monospace">৳@bn(number_format($discount, 0))</strong>
+                                            Sale: <strong class="text-primary font-monospace">৳@bn(number_format($discount, 0))</strong>
                                         </div>
                                     @endif
                                 </td>
@@ -436,7 +436,7 @@
                                     </div>
                                     <div class="d-block">
                                         <span class="badge bg-light text-dark border font-monospace" id="costRateDisplay_{{ $book->id }}" style="font-size: 10px;">
-                                            দর: ৳@bn(number_format($costPerUnit, 0))
+                                            Rate: ৳@bn(number_format($costPerUnit, 0))
                                         </span>
                                     </div>
                                 </td>
@@ -449,7 +449,7 @@
                                                value="{{ $suggestedOrderQty }}" 
                                                class="form-control form-control-sm text-center fw-bold row-qty-input" 
                                                oninput="recalcRowTotal({{ $book->id }})">
-                                        <span class="input-group-text bg-light px-1.5">টি</span>
+                                        <span class="input-group-text bg-light px-1.5"></span>
                                     </div>
                                 </td>
 
@@ -464,11 +464,11 @@
                                 <td class="text-end pe-3">
                                     <div class="d-inline-flex align-items-center gap-1">
                                         <button type="button" class="btn btn-sm btn-primary rounded-pill px-2 py-0.5 fw-bold shadow-xs" 
-                                                onclick="openQuickBookEditModal({{ $book->id }})" title="কভার, মূল্য, কমিশন ও স্টক শর্টকাট এডিট">
+                                                onclick="openQuickBookEditModal({{ $book->id }})" title="কভার, মূল্য, কমিশন ও স্টক Actions এডিট">
                                             <i class="fas fa-bolt"></i>
                                         </button>
                                         <a href="{{ route('admin.content.edit', ['type' => 'books', 'id' => $book->id]) }}" target="_blank"
-                                           class="btn btn-sm btn-outline-secondary rounded-pill px-2 py-0.5" title="সম্পূর্ণ এডিট">
+                                           class="btn btn-sm btn-outline-secondary rounded-pill px-2 py-0.5" title="Full Edit">
                                             <i class="fas fa-pen"></i>
                                         </a>
                                     </div>
@@ -480,8 +480,8 @@
                                 <td colspan="9">
                                     <div class="empty-state py-5 text-center">
                                         <i class="fas fa-book-open fs-1 text-muted opacity-50 mb-2"></i>
-                                        <h6 class="fw-bold text-dark mb-1">এই প্রকাশনীর কোনো বই পাওয়া যায়নি</h6>
-                                        <p class="text-muted small mb-3">নতুন বই যুক্ত করুন অথবা ফিল্টার রিসেট করুন।</p>
+                                        <h6 class="fw-bold text-dark mb-1">No books found for this publisher</h6>
+                                        <p class="text-muted small mb-3">Add a new book or reset search filters.</p>
                                     </div>
                                 </td>
                             </tr>
@@ -494,7 +494,7 @@
             @if ($books->hasPages())
                 <div class="p-3 border-top d-flex flex-column flex-md-row align-items-center justify-content-between gap-2 bg-light bg-opacity-50">
                     <div class="small text-muted">
-                        মোট @bn($books->total()) টির মধ্যে @bn($books->firstItem()) - @bn($books->lastItem()) দেখানো হচ্ছে
+                        মোট @bn($books->total()) র মধ্যে @bn($books->firstItem()) - @bn($books->lastItem()) দেখানো হচ্ছে
                     </div>
                     <div>{{ $books->links() }}</div>
                 </div>
@@ -508,9 +508,9 @@
     @if($activeTab === 'purchases')
         <div class="adm-card p-0 overflow-hidden shadow-sm border-0 rounded-4 bg-white">
             <div class="p-3 bg-light bg-opacity-75 border-bottom d-flex align-items-center justify-content-between">
-                <h6 class="fw-bold text-dark mb-0"><i class="fas fa-file-invoice-dollar me-1.5 text-primary"></i> পূর্বের ক্রয় চালানের ইতিহাস</h6>
+                <h6 class="fw-bold text-dark mb-0"><i class="fas fa-file-invoice-dollar me-1.5 text-primary"></i> Purchase Invoices & History</h6>
                 <a href="{{ route('admin.purchases.create') }}?publisher_id={{ $publisher->id }}" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold">
-                    <i class="fas fa-plus me-1"></i> নতুন ক্রয় চালান তৈরি
+                    <i class="fas fa-plus me-1"></i> Create New Purchase Invoice
                 </a>
             </div>
 
@@ -518,15 +518,15 @@
                 <table class="table adm-table align-middle mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th class="ps-3">চালান / PO নং</th>
-                            <th>তারিখ</th>
-                            <th>মেমো নং</th>
-                            <th class="text-center">আইটেম</th>
-                            <th class="text-end">মোট মূল্য</th>
-                            <th class="text-end">পরিশোধিত</th>
-                            <th class="text-end">বকেয়া</th>
-                            <th class="text-center">অবস্থা</th>
-                            <th class="text-end pe-3">অ্যাকশন</th>
+                            <th class="ps-3">Invoice / PO No.</th>
+                            <th>Date</th>
+                            <th>Memo No.</th>
+                            <th class="text-center">Items</th>
+                            <th class="text-end">Total Amount</th>
+                            <th class="text-end">Paid</th>
+                            <th class="text-end">Due</th>
+                            <th class="text-center">Status</th>
+                            <th class="text-end pe-3">Action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -537,22 +537,22 @@
                                 </td>
                                 <td>{{ $purchase->purchase_date ? $purchase->purchase_date->format('d M, Y') : '—' }}</td>
                                 <td>{{ $purchase->publisher_memo_no ?: '—' }}</td>
-                                <td class="text-center font-monospace">@bn($purchase->items->count()) টি</td>
+                                <td class="text-center font-monospace">@bn($purchase->items->count()) </td>
                                 <td class="text-end font-monospace fw-bold text-dark">৳@bn(number_format($purchase->grand_total, 2))</td>
                                 <td class="text-end font-monospace text-success">৳@bn(number_format($purchase->paid_amount, 2))</td>
                                 <td class="text-end font-monospace text-danger fw-bold">৳@bn(number_format($purchase->due_amount, 2))</td>
                                 <td class="text-center">
                                     @if($purchase->payment_status === 'paid')
-                                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-0.5">পরিশোধিত</span>
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-0.5">Paid</span>
                                     @elseif($purchase->payment_status === 'partial')
                                         <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2.5 py-0.5">আংশিক</span>
                                     @else
-                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-0.5">বকেয়া</span>
+                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-0.5">Due</span>
                                     @endif
                                 </td>
                                 <td class="text-end pe-3">
                                     <a href="{{ route('admin.purchases.show', $purchase->id) }}" class="btn btn-xs btn-outline-primary rounded-pill px-2.5">
-                                        <i class="fas fa-eye me-1"></i> চালান দেখুন
+                                        <i class="fas fa-eye me-1"></i> View Invoice
                                     </a>
                                 </td>
                             </tr>
@@ -560,7 +560,7 @@
                             <tr>
                                 <td colspan="9" class="text-center py-5 text-muted">
                                     <i class="fas fa-receipt fs-2 opacity-50 mb-2"></i>
-                                    <h6>কোনো ক্রয় চালান নেই</h6>
+                                    <h6>No purchase invoices found</h6>
                                 </td>
                             </tr>
                         @endforelse
@@ -582,9 +582,9 @@
     @if($activeTab === 'payments')
         <div class="adm-card p-0 overflow-hidden shadow-sm border-0 rounded-4 bg-white">
             <div class="p-3 bg-light bg-opacity-75 border-bottom d-flex align-items-center justify-content-between">
-                <h6 class="fw-bold text-dark mb-0"><i class="fas fa-receipt me-1.5 text-success"></i> পরিশোধিত পেমেন্ট ভাউচার তালিকা</h6>
+                <h6 class="fw-bold text-dark mb-0"><i class="fas fa-receipt me-1.5 text-success"></i> Paid পেমেন্ট ভাউচার তালিকা</h6>
                 <button type="button" class="btn btn-sm btn-success rounded-pill px-3 fw-bold" onclick="openMakePaymentModal()">
-                    <i class="fas fa-plus me-1"></i> নতুন পেমেন্ট এন্ট্রি
+                    <i class="fas fa-plus me-1"></i> Record New Payment
                 </button>
             </div>
 
@@ -592,13 +592,13 @@
                 <table class="table adm-table align-middle mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th class="ps-3">ভাউচার নং</th>
-                            <th>তারিখ</th>
-                            <th>চালান রেফারেন্স</th>
-                            <th>পেমেন্ট মাধ্যম</th>
-                            <th>ট্রানজেকশন / চেক নং</th>
-                            <th class="text-end">পরিশোধিত টাকা</th>
-                            <th>মন্তব্য / নোট</th>
+                            <th class="ps-3">Voucher No.</th>
+                            <th>Date</th>
+                            <th>Invoice Ref.</th>
+                            <th>Payment Method</th>
+                            <th>Trx / Cheque No.</th>
+                            <th class="text-end">Paid টাকা</th>
+                            <th>Notes / Memo</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -614,7 +614,7 @@
                                             {{ $payment->purchase->purchase_no }}
                                         </a>
                                     @else
-                                        <span class="text-muted">সাধারণ লেজার</span>
+                                        <span class="text-muted">General Ledger</span>
                                     @endif
                                 </td>
                                 <td>
@@ -632,7 +632,7 @@
                             <tr>
                                 <td colspan="7" class="text-center py-5 text-muted">
                                     <i class="fas fa-hand-holding-dollar fs-2 opacity-50 mb-2"></i>
-                                    <h6>কোনো পেমেন্ট ভাউচার পাওয়া যায়নি</h6>
+                                    <h6>No payment vouchers found</h6>
                                 </td>
                             </tr>
                         @endforelse
@@ -653,17 +653,17 @@
     {{-- ========================================================================= --}}
     @if($activeTab === 'analytics')
         <div class="adm-card p-4 shadow-sm border-0 rounded-4 bg-white">
-            <h5 class="fw-bold text-dark mb-3"><i class="fas fa-chart-line me-2 text-primary"></i> এই প্রকাশনীর শীর্ষ বিক্রিত বই (Top Best Sellers)</h5>
+            <h5 class="fw-bold text-dark mb-3"><i class="fas fa-chart-line me-2 text-primary"></i> Top Best Selling Books for this Publisher</h5>
             
             <div class="table-responsive">
                 <table class="table adm-table align-middle mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th class="ps-3" style="width: 45px;">র‍্যাংক</th>
-                            <th>বইয়ের নাম</th>
-                            <th class="text-center">বিক্রিত সংখ্যা</th>
-                            <th class="text-end">গায়ের মূল্য</th>
-                            <th class="text-end pe-3">আনুমানিক মোট রেভিনিউ</th>
+                            <th class="ps-3" style="width: 45px;">Rank</th>
+                            <th>Book Title</th>
+                            <th class="text-center">Units Sold</th>
+                            <th class="text-end">MRP Price</th>
+                            <th class="text-end pe-3">Est. Total Revenue</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -687,7 +687,7 @@
                                 </td>
                                 <td class="text-center">
                                     <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1 fw-bold fs-6 font-monospace">
-                                        @bn($b->sales_count) কপি
+                                        @bn($b->sales_count)  copies
                                     </span>
                                 </td>
                                 <td class="text-end font-monospace">৳@bn(number_format($bPrice, 0))</td>
@@ -697,7 +697,7 @@
                             <tr>
                                 <td colspan="5" class="text-center py-5 text-muted">
                                     <i class="fas fa-chart-pie fs-2 opacity-50 mb-2"></i>
-                                    <h6>এখনো কোনো বিক্রির তথ্য নেই</h6>
+                                    <h6>No sales data available yet</h6>
                                 </td>
                             </tr>
                         @endforelse
@@ -715,21 +715,21 @@
 <div id="stickySelectionBar" class="fixed-bottom bg-dark text-white py-3 px-4 shadow-lg border-top border-secondary d-none" style="z-index: 1040;">
     <div class="container-fluid d-flex flex-column flex-md-row align-items-center justify-content-between gap-3">
         <div class="d-flex align-items-center gap-3">
-            <span class="badge bg-primary fs-6 px-3 py-2 rounded-pill" id="floatSelectedBadge">০ টি বই নির্বাচিত</span>
+            <span class="badge bg-primary fs-6 px-3 py-2 rounded-pill" id="floatSelectedBadge">0 books selected</span>
             <div class="text-light small">
-                মোট কপি: <strong class="text-warning fs-6" id="floatTotalQty">০</strong> টি | 
-                আনুমানিক মোট ক্রয়মূল্য: <strong class="text-success fs-5 font-monospace" id="floatGrandTotal">৳০</strong>
+                Total Copies: <strong class="text-warning fs-6" id="floatTotalQty">০</strong>  | 
+                আনুমানিক Line Total: <strong class="text-success fs-5 font-monospace" id="floatGrandTotal">৳০</strong>
             </div>
         </div>
         <div class="d-flex align-items-center gap-2">
             <button type="button" class="btn btn-outline-light btn-sm rounded-pill px-3" onclick="clearAllSelections()">
-                <i class="fas fa-times me-1"></i> নির্বাচন বাতিল
+                <i class="fas fa-times me-1"></i> Clear Selection
             </button>
             <button type="button" class="btn btn-outline-info btn-sm rounded-pill px-3" onclick="printPurchaseOrderSlip()">
-                <i class="fas fa-print me-1"></i> প্রিন্ট PO স্লিপ
+                <i class="fas fa-print me-1"></i> Print PO Slip স্লিপ
             </button>
             <button type="button" class="btn btn-success rounded-pill px-4 fw-bold shadow" onclick="openPurchaseOrderModal()">
-                <i class="fas fa-paper-plane me-1.5"></i> ক্রয় আদেশ (PO) ইমেইল পাঠান
+                <i class="fas fa-paper-plane me-1.5"></i> Send PO via Email পাঠান
             </button>
         </div>
     </div>
@@ -743,7 +743,7 @@
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header bg-primary text-white py-3">
                 <h5 class="modal-title fw-bold text-white mb-0" id="purchaseOrderModalLabel">
-                    <i class="fas fa-file-invoice-dollar me-2"></i> প্রকাশককে ক্রয় আদেশ (Purchase Order) ইমেইল প্রেরণ
+                    <i class="fas fa-file-invoice-dollar me-2"></i> Send Purchase Order (PO) to Publisher
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -755,29 +755,29 @@
                     {{-- Recipient & Subject --}}
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold text-dark">প্রকাশকের ইমেইল ঠিকানা <span class="text-danger">*</span></label>
+                            <label class="form-label small fw-bold text-dark">Publisher Email Address <span class="text-danger">*</span></label>
                             <div class="input-group input-group-sm">
                                 <span class="input-group-text bg-light"><i class="fas fa-envelope text-muted"></i></span>
                                 <input type="email" id="poRecipientEmail" name="recipient_email" value="{{ $publisher->email }}" class="form-control" required placeholder="example@publisher.com">
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold text-dark">ইমেইল বিষয় (Subject)</label>
-                            <input type="text" id="poSubject" name="subject" class="form-control form-control-sm" value="আইডিয়া প্রকাশন — নতুন বই ক্রয় আদেশ (Purchase Order)">
+                            <label class="form-label small fw-bold text-dark">Email Subject</label>
+                            <input type="text" id="poSubject" name="subject" class="form-control form-control-sm" value="Idea Publication — Purchase Order (PO)">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold text-dark">প্রত্যাশিত ডেলিভারি তারিখ</label>
+                            <label class="form-label small fw-bold text-dark">প্রত্যাশিত ডেলিভারি Date</label>
                             <input type="date" id="poDeliveryDate" name="delivery_date" class="form-control form-control-sm" value="{{ date('Y-m-d', strtotime('+3 days')) }}">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold text-dark">অর্ডারের বিশেষ নির্দেশিকা / নোট</label>
-                            <input type="text" id="poNotes" name="notes" class="form-control form-control-sm" placeholder="যেমন: দ্রুত কুরিয়ারে পাঠাবেন...">
+                            <label class="form-label small fw-bold text-dark">Special Notes / Delivery Instructions</label>
+                            <input type="text" id="poNotes" name="notes" class="form-control form-control-sm" placeholder="e.g. Please expedite parcel via courier...">
                         </div>
                     </div>
 
                     {{-- Selected Books Preview List --}}
                     <h6 class="fw-bold text-dark mb-2 border-bottom pb-2">
-                        <i class="fas fa-list-check me-1 text-primary"></i> নির্বাচিত বই ও মূল্যের তালিকা (<span id="modalItemCount">০</span> টি)
+                        <i class="fas fa-list-check me-1 text-primary"></i> Selected Books & Cost Breakdown (<span id="modalItemCount">০</span> )
                     </h6>
                     
                     <div class="table-responsive border rounded-3 mb-3" style="max-height: 220px; overflow-y: auto;">
@@ -785,9 +785,9 @@
                             <thead class="table-light sticky-top">
                                 <tr>
                                     <th>#</th>
-                                    <th>বইয়ের নাম</th>
-                                    <th class="text-center">কপি</th>
-                                    <th class="text-end">গায়ের মূল্য</th>
+                                    <th>Book Title</th>
+                                    <th class="text-center"> copies</th>
+                                    <th class="text-end">MRP Price</th>
                                     <th class="text-center">কমিশন</th>
                                     <th class="text-end">ক্রয় রেট</th>
                                     <th class="text-end">মোট টাকা</th>
@@ -802,10 +802,10 @@
                     {{-- Totals Summary in Modal --}}
                     <div class="p-3 bg-light rounded-3 d-flex align-items-center justify-content-between mb-3">
                         <div class="small text-muted">
-                            সর্বমোট কপি: <strong class="text-dark" id="modalTotalQty">০</strong> টি
+                            সর্বTotal Copies: <strong class="text-dark" id="modalTotalQty">০</strong> 
                         </div>
                         <div class="text-end">
-                            <span class="small text-muted d-block">সর্বমোট প্রদেয় ক্রয়মূল্য:</span>
+                            <span class="small text-muted d-block">Grand Total Payable:</span>
                             <h4 class="fw-bold text-primary mb-0 font-monospace" id="modalGrandTotal">৳০</h4>
                         </div>
                     </div>
@@ -814,15 +814,15 @@
                     <div class="form-check form-switch">
                         <input class="form-check-input" type="checkbox" role="switch" id="createPurchaseInvoiceSwitch" name="create_invoice" value="1" checked>
                         <label class="form-check-label small fw-semibold text-dark" for="createPurchaseInvoiceSwitch">
-                            <i class="fas fa-receipt text-success me-1"></i> এই ক্রয় আদেশটি সিস্টেমে <strong>ক্রয় ইনভয়েস (Purchase Invoice)</strong> হিসেবে স্বয়ংক্রিয়ভাবে সেভ করুন
+                            <i class="fas fa-receipt text-success me-1"></i> Automatically create a <strong>Purchase Invoice</strong> for this order
                         </label>
                     </div>
 
                 </div>
                 <div class="modal-footer bg-light py-2.5">
-                    <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3" data-bs-dismiss="modal">বাতিল</button>
+                    <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" id="sendPoSubmitBtn" class="btn btn-sm btn-success rounded-pill px-4 fw-bold shadow-xs">
-                        <i class="fas fa-paper-plane me-1.5"></i> ক্রয় আদেশ ইমেইল পাঠান
+                        <i class="fas fa-paper-plane me-1.5"></i> Send Purchase Order Email
                     </button>
                 </div>
             </form>
@@ -838,7 +838,7 @@
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header bg-success text-white py-3">
                 <h5 class="modal-title fw-bold text-white mb-0">
-                    <i class="fas fa-hand-holding-dollar me-1.5"></i> {{ $publisher->name }} — পেমেন্ট পরিশোধ
+                    <i class="fas fa-hand-holding-dollar me-1.5"></i> {{ $publisher->name }} — Make Payment
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -849,44 +849,44 @@
 
                     <div class="p-3 bg-light rounded-3 mb-3 border">
                         <div class="small text-muted">
-                            বর্তমান মোট বকেয়া পাওনা: <strong class="text-danger font-monospace fs-6">৳@bn(number_format($stats['total_po_due'] ?? 0, 2))</strong>
+                            বর্তমান মোট Due পাওনা: <strong class="text-danger font-monospace fs-6">৳@bn(number_format($stats['total_po_due'] ?? 0, 2))</strong>
                         </div>
                     </div>
 
                     <div class="row g-2.5">
                         <div class="col-6">
-                            <label class="form-label small fw-bold text-dark">পরিশোধের পরিমাণ (৳) <span class="text-danger">*</span></label>
+                            <label class="form-label small fw-bold text-dark">Payment Amount (৳) <span class="text-danger">*</span></label>
                             <input type="number" id="detailPayAmountInput" name="amount" min="1" step="1" class="form-control form-control-sm fw-bold text-success font-monospace fs-6" value="{{ $stats['total_po_due'] > 0 ? $stats['total_po_due'] : '' }}" required>
                         </div>
                         <div class="col-6">
-                            <label class="form-label small fw-bold text-dark">পরিশোধের তারিখ <span class="text-danger">*</span></label>
+                            <label class="form-label small fw-bold text-dark">পরিশোধের Date <span class="text-danger">*</span></label>
                             <input type="date" name="payment_date" class="form-control form-control-sm" value="{{ date('Y-m-d') }}" required>
                         </div>
                         <div class="col-6">
-                            <label class="form-label small fw-bold text-dark">পেমেন্ট মাধ্যম <span class="text-danger">*</span></label>
+                            <label class="form-label small fw-bold text-dark">Payment Method <span class="text-danger">*</span></label>
                             <select name="payment_method" class="form-select form-select-sm" required>
-                                <option value="cash">নগদ (Cash)</option>
-                                <option value="bank">ব্যাংক ট্রান্সফার (Bank)</option>
-                                <option value="bkash">বিকাশ (bKash)</option>
-                                <option value="nagad">নগদ (Nagad)</option>
-                                <option value="cheque">চেক (Cheque)</option>
+                                <option value="cash">Cash</option>
+                                <option value="bank">Bank Wire Transfer</option>
+                                <option value="bkash">bKash</option>
+                                <option value="nagad">Nagad</option>
+                                <option value="cheque">Bank Cheque</option>
                             </select>
                         </div>
                         <div class="col-6">
-                            <label class="form-label small text-muted">ট্রানজেকশন / চেক নং</label>
+                            <label class="form-label small text-muted">Trx / Cheque No.</label>
                             <input type="text" name="transaction_ref" class="form-control form-control-sm" placeholder="Trx ID / Cheque #">
                         </div>
                         <div class="col-12">
-                            <label class="form-label small text-muted">মন্তব্য / নোট</label>
+                            <label class="form-label small text-muted">Notes / Memo</label>
                             <input type="text" name="note" class="form-control form-control-sm" placeholder="যেমন: কিস্তি পরিশোধ...">
                         </div>
                     </div>
                 </div>
 
                 <div class="modal-footer bg-light py-2.5">
-                    <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3" data-bs-dismiss="modal">বাতিল</button>
+                    <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" id="detailPaySubmitBtn" class="btn btn-sm btn-success rounded-pill px-4 fw-bold shadow-xs">
-                        <i class="fas fa-check-circle me-1"></i> পেমেন্ট সংরক্ষণ করুন
+                        <i class="fas fa-check-circle me-1"></i> Save Payment Voucher
                     </button>
                 </div>
             </form>
@@ -902,7 +902,7 @@
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header bg-primary text-white py-3">
                 <h5 class="modal-title fw-bold text-white mb-0" id="quickBookEditModalLabel">
-                    <i class="fas fa-bolt me-1.5"></i> বইয়ের দ্রুত শর্টকাট এডিটর
+                    <i class="fas fa-bolt me-1.5"></i> বইয়ের দ্রুত Actions এডিটর
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -916,7 +916,7 @@
                     <div class="row g-4">
                         {{-- Left Column: Cover Image & Preview --}}
                         <div class="col-12 col-md-4 border-end-md text-center">
-                            <label class="form-label small fw-bold text-dark d-block">প্রচ্ছদ ছবি (Cover Photo)</label>
+                            <label class="form-label small fw-bold text-dark d-block">Cover Photo</label>
                             <div class="position-relative d-inline-block mb-2.5">
                                 <img src="https://placehold.co/120x170/e2e8f0/475569?text=Cover" 
                                      id="qeCoverPreview" 
@@ -925,7 +925,7 @@
                             </div>
                             <div>
                                 <label for="qeCoverInput" class="btn btn-sm btn-outline-primary rounded-pill px-3 cursor-pointer">
-                                    <i class="fas fa-upload me-1"></i> নতুন ছবি নির্বাচন
+                                    <i class="fas fa-upload me-1"></i> Choose New Image
                                 </label>
                                 <input type="file" id="qeCoverInput" name="cover_image_file" accept="image/*" class="d-none" onchange="previewSelectedCover(this)">
                                 <div class="small text-muted mt-1" style="font-size: 11px;">JPG, PNG, WebP (Max 5MB)</div>
@@ -938,11 +938,11 @@
                             {{-- Title & Edition --}}
                             <div class="row g-2 mb-3">
                                 <div class="col-8">
-                                    <label class="form-label small fw-bold text-dark">বইয়ের নাম <span class="text-danger">*</span></label>
+                                    <label class="form-label small fw-bold text-dark">Book Title <span class="text-danger">*</span></label>
                                     <input type="text" id="qeTitle" name="title" class="form-control form-control-sm fw-bold" required>
                                 </div>
                                 <div class="col-4">
-                                    <label class="form-label small fw-bold text-dark">সংস্করণ (Edition)</label>
+                                    <label class="form-label small fw-bold text-dark">Edition (Edition)</label>
                                     <input type="text" id="qeEdition" name="edition" class="form-control form-control-sm" placeholder="যেমন: ১ম প্রকাশ, ২০২৪">
                                 </div>
                             </div>
@@ -950,13 +950,13 @@
                             {{-- Pricing & Commissions Calculator --}}
                             <div class="p-3 bg-light rounded-3 mb-3 border">
                                 <h6 class="fw-bold text-primary mb-2.5 small text-uppercase">
-                                    <i class="fas fa-calculator me-1"></i> গায়ের মূল্য, বিক্রয় ছাড় ও ক্রয় কমিশন
+                                    <i class="fas fa-calculator me-1"></i> MRP Price, বিক্রয় ছাড় ও ক্রয় কমিশন
                                 </h6>
                                 
                                 <div class="row g-2 mb-2">
                                     {{-- MRP Price --}}
                                     <div class="col-4">
-                                        <label class="form-label small fw-bold text-dark">গায়ের মূল্য (MRP) <span class="text-danger">*</span></label>
+                                        <label class="form-label small fw-bold text-dark">MRP Price (MRP) <span class="text-danger">*</span></label>
                                         <div class="input-group input-group-sm">
                                             <span class="input-group-text">৳</span>
                                             <input type="number" id="qePrice" name="price" min="0" step="1" class="form-control fw-bold" required oninput="recalcPricingFromMrp()">
@@ -965,7 +965,7 @@
 
                                     {{-- Sale Commission % --}}
                                     <div class="col-4">
-                                        <label class="form-label small fw-semibold text-dark">সেল ছাড় / ডিসকাউন্ট</label>
+                                        <label class="form-label small fw-semibold text-dark">Sale Discount</label>
                                         <div class="input-group input-group-sm">
                                             <input type="number" id="qeSaleCommission" min="0" max="100" step="0.5" class="form-control text-center text-danger fw-bold" placeholder="0" oninput="recalcSalePriceFromCommission()">
                                             <span class="input-group-text bg-white">%</span>
@@ -974,7 +974,7 @@
 
                                     {{-- Sale Price (Discount Price) --}}
                                     <div class="col-4">
-                                        <label class="form-label small fw-semibold text-dark">বিক্রয় মূল্য (Sale)</label>
+                                        <label class="form-label small fw-semibold text-dark">Sale Price</label>
                                         <div class="input-group input-group-sm">
                                             <span class="input-group-text">৳</span>
                                             <input type="number" id="qeDiscountPrice" name="discount_price" min="0" step="1" class="form-control text-primary fw-bold" oninput="recalcSaleCommissionFromPrice()">
@@ -985,7 +985,7 @@
                                 <div class="row g-2">
                                     {{-- Hardcover Price (optional) --}}
                                     <div class="col-4">
-                                        <label class="form-label small text-muted">হার্ডকভার মুদ্রিত মূল্য</label>
+                                        <label class="form-label small text-muted">Hardcover মুদ্রিত মূল্য</label>
                                         <div class="input-group input-group-sm">
                                             <span class="input-group-text">৳</span>
                                             <input type="number" id="qeHardcoverPrice" name="hardcover_price" min="0" step="1" class="form-control" placeholder="0">
@@ -994,7 +994,7 @@
 
                                     {{-- Buy Commission % --}}
                                     <div class="col-4">
-                                        <label class="form-label small fw-semibold text-dark">ক্রয় কমিশন (%)</label>
+                                        <label class="form-label small fw-semibold text-dark">Buy Commission (%)</label>
                                         <div class="input-group input-group-sm">
                                             <input type="number" id="qeBuyCommission" min="0" max="100" step="0.5" class="form-control text-center text-success fw-bold" placeholder="0" oninput="recalcCostPriceFromCommission()">
                                             <span class="input-group-text bg-white">%</span>
@@ -1003,7 +1003,7 @@
 
                                     {{-- Purchase Cost Price --}}
                                     <div class="col-4">
-                                        <label class="form-label small fw-semibold text-dark">ক্রয় খরচ / মূল্য (Cost)</label>
+                                        <label class="form-label small fw-semibold text-dark">Purchase Cost</label>
                                         <div class="input-group input-group-sm">
                                             <span class="input-group-text">৳</span>
                                             <input type="number" id="qeCostPrice" name="cost_price" min="0" step="1" class="form-control text-success fw-bold" oninput="recalcBuyCommissionFromPrice()">
@@ -1015,19 +1015,19 @@
                             {{-- Inventory & Live Status --}}
                             <div class="row g-2 align-items-center">
                                 <div class="col-4">
-                                    <label class="form-label small fw-bold text-dark">ইনভেন্টরি স্টক সংখ্যা <span class="text-danger">*</span></label>
+                                    <label class="form-label small fw-bold text-dark">Stock Quantity <span class="text-danger">*</span></label>
                                     <div class="input-group input-group-sm">
                                         <input type="number" id="qeStockQuantity" name="stock_quantity" min="0" max="100000" class="form-control fw-bold" required>
-                                        <span class="input-group-text">টি</span>
+                                        <span class="input-group-text"></span>
                                     </div>
                                 </div>
 
                                 <div class="col-4">
-                                    <label class="form-label small fw-bold text-dark">স্টক অবস্থা</label>
+                                    <label class="form-label small fw-bold text-dark">স্টক Status</label>
                                     <select id="qeStockStatus" name="stock_status" class="form-select form-select-sm">
-                                        <option value="in_stock">🟢 ইন-স্টক</option>
-                                        <option value="low">🟡 লো-স্টক</option>
-                                        <option value="out">🔴 স্টক শেষ</option>
+                                        <option value="in_stock">🟢 In Stock</option>
+                                        <option value="low">🟡 Low Stock</option>
+                                        <option value="out">🔴 Out of Stock</option>
                                         <option value="pre_order">⏳ প্রি-অর্ডার চলছে</option>
                                     </select>
                                 </div>
@@ -1036,7 +1036,7 @@
                                     <div class="form-check form-switch mb-0">
                                         <input class="form-check-input" type="checkbox" role="switch" id="qeIsActive" name="is_active" value="1">
                                         <label class="form-check-label small fw-bold text-dark" for="qeIsActive">
-                                            লাইভ ও সক্রিয়
+                                            Live & Active
                                         </label>
                                     </div>
                                 </div>
@@ -1047,9 +1047,9 @@
                 </div>
 
                 <div class="modal-footer bg-light py-2.5">
-                    <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3" data-bs-dismiss="modal">বাতিল</button>
+                    <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" id="qeSubmitBtn" class="btn btn-sm btn-primary rounded-pill px-4 fw-bold shadow-xs">
-                        <i class="fas fa-check-circle me-1"></i> সংরক্ষণ করুন
+                        <i class="fas fa-check-circle me-1"></i> Save Changes
                     </button>
                 </div>
             </form>
@@ -1127,7 +1127,7 @@ function recalcRowTotal(bookId) {
     const lineTotal = costRate * qty;
 
     const costRateEl = document.getElementById('costRateDisplay_' + bookId);
-    if (costRateEl) costRateEl.textContent = 'দর: ৳' + costRate.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+    if (costRateEl) costRateEl.textContent = 'Rate: ৳' + costRate.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 
     const lineTotalEl = document.getElementById('lineTotal_' + bookId);
     if (lineTotalEl) lineTotalEl.textContent = '৳' + lineTotal.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
@@ -1204,11 +1204,11 @@ function updateSelectionUI() {
         if (stickyBar) stickyBar.classList.remove('d-none');
         if (badge) {
             badge.style.display = 'inline-block';
-            badge.textContent = count + ' টি নির্বাচিত';
+            badge.textContent = count + '  selected';
         }
 
         const floatBadge = document.getElementById('floatSelectedBadge');
-        if (floatBadge) floatBadge.textContent = count + ' টি বই নির্বাচিত';
+        if (floatBadge) floatBadge.textContent = count + '  books selected';
         const floatQty = document.getElementById('floatTotalQty');
         if (floatQty) floatQty.textContent = totalQty;
         const floatTotal = document.getElementById('floatGrandTotal');
@@ -1224,7 +1224,7 @@ function updateSelectionUI() {
 function openPurchaseOrderModal() {
     const items = Object.values(selectedBooks);
     if (items.length === 0) {
-        alert('অনুগ্রহ করে অন্তত একটি বই নির্বাচন করুন।');
+        alert('অনুগ্রহ করে অন্তত এক বই নির্বাচন করুন।');
         return;
     }
 
@@ -1305,22 +1305,22 @@ function handleSendPOSubmit(e) {
                 location.reload();
             }, 1800);
         } else {
-            alertBox.innerHTML = `<div class="alert alert-danger p-2 small mb-2">${data.message || 'ত্রুটি হয়েছে'}</div>`;
+            alertBox.innerHTML = `<div class="alert alert-danger p-2 small mb-2">${data.message || 'ত্রু হয়েছে'}</div>`;
             btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-paper-plane me-1.5"></i> ক্রয় আদেশ ইমেইল পাঠান';
+            btn.innerHTML = '<i class="fas fa-paper-plane me-1.5"></i> Send Purchase Order Email';
         }
     })
     .catch(err => {
         alertBox.innerHTML = '<div class="alert alert-danger p-2 small mb-2">সার্ভার এরর হয়েছে।</div>';
         btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-paper-plane me-1.5"></i> ক্রয় আদেশ ইমেইল পাঠান';
+        btn.innerHTML = '<i class="fas fa-paper-plane me-1.5"></i> Send Purchase Order Email';
     });
 }
 
 function printPurchaseOrderSlip() {
     const items = Object.values(selectedBooks);
     if (items.length === 0) {
-        alert('অনুগ্রহ করে অন্তত একটি বই নির্বাচন করুন।');
+        alert('অনুগ্রহ করে অন্তত এক বই নির্বাচন করুন।');
         return;
     }
 
@@ -1337,7 +1337,7 @@ function printPurchaseOrderSlip() {
                 <td style="border: 1px solid #cbd5e1; padding: 6px 8px;">
                     <strong>${item.title}</strong>
                     ${item.author ? `<br><small style="color: #64748b;">লেখক: ${item.author}</small>` : ''}
-                    ${item.edition ? `<br><small style="color: #4f46e5;">সংস্করণ: ${item.edition}</small>` : ''}
+                    ${item.edition ? `<br><small style="color: #4f46e5;">Edition: ${item.edition}</small>` : ''}
                 </td>
                 <td style="border: 1px solid #cbd5e1; padding: 6px 8px; text-align: center; font-weight: bold;">${item.quantity}</td>
                 <td style="border: 1px solid #cbd5e1; padding: 6px 8px; text-align: right;">৳${item.unit_price.toFixed(0)}</td>
@@ -1370,7 +1370,7 @@ function printPurchaseOrderSlip() {
                     <p style="margin: 3px 0 0; color: #64748b; font-size: 13px;">বই ক্রয় আদেশ (Purchase Order)</p>
                 </div>
                 <div style="text-align: right; font-size: 13px;">
-                    <div><strong>তারিখ:</strong> ${new Date().toLocaleDateString('bn-BD')}</div>
+                    <div><strong>Date:</strong> ${new Date().toLocaleDateString('bn-BD')}</div>
                     <div><strong>প্রকাশক:</strong> {{ addslashes($publisher->name) }}</div>
                 </div>
             </div>
@@ -1380,8 +1380,8 @@ function printPurchaseOrderSlip() {
                     <tr>
                         <th style="border: 1px solid #cbd5e1; padding: 8px;">#</th>
                         <th style="border: 1px solid #cbd5e1; padding: 8px; text-align: left;">বইয়ের বিবরণ</th>
-                        <th style="border: 1px solid #cbd5e1; padding: 8px;">অর্ডার কপি</th>
-                        <th style="border: 1px solid #cbd5e1; padding: 8px; text-align: right;">গায়ের মূল্য</th>
+                        <th style="border: 1px solid #cbd5e1; padding: 8px;">অর্ডার  copies</th>
+                        <th style="border: 1px solid #cbd5e1; padding: 8px; text-align: right;">MRP Price</th>
                         <th style="border: 1px solid #cbd5e1; padding: 8px;">কমিশন (%)</th>
                         <th style="border: 1px solid #cbd5e1; padding: 8px; text-align: right;">ক্রয় দর</th>
                         <th style="border: 1px solid #cbd5e1; padding: 8px; text-align: right;">মোট টাকা</th>
@@ -1393,7 +1393,7 @@ function printPurchaseOrderSlip() {
                 <tfoot style="background: #f8fafc; font-weight: bold;">
                     <tr>
                         <td colspan="2" style="border: 1px solid #cbd5e1; padding: 8px; text-align: right;">সর্বমোট:</td>
-                        <td style="border: 1px solid #cbd5e1; padding: 8px; text-align: center;">${totalQty} টি</td>
+                        <td style="border: 1px solid #cbd5e1; padding: 8px; text-align: center;">${totalQty} </td>
                         <td colspan="3" style="border: 1px solid #cbd5e1;"></td>
                         <td style="border: 1px solid #cbd5e1; padding: 8px; text-align: right; color: #4f46e5; font-size: 16px;">৳${grandTotal.toFixed(0)}</td>
                     </tr>
@@ -1450,15 +1450,15 @@ function handlePublisherDetailPaymentSubmit(e) {
                 location.reload();
             }, 1000);
         } else {
-            alertBox.innerHTML = `<div class="alert alert-danger p-2 small mb-3">${data.message || 'ত্রুটি হয়েছে'}</div>`;
+            alertBox.innerHTML = `<div class="alert alert-danger p-2 small mb-3">${data.message || 'ত্রু হয়েছে'}</div>`;
             btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-check-circle me-1"></i> পেমেন্ট সংরক্ষণ করুন';
+            btn.innerHTML = '<i class="fas fa-check-circle me-1"></i> Save Payment Voucher';
         }
     })
     .catch(err => {
         alertBox.innerHTML = `<div class="alert alert-danger p-2 small mb-3">সার্ভার এরর হয়েছে।</div>`;
         btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-check-circle me-1"></i> পেমেন্ট সংরক্ষণ করুন';
+        btn.innerHTML = '<i class="fas fa-check-circle me-1"></i> Save Payment Voucher';
     });
 }
 
@@ -1585,15 +1585,15 @@ function handleQuickBookEditSubmit(e) {
                 location.reload();
             }, 800);
         } else {
-            alertBox.innerHTML = `<div class="alert alert-danger p-2 small mb-3">${data.message || 'ত্রুটি হয়েছে'}</div>`;
+            alertBox.innerHTML = `<div class="alert alert-danger p-2 small mb-3">${data.message || 'ত্রু হয়েছে'}</div>`;
             btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-check-circle me-1"></i> সংরক্ষণ করুন';
+            btn.innerHTML = '<i class="fas fa-check-circle me-1"></i> Save Changes';
         }
     })
     .catch(err => {
         alertBox.innerHTML = `<div class="alert alert-danger p-2 small mb-3">সার্ভার এরর হয়েছে।</div>`;
         btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-check-circle me-1"></i> সংরক্ষণ করুন';
+        btn.innerHTML = '<i class="fas fa-check-circle me-1"></i> Save Changes';
     });
 }
 </script>

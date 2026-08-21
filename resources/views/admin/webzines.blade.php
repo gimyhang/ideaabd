@@ -1,17 +1,17 @@
 @extends('layouts.admin')
 
-@section('title', 'ওয়েবজিন')
-@section('heading', 'ওয়েবজিন')
+@section('title', 'Webzines & Periodicals')
+@section('heading', 'Webzines & Literary Editions')
 @section('breadcrumb')
-    <li class="breadcrumb-item active" aria-current="page">ওয়েবজিন</li>
+    <li class="breadcrumb-item active" aria-current="page">Webzines</li>
 @endsection
 
 @section('actions')
-    <a href="{{ route('admin.content.create', 'webzines') }}" class="btn btn-primary">
-        <i class="fas fa-plus me-1"></i> নতুন ওয়েবজিন যোগ করুন
+    <a href="{{ route('admin.content.create', 'webzines') }}" class="btn btn-primary rounded-pill px-3 shadow-xs">
+        <i class="fas fa-plus me-1"></i> Add New Webzine
     </a>
-    <a href="{{ route('webzine.index') }}" target="_blank" rel="noopener" class="btn btn-outline-secondary">
-        <i class="fas fa-arrow-up-right-from-square me-1"></i> সাইটে দেখুন
+    <a href="{{ route('webzine.index') }}" target="_blank" rel="noopener" class="btn btn-outline-secondary rounded-pill px-3">
+        <i class="fas fa-arrow-up-right-from-square me-1"></i> View on Website
     </a>
 @endsection
 
@@ -19,22 +19,22 @@
 
 @include('admin.partials.filters', [
     'action'      => route('admin.webzines'),
-    'placeholder' => 'ওয়েবজিনের শিরোনাম দিয়ে খুঁজুন...',
+    'placeholder' => 'Search by webzine title...',
 ])
 
 @include('admin.partials.data-table', [
     'contentType' => 'webzines',
     'rows'      => $webzines,
-    'empty'     => 'কোনো ওয়েবজিন নেই',
+    'empty'     => 'No webzines found',
     'emptyIcon' => 'newspaper',
     'columns'   => [
-        ['key' => 'id',               'label' => '#',        'type' => 'index'],
-        ['key' => 'title',            'label' => 'শিরোনাম',  'type' => 'strong', 'sub' => 'slug'],
-        ['key' => 'issue_number',     'label' => 'সংখ্যা',    'type' => 'muted'],
-        ['key' => 'category',         'label' => 'বিভাগ',    'type' => 'muted'],
-        ['key' => 'is_published',     'label' => 'অবস্থা',   'type' => 'bool', 'on' => 'প্রকাশিত', 'off' => 'খসড়া'],
-        ['key' => 'view_count',       'label' => 'ভিউ',      'type' => 'muted', 'align' => 'text-end'],
-        ['key' => 'publication_date', 'label' => 'প্রকাশকাল', 'type' => 'date'],
+        ['key' => 'id',               'label' => '#',             'type' => 'index'],
+        ['key' => 'title',            'label' => 'Title',         'type' => 'strong', 'sub' => 'slug'],
+        ['key' => 'issue_number',     'label' => 'Issue No.',     'type' => 'muted'],
+        ['key' => 'category',         'label' => 'Section',       'type' => 'muted'],
+        ['key' => 'is_published',     'label' => 'Status',        'type' => 'bool', 'on' => 'Published', 'off' => 'Draft'],
+        ['key' => 'view_count',       'label' => 'Views',         'type' => 'muted', 'align' => 'text-end'],
+        ['key' => 'publication_date', 'label' => 'Publish Date',  'type' => 'date'],
     ],
 ])
 

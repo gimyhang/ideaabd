@@ -1,18 +1,18 @@
 @extends('layouts.admin')
 
-@section('title', 'প্রকাশনী পরিশোধ তালিকা')
-@section('heading', 'প্রকাশনী পেমেন্ট ও কিস্তি পরিশোধ তালিকা')
+@section('title', 'Publisher Payments & Settlements')
+@section('heading', 'Publisher Payments & Installment Ledger')
 @section('breadcrumb')
-    <li class="breadcrumb-item"><a href="{{ route('admin.purchases.index') }}">প্রকাশনী ক্রয়</a></li>
-    <li class="breadcrumb-item active" aria-current="page">পরিশোধ তালিকা</li>
+    <li class="breadcrumb-item"><a href="{{ route('admin.purchases.index') }}">Purchases</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Payment Ledger</li>
 @endsection
 
 @section('actions')
-    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#newPaymentModal">
-        <i class="fas fa-plus me-1"></i> নতুন কিস্তি পরিশোধ এন্ট্রি
+    <button type="button" class="btn btn-success btn-sm rounded-pill px-3 shadow-xs fw-bold" data-bs-toggle="modal" data-bs-target="#newPaymentModal">
+        <i class="fas fa-plus me-1"></i> Record New Payment
     </button>
-    <a href="{{ route('admin.purchases.index') }}" class="btn btn-outline-primary">
-        <i class="fas fa-receipt me-1"></i> ক্রয় তালিকা দেখুন
+    <a href="{{ route('admin.purchases.index') }}" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-xs">
+        <i class="fas fa-receipt me-1"></i> View Purchases List
     </a>
 @endsection
 
@@ -24,8 +24,8 @@
         <div class="card border-0 shadow-sm rounded-4 p-4 bg-white border-start border-4 border-success">
             <div class="d-flex align-items-center justify-content-between">
                 <div>
-                    <span class="text-muted small fw-semibold">সর্বমোট পরিশোধিত টাকা (All Time Payments)</span>
-                    <h2 class="fw-bold mb-0 text-success">@taka($totalPaidSum)</h2>
+                    <span class="text-muted small fw-semibold">Total Payments Settled (All Time)</span>
+                    <h2 class="fw-bold mb-0 text-success">৳{{ number_format($totalPaidSum, 2) }}</h2>
                 </div>
                 <div class="rounded-circle bg-success-subtle text-success p-3"><i class="fas fa-hand-holding-dollar fs-3"></i></div>
             </div>
@@ -35,8 +35,8 @@
         <div class="card border-0 shadow-sm rounded-4 p-4 bg-white border-start border-4 border-warning">
             <div class="d-flex align-items-center justify-content-between">
                 <div>
-                    <span class="text-muted small fw-semibold">মোট বকেয়াযুক্ত ইনভয়েস</span>
-                    <h2 class="fw-bold mb-0 text-warning">@bn($pendingPurchases->count()) টি</h2>
+                    <span class="text-muted small fw-semibold">Pending Due Invoices</span>
+                    <h2 class="fw-bold mb-0 text-warning">{{ number_format($pendingPurchases->count()) }}</h2>
                 </div>
                 <div class="rounded-circle bg-warning-subtle text-warning p-3"><i class="fas fa-clock-rotate-left fs-3"></i></div>
             </div>
@@ -50,7 +50,7 @@
         <form action="{{ route('admin.purchases.payments') }}" method="GET" class="row g-2 align-items-center">
             <div class="col-md-4">
                 <select name="publisher_id" class="form-select" onchange="this.form.submit()">
-                    <option value="">সকল প্রকাশনী</option>
+                    <option value="">All Publishers</option>
                     @foreach($publishers as $id => $name)
                         <option value="{{ $id }}" @selected(request('publisher_id') == $id)>{{ $name }}</option>
                     @endforeach
@@ -58,19 +58,19 @@
             </div>
             <div class="col-md-3">
                 <select name="payment_method" class="form-select" onchange="this.form.submit()">
-                    <option value="">সকল পেমেন্ট মাধ্যম</option>
+                    <option value="">All Payment Methods</option>
                     @foreach($paymentMethods as $key => $label)
                         <option value="{{ $key }}" @selected(request('payment_method') == $key)>{{ $label }}</option>
                     @endforeach
                 </select>
             </div>
             <div class="col-md-3">
-                <input type="date" name="date_from" class="form-control" value="{{ request('date_from') }}" title="শুরুর তারিখ">
+                <input type="date" name="date_from" class="form-control" value="{{ request('date_from') }}" title="Start Date">
             </div>
             <div class="col-md-2 d-flex gap-2">
-                <button type="submit" class="btn btn-primary w-100"><i class="fas fa-filter me-1"></i> ফিল্টার</button>
+                <button type="submit" class="btn btn-primary w-100"><i class="fas fa-filter me-1"></i> Filter</button>
                 @if(request()->hasAny(['publisher_id', 'payment_method', 'date_from']))
-                    <a href="{{ route('admin.purchases.payments') }}" class="btn btn-light border" title="রিসেট"><i class="fas fa-rotate-left"></i></a>
+                    <a href="{{ route('admin.purchases.payments') }}" class="btn btn-light border" title="Reset"><i class="fas fa-rotate-left"></i></a>
                 @endif
             </div>
         </form>
@@ -78,26 +78,26 @@
 </div>
 
 {{-- Payments Table --}}
-<div class="adm-card shadow-sm rounded-4 overflow-hidden">
+<div class="adm-card shadow-sm rounded-4 overflow-hidden bg-white">
     @if ($payments->isEmpty())
         <div class="empty-state py-5 text-center">
             <i class="fas fa-money-bill-wave fs-1 text-muted opacity-50 mb-3"></i>
-            <h5 class="fw-bold text-muted">কোনো পেমেন্ট পরিশোধ রেকর্ড পাওয়া যায়নি</h5>
-            <p class="text-muted small">উপরের "নতুন কিস্তি পরিশোধ এন্ট্রি" বাটন দিয়ে পেমেন্ট রেকর্ড করুন।</p>
+            <h5 class="fw-bold text-muted">No Payment Records Found</h5>
+            <p class="text-muted small">Record a new payment voucher using the button above.</p>
         </div>
     @else
         <div class="table-responsive">
             <table class="table adm-table align-middle mb-0">
                 <thead class="table-light">
                     <tr>
-                        <th class="ps-3">রসিদ #</th>
-                        <th>প্রকাশনী</th>
-                        <th>ক্রয় ইনভয়েস</th>
-                        <th>পরিশোধের তারিখ</th>
-                        <th>টাকার পরিমাণ</th>
-                        <th>মাধ্যম</th>
-                        <th>রেফারেন্স নম্বর</th>
-                        <th>রেকর্ডকারী</th>
+                        <th class="ps-3">Receipt #</th>
+                        <th>Publisher</th>
+                        <th>Purchase Invoice</th>
+                        <th>Payment Date</th>
+                        <th>Amount Paid</th>
+                        <th>Method</th>
+                        <th>Reference #</th>
+                        <th>Recorded By</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -117,15 +117,15 @@
                                     <span class="text-muted">—</span>
                                 @endif
                             </td>
-                            <td class="text-muted small">@bnDate($pay->payment_date)</td>
-                            <td class="fw-bold text-success fs-6">@taka($pay->amount)</td>
+                            <td class="text-muted small">{{ $pay->payment_date ? $pay->payment_date->format('d M, Y') : '—' }}</td>
+                            <td class="fw-bold text-success fs-6">৳{{ number_format($pay->amount, 2) }}</td>
                             <td>
                                 <span class="badge bg-light text-dark border">
-                                    {{ $paymentMethods[$pay->payment_method] ?? $pay->payment_method }}
+                                    {{ $paymentMethods[$pay->payment_method] ?? ucfirst($pay->payment_method) }}
                                 </span>
                             </td>
                             <td class="text-muted small">{{ $pay->transaction_ref ?? '—' }}</td>
-                            <td class="text-muted small">{{ $pay->recorder->name ?? 'অ্যাডমিন' }}</td>
+                            <td class="text-muted small">{{ $pay->recorder->name ?? 'Admin' }}</td>
                         </tr>
                     @endforeach
                 </tbody>
@@ -135,7 +135,7 @@
         @if ($payments->hasPages())
             <div class="adm-card__foot d-flex flex-wrap justify-content-between align-items-center gap-2 p-3 bg-white border-top">
                 <span class="text-muted small">
-                    মোট @bn($payments->total())টির মধ্যে @bn($payments->firstItem())–@bn($payments->lastItem()) দেখানো হচ্ছে
+                    Showing {{ $payments->firstItem() }}–{{ $payments->lastItem() }} of {{ number_format($payments->total()) }} records
                 </span>
                 {{ $payments->links() }}
             </div>
@@ -148,36 +148,36 @@
     <div class="modal-dialog">
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header border-bottom py-3 bg-light">
-                <h5 class="modal-title fw-bold text-success"><i class="fas fa-hand-holding-dollar me-2"></i>নতুন কিস্তি পরিশোধ এন্ট্রি</h5>
+                <h5 class="modal-title fw-bold text-success"><i class="fas fa-hand-holding-dollar me-2"></i>Record New Payment Settlement</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form action="{{ route('admin.purchases.payments.store') }}" method="POST">
                 @csrf
                 <div class="modal-body p-4">
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">বকেয়াযুক্ত ক্রয় ইনভয়েস নির্বাচন করুন <span class="text-danger">*</span></label>
+                        <label class="form-label fw-semibold">Select Due Purchase Invoice <span class="text-danger">*</span></label>
                         <select name="purchase_id" id="modalPurchaseSelect" class="form-select rounded-3" required onchange="onModalPurchaseChange()">
-                            <option value="">ইনভয়েস নির্বাচন করুন</option>
+                            <option value="">Select an Invoice</option>
                             @foreach($pendingPurchases as $pending)
                                 <option value="{{ $pending->id }}" data-due="{{ $pending->due_amount }}">
-                                    #{{ $pending->purchase_no }} — {{ $pending->publisher->name }} (বকেয়া: ৳{{ number_format($pending->due_amount, 2) }})
+                                    #{{ $pending->purchase_no }} — {{ $pending->publisher->name }} (Due: ৳{{ number_format($pending->due_amount, 2) }})
                                 </option>
                             @endforeach
                         </select>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">পরিশোধের তারিখ <span class="text-danger">*</span></label>
+                        <label class="form-label fw-semibold">Payment Date <span class="text-danger">*</span></label>
                         <input type="date" name="payment_date" class="form-control rounded-3" value="{{ date('Y-m-d') }}" required>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">টাকার পরিমাণ (৳) <span class="text-danger">*</span></label>
+                        <label class="form-label fw-semibold">Payment Amount (৳) <span class="text-danger">*</span></label>
                         <input type="number" step="0.01" name="amount" id="modalAmountInput" class="form-control rounded-3 fw-bold text-success fs-5" min="1" required>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">পেমেন্ট মাধ্যম <span class="text-danger">*</span></label>
+                        <label class="form-label fw-semibold">Payment Method <span class="text-danger">*</span></label>
                         <select name="payment_method" class="form-select rounded-3" required>
                             @foreach($paymentMethods as $key => $label)
                                 <option value="{{ $key }}">{{ $label }}</option>
@@ -186,18 +186,18 @@
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label small fw-semibold text-muted">চেক / ট্রানজেকশন রেফারেন্স নম্বর</label>
-                        <input type="text" name="transaction_ref" class="form-control rounded-3" placeholder="ঐচ্ছিক (Bank Trx ID / Check No)">
+                        <label class="form-label small fw-semibold text-muted">Check / Transaction Reference Number</label>
+                        <input type="text" name="transaction_ref" class="form-control rounded-3" placeholder="Optional (Bank Trx ID / Check No)">
                     </div>
 
                     <div class="mb-2">
-                        <label class="form-label small fw-semibold text-muted">মন্তব্য / নোট</label>
-                        <textarea name="note" rows="2" class="form-control rounded-3" placeholder="পেমেন্ট সংক্রান্ত কোনো বিবরণ থাকলে লিখুন..."></textarea>
+                        <label class="form-label small fw-semibold text-muted">Notes / Remarks</label>
+                        <textarea name="note" rows="2" class="form-control rounded-3" placeholder="Payment details or installment remarks..."></textarea>
                     </div>
                 </div>
                 <div class="modal-footer bg-light py-2">
-                    <button type="button" class="btn btn-secondary rounded-pill px-3" data-bs-dismiss="modal">বন্ধ করুন</button>
-                    <button type="submit" class="btn btn-success rounded-pill px-4 fw-bold">পেমেন্ট সংরক্ষণ করুন</button>
+                    <button type="button" class="btn btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success rounded-pill px-4 fw-bold">Save Payment</button>
                 </div>
             </form>
         </div>

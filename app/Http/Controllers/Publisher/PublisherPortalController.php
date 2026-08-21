@@ -70,6 +70,9 @@ class PublisherPortalController extends Controller
         $categoryId = $request->input('category_id');
         $stockFilter = $request->string('stock')->trim()->value();
         $sort = $request->string('sort')->trim()->value() ?: 'latest';
+        $activeTab = $request->string('tab')->trim()->value() ?: 'overview';
+        $purchaseDateFilter = $request->string('date_filter')->trim()->value() ?: 'all';
+        $selectedDate = $request->string('date')->trim()->value() ?: now()->format('Y-m-d');
 
         // Publisher's Books Query
         $booksQuery = Book::where('publisher_id', $publisher->id)
@@ -111,13 +114,35 @@ class PublisherPortalController extends Controller
         $outStockBooks = Book::where('publisher_id', $publisher->id)->where('stock_quantity', '<=', 0)->count();
         $totalStockUnits = Book::where('publisher_id', $publisher->id)->sum('stock_quantity');
 
-        // Financials from Purchase Orders
-        $purchases = PublisherPurchase::where('publisher_id', $publisher->id)->latest('purchase_date')->take(10)->get();
+        // All Purchases Query
+        $purchasesQuery = PublisherPurchase::where('publisher_id', $publisher->id)
+            ->with(['items.book', 'payments']);
+
+        $allPurchases = (clone $purchasesQuery)->latest('purchase_date')->paginate(15, ['*'], 'purchase_page');
+
+        // Today's Purchase Orders (Rokomari Company Panel Style)
+        $todayDate = now()->toDateString();
+        $todayPurchasesQuery = PublisherPurchase::where('publisher_id', $publisher->id)
+            ->with(['items.book', 'payments'])
+            ->when($purchaseDateFilter === 'today', fn($q) => $q->whereDate('purchase_date', $todayDate))
+            ->when($purchaseDateFilter === 'yesterday', fn($q) => $q->whereDate('purchase_date', now()->subDay()->toDateString()))
+            ->when($purchaseDateFilter === 'custom' && $selectedDate, fn($q) => $q->whereDate('purchase_date', $selectedDate));
+
+        $todayPurchases = $todayPurchasesQuery->latest('purchase_date')->get();
+
+        // If no purchase recorded for today specifically in filter, get recent purchase items for display
+        $recentPurchases = (clone $purchasesQuery)->latest('purchase_date')->take(10)->get();
+
         $totalPurchasesAmount = PublisherPurchase::where('publisher_id', $publisher->id)->sum('total_amount');
         $totalPaidAmount = PublisherPurchase::where('publisher_id', $publisher->id)->sum('paid_amount');
         $totalDueAmount = max(0, $totalPurchasesAmount - $totalPaidAmount);
 
-        $payments = PublisherPayment::where('publisher_id', $publisher->id)->latest('payment_date')->take(10)->get();
+        $todayPurchasesAmount = PublisherPurchase::where('publisher_id', $publisher->id)->whereDate('purchase_date', $todayDate)->sum('total_amount');
+        $todayItemsCount = \App\Models\PublisherPurchaseItem::whereHas('purchase', function($q) use ($publisher, $todayDate) {
+            $q->where('publisher_id', $publisher->id)->whereDate('purchase_date', $todayDate);
+        })->sum('quantity');
+
+        $payments = PublisherPayment::where('publisher_id', $publisher->id)->latest('payment_date')->take(15)->get();
 
         // Form Select Data
         $categories = Category::where('is_active', true)->orderBy('name')->pluck('name', 'id')->all();
@@ -139,15 +164,35 @@ class PublisherPortalController extends Controller
             'lowStockBooks',
             'outStockBooks',
             'totalStockUnits',
-            'purchases',
+            'allPurchases',
+            'todayPurchases',
+            'recentPurchases',
             'totalPurchasesAmount',
             'totalPaidAmount',
             'totalDueAmount',
+            'todayPurchasesAmount',
+            'todayItemsCount',
             'payments',
             'categories',
             'authors',
-            'editBook'
+            'editBook',
+            'activeTab',
+            'purchaseDateFilter',
+            'selectedDate'
         ));
+    }
+
+    /**
+     * View / Print Challan for a specific purchase order.
+     */
+    public function printChallan($id)
+    {
+        $publisher = $this->getPublisher();
+        $purchase = PublisherPurchase::where('publisher_id', $publisher->id)
+            ->with(['items.book', 'publisher', 'creator'])
+            ->findOrFail($id);
+
+        return view('publisher.challan', compact('publisher', 'purchase'));
     }
 
     /**
@@ -160,19 +205,24 @@ class PublisherPortalController extends Controller
         $validated = $request->validate([
             'title'                    => 'required|string|max:255',
             'subtitle'                 => 'nullable|string|max:255',
+            'product_type'             => 'nullable|string|max:50',
             'category_id'              => 'required|exists:categories,id',
             'author_id'                => 'nullable|exists:authors,id',
+            'author_ids'               => 'nullable|array',
+            'author_ids.*'             => 'nullable|exists:authors,id',
             'author_name'              => 'nullable|string|max:255',
             'translator_name'          => 'nullable|string|max:255',
             'editor_name'              => 'nullable|string|max:255',
-            'cover_type'               => 'required|in:paperback,hardcover,both',
+            'language'                 => 'nullable|string|max:50',
+            'country'                  => 'nullable|string|max:100',
+            'cover_type'               => 'required|in:paperback,hardcover,board_book,spiral,both',
             'price'                    => 'nullable|numeric|min:0',
             'discount_price'           => 'nullable|numeric|min:0',
             'hardcover_price'          => 'nullable|numeric|min:0',
             'hardcover_discount_price' => 'nullable|numeric|min:0',
             'cost_price'               => 'nullable|numeric|min:0',
             'stock_quantity'           => 'required|integer|min:0',
-            'stock_status'             => 'required|in:in_stock,low,out,pre_order',
+            'stock_status'             => 'required|in:in_stock,low,out,pre_order,upcoming',
             'edition'                  => 'nullable|string|max:100',
             'isbn'                     => 'nullable|string|max:50',
             'number_of_pages'          => 'nullable|integer|min:1',
@@ -218,12 +268,15 @@ class PublisherPortalController extends Controller
             'slug'                     => $slug,
             'sku'                      => $sku,
             'isbn'                     => $validated['isbn'] ?? null,
+            'product_type'             => $validated['product_type'] ?? 'book',
             'category_id'              => $validated['category_id'],
             'publisher_id'             => $publisher->id,
             'author_link_id'           => $validated['author_id'] ?? null,
             'author_name'              => $authorName,
             'translator_name'          => $validated['translator_name'] ?? null,
             'editor_name'              => $validated['editor_name'] ?? null,
+            'language'                 => $validated['language'] ?? 'Bengali',
+            'country'                  => $validated['country'] ?? 'Bangladesh',
             'cover_type'               => $validated['cover_type'],
             'price'                    => $validated['price'] ?? 0,
             'discount_price'           => $validated['discount_price'] ?? null,
@@ -237,19 +290,23 @@ class PublisherPortalController extends Controller
             'summary'                  => $validated['summary'] ?? null,
             'description'              => $validated['description'] ?? null,
             'cover_image'              => $coverPath,
-            'pdf_sample'               => $pdfPath,
+            'sample_pdf_path'          => $pdfPath,
             'is_active'                => true,
             'is_featured'              => false,
             'created_by'               => auth()->id(),
         ]);
 
-        // Attach Author to Many-to-Many if applicable
-        if (!empty($validated['author_id'])) {
-            $book->authors()->sync([$validated['author_id']]);
+        // Attach Multiple Authors if provided
+        $allAuthorIds = array_filter((array) ($validated['author_ids'] ?? []));
+        if (!empty($validated['author_id']) && !in_array($validated['author_id'], $allAuthorIds)) {
+            $allAuthorIds[] = $validated['author_id'];
+        }
+        if (!empty($allAuthorIds)) {
+            $book->authors()->sync($allAuthorIds);
         }
 
         return redirect()->route('publisher.dashboard', ['tab' => 'books'])
-            ->with('success', "বই '{$book->title}' সফলভাবে ক্যাটালগে যুক্ত হয়েছে!");
+            ->with('success', "Book '{$book->title}' has been successfully added to your catalog!");
     }
 
     /**
@@ -263,19 +320,24 @@ class PublisherPortalController extends Controller
         $validated = $request->validate([
             'title'                    => 'required|string|max:255',
             'subtitle'                 => 'nullable|string|max:255',
+            'product_type'             => 'nullable|string|max:50',
             'category_id'              => 'required|exists:categories,id',
             'author_id'                => 'nullable|exists:authors,id',
+            'author_ids'               => 'nullable|array',
+            'author_ids.*'             => 'nullable|exists:authors,id',
             'author_name'              => 'nullable|string|max:255',
             'translator_name'          => 'nullable|string|max:255',
             'editor_name'              => 'nullable|string|max:255',
-            'cover_type'               => 'required|in:paperback,hardcover,both',
+            'language'                 => 'nullable|string|max:50',
+            'country'                  => 'nullable|string|max:100',
+            'cover_type'               => 'required|in:paperback,hardcover,board_book,spiral,both',
             'price'                    => 'nullable|numeric|min:0',
             'discount_price'           => 'nullable|numeric|min:0',
             'hardcover_price'          => 'nullable|numeric|min:0',
             'hardcover_discount_price' => 'nullable|numeric|min:0',
             'cost_price'               => 'nullable|numeric|min:0',
             'stock_quantity'           => 'required|integer|min:0',
-            'stock_status'             => 'required|in:in_stock,low,out,pre_order',
+            'stock_status'             => 'required|in:in_stock,low,out,pre_order,upcoming',
             'edition'                  => 'nullable|string|max:100',
             'isbn'                     => 'nullable|string|max:50',
             'number_of_pages'          => 'nullable|integer|min:1',
@@ -289,11 +351,14 @@ class PublisherPortalController extends Controller
             'title'                    => $validated['title'],
             'subtitle'                 => $validated['subtitle'] ?? null,
             'isbn'                     => $validated['isbn'] ?? null,
+            'product_type'             => $validated['product_type'] ?? 'book',
             'category_id'              => $validated['category_id'],
             'author_link_id'           => $validated['author_id'] ?? null,
             'author_name'              => $validated['author_name'] ?? null,
             'translator_name'          => $validated['translator_name'] ?? null,
             'editor_name'              => $validated['editor_name'] ?? null,
+            'language'                 => $validated['language'] ?? 'Bengali',
+            'country'                  => $validated['country'] ?? 'Bangladesh',
             'cover_type'               => $validated['cover_type'],
             'price'                    => $validated['price'] ?? 0,
             'discount_price'           => $validated['discount_price'] ?? null,
@@ -313,7 +378,7 @@ class PublisherPortalController extends Controller
         }
 
         if ($request->hasFile('pdf_sample')) {
-            $updates['pdf_sample'] = $request->file('pdf_sample')->store('books/samples', 'public');
+            $updates['sample_pdf_path'] = $request->file('pdf_sample')->store('books/samples', 'public');
         }
 
         if (!empty($validated['author_id'])) {
@@ -321,13 +386,20 @@ class PublisherPortalController extends Controller
             if ($authorObj) {
                 $updates['author_name'] = $authorObj->name;
             }
-            $book->authors()->sync([$validated['author_id']]);
         }
 
         $book->update($updates);
 
+        $allAuthorIds = array_filter((array) ($validated['author_ids'] ?? []));
+        if (!empty($validated['author_id']) && !in_array($validated['author_id'], $allAuthorIds)) {
+            $allAuthorIds[] = $validated['author_id'];
+        }
+        if (!empty($allAuthorIds)) {
+            $book->authors()->sync($allAuthorIds);
+        }
+
         return redirect()->route('publisher.dashboard', ['tab' => 'books'])
-            ->with('success', "বই '{$book->title}' সফলভাবে হালনাগাদ করা হয়েছে!");
+            ->with('success', "Book '{$book->title}' has been successfully updated!");
     }
 
     /**
@@ -363,7 +435,7 @@ class PublisherPortalController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'বইয়ের তথ্য সফলভাবে আপডেট হয়েছে!',
+            'message' => 'Book information updated successfully!',
             'book'    => $book
         ]);
     }
@@ -379,7 +451,7 @@ class PublisherPortalController extends Controller
         $book->delete();
 
         return redirect()->route('publisher.dashboard', ['tab' => 'books'])
-            ->with('success', "বই '{$title}' ক্যাটালগ থেকে অপসারণ করা হয়েছে।");
+            ->with('success', "Book '{$title}' has been removed from your catalog.");
     }
 
     /**
@@ -415,6 +487,6 @@ class PublisherPortalController extends Controller
         $publisher->update($updates);
 
         return redirect()->route('publisher.dashboard', ['tab' => 'settings'])
-            ->with('success', 'প্রকাশনীর তথ্য ও প্রোফাইল সফলভাবে সংরক্ষণ করা হয়েছে!');
+            ->with('success', 'Publisher company details and profile saved successfully!');
     }
 }

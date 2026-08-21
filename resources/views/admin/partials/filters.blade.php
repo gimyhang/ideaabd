@@ -3,7 +3,7 @@
 
     @param string      $action       form target
     @param string|null $placeholder  search box hint
-    @param array       $selects      [ ['name'=>'role', 'label'=>'সব ভূমিকা', 'options'=>['admin'=>'অ্যাডমিন']] ]
+    @param array       $selects      [ ['name'=>'role', 'label'=>'All Roles', 'options'=>['admin'=>'Admin']] ]
 --}}
 <form method="GET" action="{{ $action }}" class="adm-card p-3 mb-3">
     <div class="row g-2 align-items-center">
@@ -11,7 +11,7 @@
             <div class="input-group">
                 <span class="input-group-text bg-white border-end-0"><i class="fas fa-magnifying-glass text-muted"></i></span>
                 <input type="search" name="search" class="form-control border-start-0 ps-0"
-                       placeholder="{{ $placeholder ?? 'খুঁজুন...' }}" value="{{ request('search') }}" aria-label="খুঁজুন">
+                       placeholder="{{ $placeholder ?? 'Search records...' }}" value="{{ request('search') }}" aria-label="Search">
             </div>
         </div>
 
@@ -27,9 +27,9 @@
         @endforeach
 
         <div class="col-lg-auto col-md-6 d-flex gap-2">
-            <button class="btn btn-primary flex-grow-1"><i class="fas fa-filter me-1"></i> ফিল্টার</button>
+            <button class="btn btn-primary flex-grow-1"><i class="fas fa-filter me-1"></i> Filter</button>
             @if (request()->hasAny(array_merge(['search'], array_column($selects ?? [], 'name'))))
-                <a href="{{ $action }}" class="btn btn-outline-secondary" title="রিসেট"><i class="fas fa-rotate-left"></i></a>
+                <a href="{{ $action }}" class="btn btn-outline-secondary" title="Reset Filters"><i class="fas fa-rotate-left"></i></a>
             @endif
         </div>
     </div>

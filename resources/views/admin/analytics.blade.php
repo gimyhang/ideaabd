@@ -1,9 +1,9 @@
 @extends('layouts.admin')
 
-@section('title', 'সাইট ভিজিটর ও ট্রাফিক রিপোর্ট')
-@section('heading', 'সাইট ভিজিটর ও ট্রাফিক রিপোর্ট')
+@section('title', 'Site Visitors & Traffic Analytics')
+@section('heading', 'Visitors & Traffic Analytics')
 @section('breadcrumb')
-    <li class="breadcrumb-item active" aria-current="page">ভিজিটর রিপোর্ট</li>
+    <li class="breadcrumb-item active" aria-current="page">Analytics Report</li>
 @endsection
 
 @section('content')
@@ -15,15 +15,15 @@
         <div class="card border-0 shadow-xs rounded-4 p-3 bg-white border-start border-4 border-primary">
             <div class="d-flex align-items-center justify-content-between">
                 <div>
-                    <span class="small fw-semibold text-muted d-block mb-1">আজকের মোট পেজভিউ</span>
-                    <h3 class="fw-bold mb-0 text-dark">@bn($stats['today_views'])</h3>
+                    <span class="small fw-semibold text-muted d-block mb-1">Today's Pageviews</span>
+                    <h3 class="fw-bold mb-0 text-dark">{{ number_format($stats['today_views']) }}</h3>
                 </div>
                 <div class="rounded-circle p-2.5 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px; background: rgba(0, 102, 204, 0.08);">
                     <i class="fa-solid fa-eye fs-5 text-primary"></i>
                 </div>
             </div>
             <div class="small text-muted mt-2 pt-1 border-top" style="font-size: 11.5px;">
-                ইউনিক ভিজিটর: <strong class="text-primary">@bn($stats['today_uniques']) জন</strong>
+                Unique Visitors: <strong class="text-primary">{{ number_format($stats['today_uniques']) }}</strong>
             </div>
         </div>
     </div>
@@ -33,15 +33,15 @@
         <div class="card border-0 shadow-xs rounded-4 p-3 bg-white border-start border-4 border-info">
             <div class="d-flex align-items-center justify-content-between">
                 <div>
-                    <span class="small fw-semibold text-muted d-block mb-1">চলতি সপ্তাহের ভিজিট</span>
-                    <h3 class="fw-bold mb-0 text-dark">@bn($stats['week_views'])</h3>
+                    <span class="small fw-semibold text-muted d-block mb-1">This Week Views</span>
+                    <h3 class="fw-bold mb-0 text-dark">{{ number_format($stats['week_views']) }}</h3>
                 </div>
                 <div class="rounded-circle p-2.5 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px; background: rgba(13, 202, 240, 0.08);">
                     <i class="fa-solid fa-chart-simple fs-5 text-info"></i>
                 </div>
             </div>
             <div class="small text-muted mt-2 pt-1 border-top" style="font-size: 11.5px;">
-                গত ৭ দিনের সর্বমোট ট্রাফিক
+                Total traffic past 7 days
             </div>
         </div>
     </div>
@@ -51,15 +51,15 @@
         <div class="card border-0 shadow-xs rounded-4 p-3 bg-white border-start border-4 border-success">
             <div class="d-flex align-items-center justify-content-between">
                 <div>
-                    <span class="small fw-semibold text-muted d-block mb-1">চলতি মাসের ভিজিট</span>
-                    <h3 class="fw-bold mb-0 text-dark">@bn($stats['month_views'])</h3>
+                    <span class="small fw-semibold text-muted d-block mb-1">This Month Views</span>
+                    <h3 class="fw-bold mb-0 text-dark">{{ number_format($stats['month_views']) }}</h3>
                 </div>
                 <div class="rounded-circle p-2.5 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px; background: rgba(25, 135, 84, 0.08);">
                     <i class="fa-solid fa-calendar-check fs-5 text-success"></i>
                 </div>
             </div>
             <div class="small text-muted mt-2 pt-1 border-top" style="font-size: 11.5px;">
-                এই মাসে মোট ভিজিটর প্রবাহ
+                Monthly total visitor volume
             </div>
         </div>
     </div>
@@ -69,15 +69,15 @@
         <div class="card border-0 shadow-xs rounded-4 p-3 bg-white border-start border-4 border-warning">
             <div class="d-flex align-items-center justify-content-between">
                 <div>
-                    <span class="small fw-semibold text-muted d-block mb-1">সর্বমোট ভিজিট (All-time)</span>
-                    <h3 class="fw-bold mb-0 text-dark">@bn($stats['total_views'])</h3>
+                    <span class="small fw-semibold text-muted d-block mb-1">All-Time Pageviews</span>
+                    <h3 class="fw-bold mb-0 text-dark">{{ number_format($stats['total_views']) }}</h3>
                 </div>
                 <div class="rounded-circle p-2.5 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px; background: rgba(255, 193, 7, 0.1);">
                     <i class="fa-solid fa-users-viewfinder fs-5 text-warning"></i>
                 </div>
             </div>
             <div class="small text-muted mt-2 pt-1 border-top" style="font-size: 11.5px;">
-                মোট ইউনিক ভিজিটর: <strong class="text-dark">@bn($stats['total_uniques'])</strong>
+                Total Unique Visitors: <strong class="text-dark">{{ number_format($stats['total_uniques']) }}</strong>
             </div>
         </div>
     </div>
@@ -88,7 +88,7 @@
     <div class="col-lg-4">
         <div class="card border-0 shadow-xs rounded-4 h-100 bg-white">
             <div class="card-header bg-white border-bottom py-3">
-                <h6 class="fw-bold text-dark mb-0"><i class="fa-solid fa-mobile-screen-button text-primary me-1.5"></i> ডিভাইস ব্যবহারকারী</h6>
+                <h6 class="fw-bold text-dark mb-0"><i class="fa-solid fa-mobile-screen-button text-primary me-1.5"></i> Device Distribution</h6>
             </div>
             <div class="card-body p-3">
                 @php
@@ -104,8 +104,8 @@
                 <!-- Mobile -->
                 <div class="mb-3">
                     <div class="d-flex justify-content-between align-items-center mb-1 small fw-semibold">
-                        <span><i class="fa-solid fa-mobile-screen text-primary me-1"></i> স্মার্টফোন / মোবাইল</span>
-                        <span>@bn($mobileCount) ({{ $mobilePct }}%)</span>
+                        <span><i class="fa-solid fa-mobile-screen text-primary me-1"></i> Mobile / Smartphone</span>
+                        <span>{{ number_format($mobileCount) }} ({{ $mobilePct }}%)</span>
                     </div>
                     <div class="progress" style="height: 8px;">
                         <div class="progress-bar bg-primary" role="progressbar" style="width: {{ $mobilePct }}%"></div>
@@ -115,8 +115,8 @@
                 <!-- Desktop -->
                 <div class="mb-3">
                     <div class="d-flex justify-content-between align-items-center mb-1 small fw-semibold">
-                        <span><i class="fa-solid fa-laptop text-info me-1"></i> কম্পিউটার / ল্যাপটপ</span>
-                        <span>@bn($desktopCount) ({{ $desktopPct }}%)</span>
+                        <span><i class="fa-solid fa-laptop text-info me-1"></i> Desktop / Laptop</span>
+                        <span>{{ number_format($desktopCount) }} ({{ $desktopPct }}%)</span>
                     </div>
                     <div class="progress" style="height: 8px;">
                         <div class="progress-bar bg-info" role="progressbar" style="width: {{ $desktopPct }}%"></div>
@@ -126,8 +126,8 @@
                 <!-- Tablet -->
                 <div>
                     <div class="d-flex justify-content-between align-items-center mb-1 small fw-semibold">
-                        <span><i class="fa-solid fa-tablet-screen-button text-success me-1"></i> ট্যাবলেট ও অন্যান্য</span>
-                        <span>@bn($tabletCount) ({{ $tabletPct }}%)</span>
+                        <span><i class="fa-solid fa-tablet-screen-button text-success me-1"></i> Tablet & Others</span>
+                        <span>{{ number_format($tabletCount) }} ({{ $tabletPct }}%)</span>
                     </div>
                     <div class="progress" style="height: 8px;">
                         <div class="progress-bar bg-success" role="progressbar" style="width: {{ $tabletPct }}%"></div>
@@ -141,15 +141,15 @@
     <div class="col-lg-8">
         <div class="card border-0 shadow-xs rounded-4 h-100 bg-white">
             <div class="card-header bg-white border-bottom py-3">
-                <h6 class="fw-bold text-dark mb-0"><i class="fa-solid fa-fire text-danger me-1.5"></i> সর্বাধিক পঠিত পেজ ও বই</h6>
+                <h6 class="fw-bold text-dark mb-0"><i class="fa-solid fa-fire text-danger me-1.5"></i> Most Visited Pages & Books</h6>
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0" style="font-size: 13px;">
                         <thead class="table-light">
                             <tr>
-                                <th>পেজ লিংক / শিরোনাম</th>
-                                <th class="text-end" style="width: 25%;">ভিউ সংখ্যা</th>
+                                <th>Page URL / Title</th>
+                                <th class="text-end" style="width: 25%;">Views</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -161,12 +161,12 @@
                                     </a>
                                 </td>
                                 <td class="text-end">
-                                    <span class="badge bg-primary-subtle text-primary rounded-pill px-2.5 py-1 fw-bold">@bn($page->views) বার</span>
+                                    <span class="badge bg-primary-subtle text-primary rounded-pill px-2.5 py-1 fw-bold">{{ number_format($page->views) }} views</span>
                                 </td>
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="2" class="text-center py-4 text-muted">এখনো কোনো ভিজিটর রেকর্ড নেই</td>
+                                <td colspan="2" class="text-center py-4 text-muted">No page view records yet</td>
                             </tr>
                             @endforelse
                         </tbody>
@@ -180,8 +180,8 @@
 <!-- Live Real-Time Logs Stream Table -->
 <div class="card border-0 shadow-xs rounded-4 bg-white overflow-hidden">
     <div class="card-header bg-white border-bottom py-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
-        <h6 class="fw-bold text-dark mb-0"><i class="fa-solid fa-list text-primary me-1.5"></i> লাইভ ভিজিটর স্ট্রিম (Real-time Stream)</h6>
-        <span class="badge bg-success text-white rounded-pill px-2.5 py-1"><i class="fa-solid fa-circle-dot me-1"></i> লাইভ ট্র্যাকিং সক্রিয়</span>
+        <h6 class="fw-bold text-dark mb-0"><i class="fa-solid fa-list text-primary me-1.5"></i> Live Real-Time Stream</h6>
+        <span class="badge bg-success text-white rounded-pill px-2.5 py-1"><i class="fa-solid fa-circle-dot me-1"></i> Tracking Active</span>
     </div>
 
     <div class="card-body p-0">
@@ -189,11 +189,11 @@
             <table class="table table-hover align-middle mb-0" style="font-size: 13px;">
                 <thead class="table-light">
                     <tr>
-                        <th>আইপি (IP)</th>
-                        <th>ডিভাইস ও ব্রাউজার</th>
-                        <th>পরিদর্শিত পেজ URL</th>
-                        <th>অপারেটিং সিস্টেম</th>
-                        <th>ভিজিটের সময়</th>
+                        <th>IP Address</th>
+                        <th>Device & Browser</th>
+                        <th>Visited URL</th>
+                        <th>OS</th>
+                        <th>Visited Time</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -210,11 +210,11 @@
                             </div>
                         </td>
                         <td><span class="badge bg-light text-dark border">{{ $log->os ?? 'OS' }}</span></td>
-                        <td class="text-muted small">{{ $log->visited_at ? $log->visited_at->diffForHumans() : 'এখনই' }}</td>
+                        <td class="text-muted small">{{ $log->visited_at ? $log->visited_at->diffForHumans() : 'Just now' }}</td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="5" class="text-center py-5 text-muted">কোনো ভিজিটর লগ পাওয়া যায়নি</td>
+                        <td colspan="5" class="text-center py-5 text-muted">No visitor stream logs recorded</td>
                     </tr>
                     @endforelse
                 </tbody>
@@ -224,7 +224,7 @@
 
     @if($logs->hasPages())
     <div class="card-footer bg-white border-top p-3 d-flex justify-content-between align-items-center">
-        <span class="small text-muted">মোট {{ $logs->total() }} টির রেকর্ড প্রদর্শিত হচ্ছে</span>
+        <span class="small text-muted">Showing {{ $logs->firstItem() }} to {{ $logs->lastItem() }} of {{ $logs->total() }} logs</span>
         <div>{{ $logs->links('pagination::bootstrap-5') }}</div>
     </div>
     @endif

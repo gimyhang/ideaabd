@@ -1,9 +1,9 @@
 @extends('layouts.admin')
 
-@section('title', 'আইডিয়াপত্র ও ব্লগ পোস্ট পরিচালনা')
-@section('heading', 'আইডিয়াপত্র — ব্লগ ও কনটেন্ট মডারেশন')
+@section('title', 'Ideapatra & Blog Posts Management')
+@section('heading', 'Ideapatra — Blog & Content Moderation')
 @section('breadcrumb')
-    <li class="breadcrumb-item active" aria-current="page">আইডিয়াপত্র ও ব্লগ</li>
+    <li class="breadcrumb-item active" aria-current="page">Ideapatra & Blog</li>
 @endsection
 
 @push('styles')
@@ -72,19 +72,19 @@
 
 @section('actions')
     <button type="button" class="btn btn-primary rounded-pill px-3 shadow-xs fw-semibold" data-bs-toggle="modal" data-bs-target="#blogCustomizerModal">
-        <i class="fas fa-palette me-1.5"></i> ডিজাইন ও ব্যানার কাস্টমাইজার
+        <i class="fas fa-palette me-1.5"></i> Design Customizer
     </button>
     <button type="button" class="btn btn-outline-success rounded-pill px-3 shadow-xs fw-semibold" data-bs-toggle="modal" data-bs-target="#bulkTypographyModal">
-        <i class="fas fa-wand-magic-sparkles me-1.5"></i> স্পেস মেরামত ইঞ্জিন
+        <i class="fas fa-wand-magic-sparkles me-1.5"></i> Typography Engine
     </button>
     <a href="{{ route('admin.blog-categories') }}" class="btn btn-outline-secondary rounded-pill px-3 shadow-xs">
-        <i class="fas fa-shapes me-1"></i> ক্যাটাগরি
+        <i class="fas fa-shapes me-1"></i> Categories
     </a>
     <a href="{{ route('admin.content.create', 'blog') }}" class="btn btn-dark rounded-pill px-3 shadow-xs fw-semibold">
-        <i class="fas fa-plus me-1"></i> নতুন পোস্ট
+        <i class="fas fa-plus me-1"></i> New Post
     </a>
     <a href="{{ route('blog.index') }}" target="_blank" rel="noopener" class="btn btn-outline-primary rounded-pill px-3 shadow-xs">
-        <i class="fas fa-arrow-up-right-from-square me-1"></i> ব্লগে দেখুন
+        <i class="fas fa-arrow-up-right-from-square me-1"></i> View Blog
     </a>
 @endsection
 
@@ -118,14 +118,14 @@
                     <div class="banner-thumb-box shadow">
                         <img src="{{ $blogOgBannerUrl }}" alt="Active Ideapatra Banner" id="heroBannerThumb">
                         <div class="position-absolute bottom-0 start-0 end-0 p-1.5 text-center bg-dark bg-opacity-75" style="font-size: 10px; backdrop-filter: blur(4px);">
-                            <i class="fas fa-share-nodes text-warning me-1"></i> সোশ্যাল ও ব্লগ ব্যানার
+                            <i class="fas fa-share-nodes text-warning me-1"></i> Social & Blog Banner
                         </div>
                     </div>
                 </div>
                 <div class="mt-2">
                     <button type="button" class="btn btn-warning btn-sm rounded-pill px-3 py-1 fw-bold text-dark shadow-xs" 
                             data-bs-toggle="modal" data-bs-target="#blogCustomizerModal" onclick="switchToBannerTab()">
-                        <i class="fas fa-crop-simple me-1"></i> ব্যানার পরিবর্তন
+                        <i class="fas fa-crop-simple me-1"></i> Change Banner
                     </button>
                 </div>
             </div>
@@ -134,33 +134,33 @@
             <div class="col-lg-6 col-md-8">
                 <div class="d-flex align-items-center gap-2 mb-1.5 flex-wrap">
                     <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1 fw-bold">
-                        {{ $blogSettings['hero_badge'] ?? 'সাহিত্য, শিল্প-সংস্কৃতি, গবেষণা ও মুক্তচিন্তা' }}
+                        {{ $blogSettings['hero_badge'] ?? 'Literature, Culture, Research & Free Thought' }}
                     </span>
                     <span class="badge bg-white bg-opacity-10 text-white rounded-pill px-2.5 py-1">
-                        <i class="fas fa-font me-1 text-warning"></i> ফন্ট: {{ explode(',', $blogSettings['font_family'] ?? '')[0] ?? 'Hind Siliguri' }}
+                        <i class="fas fa-font me-1 text-warning"></i> Font: {{ explode(',', $blogSettings['font_family'] ?? '')[0] ?? 'Hind Siliguri' }}
                     </span>
                     <span class="badge bg-white bg-opacity-10 text-white rounded-pill px-2.5 py-1">
-                        <i class="fas fa-arrows-up-down me-1 text-info"></i> লাইন স্পেস: {{ $blogSettings['line_height'] ?? '1.6' }}
+                        <i class="fas fa-arrows-up-down me-1 text-info"></i> Line Spacing: {{ $blogSettings['line_height'] ?? '1.6' }}
                     </span>
                 </div>
 
                 <h4 class="fw-bold mb-1.5 text-white">
-                    {{ $blogSettings['hero_title'] ?? 'আইডিয়াপত্র — সমকালীন সাহিত্য ও চিন্তা' }}
+                    {{ $blogSettings['hero_title'] ?? 'Ideapatra — Contemporary Literature & Thought' }}
                 </h4>
                 <p class="text-white-50 small mb-3 line-clamp-2" style="font-size: 0.88rem; max-width: 600px;">
-                    {{ $blogSettings['hero_subtitle'] ?? 'সমকালীন সাহিত্য আলোচনা, প্রবন্ধ, ছোটগল্প, কবিতা, নতুন বইয়ের প্রামাণ্য পর্যালোচনা ও গবেষণামূলক লেখার উন্মুক্ত ডিজিটাল সাময়িকী।' }}
+                    {{ $blogSettings['hero_subtitle'] ?? 'An open digital magazine for contemporary literary discussions, essays, short stories, poems, book reviews and analytical research.' }}
                 </p>
 
                 <!-- Quick Action Pills -->
                 <div class="d-flex align-items-center gap-2 flex-wrap">
                     <button type="button" class="btn btn-outline-light btn-sm rounded-pill px-3 shadow-xs" data-bs-toggle="modal" data-bs-target="#blogCustomizerModal">
-                        <i class="fas fa-palette text-warning me-1"></i> ডিজাইন পরিবর্তন
+                        <i class="fas fa-palette text-warning me-1"></i> Change Design
                     </button>
                     <button type="button" class="btn btn-outline-light btn-sm rounded-pill px-3 shadow-xs" data-bs-toggle="modal" data-bs-target="#bulkTypographyModal">
-                        <i class="fas fa-wand-magic-sparkles text-success me-1"></i> লেখার স্পেস মেরামত
+                        <i class="fas fa-wand-magic-sparkles text-success me-1"></i> Format Typography
                     </button>
                     <a href="{{ route('blog.index') }}" target="_blank" class="btn btn-outline-info btn-sm rounded-pill px-3 shadow-xs">
-                        <i class="fas fa-external-link-alt me-1"></i> লাইভ আইডিয়াপত্র
+                        <i class="fas fa-external-link-alt me-1"></i> Live Ideapatra
                     </a>
                 </div>
             </div>
@@ -169,20 +169,20 @@
             <div class="col-lg-3 text-center text-lg-end">
                 <div class="p-3 rounded-4 bg-white bg-opacity-10 border border-white border-opacity-10 d-inline-block text-start" style="min-width: 200px;">
                     <div class="d-flex justify-content-between align-items-center mb-1.5">
-                        <span class="small text-white-50">মোট পোস্ট:</span>
-                        <span class="fw-bold fs-6 text-white">@bn($stats['total'] ?? 0)</span>
+                        <span class="small text-white-50">Total Posts:</span>
+                        <span class="fw-bold fs-6 text-white">{{ number_format($stats['total'] ?? 0) }}</span>
                     </div>
                     <div class="d-flex justify-content-between align-items-center mb-1.5">
-                        <span class="small text-success"><i class="fas fa-check-circle me-1"></i>প্রকাশিত:</span>
-                        <span class="fw-bold text-success">@bn($stats['published'] ?? 0)</span>
+                        <span class="small text-success"><i class="fas fa-check-circle me-1"></i>Published:</span>
+                        <span class="fw-bold text-success">{{ number_format($stats['published'] ?? 0) }}</span>
                     </div>
                     <div class="d-flex justify-content-between align-items-center mb-1.5">
-                        <span class="small text-warning"><i class="fas fa-clock me-1"></i>অপেক্ষমাণ:</span>
-                        <span class="fw-bold text-warning">@bn($stats['pending'] ?? 0)</span>
+                        <span class="small text-warning"><i class="fas fa-clock me-1"></i>Pending:</span>
+                        <span class="fw-bold text-warning">{{ number_format($stats['pending'] ?? 0) }}</span>
                     </div>
                     <div class="d-flex justify-content-between align-items-center">
-                        <span class="small text-info"><i class="fas fa-star me-1 text-warning"></i>নির্বাচিত:</span>
-                        <span class="fw-bold text-info">@bn($stats['featured'] ?? 0)</span>
+                        <span class="small text-info"><i class="fas fa-star me-1 text-warning"></i>Featured:</span>
+                        <span class="fw-bold text-info">{{ number_format($stats['featured'] ?? 0) }}</span>
                     </div>
                 </div>
             </div>
@@ -197,8 +197,8 @@
         <a href="{{ route('admin.blog') }}" class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-primary text-decoration-none hover-lift h-100">
             <div class="d-flex align-items-center justify-content-between">
                 <div>
-                    <span class="text-muted small fw-semibold">মোট লেখা</span>
-                    <h3 class="fw-bold mb-0 text-primary">@bn($stats['total'] ?? 0)</h3>
+                    <span class="text-muted small fw-semibold">Total Posts</span>
+                    <h3 class="fw-bold mb-0 text-primary">{{ number_format($stats['total'] ?? 0) }}</h3>
                 </div>
                 <div class="rounded-circle bg-primary-subtle text-primary p-3"><i class="fas fa-blog fs-4"></i></div>
             </div>
@@ -208,8 +208,8 @@
         <a href="{{ route('admin.blog', ['status' => 'published']) }}" class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-success text-decoration-none hover-lift h-100">
             <div class="d-flex align-items-center justify-content-between">
                 <div>
-                    <span class="text-muted small fw-semibold">প্রকাশিত (অনুমোদিত)</span>
-                    <h3 class="fw-bold mb-0 text-success">@bn($stats['published'] ?? 0)</h3>
+                    <span class="text-muted small fw-semibold">Published (Approved)</span>
+                    <h3 class="fw-bold mb-0 text-success">{{ number_format($stats['published'] ?? 0) }}</h3>
                 </div>
                 <div class="rounded-circle bg-success-subtle text-success p-3"><i class="fas fa-check-double fs-4"></i></div>
             </div>
@@ -219,8 +219,8 @@
         <a href="{{ route('admin.blog', ['status' => 'pending']) }}" class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-warning text-decoration-none hover-lift h-100">
             <div class="d-flex align-items-center justify-content-between">
                 <div>
-                    <span class="text-muted small fw-semibold">অনুমোদন অপেক্ষমাণ</span>
-                    <h3 class="fw-bold mb-0 text-warning">@bn($stats['pending'] ?? 0)</h3>
+                    <span class="text-muted small fw-semibold">Pending Review</span>
+                    <h3 class="fw-bold mb-0 text-warning">{{ number_format($stats['pending'] ?? 0) }}</h3>
                 </div>
                 <div class="rounded-circle bg-warning-subtle text-warning p-3"><i class="fas fa-clock fs-4"></i></div>
             </div>
@@ -230,8 +230,8 @@
         <a href="{{ route('admin.blog', ['status' => 'featured']) }}" class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-info text-decoration-none hover-lift h-100">
             <div class="d-flex align-items-center justify-content-between">
                 <div>
-                    <span class="text-muted small fw-semibold">নির্বাচিত ফিচার্ড পোস্ট</span>
-                    <h3 class="fw-bold mb-0 text-info">@bn($stats['featured'] ?? 0)</h3>
+                    <span class="text-muted small fw-semibold">Featured Posts</span>
+                    <h3 class="fw-bold mb-0 text-info">{{ number_format($stats['featured'] ?? 0) }}</h3>
                 </div>
                 <div class="rounded-circle bg-info-subtle text-info p-3"><i class="fas fa-star fs-4 text-warning"></i></div>
             </div>
@@ -248,14 +248,14 @@
                 <div class="input-group">
                     <span class="input-group-text bg-light border-end-0"><i class="fas fa-search text-muted"></i></span>
                     <input type="search" name="search" class="form-control border-start-0" 
-                           placeholder="পোস্টের শিরোনাম, বিষয়, লেখক বা slug..." value="{{ request('search') }}">
+                           placeholder="Search post title, subject, author or slug..." value="{{ request('search') }}">
                 </div>
             </div>
 
             <!-- Category Filter -->
             <div class="col-lg-2 col-md-3 col-6">
                 <select name="category" class="form-select" onchange="this.form.submit()">
-                    <option value="">সকল ক্যাটাগরি</option>
+                    <option value="">All Categories</option>
                     @foreach($categories as $cat)
                         <option value="{{ $cat->slug }}" @selected(request('category') == $cat->slug || request('category') == $cat->id)>
                             {{ $cat->name }}
@@ -267,29 +267,29 @@
             <!-- Status Filter -->
             <div class="col-lg-2 col-md-3 col-6">
                 <select name="status" class="form-select" onchange="this.form.submit()">
-                    <option value="all" @selected(request('status') === 'all' || !request('status'))>সকল অবস্থা</option>
-                    <option value="published" @selected(request('status') === 'published')>প্রকাশিত (Published)</option>
-                    <option value="pending" @selected(request('status') === 'pending')>অপেক্ষমাণ (Pending)</option>
-                    <option value="featured" @selected(request('status') === 'featured')>নির্বাচিত (Featured)</option>
-                    <option value="draft" @selected(request('status') === 'draft')>খসড়া (Draft)</option>
-                    <option value="rejected" @selected(request('status') === 'rejected')>বাতিল (Rejected)</option>
+                    <option value="all" @selected(request('status') === 'all' || !request('status'))>All Statuses</option>
+                    <option value="published" @selected(request('status') === 'published')>Published</option>
+                    <option value="pending" @selected(request('status') === 'pending')>Pending</option>
+                    <option value="featured" @selected(request('status') === 'featured')>Featured</option>
+                    <option value="draft" @selected(request('status') === 'draft')>Draft</option>
+                    <option value="rejected" @selected(request('status') === 'rejected')>Rejected</option>
                 </select>
             </div>
 
             <!-- Items Per Page -->
             <div class="col-lg-2 col-md-3 col-6">
                 <select name="per_page" class="form-select" onchange="this.form.submit()">
-                    <option value="20" @selected(($perPage ?? 20) == 20)>প্রতি পেজে ২০টি</option>
-                    <option value="50" @selected(($perPage ?? 20) == 50)>প্রতি পেজে ৫০টি</option>
-                    <option value="100" @selected(($perPage ?? 20) == 100)>প্রতি পেজে ১০০টি</option>
+                    <option value="20" @selected(($perPage ?? 20) == 20)>20 per page</option>
+                    <option value="50" @selected(($perPage ?? 20) == 50)>50 per page</option>
+                    <option value="100" @selected(($perPage ?? 20) == 100)>100 per page</option>
                 </select>
             </div>
 
             <!-- Action Buttons -->
             <div class="col-lg-2 col-md-3 col-6 d-flex gap-2">
-                <button type="submit" class="btn btn-primary w-100 rounded-3"><i class="fas fa-filter me-1"></i> ফিল্টার</button>
+                <button type="submit" class="btn btn-primary w-100 rounded-3"><i class="fas fa-filter me-1"></i> Filter</button>
                 @if(request()->hasAny(['search', 'status', 'category', 'is_featured', 'per_page']))
-                    <a href="{{ route('admin.blog') }}" class="btn btn-light border rounded-3" title="রিসেট"><i class="fas fa-rotate-left"></i></a>
+                    <a href="{{ route('admin.blog') }}" class="btn btn-light border rounded-3" title="Reset"><i class="fas fa-rotate-left"></i></a>
                 @endif
             </div>
         </form>
@@ -304,24 +304,24 @@
         <div class="d-flex align-items-center gap-2">
             <div class="form-check me-2">
                 <input class="form-check-input" type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this)">
-                <label class="form-check-label small fw-semibold text-muted" for="selectAllCheckbox">সব নির্বাচন</label>
+                <label class="form-check-label small fw-semibold text-muted" for="selectAllCheckbox">Select All</label>
             </div>
             
             <div class="input-group input-group-sm" style="max-width: 280px;">
                 <select name="bulk_action" id="bulkActionSelect" class="form-select form-select-sm rounded-start-pill">
-                    <option value="">বাল্ক অ্যাকশন বেছে নিন...</option>
-                    <option value="publish">নির্বাচিতগুলো প্রকাশ ও অনুমোদন করুন</option>
-                    <option value="draft">নির্বাচিতগুলো ড্রাফট করুন</option>
-                    <option value="delete">নির্বাচিতগুলো মুছে ফেলুন</option>
+                    <option value="">Choose bulk action...</option>
+                    <option value="publish">Publish & Approve Selected</option>
+                    <option value="draft">Draft Selected</option>
+                    <option value="delete">Delete Selected</option>
                 </select>
                 <button type="submit" class="btn btn-dark btn-sm rounded-end-pill px-3 fw-semibold" onclick="return confirmBulkAction()">
-                    প্রয়োগ
+                    Apply
                 </button>
             </div>
         </div>
 
         <div class="text-muted small">
-            মোট @bn($posts->total())টি পোস্টের মধ্যে @bn($posts->firstItem() ?? 0)–@bn($posts->lastItem() ?? 0) দেখাচ্ছে
+            Showing {{ $posts->firstItem() ?? 0 }}–{{ $posts->lastItem() ?? 0 }} of {{ $posts->total() }} posts
         </div>
     </div>
 
@@ -329,10 +329,10 @@
         @if ($posts->isEmpty())
             <div class="empty-state py-5 text-center">
                 <i class="fas fa-newspaper fs-1 text-muted opacity-50 mb-3"></i>
-                <h5 class="fw-bold text-muted">কোনো ব্লগ পোস্ট পাওয়া যায়নি</h5>
-                <p class="text-muted small">নতুন পোস্ট তৈরি করুন অথবা অন্য ফিল্টার ব্যবহার করে দেখুন।</p>
+                <h5 class="fw-bold text-muted">No Blog Posts Found</h5>
+                <p class="text-muted small">Create a new post or try adjusting your search filters.</p>
                 <a href="{{ route('admin.content.create', 'blog') }}" class="btn btn-primary btn-sm rounded-pill px-4">
-                    <i class="fas fa-plus me-1"></i> নতুন পোস্ট লিখুন
+                    <i class="fas fa-plus me-1"></i> Write New Post
                 </a>
             </div>
         @else
@@ -342,14 +342,14 @@
                         <tr>
                             <th class="ps-3" style="width: 40px;"></th>
                             <th style="width: 40px;">#</th>
-                            <th style="width: 40px;" class="text-center" title="নির্বাচিত পোস্ট">★</th>
-                            <th style="min-width: 260px;">পোস্টের শিরোনাম ও প্রচ্ছদ</th>
-                            <th>লেখক / জমাদানকারী</th>
-                            <th>ক্যাটাগরি</th>
-                            <th>অবস্থা (Status)</th>
-                            <th>ভিউ</th>
-                            <th>তারিখ</th>
-                            <th class="text-end pe-3" style="min-width: 170px;">অ্যাকশন</th>
+                            <th style="width: 40px;" class="text-center" title="Featured Post">★</th>
+                            <th style="min-width: 260px;">Post Title & Cover</th>
+                            <th>Author / Submitter</th>
+                            <th>Category</th>
+                            <th>Status</th>
+                            <th>Views</th>
+                            <th>Date</th>
+                            <th class="text-end pe-3" style="min-width: 170px;">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -368,14 +368,14 @@
                                 </td>
 
                                 <!-- Row Number -->
-                                <td class="text-muted small">@bn($posts->firstItem() + $n)</td>
+                                <td class="text-muted small">{{ $posts->firstItem() + $n }}</td>
 
                                 <!-- Featured Star Toggle -->
                                 <td class="text-center">
                                     <button type="button" class="btn-featured-star {{ $post->is_featured ? 'active' : '' }}" 
                                             id="starBtn{{ $post->id }}"
                                             onclick="toggleFeatured({{ $post->id }})" 
-                                            title="{{ $post->is_featured ? 'নির্বাচিত পোস্ট (ক্লিক করে আন-ফিচার্ড করুন)' : 'সাধারণ পোস্ট (ক্লিক করে ফিচার্ড করুন)' }}">
+                                            title="{{ $post->is_featured ? 'Featured post (Click to unfeature)' : 'Standard post (Click to feature)' }}">
                                         <i class="fa-solid fa-star"></i>
                                     </button>
                                 </td>
@@ -425,7 +425,7 @@
                                 <!-- Category -->
                                 <td>
                                     <span class="badge bg-light text-dark border rounded-pill px-2.5 py-1">
-                                        {{ $post->category?->name ?? 'সাধারণ' }}
+                                        {{ $post->category?->name ?? 'General' }}
                                     </span>
                                 </td>
 
@@ -435,16 +435,16 @@
                                             {{ $isPublished ? 'bg-success-subtle text-success border-success-subtle' : ($isPending ? 'bg-warning-subtle text-warning border-warning-subtle' : ($isRejected ? 'bg-danger-subtle text-danger border-danger-subtle' : 'bg-secondary-subtle text-secondary border-secondary-subtle')) }}" 
                                             id="statusSelect{{ $post->id }}"
                                             onchange="updatePostStatus({{ $post->id }}, this.value)">
-                                        <option value="published" @selected($isPublished)>✓ প্রকাশিত</option>
-                                        <option value="pending" @selected($isPending)>⏳ অপেক্ষমাণ</option>
-                                        <option value="draft" @selected($isDraft)>📝 খসড়া</option>
-                                        <option value="rejected" @selected($isRejected)>✕ বাতিল</option>
+                                        <option value="published" @selected($isPublished)>✓ Published</option>
+                                        <option value="pending" @selected($isPending)>⏳ Pending</option>
+                                        <option value="draft" @selected($isDraft)>📝 Draft</option>
+                                        <option value="rejected" @selected($isRejected)>✕ Rejected</option>
                                     </select>
                                 </td>
 
                                 <!-- Views -->
                                 <td class="text-muted small">
-                                    <i class="fas fa-eye text-primary me-1"></i>@bn($post->views_count ?? $post->view_count ?? 0)
+                                    <i class="fas fa-eye text-primary me-1"></i>{{ number_format($post->views_count ?? $post->view_count ?? 0) }}
                                 </td>
 
                                 <!-- Date -->
@@ -457,25 +457,25 @@
                                     <div class="d-flex align-items-center justify-content-end gap-1.5">
                                         @if($isPending)
                                             <button type="button" class="btn btn-sm btn-success px-2 py-1 shadow-xs" 
-                                                    onclick="updatePostStatus({{ $post->id }}, 'published')" title="অনুমোদন ও প্রকাশ করুন">
+                                                    onclick="updatePostStatus({{ $post->id }}, 'published')" title="Approve & Publish">
                                                 <i class="fas fa-check"></i>
                                             </button>
                                         @endif
 
                                         <a href="{{ route('admin.content.edit', ['type' => 'blog', 'id' => $post->id]) }}" 
-                                           class="btn btn-sm btn-outline-primary px-2 py-1 shadow-xs" title="সম্পাদনা করুন">
+                                           class="btn btn-sm btn-outline-primary px-2 py-1 shadow-xs" title="Edit Post">
                                             <i class="fas fa-pen-to-square"></i>
                                         </a>
 
                                         @if($isPublished)
                                             <a href="{{ route('blog.show', $post->slug) }}" target="_blank" rel="noopener" 
-                                               class="btn btn-sm btn-light border px-2 py-1 shadow-xs text-primary" title="সাইটে পড়ুন">
+                                               class="btn btn-sm btn-light border px-2 py-1 shadow-xs text-primary" title="Read on Site">
                                                 <i class="fas fa-arrow-up-right-from-square"></i>
                                             </a>
                                         @endif
 
                                         <button type="button" class="btn btn-sm btn-outline-danger px-2 py-1 shadow-xs" 
-                                                onclick="deletePost({{ $post->id }}, '{{ addslashes($post->title) }}')" title="মুছে ফেলুন">
+                                                onclick="deletePost({{ $post->id }}, '{{ addslashes($post->title) }}')" title="Delete">
                                             <i class="fas fa-trash-can"></i>
                                         </button>
                                     </div>
@@ -489,7 +489,7 @@
             @if ($posts->hasPages())
                 <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 p-3 bg-white border-top">
                     <span class="text-muted small">
-                        মোট @bn($posts->total())টির মধ্যে @bn($posts->firstItem())–@bn($posts->lastItem()) দেখানো হচ্ছে
+                        Showing {{ $posts->firstItem() }} to {{ $posts->lastItem() }} of {{ $posts->total() }} posts
                     </span>
                     {{ $posts->links() }}
                 </div>
@@ -510,8 +510,8 @@
                         <i class="fas fa-palette text-white"></i>
                     </div>
                     <div>
-                        <h5 class="modal-title fw-bold fs-6 mb-0 text-white" id="blogCustomizerModalLabel">আইডিয়াপত্র ও ব্লগ ডাইনামিক ডিজাইন ও ব্যানার কাস্টমাইজার</h5>
-                        <span class="small text-white-50" style="font-size: 0.78rem;">সোশ্যাল ব্যানার, হেডার গ্র্যাডিয়েন্ট, ফন্ট, লাইন স্পেসিং ও রিডিং লেআউট নিয়ন্ত্রণ করুন</span>
+                        <h5 class="modal-title fw-bold fs-6 mb-0 text-white" id="blogCustomizerModalLabel">Ideapatra & Blog Design & Banner Customizer</h5>
+                        <span class="small text-white-50" style="font-size: 0.78rem;">Configure social banner, header gradient, font, line spacing and reader layout</span>
                     </div>
                 </div>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -529,17 +529,17 @@
                             <ul class="nav nav-pills nav-fill bg-white p-1.5 rounded-pill shadow-xs border mb-3" id="customizerTabs" role="tablist">
                                 <li class="nav-item" role="presentation">
                                     <button class="nav-link active rounded-pill fw-semibold py-1.5 small" id="tab-banner-btn" data-bs-toggle="pill" data-bs-target="#tab-banner" type="button" role="tab">
-                                        <i class="fas fa-image me-1 text-warning"></i> ব্যানার ও হেডার
+                                        <i class="fas fa-image me-1 text-warning"></i> Banner & Header
                                     </button>
                                 </li>
                                 <li class="nav-item" role="presentation">
                                     <button class="nav-link rounded-pill fw-semibold py-1.5 small" id="tab-typography-btn" data-bs-toggle="pill" data-bs-target="#tab-typography" type="button" role="tab">
-                                        <i class="fas fa-font me-1 text-primary"></i> ফন্ট ও লাইন স্পেস
+                                        <i class="fas fa-font me-1 text-primary"></i> Typography & Spacing
                                     </button>
                                 </li>
                                 <li class="nav-item" role="presentation">
                                     <button class="nav-link rounded-pill fw-semibold py-1.5 small" id="tab-reading-btn" data-bs-toggle="pill" data-bs-target="#tab-reading" type="button" role="tab">
-                                        <i class="fas fa-book-open me-1 text-success"></i> রিডার ও লেআউট
+                                        <i class="fas fa-book-open me-1 text-success"></i> Reader & Layout
                                     </button>
                                 </li>
                             </ul>
@@ -551,7 +551,7 @@
                                     <div class="card border-0 shadow-xs rounded-3 p-3.5 bg-white mb-3">
                                         <h6 class="fw-bold text-dark mb-3 pb-2 border-bottom d-flex align-items-center gap-2">
                                             <i class="fas fa-share-nodes text-primary"></i>
-                                            <span>সোশ্যাল মিডিয়া ও আইডিয়াপত্র ব্যানার</span>
+                                            <span>Social Media & Ideapatra Banner</span>
                                         </h6>
 
                                         <div class="row g-3">
@@ -560,9 +560,9 @@
                                                 <div class="p-3 bg-light rounded-4 border mb-3 text-center">
                                                     <div class="d-flex justify-content-between align-items-center mb-2">
                                                         <span class="badge bg-white text-dark border small fw-bold">
-                                                            <i class="fas fa-crop-simple text-primary me-1"></i> ১২০০ × ৬৩০ px (১৬:৯ রেশিও)
+                                                            <i class="fas fa-crop-simple text-primary me-1"></i> 1200 × 630 px (16:9 Ratio)
                                                         </span>
-                                                        <span class="small text-muted">লাইভ ক্রপার সক্রিয়</span>
+                                                        <span class="small text-muted">Live cropper enabled</span>
                                                     </div>
 
                                                     <div class="banner-thumb-box mx-auto mb-2 shadow-xs" style="max-width: 320px; aspect-ratio: 16/9;">
@@ -570,59 +570,59 @@
                                                     </div>
 
                                                     <div class="text-start mt-3">
-                                                        <label class="form-label small fw-bold text-dark mb-1">কাস্টম ব্যানার ফাইল নির্বাচন ও ক্রপ করুন:</label>
+                                                        <label class="form-label small fw-bold text-dark mb-1">Select Custom Banner & Crop:</label>
                                                         <input type="file" id="modalBannerInput" name="blog_og_banner" class="form-control rounded-3" accept="image/*" onchange="initBannerCropper(this)">
                                                         <input type="hidden" name="blog_og_banner_cropped" id="modalBannerCropped">
-                                                        <div class="form-text small text-muted">ফাইল নির্বাচন করলে স্বয়ংক্রিয় ১৬:৯ ক্রপ উইন্ডো ওপেন হবে।</div>
+                                                        <div class="form-text small text-muted">Selecting an image file will automatically open the 16:9 crop window.</div>
                                                     </div>
 
                                                     <div class="form-check text-start mt-2">
                                                         <input class="form-check-input" type="checkbox" name="remove_blog_og_banner" value="1" id="rmBlogBannerModal">
-                                                        <label class="form-check-label small text-danger fw-semibold" for="rmBlogBannerModal">কাস্টম ব্যানার মুছে ডিফল্ট ব্যানার ব্যবহার করুন</label>
+                                                        <label class="form-check-label small text-danger fw-semibold" for="rmBlogBannerModal">Remove custom banner and use default</label>
                                                     </div>
                                                 </div>
                                             </div>
 
                                             <!-- Header Gradient Scheme -->
                                             <div class="col-12">
-                                                <label class="form-label small fw-bold text-dark mb-1">হেডার কালার থিম (Header Banner Gradient):</label>
+                                                <label class="form-label small fw-bold text-dark mb-1">Header Banner Gradient:</label>
                                                 <select name="header_gradient" id="custHeaderGradient" class="form-select form-select-sm" onchange="updateLivePreview()">
-                                                    <option value="linear-gradient(135deg, #0c4a6e 0%, #0369a1 50%, #0284c7 100%)" @selected(($blogSettings['header_gradient'] ?? '') == 'linear-gradient(135deg, #0c4a6e 0%, #0369a1 50%, #0284c7 100%)')>নীল ও আকাশী (Ocean Blue Gradient)</option>
-                                                    <option value="linear-gradient(135deg, #064e3b 0%, #047857 50%, #059669 100%)" @selected(($blogSettings['header_gradient'] ?? '') == 'linear-gradient(135deg, #064e3b 0%, #047857 50%, #059669 100%)')>সবুজ ও পান্না (Emerald Green Gradient)</option>
-                                                    <option value="linear-gradient(135deg, #312e81 0%, #4338ca 50%, #6366f1 100%)" @selected(($blogSettings['header_gradient'] ?? '') == 'linear-gradient(135deg, #312e81 0%, #4338ca 50%, #6366f1 100%)')>রয়েল ইন্ডিগো (Royal Indigo Gradient)</option>
-                                                    <option value="linear-gradient(135deg, #18181b 0%, #27272a 50%, #3f3f46 100%)" @selected(($blogSettings['header_gradient'] ?? '') == 'linear-gradient(135deg, #18181b 0%, #27272a 50%, #3f3f46 100%)')>ক্লাসিক চারকোল (Classic Dark Graphite)</option>
-                                                    <option value="linear-gradient(135deg, #881337 0%, #9f1239 50%, #be123c 100%)" @selected(($blogSettings['header_gradient'] ?? '') == 'linear-gradient(135deg, #881337 0%, #9f1239 50%, #be123c 100%)')>ডিপ মেরুন (Deep Crimson Velvet)</option>
+                                                    <option value="linear-gradient(135deg, #0c4a6e 0%, #0369a1 50%, #0284c7 100%)" @selected(($blogSettings['header_gradient'] ?? '') == 'linear-gradient(135deg, #0c4a6e 0%, #0369a1 50%, #0284c7 100%)')>Ocean Blue Gradient</option>
+                                                    <option value="linear-gradient(135deg, #064e3b 0%, #047857 50%, #059669 100%)" @selected(($blogSettings['header_gradient'] ?? '') == 'linear-gradient(135deg, #064e3b 0%, #047857 50%, #059669 100%)')>Emerald Green Gradient</option>
+                                                    <option value="linear-gradient(135deg, #312e81 0%, #4338ca 50%, #6366f1 100%)" @selected(($blogSettings['header_gradient'] ?? '') == 'linear-gradient(135deg, #312e81 0%, #4338ca 50%, #6366f1 100%)')>Royal Indigo Gradient</option>
+                                                    <option value="linear-gradient(135deg, #18181b 0%, #27272a 50%, #3f3f46 100%)" @selected(($blogSettings['header_gradient'] ?? '') == 'linear-gradient(135deg, #18181b 0%, #27272a 50%, #3f3f46 100%)')>Classic Dark Graphite</option>
+                                                    <option value="linear-gradient(135deg, #881337 0%, #9f1239 50%, #be123c 100%)" @selected(($blogSettings['header_gradient'] ?? '') == 'linear-gradient(135deg, #881337 0%, #9f1239 50%, #be123c 100%)')>Deep Crimson Velvet</option>
                                                 </select>
                                             </div>
 
                                             <!-- Hero Badge -->
                                             <div class="col-12">
-                                                <label class="form-label small fw-bold text-dark mb-1">ব্যানার ব্যাজ টেক্সট (Top Badge):</label>
+                                                <label class="form-label small fw-bold text-dark mb-1">Top Badge Text:</label>
                                                 <input type="text" name="hero_badge" id="custHeroBadge" class="form-control form-control-sm" 
-                                                       value="{{ $blogSettings['hero_badge'] ?? 'সাহিত্য, শিল্প-সংস্কৃতি, গবেষণা ও মুক্তচিন্তা' }}" oninput="updateLivePreview()">
+                                                       value="{{ $blogSettings['hero_badge'] ?? 'Literature, Culture, Research & Free Thought' }}" oninput="updateLivePreview()">
                                             </div>
 
                                             <!-- Hero Title -->
                                             <div class="col-12">
-                                                <label class="form-label small fw-bold text-dark mb-1">মূল শিরোনাম (Hero Title):</label>
+                                                <label class="form-label small fw-bold text-dark mb-1">Hero Title:</label>
                                                 <input type="text" name="hero_title" id="custHeroTitle" class="form-control form-control-sm fw-bold" 
-                                                       value="{{ $blogSettings['hero_title'] ?? 'আইডিয়াপত্র — সমকালীন সাহিত্য ও চিন্তা' }}" oninput="updateLivePreview()">
+                                                       value="{{ $blogSettings['hero_title'] ?? 'Ideapatra — Contemporary Literature & Thought' }}" oninput="updateLivePreview()">
                                             </div>
 
                                             <!-- Hero Subtitle -->
                                             <div class="col-12">
-                                                <label class="form-label small fw-bold text-dark mb-1">সাব-শিরোনাম ও বিবরণী (Hero Subtitle):</label>
-                                                <textarea name="hero_subtitle" id="custHeroSubtitle" rows="2" class="form-control form-control-sm" oninput="updateLivePreview()">{{ $blogSettings['hero_subtitle'] ?? 'সমকালীন সাহিত্য আলোচনা, প্রবন্ধ, ছোটগল্প, কবিতা, নতুন বইয়ের প্রামাণ্য পর্যালোচনা ও গবেষণামূলক লেখার উন্মুক্ত ডিজিটাল সাময়িকী।' }}</textarea>
+                                                <label class="form-label small fw-bold text-dark mb-1">Hero Subtitle & Description:</label>
+                                                <textarea name="hero_subtitle" id="custHeroSubtitle" rows="2" class="form-control form-control-sm" oninput="updateLivePreview()">{{ $blogSettings['hero_subtitle'] ?? 'An open digital magazine for contemporary literary discussions, essays, short stories, poems, book reviews and analytical research.' }}</textarea>
                                             </div>
 
                                             <!-- Write Button Text & URL -->
                                             <div class="col-6">
-                                                <label class="form-label small fw-bold text-dark mb-1">লেখা জমা বাটন টেক্সট:</label>
+                                                <label class="form-label small fw-bold text-dark mb-1">Write Button Label:</label>
                                                 <input type="text" name="write_button_text" id="custWriteBtnText" class="form-control form-control-sm" 
-                                                       value="{{ $blogSettings['write_button_text'] ?? 'নিজের লেখা পোস্ট করুন' }}" oninput="updateLivePreview()">
+                                                       value="{{ $blogSettings['write_button_text'] ?? 'Submit Your Post' }}" oninput="updateLivePreview()">
                                             </div>
                                             <div class="col-6">
-                                                <label class="form-label small fw-bold text-dark mb-1">বাটন লিংক (URL):</label>
+                                                <label class="form-label small fw-bold text-dark mb-1">Button Link (URL):</label>
                                                 <input type="text" name="write_button_url" id="custWriteBtnUrl" class="form-control form-control-sm" 
                                                        value="{{ $blogSettings['write_button_url'] ?? '/blog/write' }}">
                                             </div>
@@ -635,73 +635,73 @@
                                     <div class="card border-0 shadow-xs rounded-3 p-3.5 bg-white mb-3">
                                         <h6 class="fw-bold text-dark mb-3 pb-2 border-bottom d-flex align-items-center gap-2">
                                             <i class="fas fa-text-height text-primary"></i>
-                                            <span>লেখার ফন্ট ও লাইন বিন্যাস</span>
+                                            <span>Typography & Line Spacing</span>
                                         </h6>
 
                                         <div class="row g-3">
                                             <!-- Font Family -->
                                             <div class="col-12">
-                                                <label class="form-label small fw-bold text-dark mb-1">সাহিত্যিক বাংলা ফন্ট (Font Family):</label>
+                                                <label class="form-label small fw-bold text-dark mb-1">Font Family:</label>
                                                 <select name="font_family" id="custFontFamily" class="form-select form-select-sm" onchange="updateLivePreview()">
-                                                    <option value="'Hind Siliguri', 'Kalpurush', 'SolaimanLipi', sans-serif" @selected(($blogSettings['font_family'] ?? '') == "'Hind Siliguri', 'Kalpurush', 'SolaimanLipi', sans-serif")>হিন্দ শিলিগুড়ি (Hind Siliguri - আধুনিক ও প্রমিত)</option>
-                                                    <option value="'Kalpurush', 'SolaimanLipi', Georgia, serif" @selected(($blogSettings['font_family'] ?? '') == "'Kalpurush', 'SolaimanLipi', Georgia, serif")>কালপুরুষ (Kalpurush - ক্লাসিক সাহিত্যপত্র ফন্ট)</option>
-                                                    <option value="'SolaimanLipi', 'Hind Siliguri', sans-serif" @selected(($blogSettings['font_family'] ?? '') == "'SolaimanLipi', 'Hind Siliguri', sans-serif")>সোলায়মান লিপি (SolaimanLipi - স্পষ্ট প্রকাশনা)</option>
-                                                    <option value="'Nikosh', 'Kalpurush', serif" @selected(($blogSettings['font_family'] ?? '') == "'Nikosh', 'Kalpurush', serif")>নিকোশ (Nikosh - প্রাতিষ্ঠানিক ফন্ট)</option>
+                                                    <option value="'Hind Siliguri', 'Kalpurush', 'SolaimanLipi', sans-serif" @selected(($blogSettings['font_family'] ?? '') == "'Hind Siliguri', 'Kalpurush', 'SolaimanLipi', sans-serif")>Hind Siliguri (Modern & Standard)</option>
+                                                    <option value="'Kalpurush', 'SolaimanLipi', Georgia, serif" @selected(($blogSettings['font_family'] ?? '') == "'Kalpurush', 'SolaimanLipi', Georgia, serif")>Kalpurush (Classic Literary Serif)</option>
+                                                    <option value="'SolaimanLipi', 'Hind Siliguri', sans-serif" @selected(($blogSettings['font_family'] ?? '') == "'SolaimanLipi', 'Hind Siliguri', sans-serif")>SolaimanLipi (Clean Publication)</option>
+                                                    <option value="'Nikosh', 'Kalpurush', serif" @selected(($blogSettings['font_family'] ?? '') == "'Nikosh', 'Kalpurush', serif")>Nikosh (Institutional Font)</option>
                                                 </select>
                                             </div>
 
                                             <!-- Base Font Size -->
                                             <div class="col-6">
-                                                <label class="form-label small fw-bold text-dark mb-1">মূল ফন্ট সাইজ:</label>
+                                                <label class="form-label small fw-bold text-dark mb-1">Base Reading Font Size:</label>
                                                 <select name="reading_font_size" id="custFontSize" class="form-select form-select-sm" onchange="updateLivePreview()">
-                                                    <option value="1.0rem" @selected(($blogSettings['reading_font_size'] ?? '') == '1.0rem')>কম্প্যাক্ট (16px)</option>
-                                                    <option value="1.08rem" @selected(($blogSettings['reading_font_size'] ?? '') == '1.08rem' || !isset($blogSettings['reading_font_size']))>আদর্শ রিডিং (17.5px)</option>
-                                                    <option value="1.15rem" @selected(($blogSettings['reading_font_size'] ?? '') == '1.15rem')>মাঝারি বড় (18.5px)</option>
-                                                    <option value="1.25rem" @selected(($blogSettings['reading_font_size'] ?? '') == '1.25rem')>বড় ফন্ট (20px)</option>
+                                                    <option value="1.0rem" @selected(($blogSettings['reading_font_size'] ?? '') == '1.0rem')>Compact (16px)</option>
+                                                    <option value="1.08rem" @selected(($blogSettings['reading_font_size'] ?? '') == '1.08rem' || !isset($blogSettings['reading_font_size']))>Standard Reading (17.5px)</option>
+                                                    <option value="1.15rem" @selected(($blogSettings['reading_font_size'] ?? '') == '1.15rem')>Medium Large (18.5px)</option>
+                                                    <option value="1.25rem" @selected(($blogSettings['reading_font_size'] ?? '') == '1.25rem')>Large (20px)</option>
                                                 </select>
                                             </div>
 
                                             <!-- Base Line Height -->
                                             <div class="col-6">
-                                                <label class="form-label small fw-bold text-dark mb-1">গদ্য / প্রবন্ধ লাইন স্পেস:</label>
+                                                <label class="form-label small fw-bold text-dark mb-1">Prose / Essay Line Height:</label>
                                                 <select name="line_height" id="custLineHeight" class="form-select form-select-sm" onchange="updateLivePreview()">
-                                                    <option value="1.45" @selected(($blogSettings['line_height'] ?? '') == '1.45')>অতি ঘন (1.45)</option>
-                                                    <option value="1.55" @selected(($blogSettings['line_height'] ?? '') == '1.55')>ঘন ও আঁটসাঁট (1.55)</option>
-                                                    <option value="1.6" @selected(($blogSettings['line_height'] ?? '') == '1.6' || !isset($blogSettings['line_height']))>আদর্শ ক্লাসিক (1.60)</option>
-                                                    <option value="1.75" @selected(($blogSettings['line_height'] ?? '') == '1.75')>স্বাভাবিক ফাঁকা (1.75)</option>
-                                                    <option value="1.9" @selected(($blogSettings['line_height'] ?? '') == '1.9')>অধিক ফাঁকা (1.90)</option>
+                                                    <option value="1.45" @selected(($blogSettings['line_height'] ?? '') == '1.45')>Tight (1.45)</option>
+                                                    <option value="1.55" @selected(($blogSettings['line_height'] ?? '') == '1.55')>Compact (1.55)</option>
+                                                    <option value="1.6" @selected(($blogSettings['line_height'] ?? '') == '1.6' || !isset($blogSettings['line_height']))>Standard Classic (1.60)</option>
+                                                    <option value="1.75" @selected(($blogSettings['line_height'] ?? '') == '1.75')>Spacious (1.75)</option>
+                                                    <option value="1.9" @selected(($blogSettings['line_height'] ?? '') == '1.9')>Very Spacious (1.90)</option>
                                                 </select>
                                             </div>
 
                                             <!-- Poetry Line Height -->
                                             <div class="col-6">
-                                                <label class="form-label small fw-bold text-dark mb-1">কবিতার লাইনের ফাঁকা (Poetry Line Height):</label>
+                                                <label class="form-label small fw-bold text-dark mb-1">Poetry Line Height:</label>
                                                 <select name="poetry_line_height" id="custPoetryLineHeight" class="form-select form-select-sm" onchange="updateLivePreview()">
-                                                    <option value="1.35" @selected(($blogSettings['poetry_line_height'] ?? '') == '1.35')>অতি কম ফাঁকা (1.35)</option>
-                                                    <option value="1.45" @selected(($blogSettings['poetry_line_height'] ?? '') == '1.45' || !isset($blogSettings['poetry_line_height']))>আদর্শ কাব্যিক লাইন (1.45)</option>
-                                                    <option value="1.55" @selected(($blogSettings['poetry_line_height'] ?? '') == '1.55')>মাঝারি ফাঁকা (1.55)</option>
-                                                    <option value="1.75" @selected(($blogSettings['poetry_line_height'] ?? '') == '1.75')>অধিক ফাঁকা (1.75)</option>
+                                                    <option value="1.35" @selected(($blogSettings['poetry_line_height'] ?? '') == '1.35')>Very Compact (1.35)</option>
+                                                    <option value="1.45" @selected(($blogSettings['poetry_line_height'] ?? '') == '1.45' || !isset($blogSettings['poetry_line_height']))>Standard Poetry (1.45)</option>
+                                                    <option value="1.55" @selected(($blogSettings['poetry_line_height'] ?? '') == '1.55')>Medium Spacing (1.55)</option>
+                                                    <option value="1.75" @selected(($blogSettings['poetry_line_height'] ?? '') == '1.75')>Spacious (1.75)</option>
                                                 </select>
                                             </div>
 
                                             <!-- Poetry Alignment -->
                                             <div class="col-6">
-                                                <label class="form-label small fw-bold text-dark mb-1">কবিতা সারিবদ্ধতা (Poetry Align):</label>
+                                                <label class="form-label small fw-bold text-dark mb-1">Poetry Alignment:</label>
                                                 <select name="poetry_align" id="custPoetryAlign" class="form-select form-select-sm" onchange="updateLivePreview()">
-                                                    <option value="left" @selected(($blogSettings['poetry_align'] ?? '') == 'left')>বাম দিক থেকে শুরু (Left)</option>
-                                                    <option value="center" @selected(($blogSettings['poetry_align'] ?? '') == 'center')>মাঝখানে কেন্দ্রিক (Center)</option>
-                                                    <option value="justify" @selected(($blogSettings['poetry_align'] ?? '') == 'justify')>জাস্টিফাই (Justify)</option>
+                                                    <option value="left" @selected(($blogSettings['poetry_align'] ?? '') == 'left')>Left</option>
+                                                    <option value="center" @selected(($blogSettings['poetry_align'] ?? '') == 'center')>Center</option>
+                                                    <option value="justify" @selected(($blogSettings['poetry_align'] ?? '') == 'justify')>Justify</option>
                                                 </select>
                                             </div>
 
                                             <!-- Paragraph Spacing Margin -->
                                             <div class="col-12">
-                                                <label class="form-label small fw-bold text-dark mb-1">প্রতিটি স্তবক ও প্যারার মধ্যবর্তী দূরত্ব (Gap):</label>
+                                                <label class="form-label small fw-bold text-dark mb-1">Paragraph & Verse Gap:</label>
                                                 <select name="paragraph_margin" id="custParaMargin" class="form-select form-select-sm" onchange="updateLivePreview()">
-                                                    <option value="0.55rem" @selected(($blogSettings['paragraph_margin'] ?? '') == '0.55rem')>অতি সংকুচিত (0.55rem)</option>
-                                                    <option value="0.85rem" @selected(($blogSettings['paragraph_margin'] ?? '') == '0.85rem' || !isset($blogSettings['paragraph_margin']))>আদর্শ কমপ্যাক্ট গ্যাপ (0.85rem)</option>
-                                                    <option value="1.15rem" @selected(($blogSettings['paragraph_margin'] ?? '') == '1.15rem')>স্বাভাবিক গ্যাপ (1.15rem)</option>
-                                                    <option value="1.5rem" @selected(($blogSettings['paragraph_margin'] ?? '') == '1.5rem')>বেশি ফাঁকা (1.5rem)</option>
+                                                    <option value="0.55rem" @selected(($blogSettings['paragraph_margin'] ?? '') == '0.55rem')>Very Tight (0.55rem)</option>
+                                                    <option value="0.85rem" @selected(($blogSettings['paragraph_margin'] ?? '') == '0.85rem' || !isset($blogSettings['paragraph_margin']))>Standard Compact (0.85rem)</option>
+                                                    <option value="1.15rem" @selected(($blogSettings['paragraph_margin'] ?? '') == '1.15rem')>Regular Gap (1.15rem)</option>
+                                                    <option value="1.5rem" @selected(($blogSettings['paragraph_margin'] ?? '') == '1.5rem')>Wide Gap (1.5rem)</option>
                                                 </select>
                                             </div>
                                         </div>
@@ -713,17 +713,17 @@
                                     <div class="card border-0 shadow-xs rounded-3 p-3.5 bg-white mb-3">
                                         <h6 class="fw-bold text-dark mb-3 pb-2 border-bottom d-flex align-items-center gap-2">
                                             <i class="fas fa-layer-group text-primary"></i>
-                                            <span>রিডার ও সাইটের বাহ্যিক অপশন</span>
+                                            <span>Reader & External Layout Options</span>
                                         </h6>
 
                                         <div class="row g-3">
                                             <!-- Paper Background Color -->
                                             <div class="col-12">
-                                                <label class="form-label small fw-bold text-dark mb-1">বইয়ের পাতার ব্যাকগ্রাউন্ড (Article Sheet Background):</label>
+                                                <label class="form-label small fw-bold text-dark mb-1">Article Sheet Background:</label>
                                                 <select name="reading_bg" id="custReadingBg" class="form-select form-select-sm" onchange="updateLivePreview()">
-                                                    <option value="#ffffff" @selected(($blogSettings['reading_bg'] ?? '') == '#ffffff')>পরিচ্ছন্ন সাদা (Clean White Paper)</option>
-                                                    <option value="#fbf9f4" @selected(($blogSettings['reading_bg'] ?? '') == '#fbf9f4')>আইভরি বুক পেজ (Ivory Literary Book)</option>
-                                                    <option value="#f8f4eb" @selected(($blogSettings['reading_bg'] ?? '') == '#f8f4eb')>নরম সেপিয়া (Soft Sepia Reading)</option>
+                                                    <option value="#ffffff" @selected(($blogSettings['reading_bg'] ?? '') == '#ffffff')>Clean White Paper</option>
+                                                    <option value="#fbf9f4" @selected(($blogSettings['reading_bg'] ?? '') == '#fbf9f4')>Ivory Literary Book Page</option>
+                                                    <option value="#f8f4eb" @selected(($blogSettings['reading_bg'] ?? '') == '#f8f4eb')>Soft Sepia Reading Mode</option>
                                                 </select>
                                             </div>
 
@@ -733,21 +733,21 @@
                                                     <input class="form-check-input" type="checkbox" role="switch" name="show_reading_bar" id="custShowReadingBar" value="1" 
                                                            @checked(($blogSettings['show_reading_bar'] ?? '1') == '1')>
                                                     <label class="form-check-label small fw-semibold text-dark" for="custShowReadingBar">
-                                                        টপ রিডিং টুলবার প্রদর্শন (প্রিন্ট, ফন্ট জুম ও সেপিয়া মোড)
+                                                        Show top reading toolbar (print, font zoom & sepia mode)
                                                     </label>
                                                 </div>
                                                 <div class="form-check form-switch mb-2">
                                                     <input class="form-check-input" type="checkbox" role="switch" name="enable_share_bar" id="custEnableShareBar" value="1" 
                                                            @checked(($blogSettings['enable_share_bar'] ?? '1') == '1')>
                                                     <label class="form-check-label small fw-semibold text-dark" for="custEnableShareBar">
-                                                        সোশ্যাল শেয়ারিং ও ফটোকার্ড ডাউনলোড সুবিধা
+                                                        Enable social sharing & photo card downloads
                                                     </label>
                                                 </div>
                                                 <div class="form-check form-switch mb-0">
                                                     <input class="form-check-input" type="checkbox" role="switch" name="show_author_box" id="custShowAuthorBox" value="1" 
                                                            @checked(($blogSettings['show_author_box'] ?? '1') == '1')>
                                                     <label class="form-check-label small fw-semibold text-dark" for="custShowAuthorBox">
-                                                        লেখার নিচে বিস্তারিত লেখক পরিচিতি ও সম্পর্কিত রচনা প্রদর্শন
+                                                        Show author bio box & related articles below post
                                                     </label>
                                                 </div>
                                             </div>
@@ -762,8 +762,8 @@
                         <div class="col-lg-5">
                             <div class="card border-0 shadow-sm rounded-4 overflow-hidden sticky-top" style="top: 15px;">
                                 <div class="card-header bg-dark text-white py-2 px-3 d-flex align-items-center justify-content-between">
-                                    <span class="small fw-bold"><i class="fas fa-eye me-1 text-warning"></i> রিয়েল-টাইম লাইভ প্রিভিউ</span>
-                                    <span class="badge bg-primary-subtle text-primary rounded-pill small" style="font-size: 10px;">লাইভ আপডেট</span>
+                                    <span class="small fw-bold"><i class="fas fa-eye me-1 text-warning"></i> Real-time Live Preview</span>
+                                    <span class="badge bg-primary-subtle text-primary rounded-pill small" style="font-size: 10px;">Live Update</span>
                                 </div>
                                 <div class="card-body p-3" style="background-color: #f1f5f9; max-height: 520px; overflow-y: auto;">
                                     
@@ -771,16 +771,16 @@
                                     <div id="prevHeaderBox" class="p-3 rounded-3 text-white mb-3 shadow-xs position-relative overflow-hidden" 
                                          style="background: {{ $blogSettings['header_gradient'] ?? 'linear-gradient(135deg, #0c4a6e 0%, #0369a1 50%, #0284c7 100%)' }};">
                                         <span id="prevBadgeText" class="badge bg-white bg-opacity-25 rounded-pill mb-1.5 px-2 py-0.5" style="font-size: 10px;">
-                                            {{ $blogSettings['hero_badge'] ?? 'সাহিত্য, শিল্প-সংস্কৃতি, গবেষণা ও মুক্তচিন্তা' }}
+                                            {{ $blogSettings['hero_badge'] ?? 'Literature, Culture, Research & Free Thought' }}
                                         </span>
                                         <h6 id="prevHeroTitle" class="fw-bold mb-1" style="font-size: 1.05rem;">
-                                            {{ $blogSettings['hero_title'] ?? 'আইডিয়া ব্লগ ও সাহিত্যপত্র' }}
+                                            {{ $blogSettings['hero_title'] ?? 'Idea Blog & Literary Journal' }}
                                         </h6>
                                         <p id="prevHeroSubtitle" class="small opacity-90 mb-2" style="font-size: 11px; line-height: 1.4;">
-                                            {{ $blogSettings['hero_subtitle'] ?? 'সমকালীন সাহিত্য আলোচনা, প্রবন্ধ, ছোটগল্প, কবিতা...' }}
+                                            {{ $blogSettings['hero_subtitle'] ?? 'Contemporary literary discussions, essays, stories, poems...' }}
                                         </p>
                                         <button type="button" id="prevWriteBtn" class="btn btn-warning btn-xs rounded-pill px-2.5 py-1 fw-bold text-dark">
-                                            <i class="fas fa-feather-pointed me-1"></i> <span>{{ $blogSettings['write_button_text'] ?? 'নিজের লেখা পোস্ট করুন' }}</span>
+                                            <i class="fas fa-feather-pointed me-1"></i> <span>{{ $blogSettings['write_button_text'] ?? 'Submit Your Post' }}</span>
                                         </button>
                                     </div>
 
@@ -789,9 +789,9 @@
                                          style="background-color: {{ $blogSettings['reading_bg'] ?? '#ffffff' }}; font-family: {{ $blogSettings['font_family'] ?? 'sans-serif' }};">
                                         
                                         <div class="border-bottom pb-2 mb-2.5">
-                                            <span class="badge bg-primary-subtle text-primary mb-1" style="font-size: 10px;">কবিতা</span>
-                                            <h5 class="fw-bold text-dark mb-0.5" style="font-size: 1.15rem;">নিঃসঙ্গতার প্রহর</h5>
-                                            <small class="text-muted" style="font-size: 11px;">লেখক: আল আমিন ইসলাম • সাহিত্যপত্র সংস্করণ</small>
+                                            <span class="badge bg-primary-subtle text-primary mb-1" style="font-size: 10px;">Poetry</span>
+                                            <h5 class="fw-bold text-dark mb-0.5" style="font-size: 1.15rem;">The Solitary Hour</h5>
+                                            <small class="text-muted" style="font-size: 11px;">Author: Al Amin Islam • Literary Edition</small>
                                         </div>
 
                                         <!-- Preview Content -->
@@ -800,14 +800,14 @@
                                             <!-- Poetry Sample -->
                                             <p id="prevPoetryVerse" class="poetry-verse p-2 border-start border-3 border-primary bg-primary bg-opacity-10 rounded-end mb-2" 
                                                style="line-height: {{ $blogSettings['poetry_line_height'] ?? '1.45' }}; margin-bottom: {{ $blogSettings['paragraph_margin'] ?? '0.85rem' }}; text-align: {{ $blogSettings['poetry_align'] ?? 'left' }}; font-size: 1.05em;">
-                                                কেউ নাই এ নিশিযাপনে<br>
-                                                ধূসর আকাশে চাঁদ যেন এক ক্লান্ত পথিক;<br>
-                                                বাঁশবনের ভেতর দিয়ে বাতাস হেঁটে যায়...
+                                                Silent is this lonely night<br>
+                                                The moon wanders like a weary traveler;<br>
+                                                Wind whispers softly through the trees...
                                             </p>
 
                                             <!-- Prose Sample -->
                                             <p id="prevProsePara" class="text-dark" style="margin-bottom: {{ $blogSettings['paragraph_margin'] ?? '0.85rem' }}; text-align: justify;">
-                                                সাহিত্য কেবল শব্দের কারুকাজ নয়, মানুষের অনুভূতির গভীরতম রূপায়ণ। প্রতিটি পঙক্তি বয়ে আনে জীবনের নানা অব্যক্ত সুর ও দর্শন।
+                                                Literature is not merely a craftsmanship of words, but the profoundest expression of human emotion and intellect.
                                             </p>
                                         </div>
                                     </div>
@@ -820,9 +820,9 @@
                 </div>
 
                 <div class="modal-footer bg-white py-3 px-4 border-top d-flex justify-content-between">
-                    <button type="button" class="btn btn-light border rounded-pill px-4" data-bs-dismiss="modal">বন্ধ করুন</button>
+                    <button type="button" class="btn btn-light border rounded-pill px-4" data-bs-dismiss="modal">Close</button>
                     <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold shadow-xs">
-                        <i class="fas fa-save me-1.5"></i> সেটিংস সংরক্ষণ করুন
+                        <i class="fas fa-save me-1.5"></i> Save Settings
                     </button>
                 </div>
             </form>
@@ -839,7 +839,7 @@
             <div class="modal-header bg-success text-white py-3 px-4">
                 <div class="d-flex align-items-center gap-2">
                     <i class="fas fa-wand-magic-sparkles fs-5"></i>
-                    <h5 class="modal-title fw-bold fs-6 mb-0 text-white" id="bulkTypographyModalLabel">সকল লেখার লাইন ও প্যারা স্পেস মেরামত ইঞ্জিন</h5>
+                    <h5 class="modal-title fw-bold fs-6 mb-0 text-white" id="bulkTypographyModalLabel">Bulk Typography & Spacing Normalizer Engine</h5>
                 </div>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -849,15 +849,15 @@
                     <div class="rounded-circle bg-success bg-opacity-10 text-success p-3 d-inline-flex align-items-center justify-content-center mb-2" style="width: 60px; height: 60px;">
                         <i class="fas fa-compress-alt fs-3"></i>
                     </div>
-                    <h6 class="fw-bold text-dark mb-1">সাইটের সকল ব্লগ পোস্ট স্বয়ংক্রিয়ভাবে অপ্টিমাইজ করুন</h6>
+                    <h6 class="fw-bold text-dark mb-1">Automatically Optimize Blog Post Formatting</h6>
                     <p class="small text-muted mb-0">
-                        পূর্বে পোস্ট করা যেসব লেখার লাইনের ফাঁকা অতিরিক্ত বেশি বা এলোমেলো হয়ে আছে, এই ইঞ্জিন এক ক্লিকে সেগুলোর ইনলাইন স্টাইল ও স্তবক মার্জিন আদর্শ কমপ্যাক্ট মাপে রূপান্তর করবে।
+                        Normalizes erratic line heights, cleans up excessive empty paragraphs, and standardizes spacing across historical articles.
                     </p>
                 </div>
 
                 <div id="bulkProcessNotice" class="alert alert-info p-2.5 small mb-3 rounded-3 d-flex align-items-center gap-2">
                     <i class="fas fa-circle-info fs-5 text-info"></i>
-                    <div>কোনো ডাটা বা লেখা নষ্ট হবে না, শুধু অতিরিক্ত ফাঁকা লাইন স্পেসগুলো নিখুঁত করা হবে।</div>
+                    <div>Zero content loss: Only extra spacing and inline line-heights will be formatted cleanly.</div>
                 </div>
 
                 <div id="bulkProgressBox" class="d-none mb-3">
@@ -865,25 +865,25 @@
                         <div class="progress-bar progress-bar-striped progress-bar-animated bg-success" role="progressbar" style="width: 100%"></div>
                     </div>
                     <div class="text-center small text-muted mt-2" id="bulkProgressText">
-                        পোস্টগুলো প্রসেস হচ্ছে, অনুগ্রহ করে অপেক্ষা করুন...
+                        Processing articles, please wait...
                     </div>
                 </div>
 
                 <div id="bulkResultAlert"></div>
 
                 <div class="mb-2">
-                    <label class="form-label small fw-bold text-dark">কোন পোস্টগুলো ঠিক করবেন?</label>
+                    <label class="form-label small fw-bold text-dark">Which posts should be formatted?</label>
                     <select id="bulkTargetSelect" class="form-select form-select-sm">
-                        <option value="all">সকল পোস্ট (অনুমোদিত, ড্রাফট ও অপেক্ষমাণ)</option>
-                        <option value="published">শুধুমাত্র প্রকাশিত ও অনুমোদিত পোস্ট</option>
+                        <option value="all">All Posts (Approved, Draft & Pending)</option>
+                        <option value="published">Published & Approved Posts Only</option>
                     </select>
                 </div>
             </div>
 
             <div class="modal-footer bg-light py-2.5 px-4">
-                <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3" data-bs-dismiss="modal">বাতিল</button>
+                <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" id="startBulkNormalizeBtn" class="btn btn-sm btn-success rounded-pill px-4 fw-bold shadow-xs" onclick="runBulkNormalizeTypography()">
-                    <i class="fas fa-play me-1"></i> মেরামত শুরু করুন
+                    <i class="fas fa-play me-1"></i> Run Normalizer
                 </button>
             </div>
         </div>
@@ -899,7 +899,7 @@
             <div class="modal-header bg-dark text-white py-2.5 px-4">
                 <h5 class="modal-title fw-bold fs-6 d-flex align-items-center gap-2" id="bannerCropperModalLabel">
                     <i class="fas fa-crop-simple text-warning"></i>
-                    <span>আইডিয়াপত্র ও সোশ্যাল ব্যানার ক্রপ ও রিসাইজ (১৬:৯)</span>
+                    <span>Crop & Resize Ideapatra Banner (16:9)</span>
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -908,27 +908,27 @@
                     <img id="bannerCropperImageEl" src="" alt="Crop Target" style="max-width: 100%; max-height: 440px; display: block; margin: 0 auto;">
                 </div>
                 <div class="d-flex justify-content-center gap-2 mt-3 flex-wrap">
-                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill" onclick="blogCropper && blogCropper.zoom(0.1)" title="জুম ইন">
-                        <i class="fas fa-magnifying-glass-plus me-1"></i> জুম ইন
+                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill" onclick="blogCropper && blogCropper.zoom(0.1)" title="Zoom In">
+                        <i class="fas fa-magnifying-glass-plus me-1"></i> Zoom In
                     </button>
-                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill" onclick="blogCropper && blogCropper.zoom(-0.1)" title="জুম আউট">
-                        <i class="fas fa-magnifying-glass-minus me-1"></i> জুম আউট
+                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill" onclick="blogCropper && blogCropper.zoom(-0.1)" title="Zoom Out">
+                        <i class="fas fa-magnifying-glass-minus me-1"></i> Zoom Out
                     </button>
-                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill" onclick="blogCropper && blogCropper.rotate(-90)" title="বামে ঘোরান">
-                        <i class="fas fa-rotate-left me-1"></i> বামে ঘোরান
+                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill" onclick="blogCropper && blogCropper.rotate(-90)" title="Rotate Left">
+                        <i class="fas fa-rotate-left me-1"></i> Rotate Left
                     </button>
-                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill" onclick="blogCropper && blogCropper.rotate(90)" title="ডানে ঘোরান">
-                        <i class="fas fa-rotate-right me-1"></i> ডানে ঘোরান
+                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill" onclick="blogCropper && blogCropper.rotate(90)" title="Rotate Right">
+                        <i class="fas fa-rotate-right me-1"></i> Rotate Right
                     </button>
-                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill" onclick="blogCropper && blogCropper.reset()" title="রিসেট">
-                        <i class="fas fa-arrows-rotate me-1"></i> রিসেট
+                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill" onclick="blogCropper && blogCropper.reset()" title="Reset">
+                        <i class="fas fa-arrows-rotate me-1"></i> Reset
                     </button>
                 </div>
             </div>
             <div class="modal-footer bg-white py-2.5 px-4 border-top d-flex justify-content-between">
-                <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3" data-bs-dismiss="modal">বাতিল</button>
+                <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-sm btn-primary rounded-pill px-4 fw-bold shadow-xs" onclick="applyBannerCrop()">
-                    <i class="fas fa-check me-1"></i> ক্রপ নিশ্চিত করুন
+                    <i class="fas fa-check me-1"></i> Apply Crop
                 </button>
             </div>
         </div>
@@ -1027,16 +1027,16 @@ function toggleFeatured(postId) {
         if (data.success) {
             if (data.is_featured) {
                 starBtn.classList.add('active');
-                starBtn.title = 'নির্বাচিত পোস্ট (ক্লিক করে আন-ফিচার্ড করুন)';
+                starBtn.title = 'Featured post (Click to unfeature)';
             } else {
                 starBtn.classList.remove('active');
-                starBtn.title = 'সাধারণ পোস্ট (ক্লিক করে ফিচার্ড করুন)';
+                starBtn.title = 'Standard post (Click to feature)';
             }
         }
     })
     .catch(() => {
         starBtn.disabled = false;
-        alert('সার্ভার এরর হয়েছে।');
+        alert('Server error occurred.');
     });
 }
 
@@ -1073,13 +1073,13 @@ function updatePostStatus(postId, newStatus) {
     })
     .catch(() => {
         select.disabled = false;
-        alert('সার্ভার এরর হয়েছে।');
+        alert('Server error occurred.');
     });
 }
 
 // Delete Post Action
 function deletePost(postId, title) {
-    if (!confirm(`আপনি কি নিশ্চিত যে "${title}" পোস্টটি মুছে ফেলতে চান?`)) {
+    if (!confirm(`Are you sure you want to delete post "${title}"?`)) {
         return;
     }
     
@@ -1113,15 +1113,15 @@ function toggleSelectAll(masterCheckbox) {
 function confirmBulkAction() {
     const action = document.getElementById('bulkActionSelect').value;
     if (!action) {
-        alert('অনুগ্রহ করে একটি বাল্ক অ্যাকশন নির্বাচন করুন।');
+        alert('Please choose a bulk action.');
         return false;
     }
     const checkedCount = document.querySelectorAll('.row-checkbox:checked').length;
     if (checkedCount === 0) {
-        alert('অনুগ্রহ করে কমপক্ষে একটি পোস্ট নির্বাচন করুন।');
+        alert('Please select at least one post.');
         return false;
     }
-    return confirm(`আপনি কি নির্বাচিত ${checkedCount}টি পোস্টের ওপর এই অ্যাকশন প্রয়োগ করতে চান?`);
+    return confirm(`Are you sure you want to apply this action on ${checkedCount} selected post(s)?`);
 }
 
 // Live Preview Controller for Blog Customizer
@@ -1186,7 +1186,7 @@ function runBulkNormalizeTypography() {
     const progressBox = document.getElementById('bulkProgressBox');
     const resultAlert = document.getElementById('bulkResultAlert');
 
-    if (!confirm('আপনি কি নিশ্চিত যে সমস্ত লেখার লাইন স্পেস এবং প্যারাগ্রাফ মার্জিন স্বয়ংক্রিয়ভাবে অপ্টিমাইজ করতে চান?')) {
+    if (!confirm('Are you sure you want to automatically format line spacing and paragraph margins across all articles?')) {
         return;
     }
 
@@ -1211,7 +1211,7 @@ function runBulkNormalizeTypography() {
             resultAlert.innerHTML = `
                 <div class="alert alert-success p-3 small mb-3 rounded-3">
                     <i class="fas fa-circle-check fs-5 text-success me-2"></i>
-                    <strong>সফল হয়েছে!</strong> ${data.message}
+                    <strong>Success!</strong> ${data.message}
                 </div>`;
             setTimeout(() => {
                 location.reload();
@@ -1219,7 +1219,7 @@ function runBulkNormalizeTypography() {
         } else {
             resultAlert.innerHTML = `
                 <div class="alert alert-danger p-3 small mb-3 rounded-3">
-                    <i class="fas fa-triangle-exclamation me-1"></i> ${data.message || 'ত্রুটি ঘটেছে'}
+                    <i class="fas fa-triangle-exclamation me-1"></i> ${data.message || 'Error occurred'}
                 </div>`;
         }
     })
@@ -1228,7 +1228,7 @@ function runBulkNormalizeTypography() {
         btn.disabled = false;
         resultAlert.innerHTML = `
             <div class="alert alert-danger p-3 small mb-3 rounded-3">
-                <i class="fas fa-triangle-exclamation me-1"></i> সার্ভার এরর হয়েছে। অনুগ্রহ করে পুনরায় চেষ্টা করুন।
+                <i class="fas fa-triangle-exclamation me-1"></i> Server error occurred. Please try again.
             </div>`;
     });
 }

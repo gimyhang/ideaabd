@@ -1,15 +1,15 @@
 @extends('layouts.admin')
 
-@section('title', 'নতুন প্রকাশনী ক্রয় এন্ট্রি')
-@section('heading', 'প্রকাশনী থেকে নতুন ক্রয় ও স্টক এন্ট্রি')
+@section('title', 'New Purchase Order Entry')
+@section('heading', 'New Publisher Purchase & Inventory Stock Entry')
 @section('breadcrumb')
-    <li class="breadcrumb-item"><a href="{{ route('admin.purchases.index') }}">প্রকাশনী ক্রয়</a></li>
-    <li class="breadcrumb-item active" aria-current="page">নতুন এন্ট্রি</li>
+    <li class="breadcrumb-item"><a href="{{ route('admin.purchases.index') }}">Purchases</a></li>
+    <li class="breadcrumb-item active" aria-current="page">New Purchase Order</li>
 @endsection
 
 @section('actions')
-    <a href="{{ route('admin.purchases.index') }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
-        <i class="fas fa-arrow-left me-1"></i> তালিকায় ফিরুন
+    <a href="{{ route('admin.purchases.index') }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-xs">
+        <i class="fas fa-arrow-left me-1"></i> Back to List
     </a>
 @endsection
 
@@ -31,18 +31,18 @@
                             <i class="fas fa-building fs-5"></i>
                         </span>
                         <div>
-                            <h5 class="fw-bold mb-0 text-dark">প্রকাশনী ও চালান সংক্রান্ত তথ্য</h5>
-                            <small class="text-muted">প্রকাশনী/সরবরাহকারী নির্বাচন, মেমো নম্বর ও পূর্বের বকেয়া বিবরণী</small>
+                            <h5 class="fw-bold mb-0 text-dark">Publisher & Invoice Details</h5>
+                            <small class="text-muted">Select publisher/supplier, memo number and previous due records</small>
                         </div>
                     </div>
 
                     {{-- Publisher Mode Toggle --}}
                     <div class="btn-group p-1 bg-light rounded-pill border" role="group">
                         <button type="button" class="btn btn-sm rounded-pill fw-semibold px-3 active" id="btnExistingPub" onclick="setPublisherMode(false)">
-                            <i class="fas fa-list-check me-1"></i> তালিকা থেকে নির্বাচন
+                            <i class="fas fa-list-check me-1"></i> Select from Directory
                         </button>
                         <button type="button" class="btn btn-sm rounded-pill fw-semibold px-3 text-muted" id="btnNewPub" onclick="setPublisherMode(true)">
-                            <i class="fas fa-plus-circle me-1"></i> + নতুন প্রকাশনী এন্ট্রি
+                            <i class="fas fa-plus-circle me-1"></i> + New Publisher Entry
                         </button>
                     </div>
                 </div>
@@ -54,7 +54,7 @@
                         <div class="col-12 col-lg-6 border-end-lg pe-lg-4">
                             <div class="d-flex align-items-center justify-content-between mb-2">
                                 <label class="form-label fw-bold text-dark mb-0">
-                                    <i class="fas fa-store text-primary me-1"></i> প্রকাশনী / সরবরাহকারী <span class="text-danger">*</span>
+                                    <i class="fas fa-store text-primary me-1"></i> Publisher / Supplier <span class="text-danger">*</span>
                                 </label>
                             </div>
 
@@ -63,7 +63,7 @@
                                 <div class="input-group">
                                     <span class="input-group-text bg-light text-muted"><i class="fas fa-magnifying-glass"></i></span>
                                     <select name="publisher_id" id="publisherSelect" class="form-select form-select-lg fs-6 @error('publisher_id') is-invalid @enderror" onchange="onPublisherSelected(this)">
-                                        <option value="">-- প্রকাশনী নির্বাচন করুন --</option>
+                                        <option value="">-- Select Publisher --</option>
                                         @foreach($publishers as $pub)
                                             <option value="{{ $pub->id }}" 
                                                     data-name="{{ $pub->name }}"
@@ -84,15 +84,15 @@
                                     <div class="d-flex align-items-start justify-content-between">
                                         <div class="d-flex align-items-center gap-2 mb-2">
                                             <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold" style="width: 38px; height: 38px; font-size: 14px;" id="snapPubInitial">
-                                                প্র
+                                                P
                                             </div>
                                             <div>
-                                                <h6 class="fw-bold text-dark mb-0" id="snapPubName">প্রকাশনীর নাম</h6>
-                                                <small class="text-muted" id="snapPubAddress"><i class="fas fa-location-dot me-1"></i>বাংলাবাজার, ঢাকা</small>
+                                                <h6 class="fw-bold text-dark mb-0" id="snapPubName">Publisher Name</h6>
+                                                <small class="text-muted" id="snapPubAddress"><i class="fas fa-location-dot me-1"></i>Banglabazar, Dhaka</small>
                                             </div>
                                         </div>
                                         <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-1 fw-bold" id="snapPubDue">
-                                            বকেয়া: ৳০.০০
+                                            Due: ৳0.00
                                         </span>
                                     </div>
                                     <div class="row g-2 pt-2 border-top small text-muted">
@@ -104,38 +104,38 @@
                                         </div>
                                         <div class="col-12 text-end">
                                             <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2 py-0.5" id="snapPubBooks">
-                                                ক্যাটালগে @bn(0)টি বই রয়েছে
+                                                0 books in catalog
                                             </span>
                                         </div>
                                     </div>
                                 </div>
 
                                 <div class="form-text text-muted mt-1" id="pubHelpText">
-                                    <i class="fas fa-info-circle me-1 text-primary"></i> তালিকাভুক্ত প্রকাশনী বেছে নিন অথবা উপরে '+ নতুন প্রকাশনী এন্ট্রি' চাপুন।
+                                    <i class="fas fa-info-circle me-1 text-primary"></i> Choose an existing publisher from the list or click '+ New Publisher Entry' above.
                                 </div>
                             </div>
 
                             {{-- New Publisher Input Box --}}
                             <div id="newPublisherWrapper" style="display: none;">
                                 <div class="p-3.5 bg-light rounded-4 border">
-                                    <h6 class="fw-bold text-dark mb-3"><i class="fas fa-plus-circle text-success me-1"></i> নতুন প্রকাশনীর তথ্য বিবরণী</h6>
+                                    <h6 class="fw-bold text-dark mb-3"><i class="fas fa-plus-circle text-success me-1"></i> New Publisher Details</h6>
                                     <div class="mb-2">
-                                        <label class="form-label small fw-semibold text-dark">প্রকাশনীর নাম <span class="text-danger">*</span></label>
+                                        <label class="form-label small fw-semibold text-dark">Publisher Name <span class="text-danger">*</span></label>
                                         <div class="input-group">
                                             <span class="input-group-text bg-white"><i class="fas fa-pen-nib text-primary"></i></span>
-                                            <input type="text" name="publisher_name" id="newPublisherName" class="form-control" placeholder="যেমন: ইত্যাদি গ্রন্থ প্রকাশ...">
+                                            <input type="text" name="publisher_name" id="newPublisherName" class="form-control" placeholder="e.g. Penguin Books...">
                                         </div>
                                     </div>
                                     <div class="row g-2 mb-2">
                                         <div class="col-md-6">
-                                            <label class="form-label small fw-semibold text-muted">মোবাইল / ফোন নম্বর</label>
+                                            <label class="form-label small fw-semibold text-muted">Mobile / Phone Number</label>
                                             <div class="input-group input-group-sm">
                                                 <span class="input-group-text bg-white"><i class="fas fa-phone"></i></span>
-                                                <input type="text" name="publisher_phone" class="form-control" placeholder="০১৭১০...">
+                                                <input type="text" name="publisher_phone" class="form-control" placeholder="01710...">
                                             </div>
                                         </div>
                                         <div class="col-md-6">
-                                            <label class="form-label small fw-semibold text-muted">ইমেইল এড্রেস</label>
+                                            <label class="form-label small fw-semibold text-muted">Email Address</label>
                                             <div class="input-group input-group-sm">
                                                 <span class="input-group-text bg-white"><i class="fas fa-envelope"></i></span>
                                                 <input type="email" name="publisher_email" class="form-control" placeholder="info@publisher.com">
@@ -144,14 +144,14 @@
                                     </div>
                                     <div class="row g-2">
                                         <div class="col-md-7">
-                                            <label class="form-label small fw-semibold text-muted">ঠিকানা (বাংলাবাজার / শপ নং / এলাকা)</label>
+                                            <label class="form-label small fw-semibold text-muted">Address (Banglabazar / Office location)</label>
                                             <div class="input-group input-group-sm">
                                                 <span class="input-group-text bg-white"><i class="fas fa-location-dot"></i></span>
-                                                <input type="text" name="publisher_address" class="form-control" placeholder="যেমন: ৩৮ বাংলাবাজার, ঢাকা...">
+                                                <input type="text" name="publisher_address" class="form-control" placeholder="e.g. 38 Banglabazar, Dhaka...">
                                             </div>
                                         </div>
                                         <div class="col-md-5">
-                                            <label class="form-label small fw-semibold text-muted">ওয়েবসাইট (ঐচ্ছিক)</label>
+                                            <label class="form-label small fw-semibold text-muted">Website URL (Optional)</label>
                                             <div class="input-group input-group-sm">
                                                 <span class="input-group-text bg-white"><i class="fas fa-globe"></i></span>
                                                 <input type="text" name="publisher_website" class="form-control" placeholder="https://...">
@@ -159,7 +159,7 @@
                                         </div>
                                     </div>
                                     <div class="text-success small mt-2">
-                                        <i class="fas fa-check-circle me-1"></i> সংরক্ষণের সাথে সাথে প্রকাশনীটি ডিরেক্টরিতে স্বয়ংক্রিয়ভাবে সংরক্ষিত হবে।
+                                        <i class="fas fa-check-circle me-1"></i> Publisher will be automatically saved to the directory upon submission.
                                     </div>
                                 </div>
                             </div>
@@ -171,7 +171,7 @@
                             <div class="row g-3">
                                 <div class="col-sm-6">
                                     <label class="form-label fw-bold text-dark mb-1">
-                                        <i class="fas fa-hashtag text-primary me-1"></i> সফটওয়্যার চালান নং <span class="text-danger">*</span>
+                                        <i class="fas fa-hashtag text-primary me-1"></i> Software Invoice # <span class="text-danger">*</span>
                                     </label>
                                     <div class="input-group">
                                         <span class="input-group-text bg-light fw-bold text-primary font-monospace">PUR</span>
@@ -179,12 +179,12 @@
                                                value="{{ old('purchase_no', $suggestedInvoiceNo) }}" required>
                                     </div>
                                     @error('purchase_no')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-                                    <div class="form-text text-muted small">সফটওয়্যার কর্তৃক স্বয়ংক্রিয় প্রস্তুতকৃত চালান আইডি।</div>
+                                    <div class="form-text text-muted small">Auto-generated system purchase order identifier.</div>
                                 </div>
 
                                 <div class="col-sm-6">
                                     <label class="form-label fw-bold text-dark mb-1">
-                                        <i class="fas fa-calendar-day text-primary me-1"></i> ক্রয়ের তারিখ <span class="text-danger">*</span>
+                                        <i class="fas fa-calendar-day text-primary me-1"></i> Purchase Date <span class="text-danger">*</span>
                                     </label>
                                     <div class="input-group">
                                         <span class="input-group-text bg-light"><i class="fas fa-calendar-alt text-muted"></i></span>
@@ -194,14 +194,14 @@
 
                                 <div class="col-12">
                                     <label class="form-label fw-bold text-dark mb-1">
-                                        <i class="fas fa-receipt text-success me-1"></i> প্রকাশকের নিজস্ব মেমো / চালান নং
+                                        <i class="fas fa-receipt text-success me-1"></i> Publisher's Memo / Challan #
                                     </label>
                                     <div class="input-group">
                                         <span class="input-group-text bg-light text-success"><i class="fas fa-file-invoice"></i></span>
                                         <input type="text" name="publisher_memo_no" class="form-control" 
-                                               placeholder="যেমন: মেমো নং # ১২৮৯ বা চালান ৫২..." value="{{ old('publisher_memo_no') }}">
+                                               placeholder="e.g. Memo # 1289 or Challan 52..." value="{{ old('publisher_memo_no') }}">
                                     </div>
-                                    <div class="form-text text-muted small">প্রকাশনী থেকে দেওয়া মূল কাগজের রসিদ বা মেমো নম্বর।</div>
+                                    <div class="form-text text-muted small">Original paper memo or receipt number issued by the publisher.</div>
                                 </div>
                             </div>
                         </div>
@@ -221,31 +221,31 @@
                             <i class="fas fa-book-bookmark fs-5"></i>
                         </span>
                         <div>
-                            <h5 class="fw-bold mb-0 text-dark">ক্রয়কৃত বই ও বুকশপ ইনভেন্টরি এন্ট্রি</h5>
-                            <small class="text-muted">বইয়ের MRP ও কমিশন দিলে ক্রয়মূল্য এবং শপ ডিসকাউন্ট দিলে অনলাইন বিক্রয়মূল্য স্বয়ংক্রিয় হিসাব হবে</small>
+                            <h5 class="fw-bold mb-0 text-dark">Purchased Books & Inventory Stock Entry</h5>
+                            <small class="text-muted">Cost price is auto-calculated from MRP & Commission; Store price is calculated from MRP & Discount</small>
                         </div>
                     </div>
 
                     {{-- Global Commission & Discount Batch Tools --}}
                     <div class="d-flex flex-wrap align-items-center gap-2">
                         <div class="input-group input-group-sm" style="max-width: 220px;">
-                            <span class="input-group-text bg-light text-primary fw-semibold" style="font-size: 0.75rem;">সব ক্রয় কমিশন %</span>
+                            <span class="input-group-text bg-light text-primary fw-semibold" style="font-size: 0.75rem;">Batch Cost Comm %</span>
                             <input type="number" step="0.5" id="batchCommInput" class="form-control text-center" placeholder="40" min="0" max="100">
-                            <button type="button" class="btn btn-outline-primary" onclick="applyBatchCommission()" title="সকল সারিতে প্রয়োগ করুন">
+                            <button type="button" class="btn btn-outline-primary" onclick="applyBatchCommission()" title="Apply to all items">
                                 <i class="fas fa-bolt"></i>
                             </button>
                         </div>
 
                         <div class="input-group input-group-sm" style="max-width: 220px;">
-                            <span class="input-group-text bg-light text-success fw-semibold" style="font-size: 0.75rem;">সব শপ ছাড় %</span>
+                            <span class="input-group-text bg-light text-success fw-semibold" style="font-size: 0.75rem;">Batch Store Disc %</span>
                             <input type="number" step="0.5" id="batchSaleDiscInput" class="form-control text-center" placeholder="25" min="0" max="100">
-                            <button type="button" class="btn btn-outline-success" onclick="applyBatchShopDiscount()" title="সকল সারিতে প্রয়োগ করুন">
+                            <button type="button" class="btn btn-outline-success" onclick="applyBatchShopDiscount()" title="Apply to all items">
                                 <i class="fas fa-bolt"></i>
                             </button>
                         </div>
 
                         <button type="button" class="btn btn-success btn-sm rounded-pill px-3.5 fw-bold shadow-sm" onclick="addItemRow()">
-                            <i class="fas fa-plus me-1"></i> আরো বই যোগ করুন
+                            <i class="fas fa-plus me-1"></i> Add More Books
                         </button>
                     </div>
                 </div>
@@ -255,17 +255,17 @@
                         <table class="table table-hover align-middle mb-0" id="itemsTable">
                             <thead>
                                 <tr class="table-light text-center small text-muted text-uppercase align-middle">
-                                    <th style="min-width: 220px;" class="text-start ps-3 py-3">বইয়ের নাম <span class="text-danger">*</span></th>
-                                    <th style="min-width: 140px;" class="text-start py-3">লেখক</th>
-                                    <th style="min-width: 130px;" class="text-start py-3">ক্যাটাগরি</th>
-                                    <th style="width: 85px;" class="py-3">পরিমাণ</th>
-                                    <th style="width: 110px;" class="py-3 bg-light-subtle">মূল্য (MRP ৳)</th>
-                                    <th style="width: 90px;" class="py-3 bg-primary-subtle text-primary">ক্রয় কমিশন %</th>
-                                    <th style="width: 110px;" class="py-3 bg-primary-subtle text-primary">ক্রয়মূল্য (৳)</th>
-                                    <th style="width: 90px;" class="py-3 bg-success-subtle text-success">শপ ছাড় %</th>
-                                    <th style="width: 110px;" class="py-3 bg-success-subtle text-success">বিক্রয়মূল্য (৳)</th>
-                                    <th style="width: 120px;" class="text-end pe-3 py-3">মোট ক্রয় (৳)</th>
-                                    <th style="width: 75px;" class="py-3">অ্যাকশন</th>
+                                    <th style="min-width: 220px;" class="text-start ps-3 py-3">Book Title <span class="text-danger">*</span></th>
+                                    <th style="min-width: 140px;" class="text-start py-3">Author</th>
+                                    <th style="min-width: 130px;" class="text-start py-3">Category</th>
+                                    <th style="width: 85px;" class="py-3">Quantity</th>
+                                    <th style="width: 110px;" class="py-3 bg-light-subtle">Price (MRP ৳)</th>
+                                    <th style="width: 90px;" class="py-3 bg-primary-subtle text-primary">Cost Comm %</th>
+                                    <th style="width: 110px;" class="py-3 bg-primary-subtle text-primary">Cost Price (৳)</th>
+                                    <th style="width: 90px;" class="py-3 bg-success-subtle text-success">Store Disc %</th>
+                                    <th style="width: 110px;" class="py-3 bg-success-subtle text-success">Store Price (৳)</th>
+                                    <th style="width: 120px;" class="text-end pe-3 py-3">Total Cost (৳)</th>
+                                    <th style="width: 75px;" class="py-3">Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="itemsBody">
@@ -274,24 +274,24 @@
                                     <td class="ps-3">
                                         <div class="d-flex align-items-center gap-1.5">
                                             <input type="text" name="items[0][title]" class="form-control form-control-sm item-title fw-semibold" 
-                                                   list="booksList" placeholder="বইয়ের নাম টাইপ করুন..." required oninput="onTitleInput(this, 0)">
+                                                   list="booksList" placeholder="Type book title..." required oninput="onTitleInput(this, 0)">
                                         </div>
                                         <input type="hidden" name="items[0][book_id]" class="item-book-id" value="">
                                         
                                         {{-- Book Mini Info Badge --}}
                                         <div class="item-book-badge mt-1 small" style="display: none;">
                                             <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill px-2 py-0.5" style="font-size: 0.68rem;">
-                                                <i class="fas fa-check-circle me-0.5"></i>বিদ্যমান বই (স্টক: <span class="badge-stock">0</span>)
+                                                <i class="fas fa-check-circle me-0.5"></i>Existing Book (Stock: <span class="badge-stock">0</span>)
                                             </span>
                                         </div>
                                     </td>
                                     <td>
                                         <input type="text" name="items[0][author]" class="form-control form-control-sm item-author" 
-                                               list="authorsList" placeholder="লেখকের নাম...">
+                                               list="authorsList" placeholder="Author name...">
                                     </td>
                                     <td>
                                         <input type="text" name="items[0][category_name]" class="form-control form-control-sm item-category" 
-                                               list="categoriesList" placeholder="ক্যাটাগরি...">
+                                               list="categoriesList" placeholder="Category...">
                                         <input type="hidden" name="items[0][category_id]" class="item-category-id" value="">
                                     </td>
                                     <td>
@@ -321,10 +321,10 @@
                                     <td class="text-end pe-3 fw-bold text-dark item-subtotal fs-6">৳0.00</td>
                                     <td class="text-center">
                                         <div class="d-flex align-items-center justify-content-center gap-1">
-                                            <button type="button" class="btn btn-sm btn-outline-secondary p-1 rounded-circle border-0" onclick="toggleExtraDetails(0)" title="অতিরিক্ত বইয়ের তথ্য (ISBN, পৃষ্ঠা, বাইন্ডিং)">
+                                            <button type="button" class="btn btn-sm btn-outline-secondary p-1 rounded-circle border-0" onclick="toggleExtraDetails(0)" title="Extra book details (ISBN, Edition, Binding)">
                                                 <i class="fas fa-sliders text-secondary"></i>
                                             </button>
-                                            <button type="button" class="btn btn-sm btn-outline-danger p-1 rounded-circle border-0" onclick="removeRow(this)" title="সারি মুছুন">
+                                            <button type="button" class="btn btn-sm btn-outline-danger p-1 rounded-circle border-0" onclick="removeRow(this)" title="Remove row">
                                                 <i class="fas fa-trash-can"></i>
                                             </button>
                                         </div>
@@ -337,35 +337,35 @@
                                         <div class="p-2.5 bg-white rounded-3 border">
                                             <div class="small fw-bold text-muted mb-2 d-flex align-items-center gap-1.5">
                                                 <i class="fas fa-info-circle text-primary"></i>
-                                                <span>বুকশপ ক্যাটালগ সংক্রান্ত অতিরিক্ত তথ্য (ঐচ্ছিক):</span>
+                                                <span>Bookshop Catalog Extra Attributes (Optional):</span>
                                             </div>
                                             <div class="row g-2">
                                                 <div class="col-md-2">
-                                                    <label class="form-label text-muted" style="font-size: 0.72rem;">আইএসবিএন (ISBN)</label>
+                                                    <label class="form-label text-muted" style="font-size: 0.72rem;">ISBN</label>
                                                     <input type="text" name="items[0][isbn]" class="form-control form-control-sm item-isbn font-monospace" placeholder="978-...">
                                                 </div>
                                                 <div class="col-md-2">
-                                                    <label class="form-label text-muted" style="font-size: 0.72rem;">সংস্করণ / প্রকাশ সাল</label>
-                                                    <input type="text" name="items[0][edition]" class="form-control form-control-sm item-edition" placeholder="যেমন: ১ম প্রকাশ ২০২৬">
+                                                    <label class="form-label text-muted" style="font-size: 0.72rem;">Edition / Year</label>
+                                                    <input type="text" name="items[0][edition]" class="form-control form-control-sm item-edition" placeholder="e.g. 1st Edition 2026">
                                                 </div>
                                                 <div class="col-md-2">
-                                                    <label class="form-label text-muted" style="font-size: 0.72rem;">বাইন্ডিং (Cover Type)</label>
+                                                    <label class="form-label text-muted" style="font-size: 0.72rem;">Binding (Cover Type)</label>
                                                     <select name="items[0][cover_type]" class="form-select form-select-sm item-cover-type">
-                                                        <option value="paperback">পেপারব্যাক (Paperback)</option>
-                                                        <option value="hardcover">হার্ডকভার (Hardcover)</option>
+                                                        <option value="paperback">Paperback</option>
+                                                        <option value="hardcover">Hardcover</option>
                                                     </select>
                                                 </div>
                                                 <div class="col-md-2">
-                                                    <label class="form-label text-muted" style="font-size: 0.72rem;">পৃষ্ঠা সংখ্যা</label>
-                                                    <input type="number" name="items[0][page_count]" class="form-control form-control-sm item-page-count" placeholder="যেমন: ১২০">
+                                                    <label class="form-label text-muted" style="font-size: 0.72rem;">Page Count</label>
+                                                    <input type="number" name="items[0][page_count]" class="form-control form-control-sm item-page-count" placeholder="e.g. 120">
                                                 </div>
                                                 <div class="col-md-2">
-                                                    <label class="form-label text-muted" style="font-size: 0.72rem;">সাইজ (Book Size)</label>
-                                                    <input type="text" name="items[0][book_size]" class="form-control form-control-sm item-book-size" placeholder="যেমন: 8.5x5.5">
+                                                    <label class="form-label text-muted" style="font-size: 0.72rem;">Book Size</label>
+                                                    <input type="text" name="items[0][book_size]" class="form-control form-control-sm item-book-size" placeholder="e.g. 8.5x5.5">
                                                 </div>
                                                 <div class="col-md-2">
-                                                    <label class="form-label text-muted" style="font-size: 0.72rem;">কাগজ (Paper Type)</label>
-                                                    <input type="text" name="items[0][paper_type]" class="form-control form-control-sm item-paper-type" placeholder="যেমন: অফসেট ৮০ জিএসএম">
+                                                    <label class="form-label text-muted" style="font-size: 0.72rem;">Paper Type</label>
+                                                    <input type="text" name="items[0][paper_type]" class="form-control form-control-sm item-paper-type" placeholder="e.g. Offset 80 GSM">
                                                 </div>
                                             </div>
                                         </div>
@@ -378,9 +378,9 @@
                     {{-- Add Row Button at Bottom of Table --}}
                     <div class="mt-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
                         <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-semibold" onclick="addItemRow()">
-                            <i class="fas fa-plus-circle me-1"></i> আরো বইয়ের সারি যোগ করুন
+                            <i class="fas fa-plus-circle me-1"></i> Add More Rows
                         </button>
-                        <small class="text-muted"><i class="fas fa-lightbulb text-warning me-1"></i>টিপস: তালিকার বাইরে নতুন বই ও লেখক টাইপ করলে সিস্টেমে স্বয়ংক্রিয়ভাবে তৈরি ও ক্যাটালগে সিঙ্ক হবে।</small>
+                        <small class="text-muted"><i class="fas fa-lightbulb text-warning me-1"></i>Tip: Typing new books and authors not in the list will automatically create them in catalog.</small>
                     </div>
 
                     {{-- Datalists for Auto-suggestions --}}
@@ -413,7 +413,7 @@
                                     data-page-count="{{ $b->page_count }}"
                                     data-book-size="{{ $b->book_size }}"
                                     data-paper-type="{{ $b->paper_type }}">
-                                (স্টক: {{ $b->stock_quantity }} | MRP: ৳{{ $b->price }})
+                                (Stock: {{ $b->stock_quantity }} | MRP: ৳{{ $b->price }})
                             </option>
                         @endforeach
                     </datalist>
@@ -428,11 +428,11 @@
             {{-- Notes Card --}}
             <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white">
                 <div class="card-header bg-white py-3 px-4 border-bottom">
-                    <h6 class="fw-bold mb-0 text-dark"><i class="fas fa-note-sticky text-warning me-2"></i>মন্তব্য বা চালান সংক্রান্ত নোট (ঐচ্ছিক)</h6>
+                    <h6 class="fw-bold mb-0 text-dark"><i class="fas fa-note-sticky text-warning me-2"></i>Invoice Notes & Remarks (Optional)</h6>
                 </div>
                 <div class="card-body p-4">
                     <textarea name="notes" rows="4" class="form-control rounded-3" 
-                              placeholder="ক্রয় সংক্রান্ত কোনো বিশেষ শর্ত, পরিবহণ নোট বা চালান সংক্রান্ত তথ্য থাকলে এখানে লিখুন..."></textarea>
+                              placeholder="Any special terms, shipping notes, or purchase details..."></textarea>
                 </div>
             </div>
 
@@ -441,11 +441,11 @@
                 <div class="d-flex align-items-start gap-3">
                     <div class="fs-3 text-primary"><i class="fas fa-boxes-stacked"></i></div>
                     <div>
-                        <h6 class="fw-bold text-primary mb-1">স্বয়ংক্রিয় স্টক ও হিসাব আপডেট নির্দেশিকা:</h6>
+                        <h6 class="fw-bold text-primary mb-1">Automated Stock & Ledger Workflow:</h6>
                         <ul class="mb-0 small text-dark ps-3">
-                            <li class="mb-1">ক্রয় এন্ট্রি সাবমিট করার সাথে সাথে বইগুলোর স্টক বুকশপ ক্যাটালগে স্বয়ংক্রিয়ভাবে যোগ হবে।</li>
-                            <li class="mb-1">বইয়ের বিক্রয়মূল্য অনুযায়ী অনলাইন বুকশপে গ্রাহকদের জন্য লাইভ প্রদর্শিত হবে।</li>
-                            <li>বকেয়া হিসাব প্রকাশনীর লেজার ও ড্যাশবোর্ডে স্বয়ংক্রিয়ভাবে সংরক্ষিত থাকবে।</li>
+                            <li class="mb-1">Upon submitting, book stock will be automatically added to the catalog.</li>
+                            <li class="mb-1">Storefront selling prices will be live updated for customers immediately.</li>
+                            <li>Due balances will be tracked in publisher account ledgers automatically.</li>
                         </ul>
                     </div>
                 </div>
@@ -456,19 +456,19 @@
         <div class="col-12 col-lg-5">
             <div class="card border-0 shadow-sm rounded-4 sticky-top bg-white" style="top: 80px;">
                 <div class="card-header bg-dark text-white py-3 px-4 rounded-top-4 d-flex align-items-center justify-content-between">
-                    <h5 class="fw-bold mb-0"><i class="fas fa-calculator text-warning me-2"></i>হিসাব ও পেমেন্ট</h5>
-                    <span class="badge bg-light text-dark px-2.5 py-1 rounded-pill small">চালান সামারি</span>
+                    <h5 class="fw-bold mb-0"><i class="fas fa-calculator text-warning me-2"></i>Payment & Financials</h5>
+                    <span class="badge bg-light text-dark px-2.5 py-1 rounded-pill small">Invoice Summary</span>
                 </div>
 
                 <div class="card-body p-4">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <span class="text-muted fw-semibold">মোট ক্রয়মূল্য:</span>
+                        <span class="text-muted fw-semibold">Total Cost Price:</span>
                         <span class="fw-bold fs-5 text-dark" id="displayTotal">৳0.00</span>
                     </div>
 
                     <div class="mb-3 p-3 bg-light rounded-3 border">
                         <label class="form-label small fw-bold text-muted mb-1">
-                            <i class="fas fa-tag text-danger me-1"></i> অতিরিক্ত চালান ছাড় / ডিসকাউন্ট (৳):
+                            <i class="fas fa-tag text-danger me-1"></i> Additional Invoice Discount (৳):
                         </label>
                         <div class="input-group">
                             <span class="input-group-text bg-white fw-bold">৳</span>
@@ -478,26 +478,26 @@
 
                     <div class="d-flex justify-content-between align-items-center p-3 bg-primary-subtle rounded-3 mb-3 border border-primary-subtle">
                         <div>
-                            <span class="fw-bold text-dark d-block">সর্বমোট প্রদেয় (Grand Total):</span>
-                            <small class="text-muted">ছাড় বাদে প্রদেয় মোট বিল</small>
+                            <span class="fw-bold text-dark d-block">Grand Total:</span>
+                            <small class="text-muted">Total bill after concessions</small>
                         </div>
                         <span class="fw-bolder fs-3 text-primary" id="displayGrandTotal">৳0.00</span>
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label fw-bold text-dark">
-                            <i class="fas fa-hand-holding-dollar text-primary me-1"></i> ক্রয়ের ধরন <span class="text-danger">*</span>
+                            <i class="fas fa-hand-holding-dollar text-primary me-1"></i> Payment Terms <span class="text-danger">*</span>
                         </label>
                         <select name="payment_type" id="paymentType" class="form-select form-select-lg fs-6 fw-semibold" required onchange="onPaymentTypeChange()">
-                            <option value="cash">💵 নগদে ক্রয় (সম্পূর্ণ পরিশোধ / Cash)</option>
-                            <option value="credit">⏳ বাকিতে ক্রয় (সম্পূর্ণ বকেয়া / Due)</option>
-                            <option value="partial">⚖️ আংশিক নগদ ও বাকি (Partial)</option>
+                            <option value="cash">💵 Cash Purchase (Paid in Full)</option>
+                            <option value="credit">⏳ Credit Purchase (Full Due)</option>
+                            <option value="partial">⚖️ Partial Payment & Due</option>
                         </select>
                     </div>
 
                     <div id="paidSectionWrapper">
                         <div class="mb-3" id="paidAmountGroup">
-                            <label class="form-label fw-bold text-dark">বর্তমান পরিশোধের পরিমাণ (৳):</label>
+                            <label class="form-label fw-bold text-dark">Amount Paid Now (৳):</label>
                             <div class="input-group">
                                 <span class="input-group-text bg-light fw-bold text-success">৳</span>
                                 <input type="number" step="0.01" name="paid_amount" id="paidAmountInput" class="form-control form-control-lg text-end fw-bold text-success" value="0" min="0" oninput="calcTotals()">
@@ -506,18 +506,18 @@
 
                         <div class="row g-2 mb-3" id="paymentDetailsGroup">
                             <div class="col-sm-6" id="paymentMethodGroup">
-                                <label class="form-label small fw-semibold text-muted">পেমেন্ট মাধ্যম:</label>
+                                <label class="form-label small fw-semibold text-muted">Payment Method:</label>
                                 <select name="payment_method" class="form-select">
-                                    <option value="cash">নগদ (Cash)</option>
-                                    <option value="bank">ব্যাংক (Bank Transfer)</option>
-                                    <option value="bkash">বিকাশ (bKash)</option>
-                                    <option value="nagad">নগদ (Nagad)</option>
-                                    <option value="cheque">চেক (Cheque)</option>
+                                    <option value="cash">Cash</option>
+                                    <option value="bank">Bank Transfer</option>
+                                    <option value="bkash">bKash</option>
+                                    <option value="nagad">Nagad</option>
+                                    <option value="cheque">Cheque</option>
                                 </select>
                             </div>
                             <div class="col-sm-6" id="trxRefGroup">
-                                <label class="form-label small fw-semibold text-muted">চেক/Trx ID:</label>
-                                <input type="text" name="transaction_ref" class="form-control" placeholder="রেফারেন্স নং...">
+                                <label class="form-label small fw-semibold text-muted">Cheque / Trx ID:</label>
+                                <input type="text" name="transaction_ref" class="form-control" placeholder="Reference #...">
                             </div>
                         </div>
                     </div>
@@ -525,14 +525,14 @@
                     <div class="alert alert-danger p-3 rounded-3 mb-4 d-flex justify-content-between align-items-center border-0 bg-danger-subtle text-danger" id="dueAlert">
                         <div class="d-flex align-items-center gap-2">
                             <i class="fas fa-circle-exclamation fs-5"></i>
-                            <span class="fw-bold">অবশিষ্ট বকেয়া (Due):</span>
+                            <span class="fw-bold">Due Balance:</span>
                         </div>
                         <span class="fw-bolder fs-4 text-danger" id="displayDue">৳0.00</span>
                     </div>
 
                     <button type="submit" class="btn btn-success btn-lg w-100 py-3 rounded-pill fw-bold shadow-lg d-flex align-items-center justify-content-center gap-2">
                         <i class="fas fa-check-circle fs-5"></i>
-                        <span>ক্রয় ও ইনভেন্টরি সংরক্ষণ করুন</span>
+                        <span>Save Purchase Order & Stock</span>
                     </button>
                 </div>
             </div>
@@ -580,17 +580,17 @@
         const name = selectedOpt.getAttribute('data-name') || '';
         const phone = selectedOpt.getAttribute('data-phone') || '';
         const email = selectedOpt.getAttribute('data-email') || '';
-        const address = selectedOpt.getAttribute('data-address') || 'ঠিকানা দেওয়া নেই';
+        const address = selectedOpt.getAttribute('data-address') || 'No address provided';
         const booksCount = selectedOpt.getAttribute('data-books-count') || 0;
         const due = parseFloat(selectedOpt.getAttribute('data-due') || 0);
 
-        document.getElementById('snapPubInitial').textContent = name ? name.substring(0, 1) : 'প্র';
+        document.getElementById('snapPubInitial').textContent = name ? name.substring(0, 1) : 'P';
         document.getElementById('snapPubName').textContent = name;
         document.getElementById('snapPubAddress').textContent = address;
-        document.getElementById('snapPubPhone').textContent = phone || 'ফোন নম্বর নেই';
-        document.getElementById('snapPubEmail').textContent = email || 'ইমেইল নেই';
-        document.getElementById('snapPubBooks').textContent = 'ক্যাটালগে ' + booksCount + 'টি বই রয়েছে';
-        document.getElementById('snapPubDue').textContent = 'পূর্বের বকেয়া: ৳' + due.toFixed(2);
+        document.getElementById('snapPubPhone').textContent = phone || 'No phone';
+        document.getElementById('snapPubEmail').textContent = email || 'No email';
+        document.getElementById('snapPubBooks').textContent = booksCount + ' books in catalog';
+        document.getElementById('snapPubDue').textContent = 'Previous Due: ৳' + due.toFixed(2);
 
         card.style.display = 'block';
     }
@@ -817,7 +817,7 @@
     function applyBatchCommission() {
         const comm = parseFloat(document.getElementById('batchCommInput').value);
         if (isNaN(comm) || comm < 0 || comm > 100) {
-            alert('সঠিক কমিশন শতকরা মান (০-১০০) দিন।');
+            alert('Enter a valid commission percentage (0-100).');
             return;
         }
         document.querySelectorAll('.item-row').forEach(row => {
@@ -830,7 +830,7 @@
     function applyBatchShopDiscount() {
         const disc = parseFloat(document.getElementById('batchSaleDiscInput').value);
         if (isNaN(disc) || disc < 0 || disc > 100) {
-            alert('সঠিক বিক্রয় ছাড় শতকরা মান (০-১০০) দিন।');
+            alert('Enter a valid store discount percentage (0-100).');
             return;
         }
         document.querySelectorAll('.item-row').forEach(row => {
@@ -864,21 +864,21 @@
         tr.innerHTML = `
             <td class="ps-3">
                 <input type="text" name="items[${i}][title]" class="form-control form-control-sm item-title fw-semibold" 
-                       list="booksList" placeholder="বইয়ের নাম টাইপ করুন..." required oninput="onTitleInput(this, ${i})">
+                       list="booksList" placeholder="Type book title..." required oninput="onTitleInput(this, ${i})">
                 <input type="hidden" name="items[${i}][book_id]" class="item-book-id" value="">
                 <div class="item-book-badge mt-1 small" style="display: none;">
                     <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill px-2 py-0.5" style="font-size: 0.68rem;">
-                        <i class="fas fa-check-circle me-0.5"></i>বিদ্যমান বই (স্টক: <span class="badge-stock">0</span>)
+                        <i class="fas fa-check-circle me-0.5"></i>Existing Book (Stock: <span class="badge-stock">0</span>)
                     </span>
                 </div>
             </td>
             <td>
                 <input type="text" name="items[${i}][author]" class="form-control form-control-sm item-author" 
-                       list="authorsList" placeholder="লেখকের নাম...">
+                       list="authorsList" placeholder="Author name...">
             </td>
             <td>
                 <input type="text" name="items[${i}][category_name]" class="form-control form-control-sm item-category" 
-                       list="categoriesList" placeholder="ক্যাটাগরি...">
+                       list="categoriesList" placeholder="Category...">
                 <input type="hidden" name="items[${i}][category_id]" class="item-category-id" value="">
             </td>
             <td>
@@ -908,10 +908,10 @@
             <td class="text-end pe-3 fw-bold text-dark item-subtotal fs-6">৳0.00</td>
             <td class="text-center">
                 <div class="d-flex align-items-center justify-content-center gap-1">
-                    <button type="button" class="btn btn-sm btn-outline-secondary p-1 rounded-circle border-0" onclick="toggleExtraDetails(${i})" title="অতিরিক্ত বইয়ের তথ্য (ISBN, পৃষ্ঠা, বাইন্ডিং)">
+                    <button type="button" class="btn btn-sm btn-outline-secondary p-1 rounded-circle border-0" onclick="toggleExtraDetails(${i})" title="Extra book attributes (ISBN, Edition, Binding)">
                         <i class="fas fa-sliders text-secondary"></i>
                     </button>
-                    <button type="button" class="btn btn-sm btn-outline-danger p-1 rounded-circle border-0" onclick="removeRow(this)" title="সারি মুছুন">
+                    <button type="button" class="btn btn-sm btn-outline-danger p-1 rounded-circle border-0" onclick="removeRow(this)" title="Remove row">
                         <i class="fas fa-trash-can"></i>
                     </button>
                 </div>
@@ -927,35 +927,35 @@
                 <div class="p-2.5 bg-white rounded-3 border">
                     <div class="small fw-bold text-muted mb-2 d-flex align-items-center gap-1.5">
                         <i class="fas fa-info-circle text-primary"></i>
-                        <span>বুকশপ ক্যাটালগ সংক্রান্ত অতিরিক্ত তথ্য (ঐচ্ছিক):</span>
+                        <span>Bookshop Catalog Extra Attributes (Optional):</span>
                     </div>
                     <div class="row g-2">
                         <div class="col-md-2">
-                            <label class="form-label text-muted" style="font-size: 0.72rem;">আইএসবিএন (ISBN)</label>
+                            <label class="form-label text-muted" style="font-size: 0.72rem;">ISBN</label>
                             <input type="text" name="items[${i}][isbn]" class="form-control form-control-sm item-isbn font-monospace" placeholder="978-...">
                         </div>
                         <div class="col-md-2">
-                            <label class="form-label text-muted" style="font-size: 0.72rem;">সংস্করণ / প্রকাশ সাল</label>
-                            <input type="text" name="items[${i}][edition]" class="form-control form-control-sm item-edition" placeholder="যেমন: ১ম প্রকাশ ২০২৬">
+                            <label class="form-label text-muted" style="font-size: 0.72rem;">Edition / Year</label>
+                            <input type="text" name="items[${i}][edition]" class="form-control form-control-sm item-edition" placeholder="e.g. 1st Edition 2026">
                         </div>
                         <div class="col-md-2">
-                            <label class="form-label text-muted" style="font-size: 0.72rem;">বাইন্ডিং (Cover Type)</label>
+                            <label class="form-label text-muted" style="font-size: 0.72rem;">Binding (Cover Type)</label>
                             <select name="items[${i}][cover_type]" class="form-select form-select-sm item-cover-type">
-                                <option value="paperback">পেপারব্যাক (Paperback)</option>
-                                <option value="hardcover">হার্ডকভার (Hardcover)</option>
+                                <option value="paperback">Paperback</option>
+                                <option value="hardcover">Hardcover</option>
                             </select>
                         </div>
                         <div class="col-md-2">
-                            <label class="form-label text-muted" style="font-size: 0.72rem;">পৃষ্ঠা সংখ্যা</label>
-                            <input type="number" name="items[${i}][page_count]" class="form-control form-control-sm item-page-count" placeholder="যেমন: ১২০">
+                            <label class="form-label text-muted" style="font-size: 0.72rem;">Page Count</label>
+                            <input type="number" name="items[${i}][page_count]" class="form-control form-control-sm item-page-count" placeholder="e.g. 120">
                         </div>
                         <div class="col-md-2">
-                            <label class="form-label text-muted" style="font-size: 0.72rem;">সাইজ (Book Size)</label>
-                            <input type="text" name="items[${i}][book_size]" class="form-control form-control-sm item-book-size" placeholder="যেমন: 8.5x5.5">
+                            <label class="form-label text-muted" style="font-size: 0.72rem;">Book Size</label>
+                            <input type="text" name="items[${i}][book_size]" class="form-control form-control-sm item-book-size" placeholder="e.g. 8.5x5.5">
                         </div>
                         <div class="col-md-2">
-                            <label class="form-label text-muted" style="font-size: 0.72rem;">কাগজ (Paper Type)</label>
-                            <input type="text" name="items[${i}][paper_type]" class="form-control form-control-sm item-paper-type" placeholder="যেমন: অফসেট ৮০ জিএসএম">
+                            <label class="form-label text-muted" style="font-size: 0.72rem;">Paper Type</label>
+                            <input type="text" name="items[${i}][paper_type]" class="form-control form-control-sm item-paper-type" placeholder="e.g. Offset 80 GSM">
                         </div>
                     </div>
                 </div>
@@ -969,7 +969,7 @@
     function removeRow(btn) {
         const rows = document.querySelectorAll('.item-row');
         if (rows.length <= 1) {
-            alert('কমপক্ষে একটি বই তালিকায় থাকতে হবে।');
+            alert('At least one book item must remain in the order.');
             return;
         }
         const tr = btn.closest('tr');

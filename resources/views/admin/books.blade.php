@@ -1,25 +1,25 @@
 @extends('layouts.admin')
 
-@section('title', 'বই পরিচালনা ও অনুসন্ধান ইঞ্জিন')
-@section('heading', 'বই ক্যাটালগ ও ডাইনামিক ইনভেন্টরি সার্চ ইঞ্জিন')
+@section('title', 'Book Management & Inventory Engine')
+@section('heading', 'Books Catalog & Inventory Search Engine')
 
 @section('breadcrumb')
-    <li class="breadcrumb-item active" aria-current="page">বই তালিকা</li>
+    <li class="breadcrumb-item active" aria-current="page">Books List</li>
 @endsection
 
 @section('actions')
     <div class="d-flex align-items-center gap-2">
-        <button type="button" class="btn btn-outline-success btn-sm rounded-pill px-3 shadow-xs" onclick="exportBooksToCSV()" title="CSV ফাইলে এক্সপোর্ট করুন">
-            <i class="fas fa-file-csv me-1"></i> এক্সপোর্ট (CSV)
+        <button type="button" class="btn btn-outline-success btn-sm rounded-pill px-3 shadow-xs" onclick="exportBooksToCSV()" title="Export to CSV file">
+            <i class="fas fa-file-csv me-1"></i> Export (CSV)
         </button>
-        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-xs" onclick="window.print()" title="তালিকা প্রিন্ট করুন">
-            <i class="fas fa-print me-1"></i> প্রিন্ট
+        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-xs" onclick="window.print()" title="Print List">
+            <i class="fas fa-print me-1"></i> Print
         </button>
         <a href="{{ route('admin.content.create', 'books') }}" class="btn btn-primary btn-sm rounded-pill px-3 fw-bold shadow-xs">
-            <i class="fas fa-plus-circle me-1"></i> নতুন বই যুক্ত করুন
+            <i class="fas fa-plus-circle me-1"></i> Add New Book
         </a>
         <a href="{{ route('book.index') }}" target="_blank" rel="noopener" class="btn btn-outline-dark btn-sm rounded-pill px-3 shadow-xs">
-            <i class="fas fa-arrow-up-right-from-square me-1"></i> শপে দেখুন
+            <i class="fas fa-arrow-up-right-from-square me-1"></i> View Storefront
         </a>
     </div>
 @endsection
@@ -37,15 +37,15 @@
     @endif
 
     {{-- ========================================================================= --}}
-    {{-- 1. KPI SUMMARY STRIP (বই ও ইনভেন্টরি মেট্রিক্স)                            --}}
+    {{-- 1. KPI SUMMARY STRIP (Book & Inventory Metrics)                           --}}
     {{-- ========================================================================= --}}
     <div class="row g-2">
         <div class="col-6 col-md-2">
             <a href="{{ route('admin.books') }}" class="text-decoration-none">
                 <div class="adm-card p-3 d-flex align-items-center justify-content-between h-100 {{ !request()->hasAny(['stock', 'discount_only', 'is_active']) ? 'border-primary border-2' : '' }}">
                     <div>
-                        <small class="text-muted d-block font-sans">মোট ক্যাটালগ</small>
-                        <h4 class="fw-bold text-dark mb-0">@bn($stats['total'] ?? 0) <small class="fs-6 text-muted">টি</small></h4>
+                        <small class="text-muted d-block font-sans">Total Catalog</small>
+                        <h4 class="fw-bold text-dark mb-0">{{ number_format($stats['total'] ?? 0) }} <small class="fs-6 text-muted">books</small></h4>
                     </div>
                     <span class="p-2 bg-primary-subtle text-primary rounded-circle fs-5"><i class="fas fa-book"></i></span>
                 </div>
@@ -55,8 +55,8 @@
             <a href="{{ route('admin.books', array_merge(request()->except(['is_active', 'page']), ['is_active' => '1'])) }}" class="text-decoration-none">
                 <div class="adm-card p-3 d-flex align-items-center justify-content-between h-100 {{ request('is_active') === '1' ? 'border-success border-2' : '' }}">
                     <div>
-                        <small class="text-muted d-block font-sans">সক্রিয় ও লাইভ</small>
-                        <h4 class="fw-bold text-success mb-0">@bn($stats['active'] ?? 0) <small class="fs-6 text-muted">টি</small></h4>
+                        <small class="text-muted d-block font-sans">Active & Live</small>
+                        <h4 class="fw-bold text-success mb-0">{{ number_format($stats['active'] ?? 0) }} <small class="fs-6 text-muted">books</small></h4>
                     </div>
                     <span class="p-2 bg-success-subtle text-success rounded-circle fs-5"><i class="fas fa-circle-check"></i></span>
                 </div>
@@ -66,8 +66,8 @@
             <a href="{{ route('admin.books', array_merge(request()->except(['stock', 'page']), ['stock' => 'pre_order'])) }}" class="text-decoration-none">
                 <div class="adm-card p-3 d-flex align-items-center justify-content-between h-100 {{ request('stock') === 'pre_order' ? 'border-info border-2' : '' }}">
                     <div>
-                        <small class="text-muted d-block font-sans">প্রি-অর্ডার চলছে</small>
-                        <h4 class="fw-bold text-info mb-0">@bn($stats['pre_order'] ?? 0) <small class="fs-6 text-muted">টি</small></h4>
+                        <small class="text-muted d-block font-sans">Pre-Order Active</small>
+                        <h4 class="fw-bold text-info mb-0">{{ number_format($stats['pre_order'] ?? 0) }} <small class="fs-6 text-muted">books</small></h4>
                     </div>
                     <span class="p-2 bg-info-subtle text-info rounded-circle fs-5"><i class="fas fa-clock-rotate-left"></i></span>
                 </div>
@@ -77,8 +77,8 @@
             <a href="{{ route('admin.books', array_merge(request()->except(['stock', 'page']), ['stock' => 'low'])) }}" class="text-decoration-none">
                 <div class="adm-card p-3 d-flex align-items-center justify-content-between h-100 {{ request('stock') === 'low' ? 'border-warning border-2' : '' }}">
                     <div>
-                        <small class="text-muted d-block font-sans">লো-স্টক (&le;৫)</small>
-                        <h4 class="fw-bold text-warning mb-0">@bn($stats['low_stock'] ?? 0) <small class="fs-6 text-muted">টি</small></h4>
+                        <small class="text-muted d-block font-sans">Low Stock (&le;5)</small>
+                        <h4 class="fw-bold text-warning mb-0">{{ number_format($stats['low_stock'] ?? 0) }} <small class="fs-6 text-muted">books</small></h4>
                     </div>
                     <span class="p-2 bg-warning-subtle text-warning rounded-circle fs-5"><i class="fas fa-triangle-exclamation"></i></span>
                 </div>
@@ -88,8 +88,8 @@
             <a href="{{ route('admin.books', array_merge(request()->except(['stock', 'page']), ['stock' => 'out'])) }}" class="text-decoration-none">
                 <div class="adm-card p-3 d-flex align-items-center justify-content-between h-100 {{ request('stock') === 'out' ? 'border-danger border-2' : '' }}">
                     <div>
-                        <small class="text-muted d-block font-sans">স্টক শেষ (০)</small>
-                        <h4 class="fw-bold text-danger mb-0">@bn($stats['out_stock'] ?? 0) <small class="fs-6 text-muted">টি</small></h4>
+                        <small class="text-muted d-block font-sans">Out of Stock (0)</small>
+                        <h4 class="fw-bold text-danger mb-0">{{ number_format($stats['out_stock'] ?? 0) }} <small class="fs-6 text-muted">books</small></h4>
                     </div>
                     <span class="p-2 bg-danger-subtle text-danger rounded-circle fs-5"><i class="fas fa-box-open"></i></span>
                 </div>
@@ -99,8 +99,8 @@
             <a href="{{ route('admin.books', array_merge(request()->except(['discount_only', 'page']), ['discount_only' => '1'])) }}" class="text-decoration-none">
                 <div class="adm-card p-3 d-flex align-items-center justify-content-between h-100 {{ request('discount_only') === '1' ? 'border-primary border-2' : '' }}">
                     <div>
-                        <small class="text-muted d-block font-sans">ছাড়যুক্ত বই</small>
-                        <h4 class="fw-bold text-primary mb-0">@bn($stats['discount'] ?? 0) <small class="fs-6 text-muted">টি</small></h4>
+                        <small class="text-muted d-block font-sans">Discounted</small>
+                        <h4 class="fw-bold text-primary mb-0">{{ number_format($stats['discount'] ?? 0) }} <small class="fs-6 text-muted">books</small></h4>
                     </div>
                     <span class="p-2 bg-primary-subtle text-primary rounded-circle fs-5"><i class="fas fa-tags"></i></span>
                 </div>
@@ -122,14 +122,14 @@
                         <span class="input-group-text bg-white border-0 text-muted"><i class="fas fa-search text-primary"></i></span>
                         <input type="text" name="search" id="bookSearchInput" value="{{ request('search') }}" 
                                class="form-control border-0 ps-1" 
-                               placeholder="বইয়ের নাম, লেখক, প্রকাশক, ISBN, SKU, ক্যাটাগরি..." autocomplete="off">
+                               placeholder="Search by title, author, publisher, ISBN, SKU, category..." autocomplete="off">
                         @if(request('search'))
-                            <a href="{{ route('admin.books', request()->except('search')) }}" class="input-group-text bg-white border-0 text-muted hover-danger" title="সার্চ মুছুন">
+                            <a href="{{ route('admin.books', request()->except('search')) }}" class="input-group-text bg-white border-0 text-muted hover-danger" title="Clear Search">
                                 <i class="fas fa-times-circle"></i>
                             </a>
                         @endif
                         <button type="submit" class="btn btn-primary px-3 fw-bold d-flex align-items-center gap-1.5" id="bookSearchBtn">
-                            <span>খুঁজুন</span> <i class="fas fa-arrow-right small"></i>
+                            <span>Search</span> <i class="fas fa-arrow-right small"></i>
                         </button>
                     </div>
                 </div>
@@ -137,7 +137,7 @@
                 <!-- Author Filter -->
                 <div class="col-6 col-md-4 col-lg-3">
                     <select name="author_id" class="form-select form-select-sm" onchange="submitFilterForm()">
-                        <option value="">— সকল লেখক / রচয়িতা —</option>
+                        <option value="">— All Authors & Writers —</option>
                         @foreach ($authors as $aId => $aName)
                             <option value="{{ $aId }}" @selected(request('author_id') == $aId)>{{ $aName }}</option>
                         @endforeach
@@ -147,8 +147,8 @@
                 <!-- Publisher Filter -->
                 <div class="col-6 col-md-4 col-lg-3">
                     <select name="publisher_id" class="form-select form-select-sm" onchange="submitFilterForm()">
-                        <option value="">— সকল প্রকাশনী / প্রকাশক —</option>
-                        <option value="idea" @selected(request('publisher_id') === 'idea')>⭐ IDEA প্রকাশন (ইন-হাউস)</option>
+                        <option value="">— All Publishers —</option>
+                        <option value="idea" @selected(request('publisher_id') === 'idea')>⭐ IDEA Publication (In-House)</option>
                         @foreach ($publishers as $pId => $pName)
                             <option value="{{ $pId }}" @selected(request('publisher_id') == $pId)>{{ $pName }}</option>
                         @endforeach
@@ -158,7 +158,7 @@
                 <!-- Category Filter -->
                 <div class="col-12 col-md-4 col-lg-2">
                     <select name="category_id" class="form-select form-select-sm" onchange="submitFilterForm()">
-                        <option value="">— সকল ক্যাটাগরি —</option>
+                        <option value="">— All Categories —</option>
                         @foreach ($categories as $cId => $cName)
                             <option value="{{ $cId }}" @selected(request('category_id') == $cId)>{{ $cName }}</option>
                         @endforeach
@@ -171,66 +171,66 @@
                 <!-- Stock Filter -->
                 <div class="col-6 col-md-2">
                     <select name="stock" class="form-select form-select-sm" onchange="submitFilterForm()">
-                        <option value="">— সকল স্টক —</option>
-                        <option value="in_stock" @selected(request('stock') === 'in_stock')>🟢 ইন-স্টক (&gt;৫)</option>
-                        <option value="low" @selected(request('stock') === 'low')>🟡 লো-স্টক (&le;৫)</option>
-                        <option value="out" @selected(request('stock') === 'out')>🔴 স্টক শেষ (০)</option>
-                        <option value="pre_order" @selected(request('stock') === 'pre_order')>⏳ প্রি-অর্ডার চলছে</option>
+                        <option value="">— All Stock Status —</option>
+                        <option value="in_stock" @selected(request('stock') === 'in_stock')>🟢 In Stock (&gt;5)</option>
+                        <option value="low" @selected(request('stock') === 'low')>🟡 Low Stock (&le;5)</option>
+                        <option value="out" @selected(request('stock') === 'out')>🔴 Out of Stock (0)</option>
+                        <option value="pre_order" @selected(request('stock') === 'pre_order')>⏳ Pre-Order Active</option>
                     </select>
                 </div>
 
                 <!-- Format / Cover Type -->
                 <div class="col-6 col-md-2">
                     <select name="cover_type" class="form-select form-select-sm" onchange="submitFilterForm()">
-                        <option value="">— বাঁধাই / কভার —</option>
-                        <option value="paperback" @selected(request('cover_type') === 'paperback')>পেপারব্যাক</option>
-                        <option value="hardcover" @selected(request('cover_type') === 'hardcover')>হার্ডকভার</option>
-                        <option value="both" @selected(request('cover_type') === 'both')>উভয় সংস্করণ</option>
+                        <option value="">— Binding / Cover —</option>
+                        <option value="paperback" @selected(request('cover_type') === 'paperback')>Paperback</option>
+                        <option value="hardcover" @selected(request('cover_type') === 'hardcover')>Hardcover</option>
+                        <option value="both" @selected(request('cover_type') === 'both')>Both Formats</option>
                     </select>
                 </div>
 
                 <!-- Status Filter -->
                 <div class="col-6 col-md-2">
                     <select name="is_active" class="form-select form-select-sm" onchange="submitFilterForm()">
-                        <option value="">— লাইভ অবস্থা —</option>
-                        <option value="1" @selected(request('is_active') === '1')>সক্রিয় / লাইভ</option>
-                        <option value="0" @selected(request('is_active') === '0')>নিষ্ক্রিয় / খসড়া</option>
+                        <option value="">— Live Status —</option>
+                        <option value="1" @selected(request('is_active') === '1')>Active / Live</option>
+                        <option value="0" @selected(request('is_active') === '0')>Inactive / Draft</option>
                     </select>
                 </div>
 
                 <!-- Price Range (Min - Max) -->
                 <div class="col-6 col-md-2">
                     <div class="input-group input-group-sm">
-                        <input type="number" name="min_price" value="{{ request('min_price') }}" class="form-control" placeholder="মিনিমাম ৳" min="0" step="10">
-                        <input type="number" name="max_price" value="{{ request('max_price') }}" class="form-control" placeholder="সর্বোচ্চ ৳" min="0" step="10">
+                        <input type="number" name="min_price" value="{{ request('min_price') }}" class="form-control" placeholder="Min ৳" min="0" step="10">
+                        <input type="number" name="max_price" value="{{ request('max_price') }}" class="form-control" placeholder="Max ৳" min="0" step="10">
                     </div>
                 </div>
 
                 <!-- Sort By -->
                 <div class="col-6 col-md-2">
                     <select name="sort" class="form-select form-select-sm" onchange="submitFilterForm()">
-                        <option value="latest" @selected(request('sort') === 'latest' || !request('sort'))>নতুন বই প্রথমে</option>
-                        <option value="oldest" @selected(request('sort') === 'oldest')>পুরাতন বই প্রথমে</option>
-                        <option value="title_asc" @selected(request('sort') === 'title_asc')>নাম: ক থেকে ক্ষ (A-Z)</option>
-                        <option value="title_desc" @selected(request('sort') === 'title_desc')>নাম: Z থেকে A</option>
-                        <option value="price_low" @selected(request('sort') === 'price_low')>মূল্য: কম থেকে বেশি</option>
-                        <option value="price_high" @selected(request('sort') === 'price_high')>মূল্য: বেশি থেকে কম</option>
-                        <option value="sales_high" @selected(request('sort') === 'sales_high')>জনপ্রিয় / সর্বোচ্চ বিক্রিত</option>
-                        <option value="stock_low" @selected(request('sort') === 'stock_low')>স্টক: কম থেকে বেশি</option>
-                        <option value="stock_high" @selected(request('sort') === 'stock_high')>স্টক: বেশি থেকে কম</option>
-                        <option value="discount_high" @selected(request('sort') === 'discount_high')>সর্বাধিক ছাড়</option>
+                        <option value="latest" @selected(request('sort') === 'latest' || !request('sort'))>Newest First</option>
+                        <option value="oldest" @selected(request('sort') === 'oldest')>Oldest First</option>
+                        <option value="title_asc" @selected(request('sort') === 'title_asc')>Title: A to Z</option>
+                        <option value="title_desc" @selected(request('sort') === 'title_desc')>Title: Z to A</option>
+                        <option value="price_low" @selected(request('sort') === 'price_low')>Price: Low to High</option>
+                        <option value="price_high" @selected(request('sort') === 'price_high')>Price: High to Low</option>
+                        <option value="sales_high" @selected(request('sort') === 'sales_high')>Best Selling</option>
+                        <option value="stock_low" @selected(request('sort') === 'stock_low')>Stock: Low to High</option>
+                        <option value="stock_high" @selected(request('sort') === 'stock_high')>Stock: High to Low</option>
+                        <option value="discount_high" @selected(request('sort') === 'discount_high')>Highest Discount</option>
                     </select>
                 </div>
 
                 <!-- Per Page & Reset -->
                 <div class="col-6 col-md-2 d-flex gap-1">
                     <select name="per_page" class="form-select form-select-sm flex-fill" onchange="submitFilterForm()">
-                        <option value="20" @selected(request('per_page') == 20 || !request('per_page'))>২০ টি</option>
-                        <option value="50" @selected(request('per_page') == 50)>৫০ টি</option>
-                        <option value="100" @selected(request('per_page') == 100)>১০০ টি</option>
-                        <option value="200" @selected(request('per_page') == 200)>২০০ টি</option>
+                        <option value="20" @selected(request('per_page') == 20 || !request('per_page'))>20 per page</option>
+                        <option value="50" @selected(request('per_page') == 50)>50 per page</option>
+                        <option value="100" @selected(request('per_page') == 100)>100 per page</option>
+                        <option value="200" @selected(request('per_page') == 200)>200 per page</option>
                     </select>
-                    <a href="{{ route('admin.books') }}" class="btn btn-sm btn-outline-secondary px-2.5" title="সকল ফিল্টার রিসেট করুন">
+                    <a href="{{ route('admin.books') }}" class="btn btn-sm btn-outline-secondary px-2.5" title="Reset All Filters">
                         <i class="fas fa-rotate-left"></i>
                     </a>
                 </div>
@@ -242,11 +242,11 @@
                     <input class="form-check-input" type="checkbox" role="switch" id="discountOnlySwitch" name="discount_only" value="1" 
                            @checked(request('discount_only') === '1' || request()->boolean('discount_only')) onchange="submitFilterForm()">
                     <label class="form-check-label small fw-semibold text-dark" for="discountOnlySwitch">
-                        <i class="fas fa-tag text-primary me-1"></i> শুধুমাত্র ছাড়যুক্ত ও ডিসকাউন্ট বই দেখুন
+                        <i class="fas fa-tag text-primary me-1"></i> Show Discounted Books Only
                     </label>
                 </div>
                 <div class="small text-muted">
-                    মোট <strong>@bn($books->total())</strong> টি ফলাফল পাওয়া গেছে
+                    Total <strong>{{ number_format($books->total()) }}</strong> results found
                 </div>
             </div>
 
@@ -259,73 +259,73 @@
 
         @if($hasActiveFilters)
             <div class="d-flex flex-wrap align-items-center gap-1.5 pt-2.5 mt-2 border-top">
-                <span class="small fw-semibold text-muted me-1"><i class="fas fa-sliders me-1"></i>সক্রিয় ফিল্টারসমূহ:</span>
+                <span class="small fw-semibold text-muted me-1"><i class="fas fa-sliders me-1"></i>Active Filters:</span>
                 
                 @if(request('search'))
                     <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill py-1 px-2.5 d-inline-flex align-items-center gap-1">
-                        সার্চ: "{{ request('search') }}"
+                        Search: "{{ request('search') }}"
                         <a href="{{ route('admin.books', request()->except('search')) }}" class="text-primary text-decoration-none"><i class="fas fa-times-circle"></i></a>
                     </span>
                 @endif
 
                 @if(request('author_id') && isset($authors[request('author_id')]))
                     <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle rounded-pill py-1 px-2.5 d-inline-flex align-items-center gap-1">
-                        লেখক: {{ $authors[request('author_id')] }}
+                        Author: {{ $authors[request('author_id')] }}
                         <a href="{{ route('admin.books', request()->except('author_id')) }}" class="text-dark text-decoration-none"><i class="fas fa-times-circle"></i></a>
                     </span>
                 @endif
 
                 @if(request('publisher_id'))
                     <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill py-1 px-2.5 d-inline-flex align-items-center gap-1">
-                        প্রকাশনী: {{ request('publisher_id') === 'idea' ? 'আইডিয়া প্রকাশন' : ($publishers[request('publisher_id')] ?? request('publisher_id')) }}
+                        Publisher: {{ request('publisher_id') === 'idea' ? 'IDEA Publication' : ($publishers[request('publisher_id')] ?? request('publisher_id')) }}
                         <a href="{{ route('admin.books', request()->except('publisher_id')) }}" class="text-dark text-decoration-none"><i class="fas fa-times-circle"></i></a>
                     </span>
                 @endif
 
                 @if(request('category_id') && isset($categories[request('category_id')]))
                     <span class="badge bg-secondary-subtle text-dark border rounded-pill py-1 px-2.5 d-inline-flex align-items-center gap-1">
-                        ক্যাটাগরি: {{ $categories[request('category_id')] }}
+                        Category: {{ $categories[request('category_id')] }}
                         <a href="{{ route('admin.books', request()->except('category_id')) }}" class="text-dark text-decoration-none"><i class="fas fa-times-circle"></i></a>
                     </span>
                 @endif
 
                 @if(request('stock'))
                     <span class="badge bg-light text-dark border rounded-pill py-1 px-2.5 d-inline-flex align-items-center gap-1">
-                        স্টক: {{ request('stock') === 'in_stock' ? 'ইন-স্টক' : (request('stock') === 'low' ? 'লো-স্টক' : (request('stock') === 'out' ? 'স্টক শেষ' : 'প্রি-অর্ডার')) }}
+                        Stock: {{ request('stock') === 'in_stock' ? 'In Stock' : (request('stock') === 'low' ? 'Low Stock' : (request('stock') === 'out' ? 'Out of Stock' : 'Pre-Order')) }}
                         <a href="{{ route('admin.books', request()->except('stock')) }}" class="text-dark text-decoration-none"><i class="fas fa-times-circle"></i></a>
                     </span>
                 @endif
 
                 @if(request('cover_type'))
                     <span class="badge bg-light text-dark border rounded-pill py-1 px-2.5 d-inline-flex align-items-center gap-1">
-                        কভার: {{ request('cover_type') === 'hardcover' ? 'হার্ডকভার' : 'পেপারব্যাক' }}
+                        Cover: {{ request('cover_type') === 'hardcover' ? 'Hardcover' : (request('cover_type') === 'both' ? 'Both Formats' : 'Paperback') }}
                         <a href="{{ route('admin.books', request()->except('cover_type')) }}" class="text-dark text-decoration-none"><i class="fas fa-times-circle"></i></a>
                     </span>
                 @endif
 
                 @if(request('is_active') !== null && request('is_active') !== '')
                     <span class="badge bg-light text-dark border rounded-pill py-1 px-2.5 d-inline-flex align-items-center gap-1">
-                        অবস্থা: {{ request('is_active') === '1' ? 'লাইভ' : 'খসড়া' }}
+                        Status: {{ request('is_active') === '1' ? 'Live' : 'Draft' }}
                         <a href="{{ route('admin.books', request()->except('is_active')) }}" class="text-dark text-decoration-none"><i class="fas fa-times-circle"></i></a>
                     </span>
                 @endif
 
                 @if(request('min_price') || request('max_price'))
                     <span class="badge bg-light text-dark border rounded-pill py-1 px-2.5 d-inline-flex align-items-center gap-1">
-                        মূল্য: ৳{{ request('min_price', '০') }} - ৳{{ request('max_price', '∞') }}
+                        Price: ৳{{ request('min_price', '0') }} - ৳{{ request('max_price', '∞') }}
                         <a href="{{ route('admin.books', request()->except(['min_price', 'max_price'])) }}" class="text-dark text-decoration-none"><i class="fas fa-times-circle"></i></a>
                     </span>
                 @endif
 
                 @if(request('discount_only') === '1' || request()->boolean('discount_only'))
                     <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill py-1 px-2.5 d-inline-flex align-items-center gap-1">
-                        শুধুমাত্র ছাড়যুক্ত
+                        Discounted Only
                         <a href="{{ route('admin.books', request()->except('discount_only')) }}" class="text-success text-decoration-none"><i class="fas fa-times-circle"></i></a>
                     </span>
                 @endif
 
                 <a href="{{ route('admin.books') }}" class="btn btn-link btn-xs text-danger text-decoration-none fw-bold ms-auto">
-                    <i class="fas fa-trash-can me-1"></i> সকল ফিল্টার মুছুন
+                    <i class="fas fa-trash-can me-1"></i> Clear All Filters
                 </a>
             </div>
         @endif
@@ -341,16 +341,16 @@
                 <thead class="table-light">
                     <tr>
                         <th class="ps-3" style="width: 40px;">#</th>
-                        <th style="min-width: 230px;">বই ও কভার</th>
-                        <th style="min-width: 120px;">সংস্করণ</th>
-                        <th style="min-width: 150px;">লেখক ও প্রকাশনী</th>
-                        <th style="min-width: 100px;">ক্যাটাগরি</th>
-                        <th class="text-end" style="min-width: 140px;">📄 পেপারব্যাক মূল্য</th>
-                        <th class="text-end" style="min-width: 140px;">📕 হার্ডকভার মূল্য</th>
-                        <th class="text-end" style="min-width: 150px;">💼 ক্রয় মূল্য ও কমিশন</th>
-                        <th class="text-center" style="min-width: 110px;">স্টক ইনভেন্টরি</th>
-                        <th class="text-center" style="min-width: 75px;">অবস্থা</th>
-                        <th class="text-end pe-3" style="min-width: 135px;">শর্টকাট</th>
+                        <th style="min-width: 230px;">Book & Cover</th>
+                        <th style="min-width: 120px;">Edition</th>
+                        <th style="min-width: 150px;">Author & Publisher</th>
+                        <th style="min-width: 100px;">Category</th>
+                        <th class="text-end" style="min-width: 140px;">📄 Paperback Price</th>
+                        <th class="text-end" style="min-width: 140px;">📕 Hardcover Price</th>
+                        <th class="text-end" style="min-width: 150px;">💼 Cost & Commission</th>
+                        <th class="text-center" style="min-width: 110px;">Stock Inventory</th>
+                        <th class="text-center" style="min-width: 75px;">Status</th>
+                        <th class="text-end pe-3" style="min-width: 135px;">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -386,7 +386,7 @@
                         @endphp
                         <tr id="bookRow_{{ $book->id }}" class="book-table-row">
                             <td class="ps-3 text-muted small">
-                                @bn(($books->currentPage() - 1) * $books->perPage() + $index + 1)
+                                {{ ($books->currentPage() - 1) * $books->perPage() + $index + 1 }}
                             </td>
                             
                             {{-- Book Title & Cover with Instant Cover Edit Pencil --}}
@@ -396,12 +396,12 @@
                                         <img src="{{ $coverUrl }}" alt="{{ $book->title }}" id="bookCoverImg_{{ $book->id }}"
                                              class="rounded border shadow-xs" style="width: 100%; height: 100%; object-fit: cover;">
                                         @if($book->format === 'ebook')
-                                            <span class="badge bg-info text-white position-absolute top-0 start-0 m-0.5 p-0.5 rounded-1" style="font-size: 8px;">ই-বুক</span>
+                                            <span class="badge bg-info text-white position-absolute top-0 start-0 m-0.5 p-0.5 rounded-1" style="font-size: 8px;">eBook</span>
                                         @endif
                                         <button type="button" class="btn btn-dark btn-xs position-absolute bottom-0 end-0 m-0.5 p-0 rounded-circle opacity-75 hover-opacity-100" 
                                                 style="width: 20px; height: 20px; font-size: 8.5px;" 
                                                 onclick="openQuickEditModal({{ $book->id }}, 'cover')"
-                                                title="কভার ছবি পরিবর্তন করুন">
+                                                title="Change Cover Image">
                                             <i class="fas fa-camera"></i>
                                         </button>
                                     </div>
@@ -417,7 +417,7 @@
                                             @if($book->isbn)
                                                 <span class="badge bg-light text-muted border px-1.5 py-0.5" title="ISBN"><i class="fas fa-barcode me-0.5"></i>{{ $book->isbn }}</span>
                                             @endif
-                                            <span><i class="fas fa-cart-shopping me-0.5 text-secondary"></i> @bn($book->sales_count ?? 0) বিক্রি</span>
+                                            <span><i class="fas fa-cart-shopping me-0.5 text-secondary"></i> {{ number_format($book->sales_count ?? 0) }} sold</span>
                                         </div>
                                     </div>
                                 </div>
@@ -429,15 +429,15 @@
                                     <span class="badge bg-light text-dark border px-2 py-0.5 cursor-pointer hover-border-primary" 
                                           id="bookEditionDisplay_{{ $book->id }}"
                                           onclick="openQuickEditModal({{ $book->id }}, 'edition')"
-                                          title="সংস্করণ পরিবর্তন করতে ক্লিক করুন">
-                                        <i class="fas fa-bookmark me-1 text-primary-subtle"></i>{{ $book->edition ?: 'সাধারণ সংস্করণ' }}
+                                          title="Click to edit edition">
+                                        <i class="fas fa-bookmark me-1 text-primary-subtle"></i>{{ $book->edition ?: 'Regular Edition' }}
                                     </span>
                                     @if($isHardcover || ($hardPrice > 0 && $paperPrice <= 0))
-                                        <span class="badge bg-warning-subtle text-dark border" style="font-size: 9.5px;">হার্ডকভার</span>
+                                        <span class="badge bg-warning-subtle text-dark border" style="font-size: 9.5px;">Hardcover</span>
                                     @elseif($isBoth || $hasBothPrices)
-                                        <span class="badge bg-info-subtle text-dark border" style="font-size: 9.5px;">উভয় সংস্করণ</span>
+                                        <span class="badge bg-info-subtle text-dark border" style="font-size: 9.5px;">Both Formats</span>
                                     @else
-                                        <span class="badge bg-light text-muted border" style="font-size: 9.5px;">পেপারব্যাক</span>
+                                        <span class="badge bg-light text-muted border" style="font-size: 9.5px;">Paperback</span>
                                     @endif
                                 </div>
                             </td>
@@ -461,11 +461,11 @@
                                 </div>
                                 <div class="small text-muted text-truncate" style="font-size: 11px; max-width: 150px;">
                                     @if($book->publisher)
-                                        <a href="{{ route('admin.publishers.show', $book->publisher->id) }}" class="text-decoration-none text-muted hover-dark" title="এই প্রকাশনীর পেজ দেখুন">
+                                        <a href="{{ route('admin.publishers.show', $book->publisher->id) }}" class="text-decoration-none text-muted hover-dark" title="View Publisher">
                                             <i class="fas fa-building me-1"></i>{{ $book->publisher->name }}
                                         </a>
                                     @else
-                                        <span class="text-primary"><i class="fas fa-building me-1"></i>IDEA প্রকাশন</span>
+                                        <span class="text-primary"><i class="fas fa-building me-1"></i>IDEA Publication</span>
                                     @endif
                                 </div>
                             </td>
@@ -487,21 +487,21 @@
                             <td class="text-end">
                                 <div class="cursor-pointer hover-bg-light p-1 rounded-2 border border-transparent hover-border-primary" 
                                      onclick="openQuickEditModal({{ $book->id }}, 'pricing')" 
-                                     title="পেপারব্যাক মূল্য ও সেল ছাড় পরিবর্তন করতে ক্লিক করুন">
+                                     title="Click to edit paperback price & discount">
                                     @if($paperPrice > 0)
                                         <div class="fw-bold text-dark font-monospace" style="font-size: 13px;" id="bookMrpDisplay_{{ $book->id }}">
-                                            ৳@bn(number_format($paperPrice, 0))
+                                            ৳{{ number_format($paperPrice, 0) }}
                                         </div>
                                         @if($hasPaperDiscount)
                                             <div class="d-flex align-items-center justify-content-end gap-1 mt-0.5">
-                                                <span class="fw-bold text-primary font-monospace" style="font-size: 11.5px;" id="bookSalePriceDisplay_{{ $book->id }}">৳@bn(number_format($paperDiscount, 0))</span>
-                                                <span class="badge bg-danger-subtle text-danger rounded-pill" style="font-size: 8.5px;">-@bn($paperDiscountPercent)%</span>
+                                                <span class="fw-bold text-primary font-monospace" style="font-size: 11.5px;" id="bookSalePriceDisplay_{{ $book->id }}">৳{{ number_format($paperDiscount, 0) }}</span>
+                                                <span class="badge bg-danger-subtle text-danger rounded-pill" style="font-size: 8.5px;">-{{ $paperDiscountPercent }}%</span>
                                             </div>
                                         @else
-                                            <div class="small text-muted" style="font-size: 10px;">গায়ের মূল্যে বিক্রয়</div>
+                                            <div class="small text-muted" style="font-size: 10px;">Sold at MRP</div>
                                         @endif
                                     @else
-                                        <span class="badge bg-light text-muted border px-1.5 py-0.5" style="font-size: 10px;">+ পেপারব্যাক দিন</span>
+                                        <span class="badge bg-light text-muted border px-1.5 py-0.5" style="font-size: 10px;">+ Add Paperback</span>
                                     @endif
                                 </div>
                             </td>
@@ -510,18 +510,18 @@
                             <td class="text-end">
                                 <div class="cursor-pointer hover-bg-light p-1 rounded-2 border border-transparent hover-border-primary" 
                                      onclick="openQuickEditModal({{ $book->id }}, 'pricing')" 
-                                     title="হার্ডকভার মূল্য ও ছাড় পরিবর্তন করতে ক্লিক করুন">
+                                     title="Click to edit hardcover price & discount">
                                     @if($hardPrice > 0)
                                         <div class="fw-bold text-dark font-monospace" style="font-size: 13px;">
-                                            ৳@bn(number_format($hardPrice, 0))
+                                            ৳{{ number_format($hardPrice, 0) }}
                                         </div>
                                         @if($hasHardDiscount)
                                             <div class="d-flex align-items-center justify-content-end gap-1 mt-0.5">
-                                                <span class="fw-bold text-primary font-monospace" style="font-size: 11.5px;">৳@bn(number_format($hardDiscount, 0))</span>
-                                                <span class="badge bg-danger-subtle text-danger rounded-pill" style="font-size: 8.5px;">-@bn($hardDiscountPercent)%</span>
+                                                <span class="fw-bold text-primary font-monospace" style="font-size: 11.5px;">৳{{ number_format($hardDiscount, 0) }}</span>
+                                                <span class="badge bg-danger-subtle text-danger rounded-pill" style="font-size: 8.5px;">-{{ $hardDiscountPercent }}%</span>
                                             </div>
                                         @else
-                                            <div class="small text-muted" style="font-size: 10px;">হার্ডকভার বিক্রয়</div>
+                                            <div class="small text-muted" style="font-size: 10px;">Hardcover Sale</div>
                                         @endif
                                     @else
                                         <span class="text-muted opacity-50 small">—</span>
@@ -533,15 +533,15 @@
                             <td class="text-end">
                                 <div class="cursor-pointer hover-bg-light p-1 rounded-2 border border-transparent hover-border-primary" 
                                      onclick="openQuickEditModal({{ $book->id }}, 'pricing')" 
-                                     title="ক্রয় কমিশন ও খরচ পরিবর্তন করতে ক্লিক করুন">
+                                     title="Click to edit wholesale cost & buy commission">
                                     @if($cost > 0)
                                         <div class="fw-bold text-success font-monospace" style="font-size: 13px;" id="bookCostDisplay_{{ $book->id }}">
-                                            ৳@bn(number_format($cost, 0))
+                                            ৳{{ number_format($cost, 0) }}
                                         </div>
                                         @if($effectivePrice > 0 && $cost < $effectivePrice)
                                             <div class="d-flex align-items-center justify-content-end gap-1 mt-0.5">
                                                 <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle rounded-pill px-1.5 py-0.5" style="font-size: 9px;">
-                                                    কমিশন: -@bn($buyCommissionPercent)%
+                                                    Comm: -{{ $buyCommissionPercent }}%
                                                 </span>
                                             </div>
                                         @endif
@@ -550,10 +550,10 @@
                                             $defaultEstCost = $effectivePrice > 0 ? ($effectivePrice * 0.6) : 0;
                                         @endphp
                                         <span class="badge bg-light text-muted border px-1.5 py-0.5" style="font-size: 10px;">
-                                            <i class="fas fa-plus-circle me-0.5 text-primary"></i>কমিশন দিন (-৪০%)
+                                            <i class="fas fa-plus-circle me-0.5 text-primary"></i>Set Cost (-40%)
                                         </span>
                                         @if($defaultEstCost > 0)
-                                            <div class="small text-muted font-monospace mt-0.5" style="font-size: 9.5px;">(দর: ৳@bn(number_format($defaultEstCost, 0)))</div>
+                                            <div class="small text-muted font-monospace mt-0.5" style="font-size: 9.5px;">(Est: ৳{{ number_format($defaultEstCost, 0) }})</div>
                                         @endif
                                     @endif
                                 </div>
@@ -564,26 +564,26 @@
                                 <div class="d-inline-flex align-items-center gap-1.5">
                                     @if($book->stock_status === 'pre_order')
                                         <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill px-2 py-0.5 fw-semibold" style="font-size: 11px;">
-                                            <i class="fas fa-clock-rotate-left me-0.5"></i>প্রি-অর্ডার
+                                            <i class="fas fa-clock-rotate-left me-0.5"></i>Pre-Order
                                         </span>
                                     @elseif($stock <= 0)
                                         <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2 py-0.5" style="font-size: 11px;">
-                                            <i class="fas fa-times-circle me-0.5"></i>স্টকআউট
+                                            <i class="fas fa-times-circle me-0.5"></i>Out of Stock
                                         </span>
                                     @elseif($stock <= 5)
                                         <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2 py-0.5" style="font-size: 11px;">
-                                            <i class="fas fa-triangle-exclamation me-0.5"></i>@bn($stock) টি
+                                            <i class="fas fa-triangle-exclamation me-0.5"></i>{{ $stock }} pcs
                                         </span>
                                     @else
                                         <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5" style="font-size: 11px;">
-                                            @bn($stock) টি
+                                            {{ $stock }} pcs
                                         </span>
                                     @endif
 
                                     <button type="button" class="btn btn-xs btn-outline-secondary rounded-circle" 
                                             style="width: 24px; height: 24px; padding: 0;"
                                             onclick="openQuickEditModal({{ $book->id }}, 'stock')"
-                                            title="স্টক পরিবর্তন করুন">
+                                            title="Update Stock">
                                         <i class="fas fa-pen" style="font-size: 9px;"></i>
                                     </button>
                                 </div>
@@ -592,9 +592,9 @@
                             {{-- Status --}}
                             <td class="text-center">
                                 @if($book->is_active)
-                                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5" style="font-size: 11px;"><i class="fas fa-check me-0.5"></i>লাইভ</span>
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5" style="font-size: 11px;"><i class="fas fa-check me-0.5"></i>Live</span>
                                 @else
-                                    <span class="badge bg-secondary-subtle text-secondary border rounded-pill px-2 py-0.5" style="font-size: 11px;">খসড়া</span>
+                                    <span class="badge bg-secondary-subtle text-secondary border rounded-pill px-2 py-0.5" style="font-size: 11px;">Draft</span>
                                 @endif
                             </td>
 
@@ -603,23 +603,23 @@
                                 <div class="d-inline-flex align-items-center gap-1">
                                     {{-- Primary Quick Shortcut Button --}}
                                     <button type="button" class="btn btn-sm btn-primary rounded-pill px-2.5 py-0.5 fw-bold shadow-xs" 
-                                            onclick="openQuickEditModal({{ $book->id }})" title="কভার, মূল্য, কমিশন ও স্টক শর্টকাট এডিট">
-                                        <i class="fas fa-bolt me-1"></i> শর্টকাট
+                                            onclick="openQuickEditModal({{ $book->id }})" title="Quick edit cover, price, commission & stock">
+                                        <i class="fas fa-bolt me-1"></i> Quick Edit
                                     </button>
                                     
                                     <a href="{{ route('book.show', $book->slug ?? $book->id) }}" target="_blank" 
-                                       class="btn btn-sm btn-outline-secondary rounded-pill px-2 py-0.5" title="সাইটে প্রিভিউ দেখুন">
+                                       class="btn btn-sm btn-outline-secondary rounded-pill px-2 py-0.5" title="Preview on Storefront">
                                         <i class="fas fa-eye"></i>
                                     </a>
                                     <a href="{{ route('admin.content.edit', ['type' => 'books', 'id' => $book->id]) }}" 
-                                        class="btn btn-sm btn-outline-secondary rounded-pill px-2 py-0.5" title="সম্পূর্ণ এডিট">
+                                        class="btn btn-sm btn-outline-secondary rounded-pill px-2 py-0.5" title="Full Edit Form">
                                         <i class="fas fa-pen-to-square"></i>
                                     </a>
                                     <form action="{{ route('admin.content.destroy', ['type' => 'books', 'id' => $book->id]) }}" method="POST" class="d-inline"
-                                          onsubmit="return confirm('আপনি কি নিশ্চিত যে এই বইটি মুছে ফেলতে চান?');">
+                                          onsubmit="return confirm('Are you sure you want to delete this book?');">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-2 py-0.5" title="মুছে ফেলুন">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-2 py-0.5" title="Delete Book">
                                             <i class="fas fa-trash-can"></i>
                                         </button>
                                     </form>
@@ -634,10 +634,10 @@
                                     <div class="rounded-circle bg-light d-inline-flex p-4 mb-3">
                                         <i class="fas fa-book-open fs-1 text-muted"></i>
                                     </div>
-                                    <h5 class="fw-bold text-dark mb-1">কোনো বই পাওয়া যায়নি</h5>
-                                    <p class="text-muted small mb-3">আপনার সার্চ কি-ওয়ার্ড বা ফিল্টার পরিবর্তন করুন অথবা নতুন বই যোগ করুন।</p>
+                                    <h5 class="fw-bold text-dark mb-1">No Books Found</h5>
+                                    <p class="text-muted small mb-3">Adjust your search criteria or add new books to the catalog.</p>
                                     <a href="{{ route('admin.books') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
-                                        <i class="fas fa-rotate-left me-1"></i> সকল ফিল্টার ক্লিয়ার করুন
+                                        <i class="fas fa-rotate-left me-1"></i> Clear All Filters
                                     </a>
                                 </div>
                             </td>
@@ -651,7 +651,7 @@
         @if ($books->hasPages())
             <div class="p-3 border-top d-flex flex-column flex-md-row align-items-center justify-content-between gap-2 bg-light bg-opacity-50">
                 <div class="small text-muted">
-                    মোট @bn($books->total()) টির মধ্যে @bn($books->firstItem()) - @bn($books->lastItem()) দেখানো হচ্ছে
+                    Showing {{ $books->firstItem() }} - {{ $books->lastItem() }} of {{ number_format($books->total()) }} books
                 </div>
                 <div>{{ $books->links() }}</div>
             </div>
@@ -668,7 +668,7 @@
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header bg-primary text-white py-3">
                 <h5 class="modal-title fw-bold text-white mb-0" id="quickBookEditModalLabel">
-                    <i class="fas fa-bolt me-1.5"></i> বইয়ের দ্রুত শর্টকাট এডিটর
+                    <i class="fas fa-bolt me-1.5"></i> Quick Book Shortcut Editor
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -682,7 +682,7 @@
                     <div class="row g-4">
                         {{-- Left Column: Cover Image & Preview --}}
                         <div class="col-12 col-md-4 border-end-md text-center">
-                            <label class="form-label small fw-bold text-dark d-block">প্রচ্ছদ ছবি (Cover Photo)</label>
+                            <label class="form-label small fw-bold text-dark d-block">Cover Image</label>
                             <div class="position-relative d-inline-block mb-2.5">
                                 <img src="https://placehold.co/120x170/e2e8f0/475569?text=Cover" 
                                      id="qeCoverPreview" 
@@ -691,7 +691,7 @@
                             </div>
                             <div>
                                 <label for="qeCoverInput" class="btn btn-sm btn-outline-primary rounded-pill px-3 cursor-pointer">
-                                    <i class="fas fa-upload me-1"></i> নতুন ছবি নির্বাচন
+                                    <i class="fas fa-upload me-1"></i> Upload New Cover
                                 </label>
                                 <input type="file" id="qeCoverInput" name="cover_image_file" accept="image/*" class="d-none" onchange="previewSelectedCover(this)">
                                 <div class="small text-muted mt-1" style="font-size: 11px;">JPG, PNG, WebP (Max 5MB)</div>
@@ -704,34 +704,34 @@
                             {{-- Title & Edition --}}
                             <div class="row g-2 mb-2.5">
                                 <div class="col-8">
-                                    <label class="form-label small fw-bold text-dark mb-1">বইয়ের নাম <span class="text-danger">*</span></label>
+                                    <label class="form-label small fw-bold text-dark mb-1">Book Title <span class="text-danger">*</span></label>
                                     <input type="text" id="qeTitle" name="title" class="form-control form-control-sm fw-bold" required>
                                 </div>
                                 <div class="col-4">
-                                    <label class="form-label small fw-bold text-dark mb-1">সংস্করণ (Edition)</label>
-                                    <input type="text" id="qeEdition" name="edition" class="form-control form-control-sm" placeholder="যেমন: ১ম প্রকাশ, ২০২৪">
+                                    <label class="form-label small fw-bold text-dark mb-1">Edition</label>
+                                    <input type="text" id="qeEdition" name="edition" class="form-control form-control-sm" placeholder="e.g. 1st Edition 2026">
                                 </div>
                             </div>
 
                             {{-- Cover Type Selection Tabs in Modal --}}
                             <div class="mb-2.5 pb-2 border-bottom">
                                 <label class="form-label small fw-bold text-dark d-block mb-1">
-                                    <i class="fas fa-layer-group text-primary me-1"></i> মূল বাঁধাই ও সংস্করণ (Cover Binding) <span class="text-danger">*</span>
+                                    <i class="fas fa-layer-group text-primary me-1"></i> Cover & Binding Format <span class="text-danger">*</span>
                                 </label>
                                 <div class="btn-group w-100" role="group">
                                     <input type="radio" class="btn-check" name="cover_type" id="qeCoverType_paperback" value="paperback" onchange="onQeCoverTypeChange()">
                                     <label class="btn btn-outline-primary btn-sm py-1 fw-semibold" for="qeCoverType_paperback">
-                                        <i class="fas fa-book-open me-1 text-info"></i> পেপারব্যাক
+                                        <i class="fas fa-book-open me-1 text-info"></i> Paperback
                                     </label>
 
                                     <input type="radio" class="btn-check" name="cover_type" id="qeCoverType_hardcover" value="hardcover" onchange="onQeCoverTypeChange()">
                                     <label class="btn btn-outline-primary btn-sm py-1 fw-semibold" for="qeCoverType_hardcover">
-                                        <i class="fas fa-gem me-1 text-warning"></i> হার্ডকভার
+                                        <i class="fas fa-gem me-1 text-warning"></i> Hardcover
                                     </label>
 
                                     <input type="radio" class="btn-check" name="cover_type" id="qeCoverType_both" value="both" onchange="onQeCoverTypeChange()">
                                     <label class="btn btn-outline-primary btn-sm py-1 fw-semibold" for="qeCoverType_both">
-                                        <i class="fas fa-layer-group me-1 text-success"></i> উভয় সংস্করণ
+                                        <i class="fas fa-layer-group me-1 text-success"></i> Both Formats
                                     </label>
                                 </div>
                             </div>
@@ -743,26 +743,26 @@
                                 <div id="qePaperbackPriceBlock" class="mb-2">
                                     <div class="d-flex align-items-center justify-content-between mb-1">
                                         <span class="badge bg-light text-dark border px-2 py-0.5 small fw-bold" style="font-size: 11px;">
-                                            <i class="fas fa-book-open text-primary me-1"></i> পেপারব্যাক মূল্য
+                                            <i class="fas fa-book-open text-primary me-1"></i> Paperback Pricing
                                         </span>
                                     </div>
                                     <div class="row g-2">
                                         <div class="col-4">
-                                            <label class="form-label small fw-bold text-dark mb-1">গায়ের মুদ্রিত মূল্য (MRP)</label>
+                                            <label class="form-label small fw-bold text-dark mb-1">Printed Price (MRP)</label>
                                             <div class="input-group input-group-sm">
                                                 <span class="input-group-text bg-white">৳</span>
                                                 <input type="number" id="qePrice" name="price" min="0" step="1" class="form-control fw-bold" placeholder="0" oninput="recalcPricingFromMrp()">
                                             </div>
                                         </div>
                                         <div class="col-4">
-                                            <label class="form-label small fw-semibold text-dark mb-1">সেল ছাড় / ডিসকাউন্ট</label>
+                                            <label class="form-label small fw-semibold text-dark mb-1">Sale Discount</label>
                                             <div class="input-group input-group-sm">
                                                 <input type="number" id="qeSaleCommission" min="0" max="100" step="0.5" class="form-control text-center text-danger fw-bold" placeholder="0" oninput="recalcSalePriceFromCommission()">
                                                 <span class="input-group-text bg-white">%</span>
                                             </div>
                                         </div>
                                         <div class="col-4">
-                                            <label class="form-label small fw-semibold text-dark mb-1">বিক্রয় মূল্য (Sale)</label>
+                                            <label class="form-label small fw-semibold text-dark mb-1">Sale Price</label>
                                             <div class="input-group input-group-sm">
                                                 <span class="input-group-text bg-white">৳</span>
                                                 <input type="number" id="qeDiscountPrice" name="discount_price" min="0" step="1" class="form-control text-primary fw-bold" placeholder="0" oninput="recalcSaleCommissionFromPrice()">
@@ -775,26 +775,26 @@
                                 <div id="qeHardcoverPriceBlock" class="mb-2">
                                     <div class="d-flex align-items-center justify-content-between mb-1">
                                         <span class="badge bg-warning-subtle text-dark border border-warning-subtle px-2 py-0.5 small fw-bold" style="font-size: 11px;">
-                                            <i class="fas fa-gem text-warning me-1"></i> হার্ডকভার মূল্য
+                                            <i class="fas fa-gem text-warning me-1"></i> Hardcover Pricing
                                         </span>
                                     </div>
                                     <div class="row g-2">
                                         <div class="col-4">
-                                            <label class="form-label small fw-bold text-dark mb-1">হার্ডকভার গায়ের মূল্য (MRP)</label>
+                                            <label class="form-label small fw-bold text-dark mb-1">Hardcover MRP</label>
                                             <div class="input-group input-group-sm">
                                                 <span class="input-group-text bg-white">৳</span>
                                                 <input type="number" id="qeHardcoverPrice" name="hardcover_price" min="0" step="1" class="form-control fw-bold" placeholder="0" oninput="recalcHardcoverPricingFromMrp()">
                                             </div>
                                         </div>
                                         <div class="col-4">
-                                            <label class="form-label small fw-semibold text-dark mb-1">হার্ডকভার ছাড়</label>
+                                            <label class="form-label small fw-semibold text-dark mb-1">Hardcover Discount</label>
                                             <div class="input-group input-group-sm">
                                                 <input type="number" id="qeHardcoverSaleCommission" min="0" max="100" step="0.5" class="form-control text-center text-danger fw-bold" placeholder="0" oninput="recalcHardcoverSalePriceFromCommission()">
                                                 <span class="input-group-text bg-white">%</span>
                                             </div>
                                         </div>
                                         <div class="col-4">
-                                            <label class="form-label small fw-semibold text-dark mb-1">হার্ডকভার বিক্রয় মূল্য</label>
+                                            <label class="form-label small fw-semibold text-dark mb-1">Hardcover Sale Price</label>
                                             <div class="input-group input-group-sm">
                                                 <span class="input-group-text bg-white">৳</span>
                                                 <input type="number" id="qeHardcoverDiscountPrice" name="hardcover_discount_price" min="0" step="1" class="form-control text-primary fw-bold" placeholder="0" oninput="recalcHardcoverSaleCommissionFromPrice()">
@@ -808,7 +808,7 @@
                                     <div class="row g-2 align-items-center">
                                         <div class="col-6">
                                             <label class="form-label small fw-bold text-dark mb-1">
-                                                <i class="fas fa-hand-holding-dollar text-success me-1"></i> ক্রয় কমিশন (%)
+                                                <i class="fas fa-hand-holding-dollar text-success me-1"></i> Wholesale Buy Commission (%)
                                             </label>
                                             <div class="input-group input-group-sm">
                                                 <input type="number" id="qeBuyCommission" min="0" max="100" step="0.5" class="form-control text-center text-success fw-bold" placeholder="40" oninput="recalcCostPriceFromCommission()">
@@ -817,7 +817,7 @@
                                         </div>
                                         <div class="col-6">
                                             <label class="form-label small fw-bold text-dark mb-1">
-                                                <i class="fas fa-money-bill-wave text-success me-1"></i> ক্রয় খরচ / দর (Cost)
+                                                <i class="fas fa-money-bill-wave text-success me-1"></i> Wholesale Cost Price (৳)
                                             </label>
                                             <div class="input-group input-group-sm">
                                                 <span class="input-group-text bg-white">৳</span>
@@ -832,20 +832,20 @@
                             {{-- Inventory & Live Status --}}
                             <div class="row g-2 align-items-center">
                                 <div class="col-4">
-                                    <label class="form-label small fw-bold text-dark mb-1">ইনভেন্টরি স্টক <span class="text-danger">*</span></label>
+                                    <label class="form-label small fw-bold text-dark mb-1">Inventory Stock <span class="text-danger">*</span></label>
                                     <div class="input-group input-group-sm">
                                         <input type="number" id="qeStockQuantity" name="stock_quantity" min="0" max="100000" class="form-control fw-bold" required>
-                                        <span class="input-group-text">টি</span>
+                                        <span class="input-group-text">pcs</span>
                                     </div>
                                 </div>
 
                                 <div class="col-4">
-                                    <label class="form-label small fw-bold text-dark mb-1">স্টক অবস্থা</label>
+                                    <label class="form-label small fw-bold text-dark mb-1">Stock Status</label>
                                     <select id="qeStockStatus" name="stock_status" class="form-select form-select-sm">
-                                        <option value="in_stock">🟢 ইন-স্টক</option>
-                                        <option value="low">🟡 লো-স্টক</option>
-                                        <option value="out">🔴 স্টক শেষ</option>
-                                        <option value="pre_order">⏳ প্রি-অর্ডার চলছে</option>
+                                        <option value="in_stock">🟢 In Stock</option>
+                                        <option value="low">🟡 Low Stock</option>
+                                        <option value="out">🔴 Out of Stock</option>
+                                        <option value="pre_order">⏳ Pre-Order Active</option>
                                     </select>
                                 </div>
 
@@ -853,7 +853,7 @@
                                     <div class="form-check form-switch mb-0">
                                         <input class="form-check-input" type="checkbox" role="switch" id="qeIsActive" name="is_active" value="1">
                                         <label class="form-check-label small fw-bold text-dark" for="qeIsActive">
-                                            লাইভ ও সক্রিয়
+                                            Active & Live in Store
                                         </label>
                                     </div>
                                 </div>
@@ -864,9 +864,9 @@
                 </div>
 
                 <div class="modal-footer bg-light py-2.5">
-                    <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3" data-bs-dismiss="modal">বাতিল</button>
+                    <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" id="qeSubmitBtn" class="btn btn-sm btn-primary rounded-pill px-4 fw-bold shadow-xs">
-                        <i class="fas fa-check-circle me-1"></i> সংরক্ষণ করুন
+                        <i class="fas fa-check-circle me-1"></i> Save Changes
                     </button>
                 </div>
             </form>
@@ -1174,7 +1174,7 @@ function handleQuickBookEditSubmit(e) {
     const formData = new FormData(form);
 
     btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> সংরক্ষণ হচ্ছে...';
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Saving changes...';
 
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
@@ -1194,15 +1194,15 @@ function handleQuickBookEditSubmit(e) {
                 location.reload();
             }, 800);
         } else {
-            alertBox.innerHTML = `<div class="alert alert-danger p-2 small mb-3">${data.message || 'ত্রুটি হয়েছে'}</div>`;
+            alertBox.innerHTML = `<div class="alert alert-danger p-2 small mb-3">${data.message || 'An error occurred'}</div>`;
             btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-check-circle me-1"></i> সংরক্ষণ করুন';
+            btn.innerHTML = '<i class="fas fa-check-circle me-1"></i> Save Changes';
         }
     })
     .catch(err => {
-        alertBox.innerHTML = `<div class="alert alert-danger p-2 small mb-3">সার্ভার এরর হয়েছে।</div>`;
+        alertBox.innerHTML = `<div class="alert alert-danger p-2 small mb-3">Server error occurred.</div>`;
         btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-check-circle me-1"></i> সংরক্ষণ করুন';
+        btn.innerHTML = '<i class="fas fa-check-circle me-1"></i> Save Changes';
     });
 }
 
