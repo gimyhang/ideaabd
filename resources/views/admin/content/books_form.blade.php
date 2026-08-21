@@ -333,7 +333,142 @@
                 @error('edition')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
 
-            {{-- ROW 7: Supplier * / Number of Pages * / Book Size 2-Column Table (Height cm & Width cm) --}}
+            {{-- ROW 7: PRICING ENGINE (মূল্য নির্ধারণ ও ক্রয়-বিক্রয় লাভ হিসাব) --}}
+            <div class="col-12">
+                <div class="p-3 bg-white rounded-3 border shadow-xs" id="pricingEngineContainer">
+                    <div class="d-flex align-items-center justify-content-between mb-2.5 pb-1.5 border-bottom">
+                        <span class="small fw-bold text-dark"><i class="fas fa-calculator text-primary me-1.5"></i> মূল্য নির্ধারণ ও ক্রয়-বিক্রয় লাভ হিসাব (Pricing Engine)</span>
+                        <span class="badge bg-light text-secondary border small" id="pricingBindingBadge">Paperback Mode</span>
+                    </div>
+
+                    {{-- 1. PAPERBACK PRICING PANEL --}}
+                    <div id="paperbackPricingPanel" class="mb-3 {{ $val('cover_type') === 'hardcover' ? 'd-none' : '' }}">
+                        <div class="d-flex align-items-center justify-content-between mb-1.5">
+                            <span class="small fw-bold text-dark" style="font-size: 12px;">
+                                <i class="fas fa-book text-muted me-1"></i> পেপারব্যাক / মূল বাঁধাই মূল্য (Paperback Pricing)
+                            </span>
+                        </div>
+                        <div class="row g-2">
+                            <div class="col-12 col-md-3">
+                                <label for="f-price" class="form-label small fw-semibold text-dark mb-1">
+                                    List Price (MRP ৳) <span class="text-danger">*</span>
+                                </label>
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text bg-light text-dark fw-bold">৳</span>
+                                    <input type="number" step="0.01" min="0" id="f-price" name="price" 
+                                           value="{{ $val('price') }}"
+                                           class="form-control form-control-sm @error('price') is-invalid @enderror" 
+                                           placeholder="0.00" oninput="onPaperbackPriceChange()">
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-md-3">
+                                <label for="f-purchase_discount_percent" class="form-label small fw-semibold text-dark mb-1">
+                                    Purchase Discount (%)
+                                </label>
+                                <div class="input-group input-group-sm">
+                                    <input type="number" step="0.5" min="0" max="100" id="f-purchase_discount_percent" 
+                                           class="form-control form-control-sm" placeholder="e.g. 40" oninput="onPaperbackPurchaseDiscountChange()">
+                                    <span class="input-group-text bg-light text-muted fw-bold">%</span>
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-md-3">
+                                <label for="f-cost_price" class="form-label small fw-semibold text-dark mb-1">
+                                    Purchase Amount (Cost ৳)
+                                </label>
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text bg-light text-dark fw-bold">৳</span>
+                                    <input type="number" step="0.01" min="0" id="f-cost_price" name="cost_price" 
+                                           value="{{ $val('cost_price') }}" class="form-control form-control-sm" 
+                                           placeholder="0.00" oninput="onPaperbackCostChange()">
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-md-3">
+                                <label for="f-sold_percent" class="form-label small fw-semibold text-dark mb-1">
+                                    Sold % (Sale Discount)
+                                </label>
+                                <div class="input-group input-group-sm">
+                                    <input type="number" step="0.5" min="0" max="100" id="f-sold_percent" 
+                                           class="form-control form-control-sm" placeholder="e.g. 25" oninput="onPaperbackSoldPercentChange()">
+                                    <span class="input-group-text bg-light text-muted fw-bold">%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex align-items-center justify-content-between mt-2 pt-1.5 border-top bg-light p-2 rounded-2" style="font-size: 11.5px;">
+                            <span class="text-muted">Customer Offer Price: <strong class="text-dark fw-bold" id="liveCalculatedOfferPrice">৳{{ number_format((float)$val('discount_price', $val('price', 0)), 2) }}</strong></span>
+                            <span class="text-muted">Estimated Profit: <strong class="text-success fw-bold" id="liveCalculatedProfit">৳0.00 (0%)</strong></span>
+                        </div>
+                        <input type="hidden" id="f-discount_price" name="discount_price" value="{{ $val('discount_price') }}">
+                    </div>
+
+                    {{-- 2. HARDCOVER PRICING PANEL (INDEPENDENT) --}}
+                    <div id="hardcoverPricingPanel" class="{{ in_array($val('cover_type'), ['hardcover', 'both']) ? '' : 'd-none' }}">
+                        <div class="d-flex align-items-center justify-content-between mb-1.5 pt-2 border-top">
+                            <span class="small fw-bold text-dark" style="font-size: 12px;">
+                                <i class="fas fa-book-bookmark text-primary me-1"></i> হার্ডকভার বাঁধাই মূল্য (Hardcover Pricing)
+                            </span>
+                        </div>
+                        <div class="row g-2">
+                            <div class="col-12 col-md-3">
+                                <label for="f-hardcover_price" class="form-label small fw-semibold text-dark mb-1">
+                                    Hardcover MRP (৳) <span class="text-danger">*</span>
+                                </label>
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text bg-light text-dark fw-bold">৳</span>
+                                    <input type="number" step="0.01" min="0" id="f-hardcover_price" name="hardcover_price" 
+                                           value="{{ $val('hardcover_price') }}"
+                                           class="form-control form-control-sm @error('hardcover_price') is-invalid @enderror" 
+                                           placeholder="0.00" oninput="onHardcoverPriceChange()">
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-md-3">
+                                <label for="f-hardcover_purchase_discount_percent" class="form-label small fw-semibold text-dark mb-1">
+                                    Purchase Discount (%)
+                                </label>
+                                <div class="input-group input-group-sm">
+                                    <input type="number" step="0.5" min="0" max="100" id="f-hardcover_purchase_discount_percent" 
+                                           class="form-control form-control-sm" placeholder="e.g. 40" oninput="onHardcoverPurchaseDiscountChange()">
+                                    <span class="input-group-text bg-light text-muted fw-bold">%</span>
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-md-3">
+                                <label for="f-hardcover_cost_price" class="form-label small fw-semibold text-dark mb-1">
+                                    Purchase Amount (Cost ৳)
+                                </label>
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text bg-light text-dark fw-bold">৳</span>
+                                    <input type="number" step="0.01" min="0" id="f-hardcover_cost_price" 
+                                           class="form-control form-control-sm" placeholder="0.00" oninput="onHardcoverCostChange()">
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-md-3">
+                                <label for="f-hardcover_sold_percent" class="form-label small fw-semibold text-dark mb-1">
+                                    Sold % (Sale Discount)
+                                </label>
+                                <div class="input-group input-group-sm">
+                                    <input type="number" step="0.5" min="0" max="100" id="f-hardcover_sold_percent" name="hardcover_sold_percent"
+                                           class="form-control form-control-sm" placeholder="e.g. 20" oninput="onHardcoverSoldPercentChange()">
+                                    <span class="input-group-text bg-light text-muted fw-bold">%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex align-items-center justify-content-between mt-2 pt-1.5 border-top bg-light p-2 rounded-2" style="font-size: 11.5px;">
+                            <span class="text-muted">Hardcover Offer Price: <strong class="text-dark fw-bold" id="liveHardcoverOfferPrice">৳{{ number_format((float)$val('hardcover_discount_price', $val('hardcover_price', 0)), 2) }}</strong></span>
+                            <span class="text-muted">Estimated Profit: <strong class="text-success fw-bold" id="liveHardcoverProfit">৳0.00 (0%)</strong></span>
+                        </div>
+                        <input type="hidden" id="f-hardcover_discount_price" name="hardcover_discount_price" value="{{ $val('hardcover_discount_price') }}">
+                    </div>
+                </div>
+            </div>
+
+            {{-- ROW 8: Supplier / Publisher * / Number of Pages * / Book Size / Dimensions (মাপ ২-কলামে) --}}
             <div class="col-12 col-md-4">
                 <div class="d-flex align-items-center justify-content-between mb-1">
                     <label for="f-publisher_id" class="form-label small fw-bold text-dark mb-0">
@@ -387,68 +522,6 @@
                     </div>
                 </div>
                 <input type="hidden" id="f-book_size" name="book_size" value="{{ $val('book_size') }}">
-            </div>
-
-            {{-- ROW 8: List Price* / Purchase Discount Percent / Purchase Amount / Sold % (4 columns in 1 row) --}}
-            <div class="col-12">
-                <div class="p-3 bg-light rounded-3 border border-primary-subtle shadow-xs">
-                    <div class="d-flex align-items-center justify-content-between mb-2">
-                        <span class="small fw-bold text-dark"><i class="fas fa-calculator text-primary me-1.5"></i> মূল্য নির্ধারণ ও ক্রয়-বিক্রয় লাভ হিসাব (Pricing Engine)</span>
-                        <span class="badge bg-primary-subtle text-primary small">2-Way Auto Sync</span>
-                    </div>
-                    <div class="row g-2">
-                        <div class="col-12 col-md-3">
-                            <label for="f-price" class="form-label small fw-bold text-dark mb-1">
-                                List Price (MRP ৳) <span class="text-danger">*</span>
-                            </label>
-                            <div class="input-group input-group-sm">
-                                <span class="input-group-text bg-white fw-bold text-primary">৳</span>
-                                <input type="number" step="0.01" min="0" id="f-price" name="price" 
-                                       value="{{ $val('price', $val('hardcover_price')) }}" required
-                                       class="form-control form-control-sm fw-bold @error('price') is-invalid @enderror" 
-                                       placeholder="0.00" oninput="onMainPriceChange()">
-                            </div>
-                        </div>
-
-                        <div class="col-12 col-md-3">
-                            <label for="f-purchase_discount_percent" class="form-label small fw-bold text-dark mb-1">
-                                Purchase Discount (%)
-                            </label>
-                            <div class="input-group input-group-sm">
-                                <input type="number" step="0.5" min="0" max="100" id="f-purchase_discount_percent" 
-                                       class="form-control form-control-sm" placeholder="e.g. 40" oninput="onPurchaseDiscountPercentChange()">
-                                <span class="input-group-text bg-white fw-bold">%</span>
-                            </div>
-                        </div>
-
-                        <div class="col-12 col-md-3">
-                            <label for="f-cost_price" class="form-label small fw-bold text-dark mb-1">
-                                Purchase Amount (Cost ৳)
-                            </label>
-                            <div class="input-group input-group-sm">
-                                <span class="input-group-text bg-white fw-bold text-success">৳</span>
-                                <input type="number" step="0.01" min="0" id="f-cost_price" name="cost_price" 
-                                       value="{{ $val('cost_price') }}" class="form-control form-control-sm fw-semibold" 
-                                       placeholder="0.00" oninput="onCostPriceChange()">
-                            </div>
-                        </div>
-
-                        <div class="col-12 col-md-3">
-                            <label for="f-sold_percent" class="form-label small fw-bold text-dark mb-1">
-                                Sold % (Sale Discount)
-                            </label>
-                            <div class="input-group input-group-sm">
-                                <input type="number" step="0.5" min="0" max="100" id="f-sold_percent" 
-                                       class="form-control form-control-sm" placeholder="e.g. 25" oninput="onSoldPercentChange()">
-                                <span class="input-group-text bg-white fw-bold">%</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="d-flex align-items-center justify-content-between mt-2 pt-1 border-top" style="font-size: 11.5px;">
-                        <span class="text-muted">Customer Offer Price: <strong class="text-primary" id="liveCalculatedOfferPrice">৳0.00</strong></span>
-                        <span class="text-muted">Estimated Margin/Profit: <strong class="text-success" id="liveCalculatedProfit">৳0.00 (0%)</strong></span>
-                    </div>
-                </div>
             </div>
 
             {{-- ROW 9: Publication/Edition Start Date & ISBN (2 columns in 1 row) --}}

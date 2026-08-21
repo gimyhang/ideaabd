@@ -51,81 +51,118 @@ class BookController extends Controller
             $sidebarPublishers = Publisher::query()->where('is_active', true)->withCount('books')->orderByDesc('books_count')->take(15)->get(['id', 'name', 'slug']);
             $topSeller = Book::query()->with('authors')->where('is_active', true)->orderByDesc('sales_count')->first();
 
-            if ($isSearchMode) {
-                // --- Search / Filter Mode ---
-                $books = Book::query()
-                    ->with(['category', 'authors', 'publisher'])
-                    ->withAvg('reviews', 'rating')
-                    ->withCount('reviews')
-                    ->where('is_active', true)
-                    ->when($request->filled('category'), fn ($q) =>
-                        $q->whereHas('category', fn ($cat) => $cat->where('slug', $request->string('category')))
-                    )
-                    ->when($request->filled('author'), fn ($q) =>
-                        $q->whereHas('authors', fn ($auth) => $auth->where('slug', $request->string('author')))
-                    )
-                    ->when($request->filled('min_price'), fn ($q) =>
-                        $q->where('price', '>=', $request->float('min_price'))
-                    )
-                    ->when($request->filled('max_price'), fn ($q) =>
-                        $q->where('price', '<=', $request->float('max_price'))
-                    )
-                    ->when($request->filled('rating'), function ($q) use ($request) {
-                        $minRating = $request->float('rating');
-                        $q->whereHas('reviews', function ($rq) use ($minRating) {
-                            $rq->groupBy('book_id')->havingRaw('AVG(rating) >= ?', [$minRating]);
-                        });
-                    })
-                    ->when($request->filled('format'), fn ($q) =>
-                        $q->where('format', $request->string('format'))
-                    )
-                    ->when($request->filled('discount_min'), function ($q) use ($request) {
-                        $minPercent = $request->integer('discount_min');
-                        if ($minPercent > 0) {
-                            $q->whereNotNull('discount_price')
-                              ->whereRaw('((price - discount_price) * 100 / price) >= ?', [$minPercent]);
-                        }
-                    })
-                    ->when($request->boolean('in_stock'), fn ($q) =>
-                        $q->where('stock_quantity', '>', 0)
-                    )
-                    ->when($request->filled('publisher'), fn ($q) =>
-                        $q->whereHas('publisher', fn ($pub) => $pub->where('slug', $request->string('publisher')))
-                    )
-                    ->when($request->filled('search'), function ($q) use ($request) {
-                        $search = $request->string('search')->trim()->value();
-                        $q->where(fn ($sub) =>
-                            $sub->where('title', 'LIKE', "%{$search}%")
-                                ->orWhere('isbn', 'LIKE', "%{$search}%")
-                                ->orWhereHas('authors', fn ($a) => $a->where('name', 'LIKE', "%{$search}%"))
-                                ->orWhereHas('vendor', fn ($v) => $v->where('shop_name', 'LIKE', "%{$search}%"))
-                        );
-                    })
-                    ->when($request->filled('sort'), function ($q) use ($request) {
-                        match ($request->string('sort')->value()) {
-                            'price_low'   => $q->orderBy('price', 'asc'),
-                            'price_high'  => $q->orderBy('price', 'desc'),
-                            'discount_low' => $q->orderByRaw('(price - COALESCE(discount_price, price)) asc'),
-                            'discount_high' => $q->orderByRaw('(price - COALESCE(discount_price, price)) desc'),
-                            'avg_rating'  => $q->orderByDesc('reviews_avg_rating'),
-                            'bestselling' => $q->orderByDesc('sales_count'),
-                            'oldest'      => $q->oldest(),
-                            default       => $q->latest(),
-                        };
-                    }, fn ($q) => $q->latest())
-                    ->paginate(20)
-                    ->withQueryString();
-            } else {
-                // --- Home Page Section Mode ---
+            // Dynamic Categories with active books
+            $dynamicCategories = Category::query()
+                ->where('is_active', true)
+                ->whereHas('books', fn($q) => $q->where('is_active', true))
+                ->withCount(['books' => fn($q) => $q->where('is_active', true)])
+                ->orderByDesc('books_count')
+                ->take(12)
+                ->get(['id', 'name', 'slug']);
+
+            // Base books query with robust filtering
+            $booksQuery = Book::query()
+                ->with(['category', 'authors', 'publisher'])
+                ->withAvg('reviews', 'rating')
+                ->withCount('reviews')
+                ->where('is_active', true)
+                ->when($request->filled('category'), function ($q) use ($request) {
+                    $catVal = $request->string('category')->trim()->value();
+                    $q->where(function ($sub) use ($catVal) {
+                        $sub->where('category_id', $catVal)
+                            ->orWhereHas('category', function ($cat) use ($catVal) {
+                                $cat->where('slug', $catVal)
+                                    ->orWhere('name', $catVal)
+                                    ->orWhere('id', $catVal);
+                            });
+                    });
+                })
+                ->when($request->filled('author'), function ($q) use ($request) {
+                    $authorVal = $request->string('author')->trim()->value();
+                    $q->where(function ($sub) use ($authorVal) {
+                        $sub->where('author_link_id', $authorVal)
+                            ->orWhere('author_name', 'LIKE', "%{$authorVal}%")
+                            ->orWhereHas('authors', function ($auth) use ($authorVal) {
+                                $auth->where('slug', $authorVal)
+                                    ->orWhere('name', $authorVal)
+                                    ->orWhere('id', $authorVal);
+                            });
+                    });
+                })
+                ->when($request->filled('min_price'), fn ($q) =>
+                    $q->where('price', '>=', $request->float('min_price'))
+                )
+                ->when($request->filled('max_price'), fn ($q) =>
+                    $q->where('price', '<=', $request->float('max_price'))
+                )
+                ->when($request->filled('rating'), function ($q) use ($request) {
+                    $minRating = $request->float('rating');
+                    $q->whereHas('reviews', function ($rq) use ($minRating) {
+                        $rq->groupBy('book_id')->havingRaw('AVG(rating) >= ?', [$minRating]);
+                    });
+                })
+                ->when($request->filled('format'), fn ($q) =>
+                    $q->where('format', $request->string('format'))
+                )
+                ->when($request->filled('discount_min'), function ($q) use ($request) {
+                    $minPercent = $request->integer('discount_min');
+                    if ($minPercent > 0) {
+                        $q->whereNotNull('discount_price')
+                          ->whereRaw('((price - discount_price) * 100 / price) >= ?', [$minPercent]);
+                    }
+                })
+                ->when($request->boolean('in_stock'), fn ($q) =>
+                    $q->where('stock_quantity', '>', 0)
+                )
+                ->when($request->filled('publisher'), function ($q) use ($request) {
+                    $pubVal = $request->string('publisher')->trim()->value();
+                    $q->where(function ($sub) use ($pubVal) {
+                        $sub->where('publisher_id', $pubVal)
+                            ->orWhereHas('publisher', function ($pub) use ($pubVal) {
+                                $pub->where('slug', $pubVal)
+                                    ->orWhere('name', $pubVal)
+                                    ->orWhere('id', $pubVal);
+                            });
+                    });
+                })
+                ->when($request->filled('search'), function ($q) use ($request) {
+                    $search = $request->string('search')->trim()->value();
+                    $q->where(fn ($sub) =>
+                        $sub->where('title', 'LIKE', "%{$search}%")
+                            ->orWhere('title_en', 'LIKE', "%{$search}%")
+                            ->orWhere('isbn', 'LIKE', "%{$search}%")
+                            ->orWhere('author_name', 'LIKE', "%{$search}%")
+                            ->orWhereHas('authors', fn ($a) => $a->where('name', 'LIKE', "%{$search}%"))
+                            ->orWhereHas('category', fn ($c) => $c->where('name', 'LIKE', "%{$search}%"))
+                            ->orWhereHas('publisher', fn ($p) => $p->where('name', 'LIKE', "%{$search}%"))
+                    );
+                });
+
+            // Sorting logic
+            match ($request->string('sort')->value()) {
+                'price_low'     => $booksQuery->orderBy('price', 'asc'),
+                'price_high'    => $booksQuery->orderBy('price', 'desc'),
+                'discount_low'  => $booksQuery->orderByRaw('(price - COALESCE(discount_price, price)) asc'),
+                'discount_high' => $booksQuery->orderByRaw('(price - COALESCE(discount_price, price)) desc'),
+                'avg_rating'    => $booksQuery->orderByDesc('reviews_avg_rating'),
+                'bestselling'   => $booksQuery->orderByDesc('sales_count'),
+                'oldest'        => $booksQuery->oldest(),
+                default         => $booksQuery->latest(),
+            };
+
+            $books = $booksQuery->paginate(20)->withQueryString();
+
+            if (!$isSearchMode) {
+                // Curated Highlights for Catalog Mode
                 $recentlySold = Book::query()
-                    ->with(['authors'])
+                    ->with(['authors', 'category'])
                     ->where('is_active', true)
                     ->orderByDesc('sales_count')
                     ->take(10)
                     ->get();
 
                 $bestSellerEbooks = Book::query()
-                    ->with(['authors'])
+                    ->with(['authors', 'category'])
                     ->where('is_active', true)
                     ->where('format', 'ebook')
                     ->orderByDesc('sales_count')
@@ -133,18 +170,18 @@ class BookController extends Controller
                     ->get();
 
                 $flashSales = Book::query()
-                    ->with(['authors'])
+                    ->with(['authors', 'category'])
                     ->where('is_active', true)
                     ->whereNotNull('discount_price')
                     ->whereColumn('discount_price', '<', 'price')
-                    ->inRandomOrder()
+                    ->latest()
                     ->take(10)
                     ->get();
 
                 $recentlyViewedIds = session()->get('recently_viewed_books', []);
                 if (!empty($recentlyViewedIds)) {
                     $recentlyViewedBooks = Book::query()
-                        ->with(['authors'])
+                        ->with(['authors', 'category'])
                         ->whereIn('id', $recentlyViewedIds)
                         ->where('is_active', true)
                         ->get()
@@ -152,32 +189,11 @@ class BookController extends Controller
                             return array_search($b->id, $recentlyViewedIds);
                         });
                 }
-
-                $dynamicCategories = Category::query()
-                    ->where('is_active', true)
-                    ->withCount('books')
-                    ->orderByDesc('books_count')
-                    ->take(15)
-                    ->get(['id', 'name']);
-
-                foreach ($dynamicCategories as $category) {
-                    $booksForSection = Book::query()
-                        ->with(['authors'])
-                        ->where('is_active', true)
-                        ->where('category_id', $category->id)
-                        ->latest()
-                        ->take(10)
-                        ->get();
-                    
-                    if ($booksForSection->isNotEmpty()) {
-                        $categoryBooks[$category->name] = $booksForSection;
-                    }
-                }
             }
         }
 
         return view('book::frontend.index', compact(
-            'books', 'categories', 'isSearchMode', 'recentlySold', 'bestSellerEbooks', 'categoryBooks', 'sidebarAuthors', 'sidebarPublishers', 'flashSales', 'recentlyViewedBooks', 'topSeller'
+            'books', 'categories', 'isSearchMode', 'recentlySold', 'bestSellerEbooks', 'categoryBooks', 'sidebarAuthors', 'sidebarPublishers', 'flashSales', 'recentlyViewedBooks', 'topSeller', 'dynamicCategories'
         ));
     }
 

@@ -381,9 +381,10 @@
 
                 <!-- Dynamic Category Sections -->
                 @if(isset($dynamicCategories) && $dynamicCategories->isNotEmpty())
-                    @foreach($dynamicCategories->take(4) as $cat)
+                    @foreach($dynamicCategories->take(6) as $cat)
                         @php
-                            $catBooks = \Modules\Book\Models\Book::where('is_active', true)
+                            $catBooks = \Modules\Book\Models\Book::with(['authors', 'category'])
+                                ->where('is_active', true)
                                 ->where('category_id', $cat->id)
                                 ->latest()
                                 ->take(5)
@@ -395,7 +396,7 @@
                                 <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
                                     <span class="badge bg-primary rounded-circle p-1 me-1"> </span> {{ $cat->name }}
                                 </h5>
-                                <a href="{{ route('book.index', ['category' => $cat->slug]) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">সবগুলো দেখুন</a>
+                                <a href="{{ route('book.index', ['category' => $cat->slug]) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">সবগুলো দেখুন (@bn($cat->books_count))</a>
                             </div>
                             <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-xl-5 g-2 g-md-3">
                                 @foreach($catBooks as $book)
@@ -408,6 +409,52 @@
                         @endif
                     @endforeach
                 @endif
+
+                <!-- All Books Catalog Grid Section -->
+                <div class="card p-3 p-md-4 mb-4 border-0 shadow-sm rounded-4 bg-white">
+                    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 mb-3 pb-2 border-bottom">
+                        <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                            <i class="fa-solid fa-book-open-reader text-primary"></i> সকল বই (Book Catalog)
+                            @if(isset($books) && $books instanceof \Illuminate\Pagination\LengthAwarePaginator)
+                                <span class="badge bg-light text-muted border ms-1">@bn($books->total())টি বই</span>
+                            @endif
+                        </h5>
+
+                        <div class="d-flex align-items-center gap-2">
+                            <label for="sort-catalog" class="small text-muted text-nowrap fw-semibold">সাজান:</label>
+                            @php $currentSort = request('sort', ''); @endphp
+                            <select name="sort" id="sort-catalog" form="filter-form" onchange="document.getElementById('filter-form').submit()" 
+                                    class="form-select form-select-sm rounded-pill border shadow-sm px-3">
+                                <option value="latest" {{ $currentSort == 'latest' || $currentSort == '' ? 'selected' : '' }}>নতুন বই</option>
+                                <option value="bestselling" {{ $currentSort == 'bestselling' ? 'selected' : '' }}>সর্বাধিক বিক্রিত</option>
+                                <option value="price_low" {{ $currentSort == 'price_low' ? 'selected' : '' }}>মূল্য: কম থেকে বেশি</option>
+                                <option value="price_high" {{ $currentSort == 'price_high' ? 'selected' : '' }}>মূল্য: বেশি থেকে কম</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Books Grid -->
+                    <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-xl-5 g-2 g-md-3">
+                        @forelse($books as $book)
+                            <div class="col">
+                                @include('book::frontend.partials.book-card', ['book' => $book])
+                            </div>
+                        @empty
+                            <div class="col-12 w-100 text-center py-5">
+                                <div class="fs-1 text-muted mb-2 opacity-50">📖</div>
+                                <h5 class="fw-bold text-dark">কোনো বই পাওয়া যায়নি</h5>
+                                <p class="text-muted small mb-3">শীঘ্রই নতুন বই যুক্ত হবে।</p>
+                            </div>
+                        @endforelse
+                    </div>
+
+                    <!-- Pagination -->
+                    @if(isset($books) && $books instanceof \Illuminate\Pagination\LengthAwarePaginator && $books->hasPages())
+                        <div class="d-flex justify-content-center mt-4 pt-3 border-top">
+                            {{ $books->appends(request()->query())->links() }}
+                        </div>
+                    @endif
+                </div>
             @endif
         </main>
     </div>

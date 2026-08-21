@@ -2281,23 +2281,45 @@ function syncBookSizeCombined() {
     }
 }
 
-// Rokomari Pricing Engine Calculations
-function onMainPriceChange() {
+// ══════════════════════════════════════════════════════════════════════════════
+// INDEPENDENT DUAL PRICING ENGINE (PAPERBACK & HARDCOVER)
+// ══════════════════════════════════════════════════════════════════════════════
+function onCoverTypeDropdownChange(binding) {
+    const pbPanel = document.getElementById('paperbackPricingPanel');
+    const hcPanel = document.getElementById('hardcoverPricingPanel');
+    const badge = document.getElementById('pricingBindingBadge');
+
+    if (binding === 'hardcover') {
+        if (pbPanel) pbPanel.classList.add('d-none');
+        if (hcPanel) hcPanel.classList.remove('d-none');
+        if (badge) badge.textContent = 'Hardcover Mode';
+    } else if (binding === 'both') {
+        if (pbPanel) pbPanel.classList.remove('d-none');
+        if (hcPanel) hcPanel.classList.remove('d-none');
+        if (badge) badge.textContent = 'Dual Mode (Hard & Paperback)';
+    } else {
+        if (pbPanel) pbPanel.classList.remove('d-none');
+        if (hcPanel) hcPanel.classList.add('d-none');
+        if (badge) badge.textContent = 'Paperback Mode';
+    }
+    updateLiveMockupCard();
+}
+
+// 1. PAPERBACK PRICING HANDLERS
+function onPaperbackPriceChange() {
     const price = parseFloat(document.getElementById('f-price')?.value) || 0;
     const pDiscPct = parseFloat(document.getElementById('f-purchase_discount_percent')?.value) || 0;
     const costInput = document.getElementById('f-cost_price');
-    const soldPct = parseFloat(document.getElementById('f-sold_percent')?.value) || 0;
 
     if (price > 0 && pDiscPct > 0 && pDiscPct <= 100) {
         const costVal = Math.round(price * (1 - pDiscPct / 100) * 100) / 100;
         if (costInput) costInput.value = costVal;
     }
-
-    updateRokomariCalculations();
+    updatePaperbackCalculations();
     updateLiveMockupCard();
 }
 
-function onPurchaseDiscountPercentChange() {
+function onPaperbackPurchaseDiscountChange() {
     const price = parseFloat(document.getElementById('f-price')?.value) || 0;
     const pDiscPct = parseFloat(document.getElementById('f-purchase_discount_percent')?.value) || 0;
     const costInput = document.getElementById('f-cost_price');
@@ -2306,10 +2328,10 @@ function onPurchaseDiscountPercentChange() {
         const costVal = Math.round(price * (1 - pDiscPct / 100) * 100) / 100;
         if (costInput) costInput.value = costVal;
     }
-    updateRokomariCalculations();
+    updatePaperbackCalculations();
 }
 
-function onCostPriceChange() {
+function onPaperbackCostChange() {
     const price = parseFloat(document.getElementById('f-price')?.value) || 0;
     const cost = parseFloat(document.getElementById('f-cost_price')?.value) || 0;
     const pDiscInput = document.getElementById('f-purchase_discount_percent');
@@ -2318,25 +2340,29 @@ function onCostPriceChange() {
         const pct = Math.round(((price - cost) / price) * 100);
         if (pDiscInput) pDiscInput.value = pct;
     }
-    updateRokomariCalculations();
+    updatePaperbackCalculations();
 }
 
-function onSoldPercentChange() {
-    updateRokomariCalculations();
+function onPaperbackSoldPercentChange() {
+    updatePaperbackCalculations();
     updateLiveMockupCard();
 }
 
-function updateRokomariCalculations() {
+function updatePaperbackCalculations() {
     const price = parseFloat(document.getElementById('f-price')?.value) || 0;
     const soldPct = parseFloat(document.getElementById('f-sold_percent')?.value) || 0;
     const cost = parseFloat(document.getElementById('f-cost_price')?.value) || 0;
 
     const offerEl = document.getElementById('liveCalculatedOfferPrice');
     const profitEl = document.getElementById('liveCalculatedProfit');
+    const discHidden = document.getElementById('f-discount_price');
 
     let offerPrice = price;
     if (price > 0 && soldPct > 0 && soldPct <= 100) {
         offerPrice = Math.round(price * (1 - soldPct / 100) * 100) / 100;
+    }
+    if (discHidden) {
+        discHidden.value = (offerPrice < price) ? offerPrice : '';
     }
 
     if (offerEl) {
@@ -2359,6 +2385,94 @@ function updateRokomariCalculations() {
         }
     }
 }
+
+// 2. HARDCOVER PRICING HANDLERS (SEPARATE & INDEPENDENT)
+function onHardcoverPriceChange() {
+    const hardPrice = parseFloat(document.getElementById('f-hardcover_price')?.value) || 0;
+    const pDiscPct = parseFloat(document.getElementById('f-hardcover_purchase_discount_percent')?.value) || 0;
+    const costInput = document.getElementById('f-hardcover_cost_price');
+
+    if (hardPrice > 0 && pDiscPct > 0 && pDiscPct <= 100) {
+        const costVal = Math.round(hardPrice * (1 - pDiscPct / 100) * 100) / 100;
+        if (costInput) costInput.value = costVal;
+    }
+    updateHardcoverCalculations();
+    updateLiveMockupCard();
+}
+
+function onHardcoverPurchaseDiscountChange() {
+    const hardPrice = parseFloat(document.getElementById('f-hardcover_price')?.value) || 0;
+    const pDiscPct = parseFloat(document.getElementById('f-hardcover_purchase_discount_percent')?.value) || 0;
+    const costInput = document.getElementById('f-hardcover_cost_price');
+
+    if (hardPrice > 0 && pDiscPct >= 0 && pDiscPct <= 100) {
+        const costVal = Math.round(hardPrice * (1 - pDiscPct / 100) * 100) / 100;
+        if (costInput) costInput.value = costVal;
+    }
+    updateHardcoverCalculations();
+}
+
+function onHardcoverCostChange() {
+    const hardPrice = parseFloat(document.getElementById('f-hardcover_price')?.value) || 0;
+    const cost = parseFloat(document.getElementById('f-hardcover_cost_price')?.value) || 0;
+    const pDiscInput = document.getElementById('f-hardcover_purchase_discount_percent');
+
+    if (hardPrice > 0 && cost > 0 && cost < hardPrice) {
+        const pct = Math.round(((hardPrice - cost) / hardPrice) * 100);
+        if (pDiscInput) pDiscInput.value = pct;
+    }
+    updateHardcoverCalculations();
+}
+
+function onHardcoverSoldPercentChange() {
+    updateHardcoverCalculations();
+    updateLiveMockupCard();
+}
+
+function updateHardcoverCalculations() {
+    const hardPrice = parseFloat(document.getElementById('f-hardcover_price')?.value) || 0;
+    const soldPct = parseFloat(document.getElementById('f-hardcover_sold_percent')?.value) || 0;
+    const cost = parseFloat(document.getElementById('f-hardcover_cost_price')?.value) || 0;
+
+    const offerEl = document.getElementById('liveHardcoverOfferPrice');
+    const profitEl = document.getElementById('liveHardcoverProfit');
+    const discHidden = document.getElementById('f-hardcover_discount_price');
+
+    let offerPrice = hardPrice;
+    if (hardPrice > 0 && soldPct > 0 && soldPct <= 100) {
+        offerPrice = Math.round(hardPrice * (1 - soldPct / 100) * 100) / 100;
+    }
+    if (discHidden) {
+        discHidden.value = (offerPrice < hardPrice) ? offerPrice : '';
+    }
+
+    if (offerEl) {
+        offerEl.textContent = '৳' + offerPrice.toFixed(2);
+    }
+
+    if (profitEl) {
+        if (offerPrice > 0 && cost > 0) {
+            const profit = offerPrice - cost;
+            const margin = Math.round((profit / offerPrice) * 1000) / 10;
+            if (profit >= 0) {
+                profitEl.className = 'text-success fw-bold';
+                profitEl.textContent = `৳${profit.toFixed(2)} (${margin}%)`;
+            } else {
+                profitEl.className = 'text-danger fw-bold';
+                profitEl.textContent = `Loss ৳${Math.abs(profit).toFixed(2)} (${margin}%)`;
+            }
+        } else {
+            profitEl.textContent = '৳0.00 (0%)';
+        }
+    }
+}
+
+// Aliases for legacy calls
+function onMainPriceChange() { onPaperbackPriceChange(); }
+function onPurchaseDiscountPercentChange() { onPaperbackPurchaseDiscountChange(); }
+function onCostPriceChange() { onPaperbackCostChange(); }
+function onSoldPercentChange() { onPaperbackSoldPercentChange(); }
+function updateRokomariCalculations() { updatePaperbackCalculations(); }
 
 // Toggle format for look inside
 function toggleLookInsideFormat(type) {

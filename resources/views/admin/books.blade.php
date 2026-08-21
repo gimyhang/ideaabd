@@ -333,11 +333,75 @@
     </div>
 
     {{-- ========================================================================= --}}
-    {{-- 3. ULTRA-MODERN BOOK MANAGEMENT TABLE WITH QUICK EDIT TRIGGERS            --}}
+    {{-- 3. ULTRA-MODERN BOOK MANAGEMENT TABLE WITH HORIZONTAL SCROLL ENGINE       --}}
     {{-- ========================================================================= --}}
+    <style>
+        .adm-books-table-wrapper {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: auto;
+            scrollbar-color: #3b82f6 #e2e8f0;
+        }
+        .adm-books-table-wrapper::-webkit-scrollbar {
+            height: 12px;
+            background: #f1f5f9;
+        }
+        .adm-books-table-wrapper::-webkit-scrollbar-track {
+            background: #e2e8f0;
+            border-radius: 6px;
+        }
+        .adm-books-table-wrapper::-webkit-scrollbar-thumb {
+            background: #3b82f6;
+            border-radius: 6px;
+            border: 2px solid #f1f5f9;
+        }
+        .adm-books-table-wrapper::-webkit-scrollbar-thumb:hover {
+            background: #1d4ed8;
+        }
+        .adm-sticky-action-col {
+            position: sticky;
+            right: 0;
+            background: #ffffff !important;
+            box-shadow: -4px 0 8px rgba(0, 0, 0, 0.05);
+            z-index: 5;
+        }
+        thead th.adm-sticky-action-col {
+            background: #f8fafc !important;
+            z-index: 6;
+        }
+        .adm-scroll-sync-bar {
+            overflow-x: auto;
+            overflow-y: hidden;
+            height: 14px;
+            background: #f8fafc;
+            border-top: 1px solid #e2e8f0;
+            scrollbar-width: auto;
+            scrollbar-color: #3b82f6 #e2e8f0;
+        }
+        .adm-scroll-sync-bar::-webkit-scrollbar {
+            height: 12px;
+        }
+        .adm-scroll-sync-bar::-webkit-scrollbar-thumb {
+            background: #3b82f6;
+            border-radius: 6px;
+        }
+    </style>
+
     <div class="adm-card p-0 overflow-hidden shadow-sm border-0 rounded-4">
-        <div class="table-responsive">
-            <table class="table adm-table align-middle mb-0" id="adminBooksTable">
+        <div class="d-flex align-items-center justify-content-between px-3 py-2 bg-light border-bottom" style="font-size: 12px;">
+            <span class="text-muted"><i class="fas fa-arrows-left-right text-primary me-1"></i> ডানে-বামে স্ক্রল করে সকল কলাম ও অ্যাকশন কমান্ড দেখুন</span>
+            <div class="d-flex align-items-center gap-1">
+                <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2 rounded-pill" onclick="scrollAdminBooksTable(-300)" title="Scroll Left">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2 rounded-pill" onclick="scrollAdminBooksTable(300)" title="Scroll Right">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="adm-books-table-wrapper" id="adminBooksTableWrapper">
+            <table class="table adm-table align-middle mb-0" id="adminBooksTable" style="min-width: 1350px;">
                 <thead class="table-light">
                     <tr>
                         <th class="ps-3" style="width: 40px;">#</th>
@@ -350,7 +414,7 @@
                         <th class="text-end" style="min-width: 150px;">💼 Cost & Commission</th>
                         <th class="text-center" style="min-width: 110px;">Stock Inventory</th>
                         <th class="text-center" style="min-width: 75px;">Status</th>
-                        <th class="text-end pe-3" style="min-width: 135px;">Actions</th>
+                        <th class="text-end pe-3 adm-sticky-action-col" style="min-width: 145px;">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -598,8 +662,8 @@
                                 @endif
                             </td>
 
-                            {{-- Actions --}}
-                            <td class="text-end pe-3">
+                            {{-- Actions (Sticky on the right for quick access) --}}
+                            <td class="text-end pe-3 adm-sticky-action-col">
                                 <div class="d-inline-flex align-items-center gap-1">
                                     {{-- Primary Quick Shortcut Button --}}
                                     <button type="button" class="btn btn-sm btn-primary rounded-pill px-2.5 py-0.5 fw-bold shadow-xs" 
@@ -645,6 +709,11 @@
                     @endforelse
                 </tbody>
             </table>
+        </div>
+
+        {{-- Always-Visible Bottom Horizontal Scroll Sync Bar --}}
+        <div class="adm-scroll-sync-bar" id="adminBooksScrollSyncBar" onscroll="syncTableScrollFromBar(this)">
+            <div style="width: 1400px; height: 1px;"></div>
         </div>
 
         {{-- Pagination --}}
@@ -1235,6 +1304,37 @@ function exportBooksToCSV() {
     link.click();
     document.body.removeChild(link);
 }
+
+function scrollAdminBooksTable(dx) {
+    const wrapper = document.getElementById('adminBooksTableWrapper');
+    if (wrapper) {
+        wrapper.scrollBy({ left: dx, behavior: 'smooth' });
+    }
+}
+
+function syncTableScrollFromBar(bar) {
+    const wrapper = document.getElementById('adminBooksTableWrapper');
+    if (wrapper && bar) {
+        wrapper.scrollLeft = bar.scrollLeft;
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const wrapper = document.getElementById('adminBooksTableWrapper');
+    const syncBar = document.getElementById('adminBooksScrollSyncBar');
+    const table = document.getElementById('adminBooksTable');
+
+    if (wrapper && syncBar && table) {
+        const innerSpacer = syncBar.firstElementChild;
+        if (innerSpacer) {
+            innerSpacer.style.width = Math.max(table.scrollWidth, 1400) + 'px';
+        }
+
+        wrapper.addEventListener('scroll', function() {
+            syncBar.scrollLeft = wrapper.scrollLeft;
+        });
+    }
+});
 </script>
 @endpush
 
