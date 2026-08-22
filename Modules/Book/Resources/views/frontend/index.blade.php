@@ -91,16 +91,42 @@
                             </label>
                             <span class="badge bg-light text-muted border" style="font-size: 10px;">{{ $categories->count() }}টি</span>
                         </div>
-                        <div class="d-flex flex-column gap-1 overflow-y-auto custom-scrollbar pe-1" style="max-height: 250px;">
+                        <div class="d-flex flex-column gap-1.5 overflow-y-auto custom-scrollbar pe-1" style="max-height: 290px;">
                             @foreach($categories as $category)
-                            <label class="form-check-label d-flex align-items-center justify-content-between p-1.5 rounded-2 hover-bg-light cursor-pointer" style="font-size: 13px;">
-                                <span class="d-flex align-items-center gap-2">
-                                    <input type="radio" name="category" value="{{ $category->slug }}" onchange="this.form.submit()" 
-                                           {{ request('category') == $category->slug || request('category') == $category->id ? 'checked' : '' }} class="form-check-input mt-0">
-                                    <span class="text-dark fw-medium text-truncate" style="max-width: 150px;" title="{{ $category->name }}">{{ $category->name }}</span>
-                                </span>
-                                <span class="badge bg-light text-muted border px-1.5 py-0.5 fw-semibold" style="font-size: 11px;">@bn($category->books_count)</span>
-                            </label>
+                                @php
+                                    $isParentSelected = request('category') == $category->slug || request('category') == (string)$category->id;
+                                    $hasChildren = isset($category->children) && $category->children->isNotEmpty();
+                                    $isAnyChildSelected = $hasChildren && $category->children->contains(fn($ch) => request('category') == $ch->slug || request('category') == (string)$ch->id);
+                                @endphp
+                                <div class="rounded-3 p-1 {{ ($isParentSelected || $isAnyChildSelected) ? 'bg-primary-subtle border border-primary-subtle' : 'hover-bg-light border border-transparent' }}">
+                                    <label class="form-check-label d-flex align-items-center justify-content-between p-1 cursor-pointer w-100 mb-0" style="font-size: 13px;">
+                                        <span class="d-flex align-items-center gap-2">
+                                            <input type="radio" name="category" value="{{ $category->slug }}" onchange="this.form.submit()" 
+                                                   {{ $isParentSelected ? 'checked' : '' }} class="form-check-input mt-0">
+                                            <span class="text-dark fw-bold text-truncate" style="max-width: 145px;" title="{{ $category->name }}">{{ $category->name }}</span>
+                                        </span>
+                                        <span class="badge bg-white text-muted border px-1.5 py-0.5 fw-semibold" style="font-size: 10.5px;">@bn($category->books_count)</span>
+                                    </label>
+
+                                    {{-- Nested Child Categories --}}
+                                    @if($hasChildren)
+                                        <div class="d-flex flex-column gap-1 ps-3.5 pe-1 py-1 border-start border-2 border-primary-subtle ms-2 mt-0.5">
+                                            @foreach($category->children as $child)
+                                                @php $isChildSelected = request('category') == $child->slug || request('category') == (string)$child->id; @endphp
+                                                <label class="form-check-label d-flex align-items-center justify-content-between p-1 rounded-2 cursor-pointer {{ $isChildSelected ? 'bg-primary text-white' : 'hover-bg-light text-muted' }}" style="font-size: 12px;">
+                                                    <span class="d-flex align-items-center gap-1.5">
+                                                        <input type="radio" name="category" value="{{ $child->slug }}" onchange="this.form.submit()" 
+                                                               {{ $isChildSelected ? 'checked' : '' }} class="form-check-input mt-0" style="width: 13px; height: 13px;">
+                                                        <span class="text-truncate {{ $isChildSelected ? 'text-white fw-bold' : 'text-dark' }}" style="max-width: 125px;" title="{{ $child->name }}">{{ $child->name }}</span>
+                                                    </span>
+                                                    @if(isset($child->books_count) && $child->books_count > 0)
+                                                        <span class="badge {{ $isChildSelected ? 'bg-white text-primary' : 'bg-light text-muted border' }} px-1 py-0.5" style="font-size: 9.5px;">@bn($child->books_count)</span>
+                                                    @endif
+                                                </label>
+                                            @endforeach
+                                        </div>
+                                    @endif
+                                </div>
                             @endforeach
                         </div>
                     </div>
@@ -367,15 +393,20 @@
                 </div>
             @else
                 <!-- Catalog Section Mode -->
+                {{-- 1. FLASH SALES (ফ্ল্যাশ সেলস) --}}
                 @if(isset($flashSales) && $flashSales->isNotEmpty())
-                <div class="card p-3 p-md-4 mb-4 border-0 shadow-sm rounded-4" style="background: #ffffff; border: 2px solid #e0e7ff !important;">
+                <div class="card p-3 p-md-4 mb-4 border-0 shadow-sm rounded-4" style="background: #ffffff; border: 2px solid #fed7aa !important;">
                     <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
                         <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
-                            <i class="fa-solid fa-bolt text-warning"></i> ফ্ল্যাশ সেলস
+                            <span class="badge bg-warning text-dark rounded-circle p-1 me-1"><i class="fa-solid fa-bolt" style="font-size: 10px;"></i></span>
+                            <span>ফ্ল্যাশ সেলস (Flash Sales)</span>
                         </h5>
+                        <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2.5 py-1 small fw-bold">
+                            সীমিত সময়ের ছাড়
+                        </span>
                     </div>
                     <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-xl-5 g-2 g-md-3">
-                        @foreach($flashSales->take(5) as $book)
+                        @foreach($flashSales->take(10) as $book)
                             <div class="col">
                                 @include('book::frontend.partials.book-card', ['book' => $book])
                             </div>
@@ -384,13 +415,15 @@
                 </div>
                 @endif
 
+                {{-- 2. BEST SELLERS (সর্বাধিক বিক্রিত বই) --}}
                 @if(isset($recentlySold) && $recentlySold->isNotEmpty())
                 <div class="card p-3 p-md-4 mb-4 border-0 shadow-sm rounded-4 bg-white">
                     <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
                         <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
-                            <span class="badge bg-danger rounded-circle p-1 me-1"> </span> সর্বাধিক বিক্রিত বই
+                            <span class="badge bg-danger rounded-circle p-1 me-1"><i class="fa-solid fa-fire" style="font-size: 10px;"></i></span>
+                            <span>সর্বাধিক বিক্রিত বই (Best Sellers)</span>
                         </h5>
-                        <a href="{{ route('book.index', ['sort' => 'bestselling']) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">সবগুলো দেখুন</a>
+                        <a href="{{ route('book.index', ['sort' => 'bestselling']) }}" class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-semibold">সবগুলো দেখুন</a>
                     </div>
                     <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-xl-5 g-2 g-md-3">
                         @foreach($recentlySold->take(10) as $book)
@@ -402,14 +435,36 @@
                 </div>
                 @endif
 
-                <!-- Dynamic Category Sections -->
+                {{-- 3. NEW RELEASES (নতুন বই) --}}
+                @if(isset($newArrivals) && $newArrivals->isNotEmpty())
+                <div class="card p-3 p-md-4 mb-4 border-0 shadow-sm rounded-4 bg-white">
+                    <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                        <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                            <span class="badge bg-success rounded-circle p-1 me-1"><i class="fa-solid fa-sparkles" style="font-size: 10px;"></i></span>
+                            <span>নতুন বই (New Releases)</span>
+                        </h5>
+                        <a href="{{ route('book.index', ['sort' => 'latest']) }}" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-semibold">সবগুলো দেখুন</a>
+                    </div>
+                    <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-xl-5 g-2 g-md-3">
+                        @foreach($newArrivals->take(10) as $book)
+                            <div class="col">
+                                @include('book::frontend.partials.book-card', ['book' => $book])
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+                @endif
+
+                {{-- 4. DYNAMIC CATEGORY SECTIONS (বিষয় ও ক্যাটাগরিভিত্তিক বই) --}}
                 @if(isset($dynamicCategories) && $dynamicCategories->isNotEmpty())
                     @foreach($dynamicCategories->take(6) as $cat)
                         @php
+                            $subCatIds = \Illuminate\Support\Facades\DB::table('categories')->where('parent_id', $cat->id)->whereNull('deleted_at')->pluck('id')->all();
+                            $allCatIds = array_merge([$cat->id], $subCatIds);
                             $catBooks = \Modules\Book\Models\Book::with(['authors', 'category'])
                                 ->where('is_active', true)
-                                ->where('category_id', $cat->id)
-                                ->latest()
+                                ->whereIn('category_id', $allCatIds)
+                                ->latest('id')
                                 ->take(5)
                                 ->get();
                         @endphp
@@ -417,7 +472,8 @@
                         <div class="card p-3 p-md-4 mb-4 border-0 shadow-sm rounded-4 bg-white">
                             <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
                                 <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
-                                    <span class="badge bg-primary rounded-circle p-1 me-1"> </span> {{ $cat->name }}
+                                    <span class="badge bg-primary rounded-circle p-1 me-1"><i class="fa-solid fa-layer-group" style="font-size: 10px;"></i></span>
+                                    <span>{{ $cat->name }}</span>
                                 </h5>
                                 <a href="{{ route('book.index', ['category' => $cat->slug]) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">সবগুলো দেখুন (@bn($cat->books_count))</a>
                             </div>
@@ -433,7 +489,7 @@
                     @endforeach
                 @endif
 
-                <!-- All Books Catalog Grid Section -->
+                {{-- 5. ALL BOOKS CATALOG GRID (সকল বই ক্যাটালগ) --}}
                 <div class="card p-3 p-md-4 mb-4 border-0 shadow-sm rounded-4 bg-white">
                     <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 mb-3 pb-2 border-bottom">
                         <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">

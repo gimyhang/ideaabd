@@ -20,15 +20,27 @@
         ['route' => 'contact', 'label' => 'যোগাযোগ', 'icon' => 'envelope', 'active' => 'contact'],
     ];
 
-    // Category mega-menu
-    $megaCategories = collect();
+    // Category mega-menu & dropdown dynamically fetched from categories table with hierarchy
+    $headerCategories = collect();
     try {
         if (\Illuminate\Support\Facades\Schema::hasTable('categories')) {
-            $megaCategories = \Illuminate\Support\Facades\DB::table('categories')
+            $headerCategories = \Modules\Book\Models\Category::query()
                 ->where('is_active', true)
+                ->whereNull('parent_id')
+                ->with(['children' => fn($q) => $q->where('is_active', true)->withCount(['books' => fn($bq) => $bq->where('is_active', true)])->orderBy('name')])
+                ->withCount(['books' => fn($q) => $q->where('is_active', true)])
                 ->orderBy('sort_order')
-                ->limit(10)
-                ->get(['name', 'slug']);
+                ->orderByDesc('books_count')
+                ->get();
+
+            if ($headerCategories->isEmpty()) {
+                $headerCategories = \Modules\Book\Models\Category::query()
+                    ->where('is_active', true)
+                    ->withCount(['books' => fn($q) => $q->where('is_active', true)])
+                    ->orderBy('sort_order')
+                    ->orderByDesc('books_count')
+                    ->get();
+            }
         }
     } catch (\Throwable $e) {}
 
@@ -307,31 +319,72 @@
                     <button class="site-nav__link site-nav__all dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="fas fa-grip"></i> সব বিভাগ
                     </button>
-                    <div class="dropdown-menu site-drop site-mega border-0 shadow-lg p-4" style="border-radius: 16px;">
-                        <div class="row g-4">
+                    <div class="dropdown-menu site-drop site-mega border-0 shadow-lg p-3 p-md-4" style="border-radius: 16px; min-width: 680px; max-width: 860px; max-height: 520px; overflow-y: auto;">
+                        <div class="row g-3 g-md-4">
                             <div class="col-md-8">
-                                <h6 class="text-uppercase fw-bold text-muted mb-3" style="font-size: 0.75rem; letter-spacing: 1px;">
-                                    <i class="fas fa-list me-2 text-primary"></i>জনপ্রিয় ক্যাটাগরি
-                                </h6>
-                                @if ($megaCategories->isNotEmpty())
-                                    <div class="site-mega__grid" style="grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.5rem 1rem;">
-                                        @foreach ($megaCategories as $cat)
-                                            <a class="site-mega__item border border-light shadow-sm" href="{{ route('book.index', ['category' => $cat->slug]) }}">
-                                                <span class="site-mega__icon bg-primary bg-opacity-10 text-primary"><i class="fas fa-book-open"></i></span>
-                                                <span class="fw-semibold">{{ $cat->name }}</span>
-                                            </a>
+                                <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                                    <h6 class="text-uppercase fw-bold text-dark mb-0 d-flex align-items-center gap-1.5" style="font-size: 0.82rem; letter-spacing: 0.5px;">
+                                        <i class="fas fa-layer-group text-primary"></i> বিষয় ও ক্যাটাগরি তালিকা
+                                    </h6>
+                                    <a href="{{ route('book.index') }}" class="btn btn-sm btn-link text-primary text-decoration-none p-0 fw-semibold" style="font-size: 11px;">
+                                        সব দেখুন (@bn($headerCategories->count())টি) <i class="fas fa-arrow-right small"></i>
+                                    </a>
+                                </div>
+
+                                @if ($headerCategories->isNotEmpty())
+                                    <div class="row row-cols-1 row-cols-sm-2 g-2.5">
+                                        @foreach ($headerCategories as $cat)
+                                            <div class="col">
+                                                <div class="p-2 rounded-3 border bg-light bg-opacity-50 hover-bg-light transition-all h-100">
+                                                    {{-- Parent Category Link --}}
+                                                    <a class="d-flex align-items-center justify-content-between text-decoration-none text-dark fw-bold" 
+                                                       href="{{ route('book.index', ['category' => $cat->slug]) }}" style="font-size: 13px;">
+                                                        <span class="d-flex align-items-center gap-2 text-truncate">
+                                                            <span class="badge bg-primary bg-opacity-10 text-primary rounded-circle p-1.5" style="width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center;">
+                                                                <i class="fas fa-book-open" style="font-size: 11px;"></i>
+                                                            </span>
+                                                            <span class="text-truncate hover-primary">{{ $cat->name }}</span>
+                                                        </span>
+                                                        @if(isset($cat->books_count) && $cat->books_count > 0)
+                                                            <span class="badge bg-white text-muted border rounded-pill px-1.5 py-0.5" style="font-size: 10px;">@bn($cat->books_count)</span>
+                                                        @endif
+                                                    </a>
+
+                                                    {{-- Sub-categories Chips / Links --}}
+                                                    @if(isset($cat->children) && $cat->children->isNotEmpty())
+                                                        <div class="d-flex flex-wrap gap-1 mt-1.5 ps-4">
+                                                            @foreach($cat->children->take(4) as $child)
+                                                                <a href="{{ route('book.index', ['category' => $child->slug]) }}" 
+                                                                   class="badge bg-white text-secondary text-decoration-none border rounded-pill px-2 py-0.5 hover-primary" 
+                                                                   style="font-size: 10.5px;" title="{{ $child->name }}">
+                                                                    {{ $child->name }}
+                                                                </a>
+                                                            @endforeach
+                                                            @if($cat->children->count() > 4)
+                                                                <a href="{{ route('book.index', ['category' => $cat->slug]) }}" class="badge bg-primary-subtle text-primary text-decoration-none rounded-pill px-1.5 py-0.5" style="font-size: 10px;">
+                                                                    +@bn($cat->children->count() - 4)টি
+                                                                </a>
+                                                            @endif
+                                                        </div>
+                                                    @endif
+                                                </div>
+                                            </div>
                                         @endforeach
                                     </div>
                                 @else
-                                    <div class="site-mega__grid" style="grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.5rem 1rem;">
-                                        <a class="site-mega__item border border-light shadow-sm" href="{{ route('book.index') }}">
-                                            <span class="site-mega__icon bg-primary bg-opacity-10 text-primary"><i class="fas fa-book"></i></span>
-                                            <span class="fw-semibold">সকল বই</span>
-                                        </a>
-                                        <a class="site-mega__item border border-light shadow-sm" href="{{ route('ebook.index') }}">
-                                            <span class="site-mega__icon bg-primary bg-opacity-10 text-primary"><i class="fas fa-tablet-screen-button"></i></span>
-                                            <span class="fw-semibold">ই-বুক</span>
-                                        </a>
+                                    <div class="row row-cols-2 g-2">
+                                        <div class="col">
+                                            <a class="site-mega__item border border-light shadow-sm" href="{{ route('book.index') }}">
+                                                <span class="site-mega__icon bg-primary bg-opacity-10 text-primary"><i class="fas fa-book"></i></span>
+                                                <span class="fw-semibold">সকল বই</span>
+                                            </a>
+                                        </div>
+                                        <div class="col">
+                                            <a class="site-mega__item border border-light shadow-sm" href="{{ route('ebook.index') }}">
+                                                <span class="site-mega__icon bg-primary bg-opacity-10 text-primary"><i class="fas fa-tablet-screen-button"></i></span>
+                                                <span class="fw-semibold">ই-বুক</span>
+                                            </a>
+                                        </div>
                                     </div>
                                 @endif
                             </div>
@@ -341,7 +394,7 @@
                                     <div class="position-absolute top-0 end-0 opacity-20 p-3"><i class="fas fa-gift" style="font-size: 4.5rem;"></i></div>
                                     <span class="badge bg-warning text-dark fw-bold px-2 py-1 rounded-pill align-self-start mb-2 small shadow-sm">স্পেশাল ছাড়</span>
                                     <h5 class="fw-bold mb-2 position-relative" style="z-index: 1;">বইমেলা অফার</h5>
-                                    <p class="small mb-3 opacity-90 position-relative" style="z-index: 1;">নির্বাচিত বইগুলোতে পাচ্ছেন সর্বোচ্চ ৪০% পর্যন্ত নিশ্চিত ছাড়।</p>
+                                    <p class="small mb-3 opacity-90 position-relative" style="z-index: 1;">নির্বাচিত বইগুলোতে পাচ্ছেন আকর্ষণীয় ছাড় ও নিশ্চিত উপহার।</p>
                                     <a href="{{ route('book.index', ['sort' => 'bestselling']) }}" class="btn btn-light btn-sm rounded-pill fw-bold text-primary align-self-start position-relative shadow-sm px-3" style="z-index: 1;">অফার দেখুন</a>
                                 </div>
                             </div>

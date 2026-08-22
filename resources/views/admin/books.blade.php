@@ -421,9 +421,20 @@
                     @forelse ($books as $index => $book)
                         @php
                             $cover = $book->cover_image;
-                            $coverUrl = $cover 
-                                ? (str_starts_with($cover, 'http') ? $cover : (str_starts_with($cover, 'storage/') ? asset($cover) : asset('storage/' . ltrim($cover, '/'))))
-                                : 'https://placehold.co/100x150/e2e8f0/475569?text=Cover';
+                            $coverUrl = null;
+                            if ($cover) {
+                                if (str_starts_with($cover, 'http')) {
+                                    $coverUrl = $cover;
+                                } elseif (str_starts_with($cover, 'storage/')) {
+                                    $coverUrl = asset($cover);
+                                } else {
+                                    $coverUrl = asset('storage/' . ltrim($cover, '/'));
+                                }
+                            } else {
+                                $firstLetter = mb_substr($book->title ?? 'বই', 0, 1, 'UTF-8');
+                                $svg = "<svg xmlns='http://www.w3.org/2000/svg' width='100' height='150' viewBox='0 0 100 150'><rect width='100' height='150' fill='#1e293b'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='#38bdf8' font-weight='bold' font-size='32' font-family='sans-serif'>{$firstLetter}</text></svg>";
+                                $coverUrl = "data:image/svg+xml;utf8," . rawurlencode($svg);
+                            }
                             
                             $isHardcover = ($book->cover_type === 'hardcover');
                             $isBoth = ($book->cover_type === 'both');

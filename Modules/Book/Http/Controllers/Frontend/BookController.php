@@ -32,6 +32,7 @@ class BookController extends Controller
         $books = collect();
         $categories = collect();
         $recentlySold = collect();
+        $newArrivals = collect();
         $bestSellerEbooks = collect();
         $flashSales = collect();
         $recentlyViewedBooks = collect();
@@ -46,10 +47,22 @@ class BookController extends Controller
         if ($canUseBooks) {
             $categories = Category::query()
                 ->where('is_active', true)
+                ->whereNull('parent_id')
+                ->with(['children' => fn($q) => $q->where('is_active', true)->withCount(['books' => fn($bq) => $bq->where('is_active', true)])])
                 ->withCount(['books' => fn($q) => $q->where('is_active', true)])
+                ->orderBy('sort_order')
                 ->orderByDesc('books_count')
-                ->orderBy('name')
-                ->get(['id', 'name', 'slug']);
+                ->get();
+
+            // If no parent categories found, fallback to flat active categories list
+            if ($categories->isEmpty()) {
+                $categories = Category::query()
+                    ->where('is_active', true)
+                    ->withCount(['books' => fn($q) => $q->where('is_active', true)])
+                    ->orderByDesc('books_count')
+                    ->orderBy('name')
+                    ->get();
+            }
 
             $sidebarAuthors = Author::query()
                 ->where('is_active', true)
@@ -81,7 +94,10 @@ class BookController extends Controller
             // Resolve human-readable active filter title
             if ($request->filled('category')) {
                 $catVal = $request->string('category')->trim()->value();
-                $matchedCat = $categories->first(fn($c) => $c->slug === $catVal || (string)$c->id === $catVal || $c->name === $catVal);
+                $matchedCat = Category::where('slug', $catVal)
+                    ->orWhere('id', is_numeric($catVal) ? (int)$catVal : 0)
+                    ->orWhere('name', $catVal)
+                    ->first();
                 $activeFilterTitle = $matchedCat ? $matchedCat->name : $catVal;
             } elseif ($request->filled('author')) {
                 $authVal = $request->string('author')->trim()->value();
@@ -199,8 +215,8 @@ class BookController extends Controller
                 'discount_high' => $booksQuery->orderByRaw('(price - COALESCE(discount_price, price)) desc'),
                 'avg_rating'    => $booksQuery->orderByDesc('reviews_avg_rating'),
                 'bestselling'   => $booksQuery->orderByDesc('sales_count'),
-                'oldest'        => $booksQuery->oldest(),
-                default         => $booksQuery->latest(),
+                'oldest'        => $booksQuery->oldest('id'),
+                default         => $booksQuery->latest('id'),
             };
 
             $books = $booksQuery->paginate(20)->withQueryString();
@@ -211,6 +227,7 @@ class BookController extends Controller
                     ->with(['authors', 'category'])
                     ->where('is_active', true)
                     ->orderByDesc('sales_count')
+                    ->latest('id')
                     ->take(10)
                     ->get();
 
@@ -219,6 +236,7 @@ class BookController extends Controller
                     ->where('is_active', true)
                     ->where('format', 'ebook')
                     ->orderByDesc('sales_count')
+                    ->latest('id')
                     ->take(10)
                     ->get();
 
@@ -226,8 +244,16 @@ class BookController extends Controller
                     ->with(['authors', 'category'])
                     ->where('is_active', true)
                     ->whereNotNull('discount_price')
+                    ->where('discount_price', '>', 0)
                     ->whereColumn('discount_price', '<', 'price')
-                    ->latest()
+                    ->latest('id')
+                    ->take(10)
+                    ->get();
+
+                $newArrivals = Book::query()
+                    ->with(['authors', 'category'])
+                    ->where('is_active', true)
+                    ->latest('id')
                     ->take(10)
                     ->get();
 
@@ -246,7 +272,7 @@ class BookController extends Controller
         }
 
         return view('book::frontend.index', compact(
-            'books', 'categories', 'isSearchMode', 'recentlySold', 'bestSellerEbooks', 'categoryBooks', 'sidebarAuthors', 'sidebarPublishers', 'flashSales', 'recentlyViewedBooks', 'topSeller', 'dynamicCategories', 'activeFilterTitle'
+            'books', 'categories', 'isSearchMode', 'recentlySold', 'newArrivals', 'bestSellerEbooks', 'categoryBooks', 'sidebarAuthors', 'sidebarPublishers', 'flashSales', 'recentlyViewedBooks', 'topSeller', 'dynamicCategories', 'activeFilterTitle'
         ));
     }
 

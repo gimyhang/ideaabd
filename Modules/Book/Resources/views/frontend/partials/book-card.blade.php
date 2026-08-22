@@ -89,36 +89,47 @@
     </div>
 
     <!-- Book Cover Image Container (7:10 Aspect Ratio) -->
-    <div class="position-relative overflow-hidden rounded-3 mb-2.5 mx-auto w-100 group-hover" 
-         style="aspect-ratio: 7 / 10; background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);">
+    <div class="position-relative overflow-hidden rounded-3 mb-2.5 mx-auto w-100 group-hover shadow-xs" 
+         style="aspect-ratio: 7 / 10; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
         
-        <a href="{{ route('book.show', $book->slug) }}" class="d-block w-100 h-100 text-decoration-none">
+        <a href="{{ route('book.show', $book->slug ?: $book->id) }}" class="d-block w-100 h-100 text-decoration-none">
             @if($coverUrl)
                 <img src="{{ $coverUrl }}" 
                      alt="{{ $book->title }}" 
                      class="w-100 h-100 object-fit-cover transition-transform"
                      loading="lazy"
-                     onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'w-100 h-100 d-flex flex-column align-items-center justify-content-center text-center p-2\' style=\'background: linear-gradient(145deg, #f8fafc 0%, #e2e8f0 100%);\'><div class=\'rounded-circle bg-white shadow-xs p-2 mb-1 text-muted d-flex align-items-center justify-content-center\' style=\'width: 40px; height: 40px;\'><i class=\'fa-solid fa-book text-secondary fs-5 opacity-50\'></i></div><span class=\'badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-2 py-0.5 fw-bold mb-1\' style=\'font-size: 0.7rem;\'><i class=\'fa-regular fa-image me-1\'></i>কভার নেই</span><span class=\'small fw-bold text-dark text-truncate w-100\' style=\'font-size: 0.72rem;\'>{{ addslashes($book->title) }}</span></div>';">
+                     onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'140\' height=\'200\' viewBox=\'0 0 140 200\'><rect width=\'140\' height=\'200\' fill=\'%231e293b\'/><text x=\'50%25\' y=\'50%25\' dominant-baseline=\'middle\' text-anchor=\'middle\' fill=\'%2338bdf8\' font-size=\'32\' font-weight=\'bold\' font-family=\'sans-serif\'>{{ mb_substr($book->title ?? 'বই', 0, 1, 'UTF-8') }}</text></svg>';">
             @else
-                <!-- Stylish Placeholder when Book has No Cover -->
-                <div class="w-100 h-100 d-flex flex-column align-items-center justify-content-center text-center p-2" 
-                     style="background: linear-gradient(145deg, #f8fafc 0%, #e2e8f0 100%);">
-                    <div class="rounded-circle bg-white shadow-xs p-2 mb-1.5 text-muted d-flex align-items-center justify-content-center" 
-                         style="width: 42px; height: 42px;">
-                        <i class="fa-solid fa-book-open text-primary fs-5 opacity-60"></i>
+                <!-- Elegant Book Spine & Title Fallback Mockup -->
+                <div class="w-100 h-100 d-flex flex-column justify-content-between p-2.5 text-start position-relative overflow-hidden" 
+                     style="background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%); border-left: 4px solid #38bdf8;">
+                    
+                    <div class="d-flex justify-content-between align-items-start z-1">
+                        <span class="badge bg-primary bg-opacity-25 text-info border border-info border-opacity-25 px-1.5 py-0.5 rounded-pill" style="font-size: 0.62rem;">
+                            {{ $book->category->name ?? 'আইডিয়া' }}
+                        </span>
+                        <i class="fa-solid fa-bookmark text-warning opacity-75" style="font-size: 0.75rem;"></i>
                     </div>
-                    <span class="badge bg-secondary text-white rounded-pill px-2.5 py-1 fw-bold shadow-xs mb-1" style="font-size: 0.72rem; letter-spacing: 0.3px;">
-                        <i class="fa-regular fa-image me-1"></i> কভার নেই
-                    </span>
-                    <span class="small fw-semibold text-dark text-truncate w-100 px-1" style="font-size: 0.73rem;">
-                        {{ $book->title }}
-                    </span>
+
+                    <div class="my-auto z-1 py-1">
+                        <h6 class="fw-bold text-white mb-1 text-truncate-2" style="font-size: 0.82rem; line-height: 1.35; font-family: 'Hind Siliguri', serif; color: #f8fafc !important;">
+                            {{ $book->title }}
+                        </h6>
+                        <p class="text-white-50 small mb-0 text-truncate" style="font-size: 0.72rem;">
+                            {{ $authorName }}
+                        </p>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center z-1 pt-1.5 border-top border-secondary border-opacity-25">
+                        <span class="text-white-50 small" style="font-size: 0.62rem;">আইডিয়া প্রকাশন</span>
+                        <i class="fa-solid fa-feather-pointed text-info opacity-75" style="font-size: 0.65rem;"></i>
+                    </div>
                 </div>
             @endif
         </a>
 
         <!-- Look Inside / Quick Preview Float Button on Hover -->
-        <a href="{{ route('book.show', $book->slug) }}#look-inside" 
+        <a href="{{ route('book.show', $book->slug ?: $book->id) }}#look-inside" 
            class="position-absolute bottom-0 start-50 translate-middle-x mb-2 badge bg-dark bg-opacity-75 text-white text-decoration-none rounded-pill px-2.5 py-1 small shadow-sm d-none d-md-inline-flex align-items-center gap-1 opacity-0 hover-opacity-100 transition-all" 
            style="font-size: 0.7rem; z-index: 3;">
             <i class="fa-regular fa-eye"></i> একটু পড়ুন
@@ -128,9 +139,9 @@
     <!-- Book Information & Details -->
     <div class="d-flex flex-column flex-grow-1 px-1">
         
-        <!-- Book Title -->
-        <h6 class="fw-bold text-dark mb-1 line-clamp-2" style="font-size: 0.88rem; line-height: 1.35; min-height: 2.35em;" title="{{ $book->title }}">
-            <a href="{{ route('book.show', $book->slug) }}" class="text-decoration-none text-dark hover-primary">
+        <!-- Book Title (Fixed 2-line height for clean grid alignment) -->
+        <h6 class="fw-bold text-dark mb-1" style="font-size: 0.88rem; line-height: 1.3; height: 2.45rem; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;" title="{{ $book->title }}">
+            <a href="{{ route('book.show', $book->slug ?: $book->id) }}" class="text-decoration-none text-dark hover-primary">
                 {{ $book->title }}
             </a>
         </h6>

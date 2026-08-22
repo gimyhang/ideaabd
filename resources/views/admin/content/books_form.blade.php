@@ -901,6 +901,16 @@
         {{-- 4. MODERATION & URL --}}
         <div class="adm-card p-3 mb-3">
             <h2 class="h6 fw-bold mb-2 text-dark"><i class="fas fa-circle-check me-1 text-muted"></i> Moderation & URL</h2>
+            <div class="mb-2.5 p-2 bg-success-subtle rounded-3 border border-success-subtle">
+                <div class="form-check form-switch mb-0">
+                    <input class="form-check-input" type="checkbox" role="switch" id="f-is_active" name="is_active" value="1" 
+                           @checked(old('is_active', $record->is_active ?? true))>
+                    <label class="form-check-label small fw-bold text-success" for="f-is_active">
+                        <i class="fas fa-signal me-1"></i> লাইভ প্রকাশনা (Live on Website)
+                    </label>
+                </div>
+                <div class="text-muted small mt-1" style="font-size: 10.5px;">অন থাকলে ওয়েবসাইট ক্যাটালগ ও সার্চে সরাসরি দৃশ্যমান থাকবে।</div>
+            </div>
             <div class="mb-2.5">
                 <label for="f-mod_status" class="form-label small fw-semibold mb-1">Status</label>
                 <select id="f-mod_status" name="mod_status" class="form-select form-select-sm">

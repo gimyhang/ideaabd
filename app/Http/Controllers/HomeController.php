@@ -30,7 +30,7 @@ class HomeController extends Controller
             $books = \Modules\Book\Models\Book::query()
                 ->with(['category', 'authors', 'publisher'])
                 ->where('is_active', true)
-                ->latest()
+                ->latest('id')
                 ->take(12)
                 ->get();
 
@@ -38,6 +38,7 @@ class HomeController extends Controller
                 ->with(['authors'])
                 ->where('is_active', true)
                 ->orderByDesc('sales_count')
+                ->latest('id')
                 ->take(10)
                 ->get();
 
@@ -46,6 +47,7 @@ class HomeController extends Controller
                 ->where('is_active', true)
                 ->where('format', 'ebook')
                 ->orderByDesc('sales_count')
+                ->latest('id')
                 ->take(10)
                 ->get();
 
@@ -53,8 +55,9 @@ class HomeController extends Controller
                 ->with(['authors'])
                 ->where('is_active', true)
                 ->whereNotNull('discount_price')
+                ->where('discount_price', '>', 0)
                 ->whereColumn('discount_price', '<', 'price')
-                ->inRandomOrder()
+                ->latest('id')
                 ->take(10)
                 ->get();
 

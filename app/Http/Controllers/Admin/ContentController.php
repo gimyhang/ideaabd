@@ -190,6 +190,11 @@ class ContentController extends Controller
             ]);
         }
 
+        try {
+            \Illuminate\Support\Facades\Cache::flush();
+        } catch (\Throwable) {
+        }
+
         return redirect()
             ->route($spec['listRoute'])
             ->with('success', "{$spec['label']} যোগ করা হয়েছে — “{$record->{$spec['display']}}”।");
@@ -301,6 +306,11 @@ class ContentController extends Controller
             return back()->withInput()->withErrors([
                 'error' => "হালনাগাদ করার সময় ত্রুটি ঘটেছে: " . $e->getMessage(),
             ]);
+        }
+
+        try {
+            \Illuminate\Support\Facades\Cache::flush();
+        } catch (\Throwable) {
         }
 
         return redirect()
@@ -593,7 +603,16 @@ class ContentController extends Controller
             }
 
             if ($type === 'checkbox') {
-                $attributes[$name] = $request->boolean($name);
+                if ($spec['key'] === 'books' && $name === 'is_active') {
+                    if ($request->has('is_active')) {
+                        $attributes['is_active'] = $request->boolean('is_active');
+                    } else {
+                        $modStatus = $request->input('mod_status', 'approved');
+                        $attributes['is_active'] = ($modStatus === 'approved');
+                    }
+                } else {
+                    $attributes[$name] = $request->boolean($name);
+                }
 
                 continue;
             }
