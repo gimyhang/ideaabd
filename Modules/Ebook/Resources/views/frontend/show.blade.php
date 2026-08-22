@@ -90,23 +90,66 @@
                         <i class="fa-solid fa-book-open-reader me-2"></i> অনলাইনে এখনই পড়ুন
                     </a>
 
-                    <!-- Download Free / Sample File Button -->
-                    @if($ebook->is_free || $ebook->sample_url)
-                        <a href="{{ route('ebook.download', $ebook->slug) }}" class="btn btn-outline-success rounded-pill fw-semibold py-2">
-                            <i class="fa-solid fa-download me-2"></i> {{ $ebook->is_free ? 'সম্পূর্ণ ই-বুক ডাউনলোড' : 'ফ্রি স্যাম্পল ডাউনলোড' }}
-                        </a>
+                    @php
+                        $hasEpub = !empty($ebook->epub_file_path) || strtolower((string)$ebook->file_type) === 'epub' || str_ends_with(strtolower((string)$ebook->file_path), '.epub');
+                    @endphp
+
+                    <!-- Download / Purchase Access Control -->
+                    @if($hasAccess)
+                        <!-- User has active access (Purchased, Claimed, or Admin/Author) -->
+                        @if($hasEpub)
+                            <a href="{{ route('ebook.download', $ebook->slug) }}" class="btn btn-success rounded-pill fw-semibold py-2 shadow-sm">
+                                <i class="fa-solid fa-download me-2"></i> সম্পূর্ণ EPUB ডাউনলোড করুন
+                            </a>
+                        @else
+                            <button type="button" class="btn btn-outline-secondary rounded-pill fw-semibold py-2" disabled title="কপিরাইট সুরক্ষায় PDF ডাউনলোড বন্ধ রয়েছে">
+                                <i class="fa-solid fa-ban me-1.5 text-danger"></i> PDF ডাউনলোড বন্ধ (অনলাইনে পড়ুন)
+                            </button>
+                        @endif
+                    @else
+                        <!-- User does NOT have active access -->
+                        @if($ebook->is_free)
+                            <!-- Free Book: Instant Claim Button -->
+                            @auth
+                                <form action="{{ route('ebook.claim', $ebook->slug) }}" method="POST">
+                                    @csrf
+                                    <button type="submit" class="btn btn-success rounded-pill fw-semibold w-100 py-2 shadow-sm">
+                                        <i class="fa-solid fa-gift me-2"></i> বিনামূল্যে সংগ্রহ করুন (Claim)
+                                    </button>
+                                </form>
+                            @else
+                                <a href="{{ route('login') }}" class="btn btn-success rounded-pill fw-semibold py-2 shadow-sm">
+                                    <i class="fa-solid fa-gift me-2"></i> লগইন করে সংগ্রহ করুন (Free Claim)
+                                </a>
+                            @endauth
+
+                            <!-- Disabled Download Button for Unclaimed Free Book -->
+                            <button type="button" class="btn btn-outline-secondary rounded-pill fw-semibold py-2 opacity-75" disabled title="ডাউনলোড সক্রিয় করতে প্রথমে বিনামূল্যে বইটি সংগ্রহ করুন">
+                                <i class="fa-solid fa-lock me-1.5"></i> ডাউনলোড (ক্লেম প্রয়োজন)
+                            </button>
+                        @else
+                            <!-- Paid Book: Add to Cart / Purchase Form -->
+                            @if(Route::has('cart'))
+                                <form action="{{ route('cart.add') }}" method="POST">
+                                    @csrf
+                                    <input type="hidden" name="id" value="{{ $ebook->id }}">
+                                    <input type="hidden" name="type" value="ebook">
+                                    <button type="submit" class="btn btn-warning text-dark rounded-pill fw-bold w-100 py-2.5 shadow-sm">
+                                        <i class="fa-solid fa-cart-shopping me-2"></i> বইটি ক্রয় করুন (৳{{ round($ebook->discount_price ?? $ebook->price) }})
+                                    </button>
+                                </form>
+                            @endif
+
+                            <!-- Disabled Download Button for Unpurchased Paid Book -->
+                            <button type="button" class="btn btn-outline-secondary rounded-pill fw-semibold py-2 opacity-75" disabled title="ডাউনলোড করতে প্রথমে বইটি ক্রয় সম্পন্ন করুন">
+                                <i class="fa-solid fa-lock me-1.5"></i> ডাউনলোড (ক্রয় সম্পন্ন প্রয়োজন)
+                            </button>
+                        @endif
                     @endif
 
-                    @if(!$ebook->is_free && Route::has('cart'))
-                        <form action="{{ route('cart.add') }}" method="POST">
-                            @csrf
-                            <input type="hidden" name="id" value="{{ $ebook->id }}">
-                            <input type="hidden" name="type" value="ebook">
-                            <button type="submit" class="btn btn-outline-primary rounded-pill fw-semibold w-100 py-2">
-                                <i class="fa-solid fa-cart-shopping me-2"></i> কার্টে যোগ করুন
-                            </button>
-                        </form>
-                    @endif
+                    <div class="mt-1 text-center text-muted" style="font-size: 0.72rem;">
+                        <i class="fa-solid fa-shield-halved text-success me-1"></i> ডিজিটাল কপিরাইট সুরক্ষায় শুধুমাত্র EPUB ফরম্যাটে ডাউনলোড প্রযোজ্য।
+                    </div>
                 </div>
 
                 <!-- Technical Specs Quick List -->

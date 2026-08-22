@@ -175,7 +175,19 @@
                 জমা দেওয়ার পর বইটি আইডিয়া প্রকাশন অ্যাডমিন প্যানেলে রিভিউতে জমা হবে। মান পর্যালোচনার পর বইটি লাইভ স্টোরে প্রকাশিত হবে।
             </p>
 
-            <button type="submit" class="btn btn-success btn-lg w-100 rounded-pill fw-bold shadow-sm py-2.5 d-flex align-items-center justify-content-center gap-2 mb-2">
+            {{-- Real-time File Upload Progress Bar --}}
+            <div id="uploadProgressBox" class="d-none mb-3 p-2.5 rounded-3 bg-light border">
+                <div class="d-flex justify-content-between small text-dark fw-semibold mb-1" style="font-size: 11.5px;">
+                    <span id="uploadProgressLabel"><i class="fas fa-spinner fa-spin text-primary me-1"></i> ফাইল আপলোড হচ্ছে...</span>
+                    <strong id="uploadProgressPercent" class="text-primary font-monospace">0%</strong>
+                </div>
+                <div class="progress" style="height: 7px;">
+                    <div id="uploadProgressBar" class="progress-bar progress-bar-striped progress-bar-animated bg-success" role="progressbar" style="width: 0%"></div>
+                </div>
+                <small class="text-muted d-block mt-1" style="font-size: 10.5px;">বড় ফাইল আপলোডের সময় কিছুক্ষণ অপেক্ষা করুন।</small>
+            </div>
+
+            <button type="submit" id="ebookSubmitBtn" class="btn btn-success btn-lg w-100 rounded-pill fw-bold shadow-sm py-2.5 d-flex align-items-center justify-content-center gap-2 mb-2">
                 <i class="fas fa-circle-check fs-5"></i>
                 <span>পর্যালোচনার জন্য জমা দিন (Submit)</span>
             </button>
@@ -313,6 +325,70 @@ function calculateRoyalty() {
 
 document.addEventListener('DOMContentLoaded', function() {
     calculateRoyalty();
+
+    const form = document.getElementById('authorEbookForm');
+    const submitBtn = document.getElementById('ebookSubmitBtn');
+    const progressBox = document.getElementById('uploadProgressBox');
+    const progressBar = document.getElementById('uploadProgressBar');
+    const progressPercent = document.getElementById('uploadProgressPercent');
+    const progressLabel = document.getElementById('uploadProgressLabel');
+
+    if (form && submitBtn) {
+        form.addEventListener('submit', function(e) {
+            const hasFiles = document.getElementById('f-epub_file_path')?.files.length > 0 || 
+                             document.getElementById('f-file_path')?.files.length > 0 || 
+                             document.getElementById('f-cover_image')?.files.length > 0;
+
+            if (hasFiles && typeof XMLHttpRequest !== 'undefined') {
+                e.preventDefault();
+                submitBtn.disabled = true;
+                if (progressBox) progressBox.classList.remove('d-none');
+
+                const xhr = new XMLHttpRequest();
+                const formData = new FormData(form);
+
+                xhr.upload.addEventListener('progress', function(event) {
+                    if (event.lengthComputable) {
+                        const percent = Math.round((event.loaded / event.total) * 100);
+                        if (progressBar) progressBar.style.width = percent + '%';
+                        if (progressPercent) progressPercent.textContent = percent + '%';
+                        if (percent >= 100 && progressLabel) {
+                            progressLabel.innerHTML = '<i class="fas fa-cog fa-spin text-success me-1"></i> সার্ভারে ফাইল প্রস্তুত ও সেভ হচ্ছে...';
+                        }
+                    }
+                });
+
+                xhr.addEventListener('load', function() {
+                    if (xhr.status >= 200 && xhr.status < 400) {
+                        // Success or redirect
+                        if (xhr.responseURL) {
+                            window.location.href = xhr.responseURL;
+                        } else {
+                            window.location.href = "{{ route('author.ebooks.index') }}";
+                        }
+                    } else {
+                        // Error handling: reload or replace document
+                        document.open();
+                        document.write(xhr.responseText);
+                        document.close();
+                    }
+                });
+
+                xhr.addEventListener('error', function() {
+                    alert('আপলোডে সমস্যা হয়েছে। অনুগ্রহ করে ইন্টারনেট সংযোগ চেক করে পুনরায় চেষ্টা করুন।');
+                    submitBtn.disabled = false;
+                    if (progressBox) progressBox.classList.add('d-none');
+                });
+
+                xhr.open(form.method, form.action);
+                xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+                xhr.send(formData);
+            } else {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1.5"></span> প্রসেসিং হচ্ছে...';
+            }
+        });
+    }
 });
 </script>
 @endpush

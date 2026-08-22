@@ -5,10 +5,23 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
 class LoginController extends Controller
 {
+    /**
+     * Show the login form with anti-caching headers for mobile/PWA stability.
+     */
+    public function showLoginForm()
+    {
+        return response()
+            ->view('auth.login')
+            ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+            ->header('Pragma', 'no-cache')
+            ->header('Expires', 'Sat, 01 Jan 2000 00:00:00 GMT');
+    }
+
     public function login(Request $request)
     {
         $loginInput = trim((string) ($request->input('email') ?? $request->input('username') ?? $request->input('login') ?? ''));
@@ -32,7 +45,7 @@ class LoginController extends Controller
 
             $matchedUser = null;
             foreach ($candidates as $candidate) {
-                if (\Illuminate\Support\Facades\Hash::check($password, $candidate->password)) {
+                if (Hash::check($password, $candidate->password)) {
                     $matchedUser = $candidate;
                     break;
                 }
@@ -60,7 +73,7 @@ class LoginController extends Controller
                     ]);
                 }
 
-                \Illuminate\Support\Facades\Auth::login($matchedUser, $request->boolean('remember'));
+                Auth::login($matchedUser, $request->boolean('remember'));
                 $request->session()->regenerate();
 
                 // Redirect based on role

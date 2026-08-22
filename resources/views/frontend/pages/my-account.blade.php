@@ -137,6 +137,14 @@
                         @endif
                     </button>
 
+                    <button class="nav-link {{ request('tab') === 'ebooks' ? 'active' : '' }} text-start rounded-3 py-2.5 px-3 fw-semibold" 
+                            id="v-pills-ebooks-tab" data-bs-toggle="pill" data-bs-target="#v-pills-ebooks" type="button" role="tab">
+                        <i class="fas fa-book-open-reader me-2 text-info"></i> আমার ই-বুক লাইব্রেরি
+                        @if(isset($myEbooks) && $myEbooks->count() > 0)
+                            <span class="badge bg-info text-dark float-end rounded-pill">@bn($myEbooks->count())</span>
+                        @endif
+                    </button>
+
                     <button class="nav-link {{ request('tab') === 'address' ? 'active' : '' }} text-start rounded-3 py-2.5 px-3 fw-semibold" 
                             id="v-pills-address-tab" data-bs-toggle="pill" data-bs-target="#v-pills-address" type="button" role="tab">
                         <i class="fas fa-map-location-dot me-2 text-success"></i> ডেলিভারি ঠিকানা
@@ -394,6 +402,99 @@
                                                                 <i class="fas fa-trash-can"></i>
                                                             </button>
                                                         </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @endif
+                    </div>
+                </div>
+
+                {{-- ───────────────────────────────────────────────────────── --}}
+                {{-- TAB: MY E-BOOK LIBRARY                                    --}}
+                {{-- ───────────────────────────────────────────────────────── --}}
+                <div class="tab-pane fade {{ request('tab') === 'ebooks' ? 'show active' : '' }}" id="v-pills-ebooks" role="tabpanel">
+                    <div class="card border-0 shadow-sm rounded-4 bg-white p-4">
+                        <div class="d-flex align-items-center justify-content-between pb-3 mb-3 border-bottom">
+                            <h5 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                                <i class="fas fa-book-open-reader text-info"></i>
+                                <span>আমার ই-বুক লাইব্রেরি (My E-Books)</span>
+                            </h5>
+                            <span class="badge bg-info-subtle text-info px-3 py-1 rounded-pill fw-semibold">
+                                @bn(isset($myEbooks) ? $myEbooks->count() : 0)টি ই-বুক সংরক্ষিত
+                            </span>
+                        </div>
+
+                        @if(!isset($myEbooks) || $myEbooks->isEmpty())
+                            <div class="text-center py-5">
+                                <i class="fas fa-tablet-screen-button fs-1 text-muted opacity-50 mb-3"></i>
+                                <h6 class="fw-bold text-dark">আপনার লাইব্রেরিতে এখনও কোনো ই-বুক নেই</h6>
+                                <p class="small text-muted mb-3">আমাদের ডিজিটাল ই-বুক ক্যাটালগ থেকে ফ্রি কিংবা পেইড বই সংগ্রহ করে যেকোনো ডিভাইসে পড়ুন।</p>
+                                <a href="{{ route('ebook.index') }}" class="btn btn-primary rounded-pill px-4 fw-semibold shadow-xs">
+                                    <i class="fas fa-book-open me-1"></i> ই-বুক ক্যাটালগ দেখুন
+                                </a>
+                            </div>
+                        @else
+                            <div class="row row-cols-1 row-cols-md-2 g-3">
+                                @foreach($myEbooks as $item)
+                                    @php
+                                        $eb = $item->ebook;
+                                        if (!$eb) continue;
+                                        $ebCover = $eb->cover_url ?: asset('images/logo.svg');
+                                        $hasEpub = !empty($eb->epub_file_path) || strtolower((string)$eb->file_type) === 'epub' || str_ends_with(strtolower((string)$eb->file_path), '.epub');
+                                    @endphp
+                                    <div class="col">
+                                        <div class="card h-100 border rounded-4 p-3 shadow-xs bg-white position-relative">
+                                            <div class="d-flex gap-3">
+                                                <div class="rounded-3 overflow-hidden border shadow-xs flex-shrink-0 position-relative" style="width: 70px; aspect-ratio: 7/10; background: #e2e8f0;">
+                                                    <img src="{{ $ebCover }}" alt="{{ $eb->title }}" class="w-100 h-100 object-fit-cover">
+                                                </div>
+                                                <div class="flex-grow-1 min-w-0">
+                                                    <div class="d-flex align-items-center justify-content-between gap-1 mb-1">
+                                                        <span class="badge bg-light text-primary border" style="font-size: 0.68rem;">{{ $eb->format_badge }}</span>
+                                                        <span class="badge {{ $item->access_type === 'free' ? 'bg-success-subtle text-success' : 'bg-primary-subtle text-primary' }}" style="font-size: 0.68rem;">
+                                                            {{ $item->access_type === 'free' ? 'ফ্রি ক্লেম' : 'ক্রয়কৃত' }}
+                                                        </span>
+                                                    </div>
+
+                                                    <h6 class="fw-bold text-dark text-truncate mb-0.5" style="font-size: 0.90rem;">
+                                                        <a href="{{ route('ebook.show', $eb->slug) }}" class="text-decoration-none text-dark hover-primary">
+                                                            {{ $eb->title }}
+                                                        </a>
+                                                    </h6>
+                                                    <div class="small text-muted text-truncate mb-2" style="font-size: 0.76rem;">
+                                                        {{ $eb->author ? $eb->author->name : ($eb->author_name ?: 'আইডিয়া প্রকাশন') }}
+                                                    </div>
+
+                                                    @if($item->progress_percent > 0)
+                                                        <div class="mb-2">
+                                                            <div class="d-flex justify-content-between small text-muted mb-1" style="font-size: 0.70rem;">
+                                                                <span>পড়ার অগ্রগতি:</span>
+                                                                <span>{{ $item->progress_percent }}%</span>
+                                                            </div>
+                                                            <div class="progress" style="height: 4px;">
+                                                                <div class="progress-bar bg-success" role="progressbar" style="width: {{ $item->progress_percent }}%"></div>
+                                                            </div>
+                                                        </div>
+                                                    @endif
+
+                                                    <div class="d-flex flex-wrap gap-1.5 mt-2">
+                                                        <a href="{{ route('ebook.read', $eb->slug) }}" class="btn btn-sm btn-primary rounded-pill px-3 fw-semibold" style="font-size: 0.78rem;">
+                                                            <i class="fas fa-book-open-reader me-1"></i> পড়ুন
+                                                        </a>
+
+                                                        @if($hasEpub)
+                                                            <a href="{{ route('ebook.download', $eb->slug) }}" class="btn btn-sm btn-outline-success rounded-pill px-2.5 fw-semibold" style="font-size: 0.78rem;" title="সম্পূর্ণ EPUB ফাইল ডাউনলোড করুন">
+                                                                <i class="fas fa-download me-1"></i> EPUB
+                                                            </a>
+                                                        @else
+                                                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5 opacity-75" disabled style="font-size: 0.78rem;" title="কপিরাইট সুরক্ষায় PDF ডাউনলোড বন্ধ রয়েছে">
+                                                                <i class="fas fa-lock me-1"></i> সুরক্ষিত
+                                                            </button>
+                                                        @endif
                                                     </div>
                                                 </div>
                                             </div>

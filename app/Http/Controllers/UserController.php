@@ -91,6 +91,16 @@ class UserController extends Controller
             'address'  => $lastOrder?->customer_address ?: ($user->reg_data['address'] ?? ''),
         ];
 
+        // 7. User's E-Book Library
+        $myEbooks = collect();
+        if (\Illuminate\Support\Facades\Schema::hasTable('user_ebook_library')) {
+            $myEbooks = \App\Models\UserEbookLibrary::where('user_id', $user->id)
+                ->with(['ebook.author', 'ebook.category'])
+                ->where('is_active', true)
+                ->latest('id')
+                ->get();
+        }
+
         return view('frontend.pages.my-account', compact(
             'user',
             'myOrders',
@@ -104,7 +114,8 @@ class UserController extends Controller
             'authorPosts',
             'blogCategories',
             'editPost',
-            'defaultAddress'
+            'defaultAddress',
+            'myEbooks'
         ));
     }
 

@@ -5,7 +5,10 @@ declare(strict_types=1);
 namespace Modules\Ebook\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
+use App\Models\UserEbookLibrary;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -18,7 +21,7 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 class EbookController extends Controller
 {
     /**
-     * ডিজিটাল ই-বুক ক্যাটালগ ও অ্যাডভান্সড ফিল্টারিং
+     * ডিজিটাল ই-বুক ক্যাটালগ ও ফিল্টারিং
      */
     public function index(Request $request): View
     {
@@ -55,7 +58,8 @@ class EbookController extends Controller
             })->count();
             $stats['epub'] = Ebook::query()->where('is_active', true)->where(function ($q) {
                 $q->where('file_type', 'epub')
-                  ->orWhere('file_path', 'LIKE', '%.epub');
+                  ->orWhere('file_path', 'LIKE', '%.epub')
+                  ->orWhereNotNull('epub_file_path');
             })->count();
             $stats['pdf'] = Ebook::query()->where('is_active', true)->where(function ($q) {
                 $q->where('file_type', 'pdf')
@@ -140,6 +144,7 @@ class EbookController extends Controller
                     $query->where(fn ($q) => 
                         $q->where('file_type', 'epub')
                           ->orWhere('file_path', 'LIKE', '%.epub')
+                          ->orWhereNotNull('epub_file_path')
                     );
                 } elseif ($fmt === 'pdf') {
                     $query->where(fn ($q) => 
@@ -216,7 +221,7 @@ class EbookController extends Controller
     }
 
     /**
-     * ই-বুক বিস্তারিত বিবরণ
+     * ই-বুক বিস্তারিত বিবরণ ও এক্সেস স্টেটাস
      */
     public function show(string $slug): View
     {
@@ -236,6 +241,25 @@ class EbookController extends Controller
 
         if (!$ebook) {
             abort(404, 'অনুরোধকৃত ই-বুকটি পাওয়া যায়নি।');
+        }
+
+        // Check current user's library access
+        $user = auth()->user();
+        $hasAccess = false;
+        $libraryEntry = null;
+        $isOwnerOrAdmin = false;
+
+        if ($user) {
+            if ($user->isAdmin() || $user->isSubAdmin() || $ebook->author_user_id === $user->id) {
+                $hasAccess = true;
+                $isOwnerOrAdmin = true;
+            } else {
+                $libraryEntry = UserEbookLibrary::where('user_id', $user->id)
+                    ->where('ebook_id', $ebook->id)
+                    ->where('is_active', true)
+                    ->first();
+                $hasAccess = (bool) $libraryEntry;
+            }
         }
 
         $relatedEbooks = Ebook::query()
@@ -265,13 +289,20 @@ class EbookController extends Controller
                 ->get();
         }
 
-        return view('ebook::frontend.show', compact('ebook', 'relatedEbooks', 'authorOtherEbooks'));
+        return view('ebook::frontend.show', compact(
+            'ebook',
+            'relatedEbooks',
+            'authorOtherEbooks',
+            'hasAccess',
+            'libraryEntry',
+            'isOwnerOrAdmin'
+        ));
     }
 
     /**
-     * অনলাইন আধুনিক ই-বুক রিডার (EPUB ও PDF সাপোর্টেড)
+     * অনলাইন সুরক্ষিত ই-বুক রিডার (EPUB ও PDF সাপোর্টেড)
      */
-    public function read(string $slug): View
+    public function read(string $slug): View|RedirectResponse
     {
         $ebook = Ebook::query()
             ->with(['author', 'publisher', 'category'])
@@ -288,7 +319,33 @@ class EbookController extends Controller
         }
 
         if (!$ebook) {
-            abort(404, 'ই-বুক পাওয়া যায়নি');
+            abort(404, 'অনুরোধকৃত ই-বুক পাওয়া যায়নি।');
+        }
+
+        $user = auth()->user();
+        $hasAccess = false;
+        $libraryEntry = null;
+
+        if ($user) {
+            if ($user->isAdmin() || $user->isSubAdmin() || $ebook->author_user_id === $user->id) {
+                $hasAccess = true;
+            } else {
+                $libraryEntry = UserEbookLibrary::where('user_id', $user->id)
+                    ->where('ebook_id', $ebook->id)
+                    ->where('is_active', true)
+                    ->first();
+                $hasAccess = (bool) $libraryEntry;
+            }
+        }
+
+        // Free e-books can be read online by anyone
+        if ($ebook->is_free) {
+            $hasAccess = true;
+        }
+
+        if (!$hasAccess) {
+            return redirect()->route('ebook.show', $ebook->slug)
+                ->with('info', 'সম্পূর্ণ ই-বুকটি পড়ার জন্য অনুগ্রহ করে বইটি ক্রয় করুন অথবা ফ্রি প্রিভিউ পড়ুন।');
         }
 
         // Increment read count silently
@@ -296,60 +353,341 @@ class EbookController extends Controller
             $ebook->increment('read_count');
         } catch (\Throwable) {}
 
-        // Determine file URL and reader type
-        $epubUrl = $ebook->epub_url;
-        $pdfUrl = $ebook->file_url;
-        $sampleUrl = $ebook->sample_url;
-
-        // If no file uploaded, provide fallback preview
+        // Determine Reader Type and Stream URL
         $readerType = 'none';
-        $fileUrl = null;
+        $hasEpub = !empty($ebook->epub_file_path) || strtolower((string)$ebook->file_type) === 'epub' || str_ends_with(strtolower((string)$ebook->file_path), '.epub');
+        $hasPdf = !empty($ebook->file_path) && (strtolower((string)$ebook->file_type) === 'pdf' || str_ends_with(strtolower((string)$ebook->file_path), '.pdf'));
 
-        if ($epubUrl) {
+        if ($hasEpub) {
             $readerType = 'epub';
-            $fileUrl = $epubUrl;
-        } elseif ($pdfUrl && (str_ends_with(strtolower($pdfUrl), '.pdf') || $ebook->file_type === 'pdf')) {
+        } elseif ($hasPdf) {
             $readerType = 'pdf';
-            $fileUrl = $pdfUrl;
-        } elseif ($sampleUrl) {
-            $readerType = str_ends_with(strtolower($sampleUrl), '.epub') ? 'epub' : 'pdf';
-            $fileUrl = $sampleUrl;
-        } elseif ($pdfUrl) {
-            $readerType = 'pdf';
-            $fileUrl = $pdfUrl;
+        } elseif ($ebook->sample_file_path) {
+            $readerType = str_ends_with(strtolower($ebook->sample_file_path), '.epub') ? 'epub' : 'pdf';
         }
 
-        return view('ebook::frontend.read', compact('ebook', 'readerType', 'fileUrl', 'epubUrl', 'pdfUrl', 'sampleUrl'));
+        $streamUrl = route('ebook.stream', $ebook->id);
+
+        // Anti-Piracy Watermark Text
+        $watermarkText = ($user ? ($user->name . ' (' . ($user->phone ?: $user->email) . ')') : 'আইডিয়া প্রকাশন')
+            . ' • ' . ($libraryEntry ? ('Order #' . ($libraryEntry->order_id ?: 'Claimed')) : 'Licensed Reader')
+            . ' • ' . date('d-m-Y');
+
+        $bookmarks = $libraryEntry?->bookmarks_data ?? [];
+        $lastReadPage = $libraryEntry?->last_read_page ?? 1;
+
+        return view('ebook::frontend.read', compact(
+            'ebook',
+            'readerType',
+            'streamUrl',
+            'watermarkText',
+            'libraryEntry',
+            'bookmarks',
+            'lastReadPage'
+        ));
     }
 
     /**
-     * ফ্রি / স্যাম্পল ডাউনলোড হ্যান্ডলার
+     * ফ্রি স্যাম্পল প্রিভিউ রিডার
      */
-    public function download(string $slug)
+    public function preview(string $slug): View
     {
+        $ebook = Ebook::where('slug', $slug)
+            ->orWhere('id', is_numeric($slug) ? (int)$slug : 0)
+            ->firstOrFail();
+
+        $readerType = 'epub';
+        if (!empty($ebook->sample_file_path) && str_ends_with(strtolower($ebook->sample_file_path), '.pdf')) {
+            $readerType = 'pdf';
+        } elseif (empty($ebook->epub_file_path) && !empty($ebook->file_path) && str_ends_with(strtolower($ebook->file_path), '.pdf')) {
+            $readerType = 'pdf';
+        }
+
+        $streamUrl = route('ebook.stream', ['id' => $ebook->id, 'sample' => 1]);
+        $watermarkText = 'ফ্রি নমুনা অংশ (Sample Preview) • আইডিয়া প্রকাশন • সর্বস্বত্ব সংরক্ষিত';
+        $bookmarks = [];
+        $lastReadPage = 1;
+        $libraryEntry = null;
+
+        return view('ebook::frontend.read', compact(
+            'ebook',
+            'readerType',
+            'streamUrl',
+            'watermarkText',
+            'libraryEntry',
+            'bookmarks',
+            'lastReadPage'
+        ));
+    }
+
+    /**
+     * সিকিউর ফাইল স্ট্রিম এন্ডপয়েন্ট (CORS, সঠিক MIME Type ও DRM ভ্যালিডেশনসহ)
+     */
+    public function stream(int|string $id, Request $request): BinaryFileResponse|\Illuminate\Http\Response
+    {
+        $ebook = Ebook::findOrFail($id);
+        $user = auth()->user();
+        $isSample = $request->query('sample') == '1';
+
+        // Access check for full reading (sample is free for all)
+        if (!$isSample && !$ebook->is_free) {
+            $hasAccess = false;
+            if ($user) {
+                if ($user->isAdmin() || $user->isSubAdmin() || $ebook->author_user_id === $user->id) {
+                    $hasAccess = true;
+                } else {
+                    $hasAccess = UserEbookLibrary::where('user_id', $user->id)
+                        ->where('ebook_id', $ebook->id)
+                        ->where('is_active', true)
+                        ->exists();
+                }
+            }
+
+            if (!$hasAccess) {
+                abort(403, 'অননুমোদিত ই-বুক এক্সেস। দয়া করে বইটি ক্রয় করুন।');
+            }
+        }
+
+        // Determine file path: prefer EPUB, fallback to sample or primary file
+        $filePath = null;
+        if ($isSample && $ebook->sample_file_path) {
+            $filePath = $ebook->sample_file_path;
+        } elseif ($ebook->epub_file_path) {
+            $filePath = $ebook->epub_file_path;
+        } else {
+            $filePath = $ebook->file_path ?: $ebook->sample_file_path;
+        }
+
+        if (!$filePath) {
+            abort(404, 'ই-বুক ফাইল সার্ভারে পাওয়া যায়নি।');
+        }
+
+        // Resolve absolute file path (handling clean relative paths, storage prefixes and URLs)
+        $cleanPath = preg_replace('#^https?://[^/]+/storage/#', '', (string)$filePath);
+        $cleanPath = preg_replace('#^/storage/#', '', $cleanPath);
+        $cleanPath = ltrim($cleanPath, '/');
+
+        $fullPath = null;
+        $candidates = [
+            storage_path('app/public/' . $cleanPath),
+            storage_path('app/' . $cleanPath),
+            public_path('storage/' . $cleanPath),
+            public_path($cleanPath),
+            storage_path('app/secure/ebooks/' . basename($cleanPath)),
+            storage_path('app/public/' . ltrim($filePath, '/')),
+            storage_path('app/' . ltrim($filePath, '/')),
+            public_path(ltrim($filePath, '/')),
+        ];
+
+        foreach ($candidates as $cand) {
+            if (file_exists($cand) && is_file($cand)) {
+                $fullPath = $cand;
+                break;
+            }
+        }
+
+        if (!$fullPath) {
+            abort(404, 'ই-বুক ফাইল স্টোরেজে পাওয়া যায়নি।');
+        }
+
+        // Detect correct MIME type
+        $ext = strtolower(pathinfo($fullPath, PATHINFO_EXTENSION));
+        $contentType = match ($ext) {
+            'epub'  => 'application/epub+zip',
+            'pdf'   => 'application/pdf',
+            'mobi'  => 'application/x-mobipocket-ebook',
+            default => 'application/octet-stream',
+        };
+
+        $headers = [
+            'Content-Type'                   => $contentType,
+            'Content-Disposition'            => 'inline; filename="' . basename($fullPath) . '"',
+            'Access-Control-Allow-Origin'    => '*',
+            'Access-Control-Allow-Methods'   => 'GET, HEAD, OPTIONS',
+            'Access-Control-Allow-Headers'   => 'Range, Content-Type, Authorization, X-Requested-With',
+            'Access-Control-Expose-Headers'  => 'Content-Length, Content-Range, Accept-Ranges',
+            'Accept-Ranges'                  => 'bytes',
+            'Cache-Control'                  => 'private, max-age=86400, must-revalidate',
+            'X-Content-Type-Options'         => 'nosniff',
+        ];
+
+        if ($request->isMethod('OPTIONS')) {
+            return response('', 200, $headers);
+        }
+
+        return response()->file($fullPath, $headers);
+    }
+
+    /**
+     * ফ্রি ই-বুক এক-ক্লিকে সংগ্রহ / ক্লেম হ্যান্ডলার
+     */
+    public function claim(Request $request, string $slug): RedirectResponse
+    {
+        $user = auth()->user();
+        if (!$user) {
+            return redirect()->guest(route('login'))
+                ->with('info', 'ফ্রি বইটি আপনার লাইব্রেরিতে যুক্ত করতে অনুগ্রহ করে প্রথমে লগইন করুন।');
+        }
+
         $ebook = Ebook::query()
             ->where('slug', $slug)
+            ->orWhere('id', is_numeric($slug) ? (int)$slug : 0)
             ->where('is_active', true)
             ->firstOrFail();
 
-        $path = $ebook->file_path ?: $ebook->epub_file_path ?: $ebook->sample_file_path;
-
-        if (!$path) {
-            return back()->with('error', 'ডাউনলোড করার মত ফাইল সংযুক্ত নেই।');
+        if (!$ebook->is_free) {
+            return redirect()->route('ebook.show', $ebook->slug)
+                ->with('error', 'এই বইটি পেইড সংস্করণ। সংগ্রহ করতে অনুগ্রহ করে ক্রয় সম্পন্ন করুন।');
         }
 
+        UserEbookLibrary::updateOrCreate(
+            ['user_id' => $user->id, 'ebook_id' => $ebook->id],
+            ['access_type' => 'free', 'is_active' => true]
+        );
+
+        return redirect()->route('ebook.show', $ebook->slug)
+            ->with('success', 'অভিনন্দন! বইটি সফলভাবে আপনার ব্যক্তিগত ই-বুক লাইব্রেরিতে যুক্ত হয়েছে এবং সম্পূর্ণ ডাউনলোড সক্রিয় করা হয়েছে।');
+    }
+
+    /**
+     * সম্পূর্ণ ই-বুক ডাউনলোড হ্যান্ডলার (EPUB Only, Strict DRM Access Control)
+     */
+    public function download(string $slug): BinaryFileResponse|RedirectResponse
+    {
+        $ebook = Ebook::query()
+            ->where('slug', $slug)
+            ->orWhere('id', is_numeric($slug) ? (int)$slug : 0)
+            ->where('is_active', true)
+            ->firstOrFail();
+
+        $user = auth()->user();
+
+        // 1. Verify User Access
+        $hasAccess = false;
+        if ($user) {
+            if ($user->isAdmin() || $user->isSubAdmin() || $ebook->author_user_id === $user->id) {
+                $hasAccess = true;
+            } else {
+                $hasAccess = UserEbookLibrary::where('user_id', $user->id)
+                    ->where('ebook_id', $ebook->id)
+                    ->where('is_active', true)
+                    ->exists();
+            }
+        }
+
+        if (!$hasAccess) {
+            if ($ebook->is_free) {
+                return redirect()->route('ebook.show', $ebook->slug)
+                    ->with('error', 'ফ্রি ই-বুকটি ডাউনলোড করতে অনুগ্রহ করে প্রথমে "বিনামূল্যে সংগ্রহ করুন" বাটনে ক্লিক করে লাইব্রেরিতে যুক্ত করুন।');
+            }
+            return redirect()->route('ebook.show', $ebook->slug)
+                ->with('error', 'সম্পূর্ণ ই-বুক ডাউনলোড করতে প্রথমে বইটি ক্রয় সম্পন্ন করুন।');
+        }
+
+        // 2. Format & Copyright Restriction: PDF Download is STRICTLY DISABLED
+        // Only EPUB format is allowed for download
+        $epubPath = $ebook->epub_file_path;
+        if (!$epubPath && (strtolower((string)$ebook->file_type) === 'epub' || str_ends_with(strtolower((string)$ebook->file_path), '.epub'))) {
+            $epubPath = $ebook->file_path;
+        }
+
+        if (!$epubPath) {
+            return redirect()->route('ebook.show', $ebook->slug)
+                ->with('error', 'কপিরাইট ও ডিজিটাল রাইটস সুরক্ষার কারণে PDF ফরম্যাট সরাসরি ডাউনলোড বন্ধ রয়েছে। আপনি অনলাইনে সুরক্ষিত রিডারে বইটি অনায়াসে পড়তে পারেন।');
+        }
+
+        // 3. Resolve physical file
+        $cleanEpubPath = preg_replace('#^https?://[^/]+/storage/#', '', (string)$epubPath);
+        $cleanEpubPath = preg_replace('#^/storage/#', '', $cleanEpubPath);
+        $cleanEpubPath = ltrim($cleanEpubPath, '/');
+
+        $candidates = [
+            storage_path('app/public/' . $cleanEpubPath),
+            storage_path('app/' . $cleanEpubPath),
+            public_path('storage/' . $cleanEpubPath),
+            public_path($cleanEpubPath),
+            storage_path('app/secure/ebooks/' . basename($cleanEpubPath)),
+            storage_path('app/public/' . ltrim($epubPath, '/')),
+            storage_path('app/' . ltrim($epubPath, '/')),
+            public_path(ltrim($epubPath, '/')),
+        ];
+
+        $fullPath = null;
+        foreach ($candidates as $cand) {
+            if (file_exists($cand) && is_file($cand)) {
+                $fullPath = $cand;
+                break;
+            }
+        }
+
+        if (!$fullPath) {
+            return redirect()->route('ebook.show', $ebook->slug)
+                ->with('error', 'ডাউনলোড করার মত EPUB ফাইল সার্ভারে পাওয়া যায়নি।');
+        }
+
+        // 4. Increment download count
         try {
             $ebook->increment('download_count');
         } catch (\Throwable) {}
 
-        if (Storage::disk('public')->exists($path)) {
-            return Storage::disk('public')->download($path, $ebook->slug . '.' . pathinfo($path, PATHINFO_EXTENSION));
+        $downloadFilename = ($ebook->slug ?: 'idea_ebook_' . $ebook->id) . '.epub';
+
+        return response()->download($fullPath, $downloadFilename, [
+            'Content-Type' => 'application/epub+zip',
+        ]);
+    }
+
+    /**
+     * পড়ার অগ্রগতি ও বুকমার্ক সংরক্ষণ (AJAX Endpoint)
+     */
+    public function saveProgress(Request $request, int|string $id): JsonResponse
+    {
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
         }
 
-        if (file_exists(public_path($path))) {
-            return response()->download(public_path($path));
+        $validated = $request->validate([
+            'last_read_page'   => 'nullable|integer|min:1',
+            'progress_percent' => 'nullable|integer|min:0|max:100',
+            'cfi'              => 'nullable|string|max:500',
+            'bookmark_title'   => 'nullable|string|max:255',
+        ]);
+
+        $entry = UserEbookLibrary::firstOrCreate(
+            ['user_id' => $user->id, 'ebook_id' => (int)$id],
+            ['access_type' => 'free', 'is_active' => true]
+        );
+
+        $bookmarks = $entry->bookmarks_data ?? [];
+
+        if (!empty($validated['bookmark_title']) || !empty($validated['cfi'])) {
+            $newBookmark = [
+                'id'         => uniqid('bm_'),
+                'page'       => $validated['last_read_page'] ?? 1,
+                'cfi'        => $validated['cfi'] ?? null,
+                'title'      => $validated['bookmark_title'] ?? ('পৃষ্ঠা #' . ($validated['last_read_page'] ?? 1)),
+                'time'       => now()->toIso8601String(),
+                'created_at' => now()->format('d M, Y h:i A'),
+            ];
+            $bookmarks[] = $newBookmark;
         }
 
-        return redirect($ebook->file_url);
+        $updateData = [
+            'progress_percent' => $validated['progress_percent'] ?? $entry->progress_percent,
+            'bookmarks_data'   => $bookmarks,
+        ];
+
+        if (!empty($validated['last_read_page'])) {
+            $updateData['last_read_page'] = $validated['last_read_page'];
+        }
+
+        $entry->update($updateData);
+
+        return response()->json([
+            'success'   => true,
+            'bookmarks' => $bookmarks,
+            'message'   => 'অগ্রগতি ও বুকমার্ক সংরক্ষিত হয়েছে',
+        ]);
     }
 }

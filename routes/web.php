@@ -41,7 +41,7 @@ Route::get('/lang/{locale}', function (string $locale) {
 Route::get('/sitemap.xml', [\App\Http\Controllers\SitemapController::class, 'index'])->name('sitemap');
 
 // --- Auth routes (login / logout) --------------------------------------------
-Route::get('/login', fn() => view('auth.login'))->name('login')->middleware('guest');
+Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login')->middleware('guest');
 Route::post('/login', [LoginController::class, 'login'])->middleware('guest');
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->middleware('auth');
 
@@ -134,10 +134,14 @@ Route::get('/api/recent-orders', [\App\Http\Controllers\SocialProofController::c
 
 // Ebook Routes
 Route::prefix('ebooks')->name('ebook.')->group(function () {
-    Route::get('/', [EbookController::class, 'index'])->name('index');
-    Route::get('/{slug}', [EbookController::class, 'show'])->name('show');
-    Route::get('/{slug}/read', [EbookController::class, 'read'])->name('read');
-    Route::get('/{slug}/download', [EbookController::class, 'download'])->name('download');
+    Route::get('/', [\Modules\Ebook\Http\Controllers\Frontend\EbookController::class, 'index'])->name('index');
+    Route::get('/{slug}', [\Modules\Ebook\Http\Controllers\Frontend\EbookController::class, 'show'])->name('show');
+    Route::get('/{slug}/read', [\Modules\Ebook\Http\Controllers\Frontend\EbookController::class, 'read'])->name('read');
+    Route::get('/{slug}/preview', [\Modules\Ebook\Http\Controllers\Frontend\EbookController::class, 'preview'])->name('preview');
+    Route::get('/{slug}/download', [\Modules\Ebook\Http\Controllers\Frontend\EbookController::class, 'download'])->name('download');
+    Route::post('/{slug}/claim', [\Modules\Ebook\Http\Controllers\Frontend\EbookController::class, 'claim'])->name('claim');
+    Route::get('/{id}/stream', [\Modules\Ebook\Http\Controllers\Frontend\EbookController::class, 'stream'])->name('stream');
+    Route::post('/{id}/progress', [\Modules\Ebook\Http\Controllers\Frontend\EbookController::class, 'saveProgress'])->name('progress');
 });
 
 // Webzine routes are defined in the Webzine module (Modules/Webzine/Routes/web.php)
@@ -238,11 +242,6 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/company-panel/product-entry', fn() => redirect()->route('publisher.dashboard', ['tab' => 'add-book']))->name('company-panel.product-entry');
 });
 
-// --- E-Book DRM Web Reader & Sample Preview Routes --------------------------
-Route::get('/ebooks/{slug}/read', [\App\Http\Controllers\EbookReaderController::class, 'read'])->name('ebook.read');
-Route::get('/ebooks/{slug}/preview', [\App\Http\Controllers\EbookReaderController::class, 'preview'])->name('ebook.preview');
-Route::get('/ebooks/{id}/stream', [\App\Http\Controllers\EbookReaderController::class, 'streamPdf'])->name('ebook.stream');
-Route::post('/ebooks/{id}/progress', [\App\Http\Controllers\EbookReaderController::class, 'saveProgress'])->name('ebook.progress');
 
 // --- Author Portal (KDP Self-Publishing, Royalties, Payouts & Blogs) --------
 Route::get('/blog/write', [\App\Http\Controllers\AuthorBlogController::class, 'writeGateway'])->name('blog.write');
