@@ -36,6 +36,11 @@
 
 @section('actions')
     <div class="d-flex flex-wrap align-items-center gap-2">
+        @if ($spec['key'] !== 'books')
+            <button type="submit" form="contentMainForm" class="btn btn-success btn-sm rounded-pill px-3.5 fw-bold shadow-xs">
+                <i class="fas fa-circle-check me-1"></i> {{ $editing ? 'Save Changes' : 'Publish & Save' }}
+            </button>
+        @endif
         @if ($editing)
             @if ($spec['key'] === 'webzines')
                 <a href="{{ route('webzine.read', $record->slug ?: $record->id) }}" target="_blank" class="btn btn-outline-info btn-sm rounded-pill px-3 shadow-xs">
@@ -1767,7 +1772,11 @@ function toggleAdminPreOrderFields(val) {
     }
 }
 
-function onCoverTypeDropdownChange(val) {
+function syncCategorySelects(val) {
+    const mainSel = document.getElementById('f-category_id');
+    const sideSel = document.getElementById('f-category_id_sidebar');
+    if (mainSel && mainSel.value !== val) mainSel.value = val;
+    if (sideSel && sideSel.value !== val) sideSel.value = val;
     updateLiveMockupCard();
 }
 // Toggle Author Input Mode
@@ -1810,7 +1819,7 @@ function onAuthorDirectoryChange(select) {
     // Initial sync of hardcover discount percentage on load
     const initHcPrice = parseFloat(document.getElementById('f-hardcover_price')?.value) || 0;
     const initHcDisc = parseFloat(document.getElementById('f-hardcover_discount_price')?.value) || 0;
-    if (initHcPrice > 0 && initHcDisc > 0 && initHcDisc < initHcPrice) {
+    if (initHcPrice > 0 && initHcDisc > 0 && initHcDisc < initPrice) {
         const initHcPct = Math.round(((initHcPrice - initHcDisc) / initHcPrice) * 100);
         const hcPctInput = document.getElementById('f-hardcover_discount_percent');
         if (hcPctInput) hcPctInput.value = initHcPct;
@@ -1834,10 +1843,10 @@ function onAuthorDirectoryChange(select) {
     updateAuthorBioWordCount();
 })();
 
-// Dynamic requirement indicators for book cover formats (Hardcover, Paperback, Both)
+// Dynamic visual requirement indicators for book cover formats (Hardcover, Paperback, Both)
 function updateCoverTypeRequirement() {
     const selectedRadio = document.querySelector('input[name="cover_type"]:checked');
-    const val = selectedRadio ? selectedRadio.value : (document.getElementById('f-cover_type')?.value || 'hardcover');
+    const val = selectedRadio ? selectedRadio.value : (document.getElementById('f-cover_type')?.value || 'paperback');
 
     const cardHc = document.getElementById('panelHardcoverCard');
     const cardPb = document.getElementById('panelPaperbackCard');
@@ -1857,7 +1866,7 @@ function updateCoverTypeRequirement() {
         if (badgePb) { badgePb.className = 'badge bg-white text-secondary small px-2 py-0.5 rounded-pill'; badgePb.textContent = 'Optional Edition'; }
         if (starHc) starHc.style.display = 'inline';
         if (starPb) starPb.style.display = 'none';
-        if (inputHc) inputHc.setAttribute('required', 'required');
+        if (inputHc) inputHc.removeAttribute('required');
         if (inputPb) inputPb.removeAttribute('required');
     } else if (val === 'paperback') {
         if (cardHc) { cardHc.style.opacity = '0.78'; }
@@ -1868,7 +1877,7 @@ function updateCoverTypeRequirement() {
         if (starHc) starHc.style.display = 'none';
         if (starPb) starPb.style.display = 'inline';
         if (inputHc) inputHc.removeAttribute('required');
-        if (inputPb) inputPb.setAttribute('required', 'required');
+        if (inputPb) inputPb.removeAttribute('required');
     } else if (val === 'both') {
         if (cardHc) { cardHc.style.opacity = '1'; }
         if (cardPb) { cardPb.style.opacity = '1'; }
@@ -1877,8 +1886,8 @@ function updateCoverTypeRequirement() {
         if (badgePb) { badgePb.className = 'badge bg-white text-primary small px-2 py-0.5 rounded-pill'; badgePb.textContent = 'Paperback Required'; }
         if (starHc) starHc.style.display = 'inline';
         if (starPb) starPb.style.display = 'inline';
-        if (inputHc) inputHc.setAttribute('required', 'required');
-        if (inputPb) inputPb.setAttribute('required', 'required');
+        if (inputHc) inputHc.removeAttribute('required');
+        if (inputPb) inputPb.removeAttribute('required');
     }
 }
 
@@ -2612,8 +2621,13 @@ function updateLiveMockupCard() {
         authorVal = authorSelect.options[authorSelect.selectedIndex].text.replace(/\[.*?\]/, '').trim();
     } else if (authorIdSelect && authorIdSelect.selectedIndex > 0) {
         authorVal = authorIdSelect.options[authorIdSelect.selectedIndex].text.replace(/\[.*?\]/, '').trim();
-    } else if (authorCustom) {
+    } else if (authorCustom && authorCustom.value.trim()) {
         authorVal = authorCustom.value.trim();
+    } else {
+        const firstAuthorInput = document.querySelector('input[name="author_names[]"]');
+        if (firstAuthorInput && firstAuthorInput.value.trim()) {
+            authorVal = firstAuthorInput.value.trim();
+        }
     }
     if (mockAuthor) {
         mockAuthor.innerHTML = '<i class="fas fa-pen-nib text-success me-1"></i><span>' + (authorVal || 'Author Name') + '</span>';
@@ -3126,7 +3140,25 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const form = document.getElementById('contentMainForm');
     if (form) {
-        form.addEventListener('submit', function() {
+        form.addEventListener('submit', function(e) {
+            const titleInput = document.getElementById('f-title') || document.getElementById('f-name');
+            if (titleInput && !titleInput.value.trim()) {
+                e.preventDefault();
+                titleInput.focus();
+                titleInput.classList.add('is-invalid');
+                alert('অনুগ্রহ করে শিরোনাম / নাম (Title) পূরণ করুন।');
+                return false;
+            }
+
+            const catSelect = document.getElementById('f-category_id');
+            if (catSelect && !catSelect.value) {
+                e.preventDefault();
+                catSelect.focus();
+                catSelect.classList.add('is-invalid');
+                alert('অনুগ্রহ করে ক্যাটাগরি (Category) নির্বাচন করুন।');
+                return false;
+            }
+
             document.querySelectorAll('.rich-editor-content').forEach(function(editor) {
                 const name = editor.id.replace('editable-', '');
                 const textarea = document.getElementById('f-' + name);
@@ -3141,10 +3173,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 syncActiveCostPrice();
             }
 
-            // Provide immediate visual feedback & prevent duplicate submits
-            const submitBtns = form.querySelectorAll('button[type="submit"]');
+            // Provide visual feedback
+            const submitBtns = document.querySelectorAll('button[type="submit"][form="contentMainForm"], #contentMainForm button[type="submit"]');
             submitBtns.forEach(function(btn) {
-                btn.classList.add('disabled');
                 btn.innerHTML = `<span class="spinner-border spinner-border-sm me-1.5" role="status" aria-hidden="true"></span> সংরক্ষন করা হচ্ছে...`;
             });
         });
@@ -3216,13 +3247,18 @@ function handleQuickCategorySubmit(e) {
     .then(res => res.json())
     .then(data => {
         if (data.success && data.item) {
-            // Append to main category dropdown and select
-            const mainCatSelect = document.getElementById('f-category_id');
-            if (mainCatSelect) {
-                const opt = new Option(data.item.display_name, data.item.id, true, true);
-                mainCatSelect.add(opt);
-                mainCatSelect.value = data.item.id;
-            }
+            // Append to all category dropdowns and select
+            const catSelects = [
+                document.getElementById('f-category_id'),
+                document.getElementById('f-category_id_sidebar')
+            ];
+            catSelects.forEach(sel => {
+                if (sel) {
+                    const opt = new Option(data.item.display_name, data.item.id, true, true);
+                    sel.add(opt);
+                    sel.value = data.item.id;
+                }
+            });
             // Append to modal parent select
             if (parentSelect) {
                 const optModal = new Option(data.item.name, data.item.id);
@@ -3235,7 +3271,7 @@ function handleQuickCategorySubmit(e) {
             nameInput.value = '';
             descInput.value = '';
 
-            alert('Category created and selected successfully!');
+            updateLiveMockupCard();
         } else {
             alertBox.innerHTML = `<div class="alert alert-danger p-2 small mb-2">${data.message || 'An error occurred'}</div>`;
         }
@@ -3589,16 +3625,6 @@ document.addEventListener('DOMContentLoaded', function () {
                         return false;
                     }
                 }
-            }
-
-            // Native HTML5 validation fallback
-            if (!mainForm.checkValidity()) {
-                e.preventDefault();
-                const firstInvalid = mainForm.querySelector(':invalid');
-                if (firstInvalid) {
-                    focusAndHighlight(firstInvalid, 'অনুগ্রহ করে প্রয়োজনীয় তথ্য পূরণ করুন।');
-                }
-                return false;
             }
         });
     }

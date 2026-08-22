@@ -351,9 +351,9 @@
 
             <div class="col-12 col-md-4">
                 <label for="f-edition" class="form-label small fw-bold text-dark mb-1">
-                    <i class="fas fa-tag text-info me-1"></i> Edition <span class="text-danger">*</span>
+                    <i class="fas fa-tag text-info me-1"></i> Edition
                 </label>
-                <input type="text" id="f-edition" name="edition" value="{{ $val('edition', '1st Edition ' . date('Y')) }}" required
+                <input type="text" id="f-edition" name="edition" value="{{ $val('edition', '1st Edition ' . date('Y')) }}"
                        class="form-control form-control-sm @error('edition') is-invalid @enderror"
                        placeholder="e.g. 1st Edition 2026">
                 @error('edition')<div class="invalid-feedback">{{ $message }}</div>@enderror
@@ -494,15 +494,36 @@
                 </div>
             </div>
 
-            {{-- ROW 8: Supplier / Publisher * / Number of Pages * / Book Size / Dimensions (মাপ ২-কলামে) --}}
-            <div class="col-12 col-md-4">
+            {{-- ROW 8: Category * & Supplier / Publisher * (2 columns in 1 row) --}}
+            <div class="col-12 col-md-6">
+                <div class="d-flex align-items-center justify-content-between mb-1">
+                    <label for="f-category_id" class="form-label small fw-bold text-dark mb-0">
+                        <i class="fas fa-shapes text-primary me-1"></i> Category / মূল বিষয়শ্রেণী <span class="text-danger">*</span>
+                    </label>
+                    <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2 rounded-pill fw-semibold" 
+                            data-bs-toggle="modal" data-bs-target="#quickAddCategoryModal" style="font-size: 11px;">
+                        <i class="fas fa-plus-circle me-0.5"></i>+ Add Category
+                    </button>
+                </div>
+                <select id="f-category_id" name="category_id" required 
+                        class="form-select form-select-sm fw-semibold @error('category_id') is-invalid @enderror" 
+                        onchange="syncCategorySelects(this.value); updateLiveMockupCard();">
+                    <option value="">— Select Category —</option>
+                    @foreach (($lookups['categories'] ?? []) as $catId => $catLabel)
+                        <option value="{{ $catId }}" @selected((string)$val('category_id') === (string)$catId)>{{ $catLabel }}</option>
+                    @endforeach
+                </select>
+                @error('category_id')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+            </div>
+
+            <div class="col-12 col-md-6">
                 <div class="d-flex align-items-center justify-content-between mb-1">
                     <label for="f-publisher_id" class="form-label small fw-bold text-dark mb-0">
                         <i class="fas fa-building text-primary me-1"></i> Supplier / Publisher <span class="text-danger">*</span>
                     </label>
                     <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2 rounded-pill fw-semibold" 
                             data-bs-toggle="modal" data-bs-target="#quickAddPublisherModal" style="font-size: 11px;">
-                        <i class="fas fa-plus-circle me-0.5"></i>+ Add
+                        <i class="fas fa-plus-circle me-0.5"></i>+ Add Publisher
                     </button>
                 </div>
                 <select id="f-publisher_id" name="publisher_id" class="form-select form-select-sm @error('publisher_id') is-invalid @enderror">
@@ -514,53 +535,44 @@
                 @error('publisher_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
 
-            <div class="col-12 col-md-3">
+            {{-- ROW 9: Number of Pages, Book Size, Publication Date & ISBN (4 columns in 1 row) --}}
+            <div class="col-6 col-md-3">
                 <label for="f-page_count" class="form-label small fw-bold text-dark mb-1">
-                    <i class="fas fa-file-lines text-secondary me-1"></i> Number of Pages <span class="text-danger">*</span>
+                    <i class="fas fa-file-lines text-secondary me-1"></i> Number of Pages
                 </label>
-                <input type="number" id="f-page_count" name="page_count" value="{{ $val('page_count', 0) }}" min="1" required
+                <input type="number" id="f-page_count" name="page_count" value="{{ $val('page_count') }}" min="0"
                        class="form-control form-control-sm @error('page_count') is-invalid @enderror"
-                       placeholder="মোট পৃষ্ঠা সংখ্যা">
+                       placeholder="মোট পৃষ্ঠা">
                 @error('page_count')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
 
-            {{-- Book Size: 2 Columns for Height (cm) & Width (cm) --}}
-            <div class="col-12 col-md-5">
+            <div class="col-6 col-md-3">
                 <label class="form-label small fw-bold text-dark mb-1">
-                    <i class="fas fa-ruler-combined text-secondary me-1"></i> Book Size / Dimensions (মাপ ২-কলামে)
+                    <i class="fas fa-ruler-combined text-secondary me-1"></i> Book Size (H × W cm)
                 </label>
-                <div class="row g-1.5">
+                <div class="row g-1">
                     <div class="col-6">
-                        <div class="input-group input-group-sm">
-                            <span class="input-group-text bg-light fw-semibold text-muted" style="font-size: 11px;">Height</span>
-                            <input type="number" step="0.1" min="0" id="f-book_height_cm" name="book_height_cm" 
-                                   value="{{ $val('book_height_cm') }}" class="form-control form-control-sm" placeholder="21.5" oninput="syncBookSizeCombined()">
-                            <span class="input-group-text bg-light text-muted" style="font-size: 11px;">cm</span>
-                        </div>
+                        <input type="number" step="0.1" min="0" id="f-book_height_cm" name="book_height_cm" 
+                               value="{{ $val('book_height_cm') }}" class="form-control form-control-sm" placeholder="H cm" oninput="syncBookSizeCombined()">
                     </div>
                     <div class="col-6">
-                        <div class="input-group input-group-sm">
-                            <span class="input-group-text bg-light fw-semibold text-muted" style="font-size: 11px;">Width</span>
-                            <input type="number" step="0.1" min="0" id="f-book_width_cm" name="book_width_cm" 
-                                   value="{{ $val('book_width_cm') }}" class="form-control form-control-sm" placeholder="14.0" oninput="syncBookSizeCombined()">
-                            <span class="input-group-text bg-light text-muted" style="font-size: 11px;">cm</span>
-                        </div>
+                        <input type="number" step="0.1" min="0" id="f-book_width_cm" name="book_width_cm" 
+                               value="{{ $val('book_width_cm') }}" class="form-control form-control-sm" placeholder="W cm" oninput="syncBookSizeCombined()">
                     </div>
                 </div>
                 <input type="hidden" id="f-book_size" name="book_size" value="{{ $val('book_size') }}">
             </div>
 
-            {{-- ROW 9: Publication/Edition Start Date & ISBN (2 columns in 1 row) --}}
-            <div class="col-12 col-md-6">
+            <div class="col-6 col-md-3">
                 <label for="f-published_at" class="form-label small fw-bold text-dark mb-1">
-                    <i class="fas fa-calendar-check text-warning me-1"></i> Publication / Edition Start Date
+                    <i class="fas fa-calendar-check text-warning me-1"></i> Publication Date
                 </label>
                 <input type="date" id="f-published_at" name="published_at" value="{{ $val('published_at') ? date('Y-m-d', strtotime((string)$val('published_at'))) : '' }}"
                        class="form-control form-control-sm @error('published_at') is-invalid @enderror">
                 @error('published_at')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
 
-            <div class="col-12 col-md-6">
+            <div class="col-6 col-md-3">
                 <label for="f-isbn" class="form-label small fw-bold text-dark mb-1">
                     <i class="fas fa-barcode text-secondary me-1"></i> ISBN / Barcode
                 </label>
@@ -614,7 +626,7 @@
         </div>
 
         <div class="form-check">
-            <input class="form-check-input" type="checkbox" id="adminComplianceCheck" name="compliance_agreed" value="1" checked required>
+            <input class="form-check-input" type="checkbox" id="adminComplianceCheck" name="compliance_agreed" value="1" checked>
             <label class="form-check-label small text-dark fw-bold" for="adminComplianceCheck" style="font-size: 12px; line-height: 1.5;">
                 উপরোক্ত সকল শর্ত ও প্রযোজ্য আইন-বিধি মেনে বই প্রকাশের বিষয়ে আমি সম্মত।
             </label>
@@ -634,7 +646,7 @@
                 <a href="{{ route($spec['listRoute']) }}" class="btn btn-outline-secondary rounded-pill px-3.5 py-2 fw-semibold">
                     <i class="fas fa-times me-1"></i> Cancel
                 </a>
-                <button type="submit" class="btn btn-success btn-lg rounded-pill px-4 py-2.5 fw-bold shadow-sm d-flex align-items-center gap-2">
+                <button type="submit" form="contentMainForm" id="btnPublishSaveBook" class="btn btn-success btn-lg rounded-pill px-4 py-2.5 fw-bold shadow-sm d-flex align-items-center gap-2">
                     <i class="fas fa-circle-check fs-5"></i>
                     <span>{{ $editing ? 'Save & Update Book' : 'Publish & Save Book' }}</span>
                 </button>
@@ -647,28 +659,27 @@
 <div class="col-12 col-lg-4">
     <div style="position: sticky; top: 20px; z-index: 1020;">
 
-        {{-- 1. ADD CATEGORY * (৫টি রোতে ক্যাটাগরি সিস্টেম) --}}
+        {{-- 1. ADD CLASSIFICATIONS & CATEGORY --}}
         <div class="adm-card p-3 mb-3 border-start border-4 border-primary shadow-xs">
             <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom">
-                <span class="fw-bold text-dark small"><i class="fas fa-shapes text-primary me-1.5"></i> Add Category * (৫টি লেভেল)</span>
+                <span class="fw-bold text-dark small"><i class="fas fa-shapes text-primary me-1.5"></i> Category & Classification</span>
                 <button type="button" class="btn btn-sm btn-link text-primary p-0 text-decoration-none fw-semibold" data-bs-toggle="modal" data-bs-target="#quickAddCategoryModal" style="font-size: 11px;">
                     <i class="fas fa-plus-circle me-0.5"></i>+ Add New
                 </button>
             </div>
 
             <div class="vstack gap-2">
-                {{-- Row 1: ১ নম্বরে ক্যাটাগরি (Primary Category *) --}}
+                {{-- Row 1: ক্যাটাগরি সিঙ্ক (Primary Category Sync) --}}
                 <div>
-                    <label for="f-category_id" class="form-label text-dark fw-bold mb-1" style="font-size: 11.5px;">
-                        ১. মূল ক্যাটাগরি (Primary Category) <span class="text-danger">*</span>
+                    <label for="f-category_id_sidebar" class="form-label text-dark fw-bold mb-1" style="font-size: 11.5px;">
+                        ১. মূল ক্যাটাগরি (Primary Category)
                     </label>
-                    <select id="f-category_id" name="category_id" required class="form-select form-select-sm @error('category_id') is-invalid @enderror" onchange="updateLiveMockupCard()">
+                    <select id="f-category_id_sidebar" class="form-select form-select-sm" onchange="syncCategorySelects(this.value); updateLiveMockupCard();">
                         <option value="">— Select Category —</option>
                         @foreach (($lookups['categories'] ?? []) as $catId => $catLabel)
                             <option value="{{ $catId }}" @selected((string)$val('category_id') === (string)$catId)>{{ $catLabel }}</option>
                         @endforeach
                     </select>
-                    @error('category_id')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                 </div>
 
                 {{-- Row 2: ২ নম্বরে সাব ক্যাটাগরি (Sub-Category) --}}

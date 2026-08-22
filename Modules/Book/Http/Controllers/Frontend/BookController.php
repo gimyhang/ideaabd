@@ -105,16 +105,28 @@ class BookController extends Controller
                 ->where('is_active', true)
                 ->when($request->filled('category'), function ($q) use ($request) {
                     $catVal = $request->string('category')->trim()->value();
-                    $q->where(function ($sub) use ($catVal) {
-                        $sub->where('category_id', $catVal)
-                            ->orWhere('sub_category_name', 'LIKE', "%{$catVal}%")
+                    $matchedCat = \Modules\Book\Models\Category::where('slug', $catVal)
+                        ->orWhere('id', is_numeric($catVal) ? (int)$catVal : 0)
+                        ->orWhere('name', $catVal)
+                        ->first();
+                    $catIds = [];
+                    if ($matchedCat) {
+                        $catIds = array_merge([$matchedCat->id], $matchedCat->children()->pluck('id')->all());
+                    }
+
+                    $q->where(function ($sub) use ($catVal, $catIds) {
+                        if (!empty($catIds)) {
+                            $sub->whereIn('category_id', $catIds);
+                        } else {
+                            $sub->where('category_id', $catVal);
+                        }
+                        $sub->orWhere('sub_category_name', 'LIKE', "%{$catVal}%")
                             ->orWhere('genre_category', 'LIKE', "%{$catVal}%")
                             ->orWhere('ekushey_category', 'LIKE', "%{$catVal}%")
                             ->orWhere('audience_category', 'LIKE', "%{$catVal}%")
                             ->orWhereHas('category', function ($cat) use ($catVal) {
                                 $cat->where('slug', $catVal)
-                                    ->orWhere('name', 'LIKE', "%{$catVal}%")
-                                    ->orWhere('id', $catVal);
+                                    ->orWhere('name', 'LIKE', "%{$catVal}%");
                             });
                     });
                 })

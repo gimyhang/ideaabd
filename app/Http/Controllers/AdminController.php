@@ -499,7 +499,11 @@ class AdminController extends Controller
                     $q->where('publisher_id', $pId);
                 }
             })
-            ->when($categoryId, fn ($q) => $q->where('category_id', $categoryId))
+            ->when($categoryId, function ($q, $cId) {
+                $childIds = DB::table('categories')->where('parent_id', $cId)->whereNull('deleted_at')->pluck('id')->all();
+                $allIds = array_merge([(int)$cId], $childIds);
+                $q->whereIn('category_id', $allIds);
+            })
             ->when($stockFilter === 'pre_order', fn ($q) => $q->where('stock_status', 'pre_order'))
             ->when($stockFilter === 'low', fn ($q) => $q->where('stock_quantity', '<=', 5)->where('stock_quantity', '>', 0))
             ->when($stockFilter === 'out', fn ($q) => $q->where('stock_quantity', '<=', 0))
@@ -527,7 +531,21 @@ class AdminController extends Controller
         $books = $query->paginate($perPage)->withQueryString();
 
         $authors    = \Modules\Author\Models\Author::whereNull('deleted_at')->orderBy('name')->pluck('name', 'id')->all();
-        $categories = DB::table('categories')->whereNull('deleted_at')->orderBy('name')->pluck('name', 'id')->all();
+        $categoriesRaw = DB::table('categories')->whereNull('deleted_at')->orderBy('name')->get(['id', 'name', 'parent_id']);
+        $categories = [];
+        $parents = $categoriesRaw->whereNull('parent_id');
+        $children = $categoriesRaw->whereNotNull('parent_id');
+        foreach ($parents as $p) {
+            $categories[$p->id] = $p->name;
+            foreach ($children->where('parent_id', $p->id) as $c) {
+                $categories[$c->id] = '— ' . $c->name . ' (' . $p->name . ')';
+            }
+        }
+        foreach ($children as $c) {
+            if (!isset($categories[$c->id])) {
+                $categories[$c->id] = $c->name;
+            }
+        }
         $publishers = \Modules\Publisher\Models\Publisher::whereNull('deleted_at')->orderBy('name')->pluck('name', 'id')->all();
 
         $stats = [
@@ -593,7 +611,11 @@ class AdminController extends Controller
                        ->orWhere('author_id', $aId);
                 });
             })
-            ->when($categoryId, fn ($q) => $q->where('category_id', $categoryId))
+            ->when($categoryId, function ($q, $cId) {
+                $childIds = DB::table('categories')->where('parent_id', $cId)->whereNull('deleted_at')->pluck('id')->all();
+                $allIds = array_merge([(int)$cId], $childIds);
+                $q->whereIn('category_id', $allIds);
+            })
             ->when($publisherId, function ($q, $pId) {
                 if ($pId === 'idea' || $pId === 'in_house') {
                     $q->whereNull('publisher_id');
@@ -617,7 +639,21 @@ class AdminController extends Controller
 
         $ebooks = $query->paginate($perPage)->withQueryString();
         $authors    = \Modules\Author\Models\Author::whereNull('deleted_at')->orderBy('name')->pluck('name', 'id')->all();
-        $categories = DB::table('categories')->whereNull('deleted_at')->orderBy('name')->pluck('name', 'id')->all();
+        $categoriesRaw = DB::table('categories')->whereNull('deleted_at')->orderBy('name')->get(['id', 'name', 'parent_id']);
+        $categories = [];
+        $parents = $categoriesRaw->whereNull('parent_id');
+        $children = $categoriesRaw->whereNotNull('parent_id');
+        foreach ($parents as $p) {
+            $categories[$p->id] = $p->name;
+            foreach ($children->where('parent_id', $p->id) as $c) {
+                $categories[$c->id] = '— ' . $c->name . ' (' . $p->name . ')';
+            }
+        }
+        foreach ($children as $c) {
+            if (!isset($categories[$c->id])) {
+                $categories[$c->id] = $c->name;
+            }
+        }
         $publishers = \Modules\Publisher\Models\Publisher::whereNull('deleted_at')->orderBy('name')->pluck('name', 'id')->all();
 
         $stats = [
