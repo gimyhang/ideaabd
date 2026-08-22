@@ -225,21 +225,9 @@ class EbookController extends Controller
      */
     public function show(string $slug): View
     {
-        $ebook = Ebook::query()
-            ->with(['author', 'publisher', 'category'])
-            ->where('slug', $slug)
-            ->where('is_active', true)
-            ->first();
+        $ebook = $this->resolveEbook($slug);
 
-        if (!$ebook && is_numeric($slug)) {
-            $ebook = Ebook::query()
-                ->with(['author', 'publisher', 'category'])
-                ->where('id', $slug)
-                ->where('is_active', true)
-                ->first();
-        }
-
-        if (!$ebook) {
+        if (!$ebook || (!$ebook->is_active && !auth()->user()?->isAdmin() && auth()->id() !== $ebook->author_user_id)) {
             abort(404, 'অনুরোধকৃত ই-বুকটি পাওয়া যায়নি।');
         }
 
@@ -291,21 +279,9 @@ class EbookController extends Controller
      */
     public function read(string $slug): View|RedirectResponse
     {
-        $ebook = Ebook::query()
-            ->with(['author', 'publisher', 'category'])
-            ->where('slug', $slug)
-            ->where('is_active', true)
-            ->first();
+        $ebook = $this->resolveEbook($slug);
 
-        if (!$ebook && is_numeric($slug)) {
-            $ebook = Ebook::query()
-                ->with(['author', 'publisher', 'category'])
-                ->where('id', $slug)
-                ->where('is_active', true)
-                ->first();
-        }
-
-        if (!$ebook) {
+        if (!$ebook || (!$ebook->is_active && !auth()->user()?->isAdmin() && auth()->id() !== $ebook->author_user_id)) {
             abort(404, 'অনুরোধকৃত ই-বুক পাওয়া যায়নি।');
         }
 
@@ -374,9 +350,11 @@ class EbookController extends Controller
      */
     public function preview(string $slug): View
     {
-        $ebook = Ebook::where('slug', $slug)
-            ->orWhere('id', is_numeric($slug) ? (int)$slug : 0)
-            ->firstOrFail();
+        $ebook = $this->resolveEbook($slug);
+
+        if (!$ebook || (!$ebook->is_active && !auth()->user()?->isAdmin() && auth()->id() !== $ebook->author_user_id)) {
+            abort(404, 'অনুরোধকৃত ই-বুক পাওয়া যায়নি।');
+        }
 
         $readerType = 'epub';
         if (!empty($ebook->sample_file_path) && str_ends_with(strtolower($ebook->sample_file_path), '.pdf')) {
@@ -501,11 +479,10 @@ class EbookController extends Controller
                 ->with('info', 'ফ্রি বইটি আপনার লাইব্রেরিতে যুক্ত করতে অনুগ্রহ করে প্রথমে লগইন করুন।');
         }
 
-        $ebook = Ebook::query()
-            ->where('slug', $slug)
-            ->orWhere('id', is_numeric($slug) ? (int)$slug : 0)
-            ->where('is_active', true)
-            ->firstOrFail();
+        $ebook = $this->resolveEbook($slug);
+        if (!$ebook || !$ebook->is_active) {
+            abort(404, 'ই-বুক পাওয়া যায়নি।');
+        }
 
         if (!$ebook->is_free) {
             return redirect()->route('ebook.show', $ebook->slug)
@@ -526,11 +503,10 @@ class EbookController extends Controller
      */
     public function download(string $slug): BinaryFileResponse|RedirectResponse
     {
-        $ebook = Ebook::query()
-            ->where('slug', $slug)
-            ->orWhere('id', is_numeric($slug) ? (int)$slug : 0)
-            ->where('is_active', true)
-            ->firstOrFail();
+        $ebook = $this->resolveEbook($slug);
+        if (!$ebook || !$ebook->is_active) {
+            abort(404, 'ই-বুক পাওয়া যায়নি।');
+        }
 
         $user = auth()->user();
         if (!$user) {
@@ -724,5 +700,49 @@ class EbookController extends Controller
         }
 
         return false;
+    }
+
+    /**
+     * Resolve E-Book by slug, decoded slug, translated slug, or numeric ID
+     */
+    private function resolveEbook(string|int $slug): ?Ebook
+    {
+        $raw = trim((string) $slug);
+        $decoded = urldecode($raw);
+        $rawDecoded = rawurldecode($raw);
+        $slugified = \Illuminate\Support\Str::slug($decoded);
+        $dashedToSpace = str_replace('-', ' ', $decoded);
+        $spaceToDash = str_replace(' ', '-', $decoded);
+
+        $query = Ebook::query()->with(['author', 'publisher', 'category']);
+
+        // 1. Check if numeric ID
+        if (is_numeric($raw)) {
+            $found = (clone $query)->where('id', (int)$raw)->first();
+            if ($found) return $found;
+        }
+
+        // 2. Try exact match on slug candidates
+        $candidates = array_unique(array_filter([
+            $raw,
+            $decoded,
+            $rawDecoded,
+            $slugified,
+            $dashedToSpace,
+            $spaceToDash,
+        ]));
+
+        $found = (clone $query)->whereIn('slug', $candidates)->first();
+        if ($found) return $found;
+
+        // 3. Try matching title directly
+        $found = (clone $query)->where(function ($q) use ($candidates) {
+            foreach ($candidates as $cand) {
+                $q->orWhere('title', $cand)
+                  ->orWhere('title', 'like', '%' . $cand . '%');
+            }
+        })->first();
+
+        return $found;
     }
 }

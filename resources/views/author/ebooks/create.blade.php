@@ -158,6 +158,59 @@
                 </div>
             </div>
         </div>
+
+        {{-- CARD 3: TERMS & CONDITIONS (আইডিয়া প্রকাশন — ই-বুক প্রকাশনা চুক্তি ও শর্তাবলী) --}}
+        <div class="author-card p-3 p-md-4 mb-4 border-start border-4 border-primary">
+            <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                <h6 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                    <span class="badge bg-primary bg-opacity-10 text-primary rounded-circle p-2">
+                        <i class="fas fa-file-contract"></i>
+                    </span>
+                    <span>আইডিয়া প্রকাশন — ই-বুক প্রকাশনা চুক্তি ও শর্তাবলী (Terms & Conditions)</span>
+                </h6>
+                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1 small">ডিজিটাল চুক্তি</span>
+            </div>
+
+            <div class="p-3 rounded-3 bg-light bg-opacity-75 border overflow-y-auto small" style="max-height: 280px; line-height: 1.75; font-size: 0.85rem;">
+                <h6 class="fw-bold text-primary mb-1.5"><i class="fas fa-certificate me-1"></i> ১. মালিকানা ও স্বত্বাধিকার (Copyright & Ownership)</h6>
+                <p class="mb-1 text-dark"><strong>লেখকের অধিকার:</strong> বইয়ের মূল কপিরাইট বা সর্বস্বত্ব লেখকের কাছেই সংরক্ষিত থাকবে।</p>
+                <p class="mb-3 text-dark"><strong>প্রকাশনা অধিকার:</strong> লেখক আইডিয়া প্রকাশন-কে বইটি ডিজিটাল (ই-বুক) ফরম্যাটে বিশ্বব্যাপী প্রদর্শন, বিক্রয় ও বিতরণের অ-একক (Non-Exclusive) বা একক (Exclusive) ডিজিটাল অধিকার প্রদান করছেন।</p>
+
+                <h6 class="fw-bold text-primary mb-1.5"><i class="fas fa-shield-halved me-1"></i> ২. প্রকাশকের স্বার্থ সংরক্ষণ ও অধিকার (Publisher Rights & Protection)</h6>
+                <p class="mb-1 text-dark"><strong>প্রিন্ট সংস্করণের অগ্রাধিকার (First Right of Refusal for Print):</strong> ই-বুক হিসেবে সাফল্য পেলে পরবর্তীতে বইটি পেপারব্যাক বা হার্ডকাভার (প্রিন্ট ভার্সন) হিসেবেও প্রকাশ করতে পারবেন। প্রিন্ট বইয়ের ক্ষেত্রে লেখক বিক্রির অর্থাৎ গায়ের মূল্যে ৩০% বাদ দিয়ে যেম মূল্য দাঁড়াবে তার ১০% রয়্যালটি পাবেন।</p>
+                <p class="mb-1 text-dark"><strong>প্রচার ও মার্কেটিং অধিকার:</strong> বইয়ের প্রমোশনের স্বার্থে সামাজিক যোগাযোগ মাধ্যম, ওয়েবসাইট বা ব্যানারে বইয়ের কভার, সারসংক্ষেপ, লেখকের নাম ও ছবি প্রকাশের পূর্ণ অধিকার প্রকাশকের থাকবে।</p>
+                <p class="mb-1 text-dark"><strong>প্রমোশনাল ডিসকাউন্ট ও মূল্য ছাড়:</strong> বিশেষ উৎসব বা ক্যাম্পেইনে ই-বুকের বিক্রয় বাড়াতে সাময়িক সময়ে ছাড় দেওয়ার অধিকার প্রকাশকের থাকবে।</p>
+                <p class="mb-3 text-dark"><strong>ই-বুক অপসারণের এখতিয়ার:</strong> প্রকাশনী (আইডিয়া প্রকাশন) চাইলে যেকোনো সময় যেকোনো ই-বুক প্ল্যাটফর্ম থেকে নোটিশ ছাড়াই অপসারণ করার পূর্ণ অধিকার সংরক্ষণ করে।</p>
+
+                <h6 class="fw-bold text-primary mb-1.5"><i class="fas fa-scale-balanced me-1"></i> ৩. পান্ডুলিপি, ফরম্যাটিং ও আইনি সুরক্ষা (Manuscript & Legal Terms)</h6>
+                <p class="mb-1 text-dark"><strong>ফরম্যাট গ্রহণ:</strong> পান্ডুলিপি অবশ্যই সুনির্দিষ্ট ডিজিটাল ফরম্যাটে (যেমন: EPUB, Word বা PDF) জমা দিতে হবে।</p>
+                <p class="mb-1 text-dark"><strong>মান নিয়ন্ত্রণ:</strong> কভার ডিজাইন, ইনডেক্সিং এবং ফন্ট রেন্ডারিং আইডিয়া প্রকাশনের ডিজিটাল স্ট্যান্ডার্ড অনুযায়ী অপটিমাইজ করা হবে।</p>
+                <p class="mb-1 text-dark"><strong>নিষিদ্ধ বিষয়বস্তু:</strong> প্লেজিয়ারিজম (চুরি করা লেখা), মানহানিকর, ধর্মীয় ভাবাবেগে আঘাতকারী বা আইনবিরোধী কোনো বিষয়বস্তু প্রকাশ করা যাবে না।</p>
+                <p class="mb-3 text-dark"><strong>ক্ষতিপূরণ ও আইনি দায় থেকে সুরক্ষা (Indemnity Clause):</strong> পান্ডুলিপির কনটেন্টের কারণে কোনো কপিরাইট বা আইনি জটিলতা তৈরি হলে, তার সম্পূর্ণ দায়ভার লেখক বহন করবেন এবং প্রকাশনীর কোনো আর্থিক বা সম্মানহানি হলে তা ক্ষতিপূরণ হিসেবে দিতে লেখক বাধ্য থাকবেন।</p>
+
+                <h6 class="fw-bold text-primary mb-1.5"><i class="fas fa-hand-holding-dollar me-1"></i> ৪. রয়্যালটি ও মূল্য নির্ধারণ (Royalty & Pricing Model)</h6>
+                <p class="mb-1 text-dark"><strong>মূল্য নির্ধারণ:</strong> বইয়ের ডিজিটাল বিক্রয়মূল্য (List Price) আইডিয়া প্রকাশন ও লেখক যৌথ আলোচনার মাধ্যমে নির্ধারণ করবেন।</p>
+                <p class="mb-1 text-dark"><strong>রয়্যালটি বণ্টন:</strong> নেট বিক্রয়মূল্যের (Net Revenue) উপর চুক্তি অনুযায়ী [৫০% লেখক / ৫০% আইডিয়া প্রকাশন] হারে রয়্যালটি হিসাব করা হবে।</p>
+                <p class="mb-1 text-dark"><strong>পেমেন্ট সাইকেল:</strong> প্রতি মাসের বা ত্রৈমাসিকের মোট রয়্যালটি হিসাব করে নির্ধারিত নির্দিষ্ট সময়ের [যেমন: ৩০ দিনের] মধ্যে লেখকের ব্যাংক অ্যাকাউন্ট বা বিকাশ/নগদে ট্রান্সফার করা হবে।</p>
+                <p class="mb-3 text-dark"><strong>অভিযোগ ও রয়্যালটি বাজেয়াপ্তকরণ:</strong> কপিরাইট লঙ্ঘন, পাইরেসি বা আইনি অভিযোগে অভিযুক্ত বইয়ের ক্ষেত্রে জমাকৃত বা বকেয়া সমস্ত রয়্যালটি সরাসরি বাতিল বা বাজেয়াপ্ত বলে গণ্য হবে।</p>
+
+                <h6 class="fw-bold text-primary mb-1.5"><i class="fas fa-lock me-1"></i> ৫. ডিজিটাল অধিকার ব্যবস্থাপনা (DRM & Content Security)</h6>
+                <p class="mb-1 text-dark"><strong>কপিরাইট সুরক্ষা:</strong> অবৈধ পাইরেসি ও ডাউনলোড রোধে বইগুলোতে ডিজিটাল রাইটস ম্যানেজমেন্ট (DRM) বা প্রয়োজনীয় ওয়াটারমার্ক প্রটেকশন এনক্রিপ্ট করা থাকবে।</p>
+                <p class="mb-3 text-dark"><strong>প্রিভিউ:</strong> পাঠকদের আকৃষ্ট করতে বইয়ের সর্বোচ্চ ১০% থেকে ১৫% অংশ পর্যন্ত ফ্রিতে স্যাম্পল বা প্রিভিউ হিসেবে প্রদর্শনের অধিকার প্ল্যাটফর্মের থাকবে।</p>
+
+                <h6 class="fw-bold text-primary mb-1.5"><i class="fas fa-ban me-1"></i> ৬. নীতি লঙ্ঘন ও বই অপসারণ (Policy Violation & Termination)</h6>
+                <p class="mb-0 text-dark"><strong>পলিসি লঙ্ঘন:</strong> আইডিয়া প্রকাশনের কোনো শর্ত বা কপিরাইট আইন লঙ্ঘিত হলে প্রকাশনী তাৎক্ষণিকভাবে বইটি প্ল্যাটফর্ম থেকে অপসারণের এবং চুক্তি বাতিলের পূর্ণ অধিকার রাখে।</p>
+            </div>
+
+            <div class="mt-3 p-2.5 rounded-3 bg-warning-subtle bg-opacity-30 border border-warning border-opacity-50">
+                <div class="form-check m-0">
+                    <input class="form-check-input" type="checkbox" id="terms_agree" name="terms_agree" required value="1">
+                    <label class="form-check-label small fw-bold text-dark" for="terms_agree">
+                        আমি আইডিয়া প্রকাশন-এর ই-বুক প্রকাশনা চুক্তি ও সকল শর্তাবলী মনোযোগ সহকারে পড়েছি এবং এতে পূর্ণ সম্মতি জ্ঞাপন করছি। <span class="text-danger">*</span>
+                    </label>
+                </div>
+            </div>
+        </div>
     </div>
 
     {{-- RIGHT SIDEBAR: PRICING, 50% ROYALTY, COVER & SUBMIT (Width: ~33%) --}}
