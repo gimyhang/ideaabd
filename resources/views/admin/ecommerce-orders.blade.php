@@ -17,8 +17,8 @@
 @section('content')
 
 <!-- 1. KPI Statistics Overview -->
-<div class="row g-3 mb-4">
-    <div class="col-6 col-lg-2-4 col-md-4">
+<div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-5 g-3 mb-4">
+    <div class="col">
         <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100 border-start border-4 border-primary">
             <div class="d-flex align-items-center justify-content-between">
                 <div>
@@ -31,7 +31,7 @@
             </div>
         </div>
     </div>
-    <div class="col-6 col-lg-2-4 col-md-4">
+    <div class="col">
         <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100 border-start border-4 border-warning">
             <div class="d-flex align-items-center justify-content-between">
                 <div>
@@ -44,7 +44,7 @@
             </div>
         </div>
     </div>
-    <div class="col-6 col-lg-2-4 col-md-4">
+    <div class="col">
         <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100 border-start border-4 border-info">
             <div class="d-flex align-items-center justify-content-between">
                 <div>
@@ -57,7 +57,7 @@
             </div>
         </div>
     </div>
-    <div class="col-6 col-lg-2-4 col-md-4">
+    <div class="col">
         <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100 border-start border-4 border-success">
             <div class="d-flex align-items-center justify-content-between">
                 <div>
@@ -70,14 +70,14 @@
             </div>
         </div>
     </div>
-    <div class="col-12 col-lg-2-4 col-md-4">
-        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100 border-start border-4 border-indigo" style="border-color: #6366f1 !important;">
+    <div class="col">
+        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100 border-start border-4" style="border-color: #6366f1 !important;">
             <div class="d-flex align-items-center justify-content-between">
                 <div>
                     <span class="text-muted small fw-semibold d-block">Total Sales Revenue</span>
                     <h3 class="fw-bold text-primary mb-0 mt-1">৳ {{ number_format($stats['revenue'], 2) }}</h3>
                 </div>
-                <div class="rounded-circle bg-indigo-50 p-2.5 text-indigo-600 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px; background: #e0e7ff; color: #4338ca;">
+                <div class="rounded-circle p-2.5 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px; background: #e0e7ff; color: #4338ca;">
                     <i class="fa-solid fa-sack-dollar fs-5"></i>
                 </div>
             </div>
@@ -248,7 +248,7 @@
                             <form action="{{ route('admin.ecommerce-orders.status', $order) }}" method="POST" class="d-inline-block">
                                 @csrf
                                 @method('PATCH')
-                                <select name="status" class="form-select form-select-sm rounded-pill font-semibold border-{{ $order->status_badge }}" 
+                                <select name="status" class="form-select form-select-sm rounded-pill fw-semibold border" 
                                         style="font-size: 11.5px; padding-top: 2px; padding-bottom: 2px;" onchange="this.form.submit()">
                                     <option value="pending" {{ $order->status === 'pending' ? 'selected' : '' }}>⏳ Pending</option>
                                     <option value="processing" {{ $order->status === 'processing' ? 'selected' : '' }}>📦 Processing</option>
@@ -278,13 +278,13 @@
 
                                 <!-- View Details Modal Trigger -->
                                 <button type="button" class="btn btn-outline-info" title="View Details" 
-                                        onclick="openOrderViewModal({{ json_encode($order) }}, {{ json_encode($order->book) }})">
+                                        onclick="openOrderViewModal({{ $order->id }})">
                                     <i class="fa-solid fa-eye"></i>
                                 </button>
 
                                 <!-- Edit Order Modal Trigger -->
                                 <button type="button" class="btn btn-outline-warning" title="Edit Order"
-                                        onclick="openOrderEditModal({{ json_encode($order) }})">
+                                        onclick="openOrderEditModal({{ $order->id }})">
                                     <i class="fa-solid fa-pen-to-square"></i>
                                 </button>
 
@@ -596,7 +596,13 @@
 
 @push('scripts')
 <script>
-    function openOrderViewModal(order, book) {
+    const ordersDataMap = @json($orders->getCollection()->keyBy('id'));
+
+    function openOrderViewModal(orderId) {
+        const order = (typeof orderId === 'object') ? orderId : (ordersDataMap[orderId] || null);
+        if (!order) return;
+        const book = order.book || null;
+
         document.getElementById('modalViewOrderNo').textContent = '#' + (order.order_number || order.id);
         document.getElementById('modalViewStatusBadge').textContent = order.status ? order.status.toUpperCase() : 'PENDING';
         document.getElementById('modalViewCreatedAt').textContent = new Date(order.created_at).toLocaleString();
@@ -642,7 +648,10 @@
         modal.show();
     }
 
-    function openOrderEditModal(order) {
+    function openOrderEditModal(orderId) {
+        const order = (typeof orderId === 'object') ? orderId : (ordersDataMap[orderId] || null);
+        if (!order) return;
+
         document.getElementById('modalEditOrderNo').textContent = '#' + (order.order_number || order.id);
         document.getElementById('orderEditForm').action = `/admin/ecommerce-orders/${order.id}`;
 

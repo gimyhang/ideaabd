@@ -296,6 +296,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::get('/ecommerce-orders/{order}', [AdminController::class, 'showEcommerceOrder'])->name('ecommerce-orders.show');
     Route::put('/ecommerce-orders/{order}', [AdminController::class, 'updateEcommerceOrder'])->name('ecommerce-orders.update');
     Route::patch('/ecommerce-orders/{order}/status', [AdminController::class, 'updateEcommerceOrderStatus'])->name('ecommerce-orders.status');
+    Route::delete('/ecommerce-orders/{order}', [AdminController::class, 'destroyEcommerceOrder'])->name('ecommerce-orders.destroy');
     Route::get('/ecommerce-orders/{order}/invoice', [AdminController::class, 'ecommerceOrderInvoice'])->name('ecommerce-orders.invoice');
     Route::get('/ecommerce-orders/{order}/slip', [AdminController::class, 'ecommerceOrderSlip'])->name('ecommerce-orders.slip');
     Route::get('/book-requests', [\App\Http\Controllers\BookRequestController::class, 'index'])->name('book-requests.index');
