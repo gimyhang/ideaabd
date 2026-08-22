@@ -205,8 +205,9 @@
                 <small class="text-muted">আপনার রচিত সকল ব্লগ পোস্ট, সাহিত্য রচনা ও কলামের স্ট্যাটাস</small>
             </div>
             <div class="d-flex align-items-center gap-2">
-                <span class="badge bg-light text-dark border">{{ $totalPosts }} টি লেখা</span>
-                <span class="badge bg-success-subtle text-success">{{ $publishedPosts }} প্রকাশিত</span>
+                <a href="{{ route('author.posts.index') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+                    সকল লেখা ({{ $totalPosts }})
+                </a>
                 <a href="{{ route('author.posts.create') }}" class="btn btn-sm btn-warning text-dark fw-bold rounded-pill px-3 shadow-xs">
                     <i class="fas fa-feather-pointed me-1"></i> নতুন আইডিয়াপত্র লিখুন
                 </a>
@@ -230,7 +231,10 @@
                     @forelse($recentPosts as $post)
                         <tr>
                             <td>
-                                <img src="{{ $post->featured_image ? asset('storage/' . $post->featured_image) : 'https://placehold.co/80x60?text=Post' }}" 
+                                @php
+                                    $imgUrl = $post->cover_url ?: ($post->featured_image ? (str_starts_with($post->featured_image, 'http') ? $post->featured_image : asset('storage/' . ltrim($post->featured_image, '/'))) : 'https://placehold.co/80x60?text=Post');
+                                @endphp
+                                <img src="{{ $imgUrl }}" 
                                      alt="Post" class="rounded object-fit-cover shadow-xs" style="width: 44px; height: 34px;">
                             </td>
                             <td>
@@ -244,7 +248,7 @@
                             </td>
                             <td class="text-muted">{{ $post->created_at->format('d M, Y') }}</td>
                             <td>
-                                <span class="text-muted font-monospace"><i class="fas fa-eye me-1"></i>{{ number_format($post->views_count ?? 0) }}</span>
+                                <span class="text-muted font-monospace"><i class="fas fa-eye me-1"></i>{{ number_format($post->view_count ?? 0) }}</span>
                             </td>
                             <td>
                                 @if($post->status === 'published')

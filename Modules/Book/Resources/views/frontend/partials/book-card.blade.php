@@ -89,7 +89,7 @@
     </div>
 
     <!-- Book Cover Image Container (7:10 Aspect Ratio) -->
-    <div class="position-relative overflow-hidden rounded-3 mb-2.5 mx-auto w-100 group-hover shadow-xs" 
+    <div class="position-relative overflow-hidden rounded-3 mb-3 mx-auto w-100 group-hover shadow-xs" 
          style="aspect-ratio: 7 / 10; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
         
         <a href="{{ route('book.show', $book->slug ?: $book->id) }}" class="d-block w-100 h-100 text-decoration-none">
@@ -137,17 +137,21 @@
     </div>
     
     <!-- Book Information & Details -->
-    <div class="d-flex flex-column flex-grow-1 px-1">
+    <div class="d-flex flex-column flex-grow-1 px-1 pt-1">
         
-        <!-- Book Title (Fixed 2-line height for clean grid alignment) -->
-        <h6 class="fw-bold text-dark mb-1" style="font-size: 0.88rem; line-height: 1.3; height: 2.45rem; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;" title="{{ $book->title }}">
-            <a href="{{ route('book.show', $book->slug ?: $book->id) }}" class="text-decoration-none text-dark hover-primary">
+        <!-- Book Title (Dynamic 2-line clamp with responsive typography) -->
+        <h6 class="fw-bold text-dark mb-1 d-flex align-items-center justify-content-center" 
+            style="font-size: clamp(0.84rem, 1.5vw, 0.93rem); line-height: 1.35; min-height: 2.7rem; max-height: 2.7rem;" 
+            title="{{ $book->title }}">
+            <a href="{{ route('book.show', $book->slug ?: $book->id) }}" 
+               class="text-decoration-none text-dark hover-primary"
+               style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; word-break: break-word;">
                 {{ $book->title }}
             </a>
         </h6>
         
         <!-- Author Name (Links directly to Author Directory) -->
-        <p class="text-muted small text-truncate mb-1" style="font-size: 0.76rem;" title="{{ $authorName }}">
+        <p class="text-muted small text-truncate mb-2" style="font-size: 0.76rem;" title="{{ $authorName }}">
             <i class="fa-solid fa-pen-nib text-secondary opacity-60 me-1" style="font-size: 0.68rem;"></i>
             @if($authorUrl)
                 <a href="{{ $authorUrl }}" class="text-decoration-none text-muted hover-primary fw-semibold">
@@ -157,36 +161,52 @@
                 <span class="fw-semibold">{{ $authorName }}</span>
             @endif
         </p>
-        
-        <!-- Customer Rating Stars -->
-        <div class="d-flex align-items-center justify-content-center gap-1 mb-2" style="font-size: 11px;">
-            <div class="d-inline-flex gap-0 text-warning" style="line-height: 1;">
-                @php $ratingVal = round($book->reviews_avg_rating ?? 5); @endphp
-                @for($i = 1; $i <= 5; $i++)
-                    @if($i <= $ratingVal)
-                        <i class="fa-solid fa-star" style="font-size: 10px; width: 11px;"></i>
-                    @else
-                        <i class="fa-regular fa-star text-secondary opacity-40" style="font-size: 10px; width: 11px;"></i>
-                    @endif
-                @endfor
-            </div>
-            <span class="text-muted" style="font-size: 10px;">({{ $book->reviews_count ?? 0 }})</span>
-        </div>
 
-        <!-- Pricing Row -->
-        <div class="mt-auto d-flex align-items-center justify-content-center gap-2 mb-2.5">
+        <!-- Pricing Row (Regular & Offer Price) -->
+        <div class="d-flex align-items-center justify-content-center gap-2 mb-1.5 flex-wrap">
             @if($cardDiscPrice && $cardDiscPrice < $cardRegularPrice)
                 <span class="text-muted text-decoration-line-through small" style="font-size: 0.78rem;">
                     ৳@bn(round($cardRegularPrice))
                 </span>
-                <span class="fw-bold text-danger fs-6">
+                <span class="fw-bold text-danger" style="font-size: 1.05rem;">
                     ৳@bn(round($cardDiscPrice))
                 </span>
             @else
-                <span class="fw-bold text-dark fs-6">
+                <span class="fw-bold text-dark" style="font-size: 1.05rem;">
                     ৳@bn(round($cardRegularPrice))
                 </span>
             @endif
+        </div>
+
+        <!-- 5 Dynamic Customer Rating Stars -->
+        @php
+            $avgRating = isset($book->reviews_avg_rating) ? (float)$book->reviews_avg_rating : null;
+            if ($avgRating === null && method_exists($book, 'reviews') && $book->relationLoaded('reviews')) {
+                $avgRating = $book->reviews->avg('rating');
+            }
+            // Dynamic star rating (1.0 to 5.0). Defaults gracefully to 5.0 if new/unrated
+            $ratingScore = ($avgRating !== null && $avgRating > 0) ? round($avgRating, 1) : 5.0;
+            $reviewsCount = $book->reviews_count ?? ($book->relationLoaded('reviews') ? $book->reviews->count() : 0);
+        @endphp
+        <div class="d-flex align-items-center justify-content-center gap-1 mb-2.5" style="font-size: 11px;" title="রেটিং: {{ $ratingScore }} / ৫">
+            <div class="d-inline-flex gap-0.5 text-warning" style="line-height: 1;">
+                @for($s = 1; $s <= 5; $s++)
+                    @if($ratingScore >= $s)
+                        <i class="fa-solid fa-star" style="font-size: 11px;"></i>
+                    @elseif($ratingScore >= ($s - 0.5))
+                        <i class="fa-solid fa-star-half-stroke" style="font-size: 11px;"></i>
+                    @else
+                        <i class="fa-regular fa-star text-secondary opacity-35" style="font-size: 11px;"></i>
+                    @endif
+                @endfor
+            </div>
+            <span class="text-muted fw-semibold" style="font-size: 10.5px;">
+                @if($reviewsCount > 0)
+                    (@bn($reviewsCount))
+                @else
+                    (@bn(number_format($ratingScore, 1)))
+                @endif
+            </span>
         </div>
         
         <!-- Action Buttons: "কার্টে যোগ" & "বাই নাউ" / "প্রি-অর্ডার" -->

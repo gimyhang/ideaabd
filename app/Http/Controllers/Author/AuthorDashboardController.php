@@ -64,7 +64,8 @@ class AuthorDashboardController extends Controller
 
         // 6. IdeaPatra (Blog Articles) Stats & Recent Posts
         $postsQuery = \Modules\Blog\Models\BlogPost::where(function ($q) use ($user, $author) {
-            $q->where('submitted_by', $user->id);
+            $q->where('submitted_by', $user->id)
+              ->orWhere('author_id', $user->id);
             if ($author) {
                 $q->orWhere('author_id', $author->id);
             }

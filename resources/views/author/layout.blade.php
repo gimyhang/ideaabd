@@ -148,6 +148,10 @@
             <div class="text-white-50 text-uppercase fw-bold px-3 pt-3 pb-1" style="font-size: 10px; letter-spacing: 0.8px;">
                 আইডিয়াপত্র (IdeaPatra)
             </div>
+            <a href="{{ route('author.posts.index') }}" class="author-nav-link {{ request()->routeIs('author.posts.index') || request()->routeIs('author.posts.edit') ? 'active' : '' }}">
+                <i class="fas fa-feather-pointed text-primary"></i>
+                <span>আমার আইডিয়াপত্র</span>
+            </a>
             <a href="{{ route('author.posts.create') }}" class="author-nav-link {{ request()->routeIs('author.posts.create') ? 'active' : '' }}">
                 <i class="fas fa-pen-nib text-warning"></i>
                 <span>নতুন আইডিয়াপত্র লিখুন</span>

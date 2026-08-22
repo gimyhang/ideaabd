@@ -770,15 +770,18 @@
 
                                 @case('editor')
                                     @php
-                                        $editorHtml = $current;
+                                        $editorHtml = (string) $current;
                                         if (!empty($editorHtml)) {
+                                            if (str_contains($editorHtml, '&lt;') || str_contains($editorHtml, '&gt;') || str_contains($editorHtml, '&quot;') || str_contains($editorHtml, '&#')) {
+                                                $editorHtml = html_entity_decode($editorHtml, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                                            }
                                             if (!str_contains($editorHtml, '<p>') && !str_contains($editorHtml, '<br>') && !str_contains($editorHtml, '<div>') && !str_contains($editorHtml, '<blockquote')) {
                                                 $rawStanzas = preg_split('/\r\n\r\n|\n\n+|\r\r+/', (string) $editorHtml);
                                                 $formattedStanzas = [];
                                                 foreach ($rawStanzas as $st) {
                                                     $st = trim($st);
                                                     if ($st !== '') {
-                                                        $formattedStanzas[] = '<p style="margin-bottom: 1.35rem; line-height: 1.95;">' . nl2br(e($st)) . '</p>';
+                                                        $formattedStanzas[] = '<p style="margin-bottom: 1.15rem; line-height: 1.75;">' . nl2br($st) . '</p>';
                                                     }
                                                 }
                                                 $editorHtml = implode('', $formattedStanzas);

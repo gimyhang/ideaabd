@@ -9,13 +9,13 @@ class HomeController extends Controller
 {
     public function index()
     {
-        $canUseBooks = false;
-
-        try {
-            $canUseBooks = DB::getSchemaBuilder()->hasTable('books') && DB::getSchemaBuilder()->hasTable('categories');
-        } catch (\Throwable) {
-            $canUseBooks = false;
-        }
+        $canUseBooks = \Illuminate\Support\Facades\Cache::remember('db_has_books_tables', 86400, function () {
+            try {
+                return DB::getSchemaBuilder()->hasTable('books') && DB::getSchemaBuilder()->hasTable('categories');
+            } catch (\Throwable) {
+                return false;
+            }
+        });
 
         $books = collect();
         $recentlySold = collect();
@@ -29,6 +29,8 @@ class HomeController extends Controller
         if ($canUseBooks) {
             $books = \Modules\Book\Models\Book::query()
                 ->with(['category', 'authors', 'publisher'])
+                ->withAvg('reviews', 'rating')
+                ->withCount('reviews')
                 ->where('is_active', true)
                 ->latest('id')
                 ->take(12)
@@ -36,6 +38,8 @@ class HomeController extends Controller
 
             $recentlySold = \Modules\Book\Models\Book::query()
                 ->with(['authors'])
+                ->withAvg('reviews', 'rating')
+                ->withCount('reviews')
                 ->where('is_active', true)
                 ->orderByDesc('sales_count')
                 ->latest('id')
@@ -44,6 +48,8 @@ class HomeController extends Controller
 
             $bestSellerEbooks = \Modules\Book\Models\Book::query()
                 ->with(['authors'])
+                ->withAvg('reviews', 'rating')
+                ->withCount('reviews')
                 ->where('is_active', true)
                 ->where('format', 'ebook')
                 ->orderByDesc('sales_count')
@@ -53,6 +59,8 @@ class HomeController extends Controller
 
             $flashSales = \Modules\Book\Models\Book::query()
                 ->with(['authors'])
+                ->withAvg('reviews', 'rating')
+                ->withCount('reviews')
                 ->where('is_active', true)
                 ->whereNotNull('discount_price')
                 ->where('discount_price', '>', 0)
@@ -65,6 +73,8 @@ class HomeController extends Controller
             if (!empty($recentlyViewedIds)) {
                 $recentlyViewedBooks = \Modules\Book\Models\Book::query()
                     ->with(['authors'])
+                    ->withAvg('reviews', 'rating')
+                    ->withCount('reviews')
                     ->whereIn('id', $recentlyViewedIds)
                     ->where('is_active', true)
                     ->get()
@@ -94,6 +104,8 @@ class HomeController extends Controller
 
             $topSeller = \Modules\Book\Models\Book::query()
                 ->with(['authors', 'category'])
+                ->withAvg('reviews', 'rating')
+                ->withCount('reviews')
                 ->where('is_active', true)
                 ->orderByDesc('sales_count')
                 ->first() ?? $books->first();

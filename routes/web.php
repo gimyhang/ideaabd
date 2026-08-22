@@ -259,10 +259,16 @@ Route::prefix('author')->name('author.')->middleware(['auth'])->group(function (
     Route::get('/payouts', [\App\Http\Controllers\Author\AuthorPayoutController::class, 'index'])->name('payouts.index');
     Route::post('/payouts', [\App\Http\Controllers\Author\AuthorPayoutController::class, 'storeRequest'])->name('payouts.store');
 
-    // Blog Articles Management
+    // Ideapatra (Blog Articles) Management
+    Route::get('/posts', [\App\Http\Controllers\AuthorBlogController::class, 'index'])->name('posts.index');
     Route::get('/posts/create', [\App\Http\Controllers\AuthorBlogController::class, 'createPost'])->name('posts.create');
+    Route::post('/posts', [\App\Http\Controllers\AuthorBlogController::class, 'store'])->name('posts.store');
     Route::get('/posts/{id}/edit', [\App\Http\Controllers\AuthorBlogController::class, 'editPost'])->name('posts.edit');
+    Route::put('/posts/{id}', [\App\Http\Controllers\AuthorBlogController::class, 'update'])->name('posts.update');
+    Route::delete('/posts/{id}', [\App\Http\Controllers\AuthorBlogController::class, 'destroy'])->name('posts.destroy');
     Route::prefix('blog')->name('blog.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\AuthorBlogController::class, 'index'])->name('index');
+        Route::get('/create', [\App\Http\Controllers\AuthorBlogController::class, 'createPost'])->name('create');
         Route::post('/', [\App\Http\Controllers\AuthorBlogController::class, 'store'])->name('store');
         Route::put('/{id}', [\App\Http\Controllers\AuthorBlogController::class, 'update'])->name('update');
         Route::delete('/{id}', [\App\Http\Controllers\AuthorBlogController::class, 'destroy'])->name('destroy');

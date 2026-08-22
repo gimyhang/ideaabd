@@ -80,7 +80,7 @@
                         </h5>
 
                         <p class="text-muted small line-clamp-2 mb-3" style="font-size: 0.88rem; line-height: 1.6;">
-                            {{ $post->excerpt ?: Str::limit(strip_tags($post->content), 100) }}
+                            {{ $post->excerpt ?: Str::limit(trim(strip_tags(html_entity_decode((string)$post->content, ENT_QUOTES | ENT_HTML5, 'UTF-8'))), 100) }}
                         </p>
 
                         @php

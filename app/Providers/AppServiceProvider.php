@@ -51,22 +51,25 @@ class AppServiceProvider extends ServiceProvider
         // Set modern customized pagination across all views
         \Illuminate\Pagination\Paginator::defaultView('vendor.pagination.custom');
         \Illuminate\Pagination\Paginator::defaultSimpleView('vendor.pagination.custom');
-        // Auto-heal/verify blog_posts subtitle column if missing (e.g. SQLite / live shared host)
+        // Auto-heal/verify blog_posts subtitle column if missing (cached check to avoid slowing down HTTP requests)
         if (!app()->runningInConsole()) {
-            try {
-                if (\Illuminate\Support\Facades\Schema::hasTable('blog_posts') && !\Illuminate\Support\Facades\Schema::hasColumn('blog_posts', 'subtitle')) {
-                    $driver = \Illuminate\Support\Facades\DB::getDriverName();
-                    if ($driver === 'sqlite') {
-                        \Illuminate\Support\Facades\DB::statement('ALTER TABLE blog_posts ADD COLUMN subtitle VARCHAR(500) NULL');
-                    } else {
-                        \Illuminate\Support\Facades\DB::statement('ALTER TABLE `blog_posts` ADD COLUMN `subtitle` VARCHAR(500) NULL AFTER `title`');
+            \Illuminate\Support\Facades\Cache::remember('db_schema_auto_healed_v2', 86400, function () {
+                try {
+                    if (\Illuminate\Support\Facades\Schema::hasTable('blog_posts') && !\Illuminate\Support\Facades\Schema::hasColumn('blog_posts', 'subtitle')) {
+                        $driver = \Illuminate\Support\Facades\DB::getDriverName();
+                        if ($driver === 'sqlite') {
+                            \Illuminate\Support\Facades\DB::statement('ALTER TABLE blog_posts ADD COLUMN subtitle VARCHAR(500) NULL');
+                        } else {
+                            \Illuminate\Support\Facades\DB::statement('ALTER TABLE `blog_posts` ADD COLUMN `subtitle` VARCHAR(500) NULL AFTER `title`');
+                        }
                     }
-                }
 
-                \App\Models\IdeaInvoice::ensureColumnsExist();
-            } catch (\Throwable $e) {
-                // Ignore gracefully if schema modifications are restricted
-            }
+                    \App\Models\IdeaInvoice::ensureColumnsExist();
+                } catch (\Throwable $e) {
+                    // Ignore gracefully if schema modifications are restricted
+                }
+                return true;
+            });
         }
     }
 }

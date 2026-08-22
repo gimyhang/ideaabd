@@ -446,7 +446,7 @@
                     </h2>
 
                     <p class="text-secondary mb-4 line-clamp-3 leading-relaxed" style="font-size: 0.95rem; line-height: 1.75;">
-                        {{ $heroPost->excerpt ?: Str::limit(strip_tags($heroPost->content), 160) }}
+                        {{ $heroPost->excerpt ?: Str::limit(trim(strip_tags(html_entity_decode((string)$heroPost->content, ENT_QUOTES | ENT_HTML5, 'UTF-8'))), 160) }}
                     </p>
 
                     <div class="d-flex align-items-center justify-content-between pt-3 border-top">
@@ -574,7 +574,7 @@
                                     </div>
 
                                     <p class="text-secondary small line-clamp-2 mb-3 opacity-90" style="font-size: 0.84rem; line-height: 1.65;">
-                                        {{ $post->excerpt ?: Str::limit(strip_tags($post->content), 90) }}
+                                        {{ $post->excerpt ?: Str::limit(trim(strip_tags(html_entity_decode((string)$post->content, ENT_QUOTES | ENT_HTML5, 'UTF-8'))), 90) }}
                                     </p>
 
                                     <div class="mt-auto pt-2 d-flex align-items-center justify-content-between">
@@ -688,7 +688,7 @@
                                             </div>
 
                                             <p class="text-secondary small line-clamp-2 mb-3 opacity-90" style="font-size: 0.84rem; line-height: 1.65;">
-                                                {{ $post->excerpt ?: Str::limit(strip_tags($post->content), 90) }}
+                                                {{ $post->excerpt ?: Str::limit(trim(strip_tags(html_entity_decode((string)$post->content, ENT_QUOTES | ENT_HTML5, 'UTF-8'))), 90) }}
                                             </p>
 
                                             <div class="mt-auto pt-2 d-flex align-items-center justify-content-between">

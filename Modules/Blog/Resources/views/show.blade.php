@@ -2,7 +2,8 @@
 
 @php
     $ogCover = $post->cover_url ?: ($post->featured_image ? (str_starts_with($post->featured_image, 'http') ? $post->featured_image : asset('storage/' . ltrim($post->featured_image, '/'))) : asset('images/logo.svg'));
-    $ogDesc = !empty($post->subtitle) ? $post->subtitle : (!empty($post->excerpt) ? $post->excerpt : Str::limit(strip_tags($post->content), 180));
+    $rawPostContent = html_entity_decode((string)$post->content, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    $ogDesc = !empty($post->subtitle) ? $post->subtitle : (!empty($post->excerpt) ? $post->excerpt : Str::limit(trim(strip_tags($rawPostContent)), 180));
     $ogAuthor = $post->author_name ?: 'আইডিয়া প্রকাশন';
 @endphp
 
@@ -389,9 +390,20 @@
                 <!-- Main Book / Article Body -->
                 <div class="article-content mb-5" id="articleBody">
                     @php
-                        $cleanContent = strip_tags($post->content, '<p><br><b><strong><i><em><u><s><ul><ol><li><a><h2><h3><h4><h5><h6><blockquote><pre><code><div><span><hr><img>');
-                        // If content is raw text without HTML tags, preserve newlines as linebreaks
-                        if (!str_contains($cleanContent, '<p>') && !str_contains($cleanContent, '<br>') && !str_contains($cleanContent, '<div>')) {
+                        $rawBody = (string) $post->content;
+                        // Handle single/double HTML entity encoding (e.g. &lt;p&gt; -> <p>)
+                        if (str_contains($rawBody, '&lt;') || str_contains($rawBody, '&gt;') || str_contains($rawBody, '&quot;') || str_contains($rawBody, '&#')) {
+                            $rawBody = html_entity_decode($rawBody, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                            if (str_contains($rawBody, '&lt;') || str_contains($rawBody, '&gt;')) {
+                                $rawBody = html_entity_decode($rawBody, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                            }
+                        }
+
+                        $allowedTags = '<p><br><b><strong><i><em><u><s><ul><ol><li><a><h2><h3><h4><h5><h6><blockquote><pre><code><div><span><hr><img><figure><figcaption><small>';
+                        $cleanContent = strip_tags($rawBody, $allowedTags);
+
+                        // If content is plain raw text without HTML paragraphs, preserve newlines as linebreaks
+                        if (!str_contains($cleanContent, '<p>') && !str_contains($cleanContent, '<br>') && !str_contains($cleanContent, '<div>') && !str_contains($cleanContent, '<blockquote')) {
                             $cleanContent = nl2br($cleanContent);
                         }
                     @endphp

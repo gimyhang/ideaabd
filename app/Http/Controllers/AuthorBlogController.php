@@ -44,22 +44,20 @@ class AuthorBlogController extends Controller
             return redirect()->route('home')->with('warning', 'শুধুমাত্র অনুমোদিত লেখকগণ ব্লগে লিখতে পারেন।');
         }
 
-        return redirect()->route('author.dashboard', ['tab' => 'write']);
+        return redirect()->route('author.posts.create');
     }
 
     /**
-     * Dedicated Author Dashboard for registered and approved writers.
+     * Dedicated Author Ideapatra Posts List View.
      */
-    public function dashboard(Request $request)
+    public function index(Request $request): View|RedirectResponse
     {
         $user = auth()->user();
 
-        // Check if user is pending approval
         if ($user->reg_status === 'pending' || $user->status === 'pending') {
             return redirect()->route('pending.approval')->with('warning', 'আপনার লেখক অ্যাকাউন্টটি অ্যাডমিন অনুমোদনের অপেক্ষায় রয়েছে।');
         }
 
-        // If user is rejected
         if ($user->reg_status === 'rejected' || $user->status === 'rejected') {
             return redirect()->route('home')->with('error', 'আপনার লেখক অ্যাকাউন্টের আবেদনটি অনুমোদিত হয়নি।');
         }
@@ -72,26 +70,63 @@ class AuthorBlogController extends Controller
             return redirect()->route('home')->with('warning', 'শুধুমাত্র অনুমোদিত লেখকগণ ড্যাশবোর্ড ব্যবহার করতে পারেন।');
         }
 
+        $author = $user->getAuthorRecord();
         $filterStatus = $request->input('status', 'all');
 
-        $query = BlogPost::where('author_id', $user->id)
-            ->with(['category']);
+        $query = BlogPost::where(function ($q) use ($user, $author) {
+            $q->where('submitted_by', $user->id)
+              ->orWhere('author_id', $user->id);
+            if ($author) {
+                $q->orWhere('author_id', $author->id);
+            }
+        })->with(['category']);
 
         if ($filterStatus !== 'all' && in_array($filterStatus, ['published', 'pending', 'draft', 'rejected'])) {
             $query->where('status', $filterStatus);
         }
 
-        $posts = $query->latest('id')->paginate(15)->withQueryString();
+        $posts = $query->latest('id')->paginate(12)->withQueryString();
+
+        $basePostsQuery = BlogPost::where(function ($q) use ($user, $author) {
+            $q->where('submitted_by', $user->id)
+              ->orWhere('author_id', $user->id);
+            if ($author) {
+                $q->orWhere('author_id', $author->id);
+            }
+        });
 
         $stats = [
-            'total'     => BlogPost::where('author_id', $user->id)->count(),
-            'published' => BlogPost::where('author_id', $user->id)->where('status', 'published')->count(),
-            'pending'   => BlogPost::where('author_id', $user->id)->where('status', 'pending')->count(),
-            'draft'     => BlogPost::where('author_id', $user->id)->where('status', 'draft')->count(),
-            'rejected'  => BlogPost::where('author_id', $user->id)->where('status', 'rejected')->count(),
-            'views'     => (int) BlogPost::where('author_id', $user->id)->sum('view_count'),
+            'total'     => (clone $basePostsQuery)->count(),
+            'published' => (clone $basePostsQuery)->where('status', 'published')->count(),
+            'pending'   => (clone $basePostsQuery)->where('status', 'pending')->count(),
+            'draft'     => (clone $basePostsQuery)->where('status', 'draft')->count(),
+            'rejected'  => (clone $basePostsQuery)->where('status', 'rejected')->count(),
+            'views'     => (int) (clone $basePostsQuery)->sum('view_count'),
         ];
 
+        return view('author.posts.index', compact('user', 'author', 'stats', 'posts', 'filterStatus'));
+    }
+
+    /**
+     * Dedicated Author Dashboard (alias to index or dashboard).
+     */
+    public function dashboard(Request $request)
+    {
+        return $this->index($request);
+    }
+
+    /**
+     * Dedicated Author Ideapatra Write View.
+     */
+    public function createPost(): View|RedirectResponse
+    {
+        $user = auth()->user();
+
+        if (!$user->isAdmin() && (!$user->isAuthor() || $user->reg_status !== 'approved' || !$user->is_active)) {
+            return redirect()->route('pending.approval')->with('warning', 'আপনার লেখক অ্যাকাউন্টটি এখনও অ্যাডমিন কর্তৃক অনুমোদিত হয়নি।');
+        }
+
+        $author = $user->getAuthorRecord();
         $blogCategories = BlogCategory::where('is_active', true)->orderBy('name')->get();
         if ($blogCategories->isEmpty()) {
             $defaultCategories = ['সাহিত্য ও সংস্কৃতি', 'প্রবন্ধ ও গবেষণা', 'বই পর্যালোচনা ও সমালোচনা', 'কবিতা ও গল্প', 'মতামত ও দর্শন'];
@@ -104,29 +139,38 @@ class AuthorBlogController extends Controller
             $blogCategories = BlogCategory::where('is_active', true)->orderBy('name')->get();
         }
 
-        $editId = $request->input('edit_id') ?: $request->input('edit_post_id');
-        $editPost = null;
-        if ($editId) {
-            $editPost = BlogPost::where('id', $editId)->where('author_id', $user->id)->first();
+        return view('author.posts.create', compact('user', 'author', 'blogCategories'));
+    }
+
+    /**
+     * Dedicated Author Ideapatra Edit View for Draft / Rejected posts.
+     */
+    public function editPost(int $id): View|RedirectResponse
+    {
+        $user = auth()->user();
+
+        if (!$user->isAdmin() && (!$user->isAuthor() || $user->reg_status !== 'approved' || !$user->is_active)) {
+            return redirect()->route('pending.approval')->with('warning', 'আপনার লেখক অ্যাকাউন্টটি এখনও অ্যাডমিন কর্তৃক অনুমোদিত হয়নি।');
         }
 
-        return view('author.dashboard', compact('user', 'stats', 'posts', 'blogCategories', 'editPost', 'filterStatus'));
-    }
+        $author = $user->getAuthorRecord();
+        $post = BlogPost::where('id', $id)
+            ->where(function ($q) use ($user, $author) {
+                $q->where('submitted_by', $user->id)
+                  ->orWhere('author_id', $user->id);
+                if ($author) {
+                    $q->orWhere('author_id', $author->id);
+                }
+            })->firstOrFail();
 
-    /**
-     * Helper redirect to write tab in dashboard.
-     */
-    public function createPost(): RedirectResponse
-    {
-        return redirect()->route('author.dashboard', ['tab' => 'write']);
-    }
+        if ($post->status === 'published' || $post->mod_status === 'approved') {
+            return redirect()->route('author.posts.index')
+                ->with('warning', 'পোস্টটি ইতোমধ্যে প্রকাশিত হয়েছে। প্রকাশিত লেখা সরাসরি সম্পাদনা করা যায় না।');
+        }
 
-    /**
-     * Helper redirect to edit draft post.
-     */
-    public function editPost(int $id): RedirectResponse
-    {
-        return redirect()->route('author.dashboard', ['tab' => 'write', 'edit_id' => $id]);
+        $blogCategories = BlogCategory::where('is_active', true)->orderBy('name')->get();
+
+        return view('author.posts.edit', compact('user', 'author', 'post', 'blogCategories'));
     }
 
     /**
@@ -250,7 +294,7 @@ class AuthorBlogController extends Controller
             return back()->withInput()->with('error', 'পোস্টটি সংরক্ষণের সময় ত্রুটি ঘটেছে: ' . $e->getMessage());
         }
 
-        return redirect()->route('author.dashboard', ['tab' => 'articles'])->with('success', $message);
+        return redirect()->route('author.posts.index')->with('success', $message);
     }
 
     /**
@@ -262,11 +306,19 @@ class AuthorBlogController extends Controller
         if (!$user->isAdmin() && (!$user->isAuthor() || $user->reg_status !== 'approved' || !$user->is_active)) {
             return redirect()->route('pending.approval')->with('warning', 'আপনার লেখক অ্যাকাউন্টটি এখনও অ্যাডমিন কর্তৃক অনুমোদিত হয়নি।');
         }
-        $post = BlogPost::where('id', $id)->where('author_id', $user->id)->firstOrFail();
+        $author = $user->getAuthorRecord();
+        $post = BlogPost::where('id', $id)
+            ->where(function ($q) use ($user, $author) {
+                $q->where('submitted_by', $user->id)
+                  ->orWhere('author_id', $user->id);
+                if ($author) {
+                    $q->orWhere('author_id', $author->id);
+                }
+            })->firstOrFail();
 
         // Lock check: Once submitted or approved/published, author cannot edit directly
         if ($post->status === 'pending' || $post->status === 'published' || $post->mod_status === 'approved') {
-            return redirect()->route('author.dashboard', ['tab' => 'articles'])
+            return redirect()->route('author.posts.index')
                 ->with('error', 'পোস্টটি অনুমোদনের জন্য অপেক্ষমাণ বা ইতোমধ্যে প্রকাশিত হয়েছে। তাই এটি আর সম্পাদনা করা যাবে না।');
         }
 
@@ -371,7 +423,7 @@ class AuthorBlogController extends Controller
             return back()->withInput()->with('error', 'পোস্টটি হালনাগাদের সময় ত্রুটি ঘটেছে: ' . $e->getMessage());
         }
 
-        return redirect()->route('author.dashboard', ['tab' => 'articles'])->with('success', $message);
+        return redirect()->route('author.posts.index')->with('success', $message);
     }
 
     /**
@@ -415,10 +467,18 @@ class AuthorBlogController extends Controller
     public function destroy(int $id): RedirectResponse
     {
         $user = auth()->user();
-        $post = BlogPost::where('id', $id)->where('author_id', $user->id)->firstOrFail();
+        $author = $user->getAuthorRecord();
+        $post = BlogPost::where('id', $id)
+            ->where(function ($q) use ($user, $author) {
+                $q->where('submitted_by', $user->id)
+                  ->orWhere('author_id', $user->id);
+                if ($author) {
+                    $q->orWhere('author_id', $author->id);
+                }
+            })->firstOrFail();
 
         if ($post->status === 'published' || $post->mod_status === 'approved') {
-            return redirect()->route('author.dashboard', ['tab' => 'articles'])
+            return redirect()->route('author.posts.index')
                 ->with('error', 'প্রকাশিত লেখা সরাসরি মোছা সম্ভব নয়। অ্যাডমিনের সাথে যোগাযোগ করুন।');
         }
 
@@ -428,7 +488,7 @@ class AuthorBlogController extends Controller
 
         $post->forceDelete();
 
-        return redirect()->route('author.dashboard', ['tab' => 'articles'])->with('success', 'ব্লগ পোস্টটি তালিকা থেকে মুছে ফেলা হয়েছে।');
+        return redirect()->route('author.posts.index')->with('success', 'ব্লগ পোস্টটি তালিকা থেকে মুছে ফেলা হয়েছে।');
     }
 
     /**

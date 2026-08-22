@@ -387,6 +387,9 @@
                     @php
                         $catBooks = \Modules\Book\Models\Book::where('is_active', true)
                             ->where('category_id', $cat->id)
+                            ->with(['authors'])
+                            ->withAvg('reviews', 'rating')
+                            ->withCount('reviews')
                             ->latest()
                             ->take(5)
                             ->get();

@@ -74,11 +74,52 @@ class AuthorEbookController extends Controller
             'pages'                 => 'nullable|integer|min:1',
             'preview_page_limit'    => 'nullable|integer|min:1|max:50',
             'cover_image'           => 'required|image|mimes:jpeg,png,jpg,webp|max:8192',
-            'file_path'             => 'required|file|mimes:pdf,epub|max:102400',
-            'epub_file_path'        => 'nullable|file|mimes:epub|max:102400',
-            'sample_file_path'      => 'nullable|file|mimes:pdf,epub|max:51200',
+            'file_path'             => [
+                'required',
+                'file',
+                'max:102400',
+                function ($attribute, $value, $fail) {
+                    $ext = strtolower($value->getClientOriginalExtension());
+                    if (!in_array($ext, ['pdf', 'epub'])) {
+                        $fail('মূল ফাইলটি অবশ্যই PDF অথবা EPUB ফরম্যাটের হতে হবে।');
+                    }
+                }
+            ],
+            'epub_file_path'        => [
+                'nullable',
+                'file',
+                'max:102400',
+                function ($attribute, $value, $fail) {
+                    $ext = strtolower($value->getClientOriginalExtension());
+                    if (!in_array($ext, ['epub'])) {
+                        $fail('ই-পাব ফাইলটি অবশ্যই .epub ফরম্যাটের হতে হবে।');
+                    }
+                }
+            ],
+            'sample_file_path'      => [
+                'nullable',
+                'file',
+                'max:51200',
+                function ($attribute, $value, $fail) {
+                    $ext = strtolower($value->getClientOriginalExtension());
+                    if (!in_array($ext, ['pdf', 'epub'])) {
+                        $fail('নমুনা ফাইলটি অবশ্যই PDF অথবা EPUB ফরম্যাটের হতে হবে।');
+                    }
+                }
+            ],
             'is_preorder'           => 'nullable|boolean',
             'preorder_release_date' => 'nullable|required_if:is_preorder,1|date|after:today',
+        ], [
+            'title.required'          => 'ই-বুকের শিরোনাম দিন।',
+            'category_id.required'    => 'ই-বুকের ক্যাটাগরি নির্বাচন করুন।',
+            'description.required'    => 'ই-বুকের বিবরণ বা পরিচিতি লিখুন (কমপক্ষে ২০ অক্ষর)।',
+            'price.required'          => 'ই-বুকের বিক্রয়মূল্য নির্ধারণ করুন।',
+            'cover_image.required'    => 'ই-বুকের প্রচ্ছদ বা কাভার ছবি আপলোড করুন।',
+            'cover_image.image'       => 'কাভার ফাইলটি অবশ্যই একটি ছবি (JPG, PNG, WebP) হতে হবে।',
+            'cover_image.max'         => 'কাভার ছবির সাইজ সর্বোচ্চ ৮ মেগাবাইট হতে পারবে।',
+            'file_path.required'      => 'ই-বুকের মূল ডিজিটাল ফাইল (PDF/EPUB) আপলোড করুন।',
+            'file_path.max'           => 'মূল ফাইল সাইজ সর্বোচ্চ ১০০ মেগাবাইট হতে পারবে।',
+            'sample_file_path.max'    => 'নমুনা ফাইল সাইজ সর্বোচ্চ ৫০ মেগাবাইট হতে পারবে।',
         ]);
 
         // Upload Cover
@@ -195,11 +236,50 @@ class AuthorEbookController extends Controller
             'pages'                 => 'nullable|integer|min:1',
             'preview_page_limit'    => 'nullable|integer|min:1|max:50',
             'cover_image'           => 'nullable|image|mimes:jpeg,png,jpg,webp|max:8192',
-            'file_path'             => 'nullable|file|mimes:pdf,epub|max:102400',
-            'epub_file_path'        => 'nullable|file|mimes:epub|max:102400',
-            'sample_file_path'      => 'nullable|file|mimes:pdf,epub|max:51200',
+            'file_path'             => [
+                'nullable',
+                'file',
+                'max:102400',
+                function ($attribute, $value, $fail) {
+                    $ext = strtolower($value->getClientOriginalExtension());
+                    if (!in_array($ext, ['pdf', 'epub'])) {
+                        $fail('মূল ফাইলটি অবশ্যই PDF অথবা EPUB ফরম্যাটের হতে হবে।');
+                    }
+                }
+            ],
+            'epub_file_path'        => [
+                'nullable',
+                'file',
+                'max:102400',
+                function ($attribute, $value, $fail) {
+                    $ext = strtolower($value->getClientOriginalExtension());
+                    if (!in_array($ext, ['epub'])) {
+                        $fail('ই-পাব ফাইলটি অবশ্যই .epub ফরম্যাটের হতে হবে।');
+                    }
+                }
+            ],
+            'sample_file_path'      => [
+                'nullable',
+                'file',
+                'max:51200',
+                function ($attribute, $value, $fail) {
+                    $ext = strtolower($value->getClientOriginalExtension());
+                    if (!in_array($ext, ['pdf', 'epub'])) {
+                        $fail('নমুনা ফাইলটি অবশ্যই PDF অথবা EPUB ফরম্যাটের হতে হবে।');
+                    }
+                }
+            ],
             'is_preorder'           => 'nullable|boolean',
             'preorder_release_date' => 'nullable|required_if:is_preorder,1|date',
+        ], [
+            'title.required'          => 'ই-বুকের শিরোনাম দিন।',
+            'category_id.required'    => 'ই-বুকের ক্যাটাগরি নির্বাচন করুন।',
+            'description.required'    => 'ই-বুকের বিবরণ বা পরিচিতি লিখুন (কমপক্ষে ২০ অক্ষর)।',
+            'price.required'          => 'ই-বুকের বিক্রয়মূল্য নির্ধারণ করুন।',
+            'cover_image.image'       => 'কাভার ফাইলটি অবশ্যই একটি ছবি (JPG, PNG, WebP) হতে হবে।',
+            'cover_image.max'         => 'কাভার ছবির সাইজ সর্বোচ্চ ৮ মেগাবাইট হতে পারবে।',
+            'file_path.max'           => 'মূল ফাইল সাইজ সর্বোচ্চ ১০০ মেগাবাইট হতে পারবে।',
+            'sample_file_path.max'    => 'নমুনা ফাইল সাইজ সর্বোচ্চ ৫০ মেগাবাইট হতে পারবে।',
         ]);
 
         $data = [
