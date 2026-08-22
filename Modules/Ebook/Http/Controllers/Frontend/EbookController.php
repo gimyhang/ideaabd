@@ -243,24 +243,11 @@ class EbookController extends Controller
             abort(404, 'অনুরোধকৃত ই-বুকটি পাওয়া যায়নি।');
         }
 
-        // Check current user's library access
+        // Check current user's legitimate library access (admin, author, paid order, or claimed free)
         $user = auth()->user();
-        $hasAccess = false;
-        $libraryEntry = null;
-        $isOwnerOrAdmin = false;
-
-        if ($user) {
-            if ($user->isAdmin() || $user->isSubAdmin() || $ebook->author_user_id === $user->id) {
-                $hasAccess = true;
-                $isOwnerOrAdmin = true;
-            } else {
-                $libraryEntry = UserEbookLibrary::where('user_id', $user->id)
-                    ->where('ebook_id', $ebook->id)
-                    ->where('is_active', true)
-                    ->first();
-                $hasAccess = (bool) $libraryEntry;
-            }
-        }
+        $isOwnerOrAdmin = $user && ($user->isAdmin() || $user->isSubAdmin() || $ebook->author_user_id === $user->id);
+        $hasAccess = $this->checkUserEbookAccess($user, $ebook);
+        $libraryEntry = $hasAccess && $user ? UserEbookLibrary::where('user_id', $user->id)->where('ebook_id', $ebook->id)->first() : null;
 
         $relatedEbooks = Ebook::query()
             ->where('id', '!=', $ebook->id)
@@ -326,21 +313,21 @@ class EbookController extends Controller
         $hasAccess = false;
         $libraryEntry = null;
 
-        if ($user) {
-            if ($user->isAdmin() || $user->isSubAdmin() || $ebook->author_user_id === $user->id) {
-                $hasAccess = true;
-            } else {
-                $libraryEntry = UserEbookLibrary::where('user_id', $user->id)
-                    ->where('ebook_id', $ebook->id)
-                    ->where('is_active', true)
-                    ->first();
-                $hasAccess = (bool) $libraryEntry;
-            }
-        }
+        $user = auth()->user();
+        $libraryEntry = null;
 
         // Free e-books can be read online by anyone
         if ($ebook->is_free) {
             $hasAccess = true;
+            if ($user) {
+                $libraryEntry = UserEbookLibrary::where('user_id', $user->id)->where('ebook_id', $ebook->id)->first();
+            }
+        } else {
+            // For Paid E-Books: verify legitimate purchase or admin/author access
+            $hasAccess = $this->checkUserEbookAccess($user, $ebook);
+            if ($user && $hasAccess) {
+                $libraryEntry = UserEbookLibrary::where('user_id', $user->id)->where('ebook_id', $ebook->id)->first();
+            }
         }
 
         if (!$hasAccess) {
@@ -354,16 +341,11 @@ class EbookController extends Controller
         } catch (\Throwable) {}
 
         // Determine Reader Type and Stream URL
-        $readerType = 'none';
-        $hasEpub = !empty($ebook->epub_file_path) || strtolower((string)$ebook->file_type) === 'epub' || str_ends_with(strtolower((string)$ebook->file_path), '.epub');
-        $hasPdf = !empty($ebook->file_path) && (strtolower((string)$ebook->file_type) === 'pdf' || str_ends_with(strtolower((string)$ebook->file_path), '.pdf'));
-
-        if ($hasEpub) {
-            $readerType = 'epub';
-        } elseif ($hasPdf) {
+        $readerType = 'epub';
+        if (empty($ebook->epub_file_path) && !empty($ebook->file_path) && str_ends_with(strtolower((string)$ebook->file_path), '.pdf')) {
             $readerType = 'pdf';
-        } elseif ($ebook->sample_file_path) {
-            $readerType = str_ends_with(strtolower($ebook->sample_file_path), '.epub') ? 'epub' : 'pdf';
+        } elseif (strtolower((string)$ebook->file_type) === 'pdf') {
+            $readerType = 'pdf';
         }
 
         $streamUrl = route('ebook.stream', $ebook->id);
@@ -429,19 +411,9 @@ class EbookController extends Controller
         $user = auth()->user();
         $isSample = $request->query('sample') == '1';
 
-        // Access check for full reading (sample is free for all)
+        // Access check for full reading (sample and free books are readable)
         if (!$isSample && !$ebook->is_free) {
-            $hasAccess = false;
-            if ($user) {
-                if ($user->isAdmin() || $user->isSubAdmin() || $ebook->author_user_id === $user->id) {
-                    $hasAccess = true;
-                } else {
-                    $hasAccess = UserEbookLibrary::where('user_id', $user->id)
-                        ->where('ebook_id', $ebook->id)
-                        ->where('is_active', true)
-                        ->exists();
-                }
-            }
+            $hasAccess = $this->checkUserEbookAccess($user, $ebook);
 
             if (!$hasAccess) {
                 abort(403, 'অননুমোদিত ই-বুক এক্সেস। দয়া করে বইটি ক্রয় করুন।');
@@ -561,24 +533,18 @@ class EbookController extends Controller
             ->firstOrFail();
 
         $user = auth()->user();
-
-        // 1. Verify User Access
-        $hasAccess = false;
-        if ($user) {
-            if ($user->isAdmin() || $user->isSubAdmin() || $ebook->author_user_id === $user->id) {
-                $hasAccess = true;
-            } else {
-                $hasAccess = UserEbookLibrary::where('user_id', $user->id)
-                    ->where('ebook_id', $ebook->id)
-                    ->where('is_active', true)
-                    ->exists();
-            }
+        if (!$user) {
+            return redirect()->guest(route('login'))
+                ->with('info', 'ই-বুক ডাউনলোড করতে অনুগ্রহ করে প্রথমে লগইন করুন।');
         }
+
+        // 1. Strictly verify legitimate user access
+        $hasAccess = $this->checkUserEbookAccess($user, $ebook);
 
         if (!$hasAccess) {
             if ($ebook->is_free) {
                 return redirect()->route('ebook.show', $ebook->slug)
-                    ->with('error', 'ফ্রি ই-বুকটি ডাউনলোড করতে অনুগ্রহ করে প্রথমে "বিনামূল্যে সংগ্রহ করুন" বাটনে ক্লিক করে লাইব্রেরিতে যুক্ত করুন।');
+                    ->with('error', 'ফ্রি ই-বুকটি ডাউনলোড করতে অনুগ্রহ করে প্রথমে "বিনামূল্যে সংগ্রহ করুন (Claim)" বাটনে ক্লিক করে আপনার লাইব্রেরিতে যুক্ত করুন।');
             }
             return redirect()->route('ebook.show', $ebook->slug)
                 ->with('error', 'সম্পূর্ণ ই-বুক ডাউনলোড করতে প্রথমে বইটি ক্রয় সম্পন্ন করুন।');
@@ -654,10 +620,22 @@ class EbookController extends Controller
             'bookmark_title'   => 'nullable|string|max:255',
         ]);
 
-        $entry = UserEbookLibrary::firstOrCreate(
-            ['user_id' => $user->id, 'ebook_id' => (int)$id],
-            ['access_type' => 'free', 'is_active' => true]
-        );
+        $ebook = Ebook::find($id);
+        $hasAccess = $ebook ? $this->checkUserEbookAccess($user, $ebook) : false;
+
+        $entry = UserEbookLibrary::where('user_id', $user->id)
+            ->where('ebook_id', (int)$id)
+            ->first();
+
+        if (!$entry) {
+            $accessType = ($ebook && $ebook->is_free) ? 'free' : ($hasAccess ? 'purchased' : 'reading');
+            $entry = UserEbookLibrary::create([
+                'user_id'     => $user->id,
+                'ebook_id'    => (int)$id,
+                'access_type' => $accessType,
+                'is_active'   => $hasAccess || ($ebook && $ebook->is_free),
+            ]);
+        }
 
         $bookmarks = $entry->bookmarks_data ?? [];
 
@@ -689,5 +667,62 @@ class EbookController extends Controller
             'bookmarks' => $bookmarks,
             'message'   => 'অগ্রগতি ও বুকমার্ক সংরক্ষিত হয়েছে',
         ]);
+    }
+
+    /**
+     * Check whether a user has legitimate access to an ebook (purchased, claimed free, or admin/author).
+     */
+    private function checkUserEbookAccess(?\App\Models\User $user, ?Ebook $ebook): bool
+    {
+        if (!$user || !$ebook) {
+            return false;
+        }
+
+        // Admin, SubAdmin, or Author of this specific book
+        if ($user->isAdmin() || $user->isSubAdmin() || $ebook->author_user_id === $user->id) {
+            return true;
+        }
+
+        // Free E-books: Access granted if user claimed it in their library
+        if ($ebook->is_free) {
+            return UserEbookLibrary::where('user_id', $user->id)
+                ->where('ebook_id', $ebook->id)
+                ->where('is_active', true)
+                ->exists();
+        }
+
+        // Paid E-books: MUST have access_type = 'purchased' and is_active = true
+        $hasLibraryPurchase = UserEbookLibrary::where('user_id', $user->id)
+            ->where('ebook_id', $ebook->id)
+            ->where('access_type', 'purchased')
+            ->where('is_active', true)
+            ->exists();
+
+        if ($hasLibraryPurchase) {
+            return true;
+        }
+
+        // Also check if user has a verified paid/completed order for this ebook
+        $hasPaidOrder = \App\Models\Order::where('user_id', $user->id)
+            ->where(function ($q) {
+                $q->where('payment_status', 'paid')
+                  ->orWhereIn('status', ['completed', 'delivered', 'processing']);
+            })
+            ->where(function ($q) use ($ebook) {
+                $q->where('book_id', $ebook->id)
+                  ->orWhereHas('items', fn ($iq) => $iq->where('ebook_id', $ebook->id));
+            })
+            ->exists();
+
+        if ($hasPaidOrder) {
+            // Auto-grant access in UserEbookLibrary
+            UserEbookLibrary::updateOrCreate(
+                ['user_id' => $user->id, 'ebook_id' => $ebook->id],
+                ['access_type' => 'purchased', 'is_active' => true]
+            );
+            return true;
+        }
+
+        return false;
     }
 }

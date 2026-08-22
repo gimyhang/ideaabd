@@ -18,7 +18,7 @@
     <!-- Modern JSZip 3.10.1 & ePub.js 0.3.93 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/epubjs@0.3.93/dist/epub.min.js"></script>
-    <!-- PDF.js for PDF fallback -->
+    <!-- PDF.js for PDF support -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 
     <style>
@@ -252,76 +252,110 @@
                 height: 36px;
                 font-size: 0.85rem;
             }
-            .nav-prev { left: 4px; }
-            .nav-next { right: 4px; }
-            .reader-main { padding: 0.25rem; }
-            #epub-viewer-wrapper { border-radius: 6px; }
+            .nav-prev { left: 6px; }
+            .nav-next { right: 6px; }
+            .reader-head { padding: 0 0.5rem; }
         }
 
-        /* Drawers (TOC, Search, Bookmarks) */
+        /* Bottom Footer Status */
+        .reader-foot {
+            height: 38px;
+            background-color: var(--reader-nav-bg);
+            border-top: 1px solid var(--reader-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 1.25rem;
+            font-size: 0.78rem;
+            color: var(--reader-text);
+            z-index: 50;
+            flex-shrink: 0;
+        }
+
+        /* Side Drawers (TOC, Search, Bookmarks) */
         .reader-drawer {
-            position: absolute;
-            top: 0;
-            left: -380px;
+            position: fixed;
+            top: 56px;
+            bottom: 38px;
             width: 340px;
-            max-width: 90vw;
-            height: 100%;
-            background: var(--reader-surface);
+            max-width: 85vw;
+            background-color: var(--reader-surface);
             border-right: 1px solid var(--reader-border);
-            z-index: 150;
-            transition: left 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 90;
+            box-shadow: 4px 0 25px rgba(0, 0, 0, 0.12);
+            transform: translateX(-100%);
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
             display: flex;
             flex-direction: column;
-            box-shadow: 6px 0 25px rgba(0, 0, 0, 0.15);
         }
         .reader-drawer.open {
-            left: 0;
+            transform: translateX(0);
+        }
+        .reader-drawer-right {
+            right: 0;
+            left: auto;
+            border-left: 1px solid var(--reader-border);
+            border-right: none;
+            transform: translateX(100%);
+        }
+        .reader-drawer-right.open {
+            transform: translateX(0);
+        }
+        .drawer-header {
+            padding: 0.9rem 1.1rem;
+            border-bottom: 1px solid var(--reader-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-weight: 700;
+        }
+        .drawer-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0.75rem;
         }
         .drawer-list {
             list-style: none;
             padding: 0;
             margin: 0;
-            overflow-y: auto;
-            flex: 1;
         }
-        .drawer-item a, .drawer-item div {
-            display: block;
-            padding: 0.75rem 1rem;
-            color: var(--reader-text);
-            text-decoration: none;
-            border-bottom: 1px solid var(--reader-border);
-            font-size: 0.88rem;
-            transition: all 0.15s;
+        .drawer-item {
+            padding: 0.65rem 0.85rem;
+            border-radius: 8px;
+            margin-bottom: 0.3rem;
+            font-size: 0.86rem;
             cursor: pointer;
+            transition: background 0.15s ease;
+            color: var(--reader-text);
+            display: block;
+            text-decoration: none;
         }
-        .drawer-item a:hover, .drawer-item a.active, .drawer-item div:hover {
-            background-color: var(--reader-bg);
+        .drawer-item:hover, .drawer-item.active {
+            background-color: var(--reader-border);
             color: var(--reader-primary);
-            font-weight: 600;
-            padding-left: 1.25rem;
         }
 
-        /* Floating Highlight Toolbar */
+        /* Floating Highlight Action Toolbar */
         #highlight-toolbar {
             position: absolute;
             display: none;
-            background: var(--reader-surface);
-            border: 1px solid var(--reader-border);
-            box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+            background: #ffffff;
             border-radius: 24px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
             padding: 4px 8px;
-            z-index: 200;
-            gap: 6px;
+            z-index: 999;
             align-items: center;
+            gap: 6px;
+            border: 1px solid #e2e8f0;
         }
         .hl-color-btn {
             width: 22px;
             height: 22px;
             border-radius: 50%;
-            border: 2px solid #ffffff;
             cursor: pointer;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.2);
-            transition: transform 0.15s;
+            border: 2px solid #ffffff;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            transition: transform 0.15s ease;
         }
         .hl-color-btn:hover {
             transform: scale(1.25);
@@ -330,173 +364,148 @@
         /* Loading Spinner */
         #reader-loader {
             position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
-            z-index: 80;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             background: var(--reader-surface);
-            padding: 2rem 2.5rem;
-            border-radius: 16px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
-            border: 1px solid var(--reader-border);
-        }
-
-        /* Bottom Progress bar */
-        .reader-foot {
-            height: 34px;
-            background-color: var(--reader-nav-bg);
-            border-top: 1px solid var(--reader-border);
             display: flex;
+            flex-direction: column;
             align-items: center;
-            justify-content: space-between;
-            padding: 0 1rem;
-            font-size: 0.78rem;
-            color: var(--reader-text);
-            flex-shrink: 0;
+            justify-content: center;
+            z-index: 80;
         }
 
-        /* DRM Notice Toast */
+        /* DRM Toast */
         #drm-toast {
             position: fixed;
-            bottom: 45px;
+            bottom: 50px;
             left: 50%;
             transform: translateX(-50%);
             background: rgba(15, 23, 42, 0.92);
             color: #ffffff;
             padding: 8px 18px;
-            border-radius: 30px;
+            border-radius: 20px;
             font-size: 0.82rem;
-            z-index: 999;
+            font-weight: 500;
+            z-index: 9999;
             display: none;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.25);
-            pointer-events: none;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
             backdrop-filter: blur(4px);
-        }
-
-        /* Print Protection */
-        @media print {
-            body { display: none !important; }
         }
     </style>
 </head>
-<body oncontextmenu="return false;">
+<body>
 
-    <!-- Top Header Navigation -->
+    <!-- Header Navigation -->
     <header class="reader-head">
-        <div class="d-flex align-items-center gap-1.5 overflow-hidden">
+        <div class="d-flex align-items-center gap-2">
             <a href="{{ route('ebook.show', $ebook->slug) }}" class="reader-btn" title="ই-বুক পেজে ফিরে যান">
-                <i class="fa-solid fa-arrow-left"></i> <span class="d-none d-sm-inline">ফিরে যান</span>
+                <i class="fa-solid fa-arrow-left"></i>
+                <span class="d-none d-sm-inline">ফিরে যান</span>
             </a>
+            
+            <button type="button" class="reader-btn" id="btn-toggle-toc" title="সূচিপত্র (Table of Contents)">
+                <i class="fa-solid fa-list-ul text-primary"></i>
+                <span class="d-none d-md-inline">সূচিপত্র</span>
+            </button>
 
-            @if($readerType === 'epub')
-                <!-- Table of Contents Toggle -->
-                <button class="reader-btn" id="btn-toggle-toc" title="সূচিপত্র (TOC)">
-                    <i class="fa-solid fa-list-ul"></i> <span class="d-none d-md-inline">সূচিপত্র</span>
-                </button>
+            <button type="button" class="reader-btn" id="btn-toggle-search" title="বইয়ের ভেতর অনুসন্ধান (In-Book Search)">
+                <i class="fa-solid fa-magnifying-glass text-warning"></i>
+                <span class="d-none d-md-inline">সার্চ</span>
+            </button>
 
-                <!-- In-Book Search Toggle -->
-                <button class="reader-btn" id="btn-toggle-search" title="বইয়ের ভেতর খুঁজুন">
-                    <i class="fa-solid fa-magnifying-glass"></i> <span class="d-none d-md-inline">সার্চ</span>
-                </button>
-
-                <!-- Bookmarks Toggle -->
-                <button class="reader-btn" id="btn-toggle-bookmarks" title="বুকমার্কসমূহ">
-                    <i class="fa-solid fa-bookmark text-warning"></i> <span class="d-none d-md-inline">বুকমার্ক</span>
-                </button>
-            @endif
-
-            <div class="text-truncate ps-1" style="max-width: 220px;">
-                <span class="fw-bold d-block text-truncate" style="font-size: 0.90rem;">{{ $ebook->title }}</span>
-                <span class="small opacity-75 d-none d-sm-block text-truncate" style="font-size: 0.74rem;">
-                    {{ $ebook->author ? $ebook->author->name : ($ebook->author_name ?: 'আইডিয়া প্রকাশন') }}
-                </span>
-            </div>
+            <button type="button" class="reader-btn" id="btn-toggle-bookmarks" title="বুকমার্ক তালিকা">
+                <i class="fa-solid fa-bookmark text-info"></i>
+                <span class="d-none d-md-inline">বুকমার্ক</span>
+            </button>
         </div>
 
-        <!-- Controls (Themes, Fonts, Spread, Flow, Fullscreen) -->
-        <div class="d-flex align-items-center gap-1">
-            <!-- Theme Toggles -->
-            <div class="btn-group btn-group-sm" role="group">
-                <button type="button" class="reader-btn active" id="theme-light" title="ডে মোড (সাদা)">
-                    <i class="fa-solid fa-sun"></i>
-                </button>
-                <button type="button" class="reader-btn" id="theme-sepia" title="সেপিয়া মোড (আরামদায়ক)">
-                    <i class="fa-solid fa-book-open"></i>
-                </button>
-                <button type="button" class="reader-btn" id="theme-dark" title="নাইট মোড (ডার্ক)">
-                    <i class="fa-solid fa-moon"></i>
-                </button>
+        <div class="text-center px-2 overflow-hidden text-truncate mx-2" style="max-width: 420px;">
+            <h6 class="mb-0 fw-bold text-truncate" style="font-size: 0.95rem;">{{ $ebook->title }}</h6>
+            <small class="text-muted text-truncate d-block" style="font-size: 0.72rem;">{{ $ebook->author?->name ?: ($ebook->author_name ?: 'আইডিয়া প্রকাশন') }}</small>
+        </div>
+
+        <div class="d-flex align-items-center gap-1.5">
+            <!-- Spread Toggle (Dual Page vs Single Page) -->
+            <button type="button" class="reader-btn d-none d-md-inline-flex" id="btn-toggle-spread" title="১ পাতা / ২ পাতা স্প্রেড ভিউ">
+                <i class="fa-solid fa-book-open" id="spread-icon"></i>
+                <span id="spread-text">২ পাতা</span>
+            </button>
+
+            <!-- Scroll Flow Toggle (Paginated vs Continuous Scroll) -->
+            <button type="button" class="reader-btn d-none d-lg-inline-flex" id="btn-toggle-flow" title="পাতা উল্টানো / স্ক্রোল মোড">
+                <i class="fa-solid fa-file-lines" id="flow-icon"></i>
+                <span id="flow-text">স্ক্রোল</span>
+            </button>
+
+            <!-- Font Size Scaling -->
+            <div class="btn-group btn-group-sm d-none d-sm-inline-flex">
+                <button type="button" class="reader-btn px-2" id="btn-font-dec" title="ফন্ট ছোট করুন">A-</button>
+                <button type="button" class="reader-btn px-2" id="btn-font-inc" title="ফন্ট বড় করুন">A+</button>
             </div>
 
-            @if($readerType === 'epub')
-                <!-- Spread Mode Toggle (Dual Spread vs Single Page) -->
-                <button type="button" class="reader-btn d-none d-lg-inline-flex active" id="btn-toggle-spread" title="পৃষ্ঠা ভিউ (পাশাপাশি ২ পাতা / ১ পাতা)">
-                    <i class="fa-solid fa-book-open" id="spread-icon"></i>
-                    <span id="spread-text">২ পাতা</span>
-                </button>
+            <!-- Reading Themes -->
+            <div class="btn-group btn-group-sm">
+                <button type="button" class="reader-btn px-2 active" id="theme-light" title="ডে মোড (সাদা)">☀️</button>
+                <button type="button" class="reader-btn px-2" id="theme-sepia" title="কাগজ মোড (সেপিয়া)">📜</button>
+                <button type="button" class="reader-btn px-2" id="theme-dark" title="নাইট মোড (কালো)">🌙</button>
+            </div>
 
-                <!-- Flow / Pagination Mode -->
-                <button type="button" class="reader-btn d-none d-md-inline-flex" id="btn-toggle-flow" title="পড়ার ধরন (পাতা উল্টানো / স্ক্রোল)">
-                    <i class="fa-solid fa-file-lines" id="flow-icon"></i>
-                    <span id="flow-text">স্ক্রোল</span>
-                </button>
-
-                <!-- Font Size Controls -->
-                <div class="btn-group btn-group-sm d-none d-sm-inline-flex" role="group">
-                    <button type="button" class="reader-btn" id="btn-font-dec" title="ফন্ট ছোট করুন">A-</button>
-                    <button type="button" class="reader-btn" id="btn-font-inc" title="ফন্ট বড় করুন">A+</button>
-                </div>
-
-                <!-- Add Bookmark Button -->
-                <button type="button" class="reader-btn" id="btn-add-bookmark" title="বর্তমান পৃষ্ঠা বুকমার্ক করুন">
-                    <i class="fa-regular fa-bookmark"></i>
-                </button>
-            @endif
+            <!-- Add Bookmark Button -->
+            <button type="button" class="reader-btn text-warning" id="btn-add-bookmark" title="এই পৃষ্ঠাটি বুকমার্ক করুন">
+                <i class="fa-solid fa-bookmark"></i>
+            </button>
 
             <!-- Fullscreen -->
-            <button class="reader-btn" id="btn-fullscreen" title="ফুলস্ক্রিন">
+            <button type="button" class="reader-btn" id="btn-fullscreen" title="ফুলস্ক্রিন">
                 <i class="fa-solid fa-expand"></i>
             </button>
         </div>
     </header>
 
-    <!-- Main Content Area -->
+    <!-- Main Container -->
     <main class="reader-main">
-        <!-- 1. Table of Contents Drawer -->
+        <!-- Table of Contents Drawer -->
         <div class="reader-drawer" id="toc-drawer">
-            <div class="p-3 border-bottom d-flex align-items-center justify-content-between">
-                <h6 class="fw-bold mb-0 text-dark"><i class="fa-solid fa-list-ul me-2 text-primary"></i>সূচিপত্র</h6>
-                <button class="btn-close btn-sm" id="btn-close-toc"></button>
+            <div class="drawer-header">
+                <span><i class="fa-solid fa-list-ul text-primary me-2"></i>বইয়ের সূচিপত্র</span>
+                <button type="button" class="btn-close btn-sm" id="btn-close-toc"></button>
             </div>
-            <ul class="drawer-list" id="toc-list"></ul>
+            <div class="drawer-body">
+                <ul class="drawer-list" id="toc-list">
+                    <li class="p-3 text-center text-muted small"><span class="spinner-border spinner-border-sm me-1"></span> সূচিপত্র প্রস্তুত হচ্ছে...</li>
+                </ul>
+            </div>
         </div>
 
-        <!-- 2. In-Book Search Drawer -->
+        <!-- In-Book Search Drawer -->
         <div class="reader-drawer" id="search-drawer">
-            <div class="p-3 border-bottom d-flex align-items-center justify-content-between">
-                <h6 class="fw-bold mb-0 text-dark"><i class="fa-solid fa-magnifying-glass me-2 text-primary"></i>বইয়ের ভেতর খুঁজুন</h6>
-                <button class="btn-close btn-sm" id="btn-close-search"></button>
+            <div class="drawer-header">
+                <span><i class="fa-solid fa-magnifying-glass text-warning me-2"></i>বইয়ের ভেতরে খুঁজুন</span>
+                <button type="button" class="btn-close btn-sm" id="btn-close-search"></button>
             </div>
             <div class="p-3 border-bottom">
                 <div class="input-group input-group-sm">
-                    <input type="text" id="inbook-search-input" class="form-control rounded-start-pill" placeholder="শব্দ বা বাক্য লিখুন...">
-                    <button class="btn btn-primary rounded-end-pill px-3" id="inbook-search-btn">
+                    <input type="text" class="form-control" id="inbook-search-input" placeholder="শব্দ বা বাক্য লিখুন..." autocomplete="off">
+                    <button class="btn btn-primary" type="button" id="inbook-search-btn">
                         <i class="fa-solid fa-search"></i>
                     </button>
                 </div>
-                <div id="search-status" class="small text-muted mt-2">বইয়ের যেকোনো শব্দ লিখে সার্চ করুন</div>
+                <div id="search-status" class="small text-muted mt-2" style="font-size: 0.78rem;">যেকোনো বাংলা শব্দ লিখে এন্টার চাপুন</div>
             </div>
-            <ul class="drawer-list" id="search-results-list"></ul>
+            <div class="drawer-body">
+                <ul class="drawer-list" id="search-results-list"></ul>
+            </div>
         </div>
 
-        <!-- 3. Bookmarks Drawer -->
+        <!-- Bookmarks Drawer -->
         <div class="reader-drawer" id="bookmarks-drawer">
-            <div class="p-3 border-bottom d-flex align-items-center justify-content-between">
-                <h6 class="fw-bold mb-0 text-dark"><i class="fa-solid fa-bookmark me-2 text-warning"></i>সংরক্ষিত বুকমার্কসমূহ</h6>
-                <button class="btn-close btn-sm" id="btn-close-bookmarks"></button>
+            <div class="drawer-header">
+                <span><i class="fa-solid fa-bookmark text-info me-2"></i>সংরক্ষিত বুকমার্ক</span>
+                <button type="button" class="btn-close btn-sm" id="btn-close-bookmarks"></button>
             </div>
-            <ul class="drawer-list" id="bookmarks-list">
+            <ul class="drawer-body drawer-list" id="bookmarks-list">
                 @if(!empty($bookmarks))
                     @foreach($bookmarks as $bm)
                         <li class="drawer-item">
@@ -526,72 +535,47 @@
         <!-- Loader -->
         <div id="reader-loader">
             <div class="spinner-border text-primary mb-2" role="status" style="width: 2.5rem; height: 2.5rem;"></div>
-            <div class="fw-bold text-dark mb-1">ই-বুক প্রস্তুত হচ্ছে...</div>
-            <small class="text-muted">ফন্ট সামঞ্জস্য ও বাংলা লেআউট রেন্ডারিং হচ্ছে</small>
+            <div class="fw-bold text-dark mb-1" id="loader-title">ই-বুক প্রস্তুত হচ্ছে...</div>
+            <small class="text-muted" id="loader-subtitle">ফন্ট সামঞ্জস্য ও বাংলা লেআউট রেন্ডারিং হচ্ছে</small>
         </div>
 
         <!-- EPUB Mode Container -->
-        @if($readerType === 'epub' && $streamUrl)
-            <div id="epub-viewer-wrapper" class="dual-spread-active">
-                <div id="epub-viewer"></div>
-                <!-- Dynamic Anti-Piracy Watermark Layer -->
-                <div class="drm-watermark-layer" id="watermarkOverlay">
-                    @for($i = 0; $i < 9; $i++)
-                        <div class="watermark-unit">{{ $watermarkText }}</div>
-                    @endfor
-                </div>
+        <div id="epub-viewer-wrapper" class="dual-spread-active">
+            <div id="epub-viewer"></div>
+            <!-- Dynamic Anti-Piracy Watermark Layer -->
+            <div class="drm-watermark-layer" id="watermarkOverlay">
+                @for($i = 0; $i < 9; $i++)
+                    <div class="watermark-unit">{{ $watermarkText }}</div>
+                @endfor
             </div>
-            <button class="nav-arrow nav-prev" id="nav-prev" title="পূর্ববর্তী পৃষ্ঠা (Left Arrow)">
-                <i class="fa-solid fa-chevron-left"></i>
-            </button>
-            <button class="nav-arrow nav-next" id="nav-next" title="পরবর্তী পৃষ্ঠা (Right Arrow)">
-                <i class="fa-solid fa-chevron-right"></i>
-            </button>
+        </div>
 
-        <!-- PDF Mode Container -->
-        @elseif($readerType === 'pdf' && $streamUrl)
-            <div class="reader-pdf-container">
-                <div class="pdf-viewport">
-                    <canvas id="pdfCanvas"></canvas>
-                </div>
-                <!-- Watermark for PDF -->
-                <div class="drm-watermark-layer">
-                    @for($i = 0; $i < 9; $i++)
-                        <div class="watermark-unit">{{ $watermarkText }}</div>
-                    @endfor
-                </div>
+        <!-- PDF Mode Container (Hidden by default) -->
+        <div class="reader-pdf-container d-none" id="pdf-viewer-wrapper">
+            <div class="pdf-viewport">
+                <canvas id="pdfCanvas"></canvas>
             </div>
-            <button class="nav-arrow nav-prev" id="nav-prev-pdf" title="পূর্ববর্তী পৃষ্ঠা">
-                <i class="fa-solid fa-chevron-left"></i>
-            </button>
-            <button class="nav-arrow nav-next" id="nav-next-pdf" title="পরবর্তী পৃষ্ঠা">
-                <i class="fa-solid fa-chevron-right"></i>
-            </button>
+            <div class="drm-watermark-layer">
+                @for($i = 0; $i < 9; $i++)
+                    <div class="watermark-unit">{{ $watermarkText }}</div>
+                @endfor
+            </div>
+        </div>
 
-        <!-- Fallback Preview Container -->
-        @else
-            <div class="card p-4 p-md-5 mx-auto my-auto text-center border-0 shadow-sm rounded-4" style="max-width: 550px; background: var(--reader-surface);">
-                <div class="mx-auto rounded-3 shadow mb-3 overflow-hidden" style="width: 130px; aspect-ratio: 7/10;">
-                    @if($ebook->cover_url)
-                        <img src="{{ $ebook->cover_url }}" alt="{{ $ebook->title }}" class="w-100 h-100 object-fit-cover">
-                    @else
-                        <div class="w-100 h-100 d-flex align-items-center justify-content-center bg-light fs-1 text-primary">📘</div>
-                    @endif
-                </div>
-                <h4 class="fw-bold mb-2">{{ $ebook->title }}</h4>
-                <p class="text-muted small mb-4">এই ই-বুকটির ফাইল প্রক্রিয়া করা হচ্ছে। অনুগ্রহ করে পরবর্তীতে পুনরায় চেষ্টা করুন।</p>
-                <div class="d-flex justify-content-center gap-2">
-                    <a href="{{ route('ebook.show', $ebook->slug) }}" class="btn btn-primary rounded-pill px-4">ই-বুক পেজে ফিরুন</a>
-                </div>
-            </div>
-        @endif
+        <!-- Side Flip Navigation Arrows -->
+        <button class="nav-arrow nav-prev" id="nav-prev" title="পূর্ববর্তী পৃষ্ঠা (Left Arrow)">
+            <i class="fa-solid fa-chevron-left"></i>
+        </button>
+        <button class="nav-arrow nav-next" id="nav-next" title="পরবর্তী পৃষ্ঠা (Right Arrow)">
+            <i class="fa-solid fa-chevron-right"></i>
+        </button>
     </main>
 
     <!-- Footer Progress / Status Bar -->
     <footer class="reader-foot">
         <div id="status-info" class="text-truncate me-2">
             <i class="fa-solid fa-shield-halved me-1 text-primary"></i>
-            {{ strtoupper($readerType) }} ফরম্যাট সুরক্ষিত অনলাইন রিডার
+            আইডিয়া প্রকাশন সুরক্ষিত অনলাইন ই-বুক রিডার
         </div>
         <div id="progress-info" class="fw-semibold">
             আইডিয়া প্রকাশন ডিজিটাল লাইব্রেরি
@@ -601,116 +585,17 @@
     <!-- DRM Toast Notification -->
     <div id="drm-toast">আইডিয়া প্রকাশন: কপিরাইট সুরক্ষার স্বার্থে কপি ও প্রিন্ট নিষিদ্ধ।</div>
 
-    <!-- Comprehensive Bijoy (SutonnyMJ / ANSI) to Bengali Unicode Converter Engine -->
-    <script>
-    function isBijoyEncoded(str) {
-        if (!str || typeof str !== 'string' || str.trim().length < 2) return false;
-        const bijoyPatterns = [
-            /Avg/i, /Avw/i, /cÖ/i, /Kwe/i, /‡[A-Za-z]/, /w[A-Za-z]/, /[A-Za-z]©/,
-            /[²³µ¶·¸¹º»¼½¾¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿ¡¢£¤¥¦§¨ª«¬®¯°±›œŸ]/
-        ];
-        return bijoyPatterns.some(rx => rx.test(str));
-    }
-
-    function convertBijoyToUnicode(src) {
-        if (!src || typeof src !== 'string') return src;
-        let text = src;
-        const multiCharBijoy = [
-            ["w¯¿", "স্ত্রি"], ["¯¿", "স্ত্রী"], ["cÖKvk", "প্রকাশ"], ["cÖ", "প্র"], ["K¬", "ক্ল"],
-            ["±", "হৃ"], ["°", "হু"], ["¯", "হ্ল"], ["®", "হ্ম"], ["¬", "হ্ন"], ["«", "স্ব"],
-            ["ª", "স্র"], ["¨", "স্ন"], ["§", "স্ম"], ["¦", "স্ফ"], ["¥", "স্প"], ["¤", "স্থ"],
-            ["£", "ষ্ক্র"], ["¢", "ষ্খ"], ["¡", "ষ্ক"], ["ÿ", "ষ্ণ"], ["þ", "ষ্ঠ"], ["ý", "ষ্ট"],
-            ["ü", "ষ্ফ"], ["û", "ষ্প"], ["ú", "শ্র"], ["ù", "শ্ম"], ["ø", "শ্ছ"], ["÷", "শ্চ"],
-            ["ö", "শু"], ["õ", "ল্ল"], ["ô", "ল্ম"], ["ó", "ল্ব"], ["ò", "ল্ফ"], ["ñ", "ল্প"],
-            ["ð", "ল্ড"], ["ï", "ল্ট"], ["î", "ল্গ"], ["í", "ল্ক"], ["ì", "ম্ল"], ["ë", "ম্ম"],
-            ["ê", "ম্ভ"], ["é", "ম্ব"], ["è", "ম্ফ"], ["ç", "ম্প"], ["æ", "ন্ব"], ["å", "ন্ম"],
-            ["ä", "ন্ধ"], ["ã", "ন্দ্ব"], ["â", "ন্দ"], ["á", "ন্থ"], ["à", "ন্ত্ব"], ["ß", "ন্ত"],
-            ["Þ", "ন্ড"], ["Ý", "ন্ঠ"], ["Ü", "ন্ট"], ["Û", "ধ্ব"], ["Ú", "ধ্ব"], ["Ù", "দ্ম"],
-            ["Ø", "দ্ব"], ["×", "দ্ব"], ["Ö", "ত্র"], ["Õ", "থ্ব"], ["Ô", "ত্ব"], ["Ó", "ত্ম"],
-            ["Ò", "ত্ন"], ["Ñ", "ত্থ"], ["Ð", "ত্ত"], ["Ï", "ণ্ড"], ["Î", "ণ্ঠ"], ["Í", "ণ্ট"],
-            ["Ì", "ণ্ড"], ["Ë", "ড্ড"], ["Ê", "ঠ্ফ"], ["É", "ট্ম"], ["È", "ট্ট"], ["Ç", "ট্ফ"],
-            ["Æ", "ঞ্জ"], ["Å", "ঞ্ছ"], ["Ä", "ঞ্চ"], ["Ã", "জ্ঞ"], ["Â", "জ্ঞ"], ["Á", "চ্ছ্ব"],
-            ["À", "চ্ছ"], ["¿", "চ্চ"], ["¾", "ঙ্ঘ"], ["½", "ঙ্গ"], ["¼", "ঙ্খ"], ["»", "ঙ্ক্ষ"],
-            ["º", "ঙ্ক"], ["¹", "গ্ধ"], ["¸", "গু"], ["¶", "ক্ষ"], ["µ", "ক্র"], ["³", "ক্ত"], ["²", "ক্ষ"]
-        ];
-
-        for (let i = 0; i < multiCharBijoy.length; i++) {
-            text = text.split(multiCharBijoy[i][0]).join(multiCharBijoy[i][1]);
-        }
-
-        const C = '(?:[\u0980-\u09FF]|(?:[K-NO-TV-YZ_`a-g-k-ro-q][\u09CD&]?)+|[²-ÿ¡-±›œŸ])';
-
-        text = text.replace(new RegExp('‡(' + C + ')v', 'g'), '$1ো');
-        text = text.replace(new RegExp('†(' + C + ')v', 'g'), '$1ো');
-        text = text.replace(new RegExp('‡(' + C + ')Š', 'g'), '$1ৌ');
-        text = text.replace(new RegExp('†(' + C + ')Š', 'g'), '$1ৌ');
-
-        text = text.replace(new RegExp('w(' + C + ')', 'g'), '$1w');
-        text = text.replace(new RegExp('‡(' + C + ')', 'g'), '$1‡');
-        text = text.replace(new RegExp('†(' + C + ')', 'g'), '$1†');
-        text = text.replace(new RegExp('ˆ(' + C + ')', 'g'), '$1ˆ');
-        text = text.replace(new RegExp('‰(' + C + ')', 'g'), '$1‰');
-
-        text = text.replace(new RegExp('(' + C + ')©', 'g'), 'র্$1');
-
-        const singleMap = {
-            'Av': 'আ', 'A': 'অ', 'B': 'ই', 'C': 'ঈ', 'D': 'উ', 'E': 'ঊ', 'F': 'ঋ', 'G': 'এ', 'H': 'ঐ', 'I': 'ও', 'J': 'ঔ',
-            'K': 'ক', 'L': 'খ', 'M': 'গ', 'N': 'ঘ', 'O': 'ঙ',
-            'P': 'চ', 'Q': 'ছ', 'R': 'জ', 'S': 'ঝ', 'T': 'ঞ',
-            'U': 'ট', 'V': 'ঠ', 'W': 'ড', 'X': 'ঢ', 'Y': 'ণ',
-            'Z': 'ত', '_': 'থ', '`': 'দ', 'a': 'ধ', 'b': 'ন',
-            'c': 'প', 'd': 'ফ', 'e': 'ব', 'f': 'ভ', 'g': 'ম',
-            'h': 'য', 'i': 'র', 'j': 'ল', 'k': 'শ', 'l': 'ষ',
-            'm': 'স', 'n': 'হ', 'o': 'ড়', 'p': 'ঢ়', 'q': 'য়',
-            'r': 'ৎ', 's': 'ং', 't': 'ঃ', 'u': 'ঁ',
-            '0': '০', '1': '১', '2': '২', '3': '৩', '4': '৪', '5': '৫', '6': '৬', '7': '৭', '8': '৮', '9': '৯',
-            'v': 'া', 'w': 'ি', 'x': 'ী', 'y': 'ু', '~': 'ূ', '…': 'ৃ', 'ƒ': 'ৃ',
-            '†': 'ে', '‡': 'ে', 'ˆ': 'ৈ', '‰': 'ৈ', 'Š': 'ৌ',
-            '›': '্র', 'œ': '্র', 'Ÿ': '্য', '&': '্',
-            '|': '।'
-        };
-
-        let result = '';
-        for (let i = 0; i < text.length; i++) {
-            const ch = text[i];
-            if (ch === 'A' && text[i+1] === 'v') {
-                result += 'আ';
-                i++;
-            } else if (singleMap[ch] !== undefined) {
-                result += singleMap[ch];
-            } else {
-                result += ch;
-            }
-        }
-        return result;
-    }
-
-    function processBijoyElements(rootNode) {
-        if (!rootNode) return;
-        const walker = rootNode.ownerDocument.createTreeWalker(rootNode, NodeFilter.SHOW_TEXT, null, false);
-        const nodesToConvert = [];
-        let node;
-        while (node = walker.nextNode()) {
-            if (node.nodeValue && isBijoyEncoded(node.nodeValue)) {
-                nodesToConvert.push(node);
-            }
-        }
-        nodesToConvert.forEach(n => {
-            n.nodeValue = convertBijoyToUnicode(n.nodeValue);
-        });
-    }
-    </script>
-
-    <!-- Main Reader Controller Script (EPUB, PDF, Search, Bookmarks, Highlights & DRM) -->
+    <!-- Main Reader Engine (Binary Sniffer, Memory-Safe In-Memory ePub.js & PDF.js) -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const readerType = "{{ $readerType }}";
             const streamUrl  = "{{ $streamUrl }}";
             const ebookId    = {{ $ebook->id }};
-            const csrfToken  = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            const csrfToken  = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
             const loader     = document.getElementById('reader-loader');
+            const loaderTitle = document.getElementById('loader-title');
+            const loaderSubtitle = document.getElementById('loader-subtitle');
 
-            // DRM Notification Helper
+            // DRM Notification Toast
             function showDrmToast(msg) {
                 const toast = document.getElementById('drm-toast');
                 if (toast) {
@@ -720,14 +605,13 @@
                 }
             }
 
-            // DRM Global Protections
+            // DRM Event Blockers
             document.addEventListener('copy', function(e) {
                 e.preventDefault();
                 showDrmToast('কপিরাইট সুরক্ষার স্বার্থে টেক্সট কপি করা বন্ধ রাখা হয়েছে।');
             });
             document.addEventListener('cut', function(e) { e.preventDefault(); });
             document.addEventListener('keydown', function(e) {
-                // Block Ctrl+P (Print), Ctrl+S (Save), Ctrl+U (Source)
                 if ((e.ctrlKey || e.metaKey) && (e.key === 'p' || e.key === 's' || e.key === 'u')) {
                     e.preventDefault();
                     showDrmToast();
@@ -747,7 +631,6 @@
                 if (theme === 'sepia') themeSepia && themeSepia.classList.add('active');
                 if (theme === 'dark') themeDark && themeDark.classList.add('active');
 
-                // Pass theme colors into EPUB Rendition
                 if (window.rendition) {
                     let textColor = '#1e293b', bgColor = '#ffffff';
                     if (theme === 'sepia') {
@@ -755,8 +638,10 @@
                     } else if (theme === 'dark') {
                         textColor = '#f1f5f9'; bgColor = '#0f172a';
                     }
-                    window.rendition.themes.override('color', textColor);
-                    window.rendition.themes.override('background', bgColor);
+                    try {
+                        window.rendition.themes.override('color', textColor);
+                        window.rendition.themes.override('background', bgColor);
+                    } catch(e) {}
                 }
             }
 
@@ -780,10 +665,103 @@
                 });
             }
 
-            // ==========================================
-            // EPUB ENGINE INITIALIZATION
-            // ==========================================
-            if (readerType === 'epub' && streamUrl && typeof ePub !== 'undefined') {
+            // Drawers Toggle Helpers
+            function closeAllDrawers() {
+                document.querySelectorAll('.reader-drawer').forEach(d => d.classList.remove('open'));
+            }
+
+            const toggleTocBtn = document.getElementById('btn-toggle-toc');
+            const closeTocBtn  = document.getElementById('btn-close-toc');
+            const tocDrawer    = document.getElementById('toc-drawer');
+            if (toggleTocBtn) toggleTocBtn.addEventListener('click', () => {
+                const isOpen = tocDrawer.classList.contains('open');
+                closeAllDrawers();
+                if (!isOpen) tocDrawer.classList.add('open');
+            });
+            if (closeTocBtn) closeTocBtn.addEventListener('click', () => tocDrawer.classList.remove('open'));
+
+            const toggleSearchBtn = document.getElementById('btn-toggle-search');
+            const closeSearchBtn  = document.getElementById('btn-close-search');
+            const searchDrawer    = document.getElementById('search-drawer');
+            if (toggleSearchBtn) toggleSearchBtn.addEventListener('click', () => {
+                const isOpen = searchDrawer.classList.contains('open');
+                closeAllDrawers();
+                if (!isOpen) {
+                    searchDrawer.classList.add('open');
+                    document.getElementById('inbook-search-input')?.focus();
+                }
+            });
+            if (closeSearchBtn) closeSearchBtn.addEventListener('click', () => searchDrawer.classList.remove('open'));
+
+            const toggleBmBtn = document.getElementById('btn-toggle-bookmarks');
+            const closeBmBtn  = document.getElementById('btn-close-bookmarks');
+            const bmDrawer    = document.getElementById('bookmarks-drawer');
+            if (toggleBmBtn) toggleBmBtn.addEventListener('click', () => {
+                const isOpen = bmDrawer.classList.contains('open');
+                closeAllDrawers();
+                if (!isOpen) bmDrawer.classList.add('open');
+            });
+            if (closeBmBtn) closeBmBtn.addEventListener('click', () => bmDrawer.classList.remove('open'));
+
+            // Safety Fallback: Hide loader after 5s max so it NEVER hangs forever
+            const safetyTimeout = setTimeout(() => {
+                if (loader && loader.style.display !== 'none') {
+                    loader.style.display = 'none';
+                }
+            }, 5000);
+
+            // =========================================================================
+            // BINARY SNIFFING & IN-MEMORY ENGINE INITIALIZER
+            // =========================================================================
+            fetch(streamUrl, { credentials: 'same-origin' })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('সার্ভার থেকে ফাইল লোড করা যায়নি (HTTP ' + response.status + ')');
+                    }
+                    return response.arrayBuffer();
+                })
+                .then(arrayBuffer => {
+                    if (!arrayBuffer || arrayBuffer.byteLength < 4) {
+                        throw new Error('ই-বুক ফাইলটি শূন্য বা অসম্পূর্ণ।');
+                    }
+
+                    const bytes = new Uint8Array(arrayBuffer.slice(0, 4));
+                    const isZipOrEpub = bytes[0] === 0x50 && bytes[1] === 0x4B; // PK (ZIP/EPUB)
+                    const isPdf = bytes[0] === 0x25 && bytes[1] === 0x50 && bytes[2] === 0x44 && bytes[3] === 0x46; // %PDF
+
+                    if (isZipOrEpub || typeof pdfjsLib === 'undefined') {
+                        initEpubReader(arrayBuffer);
+                    } else if (isPdf) {
+                        initPdfReader(arrayBuffer);
+                    } else {
+                        // Default to EPUB engine
+                        initEpubReader(arrayBuffer);
+                    }
+                })
+                .catch(err => {
+                    clearTimeout(safetyTimeout);
+                    console.error("Reader streaming error:", err);
+                    if (loader) {
+                        loader.innerHTML = `
+                            <div class="text-danger fs-1 mb-2"><i class="fa-solid fa-circle-exclamation"></i></div>
+                            <h5 class="fw-bold text-dark mb-1">ই-বুক লোড করতে সাময়িক সমস্যা হয়েছে</h5>
+                            <p class="text-muted small mb-3">${err.message || 'ফাইলটি সুরক্ষিত রিডারে প্রস্তুত করা যায়নি।'}</p>
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-primary btn-sm rounded-pill px-3" onclick="window.location.reload()">
+                                    <i class="fa-solid fa-rotate-right me-1"></i> পুনরায় চেষ্টা করুন
+                                </button>
+                                <a href="{{ route('ebook.show', $ebook->slug) }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                                    ই-বুক পেজে ফিরুন
+                                </a>
+                            </div>
+                        `;
+                    }
+                });
+
+            // ─────────────────────────────────────────────────────────────────────────
+            // 1. EPUB READER ENGINE (IN-MEMORY JSZIP / EPUB.JS)
+            // ─────────────────────────────────────────────────────────────────────────
+            function initEpubReader(buffer) {
                 try {
                     const isMobile = window.innerWidth < 768;
                     let currentFlow = 'paginated';
@@ -796,7 +774,7 @@
                         else viewerWrapper.classList.remove('dual-spread-active');
                     }
 
-                    const book = ePub(streamUrl);
+                    const book = ePub(buffer);
                     window.book = book;
 
                     const rendition = book.renderTo("epub-viewer", {
@@ -864,11 +842,6 @@
                                 head.appendChild(style);
                             }
 
-                            // Convert Bijoy to Unicode
-                            if (doc.body) {
-                                processBijoyElements(doc.body);
-                            }
-
                             // DRM inside iframe
                             doc.addEventListener('contextmenu', e => e.preventDefault());
                             doc.addEventListener('copy', function(e) {
@@ -883,7 +856,6 @@
                             });
 
                             // Text Selection for Highlighting
-                            contents.window.getSelection();
                             doc.addEventListener('mouseup', function(e) {
                                 const sel = contents.window.getSelection();
                                 if (sel && !sel.isCollapsed && sel.toString().trim().length > 0) {
@@ -935,7 +907,7 @@
                         });
                     });
 
-                    document.getElementById('hl-remove-btn').addEventListener('click', function() {
+                    document.getElementById('hl-remove-btn')?.addEventListener('click', function() {
                         const contents = rendition.getContents();
                         if (contents && contents[0]) {
                             const sel = contents[0].window.getSelection();
@@ -949,11 +921,13 @@
                         document.getElementById('highlight-toolbar').style.display = 'none';
                     });
 
-                    // Display initial rendition
+                    // Display initial rendition immediately
                     rendition.display().then(() => {
+                        clearTimeout(safetyTimeout);
                         if (loader) loader.style.display = 'none';
                         applyTheme(document.documentElement.getAttribute('data-theme') || 'light');
                     }).catch((err) => {
+                        clearTimeout(safetyTimeout);
                         console.error("EPUB display error:", err);
                         if (loader) loader.style.display = 'none';
                     });
@@ -1043,38 +1017,42 @@
                         });
                     }
 
-                    // Location / Progress tracker & Auto-save
+                    // Background non-blocking location generator
                     book.ready.then(() => {
-                        return book.locations.generate(1000);
-                    }).then(() => {
-                        rendition.on('relocated', function(location) {
-                            currentCfi = location.start.cfi;
-                            const percent = book.locations.percentageFromCfi(currentCfi);
-                            const percentFormatted = Math.floor(percent * 100);
-                            const progressInfo = document.getElementById('progress-info');
-                            if (progressInfo) {
-                                progressInfo.textContent = percentFormatted + '% পড়া হয়েছে';
-                            }
+                        book.locations.generate(800).then(() => {
+                            rendition.on('relocated', function(location) {
+                                currentCfi = location.start.cfi;
+                                try {
+                                    const percent = book.locations.percentageFromCfi(currentCfi);
+                                    const percentFormatted = Math.floor((percent || 0) * 100);
+                                    const progressInfo = document.getElementById('progress-info');
+                                    if (progressInfo) {
+                                        progressInfo.textContent = percentFormatted + '% পড়া হয়েছে';
+                                    }
 
-                            // Save progress via AJAX
-                            fetch("{{ route('ebook.progress', $ebook->id) }}", {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'X-CSRF-TOKEN': csrfToken
-                                },
-                                body: JSON.stringify({
-                                    progress_percent: percentFormatted,
-                                    cfi: currentCfi
-                                })
-                            }).catch(() => {});
-                        });
-                    }).catch(() => {});
+                                    // Save progress via AJAX
+                                    if (csrfToken) {
+                                        fetch("{{ route('ebook.progress', $ebook->id) }}", {
+                                            method: 'POST',
+                                            headers: {
+                                                'Content-Type': 'application/json',
+                                                'X-CSRF-TOKEN': csrfToken
+                                            },
+                                            body: JSON.stringify({
+                                                progress_percent: percentFormatted,
+                                                cfi: currentCfi
+                                            })
+                                        }).catch(() => {});
+                                    }
+                                } catch(e) {}
+                            });
+                        }).catch(() => {});
+                    });
 
                     // Table of Contents
                     book.loaded.navigation.then(function(toc) {
                         const tocList = document.getElementById('toc-list');
-                        if (tocList && toc && toc.toc) {
+                        if (tocList && toc && toc.toc && toc.toc.length > 0) {
                             tocList.innerHTML = '';
                             toc.toc.forEach(function(chapter) {
                                 const li = document.createElement('li');
@@ -1092,50 +1070,12 @@
                                 li.appendChild(a);
                                 tocList.appendChild(li);
                             });
+                        } else if (tocList) {
+                            tocList.innerHTML = '<li class="p-3 text-center text-muted small">বইটিতে কোনো কাস্টম সূচিপত্র পাওয়া যায়নি।</li>';
                         }
                     });
 
-                    // Drawers Toggle Helpers
-                    function closeAllDrawers() {
-                        document.querySelectorAll('.reader-drawer').forEach(d => d.classList.remove('open'));
-                    }
-
-                    const toggleTocBtn = document.getElementById('btn-toggle-toc');
-                    const closeTocBtn  = document.getElementById('btn-close-toc');
-                    const tocDrawer    = document.getElementById('toc-drawer');
-                    if (toggleTocBtn) toggleTocBtn.addEventListener('click', () => {
-                        const isOpen = tocDrawer.classList.contains('open');
-                        closeAllDrawers();
-                        if (!isOpen) tocDrawer.classList.add('open');
-                    });
-                    if (closeTocBtn) closeTocBtn.addEventListener('click', () => tocDrawer.classList.remove('open'));
-
-                    const toggleSearchBtn = document.getElementById('btn-toggle-search');
-                    const closeSearchBtn  = document.getElementById('btn-close-search');
-                    const searchDrawer    = document.getElementById('search-drawer');
-                    if (toggleSearchBtn) toggleSearchBtn.addEventListener('click', () => {
-                        const isOpen = searchDrawer.classList.contains('open');
-                        closeAllDrawers();
-                        if (!isOpen) {
-                            searchDrawer.classList.add('open');
-                            document.getElementById('inbook-search-input').focus();
-                        }
-                    });
-                    if (closeSearchBtn) closeSearchBtn.addEventListener('click', () => searchDrawer.classList.remove('open'));
-
-                    const toggleBmBtn = document.getElementById('btn-toggle-bookmarks');
-                    const closeBmBtn  = document.getElementById('btn-close-bookmarks');
-                    const bmDrawer    = document.getElementById('bookmarks-drawer');
-                    if (toggleBmBtn) toggleBmBtn.addEventListener('click', () => {
-                        const isOpen = bmDrawer.classList.contains('open');
-                        closeAllDrawers();
-                        if (!isOpen) bmDrawer.classList.add('open');
-                    });
-                    if (closeBmBtn) closeBmBtn.addEventListener('click', () => bmDrawer.classList.remove('open'));
-
-                    // ==========================================
-                    // IN-BOOK FULL-TEXT SEARCH ENGINE
-                    // ==========================================
+                    // In-Book Search Engine
                     const searchInput = document.getElementById('inbook-search-input');
                     const searchBtn   = document.getElementById('inbook-search-btn');
                     const searchStatus = document.getElementById('search-status');
@@ -1201,14 +1141,17 @@
                         if (e.key === 'Enter') performInBookSearch();
                     });
 
-                    // ==========================================
-                    // BOOKMARK FEATURE
-                    // ==========================================
+                    // Bookmark Actions
                     const addBmBtn = document.getElementById('btn-add-bookmark');
                     if (addBmBtn) {
                         addBmBtn.addEventListener('click', function() {
                             const bmTitle = prompt('বুকমার্কের নাম বা নোট লিখুন:', 'বুকমার্ক');
                             if (bmTitle === null) return;
+
+                            if (!csrfToken) {
+                                alert('বুকমার্ক সংরক্ষণ করতে লগইন থাকা আবশ্যক।');
+                                return;
+                            }
 
                             fetch("{{ route('ebook.progress', $ebook->id) }}", {
                                 method: 'POST',
@@ -1223,7 +1166,6 @@
                             }).then(res => res.json()).then(data => {
                                 if (data.success) {
                                     alert('বুকমার্ক সফলভাবে সংরক্ষিত হয়েছে!');
-                                    // Refresh bookmark list
                                     const bmList = document.getElementById('bookmarks-list');
                                     const noMsg = document.getElementById('no-bookmarks-msg');
                                     if (noMsg) noMsg.remove();
@@ -1248,7 +1190,6 @@
                         });
                     }
 
-                    // Existing bookmark click jumps
                     document.querySelectorAll('.bookmark-entry').forEach(entry => {
                         entry.addEventListener('click', function() {
                             const cfi = this.getAttribute('data-cfi');
@@ -1260,60 +1201,72 @@
                     });
 
                 } catch(e) {
-                    console.error("EPUB Loading initialization error:", e);
+                    clearTimeout(safetyTimeout);
+                    console.error("EPUB initialization error:", e);
                     if (loader) loader.style.display = 'none';
                 }
+            }
 
-            // ==========================================
-            // PDF MODE INITIALIZATION (IF STRICTLY PDF)
-            // ==========================================
-            } else if (readerType === 'pdf' && streamUrl && typeof pdfjsLib !== 'undefined') {
-                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-                let pdfDoc = null;
-                let pageNum = 1;
-                let scale = 1.35;
-                const canvas = document.getElementById('pdfCanvas');
-                const ctx = canvas ? canvas.getContext('2d') : null;
+            // ─────────────────────────────────────────────────────────────────────────
+            // 2. PDF READER ENGINE (IN-MEMORY PDF.JS CANVAS)
+            // ─────────────────────────────────────────────────────────────────────────
+            function initPdfReader(buffer) {
+                try {
+                    document.getElementById('epub-viewer-wrapper')?.classList.add('d-none');
+                    const pdfContainer = document.getElementById('pdf-viewer-wrapper');
+                    if (pdfContainer) pdfContainer.classList.remove('d-none');
 
-                function renderPdfPage(num) {
-                    if (!pdfDoc || !canvas) return;
-                    pdfDoc.getPage(num).then(function(page) {
-                        const viewport = page.getViewport({ scale: scale });
-                        canvas.height = viewport.height;
-                        canvas.width = viewport.width;
-                        const renderContext = {
-                            canvasContext: ctx,
-                            viewport: viewport
-                        };
-                        page.render(renderContext).promise.then(() => {
-                            if (loader) loader.style.display = 'none';
-                            const progressInfo = document.getElementById('progress-info');
-                            if (progressInfo) {
-                                progressInfo.textContent = `পৃষ্ঠা ${num} / ${pdfDoc.numPages}`;
-                            }
+                    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+                    let pdfDoc = null;
+                    let pageNum = 1;
+                    let scale = 1.35;
+                    const canvas = document.getElementById('pdfCanvas');
+                    const ctx = canvas ? canvas.getContext('2d') : null;
+
+                    function renderPdfPage(num) {
+                        if (!pdfDoc || !canvas) return;
+                        pdfDoc.getPage(num).then(function(page) {
+                            const viewport = page.getViewport({ scale: scale });
+                            canvas.height = viewport.height;
+                            canvas.width = viewport.width;
+                            const renderContext = {
+                                canvasContext: ctx,
+                                viewport: viewport
+                            };
+                            page.render(renderContext).promise.then(() => {
+                                clearTimeout(safetyTimeout);
+                                if (loader) loader.style.display = 'none';
+                                const progressInfo = document.getElementById('progress-info');
+                                if (progressInfo) {
+                                    progressInfo.textContent = `পৃষ্ঠা ${num} / ${pdfDoc.numPages}`;
+                                }
+                            });
                         });
+                    }
+
+                    pdfjsLib.getDocument({ data: new Uint8Array(buffer) }).promise.then(function(doc) {
+                        pdfDoc = doc;
+                        renderPdfPage(pageNum);
+                    }).catch(function(err) {
+                        clearTimeout(safetyTimeout);
+                        console.error('PDF load error:', err);
+                        if (loader) loader.style.display = 'none';
                     });
-                }
 
-                pdfjsLib.getDocument(streamUrl).promise.then(function(doc) {
-                    pdfDoc = doc;
-                    renderPdfPage(pageNum);
-                }).catch(function(err) {
-                    console.error('PDF load error:', err);
+                    const prevPdfBtn = document.getElementById('nav-prev');
+                    const nextPdfBtn = document.getElementById('nav-next');
+                    if (prevPdfBtn) prevPdfBtn.addEventListener('click', () => {
+                        if (pageNum > 1) { pageNum--; renderPdfPage(pageNum); }
+                    });
+                    if (nextPdfBtn) nextPdfBtn.addEventListener('click', () => {
+                        if (pdfDoc && pageNum < pdfDoc.numPages) { pageNum++; renderPdfPage(pageNum); }
+                    });
+
+                } catch(e) {
+                    clearTimeout(safetyTimeout);
+                    console.error("PDF initialization error:", e);
                     if (loader) loader.style.display = 'none';
-                });
-
-                const prevPdfBtn = document.getElementById('nav-prev-pdf');
-                const nextPdfBtn = document.getElementById('nav-next-pdf');
-                if (prevPdfBtn) prevPdfBtn.addEventListener('click', () => {
-                    if (pageNum > 1) { pageNum--; renderPdfPage(pageNum); }
-                });
-                if (nextPdfBtn) nextPdfBtn.addEventListener('click', () => {
-                    if (pdfDoc && pageNum < pdfDoc.numPages) { pageNum++; renderPdfPage(pageNum); }
-                });
-
-            } else {
-                if (loader) loader.style.display = 'none';
+                }
             }
         });
     </script>

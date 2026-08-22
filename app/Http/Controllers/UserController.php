@@ -91,12 +91,16 @@ class UserController extends Controller
             'address'  => $lastOrder?->customer_address ?: ($user->reg_data['address'] ?? ''),
         ];
 
-        // 7. User's E-Book Library
+        // 7. User's E-Book Library (Strictly verified purchases and claimed free books)
         $myEbooks = collect();
         if (\Illuminate\Support\Facades\Schema::hasTable('user_ebook_library')) {
             $myEbooks = \App\Models\UserEbookLibrary::where('user_id', $user->id)
                 ->with(['ebook.author', 'ebook.category'])
                 ->where('is_active', true)
+                ->where(function ($q) {
+                    $q->where('access_type', 'purchased')
+                      ->orWhereHas('ebook', fn ($eq) => $eq->where('price', '<=', 0));
+                })
                 ->latest('id')
                 ->get();
         }
