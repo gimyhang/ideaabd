@@ -351,6 +351,21 @@ class CartController extends Controller
             auth()->user()->increment('loyalty_points', $pointsEarned);
         }
 
+        // Process e-book royalty split and user library access if applicable
+        \App\Services\RoyaltyService::processOrderRoyalties($order);
+
+        // Check if automated PGW redirection is active
+        $gwSettings = [];
+        if (Schema::hasTable('admin_dashboard_settings')) {
+            $gwRow = AdminDashboardSetting::where('key', 'payment_gateways')->first();
+            $gwSettings = $gwRow?->value ?? [];
+        }
+
+        if ($paymentMethod === 'card' && !empty($gwSettings['sslcommerz']['enabled'])) {
+            $payReq = new Request(['order_id' => $order->id]);
+            return app(PaymentController::class)->createSslcommerzPayment($payReq);
+        }
+
         $successMsg = "আপনার অর্ডারটি সফলভাবে সম্পন্ন হয়েছে! অর্ডার নম্বর: #{$order->order_number}। আমাদের প্রতিনিধি শীঘ্রই আপনার সাথে যোগাযোগ করবেন।";
 
         if ($request->expectsJson()) {

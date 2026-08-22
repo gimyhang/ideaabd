@@ -27,6 +27,12 @@ class Author extends Model
         'social_links',
         'is_verified',
         'is_active',
+        'user_id',
+        'royalty_percentage',
+        'wallet_balance',
+        'total_payout_withdrawn',
+        'payout_account_type',
+        'payout_account_details',
         'owner_name',
         'owner_phone',
         'submitted_by',
@@ -34,9 +40,12 @@ class Author extends Model
     ];
 
     protected $casts = [
-        'social_links' => 'json',
-        'is_verified'  => 'boolean',
-        'is_active'    => 'boolean',
+        'social_links'           => 'json',
+        'is_verified'            => 'boolean',
+        'is_active'              => 'boolean',
+        'royalty_percentage'     => 'decimal:2',
+        'wallet_balance'         => 'decimal:2',
+        'total_payout_withdrawn' => 'decimal:2',
     ];
 
     protected $appends = [
@@ -347,6 +356,21 @@ class Author extends Model
     public function ebooks()
     {
         return $this->hasMany(\Modules\Ebook\Models\Ebook::class, 'author_id');
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function royalties()
+    {
+        return $this->hasMany(\App\Models\AuthorRoyalty::class, 'author_id');
+    }
+
+    public function payoutRequests()
+    {
+        return $this->hasMany(\App\Models\AuthorPayoutRequest::class, 'author_id');
     }
 
     public function submissions()

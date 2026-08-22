@@ -69,6 +69,28 @@ Route::match(['get', 'post'], '/cart/checkout', function (\Illuminate\Http\Reque
 Route::post('/cart/validate-coupon', [CartController::class, 'validateCoupon'])->name('cart.validate-coupon');
 Route::post('/cart/add', fn() => back())->name('cart.add');
 Route::post('/newsletter/subscribe', fn() => back()->with('success', 'Subscribed successfully!'))->name('newsletter.subscribe');
+// --- Automated & Online Payment Gateway Routes -----------------------------
+Route::controller(\App\Http\Controllers\PaymentController::class)->group(function () {
+    // bKash PGW
+    Route::post('/payment/bkash/create', 'createBkashPayment')->name('bkash.create');
+    Route::match(['get', 'post'], '/payment/bkash/callback', 'bkashCallback')->name('bkash.callback');
+
+    // Nagad PGW
+    Route::post('/payment/nagad/create', 'createNagadPayment')->name('nagad.create');
+    Route::match(['get', 'post'], '/payment/nagad/callback', 'nagadCallback')->name('nagad.callback');
+
+    // SSLCommerz PGW
+    Route::post('/payment/sslcommerz/create', 'createSslcommerzPayment')->name('sslcommerz.create');
+    Route::post('/payment/sslcommerz/success', 'sslcommerzSuccess')->name('sslcommerz.success');
+    Route::post('/payment/sslcommerz/fail', 'sslcommerzFail')->name('sslcommerz.fail');
+    Route::post('/payment/sslcommerz/cancel', 'sslcommerzCancel')->name('sslcommerz.cancel');
+    Route::post('/payment/sslcommerz/ipn', 'sslcommerzIpn')->name('sslcommerz.ipn');
+
+    // Global Payment Result Pages
+    Route::get('/payment/success', 'success')->name('payment.success');
+    Route::get('/payment/fail', 'fail')->name('payment.fail');
+});
+
 Route::get('/webzines/archive', fn() => redirect(route('webzine.index')))->name('webzine.archive');
 
 // --- Storage Fallback Route for Live Shared Hosts & CPanel without Symlink ---
@@ -216,11 +238,28 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/company-panel/product-entry', fn() => redirect()->route('publisher.dashboard', ['tab' => 'add-book']))->name('company-panel.product-entry');
 });
 
-// --- Author Portal & Blog Management (Dashboard, Write Post, Draft, Edit, Delete) ---
+// --- E-Book DRM Web Reader & Sample Preview Routes --------------------------
+Route::get('/ebooks/{slug}/read', [\App\Http\Controllers\EbookReaderController::class, 'read'])->name('ebook.read');
+Route::get('/ebooks/{slug}/preview', [\App\Http\Controllers\EbookReaderController::class, 'preview'])->name('ebook.preview');
+Route::get('/ebooks/{id}/stream', [\App\Http\Controllers\EbookReaderController::class, 'streamPdf'])->name('ebook.stream');
+Route::post('/ebooks/{id}/progress', [\App\Http\Controllers\EbookReaderController::class, 'saveProgress'])->name('ebook.progress');
+
+// --- Author Portal (KDP Self-Publishing, Royalties, Payouts & Blogs) --------
 Route::get('/blog/write', [\App\Http\Controllers\AuthorBlogController::class, 'writeGateway'])->name('blog.write');
 
 Route::prefix('author')->name('author.')->middleware(['auth'])->group(function () {
-    Route::get('/dashboard', [\App\Http\Controllers\AuthorBlogController::class, 'dashboard'])->name('dashboard');
+    // KDP Dashboard & Sales Analytics
+    Route::get('/dashboard', [\App\Http\Controllers\Author\AuthorDashboardController::class, 'dashboard'])->name('dashboard');
+    Route::get('/royalties', [\App\Http\Controllers\Author\AuthorDashboardController::class, 'royalties'])->name('royalties');
+
+    // Self-Publishing E-Books CRUD
+    Route::resource('ebooks', \App\Http\Controllers\Author\AuthorEbookController::class);
+
+    // Royalty Payout / Withdrawal Requests
+    Route::get('/payouts', [\App\Http\Controllers\Author\AuthorPayoutController::class, 'index'])->name('payouts.index');
+    Route::post('/payouts', [\App\Http\Controllers\Author\AuthorPayoutController::class, 'storeRequest'])->name('payouts.store');
+
+    // Blog Articles Management
     Route::get('/posts/create', [\App\Http\Controllers\AuthorBlogController::class, 'createPost'])->name('posts.create');
     Route::get('/posts/{id}/edit', [\App\Http\Controllers\AuthorBlogController::class, 'editPost'])->name('posts.edit');
     Route::prefix('blog')->name('blog.')->group(function () {
@@ -234,6 +273,19 @@ Route::prefix('author')->name('author.')->middleware(['auth'])->group(function (
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/', [AdminController::class, 'index'])->name('index');
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
+
+    // E-Book Sales Report, Royalty Management & Payouts (KDP Engine)
+    Route::get('/ebook-sales-report', [\App\Http\Controllers\Admin\AuthorRoyaltyAdminController::class, 'salesReport'])->name('ebook-sales-report');
+    Route::get('/author-royalties', [\App\Http\Controllers\Admin\AuthorRoyaltyAdminController::class, 'index'])->name('author-royalties.index');
+    Route::post('/author-royalties/adjustment', [\App\Http\Controllers\Admin\AuthorRoyaltyAdminController::class, 'storeAdjustment'])->name('author-royalties.adjustment');
+    Route::get('/author-payouts', [\App\Http\Controllers\Admin\AuthorPayoutAdminController::class, 'index'])->name('author-payouts.index');
+    Route::post('/author-payouts/{payout}/process', [\App\Http\Controllers\Admin\AuthorPayoutAdminController::class, 'process'])->name('author-payouts.process');
+    Route::get('/author-payouts/{id}/receipt', [\App\Http\Controllers\Admin\AuthorRoyaltyAdminController::class, 'payoutReceipt'])->name('author-payouts.receipt');
+    Route::get('/royalty-payout-logs', [\App\Http\Controllers\Admin\GatewayReportController::class, 'royaltyPayoutLogs'])->name('royalty-payout-logs');
+
+    // Customer Payment Gateway Reports & Transaction Logs
+    Route::get('/gateway-reports', [\App\Http\Controllers\Admin\GatewayReportController::class, 'index'])->name('gateway-reports');
+
     Route::get('/users', [AdminController::class, 'users'])->name('users');
     Route::get('/books', [AdminController::class, 'books'])->name('books');
     Route::get('/categories', [AdminController::class, 'categories'])->name('categories');
@@ -246,6 +298,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::delete('/blog/{id}', [AdminController::class, 'destroyPost'])->name('blog.destroy');
     Route::get('/blog-categories', [AdminController::class, 'blogCategories'])->name('blog-categories');
     Route::get('/ebooks', [AdminController::class, 'ebooks'])->name('ebooks');
+    Route::post('/ebooks/{id}/toggle-status', [AdminController::class, 'toggleEbookStatus'])->name('ebooks.toggle-status');
+    Route::post('/ebooks/{id}/approve', [AdminController::class, 'approveEbook'])->name('ebooks.approve');
+    Route::post('/ebooks/{id}/reject', [AdminController::class, 'rejectEbook'])->name('ebooks.reject');
     Route::get('/webzines', [AdminController::class, 'webzines'])->name('webzines');
     Route::get('/authors', [AdminController::class, 'authors'])->name('authors');
     Route::post('/authors/quick-store', [AdminController::class, 'quickStoreAuthor'])->name('authors.quick-store');

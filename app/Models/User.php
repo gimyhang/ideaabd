@@ -117,4 +117,69 @@ class User extends Authenticatable
 
         return $publisher;
     }
+
+    public function authorProfile(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(\Modules\Author\Models\Author::class, 'user_id');
+    }
+
+    public function royalties(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\App\Models\AuthorRoyalty::class, 'user_id');
+    }
+
+    public function payoutRequests(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\App\Models\AuthorPayoutRequest::class, 'user_id');
+    }
+
+    public function ebookLibrary(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\App\Models\UserEbookLibrary::class, 'user_id');
+    }
+
+    public function purchasedEbooks(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(\Modules\Ebook\Models\Ebook::class, 'user_ebook_library', 'user_id', 'ebook_id')
+            ->withPivot(['access_type', 'last_read_page', 'progress_percent', 'bookmarks_data', 'is_active'])
+            ->withTimestamps();
+    }
+
+    public function getAuthorRecord(): ?\Modules\Author\Models\Author
+    {
+        $author = \Modules\Author\Models\Author::where('user_id', $this->id)->first();
+        if ($author) {
+            return $author;
+        }
+
+        $author = \Modules\Author\Models\Author::where('email', $this->email)
+            ->orWhere('phone', $this->phone)
+            ->first();
+
+        if (!$author && $this->name) {
+            $author = \Modules\Author\Models\Author::where('name', $this->name)->first();
+        }
+
+        if (!$author && $this->isAuthor()) {
+            $slug = \Illuminate\Support\Str::slug($this->name) ?: 'author-' . $this->id;
+            if (\Modules\Author\Models\Author::where('slug', $slug)->exists()) {
+                $slug .= '-' . $this->id;
+            }
+            $author = \Modules\Author\Models\Author::create([
+                'user_id'            => $this->id,
+                'name'               => $this->name,
+                'slug'               => $slug,
+                'email'              => $this->email,
+                'phone'              => $this->phone,
+                'is_active'          => true,
+                'is_verified'        => true,
+                'royalty_percentage' => 50.00,
+                'wallet_balance'     => 0.00,
+            ]);
+        } elseif ($author && empty($author->user_id)) {
+            $author->update(['user_id' => $this->id]);
+        }
+
+        return $author;
+    }
 }

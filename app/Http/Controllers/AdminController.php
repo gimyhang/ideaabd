@@ -571,8 +571,9 @@ class AdminController extends Controller
         $sort        = $request->string('sort')->trim()->value() ?: 'latest';
         $perPage     = in_array((int) $request->input('per_page'), [10, 20, 50, 100], true) ? (int) $request->input('per_page') : 20;
 
+        $modStatus   = $request->string('mod_status')->trim()->value();
         $query = \Modules\Ebook\Models\Ebook::query()
-            ->with(['category', 'publisher', 'authorLink', 'author'])
+            ->with(['category', 'publisher', 'authorLink', 'author', 'authorUser'])
             ->when($search, function ($q, $term) {
                 $searchData = $this->parseSearchKeywords($term);
                 $tokens = $searchData['tokens'];
@@ -625,6 +626,7 @@ class AdminController extends Controller
             })
             ->when($priceType === 'free', fn ($q) => $q->where(fn($sq) => $sq->whereNull('price')->orWhere('price', '<=', 0)))
             ->when($priceType === 'paid', fn ($q) => $q->whereNotNull('price')->where('price', '>', 0))
+            ->when($modStatus !== '', fn ($q) => $q->where('mod_status', $modStatus))
             ->when($status !== null && $status !== '', fn ($q) => $q->where('is_active', (bool) $status));
 
         match ($sort) {
@@ -657,13 +659,63 @@ class AdminController extends Controller
         $publishers = \Modules\Publisher\Models\Publisher::whereNull('deleted_at')->orderBy('name')->pluck('name', 'id')->all();
 
         $stats = [
-            'total'  => \Modules\Ebook\Models\Ebook::count(),
-            'active' => \Modules\Ebook\Models\Ebook::where('is_active', true)->count(),
-            'free'   => \Modules\Ebook\Models\Ebook::where(fn($q) => $q->whereNull('price')->orWhere('price', '<=', 0))->count(),
-            'paid'   => \Modules\Ebook\Models\Ebook::whereNotNull('price')->where('price', '>', 0)->count(),
+            'total'       => \Modules\Ebook\Models\Ebook::count(),
+            'active'      => \Modules\Ebook\Models\Ebook::where('is_active', true)->count(),
+            'pending'     => \Modules\Ebook\Models\Ebook::where('mod_status', 'pending')->count(),
+            'free'        => \Modules\Ebook\Models\Ebook::where(fn($q) => $q->whereNull('price')->orWhere('price', '<=', 0))->count(),
+            'paid'        => \Modules\Ebook\Models\Ebook::whereNotNull('price')->where('price', '>', 0)->count(),
+            'total_sales' => \Modules\Ebook\Models\Ebook::sum('sales_count'),
         ];
 
         return view('admin.ebooks', compact('ebooks', 'categories', 'publishers', 'authors', 'stats', 'sort', 'perPage'));
+    }
+
+    public function toggleEbookStatus(Request $request, int $id): \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
+    {
+        $ebook = \Modules\Ebook\Models\Ebook::findOrFail($id);
+        $ebook->is_active = !$ebook->is_active;
+        $ebook->save();
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success'   => true,
+                'is_active' => $ebook->is_active,
+                'message'   => $ebook->is_active ? 'ই-বুকটি লাইভ স্টোরে দৃশ্যমান করা হয়েছে।' : 'ই-বুকটি ড্রাফট মোডে নেওয়া হয়েছে।',
+            ]);
+        }
+
+        return back()->with('success', 'ই-বুক স্ট্যাটাস সফলভাবে পরিবর্তন করা হয়েছে।');
+    }
+
+    public function approveEbook(Request $request, int $id): \Illuminate\Http\RedirectResponse
+    {
+        $ebook = \Modules\Ebook\Models\Ebook::findOrFail($id);
+        $ebook->update([
+            'mod_status'  => 'approved',
+            'is_active'   => true,
+            'reviewed_by' => auth()->id(),
+            'reviewed_at' => now(),
+        ]);
+
+        return back()->with('success', "‘{$ebook->title}’ ই-বুকটি অনুমোদিত ও লাইভ স্টোরে প্রকাশিত হয়েছে!");
+    }
+
+    public function rejectEbook(Request $request, int $id): \Illuminate\Http\RedirectResponse
+    {
+        $request->validate([
+            'rejection_reason' => 'required|string|max:500',
+        ]);
+
+        $ebook = \Modules\Ebook\Models\Ebook::findOrFail($id);
+        $ebook->update([
+            'mod_status'       => 'rejected',
+            'is_active'        => false,
+            'rejection_reason' => $request->rejection_reason,
+            'reviewed_by'      => auth()->id(),
+            'reviewed_at'      => now(),
+        ]);
+
+        return back()->with('success', "‘{$ebook->title}’ বইটি সংশোধনের জন্য লেখকের কাছে ফেরত পাঠানো হয়েছে।");
     }
 
     public function categories(Request $request): View

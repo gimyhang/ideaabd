@@ -68,6 +68,12 @@ class Ebook extends Model
         'read_count',
         'is_active',
         'mod_status',
+        'author_user_id',
+        'royalty_percentage',
+        'drm_enabled',
+        'is_preorder',
+        'preorder_release_date',
+        'preview_page_limit',
         'owner_name',
         'owner_phone',
         'submitted_by',
@@ -81,14 +87,19 @@ class Ebook extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'price' => 'decimal:2',
-        'discount_price' => 'decimal:2',
-        'pages' => 'integer',
-        'preview_pages' => 'integer',
-        'sales_count' => 'integer',
-        'download_count' => 'integer',
-        'read_count' => 'integer',
-        'is_active' => 'boolean',
+        'price'                 => 'decimal:2',
+        'discount_price'        => 'decimal:2',
+        'royalty_percentage'    => 'decimal:2',
+        'pages'                 => 'integer',
+        'preview_pages'         => 'integer',
+        'preview_page_limit'    => 'integer',
+        'sales_count'           => 'integer',
+        'download_count'        => 'integer',
+        'read_count'            => 'integer',
+        'is_active'             => 'boolean',
+        'drm_enabled'           => 'boolean',
+        'is_preorder'           => 'boolean',
+        'preorder_release_date' => 'date',
     ];
 
     protected static function booted()
@@ -278,5 +289,25 @@ class Ebook extends Model
         if ($hasEpub && $hasPdf) return 'EPUB + PDF';
         if ($hasEpub) return 'EPUB';
         return 'PDF';
+    }
+
+    public function authorUser()
+    {
+        return $this->belongsTo(\App\Models\User::class, 'author_user_id');
+    }
+
+    public function royalties()
+    {
+        return $this->hasMany(\App\Models\AuthorRoyalty::class, 'ebook_id');
+    }
+
+    public function libraryEntries()
+    {
+        return $this->hasMany(\App\Models\UserEbookLibrary::class, 'ebook_id');
+    }
+
+    public function readers()
+    {
+        return $this->belongsToMany(\App\Models\User::class, 'user_ebook_library', 'ebook_id', 'user_id');
     }
 }

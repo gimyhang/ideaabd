@@ -112,8 +112,8 @@
                                         <div class="d-flex align-items-center gap-2">
                                             <span class="badge text-white px-2.5 py-1 fw-bold" style="background:#d82a6f;">bKash</span>
                                             <div>
-                                                <h6 class="mb-0 fw-bold text-dark">bKash</h6>
-                                                <small class="text-muted" style="font-size: 11px;">Mobile Financial Service</small>
+                                                <h6 class="mb-0 fw-bold text-dark">bKash (বিকাশ)</h6>
+                                                <small class="text-muted" style="font-size: 11px;">MFS & Automated PGW</small>
                                             </div>
                                         </div>
                                         <div class="form-check form-switch mb-0">
@@ -125,20 +125,67 @@
                                     </div>
                                     <div>
                                         <div class="mb-3">
-                                            <label class="form-label small fw-semibold text-muted">bKash Number (Personal / Merchant)</label>
-                                            <input type="text" class="form-control form-control-sm rounded-3 font-monospace" name="payment_gateways[bkash][number]" 
-                                                   value="{{ $paymentGateways['bkash']['number'] ?? '01558712810' }}" placeholder="01XXXXXXXXX">
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label small fw-semibold text-muted">Account Type</label>
-                                            <select class="form-select form-select-sm rounded-3" name="payment_gateways[bkash][type]">
-                                                <option value="personal" @selected(($paymentGateways['bkash']['type'] ?? '') === 'personal')>Personal (Send Money)</option>
-                                                <option value="merchant" @selected(($paymentGateways['bkash']['type'] ?? '') === 'merchant')>Merchant (Payment)</option>
+                                            <label class="form-label small fw-bold text-dark mb-1">
+                                                <i class="fas fa-toggle-on text-primary me-1"></i> পেমেন্ট মেথড মোড (Payment Mode)
+                                            </label>
+                                            <select class="form-select form-select-sm rounded-3 fw-semibold" name="payment_gateways[bkash][mode]" id="bkash_mode_select" onchange="toggleBkashMode(this.value)">
+                                                <option value="manual" @selected(($paymentGateways['bkash']['mode'] ?? 'manual') === 'manual')>
+                                                    পদ্ধতি ১: ম্যানুয়াল (Send Money / TrxID যাচাই)
+                                                </option>
+                                                <option value="automated" @selected(($paymentGateways['bkash']['mode'] ?? '') === 'automated')>
+                                                    পদ্ধতি ২: অটোমেটেড (Direct bKash Tokenized API)
+                                                </option>
                                             </select>
                                         </div>
-                                        <div>
-                                            <label class="form-label small fw-semibold text-muted">Customer Instructions</label>
-                                            <textarea class="form-control form-control-sm rounded-3" name="payment_gateways[bkash][instructions]" rows="2">{{ $paymentGateways['bkash']['instructions'] ?? 'Use Send Money in bKash app to transfer bill total to the provided number.' }}</textarea>
+
+                                        {{-- Method 1 Settings --}}
+                                        <div id="bkash_manual_section" class="{{ ($paymentGateways['bkash']['mode'] ?? 'manual') === 'automated' ? 'd-none' : '' }}">
+                                            <div class="mb-2.5">
+                                                <label class="form-label small fw-semibold text-muted mb-1">বিকাশ নম্বর (Personal / Merchant)</label>
+                                                <input type="text" class="form-control form-control-sm rounded-3 font-monospace" name="payment_gateways[bkash][number]" 
+                                                       value="{{ $paymentGateways['bkash']['number'] ?? '01558712810' }}" placeholder="01XXXXXXXXX">
+                                            </div>
+                                            <div class="mb-2.5">
+                                                <label class="form-label small fw-semibold text-muted mb-1">অ্যাকাউন্ট টাইপ</label>
+                                                <select class="form-select form-select-sm rounded-3" name="payment_gateways[bkash][type]">
+                                                    <option value="personal" @selected(($paymentGateways['bkash']['type'] ?? '') === 'personal')>Personal (Send Money)</option>
+                                                    <option value="merchant" @selected(($paymentGateways['bkash']['type'] ?? '') === 'merchant')>Merchant (Payment)</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-2">
+                                                <label class="form-label small fw-semibold text-muted mb-1">কাস্টমার নির্দেশনা</label>
+                                                <textarea class="form-control form-control-sm rounded-3" name="payment_gateways[bkash][instructions]" rows="2">{{ $paymentGateways['bkash']['instructions'] ?? 'বিকাশ অ্যাপে Send Money করে ট্রানজ্যাকশন আইডি (TrxID) নিচে প্রদান করুন।' }}</textarea>
+                                            </div>
+                                        </div>
+
+                                        {{-- Method 2 API Settings --}}
+                                        <div id="bkash_automated_section" class="p-2.5 bg-white rounded-3 border {{ ($paymentGateways['bkash']['mode'] ?? 'manual') === 'automated' ? '' : 'd-none' }}">
+                                            <div class="small fw-bold text-primary mb-2"><i class="fas fa-key me-1"></i> bKash PGW API Credentials</div>
+                                            <div class="mb-2">
+                                                <label class="form-label small text-muted mb-0.5" style="font-size: 11px;">App Key</label>
+                                                <input type="text" class="form-control form-control-sm rounded-3 font-monospace" name="payment_gateways[bkash][app_key]" value="{{ $paymentGateways['bkash']['app_key'] ?? '' }}" placeholder="App Key">
+                                            </div>
+                                            <div class="mb-2">
+                                                <label class="form-label small text-muted mb-0.5" style="font-size: 11px;">App Secret</label>
+                                                <input type="password" class="form-control form-control-sm rounded-3 font-monospace" name="payment_gateways[bkash][app_secret]" value="{{ $paymentGateways['bkash']['app_secret'] ?? '' }}" placeholder="••••••••••••">
+                                            </div>
+                                            <div class="row g-2 mb-2">
+                                                <div class="col-6">
+                                                    <label class="form-label small text-muted mb-0.5" style="font-size: 11px;">Username</label>
+                                                    <input type="text" class="form-control form-control-sm rounded-3 font-monospace" name="payment_gateways[bkash][username]" value="{{ $paymentGateways['bkash']['username'] ?? '' }}" placeholder="Username">
+                                                </div>
+                                                <div class="col-6">
+                                                    <label class="form-label small text-muted mb-0.5" style="font-size: 11px;">Password</label>
+                                                    <input type="password" class="form-control form-control-sm rounded-3 font-monospace" name="payment_gateways[bkash][password]" value="{{ $paymentGateways['bkash']['password'] ?? '' }}" placeholder="••••••••">
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label class="form-label small text-muted mb-0.5" style="font-size: 11px;">Environment</label>
+                                                <select class="form-select form-select-sm rounded-3" name="payment_gateways[bkash][sandbox]">
+                                                    <option value="0" @selected(($paymentGateways['bkash']['sandbox'] ?? '0') === '0')>Live / Production</option>
+                                                    <option value="1" @selected(($paymentGateways['bkash']['sandbox'] ?? '') === '1')>Sandbox / Testing</option>
+                                                </select>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -151,8 +198,8 @@
                                         <div class="d-flex align-items-center gap-2">
                                             <span class="badge text-white px-2.5 py-1 fw-bold" style="background:#e8590c;">Nagad</span>
                                             <div>
-                                                <h6 class="mb-0 fw-bold text-dark">Nagad</h6>
-                                                <small class="text-muted" style="font-size: 11px;">Mobile Financial Service</small>
+                                                <h6 class="mb-0 fw-bold text-dark">Nagad (নগদ)</h6>
+                                                <small class="text-muted" style="font-size: 11px;">MFS & Automated PGW</small>
                                             </div>
                                         </div>
                                         <div class="form-check form-switch mb-0">
@@ -164,20 +211,65 @@
                                     </div>
                                     <div>
                                         <div class="mb-3">
-                                            <label class="form-label small fw-semibold text-muted">Nagad Number (Personal / Merchant)</label>
-                                            <input type="text" class="form-control form-control-sm rounded-3 font-monospace" name="payment_gateways[nagad][number]" 
-                                                   value="{{ $paymentGateways['nagad']['number'] ?? '01558712810' }}" placeholder="01XXXXXXXXX">
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label small fw-semibold text-muted">Account Type</label>
-                                            <select class="form-select form-select-sm rounded-3" name="payment_gateways[nagad][type]">
-                                                <option value="personal" @selected(($paymentGateways['nagad']['type'] ?? '') === 'personal')>Personal (Send Money)</option>
-                                                <option value="merchant" @selected(($paymentGateways['nagad']['type'] ?? '') === 'merchant')>Merchant (Payment)</option>
+                                            <label class="form-label small fw-bold text-dark mb-1">
+                                                <i class="fas fa-toggle-on text-primary me-1"></i> পেমেন্ট মেথড মোড (Payment Mode)
+                                            </label>
+                                            <select class="form-select form-select-sm rounded-3 fw-semibold" name="payment_gateways[nagad][mode]" id="nagad_mode_select" onchange="toggleNagadMode(this.value)">
+                                                <option value="manual" @selected(($paymentGateways['nagad']['mode'] ?? 'manual') === 'manual')>
+                                                    পদ্ধতি ১: ম্যানুয়াল (Send Money / TrxID যাচাই)
+                                                </option>
+                                                <option value="automated" @selected(($paymentGateways['nagad']['mode'] ?? '') === 'automated')>
+                                                    পদ্ধতি ২: অটোমেটেড (Direct Nagad PGW API)
+                                                </option>
                                             </select>
                                         </div>
-                                        <div>
-                                            <label class="form-label small fw-semibold text-muted">Customer Instructions</label>
-                                            <textarea class="form-control form-control-sm rounded-3" name="payment_gateways[nagad][instructions]" rows="2">{{ $paymentGateways['nagad']['instructions'] ?? 'Use Send Money in Nagad app to transfer bill total to the provided number.' }}</textarea>
+
+                                        {{-- Method 1 Settings --}}
+                                        <div id="nagad_manual_section" class="{{ ($paymentGateways['nagad']['mode'] ?? 'manual') === 'automated' ? 'd-none' : '' }}">
+                                            <div class="mb-2.5">
+                                                <label class="form-label small fw-semibold text-muted mb-1">নগদ নম্বর (Personal / Merchant)</label>
+                                                <input type="text" class="form-control form-control-sm rounded-3 font-monospace" name="payment_gateways[nagad][number]" 
+                                                       value="{{ $paymentGateways['nagad']['number'] ?? '01558712810' }}" placeholder="01XXXXXXXXX">
+                                            </div>
+                                            <div class="mb-2.5">
+                                                <label class="form-label small fw-semibold text-muted mb-1">অ্যাকাউন্ট টাইপ</label>
+                                                <select class="form-select form-select-sm rounded-3" name="payment_gateways[nagad][type]">
+                                                    <option value="personal" @selected(($paymentGateways['nagad']['type'] ?? '') === 'personal')>Personal (Send Money)</option>
+                                                    <option value="merchant" @selected(($paymentGateways['nagad']['type'] ?? '') === 'merchant')>Merchant (Payment)</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-2">
+                                                <label class="form-label small fw-semibold text-muted mb-1">কাস্টমার নির্দেশনা</label>
+                                                <textarea class="form-control form-control-sm rounded-3" name="payment_gateways[nagad][instructions]" rows="2">{{ $paymentGateways['nagad']['instructions'] ?? 'নগদ অ্যাপে Send Money করে ট্রানজ্যাকশন আইডি (TrxID) নিচে প্রদান করুন।' }}</textarea>
+                                            </div>
+                                        </div>
+
+                                        {{-- Method 2 API Settings --}}
+                                        <div id="nagad_automated_section" class="p-2.5 bg-white rounded-3 border {{ ($paymentGateways['nagad']['mode'] ?? 'manual') === 'automated' ? '' : 'd-none' }}">
+                                            <div class="small fw-bold text-warning mb-2"><i class="fas fa-key me-1"></i> Nagad PGW API Credentials</div>
+                                            <div class="mb-2">
+                                                <label class="form-label small text-muted mb-0.5" style="font-size: 11px;">Merchant ID</label>
+                                                <input type="text" class="form-control form-control-sm rounded-3 font-monospace" name="payment_gateways[nagad][merchant_id]" value="{{ $paymentGateways['nagad']['merchant_id'] ?? '' }}" placeholder="Merchant ID">
+                                            </div>
+                                            <div class="mb-2">
+                                                <label class="form-label small text-muted mb-0.5" style="font-size: 11px;">Merchant Number</label>
+                                                <input type="text" class="form-control form-control-sm rounded-3 font-monospace" name="payment_gateways[nagad][merchant_number]" value="{{ $paymentGateways['nagad']['merchant_number'] ?? '' }}" placeholder="01XXXXXXXXX">
+                                            </div>
+                                            <div class="mb-2">
+                                                <label class="form-label small text-muted mb-0.5" style="font-size: 11px;">Public Key</label>
+                                                <textarea class="form-control form-control-sm rounded-3 font-monospace" rows="2" name="payment_gateways[nagad][public_key]" placeholder="-----BEGIN PUBLIC KEY...">{{ $paymentGateways['nagad']['public_key'] ?? '' }}</textarea>
+                                            </div>
+                                            <div class="mb-2">
+                                                <label class="form-label small text-muted mb-0.5" style="font-size: 11px;">Private Key</label>
+                                                <textarea class="form-control form-control-sm rounded-3 font-monospace" rows="2" name="payment_gateways[nagad][private_key]" placeholder="-----BEGIN RSA PRIVATE KEY...">{{ $paymentGateways['nagad']['private_key'] ?? '' }}</textarea>
+                                            </div>
+                                            <div>
+                                                <label class="form-label small text-muted mb-0.5" style="font-size: 11px;">Environment</label>
+                                                <select class="form-select form-select-sm rounded-3" name="payment_gateways[nagad][sandbox]">
+                                                    <option value="0" @selected(($paymentGateways['nagad']['sandbox'] ?? '0') === '0')>Live / Production</option>
+                                                    <option value="1" @selected(($paymentGateways['nagad']['sandbox'] ?? '') === '1')>Sandbox / Testing</option>
+                                                </select>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -291,6 +383,49 @@
                                                 <label class="form-label small fw-semibold text-muted">Routing Number</label>
                                                 <input type="text" class="form-control form-control-sm rounded-3 font-monospace" name="payment_gateways[bank][routing]" 
                                                        value="{{ $paymentGateways['bank']['routing'] ?? '125XXXXXXXX' }}">
+                                            </div>
+                                        </div>
+                                    </div>
+                            <!-- 6. SSLCommerz / Online Gateway (Visa, Master, Amex, MFS) -->
+                            <div class="col-12">
+                                <div class="adm-card bg-light rounded-4 border p-3">
+                                    <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="badge bg-dark text-white"><i class="fas fa-credit-card"></i></span>
+                                            <div>
+                                                <h6 class="mb-0 fw-bold text-dark">SSLCommerz / Online Payment Gateway</h6>
+                                                <small class="text-muted" style="font-size: 11px;">Automated Online Cards (Visa / Mastercard / Amex) & Internet Banking</small>
+                                            </div>
+                                        </div>
+                                        <div class="form-check form-switch mb-0">
+                                            <input type="hidden" name="payment_gateways[sslcommerz][enabled]" value="0">
+                                            <input class="form-check-input" type="checkbox" role="switch" id="gw_sslcommerz_enabled" 
+                                                   name="payment_gateways[sslcommerz][enabled]" value="1" 
+                                                   @checked(!empty($paymentGateways['sslcommerz']['enabled']))>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="row g-3">
+                                            <div class="col-12 col-md-4">
+                                                <label class="form-label small fw-semibold text-muted">Store ID</label>
+                                                <input type="text" class="form-control form-control-sm rounded-3 font-monospace" name="payment_gateways[sslcommerz][store_id]" 
+                                                       value="{{ $paymentGateways['sslcommerz']['store_id'] ?? '' }}" placeholder="e.g. ideaprokashon_live">
+                                            </div>
+                                            <div class="col-12 col-md-4">
+                                                <label class="form-label small fw-semibold text-muted">Store Password / Secret Key</label>
+                                                <input type="password" class="form-control form-control-sm rounded-3 font-monospace" name="payment_gateways[sslcommerz][store_passwd]" 
+                                                       value="{{ $paymentGateways['sslcommerz']['store_passwd'] ?? '' }}" placeholder="••••••••••••">
+                                            </div>
+                                            <div class="col-12 col-md-4">
+                                                <label class="form-label small fw-semibold text-muted">Environment Mode</label>
+                                                <select class="form-select form-select-sm rounded-3" name="payment_gateways[sslcommerz][sandbox]">
+                                                    <option value="0" @selected(($paymentGateways['sslcommerz']['sandbox'] ?? '0') === '0')>Live / Production</option>
+                                                    <option value="1" @selected(($paymentGateways['sslcommerz']['sandbox'] ?? '') === '1')>Sandbox / Test Mode</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-12">
+                                                <label class="form-label small fw-semibold text-muted">Customer Instructions</label>
+                                                <textarea class="form-control form-control-sm rounded-3" name="payment_gateways[sslcommerz][instructions]" rows="2">{{ $paymentGateways['sslcommerz']['instructions'] ?? 'Pay securely via Debit/Credit Card, Internet Banking or Mobile Wallets through SSLCommerz.' }}</textarea>
                                             </div>
                                         </div>
                                     </div>
@@ -488,6 +623,30 @@
 
 @push('scripts')
 <script>
+    function toggleBkashMode(val) {
+        const manualSec = document.getElementById('bkash_manual_section');
+        const autoSec = document.getElementById('bkash_automated_section');
+        if (val === 'automated') {
+            manualSec?.classList.add('d-none');
+            autoSec?.classList.remove('d-none');
+        } else {
+            manualSec?.classList.remove('d-none');
+            autoSec?.classList.add('d-none');
+        }
+    }
+
+    function toggleNagadMode(val) {
+        const manualSec = document.getElementById('nagad_manual_section');
+        const autoSec = document.getElementById('nagad_automated_section');
+        if (val === 'automated') {
+            manualSec?.classList.add('d-none');
+            autoSec?.classList.remove('d-none');
+        } else {
+            manualSec?.classList.remove('d-none');
+            autoSec?.classList.add('d-none');
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('tab') === 'trx' || urlParams.get('page') || urlParams.get('search') || urlParams.get('method') || urlParams.get('status')) {

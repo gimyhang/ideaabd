@@ -14,6 +14,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->validateCsrfTokens(except: [
             'payment/bkash/callback',
             'payment/nagad/callback',
+            'payment/sslcommerz/success',
+            'payment/sslcommerz/fail',
+            'payment/sslcommerz/cancel',
+            'payment/sslcommerz/ipn',
         ]);
         
         $middleware->web(append: [

@@ -118,6 +118,8 @@ class PaymentController extends Controller
                         'amount'   => $resData['amount'],
                     ]);
 
+                    \App\Services\RoyaltyService::processOrderRoyalties($order);
+
                     return redirect()->route('payment.success')->with('message', 'বিকাশ পেমেন্ট সফল হয়েছে!');
                 }
             } catch (Exception $e) {
@@ -191,7 +193,8 @@ class PaymentController extends Controller
 
             if ($order) {
                 $order->update([
-                    'status'         => 'paid',
+                    'payment_status' => 'paid',
+                    'status'         => 'processing',
                     'transaction_id' => $request->input('payment_ref_id'),
                 ]);
 
@@ -200,16 +203,180 @@ class PaymentController extends Controller
                     'trx_id'   => $request->input('payment_ref_id'),
                 ]);
 
-                return redirect()->route('payment.success')->with('message', 'নগদ পেমেন্ট সফল হয়েছে!');
+                \App\Services\RoyaltyService::processOrderRoyalties($order);
+
+                return redirect()->route('payment.success')->with([
+                    'message'      => 'নগদ পেমেন্ট সফল হয়েছে!',
+                    'order_number' => $order->order_number,
+                ]);
             }
         }
 
-        return redirect()->route('payment.fail')->with('error', 'নগদ পেমেন্ট ব্যর্থ হয়েছে।');
+        return redirect()->route('payment.fail')->with('error', 'নগদ পেমেন্ট ব্যর্থ বা বাতিল করা হয়েছে।');
     }
 
 
     /* =========================================================================
-     | ৩. সার্বজনীন রেসপন্স ভিউ
+     | ৩. এসএসএলকমার্জ (SSLCommerz Automated Cards & Banking Gateway)
+     | ========================================================================= */
+
+    /**
+     * Get SSLCommerz configuration from DB settings or config
+     */
+    private function getSslcommerzConfig(): array
+    {
+        $settings = [];
+        if (\Illuminate\Support\Facades\Schema::hasTable('admin_dashboard_settings')) {
+            $row = \App\Models\AdminDashboardSetting::where('key', 'payment_gateways')->first();
+            $settings = $row?->value['sslcommerz'] ?? [];
+        }
+
+        $isSandbox = ($settings['sandbox'] ?? env('SSLCOMMERZ_SANDBOX', true)) == '1' || ($settings['sandbox'] ?? env('SSLCOMMERZ_SANDBOX', true)) === true;
+        
+        return [
+            'store_id'     => $settings['store_id'] ?? env('SSLCOMMERZ_STORE_ID', ''),
+            'store_passwd' => $settings['store_passwd'] ?? env('SSLCOMMERZ_STORE_PASSWORD', ''),
+            'sandbox'      => $isSandbox,
+            'api_url'      => $isSandbox
+                ? 'https://sandbox.sslcommerz.com/gwprocess/v4/api.php'
+                : 'https://securepay.sslcommerz.com/gwprocess/v4/api.php',
+            'validate_url' => $isSandbox
+                ? 'https://sandbox.sslcommerz.com/validator/api/validationserverAPI.php'
+                : 'https://securepay.sslcommerz.com/validator/api/validationserverAPI.php',
+        ];
+    }
+
+    /**
+     * SSLCommerz পেমেন্ট ইনিশিয়েট করে গেটওয়ে ইউআরএলে রিডাইরেক্ট করে
+     */
+    public function createSslcommerzPayment(Request $request)
+    {
+        $request->validate([
+            'order_id' => 'required|exists:orders,id',
+        ]);
+
+        $order = Order::findOrFail($request->order_id);
+        $config = $this->getSslcommerzConfig();
+
+        if (empty($config['store_id']) || empty($config['store_passwd'])) {
+            return back()->with('error', 'SSLCommerz পেমেন্ট গেটওয়ে কনফিগারেশন সেট করা নেই। অ্যাডমিন প্যানেল থেকে কনফিগার করুন।');
+        }
+
+        $postData = [
+            'store_id'         => $config['store_id'],
+            'store_passwd'     => $config['store_passwd'],
+            'total_amount'     => number_format($order->total_amount, 2, '.', ''),
+            'currency'         => 'BDT',
+            'tran_id'          => $order->order_number ?? ('IDP-' . $order->id . '-' . time()),
+            'success_url'      => route('sslcommerz.success'),
+            'fail_url'         => route('sslcommerz.fail'),
+            'cancel_url'       => route('sslcommerz.cancel'),
+            'ipn_url'          => route('sslcommerz.ipn'),
+            
+            // Customer Information
+            'cus_name'         => $order->customer_name ?? 'Customer',
+            'cus_email'        => $order->customer_email ?? 'customer@ideaabd.com',
+            'cus_add1'         => $order->customer_address ?? 'Bangladesh',
+            'cus_city'         => $order->district_label ?? 'Dhaka',
+            'cus_country'      => 'Bangladesh',
+            'cus_phone'        => $order->customer_phone ?? '01700000000',
+
+            // Shipment Information
+            'shipping_method'  => 'Courier',
+            'num_of_item'      => $order->quantity ?? 1,
+            'product_name'     => $order->book->title ?? 'Idea Publication Books',
+            'product_category' => 'Books',
+            'product_profile'  => 'physical-goods',
+        ];
+
+        try {
+            $response = Http::asForm()->post($config['api_url'], $postData);
+            $sslcz = $response->json();
+
+            if (!empty($sslcz['GatewayPageURL'])) {
+                $order->update(['payment_id' => $postData['tran_id']]);
+                return redirect()->away($sslcz['GatewayPageURL']);
+            }
+
+            return back()->with('error', 'SSLCommerz সেশন তৈরিতে সমস্যা হয়েছে: ' . ($sslcz['failedreason'] ?? 'Please try again later.'));
+
+        } catch (Exception $e) {
+            Log::channel('json')->error('SSLCommerz Initialization Exception', ['error' => $e->getMessage()]);
+            return back()->with('error', 'অনলাইন পেমেন্ট গেটওয়ে চালু করা যায়নি: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * SSLCommerz পেমেন্ট সফল হওয়ার পর হ্যান্ডলার
+     */
+    public function sslcommerzSuccess(Request $request)
+    {
+        $tran_id = $request->input('tran_id');
+        $val_id = $request->input('val_id');
+        $amount = $request->input('amount');
+        $card_type = $request->input('card_type');
+
+        $order = Order::where('order_number', $tran_id)->orWhere('payment_id', $tran_id)->first();
+
+        if ($order) {
+            $order->update([
+                'payment_status' => 'paid',
+                'status'         => 'processing',
+                'payment_method' => 'card',
+                'transaction_id' => $val_id ?? $request->input('bank_tran_id', $tran_id),
+                'admin_notes'    => trim(($order->admin_notes ?? '') . " | Card: {$card_type}"),
+            ]);
+
+            \App\Services\RoyaltyService::processOrderRoyalties($order);
+
+            return redirect()->route('payment.success')->with([
+                'message'      => "আপনার কার্ড/অনলাইন পেমেন্টটি সফল হয়েছে! (পদ্ধতি: {$card_type})",
+                'order_number' => $order->order_number,
+            ]);
+        }
+
+        return redirect()->route('payment.success')->with('message', 'পেমেন্ট সফলভাবে সম্পন্ন হয়েছে!');
+    }
+
+    public function sslcommerzFail(Request $request)
+    {
+        $tran_id = $request->input('tran_id');
+        $order = Order::where('order_number', $tran_id)->orWhere('payment_id', $tran_id)->first();
+        if ($order) {
+            $order->update(['payment_status' => 'unpaid']);
+        }
+
+        return redirect()->route('payment.fail')->with('error', 'অনলাইন কার্ড পেমেন্ট সম্পন্ন করা যায়নি।');
+    }
+
+    public function sslcommerzCancel(Request $request)
+    {
+        return redirect()->route('payment.fail')->with('error', 'আপনি অনলাইন পেমেন্টটি বাতিল করেছেন।');
+    }
+
+    public function sslcommerzIpn(Request $request)
+    {
+        $tran_id = $request->input('tran_id');
+        $status = $request->input('status');
+
+        if ($status === 'VALID' || $status === 'VALIDATED') {
+            $order = Order::where('order_number', $tran_id)->orWhere('payment_id', $tran_id)->first();
+            if ($order) {
+                $order->update([
+                    'payment_status' => 'paid',
+                    'status'         => 'processing',
+                    'transaction_id' => $request->input('val_id'),
+                ]);
+                \App\Services\RoyaltyService::processOrderRoyalties($order);
+            }
+        }
+
+        return response()->json(['status' => 'IPN Processed']);
+    }
+
+
+    /* =========================================================================
+     | ৪. সার্বজনীন রেসপন্স ভিউ
      | ========================================================================= */
 
     public function success()

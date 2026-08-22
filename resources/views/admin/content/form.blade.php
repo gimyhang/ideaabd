@@ -36,7 +36,7 @@
 
 @section('actions')
     <div class="d-flex flex-wrap align-items-center gap-2">
-        @if ($spec['key'] !== 'books')
+        @if (!in_array($spec['key'], ['books', 'ebooks'], true))
             <button type="submit" form="contentMainForm" class="btn btn-success btn-sm rounded-pill px-3.5 fw-bold shadow-xs">
                 <i class="fas fa-circle-check me-1"></i> {{ $editing ? 'Save Changes' : 'Publish & Save' }}
             </button>
@@ -82,6 +82,8 @@
 
 @if ($spec['key'] === 'books')
     @include('admin.content.books_form')
+@elseif ($spec['key'] === 'ebooks')
+    @include('admin.content.ebooks_form')
 @else
     <div class="col-12 col-lg-8">
         <div class="adm-card p-3 p-md-4">

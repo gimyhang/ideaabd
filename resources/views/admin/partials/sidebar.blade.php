@@ -7,6 +7,9 @@
      * so a half-deployed module can never 500 the whole panel.
      */
     $pending = $adminPendingRegistrations ?? 0;
+    $pendingPayouts = \Illuminate\Support\Facades\Schema::hasTable('author_payout_requests')
+        ? \App\Models\AuthorPayoutRequest::where('status', 'pending')->count()
+        : 0;
 
     $menu = [
         null => [
@@ -15,9 +18,16 @@
         'Catalog' => [
             ['route' => 'admin.books',      'icon' => 'book',        'label' => 'Books'],
             ['route' => 'admin.categories', 'icon' => 'folder-tree', 'label' => 'Categories'],
-            ['route' => 'admin.ebooks',     'icon' => 'tablet-screen-button', 'label' => 'E-Books'],
             ['route' => 'admin.authors',    'icon' => 'pen-fancy',   'label' => 'Authors'],
             ['route' => 'admin.publishers', 'icon' => 'building',    'label' => 'Publishers'],
+        ],
+        'E-Books & Royalties' => [
+            ['route' => 'admin.ebooks',                 'icon' => 'tablet-screen-button', 'label' => 'E-Books Inventory'],
+            ['route' => 'admin.ebook-sales-report',     'icon' => 'chart-pie',             'label' => 'E-Book Sales Report'],
+            ['route' => 'admin.author-royalties.index', 'icon' => 'scale-balanced',       'label' => 'Royalty Management'],
+            ['route' => 'admin.author-payouts.index',   'icon' => 'hand-holding-dollar',  'label' => 'Royalty Payouts',
+             'badge' => $pendingPayouts > 0 ? $pendingPayouts : null, 'badgeClass' => 'bg-warning text-dark'],
+            ['route' => 'admin.royalty-payout-logs',    'icon' => 'file-invoice-dollar',  'label' => 'Payout Gateway Logs'],
         ],
         'Purchases & Inventory' => [
             ['route' => 'admin.purchases.index',    'icon' => 'receipt',             'label' => 'Purchase Orders'],
@@ -35,6 +45,7 @@
         ],
         'Sales & Orders' => [
             ['route' => 'admin.ecommerce-orders', 'icon' => 'cart-shopping', 'label' => 'Book Orders'],
+            ['route' => 'admin.gateway-reports',  'icon' => 'receipt',       'label' => 'Gateway Reports'],
             ['route' => 'admin.payments.index',   'icon' => 'credit-card',   'label' => 'Payment Gateways'],
             ['route' => 'admin.customers',        'icon' => 'user-tag',      'label' => 'Customers & Broadcast'],
             ['route' => 'admin.orders',           'icon' => 'file-invoice',  'label' => 'Seller Bills'],

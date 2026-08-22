@@ -26,7 +26,7 @@
 
     {{-- Flash Notifications --}}
     @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show d-flex align-items-center mb-0 shadow-xs rounded-3" role="alert">
+        <div class="alert alert-success alert-dismissible fade show d-flex align-items-center mb-0 shadow-xs rounded-4" role="alert">
             <i class="fas fa-circle-check fs-5 me-2 text-success"></i>
             <div>{{ session('success') }}</div>
             <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
@@ -37,47 +37,59 @@
     {{-- 1. KPI SUMMARY STRIP                                                      --}}
     {{-- ========================================================================= --}}
     <div class="row g-2">
+        {{-- 1. Total E-Books --}}
         <div class="col-6 col-md-3">
             <a href="{{ route('admin.ebooks') }}" class="text-decoration-none">
-                <div class="adm-card p-3 d-flex align-items-center justify-content-between h-100 bg-white rounded-4 shadow-sm border-0 {{ !request()->hasAny(['price_type', 'is_active']) ? 'border-primary border-2' : '' }}">
+                <div class="adm-card p-3 d-flex align-items-center justify-content-between h-100 bg-white rounded-4 shadow-sm border-0 {{ !request()->hasAny(['price_type', 'is_active', 'mod_status']) ? 'border-primary border-2' : '' }}">
                     <div>
                         <small class="text-muted d-block font-sans">Total E-Books</small>
-                        <h4 class="fw-bold text-dark mb-0">{{ number_format($stats['total'] ?? 0) }}</h4>
+                        <h4 class="fw-bold text-dark mb-0 font-monospace">{{ number_format($stats['total'] ?? 0) }}</h4>
                     </div>
                     <span class="p-2 bg-primary-subtle text-primary rounded-circle fs-5"><i class="fas fa-tablet-screen-button"></i></span>
                 </div>
             </a>
         </div>
+
+        {{-- 2. Pending Moderation Queue --}}
+        <div class="col-6 col-md-3">
+            <a href="{{ route('admin.ebooks', array_merge(request()->except(['mod_status', 'page']), ['mod_status' => 'pending'])) }}" class="text-decoration-none">
+                <div class="adm-card p-3 d-flex align-items-center justify-content-between h-100 bg-white rounded-4 shadow-sm border-0 {{ request('mod_status') === 'pending' ? 'border-warning border-2' : '' }}">
+                    <div>
+                        <small class="text-muted d-block font-sans">Pending Review (KDP)</small>
+                        <h4 class="fw-bold text-warning-emphasis mb-0 font-monospace">
+                            {{ number_format($stats['pending'] ?? 0) }}
+                            @if(($stats['pending'] ?? 0) > 0)
+                                <span class="badge bg-danger rounded-pill fs-6 ms-1 animate-pulse">New</span>
+                            @endif
+                        </h4>
+                    </div>
+                    <span class="p-2 bg-warning-subtle text-warning rounded-circle fs-5"><i class="fas fa-hourglass-half"></i></span>
+                </div>
+            </a>
+        </div>
+
+        {{-- 3. Active & Live --}}
         <div class="col-6 col-md-3">
             <a href="{{ route('admin.ebooks', array_merge(request()->except(['is_active', 'page']), ['is_active' => '1'])) }}" class="text-decoration-none">
                 <div class="adm-card p-3 d-flex align-items-center justify-content-between h-100 bg-white rounded-4 shadow-sm border-0 {{ request('is_active') === '1' ? 'border-success border-2' : '' }}">
                     <div>
                         <small class="text-muted d-block font-sans">Active & Live</small>
-                        <h4 class="fw-bold text-success mb-0">{{ number_format($stats['active'] ?? 0) }}</h4>
+                        <h4 class="fw-bold text-success mb-0 font-monospace">{{ number_format($stats['active'] ?? 0) }}</h4>
                     </div>
                     <span class="p-2 bg-success-subtle text-success rounded-circle fs-5"><i class="fas fa-circle-check"></i></span>
                 </div>
             </a>
         </div>
-        <div class="col-6 col-md-3">
-            <a href="{{ route('admin.ebooks', array_merge(request()->except(['price_type', 'page']), ['price_type' => 'free'])) }}" class="text-decoration-none">
-                <div class="adm-card p-3 d-flex align-items-center justify-content-between h-100 bg-white rounded-4 shadow-sm border-0 {{ request('price_type') === 'free' ? 'border-info border-2' : '' }}">
-                    <div>
-                        <small class="text-muted d-block font-sans">Free Reading</small>
-                        <h4 class="fw-bold text-info mb-0">{{ number_format($stats['free'] ?? 0) }}</h4>
-                    </div>
-                    <span class="p-2 bg-info-subtle text-info rounded-circle fs-5"><i class="fas fa-gift"></i></span>
-                </div>
-            </a>
-        </div>
+
+        {{-- 4. Total Sold Copies --}}
         <div class="col-6 col-md-3">
             <a href="{{ route('admin.ebooks', array_merge(request()->except(['price_type', 'page']), ['price_type' => 'paid'])) }}" class="text-decoration-none">
-                <div class="adm-card p-3 d-flex align-items-center justify-content-between h-100 bg-white rounded-4 shadow-sm border-0 {{ request('price_type') === 'paid' ? 'border-warning border-2' : '' }}">
+                <div class="adm-card p-3 d-flex align-items-center justify-content-between h-100 bg-white rounded-4 shadow-sm border-0 {{ request('price_type') === 'paid' ? 'border-info border-2' : '' }}">
                     <div>
-                        <small class="text-muted d-block font-sans">Paid E-Books</small>
-                        <h4 class="fw-bold text-warning-emphasis mb-0">{{ number_format($stats['paid'] ?? 0) }}</h4>
+                        <small class="text-muted d-block font-sans">Total Copies Sold</small>
+                        <h4 class="fw-bold text-info mb-0 font-monospace">{{ number_format($stats['total_sales'] ?? 0) }}</h4>
                     </div>
-                    <span class="p-2 bg-warning-subtle text-warning rounded-circle fs-5"><i class="fas fa-sack-dollar"></i></span>
+                    <span class="p-2 bg-info-subtle text-info rounded-circle fs-5"><i class="fas fa-bag-shopping"></i></span>
                 </div>
             </a>
         </div>
@@ -91,7 +103,7 @@
             
             <div class="row g-2 align-items-center">
                 <!-- Search Bar -->
-                <div class="col-12 col-lg-4">
+                <div class="col-12 col-lg-3">
                     <div class="input-group input-group-sm">
                         <span class="input-group-text bg-white border-end-0 text-muted"><i class="fas fa-search"></i></span>
                         <input type="text" name="search" id="ebookSearchInput" value="{{ request('search') }}" 
@@ -102,210 +114,162 @@
                                 <i class="fas fa-times"></i>
                             </a>
                         @endif
-                        <button type="submit" class="btn btn-primary px-3 fw-semibold">Search</button>
                     </div>
                 </div>
 
-                <!-- Author Filter -->
-                <div class="col-6 col-md-4 col-lg-3">
-                    <select name="author_id" class="form-select form-select-sm" onchange="submitEbookFilterForm()">
-                        <option value="">— All Authors —</option>
-                        @foreach ($authors as $aId => $aName)
-                            <option value="{{ $aId }}" @selected(request('author_id') == $aId)>{{ $aName }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <!-- Publisher Filter -->
-                <div class="col-6 col-md-4 col-lg-3">
-                    <select name="publisher_id" class="form-select form-select-sm" onchange="submitEbookFilterForm()">
-                        <option value="">— All Publishers —</option>
-                        <option value="idea" @selected(request('publisher_id') === 'idea')>⭐ Idea Prakashan (In-House)</option>
-                        @foreach ($publishers as $pId => $pName)
-                            <option value="{{ $pId }}" @selected(request('publisher_id') == $pId)>{{ $pName }}</option>
-                        @endforeach
+                <!-- Moderation Status Filter -->
+                <div class="col-6 col-md-3 col-lg-2">
+                    <select name="mod_status" class="form-select form-select-sm rounded-3" onchange="this.form.submit()">
+                        <option value="">All Review Status</option>
+                        <option value="approved" @selected(request('mod_status') === 'approved')>Approved (Live)</option>
+                        <option value="pending" @selected(request('mod_status') === 'pending')>Pending Moderation</option>
+                        <option value="rejected" @selected(request('mod_status') === 'rejected')>Revision Needed</option>
                     </select>
                 </div>
 
                 <!-- Category Filter -->
-                <div class="col-12 col-md-4 col-lg-2">
-                    <select name="category_id" class="form-select form-select-sm" onchange="submitEbookFilterForm()">
-                        <option value="">— All Categories —</option>
-                        @foreach ($categories as $cId => $cName)
-                            <option value="{{ $cId }}" @selected(request('category_id') == $cId)>{{ $cName }}</option>
+                <div class="col-6 col-md-3 col-lg-2">
+                    <select name="category_id" class="form-select form-select-sm rounded-3" onchange="this.form.submit()">
+                        <option value="">All Categories</option>
+                        @foreach ($categories as $catId => $catName)
+                            <option value="{{ $catId }}" @selected((string)request('category_id') === (string)$catId)>
+                                {{ $catName }}
+                            </option>
                         @endforeach
                     </select>
                 </div>
-            </div>
 
-            <div class="row g-2 align-items-center pt-1 border-top">
-                <!-- Price Type Filter -->
-                <div class="col-6 col-md-3">
-                    <select name="price_type" class="form-select form-select-sm" onchange="submitEbookFilterForm()">
-                        <option value="">— All Price Types —</option>
+                <!-- Author Filter -->
+                <div class="col-6 col-md-3 col-lg-2">
+                    <select name="author_id" class="form-select form-select-sm rounded-3" onchange="this.form.submit()">
+                        <option value="">All Authors</option>
+                        @foreach ($authors as $aId => $aName)
+                            <option value="{{ $aId }}" @selected((string)request('author_id') === (string)$aId)>
+                                {{ $aName }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <!-- Price Filter -->
+                <div class="col-6 col-md-3 col-lg-1.5">
+                    <select name="price_type" class="form-select form-select-sm rounded-3" onchange="this.form.submit()">
+                        <option value="">All Prices</option>
                         <option value="free" @selected(request('price_type') === 'free')>Free</option>
                         <option value="paid" @selected(request('price_type') === 'paid')>Paid</option>
                     </select>
                 </div>
 
-                <!-- Status Filter -->
-                <div class="col-6 col-md-3">
-                    <select name="is_active" class="form-select form-select-sm" onchange="submitEbookFilterForm()">
-                        <option value="">— All Statuses —</option>
-                        <option value="1" @selected(request('is_active') === '1')>Active / Live</option>
-                        <option value="0" @selected(request('is_active') === '0')>Inactive / Draft</option>
+                <!-- Active Status Filter -->
+                <div class="col-6 col-md-3 col-lg-1.5">
+                    <select name="is_active" class="form-select form-select-sm rounded-3" onchange="this.form.submit()">
+                        <option value="">All Status</option>
+                        <option value="1" @selected(request('is_active') === '1')>Active Only</option>
+                        <option value="0" @selected(request('is_active') === '0')>Inactive Only</option>
                     </select>
                 </div>
+            </div>
 
-                <!-- Sort By -->
-                <div class="col-6 col-md-3">
-                    <select name="sort" class="form-select form-select-sm" onchange="submitEbookFilterForm()">
-                        <option value="latest" @selected(request('sort') === 'latest' || !request('sort'))>Newest First</option>
+            <!-- Sorting & Per Page -->
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 pt-2 border-top">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="small text-muted fw-semibold">Sort By:</span>
+                    <select name="sort" class="form-select form-select-sm rounded-pill py-0.5" style="width: auto;" onchange="this.form.submit()">
+                        <option value="latest" @selected(request('sort', 'latest') === 'latest')>Newest First</option>
                         <option value="oldest" @selected(request('sort') === 'oldest')>Oldest First</option>
                         <option value="title_asc" @selected(request('sort') === 'title_asc')>Title (A-Z)</option>
-                        <option value="title_desc" @selected(request('sort') === 'title_desc')>Title (Z-A)</option>
-                        <option value="price_low" @selected(request('sort') === 'price_low')>Price: Low to High</option>
-                        <option value="price_high" @selected(request('sort') === 'price_high')>Price: High to Low</option>
-                        <option value="sales_high" @selected(request('sort') === 'sales_high')>Most Read / Sold</option>
+                        <option value="price_low" @selected(request('sort') === 'price_low')>Price (Low to High)</option>
+                        <option value="price_high" @selected(request('sort') === 'price_high')>Price (High to Low)</option>
+                        <option value="sales_high" @selected(request('sort') === 'sales_high')>Top Selling Copies</option>
+                    </select>
+
+                    <span class="small text-muted fw-semibold ms-2">Show:</span>
+                    <select name="per_page" class="form-select form-select-sm rounded-pill py-0.5" style="width: auto;" onchange="this.form.submit()">
+                        <option value="10" @selected(request('per_page', 20) == 10)>10</option>
+                        <option value="20" @selected(request('per_page', 20) == 20)>20</option>
+                        <option value="50" @selected(request('per_page', 20) == 50)>50</option>
+                        <option value="100" @selected(request('per_page', 20) == 100)>100</option>
                     </select>
                 </div>
 
-                <!-- Per Page & Reset -->
-                <div class="col-6 col-md-3 d-flex gap-1">
-                    <select name="per_page" class="form-select form-select-sm flex-fill" onchange="submitEbookFilterForm()">
-                        <option value="20" @selected(request('per_page') == 20 || !request('per_page'))>20 per page</option>
-                        <option value="50" @selected(request('per_page') == 50)>50 per page</option>
-                        <option value="100" @selected(request('per_page') == 100)>100 per page</option>
-                    </select>
-                    <a href="{{ route('admin.ebooks') }}" class="btn btn-sm btn-outline-secondary px-2.5" title="Reset All Filters">
-                        <i class="fas fa-rotate-left"></i>
-                    </a>
+                <div class="d-flex align-items-center gap-2">
+                    @if(request()->hasAny(['search', 'author_id', 'publisher_id', 'category_id', 'price_type', 'is_active', 'mod_status']))
+                        <a href="{{ route('admin.ebooks') }}" class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-semibold">
+                            <i class="fas fa-rotate-left me-1"></i> Reset Filters
+                        </a>
+                    @endif
                 </div>
             </div>
 
         </form>
-
-        {{-- Active Filter Badges --}}
-        @php
-            $hasEbookFilters = request()->hasAny(['search', 'author_id', 'publisher_id', 'category_id', 'price_type', 'is_active']) || (request('sort') && request('sort') !== 'latest');
-        @endphp
-
-        @if($hasEbookFilters)
-            <div class="d-flex flex-wrap align-items-center gap-1.5 pt-2.5 mt-2 border-top">
-                <span class="small fw-semibold text-muted me-1"><i class="fas fa-sliders me-1"></i>Active Filters:</span>
-                
-                @if(request('search'))
-                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill py-1 px-2.5 d-inline-flex align-items-center gap-1">
-                        Search: "{{ request('search') }}"
-                        <a href="{{ route('admin.ebooks', request()->except('search')) }}" class="text-primary text-decoration-none"><i class="fas fa-times-circle"></i></a>
-                    </span>
-                @endif
-
-                @if(request('author_id') && isset($authors[request('author_id')]))
-                    <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle rounded-pill py-1 px-2.5 d-inline-flex align-items-center gap-1">
-                        Author: {{ $authors[request('author_id')] }}
-                        <a href="{{ route('admin.ebooks', request()->except('author_id')) }}" class="text-dark text-decoration-none"><i class="fas fa-times-circle"></i></a>
-                    </span>
-                @endif
-
-                @if(request('publisher_id'))
-                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill py-1 px-2.5 d-inline-flex align-items-center gap-1">
-                        Publisher: {{ request('publisher_id') === 'idea' ? 'Idea Prakashan' : ($publishers[request('publisher_id')] ?? request('publisher_id')) }}
-                        <a href="{{ route('admin.ebooks', request()->except('publisher_id')) }}" class="text-dark text-decoration-none"><i class="fas fa-times-circle"></i></a>
-                    </span>
-                @endif
-
-                @if(request('category_id') && isset($categories[request('category_id')]))
-                    <span class="badge bg-secondary-subtle text-dark border rounded-pill py-1 px-2.5 d-inline-flex align-items-center gap-1">
-                        Category: {{ $categories[request('category_id')] }}
-                        <a href="{{ route('admin.ebooks', request()->except('category_id')) }}" class="text-dark text-decoration-none"><i class="fas fa-times-circle"></i></a>
-                    </span>
-                @endif
-
-                @if(request('price_type'))
-                    <span class="badge bg-light text-dark border rounded-pill py-1 px-2.5 d-inline-flex align-items-center gap-1">
-                        Price: {{ request('price_type') === 'free' ? 'Free' : 'Paid' }}
-                        <a href="{{ route('admin.ebooks', request()->except('price_type')) }}" class="text-dark text-decoration-none"><i class="fas fa-times-circle"></i></a>
-                    </span>
-                @endif
-
-                @if(request('is_active') !== null && request('is_active') !== '')
-                    <span class="badge bg-light text-dark border rounded-pill py-1 px-2.5 d-inline-flex align-items-center gap-1">
-                        Status: {{ request('is_active') === '1' ? 'Live' : 'Draft' }}
-                        <a href="{{ route('admin.ebooks', request()->except('is_active')) }}" class="text-dark text-decoration-none"><i class="fas fa-times-circle"></i></a>
-                    </span>
-                @endif
-
-                <a href="{{ route('admin.ebooks') }}" class="btn btn-link btn-xs text-danger text-decoration-none fw-bold ms-auto">
-                    <i class="fas fa-trash-can me-1"></i> Clear All
-                </a>
-            </div>
-        @endif
-
     </div>
 
     {{-- ========================================================================= --}}
-    {{-- 3. E-BOOK MANAGEMENT TABLE                                                --}}
+    {{-- 3. DYNAMIC E-BOOKS DATA TABLE                                             --}}
     {{-- ========================================================================= --}}
     <div class="adm-card p-0 overflow-hidden shadow-sm border-0 rounded-4 bg-white">
         <div class="table-responsive">
             <table class="table adm-table align-middle mb-0" id="adminEbooksTable">
-                <thead class="table-light">
+                <thead class="table-light small fw-bold text-secondary">
                     <tr>
-                        <th class="ps-3" style="width: 50px;">#</th>
-                        <th style="min-width: 260px;">E-Book & Cover</th>
-                        <th style="min-width: 180px;">Author & Publisher</th>
+                        <th class="ps-3" style="width: 45px;">#</th>
+                        <th style="min-width: 250px;">E-Book Title & Specs</th>
+                        <th style="min-width: 170px;">Author & Source</th>
                         <th>Category</th>
-                        <th>File Format & Size</th>
-                        <th class="text-end" style="min-width: 120px;">Price</th>
-                        <th class="text-center" style="min-width: 90px;">Status</th>
-                        <th class="text-end pe-3" style="min-width: 120px;">Actions</th>
+                        <th>Pricing & Royalty</th>
+                        <th>Sales / Reads</th>
+                        <th class="text-center" style="min-width: 110px;">Review Status</th>
+                        <th class="text-center" style="min-width: 90px;">Live Store</th>
+                        <th class="text-end pe-3" style="min-width: 160px;">Actions</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody class="small">
                     @forelse ($ebooks as $index => $ebook)
                         @php
-                            $cover = $ebook->cover_image;
-                            $coverUrl = $cover 
-                                ? (str_starts_with($cover, 'http') ? $cover : (str_starts_with($cover, 'storage/') ? asset($cover) : asset('storage/' . ltrim($cover, '/'))))
-                                : 'https://placehold.co/100x150/0284c7/ffffff?text=E-Book';
-                            
+                            $coverUrl = $ebook->cover_url ?: 'https://placehold.co/100x150/0284c7/ffffff?text=E-Book';
                             $price = (float) $ebook->price;
                             $discount = (float) ($ebook->discount_price ?? 0);
                             $hasDiscount = $discount > 0 && $discount < $price;
                             $isFree = $price <= 0;
+                            $isAuthorKdp = !empty($ebook->author_user_id) || !empty($ebook->submitted_by);
                         @endphp
-                        <tr>
-                            <td class="ps-3 text-muted small">
+                        <tr id="ebook-row-{{ $ebook->id }}">
+                            {{-- Index --}}
+                            <td class="ps-3 text-muted font-monospace">
                                 {{ ($ebooks->currentPage() - 1) * $ebooks->perPage() + $index + 1 }}
                             </td>
                             
-                            {{-- Ebook Cover & Title --}}
+                            {{-- Ebook Cover & Details --}}
                             <td>
                                 <div class="d-flex align-items-center gap-3">
-                                    <div class="position-relative flex-shrink-0" style="width: 48px; height: 66px;">
+                                    <div class="position-relative flex-shrink-0" style="width: 48px; height: 68px;">
                                         <img src="{{ $coverUrl }}" alt="{{ $ebook->title }}" 
                                              class="rounded border shadow-xs" style="width: 100%; height: 100%; object-fit: cover;">
-                                        <span class="badge bg-primary text-white position-absolute top-0 start-0 m-0.5 p-0.5 rounded-1" style="font-size: 8px;">
-                                            <i class="fas fa-file-pdf"></i>
+                                        <span class="badge bg-dark bg-opacity-75 text-white position-absolute bottom-0 start-0 m-0.5 p-0.5 rounded" style="font-size: 8px;">
+                                            {{ $ebook->format_badge }}
                                         </span>
                                     </div>
-                                    <div class="text-truncate" style="max-width: 260px;">
+                                    <div class="overflow-hidden" style="max-width: 260px;">
                                         <a href="{{ route('ebook.show', $ebook->slug ?? $ebook->id) }}" target="_blank" 
                                            class="fw-bold text-dark text-decoration-none hover-primary d-block text-truncate mb-0.5" title="{{ $ebook->title }}">
                                             {{ $ebook->title }}
                                         </a>
-                                        <div class="d-flex align-items-center gap-2 small text-muted" style="font-size: 11px;">
+                                        <div class="d-flex flex-wrap align-items-center gap-1.5 small text-muted" style="font-size: 11px;">
                                             @if($ebook->isbn)
-                                                <span class="badge bg-light text-muted border px-1.5 py-0.5"><i class="fas fa-barcode me-1"></i>{{ $ebook->isbn }}</span>
+                                                <span class="badge bg-light text-muted border font-monospace px-1.5 py-0.5">{{ $ebook->isbn }}</span>
                                             @endif
-                                            <span><i class="fas fa-download me-0.5 text-secondary"></i> {{ number_format($ebook->download_count ?? 0) }} reads</span>
+                                            @if($ebook->pages)
+                                                <span><i class="fas fa-file-lines me-0.5"></i>{{ $ebook->pages }}p</span>
+                                            @endif
+                                            @if($ebook->sample_file_path)
+                                                <span class="badge bg-info-subtle text-info" style="font-size: 9.5px;">Sample Preview</span>
+                                            @endif
                                         </div>
                                     </div>
                                 </div>
                             </td>
 
-                            {{-- Author & Publisher --}}
+                            {{-- Author & Submitter Source --}}
                             <td>
                                 <div class="fw-semibold text-dark small mb-0.5">
                                     @if($ebook->authorLink)
@@ -320,11 +284,15 @@
                                         <span class="text-dark">{{ $ebook->author_name ?? '—' }}</span>
                                     @endif
                                 </div>
-                                <div class="small text-muted" style="font-size: 11px;">
-                                    @if($ebook->publisher)
-                                        <i class="fas fa-building me-1"></i>{{ $ebook->publisher->name }}
+                                <div>
+                                    @if($isAuthorKdp)
+                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle" style="font-size: 10px;">
+                                            <i class="fas fa-feather-pointed me-0.5"></i> Author Self-Published
+                                        </span>
                                     @else
-                                        <i class="fas fa-building me-1 text-primary"></i>Idea Prakashan (In-House)
+                                        <span class="small text-muted" style="font-size: 11px;">
+                                            <i class="fas fa-building me-1 text-secondary"></i>{{ $ebook->publisher?->name ?? 'Idea Prakashan' }}
+                                        </span>
                                     @endif
                                 </div>
                             </td>
@@ -334,7 +302,7 @@
                                 @if($ebook->category)
                                     <a href="{{ route('admin.ebooks', ['category_id' => $ebook->category->id]) }}" class="text-decoration-none">
                                         <span class="badge bg-light text-primary border rounded-pill px-2.5 py-1">
-                                            <i class="fas fa-folder me-1 text-primary-subtle"></i>{{ $ebook->category->name }}
+                                            {{ $ebook->category->name }}
                                         </span>
                                     </a>
                                 @else
@@ -342,48 +310,83 @@
                                 @endif
                             </td>
 
-                            {{-- File Format & Size --}}
+                            {{-- Pricing & Royalty --}}
                             <td>
-                                <div class="d-flex align-items-center gap-1.5">
-                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2 py-0.5" style="font-size: 11px;">
-                                        <i class="fas fa-file-pdf me-1"></i>{{ strtoupper($ebook->file_type ?? 'PDF') }}
-                                    </span>
-                                    <span class="small text-muted" style="font-size: 11px;">{{ $ebook->file_size ?? '—' }}</span>
-                                </div>
-                            </td>
-
-                            {{-- Pricing --}}
-                            <td class="text-end">
                                 @if($isFree)
                                     <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1 fw-bold">Free</span>
                                 @elseif($hasDiscount)
-                                    <div class="fw-bold text-primary fs-6 font-monospace">৳{{ number_format($discount, 2) }}</div>
+                                    <div class="fw-bold text-primary font-monospace">৳{{ number_format($discount, 2) }}</div>
                                     <div class="small text-muted text-decoration-line-through font-monospace">৳{{ number_format($price, 2) }}</div>
                                 @else
-                                    <div class="fw-bold text-dark fs-6 font-monospace">৳{{ number_format($price, 2) }}</div>
+                                    <div class="fw-bold text-dark font-monospace">৳{{ number_format($price, 2) }}</div>
+                                @endif
+                                <div class="small text-success fw-semibold font-monospace mt-0.5" style="font-size: 10.5px;">
+                                    Royalty: {{ $ebook->royalty_percentage ?: '50' }}%
+                                </div>
+                            </td>
+
+                            {{-- Sales / Downloads --}}
+                            <td>
+                                <strong class="text-dark font-monospace fs-6">{{ number_format($ebook->sales_count ?? 0) }}</strong>
+                                <small class="text-muted d-block">sold • {{ number_format($ebook->read_count ?? $ebook->download_count ?? 0) }} reads</small>
+                            </td>
+
+                            {{-- Moderation Review Status --}}
+                            <td class="text-center">
+                                @if($ebook->mod_status === 'approved')
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1">
+                                        <i class="fas fa-circle-check me-1"></i> Approved
+                                    </span>
+                                @elseif($ebook->mod_status === 'rejected')
+                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-1" 
+                                          title="{{ $ebook->rejection_reason ?? 'Needs Revision' }}" data-bs-toggle="tooltip">
+                                        <i class="fas fa-circle-xmark me-1"></i> Rejected
+                                    </span>
+                                @else
+                                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2.5 py-1">
+                                        <i class="fas fa-hourglass-half me-1"></i> Pending
+                                    </span>
                                 @endif
                             </td>
 
-                            {{-- Status --}}
+                            {{-- Live Store Toggle --}}
                             <td class="text-center">
-                                @if($ebook->is_active)
-                                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-1"><i class="fas fa-check me-1"></i>Live</span>
-                                @else
-                                    <span class="badge bg-secondary-subtle text-secondary border rounded-pill px-2 py-1">Draft</span>
-                                @endif
+                                <div class="form-check form-switch d-inline-block">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="toggle-{{ $ebook->id }}" 
+                                           @checked($ebook->is_active) onchange="toggleEbookActive({{ $ebook->id }})">
+                                </div>
                             </td>
 
                             {{-- Actions --}}
                             <td class="text-end pe-3">
                                 <div class="d-inline-flex align-items-center gap-1">
-                                    <a href="{{ route('ebook.show', $ebook->slug ?? $ebook->id) }}" target="_blank" 
-                                       class="btn btn-sm btn-outline-secondary rounded-pill px-2 py-0.5" title="View in Digital Reader">
-                                        <i class="fas fa-eye"></i>
+                                    {{-- If Pending: Show Approve & Reject buttons --}}
+                                    @if($ebook->mod_status === 'pending')
+                                        <form action="{{ route('admin.ebooks.approve', $ebook->id) }}" method="POST" class="d-inline">
+                                            @csrf
+                                            <button type="submit" class="btn btn-sm btn-success rounded-pill px-2 py-0.5" title="Approve & Publish to Live Store">
+                                                <i class="fas fa-check"></i> Approve
+                                            </button>
+                                        </form>
+                                        <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-2 py-0.5" 
+                                                data-bs-toggle="modal" data-bs-target="#rejectModal{{ $ebook->id }}" title="Reject / Request Revision">
+                                            <i class="fas fa-xmark"></i>
+                                        </button>
+                                    @endif
+
+                                    {{-- DRM Reader Preview --}}
+                                    <a href="{{ route('ebook.read', $ebook->slug ?? $ebook->id) }}" target="_blank" 
+                                       class="btn btn-sm btn-outline-info rounded-pill px-2 py-0.5" title="Open DRM Reader">
+                                        <i class="fas fa-book-open"></i>
                                     </a>
+
+                                    {{-- Edit --}}
                                     <a href="{{ route('admin.content.edit', ['type' => 'ebooks', 'id' => $ebook->id]) }}" 
-                                       class="btn btn-sm btn-outline-primary rounded-pill px-2 py-0.5" title="Edit">
+                                       class="btn btn-sm btn-outline-primary rounded-pill px-2 py-0.5" title="Edit Form">
                                         <i class="fas fa-pen-to-square"></i>
                                     </a>
+
+                                    {{-- Delete --}}
                                     <form action="{{ route('admin.content.destroy', ['type' => 'ebooks', 'id' => $ebook->id]) }}" method="POST" class="d-inline"
                                           onsubmit="return confirm('Are you sure you want to delete this e-book?');">
                                         @csrf
@@ -393,12 +396,43 @@
                                         </button>
                                     </form>
                                 </div>
+
+                                {{-- Reject Modal --}}
+                                <div class="modal fade text-start" id="rejectModal{{ $ebook->id }}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <div class="modal-content rounded-4 border-0 shadow">
+                                            <form action="{{ route('admin.ebooks.reject', $ebook->id) }}" method="POST">
+                                                @csrf
+                                                <div class="modal-header border-bottom">
+                                                    <h6 class="modal-title fw-bold text-dark">
+                                                        <i class="fas fa-triangle-exclamation text-warning me-1.5"></i> Request Revision / Reject E-Book
+                                                    </h6>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body p-4">
+                                                    <p class="small text-muted mb-2">
+                                                        বই: <strong>{{ $ebook->title }}</strong> (লেখক: {{ $ebook->author_name }})
+                                                    </p>
+                                                    <div class="mb-3">
+                                                        <label class="form-label small fw-bold text-dark">সংশোধনের বিবরণ / কারণ <span class="text-danger">*</span></label>
+                                                        <textarea name="rejection_reason" class="form-control form-control-sm rounded-3" rows="4" required
+                                                                  placeholder="কেন বইটি লাইভ করা যাচ্ছে না বা কী কী সংশোধন প্রয়োজন তা বিস্তারিত লিখুন (লেখকের ড্যাশবোর্ডে প্রদর্শিত হবে)..."></textarea>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer bg-light">
+                                                    <button type="button" class="btn btn-sm btn-light rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
+                                                    <button type="submit" class="btn btn-sm btn-danger rounded-pill px-4 fw-bold shadow-xs">Send Revision Note</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
                             </td>
 
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8">
+                            <td colspan="9">
                                 <div class="empty-state py-5 text-center">
                                     <div class="rounded-circle bg-light d-inline-flex p-4 mb-3">
                                         <i class="fas fa-tablet-screen-button fs-1 text-muted"></i>
@@ -418,10 +452,10 @@
 
         {{-- Pagination --}}
         @if ($ebooks->hasPages())
-            <div class="p-3 border-top d-flex flex-column flex-md-row align-items-center justify-content-between gap-2 bg-light bg-opacity-50">
-                <div class="small text-muted">
+            <div class="p-3 border-top d-flex flex-wrap align-items-center justify-content-between gap-2">
+                <small class="text-muted">
                     Showing {{ $ebooks->firstItem() }} to {{ $ebooks->lastItem() }} of {{ $ebooks->total() }} e-books
-                </div>
+                </small>
                 <div>{{ $ebooks->links() }}</div>
             </div>
         @endif
@@ -431,98 +465,50 @@
 
 @push('scripts')
 <script>
-// Dynamic Search & Clean Form Submission Engine
-const searchInput = document.getElementById('ebookSearchInput');
-const ebooksFilterForm = document.getElementById('ebooksFilterForm');
-
-if (searchInput) {
-    searchInput.addEventListener('input', function() {
-        const query = this.value.trim().toLowerCase();
-        const rows = document.querySelectorAll('#adminEbooksTable tbody tr');
-        
-        if (!rows || rows.length === 0) return;
-
-        rows.forEach(row => {
-            if (!query) {
-                row.style.display = '';
-            } else {
-                const text = row.innerText.toLowerCase();
-                if (text.includes(query)) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
-                }
-            }
-        });
-    });
-
-    searchInput.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            submitEbookFilterForm();
+// AJAX Toggle Active State
+function toggleEbookActive(id) {
+    fetch('/admin/ebooks/' + id + '/toggle-status', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Accept': 'application/json'
         }
-    });
-}
-
-function submitEbookFilterForm() {
-    const form = document.getElementById('ebooksFilterForm');
-    if (!form) return;
-
-    const inputs = form.querySelectorAll('input, select');
-    inputs.forEach(input => {
-        if (input.type === 'checkbox' && !input.checked) {
-            input.disabled = true;
-        } else if (!input.value || input.value.trim() === '') {
-            input.disabled = true;
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            console.log('Status updated: ' + data.message);
         }
-    });
-
-    form.submit();
+    })
+    .catch(err => console.error('Error updating status:', err));
 }
 
-if (ebooksFilterForm) {
-    ebooksFilterForm.addEventListener('submit', function(e) {
-        const inputs = this.querySelectorAll('input, select');
-        inputs.forEach(input => {
-            if (input.type === 'checkbox' && !input.checked) {
-                input.disabled = true;
-            } else if (!input.value || input.value.trim() === '') {
-                input.disabled = true;
-            }
-        });
-    });
-}
-
+// CSV Export
 function exportEbooksToCSV() {
     const table = document.getElementById('adminEbooksTable');
-    if (!table) return;
-
     let csv = [];
     const rows = table.querySelectorAll('tr');
     
-    rows.forEach(row => {
-        const cols = row.querySelectorAll('th, td');
-        let rowData = [];
-        cols.forEach((col, idx) => {
-            if (idx === 7) return; // skip action column
-            let text = col.innerText.replace(/"/g, '""').replace(/\n/g, ' ').trim();
-            rowData.push('"' + text + '"');
-        });
-        if (rowData.length > 0) {
-            csv.push(rowData.join(','));
+    for (let i = 0; i < rows.length; i++) {
+        let row = [], cols = rows[i].querySelectorAll('td, th');
+        for (let j = 0; j < cols.length - 1; j++) {
+            let data = cols[j].innerText.replace(/(\r\n|\n|\r)/gm, '').replace(/(\s\s+)/gm, ' ');
+            data = data.replace(/"/g, '""');
+            row.push('"' + data + '"');
         }
-    });
-
-    const csvContent = "data:text/csv;charset=utf-8,\uFEFF" + csv.join("\n");
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "Idea_Ebooks_Export_" + new Date().toISOString().slice(0, 10) + ".csv");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+        csv.push(row.join(','));
+    }
+    
+    const csvFile = new Blob(["\uFEFF" + csv.join('\n')], { type: "text/csv;charset=utf-8;" });
+    const downloadLink = document.createElement("a");
+    downloadLink.download = "Idea_Ebooks_Export_" + new Date().toISOString().slice(0, 10) + ".csv";
+    downloadLink.href = window.URL.createObjectURL(csvFile);
+    downloadLink.style.display = "none";
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
 }
 </script>
 @endpush
-
 @endsection
