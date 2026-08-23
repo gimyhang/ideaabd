@@ -70,7 +70,7 @@ class BkashService
             ->post("{$this->baseUrl}/checkout/create", [
                 'mode'                  => '0011',
                 'payerReference'        => $phone,
-                'callbackURL'           => config('services.bkash.callback_url') ?? route('payment.bkash.callback'),
+                'callbackURL'           => config('services.bkash.callback_url') ?? (Route::has('bkash.callback') ? route('bkash.callback') : route('api.payment.bkash.callback')),
                 'amount'                => number_format($amount, 2, '.', ''),
                 'currency'              => 'BDT',
                 'intent'                => 'sale',

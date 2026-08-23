@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 
-Route::prefix('payment')->name('payment.')->controller(PaymentController::class)->group(function () {
+Route::prefix('payment')->name('api.payment.')->controller(PaymentController::class)->group(function () {
 
     // পেমেন্ট শুরু করার রাউট (শুধুমাত্র লগইন করা ব্যবহারকারীদের জন্য)
     Route::middleware(['auth'])->group(function () {
