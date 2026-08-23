@@ -2,7 +2,7 @@
 
 @section('title', 'আইডিয়াপত্র সম্পাদনা — লেখক পোর্টাল')
 
-@section('author_content')
+@section('content')
 <div class="container-fluid p-0">
 
     {{-- Top Header Section --}}

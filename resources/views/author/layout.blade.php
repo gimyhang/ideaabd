@@ -360,6 +360,7 @@
             @endif
 
             @yield('content')
+            @yield('author_content')
         </main>
 
         {{-- Footer --}}

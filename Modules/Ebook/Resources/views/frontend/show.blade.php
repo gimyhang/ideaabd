@@ -128,17 +128,11 @@
                                 <i class="fa-solid fa-lock me-1.5"></i> ডাউনলোড (ক্লেম প্রয়োজন)
                             </button>
                         @else
-                            <!-- Paid Book: Add to Cart / Purchase Form -->
-                            @if(Route::has('cart'))
-                                <form action="{{ route('cart.add') }}" method="POST">
-                                    @csrf
-                                    <input type="hidden" name="id" value="{{ $ebook->id }}">
-                                    <input type="hidden" name="type" value="ebook">
-                                    <button type="submit" class="btn btn-warning text-dark rounded-pill fw-bold w-100 py-2.5 shadow-sm">
-                                        <i class="fa-solid fa-cart-shopping me-2"></i> বইটি ক্রয় করুন (৳{{ round($ebook->discount_price ?? $ebook->price) }})
-                                    </button>
-                                </form>
-                            @endif
+                            <!-- Paid Book: Add to Cart / Instant Checkout -->
+                            <button type="button" class="btn btn-warning text-dark rounded-pill fw-bold w-100 py-2.5 shadow-sm" 
+                                    onclick="buyEbookNow(this, {{ $ebook->id }}, '{{ addslashes($ebook->title) }} (ই-বুক)', {{ round($ebook->discount_price ?? $ebook->price) }}, '{{ $ebookCover }}')">
+                                <i class="fa-solid fa-cart-shopping me-2"></i> বইটি ক্রয় করুন (৳{{ round($ebook->discount_price ?? $ebook->price) }})
+                            </button>
 
                             <!-- Disabled Download Button for Unpurchased Paid Book -->
                             <button type="button" class="btn btn-outline-secondary rounded-pill fw-semibold py-2 opacity-75" disabled title="ডাউনলোড করতে প্রথমে বইটি ক্রয় সম্পন্ন করুন">
@@ -442,4 +436,28 @@
     color: var(--bs-primary) !important;
 }
 </style>
+
+@push('scripts')
+<script>
+function buyEbookNow(btn, id, title, price, image) {
+    if (typeof window.addToCartLive === 'function') {
+        window.addToCartLive(btn, id, title, price, image, 1);
+        setTimeout(function() {
+            window.location.href = "{{ route('cart') }}";
+        }, 350);
+    } else {
+        let cart = JSON.parse(localStorage.getItem('idea_cart') || '[]');
+        const existing = cart.find(item => item.id == id);
+        if (existing) {
+            existing.quantity = (existing.quantity || existing.qty || 1) + 1;
+            existing.qty = existing.quantity;
+        } else {
+            cart.push({ id: id, title: title, price: Number(price) || 0, image: image, quantity: 1, qty: 1 });
+        }
+        localStorage.setItem('idea_cart', JSON.stringify(cart));
+        window.location.href = "{{ route('cart') }}";
+    }
+}
+</script>
+@endpush
 @endsection

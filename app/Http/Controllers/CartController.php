@@ -205,18 +205,34 @@ class CartController extends Controller
         $primaryBookId = null;
         $titles = [];
 
+        $hasPhysicalBooks = false;
         foreach ($items as $item) {
-            $bookId = intval($item['id'] ?? 0);
+            $rawId = (string)($item['id'] ?? '');
+            $cleanId = intval(str_replace('ebook_', '', $rawId));
+            $isEbookItem = str_contains($rawId, 'ebook') || strtolower($item['type'] ?? '') === 'ebook' || str_contains(strtolower((string)($item['title'] ?? '')), 'ই-বুক');
             $qty = max(1, intval($item['qty'] ?? $item['quantity'] ?? 1));
             
             // Clean price from any string or formatted value
             $priceRaw = $item['price'] ?? 0;
             $price = is_numeric($priceRaw) ? floatval($priceRaw) : floatval(preg_replace('/[^\d.]/', '', (string)$priceRaw));
 
-            // If possible, verify against database book price
-            if ($bookId > 0) {
-                $dbBook = Book::find($bookId);
+            // 1. Check if it's an Ebook model
+            if ($isEbookItem && $cleanId > 0 && class_exists(\Modules\Ebook\Models\Ebook::class)) {
+                $dbEbook = \Modules\Ebook\Models\Ebook::find($cleanId);
+                if ($dbEbook) {
+                    $price = floatval($dbEbook->discount_price > 0 && $dbEbook->discount_price < $dbEbook->price ? $dbEbook->discount_price : $dbEbook->price);
+                    $titles[] = $dbEbook->title . ' [ডিজিটাল ই-বুক]' . " (x{$qty})";
+                    if (!$primaryBookId) {
+                        $primaryBookId = $dbEbook->id;
+                    }
+                } else {
+                    $titles[] = ($item['title'] ?? 'ডিজিটাল ই-বুক') . " (x{$qty})";
+                }
+            } elseif ($cleanId > 0) {
+                // 2. Physical Book model
+                $dbBook = Book::find($cleanId);
                 if ($dbBook) {
+                    $hasPhysicalBooks = true;
                     $itemFormat = strtolower($item['format'] ?? '');
                     if ($itemFormat === 'hardcover' && !empty($dbBook->hardcover_price)) {
                         $price = floatval($dbBook->hardcover_discount_price > 0 && $dbBook->hardcover_discount_price < $dbBook->hardcover_price ? $dbBook->hardcover_discount_price : $dbBook->hardcover_price);
@@ -237,8 +253,8 @@ class CartController extends Controller
             $totalQuantity += $qty;
         }
 
-        // Automatic Free Shipping Threshold
-        if ($freeThreshold > 0 && $subtotal >= $freeThreshold) {
+        // Automatic Free Shipping Threshold or Pure Digital E-Book Orders
+        if ((!$hasPhysicalBooks && !empty($titles)) || ($freeThreshold > 0 && $subtotal >= $freeThreshold)) {
             $shippingCost = 0;
         }
 

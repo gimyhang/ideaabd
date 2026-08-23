@@ -119,8 +119,7 @@
 
         <form action="{{ route('author.posts.store') }}" method="POST">
             @csrf
-            <input type="hidden" name="status" value="draft">
-            <input type="hidden" name="category_id" value="1">
+            <input type="hidden" name="action_type" value="draft">
 
             <div class="row g-2">
                 <div class="col-12 col-md-8">

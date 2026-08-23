@@ -122,10 +122,21 @@ class Handler extends ExceptionHandler
                 ? $e->getMessage() 
                 : 'Server error. Please try again later.';
 
-            return response()->json([
-                'success' => false,
-                'message' => $message,
-            ], $statusCode);
+            // ৬. টোকেন মিসম্যাচ / সেশন এক্সপায়ার এরর (419)
+            if ($e instanceof \Illuminate\Session\TokenMismatchException) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'পেজের সেশনের মেয়াদ শেষ হয়েছে। অনুগ্রহ করে পেজটি রিফ্রেশ করুন।',
+                ], 419);
+            }
+        }
+
+        // Web Request: Handle TokenMismatchException (419) gracefully
+        if ($e instanceof \Illuminate\Session\TokenMismatchException) {
+            if ($request->is('logout')) {
+                return redirect('/');
+            }
+            return redirect()->back()->withInput()->with('warning', 'পেজের সেশনের মেয়াদ শেষ হয়েছিল। অনুগ্রহ করে পুনরায় চেষ্টা করুন।');
         }
 
         return parent::render($request, $e);
