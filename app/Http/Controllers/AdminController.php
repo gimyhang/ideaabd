@@ -667,7 +667,31 @@ class AdminController extends Controller
             'total_sales' => \Modules\Ebook\Models\Ebook::sum('sales_count'),
         ];
 
-        return view('admin.ebooks', compact('ebooks', 'categories', 'publishers', 'authors', 'stats', 'sort', 'perPage'));
+        $defaultPreviewPages = \App\Support\SiteSetting::ebookPreviewLimit();
+
+        return view('admin.ebooks', compact('ebooks', 'categories', 'publishers', 'authors', 'stats', 'sort', 'perPage', 'defaultPreviewPages'));
+    }
+
+    public function updateEbookSettings(Request $request): \Illuminate\Http\RedirectResponse
+    {
+        $validated = $request->validate([
+            'default_preview_pages' => 'required|integer|min:1|max:100',
+        ]);
+
+        $settings = \App\Support\SiteSetting::get('ebook_settings') ?: [];
+        if (!is_array($settings)) {
+            $settings = [];
+        }
+        $settings['default_preview_pages'] = (int) $validated['default_preview_pages'];
+
+        \App\Models\AdminDashboardSetting::updateOrCreate(
+            ['key' => 'ebook_settings'],
+            ['value' => json_encode($settings, JSON_UNESCAPED_UNICODE)]
+        );
+
+        \App\Support\SiteSetting::clearCache();
+
+        return back()->with('success', 'ই-বুক গ্লোবাল সেটিংস (ডিফল্ট ' . $settings['default_preview_pages'] . ' পেজ প্রিভিউ) সফলভাবে সংরক্ষিত হয়েছে!');
     }
 
     public function toggleEbookStatus(Request $request, int $id): \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse

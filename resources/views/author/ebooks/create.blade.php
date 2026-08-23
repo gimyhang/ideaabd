@@ -7,17 +7,17 @@
 <form action="{{ route('author.ebooks.store') }}" method="POST" enctype="multipart/form-data" class="row g-4" id="authorEbookForm">
     @csrf
 
-    {{-- LEFT COLUMN: MAIN CONTENT & DIGITAL FILES (Width: ~67%) --}}
+    {{-- LEFT COLUMN: MAIN CONTENT (Width: ~67%) --}}
     <div class="col-12 col-lg-8">
-        
-        {{-- CARD 1: BASIC INFORMATION & DESCRIPTION --}}
+
+        {{-- CARD 1: BASIC INFO, CATEGORY, PRICING & DESCRIPTION --}}
         <div class="author-card p-3 p-md-4 mb-4">
             <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
                 <h6 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
                     <span class="badge bg-primary bg-opacity-10 text-primary rounded-circle p-2">
-                        <i class="fas fa-tablet-screen-button"></i>
+                        <i class="fas fa-book-bookmark"></i>
                     </span>
-                    <span>ই-বুক সাধারণ তথ্য ও বিবরণ (Basic Details)</span>
+                    <span>ই-বুক সাধারণ তথ্য, মূল্য ও বিবরণ (Basic Details & Pricing)</span>
                 </h6>
                 <span class="badge bg-light text-muted border small">* চিহ্নিত ঘরগুলো আবশ্যক</span>
             </div>
@@ -58,9 +58,14 @@
 
                 {{-- Category & Publisher --}}
                 <div class="col-12 col-md-6">
-                    <label for="f-category_id" class="form-label small fw-bold text-dark mb-1">
-                        <i class="fas fa-folder-tree text-primary me-1"></i> বিষয়শ্রেণী (Category) <span class="text-danger">*</span>
-                    </label>
+                    <div class="d-flex align-items-center justify-content-between mb-1">
+                        <label for="f-category_id" class="form-label small fw-bold text-dark mb-0">
+                            <i class="fas fa-folder-tree text-primary me-1"></i> বিষয়শ্রেণী (Category) <span class="text-danger">*</span>
+                        </label>
+                        <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2 rounded-pill text-decoration-none fw-bold shadow-xs" style="font-size: 11px;" data-bs-toggle="modal" data-bs-target="#quickCategoryModal">
+                            <i class="fas fa-plus-circle me-1"></i> নতুন বিষয় এড করুন
+                        </button>
+                    </div>
                     <select id="f-category_id" name="category_id" required
                             class="form-select form-select-sm rounded-3 @error('category_id') is-invalid @enderror">
                         <option value="">-- বিষয়শ্রেণী নির্বাচন করুন --</option>
@@ -85,12 +90,48 @@
                     @error('publisher_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
 
+                {{-- Price & Pages Integrated --}}
+                <div class="col-12 col-md-4">
+                    <label for="f-price" class="form-label small fw-bold text-dark mb-1">
+                        <i class="fas fa-tag text-success me-1"></i> বিক্রয় মূল্য (Price ৳) <span class="text-danger">*</span>
+                    </label>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-light fw-bold">৳</span>
+                        <input type="number" step="0.01" min="0" id="f-price" name="price" 
+                               value="{{ old('price', 150) }}" required
+                               class="form-control rounded-end-3 font-monospace fw-semibold @error('price') is-invalid @enderror" 
+                               placeholder="150.00" oninput="calculateRoyalty()">
+                    </div>
+                    @error('price')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                </div>
+
+                <div class="col-12 col-md-4">
+                    <label for="f-pages" class="form-label small fw-bold text-dark mb-1">
+                        <i class="fas fa-file-lines text-secondary me-1"></i> মোট পৃষ্ঠা সংখ্যা (Pages)
+                    </label>
+                    <input type="number" min="1" id="f-pages" name="pages" value="{{ old('pages') }}"
+                           class="form-control form-control-sm rounded-3 font-monospace @error('pages') is-invalid @enderror" 
+                           placeholder="যেমন: 180">
+                    @error('pages')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                </div>
+
+                {{-- Live 50% Royalty Share Display Badge --}}
+                <div class="col-12 col-md-4">
+                    <label class="form-label small fw-bold text-dark mb-1">
+                        <i class="fas fa-hand-holding-dollar text-warning me-1"></i> আপনার ৫০% রয়্যালটি আয়
+                    </label>
+                    <div class="p-1.5 px-2.5 rounded-3 border bg-success-subtle bg-opacity-40 d-flex align-items-center justify-content-between">
+                        <span class="small text-dark fw-semibold" style="font-size: 11px;">প্রতি কপিতে:</span>
+                        <strong class="text-success fs-6 font-monospace" id="authorEarningDisplay">৳75.00</strong>
+                    </div>
+                </div>
+
                 {{-- Description --}}
                 <div class="col-12 mt-2">
                     <label for="f-description" class="form-label small fw-bold text-dark mb-1">
                         <i class="fas fa-align-left text-primary me-1"></i> বইয়ের বিস্তারিত বিবরণ ও সূচিপত্র <span class="text-danger">*</span>
                     </label>
-                    <textarea id="f-description" name="description" rows="7" required
+                    <textarea id="f-description" name="description" rows="6" required
                               class="form-control rounded-3 @error('description') is-invalid @enderror" 
                               placeholder="বইয়ের বিষয়বস্তু, সারসংক্ষেপ, সূচিপত্র ও পাঠকদের জন্য বিস্তারিত বিবরণ লিখুন...">{{ old('description') }}</textarea>
                     @error('description')<div class="invalid-feedback">{{ $message }}</div>@enderror
@@ -120,7 +161,7 @@
                             <label for="f-file_path" class="form-label small fw-bold text-dark mb-0">
                                 <i class="fas fa-file-arrow-up text-primary me-1"></i> মূল ই-বুক ফাইল (PDF / EPUB) <span class="text-danger">*</span>
                             </label>
-                            <span class="text-muted small" style="font-size: 11px;">সর্বোচ্চ ১০০ MB</span>
+                            <span class="text-muted small" style="font-size: 11px;">সর্বোচ্চ ১৫০ MB</span>
                         </div>
                         <p class="text-muted small mb-2" style="font-size: 11.5px;">
                             পাঠক এটি সরাসরি ডাউনলোড করতে পারবে না; শুধুমাত্র আমাদের কাস্টম DRM রিডারে ডাইনামিক ওয়াটারমার্কসহ পড়তে পারবে।
@@ -150,7 +191,7 @@
                         <label for="f-sample_file_path" class="form-label small fw-bold text-dark mb-1">
                             <i class="fas fa-eye text-warning me-1"></i> ফ্রি নমুনা অংশ (Sample Preview PDF)
                         </label>
-                        <small class="text-muted d-block mb-2" style="font-size: 11px;">পাঠকদের ফ্রিতে পড়ার জন্য ডেমো চ্যাপ্টার (ঐচ্ছিক)</small>
+                        <small class="text-muted d-block mb-2" style="font-size: 11px;">আলাদা স্যাম্পল না দিলে মূল ফাইল থেকেই প্রিভিউ হবে (ঐচ্ছিক)</small>
                         <input type="file" id="f-sample_file_path" name="sample_file_path" accept=".pdf,.epub"
                                class="form-control form-control-sm rounded-3 @error('sample_file_path') is-invalid @enderror">
                         @error('sample_file_path')<div class="invalid-feedback">{{ $message }}</div>@enderror
@@ -159,7 +200,7 @@
             </div>
         </div>
 
-        {{-- CARD 3: TERMS & CONDITIONS (আইডিয়া প্রকাশন — ই-বুক প্রকাশনা চুক্তি ও শর্তাবলী) --}}
+        {{-- CARD 3: TERMS & CONDITIONS --}}
         <div class="author-card p-3 p-md-4 mb-4 border-start border-4 border-primary">
             <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
                 <h6 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
@@ -171,35 +212,14 @@
                 <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1 small">ডিজিটাল চুক্তি</span>
             </div>
 
-            <div class="p-3 rounded-3 bg-light bg-opacity-75 border overflow-y-auto small" style="max-height: 280px; line-height: 1.75; font-size: 0.85rem;">
+            <div class="p-3 rounded-3 bg-light bg-opacity-75 border overflow-y-auto small" style="max-height: 250px; line-height: 1.75; font-size: 0.85rem;">
                 <h6 class="fw-bold text-primary mb-1.5"><i class="fas fa-certificate me-1"></i> ১. মালিকানা ও স্বত্বাধিকার (Copyright & Ownership)</h6>
                 <p class="mb-1 text-dark"><strong>লেখকের অধিকার:</strong> বইয়ের মূল কপিরাইট বা সর্বস্বত্ব লেখকের কাছেই সংরক্ষিত থাকবে।</p>
                 <p class="mb-3 text-dark"><strong>প্রকাশনা অধিকার:</strong> লেখক আইডিয়া প্রকাশন-কে বইটি ডিজিটাল (ই-বুক) ফরম্যাটে বিশ্বব্যাপী প্রদর্শন, বিক্রয় ও বিতরণের অ-একক (Non-Exclusive) বা একক (Exclusive) ডিজিটাল অধিকার প্রদান করছেন।</p>
 
                 <h6 class="fw-bold text-primary mb-1.5"><i class="fas fa-shield-halved me-1"></i> ২. প্রকাশকের স্বার্থ সংরক্ষণ ও অধিকার (Publisher Rights & Protection)</h6>
-                <p class="mb-1 text-dark"><strong>প্রিন্ট সংস্করণের অগ্রাধিকার (First Right of Refusal for Print):</strong> ই-বুক হিসেবে সাফল্য পেলে পরবর্তীতে বইটি পেপারব্যাক বা হার্ডকাভার (প্রিন্ট ভার্সন) হিসেবেও প্রকাশ করতে পারবেন। প্রিন্ট বইয়ের ক্ষেত্রে লেখক বিক্রির অর্থাৎ গায়ের মূল্যে ৩০% বাদ দিয়ে যেম মূল্য দাঁড়াবে তার ১০% রয়্যালটি পাবেন।</p>
-                <p class="mb-1 text-dark"><strong>প্রচার ও মার্কেটিং অধিকার:</strong> বইয়ের প্রমোশনের স্বার্থে সামাজিক যোগাযোগ মাধ্যম, ওয়েবসাইট বা ব্যানারে বইয়ের কভার, সারসংক্ষেপ, লেখকের নাম ও ছবি প্রকাশের পূর্ণ অধিকার প্রকাশকের থাকবে।</p>
-                <p class="mb-1 text-dark"><strong>প্রমোশনাল ডিসকাউন্ট ও মূল্য ছাড়:</strong> বিশেষ উৎসব বা ক্যাম্পেইনে ই-বুকের বিক্রয় বাড়াতে সাময়িক সময়ে ছাড় দেওয়ার অধিকার প্রকাশকের থাকবে।</p>
-                <p class="mb-3 text-dark"><strong>ই-বুক অপসারণের এখতিয়ার:</strong> প্রকাশনী (আইডিয়া প্রকাশন) চাইলে যেকোনো সময় যেকোনো ই-বুক প্ল্যাটফর্ম থেকে নোটিশ ছাড়াই অপসারণ করার পূর্ণ অধিকার সংরক্ষণ করে।</p>
-
-                <h6 class="fw-bold text-primary mb-1.5"><i class="fas fa-scale-balanced me-1"></i> ৩. পান্ডুলিপি, ফরম্যাটিং ও আইনি সুরক্ষা (Manuscript & Legal Terms)</h6>
-                <p class="mb-1 text-dark"><strong>ফরম্যাট গ্রহণ:</strong> পান্ডুলিপি অবশ্যই সুনির্দিষ্ট ডিজিটাল ফরম্যাটে (যেমন: EPUB, Word বা PDF) জমা দিতে হবে।</p>
-                <p class="mb-1 text-dark"><strong>মান নিয়ন্ত্রণ:</strong> কভার ডিজাইন, ইনডেক্সিং এবং ফন্ট রেন্ডারিং আইডিয়া প্রকাশনের ডিজিটাল স্ট্যান্ডার্ড অনুযায়ী অপটিমাইজ করা হবে।</p>
-                <p class="mb-1 text-dark"><strong>নিষিদ্ধ বিষয়বস্তু:</strong> প্লেজিয়ারিজম (চুরি করা লেখা), মানহানিকর, ধর্মীয় ভাবাবেগে আঘাতকারী বা আইনবিরোধী কোনো বিষয়বস্তু প্রকাশ করা যাবে না।</p>
-                <p class="mb-3 text-dark"><strong>ক্ষতিপূরণ ও আইনি দায় থেকে সুরক্ষা (Indemnity Clause):</strong> পান্ডুলিপির কনটেন্টের কারণে কোনো কপিরাইট বা আইনি জটিলতা তৈরি হলে, তার সম্পূর্ণ দায়ভার লেখক বহন করবেন এবং প্রকাশনীর কোনো আর্থিক বা সম্মানহানি হলে তা ক্ষতিপূরণ হিসেবে দিতে লেখক বাধ্য থাকবেন।</p>
-
-                <h6 class="fw-bold text-primary mb-1.5"><i class="fas fa-hand-holding-dollar me-1"></i> ৪. রয়্যালটি ও মূল্য নির্ধারণ (Royalty & Pricing Model)</h6>
-                <p class="mb-1 text-dark"><strong>মূল্য নির্ধারণ:</strong> বইয়ের ডিজিটাল বিক্রয়মূল্য (List Price) আইডিয়া প্রকাশন ও লেখক যৌথ আলোচনার মাধ্যমে নির্ধারণ করবেন।</p>
-                <p class="mb-1 text-dark"><strong>রয়্যালটি বণ্টন:</strong> নেট বিক্রয়মূল্যের (Net Revenue) উপর চুক্তি অনুযায়ী [৫০% লেখক / ৫০% আইডিয়া প্রকাশন] হারে রয়্যালটি হিসাব করা হবে।</p>
-                <p class="mb-1 text-dark"><strong>পেমেন্ট সাইকেল:</strong> প্রতি মাসের বা ত্রৈমাসিকের মোট রয়্যালটি হিসাব করে নির্ধারিত নির্দিষ্ট সময়ের [যেমন: ৩০ দিনের] মধ্যে লেখকের ব্যাংক অ্যাকাউন্ট বা বিকাশ/নগদে ট্রান্সফার করা হবে।</p>
-                <p class="mb-3 text-dark"><strong>অভিযোগ ও রয়্যালটি বাজেয়াপ্তকরণ:</strong> কপিরাইট লঙ্ঘন, পাইরেসি বা আইনি অভিযোগে অভিযুক্ত বইয়ের ক্ষেত্রে জমাকৃত বা বকেয়া সমস্ত রয়্যালটি সরাসরি বাতিল বা বাজেয়াপ্ত বলে গণ্য হবে।</p>
-
-                <h6 class="fw-bold text-primary mb-1.5"><i class="fas fa-lock me-1"></i> ৫. ডিজিটাল অধিকার ব্যবস্থাপনা (DRM & Content Security)</h6>
-                <p class="mb-1 text-dark"><strong>কপিরাইট সুরক্ষা:</strong> অবৈধ পাইরেসি ও ডাউনলোড রোধে বইগুলোতে ডিজিটাল রাইটস ম্যানেজমেন্ট (DRM) বা প্রয়োজনীয় ওয়াটারমার্ক প্রটেকশন এনক্রিপ্ট করা থাকবে।</p>
-                <p class="mb-3 text-dark"><strong>প্রিভিউ:</strong> পাঠকদের আকৃষ্ট করতে বইয়ের সর্বোচ্চ ১০% থেকে ১৫% অংশ পর্যন্ত ফ্রিতে স্যাম্পল বা প্রিভিউ হিসেবে প্রদর্শনের অধিকার প্ল্যাটফর্মের থাকবে।</p>
-
-                <h6 class="fw-bold text-primary mb-1.5"><i class="fas fa-ban me-1"></i> ৬. নীতি লঙ্ঘন ও বই অপসারণ (Policy Violation & Termination)</h6>
-                <p class="mb-0 text-dark"><strong>পলিসি লঙ্ঘন:</strong> আইডিয়া প্রকাশনের কোনো শর্ত বা কপিরাইট আইন লঙ্ঘিত হলে প্রকাশনী তাৎক্ষণিকভাবে বইটি প্ল্যাটফর্ম থেকে অপসারণের এবং চুক্তি বাতিলের পূর্ণ অধিকার রাখে।</p>
+                <p class="mb-1 text-dark"><strong>প্রিন্ট সংস্করণের অগ্রাধিকার:</strong> ই-বুক হিসেবে সাফল্য পেলে পরবর্তীতে বইটি পেপারব্যাক বা হার্ডকাভার হিসেবেও প্রকাশ করতে পারবেন।</p>
+                <p class="mb-3 text-dark"><strong>রয়্যালটি বণ্টন:</strong> নেট বিক্রয়মূল্যের উপর ৫০% লেখক / ৫০% আইডিয়া প্রকাশন হারে রয়্যালটি হিসাব করা হবে।</p>
             </div>
 
             <div class="mt-3 p-2.5 rounded-3 bg-warning-subtle bg-opacity-30 border border-warning border-opacity-50">
@@ -213,19 +233,91 @@
         </div>
     </div>
 
-    {{-- RIGHT SIDEBAR: PRICING, 50% ROYALTY, COVER & SUBMIT (Width: ~33%) --}}
+    {{-- RIGHT SIDEBAR: COVER (AI GENERATE) & SUBMIT --}}
     <div class="col-12 col-lg-4">
-        
-        {{-- CARD 1: PUBLISH SUBMISSION & REVIEW --}}
+
+        {{-- CARD 1: COVER IMAGE & AI COVER GENERATOR --}}
         <div class="author-card p-3 p-md-4 mb-4">
+            <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                <h6 class="fw-bold mb-0 text-dark d-flex align-items-center gap-1.5">
+                    <i class="fas fa-wand-magic-sparkles text-warning"></i> ই-বুক প্রচ্ছদ (Cover)
+                </h6>
+                <span class="badge bg-light text-muted border small">২:৩ প্রচ্ছদ</span>
+            </div>
+
+            {{-- Live Mockup Preview Box --}}
+            <div class="position-relative mx-auto rounded-3 overflow-hidden border shadow-sm mb-3 text-center d-flex align-items-center justify-content-center" 
+                 id="mockupCoverContainer"
+                 style="width: 165px; aspect-ratio: 2 / 3; background: linear-gradient(145deg, #fffefb 0%, #f7f2e7 50%, #ede4d4 100%); transition: all 0.3s ease;">
+                <img id="coverPreviewImg" src="" alt="Cover Preview" class="w-100 h-100 object-fit-cover d-none">
+                <div id="coverPlaceholder" class="w-100 h-100 d-flex flex-column justify-content-between p-3 text-start position-relative" style="border: 2px solid #d97706; margin: 6px; border-radius: 6px;">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <span class="badge bg-dark bg-opacity-75 text-white" style="font-size: 0.58rem;">ডিজিটাল ই-বুক</span>
+                        <span class="badge bg-warning-subtle text-warning-emphasis border border-warning" style="font-size: 0.55rem;">AI অটো-কভার</span>
+                    </div>
+                    <div class="my-auto text-center py-2">
+                        <h6 id="mockupTitle" class="fw-bold text-dark mb-1" style="font-size: 0.85rem; line-height: 1.35;">
+                            ই-বুকের নাম
+                        </h6>
+                        <div class="text-warning small" style="font-size: 9px;">❖ ── ✦ ── ❖</div>
+                        <small id="mockupAuthor" class="text-secondary fw-semibold d-block text-truncate mt-1" style="font-size: 0.72rem;">
+                            {{ $author?->name ?? auth()->user()->name }}
+                        </small>
+                    </div>
+                    <span class="text-muted text-center d-block fw-semibold" style="font-size: 0.58rem;">আইডিয়া প্রকাশন • IDEA</span>
+                </div>
+            </div>
+
+            {{-- AI Cover Palette Theme Selector --}}
+            <div class="p-2.5 rounded-3 bg-light border mb-3">
+                <div class="d-flex align-items-center justify-content-between mb-1.5">
+                    <span class="small fw-bold text-dark" style="font-size: 11.5px;">
+                        <i class="fas fa-palette text-primary me-1"></i> এআই প্রচ্ছদ স্টাইল নির্বাচন:
+                    </span>
+                </div>
+                <div class="d-flex flex-wrap gap-1">
+                    <button type="button" class="btn btn-xs btn-outline-dark rounded-pill py-1 px-2 ai-theme-btn active" onclick="setAiTheme('ivory', this)">
+                        <i class="fas fa-circle text-warning me-1"></i> সফট আইভরি
+                    </button>
+                    <button type="button" class="btn btn-xs btn-outline-dark rounded-pill py-1 px-2 ai-theme-btn" onclick="setAiTheme('linen', this)">
+                        <i class="fas fa-circle text-secondary me-1"></i> লিনেন ক্রিম
+                    </button>
+                    <button type="button" class="btn btn-xs btn-outline-dark rounded-pill py-1 px-2 ai-theme-btn" onclick="setAiTheme('mint', this)">
+                        <i class="fas fa-circle text-success me-1"></i> নরম মিন্ট
+                    </button>
+                    <button type="button" class="btn btn-xs btn-outline-dark rounded-pill py-1 px-2 ai-theme-btn" onclick="setAiTheme('gold', this)">
+                        <i class="fas fa-circle text-danger me-1"></i> রয়েল গোল্ড
+                    </button>
+                </div>
+                <input type="hidden" name="ai_cover_theme" id="ai_cover_theme" value="ivory">
+            </div>
+
+            {{-- Upload Custom File Option --}}
+            <div>
+                <label for="f-cover_image" class="form-label small fw-bold text-dark mb-1">
+                    <i class="fas fa-upload text-secondary me-1"></i> নিজস্ব ছবি আপলোড (ঐচ্ছিক)
+                </label>
+                <input type="file" id="f-cover_image" name="cover_image" accept="image/*"
+                       class="form-control form-control-sm rounded-3 @error('cover_image') is-invalid @enderror"
+                       onchange="previewCover(this)">
+                <small class="text-muted d-block mt-1" style="font-size: 11px; line-height: 1.4;">
+                    <i class="fas fa-circle-info text-info me-1"></i> ছবি না দিলে ওপরের নির্বাচিত এআই স্টাইলে সফট-শেডের ভেক্টর কভার স্বয়ংক্রিয়ভাবে জেনারেট হবে।
+                </small>
+                @error('cover_image')<div class="invalid-feedback">{{ $message }}</div>@enderror
+            </div>
+        </div>
+
+        {{-- CARD 2: PUBLISH SUBMISSION & REVIEW (PLACED AT THE VERY END) --}}
+        <div class="author-card p-3 p-md-4 mb-4 border-2 border-primary border-opacity-25 shadow-sm">
             <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
                 <h6 class="fw-bold mb-0 text-dark d-flex align-items-center gap-1.5">
                     <i class="fas fa-paper-plane text-success"></i> রিভিউ ও প্রকাশনা
                 </h6>
+                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5 small">চূড়ান্ত ধাপ</span>
             </div>
 
             <p class="text-muted small mb-3" style="font-size: 12px; line-height: 1.5;">
-                জমা দেওয়ার পর বইটি আইডিয়া প্রকাশন অ্যাডমিন প্যানেলে রিভিউতে জমা হবে। মান পর্যালোচনার পর বইটি লাইভ স্টোরে প্রকাশিত হবে।
+                সব তথ্য ও ফাইল নির্বাচন সম্পন্ন হলে নিচের বাটনে ক্লিক করে ই-বুকটি রিভিউয়ের জন্য জমা দিন।
             </p>
 
             {{-- Real-time File Upload Progress Bar --}}
@@ -241,103 +333,49 @@
             </div>
 
             <button type="submit" id="ebookSubmitBtn" class="btn btn-success btn-lg w-100 rounded-pill fw-bold shadow-sm py-2.5 d-flex align-items-center justify-content-center gap-2 mb-2">
-                <i class="fas fa-circle-check fs-5"></i>
-                <span>পর্যালোচনার জন্য জমা দিন (Submit)</span>
+                <i class="fas fa-paper-plane fs-5"></i>
+                <span>Submit</span>
             </button>
 
             <a href="{{ route('author.ebooks.index') }}" class="btn btn-outline-secondary w-100 rounded-pill fw-semibold btn-sm py-2">
-                বাতিল করুন
+                Cancel
             </a>
-        </div>
-
-        {{-- CARD 2: PRICING & 50% ROYALTY CALCULATOR --}}
-        <div class="author-card p-3 p-md-4 mb-4">
-            <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
-                <h6 class="fw-bold mb-0 text-dark d-flex align-items-center gap-1.5">
-                    <i class="fas fa-hand-holding-dollar text-warning"></i> মূল্য ও ৫০% রয়্যালটি
-                </h6>
-                <span class="badge bg-warning-subtle text-warning-emphasis rounded-pill px-2 py-0.5 small">50% Share</span>
-            </div>
-
-            <div class="d-flex flex-column gap-3">
-                {{-- Price --}}
-                <div>
-                    <label for="f-price" class="form-label small fw-bold text-dark mb-1">
-                        <i class="fas fa-tag text-primary me-1"></i> বিক্রয় মূল্য (Price ৳) <span class="text-danger">*</span>
-                    </label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light fw-bold">৳</span>
-                        <input type="number" step="0.01" min="0" id="f-price" name="price" 
-                               value="{{ old('price', 150) }}" required
-                               class="form-control rounded-end-3 font-monospace fw-semibold @error('price') is-invalid @enderror" 
-                               placeholder="150.00" oninput="calculateRoyalty()">
-                    </div>
-                    @error('price')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-                </div>
-
-                {{-- Live 50% Royalty Share Display --}}
-                <div class="p-3 rounded-3 border bg-success-subtle bg-opacity-30">
-                    <div class="d-flex align-items-center justify-content-between mb-1">
-                        <span class="small fw-semibold text-dark">প্রতি কপিতে আপনার আয় (৫০%):</span>
-                        <strong class="text-success fs-5 font-monospace" id="authorEarningDisplay">৳75.00</strong>
-                    </div>
-                    <div class="d-flex align-items-center justify-content-between text-muted small" style="font-size: 11px;">
-                        <span>প্ল্যাটফর্ম ফি (৫০%):</span>
-                        <span class="font-monospace" id="platformFeeDisplay">৳75.00</span>
-                    </div>
-                </div>
-
-                {{-- Pages --}}
-                <div>
-                    <label for="f-pages" class="form-label small fw-bold text-dark mb-1">
-                        <i class="fas fa-file-lines text-secondary me-1"></i> মোট পৃষ্ঠা সংখ্যা (Pages)
-                    </label>
-                    <input type="number" min="1" id="f-pages" name="pages" value="{{ old('pages') }}"
-                           class="form-control form-control-sm rounded-3 font-monospace @error('pages') is-invalid @enderror" 
-                           placeholder="e.g. 180">
-                    @error('pages')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                </div>
-            </div>
-        </div>
-
-        {{-- CARD 3: COVER IMAGE DROPZONE --}}
-        <div class="author-card p-3 p-md-4 mb-4">
-            <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
-                <h6 class="fw-bold mb-0 text-dark d-flex align-items-center gap-1.5">
-                    <i class="fas fa-image text-primary"></i> প্রচ্ছদ ছবি (Cover) <span class="text-danger">*</span>
-                </h6>
-                <span class="badge bg-light text-muted border small">7:10 রেশিও</span>
-            </div>
-
-            {{-- Live Mockup Box --}}
-            <div class="position-relative mx-auto rounded-3 overflow-hidden border shadow-xs mb-3 text-center d-flex align-items-center justify-content-center" 
-                 style="width: 155px; aspect-ratio: 7 / 10; background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);">
-                <img id="coverPreviewImg" src="" alt="Cover Preview" class="w-100 h-100 object-fit-cover d-none">
-                <div id="coverPlaceholder" class="w-100 h-100 d-flex flex-column justify-content-between p-3 text-start" style="border-left: 4px solid #6366f1;">
-                    <span class="badge bg-primary text-white" style="font-size: 0.6rem; width: fit-content;">ই-বুক</span>
-                    <div class="my-auto">
-                        <h6 id="mockupTitle" class="fw-bold text-white mb-0" style="font-size: 0.8rem; line-height: 1.35;">
-                            ই-বুকের নাম
-                        </h6>
-                        <small class="text-white-50 d-block text-truncate" style="font-size: 0.68rem;">
-                            {{ auth()->user()->name }}
-                        </small>
-                    </div>
-                    <span class="text-white-50" style="font-size: 0.6rem;">আইডিয়া প্রকাশন</span>
-                </div>
-            </div>
-
-            <div>
-                <input type="file" id="f-cover_image" name="cover_image" accept="image/*" required
-                       class="form-control form-control-sm rounded-3 @error('cover_image') is-invalid @enderror"
-                       onchange="previewCover(this)">
-                <small class="text-muted d-block mt-1" style="font-size: 11px;">JPG, PNG, WEBP ফরম্যাট (সর্বোচ্চ ৮ MB)</small>
-                @error('cover_image')<div class="invalid-feedback">{{ $message }}</div>@enderror
-            </div>
         </div>
 
     </div>
 </form>
+
+{{-- MODAL: QUICK ADD CATEGORY (OUTSIDE MAIN FORM) --}}
+<div class="modal fade" id="quickCategoryModal" tabindex="-1" aria-labelledby="quickCategoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content rounded-4 border-0 shadow-lg">
+            <div class="modal-header border-bottom py-3">
+                <h6 class="modal-title fw-bold text-dark d-flex align-items-center gap-2" id="quickCategoryModalLabel">
+                    <span class="p-1.5 bg-primary-subtle text-primary rounded-circle"><i class="fas fa-folder-plus"></i></span>
+                    <span>নতুন বিষয়শ্রেণী যুক্ত করুন</span>
+                </h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-3">
+                <div class="mb-3">
+                    <label for="new_category_name" class="form-label small fw-bold text-dark mb-1">
+                        বিষয়ের নাম (Category Name) <span class="text-danger">*</span>
+                    </label>
+                    <input type="text" id="new_category_name" class="form-control form-control-sm rounded-3" 
+                           placeholder="যেমন: উপন্যাস, কবিতা, প্রবন্ধ..." 
+                           onkeydown="if(event.key==='Enter'){event.preventDefault();submitQuickCategory();}">
+                    <div id="quickCatError" class="text-danger small mt-1 d-none"></div>
+                </div>
+            </div>
+            <div class="modal-footer border-top py-2 px-3 bg-light bg-opacity-50">
+                <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">বাতিল</button>
+                <button type="button" id="saveCategoryBtn" class="btn btn-xs btn-primary rounded-pill px-3 fw-bold" onclick="submitQuickCategory()">
+                    <i class="fas fa-plus me-1"></i> যুক্ত করুন
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
 @push('scripts')
 <script>
@@ -359,6 +397,34 @@ function previewCover(input) {
     }
 }
 
+function setAiTheme(theme, btn) {
+    const input = document.getElementById('ai_cover_theme');
+    if (input) input.value = theme;
+
+    document.querySelectorAll('.ai-theme-btn').forEach(b => {
+        b.classList.remove('active', 'bg-dark', 'text-white');
+    });
+    if (btn) btn.classList.add('active', 'bg-dark', 'text-white');
+
+    const container = document.getElementById('mockupCoverContainer');
+    const placeholder = document.getElementById('coverPlaceholder');
+    if (!container || !placeholder) return;
+
+    if (theme === 'ivory') {
+        container.style.background = 'linear-gradient(145deg, #fffefb 0%, #f7f2e7 50%, #ede4d4 100%)';
+        placeholder.style.borderColor = '#d97706';
+    } else if (theme === 'linen') {
+        container.style.background = 'linear-gradient(145deg, #f8f6f0 0%, #eee8dc 50%, #dfd5c2 100%)';
+        placeholder.style.borderColor = '#475569';
+    } else if (theme === 'mint') {
+        container.style.background = 'linear-gradient(145deg, #f0fdf4 0%, #dcfce7 50%, #bbf7d0 100%)';
+        placeholder.style.borderColor = '#16a34a';
+    } else if (theme === 'gold') {
+        container.style.background = 'linear-gradient(145deg, #fffbeb 0%, #fef3c7 50%, #fde68a 100%)';
+        placeholder.style.borderColor = '#b45309';
+    }
+}
+
 function updateLiveCard() {
     const titleInput = document.getElementById('f-title');
     const mockupTitle = document.getElementById('mockupTitle');
@@ -376,6 +442,100 @@ function calculateRoyalty() {
     document.getElementById('platformFeeDisplay').textContent = '৳' + platformShare;
 }
 
+function setPreviewPages(num, btn) {
+    const input = document.getElementById('f-preview_page_limit');
+    if (input) {
+        input.value = num;
+        updatePreviewBadge(num);
+    }
+    document.querySelectorAll('.preview-pill').forEach(b => {
+        b.classList.remove('btn-primary', 'active', 'fw-bold');
+        b.classList.add('btn-outline-secondary');
+    });
+    if (btn) {
+        btn.classList.remove('btn-outline-secondary');
+        btn.classList.add('btn-primary', 'active', 'fw-bold');
+    }
+}
+
+function updatePreviewBadge(val) {
+    const badge = document.getElementById('previewBadge');
+    if (badge) {
+        badge.textContent = (val || 16) + ' পৃষ্ঠা';
+    }
+}
+
+function submitQuickCategory() {
+    const nameInput = document.getElementById('new_category_name');
+    const errDiv = document.getElementById('quickCatError');
+    const saveBtn = document.getElementById('saveCategoryBtn');
+    const name = nameInput.value.trim();
+
+    if (!name) {
+        if (errDiv) {
+            errDiv.textContent = 'দয়া করে বিষয়ের নাম লিখুন।';
+            errDiv.classList.remove('d-none');
+        }
+        return;
+    }
+
+    if (errDiv) errDiv.classList.add('d-none');
+    saveBtn.disabled = true;
+    saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> সংরক্ষণ হচ্ছে...';
+
+    const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+    fetch("{{ route('author.categories.quick-store') }}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': token || ''
+        },
+        body: JSON.stringify({ name: name })
+    })
+    .then(res => res.json())
+    .then(data => {
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = '<i class="fas fa-plus me-1"></i> যুক্ত করুন';
+
+        if (data.success && data.id) {
+            // Append and select in category dropdown
+            const catSelect = document.getElementById('f-category_id');
+            if (catSelect) {
+                const opt = document.createElement('option');
+                opt.value = data.id;
+                opt.textContent = data.name;
+                opt.selected = true;
+                catSelect.appendChild(opt);
+                catSelect.dispatchEvent(new Event('change'));
+            }
+
+            // Close modal
+            const modalEl = document.getElementById('quickCategoryModal');
+            const modalInstance = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+            modalInstance.hide();
+            nameInput.value = '';
+
+            // Brief toast feedback
+            alert('বিষয়শ্রেণী ‘' + data.name + '’ যুক্ত হয়েছে এবং নির্বাচিত করা হয়েছে!');
+        } else {
+            if (errDiv) {
+                errDiv.textContent = data.message || 'সংরক্ষণ ব্যর্থ হয়েছে।';
+                errDiv.classList.remove('d-none');
+            }
+        }
+    })
+    .catch(err => {
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = '<i class="fas fa-plus me-1"></i> যুক্ত করুন';
+        if (errDiv) {
+            errDiv.textContent = 'সার্ভার সমস্যা হয়েছে, পুনরায় চেষ্টা করুন।';
+            errDiv.classList.remove('d-none');
+        }
+    });
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     calculateRoyalty();
 
@@ -388,58 +548,32 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (form && submitBtn) {
         form.addEventListener('submit', function(e) {
-            const hasFiles = document.getElementById('f-epub_file_path')?.files.length > 0 || 
-                             document.getElementById('f-file_path')?.files.length > 0 || 
-                             document.getElementById('f-cover_image')?.files.length > 0;
-
-            if (hasFiles && typeof XMLHttpRequest !== 'undefined') {
-                e.preventDefault();
-                submitBtn.disabled = true;
-                if (progressBox) progressBox.classList.remove('d-none');
-
-                const xhr = new XMLHttpRequest();
-                const formData = new FormData(form);
-
-                xhr.upload.addEventListener('progress', function(event) {
-                    if (event.lengthComputable) {
-                        const percent = Math.round((event.loaded / event.total) * 100);
-                        if (progressBar) progressBar.style.width = percent + '%';
-                        if (progressPercent) progressPercent.textContent = percent + '%';
-                        if (percent >= 100 && progressLabel) {
-                            progressLabel.innerHTML = '<i class="fas fa-cog fa-spin text-success me-1"></i> সার্ভারে ফাইল প্রস্তুত ও সেভ হচ্ছে...';
-                        }
-                    }
-                });
-
-                xhr.addEventListener('load', function() {
-                    if (xhr.status >= 200 && xhr.status < 400) {
-                        // Success or redirect
-                        if (xhr.responseURL) {
-                            window.location.href = xhr.responseURL;
-                        } else {
-                            window.location.href = "{{ route('author.ebooks.index') }}";
-                        }
-                    } else {
-                        // Error handling: reload or replace document
-                        document.open();
-                        document.write(xhr.responseText);
-                        document.close();
-                    }
-                });
-
-                xhr.addEventListener('error', function() {
-                    alert('আপলোডে সমস্যা হয়েছে। অনুগ্রহ করে ইন্টারনেট সংযোগ চেক করে পুনরায় চেষ্টা করুন।');
-                    submitBtn.disabled = false;
-                    if (progressBox) progressBox.classList.add('d-none');
-                });
-
-                xhr.open(form.method, form.action);
-                xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-                xhr.send(formData);
-            } else {
-                submitBtn.disabled = true;
-                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1.5"></span> প্রসেসিং হচ্ছে...';
+            const mainFileInput = document.getElementById('f-file_path');
+            if (!mainFileInput || !mainFileInput.files || mainFileInput.files.length === 0) {
+                return; // HTML5 required prompt
             }
+
+            const termsCheckbox = document.getElementById('terms_agree');
+            if (termsCheckbox && !termsCheckbox.checked) {
+                return; // HTML5 terms prompt
+            }
+
+            // Show visual progress for author feedback without breaking native upload stream
+            submitBtn.style.pointerEvents = 'none';
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1.5"></span> Submitting...';
+            if (progressBox) progressBox.classList.remove('d-none');
+
+            let fakeProgress = 15;
+            const progressInterval = setInterval(function() {
+                fakeProgress += Math.floor(Math.random() * 12) + 6;
+                if (fakeProgress > 95) fakeProgress = 95;
+                if (progressBar) progressBar.style.width = fakeProgress + '%';
+                if (progressPercent) progressPercent.textContent = fakeProgress + '%';
+            }, 250);
+
+            setTimeout(function() {
+                submitBtn.disabled = true;
+            }, 100);
         });
     }
 });

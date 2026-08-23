@@ -174,4 +174,13 @@ class SiteSetting
 
         return asset('storage/' . $clean);
     }
+
+    public static function ebookPreviewLimit(): int
+    {
+        $ebookSettings = self::get('ebook_settings');
+        if (is_array($ebookSettings) && isset($ebookSettings['default_preview_pages'])) {
+            return max(1, (int)$ebookSettings['default_preview_pages']);
+        }
+        return 16; // Standard default 16 pages
+    }
 }

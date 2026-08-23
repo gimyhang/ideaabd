@@ -9,6 +9,9 @@
 
 @section('actions')
     <div class="d-flex align-items-center gap-2">
+        <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-xs" data-bs-toggle="modal" data-bs-target="#ebookSettingsModal" title="ই-বুক সেটিংস ও প্রিভিউ পেজ লিমিট">
+            <i class="fas fa-sliders me-1"></i> Settings
+        </button>
         <button type="button" class="btn btn-outline-success btn-sm rounded-pill px-3 shadow-xs" onclick="exportEbooksToCSV()" title="CSV Export">
             <i class="fas fa-file-csv me-1"></i> Export (CSV)
         </button>
@@ -459,6 +462,61 @@
                 <div>{{ $ebooks->links() }}</div>
             </div>
         @endif
+
+        {{-- E-Book Global Settings Modal --}}
+        <div class="modal fade" id="ebookSettingsModal" tabindex="-1" aria-labelledby="ebookSettingsModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content rounded-4 border-0 shadow-lg">
+                    <div class="modal-header border-bottom py-3">
+                        <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2" id="ebookSettingsModalLabel">
+                            <span class="p-2 bg-primary-subtle text-primary rounded-circle"><i class="fas fa-sliders"></i></span>
+                            <span>ই-বুক গ্লোবাল সেটিংস ও প্রিভিউ লিমিট</span>
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form action="{{ route('admin.ebooks.settings') }}" method="POST">
+                        @csrf
+                        <div class="modal-body p-4">
+                            <div class="mb-3">
+                                <label for="default_preview_pages" class="form-label fw-bold text-dark small mb-1">
+                                    <i class="fas fa-book-open-reader text-warning me-1"></i> ডিফল্ট অটো-প্রিভিউ পৃষ্ঠা সংখ্যা (Default Preview Pages)
+                                </label>
+                                <p class="text-muted small mb-2" style="font-size: 12px; line-height: 1.5;">
+                                    পাঠক কোনো ই-বুক কেনার আগে সর্বোচ্চ কত পৃষ্ঠা পর্যন্ত ফ্রিতে পড়তে পারবেন তা নির্ধারণ করুন (যেমন: ১, ৩, ৫, ১০, ১৬, ২০ ইত্যাদি)।
+                                </p>
+                                <div class="input-group">
+                                    <input type="number" min="1" max="100" class="form-control rounded-start-3 font-monospace fw-bold" 
+                                           id="default_preview_pages" name="default_preview_pages" 
+                                           value="{{ $defaultPreviewPages ?? 16 }}" required>
+                                    <span class="input-group-text bg-light text-muted small">পৃষ্ঠা (Pages)</span>
+                                </div>
+                                <div class="d-flex gap-1.5 mt-2">
+                                    <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill py-0.5 px-2" onclick="document.getElementById('default_preview_pages').value = 5;">৫ পৃষ্ঠা</button>
+                                    <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill py-0.5 px-2" onclick="document.getElementById('default_preview_pages').value = 10;">১০ পৃষ্ঠা</button>
+                                    <button type="button" class="btn btn-xs btn-outline-primary rounded-pill py-0.5 px-2 active fw-bold" onclick="document.getElementById('default_preview_pages').value = 16;">১৬ পৃষ্ঠা (প্রস্তাবিত)</button>
+                                    <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill py-0.5 px-2" onclick="document.getElementById('default_preview_pages').value = 20;">২০ পৃষ্ঠা</button>
+                                </div>
+                            </div>
+
+                            <div class="p-3 bg-light rounded-3 border">
+                                <div class="d-flex gap-2">
+                                    <i class="fas fa-circle-info text-primary mt-0.5"></i>
+                                    <div class="small text-muted" style="font-size: 11.5px; line-height: 1.4;">
+                                        <strong>স্বয়ংক্রিয় প্রিভিউ:</strong> লেখক আলাদা স্যাম্পল ফাইল না দিলে সিস্টেম স্বয়ংক্রিয়ভাবে মূল ফাইল থেকে এই নির্ধারিত পৃষ্ঠাসংখ্যা পর্যন্ত প্রিভিউ রিডারে পরিবেশন করবে।
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer border-top py-2.5 px-4 bg-light bg-opacity-50">
+                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">বন্ধ করুন</button>
+                            <button type="submit" class="btn btn-sm btn-primary rounded-pill px-4 fw-bold">
+                                <i class="fas fa-check me-1"></i> সেটিংস সংরক্ষণ করুন
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
 
 </div>

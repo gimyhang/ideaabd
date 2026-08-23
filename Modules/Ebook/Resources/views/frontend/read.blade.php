@@ -23,25 +23,25 @@
 
     <style>
         :root {
-            --reader-bg: #f1f5f9;
+            --reader-bg: #f8fafc;
             --reader-surface: #ffffff;
-            --reader-text: #1e293b;
+            --reader-text: #0f172a;
             --reader-border: #e2e8f0;
             --reader-nav-bg: #ffffff;
             --reader-primary: #0066cc;
             --reader-accent: #0284c7;
-            --reader-watermark-color: rgba(30, 41, 59, 0.08);
+            --reader-watermark-color: rgba(15, 23, 42, 0.12);
         }
 
         [data-theme="sepia"] {
-            --reader-bg: #f5ebd2;
+            --reader-bg: #f4ece1;
             --reader-surface: #fbf0d9;
             --reader-text: #4a3728;
-            --reader-border: #e2d2b0;
+            --reader-border: #e6dac6;
             --reader-nav-bg: #fbf0d9;
             --reader-primary: #8b5e3c;
             --reader-accent: #b45309;
-            --reader-watermark-color: rgba(139, 94, 60, 0.09);
+            --reader-watermark-color: rgba(139, 94, 60, 0.12);
         }
 
         [data-theme="dark"] {
@@ -52,7 +52,18 @@
             --reader-nav-bg: #0f172a;
             --reader-primary: #38bdf8;
             --reader-accent: #0ea5e9;
-            --reader-watermark-color: rgba(241, 245, 249, 0.07);
+            --reader-watermark-color: rgba(241, 245, 249, 0.12);
+        }
+
+        [data-theme="green"] {
+            --reader-bg: #eaf5ea;
+            --reader-surface: #f0fdf4;
+            --reader-text: #14532d;
+            --reader-border: #bbf7d0;
+            --reader-nav-bg: #f0fdf4;
+            --reader-primary: #16a34a;
+            --reader-accent: #15803d;
+            --reader-watermark-color: rgba(20, 83, 45, 0.12);
         }
 
         * {
@@ -439,17 +450,19 @@
                 <span id="flow-text">স্ক্রোল</span>
             </button>
 
-            <!-- Font Size Scaling -->
-            <div class="btn-group btn-group-sm d-none d-sm-inline-flex">
+            <!-- Font Size Scaling with Dynamic Percentage Display -->
+            <div class="btn-group btn-group-sm d-none d-sm-inline-flex align-items-center">
                 <button type="button" class="reader-btn px-2" id="btn-font-dec" title="ফন্ট ছোট করুন">A-</button>
+                <span id="font-scale-display" class="reader-btn px-1.5 fw-bold font-monospace text-primary border-start-0 border-end-0" style="cursor: default; min-width: 44px; text-align: center;">100%</span>
                 <button type="button" class="reader-btn px-2" id="btn-font-inc" title="ফন্ট বড় করুন">A+</button>
             </div>
 
-            <!-- Reading Themes -->
+            <!-- 4 Reading Themes (Light, Sepia, Dark, Green Accent) -->
             <div class="btn-group btn-group-sm">
-                <button type="button" class="reader-btn px-2 active" id="theme-light" title="ডে মোড (সাদা)">☀️</button>
-                <button type="button" class="reader-btn px-2" id="theme-sepia" title="কাগজ মোড (সেপিয়া)">📜</button>
-                <button type="button" class="reader-btn px-2" id="theme-dark" title="নাইট মোড (কালো)">🌙</button>
+                <button type="button" class="reader-btn px-2 active" id="theme-light" title="Light (সাদা ব্যাকগ্রাউন্ড)">☀️</button>
+                <button type="button" class="reader-btn px-2" id="theme-sepia" title="Sepia (চোখের আরামদায়ক কাগজ)">📜</button>
+                <button type="button" class="reader-btn px-2" id="theme-dark" title="Dark Mode (ডার্ক মোড)">🌙</button>
+                <button type="button" class="reader-btn px-2" id="theme-green" title="Green Accent (হালকা নরম সবুজ)">🍃</button>
             </div>
 
             <!-- Add Bookmark Button -->
@@ -457,8 +470,8 @@
                 <i class="fa-solid fa-bookmark"></i>
             </button>
 
-            <!-- Fullscreen -->
-            <button type="button" class="reader-btn" id="btn-fullscreen" title="ফুলস্ক্রিন">
+            <!-- Fullscreen Toggle -->
+            <button type="button" class="reader-btn" id="btn-fullscreen" title="ফুলস্ক্রিন (F)">
                 <i class="fa-solid fa-expand"></i>
             </button>
         </div>
@@ -571,16 +584,46 @@
         </button>
     </main>
 
-    <!-- Footer Progress / Status Bar -->
-    <footer class="reader-foot">
-        <div id="status-info" class="text-truncate me-2">
-            <i class="fa-solid fa-shield-halved me-1 text-primary"></i>
-            আইডিয়া প্রকাশন সুরক্ষিত অনলাইন ই-বুক রিডার
+    <!-- Footer Progress / Interactive Navigation Bar -->
+    <footer class="reader-foot d-flex align-items-center justify-content-between px-3 py-1.5 border-top">
+        <div id="status-info" class="text-truncate me-2 small d-flex align-items-center gap-2">
+            <i class="fa-solid fa-shield-halved text-success"></i>
+            <span class="d-none d-sm-inline">সুরক্ষিত রিডার</span>
+            <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill py-0 px-2" id="btn-open-jump-modal" style="font-size: 11px;">
+                <i class="fa-solid fa-arrow-right-to-bracket me-1"></i> পৃষ্ঠায় যান
+            </button>
         </div>
-        <div id="progress-info" class="fw-semibold">
-            আইডিয়া প্রকাশন ডিজিটাল লাইব্রেরি
+
+        <!-- Interactive Page Slider Scrubber -->
+        <div class="d-flex align-items-center gap-2 flex-grow-1 mx-2" style="max-width: 320px;">
+            <input type="range" id="page-scrubber" class="form-range" min="1" max="100" value="1" style="cursor: pointer;">
+        </div>
+
+        <div id="progress-info" class="fw-semibold small font-monospace">
+            পৃষ্ঠা <span id="current-page-num">1</span> / <span id="total-pages-num">--</span>
         </div>
     </footer>
+
+    <!-- Go To Page Modal -->
+    <div class="modal fade" id="goToPageModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content rounded-4 border-0 shadow-lg">
+                <div class="modal-header border-bottom py-2.5">
+                    <h6 class="modal-title fw-bold text-dark d-flex align-items-center gap-2 mb-0" style="font-size: 0.9rem;">
+                        <i class="fa-solid fa-book-open-reader text-primary"></i> পৃষ্ঠায় জাম্প করুন (Go to Page)
+                    </h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-3">
+                    <label for="jump-page-input" class="form-label small fw-bold text-dark mb-1">পৃষ্ঠা নম্বর লিখুন:</label>
+                    <div class="input-group input-group-sm mb-2">
+                        <input type="number" id="jump-page-input" class="form-control font-monospace fw-bold" min="1" max="5000" placeholder="1">
+                        <button type="button" class="btn btn-primary fw-bold" id="btn-do-jump">যান</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- DRM Toast Notification -->
     <div id="drm-toast">আইডিয়া প্রকাশন: কপিরাইট সুরক্ষার স্বার্থে কপি ও প্রিন্ট নিষিদ্ধ।</div>
@@ -617,12 +660,18 @@
                     showDrmToast();
                     return false;
                 }
+                if (e.key === 'f' || e.key === 'F') {
+                    if (document.activeElement?.tagName !== 'INPUT' && document.activeElement?.tagName !== 'TEXTAREA') {
+                        document.getElementById('btn-fullscreen')?.click();
+                    }
+                }
             });
 
-            // Theme Management
+            // 4 Themes Management (Light, Sepia, Dark, Green Accent)
             const themeLight = document.getElementById('theme-light');
             const themeSepia = document.getElementById('theme-sepia');
             const themeDark  = document.getElementById('theme-dark');
+            const themeGreen = document.getElementById('theme-green');
 
             function applyTheme(theme) {
                 document.documentElement.setAttribute('data-theme', theme);
@@ -630,13 +679,18 @@
                 if (theme === 'light') themeLight && themeLight.classList.add('active');
                 if (theme === 'sepia') themeSepia && themeSepia.classList.add('active');
                 if (theme === 'dark') themeDark && themeDark.classList.add('active');
+                if (theme === 'green') themeGreen && themeGreen.classList.add('active');
+
+                try { localStorage.setItem('ebook_reader_theme', theme); } catch(e) {}
 
                 if (window.rendition) {
-                    let textColor = '#1e293b', bgColor = '#ffffff';
+                    let textColor = '#0f172a', bgColor = '#ffffff';
                     if (theme === 'sepia') {
                         textColor = '#4a3728'; bgColor = '#fbf0d9';
                     } else if (theme === 'dark') {
                         textColor = '#f1f5f9'; bgColor = '#0f172a';
+                    } else if (theme === 'green') {
+                        textColor = '#14532d'; bgColor = '#f0fdf4';
                     }
                     try {
                         window.rendition.themes.override('color', textColor);
@@ -648,6 +702,12 @@
             if (themeLight) themeLight.addEventListener('click', () => applyTheme('light'));
             if (themeSepia) themeSepia.addEventListener('click', () => applyTheme('sepia'));
             if (themeDark)  themeDark.addEventListener('click',  () => applyTheme('dark'));
+            if (themeGreen) themeGreen.addEventListener('click', () => applyTheme('green'));
+
+            try {
+                const savedTheme = localStorage.getItem('ebook_reader_theme') || 'light';
+                applyTheme(savedTheme);
+            } catch(e) {}
 
             // Fullscreen Toggle
             const btnFullscreen = document.getElementById('btn-fullscreen');
@@ -968,69 +1028,71 @@
                         });
                     }
 
-                    // Toggle Scroll / Book Page mode
-                    const btnToggleFlow = document.getElementById('btn-toggle-flow');
-                    const flowIcon = document.getElementById('flow-icon');
-                    const flowText = document.getElementById('flow-text');
-                    if (btnToggleFlow) {
-                        btnToggleFlow.addEventListener('click', function() {
-                            if (currentFlow === 'paginated') {
-                                currentFlow = 'scrolled-doc';
-                                rendition.flow('scrolled-doc');
-                                if (prevBtn) prevBtn.style.display = 'none';
-                                if (nextBtn) nextBtn.style.display = 'none';
-                                if (flowIcon) flowIcon.className = 'fa-solid fa-book-open';
-                                if (flowText) flowText.textContent = 'পাতা মোড';
-                                if (viewerWrapper) viewerWrapper.classList.remove('dual-spread-active');
-                            } else {
-                                currentFlow = 'paginated';
-                                rendition.flow('paginated');
-                                if (prevBtn) prevBtn.style.display = 'flex';
-                                if (nextBtn) nextBtn.style.display = 'flex';
-                                if (flowIcon) flowIcon.className = 'fa-solid fa-file-lines';
-                                if (flowText) flowText.textContent = 'স্ক্রোল মোড';
-                                if (currentSpread === 'always' && viewerWrapper) {
-                                    viewerWrapper.classList.add('dual-spread-active');
-                                }
-                            }
-                        });
+                    // Dynamic Font Zoom Scaling
+                    let currentFontSize = parseInt(localStorage.getItem('ebook_reader_fontsize_' + ebookId) || '100');
+                    const fontDisplay = document.getElementById('font-scale-display');
+                    function updateFontScale(newSize) {
+                        currentFontSize = Math.max(70, Math.min(180, newSize));
+                        if (fontDisplay) fontDisplay.textContent = currentFontSize + '%';
+                        if (window.rendition) rendition.themes.fontSize(currentFontSize + "%");
+                        try { localStorage.setItem('ebook_reader_fontsize_' + ebookId, currentFontSize); } catch(e) {}
                     }
+                    updateFontScale(currentFontSize);
 
-                    // Font Size scaling
-                    let currentFontSize = 100;
                     const fontInc = document.getElementById('btn-font-inc');
                     const fontDec = document.getElementById('btn-font-dec');
-                    if (fontInc) {
-                        fontInc.addEventListener('click', () => {
-                            if (currentFontSize < 160) {
-                                currentFontSize += 10;
-                                rendition.themes.fontSize(currentFontSize + "%");
-                            }
-                        });
+                    if (fontInc) fontInc.addEventListener('click', () => updateFontScale(currentFontSize + 10));
+                    if (fontDec) fontDec.addEventListener('click', () => updateFontScale(currentFontSize - 10));
+
+                    // Auto-Resume from Last Saved Position (Server or LocalStorage)
+                    const serverLastCfi = @json($lastReadPage ?? null);
+                    const localLastCfi = localStorage.getItem('ebook_last_cfi_' + ebookId);
+                    const initialLocation = localLastCfi || (typeof serverLastCfi === 'string' && serverLastCfi.startsWith('epubcfi') ? serverLastCfi : undefined);
+                    
+                    if (initialLocation) {
+                        rendition.display(initialLocation).catch(() => rendition.display());
+                    } else {
+                        rendition.display();
                     }
-                    if (fontDec) {
-                        fontDec.addEventListener('click', () => {
-                            if (currentFontSize > 70) {
-                                currentFontSize -= 10;
-                                rendition.themes.fontSize(currentFontSize + "%");
-                            }
-                        });
-                    }
+
+                    // Scrubber and Page Navigation
+                    const pageScrubber = document.getElementById('page-scrubber');
+                    const currentPageNum = document.getElementById('current-page-num');
+                    const totalPagesNum = document.getElementById('total-pages-num');
 
                     // Background non-blocking location generator
                     book.ready.then(() => {
                         book.locations.generate(800).then(() => {
+                            const totalLocs = book.locations.total || 100;
+                            if (pageScrubber) {
+                                pageScrubber.max = totalLocs;
+                            }
+                            if (totalPagesNum) {
+                                totalPagesNum.textContent = totalLocs;
+                            }
+
                             rendition.on('relocated', function(location) {
                                 currentCfi = location.start.cfi;
                                 try {
+                                    localStorage.setItem('ebook_last_cfi_' + ebookId, currentCfi);
+                                } catch(e) {}
+
+                                try {
                                     const percent = book.locations.percentageFromCfi(currentCfi);
                                     const percentFormatted = Math.floor((percent || 0) * 100);
-                                    const progressInfo = document.getElementById('progress-info');
-                                    if (progressInfo) {
-                                        progressInfo.textContent = percentFormatted + '% পড়া হয়েছে';
+                                    const locIndex = book.locations.locationFromCfi(currentCfi) || 1;
+
+                                    if (currentPageNum) currentPageNum.textContent = locIndex;
+                                    if (pageScrubber && !pageScrubber.matches(':active')) {
+                                        pageScrubber.value = locIndex;
                                     }
 
-                                    // Save progress via AJAX
+                                    const progressInfo = document.getElementById('progress-info');
+                                    if (progressInfo) {
+                                        progressInfo.innerHTML = `পৃষ্ঠা <span class="text-primary">${locIndex}</span> / ${totalLocs} (${percentFormatted}%)`;
+                                    }
+
+                                    // Save progress via AJAX silently
                                     if (csrfToken) {
                                         fetch("{{ route('ebook.progress', $ebook->id) }}", {
                                             method: 'POST',
@@ -1039,15 +1101,64 @@
                                                 'X-CSRF-TOKEN': csrfToken
                                             },
                                             body: JSON.stringify({
-                                                progress_percent: percentFormatted,
-                                                cfi: currentCfi
+                                                cfi: currentCfi,
+                                                page: locIndex,
+                                                percentage: percentFormatted
                                             })
                                         }).catch(() => {});
                                     }
-                                } catch(e) {}
+                                } catch (err) {
+                                    console.warn("Relocation tracking notice:", err);
+                                }
                             });
-                        }).catch(() => {});
+                        });
                     });
+
+                    // Scrubber change event
+                    if (pageScrubber) {
+                        pageScrubber.addEventListener('input', function() {
+                            const loc = parseInt(this.value);
+                            const cfi = book.locations.cfiFromLocation(loc);
+                            if (cfi) rendition.display(cfi);
+                        });
+                    }
+
+                    // Go to Page Modal Handlers
+                    const btnOpenJumpModal = document.getElementById('btn-open-jump-modal');
+                    const jumpInput = document.getElementById('jump-page-input');
+                    const btnDoJump = document.getElementById('btn-do-jump');
+                    const jumpModalEl = document.getElementById('goToPageModal');
+                    const jumpModal = jumpModalEl ? new bootstrap.Modal(jumpModalEl) : null;
+
+                    if (btnOpenJumpModal && jumpModal) {
+                        btnOpenJumpModal.addEventListener('click', () => {
+                            if (jumpInput) jumpInput.value = currentPageNum ? currentPageNum.textContent : 1;
+                            jumpModal.show();
+                            setTimeout(() => jumpInput?.focus(), 300);
+                        });
+                    }
+
+                    if (btnDoJump) {
+                        btnDoJump.addEventListener('click', () => {
+                            const pVal = parseInt(jumpInput?.value);
+                            if (pVal && pVal > 0) {
+                                const cfi = book.locations.cfiFromLocation(pVal);
+                                if (cfi) rendition.display(cfi);
+                                else {
+                                    const pct = pVal / (parseInt(totalPagesNum?.textContent) || 100);
+                                    const pCfi = book.locations.cfiFromPercentage(pct);
+                                    if (pCfi) rendition.display(pCfi);
+                                }
+                                jumpModal?.hide();
+                            }
+                        });
+                    }
+
+                    if (jumpInput) {
+                        jumpInput.addEventListener('keydown', (e) => {
+                            if (e.key === 'Enter') btnDoJump?.click();
+                        });
+                    }
 
                     // Table of Contents
                     book.loaded.navigation.then(function(toc) {
@@ -1214,14 +1325,19 @@
                 try {
                     document.getElementById('epub-viewer-wrapper')?.classList.add('d-none');
                     const pdfContainer = document.getElementById('pdf-viewer-wrapper');
+                    const ebookId = "{{ $ebook->id }}";
                     if (pdfContainer) pdfContainer.classList.remove('d-none');
 
                     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
                     let pdfDoc = null;
-                    let pageNum = 1;
-                    let scale = 1.35;
+                    let pageNum = parseInt(localStorage.getItem('ebook_pdf_page_' + ebookId) || '1');
+                    let scale = parseFloat(localStorage.getItem('ebook_pdf_scale_' + ebookId) || '1.35');
                     const canvas = document.getElementById('pdfCanvas');
                     const ctx = canvas ? canvas.getContext('2d') : null;
+                    const fontDisplay = document.getElementById('font-scale-display');
+                    const pageScrubber = document.getElementById('page-scrubber');
+                    const currentPageNum = document.getElementById('current-page-num');
+                    const totalPagesNum = document.getElementById('total-pages-num');
 
                     function renderPdfPage(num) {
                         if (!pdfDoc || !canvas) return;

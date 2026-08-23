@@ -252,6 +252,7 @@ Route::prefix('author')->name('author.')->middleware(['auth'])->group(function (
     Route::get('/royalties', [\App\Http\Controllers\Author\AuthorDashboardController::class, 'royalties'])->name('royalties');
 
     // Self-Publishing E-Books CRUD
+    Route::post('/categories/quick-store', [\App\Http\Controllers\Author\AuthorEbookController::class, 'quickStoreCategory'])->name('categories.quick-store');
     Route::resource('ebooks', \App\Http\Controllers\Author\AuthorEbookController::class);
 
     // Royalty Payout / Withdrawal Requests
@@ -301,8 +302,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::post('/blog/{id}/toggle-status', [AdminController::class, 'togglePostStatus'])->name('blog.toggle-status');
     Route::post('/blog/{id}/toggle-featured', [AdminController::class, 'togglePostFeatured'])->name('blog.toggle-featured');
     Route::delete('/blog/{id}', [AdminController::class, 'destroyPost'])->name('blog.destroy');
-    Route::get('/blog-categories', [AdminController::class, 'blogCategories'])->name('blog-categories');
     Route::get('/ebooks', [AdminController::class, 'ebooks'])->name('ebooks');
+    Route::post('/ebooks/settings', [AdminController::class, 'updateEbookSettings'])->name('ebooks.settings');
     Route::post('/ebooks/{id}/toggle-status', [AdminController::class, 'toggleEbookStatus'])->name('ebooks.toggle-status');
     Route::post('/ebooks/{id}/approve', [AdminController::class, 'approveEbook'])->name('ebooks.approve');
     Route::post('/ebooks/{id}/reject', [AdminController::class, 'rejectEbook'])->name('ebooks.reject');
