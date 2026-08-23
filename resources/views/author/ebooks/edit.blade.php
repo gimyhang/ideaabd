@@ -4,327 +4,362 @@
 @section('heading', 'ই-বুক তথ্য সম্পাদনা (Edit E-Book)')
 
 @section('content')
-<form action="{{ route('author.ebooks.update', $ebook->id) }}" method="POST" enctype="multipart/form-data" class="row g-4" id="authorEbookEditForm">
-    @csrf
-    @method('PUT')
+<div class="container-fluid px-0">
+    <form action="{{ route('author.ebooks.update', $ebook->id) }}" method="POST" enctype="multipart/form-data" id="authorEbookEditForm">
+        @csrf
+        @method('PUT')
 
-    {{-- LEFT COLUMN: MAIN CONTENT & DIGITAL FILES --}}
-    <div class="col-12 col-lg-8">
-        
-        {{-- CARD 1: BASIC INFORMATION & PRICING --}}
-        <div class="author-card p-3 p-md-4 mb-4">
-            <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
-                <h6 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
-                    <span class="badge bg-primary bg-opacity-10 text-primary rounded-circle p-2">
-                        <i class="fas fa-pen-to-square"></i>
-                    </span>
-                    <span>ই-বুক সাধারণ তথ্য, মূল্য ও বিবরণ (Basic Details & Pricing)</span>
-                </h6>
-                @if($ebook->mod_status === 'rejected' && $ebook->rejection_reason)
-                    <span class="badge bg-danger text-white">সংশোধনের অনুরোধ: {{ $ebook->rejection_reason }}</span>
-                @endif
-            </div>
+        <div class="row g-4 align-items-start">
+            
+            {{-- ══════════════════════════════════════════════════════════════════ --}}
+            {{-- LEFT COLUMN: UNIFIED MAIN FORM (All in One Place)                --}}
+            {{-- ══════════════════════════════════════════════════════════════════ --}}
+            <div class="col-12 col-lg-8">
+                
+                {{-- MAIN UNIFIED CARD --}}
+                <div class="author-card p-3 p-md-4 mb-4">
+                    
+                    {{-- Status Banner if Rejected --}}
+                    @if($ebook->mod_status === 'rejected' && $ebook->rejection_reason)
+                        <div class="alert alert-danger rounded-3 d-flex align-items-start gap-2 mb-4">
+                            <i class="fas fa-circle-exclamation fs-5 mt-0.5"></i>
+                            <div>
+                                <strong class="d-block">অ্যাডমিন সংশোধনের নোট:</strong>
+                                <span>{{ $ebook->rejection_reason }}</span>
+                            </div>
+                        </div>
+                    @endif
 
-            <div class="row g-3">
-                {{-- Title --}}
-                <div class="col-12 col-md-8">
-                    <label for="f-title" class="form-label small fw-bold text-dark mb-1">
-                        <i class="fas fa-book text-primary me-1"></i> ই-বুকের নাম (Title) <span class="text-danger">*</span>
-                    </label>
-                    <input type="text" id="f-title" name="title" value="{{ old('title', $ebook->title) }}" required
-                           class="form-control form-control-sm rounded-3 fw-semibold @error('title') is-invalid @enderror" 
-                           placeholder="বইয়ের পূর্ণাঙ্গ নাম লিখুন..." oninput="updateLiveCard()">
-                    @error('title')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                </div>
-
-                {{-- ISBN --}}
-                <div class="col-12 col-md-4">
-                    <label for="f-isbn" class="form-label small fw-bold text-dark mb-1">
-                        <i class="fas fa-barcode text-secondary me-1"></i> ISBN / কোড
-                    </label>
-                    <input type="text" id="f-isbn" name="isbn" value="{{ old('isbn', $ebook->isbn) }}"
-                           class="form-control form-control-sm rounded-3 font-monospace @error('isbn') is-invalid @enderror" 
-                           placeholder="e.g. 978-984-XXXXX">
-                    @error('isbn')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                </div>
-
-                {{-- Subtitle --}}
-                <div class="col-12">
-                    <label for="f-subtitle" class="form-label small fw-bold text-dark mb-1">
-                        <i class="fas fa-quote-left text-muted me-1"></i> সাবটাইটেল বা ট্যাগলাইন (Subtitle)
-                    </label>
-                    <input type="text" id="f-subtitle" name="subtitle" value="{{ old('subtitle', $ebook->subtitle) }}"
-                           class="form-control form-control-sm rounded-3 @error('subtitle') is-invalid @enderror" 
-                           placeholder="বই সম্পর্কিত ছোট এক লাইনের বর্ণনা বা উপ-শিরোনাম...">
-                    @error('subtitle')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                </div>
-
-                {{-- Category & Publisher --}}
-                <div class="col-12 col-md-6">
-                    <div class="d-flex align-items-center justify-content-between mb-1">
-                        <label for="f-category_id" class="form-label small fw-bold text-dark mb-0">
-                            <i class="fas fa-folder-tree text-primary me-1"></i> বিষয়শ্রেণী (Category) <span class="text-danger">*</span>
-                        </label>
-                        <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2 rounded-pill text-decoration-none fw-bold shadow-xs" style="font-size: 11px;" data-bs-toggle="modal" data-bs-target="#quickCategoryModal">
-                            <i class="fas fa-plus-circle me-1"></i> নতুন বিষয় এড করুন
-                        </button>
+                    {{-- 1. ই-বুক সাধারণ তথ্য ও বিবরণ (Basic Info) --}}
+                    <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-primary bg-opacity-10 text-primary rounded-circle p-2 fs-6">
+                                <i class="fas fa-book-bookmark"></i>
+                            </span>
+                            <div>
+                                <h6 class="fw-bold mb-0 text-dark">১. সাধারণ তথ্য ও বিবরণ (Basic Information)</h6>
+                                <small class="text-muted" style="font-size: 11.5px;">বইয়ের নাম, উপ-শিরোনাম ও মৌলিক পরিচিতি</small>
+                            </div>
+                        </div>
+                        <span class="badge bg-light text-muted border small">* চিহ্নিত ঘরগুলো আবশ্যক</span>
                     </div>
-                    <select id="f-category_id" name="category_id" required
-                            class="form-select form-select-sm rounded-3 @error('category_id') is-invalid @enderror">
-                        <option value="">-- বিষয়শ্রেণী নির্বাচন করুন --</option>
-                        @foreach($categories as $cat)
-                            <option value="{{ $cat->id }}" @selected(old('category_id', $ebook->category_id) == $cat->id)>{{ $cat->name }}</option>
-                        @endforeach
-                    </select>
-                    @error('category_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                </div>
 
-                <div class="col-12 col-md-6">
-                    <label for="f-publisher_id" class="form-label small fw-bold text-dark mb-1">
-                        <i class="fas fa-building text-secondary me-1"></i> প্রকাশনা সংস্থা
-                    </label>
-                    <select id="f-publisher_id" name="publisher_id"
-                            class="form-select form-select-sm rounded-3 @error('publisher_id') is-invalid @enderror">
-                        <option value="">আইডিয়া প্রকাশন (ডিফল্ট)</option>
-                        @foreach($publishers as $pub)
-                            <option value="{{ $pub->id }}" @selected(old('publisher_id', $ebook->publisher_id) == $pub->id)>{{ $pub->name }}</option>
-                        @endforeach
-                    </select>
-                    @error('publisher_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                </div>
-
-                {{-- Price & Pages Integrated --}}
-                <div class="col-12 col-md-4">
-                    <label for="f-price" class="form-label small fw-bold text-dark mb-1">
-                        <i class="fas fa-tag text-success me-1"></i> বিক্রয় মূল্য (Price ৳) <span class="text-danger">*</span>
-                    </label>
-                    <div class="input-group input-group-sm">
-                        <span class="input-group-text bg-light fw-bold">৳</span>
-                        <input type="number" step="0.01" min="0" id="f-price" name="price" 
-                               value="{{ old('price', $ebook->price) }}" required
-                               class="form-control rounded-end-3 font-monospace fw-semibold @error('price') is-invalid @enderror" 
-                               placeholder="150.00" oninput="calculateRoyalty()">
-                    </div>
-                    @error('price')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-                </div>
-
-                <div class="col-12 col-md-4">
-                    <label for="f-pages" class="form-label small fw-bold text-dark mb-1">
-                        <i class="fas fa-file-lines text-secondary me-1"></i> মোট পৃষ্ঠা সংখ্যা
-                    </label>
-                    <input type="number" min="1" id="f-pages" name="pages" value="{{ old('pages', $ebook->pages) }}"
-                           class="form-control form-control-sm rounded-3 font-monospace @error('pages') is-invalid @enderror"
-                           placeholder="যেমন: 180">
-                    @error('pages')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                </div>
-
-                {{-- Live 50% Royalty Share Display Badge --}}
-                <div class="col-12 col-md-4">
-                    <label class="form-label small fw-bold text-dark mb-1">
-                        <i class="fas fa-hand-holding-dollar text-warning me-1"></i> আপনার ৫০% রয়্যালটি আয়
-                    </label>
-                    <div class="p-1.5 px-2.5 rounded-3 border bg-success-subtle bg-opacity-40 d-flex align-items-center justify-content-between">
-                        <span class="small text-dark fw-semibold" style="font-size: 11px;">প্রতি কপিতে:</span>
-                        <strong class="text-success fs-6 font-monospace" id="authorEarningDisplay">৳0.00</strong>
-                    </div>
-                </div>
-
-                {{-- Description --}}
-                <div class="col-12 mt-2">
-                    <label for="f-description" class="form-label small fw-bold text-dark mb-1">
-                        <i class="fas fa-align-left text-primary me-1"></i> বইয়ের বিস্তারিত বিবরণ ও সূচিপত্র <span class="text-danger">*</span>
-                    </label>
-                    <textarea id="f-description" name="description" rows="6" required
-                              class="form-control rounded-3 @error('description') is-invalid @enderror">{{ old('description', $ebook->description) }}</textarea>
-                    @error('description')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                </div>
-            </div>
-        </div>
-
-        {{-- CARD 2: DIGITAL FILES --}}
-        <div class="author-card p-3 p-md-4 mb-4">
-            <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
-                <h6 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
-                    <span class="badge bg-danger bg-opacity-10 text-danger rounded-circle p-2">
-                        <i class="fas fa-file-pdf"></i>
-                    </span>
-                    <span>ডিজিটাল ফাইল পরিবর্তন (ঐচ্ছিক)</span>
-                </h6>
-            </div>
-
-            <div class="row g-3">
-                {{-- 1. Main File --}}
-                <div class="col-12">
-                    <div class="p-3 rounded-3 border bg-light bg-opacity-50">
-                        <div class="d-flex align-items-center justify-content-between mb-1">
-                            <label for="f-file_path" class="form-label small fw-bold text-dark mb-0">
-                                মূল ই-বুক ফাইল (PDF / EPUB)
+                    <div class="row g-3 mb-4">
+                        {{-- Title --}}
+                        <div class="col-12 col-md-8">
+                            <label for="f-title" class="form-label small fw-bold text-dark mb-1">
+                                <i class="fas fa-heading text-primary me-1"></i> ই-বুকের শিরোনাম (Title) <span class="text-danger">*</span>
                             </label>
-                            @if($ebook->file_path)
-                                <span class="badge bg-success-subtle text-success border border-success-subtle">
-                                    <i class="fas fa-check-circle me-1"></i> বর্তমান ফাইল সংরক্ষিত
-                                </span>
-                            @endif
+                            <input type="text" id="f-title" name="title" value="{{ old('title', $ebook->title) }}" required
+                                   class="form-control form-control-sm rounded-3 fw-semibold @error('title') is-invalid @enderror" 
+                                   placeholder="বইয়ের পূর্ণাঙ্গ নাম লিখুন..." oninput="updateLiveCard()">
+                            @error('title')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
-                        <input type="file" id="f-file_path" name="file_path" accept=".pdf,.epub"
-                               class="form-control form-control-sm rounded-3 @error('file_path') is-invalid @enderror">
-                        <small class="text-muted d-block mt-1" style="font-size: 11px;">ফাইল পরিবর্তন করতে চাইলে নতুন ফাইল সিলেক্ট করুন।</small>
-                        @error('file_path')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                    </div>
-                </div>
 
-                {{-- 2. Optional EPUB --}}
-                <div class="col-12 col-md-6">
-                    <div class="p-3 rounded-3 border bg-light bg-opacity-50 h-100">
-                        <label for="f-epub_file_path" class="form-label small fw-bold text-dark mb-1">
-                            ডেডিকেটেড EPUB ফাইল
-                        </label>
-                        <input type="file" id="f-epub_file_path" name="epub_file_path" accept=".epub"
-                               class="form-control form-control-sm rounded-3 @error('epub_file_path') is-invalid @enderror">
-                        @error('epub_file_path')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                    </div>
-                </div>
-
-                {{-- 3. Free Sample File --}}
-                <div class="col-12 col-md-6">
-                    <div class="p-3 rounded-3 border bg-light bg-opacity-50 h-100">
-                        <label for="f-sample_file_path" class="form-label small fw-bold text-dark mb-1">
-                            ফ্রি নমুনা অংশ (Sample Preview)
-                        </label>
-                        <input type="file" id="f-sample_file_path" name="sample_file_path" accept=".pdf,.epub"
-                               class="form-control form-control-sm rounded-3 @error('sample_file_path') is-invalid @enderror">
-                        @error('sample_file_path')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                    </div>
-                </div>
-
-                {{-- 4. Free Preview Page Limit Selector --}}
-                <div class="col-12">
-                    <div class="p-3 rounded-3 border bg-warning-subtle bg-opacity-20 border-warning border-opacity-40">
-                        <div class="d-flex align-items-center justify-content-between mb-1">
-                            <label for="f-preview_page_limit" class="form-label small fw-bold text-dark mb-0">
-                                <i class="fas fa-book-open-reader text-warning me-1"></i> ফ্রি পড়ার প্রিভিউ পৃষ্ঠা সংখ্যা (Preview Pages)
+                        {{-- ISBN --}}
+                        <div class="col-12 col-md-4">
+                            <label for="f-isbn" class="form-label small fw-bold text-dark mb-1">
+                                <i class="fas fa-barcode text-secondary me-1"></i> ISBN / কোড (ঐচ্ছিক)
                             </label>
-                            <span class="badge bg-warning text-dark font-monospace fw-bold" id="previewBadge">{{ $ebook->preview_page_limit ?: 16 }} পৃষ্ঠা</span>
-                        </div>
-                        <p class="text-muted small mb-2" style="font-size: 11.5px; line-height: 1.4;">
-                            বইটি কেনার আগে পাঠকরা ফ্রিতে সর্বোচ্চ কত পৃষ্ঠা পর্যন্ত পড়তে পারবেন তা নির্ধারণ করুন (১, ৩, ৫, ১০, ১৬ ইত্যাদি)।
-                        </p>
-                        
-                        {{-- Quick Selection Pills --}}
-                        <div class="d-flex flex-wrap gap-1.5 mb-2">
-                            <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill py-1 px-2.5 preview-pill" onclick="setPreviewPages(1, this)">১ পৃষ্ঠা</button>
-                            <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill py-1 px-2.5 preview-pill" onclick="setPreviewPages(3, this)">৩ পৃষ্ঠা</button>
-                            <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill py-1 px-2.5 preview-pill" onclick="setPreviewPages(5, this)">৫ পৃষ্ঠা</button>
-                            <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill py-1 px-2.5 preview-pill" onclick="setPreviewPages(10, this)">১০ পৃষ্ঠা</button>
-                            <button type="button" class="btn btn-xs btn-primary rounded-pill py-1 px-2.5 active fw-bold preview-pill" onclick="setPreviewPages(16, this)">১৬ পৃষ্ঠা (প্রস্তাবিত)</button>
-                            <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill py-1 px-2.5 preview-pill" onclick="setPreviewPages(20, this)">২০ পৃষ্ঠা</button>
+                            <input type="text" id="f-isbn" name="isbn" value="{{ old('isbn', $ebook->isbn) }}"
+                                   class="form-control form-control-sm rounded-3 font-monospace @error('isbn') is-invalid @enderror" 
+                                   placeholder="e.g. 978-984-XXXXX">
+                            @error('isbn')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
 
-                        <div class="input-group input-group-sm" style="max-width: 280px;">
-                            <input type="number" min="1" max="100" id="f-preview_page_limit" name="preview_page_limit" 
-                                   value="{{ old('preview_page_limit', $ebook->preview_page_limit ?: 16) }}" 
-                                   class="form-control rounded-start-3 font-monospace fw-bold" 
-                                   oninput="updatePreviewBadge(this.value)">
-                            <span class="input-group-text bg-white text-muted small">পৃষ্ঠা পর্যন্ত ফ্রি</span>
+                        {{-- Subtitle --}}
+                        <div class="col-12">
+                            <label for="f-subtitle" class="form-label small fw-bold text-dark mb-1">
+                                <i class="fas fa-quote-left text-muted me-1"></i> সাবটাইটেল বা ট্যাগলাইন (Subtitle)
+                            </label>
+                            <input type="text" id="f-subtitle" name="subtitle" value="{{ old('subtitle', $ebook->subtitle) }}"
+                                   class="form-control form-control-sm rounded-3 @error('subtitle') is-invalid @enderror" 
+                                   placeholder="বই সম্পর্কিত ছোট এক লাইনের বর্ণনা বা আকর্ষণীয় উপ-শিরোনাম...">
+                            @error('subtitle')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
-                        @error('preview_page_limit')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                     </div>
+
+
+                    {{-- 2. বিষয়শ্রেণী ও প্রকাশক (Category & Publisher) --}}
+                    <div class="d-flex align-items-center gap-2 mb-3 pb-2 border-bottom pt-2">
+                        <span class="badge bg-info bg-opacity-10 text-info rounded-circle p-2 fs-6">
+                            <i class="fas fa-layer-group"></i>
+                        </span>
+                        <div>
+                            <h6 class="fw-bold mb-0 text-dark">২. বিষয়শ্রেণী ও প্রকাশক (Category & Publisher)</h6>
+                            <small class="text-muted" style="font-size: 11.5px;">বইয়ের বিষয় নির্ধারণ ও প্রকাশনা সংস্থা</small>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        {{-- Category --}}
+                        <div class="col-12 col-md-6">
+                            <div class="d-flex align-items-center justify-content-between mb-1">
+                                <label for="f-category_id" class="form-label small fw-bold text-dark mb-0">
+                                    <i class="fas fa-folder-tree text-primary me-1"></i> বিষয়শ্রেণী (Category) <span class="text-danger">*</span>
+                                </label>
+                                <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2 rounded-pill text-decoration-none fw-bold shadow-xs" style="font-size: 11px;" data-bs-toggle="modal" data-bs-target="#quickCategoryModal">
+                                    <i class="fas fa-plus-circle me-1"></i> নতুন বিষয় এড
+                                </button>
+                            </div>
+                            <select id="f-category_id" name="category_id" required
+                                    class="form-select form-select-sm rounded-3 @error('category_id') is-invalid @enderror">
+                                <option value="">-- বিষয়শ্রেণী নির্বাচন করুন --</option>
+                                @foreach($categories as $cat)
+                                    <option value="{{ $cat->id }}" @selected(old('category_id', $ebook->category_id) == $cat->id)>{{ $cat->name }}</option>
+                                @endforeach
+                            </select>
+                            @error('category_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+
+                        {{-- Publisher --}}
+                        <div class="col-12 col-md-6">
+                            <label for="f-publisher_id" class="form-label small fw-bold text-dark mb-1">
+                                <i class="fas fa-building text-secondary me-1"></i> প্রকাশনা সংস্থা (ঐচ্ছিক)
+                            </label>
+                            <select id="f-publisher_id" name="publisher_id"
+                                    class="form-select form-select-sm rounded-3 @error('publisher_id') is-invalid @enderror">
+                                <option value="">আইডিয়া প্রকাশন (ডিফল্ট)</option>
+                                @foreach($publishers as $pub)
+                                    <option value="{{ $pub->id }}" @selected(old('publisher_id', $ebook->publisher_id) == $pub->id)>{{ $pub->name }}</option>
+                                @endforeach
+                            </select>
+                            @error('publisher_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+                    </div>
+
+
+                    {{-- 3. মূল্য ও পেজ সংখ্যা (Pricing, Royalty & Pages) --}}
+                    <div class="d-flex align-items-center gap-2 mb-3 pb-2 border-bottom pt-2">
+                        <span class="badge bg-success bg-opacity-10 text-success rounded-circle p-2 fs-6">
+                            <i class="fas fa-sack-dollar"></i>
+                        </span>
+                        <div>
+                            <h6 class="fw-bold mb-0 text-dark">৩. মূল্য, পেজ সংখ্যা ও রয়্যালটি (Pricing & Royalty)</h6>
+                            <small class="text-muted" style="font-size: 11.5px;">বিক্রয় মূল্য ও স্বয়ংক্রিয় ৫০% লেখক রয়্যালটি হিসাব</small>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        {{-- Price --}}
+                        <div class="col-12 col-md-4">
+                            <label for="f-price" class="form-label small fw-bold text-dark mb-1">
+                                <i class="fas fa-tag text-success me-1"></i> বিক্রয় মূল্য (Price ৳) <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-light fw-bold">৳</span>
+                                <input type="number" step="0.01" min="0" id="f-price" name="price" 
+                                       value="{{ old('price', $ebook->price) }}" required
+                                       class="form-control rounded-end-3 font-monospace fw-semibold @error('price') is-invalid @enderror" 
+                                       placeholder="150.00" oninput="calculateRoyalty()">
+                            </div>
+                            @error('price')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                        </div>
+
+                        {{-- Pages --}}
+                        <div class="col-12 col-md-4">
+                            <label for="f-pages" class="form-label small fw-bold text-dark mb-1">
+                                <i class="fas fa-file-lines text-secondary me-1"></i> মোট পৃষ্ঠা সংখ্যা (Pages)
+                            </label>
+                            <input type="number" min="1" id="f-pages" name="pages" value="{{ old('pages', $ebook->pages) }}"
+                                   class="form-control form-control-sm rounded-3 font-monospace @error('pages') is-invalid @enderror" 
+                                   placeholder="যেমন: 180">
+                            @error('pages')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+
+                        {{-- 50% Royalty Share Display Badge --}}
+                        <div class="col-12 col-md-4">
+                            <label class="form-label small fw-bold text-dark mb-1">
+                                <i class="fas fa-hand-holding-dollar text-warning me-1"></i> আপনার ৫০% রয়্যালটি আয়
+                            </label>
+                            <div class="p-1.5 px-3 rounded-3 border bg-success-subtle bg-opacity-40 d-flex align-items-center justify-content-between">
+                                <span class="small text-dark fw-semibold" style="font-size: 11px;">প্রতি কপিতে:</span>
+                                <strong class="text-success fs-6 font-monospace" id="authorEarningDisplay">৳0.00</strong>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    {{-- 4. বইয়ের বিস্তারিত বিবরণ ও সূচিপত্র (Description) --}}
+                    <div class="d-flex align-items-center gap-2 mb-3 pb-2 border-bottom pt-2">
+                        <span class="badge bg-warning bg-opacity-10 text-warning-emphasis rounded-circle p-2 fs-6">
+                            <i class="fas fa-align-left"></i>
+                        </span>
+                        <div>
+                            <h6 class="fw-bold mb-0 text-dark">৪. বিস্তারিত বিবরণ ও সূচিপত্র (Description)</h6>
+                            <small class="text-muted" style="font-size: 11.5px;">বইয়ের বিষয়বস্তু, সারসংক্ষেপ ও পাঠকদের জন্য প্রয়োজনীয় সূচিপত্র</small>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-12">
+                            <textarea id="f-description" name="description" rows="5" required
+                                      class="form-control rounded-3 @error('description') is-invalid @enderror" 
+                                      placeholder="বইয়ের বিষয়বস্তু, সারসংক্ষেপ, সূচিপত্র ও পাঠকদের জন্য বিস্তারিত বিবরণ লিখুন...">{{ old('description', $ebook->description) }}</textarea>
+                            @error('description')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+                    </div>
+
+
+                    {{-- 5. ই-বুক ডিজিটাল ফাইল আপলোড (Digital Files) --}}
+                    <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom pt-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-danger bg-opacity-10 text-danger rounded-circle p-2 fs-6">
+                                <i class="fas fa-cloud-arrow-up"></i>
+                            </span>
+                            <div>
+                                <h6 class="fw-bold mb-0 text-dark">৫. ডিজিটাল ফাইল পরিবর্তন (Digital Files)</h6>
+                                <small class="text-muted" style="font-size: 11.5px;">ফাইল পরিবর্তন করতে চাইলে নতুন ফাইল সিলেক্ট করুন</small>
+                            </div>
+                        </div>
+                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-0.5 small">
+                            <i class="fas fa-shield-halved me-1"></i> DRM সুরক্ষিত
+                        </span>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        {{-- Main File --}}
+                        <div class="col-12">
+                            <div class="p-3 rounded-3 border bg-light bg-opacity-50">
+                                <div class="d-flex align-items-center justify-content-between mb-1">
+                                    <label for="f-file_path" class="form-label small fw-bold text-dark mb-0">
+                                        <i class="fas fa-file-pdf text-danger me-1"></i> নতুন মূল ই-বুক ফাইল (PDF / EPUB - ঐচ্ছিক)
+                                    </label>
+                                    <span class="badge bg-secondary-subtle text-secondary font-monospace" style="font-size: 11px;">সর্বোচ্চ ১০০ MB</span>
+                                </div>
+                                <p class="text-muted small mb-2" style="font-size: 11.5px;">
+                                    ফাইল অপরিবর্তিত রাখতে চাইলে খালি রাখুন। বর্তমানে সংরক্ষিত ফাইল সাইজ: {{ $ebook->file_size_formatted ?? 'সংরক্ষিত' }}
+                                </p>
+                                <input type="file" id="f-file_path" name="file_path" accept=".pdf,.epub"
+                                       class="form-control form-control-sm rounded-3 @error('file_path') is-invalid @enderror">
+                                @error('file_path')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            </div>
+                        </div>
+
+                        {{-- Optional EPUB File --}}
+                        <div class="col-12 col-md-6">
+                            <div class="p-3 rounded-3 border bg-light bg-opacity-50 h-100">
+                                <label for="f-epub_file_path" class="form-label small fw-bold text-dark mb-1">
+                                    <i class="fas fa-book-open text-info me-1"></i> নতুন EPUB ফাইল (ঐচ্ছিক)
+                                </label>
+                                <small class="text-muted d-block mb-2" style="font-size: 11px;">ই-পাব রিডারের জন্য অপ্টিমাইজড ফাইল (.epub)</small>
+                                <input type="file" id="f-epub_file_path" name="epub_file_path" accept=".epub"
+                                       class="form-control form-control-sm rounded-3 @error('epub_file_path') is-invalid @enderror">
+                                @error('epub_file_path')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            </div>
+                        </div>
+
+                        {{-- Optional Sample PDF --}}
+                        <div class="col-12 col-md-6">
+                            <div class="p-3 rounded-3 border bg-light bg-opacity-50 h-100">
+                                <label for="f-sample_file_path" class="form-label small fw-bold text-dark mb-1">
+                                    <i class="fas fa-eye text-warning me-1"></i> নতুন ফ্রি নমুনা অংশ (Sample PDF)
+                                </label>
+                                <small class="text-muted d-block mb-2" style="font-size: 11px;">পূর্বের নমুনা অপরিবর্তিত রাখতে খালি রাখুন</small>
+                                <input type="file" id="f-sample_file_path" name="sample_file_path" accept=".pdf,.epub"
+                                       class="form-control form-control-sm rounded-3 @error('sample_file_path') is-invalid @enderror">
+                                @error('sample_file_path')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            </div>
+                        </div>
+                    </div>
+
+
+                    {{-- ══════════════════════════════════════════════════════════════════ --}}
+                    {{-- 6. SUBMIT BUTTON AT THE BOTTOM OF THE FORM (ফরমের নিচে সেভ বাটন)  --}}
+                    {{-- ══════════════════════════════════════════════════════════════════ --}}
+                    <div class="pt-3 border-top">
+                        <div class="d-flex flex-column flex-sm-row align-items-center gap-3">
+                            <button type="submit" class="btn btn-success btn-lg flex-grow-1 w-100 rounded-pill fw-bold shadow-sm py-2.5 d-flex align-items-center justify-content-center gap-2">
+                                <i class="fas fa-circle-check fs-5"></i>
+                                <span>✓ পরিবর্তন সংরক্ষণ ও জমা দিন (Save & Update)</span>
+                            </button>
+                            <a href="{{ route('author.ebooks.index') }}" class="btn btn-outline-secondary rounded-pill fw-semibold py-2.5 px-4 w-100 w-sm-auto text-center">
+                                বাতিল (Cancel)
+                            </a>
+                        </div>
+                    </div>
+
                 </div>
             </div>
-        </div>
-    </div>
 
-    {{-- RIGHT SIDEBAR --}}
-    <div class="col-12 col-lg-4">
-
-        {{-- CARD 1: COVER IMAGE & AI COVER GENERATOR --}}
-        <div class="author-card p-3 p-md-4 mb-4">
-            <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
-                <h6 class="fw-bold mb-0 text-dark d-flex align-items-center gap-1.5">
-                    <i class="fas fa-wand-magic-sparkles text-warning"></i> প্রচ্ছদ ছবি (Cover)
-                </h6>
-                <span class="badge bg-light text-muted border small">২:৩ প্রচ্ছদ</span>
-            </div>
-
-            <div class="position-relative mx-auto rounded-3 overflow-hidden border shadow-sm mb-3 text-center d-flex align-items-center justify-content-center" 
-                 id="mockupCoverContainer"
-                 style="width: 165px; aspect-ratio: 2 / 3; background: linear-gradient(145deg, #fffefb 0%, #f7f2e7 50%, #ede4d4 100%);">
-                <img id="coverPreviewImg" src="{{ $ebook->cover_url ?? '' }}" alt="Cover" class="w-100 h-100 object-fit-cover {{ $ebook->cover_url ? '' : 'd-none' }}">
-                <div id="coverPlaceholder" class="w-100 h-100 d-flex flex-column justify-content-between p-3 text-start position-relative {{ $ebook->cover_url ? 'd-none' : '' }}" style="border: 2px solid #d97706; margin: 6px; border-radius: 6px;">
-                    <div class="d-flex align-items-center justify-content-between">
-                        <span class="badge bg-dark bg-opacity-75 text-white" style="font-size: 0.58rem;">ডিজিটাল ই-বুক</span>
-                        <span class="badge bg-warning-subtle text-warning-emphasis border border-warning" style="font-size: 0.55rem;">AI অটো-কভার</span>
-                    </div>
-                    <div class="my-auto text-center py-2">
-                        <h6 id="mockupTitle" class="fw-bold text-dark mb-1" style="font-size: 0.85rem; line-height: 1.35;">
-                            {{ $ebook->title }}
+            {{-- ══════════════════════════════════════════════════════════════════ --}}
+            {{-- RIGHT SIDEBAR: ONLY COVER PREVIEW (সাইডবারে শুধু প্রিভিউ ও প্রচ্ছদ) --}}
+            {{-- ══════════════════════════════════════════════════════════════════ --}}
+            <div class="col-12 col-lg-4" style="position: sticky; top: 85px;">
+                <div class="author-card p-3 p-md-4 shadow-sm">
+                    <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                        <h6 class="fw-bold mb-0 text-dark d-flex align-items-center gap-1.5">
+                            <i class="fas fa-wand-magic-sparkles text-warning"></i> ই-বুক প্রচ্ছদ প্রিভিউ
                         </h6>
-                        <div class="text-warning small" style="font-size: 9px;">❖ ── ✦ ── ❖</div>
-                        <small id="mockupAuthor" class="text-secondary fw-semibold d-block text-truncate mt-1" style="font-size: 0.72rem;">
-                            {{ $author?->name ?? auth()->user()->name }}
-                        </small>
+                        <span class="badge bg-light text-muted border small">২:৩ সাইজ</span>
                     </div>
-                    <span class="text-muted text-center d-block fw-semibold" style="font-size: 0.58rem;">আইডিয়া প্রকাশন • IDEA</span>
+
+                    {{-- Live Mockup Preview Box --}}
+                    <div class="position-relative mx-auto rounded-3 overflow-hidden border shadow-sm mb-3 text-center d-flex align-items-center justify-content-center" 
+                         id="mockupCoverContainer"
+                         style="width: 175px; aspect-ratio: 2 / 3; background: linear-gradient(145deg, #fffefb 0%, #f7f2e7 50%, #ede4d4 100%); box-shadow: 0 8px 20px rgba(0,0,0,0.08);">
+                        <img id="coverPreviewImg" src="{{ $ebook->cover_url ?? '' }}" alt="Cover" class="w-100 h-100 object-fit-cover {{ $ebook->cover_url ? '' : 'd-none' }}">
+                        <div id="coverPlaceholder" class="w-100 h-100 d-flex flex-column justify-content-between p-3 text-start position-relative {{ $ebook->cover_url ? 'd-none' : '' }}" style="border: 2px solid #d97706; margin: 6px; border-radius: 6px;">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <span class="badge bg-dark bg-opacity-75 text-white" style="font-size: 0.58rem;">ডিজিটাল ই-বুক</span>
+                                <span class="badge bg-warning-subtle text-warning-emphasis border border-warning" style="font-size: 0.55rem;">AI অটো-কভার</span>
+                            </div>
+                            <div class="my-auto text-center py-2">
+                                <h6 id="mockupTitle" class="fw-bold text-dark mb-1" style="font-size: 0.85rem; line-height: 1.35;">
+                                    {{ $ebook->title }}
+                                </h6>
+                                <div class="text-warning small" style="font-size: 9px;">❖ ── ✦ ── ❖</div>
+                                <small id="mockupAuthor" class="text-secondary fw-semibold d-block text-truncate mt-1" style="font-size: 0.72rem;">
+                                    {{ $author?->name ?? auth()->user()->name }}
+                                </small>
+                            </div>
+                            <span class="text-muted text-center d-block fw-semibold" style="font-size: 0.58rem;">আইডিয়া প্রকাশন • IDEA</span>
+                        </div>
+                    </div>
+
+                    {{-- AI Cover Palette Theme Selector --}}
+                    <div class="p-2.5 rounded-3 bg-light border mb-3">
+                        <div class="d-flex align-items-center justify-content-between mb-1.5">
+                            <span class="small fw-bold text-dark" style="font-size: 11.5px;">
+                                <i class="fas fa-palette text-primary me-1"></i> এআই প্রচ্ছদ স্টাইল:
+                            </span>
+                        </div>
+                        <div class="d-flex flex-wrap gap-1">
+                            <button type="button" class="btn btn-xs btn-outline-dark rounded-pill py-1 px-2 ai-theme-btn active" onclick="setAiTheme('ivory', this)">
+                                <i class="fas fa-circle text-warning me-1"></i> সফট আইভরি
+                            </button>
+                            <button type="button" class="btn btn-xs btn-outline-dark rounded-pill py-1 px-2 ai-theme-btn" onclick="setAiTheme('linen', this)">
+                                <i class="fas fa-circle text-secondary me-1"></i> লিনেন ক্রিম
+                            </button>
+                            <button type="button" class="btn btn-xs btn-outline-dark rounded-pill py-1 px-2 ai-theme-btn" onclick="setAiTheme('mint', this)">
+                                <i class="fas fa-circle text-success me-1"></i> নরম মিন্ট
+                            </button>
+                            <button type="button" class="btn btn-xs btn-outline-dark rounded-pill py-1 px-2 ai-theme-btn" onclick="setAiTheme('gold', this)">
+                                <i class="fas fa-circle text-danger me-1"></i> রয়েল গোল্ড
+                            </button>
+                        </div>
+                        <input type="hidden" name="ai_cover_theme" id="ai_cover_theme" value="ivory">
+                    </div>
+
+                    {{-- Upload Custom File Option --}}
+                    <div>
+                        <label for="f-cover_image" class="form-label small fw-bold text-dark mb-1">
+                            <i class="fas fa-upload text-secondary me-1"></i> নতুন ছবি আপলোড (ঐচ্ছিক)
+                        </label>
+                        <input type="file" id="f-cover_image" name="cover_image" accept="image/*"
+                               class="form-control form-control-sm rounded-3 @error('cover_image') is-invalid @enderror"
+                               onchange="previewCover(this)">
+                        <small class="text-muted d-block mt-1" style="font-size: 11px; line-height: 1.4;">
+                            <i class="fas fa-circle-info text-info me-1"></i> নতুন ছবি দিলে পূর্বের ছবি পরিবর্তিত হবে। কভার না দিলে সফট-শেডের অটো-কভার সংরক্ষিত থাকবে।
+                        </small>
+                        @error('cover_image')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
                 </div>
             </div>
 
-            {{-- AI Cover Palette Theme Selector --}}
-            <div class="p-2.5 rounded-3 bg-light border mb-3">
-                <div class="d-flex align-items-center justify-content-between mb-1.5">
-                    <span class="small fw-bold text-dark" style="font-size: 11.5px;">
-                        <i class="fas fa-palette text-primary me-1"></i> এআই প্রচ্ছদ স্টাইল:
-                    </span>
-                </div>
-                <div class="d-flex flex-wrap gap-1">
-                    <button type="button" class="btn btn-xs btn-outline-dark rounded-pill py-1 px-2 ai-theme-btn active" onclick="setAiTheme('ivory', this)">
-                        <i class="fas fa-circle text-warning me-1"></i> সফট আইভরি
-                    </button>
-                    <button type="button" class="btn btn-xs btn-outline-dark rounded-pill py-1 px-2 ai-theme-btn" onclick="setAiTheme('linen', this)">
-                        <i class="fas fa-circle text-secondary me-1"></i> লিনেন ক্রিম
-                    </button>
-                    <button type="button" class="btn btn-xs btn-outline-dark rounded-pill py-1 px-2 ai-theme-btn" onclick="setAiTheme('mint', this)">
-                        <i class="fas fa-circle text-success me-1"></i> নরম মিন্ট
-                    </button>
-                    <button type="button" class="btn btn-xs btn-outline-dark rounded-pill py-1 px-2 ai-theme-btn" onclick="setAiTheme('gold', this)">
-                        <i class="fas fa-circle text-danger me-1"></i> রয়েল গোল্ড
-                    </button>
-                </div>
-                <input type="hidden" name="ai_cover_theme" id="ai_cover_theme" value="ivory">
-            </div>
-
-            <div>
-                <label for="f-cover_image" class="form-label small fw-bold text-dark mb-1">
-                    <i class="fas fa-upload text-secondary me-1"></i> নতুন ছবি আপলোড (ঐচ্ছিক)
-                </label>
-                <input type="file" id="f-cover_image" name="cover_image" accept="image/*"
-                       class="form-control form-control-sm rounded-3 @error('cover_image') is-invalid @enderror"
-                       onchange="previewCover(this)">
-                <small class="text-muted d-block mt-1" style="font-size: 11px;">নতুন ছবি দিলে পূর্বের ছবি পরিবর্তিত হবে। কভার না দিলে সফট-শেডের অটো-কভার সংরক্ষিত থাকবে।</small>
-                @error('cover_image')<div class="invalid-feedback">{{ $message }}</div>@enderror
-            </div>
         </div>
-
-        {{-- CARD 2: UPDATE & SAVE (PLACED AT THE VERY END) --}}
-        <div class="author-card p-3 p-md-4 mb-4 border-2 border-primary border-opacity-25 shadow-sm">
-            <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
-                <h6 class="fw-bold mb-0 text-dark d-flex align-items-center gap-1.5">
-                    <i class="fas fa-floppy-disk text-success"></i> পরিবর্তন সংরক্ষণ
-                </h6>
-                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5 small">চূড়ান্ত ধাপ</span>
-            </div>
-
-            <button type="submit" class="btn btn-success btn-lg w-100 rounded-pill fw-bold shadow-sm py-2.5 d-flex align-items-center justify-content-center gap-2 mb-2">
-                <i class="fas fa-circle-check fs-5"></i>
-                <span>Update (Save Changes)</span>
-            </button>
-
-            <a href="{{ route('author.ebooks.index') }}" class="btn btn-outline-secondary w-100 rounded-pill fw-semibold btn-sm py-2">
-                Cancel
-            </a>
-        </div>
-
-    </div>
-</form>
+    </form>
+</div>
 
 {{-- MODAL: QUICK ADD CATEGORY --}}
 <div class="modal fade" id="quickCategoryModal" tabindex="-1" aria-labelledby="quickCategoryModalLabel" aria-hidden="true">
@@ -417,33 +452,7 @@ function updateLiveCard() {
 function calculateRoyalty() {
     const price = parseFloat(document.getElementById('f-price')?.value) || 0;
     const authorShare = (price * 0.50).toFixed(2);
-    const platformShare = (price - authorShare).toFixed(2);
-
     document.getElementById('authorEarningDisplay').textContent = '৳' + authorShare;
-    document.getElementById('platformFeeDisplay').textContent = '৳' + platformShare;
-}
-
-function setPreviewPages(num, btn) {
-    const input = document.getElementById('f-preview_page_limit');
-    if (input) {
-        input.value = num;
-        updatePreviewBadge(num);
-    }
-    document.querySelectorAll('.preview-pill').forEach(b => {
-        b.classList.remove('btn-primary', 'active', 'fw-bold');
-        b.classList.add('btn-outline-secondary');
-    });
-    if (btn) {
-        btn.classList.remove('btn-outline-secondary');
-        btn.classList.add('btn-primary', 'active', 'fw-bold');
-    }
-}
-
-function updatePreviewBadge(val) {
-    const badge = document.getElementById('previewBadge');
-    if (badge) {
-        badge.textContent = (val || 16) + ' পৃষ্ঠা';
-    }
 }
 
 function submitQuickCategory() {
@@ -495,8 +504,6 @@ function submitQuickCategory() {
             const modalInstance = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
             modalInstance.hide();
             nameInput.value = '';
-
-            alert('বিষয়শ্রেণী ‘' + data.name + '’ যুক্ত হয়েছে এবং নির্বাচিত করা হয়েছে!');
         } else {
             if (errDiv) {
                 errDiv.textContent = data.message || 'সংরক্ষণ ব্যর্থ হয়েছে।';

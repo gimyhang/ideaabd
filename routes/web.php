@@ -296,6 +296,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::get('/books', [AdminController::class, 'books'])->name('books');
     Route::get('/categories', [AdminController::class, 'categories'])->name('categories');
     Route::get('/blog', [AdminController::class, 'blog'])->name('blog');
+    Route::get('/blog-categories', [AdminController::class, 'blogCategories'])->name('blog-categories');
     Route::post('/blog/settings', [AdminController::class, 'updateBlogSettings'])->name('blog.settings.update');
     Route::post('/blog/bulk-normalize-typography', [AdminController::class, 'bulkNormalizeBlogTypography'])->name('blog.bulk-normalize-typography');
     Route::post('/blog/bulk-action', [AdminController::class, 'bulkBlogAction'])->name('blog.bulk-action');

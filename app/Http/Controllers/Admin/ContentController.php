@@ -726,6 +726,39 @@ class ContentController extends Controller
         }
 
         if ($spec['table'] === 'ebooks') {
+            if ($request->filled('editor_name')) {
+                $attributes['editor_name'] = trim((string) $request->input('editor_name'));
+            }
+            if ($request->filled('rewriter_name')) {
+                $attributes['rewriter_name'] = trim((string) $request->input('rewriter_name'));
+            }
+            if ($request->filled('translator_name')) {
+                $attributes['translator_name'] = trim((string) $request->input('translator_name'));
+            }
+            if ($request->filled('author_id')) {
+                $authId = (int) $request->input('author_id');
+                $attributes['author_id'] = $authId;
+                $attributes['author_link_id'] = $authId;
+                if (empty($attributes['author_name'])) {
+                    $attributes['author_name'] = DB::table('authors')->where('id', $authId)->value('name') ?: null;
+                }
+            } elseif ($request->filled('author_link_id')) {
+                $authId = (int) $request->input('author_link_id');
+                $attributes['author_id'] = $authId;
+                $attributes['author_link_id'] = $authId;
+                if (empty($attributes['author_name'])) {
+                    $attributes['author_name'] = DB::table('authors')->where('id', $authId)->value('name') ?: null;
+                }
+            } elseif ($request->filled('author_name')) {
+                $authorName = trim((string) $request->input('author_name'));
+                if ($authorName !== '') {
+                    $auth = \Modules\Author\Models\Author::findOrCreateUnified(['name' => $authorName, 'is_active' => true]);
+                    $attributes['author_id'] = $auth->id;
+                    $attributes['author_link_id'] = $auth->id;
+                    $attributes['author_name'] = $auth->name;
+                }
+            }
+
             if ($request->hasFile('file_path')) {
                 $uploaded = $request->file('file_path');
                 $ext = strtolower($uploaded->getClientOriginalExtension());

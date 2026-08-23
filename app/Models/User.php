@@ -160,7 +160,7 @@ class User extends Authenticatable
             $author = \Modules\Author\Models\Author::where('name', $this->name)->first();
         }
 
-        if (!$author && $this->isAuthor()) {
+        if (!$author && ($this->isAuthor() || $this->isAdmin() || $this->reg_type === 'author')) {
             $slug = \Illuminate\Support\Str::slug($this->name) ?: 'author-' . $this->id;
             if (\Modules\Author\Models\Author::where('slug', $slug)->exists()) {
                 $slug .= '-' . $this->id;

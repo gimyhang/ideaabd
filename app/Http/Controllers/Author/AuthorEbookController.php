@@ -404,66 +404,9 @@ class AuthorEbookController extends Controller
     }
 
     /**
-     * Process uploaded cover (auto-crop to 2:3 ratio) or generate default aesthetic SVG cover.
-     */
-    protected function processCoverImage(?\Illuminate\Http\UploadedFile $file, string $title, string $authorName): string
-    {
-        if ($file && $file->isValid()) {
-            // Check if GD extension is available for auto 2:3 cropping
-            if (extension_loaded('gd')) {
-                try {
-                    $srcData = file_get_contents($file->getRealPath());
-                    $src = @imagecreatefromstring($srcData);
-                    if ($src) {
-                        $srcW = imagesx($src);
-                        $srcH = imagesy($src);
-
-                        // Target 2:3 Aspect Ratio (800 x 1200)
-                        $targetW = 800;
-                        $targetH = 1200;
-                        $targetRatio = $targetW / $targetH;
-                        $srcRatio = $srcW / $srcH;
-
-                        if ($srcRatio > $targetRatio) {
-                            // Source is wider than 2:3: crop sides
-                            $cropW = (int) round($srcH * $targetRatio);
-                            $cropH = $srcH;
-                            $srcX = (int) round(($srcW - $cropW) / 2);
-                            $srcY = 0;
-                        } else {
-                            // Source is taller than 2:3: crop top/bottom
-                            $cropW = $srcW;
-                            $cropH = (int) round($srcW / $targetRatio);
-                            $srcX = 0;
-                            $srcY = (int) round(($srcH - $cropH) / 2);
-                        }
-
-                        $dst = imagecreatetruecolor($targetW, $targetH);
-                        imagealphablending($dst, false);
-                        imagesavealpha($dst, true);
-
-                        imagecopyresampled($dst, $src, 0, 0, $srcX, $srcY, $targetW, $targetH, $cropW, $cropH);
-
-                        $filename = 'cover_' . time() . '_' . Str::random(8) . '.jpg';
-                        $fullPath = storage_path('app/public/ebooks/covers/' . $filename);
-                        
-                        if (!file_exists(dirname($fullPath))) {
-                            mkdir(dirname($fullPath), 0755, true);
-                        }
-
-                        imagejpeg($dst, $fullPath, 92);
-                        imagedestroy($src);
-                        imagedestroy($dst);
-
-                        return 'ebooks/covers/' . $filename;
-                    }
-                } catch (\Throwable $e) {
-                    \Illuminate\Support\Facades\Log::error("Cover processing exception: " . $e->getMessage());
-                }
-    /**
      * Crop or process cover image to 2:3 ratio or auto-generate AI aesthetic cover.
      */
-    protected function processCoverImage(?UploadedFile $file, string $title, string $authorName, string $aiTheme = 'ivory'): string
+    protected function processCoverImage(?\Illuminate\Http\UploadedFile $file, string $title, string $authorName, string $aiTheme = 'ivory'): string
     {
         if ($file && $file->isValid()) {
             if (extension_loaded('gd')) {
