@@ -752,21 +752,6 @@
                                                value="{{ old('title_en', $editBook->title_en ?? ($editBook->subtitle ?? '')) }}" placeholder="Product Name in English (e.g. Pather Panchali)">
                                     </div>
 
-                                    {{-- ROW 3: Author Name * & Translator Name (2 columns in 1 row) --}}
-                                    <div class="col-12 col-md-6">
-                                        <div class="d-flex align-items-center justify-content-between mb-1">
-                                            <label class="form-label small fw-bold text-dark mb-0">
-                                                <i class="fas fa-pen-nib text-primary me-1"></i> Author Name <span class="text-danger">*</span>
-                                            </label>
-                                            <button type="button" class="btn btn-outline-primary btn-sm py-0 px-2 rounded-pill fw-semibold" 
-                                                    data-bs-toggle="modal" data-bs-target="#pubQuickAuthorModal" style="font-size: 11px;">
-                                                <i class="fas fa-plus-circle me-0.5"></i>+ Add Author
-                                            </button>
-                                        </div>
-
-                                        {{-- Multi-author chips --}}
-                                        <div id="pubSelectedAuthorsContainer" class="d-flex flex-wrap gap-1.5 mb-1.5 p-1.5 bg-light rounded-2 border" style="min-height: 32px;">
-                                            @php
                                     {{-- ROW 3: Author Name * & Translator Name (2 columns with + dynamic adder) --}}
                                     <div class="col-12 col-md-6">
                                         <div class="d-flex align-items-center justify-content-between mb-1">

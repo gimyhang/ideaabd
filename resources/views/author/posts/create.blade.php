@@ -232,12 +232,13 @@
                         <li>লেখাটি আপনার নিজস্ব ও মৌলিক সৃষ্টি হতে হবে।</li>
                         <li>অন্য কোনো লেখকের লেখার অংশবিশেষ অনুমতি ব্যতিরেকে ব্যবহার করা যাবে না।</li>
                         <li>প্রকাশিত হওয়ার পূর্বে লেখাটি আইডিয়া প্রকাশন সম্পাদনা পরিষদ পর্যালোচনা করবে।</li>
+                        <li class="text-danger fw-semibold">লেখাটি প্রকাশ করা অথবা প্রকাশ করলেও যে কোনো সময় কোনো প্রকার অবগতি ছাড়াই অপসারণের অধিকার প্রকাশক কর্তৃক সংরক্ষিত।</li>
                     </ul>
 
                     <div class="form-check mb-0">
                         <input class="form-check-input @error('agree_policy') is-invalid @enderror" type="checkbox" name="agree_policy" value="1" id="agreePolicy" checked required>
                         <label class="form-check-label small fw-semibold text-dark" for="agreePolicy" style="font-size: 11.5px;">
-                            আমি আইডিয়া প্রকাশনের সম্পাদকীয় নীতিমালা ও শর্তাবলি মেনে নিচ্ছি। <span class="text-danger">*</span>
+                            আমি আইডিয়া প্রকাশনের সম্পাদকীয় নীতিমালা ও শর্তাবলি মেনে নিচ্ছি (লেখাটি প্রকাশ করা অথবা প্রকাশ করলেও যে কোনো সময় কোনো প্রকার অবগতি ছাড়াই অপসারণের অধিকার প্রকাশক কর্তৃক সংরক্ষিত)। <span class="text-danger">*</span>
                         </label>
                         @error('agree_policy')
                             <div class="invalid-feedback">{{ $message }}</div>

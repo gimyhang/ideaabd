@@ -1321,6 +1321,74 @@ class AdminController extends Controller
         ]);
     }
 
+    public function resetAuthorPassword(Request $request, $id): \Illuminate\Http\JsonResponse
+    {
+        $author = \Modules\Author\Models\Author::findOrFail($id);
+
+        $validated = $request->validate([
+            'password'      => 'nullable|string|min:6|max:100',
+            'auto_generate' => 'nullable|boolean',
+            'notify_author' => 'nullable|boolean',
+        ]);
+
+        // Determine or generate new friendly password
+        $newPassword = !empty($validated['password']) ? trim($validated['password']) : ('Idea@' . rand(1000, 9999));
+
+        // Find or create linked User account for Author
+        $user = null;
+        if ($author->user_id) {
+            $user = \App\Models\User::find($author->user_id);
+        }
+        if (!$user && !empty($author->email)) {
+            $user = \App\Models\User::where('email', $author->email)->first();
+        }
+        if (!$user && !empty($author->phone)) {
+            $user = \App\Models\User::where('phone', $author->phone)->first();
+        }
+
+        if (!$user) {
+            $email = $author->email ?: (($author->slug ?: 'author_' . $author->id) . '@ideaabd.com');
+            $user = \App\Models\User::create([
+                'name'     => $author->name,
+                'email'    => $email,
+                'phone'    => $author->phone,
+                'password' => \Illuminate\Support\Facades\Hash::make($newPassword),
+                'role'     => 'author',
+            ]);
+            $author->update(['user_id' => $user->id, 'email' => $user->email]);
+        } else {
+            $user->password = \Illuminate\Support\Facades\Hash::make($newPassword);
+            if ($user->role !== 'admin' && $user->role !== 'author') {
+                $user->role = 'author';
+            }
+            $user->save();
+            if ($author->user_id !== $user->id) {
+                $author->update(['user_id' => $user->id]);
+            }
+        }
+
+        $loginUrl = route('login');
+        $loginUsername = $user->email ?: ($user->phone ?: $user->name);
+
+        $whatsappMessage = "শ্রদ্ধেয় লেখক {$author->name},\nআইডিয়া প্রকাশনে আপনার লেখক পোর্টালের নতুন লগইন তথ্য:\n\nলগইন আইডি: {$loginUsername}\nনতুন পাসওয়ার্ড: {$newPassword}\nলগইন লিংক: {$loginUrl}\n\nধন্যবাদ,\nআইডিয়া প্রকাশন";
+
+        $cleanPhone = preg_replace('/[^0-9]/', '', (string)$user->phone);
+        $whatsappUrl = !empty($cleanPhone) ? ('https://wa.me/' . (str_starts_with($cleanPhone, '88') ? $cleanPhone : ('88' . ltrim($cleanPhone, '0'))) . '?text=' . urlencode($whatsappMessage)) : null;
+
+        $this->accessService->log('author_password_reset', "লেখক '{$author->name}' (User ID: {$user->id})-এর পাসওয়ার্ড সফলভাবে রিসেট করা হয়েছে।");
+
+        return response()->json([
+            'success'          => true,
+            'message'          => "লেখক '{$author->name}'-এর পাসওয়ার্ড সফলভাবে রিসেট করা হয়েছে!",
+            'author_name'      => $author->name,
+            'login_identity'   => $loginUsername,
+            'new_password'     => $newPassword,
+            'login_url'        => $loginUrl,
+            'whatsapp_url'     => $whatsappUrl,
+            'whatsapp_message' => $whatsappMessage,
+        ]);
+    }
+
     public function authorDetails($id): \Illuminate\Http\JsonResponse
     {
         $author = \Modules\Author\Models\Author::with(['books' => function ($q) {

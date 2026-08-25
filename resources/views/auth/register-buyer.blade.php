@@ -17,7 +17,7 @@
                     </div>
                 </div>
                 <div class="card-body p-4">
-                    @if($errors->any())
+                    @if(isset($errors) && $errors->any())
                         <div class="alert alert-danger rounded-3"><ul class="mb-0 ps-3">@foreach($errors->all() as $e)<li>{{ $e }}</li>@endforeach</ul></div>
                     @endif
 
@@ -49,18 +49,38 @@
                             @error('email')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
 
-                        <div class="row">
+                        {{-- Invisible Honeypot Anti-Bot Security Field --}}
+                        <div style="display:none !important; visibility:hidden; position:absolute; left:-9999px;" aria-hidden="true">
+                            <input type="text" name="website_url_hp" tabindex="-1" autocomplete="off">
+                        </div>
+
+                        <div class="row g-2">
                             <div class="col-sm-6 mb-3">
                                 <label class="form-label fw-semibold">পাসওয়ার্ড <span class="text-danger">*</span></label>
-                                <input type="password" name="password" class="form-control rounded-3 @error('password') is-invalid @enderror" required minlength="8" maxlength="25" placeholder="৮-২৫ অক্ষর ও স্পেশাল ক্যারেক্টার">
-                                @error('password')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                <div class="input-group">
+                                    <input type="password" name="password" id="buyerRegPassword" class="form-control rounded-start-3 @error('password') is-invalid @enderror" required minlength="6" maxlength="50" placeholder="ন্যূনতম ৬ অক্ষর" oninput="checkPasswordStrength(this.value, 'buyerPwdStrengthBar', 'buyerPwdStrengthText')">
+                                    <button type="button" class="btn btn-outline-secondary rounded-end-3" onclick="togglePasswordVisibility('buyerRegPassword', this)" title="পাসওয়ার্ড দেখুন বা লুকান">
+                                        <i class="fa-regular fa-eye"></i>
+                                    </button>
+                                </div>
+                                @error('password')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                             </div>
                             <div class="col-sm-6 mb-3">
                                 <label class="form-label fw-semibold">পাসওয়ার্ড নিশ্চিত করুন <span class="text-danger">*</span></label>
-                                <input type="password" name="password_confirmation" class="form-control rounded-3" required minlength="8" maxlength="25" placeholder="পুনরায় লিখুন">
+                                <div class="input-group">
+                                    <input type="password" name="password_confirmation" id="buyerRegPasswordConfirm" class="form-control rounded-start-3" required minlength="6" maxlength="50" placeholder="পুনরায় লিখুন">
+                                    <button type="button" class="btn btn-outline-secondary rounded-end-3" onclick="togglePasswordVisibility('buyerRegPasswordConfirm', this)" title="পাসওয়ার্ড দেখুন বা লুকান">
+                                        <i class="fa-regular fa-eye"></i>
+                                    </button>
+                                </div>
                             </div>
-                            <div class="col-12">
-                                <div class="form-text small text-muted mt-0 mb-3"><i class="fa-solid fa-shield-halved text-success me-1"></i> পাসওয়ার্ড ৮ থেকে ২৫ অক্ষরের মধ্যে হতে হবে এবং অন্তত একটি স্পেশাল ক্যারেক্টার (যেমন: @, #, $, %, !, *, ?, &) ব্যবহার করুন।</div>
+                            <div class="col-12 mb-3">
+                                <div class="d-flex align-items-center justify-content-between mb-1" style="font-size: 11.5px;">
+                                    <span class="text-muted">পাসওয়ার্ডের শক্তি: <strong id="buyerPwdStrengthText" class="text-secondary">টাইপ করুন...</strong></span>
+                                </div>
+                                <div class="progress" style="height: 4px;">
+                                    <div id="buyerPwdStrengthBar" class="progress-bar bg-danger" role="progressbar" style="width: 0%; transition: width 0.3s ease;"></div>
+                                </div>
                             </div>
                         </div>
 
@@ -89,4 +109,60 @@
         </div>
     </div>
 </div>
+
+<script>
+function togglePasswordVisibility(inputId, btn) {
+    const input = document.getElementById(inputId);
+    const icon = btn.querySelector('i');
+    if (input.type === 'password') {
+        input.type = 'text';
+        if (icon) {
+            icon.classList.replace('fa-eye', 'fa-eye-slash');
+        }
+    } else {
+        input.type = 'password';
+        if (icon) {
+            icon.classList.replace('fa-eye-slash', 'fa-eye');
+        }
+    }
+}
+
+function checkPasswordStrength(password, barId, textId) {
+    const bar = document.getElementById(barId);
+    const text = document.getElementById(textId);
+    if (!bar || !text) return;
+
+    if (!password) {
+        bar.style.width = '0%';
+        bar.className = 'progress-bar bg-danger';
+        text.textContent = 'টাইপ করুন...';
+        text.className = 'text-secondary';
+        return;
+    }
+
+    let score = 0;
+    if (password.length >= 6) score += 25;
+    if (password.length >= 8) score += 25;
+    if (/[A-Z]/.test(password) && /[a-z]/.test(password)) score += 25;
+    if (/[0-9]/.test(password)) score += 15;
+    if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) score += 10;
+
+    if (score < 40) {
+        bar.style.width = '30%';
+        bar.className = 'progress-bar bg-danger';
+        text.textContent = 'দুর্বল (Weak)';
+        text.className = 'text-danger fw-bold';
+    } else if (score < 75) {
+        bar.style.width = '65%';
+        bar.className = 'progress-bar bg-warning';
+        text.textContent = 'মাঝারি (Medium)';
+        text.className = 'text-warning fw-bold';
+    } else {
+        bar.style.width = '100%';
+        bar.className = 'progress-bar bg-success';
+        text.textContent = 'খুব শক্তিশালী (Strong)';
+        text.className = 'text-success fw-bold';
+    }
+}
+</script>
 @endsection

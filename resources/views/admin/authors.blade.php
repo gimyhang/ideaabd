@@ -340,6 +340,10 @@
                                             style="width: 22px; height: 22px; font-size: 9px;" onclick="openEditAuthorModal({{ $author->id }})" title="Quick Edit">
                                         <i class="fas fa-pen"></i>
                                     </button>
+                                    <button type="button" class="btn btn-xs btn-outline-warning rounded-circle p-0 d-flex align-items-center justify-content-center" 
+                                            style="width: 22px; height: 22px; font-size: 9px;" onclick="openAuthorPasswordResetModal({{ $author->id }}, '{{ addslashes($author->name) }}', '{{ addslashes($author->email ?: ($author->phone ?: '')) }}')" title="পাসওয়ার্ড রিসেট (Reset Password)">
+                                        <i class="fas fa-key"></i>
+                                    </button>
                                     <a href="{{ route('authors.show', $author->slug ?: $author->id) }}" target="_blank" rel="noopener" 
                                        class="btn btn-xs btn-light border rounded-circle p-0 d-flex align-items-center justify-content-center" 
                                        style="width: 22px; height: 22px; font-size: 9px;" title="View on Site">
@@ -462,6 +466,9 @@
                                             </button>
                                             <button type="button" class="btn btn-xs btn-outline-primary p-1" onclick="openEditAuthorModal({{ $author->id }})" title="Quick Edit">
                                                 <i class="fas fa-pen-to-square small"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-xs btn-outline-warning p-1" onclick="openAuthorPasswordResetModal({{ $author->id }}, '{{ addslashes($author->name) }}', '{{ addslashes($author->email ?: ($author->phone ?: '')) }}')" title="পাসওয়ার্ড রিসেট (Reset Password)">
+                                                <i class="fas fa-key small"></i>
                                             </button>
                                             <a href="{{ route('authors.show', $author->slug ?: $author->id) }}" target="_blank" rel="noopener" class="btn btn-xs btn-light border p-1" title="View on Site">
                                                 <i class="fas fa-arrow-up-right-from-square text-muted small"></i>
@@ -711,6 +718,80 @@
                      style="width: 160px; height: 160px; background: #334155;">
                     <img src="" id="avatarLightboxImg" class="w-100 h-100 object-fit-cover" alt="Author Photo">
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- Modal: Author Fast Password Reset --}}
+<div class="modal fade" id="resetAuthorPasswordModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header bg-warning text-dark border-0 p-3 px-4">
+                <div class="d-flex align-items-center gap-2.5">
+                    <div class="bg-white bg-opacity-50 rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                        <i class="fas fa-key text-dark"></i>
+                    </div>
+                    <div>
+                        <h6 class="modal-title fw-bold mb-0">লেখকের পাসওয়ার্ড রিসেট</h6>
+                        <small class="text-dark-50 fw-semibold" id="resetModalAuthorName">লেখক নাম</small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4 bg-light">
+                <form id="authorPasswordResetForm" onsubmit="submitAuthorPasswordReset(event)">
+                    @csrf
+                    <input type="hidden" id="resetModalAuthorId" name="author_id">
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-secondary mb-1">লগইন আইডি / ইমেইল / ফোন</label>
+                        <input type="text" id="resetModalIdentity" class="form-control form-control-sm bg-white" readonly>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-secondary mb-1 d-flex align-items-center justify-content-between">
+                            <span>নতুন পাসওয়ার্ড লিখুন অথবা স্বয়ংক্রিয় তৈরি করুন:</span>
+                            <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none text-primary fw-semibold small" onclick="generateRandomAuthorPassword()">
+                                <i class="fas fa-dice me-1"></i>স্বয়ংক্রিয় পাসওয়ার্ড
+                            </button>
+                        </label>
+                        <div class="input-group">
+                            <input type="text" name="password" id="resetModalNewPassword" class="form-control fw-bold font-monospace bg-white" placeholder="যেমন: Idea@3842" required minlength="6">
+                            <button class="btn btn-outline-secondary" type="button" onclick="copyResetPasswordToClipboard()" title="পাসওয়ার্ড কপি">
+                                <i class="far fa-copy"></i>
+                            </button>
+                        </div>
+                        <small class="text-muted" style="font-size: 11px;">সর্বনিম্ন ৬ অক্ষর (যেমন: 123456 বা Idea@1234)</small>
+                    </div>
+
+                    <div id="resetResultCard" class="d-none p-3 bg-white border border-success-subtle rounded-3 shadow-xs mb-3">
+                        <div class="d-flex align-items-center gap-2 text-success fw-bold small mb-2">
+                            <i class="fas fa-circle-check"></i>
+                            <span>পাসওয়ার্ড সফলভাবে রিসেট হয়েছে!</span>
+                        </div>
+                        <div class="small text-muted mb-2">
+                            <div><strong>লগইন আইডি:</strong> <span id="resLoginId" class="text-dark font-monospace fw-semibold"></span></div>
+                            <div><strong>নতুন পাসওয়ার্ড:</strong> <span id="resPassword" class="text-danger fw-bold font-monospace"></span></div>
+                            <div><strong>লগইন লিংক:</strong> <a href="{{ route('login') }}" target="_blank" class="text-primary text-decoration-none">{{ route('login') }}</a></div>
+                        </div>
+                        <div class="d-flex flex-wrap gap-2">
+                            <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3" onclick="copyFullCredentials()">
+                                <i class="far fa-copy me-1"></i>তথ্য কপি করুন
+                            </button>
+                            <a href="#" id="resWhatsappBtn" target="_blank" class="btn btn-sm btn-success rounded-pill px-3 d-none">
+                                <i class="fab fa-whatsapp me-1"></i>WhatsApp এ পাঠান
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 pt-2 border-top">
+                        <button type="button" class="btn btn-sm btn-light border rounded-pill px-3" data-bs-dismiss="modal">বন্ধ করুন</button>
+                        <button type="submit" class="btn btn-sm btn-warning fw-bold rounded-pill px-4" id="btnSubmitPasswordReset">
+                            <i class="fas fa-save me-1"></i>পাসওয়ার্ড সংরক্ষণ করুন
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -1181,6 +1262,95 @@ function exportAuthorsToCSV() {
     link.click();
     document.body.removeChild(link);
     showToast('CSV export downloaded successfully!', true);
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// AUTHOR FAST PASSWORD RESET JAVASCRIPT HANDLERS
+// ═════════════════════════════════════════════════════════════════════════════
+let currentResetPayload = null;
+
+function openAuthorPasswordResetModal(authorId, authorName, identity) {
+    document.getElementById('resetModalAuthorId').value = authorId;
+    document.getElementById('resetModalAuthorName').textContent = authorName || 'লেখক';
+    document.getElementById('resetModalIdentity').value = identity || 'অটো-জেনারেটেড আইডি';
+    
+    generateRandomAuthorPassword();
+    document.getElementById('resetResultCard').classList.add('d-none');
+    
+    const modal = new bootstrap.Modal(document.getElementById('resetAuthorPasswordModal'));
+    modal.show();
+}
+
+function generateRandomAuthorPassword() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
+    let rand = 'Idea@' + Math.floor(1000 + Math.random() * 9000);
+    document.getElementById('resetModalNewPassword').value = rand;
+}
+
+function copyResetPasswordToClipboard() {
+    const pwd = document.getElementById('resetModalNewPassword').value;
+    if (pwd) {
+        copyToClipboard(pwd, 'পাসওয়ার্ড কপি করা হয়েছে!');
+    }
+}
+
+function copyFullCredentials() {
+    if (!currentResetPayload) return;
+    const text = `আইডিয়া প্রকাশন — লেখক পোর্টাল লগইন তথ্য:\nলগইন আইডি: ${currentResetPayload.login_identity}\nপাসওয়ার্ড: ${currentResetPayload.new_password}\nলগইন লিংক: ${currentResetPayload.login_url}`;
+    copyToClipboard(text, 'লগইন ও পাসওয়ার্ড তথ্য কপি হয়েছে!');
+}
+
+function submitAuthorPasswordReset(e) {
+    e.preventDefault();
+    const authorId = document.getElementById('resetModalAuthorId').value;
+    const password = document.getElementById('resetModalNewPassword').value;
+    const btn = document.getElementById('btnSubmitPasswordReset');
+    const originalText = btn.innerHTML;
+
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>সংরক্ষণ হচ্ছে...';
+
+    fetch(`/admin/authors/${authorId}/reset-password`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+            password: password
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+
+        if (data.success) {
+            currentResetPayload = data;
+            document.getElementById('resLoginId').textContent = data.login_identity;
+            document.getElementById('resPassword').textContent = data.new_password;
+            
+            const waBtn = document.getElementById('resWhatsappBtn');
+            if (data.whatsapp_url) {
+                waBtn.href = data.whatsapp_url;
+                waBtn.classList.remove('d-none');
+            } else {
+                waBtn.classList.add('d-none');
+            }
+
+            document.getElementById('resetResultCard').classList.remove('d-none');
+            showToast(data.message, true);
+        } else {
+            showToast(data.message || 'পাসওয়ার্ড রিসেট ব্যর্থ হয়েছে।', false);
+        }
+    })
+    .catch(err => {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+        console.error(err);
+        showToast('সার্ভার এরর: পাসওয়ার্ড রিসেট করা যায়নি।', false);
+    });
 }
 </script>
 @endsection

@@ -684,18 +684,21 @@
                                     </button>
                                 </div>
 
-                                <!-- Review List -->
-                                <div class="review-list d-flex flex-column gap-3 mb-5">
-                                    @if(isset($book->reviews) && $book->reviews->isNotEmpty())
-                                        @foreach($book->reviews as $review)
-                                            <div class="p-3 bg-light rounded-4 border">
+                                <!-- Review List Container -->
+                                <div class="review-list d-flex flex-column gap-3 mb-5" id="bookReviewListContainer">
+                                    @php
+                                        $loadedReviews = \Modules\Review\Models\Review::where('book_id', $book->id)->where('is_approved', true)->latest()->get();
+                                    @endphp
+                                    @if($loadedReviews->isNotEmpty())
+                                        @foreach($loadedReviews as $review)
+                                            <div class="p-3 bg-light rounded-4 border shadow-2xs">
                                                 <div class="d-flex justify-content-between align-items-center mb-2">
                                                     <div class="d-flex align-items-center gap-2">
-                                                        <div class="avatar-circle rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold" style="width: 38px; height: 38px; font-size: 0.9rem;">
-                                                            {{ mb_substr($review->user->name ?? 'পাঠক', 0, 1) }}
+                                                        <div class="avatar-circle rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold shadow-xs" style="width: 38px; height: 38px; font-size: 0.9rem;">
+                                                            {{ mb_substr($review->user->name ?? $review->reviewer_name ?? 'পাঠক', 0, 1) }}
                                                         </div>
                                                         <div>
-                                                            <h6 class="fw-bold text-dark mb-0 fs-6">{{ $review->user->name ?? 'অজ্ঞাতনামা পাঠক' }}</h6>
+                                                            <h6 class="fw-bold text-dark mb-0 fs-6">{{ $review->user->name ?? $review->reviewer_name ?? 'সম্মানিত পাঠক' }}</h6>
                                                             <span class="text-muted small" style="font-size: 0.75rem;">{{ $review->created_at ? $review->created_at->diffForHumans() : 'সম্প্রতি' }}</span>
                                                         </div>
                                                     </div>
@@ -709,7 +712,7 @@
                                             </div>
                                         @endforeach
                                     @else
-                                        <div class="text-center py-4 text-muted bg-light rounded-4 p-4 border border-dashed">
+                                        <div class="text-center py-4 text-muted bg-light rounded-4 p-4 border border-dashed" id="noReviewsNotice">
                                             <i class="fa-regular fa-comment-dots fs-1 text-secondary opacity-50 mb-2"></i>
                                             <h6>এখনো কোনো রিভিউ দেওয়া হয়নি</h6>
                                             <p class="small mb-0">বইটি পড়ে প্রথম রিভিউটি আপনিই লিখুন!</p>
@@ -717,25 +720,71 @@
                                     @endif
                                 </div>
 
-                                <!-- Write a Review Form -->
-                                <div class="card bg-light border-0 rounded-4 p-4" id="writeReviewCard">
-                                    <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-star text-warning me-1.5"></i>আপনার অভিজ্ঞতা শেয়ার করুন</h6>
-                                    <form action="#" method="POST" onsubmit="event.preventDefault(); alert('ধন্যবাদ! আপনার রিভিউটি পর্যালোচনার জন্য জমা দেওয়া হয়েছে।');">
+                                <!-- Dynamic Write a Review Form (Registered + Guest) -->
+                                <div class="card bg-white border shadow-xs rounded-4 p-4" id="writeReviewCard">
+                                    <div class="d-flex align-items-center justify-content-between mb-3">
+                                        <h6 class="fw-bold text-dark mb-0">
+                                            <i class="fa-solid fa-star text-warning me-1.5"></i>আপনার অভিজ্ঞতা ও রিভিউ শেয়ার করুন
+                                        </h6>
+                                        @guest
+                                            <span class="badge bg-light text-secondary border rounded-pill small">
+                                                <i class="fa-solid fa-user-pen me-1"></i> অতিথি হিসেবে রিভিউ
+                                            </span>
+                                        @else
+                                            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill small">
+                                                <i class="fa-solid fa-check-circle me-1"></i> {{ auth()->user()->name }}
+                                            </span>
+                                        @endguest
+                                    </div>
+
+                                    <form id="bookReviewSubmitForm" onsubmit="submitBookReviewAjax(event)">
+                                        @csrf
+                                        <input type="hidden" name="book_id" value="{{ $book->id }}">
+                                        <input type="hidden" name="rating" id="selectedStarRatingInput" value="5">
+
+                                        {{-- Honeypot Anti-Bot Field --}}
+                                        <div style="display:none !important;" aria-hidden="true">
+                                            <input type="text" name="review_hp_field" tabindex="-1" autocomplete="off">
+                                        </div>
+
+                                        {{-- Interactive Star Selector --}}
                                         <div class="mb-3">
-                                            <label class="form-label small fw-semibold text-muted">আপনার রেটিং নির্বাচন করুন</label>
-                                            <div class="d-flex gap-2 text-warning fs-5 cursor-pointer" id="ratingSelector">
-                                                <i class="fa-solid fa-star" onclick="setRating(1)"></i>
-                                                <i class="fa-solid fa-star" onclick="setRating(2)"></i>
-                                                <i class="fa-solid fa-star" onclick="setRating(3)"></i>
-                                                <i class="fa-solid fa-star" onclick="setRating(4)"></i>
-                                                <i class="fa-solid fa-star" onclick="setRating(5)"></i>
+                                            <label class="form-label small fw-semibold text-muted mb-1">আপনার রেটিং নির্বাচন করুন <span class="text-danger">*</span></label>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <div class="d-flex gap-1.5 text-warning fs-4 cursor-pointer" id="interactiveStarGroup">
+                                                    <i class="fa-solid fa-star star-item" data-val="1" onclick="setInteractiveStar(1)" onmouseover="hoverInteractiveStar(1)" onmouseout="resetInteractiveStar()"></i>
+                                                    <i class="fa-solid fa-star star-item" data-val="2" onclick="setInteractiveStar(2)" onmouseover="hoverInteractiveStar(2)" onmouseout="resetInteractiveStar()"></i>
+                                                    <i class="fa-solid fa-star star-item" data-val="3" onclick="setInteractiveStar(3)" onmouseover="hoverInteractiveStar(3)" onmouseout="resetInteractiveStar()"></i>
+                                                    <i class="fa-solid fa-star star-item" data-val="4" onclick="setInteractiveStar(4)" onmouseover="hoverInteractiveStar(4)" onmouseout="resetInteractiveStar()"></i>
+                                                    <i class="fa-solid fa-star star-item" data-val="5" onclick="setInteractiveStar(5)" onmouseover="hoverInteractiveStar(5)" onmouseout="resetInteractiveStar()"></i>
+                                                </div>
+                                                <span class="badge bg-warning bg-opacity-15 text-dark border border-warning small fw-bold px-2 py-1" id="starRatingLabel">৫ স্টার (চমৎকার)</span>
                                             </div>
                                         </div>
+
+                                        @guest
+                                            <div class="row g-2 mb-3">
+                                                <div class="col-md-6">
+                                                    <label class="form-label small fw-semibold text-dark mb-1">আপনার নাম <span class="text-danger">*</span></label>
+                                                    <input type="text" name="reviewer_name" class="form-control form-control-sm rounded-3" placeholder="যেমন: আব্দুল্লাহ আল মামুন" required>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label class="form-label small fw-semibold text-dark mb-1">মোবাইল বা ইমেইল <span class="text-muted">(ঐচ্ছিক)</span></label>
+                                                    <input type="text" name="reviewer_phone" class="form-control form-control-sm rounded-3" placeholder="017XXXXXXXX বা email@domain.com">
+                                                </div>
+                                            </div>
+                                        @endguest
+
                                         <div class="mb-3">
-                                            <textarea class="form-control rounded-3 border-0 bg-white" rows="3" placeholder="বইটি সম্পর্কে আপনার সৎ মতামত লিখুন..." required></textarea>
+                                            <label class="form-label small fw-semibold text-dark mb-1">আপনার সৎ মতামত ও রিভিউ <span class="text-danger">*</span></label>
+                                            <textarea name="comment" id="reviewCommentTextarea" class="form-control rounded-3 bg-light" rows="3" placeholder="বইটির বিষয়বস্তু, প্রচ্ছদ ও আপনার অনুভূতি সম্পর্কে লিখুন..." required minlength="3"></textarea>
                                         </div>
-                                        <button type="submit" class="btn btn-primary rounded-pill px-4 fw-semibold">
-                                            রিভিউ সাবমিট করুন
+
+                                        <div id="reviewAjaxAlertBox" class="d-none mb-3"></div>
+
+                                        <button type="submit" class="btn btn-primary rounded-pill px-4 py-2 fw-bold shadow-xs d-inline-flex align-items-center gap-2" id="submitReviewBtn">
+                                            <i class="fa-solid fa-paper-plane"></i>
+                                            <span>রিভিউ পোস্ট করুন</span>
                                         </button>
                                     </form>
                                 </div>
@@ -1557,17 +1606,119 @@
         }
     }
 
-    function setRating(rating) {
-        const stars = document.querySelectorAll('#ratingSelector i');
-        stars.forEach((star, index) => {
-            if (index < rating) {
-                star.classList.remove('text-black-50', 'opacity-25');
+    let currentSelectedStar = 5;
+    const starLabels = {
+        1: '১ স্টার (খুবই অসন্তোষজনক)',
+        2: '২ স্টার (চলনসই)',
+        3: '৩ স্টার (ভালো)',
+        4: '৪ স্টার (খুব ভালো)',
+        5: '৫ স্টার (চমৎকার ও প্রশংসনীয়)'
+    };
+
+    function setInteractiveStar(val) {
+        currentSelectedStar = val;
+        document.getElementById('selectedStarRatingInput').value = val;
+        document.getElementById('starRatingLabel').textContent = starLabels[val] || `${val} স্টার`;
+        renderInteractiveStars(val);
+    }
+
+    function hoverInteractiveStar(val) {
+        renderInteractiveStars(val);
+        document.getElementById('starRatingLabel').textContent = starLabels[val] || `${val} স্টার`;
+    }
+
+    function resetInteractiveStar() {
+        renderInteractiveStars(currentSelectedStar);
+        document.getElementById('starRatingLabel').textContent = starLabels[currentSelectedStar] || `${currentSelectedStar} স্টার`;
+    }
+
+    function renderInteractiveStars(val) {
+        const stars = document.querySelectorAll('#interactiveStarGroup .star-item');
+        stars.forEach(star => {
+            const sVal = parseInt(star.getAttribute('data-val'));
+            if (sVal <= val) {
+                star.classList.remove('opacity-25', 'text-secondary');
                 star.classList.add('text-warning');
             } else {
-                star.classList.add('text-black-50', 'opacity-25');
+                star.classList.add('opacity-25', 'text-secondary');
                 star.classList.remove('text-warning');
             }
         });
+    }
+
+    async function submitBookReviewAjax(e) {
+        e.preventDefault();
+        const form = document.getElementById('bookReviewSubmitForm');
+        const submitBtn = document.getElementById('submitReviewBtn');
+        const alertBox = document.getElementById('reviewAjaxAlertBox');
+        const formData = new FormData(form);
+
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1.5"></span> জমা হচ্ছে...';
+        alertBox.className = 'd-none';
+
+        try {
+            const response = await fetch('{{ route("reviews.store") }}', {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                },
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                alertBox.className = 'alert alert-success rounded-3 small p-3 mb-3 d-flex align-items-center gap-2';
+                alertBox.innerHTML = `<i class="fa-solid fa-circle-check text-success fs-5"></i> <div>${data.message}</div>`;
+                form.reset();
+                setInteractiveStar(5);
+
+                // Prepend new review to the list dynamically
+                const listContainer = document.getElementById('bookReviewListContainer');
+                const noReviewsNotice = document.getElementById('noReviewsNotice');
+                if (noReviewsNotice) noReviewsNotice.remove();
+
+                const r = data.review;
+                let starIconsHtml = '';
+                for (let s = 1; s <= 5; s++) {
+                    starIconsHtml += `<i class="fa-solid fa-star${s <= r.rating ? '' : ' text-black-50 opacity-25'}"></i>`;
+                }
+
+                const newCard = document.createElement('div');
+                newCard.className = 'p-3 bg-light rounded-4 border shadow-2xs animate__animated animate__fadeInDown';
+                newCard.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="avatar-circle rounded-circle bg-success text-white d-flex align-items-center justify-content-center fw-bold shadow-xs" style="width: 38px; height: 38px; font-size: 0.9rem;">
+                                ${r.avatar_initial}
+                            </div>
+                            <div>
+                                <h6 class="fw-bold text-dark mb-0 fs-6">${r.reviewer_name} <span class="badge bg-success-subtle text-success small ms-1" style="font-size: 10px;">নতুন</span></h6>
+                                <span class="text-muted small" style="font-size: 0.75rem;">${r.created_at}</span>
+                            </div>
+                        </div>
+                        <div class="text-warning small">${starIconsHtml}</div>
+                    </div>
+                    <p class="text-secondary small mb-0 lh-base">${r.comment}</p>
+                `;
+                if (listContainer) {
+                    listContainer.prepend(newCard);
+                }
+
+                showToast('রিভিউ জমা হয়েছে!', data.message);
+            } else {
+                alertBox.className = 'alert alert-danger rounded-3 small p-3 mb-3 d-flex align-items-center gap-2';
+                alertBox.innerHTML = `<i class="fa-solid fa-circle-exclamation text-danger fs-5"></i> <div>${data.message || 'রিভিউ জমা দেওয়া সম্ভব হয়নি।'}</div>`;
+            }
+        } catch (err) {
+            alertBox.className = 'alert alert-danger rounded-3 small p-3 mb-3 d-flex align-items-center gap-2';
+            alertBox.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-danger fs-5"></i> <div>সার্ভার সংযোগে ত্রুটি দেখা দিয়েছে। অনুগ্রহ করে পুনরায় চেষ্টা করুন।</div>`;
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> <span>রিভিউ পোস্ট করুন</span>';
+        }
     }
 
     function showToast(title, message) {

@@ -133,6 +133,16 @@ class User extends Authenticatable
         return $this->hasMany(\App\Models\AuthorPayoutRequest::class, 'user_id');
     }
 
+    public function honorariums(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\App\Models\AuthorHonorarium::class, 'author_user_id');
+    }
+
+    public function givenHonorariums(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\App\Models\AuthorHonorarium::class, 'donor_user_id');
+    }
+
     public function ebookLibrary(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(\App\Models\UserEbookLibrary::class, 'user_id');

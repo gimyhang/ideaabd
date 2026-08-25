@@ -175,6 +175,22 @@ class SiteSetting
         return asset('storage/' . $clean);
     }
 
+    public static function publisherName(): string
+    {
+        return (string) (self::get('editorial_publisher') ?: 'আইডিয়া প্রকাশন');
+    }
+
+    public static function editorName(): string
+    {
+        return (string) (self::get('editorial_editor') ?: 'সাকিল মাসুদ');
+    }
+
+    public static function editorialBoard(): array
+    {
+        $board = self::get('editorial_board', []);
+        return is_array($board) ? $board : [];
+    }
+
     public static function ebookPreviewLimit(): int
     {
         $ebookSettings = self::get('ebook_settings');

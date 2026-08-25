@@ -57,111 +57,85 @@
 @endphp
 
 <header class="site-head" id="siteHead">
-    <div class="container">
-        <div class="site-head__main">
 
-            {{-- Brand Logo & Text --}}
-            <a class="site-brand" href="{{ route('home') }}">
-                @php 
-                    $logoUrl = \App\Support\SiteSetting::logoUrl();
-                    $siteName = \App\Support\SiteSetting::name();
-                    $siteTagline = \App\Support\SiteSetting::tagline();
-                @endphp
-                <div class="site-brand__logo-box">
-                    @if ($logoUrl)
-                        <img src="{{ $logoUrl }}"
-                             alt="{{ $siteName }}" 
-                             class="site-brand__img"
-                             onerror="this.onerror=null; this.src='{{ asset('images/logo.svg') }}';">
-                    @else
-                        <span class="site-brand__fallback">{{ config('brand.lettermark', 'আই') }}</span>
-                    @endif
-                </div>
-                <div class="site-brand__text d-flex flex-column justify-content-center">
-                    <span class="site-brand__name">{{ $siteName }}</span>
-                    <span class="site-brand__sub">{{ $siteTagline }}</span>
-                </div>
-            </a>
+    {{-- ══════════════════════════════════════════════════════════════════
+         BAR 1: TOP UTILITY BAR (Luxury Deep Royal Navy Gradient ~38px)
+         Hotline / WhatsApp: +88 01726976982 | Quick Utility Links | Focused Language Switcher
+    ══════════════════════════════════════════════════════════════════ --}}
+    <div class="site-topbar text-white" style="background: linear-gradient(135deg, #07192f 0%, #0d2847 50%, #0f3057 100%) !important; font-size: 12px; border-bottom: 1px solid rgba(255,255,255,0.12); min-height: 38px; padding: 6px 0;">
+        <div class="container d-flex align-items-center justify-content-between flex-nowrap gap-2">
+            {{-- Left: Hotline & WhatsApp icon info --}}
+            <div class="d-flex align-items-center gap-2 text-nowrap flex-shrink-0">
+                <a href="https://wa.me/8801726976982" target="_blank" rel="noopener" class="text-white text-decoration-none d-inline-flex align-items-center gap-2 hover-warning" title="হোয়াটসঅ্যাপ বা সরাসরি কলে যোগাযোগ করুন">
+                    <span class="rounded-circle bg-success bg-opacity-25 d-inline-flex align-items-center justify-content-center text-success shadow-2xs" style="width: 26px; height: 26px;">
+                        <i class="fa-brands fa-whatsapp fs-5 text-success"></i>
+                    </span>
+                    <strong class="text-white" style="letter-spacing: 0.2px; font-size: 13px;">হটলাইন:</strong>
+                    <span class="text-warning fw-bold font-monospace px-2 py-0.5 rounded bg-white bg-opacity-15 shadow-xs" style="font-size: 18px; letter-spacing: 0.5px;">+88 01726976982</span>
+                </a>
+                <span class="text-white-50 ms-1 d-none d-sm-inline" style="font-size: 11px;">(9.00 AM to 11.00 PM)</span>
+            </div>
 
-            {{-- Enhanced Search Bar --}}
-            <form class="site-search position-relative" method="GET" action="{{ route('search') }}" role="search">
-                <div class="site-search__box shadow-sm">
-                    <label for="siteSearchScope" class="visually-hidden">বিভাগ</label>
-                    <select id="siteSearchScope" name="type" class="site-search__scope">
-                        <option value="">সব বিভাগ</option>
-                        <option value="book" @selected(request('type') === 'book')>বই</option>
-                        <option value="ebook" @selected(request('type') === 'ebook')>ই-বুক</option>
-                        <option value="author" @selected(request('type') === 'author')>লেখক</option>
-                        <option value="publisher" @selected(request('type') === 'publisher')>প্রকাশক</option>
-                    </select>
-
-                    <label for="siteSearchInput" class="visually-hidden">খুঁজুন</label>
-                    <input id="siteSearchInput" class="site-search__input" type="search" name="q"
-                           value="{{ request('q') }}" placeholder="বই, লেখক, প্রকাশক বা বিষয় দিয়ে খুঁজুন..."
-                           autocomplete="off">
-
-                    <button class="site-search__btn" type="submit">
-                        <i class="fas fa-magnifying-glass"></i><span class="d-none d-md-inline ms-1">খুঁজুন</span>
-                    </button>
-                </div>
-                <!-- Live Search Results Dropdown -->
-                <div id="liveSearchResults" class="dropdown-menu w-100 shadow-lg border-0 mt-2 d-none" style="position: absolute; top: 100%; left: 0; z-index: 1050; border-radius: 14px; max-height: 400px; overflow-y: auto;">
-                    <div class="p-3 text-center text-muted" id="searchSpinner" style="display: none;">
-                        <i class="fas fa-circle-notch fa-spin text-primary"></i> খুঁজছি...
-                    </div>
-                    <div id="searchResultsContent" class="p-2"></div>
-                </div>
-            </form>
-
-            {{-- User Actions & Header Icons --}}
-            <div class="site-actions">
-                @if (Route::has('wishlist'))
-                    <a href="{{ route('wishlist') }}" class="site-icon d-none d-sm-grid" title="পছন্দের তালিকা" aria-label="পছন্দের তালিকা">
-                        <i class="fas fa-heart"></i>
+            {{-- Right: Quick Utility Links & Focused Language Switcher in one row --}}
+            <div class="d-flex align-items-center gap-2 gap-md-3 text-nowrap">
+                <div class="d-flex align-items-center gap-2 gap-md-3 overflow-x-auto text-nowrap scrollbar-none">
+                    <a href="{{ Route::has('my-account') ? route('my-account') : url('/my-account') }}" class="text-white-50 hover-white text-decoration-none d-inline-flex align-items-center gap-1">
+                        <i class="fa-solid fa-truck-fast text-info" style="font-size: 11.5px;"></i>
+                        <span>অর্ডার ট্র্যাক করুন</span>
                     </a>
-                @endif
+                    <span class="text-white-50 opacity-25">|</span>
+                    <a href="{{ url('/hub') }}" class="text-white-50 hover-white text-decoration-none d-inline-flex align-items-center gap-1">
+                        <i class="fa-solid fa-briefcase text-warning" style="font-size: 11.5px;"></i>
+                        <span>আইডিয়া উদ্যোক্তা</span>
+                    </a>
+                    <span class="text-white-50 opacity-25 d-none d-sm-inline">|</span>
+                    <a href="{{ url('/hub') }}" class="text-white-50 hover-white text-decoration-none d-none d-sm-inline-flex align-items-center gap-1">
+                        <i class="fa-solid fa-money-bill-wave text-success" style="font-size: 11.5px;"></i>
+                        <span>ঘরে বসে আয় করুন</span>
+                    </a>
+                    <span class="text-white-50 opacity-25 d-none d-md-inline">|</span>
+                    <a href="{{ url('/contact') }}" class="text-white-50 hover-white text-decoration-none d-none d-md-inline-flex align-items-center gap-1">
+                        <i class="fa-solid fa-hand-holding-heart text-danger" style="font-size: 11.5px;"></i>
+                        <span>বই ডোনেশন</span>
+                    </a>
+                    <span class="text-white-50 opacity-25 d-none d-lg-inline">|</span>
+                    <a href="{{ url('/hub') }}" class="text-white-50 hover-white text-decoration-none d-none d-lg-inline-flex align-items-center gap-1">
+                        <i class="fa-solid fa-star text-warning" style="font-size: 11.5px;"></i>
+                        <span>আইডিয়া স্টার</span>
+                    </a>
+                </div>
 
-                <a href="{{ route('cart') }}" class="site-icon" title="কার্ট" aria-label="কার্ট" data-bs-toggle="offcanvas" data-bs-target="#siteCartDrawer" onclick="if(window.openCartDrawer){ window.openCartDrawer(); }">
-                    <i class="fas fa-cart-shopping"></i>
-                    <span class="site-icon__count" id="siteCartCount" hidden>০</span>
-                </a>
-
-                {{-- Direct 'লেখা পোস্ট করুন' Button in Header --}}
-                <a href="{{ route('blog.write') }}" class="btn btn-warning btn-sm rounded-pill fw-bold px-3 py-1.5 shadow-sm text-dark d-none d-md-inline-flex align-items-center gap-1.5 me-2" title="ব্লগে নিজের লেখা পোস্ট করুন">
-                    <i class="fas fa-pen-nib text-dark"></i>
-                    <span>লেখা পোস্ট করুন</span>
-                </a>
-
-                {{-- Language Selector Dropdown (Next to 'লেখা পোস্ট করুন') --}}
-                <div class="dropdown d-inline-block me-2 notranslate" id="siteLanguageSelector">
-                    <button class="btn btn-sm btn-outline-secondary language-selector-btn rounded-pill px-2.5 py-1.5 d-inline-flex align-items-center gap-1.5 shadow-sm border dropdown-toggle" 
+                {{-- Focused High-End Language Switcher in Top Bar --}}
+                <div class="dropdown notranslate flex-shrink-0 ms-1" id="siteTopLanguageSelector">
+                    <button class="btn btn-sm text-white fw-bold py-1 px-2.5 rounded-pill d-inline-flex align-items-center gap-1.5 shadow-sm dropdown-toggle hover-shadow" 
                             type="button" 
-                            id="headerLangDropdownBtn" 
+                            id="topLangDropdownBtn" 
                             data-bs-toggle="dropdown" 
                             aria-expanded="false" 
-                            title="ভাষা নির্বাচন / Select Language">
-                        <i class="fas fa-globe text-primary"></i>
-                        <span class="current-lang-display fw-bold">বাংলা</span>
+                            title="ভাষা পরিবর্তন / Switch Language"
+                            style="background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.35); font-size: 11.5px; backdrop-filter: blur(4px);">
+                        <i class="fas fa-globe text-warning" style="font-size: 12px;"></i>
+                        <span class="current-lang-display fw-bold text-white">English</span>
                     </button>
-                    <ul class="dropdown-menu dropdown-menu-end language-menu rounded-4 py-2 mt-1 shadow-lg border-0" aria-labelledby="headerLangDropdownBtn" style="min-width: 215px; max-height: 380px; overflow-y: auto;">
+                    <ul class="dropdown-menu dropdown-menu-end language-menu rounded-4 py-2 mt-1 shadow-2xl border-0" aria-labelledby="topLangDropdownBtn" style="min-width: 210px; max-height: 380px; overflow-y: auto; z-index: 1100;">
                         <li class="dropdown-header text-uppercase fw-bold text-muted px-3 py-1" style="font-size: 10px; letter-spacing: 0.5px;">
                             <i class="fas fa-language me-1 text-primary"></i> প্রধান ভাষা / Primary
                         </li>
                         <li>
-                            <a class="dropdown-item d-flex align-items-center justify-content-between py-2 px-3 lang-item-btn active" href="javascript:void(0)" onclick="switchSiteLanguage('bn', 'বাংলা')">
+                            <a class="dropdown-item d-flex align-items-center justify-content-between py-2 px-3 lang-item-btn" href="javascript:void(0)" onclick="switchSiteLanguage('bn', 'বাংলা')">
                                 <span><span class="me-2">🇧🇩</span><strong>বাংলা</strong> (Bangla)</span>
                                 <i class="fas fa-check text-success lang-check-icon" data-lang="bn"></i>
                             </a>
                         </li>
                         <li>
-                            <a class="dropdown-item d-flex align-items-center justify-content-between py-2 px-3 lang-item-btn" href="javascript:void(0)" onclick="switchSiteLanguage('en', 'English')">
+                            <a class="dropdown-item d-flex align-items-center justify-content-between py-2 px-3 lang-item-btn active" href="javascript:void(0)" onclick="switchSiteLanguage('en', 'English')">
                                 <span><span class="me-2">🇬🇧</span><strong>English</strong></span>
                                 <i class="fas fa-check text-success lang-check-icon d-none" data-lang="en"></i>
                             </a>
                         </li>
                         <li><hr class="dropdown-divider my-1"></li>
                         <li class="dropdown-header text-uppercase fw-bold text-muted px-3 py-1" style="font-size: 10px; letter-spacing: 0.5px;">
-                            অন্যান্য ভাষা / Other Languages
+                            <i class="fas fa-earth-asia me-1 text-info"></i> অন্যান্য ভাষা / Languages
                         </li>
                         <li>
                             <a class="dropdown-item d-flex align-items-center justify-content-between py-1.5 px-3 lang-item-btn" href="javascript:void(0)" onclick="switchSiteLanguage('ar', 'العربية')">
@@ -181,63 +155,113 @@
                                 <i class="fas fa-check text-success lang-check-icon d-none" data-lang="ur"></i>
                             </a>
                         </li>
-                        <li>
-                            <a class="dropdown-item d-flex align-items-center justify-content-between py-1.5 px-3 lang-item-btn" href="javascript:void(0)" onclick="switchSiteLanguage('es', 'Español')">
-                                <span><span class="me-2">🇪🇸</span>Español (Spanish)</span>
-                                <i class="fas fa-check text-success lang-check-icon d-none" data-lang="es"></i>
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item d-flex align-items-center justify-content-between py-1.5 px-3 lang-item-btn" href="javascript:void(0)" onclick="switchSiteLanguage('fr', 'Français')">
-                                <span><span class="me-2">🇫🇷</span>Français (French)</span>
-                                <i class="fas fa-check text-success lang-check-icon d-none" data-lang="fr"></i>
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item d-flex align-items-center justify-content-between py-1.5 px-3 lang-item-btn" href="javascript:void(0)" onclick="switchSiteLanguage('de', 'Deutsch')">
-                                <span><span class="me-2">🇩🇪</span>Deutsch (German)</span>
-                                <i class="fas fa-check text-success lang-check-icon d-none" data-lang="de"></i>
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item d-flex align-items-center justify-content-between py-1.5 px-3 lang-item-btn" href="javascript:void(0)" onclick="switchSiteLanguage('zh-CN', '中文')">
-                                <span><span class="me-2">🇨🇳</span>中文 (Chinese)</span>
-                                <i class="fas fa-check text-success lang-check-icon d-none" data-lang="zh-CN"></i>
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item d-flex align-items-center justify-content-between py-1.5 px-3 lang-item-btn" href="javascript:void(0)" onclick="switchSiteLanguage('ja', '日本語')">
-                                <span><span class="me-2">🇯🇵</span>日本語 (Japanese)</span>
-                                <i class="fas fa-check text-success lang-check-icon d-none" data-lang="ja"></i>
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item d-flex align-items-center justify-content-between py-1.5 px-3 lang-item-btn" href="javascript:void(0)" onclick="switchSiteLanguage('tr', 'Türkçe')">
-                                <span><span class="me-2">🇹🇷</span>Türkçe (Turkish)</span>
-                                <i class="fas fa-check text-success lang-check-icon d-none" data-lang="tr"></i>
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item d-flex align-items-center justify-content-between py-1.5 px-3 lang-item-btn" href="javascript:void(0)" onclick="switchSiteLanguage('ru', 'Русский')">
-                                <span><span class="me-2">🇷🇺</span>Русский (Russian)</span>
-                                <i class="fas fa-check text-success lang-check-icon d-none" data-lang="ru"></i>
-                            </a>
-                        </li>
                     </ul>
                 </div>
+            </div>
+        </div>
+    </div>
 
+    {{-- ══════════════════════════════════════════════════════════════════
+         BAR 2: MAIN BRANDING & LARGE SEARCH BAR (Height ~74px - increased by +10px)
+         Logo | Wide Classic Search Bar | [Hello, Sign in] / User Avatar Symbol | Cart Button
+    ══════════════════════════════════════════════════════════════════ --}}
+    <div class="site-mainbar bg-white border-bottom shadow-2xs" style="min-height: 74px; padding: 12px 0;">
+        <div class="container d-flex align-items-center justify-content-between gap-2 gap-md-3">
+            
+            {{-- Brand Logo & Text --}}
+            <a class="site-brand d-inline-flex align-items-center gap-2 text-decoration-none flex-shrink-0" href="{{ route('home') }}">
+                @php 
+                    $logoUrl = \App\Support\SiteSetting::logoUrl();
+                    $siteName = \App\Support\SiteSetting::name();
+                    $siteTagline = \App\Support\SiteSetting::tagline();
+                @endphp
+                <div class="site-brand__logo-box" style="height: 52px;">
+                    @if ($logoUrl)
+                        <img src="{{ $logoUrl }}"
+                             alt="{{ $siteName }}" 
+                             class="site-brand__img"
+                             style="max-height: 52px;"
+                             onerror="this.onerror=null; this.src='{{ asset('images/logo.svg') }}';">
+                    @else
+                        <span class="site-brand__fallback">{{ config('brand.lettermark', 'আই') }}</span>
+                    @endif
+                </div>
+                <div class="site-brand__text d-flex flex-column justify-content-center">
+                    <span class="site-brand__name" style="font-size: 1.35rem;">{{ $siteName }}</span>
+                    <span class="site-brand__sub">{{ $siteTagline }}</span>
+                </div>
+            </a>
+
+            {{-- Large Wide Centered Classic Search Bar --}}
+            <form class="site-search position-relative flex-grow-1 mx-1 mx-md-3" method="GET" action="{{ route('search') }}" role="search" style="max-width: 720px;">
+                <div class="site-search__box shadow-sm" style="height: 50px; border-radius: 50px;">
+                    <label for="siteSearchScope" class="visually-hidden">বিভাগ</label>
+                    <select id="siteSearchScope" name="type" class="site-search__scope">
+                        <option value="">সব বিভাগ</option>
+                        <option value="book" @selected(request('type') === 'book')>বই</option>
+                        <option value="ebook" @selected(request('type') === 'ebook')>ই-বুক</option>
+                        <option value="author" @selected(request('type') === 'author')>লেখক</option>
+                        <option value="publisher" @selected(request('type') === 'publisher')>প্রকাশক</option>
+                    </select>
+
+                    <label for="siteSearchInput" class="visually-hidden">খুঁজুন</label>
+                    <input id="siteSearchInput" class="site-search__input" type="search" name="q"
+                           value="{{ request('q') }}" placeholder="বই, লেখক, প্রকাশক বা বিষয় দিয়ে খুঁজুন..."
+                           autocomplete="off">
+
+                    <button class="site-search__btn px-3.5" type="submit">
+                        <i class="fas fa-magnifying-glass"></i><span class="d-none d-md-inline ms-1.5 fw-bold">খুঁজুন</span>
+                    </button>
+                </div>
+                <!-- Live Search Results Dropdown -->
+                <div id="liveSearchResults" class="dropdown-menu w-100 shadow-lg border-0 mt-2 d-none" style="position: absolute; top: 100%; left: 0; z-index: 1050; border-radius: 14px; max-height: 400px; overflow-y: auto;">
+                    <div class="p-3 text-center text-muted" id="searchSpinner" style="display: none;">
+                        <i class="fas fa-circle-notch fa-spin text-primary"></i> খুঁজছি...
+                    </div>
+                    <div id="searchResultsContent" class="p-2"></div>
+                </div>
+            </form>
+
+            {{-- User Actions & Header Icons (Avatar Symbol on Login / Hello Sign in) --}}
+            <div class="d-flex align-items-center gap-2 gap-sm-2.5 flex-shrink-0">
+                
+                {{-- User Avatar / Sign in Box --}}
                 @auth
+                    @php
+                        $userAvatarUrl = null;
+                        if (!empty($me->avatar)) {
+                            $userAvatarUrl = \Illuminate\Support\Str::startsWith($me->avatar, ['http://', 'https://']) 
+                                ? $me->avatar 
+                                : asset('storage/' . ltrim($me->avatar, '/'));
+                        }
+                    @endphp
                     <div class="dropdown">
-                        <button class="site-user dropdown-toggle border-0 shadow-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="padding: 0.35rem 0.9rem 0.35rem 0.35rem;">
-                            <span class="site-user__avatar shadow-sm">{{ mb_substr($me->name, 0, 1) }}</span>
-                            <span class="text-start d-none d-md-block ms-1">
-                                <span class="site-user__name d-block text-dark">{{ Str::limit($me->name, 12) }}</span>
-                            </span>
+                        <button class="btn btn-light border rounded-pill d-flex align-items-center gap-2 py-1 px-2.5 shadow-2xs dropdown-toggle hover-shadow" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="{{ $me->name }} - একাউন্ট মেনু" style="min-height: 46px;">
+                            @if ($userAvatarUrl)
+                                <img src="{{ $userAvatarUrl }}" alt="{{ $me->name }}" class="rounded-circle object-fit-cover shadow-xs" style="width: 36px; height: 36px; border: 2px solid #0284c7;" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-flex';">
+                                <span class="rounded-circle text-white fw-bold shadow-xs align-items-center justify-content-center" style="width: 36px; height: 36px; font-size: 14px; background: linear-gradient(135deg, #0284c7, #0369a1); display: none;">
+                                    {{ mb_substr($me->name, 0, 1) }}
+                                </span>
+                            @else
+                                <span class="rounded-circle text-white fw-bold shadow-xs d-inline-flex align-items-center justify-content-center" style="width: 36px; height: 36px; font-size: 14px; background: linear-gradient(135deg, #0284c7, #0369a1);">
+                                    {{ mb_substr($me->name, 0, 1) }}
+                                </span>
+                            @endif
+                            <div class="text-start d-none d-md-block lh-1 pe-1">
+                                <small class="text-muted d-block" style="font-size: 10.5px;">স্বাগতম,</small>
+                                <span class="fw-bold text-dark" style="font-size: 13px;">{{ Str::limit($me->name, 12) }}</span>
+                            </div>
                         </button>
 
                         <ul class="dropdown-menu dropdown-menu-end site-drop border-0 shadow-lg p-2" style="width: 260px; border-radius: 16px;">
                             <li class="px-3 py-3 border-bottom mb-2 text-center bg-light" style="margin: -0.5rem -0.5rem 0.5rem -0.5rem; border-top-left-radius: 16px; border-top-right-radius: 16px;">
-                                <div class="site-user__avatar mx-auto mb-2 shadow-sm" style="width: 52px; height: 52px; font-size: 1.4rem;">{{ mb_substr($me->name, 0, 1) }}</div>
+                                <div class="mx-auto mb-2 shadow-sm rounded-circle d-flex align-items-center justify-content-center overflow-hidden" style="width: 54px; height: 54px; background: #e2e8f0;">
+                                    @if ($userAvatarUrl)
+                                        <img src="{{ $userAvatarUrl }}" alt="{{ $me->name }}" class="w-100 h-100 object-fit-cover">
+                                    @else
+                                        <span class="fw-bold text-primary fs-5">{{ mb_substr($me->name, 0, 1) }}</span>
+                                    @endif
+                                </div>
                                 <div class="fw-bold text-dark fs-6">{{ $me->name }}</div>
                                 <div class="text-muted small">{{ $me->email }}</div>
                                 <div class="badge bg-primary mt-2 px-3 py-1 rounded-pill small">
@@ -296,113 +320,45 @@
                         </ul>
                     </div>
                 @else
-                    <a href="{{ route('login') }}" class="site-btn-login d-none d-sm-inline-block">লগইন</a>
-                    @if (Route::has('register.choose'))
-                        <a href="{{ route('register.choose') }}" class="site-btn-join">রেজিস্ট্রেশন</a>
-                    @endif
+                    {{-- Hello, Sign in Box for Guests --}}
+                    <a href="{{ route('login') }}" class="d-flex align-items-center gap-2 text-decoration-none text-dark hover-primary px-3 py-1.5 rounded-pill border bg-light bg-opacity-75 shadow-2xs hover-shadow transition-all" title="Hello, Sign in / লগইন করুন" style="min-height: 46px;">
+                        <i class="fa-solid fa-circle-user text-primary" style="font-size: 24px;"></i>
+                        <div class="text-start lh-1 d-none d-sm-block">
+                            <small class="text-muted d-block" style="font-size: 10.5px;">Hello,</small>
+                            <strong style="font-size: 13px;">Sign in</strong>
+                        </div>
+                    </a>
                 @endauth
 
-                <button class="site-burger" type="button" data-bs-toggle="offcanvas"
+                {{-- Cart Button with live counter --}}
+                <a href="{{ route('cart') }}" class="btn btn-primary rounded-pill px-3.5 py-2 d-inline-flex align-items-center gap-2 shadow-xs fw-bold text-decoration-none hover-shadow" title="কার্ট" data-bs-toggle="offcanvas" data-bs-target="#siteCartDrawer" onclick="if(window.openCartDrawer){ window.openCartDrawer(); }" style="min-height: 46px;">
+                    <i class="fa-solid fa-bag-shopping" style="font-size: 17px;"></i>
+                    <span class="d-none d-sm-inline" style="font-size: 13.5px;">কার্ট</span>
+                    <span class="badge bg-warning text-dark rounded-pill px-2 py-0.5 fw-bold font-monospace" id="siteCartCount" style="font-size: 11.5px;">০</span>
+                </a>
+
+                {{-- Direct 'লেখা পোস্ট করুন' Button in Header --}}
+                <a href="{{ route('blog.write') }}" class="btn btn-warning rounded-pill fw-bold px-3 py-2 shadow-sm text-dark d-none d-xl-inline-flex align-items-center gap-1.5 hover-shadow" title="ব্লগে নিজের লেখা পোস্ট করুন" style="min-height: 46px; font-size: 13px;">
+                    <i class="fas fa-pen-nib text-dark"></i>
+                    <span>লেখা পোস্ট</span>
+                </a>
+
+                {{-- Mobile Menu Hamburger Toggle --}}
+                <button class="site-burger d-lg-none btn btn-light border rounded-3 p-2" type="button" data-bs-toggle="offcanvas"
                         data-bs-target="#siteMobileNav" aria-controls="siteMobileNav" aria-label="মেনু">
-                    <i class="fas fa-bars"></i>
+                    <i class="fas fa-bars fs-5"></i>
                 </button>
             </div>
         </div>
     </div>
 
-    {{-- Main Navbar with Submenu Dropdowns (Desktop) --}}
-    <nav class="site-nav" aria-label="প্রধান মেনু">
-        <div class="container">
-            <ul class="site-nav__list">
-                {{-- Categories mega menu --}}
-                <li class="dropdown site-nav__item">
-                    <button class="site-nav__link site-nav__all dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="fas fa-grip"></i> সব বিভাগ
-                    </button>
-                    <div class="dropdown-menu site-drop site-mega border-0 shadow-lg p-3 p-md-4" style="border-radius: 16px; min-width: 680px; max-width: 860px; max-height: 520px; overflow-y: auto;">
-                        <div class="row g-3 g-md-4">
-                            <div class="col-md-8">
-                                <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
-                                    <h6 class="text-uppercase fw-bold text-dark mb-0 d-flex align-items-center gap-1.5" style="font-size: 0.82rem; letter-spacing: 0.5px;">
-                                        <i class="fas fa-layer-group text-primary"></i> বিষয় ও ক্যাটাগরি তালিকা
-                                    </h6>
-                                    <a href="{{ route('book.index') }}" class="btn btn-sm btn-link text-primary text-decoration-none p-0 fw-semibold" style="font-size: 11px;">
-                                        সব দেখুন (@bn($headerCategories->count())টি) <i class="fas fa-arrow-right small"></i>
-                                    </a>
-                                </div>
-
-                                @if ($headerCategories->isNotEmpty())
-                                    <div class="row row-cols-1 row-cols-sm-2 g-2.5">
-                                        @foreach ($headerCategories as $cat)
-                                            <div class="col">
-                                                <div class="p-2 rounded-3 border bg-light bg-opacity-50 hover-bg-light transition-all h-100">
-                                                    {{-- Parent Category Link --}}
-                                                    <a class="d-flex align-items-center justify-content-between text-decoration-none text-dark fw-bold" 
-                                                       href="{{ route('book.index', ['category' => $cat->slug]) }}" style="font-size: 13px;">
-                                                        <span class="d-flex align-items-center gap-2 text-truncate">
-                                                            <span class="badge bg-primary bg-opacity-10 text-primary rounded-circle p-1.5" style="width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center;">
-                                                                <i class="fas fa-book-open" style="font-size: 11px;"></i>
-                                                            </span>
-                                                            <span class="text-truncate hover-primary">{{ $cat->name }}</span>
-                                                        </span>
-                                                        @if(isset($cat->books_count) && $cat->books_count > 0)
-                                                            <span class="badge bg-white text-muted border rounded-pill px-1.5 py-0.5" style="font-size: 10px;">@bn($cat->books_count)</span>
-                                                        @endif
-                                                    </a>
-
-                                                    {{-- Sub-categories Chips / Links --}}
-                                                    @if(isset($cat->children) && $cat->children->isNotEmpty())
-                                                        <div class="d-flex flex-wrap gap-1 mt-1.5 ps-4">
-                                                            @foreach($cat->children->take(4) as $child)
-                                                                <a href="{{ route('book.index', ['category' => $child->slug]) }}" 
-                                                                   class="badge bg-white text-secondary text-decoration-none border rounded-pill px-2 py-0.5 hover-primary" 
-                                                                   style="font-size: 10.5px;" title="{{ $child->name }}">
-                                                                    {{ $child->name }}
-                                                                </a>
-                                                            @endforeach
-                                                            @if($cat->children->count() > 4)
-                                                                <a href="{{ route('book.index', ['category' => $cat->slug]) }}" class="badge bg-primary-subtle text-primary text-decoration-none rounded-pill px-1.5 py-0.5" style="font-size: 10px;">
-                                                                    +@bn($cat->children->count() - 4)টি
-                                                                </a>
-                                                            @endif
-                                                        </div>
-                                                    @endif
-                                                </div>
-                                            </div>
-                                        @endforeach
-                                    </div>
-                                @else
-                                    <div class="row row-cols-2 g-2">
-                                        <div class="col">
-                                            <a class="site-mega__item border border-light shadow-sm" href="{{ route('book.index') }}">
-                                                <span class="site-mega__icon bg-primary bg-opacity-10 text-primary"><i class="fas fa-book"></i></span>
-                                                <span class="fw-semibold">সকল বই</span>
-                                            </a>
-                                        </div>
-                                        <div class="col">
-                                            <a class="site-mega__item border border-light shadow-sm" href="{{ route('ebook.index') }}">
-                                                <span class="site-mega__icon bg-primary bg-opacity-10 text-primary"><i class="fas fa-tablet-screen-button"></i></span>
-                                                <span class="fw-semibold">ই-বুক</span>
-                                            </a>
-                                        </div>
-                                    </div>
-                                @endif
-                            </div>
-                            <div class="col-md-4 d-none d-md-block">
-                                <div class="rounded-4 p-4 h-100 text-white d-flex flex-column justify-content-center shadow-sm position-relative overflow-hidden" 
-                                     style="background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);">
-                                    <div class="position-absolute top-0 end-0 opacity-20 p-3"><i class="fas fa-gift" style="font-size: 4.5rem;"></i></div>
-                                    <span class="badge bg-warning text-dark fw-bold px-2 py-1 rounded-pill align-self-start mb-2 small shadow-sm">স্পেশাল ছাড়</span>
-                                    <h5 class="fw-bold mb-2 position-relative" style="z-index: 1;">বইমেলা অফার</h5>
-                                    <p class="small mb-3 opacity-90 position-relative" style="z-index: 1;">নির্বাচিত বইগুলোতে পাচ্ছেন আকর্ষণীয় ছাড় ও নিশ্চিত উপহার।</p>
-                                    <a href="{{ route('book.index', ['sort' => 'bestselling']) }}" class="btn btn-light btn-sm rounded-pill fw-bold text-primary align-self-start position-relative shadow-sm px-3" style="z-index: 1;">অফার দেখুন</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </li>
-
-                {{-- Direct Single Navigation Items --}}
+    {{-- ══════════════════════════════════════════════════════════════════
+         BAR 3: PRIMARY NAVIGATION BAR (Purely Centered with Light Borders ~40px)
+         [হোম] [বইসমূহ] [ই-বুক] [লেখক] [প্রকাশক] [আইডিয়াপত্র] [ওয়েবজিন] [গবেষণা] [আইডিয়া হাব] [আমাদের সম্পর্কে] [যোগাযোগ]
+    ══════════════════════════════════════════════════════════════════ --}}
+    <nav class="site-navbar bg-white border-bottom d-none d-lg-block" style="border-top: 1px solid #f1f5f9; border-bottom: 1px solid #e2e8f0; background: #ffffff; box-shadow: 0 1px 3px rgba(0,0,0,0.015);" aria-label="প্রধান মেনু">
+        <div class="container d-flex align-items-center justify-content-center position-relative">
+            <ul class="nav align-items-center justify-content-center site-nav__list py-0 my-0 flex-nowrap" style="height: 40px;">
                 @foreach ($nav as $item)
                     @php
                         $isActive = isset($item['active']) 
@@ -411,10 +367,9 @@
                                 : request()->routeIs($item['active']))
                             : request()->routeIs($item['route']);
                     @endphp
-                    <li class="site-nav__item">
-                        <a class="site-nav__link {{ $isActive ? 'is-active' : '' }}"
-                           href="{{ route($item['route'], $item['params'] ?? []) }}">
-                            <i class="fas fa-{{ $item['icon'] }} me-1 text-primary opacity-75"></i>
+                    <li class="nav-item site-nav__item">
+                        <a class="nav-link site-nav__link py-2 px-2.5 {{ $isActive ? 'is-active text-primary fw-bold' : 'text-dark fw-semibold' }} hover-primary"
+                           href="{{ route($item['route'], $item['params'] ?? []) }}" style="font-size: 13.5px;">
                             {{ $item['label'] }}
                         </a>
                     </li>
@@ -422,6 +377,209 @@
             </ul>
         </div>
     </nav>
+
+    {{-- ══════════════════════════════════════════════════════════════════
+         BAR 4: CATEGORY BAR WITH UNCLIPPED 'সব বিভাগ' & 'আরও বিষয়' DROPDOWNS (Height ~52px)
+         [সব বিভাগ ▾] │ [লেখক] │ [বইমেলা ২০২৬] │ [অতিরিক্ত ছাড়] │ [পশ্চিমবঙ্গ] │ [উপন্যাস] │ [ইসলামি বই] │ [শিশু-কিশোর] │ [বিজ্ঞান ও প্রযুক্তি] │ [ইতিহাস ও ঐতিহ্য] │ [ভর্তি ও প্রস্তুতি] │ [আত্ম-উন্নয়ন] │ [আরও বিষয় ▾]
+    ══════════════════════════════════════════════════════════════════ --}}
+    @php
+        $topBarSlugs = [
+            'upnzas' => 'উপন্যাস',
+            'islami-bi' => 'ইসলামি বই',
+            'sisu-kisor-bi' => 'শিশু-কিশোর বই',
+            'bijngan-oo-przukti' => 'বিজ্ঞান ও প্রযুক্তি',
+            'itihas-oo-oitihz' => 'ইতিহাস ও ঐতিহ্য',
+            'vrti-oo-prstuti-preeksha' => 'ভর্তি, ও প্রস্তুতি পরীক্ষা',
+            'atm-unnyn-oo-meditesn' => 'আত্ম-উন্নয়ন ও মেডিটেশন',
+        ];
+
+        // Match DB categories for top bar
+        $topBarCats = collect();
+        $usedSlugs = ['pshcimbnger-bi'];
+
+        if ($headerCategories->isNotEmpty()) {
+            foreach ($topBarSlugs as $slug => $fallbackName) {
+                $found = $headerCategories->firstWhere('slug', $slug);
+                if ($found) {
+                    $topBarCats->push($found);
+                    $usedSlugs[] = $slug;
+                } else {
+                    $topBarCats->push((object)[
+                        'name' => $fallbackName,
+                        'slug' => $slug,
+                        'books_count' => 0
+                    ]);
+                    $usedSlugs[] = $slug;
+                }
+            }
+            $moreCats = $headerCategories->whereNotIn('slug', $usedSlugs);
+        } else {
+            foreach ($topBarSlugs as $slug => $fallbackName) {
+                $topBarCats->push((object)[
+                    'name' => $fallbackName,
+                    'slug' => $slug,
+                    'books_count' => 0
+                ]);
+            }
+            $moreCats = collect();
+        }
+    @endphp
+    <div class="site-categorybar border-bottom position-relative" style="background: #f8fafc; font-size: 13px; min-height: 52px; padding: 7px 0; border-color: #e2e8f0 !important;">
+        <div class="container d-flex align-items-center justify-content-between gap-2">
+            
+            {{-- 1. [সব বিভাগ ▾] Mega Menu Dropdown Button (Standalone - Not clipped) --}}
+            <div class="dropdown site-categorybar__all flex-shrink-0">
+                <button class="btn btn-primary btn-sm rounded-pill px-3.5 py-1.5 fw-bold d-inline-flex align-items-center gap-2 shadow-sm dropdown-toggle hover-shadow" 
+                        type="button" 
+                        id="catBarAllDropdown" 
+                        data-bs-toggle="dropdown" 
+                        aria-expanded="false" 
+                        style="font-size: 13px; min-height: 38px;">
+                    <i class="fa-solid fa-bars-staggered"></i>
+                    <span>সব বিভাগ</span>
+                </button>
+                <div class="dropdown-menu site-drop site-mega border-0 shadow-2xl p-3 p-md-4" aria-labelledby="catBarAllDropdown" style="border-radius: 16px; min-width: 680px; max-width: 860px; max-height: 520px; overflow-y: auto; z-index: 1080;">
+                    <div class="row g-3 g-md-4">
+                        <div class="col-md-8">
+                            <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                                <h6 class="text-uppercase fw-bold text-dark mb-0 d-flex align-items-center gap-1.5" style="font-size: 0.82rem; letter-spacing: 0.5px;">
+                                    <i class="fas fa-layer-group text-primary"></i> সকল ক্যাটাগরি ও বিষয় তালিকা
+                                </h6>
+                                <a href="{{ route('book.index') }}" class="btn btn-sm btn-link text-primary text-decoration-none p-0 fw-semibold" style="font-size: 11px;">
+                                    সব দেখুন (@bn($headerCategories->count())টি) <i class="fas fa-arrow-right small"></i>
+                                </a>
+                            </div>
+
+                            @if ($headerCategories->isNotEmpty())
+                                <div class="row row-cols-1 row-cols-sm-2 g-2.5">
+                                    @foreach ($headerCategories as $cat)
+                                        <div class="col">
+                                            <div class="p-2 rounded-3 border bg-light bg-opacity-50 hover-bg-light transition-all h-100">
+                                                {{-- Parent Category Link --}}
+                                                <a class="d-flex align-items-center justify-content-between text-decoration-none text-dark fw-bold" 
+                                                   href="{{ route('book.index', ['category' => $cat->slug]) }}" style="font-size: 13px;">
+                                                    <span class="d-flex align-items-center gap-2 text-truncate">
+                                                        <span class="badge bg-primary bg-opacity-10 text-primary rounded-circle p-1.5" style="width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center;">
+                                                            <i class="fas fa-book-open" style="font-size: 11px;"></i>
+                                                        </span>
+                                                        <span class="text-truncate hover-primary">{{ $cat->name }}</span>
+                                                    </span>
+                                                    @if(isset($cat->books_count) && $cat->books_count > 0)
+                                                        <span class="badge bg-white text-muted border font-monospace" style="font-size: 10px;">@bn($cat->books_count)</span>
+                                                    @endif
+                                                </a>
+
+                                                {{-- Child subcategories --}}
+                                                @if ($cat->children && $cat->children->isNotEmpty())
+                                                    <div class="d-flex flex-wrap gap-1 mt-1.5 ps-4">
+                                                        @foreach ($cat->children->take(4) as $sub)
+                                                            <a class="badge bg-white text-secondary border text-decoration-none fw-normal hover-primary" 
+                                                               href="{{ route('book.index', ['category' => $sub->slug]) }}" 
+                                                               style="font-size: 10.5px;">
+                                                                {{ $sub->name }}
+                                                            </a>
+                                                        @endforeach
+                                                    </div>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endif
+                        </div>
+                        <div class="col-md-4 d-none d-md-block">
+                            <div class="rounded-4 p-4 h-100 text-white d-flex flex-column justify-content-center shadow-sm position-relative overflow-hidden" 
+                                 style="background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);">
+                                <div class="position-absolute top-0 end-0 opacity-20 p-3"><i class="fas fa-gift" style="font-size: 4.5rem;"></i></div>
+                                <span class="badge bg-warning text-dark fw-bold px-2 py-1 rounded-pill align-self-start mb-2 small shadow-sm">স্পেশাল অফার</span>
+                                <h5 class="fw-bold mb-2 position-relative" style="z-index: 1;">বইমেলা উৎসব</h5>
+                                <p class="small mb-3 opacity-90 position-relative" style="z-index: 1;">নির্বাচিত বইগুলোতে আকর্ষণীয় ছাড় ও নিশ্চিত উপহার উপভোগ করুন।</p>
+                                <a href="{{ route('book.index', ['sort' => 'bestselling']) }}" class="btn btn-light btn-sm rounded-pill fw-bold text-primary align-self-start position-relative shadow-sm px-3" style="z-index: 1;">অফার দেখুন</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Middle: Category Pills & Links with Sleek Vertical Column Dividers --}}
+            <div class="d-flex align-items-center gap-1.5 overflow-x-auto text-nowrap scrollbar-none flex-grow-1 px-2">
+                
+                <span class="site-cat-divider"></span>
+
+                {{-- 2. লেখক --}}
+                <a href="{{ route('authors.index') }}" class="badge bg-white text-dark border px-3 py-1.5 rounded-pill text-decoration-none shadow-2xs hover-shadow transition-all fw-semibold d-inline-flex align-items-center gap-1.5 flex-shrink-0" style="min-height: 34px;">
+                    <i class="fa-solid fa-feather-pointed text-success"></i>
+                    <span>লেখক</span>
+                </a>
+
+                <span class="site-cat-divider"></span>
+
+                {{-- 3. বইমেলা ২০২৬ --}}
+                <a href="{{ route('book.index', ['filter' => 'boimela-2026']) }}" class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-3 py-1.5 rounded-pill text-decoration-none shadow-2xs hover-shadow transition-all fw-bold d-inline-flex align-items-center gap-1.5 flex-shrink-0" style="min-height: 34px;">
+                    <i class="fa-solid fa-fire text-danger"></i>
+                    <span>বইমেলা ২০২৬</span>
+                </a>
+
+                <span class="site-cat-divider"></span>
+
+                {{-- 4. অতিরিক্ত ছাড়ের বই --}}
+                <a href="{{ route('book.index', ['filter' => 'mega-discount']) }}" class="badge bg-warning bg-opacity-15 text-dark border border-warning border-opacity-50 px-3 py-1.5 rounded-pill text-decoration-none shadow-2xs hover-shadow transition-all fw-semibold d-inline-flex align-items-center gap-1.5 flex-shrink-0" style="min-height: 34px;">
+                    <i class="fa-solid fa-tags text-warning"></i>
+                    <span>অতিরিক্ত ছাড়ের বই</span>
+                </a>
+
+                <span class="site-cat-divider"></span>
+
+                {{-- 5. পশ্চিমবঙ্গের বই --}}
+                <a href="{{ route('book.index', ['category' => 'pshcimbnger-bi']) }}" class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-3 py-1.5 rounded-pill text-decoration-none shadow-2xs hover-shadow transition-all fw-semibold d-inline-flex align-items-center gap-1.5 flex-shrink-0" style="min-height: 34px;">
+                    <i class="fa-solid fa-book-bookmark text-primary"></i>
+                    <span>পশ্চিমবঙ্গের বই</span>
+                </a>
+
+                {{-- 6. User Requested Top Categories with Divider Separation --}}
+                @foreach ($topBarCats as $dCat)
+                    <span class="site-cat-divider"></span>
+                    <a href="{{ route('book.index', ['category' => $dCat->slug]) }}" 
+                       class="cat-nav-link text-secondary hover-primary text-decoration-none px-2.5 py-1.5 fw-medium flex-shrink-0 d-inline-flex align-items-center gap-1.5"
+                       title="{{ $dCat->name }}">
+                        <span>{{ $dCat->name }}</span>
+                    </a>
+                @endforeach
+            </div>
+
+            {{-- 7. [আরও বিষয় ▾] Dropdown (Standalone Right Side - Positioned Directly Underneath) --}}
+            @if ($moreCats->isNotEmpty())
+                <span class="site-cat-divider me-1.5 flex-shrink-0"></span>
+                <div class="dropdown site-categorybar__more flex-shrink-0 position-relative">
+                    <button class="btn btn-outline-secondary btn-sm rounded-pill text-dark fw-bold py-1.5 px-3 d-inline-flex align-items-center gap-1.5 dropdown-toggle shadow-2xs hover-primary hover-shadow" 
+                            type="button" 
+                            id="catMoreDropdownBtn" 
+                            data-bs-toggle="dropdown" 
+                            data-bs-display="static"
+                            aria-expanded="false" 
+                            style="font-size: 12.5px; min-height: 38px;">
+                        <i class="fa-solid fa-layer-group text-primary"></i>
+                        <span>আরও বিষয়</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end rounded-4 py-2 mt-1 shadow-2xl border-0" aria-labelledby="catMoreDropdownBtn" style="min-width: 260px; max-height: 400px; overflow-y: auto; z-index: 1090; top: 100%; right: 0;">
+                        <li class="dropdown-header text-uppercase fw-bold text-muted px-3 py-1" style="font-size: 10px; letter-spacing: 0.5px;">
+                            <i class="fas fa-layer-group me-1 text-primary"></i> অন্যান্য ক্যাটাগরিসমূহ
+                        </li>
+                        @foreach ($moreCats as $mCat)
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center justify-content-between py-2 px-3 hover-primary" href="{{ route('book.index', ['category' => $mCat->slug]) }}">
+                                    <span class="text-truncate">{{ $mCat->name }}</span>
+                                    @if(isset($mCat->books_count) && $mCat->books_count > 0)
+                                        <span class="badge bg-light text-muted border font-monospace ms-2" style="font-size: 9.5px;">@bn($mCat->books_count)</span>
+                                    @endif
+                                </a>
+                            </li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+        </div>
+    </div>
 </header>
 
 {{-- Mobile Navigation Offcanvas --}}
@@ -478,10 +636,22 @@
                     <button class="btn btn-outline-danger rounded-pill w-100 fw-semibold">লগ আউট</button>
                 </form>
             @else
-                <a href="{{ route('login') }}" class="btn btn-outline-primary rounded-pill fw-semibold">লগইন</a>
-                @if (Route::has('register.choose'))
-                    <a href="{{ route('register.choose') }}" class="btn btn-primary rounded-pill fw-semibold">রেজিস্ট্রেশন</a>
-                @endif
+                <div class="row g-2">
+                    <div class="col-6">
+                        <a href="{{ route('login') }}" class="btn btn-outline-primary rounded-pill fw-bold w-100 d-inline-flex align-items-center justify-content-center gap-1.5">
+                            <i class="fa-solid fa-arrow-right-to-bracket"></i>
+                            <span>লগইন</span>
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        @if (Route::has('register.choose'))
+                            <a href="{{ route('register.choose') }}" class="btn btn-primary rounded-pill fw-bold w-100 d-inline-flex align-items-center justify-content-center gap-1.5 shadow-xs">
+                                <i class="fa-solid fa-user-plus"></i>
+                                <span>রেজিস্ট্রেশন</span>
+                            </a>
+                        @endif
+                    </div>
+                </div>
             @endauth
         </div>
     </div>

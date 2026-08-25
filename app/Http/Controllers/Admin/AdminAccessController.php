@@ -402,6 +402,34 @@ class AdminAccessController extends Controller
                 ]
             );
 
+            // 9.1 Editorial & Publisher Settings
+            AdminDashboardSetting::updateOrCreate(
+                ['key' => 'editorial_publisher'],
+                ['value' => $request->input('editorial_publisher', 'আইডিয়া প্রকাশন'), 'updated_by' => auth()->id()]
+            );
+            AdminDashboardSetting::updateOrCreate(
+                ['key' => 'editorial_editor'],
+                ['value' => $request->input('editorial_editor', 'সাকিল মাসুদ'), 'updated_by' => auth()->id()]
+            );
+
+            // Additional dynamic board members (role, name)
+            $boardRoles = $request->input('board_role', []);
+            $boardNames = $request->input('board_name', []);
+            $boardMembers = [];
+            if (is_array($boardRoles) && is_array($boardNames)) {
+                foreach ($boardRoles as $idx => $r) {
+                    $r = trim((string)$r);
+                    $n = trim((string)($boardNames[$idx] ?? ''));
+                    if ($r !== '' && $n !== '') {
+                        $boardMembers[] = ['role' => $r, 'name' => $n];
+                    }
+                }
+            }
+            AdminDashboardSetting::updateOrCreate(
+                ['key' => 'editorial_board'],
+                ['value' => $boardMembers, 'updated_by' => auth()->id()]
+            );
+
             // 10. Payment Gateways
             if ($request->has('gateways')) {
                 AdminDashboardSetting::updateOrCreate(

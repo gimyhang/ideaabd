@@ -16,13 +16,14 @@ class PasswordResetLinkMail extends Mailable
     public function __construct(
         public User $user,
         public string $resetUrl,
-        public int $expireMinutes = 3
+        public int $expireMinutes = 30,
+        public ?string $otpCode = null
     ) {}
 
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'আইডিয়া প্রকাশন — পাসওয়ার্ড রিসেট ওয়ান-টাইম লিংক (মেয়াদ ' . $this->expireMinutes . ' মিনিট)',
+            subject: 'আইডিয়া প্রকাশন — পাসওয়ার্ড রিসেট কোড ও ওয়ান-টাইম লিংক (মেয়াদ ' . $this->expireMinutes . ' মিনিট)',
         );
     }
 

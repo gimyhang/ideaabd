@@ -104,6 +104,57 @@ class BlogPost extends Model
         return $this->hasMany(\Modules\Review\Models\Review::class, 'blog_post_id')->latest();
     }
 
+    public function honorariums()
+    {
+        return $this->hasMany(\App\Models\AuthorHonorarium::class, 'blog_post_id')->where('payment_status', 'completed')->latest();
+    }
+
+    public function allHonorariums()
+    {
+        return $this->hasMany(\App\Models\AuthorHonorarium::class, 'blog_post_id')->latest();
+    }
+
+    /**
+     * Resolve the corresponding Author model instance for this blog post.
+     */
+    public function resolveAuthorRecord(): ?\Modules\Author\Models\Author
+    {
+        // 1. If author_id is a User
+        if ($this->author) {
+            $authorRecord = $this->author->getAuthorRecord();
+            if ($authorRecord) {
+                return $authorRecord;
+            }
+        }
+
+        // 2. If submitted_by is a User
+        if ($this->submitter) {
+            $authorRecord = $this->submitter->getAuthorRecord();
+            if ($authorRecord) {
+                return $authorRecord;
+            }
+        }
+
+        // 3. Match by owner_name or author_id
+        if (!empty($this->owner_name)) {
+            $authorRecord = \Modules\Author\Models\Author::where('name', $this->owner_name)
+                ->orWhere('name', 'like', "%{$this->owner_name}%")
+                ->first();
+            if ($authorRecord) {
+                return $authorRecord;
+            }
+        }
+
+        if ($this->author_id) {
+            $authorRecord = \Modules\Author\Models\Author::find($this->author_id);
+            if ($authorRecord) {
+                return $authorRecord;
+            }
+        }
+
+        return null;
+    }
+
     public function scopePublished($query)
     {
         return $query->where(function ($q) {

@@ -2,21 +2,22 @@
 @section('title', 'লগইন — আইডিয়া প্রকাশন')
 
 @section('content')
-<div class="container py-5" style="max-width: 500px;">
+<div class="container py-5" style="max-width: 560px;">
     <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
         <div class="card-header border-0 py-4 text-center text-white position-relative" 
              style="background: linear-gradient(135deg, #0c4a6e 0%, #0369a1 50%, #0284c7 100%);">
-            <div class="bg-white rounded-circle p-2 d-inline-flex shadow-sm mb-2" style="width: 58px; height: 58px;">
+            <div class="bg-white rounded-circle p-2 d-inline-flex shadow-sm mb-2" style="width: 62px; height: 62px;">
                 <img src="{{ asset('images/logo.svg') }}" class="w-100 h-100 object-fit-contain" alt="ideaabd">
             </div>
-            <h4 class="fw-bold mb-1 text-white">আপনার অ্যাকাউন্টে লগইন করুন</h4>
-            <small class="text-white-50" style="font-size: 0.8rem;">আইডিয়া প্রকাশন ডিজিটাল প্ল্যাটফর্ম</small>
+            <h3 class="fw-bold mb-1 text-white">আপনার অ্যাকাউন্টে লগইন করুন</h3>
+            <small class="text-white-50" style="font-size: 0.85rem;">আইডিয়া প্রকাশন ডিজিটাল প্ল্যাটফর্ম</small>
         </div>
 
-        <div class="card-body p-4">
+        <div class="card-body p-4 p-md-4.5">
             {{-- Error Alerts --}}
-            @if($errors->any())
-                <div class="alert alert-danger py-2.5 px-3 rounded-3 small mb-3">
+            @if(isset($errors) && $errors->any())
+                <div class="alert alert-danger py-2.5 px-3 rounded-3 small mb-3 border-0 bg-danger bg-opacity-10 text-danger">
+                    <div class="fw-bold mb-1"><i class="fa-solid fa-triangle-exclamation me-1"></i> লগইন ব্যর্থ হয়েছে:</div>
                     <ul class="mb-0 ps-3">
                         @foreach($errors->all() as $e)
                             <li>{{ $e }}</li>
@@ -26,13 +27,13 @@
             @endif
 
             @if(session('error'))
-                <div class="alert alert-danger py-2.5 px-3 rounded-3 small mb-3">
+                <div class="alert alert-danger py-2.5 px-3 rounded-3 small mb-3 border-0 bg-danger bg-opacity-10 text-danger">
                     <i class="fa-solid fa-circle-exclamation me-1"></i> {{ session('error') }}
                 </div>
             @endif
 
             @if(session('status'))
-                <div class="alert alert-success py-2.5 px-3 rounded-3 small mb-3">
+                <div class="alert alert-success py-2.5 px-3 rounded-3 small mb-3 border-0 bg-success bg-opacity-10 text-success">
                     <i class="fa-solid fa-circle-check me-1"></i> {{ session('status') }}
                 </div>
             @endif
@@ -40,48 +41,141 @@
             <form method="POST" action="{{ route('login') }}" id="loginForm" autocomplete="on">
                 @csrf
 
-                <div class="mb-3">
-                    <label class="form-label small fw-bold text-dark mb-1">
-                        <i class="fa-solid fa-user text-primary me-1"></i> ইমেইল, ফোন অথবা ইউজারনেম
-                    </label>
-                    <input type="text" name="email" class="form-control rounded-3" 
-                           value="{{ old('email') }}" placeholder="ইমেইল / মোবাইল / ইউজারনেম লিখুন..." 
-                           required autofocus autocomplete="username" 
-                           autocorrect="off" autocapitalize="none" spellcheck="false" inputmode="email">
+                {{-- Invisible Honeypot Anti-Bot Security Field --}}
+                <div style="display:none !important; visibility:hidden; position:absolute; left:-9999px;" aria-hidden="true">
+                    <input type="text" name="website_url_hp" tabindex="-1" autocomplete="off">
+                    <input type="checkbox" name="b_check_field" tabindex="-1" autocomplete="off">
                 </div>
 
+                {{-- Identity / Username / Email / Phone --}}
                 <div class="mb-3">
-                    <label class="form-label small fw-bold text-dark mb-1">
-                        <i class="fa-solid fa-lock text-primary me-1"></i> পাসওয়ার্ড
+                    <label class="form-label fw-bold text-dark mb-1" style="font-size: 24px;">
+                        <i class="fa-solid fa-user text-primary me-1"></i> Email, Phone or Username <span class="text-danger">*</span>
                     </label>
-                    <input type="password" name="password" class="form-control rounded-3" 
-                           placeholder="আপনার পাসওয়ার্ড লিখুন..." required autocomplete="current-password">
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0 fs-5"><i class="fa-solid fa-user-shield text-muted"></i></span>
+                        <input type="text" name="email" id="loginEmailInput" class="form-control form-control-lg rounded-end-3" 
+                               value="{{ old('email') }}" placeholder="Enter email, phone or username..." 
+                               required autofocus autocomplete="username" 
+                               style="font-size: 16px; height: 50px;"
+                               autocorrect="off" autocapitalize="none" spellcheck="false">
+                    </div>
+                </div>
+
+                {{-- Password with Show/Hide Toggle Eye --}}
+                <div class="mb-3">
+                    <div class="d-flex align-items-center justify-content-between mb-1">
+                        <label class="form-label fw-bold text-dark mb-0" style="font-size: 24px;">
+                            <i class="fa-solid fa-lock text-primary me-1"></i> Password <span class="text-danger">*</span>
+                        </label>
+                        <a href="{{ route('password.request') }}" class="text-decoration-none text-primary fw-semibold" style="font-size: 14px;">
+                            <i class="fa-solid fa-key me-0.5"></i> Forgot Password?
+                        </a>
+                    </div>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0 fs-5"><i class="fa-solid fa-key text-muted"></i></span>
+                        <input type="password" name="password" id="loginPasswordInput" class="form-control form-control-lg" 
+                               placeholder="Enter your password..." required autocomplete="current-password"
+                               style="font-size: 16px; height: 50px;">
+                        <button type="button" class="btn btn-outline-secondary rounded-end-3" id="toggleLoginPasswordBtn" 
+                                onclick="togglePasswordVisibility('loginPasswordInput', this)" title="পাসওয়ার্ড দেখুন বা লুকান">
+                            <i class="fa-regular fa-eye fs-5"></i>
+                        </button>
+                    </div>
+                </div>
+
+                {{-- Human Bot Math Security Challenge --}}
+                @php
+                    $b1 = $botNum1 ?? random_int(3, 8);
+                    $b2 = $botNum2 ?? random_int(1, 6);
+                @endphp
+                <div class="rounded-4 border mb-4 shadow-2xs p-3 p-sm-3.5" id="botChallengeBox" 
+                     style="background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%); border-color: #cbd5e1 !important;">
+                    <div class="d-flex align-items-center justify-content-between gap-2 gap-sm-3 flex-nowrap">
+                        {{-- Left Column: Row 1 = Equation, Row 2 = যোগফল লিখুন (With Safe Inner Margin/Padding) --}}
+                        <div class="d-flex flex-column justify-content-center ps-2 ps-sm-3">
+                            <div class="text-primary font-monospace fw-bold text-nowrap" id="botEquationText" 
+                                 style="font-size: clamp(19px, 4.5vw, 23px); letter-spacing: 0.8px; line-height: 1.2;">
+                                {{ $b1 }} + {{ $b2 }} = ?
+                            </div>
+                            <div class="text-secondary fw-semibold text-nowrap mt-1" style="font-size: clamp(12px, 3.2vw, 14px); color: #475569 !important;">
+                                যোগফল লিখুন
+                            </div>
+                        </div>
+
+                        {{-- Right Column: Merged 20px Answer Input & Refresh Button --}}
+                        <div class="d-flex align-items-center gap-1.5 gap-sm-2 ms-auto pe-1">
+                            <input type="number" name="bot_answer" id="botAnswerInput" 
+                                   class="form-control form-control-lg text-center fw-bold font-monospace bg-white border shadow-2xs px-1 px-sm-2" 
+                                   style="width: 130px; min-width: 110px; max-width: 145px; font-size: clamp(17px, 4vw, 20px); height: 50px; border-radius: 10px;" 
+                                   placeholder="যোগফল" required min="0" max="40" autocomplete="off">
+                            <button type="button" class="btn btn-outline-primary rounded-circle d-flex align-items-center justify-content-center shadow-2xs flex-shrink-0" 
+                                    id="refreshBotBtn" onclick="refreshBotChallenge(this)" title="নতুন সংখ্যা পেতে ক্লিক করুন" 
+                                    style="width: 42px; height: 42px;">
+                                <i class="fa-solid fa-rotate" id="refreshBotIcon"></i>
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <div class="form-check">
                         <input type="checkbox" name="remember" id="remember" class="form-check-input" value="1" @checked(old('remember'))>
-                        <label for="remember" class="form-check-label small text-muted">মনে রাখুন</label>
+                        <label for="remember" class="form-check-label small text-muted cursor-pointer" style="font-size: 13px;">Remember Me</label>
                     </div>
-                    <a href="{{ route('password.request') }}" class="small text-decoration-none text-primary fw-semibold">
-                        <i class="fa-solid fa-key me-1"></i> পাসওয়ার্ড ভুলে গেছেন?
-                    </a>
+                    <span class="text-muted" style="font-size: 12px;">
+                        <i class="fa-solid fa-shield-check text-success me-0.5"></i> 256-bit SSL Secure
+                    </span>
                 </div>
 
-                <button type="submit" class="btn btn-primary w-100 py-2.5 fw-bold rounded-pill shadow-sm" id="loginSubmitBtn">
-                    <i class="fa-solid fa-right-to-bracket me-1.5"></i> লগইন করুন
+                <button type="submit" class="btn btn-primary w-100 py-3 fw-bold rounded-pill shadow-sm fs-5" id="loginSubmitBtn">
+                    <i class="fa-solid fa-right-to-bracket me-1.5"></i> Login / লগইন করুন
                 </button>
             </form>
 
-            <hr class="my-4 text-muted opacity-25">
-
-            <div class="text-center">
-                <p class="small text-muted mb-2 fw-semibold">নতুন অ্যাকাউন্ট তৈরি করুন:</p>
-                <div class="d-flex gap-2 justify-content-center flex-wrap">
-                    <a href="{{ route('register.form', 'buyer') }}" class="btn btn-sm btn-outline-warning rounded-pill px-3 fw-semibold">বুক বায়ার</a>
-                    <a href="{{ route('register.form', 'seller') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold">সেলার</a>
-                    <a href="{{ route('register.form', 'author') }}" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-semibold">লেখক</a>
-                    <a href="{{ route('register.form', 'publisher') }}" class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-semibold">প্রকাশক</a>
+            {{-- Prominent Registration / Sign Up Callout (Doubled Font Sizes) --}}
+            <div class="mt-4 pt-3 border-top">
+                <div class="p-3.5 bg-light rounded-4 border shadow-2xs">
+                    <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+                        <span class="fw-bold text-dark d-flex align-items-center gap-2" style="font-size: 20px;">
+                            <i class="fa-solid fa-user-plus text-primary"></i>
+                            <span>আপনার একাউন্ট না থাকলে সাইন আপ করুন:</span>
+                        </span>
+                        <a href="{{ route('register.choose') }}" class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 text-decoration-none px-3 py-1.5 rounded-pill fw-bold" style="font-size: 14px;">
+                            সবগুলো <i class="fa-solid fa-angle-right ms-1"></i>
+                        </a>
+                    </div>
+                    
+                    <div class="row g-2 text-center">
+                        <div class="col-6 col-sm-3">
+                            <a href="{{ route('register.form', 'author') }}" class="d-block p-3 rounded-4 border bg-white text-decoration-none shadow-2xs hover-lift transition-all h-100">
+                                <div class="text-success mb-1.5" style="font-size: 26px;"><i class="fa-solid fa-feather-pointed"></i></div>
+                                <div class="fw-bold text-dark" style="font-size: 18px;">লেখক</div>
+                                <div class="text-muted fw-semibold" style="font-size: 13.5px;">লেখা প্রকাশ</div>
+                            </a>
+                        </div>
+                        <div class="col-6 col-sm-3">
+                            <a href="{{ route('register.form', 'buyer') }}" class="d-block p-3 rounded-4 border bg-white text-decoration-none shadow-2xs hover-lift transition-all h-100">
+                                <div class="text-warning mb-1.5" style="font-size: 26px;"><i class="fa-solid fa-bag-shopping"></i></div>
+                                <div class="fw-bold text-dark" style="font-size: 18px;">পাঠক/বায়ার</div>
+                                <div class="text-muted fw-semibold" style="font-size: 13.5px;">বই ক্রয়</div>
+                            </a>
+                        </div>
+                        <div class="col-6 col-sm-3">
+                            <a href="{{ route('register.form', 'publisher') }}" class="d-block p-3 rounded-4 border bg-white text-decoration-none shadow-2xs hover-lift transition-all h-100">
+                                <div class="text-danger mb-1.5" style="font-size: 26px;"><i class="fa-solid fa-building"></i></div>
+                                <div class="fw-bold text-dark" style="font-size: 18px;">প্রকাশক</div>
+                                <div class="text-muted fw-semibold" style="font-size: 13.5px;">প্রকাশনী</div>
+                            </a>
+                        </div>
+                        <div class="col-6 col-sm-3">
+                            <a href="{{ route('register.form', 'seller') }}" class="d-block p-3 rounded-4 border bg-white text-decoration-none shadow-2xs hover-lift transition-all h-100">
+                                <div class="text-primary mb-1.5" style="font-size: 26px;"><i class="fa-solid fa-store"></i></div>
+                                <div class="fw-bold text-dark" style="font-size: 18px;">সেলার</div>
+                                <div class="text-muted fw-semibold" style="font-size: 13.5px;">বই বিক্রি</div>
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -89,13 +183,67 @@
 </div>
 
 <script>
+function togglePasswordVisibility(inputId, btn) {
+    const input = document.getElementById(inputId);
+    const icon = btn.querySelector('i');
+    if (input.type === 'password') {
+        input.type = 'text';
+        if (icon) {
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        }
+    } else {
+        input.type = 'password';
+        if (icon) {
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
+    }
+}
+
+async function refreshBotChallenge(btn) {
+    const icon = document.getElementById('refreshBotIcon');
+    const eqText = document.getElementById('botEquationText');
+    const ansInput = document.getElementById('botAnswerInput');
+    const challengeBox = document.getElementById('botChallengeBox');
+
+    if (icon) icon.classList.add('fa-spin');
+    if (btn) btn.disabled = true;
+
+    try {
+        const res = await fetch('{{ route("login.refresh-bot") }}', {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        });
+        const data = await res.json();
+        if (data && data.success) {
+            if (eqText) eqText.textContent = data.equation;
+            if (ansInput) {
+                ansInput.value = '';
+                ansInput.focus();
+            }
+            if (challengeBox) {
+                challengeBox.classList.add('animate__animated', 'animate__pulse');
+                setTimeout(() => challengeBox.classList.remove('animate__animated', 'animate__pulse'), 1000);
+            }
+        }
+    } catch (e) {
+        console.error('Failed to refresh bot challenge', e);
+    } finally {
+        if (icon) icon.classList.remove('fa-spin');
+        if (btn) btn.disabled = false;
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('loginForm');
     const btn = document.getElementById('loginSubmitBtn');
     if (form && btn) {
         form.addEventListener('submit', function() {
             btn.disabled = true;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1.5" role="status"></span> যাচাই করা হচ্ছে...';
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1.5" role="status"></span> Checking & Logging in...';
         });
     }
 });

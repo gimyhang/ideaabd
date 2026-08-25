@@ -43,12 +43,15 @@ Route::get('/sitemap.xml', [\App\Http\Controllers\SitemapController::class, 'ind
 // --- Auth routes (login / logout) --------------------------------------------
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login')->middleware('guest');
 Route::post('/login', [LoginController::class, 'login'])->middleware('guest');
+Route::get('/login/refresh-bot-challenge', [LoginController::class, 'refreshBotChallenge'])->name('login.refresh-bot');
 Route::match(['get', 'post'], '/logout', [LoginController::class, 'logout'])->name('logout');
 
-// --- Password Reset via 3-Minute One-Time Email Link ---
+// --- Password Reset via Email / WhatsApp (+8801558712810) ---
 Route::get('/forgot-password', [\App\Http\Controllers\Auth\PasswordResetController::class, 'showRequestForm'])->name('password.request')->middleware('guest');
 Route::post('/forgot-password', [\App\Http\Controllers\Auth\PasswordResetController::class, 'sendResetLink'])->name('password.email')->middleware('guest');
-Route::post('/forgot-password/send', [\App\Http\Controllers\Auth\PasswordResetController::class, 'sendResetLink'])->name('password.send-otp')->middleware('guest'); // Backwards-compatible alias
+Route::post('/forgot-password/send', [\App\Http\Controllers\Auth\PasswordResetController::class, 'sendResetLink'])->name('password.send-otp')->middleware('guest');
+Route::get('/reset-password-otp', [\App\Http\Controllers\Auth\PasswordResetController::class, 'showOtpResetForm'])->name('password.reset-otp')->middleware('guest');
+Route::post('/reset-password-otp', [\App\Http\Controllers\Auth\PasswordResetController::class, 'resetPasswordWithOtp'])->name('password.update-otp')->middleware('guest');
 Route::get('/reset-password/{token}', [\App\Http\Controllers\Auth\PasswordResetController::class, 'showResetForm'])->name('password.reset')->middleware('guest');
 Route::post('/reset-password', [\App\Http\Controllers\Auth\PasswordResetController::class, 'resetPassword'])->name('password.update')->middleware('guest');
 
@@ -69,6 +72,10 @@ Route::match(['get', 'post'], '/cart/checkout', function (\Illuminate\Http\Reque
 Route::post('/cart/validate-coupon', [CartController::class, 'validateCoupon'])->name('cart.validate-coupon');
 Route::post('/cart/add', fn() => back())->name('cart.add');
 Route::post('/newsletter/subscribe', fn() => back()->with('success', 'Subscribed successfully!'))->name('newsletter.subscribe');
+
+// --- Reviews & Comments (Dynamic, Registered & Guest Safe) -------------------
+Route::post('/reviews', [\App\Http\Controllers\ReviewController::class, 'store'])->name('reviews.store');
+Route::get('/reviews', [\App\Http\Controllers\ReviewController::class, 'list'])->name('reviews.list');
 // --- Automated & Online Payment Gateway Routes -----------------------------
 Route::controller(\App\Http\Controllers\PaymentController::class)->group(function () {
     // bKash PGW
@@ -170,14 +177,17 @@ Route::prefix('research')->name('research.')->group(function () {
     Route::get('/{slug}', [ResearchController::class, 'show'])->name('show');
 });
 
-// Ideapatra (আইডিয়াপত্র) Route Aliases
+// Ideapatra (আইডিয়াপত্র) Route Aliases & Honorarium Sending
 Route::prefix('ideapatra')->name('ideapatra.')->group(function () {
     Route::get('/', [\Modules\Blog\Http\Controllers\Frontend\BlogController::class, 'index'])->name('index');
     Route::get('/category/{slug}', [\Modules\Blog\Http\Controllers\Frontend\BlogController::class, 'category'])->name('category');
     Route::get('/tag/{slug}', [\Modules\Blog\Http\Controllers\Frontend\BlogController::class, 'tag'])->name('tag');
     Route::get('/write', [\App\Http\Controllers\AuthorBlogController::class, 'writeGateway'])->name('write');
+    Route::post('/honorarium/send', [\App\Http\Controllers\AuthorHonorariumController::class, 'store'])->name('honorarium.send');
     Route::get('/{slug}', [\Modules\Blog\Http\Controllers\Frontend\BlogController::class, 'show'])->name('show');
 });
+Route::post('/blog/honorarium/send', [\App\Http\Controllers\AuthorHonorariumController::class, 'store'])->name('blog.honorarium.send');
+Route::post('/author-honorarium/send', [\App\Http\Controllers\AuthorHonorariumController::class, 'store'])->name('author.honorarium.send');
 
 // Static Pages
 Route::view('/hub', 'frontend.pages.hub')->name('hub');
@@ -259,7 +269,8 @@ Route::prefix('author')->name('author.')->middleware(['auth'])->group(function (
     Route::get('/payouts', [\App\Http\Controllers\Author\AuthorPayoutController::class, 'index'])->name('payouts.index');
     Route::post('/payouts', [\App\Http\Controllers\Author\AuthorPayoutController::class, 'storeRequest'])->name('payouts.store');
 
-    // Ideapatra (Blog Articles) Management
+    // Ideapatra (Blog Articles) Management & Honorariums
+    Route::get('/honorariums', [\App\Http\Controllers\Author\AuthorDashboardController::class, 'honorariums'])->name('honorariums');
     Route::get('/posts', [\App\Http\Controllers\AuthorBlogController::class, 'index'])->name('posts.index');
     Route::get('/posts/create', [\App\Http\Controllers\AuthorBlogController::class, 'createPost'])->name('posts.create');
     Route::post('/posts', [\App\Http\Controllers\AuthorBlogController::class, 'store'])->name('posts.store');
@@ -288,6 +299,11 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::post('/author-payouts/{payout}/process', [\App\Http\Controllers\Admin\AuthorPayoutAdminController::class, 'process'])->name('author-payouts.process');
     Route::get('/author-payouts/{id}/receipt', [\App\Http\Controllers\Admin\AuthorRoyaltyAdminController::class, 'payoutReceipt'])->name('author-payouts.receipt');
     Route::get('/royalty-payout-logs', [\App\Http\Controllers\Admin\GatewayReportController::class, 'royaltyPayoutLogs'])->name('royalty-payout-logs');
+    
+    // IdeaPatra Author Honorariums (পড়ে ভালো লাগা সম্মানি)
+    Route::get('/author-honorariums', [\App\Http\Controllers\Admin\AuthorHonorariumAdminController::class, 'index'])->name('author-honorariums.index');
+    Route::patch('/author-honorariums/{id}/status', [\App\Http\Controllers\Admin\AuthorHonorariumAdminController::class, 'updateStatus'])->name('author-honorariums.status');
+    Route::delete('/author-honorariums/{id}', [\App\Http\Controllers\Admin\AuthorHonorariumAdminController::class, 'destroy'])->name('author-honorariums.destroy');
 
     // Customer Payment Gateway Reports & Transaction Logs
     Route::get('/gateway-reports', [\App\Http\Controllers\Admin\GatewayReportController::class, 'index'])->name('gateway-reports');
@@ -315,6 +331,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::post('/authors/{id}/quick-update', [AdminController::class, 'quickUpdateAuthor'])->name('authors.quick-update');
     Route::post('/authors/{id}/toggle-status', [AdminController::class, 'toggleAuthorStatus'])->name('authors.toggle-status');
     Route::post('/authors/{id}/toggle-verified', [AdminController::class, 'toggleAuthorVerified'])->name('authors.toggle-verified');
+    Route::post('/authors/{id}/reset-password', [AdminController::class, 'resetAuthorPassword'])->name('authors.reset-password');
     Route::get('/publishers', [AdminController::class, 'publishers'])->name('publishers');
     Route::post('/publishers/quick-store', [AdminController::class, 'quickStorePublisher'])->name('publishers.quick-store');
     Route::get('/publishers/{id}', [AdminController::class, 'publisherShow'])->name('publishers.show');

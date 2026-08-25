@@ -172,7 +172,7 @@ class RegistrationController extends Controller
 
         // For author, seller, publisher: Do NOT login automatically. Redirect to pending approval notice.
         return redirect()->route('pending.approval')
-            ->with('success', 'আপনার রেজিস্ট্রেশন সফল হয়েছে! অ্যাডমিন পর্যালোচনা ও অনুমোদনের পর আপনি সম্পূর্ণ অ্যাক্সেস পাবেন।');
+            ->with('success', 'আপনার সাইনআপ সফল হয়েছে। ২৪ ঘণ্টার মধ্যে অ্যাকাউন্ট একটিভ হলে লেখা পোস্ট করতে পারবেন।');
     }
 
     public function pendingApproval()

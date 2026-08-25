@@ -67,7 +67,7 @@
                 </div>
                 <h3 class="fw-bold mb-1 text-dark">@bn($totalEbooks)</h3>
                 <div class="small text-muted d-flex align-items-center gap-1">
-                    <span class="badge bg-primary-subtle text-primary">@bn($totalCopiesSold) কপি বিক্রি</span>
+                    <span class="badge bg-primary-subtle text-primary">@bn($totalCopiesSold) বিক্রি</span>
                     <span class="badge bg-success-subtle text-success">@bn($publishedEbooks) লাইভ</span>
                 </div>
             </div>
@@ -77,26 +77,49 @@
         <div class="col-6 col-lg-3">
             <div class="author-card p-3 h-100 border-start border-4 border-success">
                 <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="text-muted small fw-semibold">রয়্যালটি আয় (৫০%)</span>
+                    <span class="text-muted small fw-semibold">ই-বুক রয়্যালটি (৫০%)</span>
                     <span class="p-2 bg-success-subtle text-success rounded-3"><i class="fas fa-sack-dollar"></i></span>
                 </div>
                 <h3 class="fw-bold mb-1 text-success font-monospace">৳{{ number_format($totalRoyaltyEarned, 2) }}</h3>
-                <div class="small text-muted">সর্বমোট আয়ের ৫০% শেয়ার</div>
+                <div class="small text-muted">সর্বমোট ইবুক সেলস শেয়ার</div>
             </div>
         </div>
 
-        {{-- Card 4: Wallet Balance & Payout --}}
+        {{-- Card 4: Reader Honorarium / পাঠক সম্মানি --}}
         <div class="col-6 col-lg-3">
-            <div class="author-card p-3 h-100 border-start border-4 border-info bg-info-subtle bg-opacity-10">
+            <div class="author-card p-3 h-100 border-start border-4 border-danger">
                 <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="text-dark small fw-bold">উত্তোলনযোগ্য ব্যালেন্স</span>
-                    <span class="p-2 bg-info text-white rounded-3"><i class="fas fa-wallet"></i></span>
+                    <span class="text-muted small fw-semibold">পাঠক সম্মানি অর্জন</span>
+                    <span class="p-2 bg-danger bg-opacity-10 text-danger rounded-3"><i class="fas fa-heart"></i></span>
                 </div>
-                <h3 class="fw-bold mb-1 text-dark font-monospace">৳{{ number_format($availableBalance, 2) }}</h3>
-                <div class="d-flex align-items-center justify-content-between mt-1">
-                    <span class="small text-muted" style="font-size: 11px;">মিনিমাম ১,০০০৳</span>
-                    <a href="{{ route('author.payouts.index') }}" class="btn btn-xs btn-primary rounded-pill px-2.5 py-0.5" style="font-size: 11px;">উত্তোলন</a>
+                <h3 class="fw-bold mb-1 text-danger font-monospace">৳{{ number_format($totalHonorariumEarned, 2) }}</h3>
+                <div class="small text-muted d-flex align-items-center justify-content-between">
+                    <span>@bn($totalHonorariumCount) জন পাঠক</span>
+                    <a href="{{ route('author.honorariums') }}" class="text-danger text-decoration-none fw-bold" style="font-size: 11px;">বিস্তারিত →</a>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Card 5: Wallet Overview Highlight Banner --}}
+    <div class="card border-0 shadow-sm rounded-4 p-3 text-white" style="background: linear-gradient(135deg, #1e1b4b 0%, #312e81 60%, #4338ca 100%);">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <div class="d-flex align-items-center gap-3">
+                <div class="rounded-circle bg-warning text-dark d-flex align-items-center justify-content-center fw-bold fs-4 flex-shrink-0" style="width: 48px; height: 48px;">
+                    <i class="fas fa-wallet"></i>
+                </div>
+                <div>
+                    <span class="text-white-50 small text-uppercase fw-semibold" style="letter-spacing: 0.5px;">উত্তোলনযোগ্য মোট ওয়ালেট ব্যালেন্স (রয়্যালটি + সম্মানি)</span>
+                    <h2 class="fw-bold mb-0 text-warning font-monospace">৳{{ number_format($availableBalance, 2) }}</h2>
+                </div>
+            </div>
+            <div class="d-flex flex-wrap align-items-center gap-2">
+                <a href="{{ route('author.payouts.index') }}" class="btn btn-warning btn-sm rounded-pill px-4 py-2 fw-bold text-dark shadow-sm">
+                    <i class="fas fa-hand-holding-dollar me-1"></i> রয়্যালটি ও সম্মানি উত্তোলন করুন
+                </a>
+                <a href="{{ route('author.honorariums') }}" class="btn btn-outline-light btn-sm rounded-pill px-3 py-2 fw-semibold">
+                    <i class="fas fa-receipt me-1"></i> সম্মানি লেজার
+                </a>
             </div>
         </div>
     </div>
@@ -242,7 +265,57 @@
     </div>
 
     {{-- ═════════════════════════════════════════════════════════════════════════ --}}
-    {{-- 5. IDEAPATRA (ARTICLES & BLOG POSTS LIST)                                 --}}
+    {{-- 5. RECENT READER HONORARIUMS & APPRECIATION NOTES (পাঠক সম্মানি ও শুভেচ্ছা) --}}
+    {{-- ═════════════════════════════════════════════════════════════════════════ --}}
+    @if(isset($recentHonorariums) && $recentHonorariums->isNotEmpty())
+        <div class="author-card p-3 p-md-4 bg-white border-start border-4 border-danger">
+            <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                <h6 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                    <span class="badge bg-danger bg-opacity-10 text-danger rounded-circle p-2">
+                        <i class="fas fa-heart"></i>
+                    </span>
+                    <span>সাম্প্রতিক পাঠক সম্মানি ও শুভেচ্ছা বার্তা</span>
+                </h6>
+                <a href="{{ route('author.honorariums') }}" class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-semibold">
+                    সকল সম্মানি (@bn($totalHonorariumCount)) →
+                </a>
+            </div>
+
+            <div class="row g-3">
+                @foreach($recentHonorariums as $rh)
+                    <div class="col-12 col-md-6 col-lg-4">
+                        <div class="p-3 rounded-3 border h-100 position-relative" style="background: #fafaf9;">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <span class="fw-bold text-dark text-truncate" style="max-width: 65%;">
+                                    <i class="fas fa-user-circle text-muted me-1"></i>{{ $rh->display_name }}
+                                </span>
+                                <span class="badge bg-danger text-white font-monospace rounded-pill px-2.5 py-1">
+                                    +৳{{ number_format($rh->author_amount, 2) }}
+                                </span>
+                            </div>
+                            @if($rh->post)
+                                <a href="{{ route('blog.show', $rh->post->slug ?: $rh->post->id) }}" target="_blank" class="small text-muted text-decoration-none d-block text-truncate mb-2 hover-primary" title="{{ $rh->post->title }}">
+                                    <i class="fas fa-newspaper me-1 text-primary"></i>{{ $rh->post->title }}
+                                </a>
+                            @endif
+                            @if($rh->message)
+                                <div class="small text-secondary bg-white p-2 rounded-2 border fst-italic mb-2" style="font-size: 11.5px; line-height: 1.4;">
+                                    "{{ \Illuminate\Support\Str::limit($rh->message, 90) }}"
+                                </div>
+                            @endif
+                            <div class="small text-muted d-flex align-items-center justify-content-between mt-auto" style="font-size: 11px;">
+                                <span class="badge {{ $rh->method_badge_class }} rounded-pill px-2 py-0.5" style="font-size: 9.5px;">{{ strtoupper($rh->payment_method) }}</span>
+                                <span>{{ $rh->created_at->diffForHumans() }}</span>
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    @endif
+
+    {{-- ═════════════════════════════════════════════════════════════════════════ --}}
+    {{-- 6. IDEAPATRA (ARTICLES & BLOG POSTS LIST)                                 --}}
     {{-- ═════════════════════════════════════════════════════════════════════════ --}}
     <div class="author-card p-3 p-md-4 bg-white">
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3 pb-2 border-bottom">

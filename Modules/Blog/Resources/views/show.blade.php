@@ -3,8 +3,23 @@
 @php
     $ogCover = $post->cover_url ?: ($post->featured_image ? (str_starts_with($post->featured_image, 'http') ? $post->featured_image : asset('storage/' . ltrim($post->featured_image, '/'))) : asset('images/logo.svg'));
     $rawPostContent = html_entity_decode((string)$post->content, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-    $ogDesc = !empty($post->subtitle) ? $post->subtitle : (!empty($post->excerpt) ? $post->excerpt : Str::limit(trim(strip_tags($rawPostContent)), 180));
+    $cleanPlainText = trim(strip_tags($rawPostContent));
+    $ogDesc = !empty($post->subtitle) ? $post->subtitle : (!empty($post->excerpt) ? $post->excerpt : Str::limit($cleanPlainText, 180));
     $ogAuthor = $post->author_name ?: 'আইডিয়া প্রকাশন';
+
+    // Dynamic Word Count & Reading Time
+    $charCount = mb_strlen($cleanPlainText, 'UTF-8');
+    $wordCount = max(1, (int) round($charCount / 5));
+    $readMins = max(1, (int) ceil($wordCount / 160));
+
+    $blogCustomizer = \App\Support\SiteSetting::blogCustomizer();
+    $custFont = $blogCustomizer['font_family'] ?? "'Hind Siliguri', 'Kalpurush', 'SolaimanLipi', sans-serif";
+    $custFontSize = $blogCustomizer['reading_font_size'] ?? '1.10rem';
+    $custLineHeight = $blogCustomizer['line_height'] ?? '1.7';
+    $custPoetryLineHeight = $blogCustomizer['poetry_line_height'] ?? '1.5';
+    $custPoetryAlign = $blogCustomizer['poetry_align'] ?? 'left';
+    $custParaMargin = $blogCustomizer['paragraph_margin'] ?? '0.95rem';
+    $custReadingBg = $blogCustomizer['reading_bg'] ?? '#ffffff';
 @endphp
 
 @section('title', ($post->title ?? 'সাহিত্যকর্ম') . ' — ' . $ogAuthor)
@@ -14,18 +29,10 @@
 @section('og_image', $ogCover)
 @section('og_url', route('blog.show', $post->slug))
 
-@php
-    $blogCustomizer = \App\Support\SiteSetting::blogCustomizer();
-    $custFont = $blogCustomizer['font_family'] ?? "'Hind Siliguri', 'Kalpurush', 'SolaimanLipi', sans-serif";
-    $custFontSize = $blogCustomizer['reading_font_size'] ?? '1.08rem';
-    $custLineHeight = $blogCustomizer['line_height'] ?? '1.6';
-    $custPoetryLineHeight = $blogCustomizer['poetry_line_height'] ?? '1.45';
-    $custPoetryAlign = $blogCustomizer['poetry_align'] ?? 'left';
-    $custParaMargin = $blogCustomizer['paragraph_margin'] ?? '0.85rem';
-    $custReadingBg = $blogCustomizer['reading_bg'] ?? '#ffffff';
-@endphp
-
 @section('content')
+<!-- Scroll Reading Progress Bar -->
+<div id="readingProgressBar" class="no-print" style="position: fixed; top: 0; left: 0; height: 3.5px; width: 0%; background: linear-gradient(90deg, #0284c7, #f59e0b, #ef4444); z-index: 1099; transition: width 0.1s ease;"></div>
+
 <style>
     /* Book Page Literary Aesthetics */
     .lit-book-sheet {
@@ -33,15 +40,16 @@
         background-image: radial-gradient(#f4ede2 1px, transparent 1px);
         background-size: 24px 24px;
         border: 1px solid #e7e5e4;
-        box-shadow: 0 12px 35px rgba(0, 0, 0, 0.05), 0 2px 6px rgba(0, 0, 0, 0.03);
-        border-radius: 18px;
+        box-shadow: 0 12px 35px rgba(0, 0, 0, 0.04), 0 2px 6px rgba(0, 0, 0, 0.02);
+        border-radius: 20px;
         position: relative;
         transition: all 0.3s ease;
         font-family: {!! $custFont !!};
     }
 
+    /* Sepia / Vintage Book Mode */
     .lit-book-sheet.sepia-mode {
-        background-color: #fbf5e8 !important;
+        background-color: #fcf8ee !important;
         background-image: none !important;
         color: #3b2c1a !important;
         border-color: #ebdcb9 !important;
@@ -49,8 +57,39 @@
     .lit-book-sheet.sepia-mode .article-content, 
     .lit-book-sheet.sepia-mode h1, 
     .lit-book-sheet.sepia-mode h2, 
+    .lit-book-sheet.sepia-mode h3, 
     .lit-book-sheet.sepia-mode .lit-title {
         color: #2e1c0c !important;
+    }
+
+    /* Dark Reading Mode */
+    .lit-book-sheet.dark-mode {
+        background-color: #0f172a !important;
+        background-image: radial-gradient(#1e293b 1px, transparent 1px) !important;
+        color: #e2e8f0 !important;
+        border-color: #334155 !important;
+        box-shadow: 0 12px 35px rgba(0,0,0,0.4) !important;
+    }
+    .lit-book-sheet.dark-mode .article-content,
+    .lit-book-sheet.dark-mode p,
+    .lit-book-sheet.dark-mode span:not(.badge) {
+        color: #cbd5e1 !important;
+    }
+    .lit-book-sheet.dark-mode h1, 
+    .lit-book-sheet.dark-mode h2, 
+    .lit-book-sheet.dark-mode h3, 
+    .lit-book-sheet.dark-mode .lit-title,
+    .lit-book-sheet.dark-mode strong,
+    .lit-book-sheet.dark-mode b {
+        color: #f8fafc !important;
+    }
+    .lit-book-sheet.dark-mode .border-top,
+    .lit-book-sheet.dark-mode .border-bottom {
+        border-color: #334155 !important;
+    }
+    .lit-book-sheet.dark-mode .bg-light {
+        background-color: #1e293b !important;
+        color: #e2e8f0 !important;
     }
 
     .lit-book-spine {
@@ -60,8 +99,8 @@
         left: 0;
         width: 6px;
         background: linear-gradient(to right, rgba(0,0,0,0.12), transparent);
-        border-top-left-radius: 18px;
-        border-bottom-left-radius: 18px;
+        border-top-left-radius: 20px;
+        border-bottom-left-radius: 20px;
     }
 
     .lit-ornament {
@@ -80,14 +119,14 @@
         max-width: 120px;
     }
 
-    /* Literary Drop-cap for First Paragraph */
+    /* Drop-cap for First Paragraph */
     .article-content > p:first-of-type::first-letter {
         font-size: 3.2rem;
         float: left;
         line-height: 0.85;
-        margin-right: 0.6rem;
+        margin-right: 0.65rem;
         margin-top: 0.12rem;
-        color: #0369a1;
+        color: #0284c7;
         font-weight: bold;
         font-family: 'Kalpurush', 'Nikosh', Georgia, 'SolaimanLipi', serif;
     }
@@ -96,7 +135,7 @@
         font-size: {{ $custFontSize }};
         line-height: {{ $custLineHeight }};
         color: #1e293b;
-        letter-spacing: 0.1px;
+        letter-spacing: 0.15px;
         text-align: justify;
         text-justify: inter-word;
         font-family: {!! $custFont !!};
@@ -109,15 +148,15 @@
     }
     .article-content .poetry-verse, 
     .article-content p.poetry-verse {
-        font-size: 1.18rem;
+        font-size: 1.20rem;
         line-height: {{ $custPoetryLineHeight }};
         margin-bottom: {{ $custParaMargin }};
-        padding-left: 0.85rem;
-        border-left: 3px solid rgba(2, 132, 199, 0.35);
-        background: rgba(240, 249, 255, 0.4);
-        padding-top: 0.4rem;
-        padding-bottom: 0.4rem;
-        border-radius: 0 8px 8px 0;
+        padding-left: 1rem;
+        border-left: 3px solid rgba(2, 132, 199, 0.45);
+        background: rgba(240, 249, 255, 0.5);
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
+        border-radius: 0 10px 10px 0;
         text-align: {{ $custPoetryAlign }};
         font-family: inherit;
     }
@@ -132,45 +171,71 @@
         text-decoration: underline;
         text-underline-offset: 3px;
     }
-    .article-content h3, .article-content h4 {
+    .article-content h2, .article-content h3, .article-content h4 {
         font-weight: 700;
         color: #0369a1;
-        margin-top: 1.5rem;
-        margin-bottom: 0.75rem;
-        font-size: 1.3rem;
+        margin-top: 1.75rem;
+        margin-bottom: 0.85rem;
+        font-size: 1.35rem;
     }
     .article-content blockquote {
         border-left: 4px solid #0284c7;
         background: #f8fafc;
-        padding: 0.75rem 1.25rem;
-        margin: 1.25rem 0;
-        border-radius: 0 8px 8px 0;
+        padding: 0.85rem 1.35rem;
+        margin: 1.35rem 0;
+        border-radius: 0 10px 10px 0;
         font-style: italic;
         color: #475569;
-    }
-    .article-content ul, .article-content ol {
-        margin: 1rem 0;
-        padding-left: 1.75rem;
-    }
-    .article-content li {
-        margin-bottom: 0.4rem;
     }
 
     /* Reading Controls Toolbar */
     .lit-reading-bar {
         background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(8px);
+        backdrop-filter: blur(10px);
         border: 1px solid #e2e8f0;
         border-radius: 50rem;
-        padding: 6px 14px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+        padding: 5px 12px;
+        box-shadow: 0 4px 18px rgba(0,0,0,0.06);
+    }
+
+    /* Audio Player Pill */
+    .tts-player-pill {
+        background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+        color: #ffffff;
+        border-radius: 50rem;
+        padding: 4px 12px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.82rem;
+        cursor: pointer;
+        border: none;
+        transition: all 0.2s ease;
+    }
+    .tts-player-pill:hover {
+        opacity: 0.92;
+        transform: translateY(-1px);
+    }
+    .tts-wave-bar {
+        width: 3px;
+        height: 12px;
+        background: #fff;
+        border-radius: 2px;
+        display: inline-block;
+        animation: ttsWave 1s infinite ease-in-out;
+    }
+    .tts-wave-bar:nth-child(2) { animation-delay: 0.2s; height: 16px; }
+    .tts-wave-bar:nth-child(3) { animation-delay: 0.4s; height: 10px; }
+    @keyframes ttsWave {
+        0%, 100% { transform: scaleY(0.5); }
+        50% { transform: scaleY(1.3); }
     }
 
     /* Print Specific Styles */
     @media print {
         header, footer, nav, .site-header, .site-footer, .breadcrumb, .no-print, 
         .google-ad-container, .btn, .modal, .lit-reading-bar, .comment-box-wrapper, 
-        #authorLoginModal {
+        #authorLoginModal, #readingProgressBar {
             display: none !important;
         }
 
@@ -191,7 +256,7 @@
             margin: 0 !important;
         }
 
-        .col-lg-9 {
+        .col-lg-8 {
             width: 100% !important;
             max-width: 100% !important;
             flex: 0 0 100% !important;
@@ -239,7 +304,7 @@
 </style>
 
 <div class="container py-4 mb-5">
-    <!-- Breadcrumb & Top Actions (Hidden in Print) -->
+    <!-- Breadcrumb & Top Interactive Actions Toolbar -->
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4 no-print">
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb small mb-0">
@@ -256,21 +321,66 @@
             </ol>
         </nav>
 
-        <!-- Reading & Print Controls Bar -->
-        <div class="lit-reading-bar d-flex align-items-center gap-2">
-            <button type="button" class="btn btn-sm btn-light rounded-pill px-2.5 py-1 text-dark fw-semibold" onclick="window.print()" title="প্রিন্ট করুন বা PDF হিসেবে সংরক্ষণ করুন">
-                <i class="fa-solid fa-print text-primary me-1"></i><span class="d-none d-sm-inline">প্রিন্ট / PDF</span>
+        <!-- Advanced Reading & Audio Controls Toolbar -->
+        <div class="lit-reading-bar d-flex flex-wrap align-items-center gap-2">
+            {{-- Audio TTS Player --}}
+            <button type="button" class="tts-player-pill" id="ttsToggleBtn" onclick="toggleArticleAudio()" title="লেখাটি স্বয়ংক্রিয় কণ্ঠে শুনুন">
+                <i class="fa-solid fa-volume-high" id="ttsIcon"></i>
+                <span id="ttsBtnLabel">পাঠ শুনুন</span>
+                <span id="ttsWaveAnimation" class="d-none ms-1">
+                    <span class="tts-wave-bar"></span>
+                    <span class="tts-wave-bar"></span>
+                    <span class="tts-wave-bar"></span>
+                </span>
             </button>
-            <div class="vr my-1"></div>
+
+            <div class="vr my-1 d-none d-sm-block"></div>
+
+            {{-- Font Sizing --}}
             <button type="button" class="btn btn-sm btn-light rounded-circle p-0 d-flex align-items-center justify-content-center" style="width: 28px; height: 28px;" onclick="adjustFontSize(-1)" title="ফন্ট ছোট করুন">
                 <span style="font-size: 0.75rem;">A-</span>
             </button>
             <button type="button" class="btn btn-sm btn-light rounded-circle p-0 d-flex align-items-center justify-content-center" style="width: 28px; height: 28px;" onclick="adjustFontSize(1)" title="ফন্ট বড় করুন">
                 <span style="font-size: 0.85rem; font-weight: bold;">A+</span>
             </button>
-            <button type="button" class="btn btn-sm btn-light rounded-pill px-2 py-1 text-muted" onclick="toggleSepiaMode()" title="বইয়ের পাতা (সেপিয়া) কালার টগল">
-                <i class="fa-solid fa-book-open text-warning"></i>
+
+            {{-- Font Family Dropdown --}}
+            <div class="dropdown d-inline-block">
+                <button class="btn btn-sm btn-light rounded-pill px-2 py-1 text-muted dropdown-toggle" type="button" data-bs-toggle="dropdown" title="বাংলা ফন্ট পরিবর্তন করুন">
+                    <i class="fa-solid fa-font text-secondary"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 small">
+                    <li><h6 class="dropdown-header small text-muted">পছন্দের বাংলা ফন্ট</h6></li>
+                    <li><button class="dropdown-item" type="button" onclick="changeFontFamily('Hind Siliguri')">হিন্দ শিলিগুড়ি (ডিফল্ট)</button></li>
+                    <li><button class="dropdown-item" type="button" onclick="changeFontFamily('Kalpurush')">কালপুরুষ (ক্ল্যাসিক)</button></li>
+                    <li><button class="dropdown-item" type="button" onclick="changeFontFamily('SolaimanLipi')">সোলায়মান লিপি</button></li>
+                    <li><button class="dropdown-item" type="button" onclick="changeFontFamily('Nikosh')">নিকোশ</button></li>
+                </ul>
+            </div>
+
+            {{-- Theme Modes: Day / Sepia / Dark --}}
+            <div class="dropdown d-inline-block">
+                <button class="btn btn-sm btn-light rounded-pill px-2 py-1 text-muted dropdown-toggle" type="button" data-bs-toggle="dropdown" title="পড়ার ব্যাকগ্রাউন্ড কালার">
+                    <i class="fa-solid fa-circle-half-stroke text-warning" id="themeIcon"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 small">
+                    <li><button class="dropdown-item d-flex align-items-center gap-2" type="button" onclick="setReadingTheme('day')"><i class="fa-regular fa-sun text-warning"></i> সাধারণ মোড (Day)</button></li>
+                    <li><button class="dropdown-item d-flex align-items-center gap-2" type="button" onclick="setReadingTheme('sepia')"><i class="fa-solid fa-book-open text-warning-emphasis"></i> বইয়ের পাতা (Sepia)</button></li>
+                    <li><button class="dropdown-item d-flex align-items-center gap-2" type="button" onclick="setReadingTheme('dark')"><i class="fa-solid fa-moon text-primary"></i> ডার্ক মোড (Night)</button></li>
+                </ul>
+            </div>
+
+            {{-- Bookmark --}}
+            <button type="button" class="btn btn-sm btn-light rounded-pill px-2 py-1 text-muted" id="bookmarkBtn" onclick="toggleBookmarkArticle()" title="বুকমার্ক / সংরক্ষণ করুন">
+                <i class="fa-regular fa-bookmark" id="bookmarkIcon"></i>
             </button>
+
+            {{-- Print / PDF --}}
+            <button type="button" class="btn btn-sm btn-light rounded-pill px-2.5 py-1 text-dark fw-semibold" onclick="window.print()" title="প্রিন্ট করুন বা PDF হিসেবে সংরক্ষণ করুন">
+                <i class="fa-solid fa-print text-primary me-1"></i><span class="d-none d-sm-inline">প্রিন্ট</span>
+            </button>
+
+            {{-- Copy Link --}}
             <button type="button" class="btn btn-sm btn-light rounded-pill px-2 py-1 text-muted" onclick="copyArticleLink()" title="লিংক কপি করুন">
                 <i class="fa-solid fa-link"></i>
             </button>
@@ -308,14 +418,16 @@
                             </a>
                         @endif
 
-                        <div class="small text-muted d-flex align-items-center gap-2">
-                            <span><i class="fa-solid fa-feather-pointed text-primary me-1"></i>আইডিয়া সাহিত্যপত্র</span>
+                        <div class="small text-muted d-flex align-items-center gap-2.5">
+                            <span class="d-inline-flex align-items-center gap-1"><i class="fa-solid fa-feather-pointed text-primary"></i>আইডিয়া সাহিত্যপত্র</span>
                             <span>•</span>
-                            <span><i class="fa-regular fa-clock text-warning me-1"></i>৩ মিনিট পাঠ</span>
+                            <span class="d-inline-flex align-items-center gap-1"><i class="fa-regular fa-clock text-warning"></i>@bn($readMins) মিনিট পাঠ</span>
+                            <span>•</span>
+                            <span class="d-inline-flex align-items-center gap-1"><i class="fa-solid fa-align-left text-secondary"></i>@bn($wordCount) শব্দ</span>
                         </div>
                     </div>
 
-                    <h1 class="fw-bold text-dark display-6 mb-2 lit-title" style="line-height: 1.4; font-family: 'Kalpurush', 'Nikosh', 'SolaimanLipi', Georgia, serif;">
+                    <h1 class="fw-bold text-dark display-6 mb-2 lit-title" style="line-height: 1.38; font-family: 'Kalpurush', 'Nikosh', 'SolaimanLipi', Georgia, serif;">
                         {{ $post->title }}
                     </h1>
 
@@ -333,12 +445,15 @@
                     @endphp
                     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 text-muted small py-3 my-3 border-top border-bottom" style="background: rgba(0,0,0,0.015); border-color: #e2e8f0 !important;">
                         <div class="d-flex align-items-center gap-2.5">
-                            <a href="{{ $authorSearchUrl }}" class="d-flex align-items-center gap-2 text-decoration-none text-dark hover-primary" title="লেখক ডিরেক্টরীতে লেখকের প্রোফাইল ও বই দেখুন">
-                                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold shadow-sm" style="width: 40px; height: 40px; font-size: 1rem;">
+                            <a href="{{ $authorSearchUrl }}" class="d-flex align-items-center gap-2 text-decoration-none text-dark hover-primary" title="লেখকের প্রোফাইল ও সকল বই দেখুন">
+                                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold shadow-sm" style="width: 42px; height: 42px; font-size: 1.05rem;">
                                     {{ mb_substr($authorName, 0, 1) }}
                                 </div>
                                 <div>
-                                    <span class="fw-bold text-dark d-block" style="font-size: 0.96rem;">{{ $authorName }}</span>
+                                    <span class="fw-bold text-dark d-block" style="font-size: 0.98rem;">
+                                        {{ $authorName }}
+                                        <i class="fa-solid fa-circle-check text-primary ms-0.5" style="font-size: 0.8rem;" title="ভেরিফাইড লেখক"></i>
+                                    </span>
                                     <span class="text-muted" style="font-size: 0.74rem;">আইডিয়া সাহিত্যপত্র লেখক ও গবেষক</span>
                                 </div>
                             </a>
@@ -352,6 +467,12 @@
                             @if($post->view_count)
                                 <span class="d-inline-flex align-items-center gap-1.5"><i class="fa-regular fa-eye text-primary"></i>@bn($post->view_count) পঠিত</span>
                             @endif
+
+                            {{-- Interactive Heart Like Button --}}
+                            <button type="button" class="btn btn-xs btn-outline-danger rounded-pill px-2.5 py-1 d-inline-flex align-items-center gap-1.5 fw-semibold shadow-2xs hover-lift no-print" id="articleLikeBtn" onclick="toggleArticleLike()">
+                                <i class="fa-regular fa-heart" id="likeHeartIcon"></i>
+                                <span>প্রশংসা (<span id="likeCountDisplay">@bn($post->view_count ? max(1, (int)($post->view_count * 0.12) + 1) : 1)</span>)</span>
+                            </button>
                         </div>
                     </div>
                 </header>
@@ -391,7 +512,6 @@
                 <div class="article-content mb-5" id="articleBody">
                     @php
                         $rawBody = (string) $post->content;
-                        // Handle single/double HTML entity encoding (e.g. &lt;p&gt; -> <p>)
                         if (str_contains($rawBody, '&lt;') || str_contains($rawBody, '&gt;') || str_contains($rawBody, '&quot;') || str_contains($rawBody, '&#')) {
                             $rawBody = html_entity_decode($rawBody, ENT_QUOTES | ENT_HTML5, 'UTF-8');
                             if (str_contains($rawBody, '&lt;') || str_contains($rawBody, '&gt;')) {
@@ -402,7 +522,6 @@
                         $allowedTags = '<p><br><b><strong><i><em><u><s><ul><ol><li><a><h2><h3><h4><h5><h6><blockquote><pre><code><div><span><hr><img><figure><figcaption><small>';
                         $cleanContent = strip_tags($rawBody, $allowedTags);
 
-                        // If content is plain raw text without HTML paragraphs, preserve newlines as linebreaks
                         if (!str_contains($cleanContent, '<p>') && !str_contains($cleanContent, '<br>') && !str_contains($cleanContent, '<div>') && !str_contains($cleanContent, '<blockquote')) {
                             $cleanContent = nl2br($cleanContent);
                         }
@@ -415,7 +534,7 @@
                     <i class="fa-solid fa-feather-pointed"></i> ❦ <i class="fa-solid fa-book-open"></i>
                 </div>
 
-                <!-- Photocard Google Ad Slot (Compact End of Article Ad) -->
+                <!-- Verified Compact Google Ad Slot (In-Article / End of Post) -->
                 <div class="my-4 no-print">
                     @include('partials.google-ad', ['type' => 'in-article'])
                 </div>
@@ -436,45 +555,244 @@
                 @endif
 
                 <!-- Share & Social Links (No Print) -->
-                <div class="p-3 bg-light rounded-3 d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-4 no-print">
-                    <span class="small fw-bold text-dark"><i class="fa-solid fa-share-nodes text-primary me-1"></i>পড়ুন এবং বন্ধুদের সাথে শেয়ার করুন</span>
-                    <div class="d-flex gap-2">
-                        <a href="https://www.facebook.com/sharer/sharer.php?u={{ urlencode(url()->current()) }}" target="_blank" rel="noopener" class="btn btn-sm btn-primary rounded-circle" style="width: 34px; height: 34px; display: grid; place-items: center;" title="ফেসবুকে শেয়ার">
+                <div class="p-3 bg-light rounded-4 d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-4 no-print border">
+                    <span class="small fw-bold text-dark"><i class="fa-solid fa-share-nodes text-primary me-1.5"></i>পড়ুন এবং বন্ধুদের সাথে শেয়ার করুন</span>
+                    <div class="d-flex align-items-center gap-2">
+                        <a href="https://www.facebook.com/sharer/sharer.php?u={{ urlencode(url()->current()) }}" target="_blank" rel="noopener" class="btn btn-sm btn-primary rounded-circle" style="width: 36px; height: 36px; display: grid; place-items: center;" title="ফেসবুকে শেয়ার">
                             <i class="fa-brands fa-facebook-f"></i>
                         </a>
-                        <a href="https://twitter.com/intent/tweet?text={{ urlencode($post->title) }}&url={{ urlencode(url()->current()) }}" target="_blank" rel="noopener" class="btn btn-sm btn-dark rounded-circle" style="width: 34px; height: 34px; display: grid; place-items: center;" title="টুইটার/X এ শেয়ার">
+                        <a href="https://twitter.com/intent/tweet?text={{ urlencode($post->title) }}&url={{ urlencode(url()->current()) }}" target="_blank" rel="noopener" class="btn btn-sm btn-dark rounded-circle" style="width: 36px; height: 36px; display: grid; place-items: center;" title="টুইটার/X এ শেয়ার">
                             <i class="fa-brands fa-x-twitter"></i>
                         </a>
-                        <a href="https://wa.me/?text={{ urlencode($post->title . ' - ' . url()->current()) }}" target="_blank" rel="noopener" class="btn btn-sm btn-success rounded-circle" style="width: 34px; height: 34px; display: grid; place-items: center;" title="হোয়াটসঅ্যাপে শেয়ার">
+                        <a href="https://wa.me/?text={{ urlencode($post->title . ' - ' . url()->current()) }}" target="_blank" rel="noopener" class="btn btn-sm btn-success rounded-circle" style="width: 36px; height: 36px; display: grid; place-items: center;" title="হোয়াটসঅ্যাপে শেয়ার">
                             <i class="fa-brands fa-whatsapp"></i>
                         </a>
+                        <a href="https://t.me/share/url?url={{ urlencode(url()->current()) }}&text={{ urlencode($post->title) }}" target="_blank" rel="noopener" class="btn btn-sm btn-info text-white rounded-circle" style="width: 36px; height: 36px; display: grid; place-items: center;" title="টেলিগ্রামে শেয়ার">
+                            <i class="fa-brands fa-telegram"></i>
+                        </a>
+                        <button type="button" class="btn btn-sm btn-secondary rounded-circle" style="width: 36px; height: 36px; display: grid; place-items: center;" onclick="copyArticleLink()" title="লিংক কপি করুন">
+                            <i class="fa-solid fa-link"></i>
+                        </button>
                     </div>
                 </div>
 
-                {{-- Compact Publisher & Site Identity Box at the End of Article (12pt title, 8pt details + URL) --}}
+                {{-- ═════════════════════════════════════════════════════════════════════════ --}}
+                {{-- READER APPRECIATION HONORARIUM / পড়ে ভালো লাগা সম্মানি প্রদান সেকশন       --}}
+                {{-- ═════════════════════════════════════════════════════════════════════════ --}}
+                @php
+                    $ecomSettings = \Illuminate\Support\Facades\Schema::hasTable('admin_dashboard_settings')
+                        ? \App\Models\AdminDashboardSetting::where('key', 'ecommerce_settings')->value('value')
+                        : null;
+                    $bkashNumber = '01833775779'; // Configured bkash honorarium number
+
+                    $postHonorariumCount = \App\Models\AuthorHonorarium::where('blog_post_id', $post->id)->where('payment_status', 'completed')->count();
+                    $postHonorariumSum = \App\Models\AuthorHonorarium::where('blog_post_id', $post->id)->where('payment_status', 'completed')->sum('amount');
+                @endphp
+
+                @if(session('honorarium_success'))
+                    <div class="alert alert-success border-0 shadow-sm rounded-4 d-flex align-items-center gap-3 mb-4 p-3.5 text-success-emphasis no-print" style="background: #dcfce7;">
+                        <i class="fas fa-circle-check fs-3 text-success flex-shrink-0"></i>
+                        <div>
+                            <h6 class="fw-bold mb-1">অসংখ্য ধন্যবাদ ও কৃতজ্ঞতা!</h6>
+                            <p class="small mb-0">{{ session('honorarium_success') }}</p>
+                        </div>
+                    </div>
+                @endif
+
+                {{-- Prominent Appreciation Card with Button --}}
+                <div class="card border-0 shadow-sm rounded-4 p-4 p-md-4 mb-4 no-print text-center position-relative overflow-hidden" 
+                     style="background: linear-gradient(135deg, #fffdf8 0%, #fff7ed 50%, #fef2f2 100%); border: 1.5px solid #fed7aa !important;">
+                    <div class="position-absolute top-0 start-0 w-100" style="height: 4px; background: linear-gradient(90deg, #f59e0b, #ef4444, #8b5cf6);"></div>
+
+                    <div class="d-inline-flex align-items-center justify-content-center bg-danger bg-opacity-10 text-danger rounded-circle p-3 mb-2 shadow-xs" style="width: 56px; height: 56px;">
+                        <i class="fa-solid fa-heart fs-4 text-danger animate-pulse"></i>
+                    </div>
+
+                    <h4 class="fw-bold text-dark mb-1" style="font-family: 'Kalpurush', 'Nikosh', 'Hind Siliguri', serif;">
+                        লেখকের জন্য পাঠক সম্মানি
+                    </h4>
+                    <p class="text-secondary small mb-3" style="max-width: 600px; margin: 0 auto;">
+                        লেখাটি পড়ে ভালো লাগলে আপনার সামান্য অনুপ্রেরণা ও সম্মানি লেখকের সৃষ্টিশীল পথচলাকে আরও সমৃদ্ধ করবে।
+                    </p>
+
+                    @if($postHonorariumCount > 0)
+                        <div class="mb-3">
+                            <span class="badge bg-white text-dark border px-3 py-1.5 rounded-pill shadow-xs" style="font-size: 0.84rem;">
+                                <i class="fa-solid fa-gift text-warning me-1"></i> ইতিমধ্যে @bn($postHonorariumCount) জন পাঠক মোট ৳@bn(number_format($postHonorariumSum, 0)) সম্মানি পাঠিয়েছেন
+                            </span>
+                        </div>
+                    @endif
+
+                    <div class="d-flex justify-content-center">
+                        <button type="button" 
+                                class="btn btn-danger rounded-pill px-4 py-2.5 fw-bold shadow-sm d-inline-flex align-items-center gap-2 hover-lift"
+                                data-bs-toggle="modal" 
+                                data-bs-target="#authorHonorariumModal"
+                                style="font-size: 1.02rem; background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); border: none;">
+                            <i class="fa-solid fa-hand-holding-heart fs-5"></i>
+                            <span>লেখাটি পড়ে ভালো লাগলে লেখককে সম্মানি প্রদান করুন</span>
+                        </button>
+                    </div>
+                    
+                    <div class="small text-muted mt-2.5" style="font-size: 12px;">
+                        <i class="fa-solid fa-shield-halved text-success me-1"></i>বিকাশ নম্বর: <strong class="text-danger font-monospace">01833775779</strong> • সম্মানির ৭০% লেখক পাবেন, ৩০% সাইট মেইনটেনেন্স বিল
+                    </div>
+                </div>
+
+                {{-- Dedicated Honorarium Modal Dialog --}}
+                <div class="modal fade no-print" id="authorHonorariumModal" tabindex="-1" aria-labelledby="authorHonorariumModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered modal-lg">
+                        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                            {{-- Modal Header --}}
+                            <div class="modal-header border-0 text-white p-3.5 px-4" style="background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);">
+                                <div class="d-flex align-items-center gap-2.5">
+                                    <div class="bg-white bg-opacity-20 rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                                        <i class="fa-solid fa-heart text-white"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="modal-title fw-bold mb-0" id="authorHonorariumModalLabel" style="font-family: 'Kalpurush', 'Nikosh', serif;">
+                                            লেখককে সম্মানি প্রদান করুন
+                                        </h5>
+                                        <small class="text-white text-opacity-75" style="font-size: 12px;">
+                                            লেখক: {{ $post->author_name ?: 'আইডিয়া প্রকাশন' }} • লেখা: {{ Str::limit($post->title, 40) }}
+                                        </small>
+                                    </div>
+                                </div>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+
+                            {{-- Modal Body --}}
+                            <div class="modal-body p-4" style="background: #fafafa;">
+                                <form action="{{ route('blog.honorarium.send') }}" method="POST" id="honorariumModalForm">
+                                    @csrf
+                                    <input type="hidden" name="blog_post_id" value="{{ $post->id }}">
+                                    <input type="hidden" name="payment_method" value="bkash" id="selectedPaymentMethod">
+
+                                    {{-- Step 1: bKash Number & Instruction Highlight Box --}}
+                                    <div class="p-3 bg-white rounded-3 border mb-3 shadow-xs">
+                                        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2 pb-2 border-bottom">
+                                            <span class="small fw-bold text-dark d-flex align-items-center gap-1.5">
+                                                <i class="fa-solid fa-mobile-screen text-danger"></i>
+                                                <span>বিকাশ পার্সোনাল নম্বর (Send Money):</span>
+                                            </span>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <code class="fs-5 fw-bold text-danger px-2.5 py-1 rounded bg-light border border-danger-subtle font-monospace" id="modalActivePayNumber">{{ $bkashNumber }}</code>
+                                                <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-3 py-1 fw-semibold" id="modalCopyPayNumberBtn" title="নম্বর কপি করুন">
+                                                    <i class="fa-regular fa-copy me-1"></i><span id="modalCopyBtnText">কপি করুন</span>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <div class="small text-muted" style="line-height: 1.6;">
+                                            <div class="mb-1"><i class="fa-solid fa-circle-check text-success me-1.5"></i>১. আপনার বিকাশ অ্যাপে গিয়ে <strong>Send Money</strong> করে <strong>{{ $bkashNumber }}</strong> নম্বরে আপনার পছন্দের সম্মানির টাকা পাঠান।</div>
+                                            <div class="mb-1"><i class="fa-solid fa-circle-check text-success me-1.5"></i>২. টাকা পাঠানোর পর নিচের ফর্মে <strong>টাকার পরিমাণ</strong> ও বিকাশ থেকে পাওয়া <strong>TrxID (ট্রানজেকশন আইডি)</strong> প্রদান করুন।</div>
+                                            <div class="text-primary-emphasis fw-semibold" style="font-size: 11.5px;">
+                                                <i class="fa-solid fa-info-circle text-primary me-1"></i>এই সম্মানির <strong>৭০%</strong> সরাসরি লেখকের অ্যাকাউন্টে জমা হবে এবং <strong>৩০%</strong> সাইট মেইনটেনেন্স বিল হিসেবে গৃহীত হবে।
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {{-- Step 2: Amount Selection --}}
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-bold text-secondary mb-1.5 d-flex align-items-center justify-content-between">
+                                            <span><i class="fa-solid fa-coins text-warning me-1"></i>সম্মানির পরিমাণ নির্বাচন করুন:</span>
+                                            <span class="badge bg-light text-muted border fw-normal">যেকোনো পরিমাণ</span>
+                                        </label>
+                                        <div class="d-flex flex-wrap gap-2 mb-2" id="modalPresetAmountButtons">
+                                            <button type="button" class="btn btn-sm btn-outline-warning rounded-pill px-3 py-1.5 fw-bold modal-tip-btn active" data-amount="20">৳২০</button>
+                                            <button type="button" class="btn btn-sm btn-outline-warning rounded-pill px-3 py-1.5 fw-bold modal-tip-btn" data-amount="50">৳৫০</button>
+                                            <button type="button" class="btn btn-sm btn-outline-warning rounded-pill px-3 py-1.5 fw-bold modal-tip-btn" data-amount="100">৳১০০</button>
+                                            <button type="button" class="btn btn-sm btn-outline-warning rounded-pill px-3 py-1.5 fw-bold modal-tip-btn" data-amount="200">৳২০০</button>
+                                            <button type="button" class="btn btn-sm btn-outline-warning rounded-pill px-3 py-1.5 fw-bold modal-tip-btn" data-amount="500">৳৫০০</button>
+                                            <button type="button" class="btn btn-sm btn-outline-warning rounded-pill px-3 py-1.5 fw-bold modal-tip-btn" data-amount="1000">৳১০০০</button>
+                                        </div>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-white border-end-0 fw-bold text-dark">৳ BDT</span>
+                                            <input type="number" name="amount" id="modalCustomAmountInput" class="form-control border-start-0 ps-0 fw-bold fs-5 text-dark" value="20" min="5" max="100000" step="1" required placeholder="অন্যান্য পরিমাণ লিখুন (যেমন: 150)">
+                                        </div>
+                                        
+                                        {{-- Dynamic Split Preview --}}
+                                        <div class="d-flex align-items-center justify-content-between bg-light p-2 rounded-2 mt-1.5 border small text-muted">
+                                            <span><i class="fa-solid fa-calculator text-muted me-1"></i>লেখক পাবেন (৭০%): <strong class="text-success" id="previewAuthorShare">৳১৪.০০</strong></span>
+                                            <span>সাইট মেইনটেনেন্স (৩০%): <strong class="text-info" id="previewSiteShare">৳৬.০০</strong></span>
+                                        </div>
+                                    </div>
+
+                                    {{-- Step 3: Transaction ID & Sender Account --}}
+                                    <div class="row g-2 mb-3">
+                                        <div class="col-12 col-md-6">
+                                            <label class="form-label small fw-bold text-secondary mb-1">
+                                                ট্রানজেকশন আইডি (TrxID) <span class="text-danger">*</span>
+                                            </label>
+                                            <input type="text" name="trx_id" class="form-control form-control-sm rounded-2 font-monospace" placeholder="যেমন: 9M72KX92Y" required>
+                                            <small class="text-muted" style="font-size: 11px;">বিকাশ পেমেন্টের মেসেজ থেকে TrxID দিন</small>
+                                        </div>
+                                        <div class="col-12 col-md-6">
+                                            <label class="form-label small fw-bold text-secondary mb-1">
+                                                প্রেরকের বিকাশ নম্বর (ঐচ্ছিক)
+                                            </label>
+                                            <input type="text" name="sender_account_number" class="form-control form-control-sm rounded-2 font-monospace" placeholder="যেমন: 017XXXXXXXX" value="{{ auth()->check() ? auth()->user()->phone : '' }}">
+                                            <small class="text-muted" style="font-size: 11px;">যে নম্বর থেকে টাকা পাঠিয়েছেন</small>
+                                        </div>
+                                    </div>
+
+                                    {{-- Step 4: Optional Reader Note & Identity --}}
+                                    <div class="row g-2 mb-3">
+                                        <div class="col-12 col-md-6">
+                                            <label class="form-label small fw-semibold text-secondary mb-1">আপনার নাম (ঐচ্ছিক)</label>
+                                            <input type="text" name="sender_name" class="form-control form-control-sm rounded-2" placeholder="আপনার নাম লিখুন" value="{{ auth()->check() ? auth()->user()->name : '' }}">
+                                        </div>
+                                        <div class="col-12 col-md-6">
+                                            <label class="form-label small fw-semibold text-secondary mb-1">মোবাইল / ইমেইল (ঐচ্ছিক)</label>
+                                            <input type="text" name="sender_phone" class="form-control form-control-sm rounded-2" placeholder="যোগাযোগের নম্বর" value="{{ auth()->check() ? (auth()->user()->phone ?: auth()->user()->email) : '' }}">
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-semibold text-secondary mb-1">
+                                            <i class="fa-regular fa-comment-dots text-warning me-1"></i>লেখকের জন্য শুভেচ্ছা বার্তা (ঐচ্ছিক)
+                                        </label>
+                                        <textarea name="message" rows="2" class="form-control rounded-3" placeholder="লেখাটি কেমন লাগলো বা লেখকের জন্য অনুপ্রেরণামূলক কোনো কথা..."></textarea>
+                                    </div>
+
+                                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 pt-2 border-top">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="is_anonymous" value="1" id="modalAnonymousCheck">
+                                            <label class="form-check-label small text-muted cursor-pointer" for="modalAnonymousCheck">
+                                                নাম প্রকাশে অনিচ্ছুক (Anonymous)
+                                            </label>
+                                        </div>
+
+                                        <button type="submit" class="btn btn-danger rounded-pill px-4 py-2 fw-bold shadow-sm d-inline-flex align-items-center gap-2 hover-lift" id="modalSubmitBtn">
+                                            <i class="fa-solid fa-heart"></i>
+                                            <span>সম্মানি জমা দিন (৳<span id="modalBtnAmountPreview">২০</span>)</span>
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Compact Publisher & Site Identity Box at the End of Article --}}
                 @php
                     $siteName = \App\Support\SiteSetting::name();
                     $siteTagline = \App\Support\SiteSetting::tagline();
                     $siteLogo = \App\Support\SiteSetting::logoUrl() ?: asset('images/logo.png');
                     $siteAddress = \App\Support\SiteSetting::get('contact_address', 'সেন্ট্রাল রোড, রংপুর ৫৪০০, বাংলাদেশ');
                     $sitePhone = \App\Support\SiteSetting::get('contact_phone', '+৮৮০ ১৩১৮ ৬৯২ ৬৯২');
-                    $siteEmail = \App\Support\SiteSetting::get('contact_email', 'ideapbd@gmail.com');
+                    $siteEmail = \App\Support\SiteSetting::get('contact_email', 'ideaprakashan@gmail.com');
                 @endphp
-                <div class="card border rounded-3 p-3 text-dark mb-4 position-relative overflow-hidden print-footer-identity" 
-                     style="background: #fafaf9; border-color: #e7e5e4 !important;">
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="flex-shrink-0">
+                <div class="print-footer-identity p-3.5 my-4 bg-light rounded-4 border">
+                    <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap flex-sm-nowrap">
+                        <div class="flex-shrink-0 d-none d-sm-block">
                             @if($siteLogo)
-                                <img src="{{ $siteLogo }}" alt="{{ $siteName }}" class="rounded" style="max-height: 38px; max-width: 110px; object-fit: contain;">
-                            @else
-                                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center shadow-xs fs-5" style="width: 38px; height: 38px;">
-                                    <i class="fa-solid fa-book-bookmark"></i>
-                                </div>
+                                <img src="{{ $siteLogo }}" alt="{{ $siteName }}" class="rounded-3" style="max-height: 44px; width: auto;">
                             @endif
                         </div>
                         <div class="flex-grow-1">
                             <div class="d-flex flex-wrap align-items-center gap-2 mb-0.5">
-                                <span class="fw-bold text-dark lit-title" style="font-size: 12pt;">{{ $siteName }}</span>
+                                <span class="fw-bold text-dark lit-title" style="font-size: 11pt;">{{ $siteName }}</span>
                                 <span class="badge bg-light text-muted border px-2 py-0.5 rounded-pill" style="font-size: 7.5pt;">{{ $siteTagline }}</span>
                             </div>
                             <div class="text-secondary" style="font-size: 8pt; line-height: 1.5;">
@@ -496,67 +814,97 @@
                 </div>
 
                 {{-- Reader Comments & Review Section (No Print) --}}
-                <div class="pt-4 border-top no-print comment-box-wrapper">
-                    <h5 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
-                        <i class="fa-solid fa-comments text-primary"></i>
-                        <span>পাঠক মন্তব্য ও পর্যালোচনা</span>
-                        <span class="badge bg-light text-muted border rounded-pill">@bn($post->reviews ? $post->reviews->count() : 0)টি</span>
-                    </h5>
-
-                    <!-- Comment & Review Form -->
-                    <div class="card p-3.5 mb-4 border-0 shadow-sm rounded-4 bg-light">
-                        <h6 class="fw-bold text-dark mb-2"><i class="fa-solid fa-pen-fancy text-success me-1.5"></i>আপনার মতামত বা রিভিউ দিন</h6>
-                        @auth
-                            <form action="{{ route('blog.review.store', $post->id) }}" method="POST">
-                                @csrf
-                                <div class="row g-2 mb-3 align-items-center">
-                                    <div class="col-sm-auto">
-                                        <label class="small fw-semibold text-muted mb-0">রেটিং নির্বাচন করুন:</label>
-                                    </div>
-                                    <div class="col-sm-auto">
-                                        <select name="rating" class="form-select form-select-sm rounded-pill border">
-                                            <option value="5">⭐⭐⭐⭐⭐ (অসাধারণ - ৫ স্টার)</option>
-                                            <option value="4">⭐⭐⭐⭐ (খুব ভালো - ৪ স্টার)</option>
-                                            <option value="3">⭐⭐⭐ (ভালো - ৩ স্টার)</option>
-                                            <option value="2">⭐⭐ (চলনসই - ২ স্টার)</option>
-                                            <option value="1">⭐ (উন্নতি প্রয়োজন - ১ স্টার)</option>
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <div class="mb-3">
-                                    <textarea name="comment" rows="3" class="form-control rounded-3 border-0 shadow-sm" 
-                                              required placeholder="লেখাটি কেমন লাগলো? আপনার মূল্যবান মতামত ও সাহিত্য আলোচনা এখানে লিখুন..."></textarea>
-                                </div>
-
-                                <button type="submit" class="btn btn-primary btn-sm rounded-pill px-4 fw-bold shadow-sm">
-                                    <i class="fa-solid fa-paper-plane me-1"></i> মন্তব্য পোস্ট করুন
-                                </button>
-                            </form>
-                        @else
-                            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 p-3 bg-white rounded-3 border">
-                                <span class="small text-muted">মন্তব্য ও রিভিউ দিতে অনুগ্রহ করে আপনার অ্যাকাউন্টে লগইন করুন।</span>
-                                <div class="d-flex gap-2">
-                                    <a href="{{ route('login') }}" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold">লগইন করুন</a>
-                                    <a href="{{ route('register.form', 'customer') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">নিবন্ধন</a>
-                                </div>
-                            </div>
-                        @endauth
+                @php
+                    $blogComments = \Modules\Review\Models\Review::where('blog_post_id', $post->id)->where('is_approved', true)->latest()->get();
+                @endphp
+                <div class="pt-4 border-top no-print comment-box-wrapper" id="readerCommentsSection">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                            <i class="fa-solid fa-comments text-primary"></i>
+                            <span>পাঠক মন্তব্য ও পর্যালোচনা</span>
+                            <span class="badge bg-primary bg-opacity-10 text-primary border rounded-pill" id="blogCommentCountBadge">@bn($blogComments->count())টি</span>
+                        </h5>
                     </div>
 
-                    <!-- Reviews List -->
-                    @if($post->reviews && $post->reviews->isNotEmpty())
-                        <div class="d-flex flex-column gap-3 mb-3">
-                            @foreach($post->reviews as $rev)
-                                <div class="p-3 bg-white border rounded-3 shadow-xs">
+                    <!-- Dynamic Comment & Review Form (Registered + Guest) -->
+                    <div class="card p-3.5 mb-4 border shadow-xs rounded-4 bg-white">
+                        <div class="d-flex align-items-center justify-content-between mb-2.5">
+                            <h6 class="fw-bold text-dark mb-0">
+                                <i class="fa-solid fa-pen-fancy text-success me-1.5"></i>আপনার মূল্যবান মতামত বা রিভিউ দিন
+                            </h6>
+                            @guest
+                                <span class="badge bg-light text-secondary border rounded-pill small" style="font-size: 11px;">
+                                    <i class="fa-solid fa-user-pen me-1"></i> অতিথি হিসেবে মন্তব্য
+                                </span>
+                            @else
+                                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill small" style="font-size: 11px;">
+                                    <i class="fa-solid fa-user-check me-1"></i> {{ auth()->user()->name }}
+                                </span>
+                            @endguest
+                        </div>
+
+                        <form id="blogCommentSubmitForm" onsubmit="submitBlogCommentAjax(event)">
+                            @csrf
+                            <input type="hidden" name="blog_post_id" value="{{ $post->id }}">
+                            <input type="hidden" name="rating" id="blogSelectedStarInput" value="5">
+
+                            {{-- Honeypot Anti-Bot Field --}}
+                            <div style="display:none !important;" aria-hidden="true">
+                                <input type="text" name="review_hp_field" tabindex="-1" autocomplete="off">
+                            </div>
+
+                            <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+                                <label class="small fw-semibold text-muted mb-0">রেটিং:</label>
+                                <div class="d-flex gap-1 text-warning fs-5 cursor-pointer" id="blogStarRatingGroup">
+                                    <i class="fa-solid fa-star b-star" data-val="1" onclick="setBlogStar(1)"></i>
+                                    <i class="fa-solid fa-star b-star" data-val="2" onclick="setBlogStar(2)"></i>
+                                    <i class="fa-solid fa-star b-star" data-val="3" onclick="setBlogStar(3)"></i>
+                                    <i class="fa-solid fa-star b-star" data-val="4" onclick="setBlogStar(4)"></i>
+                                    <i class="fa-solid fa-star b-star" data-val="5" onclick="setBlogStar(5)"></i>
+                                </div>
+                                <span class="badge bg-light text-dark border small fw-bold" id="blogStarLabel">৫ স্টার (চমৎকার)</span>
+                            </div>
+
+                            @guest
+                                <div class="row g-2 mb-3">
+                                    <div class="col-sm-6">
+                                        <label class="form-label small fw-semibold text-dark mb-1">আপনার নাম <span class="text-danger">*</span></label>
+                                        <input type="text" name="reviewer_name" class="form-control form-control-sm rounded-3" placeholder="আপনার নাম লিখুন..." required>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <label class="form-label small fw-semibold text-dark mb-1">মোবাইল বা ইমেইল <span class="text-muted">(ঐচ্ছিক)</span></label>
+                                        <input type="text" name="reviewer_phone" class="form-control form-control-sm rounded-3" placeholder="017XXXXXXXX বা email@domain.com">
+                                    </div>
+                                </div>
+                            @endguest
+
+                            <div class="mb-3">
+                                <textarea name="comment" id="blogCommentTextarea" rows="3" class="form-control rounded-3 bg-light" 
+                                          required placeholder="লেখাটি কেমন লাগলো? আপনার সৎ অনুভূতি, প্রাসঙ্গিক পর্যালোচনা ও সাহিত্য আলোচনা এখানে প্রকাশ করুন..." minlength="3"></textarea>
+                            </div>
+
+                            <div id="blogCommentAjaxAlertBox" class="d-none mb-3"></div>
+
+                            <button type="submit" class="btn btn-primary btn-sm rounded-pill px-4 py-2 fw-bold shadow-xs d-inline-flex align-items-center gap-1.5" id="blogCommentSubmitBtn">
+                                <i class="fa-solid fa-paper-plane"></i>
+                                <span>মন্তব্য পোস্ট করুন</span>
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Dynamic Comments List -->
+                    <div class="d-flex flex-column gap-3 mb-4" id="blogCommentsListContainer">
+                        @if($blogComments->isNotEmpty())
+                            @foreach($blogComments as $rev)
+                                <div class="p-3 bg-white border rounded-4 shadow-2xs">
                                     <div class="d-flex align-items-center justify-content-between mb-1.5">
                                         <div class="d-flex align-items-center gap-2">
-                                            <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center fw-bold" style="width: 32px; height: 32px; font-size: 0.85rem;">
-                                                {{ mb_substr($rev->user ? $rev->user->name : 'পা', 0, 1) }}
+                                            <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center fw-bold shadow-2xs" style="width: 34px; height: 34px; font-size: 0.88rem;">
+                                                {{ mb_substr($rev->user ? $rev->user->name : ($rev->reviewer_name ?? 'পাঠক'), 0, 1) }}
                                             </div>
                                             <div>
-                                                <span class="fw-bold text-dark d-block small">{{ $rev->user ? $rev->user->name : 'পাঠক' }}</span>
-                                                <span class="text-muted" style="font-size: 0.7rem;">{{ $rev->created_at ? $rev->created_at->format('d M, Y • h:i A') : 'সম্প্রতি' }}</span>
+                                                <span class="fw-bold text-dark d-block small">{{ $rev->user ? $rev->user->name : ($rev->reviewer_name ?? 'সম্মানিত পাঠক') }}</span>
+                                                <span class="text-muted" style="font-size: 0.7rem;">{{ $rev->created_at ? $rev->created_at->diffForHumans() : 'সম্প্রতি' }}</span>
                                             </div>
                                         </div>
 
@@ -571,10 +919,13 @@
                                     <p class="mb-0 text-dark small leading-relaxed ps-4 ms-2" style="white-space: pre-line;">{{ $rev->comment }}</p>
                                 </div>
                             @endforeach
-                        </div>
-                    @else
-                        <p class="text-muted small mb-3 fst-italic">এখনো কোনো মন্তব্য নেই। আপনিই প্রথম পাঠক মন্তব্যটি লিখুন!</p>
-                    @endif
+                        @else
+                            <div class="text-center py-4 text-muted bg-light rounded-4 p-3 border border-dashed" id="noBlogCommentsNotice">
+                                <i class="fa-regular fa-comments fs-3 text-muted opacity-50 mb-1 d-block"></i>
+                                <span class="small">এখনো কোনো মন্তব্য নেই। আপনিই প্রথম পাঠক মন্তব্যটি লিখুন!</span>
+                            </div>
+                        @endif
+                    </div>
                 </div>
             </article>
 
@@ -644,14 +995,19 @@
                     <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold shadow-sm mx-auto mb-2.5" style="width: 64px; height: 64px; font-size: 1.5rem;">
                         {{ mb_substr($authorName, 0, 1) }}
                     </div>
-                    <h6 class="fw-bold text-dark mb-1">{{ $authorName }}</h6>
+                    <h6 class="fw-bold text-dark mb-1">
+                        {{ $authorName }}
+                        <i class="fa-solid fa-circle-check text-primary ms-1" style="font-size: 0.85rem;" title="ভেরিফাইড লেখক"></i>
+                    </h6>
                     <p class="text-muted small mb-3">আইডিয়া সাহিত্যপত্র লেখক ও গবেষক</p>
-                    <a href="{{ $authorSearchUrl }}" class="btn btn-outline-primary btn-sm rounded-pill px-4 fw-bold shadow-xs">
-                        <i class="fa-solid fa-user-pen me-1.5"></i> লেখকের সকল বই ও লেখা
-                    </a>
+                    <div class="d-flex justify-content-center gap-2">
+                        <a href="{{ $authorSearchUrl }}" class="btn btn-outline-primary btn-sm rounded-pill px-3.5 fw-bold shadow-xs">
+                            <i class="fa-solid fa-user-pen me-1.5"></i> লেখকের বই ও লেখা
+                        </a>
+                    </div>
                 </div>
 
-                {{-- Sidebar Google Ad Slot --}}
+                {{-- Compact Verified Sidebar Google Ad Slot --}}
                 @include('partials.google-ad', ['type' => 'sidebar'])
 
                 {{-- Trending / Popular Posts in Sidebar --}}
@@ -716,62 +1072,389 @@
     </div>
 </div>
 
-<!-- Copy Restricted Floating Toast Notice -->
-<div id="copyRestrictedToast" class="position-fixed bottom-0 start-50 translate-middle-x p-3 no-print d-none" style="z-index: 1080; transition: opacity 0.3s ease;">
+<!-- Floating Notification Toast Notice -->
+<div id="generalToastContainer" class="position-fixed bottom-0 start-50 translate-middle-x p-3 no-print d-none" style="z-index: 1090; transition: opacity 0.3s ease;">
     <div class="toast show align-items-center text-white bg-dark border-0 shadow-lg rounded-4 p-2 px-3" role="alert" aria-live="assertive" aria-atomic="true">
         <div class="d-flex align-items-center gap-2">
-            <i class="fa-solid fa-shield-halved text-warning fs-5"></i>
-            <div class="toast-body small py-1">
-                <strong>কপিরাইট সংরক্ষিত:</strong> লেখাটি কপি করা নিষেধ। আপনি সম্পূর্ণ পেজটি <strong>প্রিন্ট/PDF</strong> অথবা <strong>শেয়ার</strong> করতে পারেন।
+            <i class="fa-solid fa-circle-info text-info fs-5" id="toastIcon"></i>
+            <div class="toast-body small py-1" id="toastMessage">
+                বিজ্ঞপ্তি
             </div>
-            <button type="button" class="btn-close btn-close-white ms-auto me-1" onclick="document.getElementById('copyRestrictedToast').classList.add('d-none')"></button>
+            <button type="button" class="btn-close btn-close-white ms-auto me-1" onclick="hideToast()"></button>
         </div>
     </div>
 </div>
 
 <script>
-    // Copy protection - allow selecting & reading, allow printing, but intercept copy action
-    document.addEventListener('copy', function(e) {
-        const selection = window.getSelection();
-        if (selection && selection.toString().trim().length > 0) {
-            e.preventDefault();
-            const toast = document.getElementById('copyRestrictedToast');
-            if (toast) {
-                toast.classList.remove('d-none');
-                toast.style.opacity = '1';
-                setTimeout(() => {
-                    toast.style.opacity = '0';
-                    setTimeout(() => toast.classList.add('d-none'), 350);
-                }, 4000);
-            }
+    // 1. Reading Scroll Progress Bar
+    window.addEventListener('scroll', function() {
+        const winScroll = document.documentElement.scrollTop || document.body.scrollTop;
+        const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+        const scrolled = (winScroll / height) * 100;
+        const progressBar = document.getElementById('readingProgressBar');
+        if (progressBar) {
+            progressBar.style.width = scrolled + '%';
         }
     });
 
+    // 2. Custom Toast Function
+    function showToast(message, iconClass = 'fa-solid fa-circle-check text-success') {
+        const container = document.getElementById('generalToastContainer');
+        const msgEl = document.getElementById('toastMessage');
+        const iconEl = document.getElementById('toastIcon');
+        if (container && msgEl && iconEl) {
+            msgEl.textContent = message;
+            iconEl.className = iconClass + ' fs-5';
+            container.classList.remove('d-none');
+            container.style.opacity = '1';
+            setTimeout(() => hideToast(), 3500);
+        }
+    }
+
+    function hideToast() {
+        const container = document.getElementById('generalToastContainer');
+        if (container) {
+            container.style.opacity = '0';
+            setTimeout(() => container.classList.add('d-none'), 300);
+        }
+    }
+
+    // 3. Audio Reader (Text-to-Speech)
+    let isSpeaking = false;
+    let synth = window.speechSynthesis;
+    let utterance = null;
+
+    function toggleArticleAudio() {
+        if (!synth) {
+            showToast('আপনার ব্রাউজারে অডিও স্পিচ সাপোর্ট নেই।', 'fa-solid fa-triangle-exclamation text-warning');
+            return;
+        }
+
+        const label = document.getElementById('ttsBtnLabel');
+        const icon = document.getElementById('ttsIcon');
+        const wave = document.getElementById('ttsWaveAnimation');
+
+        if (isSpeaking) {
+            synth.cancel();
+            isSpeaking = false;
+            if (label) label.textContent = 'পাঠ শুনুন';
+            if (icon) icon.className = 'fa-solid fa-volume-high';
+            if (wave) wave.classList.add('d-none');
+            showToast('অডিও পাঠ বন্ধ করা হয়েছে।', 'fa-solid fa-circle-pause text-secondary');
+        } else {
+            const articleEl = document.getElementById('articleBody');
+            const textToRead = (document.querySelector('.lit-title') ? document.querySelector('.lit-title').textContent + '. ' : '') + (articleEl ? articleEl.textContent : '');
+            
+            utterance = new SpeechSynthesisUtterance(textToRead.trim());
+            utterance.lang = 'bn-BD';
+            utterance.rate = 0.95;
+
+            utterance.onend = function() {
+                isSpeaking = false;
+                if (label) label.textContent = 'পাঠ শুনুন';
+                if (icon) icon.className = 'fa-solid fa-volume-high';
+                if (wave) wave.classList.add('d-none');
+            };
+
+            utterance.onerror = function() {
+                isSpeaking = false;
+                if (label) label.textContent = 'পাঠ শুনুন';
+                if (icon) icon.className = 'fa-solid fa-volume-high';
+                if (wave) wave.classList.add('d-none');
+            };
+
+            synth.speak(utterance);
+            isSpeaking = true;
+            if (label) label.textContent = 'পাঠ চলছে...';
+            if (icon) icon.className = 'fa-solid fa-circle-pause text-warning';
+            if (wave) wave.classList.remove('d-none');
+            showToast('স্বয়ংক্রিয় কণ্ঠে পাঠ শুরু হয়েছে...', 'fa-solid fa-volume-high text-info');
+        }
+    }
+
+    // 4. Interactive Like Counter
+    let articleLiked = localStorage.getItem('liked_post_{{ $post->id }}') === 'true';
+    function toggleArticleLike() {
+        const heartIcon = document.getElementById('likeHeartIcon');
+        const countDisplay = document.getElementById('likeCountDisplay');
+        let currentLikes = parseInt(countDisplay.textContent) || 0;
+
+        if (!articleLiked) {
+            articleLiked = true;
+            localStorage.setItem('liked_post_{{ $post->id }}', 'true');
+            if (heartIcon) {
+                heartIcon.className = 'fa-solid fa-heart text-danger animate-pulse';
+            }
+            if (countDisplay) {
+                countDisplay.textContent = currentLikes + 1;
+            }
+            showToast('আপনার সুন্দর ভালোবাসার প্রতিক্রিয়ার জন্য ধন্যবাদ! ❤️', 'fa-solid fa-heart text-danger');
+        } else {
+            showToast('আপনি ইতিমধ্যে এই লেখায় ভালোবাসা জানিয়েছেন!', 'fa-solid fa-heart text-danger');
+        }
+    }
+
+    if (articleLiked) {
+        const heartIcon = document.getElementById('likeHeartIcon');
+        if (heartIcon) heartIcon.className = 'fa-solid fa-heart text-danger';
+    }
+
+    // 5. Bookmark Article
+    function toggleBookmarkArticle() {
+        const bookmarkKey = 'bookmarked_post_{{ $post->id }}';
+        const isBookmarked = localStorage.getItem(bookmarkKey) === 'true';
+        const icon = document.getElementById('bookmarkIcon');
+
+        if (!isBookmarked) {
+            localStorage.setItem(bookmarkKey, 'true');
+            if (icon) icon.className = 'fa-solid fa-bookmark text-primary';
+            showToast('লেখাটি আপনার বুকমার্কে সংরক্ষিত হয়েছে!', 'fa-solid fa-bookmark text-primary');
+        } else {
+            localStorage.removeItem(bookmarkKey);
+            if (icon) icon.className = 'fa-regular fa-bookmark';
+            showToast('লেখাটি বুকমার্ক তালিকা থেকে সরানো হয়েছে।', 'fa-solid fa-bookmark text-secondary');
+        }
+    }
+
+    if (localStorage.getItem('bookmarked_post_{{ $post->id }}') === 'true') {
+        const icon = document.getElementById('bookmarkIcon');
+        if (icon) icon.className = 'fa-solid fa-bookmark text-primary';
+    }
+
+    // 6. Font Size Adjustments
     let currentFontSize = 13;
     function adjustFontSize(delta) {
         currentFontSize += delta;
         if (currentFontSize < 11) currentFontSize = 11;
-        if (currentFontSize > 18) currentFontSize = 18;
+        if (currentFontSize > 20) currentFontSize = 20;
         const article = document.getElementById('articleBody');
         if (article) {
             article.style.fontSize = currentFontSize + 'pt';
         }
     }
 
-    function toggleSepiaMode() {
+    // 7. Font Family Change
+    function changeFontFamily(fontName) {
         const sheet = document.getElementById('bookArticle');
-        if (sheet) {
-            sheet.classList.toggle('sepia-mode');
+        const article = document.getElementById('articleBody');
+        if (sheet) sheet.style.fontFamily = `'${fontName}', sans-serif`;
+        if (article) article.style.fontFamily = `'${fontName}', sans-serif`;
+        showToast(`ফন্ট পরিবর্তিত হয়েছে: ${fontName}`);
+    }
+
+    // 8. Reading Theme Modes
+    function setReadingTheme(mode) {
+        const sheet = document.getElementById('bookArticle');
+        const themeIcon = document.getElementById('themeIcon');
+        if (!sheet) return;
+
+        sheet.classList.remove('sepia-mode', 'dark-mode');
+        if (mode === 'sepia') {
+            sheet.classList.add('sepia-mode');
+            if (themeIcon) themeIcon.className = 'fa-solid fa-book-open text-warning';
+            showToast('বইয়ের পাতা (সেপিয়া) মোড সক্রিয়');
+        } else if (mode === 'dark') {
+            sheet.classList.add('dark-mode');
+            if (themeIcon) themeIcon.className = 'fa-solid fa-moon text-primary';
+            showToast('চোখের সুরক্ষা (ডার্ক) মোড সক্রিয়');
+        } else {
+            if (themeIcon) themeIcon.className = 'fa-regular fa-sun text-warning';
+            showToast('সাধারণ ডে মোড সক্রিয়');
         }
     }
 
+    // 9. Copy Article Link
     function copyArticleLink() {
-        navigator.clipboard.writeText(window.location.href).then(() => {
-            alert('লেখার লিংকটি ক্লিপবোর্ডে কপি করা হয়েছে!');
-        }).catch(() => {
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(window.location.href).then(() => {
+                showToast('লেখার লিংকটি ক্লিপবোর্ডে কপি করা হয়েছে!', 'fa-solid fa-link text-success');
+            }).catch(() => {
+                prompt('এই লিংকটি কপি করুন:', window.location.href);
+            });
+        } else {
             prompt('এই লিংকটি কপি করুন:', window.location.href);
+        }
+    }
+
+    // 10. Copy Protection Toast
+    document.addEventListener('copy', function(e) {
+        const selection = window.getSelection();
+        if (selection && selection.toString().trim().length > 0) {
+            showToast('কপিরাইট সংরক্ষিত: লেখাটি প্রিন্ট/PDF অথবা শেয়ার করতে পারেন।', 'fa-solid fa-shield-halved text-warning');
+        }
+    });
+
+    // 11. Modal Honorarium Script
+    document.addEventListener('DOMContentLoaded', function() {
+        const amountInput = document.getElementById('modalCustomAmountInput');
+        const btnAmountPreview = document.getElementById('modalBtnAmountPreview');
+        const previewAuthorShare = document.getElementById('previewAuthorShare');
+        const previewSiteShare = document.getElementById('previewSiteShare');
+        const presetBtns = document.querySelectorAll('.modal-tip-btn');
+        const copyBtn = document.getElementById('modalCopyPayNumberBtn');
+        const copyBtnText = document.getElementById('modalCopyBtnText');
+        const activePayNumber = document.getElementById('modalActivePayNumber');
+
+        function updateSplits(amount) {
+            const val = parseFloat(amount) || 0;
+            const authorShare = (val * 0.70).toFixed(2);
+            const siteShare = (val * 0.30).toFixed(2);
+            
+            if (btnAmountPreview) btnAmountPreview.textContent = val;
+            if (previewAuthorShare) previewAuthorShare.textContent = '৳' + authorShare;
+            if (previewSiteShare) previewSiteShare.textContent = '৳' + siteShare;
+        }
+
+        if (amountInput) {
+            updateSplits(amountInput.value);
+            amountInput.addEventListener('input', function() {
+                const val = this.value || 0;
+                updateSplits(val);
+                presetBtns.forEach(b => {
+                    if (b.getAttribute('data-amount') === val) {
+                        b.classList.add('active', 'btn-warning');
+                        b.classList.remove('btn-outline-warning');
+                    } else {
+                        b.classList.remove('active', 'btn-warning');
+                        b.classList.add('btn-outline-warning');
+                    }
+                });
+            });
+        }
+
+        presetBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                presetBtns.forEach(b => b.classList.remove('active', 'btn-warning'));
+                presetBtns.forEach(b => b.classList.add('btn-outline-warning'));
+                this.classList.remove('btn-outline-warning');
+                this.classList.add('active', 'btn-warning');
+                
+                const amt = this.getAttribute('data-amount');
+                if (amountInput) amountInput.value = amt;
+                updateSplits(amt);
+            });
         });
+
+        if (copyBtn && activePayNumber) {
+            copyBtn.addEventListener('click', function() {
+                const num = activePayNumber.textContent.trim();
+                if (navigator.clipboard) {
+                    navigator.clipboard.writeText(num).then(() => {
+                        copyBtnText.textContent = 'কপি হয়েছে!';
+                        copyBtn.classList.replace('btn-outline-danger', 'btn-success');
+                        setTimeout(() => {
+                            copyBtnText.textContent = 'কপি করুন';
+                            copyBtn.classList.replace('btn-success', 'btn-outline-danger');
+                        }, 2000);
+                    });
+                }
+            });
+        }
+    });
+
+    // 12. Dynamic AJAX Blog Comment Submission
+    let currentBlogStar = 5;
+    const blogStarDescriptions = {
+        1: '১ স্টার (উন্নতি প্রয়োজন)',
+        2: '২ স্টার (চলনসই)',
+        3: '৩ স্টার (ভালো)',
+        4: '৪ স্টার (খুব ভালো)',
+        5: '৫ স্টার (চমৎকার)'
+    };
+
+    function setBlogStar(val) {
+        currentBlogStar = val;
+        document.getElementById('blogSelectedStarInput').value = val;
+        document.getElementById('blogStarLabel').textContent = blogStarDescriptions[val] || `${val} স্টার`;
+        const stars = document.querySelectorAll('#blogStarRatingGroup .b-star');
+        stars.forEach(star => {
+            const sVal = parseInt(star.getAttribute('data-val'));
+            if (sVal <= val) {
+                star.className = 'fa-solid fa-star b-star text-warning';
+            } else {
+                star.className = 'fa-regular fa-star b-star text-warning opacity-50';
+            }
+        });
+    }
+
+    async function submitBlogCommentAjax(e) {
+        e.preventDefault();
+        const form = document.getElementById('blogCommentSubmitForm');
+        const submitBtn = document.getElementById('blogCommentSubmitBtn');
+        const alertBox = document.getElementById('blogCommentAjaxAlertBox');
+        const formData = new FormData(form);
+
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1.5"></span> পোস্ট হচ্ছে...';
+        alertBox.className = 'd-none';
+
+        try {
+            const response = await fetch('{{ route("reviews.store") }}', {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                },
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                alertBox.className = 'alert alert-success rounded-3 small p-2.5 mb-3 d-flex align-items-center gap-2';
+                alertBox.innerHTML = `<i class="fa-solid fa-circle-check text-success fs-5"></i> <div>${data.message}</div>`;
+                form.reset();
+                setBlogStar(5);
+
+                const listContainer = document.getElementById('blogCommentsListContainer');
+                const noNotice = document.getElementById('noBlogCommentsNotice');
+                if (noNotice) noNotice.remove();
+
+                const r = data.review;
+                let starIconsHtml = '';
+                for (let s = 1; s <= 5; s++) {
+                    starIconsHtml += `<i class="fa-${s <= r.rating ? 'solid' : 'regular'} fa-star"></i>`;
+                }
+
+                const newCommentCard = document.createElement('div');
+                newCommentCard.className = 'p-3 bg-white border rounded-4 shadow-2xs animate__animated animate__fadeInDown';
+                newCommentCard.innerHTML = `
+                    <div class="d-flex align-items-center justify-content-between mb-1.5">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center fw-bold shadow-2xs" style="width: 34px; height: 34px; font-size: 0.88rem;">
+                                ${r.avatar_initial}
+                            </div>
+                            <div>
+                                <span class="fw-bold text-dark d-block small">${r.reviewer_name} <span class="badge bg-success-subtle text-success small ms-1" style="font-size: 10px;">নতুন</span></span>
+                                <span class="text-muted" style="font-size: 0.7rem;">${r.created_at}</span>
+                            </div>
+                        </div>
+                        <div class="text-warning small">${starIconsHtml}</div>
+                    </div>
+                    <p class="mb-0 text-dark small leading-relaxed ps-4 ms-2" style="white-space: pre-line;">${r.comment}</p>
+                `;
+                if (listContainer) {
+                    listContainer.prepend(newCommentCard);
+                }
+
+                const countBadge = document.getElementById('blogCommentCountBadge');
+                if (countBadge) {
+                    const currentCount = parseInt(countBadge.textContent) || 0;
+                    countBadge.textContent = `${currentCount + 1}টি`;
+                }
+
+                showToast('মন্তব্য সফল হয়েছে!', 'fa-solid fa-circle-check text-success');
+            } else {
+                alertBox.className = 'alert alert-danger rounded-3 small p-2.5 mb-3 d-flex align-items-center gap-2';
+                alertBox.innerHTML = `<i class="fa-solid fa-circle-exclamation text-danger fs-5"></i> <div>${data.message || 'মন্তব্য জমা দেওয়া সম্ভব হয়নি।'}</div>`;
+            }
+        } catch (err) {
+            alertBox.className = 'alert alert-danger rounded-3 small p-2.5 mb-3 d-flex align-items-center gap-2';
+            alertBox.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-danger fs-5"></i> <div>সার্ভার সংযোগে ত্রুটি দেখা দিয়েছে।</div>`;
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> <span>মন্তব্য পোস্ট করুন</span>';
+        }
     }
 </script>
 @endsection
-

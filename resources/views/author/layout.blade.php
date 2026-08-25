@@ -216,6 +216,10 @@
                 <i class="fas fa-feather-pointed text-primary"></i>
                 <span>আমার আইডিয়াপত্র</span>
             </a>
+            <a href="{{ route('author.honorariums') }}" class="author-nav-link {{ request()->routeIs('author.honorariums') ? 'active' : '' }}">
+                <i class="fas fa-heart text-danger"></i>
+                <span>পাঠক সম্মানি (Tips)</span>
+            </a>
             <a href="{{ route('author.posts.create') }}" class="author-nav-link {{ request()->routeIs('author.posts.create') ? 'active' : '' }}">
                 <i class="fas fa-pen-nib text-warning"></i>
                 <span>নতুন আইডিয়াপত্র লিখুন</span>
@@ -304,6 +308,10 @@
                 <a href="{{ route('author.posts.index') }}" class="author-nav-link {{ request()->routeIs('author.posts.index') || request()->routeIs('author.posts.edit') ? 'active' : '' }}">
                     <i class="fas fa-feather-pointed text-primary"></i>
                     <span>আমার আইডিয়াপত্র</span>
+                </a>
+                <a href="{{ route('author.honorariums') }}" class="author-nav-link {{ request()->routeIs('author.honorariums') ? 'active' : '' }}">
+                    <i class="fas fa-heart text-danger"></i>
+                    <span>পাঠক সম্মানি (Tips)</span>
                 </a>
                 <a href="{{ route('author.posts.create') }}" class="author-nav-link {{ request()->routeIs('author.posts.create') ? 'active' : '' }}">
                     <i class="fas fa-pen-nib text-warning"></i>

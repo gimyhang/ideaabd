@@ -377,4 +377,9 @@ class Author extends Model
     {
         return $this->hasMany(AuthorSubmission::class, 'author_id');
     }
+
+    public function honorariums()
+    {
+        return $this->hasMany(\App\Models\AuthorHonorarium::class, 'author_id');
+    }
 }

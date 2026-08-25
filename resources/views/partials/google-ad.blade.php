@@ -1,59 +1,77 @@
 @php
-    $type = $type ?? 'sidebar'; // 'sidebar', 'in-article', 'banner'
-    $adClient = config('services.google_adsense.client_id') ?? env('GOOGLE_ADSENSE_CLIENT_ID', 'ca-pub-XXXXXXXXXXXXXXXX');
-    $adSlot = $slot ?? ($type === 'sidebar' ? env('GOOGLE_ADSENSE_SLOT_SIDEBAR', '1234567890') : env('GOOGLE_ADSENSE_SLOT_ARTICLE', '0987654321'));
+    $type = $type ?? 'sidebar'; // 'sidebar', 'in-article', 'bottom', 'compact-banner'
+    $adSettings = \Illuminate\Support\Facades\Schema::hasTable('admin_dashboard_settings')
+        ? \App\Models\AdminDashboardSetting::where('key', 'advertisement_settings')->value('value')
+        : null;
+    $adClient = $adSettings['google_adsense_client'] ?? config('services.google_adsense.client_id') ?? env('GOOGLE_ADSENSE_CLIENT_ID', 'ca-pub-1234567890123456');
+    $adSlot = $slot ?? ($type === 'sidebar' ? ($adSettings['slot_sidebar'] ?? env('GOOGLE_ADSENSE_SLOT_SIDEBAR', '1234567890')) : ($adSettings['slot_article'] ?? env('GOOGLE_ADSENSE_SLOT_ARTICLE', '0987654321')));
 @endphp
 
 @if($type === 'sidebar')
-    {{-- Sidebar Google Ad Container (Responsive Display Ad) --}}
-    <div class="card p-3 mb-3.5 border-0 shadow-sm rounded-4 bg-white text-center position-relative overflow-hidden google-ad-container">
-        <div class="d-flex align-items-center justify-content-between mb-2">
-            <span class="badge bg-light text-muted border px-2 py-0.5" style="font-size: 0.62rem; letter-spacing: 0.5px; text-transform: uppercase;">বিজ্ঞাপন / ADVERTISEMENT</span>
-            <small class="text-muted" style="font-size: 0.62rem;">Google Ads</small>
+    {{-- Compact Verified Sidebar Google Ad Container --}}
+    <div class="card p-2.5 mb-3 border-0 shadow-sm rounded-4 bg-white text-center position-relative overflow-hidden google-ad-container" style="border: 1px solid #f1f5f9 !important;">
+        <div class="d-flex align-items-center justify-content-between mb-1.5 px-1">
+            <span class="badge bg-light text-muted border px-2 py-0.5 d-inline-flex align-items-center gap-1 rounded-pill" style="font-size: 0.62rem; letter-spacing: 0.3px;">
+                <i class="fa-solid fa-circle-check text-success"></i> ভেরিফাইড বিজ্ঞাপন
+            </span>
+            <span class="d-inline-flex align-items-center gap-1 text-muted" style="font-size: 0.65rem;">
+                <i class="fa-brands fa-google text-primary"></i> Ads
+            </span>
         </div>
 
-        <div class="google-ad-slot-wrapper rounded-3 overflow-hidden bg-light d-flex align-items-center justify-content-center" style="min-height: 250px;">
+        <div class="google-ad-slot-wrapper rounded-3 overflow-hidden bg-light bg-opacity-50 d-flex align-items-center justify-content-center p-2" style="min-height: 180px; max-height: 280px;">
             {{-- Google AdSense Code --}}
             <ins class="adsbygoogle"
-                 style="display:block"
+                 style="display:block; min-width: 200px; min-height: 160px;"
                  data-ad-client="{{ $adClient }}"
                  data-ad-slot="{{ $adSlot }}"
-                 data-ad-format="auto"
+                 data-ad-format="rectangle,horizontal"
                  data-full-width-responsive="true"></ins>
             
-            {{-- Fallback aesthetic notice if ads are blocked or loading --}}
-            <div class="p-3 text-muted small google-ad-fallback" style="pointer-events: none;">
-                <i class="fa-brands fa-google text-primary fs-3 mb-1 d-block opacity-75"></i>
-                <span class="fw-semibold d-block text-dark" style="font-size: 0.8rem;">আইডিয়া সাহিত্য সাময়িকী</span>
-                <span style="font-size: 0.72rem;">গুগল বিজ্ঞাপন প্রচার এলাকা</span>
+            {{-- Fallback aesthetic notice if ads are loading or blocked --}}
+            <div class="p-2.5 text-muted small google-ad-fallback text-center" style="pointer-events: none;">
+                <div class="d-inline-flex align-items-center justify-content-center bg-primary bg-opacity-10 text-primary rounded-circle mb-1" style="width: 32px; height: 32px;">
+                    <i class="fa-brands fa-google fs-6"></i>
+                </div>
+                <span class="fw-semibold d-block text-dark" style="font-size: 0.78rem;">আইডিয়া সাহিত্য সাময়িকী</span>
+                <span class="text-muted d-block" style="font-size: 0.68rem;">Google Verified Ad Space</span>
             </div>
         </div>
     </div>
 
-@elseif($type === 'in-article' || $type === 'bottom')
-    {{-- In-Article / Post Bottom Google Ad Container (Matched / Responsive In-Feed Ad) --}}
-    <div class="card p-3 my-4 border-0 shadow-sm rounded-4 bg-white text-center position-relative overflow-hidden google-ad-container">
-        <div class="d-flex align-items-center justify-content-between mb-2 px-1">
-            <span class="badge bg-light text-muted border px-2 py-0.5" style="font-size: 0.62rem; letter-spacing: 0.5px; text-transform: uppercase;">বিজ্ঞাপন / SPONSORED</span>
-            <small class="text-muted" style="font-size: 0.62rem;">Google Ads</small>
+@elseif($type === 'in-article' || $type === 'bottom' || $type === 'compact-banner')
+    {{-- Compact Verified In-Article / Bottom Google Ad Container --}}
+    <div class="card p-2.5 my-3 border-0 shadow-sm rounded-4 bg-white text-center position-relative overflow-hidden google-ad-container" style="border: 1px solid #f1f5f9 !important;">
+        <div class="d-flex align-items-center justify-content-between mb-1.5 px-1">
+            <div class="d-flex align-items-center gap-1.5">
+                <span class="badge bg-light text-muted border px-2 py-0.5 rounded-pill d-inline-flex align-items-center gap-1" style="font-size: 0.62rem;">
+                    <i class="fa-solid fa-circle-check text-success"></i> স্পন্সরড / বিজ্ঞাপন
+                </span>
+                <span class="badge bg-success-subtle text-success border border-success-subtle px-1.5 py-0.5 rounded-pill" style="font-size: 0.58rem;">
+                    ভেরিফাইড
+                </span>
+            </div>
+            <span class="d-inline-flex align-items-center gap-1 text-muted" style="font-size: 0.65rem;">
+                <i class="fa-brands fa-google text-primary"></i> Google Ads
+            </span>
         </div>
 
-        <div class="google-ad-slot-wrapper rounded-3 overflow-hidden bg-light d-flex align-items-center justify-content-center py-2" style="min-height: 100px;">
+        <div class="google-ad-slot-wrapper rounded-3 overflow-hidden bg-light bg-opacity-50 d-flex align-items-center justify-content-center p-1.5" style="min-height: 80px; max-height: 120px;">
             {{-- Google AdSense Code --}}
             <ins class="adsbygoogle"
-                 style="display:block"
-                 data-ad-format="fluid"
-                 data-ad-layout-key="-fb+5w+4e-db+86"
+                 style="display:block; min-height: 75px;"
+                 data-ad-format="horizontal"
                  data-ad-client="{{ $adClient }}"
-                 data-ad-slot="{{ $adSlot }}"></ins>
+                 data-ad-slot="{{ $adSlot }}"
+                 data-full-width-responsive="true"></ins>
 
             {{-- Fallback aesthetic notice --}}
             <div class="p-2 text-muted small google-ad-fallback" style="pointer-events: none;">
                 <div class="d-inline-flex align-items-center gap-2">
-                    <i class="fa-brands fa-google text-primary fs-4 opacity-75"></i>
+                    <i class="fa-brands fa-google text-primary fs-5 opacity-75"></i>
                     <div class="text-start">
-                        <span class="fw-semibold d-block text-dark" style="font-size: 0.82rem;">আইডিয়া প্রকাশন ও সাহিত্যপত্র</span>
-                        <span style="font-size: 0.72rem;">বিজ্ঞাপন প্রচার স্পেস</span>
+                        <span class="fw-semibold d-block text-dark" style="font-size: 0.78rem;">আইডিয়া প্রকাশন ও সাহিত্যপত্র</span>
+                        <span class="text-muted" style="font-size: 0.68rem;">ভেরিফাইড গুগল বিজ্ঞাপন স্পেস</span>
                     </div>
                 </div>
             </div>

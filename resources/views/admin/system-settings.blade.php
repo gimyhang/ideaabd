@@ -150,6 +150,13 @@
                     </li>
                     <li class="nav-item" role="presentation">
                         <button class="nav-link rounded-pill fw-semibold py-2.5 px-3 d-flex align-items-center justify-content-center gap-2" 
+                                id="tab-editorial-btn" data-bs-toggle="pill" data-bs-target="#tab-editorial" type="button" role="tab">
+                            <i class="fa-solid fa-feather-pointed text-primary"></i>
+                            <span>আইডিয়াপত্র ও সম্পাদনা পরিষদ</span>
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link rounded-pill fw-semibold py-2.5 px-3 d-flex align-items-center justify-content-center gap-2" 
                                 id="tab-system-btn" data-bs-toggle="pill" data-bs-target="#tab-system" type="button" role="tab">
                             <i class="fa-solid fa-server text-secondary"></i>
                             <span>Server Diagnostics</span>
@@ -211,37 +218,72 @@
 
                             <!-- Right: Fixed Frame Logo Upload & Interactive Cropper -->
                             <div class="col-lg-6">
-                                <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-image text-primary me-2"></i>Primary Site Logo</h6>
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h6 class="fw-bold text-dark mb-0"><i class="fa-solid fa-image text-primary me-2"></i>Primary Site Logo</h6>
+                                    <div class="btn-group btn-group-sm" role="group" aria-label="Logo Preview Background">
+                                        <button type="button" class="btn btn-outline-secondary btn-sm active" onclick="setLogoBg('white', this)" title="Light Header Background">
+                                            <i class="fa-solid fa-sun text-warning"></i> Light
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setLogoBg('dark', this)" title="Dark Header Background">
+                                            <i class="fa-solid fa-moon text-info"></i> Dark
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setLogoBg('grid', this)" title="Transparent Checkerboard">
+                                            <i class="fa-solid fa-border-none text-muted"></i> Grid
+                                        </button>
+                                    </div>
+                                </div>
                                 
                                 <div class="p-4 bg-light rounded-4 border text-center">
                                     <div class="d-flex justify-content-between align-items-center mb-3">
-                                        <span class="badge bg-white text-dark border rounded-pill px-3 py-1 small fw-semibold">
-                                            <i class="fa-solid fa-arrows-to-dot text-primary me-1"></i> Fixed Navbar Frame
+                                        <span class="badge bg-white text-primary border rounded-pill px-3 py-1 small fw-semibold shadow-2xs">
+                                            <i class="fa-solid fa-arrows-left-right-to-line me-1"></i> 2:1 Wide Header Ratio
                                         </span>
-                                        <span class="small text-muted">Auto-Fit Active</span>
+                                        <span class="small text-muted fw-semibold">Navbar Simulator</span>
                                     </div>
                                     
-                                    <!-- Fixed Frame Logo Box (Simulating Navbar Height) -->
-                                    <div class="fixed-preview-container logo-preview-box shadow-xs bg-white mx-auto mb-3" id="logoContainer">
+                                    <!-- Fixed Frame Logo Box (Simulating Navbar Height & Transparency) -->
+                                    <div class="fixed-preview-container logo-preview-box shadow-xs bg-white mx-auto mb-2 transition-all overflow-hidden" id="logoContainer" style="display: flex; align-items: center; justify-content: center; height: 68px; max-width: 280px; border-radius: 12px; transition: background 0.25s ease;">
                                         @if($logoUrl)
                                             <img src="{{ $logoUrl }}" alt="Site Logo" id="logoPreviewImg" 
-                                                 style="max-height: 52px; max-width: 220px; width: auto; height: auto; object-fit: contain;">
+                                                 style="max-height: 52px; max-width: 220px; width: auto; height: auto; object-fit: contain; transition: transform 0.2s ease; transform: scale(1);">
                                         @else
-                                            <div class="d-flex align-items-center gap-2 text-primary" id="logoPreviewImg">
+                                            <div class="d-flex align-items-center gap-2 text-primary" id="logoPreviewImg" style="transition: transform 0.2s ease; transform: scale(1);">
                                                 <span class="badge bg-primary text-white p-2 rounded fs-5">ID</span>
                                                 <span class="fw-bold fs-5">Idea Prakashan</span>
                                             </div>
                                         @endif
                                     </div>
 
-                                    <div class="text-start mb-2">
-                                        <label class="form-label small fw-semibold text-muted">Select or crop logo image:</label>
-                                        <input type="file" id="logoInput" name="site_logo" class="form-control rounded-3" accept="image/*" onchange="initCropper(this, 'logo', NaN)">
+                                    <!-- Zoom In / Out Preview Controls -->
+                                    <div class="d-flex align-items-center justify-content-center gap-2 mb-3">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5 py-0.5" onclick="zoomLogoPreview(-0.15)" title="Zoom Out Preview">
+                                            <i class="fa-solid fa-magnifying-glass-minus me-1"></i> Zoom Out
+                                        </button>
+                                        <span class="badge bg-white text-dark border px-2.5 py-1 fw-bold shadow-2xs" id="logoZoomBadge" style="font-size: 11px;">100%</span>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5 py-0.5" onclick="zoomLogoPreview(0.15)" title="Zoom In Preview">
+                                            <i class="fa-solid fa-magnifying-glass-plus me-1"></i> Zoom In
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-link text-muted p-0 text-decoration-none" onclick="resetLogoPreview()" title="Reset Zoom">
+                                            <i class="fa-solid fa-rotate-left"></i>
+                                        </button>
+                                    </div>
+
+                                    <div class="text-start mb-3">
+                                        <label class="form-label small fw-bold text-dark mb-1">Select or crop logo image:</label>
+                                        <div class="input-group">
+                                            <input type="file" id="logoInput" name="site_logo" class="form-control rounded-start-3" accept="image/*" onchange="initCropper(this, 'logo', 2/1)">
+                                            <button type="button" class="btn btn-outline-primary fw-semibold" onclick="document.getElementById('logoInput').click()">
+                                                <i class="fa-solid fa-crop-simple me-1"></i> 2:1 Crop
+                                            </button>
+                                        </div>
+                                        <div class="d-flex gap-1.5 mt-1.5 flex-wrap">
+                                            <span class="badge bg-light text-muted border" style="font-size: 11px;">Recommended: 2:1 Transparent PNG (e.g. 240×120px)</span>
+                                        </div>
                                     </div>
                                     <div class="d-flex justify-content-between align-items-center">
                                         <p class="small text-muted mb-0 text-start">
                                             <i class="fa-solid fa-circle-check text-success me-1"></i>
-                                            Optimally adjusted to navbar header height.
+                                            Auto-fitted to 1:2 wide aspect ratio in navbar.
                                         </p>
                                         @if($logoUrl)
                                             <div class="form-check">
@@ -1075,6 +1117,70 @@
                         </div>
                     </div>
 
+                    <!-- Tab: Editorial & Publishing Board (আইডিয়াপত্র ও সম্পাদনা পরিষদ) -->
+                    <div class="tab-pane fade" id="tab-editorial" role="tabpanel">
+                        <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
+                            <div>
+                                <h5 class="fw-bold text-dark mb-1"><i class="fa-solid fa-feather-pointed text-primary me-2"></i>আইডিয়াপত্র ও সম্পাদকমণ্ডলী ব্যবস্থাপনা</h5>
+                                <p class="small text-muted mb-0">প্রকাশক, সম্পাদক এবং সম্পাদকীয় পরিষদের অন্যান্য পদ ও দায়িত্বশীলদের তালিকা সাইটের ফুটার ও প্রকাশনায় ডাইনামিক প্রদর্শন করুন।</p>
+                            </div>
+                        </div>
+
+                        <div class="row g-4">
+                            <div class="col-lg-6">
+                                <div class="p-3.5 bg-light rounded-4 border mb-3">
+                                    <label class="form-label fw-bold text-dark small mb-1">
+                                        <i class="fa-solid fa-building text-primary me-1"></i> প্রকাশক (Publisher)
+                                    </label>
+                                    <input type="text" name="editorial_publisher" class="form-control rounded-3" 
+                                           value="{{ $settings['editorial_publisher'] ?? 'আইডিয়া প্রকাশন' }}" placeholder="যেমন: আইডিয়া প্রকাশন">
+                                </div>
+                                
+                                <div class="p-3.5 bg-light rounded-4 border">
+                                    <label class="form-label fw-bold text-dark small mb-1">
+                                        <i class="fa-solid fa-user-pen text-success me-1"></i> সম্পাদক (Editor)
+                                    </label>
+                                    <input type="text" name="editorial_editor" class="form-control rounded-3" 
+                                           value="{{ $settings['editorial_editor'] ?? 'সাকিল মাসুদ' }}" placeholder="যেমন: সাকিল মাসুদ">
+                                </div>
+                            </div>
+
+                            <div class="col-lg-6">
+                                <div class="p-3.5 bg-white rounded-4 border shadow-2xs">
+                                    <div class="d-flex align-items-center justify-content-between mb-3">
+                                        <label class="form-label fw-bold text-dark small mb-0">
+                                            <i class="fa-solid fa-users text-info me-1"></i> সম্পাদকীয় পরিষদের অন্যান্য পদ ও সদস্যবৃন্দ
+                                        </label>
+                                        <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-2.5 py-1" onclick="addBoardMemberRow()">
+                                            <i class="fa-solid fa-plus me-1"></i> নতুন পদ যোগ করুন
+                                        </button>
+                                    </div>
+                                    
+                                    <div id="boardMembersContainer" class="d-flex flex-column gap-2">
+                                        @php
+                                            $savedBoard = $settings['editorial_board'] ?? [];
+                                        @endphp
+                                        @if(is_array($savedBoard) && count($savedBoard) > 0)
+                                            @foreach($savedBoard as $idx => $m)
+                                                <div class="d-flex align-items-center gap-2 board-row">
+                                                    <input type="text" name="board_role[]" class="form-control form-control-sm rounded-3" placeholder="পদ (যেমন: সহ-সম্পাদক)" value="{{ $m['role'] ?? '' }}" style="flex: 1;">
+                                                    <input type="text" name="board_name[]" class="form-control form-control-sm rounded-3" placeholder="নাম (যেমন: নাসিম আহমেদ)" value="{{ $m['name'] ?? '' }}" style="flex: 1.2;">
+                                                    <button type="button" class="btn btn-outline-danger btn-sm rounded-3 px-2" onclick="this.closest('.board-row').remove()"><i class="fa-solid fa-trash"></i></button>
+                                                </div>
+                                            @endforeach
+                                        @else
+                                            <div class="d-flex align-items-center gap-2 board-row">
+                                                <input type="text" name="board_role[]" class="form-control form-control-sm rounded-3" placeholder="পদ (যেমন: নির্বাহী সম্পাদক)" style="flex: 1;">
+                                                <input type="text" name="board_name[]" class="form-control form-control-sm rounded-3" placeholder="নাম..." style="flex: 1.2;">
+                                                <button type="button" class="btn btn-outline-danger btn-sm rounded-3 px-2" onclick="this.closest('.board-row').remove()"><i class="fa-solid fa-trash"></i></button>
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
 
@@ -1123,9 +1229,19 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body p-3 bg-dark">
+                <!-- Aspect Ratio Presets Bar -->
+                <div class="d-flex align-items-center justify-content-center gap-1.5 mb-2.5 flex-wrap">
+                    <span class="text-white-50 small me-1">Aspect Ratio:</span>
+                    <button type="button" class="btn btn-xs btn-outline-light rounded-pill px-2.5 py-1 crop-ratio-btn active" onclick="setCropRatio(2/1, this)">2:1 (Header)</button>
+                    <button type="button" class="btn btn-xs btn-outline-light rounded-pill px-2.5 py-1 crop-ratio-btn" onclick="setCropRatio(NaN, this)">Free Crop</button>
+                    <button type="button" class="btn btn-xs btn-outline-light rounded-pill px-2.5 py-1 crop-ratio-btn" onclick="setCropRatio(1/1, this)">1:1 (Square)</button>
+                    <button type="button" class="btn btn-xs btn-outline-light rounded-pill px-2.5 py-1 crop-ratio-btn" onclick="setCropRatio(3/1, this)">3:1 (Banner)</button>
+                    <button type="button" class="btn btn-xs btn-outline-light rounded-pill px-2.5 py-1 crop-ratio-btn" onclick="setCropRatio(16/9, this)">16:9 (Social)</button>
+                </div>
+
                 <!-- Cropper Canvas Container -->
-                <div style="max-height: 480px; width: 100%; display: flex; align-items: center; justify-content: center; background: #0f172a; border-radius: 8px; overflow: hidden;">
-                    <img id="cropperImageElement" src="" alt="Crop Target" style="max-width: 100%; max-height: 460px; display: block;">
+                <div style="max-height: 460px; width: 100%; display: flex; align-items: center; justify-content: center; background: #0f172a; border-radius: 8px; overflow: hidden;">
+                    <img id="cropperImageElement" src="" alt="Crop Target" style="max-width: 100%; max-height: 440px; display: block;">
                 </div>
             </div>
             <div class="modal-footer bg-light border-0 py-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
@@ -1165,6 +1281,59 @@
     let cropper = null;
     let currentTargetType = '';
     let currentAspectRatio = NaN;
+
+    function setCropRatio(ratio, btn) {
+        if (!cropper) return;
+        cropper.setAspectRatio(ratio);
+        document.querySelectorAll('.crop-ratio-btn').forEach(b => b.classList.remove('active', 'btn-primary'));
+        if (btn) btn.classList.add('active', 'btn-primary');
+    }
+
+    function setLogoBg(mode, btn) {
+        const container = document.getElementById('logoContainer');
+        if (!container) return;
+        if (mode === 'white') {
+            container.style.background = '#ffffff';
+            container.style.backgroundImage = 'none';
+        } else if (mode === 'dark') {
+            container.style.background = '#0f172a';
+            container.style.backgroundImage = 'none';
+        } else if (mode === 'grid') {
+            container.style.background = '#f1f5f9';
+            container.style.backgroundImage = 'linear-gradient(45deg, #e2e8f0 25%, transparent 25%), linear-gradient(-45deg, #e2e8f0 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #e2e8f0 75%), linear-gradient(-45deg, transparent 75%, #e2e8f0 75%)';
+            container.style.backgroundSize = '16px 16px';
+            container.style.backgroundPosition = '0 0, 0 8px, 8px -8px, -8px 0px';
+        }
+        if (btn && btn.parentElement) {
+            btn.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+    }
+
+    let currentLogoScale = 1.0;
+    function zoomLogoPreview(delta) {
+        currentLogoScale = Math.min(Math.max(0.4, currentLogoScale + delta), 2.5);
+        const img = document.getElementById('logoPreviewImg');
+        const badge = document.getElementById('logoZoomBadge');
+        if (img) {
+            img.style.transform = `scale(${currentLogoScale.toFixed(2)})`;
+        }
+        if (badge) {
+            badge.textContent = `${Math.round(currentLogoScale * 100)}%`;
+        }
+    }
+
+    function resetLogoPreview() {
+        currentLogoScale = 1.0;
+        const img = document.getElementById('logoPreviewImg');
+        const badge = document.getElementById('logoZoomBadge');
+        if (img) {
+            img.style.transform = 'scale(1)';
+        }
+        if (badge) {
+            badge.textContent = '100%';
+        }
+    }
 
     function initCropper(input, targetType, aspectRatio) {
         if (input.files && input.files[0]) {
@@ -1305,6 +1474,19 @@
             });
         });
     });
+
+    function addBoardMemberRow() {
+        const container = document.getElementById('boardMembersContainer');
+        if (!container) return;
+        const row = document.createElement('div');
+        row.className = 'd-flex align-items-center gap-2 board-row animate__animated animate__fadeIn';
+        row.innerHTML = `
+            <input type="text" name="board_role[]" class="form-control form-control-sm rounded-3" placeholder="পদ (যেমন: সহ-সম্পাদক)" style="flex: 1;">
+            <input type="text" name="board_name[]" class="form-control form-control-sm rounded-3" placeholder="নাম..." style="flex: 1.2;">
+            <button type="button" class="btn btn-outline-danger btn-sm rounded-3 px-2" onclick="this.closest('.board-row').remove()"><i class="fa-solid fa-trash"></i></button>
+        `;
+        container.appendChild(row);
+    }
 </script>
 @endpush
 @endsection

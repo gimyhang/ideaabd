@@ -10,6 +10,9 @@
     $pendingPayouts = \Illuminate\Support\Facades\Schema::hasTable('author_payout_requests')
         ? \App\Models\AuthorPayoutRequest::where('status', 'pending')->count()
         : 0;
+    $pendingHonorariums = \Illuminate\Support\Facades\Schema::hasTable('author_honorariums')
+        ? \App\Models\AuthorHonorarium::where('payment_status', 'pending')->count()
+        : 0;
 
     $menu = [
         null => [
@@ -40,8 +43,10 @@
             ['route' => 'admin.accounting.invoices.create', 'icon' => 'file-circle-plus',   'label' => 'Create Invoice'],
         ],
         'Content' => [
-            ['route' => 'admin.blog',     'icon' => 'newspaper', 'label' => 'Ideapatra / Blog'],
-            ['route' => 'admin.webzines', 'icon' => 'book-open', 'label' => 'Webzines'],
+            ['route' => 'admin.blog',                     'icon' => 'newspaper',          'label' => 'Ideapatra / Blog'],
+            ['route' => 'admin.author-honorariums.index', 'icon' => 'hand-holding-heart', 'label' => 'Author Honorariums',
+             'badge' => $pendingHonorariums > 0 ? $pendingHonorariums : null, 'badgeClass' => 'bg-danger text-white'],
+            ['route' => 'admin.webzines',                 'icon' => 'book-open',          'label' => 'Webzines'],
         ],
         'Sales & Orders' => [
             ['route' => 'admin.ecommerce-orders', 'icon' => 'cart-shopping', 'label' => 'Book Orders'],

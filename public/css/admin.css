@@ -61,7 +61,7 @@ a { color: var(--brand); }
 .adm-brand:hover { color: #fff; }
 
 .adm-brand__mark {
-    width: 38px;
+    width: 76px;
     height: 38px;
     border-radius: 10px;
     background: linear-gradient(135deg, var(--brand-2), var(--brand));

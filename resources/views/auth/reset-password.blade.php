@@ -24,7 +24,7 @@
                         </span>
                     </div>
 
-                    @if($errors->any())
+                    @if(isset($errors) && $errors->any())
                         <div class="alert alert-danger rounded-3 small mb-3 p-3 border-0 bg-danger bg-opacity-10 text-danger">
                             <div class="fw-bold mb-1"><i class="fa-solid fa-triangle-exclamation me-1"></i> অনুগ্রহ করে নিচের ত্রুটিগুলো সংশোধন করুন:</div>
                             <ul class="mb-0 ps-3">
@@ -63,17 +63,24 @@
                                        id="password" 
                                        name="password" 
                                        class="form-control @error('password') is-invalid @enderror" 
-                                       placeholder="নতুন পাসওয়ার্ড (৮-২৫ অক্ষর)" 
+                                       placeholder="নতুন পাসওয়ার্ড (ন্যূনতম ৬ অক্ষর)" 
                                        required 
                                        autofocus 
-                                       autocomplete="new-password">
+                                       autocomplete="new-password"
+                                       oninput="checkPasswordStrength(this.value, 'resetPwdStrengthBar', 'resetPwdStrengthText')">
                                 <button type="button" class="btn btn-outline-secondary" onclick="togglePasswordVisibility('password', this)" title="পাসওয়ার্ড দেখুন">
                                     <i class="fa-regular fa-eye"></i>
                                 </button>
                             </div>
-                            <div class="form-text small text-muted mt-1">
-                                <i class="fa-solid fa-info-circle me-1"></i> সর্বনিম্ন ৮ অক্ষর এবং অন্তত একটি স্পেশাল ক্যারেক্টার (যেমন: @, #, $, %, !) থাকতে হবে।
+                            <div class="d-flex align-items-center justify-content-between my-1" style="font-size: 11.5px;">
+                                <span class="text-muted">পাসওয়ার্ডের শক্তি: <strong id="resetPwdStrengthText" class="text-secondary">টাইপ করুন...</strong></span>
                             </div>
+                            <div class="progress mb-2" style="height: 4px;">
+                                <div id="resetPwdStrengthBar" class="progress-bar bg-danger" role="progressbar" style="width: 0%; transition: width 0.3s ease;"></div>
+                            </div>
+                            @error('password')
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                            @enderror
                         </div>
 
                         <div class="mb-4">
@@ -86,7 +93,7 @@
                                        id="password_confirmation" 
                                        name="password_confirmation" 
                                        class="form-control" 
-                                       placeholder="পুনরায় পাসওয়ার্ড লিখুন" 
+                                       placeholder="পুনরায় নতুন পাসওয়ার্ড লিখুন" 
                                        required 
                                        autocomplete="new-password">
                                 <button type="button" class="btn btn-outline-secondary" onclick="togglePasswordVisibility('password_confirmation', this)" title="পাসওয়ার্ড দেখুন">
@@ -124,6 +131,44 @@
             input.type = 'password';
             icon.classList.remove('fa-eye-slash');
             icon.classList.add('fa-eye');
+        }
+    }
+
+    function checkPasswordStrength(password, barId, textId) {
+        const bar = document.getElementById(barId);
+        const text = document.getElementById(textId);
+        if (!bar || !text) return;
+
+        if (!password) {
+            bar.style.width = '0%';
+            bar.className = 'progress-bar bg-danger';
+            text.textContent = 'টাইপ করুন...';
+            text.className = 'text-secondary';
+            return;
+        }
+
+        let score = 0;
+        if (password.length >= 6) score += 25;
+        if (password.length >= 8) score += 25;
+        if (/[A-Z]/.test(password) && /[a-z]/.test(password)) score += 25;
+        if (/[0-9]/.test(password)) score += 15;
+        if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) score += 10;
+
+        if (score < 40) {
+            bar.style.width = '30%';
+            bar.className = 'progress-bar bg-danger';
+            text.textContent = 'দুর্বল (Weak)';
+            text.className = 'text-danger fw-bold';
+        } else if (score < 75) {
+            bar.style.width = '65%';
+            bar.className = 'progress-bar bg-warning';
+            text.textContent = 'মাঝারি (Medium)';
+            text.className = 'text-warning fw-bold';
+        } else {
+            bar.style.width = '100%';
+            bar.className = 'progress-bar bg-success';
+            text.textContent = 'খুব শক্তিশালী (Strong)';
+            text.className = 'text-success fw-bold';
         }
     }
 
