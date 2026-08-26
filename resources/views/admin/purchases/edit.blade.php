@@ -162,9 +162,28 @@
                         </div>
                     </div>
 
-                    <button type="button" class="btn btn-success rounded-pill px-4 fw-bold shadow-sm" onclick="addItemRow()">
-                        <i class="fas fa-plus me-1.5"></i> Add More Books
-                    </button>
+                    {{-- Global Commission & Discount Batch Tools --}}
+                    <div class="d-flex flex-wrap align-items-center gap-2">
+                        <div class="input-group input-group-sm" style="max-width: 220px;">
+                            <span class="input-group-text bg-light text-primary fw-semibold" style="font-size: 0.75rem;">Batch Cost Comm %</span>
+                            <input type="number" step="0.5" id="batchCommInput" class="form-control text-center" placeholder="40" min="0" max="100">
+                            <button type="button" class="btn btn-outline-primary" onclick="applyBatchCommission()" title="Apply to all items">
+                                <i class="fas fa-bolt"></i>
+                            </button>
+                        </div>
+
+                        <div class="input-group input-group-sm" style="max-width: 220px;">
+                            <span class="input-group-text bg-light text-success fw-semibold" style="font-size: 0.75rem;">Batch Store Disc %</span>
+                            <input type="number" step="0.5" id="batchSaleDiscInput" class="form-control text-center" placeholder="25" min="0" max="100">
+                            <button type="button" class="btn btn-outline-success" onclick="applyBatchShopDiscount()" title="Apply to all items">
+                                <i class="fas fa-bolt"></i>
+                            </button>
+                        </div>
+
+                        <button type="button" class="btn btn-success btn-sm rounded-pill px-3.5 fw-bold shadow-sm" onclick="addItemRow()">
+                            <i class="fas fa-plus me-1.5"></i> Add More Books
+                        </button>
+                    </div>
                 </div>
 
                 <div class="card-body p-3 p-md-4">
@@ -621,6 +640,32 @@
             dueAlert.classList.remove('alert-success', 'bg-success-subtle', 'text-success');
             dueAlert.classList.add('alert-danger', 'bg-danger-subtle', 'text-danger');
         }
+    }
+
+    function applyBatchCommission() {
+        const comm = parseFloat(document.getElementById('batchCommInput').value);
+        if (isNaN(comm) || comm < 0 || comm > 100) {
+            alert('Enter a valid commission percentage (0-100).');
+            return;
+        }
+        document.querySelectorAll('.item-row').forEach(row => {
+            const idx = row.getAttribute('data-row');
+            row.querySelector('.item-comm').value = comm;
+            onCommChange(idx);
+        });
+    }
+
+    function applyBatchShopDiscount() {
+        const disc = parseFloat(document.getElementById('batchSaleDiscInput').value);
+        if (isNaN(disc) || disc < 0 || disc > 100) {
+            alert('Enter a valid store discount percentage (0-100).');
+            return;
+        }
+        document.querySelectorAll('.item-row').forEach(row => {
+            const idx = row.getAttribute('data-row');
+            row.querySelector('.item-shop-disc').value = disc;
+            onShopDiscChange(idx);
+        });
     }
 
     function addItemRow() {

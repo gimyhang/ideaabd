@@ -422,12 +422,12 @@
                                             </div>
                                         </div>
                                     </td>
-                                    <td>
+                                    <td style="min-width: 140px;">
                                         @if($author->phone)
-                                            <div class="small" style="font-size: 0.78rem;"><i class="fas fa-phone-alt text-muted me-1" style="font-size: 10px;"></i>{{ $author->phone }}</div>
+                                            <div class="text-nowrap small mb-0.5" style="font-size: 0.78rem;"><i class="fas fa-phone-alt text-muted me-1" style="font-size: 10px;"></i>{{ $author->phone }}</div>
                                         @endif
                                         @if($author->email)
-                                            <div class="text-muted small" style="font-size: 0.75rem;"><i class="fas fa-envelope text-muted me-1" style="font-size: 10px;"></i>{{ $author->email }}</div>
+                                            <div class="text-muted small text-truncate" style="font-size: 0.75rem; max-width: 160px;" title="{{ $author->email }}"><i class="fas fa-envelope text-muted me-1" style="font-size: 10px;"></i>{{ $author->email }}</div>
                                         @endif
                                         @if(!$author->phone && !$author->email)
                                             <span class="text-muted small">—</span>

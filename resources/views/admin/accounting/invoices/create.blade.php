@@ -40,6 +40,41 @@
     $currentType = old('type', $selectedType ?? request('type', 'invoice'));
 @endphp
 
+{{-- Segmented Category Switcher for Sales Type --}}
+<div class="card border-0 shadow-sm rounded-4 mb-4 bg-white">
+    <div class="card-body p-3">
+        <div class="d-flex flex-column flex-lg-row align-items-center justify-content-between gap-3">
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-primary-subtle text-primary border rounded-pill px-3 py-1.5 fw-bold">
+                    <i class="fa-solid fa-shapes me-1"></i> ইনভয়েসের শ্রেণি (Sales Category)
+                </span>
+                <span class="small text-muted" id="categoryHintText">বই বিক্রয়, পাইকারি ও রিটেইল চালান</span>
+            </div>
+            <div class="btn-group shadow-2xs rounded-pill p-1 bg-light border w-100 w-lg-auto" role="group">
+                <input type="radio" class="btn-check" name="sales_category" id="catBooks" value="books" autocomplete="off" @checked(($salesCategory ?? 'books') === 'books') onchange="toggleSalesCategory('books')">
+                <label class="btn btn-sm rounded-pill px-3.5 py-2 fw-bold" for="catBooks">
+                    <i class="fa-solid fa-book me-1.5 text-primary"></i> ১. বই বিক্রয় (Books)
+                </label>
+
+                <input type="radio" class="btn-check" name="sales_category" id="catStationery" value="stationery" autocomplete="off" @checked(($salesCategory ?? 'books') === 'stationery') onchange="toggleSalesCategory('stationery')">
+                <label class="btn btn-sm rounded-pill px-3.5 py-2 fw-bold" for="catStationery">
+                    <i class="fa-solid fa-pen-ruler me-1.5 text-info"></i> ২. স্টেশনারী বিক্রয় (Stationery)
+                </label>
+
+                <input type="radio" class="btn-check" name="sales_category" id="catPrinting" value="printing_goods" autocomplete="off" @checked(($salesCategory ?? 'books') === 'printing_goods') onchange="toggleSalesCategory('printing_goods')">
+                <label class="btn btn-sm rounded-pill px-3.5 py-2 fw-bold" for="catPrinting">
+                    <i class="fa-solid fa-print me-1.5 text-warning"></i> ৩. প্রিন্টিং গুডস ও সেবা
+                </label>
+
+                <input type="radio" class="btn-check" name="sales_category" id="catOtherSales" value="other" autocomplete="off" @checked(($salesCategory ?? 'books') === 'other') onchange="toggleSalesCategory('other')">
+                <label class="btn btn-sm rounded-pill px-3.5 py-2 fw-bold" for="catOtherSales">
+                    <i class="fa-solid fa-cart-plus me-1.5 text-secondary"></i> ৪. অন্যান্য বিক্রয় (Other)
+                </label>
+            </div>
+        </div>
+    </div>
+</div>
+
 <form action="{{ route('admin.accounting.invoices.store') }}" method="POST" id="invoiceForm">
     @csrf
 
@@ -56,25 +91,25 @@
                     {{-- 4 Document Types Switcher --}}
                     <div class="btn-group btn-group-sm flex-wrap" role="group">
                         <input type="radio" class="btn-check" name="type" id="typeInvoice" value="invoice" 
-                               @checked($currentType === 'invoice') onchange="updateDocType()">
+                                @checked($currentType === 'invoice') onchange="updateDocType()">
                         <label class="btn btn-outline-primary fw-semibold" for="typeInvoice">
                             <i class="fas fa-receipt me-1"></i>Bill / Invoice
                         </label>
 
                         <input type="radio" class="btn-check" name="type" id="typeChallan" value="challan" 
-                               @checked($currentType === 'challan') onchange="updateDocType()">
+                                @checked($currentType === 'challan') onchange="updateDocType()">
                         <label class="btn btn-outline-primary fw-semibold" for="typeChallan">
                             <i class="fas fa-truck me-1"></i>Delivery Challan
                         </label>
 
                         <input type="radio" class="btn-check" name="type" id="typeQuotation" value="quotation" 
-                               @checked($currentType === 'quotation') onchange="updateDocType()">
+                                @checked($currentType === 'quotation') onchange="updateDocType()">
                         <label class="btn btn-outline-primary fw-semibold" for="typeQuotation">
                             <i class="fas fa-file-lines me-1"></i>Quotation / Proforma
                         </label>
 
                         <input type="radio" class="btn-check" name="type" id="typeTender" value="tender" 
-                               @checked($currentType === 'tender') onchange="updateDocType()">
+                                @checked($currentType === 'tender') onchange="updateDocType()">
                         <label class="btn btn-outline-primary fw-semibold" for="typeTender">
                             <i class="fas fa-landmark me-1"></i>Tender Document
                         </label>
@@ -150,27 +185,83 @@
             <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white">
                 <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
                     <div>
-                        <h5 class="fw-bold mb-0 text-dark">
+                        <h5 class="fw-bold mb-0 text-dark" id="itemsSectionTitle">
                             <i class="fas fa-list-check me-2 text-success"></i>Items & Schedule of Rates
                         </h5>
-                        <small class="text-muted">Selecting books from the catalog will automatically populate author, cover price and discount</small>
+                        <small class="text-muted" id="itemsSectionSubtitle">Selecting books from the catalog will automatically populate author, cover price and discount</small>
                     </div>
-                    <button type="button" class="btn btn-sm btn-success rounded-pill px-3 fw-semibold" onclick="addItemRow()">
+                    <button type="button" class="btn btn-sm btn-success rounded-pill px-3 fw-semibold" id="btnAddItemBtn" onclick="addItemRow()">
                         <i class="fas fa-plus me-1"></i> Add More Items
                     </button>
                 </div>
                 <div class="card-body p-3">
+                    
+                    {{-- 1-Click Quick Presets for Stationery --}}
+                    <div id="stationeryPresetsWrap" class="mb-3 p-3 bg-light rounded-3 border" style="display: none;">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="small fw-bold text-dark"><i class="fa-solid fa-pen-ruler text-info me-1"></i> স্টেশনারী আইটেম দ্রুত যোগ করুন (১-ক্লিক প্রিসেট):</span>
+                        </div>
+                        <div class="d-flex flex-wrap gap-2">
+                            <button type="button" class="btn btn-white btn-sm border rounded-pill px-3 py-1 shadow-2xs text-dark" onclick="addPresetItem('প্রিমিয়াম হার্ডবাউন্ড ডায়েরি', 'আইডিয়া ব্র্যান্ড ২০২৬', 'Stationery', 'পিস', 350, 450)">
+                                📓 হার্ডবাউন্ড ডায়েরি
+                            </button>
+                            <button type="button" class="btn btn-white btn-sm border rounded-pill px-3 py-1 shadow-2xs text-dark" onclick="addPresetItem('এক্সিকিউটিভ নোটবুক / খাতা', '১২০ পৃষ্ঠা রুল্ড', 'Stationery', 'পিস', 120, 150)">
+                                📒 এক্সিকিউটিভ নোটবুক
+                            </button>
+                            <button type="button" class="btn btn-white btn-sm border rounded-pill px-3 py-1 shadow-2xs text-dark" onclick="addPresetItem('বলপয়েন্ট কলম বক্স (১০ পিস)', 'স্মুথ ০.৭মিমি', 'Stationery', 'বক্স', 100, 120)">
+                                🖊️ বলপেন বক্স (১০টি)
+                            </button>
+                            <button type="button" class="btn btn-white btn-sm border rounded-pill px-3 py-1 shadow-2xs text-dark" onclick="addPresetItem('অফিস পেপার ফাইল ও ফোল্ডার', 'লেদারটেক্স প্রিমিয়াম', 'Stationery', 'পিস', 45, 60)">
+                                📁 পেপার ফাইল ফোল্ডার
+                            </button>
+                            <button type="button" class="btn btn-white btn-sm border rounded-pill px-3 py-1 shadow-2xs text-dark" onclick="addPresetItem('আর্ট পেপার প্যাড (A4)', '১০০ জিএসএম ৫০ পাতা', 'Stationery', 'প্যাড', 180, 220)">
+                                📑 আর্ট পেপার প্যাড
+                            </button>
+                            <button type="button" class="btn btn-white btn-sm border rounded-pill px-3 py-1 shadow-2xs text-dark" onclick="addPresetItem('প্রিমিয়াম বুকমার্ক সেট (৫ পিস)', 'ল্যামিনেটেড গোল্ডেন ফয়েল', 'Stationery', 'সেট', 80, 100)">
+                                🔖 বুকমার্ক সেট
+                            </button>
+                        </div>
+                    </div>
+
+                    {{-- 1-Click Quick Presets for Printing Goods & Services --}}
+                    <div id="printingPresetsWrap" class="mb-3 p-3 bg-light rounded-3 border" style="display: none;">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="small fw-bold text-dark"><i class="fa-solid fa-print text-warning me-1"></i> প্রিন্টিং গুডস ও সেবা আইটেম দ্রুত যোগ করুন (১-ক্লিক প্রিসেট):</span>
+                        </div>
+                        <div class="d-flex flex-wrap gap-2">
+                            <button type="button" class="btn btn-white btn-sm border rounded-pill px-3 py-1 shadow-2xs text-dark" onclick="addPresetItem('কাস্টম বই মুদ্রণ ও প্রকাশনা অর্ডার', 'ডিমাই সাইজ ৮০ GSM', 'Printing & Binding', 'কপি', 140, 160)">
+                                📚 কাস্টম বই প্রিন্টিং
+                            </button>
+                            <button type="button" class="btn btn-white btn-sm border rounded-pill px-3 py-1 shadow-2xs text-dark" onclick="addPresetItem('দেয়াল ক্যালেন্ডার মুদ্রণ বিল', '৬ পাতা আর্ট পেপার স্পাইরাল', 'Printing & Binding', 'পিস', 85, 110)">
+                                🗓️ দেয়াল ক্যালেন্ডার প্রিন্ট
+                            </button>
+                            <button type="button" class="btn btn-white btn-sm border rounded-pill px-3 py-1 shadow-2xs text-dark" onclick="addPresetItem('টেবিল / ডেস্ক ক্যালেন্ডার বিল', '১২ পাতা ম্যাট ল্যামিনেশন', 'Printing & Binding', 'পিস', 120, 150)">
+                                📅 টেবিল ক্যালেন্ডার প্রিন্ট
+                            </button>
+                            <button type="button" class="btn btn-white btn-sm border rounded-pill px-3 py-1 shadow-2xs text-dark" onclick="addPresetItem('স্মরণিকা / ম্যাগাজিন মুদ্রণ বিল', '৪-কালার কভার ৮০ GSM বডি', 'Printing & Binding', 'কপি', 95, 120)">
+                                📖 স্মরণিকা / ম্যাগাজিন
+                            </button>
+                            <button type="button" class="btn btn-white btn-sm border rounded-pill px-3 py-1 shadow-2xs text-dark" onclick="addPresetItem('৪-কালার পোস্টার / প্রচারপত্র বিল', 'আর্ট পেপার ২×৩ ফুট', 'Printing & Binding', 'হাজার', 3500, 4000)">
+                                🖼️ পোস্টার / লিফলেট প্রিন্ট
+                            </button>
+                            <button type="button" class="btn btn-white btn-sm border rounded-pill px-3 py-1 shadow-2xs text-dark" onclick="addPresetItem('প্রিমিয়াম হার্ডকাভার বাঁধাই চার্জ', 'গোল্ডেন এম্বস ফয়েল', 'Printing & Binding', 'কপি', 65, 80)">
+                                📕 হার্ডকাভার বাঁধাই সেবা
+                            </button>
+                        </div>
+                    </div>
+
                     <div class="table-responsive">
                         <table class="table table-bordered align-middle mb-0" id="itemsTable">
                             <thead class="table-light">
                                 <tr class="small text-muted text-uppercase" style="font-size: 11px;">
-                                    <th style="min-width: 220px;">Item / Book Title <span class="text-danger">*</span></th>
-                                    <th style="width: 130px;">Author</th>
-                                    <th style="width: 135px;">Type / Edition</th>
-                                    <th style="width: 75px;" class="text-center">Qty <span class="text-danger">*</span></th>
-                                    <th style="width: 95px;" class="text-end">Cover Price (৳)</th>
-                                    <th style="width: 80px;" class="text-center">Comm (%)</th>
-                                    <th style="width: 105px;" class="text-end">Unit Price (৳) <span class="text-danger">*</span></th>
+                                    <th style="min-width: 220px;" id="thTitleCol"><span id="thTitleLabel">Item / Book Title</span> <span class="text-danger">*</span></th>
+                                    <th style="width: 120px;" id="thAuthorCol"><span id="thAuthorLabel">Author / Spec</span></th>
+                                    <th style="width: 125px;"><span id="thTypeLabel">Type / Edition</span></th>
+                                    <th style="width: 75px;" class="text-center"><span id="thUnitLabel">Unit</span></th>
+                                    <th style="width: 75px;" class="text-center"><span id="thQtyLabel">Qty</span> <span class="text-danger">*</span></th>
+                                    <th style="width: 95px;" class="text-end"><span id="thRegPriceLabel">Price (৳)</span></th>
+                                    <th style="width: 80px;" class="text-center">Disc (%)</th>
+                                    <th style="width: 105px;" class="text-end"><span id="thUnitPriceLabel">Net Price (৳)</span> <span class="text-danger">*</span></th>
                                     <th style="width: 110px;" class="text-end">Total (৳)</th>
                                     <th style="width: 40px;" class="text-center"></th>
                                 </tr>
@@ -184,19 +275,24 @@
                                     </td>
                                     <td>
                                         <input type="text" name="items[0][author_name]" class="form-control form-control-sm item-author" 
-                                               placeholder="Author name">
+                                               placeholder="Author / Spec">
                                     </td>
                                     <td>
                                         <select name="items[0][item_type]" class="form-select form-select-sm item-type-select" onchange="onTypeChange(this, 0)">
                                             <option value="Book (Paperback)">Book (Paperback)</option>
                                             <option value="Book (Hardcover)">Book (Hardcover)</option>
                                             <option value="Book (Standard)">Book (Standard)</option>
+                                            <option value="Stationery">Stationery</option>
                                             <option value="Product">Product</option>
                                             <option value="Paper / Raw Materials">Paper / Raw Materials</option>
                                             <option value="Printing & Binding">Printing & Binding</option>
                                             <option value="Service">Service</option>
                                             <option value="Other">Other</option>
                                         </select>
+                                    </td>
+                                    <td>
+                                        <input type="text" name="items[0][unit]" class="form-control form-control-sm item-unit text-center font-monospace" 
+                                               value="কপি" placeholder="একক">
                                     </td>
                                     <td>
                                         <input type="number" step="0.01" name="items[0][quantity]" class="form-control form-control-sm item-qty text-center font-monospace fw-bold" 
@@ -223,7 +319,7 @@
                                 </tr>
                             </tbody>
                         </table>
-                    </div>
+                    </div>  </div>
 
                     {{-- Datalist of Bookshop Books with Edition details --}}
                     <datalist id="booksList">
@@ -706,6 +802,139 @@
         calcTotals();
     }
 
+    function addPresetItem(title, authorSpec, itemType, unit, defaultPrice, regPrice) {
+        const tbody = document.getElementById('itemsBody');
+        const i = rowCounter++;
+
+        const regularPrice = regPrice || defaultPrice;
+        const discountPct = (regularPrice > defaultPrice) ? Math.round(((regularPrice - defaultPrice) / regularPrice) * 100) : 0;
+
+        const tr = document.createElement('tr');
+        tr.className = 'item-row';
+        tr.setAttribute('data-row', i);
+        tr.innerHTML = `
+            <td>
+                <input type="text" name="items[${i}][title]" class="form-control form-control-sm item-title fw-semibold" 
+                       value="${title}" placeholder="Item title..." required oninput="onTitleInput(this, ${i})">
+                <input type="hidden" name="items[${i}][book_id]" class="item-book-id" value="">
+            </td>
+            <td>
+                <input type="text" name="items[${i}][author_name]" class="form-control form-control-sm item-author" 
+                       value="${authorSpec || ''}" placeholder="Author / Spec">
+            </td>
+            <td>
+                <select name="items[${i}][item_type]" class="form-select form-select-sm item-type-select" onchange="onTypeChange(this, ${i})">
+                    <option value="Book (Paperback)" ${itemType === 'Book (Paperback)' ? 'selected' : ''}>Book (Paperback)</option>
+                    <option value="Book (Hardcover)" ${itemType === 'Book (Hardcover)' ? 'selected' : ''}>Book (Hardcover)</option>
+                    <option value="Book (Standard)" ${itemType === 'Book (Standard)' ? 'selected' : ''}>Book (Standard)</option>
+                    <option value="Stationery" ${itemType === 'Stationery' ? 'selected' : ''}>Stationery</option>
+                    <option value="Product" ${itemType === 'Product' ? 'selected' : ''}>Product</option>
+                    <option value="Paper / Raw Materials" ${itemType === 'Paper / Raw Materials' ? 'selected' : ''}>Paper / Raw Materials</option>
+                    <option value="Printing & Binding" ${itemType === 'Printing & Binding' ? 'selected' : ''}>Printing & Binding</option>
+                    <option value="Service" ${itemType === 'Service' ? 'selected' : ''}>Service</option>
+                    <option value="Other" ${itemType === 'Other' ? 'selected' : ''}>Other</option>
+                </select>
+            </td>
+            <td>
+                <input type="text" name="items[${i}][unit]" class="form-control form-control-sm item-unit text-center font-monospace" 
+                       value="${unit || 'পিস'}" placeholder="একক">
+            </td>
+            <td>
+                <input type="number" step="0.01" name="items[${i}][quantity]" class="form-control form-control-sm item-qty text-center font-monospace fw-bold" 
+                       value="1" min="0.01" required oninput="calcRow(${i}, 'qty')">
+            </td>
+            <td>
+                <input type="number" step="0.01" name="items[${i}][regular_price]" class="form-control form-control-sm item-regular-price text-end font-monospace" 
+                       value="${regularPrice}" min="0" placeholder="0.00" oninput="calcRow(${i}, 'regular_price')">
+            </td>
+            <td>
+                <input type="number" step="0.01" name="items[${i}][discount_percent]" class="form-control form-control-sm item-discount-percent text-center font-monospace fw-bold text-success" 
+                       value="${discountPct}" min="0" max="100" placeholder="0" oninput="calcRow(${i}, 'discount_percent')">
+            </td>
+            <td>
+                <input type="number" step="0.01" name="items[${i}][price]" class="form-control form-control-sm item-price text-end font-monospace fw-bold text-primary" 
+                       value="${defaultPrice}" min="0" required oninput="calcRow(${i}, 'unit_price')">
+            </td>
+            <td class="text-end fw-bold text-dark item-subtotal font-monospace">৳${defaultPrice.toFixed(2)}</td>
+            <td class="text-center">
+                <button type="button" class="btn btn-sm btn-outline-danger p-1 border-0" onclick="removeRow(this)" title="Remove">
+                    <i class="fas fa-times"></i>
+                </button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+        calcTotals();
+    }
+
+    function toggleSalesCategory(cat) {
+        const hintText = document.getElementById('categoryHintText');
+        const stnWrap = document.getElementById('stationeryPresetsWrap');
+        const prtWrap = document.getElementById('printingPresetsWrap');
+        const itemsSecTitle = document.getElementById('itemsSectionTitle');
+        const itemsSecSub = document.getElementById('itemsSectionSubtitle');
+        const addBtn = document.getElementById('btnAddItemBtn');
+
+        const thTitle = document.getElementById('thTitleLabel');
+        const thAuthor = document.getElementById('thAuthorLabel');
+        const thUnit = document.getElementById('thUnitLabel');
+        const thReg = document.getElementById('thRegPriceLabel');
+        const thNet = document.getElementById('thUnitPriceLabel');
+
+        if (cat === 'stationery') {
+            if (hintText) hintText.textContent = 'ডায়েরি, নোটবুক, কলম, ফাইল ও স্টেশনারী সামগ্রী বিক্রয় চালান';
+            if (stnWrap) stnWrap.style.display = 'block';
+            if (prtWrap) prtWrap.style.display = 'none';
+            if (itemsSecTitle) itemsSecTitle.innerHTML = '<i class="fa-solid fa-pen-ruler me-2 text-info"></i>স্টেশনারী পণ্যের তালিকা ও বিক্রয় মূল্য';
+            if (itemsSecSub) itemsSecSub.textContent = 'স্টেশনারী পণ্যের বিবরণ, একক, পরিমাণ ও বিক্রয় মূল্য লিখুন';
+            if (addBtn) addBtn.innerHTML = '<i class="fas fa-plus me-1"></i> + আরও স্টেশনারী যোগ';
+
+            if (thTitle) thTitle.textContent = 'পণ্যের নাম ও বিবরণ';
+            if (thAuthor) thAuthor.textContent = 'মডেল / স্পেসিফিকেশন';
+            if (thUnit) thUnit.textContent = 'একক (Unit)';
+            if (thReg) thReg.textContent = 'MRP (৳)';
+            if (thNet) thNet.textContent = 'বিক্রয় দর (৳)';
+        } else if (cat === 'printing_goods') {
+            if (hintText) hintText.textContent = 'কাস্টম বই প্রিন্ট, ক্যালেন্ডার, পোস্টার, ম্যাগাজিন ও মুদ্রণ সেবা চালান';
+            if (stnWrap) stnWrap.style.display = 'none';
+            if (prtWrap) prtWrap.style.display = 'block';
+            if (itemsSecTitle) itemsSecTitle.innerHTML = '<i class="fa-solid fa-print me-2 text-warning"></i>প্রিন্টিং গুডস ও মুদ্রণ সেবার বিবরণ ও বিল';
+            if (itemsSecSub) itemsSecSub.textContent = 'মুদ্রণ কাজের বিবরণ, ফর্মা/কপি, একক ও বিল রেট লিখুন';
+            if (addBtn) addBtn.innerHTML = '<i class="fas fa-plus me-1"></i> + আরও প্রিন্টিং আইটেম যোগ';
+
+            if (thTitle) thTitle.textContent = 'কাজের নাম / প্রিন্টিং বিবরণ';
+            if (thAuthor) thAuthor.textContent = 'সাইজ / ফর্মা স্পেক';
+            if (thUnit) thUnit.textContent = 'একক (Unit)';
+            if (thReg) thReg.textContent = 'রেট (৳)';
+            if (thNet) thNet.textContent = 'নীট দর (৳)';
+        } else if (cat === 'other') {
+            if (hintText) hintText.textContent = 'অন্যান্য ও বিবিধ পণ্যের বিক্রয় ইনভয়েস';
+            if (stnWrap) stnWrap.style.display = 'none';
+            if (prtWrap) prtWrap.style.display = 'none';
+            if (itemsSecTitle) itemsSecTitle.innerHTML = '<i class="fa-solid fa-cart-plus me-2 text-secondary"></i>অন্যান্য পণ্য ও সেবার তালিকা';
+            if (itemsSecSub) itemsSecSub.textContent = 'পণ্য বা সেবার বিবরণ, পরিমাণ ও বিক্রয় মূল্য';
+            if (addBtn) addBtn.innerHTML = '<i class="fas fa-plus me-1"></i> + আরও আইটেম যোগ';
+
+            if (thTitle) thTitle.textContent = 'পণ্যের নাম ও বিবরণ';
+            if (thAuthor) thAuthor.textContent = 'বিবরণ / নোট';
+            if (thUnit) thUnit.textContent = 'একক';
+            if (thReg) thReg.textContent = 'দর (৳)';
+            if (thNet) thNet.textContent = 'মোট দর (৳)';
+        } else { // books
+            if (hintText) hintText.textContent = 'বই বিক্রয়, পাইকারি ও রিটেইল চালান';
+            if (stnWrap) stnWrap.style.display = 'none';
+            if (prtWrap) prtWrap.style.display = 'none';
+            if (itemsSecTitle) itemsSecTitle.innerHTML = '<i class="fas fa-list-check me-2 text-success"></i>Items & Schedule of Rates';
+            if (itemsSecSub) itemsSecSub.textContent = 'Selecting books from the catalog will automatically populate author, cover price and discount';
+            if (addBtn) addBtn.innerHTML = '<i class="fas fa-plus me-1"></i> Add More Items';
+
+            if (thTitle) thTitle.textContent = 'Item / Book Title';
+            if (thAuthor) thAuthor.textContent = 'Author / Spec';
+            if (thUnit) thUnit.textContent = 'Unit';
+            if (thReg) thReg.textContent = 'Price (৳)';
+            if (thNet) thNet.textContent = 'Net Price (৳)';
+        }
+    }
+
     function addItemRow() {
         const tbody = document.getElementById('itemsBody');
         const i = rowCounter++;
@@ -728,12 +957,17 @@
                     <option value="Book (Paperback)">Book (Paperback)</option>
                     <option value="Book (Hardcover)">Book (Hardcover)</option>
                     <option value="Book (Standard)">Book (Standard)</option>
+                    <option value="Stationery">Stationery</option>
                     <option value="Product">Product</option>
                     <option value="Paper / Raw Materials">Paper / Raw Materials</option>
                     <option value="Printing & Binding">Printing & Binding</option>
                     <option value="Service">Service</option>
                     <option value="Other">Other</option>
                 </select>
+            </td>
+            <td>
+                <input type="text" name="items[${i}][unit]" class="form-control form-control-sm item-unit text-center font-monospace" 
+                       value="কপি" placeholder="একক">
             </td>
             <td>
                 <input type="number" step="0.01" name="items[${i}][quantity]" class="form-control form-control-sm item-qty text-center font-monospace fw-bold" 
@@ -774,6 +1008,8 @@
     document.addEventListener('DOMContentLoaded', () => {
         updateDocType();
         calcTotals();
+        const activeSalesCat = document.querySelector('input[name="sales_category"]:checked')?.value || 'books';
+        toggleSalesCategory(activeSalesCat);
     });
 </script>
 

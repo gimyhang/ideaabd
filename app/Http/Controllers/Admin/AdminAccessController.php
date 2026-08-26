@@ -216,8 +216,11 @@ class AdminAccessController extends Controller
             'server_os'      => PHP_OS,
         ];
 
+        // Header Navigation Menu Items
+        $headerMenuItems = \App\Support\SiteSetting::headerNav();
+
         return view('admin.system-settings', compact(
-            'settings', 'noticeSetting', 'maintSetting', 'ecomSetting', 'themeSetting', 'invoiceSetting', 'paymentGateways', 'diagnostics'
+            'settings', 'noticeSetting', 'maintSetting', 'ecomSetting', 'themeSetting', 'invoiceSetting', 'paymentGateways', 'diagnostics', 'headerMenuItems'
         ));
     }
 
@@ -249,6 +252,9 @@ class AdminAccessController extends Controller
             'secondary_color' => 'nullable|string|max:20',
             'maintenance_mode'=> 'nullable|boolean',
             'maintenance_reason' => 'nullable|string|max:300',
+            'ideapatra_section_badge' => 'nullable|string|max:150',
+            'ideapatra_section_title' => 'nullable|string|max:250',
+            'ideapatra_section_subtitle' => 'nullable|string|max:500',
         ]);
 
         if (Schema::hasTable('admin_dashboard_settings')) {
@@ -266,7 +272,46 @@ class AdminAccessController extends Controller
                 );
             }
 
-            // 2. Handle logo (File or Cropped Base64)
+            // 1.1 Ideapatra Section Customization Texts
+            if ($request->has('ideapatra_section_badge')) {
+                AdminDashboardSetting::updateOrCreate(
+                    ['key' => 'ideapatra_section_badge'],
+                    ['value' => $request->string('ideapatra_section_badge')->trim()->value(), 'updated_by' => auth()->id()]
+                );
+            }
+            if ($request->has('ideapatra_section_title')) {
+                AdminDashboardSetting::updateOrCreate(
+                    ['key' => 'ideapatra_section_title'],
+                    ['value' => $request->string('ideapatra_section_title')->trim()->value(), 'updated_by' => auth()->id()]
+                );
+            }
+            if ($request->has('ideapatra_section_subtitle')) {
+                AdminDashboardSetting::updateOrCreate(
+                    ['key' => 'ideapatra_section_subtitle'],
+                    ['value' => $request->string('ideapatra_section_subtitle')->trim()->value(), 'updated_by' => auth()->id()]
+                );
+            }
+
+            // 2. Handle logo (File or Cropped Base64) & Dimensions
+            if ($request->has('site_logo_height')) {
+                AdminDashboardSetting::updateOrCreate(
+                    ['key' => 'site_logo_height'],
+                    ['value' => (int) $request->input('site_logo_height', 52), 'updated_by' => auth()->id()]
+                );
+            }
+            if ($request->has('site_logo_width')) {
+                AdminDashboardSetting::updateOrCreate(
+                    ['key' => 'site_logo_width'],
+                    ['value' => (int) $request->input('site_logo_width', 220), 'updated_by' => auth()->id()]
+                );
+            }
+            if ($request->has('site_logo_scale')) {
+                AdminDashboardSetting::updateOrCreate(
+                    ['key' => 'site_logo_scale'],
+                    ['value' => (int) $request->input('site_logo_scale', 100), 'updated_by' => auth()->id()]
+                );
+            }
+
             if ($request->boolean('remove_site_logo')) {
                 AdminDashboardSetting::where('key', 'site_logo')->delete();
             } else {
@@ -425,10 +470,38 @@ class AdminAccessController extends Controller
                     }
                 }
             }
-            AdminDashboardSetting::updateOrCreate(
-                ['key' => 'editorial_board'],
-                ['value' => $boardMembers, 'updated_by' => auth()->id()]
-            );
+            // 9.2 Header Navigation Menu Items
+            if ($request->has('header_menu_items')) {
+                $rawNav = $request->input('header_menu_items');
+                if (is_string($rawNav)) {
+                    $rawNav = json_decode($rawNav, true) ?: [];
+                }
+                if (is_array($rawNav)) {
+                    // Filter and sanitize items
+                    $sanitizedNav = [];
+                    foreach ($rawNav as $idx => $m) {
+                        if (!empty($m['label'])) {
+                            $sanitizedNav[] = [
+                                'id'        => (string) ($m['id'] ?? ($idx + 1)),
+                                'label'     => trim((string) $m['label']),
+                                'route'     => trim((string) ($m['route'] ?? '')),
+                                'url'       => trim((string) ($m['url'] ?? '')),
+                                'icon'      => trim((string) ($m['icon'] ?? 'link')),
+                                'active'    => trim((string) ($m['active'] ?? '')),
+                                'is_active' => filter_var($m['is_active'] ?? true, FILTER_VALIDATE_BOOLEAN),
+                                'target'    => in_array($m['target'] ?? '_self', ['_self', '_blank']) ? $m['target'] : '_self',
+                                'badge'     => trim((string) ($m['badge'] ?? '')),
+                            ];
+                        }
+                    }
+                    AdminDashboardSetting::updateOrCreate(
+                        ['key' => 'header_menu_items'],
+                        ['value' => $sanitizedNav, 'updated_by' => auth()->id()]
+                    );
+                }
+            } elseif ($request->boolean('reset_header_menu')) {
+                AdminDashboardSetting::where('key', 'header_menu_items')->delete();
+            }
 
             // 10. Payment Gateways
             if ($request->has('gateways')) {

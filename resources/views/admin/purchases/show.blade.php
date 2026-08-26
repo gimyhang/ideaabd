@@ -33,10 +33,19 @@
             <div class="d-flex flex-wrap justify-content-between align-items-start border-bottom pb-4 mb-4 gap-3">
                 <div>
                     <h3 class="fw-bold text-primary mb-1">{{ config('brand.name', 'Idea Books') }}</h3>
-                    <p class="text-muted small mb-0">Publisher Purchase Order & Challan</p>
+                    <p class="text-muted small mb-0">
+                        @if($purchase->purchase_category === 'raw_materials')
+                            <span class="badge bg-warning text-dark me-1">কাঁচামাল ও প্রেস ক্রয় চালান</span>
+                        @elseif($purchase->purchase_category === 'other')
+                            <span class="badge bg-info text-dark me-1">অন্যান্য ও বিবিধ ক্রয় চালান</span>
+                        @else
+                            <span class="badge bg-primary text-white me-1">বই ক্রয় চালান ও ইনভেন্টরি</span>
+                        @endif
+                        Purchase Order & Challan Voucher
+                    </p>
                 </div>
                 <div class="text-md-end">
-                    <h4 class="fw-bold text-dark mb-1">Invoice #{{ $purchase->purchase_no }}</h4>
+                    <h4 class="fw-bold text-dark mb-1 font-monospace">Invoice #{{ $purchase->purchase_no }}</h4>
                     <div class="text-muted small">Date: <strong>{{ $purchase->purchase_date ? $purchase->purchase_date->format('d M, Y') : '—' }}</strong></div>
                     <div class="mt-2">
                         @if($purchase->payment_status === 'paid')
@@ -56,11 +65,19 @@
                 </div>
             </div>
 
-            {{-- Publisher Info --}}
+            {{-- Supplier / Publisher Info --}}
             <div class="row mb-4 p-3 bg-light rounded-4">
                 <div class="col-md-6 mb-2 mb-md-0">
-                    <span class="text-muted small text-uppercase fw-semibold">Publisher / Supplier:</span>
-                    <h5 class="fw-bold text-dark mt-1 mb-1">{{ $purchase->publisher->name ?? '—' }}</h5>
+                    <span class="text-muted small text-uppercase fw-semibold">
+                        @if($purchase->purchase_category === 'raw_materials')
+                            কাঁচামাল সরবরাহকারী / প্রেস:
+                        @elseif($purchase->purchase_category === 'other')
+                            দোকান / সরবরাহকারী / ভেন্ডর:
+                        @else
+                            প্রকাশক / সরবরাহকারী (Publisher / Supplier):
+                        @endif
+                    </span>
+                    <h5 class="fw-bold text-dark mt-1 mb-1">{{ $purchase->party_name }}</h5>
                     @if($purchase->publisher?->address)
                         <div class="text-muted small"><i class="fas fa-map-marker-alt me-1"></i>{{ $purchase->publisher->address }}</div>
                     @endif
@@ -72,10 +89,10 @@
                     <span class="text-muted small text-uppercase fw-semibold">Purchase Summary:</span>
                     <div class="mt-1">
                         @if($purchase->publisher_memo_no)
-                            <div class="text-primary fw-bold mb-1"><i class="fas fa-receipt me-1"></i>Supplier Memo #: {{ $purchase->publisher_memo_no }}</div>
+                            <div class="text-primary fw-bold mb-1"><i class="fas fa-receipt me-1"></i>মেমো / চালান নং: {{ $purchase->publisher_memo_no }}</div>
                         @endif
-                        <div>Payment Terms: <strong>{{ ['cash' => 'Cash Purchase', 'credit' => 'Credit Purchase', 'partial' => 'Partial Credit'][$purchase->payment_type] ?? ucfirst($purchase->payment_type) }}</strong></div>
-                        <div>Created By: <strong>{{ $purchase->creator->name ?? 'Admin' }}</strong></div>
+                        <div>পেমেন্ট মেথড: <strong>{{ ['cash' => 'Cash Purchase', 'credit' => 'Credit Purchase', 'partial' => 'Partial Credit'][$purchase->payment_type] ?? ucfirst($purchase->payment_type) }}</strong></div>
+                        <div>এন্ট্রি করেছেন: <strong>{{ $purchase->creator->name ?? 'Admin' }}</strong></div>
                     </div>
                 </div>
             </div>
@@ -83,49 +100,122 @@
             {{-- Items Table --}}
             <div class="table-responsive mb-4">
                 <table class="table table-bordered align-middle">
-                    <thead class="table-light text-center small text-muted text-uppercase">
-                        <tr>
-                            <th class="ps-3" style="width: 40px;">#</th>
-                            <th class="text-start">Book Details</th>
-                            <th>Quantity</th>
-                            <th>MRP Price</th>
-                            <th>Commission %</th>
-                            <th>Cost Price</th>
-                            <th>Store Price</th>
-                            <th class="text-end pe-3">Subtotal</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($purchase->items as $i => $item)
+                    @if($purchase->purchase_category === 'raw_materials')
+                        <thead class="table-warning text-center small text-dark text-uppercase">
                             <tr>
-                                <td class="ps-3 text-muted small text-center">{{ $i + 1 }}</td>
-                                <td>
-                                    <div class="fw-bold text-dark">{{ $item->book_title }}</div>
-                                    <div class="small text-muted">
-                                        Author: {{ $item->author_name ?? '—' }} | Category: {{ $item->category->name ?? $item->book?->category?->name ?? '—' }}
-                                    </div>
-                                    @if($item->book)
-                                        <a href="{{ route('shop.show', $item->book->slug) }}" target="_blank" class="small text-primary text-decoration-none d-inline-block mt-0.5">
-                                            <i class="fas fa-arrow-up-right-from-square me-1"></i>View in Store (Stock: {{ $item->book->stock_quantity }})
-                                        </a>
-                                    @endif
-                                </td>
-                                <td class="text-center fw-bold">{{ $item->quantity }} pcs</td>
-                                <td class="text-center">৳{{ number_format($item->mrp_price > 0 ? $item->mrp_price : $item->unit_cost_price, 2) }}</td>
-                                <td class="text-center text-danger fw-semibold">
-                                    {{ $item->purchase_commission_percent > 0 ? $item->purchase_commission_percent . '%' : '—' }}
-                                </td>
-                                <td class="text-center fw-bold text-danger">৳{{ number_format($item->unit_cost_price, 2) }}</td>
-                                <td class="text-center text-success">
-                                    <strong>৳{{ number_format($item->unit_sale_price, 2) }}</strong>
-                                    @if($item->shop_discount_percent > 0)
-                                        <div class="small text-muted">({{ $item->shop_discount_percent }}% off)</div>
-                                    @endif
-                                </td>
-                                <td class="text-end pe-3 fw-bold text-dark">৳{{ number_format($item->subtotal, 2) }}</td>
+                                <th class="ps-3" style="width: 40px;">#</th>
+                                <th class="text-start">মালের বিবরণ / কাজের নাম</th>
+                                <th>সাইজ / স্পেসিফিকেশন</th>
+                                <th>একক</th>
+                                <th>পরিমাণ</th>
+                                <th>একক দর</th>
+                                <th class="text-end pe-3">মোট মূল্য</th>
                             </tr>
-                        @endforeach
-                    </tbody>
+                        </thead>
+                        <tbody>
+                            @foreach($purchase->items as $i => $item)
+                                <tr>
+                                    <td class="ps-3 text-muted small text-center">{{ $i + 1 }}</td>
+                                    <td>
+                                        <div class="fw-bold text-dark">{{ $item->displayName }}</div>
+                                        @if($item->quality_spec || $item->item_notes)
+                                            <div class="small text-muted">
+                                                {{ $item->quality_spec ? 'কোয়ালিটি: ' . $item->quality_spec : '' }}
+                                                {{ $item->item_notes ? ' | নোট: ' . $item->item_notes : '' }}
+                                            </div>
+                                        @endif
+                                    </td>
+                                    <td class="text-center font-monospace small">
+                                        {{ $item->size_spec ?: ($item->book_size ?: '—') }}
+                                    </td>
+                                    <td class="text-center small">
+                                        {{ $item->unit ?: 'রিম/পিস' }}
+                                    </td>
+                                    <td class="text-center fw-bold font-monospace">
+                                        {{ $item->quantity }} {{ $item->unit ?: '' }}
+                                    </td>
+                                    <td class="text-center fw-bold text-danger font-monospace">
+                                        ৳{{ number_format($item->unit_cost_price, 2) }}
+                                    </td>
+                                    <td class="text-end pe-3 fw-bold text-dark font-monospace">
+                                        ৳{{ number_format($item->subtotal, 2) }}
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    @elseif($purchase->purchase_category === 'other')
+                        <thead class="table-info text-center small text-dark text-uppercase">
+                            <tr>
+                                <th class="ps-3" style="width: 40px;">#</th>
+                                <th class="text-start">মালের বিবরণ</th>
+                                <th>একক</th>
+                                <th>পরিমাণ</th>
+                                <th>একক দর</th>
+                                <th class="text-end pe-3">মোট টাকা</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($purchase->items as $i => $item)
+                                <tr>
+                                    <td class="ps-3 text-muted small text-center">{{ $i + 1 }}</td>
+                                    <td>
+                                        <div class="fw-bold text-dark">{{ $item->displayName }}</div>
+                                        @if($item->item_notes)
+                                            <div class="small text-muted">মন্তব্য: {{ $item->item_notes }}</div>
+                                        @endif
+                                    </td>
+                                    <td class="text-center small">{{ $item->unit ?: 'পিস' }}</td>
+                                    <td class="text-center fw-bold font-monospace">{{ $item->quantity }}</td>
+                                    <td class="text-center fw-bold text-danger font-monospace">৳{{ number_format($item->unit_cost_price, 2) }}</td>
+                                    <td class="text-end pe-3 fw-bold text-dark font-monospace">৳{{ number_format($item->subtotal, 2) }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    @else
+                        <thead class="table-light text-center small text-muted text-uppercase">
+                            <tr>
+                                <th class="ps-3" style="width: 40px;">#</th>
+                                <th class="text-start">Book Details</th>
+                                <th>Quantity</th>
+                                <th>MRP Price</th>
+                                <th>Commission %</th>
+                                <th>Cost Price</th>
+                                <th>Store Price</th>
+                                <th class="text-end pe-3">Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($purchase->items as $i => $item)
+                                <tr>
+                                    <td class="ps-3 text-muted small text-center">{{ $i + 1 }}</td>
+                                    <td>
+                                        <div class="fw-bold text-dark">{{ $item->displayName }}</div>
+                                        <div class="small text-muted">
+                                            Author: {{ $item->author_name ?? '—' }} | Category: {{ $item->category->name ?? $item->book?->category?->name ?? '—' }}
+                                        </div>
+                                        @if($item->book)
+                                            <a href="{{ route('shop.show', $item->book->slug) }}" target="_blank" class="small text-primary text-decoration-none d-inline-block mt-0.5">
+                                                <i class="fas fa-arrow-up-right-from-square me-1"></i>View in Store (Stock: {{ $item->book->stock_quantity }})
+                                            </a>
+                                        @endif
+                                    </td>
+                                    <td class="text-center fw-bold">{{ $item->quantity }} pcs</td>
+                                    <td class="text-center">৳{{ number_format($item->mrp_price > 0 ? $item->mrp_price : $item->unit_cost_price, 2) }}</td>
+                                    <td class="text-center text-danger fw-semibold">
+                                        {{ $item->purchase_commission_percent > 0 ? $item->purchase_commission_percent . '%' : '—' }}
+                                    </td>
+                                    <td class="text-center fw-bold text-danger">৳{{ number_format($item->unit_cost_price, 2) }}</td>
+                                    <td class="text-center text-success">
+                                        <strong>৳{{ number_format($item->unit_sale_price, 2) }}</strong>
+                                        @if($item->shop_discount_percent > 0)
+                                            <div class="small text-muted">({{ $item->shop_discount_percent }}% off)</div>
+                                        @endif
+                                    </td>
+                                    <td class="text-end pe-3 fw-bold text-dark">৳{{ number_format($item->subtotal, 2) }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    @endif
                 </table>
             </div>
 
@@ -250,7 +340,7 @@
 
                 <div class="modal-body p-4">
                     <div class="alert alert-info py-2 rounded-3 small mb-3">
-                        Publisher: <strong>{{ $purchase->publisher->name }}</strong> | Current Due: <strong>৳{{ number_format($purchase->due_amount, 2) }}</strong>
+                        সরবরাহকারী / প্রতিষ্ঠান: <strong>{{ $purchase->party_name }}</strong> | Current Due: <strong>৳{{ number_format($purchase->due_amount, 2) }}</strong>
                     </div>
 
                     <div class="mb-3">

@@ -14,15 +14,40 @@
 @endsection
 
 @section('actions')
-    <div class="d-flex flex-wrap gap-2">
-        <a href="{{ route('admin.accounting.invoices.create', ['type' => 'invoice']) }}" class="btn btn-success btn-sm rounded-pill px-3 fw-semibold shadow-sm">
-            <i class="fas fa-receipt me-1"></i> + Bill / Invoice
-        </a>
+    <div class="d-flex flex-wrap align-items-center gap-2">
+        <div class="dropdown">
+            <button class="btn btn-primary btn-sm rounded-pill px-3.5 fw-bold shadow-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fas fa-plus-circle me-1"></i> + নতুন ইনভয়েস / চালান
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow rounded-4 border-0 p-2" style="min-width: 240px;">
+                <li><h6 class="dropdown-header small text-uppercase fw-bold text-muted">ইনভয়েসের শ্রেণি নির্বাচন করুন:</h6></li>
+                <li>
+                    <a class="dropdown-item rounded-3 py-2 fw-semibold d-flex align-items-center gap-2" href="{{ route('admin.accounting.invoices.create', ['sales_category' => 'books']) }}">
+                        <i class="fa-solid fa-book text-primary"></i> 📚 ১. বই বিক্রয় ইনভয়েস
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item rounded-3 py-2 fw-semibold d-flex align-items-center gap-2" href="{{ route('admin.accounting.invoices.create', ['sales_category' => 'stationery']) }}">
+                        <i class="fa-solid fa-pen-ruler text-info"></i> ✏️ ২. স্টেশনারী বিক্রয় ইনভয়েস
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item rounded-3 py-2 fw-semibold d-flex align-items-center gap-2" href="{{ route('admin.accounting.invoices.create', ['sales_category' => 'printing_goods']) }}">
+                        <i class="fa-solid fa-print text-warning"></i> 🖨️ ৩. প্রিন্টিং গুডস ও সেবা ইনভয়েস
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item rounded-3 py-2 fw-semibold d-flex align-items-center gap-2" href="{{ route('admin.accounting.invoices.create', ['sales_category' => 'other']) }}">
+                        <i class="fa-solid fa-cart-plus text-secondary"></i> 🛒 ৪. অন্যান্য ও বিবিধ বিক্রয়
+                    </a>
+                </li>
+            </ul>
+        </div>
         <a href="{{ route('admin.accounting.invoices.create', ['type' => 'tender']) }}" class="btn btn-purple text-white btn-sm rounded-pill px-3 fw-semibold shadow-sm" style="background-color: #6f42c1;">
             <i class="fas fa-landmark me-1"></i> + Tender Document
         </a>
         <button type="button" class="btn btn-outline-dark btn-sm rounded-pill px-3 fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#invoiceSettingsModal" title="Customize invoice branding and layout">
-            <i class="fas fa-palette me-1.5 text-primary"></i> Invoice Branding & Settings
+            <i class="fas fa-palette me-1.5 text-primary"></i> Branding
         </button>
         <a href="{{ route('admin.accounting.index') }}" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-semibold shadow-xs">
             <i class="fas fa-scale-balanced me-1"></i> Cashbook
@@ -32,27 +57,39 @@
 
 @section('content')
 
-{{-- Idea Accounting Unified Navigation Bar --}}
+{{-- 4-Class Sales Category Switcher Bar --}}
 <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white">
-    <div class="card-body p-2 d-flex flex-wrap align-items-center justify-content-between gap-2">
-        <div class="nav nav-pills gap-1.5 flex-wrap">
-            <a href="{{ route('admin.accounting.index') }}" 
-               class="nav-link rounded-pill px-3.5 py-2 fw-semibold text-dark hover-bg-light">
-                <i class="fas fa-scale-balanced me-1.5"></i> Income & Expense Ledger
-            </a>
-            <a href="{{ route('admin.accounting.invoices.index') }}" 
-               class="nav-link rounded-pill px-3.5 py-2 fw-semibold active bg-primary text-white shadow-sm">
-                <i class="fas fa-file-invoice-dollar me-1.5"></i> Invoices, Challans & Quotations
-            </a>
-            <a href="{{ route('admin.accounting.invoices.create') }}" 
-               class="nav-link rounded-pill px-3.5 py-2 fw-semibold text-dark hover-bg-light">
-                <i class="fas fa-file-circle-plus me-1.5"></i> Create New Invoice
-            </a>
-        </div>
+    <div class="card-body p-3">
+        <div class="d-flex flex-column flex-lg-row align-items-center justify-content-between gap-3">
+            <div class="btn-group shadow-2xs rounded-pill p-1 bg-light border w-100 w-lg-auto" role="group">
+                <a href="{{ route('admin.accounting.invoices.index') }}" 
+                   class="btn btn-sm rounded-pill px-3 py-1.5 fw-bold {{ empty($salesCategory) ? 'btn-white text-primary shadow-xs' : 'btn-light text-muted' }}">
+                    <i class="fa-solid fa-layer-group me-1"></i> সকল ইনভয়েস ({{ $stats['total_invoices'] }})
+                </a>
+                <a href="{{ route('admin.accounting.invoices.index', ['sales_category' => 'books']) }}" 
+                   class="btn btn-sm rounded-pill px-3 py-1.5 fw-bold {{ $salesCategory === 'books' ? 'btn-white text-primary shadow-xs' : 'btn-light text-muted' }}">
+                    <i class="fa-solid fa-book me-1"></i> ১. বই বিক্রয় ({{ $stats['books_count'] }})
+                </a>
+                <a href="{{ route('admin.accounting.invoices.index', ['sales_category' => 'stationery']) }}" 
+                   class="btn btn-sm rounded-pill px-3 py-1.5 fw-bold {{ $salesCategory === 'stationery' ? 'btn-white text-info shadow-xs' : 'btn-light text-muted' }}">
+                    <i class="fa-solid fa-pen-ruler me-1"></i> ২. স্টেশনারী ({{ $stats['stationery_count'] }})
+                </a>
+                <a href="{{ route('admin.accounting.invoices.index', ['sales_category' => 'printing_goods']) }}" 
+                   class="btn btn-sm rounded-pill px-3 py-1.5 fw-bold {{ $salesCategory === 'printing_goods' ? 'btn-white text-warning shadow-xs' : 'btn-light text-muted' }}">
+                    <i class="fa-solid fa-print me-1"></i> ৩. প্রিন্টিং গুডস ({{ $stats['printing_count'] }})
+                </a>
+                <a href="{{ route('admin.accounting.invoices.index', ['sales_category' => 'other']) }}" 
+                   class="btn btn-sm rounded-pill px-3 py-1.5 fw-bold {{ $salesCategory === 'other' ? 'btn-white text-secondary shadow-xs' : 'btn-light text-muted' }}">
+                    <i class="fa-solid fa-cart-plus me-1"></i> ৪. অন্যান্য ({{ $stats['other_count'] }})
+                </a>
+            </div>
 
-        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-semibold" data-bs-toggle="modal" data-bs-target="#invoiceSettingsModal">
-            <i class="fas fa-sliders me-1 text-primary"></i> Memo Branding Settings
-        </button>
+            <div class="d-flex align-items-center gap-2">
+                <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-semibold" data-bs-toggle="modal" data-bs-target="#invoiceSettingsModal">
+                    <i class="fas fa-sliders me-1 text-primary"></i> মেমো ব্র্যান্ডিং সেটিংস
+                </button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -167,6 +204,14 @@
                                 @if($inv->reference_no)
                                     <div class="text-muted small fw-normal" style="font-size: 11px;">Ref: {{ $inv->reference_no }}</div>
                                 @endif
+                                @php
+                                    $catBadge = $inv->category_badge;
+                                @endphp
+                                <div class="mt-1">
+                                    <span class="badge border {{ $catBadge['bg'] }} px-2 py-0.5 fw-semibold" style="font-size: 10px;">
+                                        {{ $catBadge['label'] }}
+                                    </span>
+                                </div>
                             </td>
                             <td>
                                 @if($inv->type === 'tender')

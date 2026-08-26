@@ -25,14 +25,25 @@
 
 * { font-family: 'Kalpurush', 'Nikosh', 'Hind Siliguri', 'Inter', sans-serif; }
 
+html {
+    overflow-x: hidden;
+    max-width: 100%;
+}
+
 body {
     margin: 0;
     background: var(--bg);
     color: #1f2d3d;
     font-size: 15px;
+    overflow-x: hidden;
+    max-width: 100%;
+    width: 100%;
 }
 
-a { color: var(--brand); }
+img, svg, video, iframe {
+    max-width: 100%;
+    height: auto;
+}
 
 /* ── Sidebar ───────────────────────────────────────────────── */
 .adm-side {

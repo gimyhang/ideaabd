@@ -183,10 +183,16 @@
                             'tender'    => 'Computer-generated tender',
                             'invoice'   => 'Computer-generated bill',
                         ];
+                        $catBadge = $invoice->category_badge;
                     @endphp
                     <span class="badge border px-2 py-0.5 rounded-pill mb-0.5 d-inline-block fw-bold" style="font-size: 10px; {{ $badgeStyles[$invoice->type] ?? $badgeStyles['invoice'] }}">
                         {{ $badgeTitles[$invoice->type] ?? 'INVOICE / BILL' }}
                     </span>
+                    @if($invoice->sales_category && $invoice->sales_category !== 'books')
+                        <span class="badge border {{ $catBadge['bg'] }} px-2 py-0.5 rounded-pill mb-0.5 d-inline-block fw-bold ms-1" style="font-size: 10px;">
+                            {{ $catBadge['label'] }}
+                        </span>
+                    @endif
                     <div class="fw-bold text-dark mb-0 font-monospace invoice-no-text" style="font-size: 13pt; line-height: 1.2;">#{{ $invoice->invoice_no }}</div>
                     
                     <div class="text-muted fw-semibold" style="font-size: 9.5px; line-height: 1.2;">
@@ -218,7 +224,7 @@
             {{-- Customer & Billed To Info --}}
             <div class="row mb-2.5 p-2 bg-light rounded-2 border g-2 align-items-start" style="font-size: 12px;">
                 <div class="col-7">
-                    <div class="fw-bold text-dark mb-1" style="font-size: 12px;"><i class="fas fa-user-tag me-1 text-primary"></i>Recipient / Billed To:</div>
+                    <div class="fw-bold text-dark mb-1" style="font-size: 12px;"><i class="fas fa-user-tag me-1 text-primary"></i>Client / Customer Information:</div>
                     <table class="table-borderless p-0 m-0 w-100" style="font-size: 12px; line-height: 1.45;">
                         @if($invoice->customer_name)
                             <tr>
@@ -281,13 +287,40 @@
                     <thead class="table-light">
                         <tr class="text-muted text-uppercase" style="font-size: 9px;">
                             <th class="text-center py-1 px-1" style="width: 26px;">#</th>
-                            <th class="py-1 px-1.5">Book Title & Description</th>
-                            <th class="py-1 px-1" style="width: 105px;">Author</th>
-                            <th class="text-center py-1 px-1" style="width: 45px;">Qty</th>
-                            <th class="text-end py-1 px-1" style="width: 70px;">Cover Price</th>
-                            <th class="text-center py-1 px-1" style="width: 55px;">Comm %</th>
-                            <th class="text-end py-1 px-1" style="width: 80px;">Unit Price</th>
-                            <th class="text-end py-1 pe-1.5" style="width: 85px;">Total (৳)</th>
+                            <th class="py-1 px-1.5">
+                                @if($invoice->sales_category === 'stationery')
+                                    পণ্যের নাম ও বিবরণ (Item Title & Description)
+                                @elseif($invoice->sales_category === 'printing_goods')
+                                    কাজের নাম ও প্রিন্টিং বিবরণ (Job / Printing Description)
+                                @elseif($invoice->sales_category === 'other')
+                                    মালের বিবরণ ও বিবরণী (Description)
+                                @else
+                                    বইয়ের নাম ও বিবরণ (Book Title & Description)
+                                @endif
+                            </th>
+                            <th class="py-1 px-1" style="width: 105px;">
+                                @if($invoice->sales_category === 'stationery' || $invoice->sales_category === 'printing_goods')
+                                    স্পেক / সাইজ
+                                @elseif($invoice->sales_category === 'other')
+                                    স্পেসিফিকেশন
+                                @else
+                                    লেখক (Author)
+                                @endif
+                            </th>
+                            <th class="text-center py-1 px-1" style="width: 45px;">একক</th>
+                            <th class="text-center py-1 px-1" style="width: 45px;">পরিমাণ</th>
+                            <th class="text-end py-1 px-1" style="width: 70px;">
+                                @if($invoice->sales_category === 'stationery')
+                                    MRP (৳)
+                                @elseif($invoice->sales_category === 'printing_goods')
+                                    বেসিক রেট
+                                @else
+                                    গায়ের দর
+                                @endif
+                            </th>
+                            <th class="text-center py-1 px-1" style="width: 55px;">কমিশন %</th>
+                            <th class="text-end py-1 px-1" style="width: 80px;">বিক্রয় দর</th>
+                            <th class="text-end py-1 pe-1.5" style="width: 85px;">মোট (৳)</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -301,8 +334,9 @@
                                 
                                 $qty = (float)($item['quantity'] ?? 1);
                                 $netUnitPrice = (float)($item['unit_price'] ?? 0);
+                                $unitName = $item['unit'] ?? ($invoice->sales_category === 'books' ? 'কপি' : 'পিস');
                                 
-                                $coverPrice = (float)($item['cover_price'] ?? $item['original_price'] ?? ($matchedBook->price ?? $netUnitPrice));
+                                $coverPrice = (float)($item['cover_price'] ?? $item['regular_price'] ?? $item['original_price'] ?? ($matchedBook->price ?? $netUnitPrice));
                                 if ($coverPrice <= 0) {
                                     $coverPrice = $netUnitPrice;
                                 }
@@ -323,8 +357,12 @@
                                 <td class="text-center py-0.5 px-1 text-muted">{{ $idx + 1 }}</td>
                                 <td class="py-0.5 px-1.5">
                                     <span class="fw-semibold text-dark">{{ $item['title'] ?? '—' }}</span>
+                                    @if(!empty($item['item_type']) && !str_starts_with($item['item_type'], 'Book'))
+                                        <span class="badge bg-light text-dark border px-1 py-0 ms-1" style="font-size: 8px;">{{ $item['item_type'] }}</span>
+                                    @endif
                                 </td>
                                 <td class="py-0.5 px-1 text-muted" style="font-size: 9.5px;">{{ $authorName }}</td>
+                                <td class="text-center py-0.5 px-1 text-muted font-monospace" style="font-size: 9px;">{{ $unitName }}</td>
                                 <td class="text-center py-0.5 px-1 fw-bold">{{ $qty }}</td>
                                 <td class="text-end py-0.5 px-1">৳{{ number_format($coverPrice, 2) }}</td>
                                 <td class="text-center py-0.5 px-1">
@@ -544,12 +582,13 @@
                         <thead class="table-light">
                             <tr class="text-muted text-uppercase" style="font-size: 9px;">
                                 <th class="text-center py-1 px-1" style="width: 28px;">#</th>
-                                <th class="py-1 px-1.5">Delivered Item / Book Description</th>
-                                <th class="py-1 px-1" style="width: 115px;">Author</th>
-                                <th class="text-center py-1 px-1" style="width: 60px;">Type</th>
-                                <th class="text-center py-1 px-1" style="width: 55px;">Qty</th>
-                                <th class="text-center py-1 px-1" style="width: 75px;">Condition</th>
-                                <th class="py-1 px-1.5" style="width: 80px;">Remarks</th>
+                                <th class="py-1 px-1.5">Delivered Item / Description</th>
+                                <th class="py-1 px-1" style="width: 110px;">Author / Spec</th>
+                                <th class="text-center py-1 px-1" style="width: 55px;">Type</th>
+                                <th class="text-center py-1 px-1" style="width: 45px;">Unit</th>
+                                <th class="text-center py-1 px-1" style="width: 50px;">Qty</th>
+                                <th class="text-center py-1 px-1" style="width: 70px;">Condition</th>
+                                <th class="py-1 px-1.5" style="width: 75px;">Remarks</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -559,6 +598,7 @@
                                         ? $matchedBooks[$item['book_id']]
                                         : ($matchedBooksByTitle[$item['title']] ?? null);
                                     $authorName = $item['author'] ?? $item['author_name'] ?? ($matchedBook->author_name ?? ($matchedBook->author->name ?? null)) ?? '—';
+                                    $unitName = $item['unit'] ?? ($invoice->sales_category === 'books' ? 'কপি' : 'পিস');
                                 @endphp
                                 <tr>
                                     <td class="text-center py-0.5 px-1 text-muted">{{ $idx + 1 }}</td>
@@ -567,6 +607,7 @@
                                     </td>
                                     <td class="py-0.5 px-1 text-muted" style="font-size: 9.5px;">{{ $authorName }}</td>
                                     <td class="text-center py-0.5 px-1"><span class="badge bg-light text-dark border px-1 py-0" style="font-size: 8.5px;">{{ $item['item_type'] ?? 'Book' }}</span></td>
+                                    <td class="text-center py-0.5 px-1 text-muted font-monospace" style="font-size: 8.5px;">{{ $unitName }}</td>
                                     <td class="text-center py-0.5 px-1 fw-bold text-primary">{{ $item['quantity'] ?? 1 }}</td>
                                     <td class="text-center py-0.5 px-1 text-muted">Brand New</td>
                                     <td class="py-0.5 px-1.5 text-muted">Verified</td>
@@ -575,8 +616,8 @@
                         </tbody>
                         <tfoot>
                             <tr class="table-light">
-                                <td colspan="4" class="text-end py-1 px-1.5 fw-bold">Total Delivered Books / Items:</td>
-                                <td class="text-center py-1 px-1 fw-bold text-primary" style="font-size: 11px;">{{ $totalQuantity }} pcs</td>
+                                <td colspan="5" class="text-end py-1 px-1.5 fw-bold">Total Delivered Items / Quantity:</td>
+                                <td class="text-center py-1 px-1 fw-bold text-primary" style="font-size: 11px;">{{ $totalQuantity }}</td>
                                 <td colspan="2" class="py-1 px-1.5 text-muted" style="font-size: 9px;">Complete lot dispatched</td>
                             </tr>
                         </tfoot>

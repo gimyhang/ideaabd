@@ -70,6 +70,21 @@ class SiteSetting
         return self::resolveImageUrl($logo, 'images/logo.svg');
     }
 
+    public static function logoHeight(): int
+    {
+        return (int) (self::get('site_logo_height') ?: 52);
+    }
+
+    public static function logoWidth(): int
+    {
+        return (int) (self::get('site_logo_width') ?: 220);
+    }
+
+    public static function logoScale(): int
+    {
+        return (int) (self::get('site_logo_scale') ?: 100);
+    }
+
     public static function faviconUrl(): ?string
     {
         $favicon = self::get('site_favicon') ?: config('brand.favicon');
@@ -92,6 +107,21 @@ class SiteSetting
     {
         $banner = self::get('blog_og_banner') ?: self::get('social_og_banner');
         return self::resolveImageUrl($banner, 'images/blog/ideapatra-og.jpg');
+    }
+
+    public static function ideapatraSectionBadge(): string
+    {
+        return (string) (self::get('ideapatra_section_badge') ?: 'আইডিয়াপত্র সাময়িকী ও ব্লগ');
+    }
+
+    public static function ideapatraSectionTitle(): string
+    {
+        return (string) (self::get('ideapatra_section_title') ?: 'সমকালীন সাহিত্য, প্রবন্ধ ও মুক্তচিন্তার পোস্ট');
+    }
+
+    public static function ideapatraSectionSubtitle(): string
+    {
+        return (string) (self::get('ideapatra_section_subtitle') ?: 'আইডিয়া প্রকাশনের লেখক ও গবেষকদের সমকালীন সাহিত্যকর্ম ও পাঠপ্রতিক্রিয়া');
     }
 
     public static function ecommerce(): array
@@ -198,5 +228,31 @@ class SiteSetting
             return max(1, (int)$ebookSettings['default_preview_pages']);
         }
         return 16; // Standard default 16 pages
+    }
+
+    public static function defaultHeaderNav(): array
+    {
+        return [
+            ['id' => '1', 'label' => 'হোম', 'route' => 'home', 'url' => '/', 'icon' => 'house', 'active' => 'home', 'is_active' => true, 'target' => '_self', 'badge' => ''],
+            ['id' => '2', 'label' => 'বইসমূহ', 'route' => 'book.index', 'url' => '/books', 'icon' => 'book', 'active' => 'book.*', 'is_active' => true, 'target' => '_self', 'badge' => ''],
+            ['id' => '3', 'label' => 'ই-বুক', 'route' => 'ebook.index', 'url' => '/ebooks', 'icon' => 'tablet-screen-button', 'active' => 'ebook.*', 'is_active' => true, 'target' => '_self', 'badge' => 'নতুন'],
+            ['id' => '4', 'label' => 'লেখক', 'route' => 'authors.index', 'url' => '/authors', 'icon' => 'pen-fancy', 'active' => 'authors.*', 'is_active' => true, 'target' => '_self', 'badge' => ''],
+            ['id' => '5', 'label' => 'প্রকাশক', 'route' => 'publishers.index', 'url' => '/publishers', 'icon' => 'building', 'active' => 'publishers.*', 'is_active' => true, 'target' => '_self', 'badge' => ''],
+            ['id' => '6', 'label' => 'আইডিয়াপত্র', 'route' => 'blog.index', 'url' => '/blog', 'icon' => 'newspaper', 'active' => 'blog.*', 'is_active' => true, 'target' => '_self', 'badge' => ''],
+            ['id' => '7', 'label' => 'ওয়েবজিন', 'route' => 'webzine.index', 'url' => '/webzines', 'icon' => 'book-open', 'active' => 'webzine.*', 'is_active' => true, 'target' => '_self', 'badge' => ''],
+            ['id' => '8', 'label' => 'গবেষণা', 'route' => 'research.index', 'url' => '/research', 'icon' => 'flask', 'active' => 'research.*', 'is_active' => true, 'target' => '_self', 'badge' => ''],
+            ['id' => '9', 'label' => 'আইডিয়া হাব', 'route' => 'hub', 'url' => '/hub', 'icon' => 'compass', 'active' => 'hub', 'is_active' => true, 'target' => '_self', 'badge' => ''],
+            ['id' => '10', 'label' => 'আমাদের সম্পর্কে', 'route' => 'about', 'url' => '/about', 'icon' => 'circle-info', 'active' => 'about', 'is_active' => true, 'target' => '_self', 'badge' => ''],
+            ['id' => '11', 'label' => 'যোগাযোগ', 'route' => 'contact', 'url' => '/contact', 'icon' => 'envelope', 'active' => 'contact', 'is_active' => true, 'target' => '_self', 'badge' => ''],
+        ];
+    }
+
+    public static function headerNav(): array
+    {
+        $saved = self::get('header_menu_items');
+        if (is_array($saved) && !empty($saved)) {
+            return $saved;
+        }
+        return self::defaultHeaderNav();
     }
 }

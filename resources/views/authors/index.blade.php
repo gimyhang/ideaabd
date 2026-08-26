@@ -26,43 +26,54 @@
                 </span>
             </div>
 
-            <h1 class="fw-bold display-6 mb-2 text-white">আমাদের সম্মানিত লেখকগণ</h1>
-            <p class="fs-6 opacity-90 mb-4" style="line-height: 1.6;">
+            <h1 class="fw-bold mb-2 text-white" style="font-size: clamp(1.35rem, 4.5vw, 2.2rem);">আমাদের সম্মানিত লেখকগণ</h1>
+            <p class="fs-6 opacity-90 mb-4" style="line-height: 1.6; font-size: clamp(0.85rem, 2.8vw, 1rem) !important;">
                 দেশ-বিদেশের প্রথিতযশা ও উদীয়মান লেখকদের পূর্ণাঙ্গ প্রোফাইল, জীবন ও সাহিত্য পরিচিতি এবং প্রকাশিত সকল বইয়ের তালিকা অন্বেষণ করুন।
             </p>
             
             {{-- Live Search Form --}}
             <form action="{{ route('authors.index') }}" method="GET" class="position-relative mb-3" id="authorSearchForm">
-                <div class="input-group shadow-lg rounded-pill overflow-hidden bg-white p-1.5 border border-2 border-white">
-                    <span class="input-group-text bg-transparent border-0 text-muted ps-3">
-                        <i class="fas fa-search fs-5 text-primary"></i>
+                <div class="input-group shadow-lg rounded-pill overflow-hidden bg-white p-1 border border-2 border-white">
+                    <span class="input-group-text bg-transparent border-0 text-muted ps-2.5 ps-sm-3">
+                        <i class="fas fa-search fs-6 text-primary"></i>
                     </span>
                     <input type="text" name="q" id="authorSearchInput" value="{{ request('q') }}" 
-                           class="form-control border-0 shadow-none ps-2 fs-6 text-dark" 
-                           placeholder="লেখকের নাম, বইয়ের নাম বা পরিচিতি লিখে খুঁজুন..."
-                           autocomplete="off">
+                           class="form-control border-0 shadow-none ps-1.5 ps-sm-2 text-dark" 
+                           placeholder="লেখকের নাম, বইয়ের নাম বা বিষয় খুঁজুন..."
+                           autocomplete="off"
+                           style="font-size: 0.9rem;">
                     @if(request('q'))
-                        <a href="{{ route('authors.index') }}" class="btn btn-link text-muted border-0 me-1" title="মুছুন">
+                        <a href="{{ route('authors.index') }}" class="btn btn-link text-muted border-0 p-1 me-1" title="মুছুন">
                             <i class="fas fa-times"></i>
                         </a>
                     @endif
-                    <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold shadow-xs">
-                        <i class="fas fa-magnifying-glass me-1"></i>খুঁজুন
+                    <button type="submit" class="btn btn-primary rounded-pill px-3 px-sm-4 fw-bold shadow-xs d-inline-flex align-items-center gap-1">
+                        <i class="fas fa-magnifying-glass"></i>
+                        <span class="d-none d-sm-inline">খুঁজুন</span>
                     </button>
                 </div>
             </form>
 
-            {{-- Quick Filter Chips --}}
+            {{-- Quick Filter Chips (Enhanced Contrast & Mobile Responsive) --}}
             <div class="d-flex flex-wrap align-items-center gap-1.5 pt-1">
-                <span class="small opacity-75 me-1 text-white-50">জনপ্রিয় ফিল্টার:</span>
-                <a href="{{ route('authors.index', ['filter' => 'most_books']) }}" class="badge rounded-pill text-decoration-none px-2.5 py-1.5 {{ request('filter') === 'most_books' ? 'bg-warning text-dark' : 'bg-white bg-opacity-20 text-white hover-bg-opacity' }}">
-                    <i class="fas fa-trophy me-1 text-warning"></i>শীর্ষ লেখক
+                <span class="small opacity-85 me-1 text-white fw-semibold" style="font-size: 12px;">জনপ্রিয় ফিল্টার:</span>
+                <a href="{{ route('authors.index', ['filter' => 'most_books']) }}" 
+                   class="badge rounded-pill text-decoration-none px-2.5 py-1.5 d-inline-flex align-items-center gap-1 shadow-2xs {{ request('filter') === 'most_books' ? 'bg-warning text-dark fw-bold' : 'bg-dark bg-opacity-40 text-white border border-white border-opacity-30' }}"
+                   style="font-size: 11.5px;">
+                    <i class="fas fa-trophy text-warning"></i>
+                    <span>শীর্ষ লেখক</span>
                 </a>
-                <a href="{{ route('authors.index', ['filter' => 'verified']) }}" class="badge rounded-pill text-decoration-none px-2.5 py-1.5 {{ request('filter') === 'verified' ? 'bg-info text-dark' : 'bg-white bg-opacity-20 text-white hover-bg-opacity' }}">
-                    <i class="fas fa-circle-check me-1 text-info"></i>ভেরিফাইড লেখক
+                <a href="{{ route('authors.index', ['filter' => 'verified']) }}" 
+                   class="badge rounded-pill text-decoration-none px-2.5 py-1.5 d-inline-flex align-items-center gap-1 shadow-2xs {{ request('filter') === 'verified' ? 'bg-info text-dark fw-bold' : 'bg-dark bg-opacity-40 text-white border border-white border-opacity-30' }}"
+                   style="font-size: 11.5px;">
+                    <i class="fas fa-circle-check text-info"></i>
+                    <span>ভেরিফাইড লেখক</span>
                 </a>
-                <a href="{{ route('authors.index', ['filter' => 'recent_active']) }}" class="badge rounded-pill text-decoration-none px-2.5 py-1.5 {{ request('filter') === 'recent_active' ? 'bg-success text-white' : 'bg-white bg-opacity-20 text-white hover-bg-opacity' }}">
-                    <i class="fas fa-bolt me-1 text-success"></i>সাম্প্রতিক সক্রিয়
+                <a href="{{ route('authors.index', ['filter' => 'recent_active']) }}" 
+                   class="badge rounded-pill text-decoration-none px-2.5 py-1.5 d-inline-flex align-items-center gap-1 shadow-2xs {{ request('filter') === 'recent_active' ? 'bg-success text-white fw-bold' : 'bg-dark bg-opacity-40 text-white border border-white border-opacity-30' }}"
+                   style="font-size: 11.5px;">
+                    <i class="fas fa-bolt text-success"></i>
+                    <span>সাম্প্রতিক সক্রিয়</span>
                 </a>
             </div>
         </div>

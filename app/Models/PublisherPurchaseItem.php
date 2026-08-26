@@ -13,6 +13,11 @@ class PublisherPurchaseItem extends Model
 
     protected $fillable = [
         'purchase_id',
+        'item_type',
+        'item_name',
+        'size_spec',
+        'unit',
+        'quality_spec',
         'book_id',
         'book_title',
         'author_name',
@@ -24,7 +29,16 @@ class PublisherPurchaseItem extends Model
         'shop_discount_percent',
         'unit_sale_price',
         'subtotal',
+        'item_notes',
     ];
+
+    public function getDisplayNameAttribute(): string
+    {
+        if (!empty($this->item_name)) {
+            return $this->item_name;
+        }
+        return $this->book_title ?: ($this->book->title ?? 'আইটেম');
+    }
 
     protected $casts = [
         'quantity'                    => 'integer',

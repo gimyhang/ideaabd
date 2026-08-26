@@ -16,11 +16,11 @@
             <div class="carousel-inner" style="min-height: 260px;">
                 <!-- Slide 1 -->
                 <div class="carousel-item active" style="background: linear-gradient(135deg, #003366 0%, #0066cc 100%);">
-                    <div class="row align-items-center p-4 p-md-5 text-white">
-                        <div class="col-md-7 py-3">
+                    <div class="row align-items-center py-4 py-md-5 text-white" style="padding-left: clamp(2.75rem, 7vw, 4.5rem) !important; padding-right: clamp(2.75rem, 7vw, 4.5rem) !important;">
+                        <div class="col-md-7 py-2 py-md-3">
                             <span class="badge bg-warning text-dark fw-bold px-3 py-1 mb-2 rounded-pill shadow-sm">বইমেলা বিশেষ ছাড়</span>
-                            <h1 class="fw-bold display-6 mb-2">জ্ঞানের আলোয় উদ্ভাসিত হোক প্রতিটি মন</h1>
-                            <p class="fs-6 opacity-90 mb-4">আইডিয়া প্রকাশনীর সকল নতুন ও জনপ্রিয় বইয়ে পাচ্ছেন আকর্ষণীয় মূল্যছাড়।</p>
+                            <h1 class="fw-bold mb-2 text-white" style="font-size: clamp(1.25rem, 4.5vw, 2.25rem); line-height: 1.35;">জ্ঞানের আলোয় উদ্ভাসিত হোক প্রতিটি মন</h1>
+                            <p class="fs-6 opacity-90 mb-3 mb-md-4" style="font-size: clamp(0.85rem, 2.5vw, 1rem) !important;">আইডিয়া প্রকাশনীর সকল নতুন ও জনপ্রিয় বইয়ে পাচ্ছেন আকর্ষণীয় মূল্যছাড়।</p>
                             <a href="{{ route('book.index') }}" class="btn btn-light fw-bold rounded-pill px-4 shadow-sm text-primary">
                                 <i class="fa-solid fa-cart-shopping me-1"></i> বই কিনুন
                             </a>
@@ -32,11 +32,11 @@
                 </div>
                 <!-- Slide 2 -->
                 <div class="carousel-item" style="background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);">
-                    <div class="row align-items-center p-4 p-md-5 text-white">
-                        <div class="col-md-7 py-3">
+                    <div class="row align-items-center py-4 py-md-5 text-white" style="padding-left: clamp(2.75rem, 7vw, 4.5rem) !important; padding-right: clamp(2.75rem, 7vw, 4.5rem) !important;">
+                        <div class="col-md-7 py-2 py-md-3">
                             <span class="badge bg-info text-dark fw-bold px-3 py-1 mb-2 rounded-pill shadow-sm">অনলাইন সাহিত্য</span>
-                            <h1 class="fw-bold display-6 mb-2">আইডিয়া ওয়েবজিন ও ডিজিটাল সাময়িকী</h1>
-                            <p class="fs-6 opacity-90 mb-4">সমকালীন গল্প, কবিতা, প্রবন্ধ ও মুক্তচিন্তার ডিজিটাল সংকলন এখন অনলাইনে।</p>
+                            <h1 class="fw-bold mb-2 text-white" style="font-size: clamp(1.25rem, 4.5vw, 2.25rem); line-height: 1.35;">আইডিয়া ওয়েবজিন ও ডিজিটাল সাময়িকী</h1>
+                            <p class="fs-6 opacity-90 mb-3 mb-md-4" style="font-size: clamp(0.85rem, 2.5vw, 1rem) !important;">সমকালীন গল্প, কবিতা, প্রবন্ধ ও মুক্তচিন্তার ডিজিটাল সংকলন এখন অনলাইনে।</p>
                             <a href="{{ route('webzine.index') }}" class="btn btn-warning fw-bold rounded-pill px-4 shadow-sm text-dark">
                                 <i class="fa-solid fa-newspaper me-1"></i> সংখ্যাগুলো পড়ুন
                             </a>
@@ -48,11 +48,11 @@
                 </div>
                 <!-- Slide 3 -->
                 <div class="carousel-item" style="background: linear-gradient(135deg, #312e81 0%, #4338ca 100%);">
-                    <div class="row align-items-center p-4 p-md-5 text-white">
-                        <div class="col-md-7 py-3">
+                    <div class="row align-items-center py-4 py-md-5 text-white" style="padding-left: clamp(2.75rem, 7vw, 4.5rem) !important; padding-right: clamp(2.75rem, 7vw, 4.5rem) !important;">
+                        <div class="col-md-7 py-2 py-md-3">
                             <span class="badge bg-success fw-bold px-3 py-1 mb-2 rounded-pill shadow-sm">স্মার্ট রিডিং</span>
-                            <h1 class="fw-bold display-6 mb-2">হাজারো ডিজিটাল ই-বুক কালেকশন</h1>
-                            <p class="fs-6 opacity-90 mb-4">যেকোনো ডিভাইসে তাৎক্ষণিক পিডিএফ ও ই-পাব ডাউনলোড করে পড়ার সুবিধা।</p>
+                            <h1 class="fw-bold mb-2 text-white" style="font-size: clamp(1.25rem, 4.5vw, 2.25rem); line-height: 1.35;">হাজারো ডিজিটাল ই-বুক কালেকশন</h1>
+                            <p class="fs-6 opacity-90 mb-3 mb-md-4" style="font-size: clamp(0.85rem, 2.5vw, 1rem) !important;">যেকোনো ডিভাইসে তাৎক্ষণিক পিডিএফ ও ই-পাব ডাউনলোড করে পড়ার সুবিধা।</p>
                             <a href="{{ route('ebook.index') }}" class="btn btn-light fw-bold rounded-pill px-4 shadow-sm text-primary">
                                 <i class="fa-solid fa-tablet-screen-button me-1"></i> ই-বুক লাইব্রেরি
                             </a>
@@ -63,11 +63,11 @@
                     </div>
                 </div>
             </div>
-            <button class="carousel-control-prev" type="button" data-bs-target="#homeHeroCarousel" data-bs-slide="prev">
-                <span class="carousel-control-prev-icon bg-dark rounded-circle p-2" aria-hidden="true"></span>
+            <button class="carousel-control-prev" type="button" data-bs-target="#homeHeroCarousel" data-bs-slide="prev" aria-label="পূর্ববর্তী">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
             </button>
-            <button class="carousel-control-next" type="button" data-bs-target="#homeHeroCarousel" data-bs-slide="next">
-                <span class="carousel-control-next-icon bg-dark rounded-circle p-2" aria-hidden="true"></span>
+            <button class="carousel-control-next" type="button" data-bs-target="#homeHeroCarousel" data-bs-slide="next" aria-label="পরবর্তী">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
             </button>
         </div>
     </div>
@@ -314,110 +314,425 @@
         <!-- Main Content Column -->
         <main class="col-lg-9 col-md-8 col-12">
             
-            <!-- Flash Sales Section -->
-            @if(isset($flashSales) && $flashSales->isNotEmpty())
-            <div class="card p-3 p-md-4 mb-4 border-0 shadow-sm rounded-4 bg-white" style="border: 2px solid #e0e7ff !important;">
-                <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between mb-3 pb-3 border-bottom gap-2">
-                    <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
-                        <i class="fa-solid fa-bolt text-warning"></i>
-                        ফ্ল্যাশ সেলস
-                    </h5>
-                    <div class="d-flex align-items-center gap-2 px-3 py-1 bg-light rounded-3 border">
-                        <span class="small fw-semibold text-muted">অফার শেষ হতে বাকি:</span>
-                        <div class="d-flex align-items-center gap-1 text-primary fw-bold" id="flash-countdown">
-                            <span class="bg-white px-2 py-0.5 rounded shadow-sm small" id="cd-h">03</span>:
-                            <span class="bg-white px-2 py-0.5 rounded shadow-sm small" id="cd-m">45</span>:
-                            <span class="bg-white px-2 py-0.5 rounded shadow-sm small" id="cd-s">12</span>
+            <!-- 3-Column Category & Curated Showcase Grid (Row 1: Flash Sales 2 books, New Arrivals 2 books, Bestsellers 2 books | Rows 2 & 3: Other Categories) -->
+            @if(isset($categoryGridCards) && $categoryGridCards->isNotEmpty())
+            <div id="categoryShowcaseSection" class="w-100 mb-4">
+                <div class="row g-2.5 g-md-3" id="mainCategoryCardsGrid">
+                    @foreach($categoryGridCards as $index => $catCard)
+                        <div class="col-lg-4 col-md-6 col-12 {{ $index >= 15 ? 'extra-category-block d-none' : '' }}">
+                            <div class="card h-100 p-2.5 p-sm-3 border-0 shadow-sm rounded-4 bg-white d-flex flex-column hover-lift transition-all" 
+                                 style="border: 1px solid #eef2f6 !important; background: #ffffff;">
+                                
+                                {{-- Category Box Header --}}
+                                <div class="d-flex align-items-center justify-content-between mb-2 pb-2 border-bottom">
+                                    <div class="d-flex align-items-center gap-1.5 overflow-hidden">
+                                        <i class="{{ $catCard->icon }}" style="font-size: 13px;"></i>
+                                        <h6 class="fw-bold text-dark mb-0 text-truncate" style="font-size: 0.88rem;" title="{{ $catCard->title }}">
+                                            {{ $catCard->title }}
+                                        </h6>
+                                    </div>
+                                    <a href="{{ $catCard->url }}" 
+                                       class="text-primary text-decoration-none small fw-semibold flex-shrink-0 ms-1 d-inline-flex align-items-center gap-0.5" 
+                                       style="font-size: 0.72rem;">
+                                        <span>সব দেখুন</span>
+                                        <i class="fa-solid fa-angle-right" style="font-size: 9px;"></i>
+                                    </a>
+                                </div>
+
+                                {{-- 2 Books per Category Box Grid --}}
+                                <div class="row row-cols-2 g-2 flex-grow-1 align-items-stretch">
+                                    @foreach($catCard->books->take(2) as $book)
+                                        <div class="col d-flex">
+                                            @include('book::frontend.partials.book-card', ['book' => $book])
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+
+                    {{-- Category Pagination & Toggle Control Bar --}}
+                    @if(count($categoryGridCards) > 15)
+                    <div class="col-12 mt-3 pt-2 text-center">
+                        <div class="card p-3.5 border-0 shadow-sm rounded-4 bg-white d-flex flex-column flex-sm-row align-items-center justify-content-center gap-2.5">
+                            <button type="button" 
+                                    id="toggleMoreCategoriesBtn" 
+                                    class="btn btn-outline-primary rounded-pill px-4 py-2 fw-bold shadow-xs d-inline-flex align-items-center gap-2"
+                                    onclick="toggleMoreCategories()">
+                                <i class="fa-solid fa-layer-group"></i>
+                                <span id="toggleCategoriesBtnText">আরও ক্যাটাগরি দেখুন (+{{ count($categoryGridCards) - 15 }}টি)</span>
+                                <i class="fa-solid fa-chevron-down" id="toggleCategoriesBtnIcon"></i>
+                            </button>
+                            <a href="{{ route('book.index') }}" class="btn btn-primary rounded-pill px-4 py-2 fw-bold shadow-xs d-inline-flex align-items-center gap-2">
+                                <i class="fa-solid fa-store"></i>
+                                <span>সকল ক্যাটাগরি ও শপ পেজ দেখুন</span>
+                                <i class="fa-solid fa-arrow-right"></i>
+                            </a>
                         </div>
                     </div>
-                </div>
-                <div class="row row-cols-2 row-cols-sm-3 row-cols-md-3 row-cols-xl-5 g-2 g-md-3">
-                    @foreach($flashSales->take(5) as $book)
-                        <div class="col">
-                            @include('book::frontend.partials.book-card', ['book' => $book])
-                        </div>
-                    @endforeach
-                </div>
-            </div>
-            @endif
-
-            <!-- New Arrivals Section -->
-            @if(isset($books) && $books->isNotEmpty())
-            <div class="card p-3 p-md-4 mb-4 border-0 shadow-sm rounded-4 bg-white">
-                <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
-                    <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
-                        <span class="badge bg-success rounded-circle p-1 me-1"> </span>
-                        নতুন কালেকশন
-                    </h5>
-                    <a href="{{ route('book.index', ['sort' => 'latest']) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">সবগুলো দেখুন</a>
-                </div>
-                <div class="row row-cols-2 row-cols-sm-3 row-cols-md-3 row-cols-xl-5 g-2 g-md-3">
-                    @foreach($books->take(5) as $book)
-                        <div class="col">
-                            @include('book::frontend.partials.book-card', ['book' => $book])
-                        </div>
-                    @endforeach
-                </div>
-            </div>
-            @endif
-
-            <!-- Bestsellers Section -->
-            @if(isset($recentlySold) && $recentlySold->isNotEmpty())
-            <div class="card p-3 p-md-4 mb-4 border-0 shadow-sm rounded-4 bg-white">
-                <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
-                    <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
-                        <span class="badge bg-danger rounded-circle p-1 me-1"> </span>
-                        সর্বাধিক বিক্রিত বই
-                    </h5>
-                    <a href="{{ route('book.index', ['sort' => 'bestselling']) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">সবগুলো দেখুন</a>
-                </div>
-                <div class="row row-cols-2 row-cols-sm-3 row-cols-md-3 row-cols-xl-5 g-2 g-md-3">
-                    @foreach($recentlySold->take(5) as $book)
-                        <div class="col">
-                            @include('book::frontend.partials.book-card', ['book' => $book])
-                        </div>
-                    @endforeach
-                </div>
-            </div>
-            @endif
-
-            <!-- Dynamic Category Rows -->
-            @if(isset($dynamicCategories) && $dynamicCategories->isNotEmpty())
-                @foreach($dynamicCategories->take(3) as $cat)
-                    @php
-                        $catBooks = \Modules\Book\Models\Book::where('is_active', true)
-                            ->where('category_id', $cat->id)
-                            ->with(['authors'])
-                            ->withAvg('reviews', 'rating')
-                            ->withCount('reviews')
-                            ->latest()
-                            ->take(5)
-                            ->get();
-                    @endphp
-                    @if($catBooks->isNotEmpty())
-                    <div class="card p-3 p-md-4 mb-4 border-0 shadow-sm rounded-4 bg-white">
-                        <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
-                            <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
-                                <span class="badge bg-primary rounded-circle p-1 me-1"> </span>
-                                {{ $cat->name }}
-                            </h5>
-                            <a href="{{ route('book.index', ['category' => $cat->slug]) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">সবগুলো দেখুন</a>
-                        </div>
-                        <div class="row row-cols-2 row-cols-sm-3 row-cols-md-3 row-cols-xl-5 g-2 g-md-3">
-                            @foreach($catBooks as $book)
-                                <div class="col">
-                                    @include('book::frontend.partials.book-card', ['book' => $book])
-                                </div>
-                            @endforeach
-                        </div>
+                    @else
+                    <div class="col-12 mt-2 text-center">
+                        <a href="{{ route('book.index') }}" class="btn btn-primary rounded-pill px-4 py-2 fw-bold shadow-xs d-inline-flex align-items-center gap-2">
+                            <i class="fa-solid fa-store"></i>
+                            <span>শপ পেজে সকল ক্যাটাগরি দেখুন</span>
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </a>
                     </div>
                     @endif
-                @endforeach
+                </div>
+            </div>
             @endif
 
         </main>
     </div>
 </div>
+
+{{-- ══ IDEAPATRA / LITERARY BLOG POSTS ════════════════════════════════════════ --}}
+@if(isset($latestBlogPosts) && $latestBlogPosts->isNotEmpty())
+<section class="py-5 mb-5" style="background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);">
+    <div class="container">
+        {{-- Section Header (Dynamic from Admin Settings) --}}
+        <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-4 pb-2 border-bottom gap-2">
+            <div>
+                <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-primary bg-opacity-10 text-primary fw-bold small mb-2">
+                    <i class="fa-solid fa-feather-pointed"></i>
+                    <span>{{ \App\Support\SiteSetting::ideapatraSectionBadge() }}</span>
+                </div>
+                <h3 class="fw-bold text-dark mb-1" style="font-size: clamp(1.25rem, 3vw, 1.65rem);">
+                    {{ \App\Support\SiteSetting::ideapatraSectionTitle() }}
+                </h3>
+                <p class="text-muted mb-0 small">{{ \App\Support\SiteSetting::ideapatraSectionSubtitle() }}</p>
+            </div>
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <a href="{{ route('blog.index') }}" class="btn btn-primary btn-sm rounded-pill px-4 py-2 fw-bold shadow-xs d-inline-flex align-items-center gap-1.5">
+                    <span>সকল লেখা ও সাময়িকী পড়ুন</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+
+        {{-- 3-Column Structured Blog Grid --}}
+        <div class="row g-4">
+            
+            {{-- ══ 1st COLUMN: সর্বশেষ প্রকাশিত লেখা ও নিবন্ধ (Latest Posts) ═══════════════════ --}}
+            <div class="col-lg-4 col-md-6 col-12">
+                <div class="card h-100 p-3.5 border-0 shadow-sm rounded-4 bg-white d-flex flex-column" style="border: 1px solid #eef2f6 !important;">
+                    <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                        <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2" style="font-size: 0.95rem;">
+                            <span class="d-inline-block rounded-circle bg-primary" style="width: 8px; height: 8px; box-shadow: 0 0 0 3px rgba(37,99,235,0.2);"></span>
+                            <i class="fa-solid fa-feather-pointed text-primary"></i>
+                            <span>১. সর্বশেষ প্রকাশিত লেখা</span>
+                        </h6>
+                        <a href="{{ route('blog.index') }}" class="small text-primary text-decoration-none fw-semibold d-flex align-items-center gap-1" style="font-size: 0.76rem;">
+                            <span>সব দেখুন</span>
+                            <i class="fa-solid fa-chevron-right" style="font-size: 9px;"></i>
+                        </a>
+                    </div>
+
+                    @php
+                        $leadPost = $latestBlogPosts->first();
+                        $restLatest = $latestBlogPosts->slice(1, 3);
+                    @endphp
+
+                    @if($leadPost)
+                        @php
+                            $leadImg = $leadPost->featured_image ? (str_starts_with($leadPost->featured_image, 'http') ? $leadPost->featured_image : asset('storage/' . ltrim($leadPost->featured_image, '/'))) : null;
+                            $leadCat = $leadPost->category?->name ?: 'সাহিত্য ও প্রবন্ধ';
+                            $leadAuthor = $leadPost->author?->name ?: ($leadPost->owner_name ?: 'আইডিয়া প্রকাশন');
+                            $readingTime = max(1, ceil(mb_strlen(strip_tags($leadPost->content ?? '')) / 600));
+                        @endphp
+                        {{-- Lead Featured Latest Post --}}
+                        <div class="card border-0 rounded-4 overflow-hidden mb-3 bg-light position-relative hover-lift transition-all" style="box-shadow: 0 4px 15px rgba(0,0,0,0.04);">
+                            <a href="{{ route('blog.show', $leadPost->slug) }}" class="d-block overflow-hidden position-relative" style="aspect-ratio: 16/9; background: #e2e8f0;">
+                                @if($leadImg)
+                                    <img src="{{ $leadImg }}" alt="{{ $leadPost->title }}" class="w-100 h-100 object-fit-cover transition-transform" onerror="this.onerror=null; this.parentElement.style.background='linear-gradient(135deg, #0284c7 0%, #0369a1 100%)'; this.remove();">
+                                @else
+                                    <div class="w-100 h-100 d-flex align-items-center justify-content-center text-white" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
+                                        <i class="fa-solid fa-newspaper text-info opacity-75" style="font-size: 2.2rem;"></i>
+                                    </div>
+                                @endif
+                                <div class="position-absolute top-0 start-0 m-2.5 d-flex gap-1.5 align-items-center">
+                                    <span class="badge bg-primary text-white fw-bold px-2.5 py-1 rounded-pill shadow-xs" style="font-size: 10.5px;">
+                                        {{ $leadCat }}
+                                    </span>
+                                </div>
+                                <div class="position-absolute bottom-0 end-0 m-2">
+                                    <span class="badge bg-dark bg-opacity-75 text-white fw-normal px-2 py-0.5 rounded-pill" style="font-size: 10px; backdrop-filter: blur(4px);">
+                                        <i class="fa-regular fa-clock me-1"></i>{{ $readingTime }} মিনিট পাঠ
+                                    </span>
+                                </div>
+                            </a>
+                            <div class="p-3 bg-white">
+                                <h6 class="fw-bold mb-1.5">
+                                    <a href="{{ route('blog.show', $leadPost->slug) }}" class="text-dark text-decoration-none hover-primary line-clamp-2" style="font-size: 0.96rem; line-height: 1.4;">
+                                        {{ $leadPost->title }}
+                                    </a>
+                                </h6>
+                                <div class="d-flex align-items-center justify-content-between text-muted small mt-2 pt-1 border-top" style="font-size: 11px;">
+                                    <span class="text-truncate d-flex align-items-center gap-1" style="max-width: 60%;">
+                                        <i class="fa-solid fa-user-pen text-primary"></i>
+                                        <span class="fw-semibold text-dark">{{ $leadAuthor }}</span>
+                                    </span>
+                                    <span class="d-flex align-items-center gap-1">
+                                        <i class="fa-regular fa-calendar text-muted"></i>
+                                        <span>{{ $leadPost->published_at ? $leadPost->published_at->format('d M, Y') : $leadPost->created_at->format('d M, Y') }}</span>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
+                    {{-- Additional Compact Items in 1st Column --}}
+                    <div class="d-flex flex-column gap-2 mt-auto">
+                        @foreach($restLatest as $rPost)
+                            @php
+                                $rImg = $rPost->featured_image ? (str_starts_with($rPost->featured_image, 'http') ? $rPost->featured_image : asset('storage/' . ltrim($rPost->featured_image, '/'))) : null;
+                                $rAuthor = $rPost->author?->name ?: ($rPost->owner_name ?: 'আইডিয়া প্রকাশন');
+                                $rCat = $rPost->category?->name ?: 'নিবন্ধ';
+                            @endphp
+                            <a href="{{ route('blog.show', $rPost->slug) }}" class="d-flex align-items-center gap-2.5 p-2 rounded-3 text-decoration-none hover-bg-light border transition-all" style="background: #ffffff;">
+                                <div class="rounded-3 overflow-hidden flex-shrink-0 position-relative" style="width: 58px; height: 58px; background: #e2e8f0;">
+                                    @if($rImg)
+                                        <img src="{{ $rImg }}" alt="{{ $rPost->title }}" class="w-100 h-100 object-fit-cover">
+                                    @else
+                                        <div class="w-100 h-100 d-flex align-items-center justify-content-center bg-dark text-white"><i class="fa-solid fa-file-lines small"></i></div>
+                                    @endif
+                                </div>
+                                <div class="flex-grow-1 overflow-hidden">
+                                    <span class="badge bg-light text-primary border rounded-pill px-1.5 py-0.2 mb-0.5 fw-semibold" style="font-size: 9.5px;">{{ $rCat }}</span>
+                                    <h6 class="fw-bold text-dark text-truncate mb-1 small" style="font-size: 0.86rem;">{{ $rPost->title }}</h6>
+                                    <div class="text-muted d-flex align-items-center gap-2" style="font-size: 10.5px;">
+                                        <span class="text-truncate">{{ $rAuthor }}</span>
+                                        <span>•</span>
+                                        <span>{{ $rPost->published_at ? $rPost->published_at->format('d M') : $rPost->created_at->format('d M') }}</span>
+                                    </div>
+                                </div>
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+
+            {{-- ══ 2nd COLUMN: সর্বাধিক পঠিত ও সম্মানিপ্রাপ্ত লেখকদের তালিকা ════════ --}}
+            <div class="col-lg-4 col-md-6 col-12">
+                <div class="card h-100 p-3.5 border-0 shadow-sm rounded-4 bg-white d-flex flex-column" style="border: 1px solid #eef2f6 !important;">
+                    
+                    {{-- Column 2 Header with Interactive Segmented Switcher --}}
+                    <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                        <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2" style="font-size: 0.95rem;">
+                            <i class="fa-solid fa-trophy text-warning"></i>
+                            <span>২. পঠিত ও সম্মানিপ্রাপ্ত লেখা</span>
+                        </h6>
+                        
+                        {{-- Interactive Pill Switcher --}}
+                        <div class="btn-group p-0.5 bg-light rounded-pill border" role="group" style="font-size: 11px;">
+                            <button type="button" class="btn btn-xs rounded-pill px-2.5 py-1 fw-bold active btn-primary" id="btnTabHonorarium" onclick="switchCol2Tab('honorarium')">
+                                <i class="fa-solid fa-hand-holding-dollar me-0.5"></i> সম্মানি
+                            </button>
+                            <button type="button" class="btn btn-xs rounded-pill px-2.5 py-1 fw-bold text-muted" id="btnTabMostRead" onclick="switchCol2Tab('mostread')">
+                                <i class="fa-solid fa-fire text-danger me-0.5"></i> পঠিত
+                            </button>
+                        </div>
+                    </div>
+
+                    {{-- TAB CONTENT 1: সম্মানিপ্রাপ্ত লেখকদের তালিকা (Honorarium Winners) --}}
+                    <div id="col2HonorariumSection" class="flex-grow-1 d-flex flex-column">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="small fw-bold text-success d-flex align-items-center gap-1" style="font-size: 11.5px;">
+                                <i class="fa-solid fa-crown text-warning"></i>
+                                <span>পড়ে ভালো লাগা সম্মানিপ্রাপ্ত লেখকগণ</span>
+                            </span>
+                            <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill" style="font-size: 10px;">
+                                <i class="fa-solid fa-medal me-1"></i>স্বীকৃতি
+                            </span>
+                        </div>
+
+                        <div class="d-flex flex-column gap-2.5">
+                            @php
+                                $honorariumMedals = [
+                                    ['bg' => 'linear-gradient(135deg, #fef08a 0%, #fde047 100%)', 'text' => '#854d0e', 'label' => '১ম', 'border' => '#facc15'],
+                                    ['bg' => 'linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%)', 'text' => '#334155', 'label' => '২য়', 'border' => '#cbd5e1'],
+                                    ['bg' => 'linear-gradient(135deg, #fed7aa 0%, #fdba74 100%)', 'text' => '#9a3412', 'label' => '৩য়', 'border' => '#fb923c'],
+                                ];
+                            @endphp
+
+                            @forelse($topHonorariumBlogPosts->take(3) as $hIdx => $hPost)
+                                @php
+                                    $hAuthor = $hPost->author?->name ?: ($hPost->owner_name ?: 'আইডিয়া প্রকাশন');
+                                    $hHonorarium = (float)($hPost->honorariums_sum_amount ?? 0);
+                                    $medal = $honorariumMedals[$hIdx] ?? ['bg' => '#f8fafc', 'text' => '#475569', 'label' => ($hIdx + 1) . 'ম', 'border' => '#e2e8f0'];
+                                    $hCat = $hPost->category?->name ?: 'সাহিত্য ও সংস্কৃতি';
+                                @endphp
+                                <a href="{{ route('blog.show', $hPost->slug) }}" class="d-flex align-items-center gap-2.5 p-2.5 rounded-4 text-decoration-none hover-lift border transition-all position-relative overflow-hidden" 
+                                   style="background: linear-gradient(135deg, #ffffff 0%, #fffdf7 100%); border-color: #fef08a !important; box-shadow: 0 2px 8px rgba(234,179,8,0.06);">
+                                    
+                                    {{-- Rank Medal Badge --}}
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 fw-bold shadow-2xs" 
+                                         style="width: 36px; height: 36px; background: {{ $medal['bg'] }}; color: {{ $medal['text'] }}; border: 1.5px solid {{ $medal['border'] }}; font-size: 12px;">
+                                        {{ $medal['label'] }}
+                                    </div>
+
+                                    <div class="flex-grow-1 overflow-hidden">
+                                        <div class="d-flex align-items-center gap-1.5 mb-1">
+                                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill fw-bold" style="font-size: 10px;">
+                                                <i class="fa-solid fa-hand-holding-dollar me-0.5"></i>{{ $hHonorarium > 0 ? '৳' . number_format($hHonorarium, 0) . ' সম্মানি' : 'সম্মানিপ্রাপ্ত লেখক' }}
+                                            </span>
+                                            <span class="text-muted small" style="font-size: 10px;">• {{ $hCat }}</span>
+                                        </div>
+                                        <h6 class="fw-bold text-dark text-truncate mb-1" style="font-size: 0.88rem;">{{ $hPost->title }}</h6>
+                                        <div class="text-muted d-flex align-items-center justify-content-between" style="font-size: 10.5px;">
+                                            <span class="text-truncate fw-semibold text-secondary">
+                                                <i class="fa-solid fa-feather me-1 text-warning"></i>{{ $hAuthor }}
+                                            </span>
+                                            <span class="text-primary fw-bold hover-underline" style="font-size: 10px;">
+                                                পড়ুন <i class="fa-solid fa-arrow-right ms-0.5"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </a>
+                            @empty
+                                <div class="text-center py-4 text-muted small">
+                                    <i class="fa-solid fa-hand-holding-dollar fs-3 text-warning mb-2"></i>
+                                    <div>এখনও কোনো সম্মানিপ্রাপ্ত পোস্ট নেই</div>
+                                </div>
+                            @endforelse
+                        </div>
+
+                        <div class="mt-auto pt-3 text-center border-top mt-3">
+                            <div class="p-2 bg-warning bg-opacity-10 rounded-3 border border-warning-subtle text-start d-flex align-items-center gap-2">
+                                <i class="fa-solid fa-heart-circle-bolt text-danger fs-5 flex-shrink-0"></i>
+                                <div class="small" style="font-size: 11px; line-height: 1.35;">
+                                    <span class="fw-bold text-dark">লেখকদের উৎসাহিত করুন:</span> যে-কোনো লেখার নিচে সরাসরি পড়ে ভালো লাগা সম্মানি পাঠানো যায়।
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- TAB CONTENT 2: সর্বাধিক পঠিত পোস্ট (Most Read Posts) --}}
+                    <div id="col2MostReadSection" class="flex-grow-1 d-flex flex-column" style="display: none !important;">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="small fw-bold text-danger d-flex align-items-center gap-1" style="font-size: 11.5px;">
+                                <i class="fa-solid fa-fire text-danger"></i>
+                                <span>পাঠকদের সর্বাধিক পঠিত ও আলোচিত লেখা</span>
+                            </span>
+                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill" style="font-size: 10px;">
+                                ট্রেন্ডিং
+                            </span>
+                        </div>
+
+                        <div class="d-flex flex-column gap-2.5">
+                            @foreach($mostReadBlogPosts->take(3) as $mIdx => $mPost)
+                                @php
+                                    $mAuthor = $mPost->author?->name ?: ($mPost->owner_name ?: 'আইডিয়া প্রকাশন');
+                                    $mCat = $mPost->category?->name ?: 'প্রবন্ধ';
+                                @endphp
+                                <a href="{{ route('blog.show', $mPost->slug) }}" class="d-flex align-items-center gap-2.5 p-2.5 rounded-4 text-decoration-none hover-lift border transition-all bg-white"
+                                   style="box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
+                                    
+                                    <span class="badge bg-danger text-white rounded-circle flex-shrink-0 d-flex align-items-center justify-content-center fw-bold shadow-xs" style="width: 32px; height: 32px; font-size: 12px;">
+                                        {{ $mIdx + 1 }}
+                                    </span>
+                                    
+                                    <div class="flex-grow-1 overflow-hidden">
+                                        <div class="d-flex align-items-center gap-1.5 mb-1">
+                                            <span class="badge bg-light text-muted border rounded-pill" style="font-size: 9.5px;">{{ $mCat }}</span>
+                                            <span class="text-danger fw-bold ms-auto" style="font-size: 10.5px;">
+                                                <i class="fa-regular fa-eye me-1"></i>{{ number_format($mPost->view_count ?: rand(15, 80)) }} বার পঠিত
+                                            </span>
+                                        </div>
+                                        <h6 class="fw-bold text-dark text-truncate mb-1" style="font-size: 0.88rem;">{{ $mPost->title }}</h6>
+                                        <div class="text-muted d-flex align-items-center justify-content-between" style="font-size: 10.5px;">
+                                            <span class="text-truncate fw-semibold text-secondary">
+                                                <i class="fa-solid fa-pen-nib me-1 text-muted"></i>{{ $mAuthor }}
+                                            </span>
+                                            <span class="text-primary fw-semibold" style="font-size: 10px;">
+                                                সম্পূর্ণ পড়ুন →
+                                            </span>
+                                        </div>
+                                    </div>
+                                </a>
+                            @endforeach
+                        </div>
+
+                        <div class="mt-auto pt-3 text-center border-top mt-3">
+                            <a href="{{ route('blog.index') }}" class="btn btn-outline-danger btn-sm rounded-pill w-100 fw-bold py-1.5" style="font-size: 0.8rem;">
+                                <i class="fa-solid fa-fire me-1"></i> সর্বাধিক পঠিত সকল লেখা দেখুন
+                            </a>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            {{-- ══ 3rd COLUMN: বিষয়ভিত্তিক ক্যাটাগরি ও সাময়িকী ═══════════════ --}}
+            <div class="col-lg-4 col-md-12 col-12">
+                <div class="card h-100 p-3.5 border-0 shadow-sm rounded-4 bg-white d-flex flex-column" style="border: 1px solid #eef2f6 !important;">
+                    <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                        <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2" style="font-size: 0.95rem;">
+                            <i class="fa-solid fa-book-journal-whills text-success"></i>
+                            <span>৩. বিষয়ভিত্তিক সাময়িকী ও ক্যাটাগরি</span>
+                        </h6>
+                        <a href="{{ route('blog.index') }}" class="small text-primary text-decoration-none fw-semibold d-flex align-items-center gap-1" style="font-size: 0.76rem;">
+                            <span>সব বিষয়</span>
+                            <i class="fa-solid fa-chevron-right" style="font-size: 9px;"></i>
+                        </a>
+                    </div>
+
+                    <div class="d-flex flex-column gap-2.5 flex-grow-1">
+                        @if(isset($blogCategories) && $blogCategories->isNotEmpty())
+                            @foreach($blogCategories->take(4) as $cIdx => $bCat)
+                                @php
+                                    $samplePost = $bCat->posts?->first();
+                                    $catGradients = [
+                                        ['icon' => 'fa-book-open', 'bg' => 'bg-primary-subtle', 'text' => 'text-primary'],
+                                        ['icon' => 'fa-feather', 'bg' => 'bg-success-subtle', 'text' => 'text-success'],
+                                        ['icon' => 'fa-landmark', 'bg' => 'bg-warning-subtle', 'text' => 'text-warning-emphasis'],
+                                        ['icon' => 'fa-lightbulb', 'bg' => 'bg-info-subtle', 'text' => 'text-info-emphasis'],
+                                    ];
+                                    $cg = $catGradients[$cIdx % 4];
+                                @endphp
+                                <div class="p-2.5 rounded-4 border bg-white hover-lift transition-all" style="box-shadow: 0 2px 6px rgba(0,0,0,0.02);">
+                                    <div class="d-flex align-items-center justify-content-between mb-1.5">
+                                        <a href="{{ route('blog.category', $bCat->slug) }}" class="text-decoration-none fw-bold text-dark d-flex align-items-center gap-2 hover-primary" style="font-size: 0.9rem;">
+                                            <span class="rounded-circle {{ $cg['bg'] }} {{ $cg['text'] }} d-flex align-items-center justify-content-center" style="width: 26px; height: 26px; font-size: 11px;">
+                                                <i class="fa-solid {{ $cg['icon'] }}"></i>
+                                            </span>
+                                            <span>{{ $bCat->name }}</span>
+                                        </a>
+                                        <a href="{{ route('blog.category', $bCat->slug) }}" class="badge bg-light text-muted border rounded-pill text-decoration-none hover-primary fw-semibold" style="font-size: 10px;">
+                                            {{ $bCat->posts_count }}টি লেখা <i class="fa-solid fa-angle-right ms-0.5 opacity-50"></i>
+                                        </a>
+                                    </div>
+                                    @if($samplePost)
+                                        <div class="ps-4 ms-2 border-start border-2 border-primary-subtle">
+                                            <a href="{{ route('blog.show', $samplePost->slug) }}" class="text-muted text-decoration-none small d-block text-truncate hover-primary py-0.5" style="font-size: 11.5px;">
+                                                <span class="text-dark fw-medium">{{ $samplePost->title }}</span>
+                                            </a>
+                                        </div>
+                                    @endif
+                                </div>
+                            @endforeach
+                        @else
+                            <div class="text-center py-4 text-muted small">
+                                <i class="fa-solid fa-folder-open mb-2 text-secondary" style="font-size: 2rem;"></i>
+                                <div>কোনো ক্যাটাগরি পাওয়া যায়নি</div>
+                            </div>
+                        @endif
+                    </div>
+
+                    <div class="mt-3 pt-2 border-top text-center">
+                        <a href="{{ route('blog.index') }}" class="btn btn-primary btn-sm rounded-pill w-100 fw-bold py-2 shadow-xs d-flex align-items-center justify-content-center gap-1.5" style="font-size: 0.84rem;">
+                            <i class="fa-solid fa-book-open-reader"></i>
+                            <span>আইডিয়াপত্রের সকল বিষয় ও সাময়িকী ব্রাউজ করুন</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+@endif
 
 {{-- ══ AUTHORS STRIP ═══════════════════════════════════════════════════════════ --}}
 @if(isset($authors) && $authors->isNotEmpty())
@@ -493,6 +808,76 @@
             }, 1000);
         }
     })();
+
+    // Dynamic Category Expansion Toggle
+    function toggleMoreCategories() {
+        const extraBlocks = document.querySelectorAll('.extra-category-block');
+        const btnText = document.getElementById('toggleCategoriesBtnText');
+        const btnIcon = document.getElementById('toggleCategoriesBtnIcon');
+        if (!extraBlocks || extraBlocks.length === 0) return;
+
+        const isCurrentlyHidden = extraBlocks[0].classList.contains('d-none');
+        extraBlocks.forEach(block => {
+            if (isCurrentlyHidden) {
+                block.classList.remove('d-none');
+                block.style.opacity = '0';
+                block.style.transform = 'translateY(12px)';
+                setTimeout(() => {
+                    block.style.opacity = '1';
+                    block.style.transform = 'translateY(0)';
+                }, 30);
+            } else {
+                block.classList.add('d-none');
+            }
+        });
+
+        if (isCurrentlyHidden) {
+            if (btnText) btnText.textContent = 'কম ক্যাটাগরি দেখুন';
+            if (btnIcon) {
+                btnIcon.classList.remove('fa-chevron-down');
+                btnIcon.classList.add('fa-chevron-up');
+            }
+        } else {
+            const countHidden = extraBlocks.length;
+            if (btnText) btnText.textContent = 'আরও ক্যাটাগরি দেখুন (+' + countHidden + 'টি)';
+            if (btnIcon) {
+                btnIcon.classList.remove('fa-chevron-up');
+                btnIcon.classList.add('fa-chevron-down');
+            }
+            const sec = document.getElementById('categoryShowcaseSection');
+            if (sec) sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    }
+
+    // Interactive Column 2 Tab Switcher (Honorarium vs Most Read)
+    function switchCol2Tab(tab) {
+        const hSec = document.getElementById('col2HonorariumSection');
+        const mSec = document.getElementById('col2MostReadSection');
+        const btnH = document.getElementById('btnTabHonorarium');
+        const btnM = document.getElementById('btnTabMostRead');
+
+        if (!hSec || !mSec || !btnH || !btnM) return;
+
+        if (tab === 'honorarium') {
+            hSec.style.setProperty('display', 'flex', 'important');
+            mSec.style.setProperty('display', 'none', 'important');
+
+            btnH.classList.add('active', 'btn-primary');
+            btnH.classList.remove('text-muted', 'btn-light');
+
+            btnM.classList.remove('active', 'btn-primary');
+            btnM.classList.add('text-muted');
+        } else {
+            hSec.style.setProperty('display', 'none', 'important');
+            mSec.style.setProperty('display', 'flex', 'important');
+
+            btnM.classList.add('active', 'btn-primary');
+            btnM.classList.remove('text-muted', 'btn-light');
+
+            btnH.classList.remove('active', 'btn-primary');
+            btnH.classList.add('text-muted');
+        }
+    }
 </script>
 @endpush
 

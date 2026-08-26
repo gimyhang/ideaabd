@@ -18,31 +18,61 @@
 <form action="{{ route('admin.purchases.store') }}" method="POST" id="purchaseForm">
     @csrf
 
+    {{-- Top Segmented Switcher for Purchase Class --}}
+    <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white">
+        <div class="card-body p-3">
+            <div class="d-flex flex-column flex-lg-row align-items-center justify-content-between gap-3">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-primary-subtle text-primary border rounded-pill px-3 py-1.5 fw-bold">
+                        <i class="fa-solid fa-shapes me-1"></i> ক্রয়ের শ্রেণি (Purchase Class)
+                    </span>
+                    <span class="small text-muted" id="classHintText">বইয়ের স্টক ও পাইকারি চালান ইনভেন্টরি এন্ট্রি</span>
+                </div>
+                <div class="btn-group shadow-2xs rounded-pill p-1 bg-light border w-100 w-lg-auto" role="group">
+                    <input type="radio" class="btn-check" name="purchase_category" id="catBooks" value="books" autocomplete="off" @checked(($currentType ?? 'books') === 'books') onchange="togglePurchaseClass('books')">
+                    <label class="btn btn-sm rounded-pill px-3.5 py-2 fw-bold" for="catBooks">
+                        <i class="fa-solid fa-book-open me-1.5 text-primary"></i> ১. বই ক্রয় (Books)
+                    </label>
+
+                    <input type="radio" class="btn-check" name="purchase_category" id="catRaw" value="raw_materials" autocomplete="off" @checked(($currentType ?? 'books') === 'raw_materials') onchange="togglePurchaseClass('raw_materials')">
+                    <label class="btn btn-sm rounded-pill px-3.5 py-2 fw-bold" for="catRaw">
+                        <i class="fa-solid fa-boxes-stacked me-1.5 text-warning"></i> ২. কাঁচামাল ক্রয় (Raw Materials)
+                    </label>
+
+                    <input type="radio" class="btn-check" name="purchase_category" id="catOther" value="other" autocomplete="off" @checked(($currentType ?? 'books') === 'other') onchange="togglePurchaseClass('other')">
+                    <label class="btn btn-sm rounded-pill px-3.5 py-2 fw-bold" for="catOther">
+                        <i class="fa-solid fa-cart-shopping me-1.5 text-info"></i> ৩. অন্যান্য ক্রয় (Other Purchases)
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="row g-4">
         
         {{-- ========================================================================= --}}
-        {{-- 1. TOP CARD: PUBLISHER & INVOICE INFORMATION                              --}}
+        {{-- 1. TOP CARD: PUBLISHER / SUPPLIER & INVOICE INFORMATION                   --}}
         {{-- ========================================================================= --}}
         <div class="col-12">
             <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
                 <div class="card-header bg-white py-3 px-4 border-bottom d-flex flex-wrap justify-content-between align-items-center gap-2">
                     <div class="d-flex align-items-center gap-2">
-                        <span class="badge bg-primary-subtle text-primary p-2 rounded-3">
+                        <span class="badge bg-primary-subtle text-primary p-2 rounded-3" id="supplierIconBadge">
                             <i class="fas fa-building fs-5"></i>
                         </span>
                         <div>
-                            <h5 class="fw-bold mb-0 text-dark">Publisher & Invoice Details</h5>
-                            <small class="text-muted">Select publisher/supplier, memo number and previous due records</small>
+                            <h5 class="fw-bold mb-0 text-dark" id="supplierCardTitle">Publisher / Supplier & Invoice Details</h5>
+                            <small class="text-muted" id="supplierCardSubtitle">Select publisher/supplier, memo number and previous due records</small>
                         </div>
                     </div>
 
-                    {{-- Publisher Mode Toggle --}}
-                    <div class="btn-group p-1 bg-light rounded-pill border" role="group">
+                    {{-- Publisher Mode Toggle (for Books class) --}}
+                    <div class="btn-group p-1 bg-light rounded-pill border" role="group" id="pubModeToggleWrap">
                         <button type="button" class="btn btn-sm rounded-pill fw-semibold px-3 active" id="btnExistingPub" onclick="setPublisherMode(false)">
-                            <i class="fas fa-list-check me-1"></i> Select from Directory
+                            <i class="fas fa-list-check me-1"></i> তালিকা থেকে নির্বাচন
                         </button>
                         <button type="button" class="btn btn-sm rounded-pill fw-semibold px-3 text-muted" id="btnNewPub" onclick="setPublisherMode(true)">
-                            <i class="fas fa-plus-circle me-1"></i> + New Publisher Entry
+                            <i class="fas fa-plus-circle me-1"></i> + নতুন প্রকাশনী
                         </button>
                     </div>
                 </div>
@@ -50,68 +80,86 @@
                 <div class="card-body p-4">
                     <div class="row g-4 align-items-start">
                         
-                        {{-- Left Side: Publisher Select / Input --}}
+                        {{-- Left Side: Publisher Select / Input / Vendor Input --}}
                         <div class="col-12 col-lg-6 border-end-lg pe-lg-4">
-                            <div class="d-flex align-items-center justify-content-between mb-2">
-                                <label class="form-label fw-bold text-dark mb-0">
-                                    <i class="fas fa-store text-primary me-1"></i> Publisher / Supplier <span class="text-danger">*</span>
+                            
+                            {{-- Dedicated Non-Book Vendor Input (for Raw Materials & Other) --}}
+                            <div id="customVendorWrapper" style="display: none;">
+                                <label class="form-label fw-bold text-dark mb-1">
+                                    <i class="fas fa-store text-warning me-1"></i> <span id="vendorFieldLabel">ভেন্ডর / সরবরাহকারী / প্রতিষ্ঠানের নাম</span> <span class="text-danger">*</span>
                                 </label>
+                                <input type="text" name="vendor_name" id="customVendorInput" class="form-control form-control-lg fs-6 rounded-3 mb-2" 
+                                       placeholder="যেমন: কর্ণফুলী পেপার্স / আল-মদিনা বোর্ড / মতিন স্টেশনারি...">
+                                <div class="d-flex flex-wrap gap-1.5 align-items-center">
+                                    <span class="small text-muted me-1">জনপ্রিয় ভেন্ডর:</span>
+                                    <button type="button" class="btn btn-outline-secondary btn-xs rounded-pill px-2.5 py-0.5" onclick="setVendorName('কর্ণফুলী পেপার্স (কাগজ)')">কর্ণফুলী পেপার্স</button>
+                                    <button type="button" class="btn btn-outline-secondary btn-xs rounded-pill px-2.5 py-0.5" onclick="setVendorName('আল-মদিনা বাইন্ডিং বোর্ড')">আল-মদিনা বোর্ড</button>
+                                    <button type="button" class="btn btn-outline-secondary btn-xs rounded-pill px-2.5 py-0.5" onclick="setVendorName('জনতা প্রিন্টিং প্রেস')">জনতা প্রেস</button>
+                                    <button type="button" class="btn btn-outline-secondary btn-xs rounded-pill px-2.5 py-0.5" onclick="setVendorName('বাংলাবাজার পেপার হাউজ')">বাংলাবাজার পেপার</button>
+                                </div>
                             </div>
 
-                            {{-- Existing Publisher Select --}}
-                            <div id="existingPublisherWrapper">
-                                <div class="input-group">
-                                    <span class="input-group-text bg-light text-muted"><i class="fas fa-magnifying-glass"></i></span>
-                                    <select name="publisher_id" id="publisherSelect" class="form-select form-select-lg fs-6 @error('publisher_id') is-invalid @enderror" onchange="onPublisherSelected(this)">
-                                        <option value="">-- Select Publisher --</option>
-                                        @foreach($publishers as $pub)
-                                            <option value="{{ $pub->id }}" 
-                                                    data-name="{{ $pub->name }}"
-                                                    data-phone="{{ $pub->phone }}"
-                                                    data-email="{{ $pub->email }}"
-                                                    data-address="{{ $pub->address }}"
-                                                    data-books-count="{{ $pub->books_count ?? 0 }}"
-                                                    data-due="{{ (float) ($pub->total_due ?? 0) }}"
-                                                    @selected(old('publisher_id') == $pub->id)>
-                                                {{ $pub->name }} @if($pub->phone) (📞 {{ $pub->phone }}) @endif
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                
-                                {{-- Dynamic Selected Publisher Snapshot Card --}}
-                                <div id="publisherSnapshotCard" class="mt-3 p-3 bg-light rounded-3 border" style="display: none;">
-                                    <div class="d-flex align-items-start justify-content-between">
-                                        <div class="d-flex align-items-center gap-2 mb-2">
-                                            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold" style="width: 38px; height: 38px; font-size: 14px;" id="snapPubInitial">
-                                                P
-                                            </div>
-                                            <div>
-                                                <h6 class="fw-bold text-dark mb-0" id="snapPubName">Publisher Name</h6>
-                                                <small class="text-muted" id="snapPubAddress"><i class="fas fa-location-dot me-1"></i>Banglabazar, Dhaka</small>
-                                            </div>
-                                        </div>
-                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-1 fw-bold" id="snapPubDue">
-                                            Due: ৳0.00
-                                        </span>
+                            {{-- Book Publisher Wrapper --}}
+                            <div id="bookPublisherWrapper">
+                                <label class="form-label fw-bold text-dark mb-1">
+                                    <i class="fas fa-store text-primary me-1"></i> Publisher / Supplier <span class="text-danger">*</span>
+                                </label>
+
+                                {{-- Existing Publisher Select --}}
+                                <div id="existingPublisherWrapper">
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light text-muted"><i class="fas fa-magnifying-glass"></i></span>
+                                        <select name="publisher_id" id="publisherSelect" class="form-select form-select-lg fs-6 @error('publisher_id') is-invalid @enderror" onchange="onPublisherSelected(this)">
+                                            <option value="">-- Select Publisher from Directory --</option>
+                                            @foreach($publishers as $pub)
+                                                <option value="{{ $pub->id }}" 
+                                                        data-name="{{ $pub->name }}"
+                                                        data-phone="{{ $pub->phone }}"
+                                                        data-email="{{ $pub->email }}"
+                                                        data-address="{{ $pub->address }}"
+                                                        data-books-count="{{ $pub->books_count ?? 0 }}"
+                                                        data-due="{{ (float) ($pub->total_due ?? 0) }}"
+                                                        @selected(old('publisher_id') == $pub->id)>
+                                                    {{ $pub->name }} @if($pub->phone) (📞 {{ $pub->phone }}) @endif
+                                                </option>
+                                            @endforeach
+                                        </select>
                                     </div>
-                                    <div class="row g-2 pt-2 border-top small text-muted">
-                                        <div class="col-sm-6" id="snapPubPhoneWrap">
-                                            <i class="fas fa-phone text-primary me-1"></i><span id="snapPubPhone">-</span>
-                                        </div>
-                                        <div class="col-sm-6" id="snapPubEmailWrap">
-                                            <i class="fas fa-envelope text-info me-1"></i><span id="snapPubEmail">-</span>
-                                        </div>
-                                        <div class="col-12 text-end">
-                                            <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2 py-0.5" id="snapPubBooks">
-                                                0 books in catalog
+                                    
+                                    {{-- Dynamic Selected Publisher Snapshot Card --}}
+                                    <div id="publisherSnapshotCard" class="mt-3 p-3 bg-light rounded-3 border" style="display: none;">
+                                        <div class="d-flex align-items-start justify-content-between">
+                                            <div class="d-flex align-items-center gap-2 mb-2">
+                                                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold" style="width: 38px; height: 38px; font-size: 14px;" id="snapPubInitial">
+                                                    P
+                                                </div>
+                                                <div>
+                                                    <h6 class="fw-bold text-dark mb-0" id="snapPubName">Publisher Name</h6>
+                                                    <small class="text-muted" id="snapPubAddress"><i class="fas fa-location-dot me-1"></i>Banglabazar, Dhaka</small>
+                                                </div>
+                                            </div>
+                                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-1 fw-bold" id="snapPubDue">
+                                                Due: ৳0.00
                                             </span>
                                         </div>
+                                        <div class="row g-2 pt-2 border-top small text-muted">
+                                            <div class="col-sm-6" id="snapPubPhoneWrap">
+                                                <i class="fas fa-phone text-primary me-1"></i><span id="snapPubPhone">-</span>
+                                            </div>
+                                            <div class="col-sm-6" id="snapPubEmailWrap">
+                                                <i class="fas fa-envelope text-info me-1"></i><span id="snapPubEmail">-</span>
+                                            </div>
+                                            <div class="col-12 text-end">
+                                                <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2 py-0.5" id="snapPubBooks">
+                                                    0 books in catalog
+                                                </span>
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
 
-                                <div class="form-text text-muted mt-1" id="pubHelpText">
-                                    <i class="fas fa-info-circle me-1 text-primary"></i> Choose an existing publisher from the list or click '+ New Publisher Entry' above.
+                                    <div class="form-text text-muted mt-1" id="pubHelpText">
+                                        <i class="fas fa-info-circle me-1 text-primary"></i> Choose an existing publisher from the list or click '+ New Publisher Entry' above.
+                                    </div>
                                 </div>
                             </div>
 
@@ -217,17 +265,17 @@
             <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
                 <div class="card-header bg-white py-3 px-4 border-bottom d-flex flex-wrap align-items-center justify-content-between gap-3">
                     <div class="d-flex align-items-center gap-2">
-                        <span class="badge bg-success-subtle text-success p-2 rounded-3">
+                        <span class="badge bg-success-subtle text-success p-2 rounded-3" id="itemSectionIconBadge">
                             <i class="fas fa-book-bookmark fs-5"></i>
                         </span>
                         <div>
-                            <h5 class="fw-bold mb-0 text-dark">Purchased Books & Inventory Stock Entry</h5>
-                            <small class="text-muted">Cost price is auto-calculated from MRP & Commission; Store price is calculated from MRP & Discount</small>
+                            <h5 class="fw-bold mb-0 text-dark" id="itemCardHeading">Purchased Books & Inventory Stock Entry</h5>
+                            <small class="text-muted" id="itemCardSubheading">Cost price is auto-calculated from MRP & Commission; Store price is calculated from MRP & Discount</small>
                         </div>
                     </div>
 
-                    {{-- Global Commission & Discount Batch Tools --}}
-                    <div class="d-flex flex-wrap align-items-center gap-2">
+                    {{-- Global Commission & Discount Batch Tools (for books) --}}
+                    <div class="d-flex flex-wrap align-items-center gap-2" id="booksBatchToolsWrap">
                         <div class="input-group input-group-sm" style="max-width: 220px;">
                             <span class="input-group-text bg-light text-primary fw-semibold" style="font-size: 0.75rem;">Batch Cost Comm %</span>
                             <input type="number" step="0.5" id="batchCommInput" class="form-control text-center" placeholder="40" min="0" max="100">
@@ -244,27 +292,79 @@
                             </button>
                         </div>
 
-                        <button type="button" class="btn btn-success btn-sm rounded-pill px-3.5 fw-bold shadow-sm" onclick="addItemRow()">
+                        <button type="button" class="btn btn-success btn-sm rounded-pill px-3.5 fw-bold shadow-sm" id="btnAddMoreItems" onclick="addItemRow()">
                             <i class="fas fa-plus me-1"></i> Add More Books
                         </button>
                     </div>
                 </div>
 
                 <div class="card-body p-3 p-md-4">
+                    {{-- Quick Raw Material & Production Preset Chips --}}
+                    <div id="rawMaterialsPresetsWrap" class="mb-3 p-3 bg-light rounded-3 border" style="display: none;">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="small fw-bold text-dark"><i class="fa-solid fa-wand-magic-sparkles text-warning me-1"></i> দ্রুত কাঁচামাল ও প্রেস বিল আইটেম যোগ করুন (১-ক্লিক প্রিসেট):</span>
+                        </div>
+                        <div class="d-flex flex-wrap gap-2">
+                            <button type="button" class="btn btn-white btn-sm border rounded-pill px-3 py-1 shadow-2xs text-dark" onclick="addRawMaterialRow('৮০ জিএসএম ডিমাই কাগজ', '২৩x৩৬ ইঞ্চি', 'রিম', 3200, '৮০ GSM ভার্জিন পাল্প')">
+                                📄 ৮০ GSM কাগজ (রিম)
+                            </button>
+                            <button type="button" class="btn btn-white btn-sm border rounded-pill px-3 py-1 shadow-2xs text-dark" onclick="addRawMaterialRow('১০০ জিএসএম আর্ট পেপার', '২৩x৩৬ ইঞ্চি', 'রিম', 4500, '১০০ GSM গ্লসি আর্ট')">
+                                📑 ১০০ GSM আর্ট পেপার
+                            </button>
+                            <button type="button" class="btn btn-white btn-sm border rounded-pill px-3 py-1 shadow-2xs text-dark" onclick="addRawMaterialRow('৪-কালার অফসেট ছাপা বিল', '১৬ পৃষ্ঠা ফর্মা', 'ফর্মা/ইম্প্রেশন', 850, '৪ কালার নিখুঁত প্রিন্ট')">
+                                🖨️ ৪-কালার ছাপা বিল
+                            </button>
+                            <button type="button" class="btn btn-white btn-sm border rounded-pill px-3 py-1 shadow-2xs text-dark" onclick="addRawMaterialRow('১-কালার টেক্সট ছাপা বিল', '১৬ পৃষ্ঠা ফর্মা', 'ফর্মা/ইম্প্রেশন', 400, '১ কালার ব্ল্যাক প্রিন্ট')">
+                                🖨️ ১-কালার ছাপা বিল
+                            </button>
+                            <button type="button" class="btn btn-white btn-sm border rounded-pill px-3 py-1 shadow-2xs text-dark" onclick="addRawMaterialRow('প্রিমিয়াম হার্ডকাভার বাঁধাই বিল', 'রয়েল সাইজ', 'কপি', 60, 'হার্ডবোর্ড ও ফয়েল প্রিন্ট')">
+                                📖 হার্ডকাভার বাঁধাই বিল
+                            </button>
+                            <button type="button" class="btn btn-white btn-sm border rounded-pill px-3 py-1 shadow-2xs text-dark" onclick="addRawMaterialRow('পেপারব্যাক গ্লু বাঁধাই বিল', 'ডিমাই সাইজ', 'কপি', 22, 'পারফেক্ট হট গ্লু বাইন্ডিং')">
+                                📖 পেপারব্যাক বাঁধাই বিল
+                            </button>
+                            <button type="button" class="btn btn-white btn-sm border rounded-pill px-3 py-1 shadow-2xs text-dark" onclick="addRawMaterialRow('সিটিপি প্লেট বিল', 'ডাবল ক্রাউন', 'প্লেট', 250, 'থার্মাল CTP প্লেট')">
+                                ⚙️ CTP প্লেট খরচ
+                            </button>
+                            <button type="button" class="btn btn-white btn-sm border rounded-pill px-3 py-1 shadow-2xs text-dark" onclick="addRawMaterialRow('থার্মাল ম্যাট ল্যামিনেশন', 'কভার সাইজ', 'পিস', 5, 'ম্যাট ফিল্ম কোটিং')">
+                                ✨ ল্যামিনেশন বিল
+                            </button>
+                            <button type="button" class="btn btn-white btn-sm border rounded-pill px-3 py-1 shadow-2xs text-dark" onclick="addRawMaterialRow('প্রিন্টিং অফসেট কালি', '৪ কালার সেট', 'কেজি', 1200, 'প্রিমিয়াম ইঙ্ক')">
+                                🎨 প্রিন্টিং কালি
+                            </button>
+                        </div>
+                    </div>
+
                     <div class="table-responsive rounded-3 border">
                         <table class="table table-hover align-middle mb-0" id="itemsTable">
                             <thead>
                                 <tr class="table-light text-center small text-muted text-uppercase align-middle">
-                                    <th style="min-width: 220px;" class="text-start ps-3 py-3">Book Title <span class="text-danger">*</span></th>
-                                    <th style="min-width: 140px;" class="text-start py-3">Author</th>
-                                    <th style="min-width: 130px;" class="text-start py-3">Category</th>
-                                    <th style="width: 85px;" class="py-3">Quantity</th>
-                                    <th style="width: 110px;" class="py-3 bg-light-subtle">Price (MRP ৳)</th>
-                                    <th style="width: 90px;" class="py-3 bg-primary-subtle text-primary">Cost Comm %</th>
-                                    <th style="width: 110px;" class="py-3 bg-primary-subtle text-primary">Cost Price (৳)</th>
-                                    <th style="width: 90px;" class="py-3 bg-success-subtle text-success">Store Disc %</th>
-                                    <th style="width: 110px;" class="py-3 bg-success-subtle text-success">Store Price (৳)</th>
-                                    <th style="width: 120px;" class="text-end pe-3 py-3">Total Cost (৳)</th>
+                                    <th style="min-width: 220px;" class="text-start ps-3 py-3">
+                                        <span id="thTitleLabel">Book Title</span> <span class="text-danger">*</span>
+                                    </th>
+                                    <th style="min-width: 140px;" class="text-start py-3" id="thAuthorCol">
+                                        <span id="thAuthorLabel">Author</span>
+                                    </th>
+                                    <th style="min-width: 130px;" class="text-start py-3" id="thCategoryCol">
+                                        <span id="thCategoryLabel">Category</span>
+                                    </th>
+                                    <th style="width: 85px;" class="py-3">
+                                        <span id="thQtyLabel">Quantity</span>
+                                    </th>
+                                    <th style="width: 110px;" class="py-3 bg-light-subtle" id="thMrpCol">
+                                        <span id="thMrpLabel">Price (MRP ৳)</span>
+                                    </th>
+                                    <th style="width: 90px;" class="py-3 bg-primary-subtle text-primary" id="thCommCol">Cost Comm %</th>
+                                    <th style="width: 110px;" class="py-3 bg-primary-subtle text-primary">
+                                        <span id="thCostLabel">Cost Price (৳)</span>
+                                    </th>
+                                    <th style="width: 90px;" class="py-3 bg-success-subtle text-success" id="thShopDiscCol">Store Disc %</th>
+                                    <th style="width: 110px;" class="py-3 bg-success-subtle text-success" id="thSalePriceCol">
+                                        <span id="thSaleLabel">Store Price (৳)</span>
+                                    </th>
+                                    <th style="width: 120px;" class="text-end pe-3 py-3">
+                                        <span id="thTotalLabel">Total Cost (৳)</span>
+                                    </th>
                                     <th style="width: 75px;" class="py-3">Actions</th>
                                 </tr>
                             </thead>
@@ -980,6 +1080,231 @@
         calcTotals();
     }
 
+    function setVendorName(name) {
+        const input = document.getElementById('customVendorInput');
+        if (input) {
+            input.value = name;
+            input.focus();
+        }
+    }
+
+    function addRawMaterialRow(name, size, unit, rate, quality) {
+        const tbody = document.getElementById('itemsBody');
+        const i = rowCounter++;
+
+        const tr = document.createElement('tr');
+        tr.className = 'item-row';
+        tr.setAttribute('data-row', i);
+        tr.innerHTML = `
+            <td class="ps-3">
+                <input type="text" name="items[${i}][title]" class="form-control form-control-sm item-title fw-semibold" 
+                       value="${name}" placeholder="মালের বিবরণ..." required oninput="onTitleInput(this, ${i})">
+                <input type="hidden" name="items[${i}][item_name]" value="${name}">
+                <input type="hidden" name="items[${i}][item_type]" value="raw_material">
+            </td>
+            <td>
+                <input type="text" name="items[${i}][author]" class="form-control form-control-sm item-author" 
+                       value="${quality || ''}" placeholder="কোয়ালিটি / গ্রেড...">
+            </td>
+            <td>
+                <input type="text" name="items[${i}][category_name]" class="form-control form-control-sm item-category" 
+                       value="${size || ''}" placeholder="সাইজ / স্পেসিফিকেশন...">
+            </td>
+            <td>
+                <input type="number" name="items[${i}][quantity]" class="form-control form-control-sm item-qty text-center fw-bold" 
+                       value="1" min="1" required oninput="onQtyChange(${i})">
+            </td>
+            <td class="bg-light-subtle d-none-raw">
+                <input type="number" step="0.01" name="items[${i}][mrp_price]" class="form-control form-control-sm item-mrp text-end fw-semibold" 
+                       value="${rate || 0}" min="0" placeholder="দর" oninput="onMrpChange(${i})">
+            </td>
+            <td class="bg-primary-subtle bg-opacity-25 d-none-raw">
+                <input type="number" step="0.01" name="items[${i}][purchase_commission_percent]" class="form-control form-control-sm item-comm text-center text-primary fw-bold" 
+                       value="0" min="0" max="100" placeholder="%" oninput="onCommChange(${i})">
+            </td>
+            <td class="bg-primary-subtle bg-opacity-25">
+                <input type="number" step="0.01" name="items[${i}][cost_price]" class="form-control form-control-sm item-cost text-end fw-bold text-danger" 
+                       value="${rate || 0}" min="0" required oninput="onCostChange(${i})">
+            </td>
+            <td class="bg-success-subtle bg-opacity-25 d-none-raw">
+                <input type="number" step="0.01" name="items[${i}][shop_discount_percent]" class="form-control form-control-sm item-shop-disc text-center text-success fw-bold" 
+                       value="0" min="0" max="100" placeholder="%" oninput="onShopDiscChange(${i})">
+            </td>
+            <td class="bg-success-subtle bg-opacity-25 d-none-raw">
+                <input type="number" step="0.01" name="items[${i}][sale_price]" class="form-control form-control-sm item-sale text-end fw-bold text-success" 
+                       value="${rate || 0}" min="0" required oninput="onSaleChange(${i})">
+            </td>
+            <td class="text-end pe-3 fw-bold text-dark item-subtotal fs-6">৳${(rate || 0).toFixed(2)}</td>
+            <td class="text-center">
+                <div class="d-flex align-items-center justify-content-center gap-1">
+                    <button type="button" class="btn btn-sm btn-outline-secondary p-1 rounded-circle border-0" onclick="toggleExtraDetails(${i})" title="Extra details">
+                        <i class="fas fa-sliders text-secondary"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-danger p-1 rounded-circle border-0" onclick="removeRow(this)" title="Remove row">
+                        <i class="fas fa-trash-can"></i>
+                    </button>
+                </div>
+            </td>
+        `;
+
+        const extraTr = document.createElement('tr');
+        extraTr.className = 'extra-row bg-light';
+        extraTr.id = `extraRow-${i}`;
+        extraTr.style.display = 'none';
+        extraTr.innerHTML = `
+            <td colspan="11" class="p-3">
+                <div class="p-2.5 bg-white rounded-3 border">
+                    <div class="row g-2">
+                        <div class="col-md-3">
+                            <label class="form-label text-muted" style="font-size: 0.72rem;">সাইজ / পরিমাপ</label>
+                            <input type="text" name="items[${i}][size_spec]" class="form-control form-control-sm" value="${size || ''}" placeholder="যেমন: ২৩x৩৬ ইঞ্চি">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label text-muted" style="font-size: 0.72rem;">একক (Unit)</label>
+                            <input type="text" name="items[${i}][unit]" class="form-control form-control-sm" value="${unit || 'রিম'}" placeholder="যেমন: রিম / ফর্মা / ইম্প্রেশন">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label text-muted" style="font-size: 0.72rem;">কোয়ালিটি / গ্রেড</label>
+                            <input type="text" name="items[${i}][quality_spec]" class="form-control form-control-sm" value="${quality || ''}" placeholder="যেমন: ৮০ জিএসএম ভার্জিন">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label text-muted" style="font-size: 0.72rem;">মন্তব্য / নোট</label>
+                            <input type="text" name="items[${i}][item_notes]" class="form-control form-control-sm" placeholder="অতিরিক্ত বিবরণ...">
+                        </div>
+                    </div>
+                </div>
+            </td>
+        `;
+
+        tbody.appendChild(tr);
+        tbody.appendChild(extraTr);
+        calcTotals();
+    }
+
+    function togglePurchaseClass(cls) {
+        const hintText = document.getElementById('classHintText');
+        const cardTitle = document.getElementById('supplierCardTitle');
+        const cardSubtitle = document.getElementById('supplierCardSubtitle');
+        const iconBadge = document.getElementById('supplierIconBadge');
+        const itemIconBadge = document.getElementById('itemSectionIconBadge');
+        const itemCardHeading = document.getElementById('itemCardHeading');
+        const itemCardSubheading = document.getElementById('itemCardSubheading');
+        const pubModeToggle = document.getElementById('pubModeToggleWrap');
+        const customVendorWrap = document.getElementById('customVendorWrapper');
+        const bookPublisherWrap = document.getElementById('bookPublisherWrapper');
+        const vendorFieldLabel = document.getElementById('vendorFieldLabel');
+        const vendorInput = document.getElementById('customVendorInput');
+        const rawPresetsWrap = document.getElementById('rawMaterialsPresetsWrap');
+        const batchToolsWrap = document.getElementById('booksBatchToolsWrap');
+        const btnAddMore = document.getElementById('btnAddMoreItems');
+
+        const thTitle = document.getElementById('thTitleLabel');
+        const thAuthor = document.getElementById('thAuthorLabel');
+        const thCategory = document.getElementById('thCategoryLabel');
+        const thQty = document.getElementById('thQtyLabel');
+        const thCost = document.getElementById('thCostLabel');
+        const thTotal = document.getElementById('thTotalLabel');
+
+        if (cls === 'raw_materials') {
+            if (hintText) hintText.textContent = 'কাগজ, বোর্ড, কালি, প্রেস ও মুদ্রণ খরচ চালান এন্ট্রি';
+            if (cardTitle) cardTitle.textContent = 'কাঁচামাল সরবরাহকারী / প্রেস ও ভাউচার বিবরণ';
+            if (cardSubtitle) cardSubtitle.textContent = 'সরবরাহকারী প্রতিষ্ঠান, প্রেস বা ভেন্ডর ও মেমো নম্বর প্রদান করুন';
+            if (vendorFieldLabel) vendorFieldLabel.textContent = 'কাঁচামাল সরবরাহকারী / প্রেসের নাম';
+            if (vendorInput) vendorInput.placeholder = 'যেমন: কর্ণফুলী পেপার্স / আল-মদিনা বোর্ড / জনতা প্রেস...';
+            if (iconBadge) {
+                iconBadge.className = 'badge bg-warning-subtle text-warning-emphasis p-2 rounded-3';
+                iconBadge.innerHTML = '<i class="fas fa-boxes-stacked fs-5"></i>';
+            }
+            if (itemIconBadge) {
+                itemIconBadge.className = 'badge bg-warning-subtle text-warning-emphasis p-2 rounded-3';
+                itemIconBadge.innerHTML = '<i class="fas fa-boxes-stacked fs-5"></i>';
+            }
+            if (itemCardHeading) itemCardHeading.textContent = 'কাঁচামাল ও উৎপাদন সামগ্রীর তালিকা (Raw Materials & Production)';
+            if (itemCardSubheading) itemCardSubheading.textContent = 'কাগজ, কালি, ছাপা বিল (১/৪ কালার), বাঁধাই বিল, প্লেট ইত্যাদির বিবরণ ও একক দর';
+            if (pubModeToggle) pubModeToggle.style.display = 'none';
+            if (customVendorWrap) customVendorWrap.style.display = 'block';
+            if (bookPublisherWrap) bookPublisherWrap.style.display = 'none';
+            if (rawPresetsWrap) rawPresetsWrap.style.display = 'block';
+            if (batchToolsWrap) batchToolsWrap.style.display = 'flex';
+            if (btnAddMore) btnAddMore.innerHTML = '<i class="fas fa-plus me-1"></i> + আরও কাঁচামাল যোগ করুন';
+
+            if (thTitle) thTitle.textContent = 'মালের বিবরণ / কাজের নাম';
+            if (thAuthor) thAuthor.textContent = 'কোয়ালিটি / গ্রেড';
+            if (thCategory) thCategory.textContent = 'সাইজ / স্পেসিফিকেশন';
+            if (thQty) thQty.textContent = 'পরিমাণ';
+            if (thCost) thCost.textContent = 'একক দর (৳)';
+            if (thTotal) thTotal.textContent = 'মোট মূল্য (৳)';
+
+            document.querySelectorAll('.item-title').forEach(el => {
+                if (!el.value) el.placeholder = 'যেমন: ৮০ GSM ডিমাই কাগজ / ছাপা বিল...';
+            });
+        } else if (cls === 'other') {
+            if (hintText) hintText.textContent = 'স্টেশনারি, পিন, ফার্নিচার, মেহমান আপ্যায়ন ও বিবিধ কেনাকাটা এন্ট্রি';
+            if (cardTitle) cardTitle.textContent = 'দোকান / ভেন্ডর / সরবরাহকারী বিবরণ';
+            if (cardSubtitle) cardSubtitle.textContent = 'দোকানের নাম, ক্যাশ মেমো ও কেনাকাটার তালিকা';
+            if (vendorFieldLabel) vendorFieldLabel.textContent = 'দোকান / সরবরাহকারী / ভেন্ডরের নাম';
+            if (vendorInput) vendorInput.placeholder = 'যেমন: সিটি স্টেশনারি / ইত্যাদি ফার্নিচার / মতিন টি স্টল...';
+            if (iconBadge) {
+                iconBadge.className = 'badge bg-info-subtle text-info-emphasis p-2 rounded-3';
+                iconBadge.innerHTML = '<i class="fas fa-cart-shopping fs-5"></i>';
+            }
+            if (itemIconBadge) {
+                itemIconBadge.className = 'badge bg-info-subtle text-info-emphasis p-2 rounded-3';
+                itemIconBadge.innerHTML = '<i class="fas fa-cart-shopping fs-5"></i>';
+            }
+            if (itemCardHeading) itemCardHeading.textContent = 'অন্যান্য ক্রয় ও মালামালের তালিকা (Other Purchases)';
+            if (itemCardSubheading) itemCardSubheading.textContent = 'অফিসের দ্রব্যাদি, স্টেশনারি ও আনুষঙ্গিক খরচের তালিকা';
+            if (pubModeToggle) pubModeToggle.style.display = 'none';
+            if (customVendorWrap) customVendorWrap.style.display = 'block';
+            if (bookPublisherWrap) bookPublisherWrap.style.display = 'none';
+            if (rawPresetsWrap) rawPresetsWrap.style.display = 'none';
+            if (batchToolsWrap) batchToolsWrap.style.display = 'flex';
+            if (btnAddMore) btnAddMore.innerHTML = '<i class="fas fa-plus me-1"></i> + আরও পণ্য যোগ করুন';
+
+            if (thTitle) thTitle.textContent = 'পণ্যের নাম ও বিবরণ';
+            if (thAuthor) thAuthor.textContent = 'একক / পরিমাপ';
+            if (thCategory) thCategory.textContent = 'বিবরণ / নোট';
+            if (thQty) thQty.textContent = 'পরিমাণ';
+            if (thCost) thCost.textContent = 'একক দর (৳)';
+            if (thTotal) thTotal.textContent = 'মোট টাকা (৳)';
+
+            document.querySelectorAll('.item-title').forEach(el => {
+                if (!el.value) el.placeholder = 'যেমন: স্ট্যাপলার পিন ও ক্লিপ / মেহমান আপ্যায়ন...';
+            });
+        } else { // books
+            if (hintText) hintText.textContent = 'বইয়ের স্টক, কমিশন ও পাইকারি চালান ইনভেন্টরি এন্ট্রি';
+            if (cardTitle) cardTitle.textContent = 'Publisher / Supplier & Invoice Details';
+            if (cardSubtitle) cardSubtitle.textContent = 'Select publisher/supplier, memo number and previous due records';
+            if (iconBadge) {
+                iconBadge.className = 'badge bg-primary-subtle text-primary p-2 rounded-3';
+                iconBadge.innerHTML = '<i class="fas fa-building fs-5"></i>';
+            }
+            if (itemIconBadge) {
+                itemIconBadge.className = 'badge bg-success-subtle text-success p-2 rounded-3';
+                itemIconBadge.innerHTML = '<i class="fas fa-book-bookmark fs-5"></i>';
+            }
+            if (itemCardHeading) itemCardHeading.textContent = 'Purchased Books & Inventory Stock Entry';
+            if (itemCardSubheading) itemCardSubheading.textContent = 'Cost price is auto-calculated from MRP & Commission; Store price is calculated from MRP & Discount';
+            if (pubModeToggle) pubModeToggle.style.display = 'inline-flex';
+            if (customVendorWrap) customVendorWrap.style.display = 'none';
+            if (bookPublisherWrap) bookPublisherWrap.style.display = 'block';
+            if (rawPresetsWrap) rawPresetsWrap.style.display = 'none';
+            if (batchToolsWrap) batchToolsWrap.style.display = 'flex';
+            if (btnAddMore) btnAddMore.innerHTML = '<i class="fas fa-plus me-1"></i> Add More Books';
+
+            if (thTitle) thTitle.textContent = 'Book Title';
+            if (thAuthor) thAuthor.textContent = 'Author';
+            if (thCategory) thCategory.textContent = 'Category';
+            if (thQty) thQty.textContent = 'Quantity';
+            if (thCost) thCost.textContent = 'Cost Price (৳)';
+            if (thTotal) thTotal.textContent = 'Total Cost (৳)';
+
+            document.querySelectorAll('.item-title').forEach(el => {
+                if (!el.value) el.placeholder = 'Type book title...';
+            });
+        }
+    }
+
     // Initialize calculation
     document.addEventListener('DOMContentLoaded', () => {
         calcTotals();
@@ -988,6 +1313,8 @@
         if (pubSelect && pubSelect.value) {
             onPublisherSelected(pubSelect);
         }
+        const activeClass = document.querySelector('input[name="purchase_category"]:checked')?.value || 'books';
+        togglePurchaseClass(activeClass);
     });
 </script>
 

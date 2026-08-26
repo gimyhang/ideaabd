@@ -49,7 +49,7 @@
 
                 {{-- Identity / Username / Email / Phone --}}
                 <div class="mb-3">
-                    <label class="form-label fw-bold text-dark mb-1" style="font-size: 24px;">
+                    <label class="form-label fw-bold text-dark mb-1" style="font-size: 15px;">
                         <i class="fa-solid fa-user text-primary me-1"></i> Email, Phone or Username <span class="text-danger">*</span>
                     </label>
                     <div class="input-group">
@@ -57,7 +57,7 @@
                         <input type="text" name="email" id="loginEmailInput" class="form-control form-control-lg rounded-end-3" 
                                value="{{ old('email') }}" placeholder="Enter email, phone or username..." 
                                required autofocus autocomplete="username" 
-                               style="font-size: 16px; height: 50px;"
+                               style="font-size: 15px; height: 48px;"
                                autocorrect="off" autocapitalize="none" spellcheck="false">
                     </div>
                 </div>
@@ -65,10 +65,10 @@
                 {{-- Password with Show/Hide Toggle Eye --}}
                 <div class="mb-3">
                     <div class="d-flex align-items-center justify-content-between mb-1">
-                        <label class="form-label fw-bold text-dark mb-0" style="font-size: 24px;">
+                        <label class="form-label fw-bold text-dark mb-0" style="font-size: 15px;">
                             <i class="fa-solid fa-lock text-primary me-1"></i> Password <span class="text-danger">*</span>
                         </label>
-                        <a href="{{ route('password.request') }}" class="text-decoration-none text-primary fw-semibold" style="font-size: 14px;">
+                        <a href="{{ route('password.request') }}" class="text-decoration-none text-primary fw-semibold" style="font-size: 13px;">
                             <i class="fa-solid fa-key me-0.5"></i> Forgot Password?
                         </a>
                     </div>
@@ -76,7 +76,7 @@
                         <span class="input-group-text bg-light border-end-0 fs-5"><i class="fa-solid fa-key text-muted"></i></span>
                         <input type="password" name="password" id="loginPasswordInput" class="form-control form-control-lg" 
                                placeholder="Enter your password..." required autocomplete="current-password"
-                               style="font-size: 16px; height: 50px;">
+                               style="font-size: 15px; height: 48px;">
                         <button type="button" class="btn btn-outline-secondary rounded-end-3" id="toggleLoginPasswordBtn" 
                                 onclick="togglePasswordVisibility('loginPasswordInput', this)" title="পাসওয়ার্ড দেখুন বা লুকান">
                             <i class="fa-regular fa-eye fs-5"></i>
@@ -91,27 +91,27 @@
                 @endphp
                 <div class="rounded-4 border mb-4 shadow-2xs p-3 p-sm-3.5" id="botChallengeBox" 
                      style="background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%); border-color: #cbd5e1 !important;">
-                    <div class="d-flex align-items-center justify-content-between gap-2 gap-sm-3 flex-nowrap">
-                        {{-- Left Column: Row 1 = Equation, Row 2 = যোগফল লিখুন (With Safe Inner Margin/Padding) --}}
-                        <div class="d-flex flex-column justify-content-center ps-2 ps-sm-3">
+                    <div class="d-flex align-items-center justify-content-between gap-2 gap-sm-3 flex-wrap flex-sm-nowrap">
+                        {{-- Left Column: Row 1 = Equation, Row 2 = যোগফল লিখুন --}}
+                        <div class="d-flex flex-column justify-content-center ps-1 ps-sm-2">
                             <div class="text-primary font-monospace fw-bold text-nowrap" id="botEquationText" 
-                                 style="font-size: clamp(19px, 4.5vw, 23px); letter-spacing: 0.8px; line-height: 1.2;">
+                                 style="font-size: clamp(18px, 4.5vw, 22px); letter-spacing: 0.8px; line-height: 1.2;">
                                 {{ $b1 }} + {{ $b2 }} = ?
                             </div>
-                            <div class="text-secondary fw-semibold text-nowrap mt-1" style="font-size: clamp(12px, 3.2vw, 14px); color: #475569 !important;">
+                            <div class="text-secondary fw-semibold text-nowrap mt-0.5" style="font-size: clamp(11.5px, 3vw, 13px); color: #475569 !important;">
                                 যোগফল লিখুন
                             </div>
                         </div>
 
-                        {{-- Right Column: Merged 20px Answer Input & Refresh Button --}}
+                        {{-- Right Column: Merged Answer Input & Refresh Button --}}
                         <div class="d-flex align-items-center gap-1.5 gap-sm-2 ms-auto pe-1">
                             <input type="number" name="bot_answer" id="botAnswerInput" 
                                    class="form-control form-control-lg text-center fw-bold font-monospace bg-white border shadow-2xs px-1 px-sm-2" 
-                                   style="width: 130px; min-width: 110px; max-width: 145px; font-size: clamp(17px, 4vw, 20px); height: 50px; border-radius: 10px;" 
+                                   style="width: 110px; min-width: 90px; max-width: 130px; font-size: clamp(16px, 4vw, 19px); height: 46px; border-radius: 10px;" 
                                    placeholder="যোগফল" required min="0" max="40" autocomplete="off">
                             <button type="button" class="btn btn-outline-primary rounded-circle d-flex align-items-center justify-content-center shadow-2xs flex-shrink-0" 
                                     id="refreshBotBtn" onclick="refreshBotChallenge(this)" title="নতুন সংখ্যা পেতে ক্লিক করুন" 
-                                    style="width: 42px; height: 42px;">
+                                    style="width: 40px; height: 40px;">
                                 <i class="fa-solid fa-rotate" id="refreshBotIcon"></i>
                             </button>
                         </div>
@@ -128,20 +128,20 @@
                     </span>
                 </div>
 
-                <button type="submit" class="btn btn-primary w-100 py-3 fw-bold rounded-pill shadow-sm fs-5" id="loginSubmitBtn">
+                <button type="submit" class="btn btn-primary w-100 py-2.5 fw-bold rounded-pill shadow-sm fs-5" id="loginSubmitBtn">
                     <i class="fa-solid fa-right-to-bracket me-1.5"></i> Login / লগইন করুন
                 </button>
             </form>
 
-            {{-- Prominent Registration / Sign Up Callout (Doubled Font Sizes) --}}
+            {{-- Prominent Registration / Sign Up Callout --}}
             <div class="mt-4 pt-3 border-top">
-                <div class="p-3.5 bg-light rounded-4 border shadow-2xs">
+                <div class="p-3 bg-light rounded-4 border shadow-2xs">
                     <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
-                        <span class="fw-bold text-dark d-flex align-items-center gap-2" style="font-size: 20px;">
+                        <span class="fw-bold text-dark d-flex align-items-center gap-1.5" style="font-size: clamp(14px, 3.8vw, 17px);">
                             <i class="fa-solid fa-user-plus text-primary"></i>
                             <span>আপনার একাউন্ট না থাকলে সাইন আপ করুন:</span>
                         </span>
-                        <a href="{{ route('register.choose') }}" class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 text-decoration-none px-3 py-1.5 rounded-pill fw-bold" style="font-size: 14px;">
+                        <a href="{{ route('register.choose') }}" class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 text-decoration-none px-3 py-1.5 rounded-pill fw-bold" style="font-size: 13px;">
                             সবগুলো <i class="fa-solid fa-angle-right ms-1"></i>
                         </a>
                     </div>

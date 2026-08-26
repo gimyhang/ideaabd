@@ -15,6 +15,7 @@ class IdeaInvoice extends Model
         'invoice_no',
         'access_token',
         'type',
+        'sales_category',
         'subject',
         'reference_no',
         'customer_name',
@@ -39,6 +40,26 @@ class IdeaInvoice extends Model
         'emailed_at',
         'created_by',
     ];
+
+    public function getCategoryLabelAttribute(): string
+    {
+        return match($this->sales_category) {
+            'stationery'     => 'স্টেশনারী বিক্রয় (Stationery)',
+            'printing_goods' => 'প্রিন্টিং ও সেবা (Printing Goods & Services)',
+            'other'          => 'অন্যান্য ও বিবিধ (Other Sales)',
+            default          => 'বই বিক্রয় (Books)',
+        };
+    }
+
+    public function getCategoryBadgeAttribute(): array
+    {
+        return match($this->sales_category) {
+            'stationery'     => ['bg' => 'bg-info-subtle text-info border-info-subtle', 'label' => 'স্টেশনারী'],
+            'printing_goods' => ['bg' => 'bg-warning-subtle text-warning-emphasis border-warning-subtle', 'label' => 'প্রিন্টিং গুডস'],
+            'other'          => ['bg' => 'bg-secondary-subtle text-secondary border-secondary-subtle', 'label' => 'অন্যান্য'],
+            default          => ['bg' => 'bg-primary-subtle text-primary border-primary-subtle', 'label' => 'বই বিক্রয়'],
+        };
+    }
 
     protected $casts = [
         'items'        => 'array',

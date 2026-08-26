@@ -95,11 +95,12 @@
     <form action="{{ route('admin.system-settings.update') }}" method="POST" enctype="multipart/form-data" id="systemSettingsForm">
         @csrf
 
-        <!-- Hidden Inputs for Cropped Base64 Images -->
+        <!-- Hidden Inputs for Cropped Base64 Images & Dynamic Menus -->
         <input type="hidden" name="site_logo_cropped" id="site_logo_cropped">
         <input type="hidden" name="site_favicon_cropped" id="site_favicon_cropped">
         <input type="hidden" name="banner_1_cropped" id="banner_1_cropped">
         <input type="hidden" name="banner_2_cropped" id="banner_2_cropped">
+        <input type="hidden" name="header_menu_items" id="header_menu_items">
 
         <div class="card border-0 shadow-sm rounded-4 bg-white overflow-hidden">
             
@@ -111,6 +112,13 @@
                                 id="tab-brand-btn" data-bs-toggle="pill" data-bs-target="#tab-brand" type="button" role="tab">
                             <i class="fa-solid fa-crop-simple text-primary"></i>
                             <span>Branding, Logo & Cropper</span>
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link rounded-pill fw-semibold py-2.5 px-3 d-flex align-items-center justify-content-center gap-2" 
+                                id="tab-menu-btn" data-bs-toggle="pill" data-bs-target="#tab-menu" type="button" role="tab">
+                            <i class="fa-solid fa-compass text-success"></i>
+                            <span>Menu Builder & Nav</span>
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
@@ -216,82 +224,136 @@
                                 </div>
                             </div>
 
-                            <!-- Right: Fixed Frame Logo Upload & Interactive Cropper -->
+                            <!-- Right: Modern World-Class Logo Sizing, Navbar Simulator & Cropper -->
                             <div class="col-lg-6">
                                 <div class="d-flex justify-content-between align-items-center mb-3">
-                                    <h6 class="fw-bold text-dark mb-0"><i class="fa-solid fa-image text-primary me-2"></i>Primary Site Logo</h6>
-                                    <div class="btn-group btn-group-sm" role="group" aria-label="Logo Preview Background">
-                                        <button type="button" class="btn btn-outline-secondary btn-sm active" onclick="setLogoBg('white', this)" title="Light Header Background">
-                                            <i class="fa-solid fa-sun text-warning"></i> Light
+                                    <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                                        <i class="fa-solid fa-image text-primary"></i>
+                                        <span>Primary Site Logo & Live Resizer</span>
+                                    </h6>
+                                    <div class="btn-group btn-group-sm shadow-2xs rounded-pill p-0.5 bg-light border" role="group" aria-label="Logo Preview Background">
+                                        <button type="button" class="btn btn-sm btn-white active rounded-pill px-2.5 py-1 text-dark fw-semibold" onclick="setLogoBg('white', this)" title="Light Header">
+                                            <i class="fa-solid fa-sun text-warning me-1"></i> Light
                                         </button>
-                                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setLogoBg('dark', this)" title="Dark Header Background">
-                                            <i class="fa-solid fa-moon text-info"></i> Dark
+                                        <button type="button" class="btn btn-sm btn-light rounded-pill px-2.5 py-1 text-dark fw-semibold" onclick="setLogoBg('dark', this)" title="Dark Header">
+                                            <i class="fa-solid fa-moon text-info me-1"></i> Dark
                                         </button>
-                                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setLogoBg('grid', this)" title="Transparent Checkerboard">
-                                            <i class="fa-solid fa-border-none text-muted"></i> Grid
+                                        <button type="button" class="btn btn-sm btn-light rounded-pill px-2.5 py-1 text-dark fw-semibold" onclick="setLogoBg('grid', this)" title="Transparent Grid">
+                                            <i class="fa-solid fa-border-none text-muted me-1"></i> Grid
                                         </button>
                                     </div>
                                 </div>
                                 
-                                <div class="p-4 bg-light rounded-4 border text-center">
-                                    <div class="d-flex justify-content-between align-items-center mb-3">
-                                        <span class="badge bg-white text-primary border rounded-pill px-3 py-1 small fw-semibold shadow-2xs">
-                                            <i class="fa-solid fa-arrows-left-right-to-line me-1"></i> 2:1 Wide Header Ratio
-                                        </span>
-                                        <span class="small text-muted fw-semibold">Navbar Simulator</span>
-                                    </div>
+                                <div class="card p-3.5 bg-white rounded-4 border shadow-sm">
                                     
-                                    <!-- Fixed Frame Logo Box (Simulating Navbar Height & Transparency) -->
-                                    <div class="fixed-preview-container logo-preview-box shadow-xs bg-white mx-auto mb-2 transition-all overflow-hidden" id="logoContainer" style="display: flex; align-items: center; justify-content: center; height: 68px; max-width: 280px; border-radius: 12px; transition: background 0.25s ease;">
-                                        @if($logoUrl)
-                                            <img src="{{ $logoUrl }}" alt="Site Logo" id="logoPreviewImg" 
-                                                 style="max-height: 52px; max-width: 220px; width: auto; height: auto; object-fit: contain; transition: transform 0.2s ease; transform: scale(1);">
-                                        @else
-                                            <div class="d-flex align-items-center gap-2 text-primary" id="logoPreviewImg" style="transition: transform 0.2s ease; transform: scale(1);">
-                                                <span class="badge bg-primary text-white p-2 rounded fs-5">ID</span>
-                                                <span class="fw-bold fs-5">Idea Prakashan</span>
+                                    {{-- Live Navbar Simulator Box --}}
+                                    <div class="mb-3">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1 small fw-bold">
+                                                <i class="fa-solid fa-desktop me-1"></i> Live Header Preview
+                                            </span>
+                                            <span class="text-muted small" id="logoDimBadge">
+                                                Height: <strong id="lblHeight">{{ \App\Support\SiteSetting::logoHeight() }}px</strong> | 
+                                                Width: <strong id="lblWidth">{{ \App\Support\SiteSetting::logoWidth() }}px</strong> | 
+                                                Scale: <strong id="lblScale">{{ \App\Support\SiteSetting::logoScale() }}%</strong>
+                                            </span>
+                                        </div>
+
+                                        <div class="navbar-simulator p-2.5 rounded-3 border d-flex align-items-center justify-content-between transition-all" 
+                                             id="logoContainer" 
+                                             style="background: #ffffff; min-height: 74px; border-color: #cbd5e1 !important;">
+                                            
+                                            <!-- Logo Target Box -->
+                                            <div class="d-flex align-items-center justify-content-start overflow-hidden flex-shrink-0" 
+                                                 id="logoWrapper"
+                                                 style="max-height: {{ \App\Support\SiteSetting::logoHeight() }}px; max-width: {{ \App\Support\SiteSetting::logoWidth() }}px; transition: all 0.15s ease;">
+                                                @if($logoUrl)
+                                                    <img src="{{ $logoUrl }}" alt="Site Logo" id="logoPreviewImg" 
+                                                         style="max-height: {{ \App\Support\SiteSetting::logoHeight() }}px; max-width: {{ \App\Support\SiteSetting::logoWidth() }}px; width: auto; height: auto; object-fit: contain; transform: scale({{ \App\Support\SiteSetting::logoScale() / 100 }}); transform-origin: left center; transition: all 0.15s ease;">
+                                                @else
+                                                    <div class="d-flex align-items-center gap-2 text-primary" id="logoPreviewImg" style="transform: scale({{ \App\Support\SiteSetting::logoScale() / 100 }}); transform-origin: left center;">
+                                                        <span class="badge bg-primary text-white p-2 rounded fs-5">ID</span>
+                                                        <span class="fw-bold fs-5">Idea Prakashan</span>
+                                                    </div>
+                                                @endif
                                             </div>
-                                        @endif
+
+                                            <!-- Mock Navbar Navigation elements on the right -->
+                                            <div class="d-none d-sm-flex align-items-center gap-2 opacity-50 pe-1">
+                                                <span class="badge bg-light text-muted border rounded-pill px-2.5 py-1 small"><i class="fa-solid fa-search me-1"></i>সার্চ</span>
+                                                <span class="badge bg-light text-muted border rounded-pill px-2.5 py-1 small"><i class="fa-solid fa-cart-shopping me-1"></i>কার্ট (০)</span>
+                                            </div>
+                                        </div>
                                     </div>
 
-                                    <!-- Zoom In / Out Preview Controls -->
-                                    <div class="d-flex align-items-center justify-content-center gap-2 mb-3">
-                                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5 py-0.5" onclick="zoomLogoPreview(-0.15)" title="Zoom Out Preview">
-                                            <i class="fa-solid fa-magnifying-glass-minus me-1"></i> Zoom Out
-                                        </button>
-                                        <span class="badge bg-white text-dark border px-2.5 py-1 fw-bold shadow-2xs" id="logoZoomBadge" style="font-size: 11px;">100%</span>
-                                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5 py-0.5" onclick="zoomLogoPreview(0.15)" title="Zoom In Preview">
-                                            <i class="fa-solid fa-magnifying-glass-plus me-1"></i> Zoom In
-                                        </button>
-                                        <button type="button" class="btn btn-sm btn-link text-muted p-0 text-decoration-none" onclick="resetLogoPreview()" title="Reset Zoom">
-                                            <i class="fa-solid fa-rotate-left"></i>
-                                        </button>
-                                    </div>
-
-                                    <div class="text-start mb-3">
-                                        <label class="form-label small fw-bold text-dark mb-1">Select or crop logo image:</label>
-                                        <div class="input-group">
-                                            <input type="file" id="logoInput" name="site_logo" class="form-control rounded-start-3" accept="image/*" onchange="initCropper(this, 'logo', 2/1)">
-                                            <button type="button" class="btn btn-outline-primary fw-semibold" onclick="document.getElementById('logoInput').click()">
-                                                <i class="fa-solid fa-crop-simple me-1"></i> 2:1 Crop
+                                    {{-- Sliders for Height, Width, and Scale --}}
+                                    <div class="p-3 bg-light rounded-3 border mb-3">
+                                        <div class="d-flex justify-content-between align-items-center mb-2 pb-1 border-bottom">
+                                            <span class="fw-bold text-dark small"><i class="fa-solid fa-sliders text-primary me-1"></i> লোগোর আকার ও স্কেল সমন্বয় (Logo Size Sliders)</span>
+                                            <button type="button" class="btn btn-sm btn-link text-primary p-0 text-decoration-none small fw-semibold" onclick="resetLogoSliders()">
+                                                <i class="fa-solid fa-rotate-left me-1"></i> ডিফল্ট সাইজ
                                             </button>
                                         </div>
-                                        <div class="d-flex gap-1.5 mt-1.5 flex-wrap">
-                                            <span class="badge bg-light text-muted border" style="font-size: 11px;">Recommended: 2:1 Transparent PNG (e.g. 240×120px)</span>
+
+                                        <div class="row g-2">
+                                            <!-- Height Slider -->
+                                            <div class="col-md-4">
+                                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                                    <label class="form-label small fw-semibold text-muted mb-0">লোগো উচ্চতা (Height)</label>
+                                                    <span class="badge bg-white text-dark border px-2 py-0.5 small" id="badgeHeight">{{ \App\Support\SiteSetting::logoHeight() }}px</span>
+                                                </div>
+                                                <input type="range" class="form-range" name="site_logo_height" id="sliderLogoHeight" 
+                                                       min="30" max="100" step="2" value="{{ \App\Support\SiteSetting::logoHeight() }}" 
+                                                       oninput="updateLogoDimensions()">
+                                            </div>
+
+                                            <!-- Width Slider -->
+                                            <div class="col-md-4">
+                                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                                    <label class="form-label small fw-semibold text-muted mb-0">সর্বোচ্চ প্রস্থ (Max Width)</label>
+                                                    <span class="badge bg-white text-dark border px-2 py-0.5 small" id="badgeWidth">{{ \App\Support\SiteSetting::logoWidth() }}px</span>
+                                                </div>
+                                                <input type="range" class="form-range" name="site_logo_width" id="sliderLogoWidth" 
+                                                       min="80" max="360" step="5" value="{{ \App\Support\SiteSetting::logoWidth() }}" 
+                                                       oninput="updateLogoDimensions()">
+                                            </div>
+
+                                            <!-- Scale Slider -->
+                                            <div class="col-md-4">
+                                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                                    <label class="form-label small fw-semibold text-muted mb-0">স্কেল / জুম (Scale)</label>
+                                                    <span class="badge bg-white text-dark border px-2 py-0.5 small" id="badgeScale">{{ \App\Support\SiteSetting::logoScale() }}%</span>
+                                                </div>
+                                                <input type="range" class="form-range" name="site_logo_scale" id="sliderLogoScale" 
+                                                       min="50" max="150" step="5" value="{{ \App\Support\SiteSetting::logoScale() }}" 
+                                                       oninput="updateLogoDimensions()">
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <p class="small text-muted mb-0 text-start">
-                                            <i class="fa-solid fa-circle-check text-success me-1"></i>
-                                            Auto-fitted to 1:2 wide aspect ratio in navbar.
-                                        </p>
+
+                                    <!-- Upload & Cropper Actions -->
+                                    <div class="text-start mb-2">
+                                        <label class="form-label small fw-bold text-dark mb-1">নতুন লোগো আপলোড ও ক্রপ করুন:</label>
+                                        <div class="input-group">
+                                            <input type="file" id="logoInput" name="site_logo" class="form-control rounded-start-3" accept="image/*" onchange="initCropper(this, 'logo', 0)">
+                                            <button type="button" class="btn btn-outline-primary fw-semibold" onclick="document.getElementById('logoInput').click()">
+                                                <i class="fa-solid fa-crop-simple me-1"></i> ছবি নির্বাচন
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                                        <span class="small text-muted">
+                                            <i class="fa-solid fa-circle-info text-primary me-1"></i> পিএনজি (PNG) বা এসভিজি (SVG) ফরম্যাট প্রস্তাবিত।
+                                        </span>
                                         @if($logoUrl)
-                                            <div class="form-check">
+                                            <div class="form-check mb-0">
                                                 <input class="form-check-input" type="checkbox" name="remove_site_logo" value="1" id="rmLogo">
-                                                <label class="form-check-label small text-danger fw-semibold" for="rmLogo">Remove Logo</label>
+                                                <label class="form-check-label small text-danger fw-semibold" for="rmLogo">লোগো মুছুন</label>
                                             </div>
                                         @endif
                                     </div>
+
                                 </div>
                             </div>
 
@@ -409,6 +471,93 @@
                                     </div>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab: Dynamic Header & Navigation Menu Builder -->
+                    <div class="tab-pane fade" id="tab-menu" role="tabpanel">
+                        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 pb-3 border-bottom">
+                            <div>
+                                <h6 class="fw-bold text-dark mb-1 d-flex align-items-center gap-2">
+                                    <i class="fa-solid fa-compass text-success"></i>
+                                    <span>হেডার মেনু ও নেভিগেশন নিয়ন্ত্রণ (Header Navigation Menu Builder)</span>
+                                </h6>
+                                <p class="text-muted small mb-0">ওয়েবসাইটের প্রধান হেডার মেনু আইটেমসমূহ সাজান, নতুন লিঙ্ক বা রুট যোগ করুন, ক্রম পরিবর্তন করুন এবং অন/অফ করুন।</p>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-3 py-1.5 fw-semibold shadow-2xs" onclick="resetMenuToDefaults()">
+                                    <i class="fa-solid fa-rotate-left me-1"></i> ডিফল্ট মেনু রিস্টোর
+                                </button>
+                                <button type="button" class="btn btn-success btn-sm rounded-pill px-3.5 py-1.5 fw-bold shadow-xs d-inline-flex align-items-center gap-1.5" onclick="addCustomMenuItem()">
+                                    <i class="fa-solid fa-plus"></i> নতুন আইটেম
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Live Navbar Simulator Preview -->
+                        <div class="card p-3.5 bg-light rounded-4 border shadow-2xs mb-4">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="badge bg-white text-dark border px-2.5 py-1 small fw-bold d-inline-flex align-items-center gap-1">
+                                    <i class="fa-solid fa-eye text-primary"></i> লাইভ হেডার প্রিভিউ (Live Header Preview)
+                                </span>
+                                <span class="text-muted small" id="liveMenuCountBadge">১০টি সক্রিয় মেনু আইটেম</span>
+                            </div>
+                            <div class="bg-white p-2.5 rounded-3 border d-flex align-items-center justify-content-center overflow-x-auto scrollbar-none shadow-2xs" style="min-height: 48px;">
+                                <ul class="nav align-items-center justify-content-center gap-1 my-0 py-0 flex-nowrap" id="liveHeaderNavPreview">
+                                    <!-- Live items injected via JS -->
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Quick Preset Insert Bar -->
+                        <div class="card p-3 bg-white rounded-4 border shadow-2xs mb-4">
+                            <label class="form-label small fw-bold text-dark mb-2 d-flex align-items-center gap-1.5">
+                                <i class="fa-solid fa-bolt text-warning"></i>
+                                <span>১-ক্লিকে দ্রুত মেনু আইটেম যুক্ত করুন (Quick Presets):</span>
+                            </label>
+                            <div class="d-flex flex-wrap gap-1.5">
+                                <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-2.5 py-1 fw-semibold" onclick="addMenuItemPreset('হোম', 'home', '/', 'house', '')">+ হোম</button>
+                                <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-2.5 py-1 fw-semibold" onclick="addMenuItemPreset('বইসমূহ', 'book.index', '/books', 'book', '')">+ বইসমূহ</button>
+                                <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-2.5 py-1 fw-semibold" onclick="addMenuItemPreset('ই-বুক', 'ebook.index', '/ebooks', 'tablet-screen-button', 'নতুন')">+ ই-বুক</button>
+                                <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-2.5 py-1 fw-semibold" onclick="addMenuItemPreset('লেখক', 'authors.index', '/authors', 'pen-fancy', '')">+ লেখক</button>
+                                <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-2.5 py-1 fw-semibold" onclick="addMenuItemPreset('প্রকাশক', 'publishers.index', '/publishers', 'building', '')">+ প্রকাশক</button>
+                                <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-2.5 py-1 fw-semibold" onclick="addMenuItemPreset('আইডিয়াপত্র', 'blog.index', '/blog', 'newspaper', '')">+ আইডিয়াপত্র</button>
+                                <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-2.5 py-1 fw-semibold" onclick="addMenuItemPreset('ওয়েবজিন', 'webzine.index', '/webzines', 'book-open', '')">+ ওয়েবজিন</button>
+                                <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-2.5 py-1 fw-semibold" onclick="addMenuItemPreset('গবেষণা', 'research.index', '/research', 'flask', '')">+ গবেষণা</button>
+                                <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-2.5 py-1 fw-semibold" onclick="addMenuItemPreset('আইডিয়া হাব', 'hub', '/hub', 'compass', '')">+ আইডিয়া হাব</button>
+                                <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-2.5 py-1 fw-semibold" onclick="addMenuItemPreset('আমাদের সম্পর্কে', 'about', '/about', 'circle-info', '')">+ আমাদের সম্পর্কে</button>
+                                <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-2.5 py-1 fw-semibold" onclick="addMenuItemPreset('যোগাযোগ', 'contact', '/contact', 'envelope', '')">+ যোগাযোগ</button>
+                            </div>
+                        </div>
+
+                        <!-- Interactive Menu Items Table -->
+                        <div class="table-responsive rounded-4 border bg-white shadow-2xs mb-4">
+                            <table class="table table-hover align-middle mb-0" id="menuItemsTable">
+                                <thead class="table-light">
+                                    <tr class="text-uppercase text-muted" style="font-size: 11px; letter-spacing: 0.5px;">
+                                        <th class="ps-3" style="width: 50px;">ক্রম</th>
+                                        <th style="min-width: 150px;">লেবেল / নাম (Label)</th>
+                                        <th style="min-width: 160px;">রুট / URL (Route/URL)</th>
+                                        <th style="min-width: 110px;">আইকন (Icon)</th>
+                                        <th style="min-width: 90px;">ব্যাজ (Badge)</th>
+                                        <th style="width: 110px;">টার্গেট</th>
+                                        <th class="text-center" style="width: 80px;">স্ট্যাটাস</th>
+                                        <th class="text-end pe-3" style="width: 140px;">একশন</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="menuItemsTableBody">
+                                    <!-- Dynamic Rows rendered via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center">
+                            <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-semibold" onclick="addCustomMenuItem()">
+                                <i class="fa-solid fa-plus me-1"></i> আরও একটি মেনু আইটেম যোগ করুন
+                            </button>
+                            <span class="small text-muted">
+                                <i class="fa-solid fa-circle-info text-primary me-1"></i> পরিবর্তন কার্যকর করতে উপরের <strong>Save Changes</strong> বাটনে ক্লিক করুন।
+                            </span>
                         </div>
                     </div>
 
@@ -1179,6 +1328,46 @@
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Ideapatra Homepage Section Customization -->
+                        <div class="mt-4 pt-4 border-top">
+                            <h6 class="fw-bold text-dark mb-1 d-flex align-items-center gap-2">
+                                <i class="fa-solid fa-newspaper text-primary"></i> হোম পেজে "আইডিয়াপত্র" সেকশন হেডার ও বার্তা কাস্টমাইজেশন
+                            </h6>
+                            <p class="small text-muted mb-3">হোম পেজে আইডিয়াপত্র সাময়িকী ও ব্লগের টাইটেল, ট্যাগলাইন এবং বিবরণ এখান থেকে পরিবর্তন করুন।</p>
+
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <div class="p-3 bg-light rounded-3 border">
+                                        <label class="form-label fw-bold text-dark small mb-1">
+                                            <i class="fa-solid fa-tag text-success me-1"></i> সেকশন ব্যাজ / ট্যাগলাইন
+                                        </label>
+                                        <input type="text" name="ideapatra_section_badge" class="form-control rounded-3" 
+                                               value="{{ $settings['ideapatra_section_badge'] ?? 'আইডিয়াপত্র সাময়িকী ও ব্লগ' }}" 
+                                               placeholder="যেমন: আইডিয়াপত্র সাময়িকী ও ব্লগ">
+                                    </div>
+                                </div>
+                                <div class="col-md-8">
+                                    <div class="p-3 bg-light rounded-3 border">
+                                        <label class="form-label fw-bold text-dark small mb-1">
+                                            <i class="fa-solid fa-heading text-primary me-1"></i> প্রধান শিরোনাম (Title)
+                                        </label>
+                                        <input type="text" name="ideapatra_section_title" class="form-control rounded-3" 
+                                               value="{{ $settings['ideapatra_section_title'] ?? 'সমকালীন সাহিত্য, প্রবন্ধ ও মুক্তচিন্তার পোস্ট' }}" 
+                                               placeholder="যেমন: সমকালীন সাহিত্য, প্রবন্ধ ও মুক্তচিন্তার পোস্ট">
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="p-3 bg-light rounded-3 border">
+                                        <label class="form-label fw-bold text-dark small mb-1">
+                                            <i class="fa-solid fa-align-left text-info me-1"></i> বিবরণ ও সাবটাইটেল (Subtitle / Description)
+                                        </label>
+                                        <textarea name="ideapatra_section_subtitle" class="form-control rounded-3" rows="2" 
+                                                  placeholder="যেমন: আইডিয়া প্রকাশনের লেখক ও গবেষকদের সমকালীন সাহিত্যকর্ম ও পাঠপ্রতিক্রিয়া">{{ $settings['ideapatra_section_subtitle'] ?? 'আইডিয়া প্রকাশনের লেখক ও গবেষকদের সমকালীন সাহিত্যকর্ম ও পাঠপ্রতিক্রিয়া' }}</textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                 </div>
@@ -1310,29 +1499,52 @@
         }
     }
 
-    let currentLogoScale = 1.0;
-    function zoomLogoPreview(delta) {
-        currentLogoScale = Math.min(Math.max(0.4, currentLogoScale + delta), 2.5);
+    function updateLogoDimensions() {
+        const height = document.getElementById('sliderLogoHeight')?.value || 52;
+        const width = document.getElementById('sliderLogoWidth')?.value || 220;
+        const scale = document.getElementById('sliderLogoScale')?.value || 100;
+
+        // Update badges
+        const bHeight = document.getElementById('badgeHeight');
+        const bWidth = document.getElementById('badgeWidth');
+        const bScale = document.getElementById('badgeScale');
+        if (bHeight) bHeight.textContent = `${height}px`;
+        if (bWidth) bWidth.textContent = `${width}px`;
+        if (bScale) bScale.textContent = `${scale}%`;
+
+        const lblH = document.getElementById('lblHeight');
+        const lblW = document.getElementById('lblWidth');
+        const lblS = document.getElementById('lblScale');
+        if (lblH) lblH.textContent = `${height}px`;
+        if (lblW) lblW.textContent = `${width}px`;
+        if (lblS) lblS.textContent = `${scale}%`;
+
+        // Update Live Header Preview
+        const wrapper = document.getElementById('logoWrapper');
         const img = document.getElementById('logoPreviewImg');
-        const badge = document.getElementById('logoZoomBadge');
-        if (img) {
-            img.style.transform = `scale(${currentLogoScale.toFixed(2)})`;
+
+        if (wrapper) {
+            wrapper.style.maxHeight = `${height}px`;
+            wrapper.style.maxWidth = `${width}px`;
         }
-        if (badge) {
-            badge.textContent = `${Math.round(currentLogoScale * 100)}%`;
+        if (img) {
+            img.style.maxHeight = `${height}px`;
+            img.style.maxWidth = `${width}px`;
+            img.style.transform = `scale(${scale / 100})`;
+            img.style.transformOrigin = 'left center';
         }
     }
 
-    function resetLogoPreview() {
-        currentLogoScale = 1.0;
-        const img = document.getElementById('logoPreviewImg');
-        const badge = document.getElementById('logoZoomBadge');
-        if (img) {
-            img.style.transform = 'scale(1)';
-        }
-        if (badge) {
-            badge.textContent = '100%';
-        }
+    function resetLogoSliders() {
+        const sHeight = document.getElementById('sliderLogoHeight');
+        const sWidth = document.getElementById('sliderLogoWidth');
+        const sScale = document.getElementById('sliderLogoScale');
+
+        if (sHeight) sHeight.value = 52;
+        if (sWidth) sWidth.value = 220;
+        if (sScale) sScale.value = 100;
+
+        updateLogoDimensions();
     }
 
     function initCropper(input, targetType, aspectRatio) {
@@ -1454,8 +1666,230 @@
         if (document.getElementById('prevInvFooter')) document.getElementById('prevInvFooter').textContent = footer;
     }
 
-    // Auto-restore Active Tab from URL Hash
+    // ══════════════════════════════════════════════════════════════════════
+    // DYNAMIC HEADER MENU BUILDER JAVASCRIPT
+    // ══════════════════════════════════════════════════════════════════════
+    window.headerMenuItemsData = @json($headerMenuItems ?? \App\Support\SiteSetting::headerNav());
+
+    const defaultMenuItems = [
+        { id: '1', label: 'হোম', route: 'home', url: '/', icon: 'house', active: 'home', is_active: true, target: '_self', badge: '' },
+        { id: '2', label: 'বইসমূহ', route: 'book.index', url: '/books', icon: 'book', active: 'book.*', is_active: true, target: '_self', badge: '' },
+        { id: '3', label: 'ই-বুক', route: 'ebook.index', url: '/ebooks', icon: 'tablet-screen-button', active: 'ebook.*', is_active: true, target: '_self', badge: 'নতুন' },
+        { id: '4', label: 'লেখক', route: 'authors.index', url: '/authors', icon: 'pen-fancy', active: 'authors.*', is_active: true, target: '_self', badge: '' },
+        { id: '5', label: 'প্রকাশক', route: 'publishers.index', url: '/publishers', icon: 'building', active: 'publishers.*', is_active: true, target: '_self', badge: '' },
+        { id: '6', label: 'আইডিয়াপত্র', route: 'blog.index', url: '/blog', icon: 'newspaper', active: 'blog.*', is_active: true, target: '_self', badge: '' },
+        { id: '7', label: 'ওয়েবজিন', route: 'webzine.index', url: '/webzines', icon: 'book-open', active: 'webzine.*', is_active: true, target: '_self', badge: '' },
+        { id: '8', label: 'গবেষণা', route: 'research.index', url: '/research', icon: 'flask', active: 'research.*', is_active: true, target: '_self', badge: '' },
+        { id: '9', label: 'আইডিয়া হাব', route: 'hub', url: '/hub', icon: 'compass', active: 'hub', is_active: true, target: '_self', badge: '' },
+        { id: '10', label: 'আমাদের সম্পর্কে', route: 'about', url: '/about', icon: 'circle-info', active: 'about', is_active: true, target: '_self', badge: '' },
+        { id: '11', label: 'যোগাযোগ', route: 'contact', url: '/contact', icon: 'envelope', active: 'contact', is_active: true, target: '_self', badge: '' },
+    ];
+
+    function renderMenuTable() {
+        const tbody = document.getElementById('menuItemsTableBody');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+
+        if (!window.headerMenuItemsData || window.headerMenuItemsData.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-muted small"><i class="fa-solid fa-folder-open fs-3 d-block mb-1"></i>কোনো মেনু আইটেম নেই। উপরের প্রিসেট বা নতুন আইটেম বাটনে ক্লিক করুন।</td></tr>`;
+            renderLiveMenuSimulator();
+            syncMenuJson();
+            return;
+        }
+
+        window.headerMenuItemsData.forEach((item, idx) => {
+            const tr = document.createElement('tr');
+            tr.className = item.is_active ? '' : 'table-light opacity-75';
+            
+            tr.innerHTML = `
+                <td class="ps-3 fw-bold text-muted small">${idx + 1}</td>
+                <td>
+                    <input type="text" class="form-control form-control-sm rounded-3 fw-semibold" 
+                           value="${escapeHtml(item.label || '')}" 
+                           placeholder="যেমন: বইসমূহ" 
+                           oninput="updateMenuItem(${idx}, 'label', this.value)">
+                </td>
+                <td>
+                    <div class="input-group input-group-sm">
+                        <input type="text" class="form-control rounded-start-3 font-monospace small" 
+                               value="${escapeHtml(item.route || item.url || '')}" 
+                               placeholder="e.g. book.index or /books" 
+                               oninput="updateMenuItem(${idx}, 'route_or_url', this.value)">
+                    </div>
+                </td>
+                <td>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-light text-primary px-2"><i class="fa-solid fa-${escapeHtml(item.icon || 'link')}"></i></span>
+                        <input type="text" class="form-control rounded-end-3 small" 
+                               value="${escapeHtml(item.icon || 'link')}" 
+                               placeholder="icon name" 
+                               oninput="updateMenuItem(${idx}, 'icon', this.value)">
+                    </div>
+                </td>
+                <td>
+                    <input type="text" class="form-control form-control-sm rounded-3 small text-center" 
+                           value="${escapeHtml(item.badge || '')}" 
+                           placeholder="যেমন: নতুন" 
+                           oninput="updateMenuItem(${idx}, 'badge', this.value)">
+                </td>
+                <td>
+                    <select class="form-select form-select-sm rounded-3 small" onchange="updateMenuItem(${idx}, 'target', this.value)">
+                        <option value="_self" ${item.target === '_self' ? 'selected' : ''}>_self</option>
+                        <option value="_blank" ${item.target === '_blank' ? 'selected' : ''}>_blank</option>
+                    </select>
+                </td>
+                <td class="text-center">
+                    <div class="form-check form-switch d-inline-block">
+                        <input class="form-check-input" type="checkbox" ${item.is_active ? 'checked' : ''} onchange="toggleMenuItemActive(${idx})">
+                    </div>
+                </td>
+                <td class="text-end pe-3">
+                    <div class="btn-group btn-group-sm shadow-2xs">
+                        <button type="button" class="btn btn-outline-secondary btn-xs" onclick="moveMenuItem(${idx}, -1)" ${idx === 0 ? 'disabled' : ''} title="উপরে নিন">
+                            <i class="fa-solid fa-arrow-up"></i>
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-xs" onclick="moveMenuItem(${idx}, 1)" ${idx === window.headerMenuItemsData.length - 1 ? 'disabled' : ''} title="নিচে নিন">
+                            <i class="fa-solid fa-arrow-down"></i>
+                        </button>
+                        <button type="button" class="btn btn-outline-danger btn-xs" onclick="deleteMenuItem(${idx})" title="মুছুন">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        renderLiveMenuSimulator();
+        syncMenuJson();
+    }
+
+    function renderLiveMenuSimulator() {
+        const navEl = document.getElementById('liveHeaderNavPreview');
+        const badgeEl = document.getElementById('liveMenuCountBadge');
+        if (!navEl) return;
+        navEl.innerHTML = '';
+
+        const activeItems = (window.headerMenuItemsData || []).filter(item => item.is_active);
+        if (badgeEl) badgeEl.textContent = `${activeItems.length}টি সক্রিয় মেনু আইটেম`;
+
+        if (activeItems.length === 0) {
+            navEl.innerHTML = `<li class="text-muted small py-1">কোনো সক্রিয় মেনু আইটেম নেই</li>`;
+            return;
+        }
+
+        activeItems.forEach(item => {
+            const li = document.createElement('li');
+            li.className = 'nav-item';
+            li.innerHTML = `
+                <span class="nav-link py-1.5 px-2.5 text-dark fw-semibold small d-inline-flex align-items-center gap-1 border rounded-pill bg-light mx-0.5" style="font-size: 12px;">
+                    <i class="fa-solid fa-${escapeHtml(item.icon || 'link')} text-primary" style="font-size: 11px;"></i>
+                    <span>${escapeHtml(item.label)}</span>
+                    ${item.badge ? `<span class="badge bg-danger text-white rounded-pill px-1 py-0.2" style="font-size: 8px;">${escapeHtml(item.badge)}</span>` : ''}
+                </span>
+            `;
+            navEl.appendChild(li);
+        });
+    }
+
+    function updateMenuItem(index, field, value) {
+        if (!window.headerMenuItemsData[index]) return;
+        if (field === 'route_or_url') {
+            if (value.startsWith('/') || value.startsWith('http')) {
+                window.headerMenuItemsData[index].url = value;
+                window.headerMenuItemsData[index].route = '';
+            } else {
+                window.headerMenuItemsData[index].route = value;
+                window.headerMenuItemsData[index].url = '';
+            }
+        } else {
+            window.headerMenuItemsData[index][field] = value;
+        }
+        renderLiveMenuSimulator();
+        syncMenuJson();
+    }
+
+    function toggleMenuItemActive(index) {
+        if (!window.headerMenuItemsData[index]) return;
+        window.headerMenuItemsData[index].is_active = !window.headerMenuItemsData[index].is_active;
+        renderMenuTable();
+    }
+
+    function moveMenuItem(index, direction) {
+        const targetIndex = index + direction;
+        if (targetIndex < 0 || targetIndex >= window.headerMenuItemsData.length) return;
+        const temp = window.headerMenuItemsData[index];
+        window.headerMenuItemsData[index] = window.headerMenuItemsData[targetIndex];
+        window.headerMenuItemsData[targetIndex] = temp;
+        renderMenuTable();
+    }
+
+    function deleteMenuItem(index) {
+        if (confirm(`আপনি কি "${window.headerMenuItemsData[index]?.label || 'এই'}" আইটেমটি মুছে ফেলতে চান?`)) {
+            window.headerMenuItemsData.splice(index, 1);
+            renderMenuTable();
+        }
+    }
+
+    function addMenuItemPreset(label, route, url, icon, badge) {
+        window.headerMenuItemsData.push({
+            id: String(Date.now()),
+            label: label,
+            route: route,
+            url: url,
+            icon: icon,
+            active: route ? `${route.replace('.index', '')}.*` : '',
+            is_active: true,
+            target: '_self',
+            badge: badge
+        });
+        renderMenuTable();
+    }
+
+    function addCustomMenuItem() {
+        window.headerMenuItemsData.push({
+            id: String(Date.now()),
+            label: 'নতুন লিঙ্ক',
+            route: '',
+            url: '/custom-url',
+            icon: 'link',
+            active: '',
+            is_active: true,
+            target: '_self',
+            badge: ''
+        });
+        renderMenuTable();
+    }
+
+    function resetMenuToDefaults() {
+        if (confirm('আপনি কি ডিফল্ট হেডার মেনু তালিকা রিস্টোর করতে চান?')) {
+            window.headerMenuItemsData = JSON.parse(JSON.stringify(defaultMenuItems));
+            renderMenuTable();
+        }
+    }
+
+    function syncMenuJson() {
+        const input = document.getElementById('header_menu_items');
+        if (input) {
+            input.value = JSON.stringify(window.headerMenuItemsData);
+        }
+    }
+
+    function escapeHtml(str) {
+        return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    // Auto-restore Active Tab from URL Hash & Init Menu Table
     document.addEventListener('DOMContentLoaded', function () {
+        renderMenuTable();
+
+        const form = document.getElementById('systemSettingsForm');
+        if (form) {
+            form.addEventListener('submit', function () {
+                syncMenuJson();
+            });
+        }
+
         const hash = window.location.hash;
         if (hash) {
             const targetBtn = document.querySelector(`button[data-bs-target="${hash}"]`);

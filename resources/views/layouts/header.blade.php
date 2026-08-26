@@ -5,20 +5,23 @@
      */
     $me = auth()->user();
 
-    // Direct single navigation items (flat structure for fast & direct visitor access)
-    $nav = [
-        ['route' => 'home', 'label' => 'হোম', 'icon' => 'house', 'active' => 'home'],
-        ['route' => 'book.index', 'label' => 'বইসমূহ', 'icon' => 'book', 'active' => ['book.*', 'shop.*']],
-        ['route' => 'ebook.index', 'label' => 'ই-বুক', 'icon' => 'tablet-screen-button', 'active' => 'ebook.*'],
-        ['route' => 'authors.index', 'label' => 'লেখক', 'icon' => 'pen-fancy', 'active' => 'authors.*'],
-        ['route' => 'publishers.index', 'label' => 'প্রকাশক', 'icon' => 'building', 'active' => 'publishers.*'],
-        ['route' => 'blog.index', 'label' => 'আইডিয়াপত্র', 'icon' => 'newspaper', 'active' => ['blog.*', 'ideapatra.*']],
-        ['route' => 'webzine.index', 'label' => 'ওয়েবজিন', 'icon' => 'book-open', 'active' => 'webzine.*'],
-        ['route' => 'research.index', 'label' => 'গবেষণা', 'icon' => 'flask', 'active' => 'research.*'],
-        ['route' => 'hub', 'label' => 'আইডিয়া হাব', 'icon' => 'compass', 'active' => 'hub'],
-        ['route' => 'about', 'label' => 'আমাদের সম্পর্কে', 'icon' => 'circle-info', 'active' => 'about'],
-        ['route' => 'contact', 'label' => 'যোগাযোগ', 'icon' => 'envelope', 'active' => 'contact'],
-    ];
+    // Dynamically fetch and filter navigation menu items from SiteSetting
+    $rawNav = \App\Support\SiteSetting::headerNav();
+    $nav = [];
+    foreach ($rawNav as $item) {
+        if (!($item['is_active'] ?? true)) {
+            continue;
+        }
+        $targetUrl = '#';
+        $rName = $item['route'] ?? '';
+        if (!empty($rName) && Route::has($rName)) {
+            $targetUrl = route($rName, $item['params'] ?? []);
+        } elseif (!empty($item['url'])) {
+            $targetUrl = url($item['url']);
+        }
+        $item['target_url'] = $targetUrl;
+        $nav[] = $item;
+    }
 
     // Category mega-menu & dropdown dynamically fetched from categories table with hierarchy
     $headerCategories = collect();
@@ -43,78 +46,56 @@
             }
         }
     } catch (\Throwable $e) {}
-
-    /** Keeps a nav entry only when its route actually exists. */
-    $usable = function (array $item) use (&$usable) {
-        if (!empty($item['children'])) {
-            $item['children'] = array_values(array_filter($item['children'], fn ($c) => Route::has($c['route'])));
-            return $item['children'] ? $item : null;
-        }
-        return Route::has($item['route']) ? $item : null;
-    };
-
-    $nav = array_values(array_filter(array_map($usable, $nav)));
 @endphp
 
 <header class="site-head" id="siteHead">
 
     {{-- ══════════════════════════════════════════════════════════════════
-         BAR 1: TOP UTILITY BAR (Luxury Deep Royal Navy Gradient ~38px)
-         Hotline / WhatsApp: +88 01726976982 | Quick Utility Links | Focused Language Switcher
+         BAR 1: ULTRA-COMPACT UTILITY TOPBAR
     ══════════════════════════════════════════════════════════════════ --}}
-    <div class="site-topbar text-white" style="background: linear-gradient(135deg, #07192f 0%, #0d2847 50%, #0f3057 100%) !important; font-size: 12px; border-bottom: 1px solid rgba(255,255,255,0.12); min-height: 38px; padding: 6px 0;">
-        <div class="container d-flex align-items-center justify-content-between flex-nowrap gap-2">
+    <div class="site-topbar text-white" style="background: linear-gradient(135deg, #07192f 0%, #0d2847 50%, #0f3057 100%) !important; font-size: 12px; border-bottom: 1px solid rgba(255,255,255,0.12); min-height: 36px; padding: 5px 0;">
+        <div class="container d-flex align-items-center justify-content-between flex-wrap gap-1.5 gap-md-2">
             {{-- Left: Hotline & WhatsApp icon info --}}
-            <div class="d-flex align-items-center gap-2 text-nowrap flex-shrink-0">
-                <a href="https://wa.me/8801726976982" target="_blank" rel="noopener" class="text-white text-decoration-none d-inline-flex align-items-center gap-2 hover-warning" title="হোয়াটসঅ্যাপ বা সরাসরি কলে যোগাযোগ করুন">
-                    <span class="rounded-circle bg-success bg-opacity-25 d-inline-flex align-items-center justify-content-center text-success shadow-2xs" style="width: 26px; height: 26px;">
-                        <i class="fa-brands fa-whatsapp fs-5 text-success"></i>
+            <div class="d-flex align-items-center gap-1.5 gap-sm-2 text-nowrap flex-shrink-0">
+                <a href="https://wa.me/8801726976982" target="_blank" rel="noopener" class="text-white text-decoration-none d-inline-flex align-items-center gap-1.5 hover-warning" title="হোয়াটসঅ্যাপ বা সরাসরি কলে যোগাযোগ করুন">
+                    <span class="rounded-circle bg-success bg-opacity-25 d-inline-flex align-items-center justify-content-center text-success shadow-2xs flex-shrink-0" style="width: 24px; height: 24px;">
+                        <i class="fa-brands fa-whatsapp fs-6 text-success"></i>
                     </span>
-                    <strong class="text-white" style="letter-spacing: 0.2px; font-size: 13px;">হটলাইন:</strong>
-                    <span class="text-warning fw-bold font-monospace px-2 py-0.5 rounded bg-white bg-opacity-15 shadow-xs" style="font-size: 18px; letter-spacing: 0.5px;">+88 01726976982</span>
+                    <strong class="text-white small" style="letter-spacing: 0.2px;">হটলাইন:</strong>
+                    <span class="text-warning fw-bold font-monospace px-1.5 py-0.5 rounded bg-white bg-opacity-15 shadow-xs" style="font-size: clamp(12px, 3.2vw, 15px); letter-spacing: 0.3px;">+88 01726976982</span>
                 </a>
-                <span class="text-white-50 ms-1 d-none d-sm-inline" style="font-size: 11px;">(9.00 AM to 11.00 PM)</span>
+                <span class="text-white-50 ms-1 d-none d-md-inline" style="font-size: 10.5px;">(9.00 AM to 11.00 PM)</span>
             </div>
 
             {{-- Right: Quick Utility Links & Focused Language Switcher in one row --}}
-            <div class="d-flex align-items-center gap-2 gap-md-3 text-nowrap">
+            <div class="d-flex align-items-center gap-1.5 gap-md-3 text-nowrap ms-auto ms-sm-0">
                 <div class="d-flex align-items-center gap-2 gap-md-3 overflow-x-auto text-nowrap scrollbar-none">
                     <a href="{{ Route::has('my-account') ? route('my-account') : url('/my-account') }}" class="text-white-50 hover-white text-decoration-none d-inline-flex align-items-center gap-1">
                         <i class="fa-solid fa-truck-fast text-info" style="font-size: 11.5px;"></i>
-                        <span>অর্ডার ট্র্যাক করুন</span>
-                    </a>
-                    <span class="text-white-50 opacity-25">|</span>
-                    <a href="{{ url('/hub') }}" class="text-white-50 hover-white text-decoration-none d-inline-flex align-items-center gap-1">
-                        <i class="fa-solid fa-briefcase text-warning" style="font-size: 11.5px;"></i>
-                        <span>আইডিয়া উদ্যোক্তা</span>
+                        <span>অর্ডার ট্র্যাক</span>
                     </a>
                     <span class="text-white-50 opacity-25 d-none d-sm-inline">|</span>
                     <a href="{{ url('/hub') }}" class="text-white-50 hover-white text-decoration-none d-none d-sm-inline-flex align-items-center gap-1">
-                        <i class="fa-solid fa-money-bill-wave text-success" style="font-size: 11.5px;"></i>
-                        <span>ঘরে বসে আয় করুন</span>
+                        <i class="fa-solid fa-briefcase text-warning" style="font-size: 11.5px;"></i>
+                        <span>আইডিয়া উদ্যোক্তা</span>
                     </a>
                     <span class="text-white-50 opacity-25 d-none d-md-inline">|</span>
                     <a href="{{ url('/contact') }}" class="text-white-50 hover-white text-decoration-none d-none d-md-inline-flex align-items-center gap-1">
                         <i class="fa-solid fa-hand-holding-heart text-danger" style="font-size: 11.5px;"></i>
                         <span>বই ডোনেশন</span>
                     </a>
-                    <span class="text-white-50 opacity-25 d-none d-lg-inline">|</span>
-                    <a href="{{ url('/hub') }}" class="text-white-50 hover-white text-decoration-none d-none d-lg-inline-flex align-items-center gap-1">
-                        <i class="fa-solid fa-star text-warning" style="font-size: 11.5px;"></i>
-                        <span>আইডিয়া স্টার</span>
-                    </a>
                 </div>
 
                 {{-- Focused High-End Language Switcher in Top Bar --}}
                 <div class="dropdown notranslate flex-shrink-0 ms-1" id="siteTopLanguageSelector">
-                    <button class="btn btn-sm text-white fw-bold py-1 px-2.5 rounded-pill d-inline-flex align-items-center gap-1.5 shadow-sm dropdown-toggle hover-shadow" 
+                    <button class="btn btn-sm text-white fw-bold py-0.5 px-2 rounded-pill d-inline-flex align-items-center gap-1 shadow-sm dropdown-toggle hover-shadow" 
                             type="button" 
                             id="topLangDropdownBtn" 
                             data-bs-toggle="dropdown" 
                             aria-expanded="false" 
                             title="ভাষা পরিবর্তন / Switch Language"
-                            style="background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.35); font-size: 11.5px; backdrop-filter: blur(4px);">
-                        <i class="fas fa-globe text-warning" style="font-size: 12px;"></i>
+                            style="background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.35); font-size: 11px; backdrop-filter: blur(4px);">
+                        <i class="fas fa-globe text-warning" style="font-size: 11px;"></i>
                         <span class="current-lang-display fw-bold text-white">English</span>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end language-menu rounded-4 py-2 mt-1 shadow-2xl border-0" aria-labelledby="topLangDropdownBtn" style="min-width: 210px; max-height: 380px; overflow-y: auto; z-index: 1100;">
@@ -162,11 +143,11 @@
     </div>
 
     {{-- ══════════════════════════════════════════════════════════════════
-         BAR 2: MAIN BRANDING & LARGE SEARCH BAR (Height ~74px - increased by +10px)
+         BAR 2: MAIN BRANDING & LARGE SEARCH BAR
          Logo | Wide Classic Search Bar | [Hello, Sign in] / User Avatar Symbol | Cart Button
     ══════════════════════════════════════════════════════════════════ --}}
-    <div class="site-mainbar bg-white border-bottom shadow-2xs" style="min-height: 74px; padding: 12px 0;">
-        <div class="container d-flex align-items-center justify-content-between gap-2 gap-md-3">
+    <div class="site-mainbar bg-white border-bottom shadow-2xs" style="min-height: 64px; padding: 10px 0;">
+        <div class="container site-head__main d-flex align-items-center justify-content-between gap-2 gap-md-3">
             
             {{-- Brand Logo & Text --}}
             <a class="site-brand d-inline-flex align-items-center gap-2 text-decoration-none flex-shrink-0" href="{{ route('home') }}">
@@ -174,20 +155,24 @@
                     $logoUrl = \App\Support\SiteSetting::logoUrl();
                     $siteName = \App\Support\SiteSetting::name();
                     $siteTagline = \App\Support\SiteSetting::tagline();
+                    $logoHeight = \App\Support\SiteSetting::logoHeight();
+                    $logoWidth = \App\Support\SiteSetting::logoWidth();
+                    $logoScale = \App\Support\SiteSetting::logoScale();
                 @endphp
-                <div class="site-brand__logo-box" style="height: 52px;">
+                <div class="site-brand__logo-box d-flex align-items-center justify-content-start" 
+                     style="height: {{ $logoHeight }}px; max-height: {{ $logoHeight }}px; max-width: {{ $logoWidth }}px;">
                     @if ($logoUrl)
                         <img src="{{ $logoUrl }}"
                              alt="{{ $siteName }}" 
                              class="site-brand__img"
-                             style="max-height: 52px;"
+                             style="max-height: {{ $logoHeight }}px; max-width: {{ $logoWidth }}px; width: auto; height: auto; object-fit: contain; transform: scale({{ $logoScale / 100 }}); transform-origin: left center;"
                              onerror="this.onerror=null; this.src='{{ asset('images/logo.svg') }}';">
                     @else
                         <span class="site-brand__fallback">{{ config('brand.lettermark', 'আই') }}</span>
                     @endif
                 </div>
                 <div class="site-brand__text d-flex flex-column justify-content-center">
-                    <span class="site-brand__name" style="font-size: 1.35rem;">{{ $siteName }}</span>
+                    <span class="site-brand__name" style="font-size: clamp(1.1rem, 3.5vw, 1.35rem);">{{ $siteName }}</span>
                     <span class="site-brand__sub">{{ $siteTagline }}</span>
                 </div>
             </a>
@@ -361,16 +346,24 @@
             <ul class="nav align-items-center justify-content-center site-nav__list py-0 my-0 flex-nowrap" style="height: 40px;">
                 @foreach ($nav as $item)
                     @php
-                        $isActive = isset($item['active']) 
-                            ? (is_array($item['active']) 
-                                ? collect($item['active'])->contains(fn($pattern) => request()->routeIs($pattern))
-                                : request()->routeIs($item['active']))
-                            : request()->routeIs($item['route']);
+                        $isActive = false;
+                        if (!empty($item['active'])) {
+                            $patterns = is_array($item['active']) ? $item['active'] : explode(',', $item['active']);
+                            $patterns = array_map('trim', $patterns);
+                            $isActive = collect($patterns)->contains(fn($pattern) => request()->routeIs($pattern) || request()->is(ltrim($pattern, '/')));
+                        } elseif (!empty($item['route']) && Route::has($item['route'])) {
+                            $isActive = request()->routeIs($item['route']);
+                        }
                     @endphp
                     <li class="nav-item site-nav__item">
-                        <a class="nav-link site-nav__link py-2 px-2.5 {{ $isActive ? 'is-active text-primary fw-bold' : 'text-dark fw-semibold' }} hover-primary"
-                           href="{{ route($item['route'], $item['params'] ?? []) }}" style="font-size: 13.5px;">
-                            {{ $item['label'] }}
+                        <a class="nav-link site-nav__link py-2 px-2.5 {{ $isActive ? 'is-active text-primary fw-bold' : 'text-dark fw-semibold' }} hover-primary d-inline-flex align-items-center gap-1"
+                           href="{{ $item['target_url'] }}"
+                           target="{{ $item['target'] ?? '_self' }}"
+                           style="font-size: 13.5px;">
+                            <span>{{ $item['label'] }}</span>
+                            @if(!empty($item['badge']))
+                                <span class="badge bg-danger text-white rounded-pill px-1.5 py-0.2" style="font-size: 9px; line-height: 1.1;">{{ $item['badge'] }}</span>
+                            @endif
                         </a>
                     </li>
                 @endforeach
@@ -595,15 +588,25 @@
     <div class="offcanvas-body p-3">
         @foreach ($nav as $item)
             @php
-                $isActive = isset($item['active']) 
-                    ? (is_array($item['active']) 
-                        ? collect($item['active'])->contains(fn($pattern) => request()->routeIs($pattern))
-                        : request()->routeIs($item['active']))
-                    : request()->routeIs($item['route']);
+                $isActive = false;
+                if (!empty($item['active'])) {
+                    $patterns = is_array($item['active']) ? $item['active'] : explode(',', $item['active']);
+                    $patterns = array_map('trim', $patterns);
+                    $isActive = collect($patterns)->contains(fn($pattern) => request()->routeIs($pattern) || request()->is(ltrim($pattern, '/')));
+                } elseif (!empty($item['route']) && Route::has($item['route'])) {
+                    $isActive = request()->routeIs($item['route']);
+                }
             @endphp
-            <a class="site-m-link {{ $isActive ? 'active fw-bold text-primary' : '' }}" href="{{ route($item['route'], $item['params'] ?? []) }}">
-                <i class="fas fa-{{ $item['icon'] }} text-primary"></i>
-                <span>{{ $item['label'] }}</span>
+            <a class="site-m-link {{ $isActive ? 'active fw-bold text-primary' : '' }}" 
+               href="{{ $item['target_url'] }}" 
+               target="{{ $item['target'] ?? '_self' }}">
+                <i class="fas fa-{{ $item['icon'] ?? 'link' }} text-primary"></i>
+                <span class="d-inline-flex align-items-center justify-content-between flex-grow-1">
+                    <span>{{ $item['label'] }}</span>
+                    @if(!empty($item['badge']))
+                        <span class="badge bg-danger text-white rounded-pill px-1.5 py-0.2" style="font-size: 9px;">{{ $item['badge'] }}</span>
+                    @endif
+                </span>
             </a>
         @endforeach
 

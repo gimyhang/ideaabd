@@ -18,19 +18,76 @@
     --font-bangla: 'Kalpurush', 'Nikosh', 'Hind Siliguri', 'Noto Sans Bengali', sans-serif;
 }
 
-body {
-    font-family: var(--font-bangla);
-    font-size: 12px;
+html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    overflow-x: clip;
+    max-width: 100%;
+    width: 100%;
 }
 
-/* ── Shell ─────────────────────────────────────────────────── */
-.site-head {
-    position: sticky;
-    top: 0;
-    z-index: 1030;
-    background: #fff;
-    border-bottom: 1px solid var(--sh-line);
-    transition: box-shadow .2s ease;
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: var(--font-bangla);
+    font-size: 12px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    overflow-x: clip;
+    max-width: 100%;
+    width: 100%;
+    position: relative;
+}
+
+img, svg, video, canvas, audio, iframe {
+    max-width: 100%;
+    height: auto;
+}
+
+/* ── Global Responsive Containers with Centering (margin: 0 auto) ── */
+.container,
+.container-sm,
+.container-md,
+.container-lg,
+.container-xl,
+.container-xxl {
+    width: 100%;
+    padding-right: var(--bs-gutter-x, 0.75rem);
+    padding-left: var(--bs-gutter-x, 0.75rem);
+    margin-right: auto !important;
+    margin-left: auto !important;
+    box-sizing: border-box;
+}
+
+.container-fluid {
+    width: 100%;
+    padding-right: var(--bs-gutter-x, 0.75rem);
+    padding-left: var(--bs-gutter-x, 0.75rem);
+    margin-right: auto !important;
+    margin-left: auto !important;
+    box-sizing: border-box;
+}
+
+@media (min-width: 576px) {
+    .container, .container-sm { max-width: 540px; }
+}
+@media (min-width: 768px) {
+    .container, .container-sm, .container-md { max-width: 720px; }
+}
+@media (min-width: 992px) {
+    .container, .container-sm, .container-md, .container-lg { max-width: 960px; }
+}
+@media (min-width: 1200px) {
+    .container, .container-sm, .container-md, .container-lg, .container-xl { max-width: 1140px; }
+}
+@media (min-width: 1400px) {
+    .container, .container-sm, .container-md, .container-lg, .container-xl, .container-xxl { max-width: 1320px; }
 }
 
 .site-head.is-stuck { box-shadow: 0 6px 24px rgba(18, 40, 61, .09); }
@@ -458,18 +515,168 @@ body {
 .site-offcanvas .site-m-link i { width: 20px; text-align: center; color: var(--sh-brand); opacity: .8; }
 
 @media (max-width: 991.98px) {
-    .site-burger { display: grid; }
-    .site-nav { display: none; }
-    .site-search { order: 3; flex-basis: 100%; max-width: none; }
+    .site-burger { display: grid !important; }
+    .site-nav, .site-navbar { display: none !important; }
+    
+    /* Mainbar wrap on mobile */
+    .site-mainbar {
+        padding: 8px 0 !important;
+        min-height: auto !important;
+    }
+    .site-mainbar .container {
+        flex-wrap: wrap !important;
+        row-gap: 8px;
+    }
+    .site-brand {
+        order: 1;
+        max-width: calc(100% - 150px) !important;
+        flex: 0 1 auto;
+    }
+    .site-mainbar .d-flex.align-items-center.gap-2.gap-sm-2.5 {
+        order: 2;
+        margin-left: auto;
+        flex: 0 0 auto;
+    }
+    .site-search {
+        order: 3;
+        flex-basis: 100% !important;
+        max-width: 100% !important;
+        width: 100% !important;
+        margin: 4px 0 0 0 !important;
+    }
+    .site-search__box {
+        height: 44px !important;
+    }
     .site-head__main { flex-wrap: wrap; row-gap: .6rem; }
-    .site-brand__name { font-size: 1.05rem; }
+    .site-brand__name { font-size: 1.15rem; }
 }
 
 @media (max-width: 575.98px) {
-    .site-search__scope { display: none; }
-    .site-search__btn span { display: none; }
-    .site-search__btn { padding: 0 .9rem; }
-    .site-brand__sub { display: none; }
+    /* Topbar compact */
+    .site-topbar {
+        padding: 5px 0 !important;
+        font-size: 11px !important;
+        min-height: auto !important;
+    }
+    .site-topbar .container {
+        flex-wrap: wrap !important;
+        row-gap: 5px;
+        justify-content: space-between !important;
+    }
+    .site-topbar a strong {
+        font-size: 11.5px !important;
+    }
+    .site-topbar .font-monospace {
+        font-size: 13px !important;
+        padding: 2px 6px !important;
+    }
+    
+    /* Brand & Logo scaling */
+    .site-brand {
+        max-width: calc(100% - 130px) !important;
+        gap: 0.5rem !important;
+    }
+    .site-brand__logo-box {
+        width: auto !important;
+        max-width: 110px !important;
+        height: 38px !important;
+        max-height: 38px !important;
+    }
+    .site-brand__img,
+    .site-brand img {
+        height: 38px !important;
+        max-height: 38px !important;
+        max-width: 110px !important;
+    }
+    .site-brand__name {
+        font-size: 1.05rem !important;
+    }
+    .site-brand__sub {
+        display: none !important;
+    }
+    
+    /* Search box on mobile */
+    .site-search__scope { display: none !important; }
+    .site-search__btn span { display: none !important; }
+    .site-search__btn { padding: 0 .9rem !important; }
+    .site-search__box { height: 42px !important; }
+    .site-search__input { font-size: 0.86rem !important; padding: 0.4rem 0.75rem !important; }
+
+    /* Category bar */
+    .site-categorybar {
+        min-height: 44px !important;
+        padding: 4px 0 !important;
+    }
+    .site-categorybar .btn-sm {
+        font-size: 11.5px !important;
+        min-height: 32px !important;
+        padding: 0.25rem 0.65rem !important;
+    }
+    .site-categorybar .badge {
+        font-size: 11px !important;
+        min-height: 30px !important;
+        padding: 0.25rem 0.65rem !important;
+    }
+}
+
+/* ── Hero Carousel Responsive Controls (Prevents Text Overlap) ─ */
+#homeHeroCarousel .carousel-control-prev,
+#homeHeroCarousel .carousel-control-next {
+    width: 38px;
+    height: 38px;
+    top: 50%;
+    bottom: auto;
+    transform: translateY(-50%);
+    background: rgba(15, 23, 42, 0.65);
+    backdrop-filter: blur(6px);
+    border-radius: 50%;
+    opacity: 0.85;
+    margin: 0 12px;
+    z-index: 10;
+    border: 1.5px solid rgba(255, 255, 255, 0.3);
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#homeHeroCarousel .carousel-control-prev:hover,
+#homeHeroCarousel .carousel-control-next:hover {
+    opacity: 1;
+    background: var(--sh-brand);
+    border-color: #fff;
+    transform: translateY(-50%) scale(1.08);
+}
+
+#homeHeroCarousel .carousel-control-prev-icon,
+#homeHeroCarousel .carousel-control-next-icon {
+    width: 16px;
+    height: 16px;
+    background-size: 100%;
+    background-color: transparent !important;
+    padding: 0 !important;
+}
+
+@media (max-width: 767.98px) {
+    #homeHeroCarousel .carousel-control-prev,
+    #homeHeroCarousel .carousel-control-next {
+        width: 32px;
+        height: 32px;
+        margin: 0 6px;
+    }
+    #homeHeroCarousel .carousel-control-prev-icon,
+    #homeHeroCarousel .carousel-control-next-icon {
+        width: 14px;
+        height: 14px;
+    }
+    #homeHeroCarousel .carousel-inner .row {
+        padding-left: 2.75rem !important;
+        padding-right: 2.75rem !important;
+    }
+    #homeHeroCarousel .carousel-item h1 {
+        font-size: clamp(1.2rem, 4.8vw, 1.85rem) !important;
+        line-height: 1.35 !important;
+    }
 }
 
 @media print {
@@ -741,6 +948,40 @@ body {
         right: 0 !important;
         left: auto !important;
     }
+}
+
+/* ── Scoped Home Page Compact Category Grid Book Cards ────── */
+#mainCategoryCardsGrid .product-card-modern {
+    padding: 0.5rem !important;
+    border-radius: 12px !important;
+}
+
+#mainCategoryCardsGrid .product-card-modern .badge {
+    font-size: 0.64rem !important;
+    padding: 0.15rem 0.4rem !important;
+}
+
+#mainCategoryCardsGrid .product-card-modern h6 {
+    font-size: clamp(0.78rem, 1.1vw, 0.84rem) !important;
+    min-height: 2.2rem !important;
+    max-height: 2.2rem !important;
+    line-height: 1.25 !important;
+    margin-bottom: 0.15rem !important;
+}
+
+#mainCategoryCardsGrid .product-card-modern p {
+    font-size: 0.68rem !important;
+    margin-bottom: 0.25rem !important;
+}
+
+#mainCategoryCardsGrid .product-card-modern .btn-sm {
+    font-size: 0.68rem !important;
+    padding: 0.25rem 0.35rem !important;
+    border-radius: 50px !important;
+}
+
+.extra-category-block {
+    transition: opacity 0.35s ease, transform 0.35s ease;
 }
 
 

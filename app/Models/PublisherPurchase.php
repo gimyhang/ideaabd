@@ -14,8 +14,11 @@ class PublisherPurchase extends Model
 
     protected $fillable = [
         'purchase_no',
+        'purchase_category',
         'publisher_memo_no',
         'publisher_id',
+        'supplier_name',
+        'vendor_name',
         'purchase_date',
         'payment_type',
         'total_amount',
@@ -36,6 +39,13 @@ class PublisherPurchase extends Model
         'paid_amount'     => 'decimal:2',
         'due_amount'      => 'decimal:2',
     ];
+
+    public function getPartyNameAttribute(): string
+    {
+        if (!empty($this->vendor_name)) return $this->vendor_name;
+        if (!empty($this->supplier_name)) return $this->supplier_name;
+        return $this->publisher->name ?? '—';
+    }
 
     public function publisher()
     {

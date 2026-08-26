@@ -480,11 +480,16 @@
                                             <i class="fas fa-camera"></i>
                                         </button>
                                     </div>
-                                    <div class="text-truncate" style="max-width: 220px;">
+                                    <div class="text-truncate" style="max-width: 240px;">
                                         <a href="{{ route('book.show', $book->slug ?? $book->id) }}" target="_blank" 
                                            class="fw-bold text-dark text-decoration-none hover-primary d-block text-truncate mb-0.5" title="{{ $book->title }}" id="bookTitleDisplay_{{ $book->id }}">
                                             {{ $book->title }}
                                         </a>
+                                        @if($book->slug)
+                                            <div class="text-muted font-monospace small text-truncate mb-0.5" style="font-size: 11px;" title="{{ $book->slug }}">
+                                                <i class="fas fa-link me-1 text-secondary opacity-75" style="font-size: 9.5px;"></i>{{ $book->slug }}
+                                            </div>
+                                        @endif
                                         @if($book->subtitle)
                                             <div class="small text-muted text-truncate mb-0.5" style="font-size: 11px;">{{ $book->subtitle }}</div>
                                         @endif

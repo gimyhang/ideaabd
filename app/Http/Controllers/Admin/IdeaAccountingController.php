@@ -6,8 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Mail\CustomerInvoiceMail;
 use App\Models\IdeaAccountingEntry;
 use App\Models\IdeaInvoice;
+use App\Models\IdeaEmployee;
+use App\Models\IdeaSalaryPayment;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -74,20 +77,47 @@ class IdeaAccountingController extends Controller
     {
         $validated = $request->validate([
             'type'           => 'required|in:income,expense',
-            'category'       => 'required|string|max:100',
+            'category'       => 'nullable|string|max:100',
+            'custom_category'=> 'nullable|string|max:100',
             'title'          => 'required|string|max:255',
             'amount'         => 'required|numeric|min:0.01',
             'entry_date'     => 'required|date',
             'voucher_no'     => 'nullable|string|max:100',
             'payment_method' => 'required|string|max:50',
             'party_name'     => 'nullable|string|max:255',
-            'notes'          => 'nullable|string|max:1000',
+            'notes'          => 'nullable|string|max:3000',
+            'item_name'      => 'nullable|array',
+            'item_name.*'    => 'nullable|string|max:255',
+            'item_qty'       => 'nullable|array',
+            'item_price'     => 'nullable|array',
+            'item_total'     => 'nullable|array',
         ], [
             'type.required'     => 'লেনদেনের ধরন (আয় বা ব্যয়) নির্বাচন করুন।',
-            'category.required' => 'খাত বা ক্যাটাগরি নির্বাচন করুন।',
             'title.required'    => 'বিবরণ লিখুন।',
             'amount.required'   => 'টাকার পরিমাণ দিন।',
         ]);
+
+        $category = !empty($validated['custom_category']) 
+            ? trim($validated['custom_category']) 
+            : ($validated['category'] ?? 'বিবিধ খরচ (Miscellaneous Expense)');
+
+        // Format dynamic line items if provided
+        $notesText = $validated['notes'] ?? '';
+        if (!empty($validated['item_name']) && is_array($validated['item_name'])) {
+            $itemLines = [];
+            foreach ($validated['item_name'] as $idx => $name) {
+                $name = trim((string)$name);
+                if (empty($name)) continue;
+                $qty = $validated['item_qty'][$idx] ?? 1;
+                $price = $validated['item_price'][$idx] ?? 0;
+                $total = $validated['item_total'][$idx] ?? ($qty * $price);
+                $itemLines[] = "• {$name} — {$qty} টি/একক @ ৳{$price} = ৳{$total}";
+            }
+            if (!empty($itemLines)) {
+                $breakdownString = "\n[মালামাল ও আইটেমের বিবরণ / Itemized List]:\n" . implode("\n", $itemLines);
+                $notesText = trim($notesText . $breakdownString);
+            }
+        }
 
         $prefix = $validated['type'] === 'income' ? 'INC-' : 'EXP-';
         $dateStr = date('Ymd', strtotime($validated['entry_date']));
@@ -96,18 +126,18 @@ class IdeaAccountingController extends Controller
         IdeaAccountingEntry::create([
             'entry_no'       => $entryNo,
             'type'           => $validated['type'],
-            'category'       => $validated['category'],
+            'category'       => $category,
             'title'          => $validated['title'],
             'amount'         => (float) $validated['amount'],
             'entry_date'     => $validated['entry_date'],
             'voucher_no'     => $validated['voucher_no'] ?? null,
             'payment_method' => $validated['payment_method'],
             'party_name'     => $validated['party_name'] ?? null,
-            'notes'          => $validated['notes'] ?? null,
+            'notes'          => $notesText ?: null,
             'created_by'     => auth()->id(),
         ]);
 
-        $msg = $validated['type'] === 'income' ? 'নতুন আয় এন্ট্রি সংরক্ষিত হয়েছে।' : 'নতুন ব্যয় / ক্রয়ের হিসাব সংরক্ষিত হয়েছে।';
+        $msg = $validated['type'] === 'income' ? 'নতুন আয় এন্ট্রি সংরক্ষিত হয়েছে।' : 'নতুন ব্যয় / ক্রয়ের হিসাব সফলভাবে সংরক্ষিত হয়েছে।';
 
         return back()->with('success', $msg);
     }
@@ -127,6 +157,7 @@ class IdeaAccountingController extends Controller
     public function invoices(Request $request): View
     {
         $type = $request->input('type');
+        $salesCategory = $request->input('sales_category');
         $status = $request->input('payment_status');
         $search = $request->input('search');
         $dateFrom = $request->input('date_from');
@@ -135,6 +166,13 @@ class IdeaAccountingController extends Controller
         $query = IdeaInvoice::query()
             ->with('creator')
             ->when($type, fn($q) => $q->where('type', $type))
+            ->when($salesCategory && in_array($salesCategory, ['books', 'stationery', 'printing_goods', 'other']), function($q) use ($salesCategory) {
+                if ($salesCategory === 'books') {
+                    $q->where(fn($sub) => $sub->where('sales_category', 'books')->orWhereNull('sales_category'));
+                } else {
+                    $q->where('sales_category', $salesCategory);
+                }
+            })
             ->when($status, fn($q) => $q->where('payment_status', $status))
             ->when($dateFrom, fn($q) => $q->whereDate('invoice_date', '>=', $dateFrom))
             ->when($dateTo, fn($q) => $q->whereDate('invoice_date', '<=', $dateTo))
@@ -163,6 +201,10 @@ class IdeaAccountingController extends Controller
             'total_challans'   => IdeaInvoice::where('type', 'challan')->count(),
             'total_quotations' => IdeaInvoice::where('type', 'quotation')->count(),
             'total_tenders'    => IdeaInvoice::where('type', 'tender')->count(),
+            'books_count'      => IdeaInvoice::where(fn($q) => $q->where('sales_category', 'books')->orWhereNull('sales_category'))->count(),
+            'stationery_count' => IdeaInvoice::where('sales_category', 'stationery')->count(),
+            'printing_count'   => IdeaInvoice::where('sales_category', 'printing_goods')->count(),
+            'other_count'      => IdeaInvoice::where('sales_category', 'other')->count(),
             'total_amount'     => (float) IdeaInvoice::whereIn('type', ['invoice', 'challan'])->sum('grand_total'),
             'total_paid'       => (float) IdeaInvoice::whereIn('type', ['invoice', 'challan'])->sum('paid_amount'),
             'total_due'        => (float) IdeaInvoice::whereIn('type', ['invoice', 'challan'])->sum('due_amount'),
@@ -171,7 +213,7 @@ class IdeaAccountingController extends Controller
         $invoiceSettings = self::getInvoiceSettings();
 
         return view('admin.accounting.invoices.index', compact(
-            'invoices', 'stats', 'type', 'status', 'search', 'dateFrom', 'dateTo', 'invoiceSettings'
+            'invoices', 'stats', 'type', 'salesCategory', 'status', 'search', 'dateFrom', 'dateTo', 'invoiceSettings'
         ));
     }
 
@@ -190,18 +232,28 @@ class IdeaAccountingController extends Controller
             $selectedType = 'invoice';
         }
 
-        $prefix = match($selectedType) {
-            'challan'   => 'IDEA-CHL-',
-            'quotation' => 'IDEA-QUO-',
-            'tender'    => 'IDEA-TND-',
-            default     => 'IDEA-INV-',
+        $salesCategory = $request->query('sales_category', 'books');
+        if (!in_array($salesCategory, ['books', 'stationery', 'printing_goods', 'other'])) {
+            $salesCategory = 'books';
+        }
+
+        $prefix = match($salesCategory) {
+            'stationery'     => 'IDEA-STN-',
+            'printing_goods' => 'IDEA-PRT-',
+            'other'          => 'IDEA-OTH-',
+            default          => match($selectedType) {
+                'challan'   => 'IDEA-CHL-',
+                'quotation' => 'IDEA-QUO-',
+                'tender'    => 'IDEA-TND-',
+                default     => 'IDEA-INV-',
+            },
         };
 
         $dateStr = date('Ymd');
         $countToday = IdeaInvoice::whereDate('created_at', today())->count() + 1;
         $suggestedNo = $prefix . $dateStr . '-' . str_pad((string)$countToday, 3, '0', STR_PAD_LEFT);
 
-        return view('admin.accounting.invoices.create', compact('books', 'suggestedNo', 'selectedType'));
+        return view('admin.accounting.invoices.create', compact('books', 'suggestedNo', 'selectedType', 'salesCategory'));
     }
 
     /**
@@ -211,6 +263,7 @@ class IdeaAccountingController extends Controller
     {
         $validated = $request->validate([
             'type'             => 'required|in:invoice,challan,quotation,tender',
+            'sales_category'   => 'nullable|in:books,stationery,printing_goods,other',
             'invoice_no'       => 'required|string|max:50|unique:idea_invoices,invoice_no',
             'subject'          => 'nullable|string|max:255',
             'reference_no'     => 'nullable|string|max:100',
@@ -268,6 +321,7 @@ class IdeaAccountingController extends Controller
                         'title'            => $item['title'],
                         'author_name'      => !empty($item['author_name']) ? trim((string)$item['author_name']) : null,
                         'item_type'        => $item['item_type'] ?? 'বই (Book)',
+                        'unit'             => !empty($item['unit']) ? trim((string)$item['unit']) : 'কপি',
                         'book_id'          => !empty($item['book_id']) ? (int)$item['book_id'] : null,
                         'quantity'         => $qty,
                         'regular_price'    => $regularPrice,
@@ -295,9 +349,12 @@ class IdeaAccountingController extends Controller
                     $userId = null;
                 }
 
+                $salesCategory = $request->input('sales_category', 'books');
+
                 $invoice = IdeaInvoice::create([
                     'invoice_no'           => $validated['invoice_no'],
                     'type'                 => $validated['type'],
+                    'sales_category'       => $salesCategory,
                     'subject'              => $validated['subject'] ?? null,
                     'reference_no'         => $validated['reference_no'] ?? null,
                     'customer_name'        => $validated['customer_name'],
@@ -324,10 +381,17 @@ class IdeaAccountingController extends Controller
 
                 // Auto record payment in Accounting entries if paid amount > 0 and type is invoice/challan
                 if ($paid > 0 && in_array($validated['type'], ['invoice', 'challan'])) {
+                    $incomeCategory = match($salesCategory) {
+                        'stationery'     => 'স্টেশনারী বিক্রয় (Stationery Sales)',
+                        'printing_goods' => 'মুদ্রণ ও প্রকাশনা সেবা (Printing & Publication)',
+                        'other'          => 'অন্যান্য আয় (Other Income)',
+                        default          => ($validated['type'] === 'challan' ? 'পাইকারি বিক্রয় ও চালান (Wholesale Sales)' : 'বই বিক্রয় (Book Sales)')
+                    };
+
                     IdeaAccountingEntry::create([
                         'entry_no'       => 'INC-' . date('Ymd') . '-' . rand(1000, 9999),
                         'type'           => 'income',
-                        'category'       => $validated['type'] === 'challan' ? 'পাইকারি বিক্রয় ও চালান (Wholesale Sales)' : 'বই বিক্রয় (Book Sales)',
+                        'category'       => $incomeCategory,
                         'title'          => "বিল #{$invoice->invoice_no} হতে পেমেন্ট প্রাপ্তি — {$invoice->customer_name}",
                         'amount'         => $paid,
                         'entry_date'     => $invoice->invoice_date,
@@ -377,6 +441,7 @@ class IdeaAccountingController extends Controller
     {
         $validated = $request->validate([
             'type'             => 'required|in:invoice,challan,quotation,tender',
+            'sales_category'   => 'nullable|in:books,stationery,printing_goods,other',
             'invoice_no'       => 'required|string|max:50|unique:idea_invoices,invoice_no,' . $invoice->id,
             'subject'          => 'nullable|string|max:255',
             'reference_no'     => 'nullable|string|max:100',
@@ -398,6 +463,7 @@ class IdeaAccountingController extends Controller
             'items.*.title'            => 'required|string|max:255',
             'items.*.author_name'      => 'nullable|string|max:255',
             'items.*.item_type'        => 'nullable|string|max:50',
+            'items.*.unit'             => 'nullable|string|max:50',
             'items.*.book_id'          => 'nullable|integer',
             'items.*.quantity'         => 'required|numeric|min:0.01',
             'items.*.regular_price'    => 'nullable|numeric|min:0',
@@ -409,7 +475,7 @@ class IdeaAccountingController extends Controller
         ]);
 
         try {
-            return DB::transaction(function () use ($validated, $invoice) {
+            return DB::transaction(function () use ($validated, $invoice, $request) {
                 $subtotal = 0.0;
                 $itemsProcessed = [];
 
@@ -434,6 +500,7 @@ class IdeaAccountingController extends Controller
                         'title'            => $item['title'],
                         'author_name'      => !empty($item['author_name']) ? trim((string)$item['author_name']) : null,
                         'item_type'        => $item['item_type'] ?? 'বই (Book)',
+                        'unit'             => !empty($item['unit']) ? trim((string)$item['unit']) : 'কপি',
                         'book_id'          => !empty($item['book_id']) ? (int)$item['book_id'] : null,
                         'quantity'         => $qty,
                         'regular_price'    => $regularPrice,
@@ -456,9 +523,12 @@ class IdeaAccountingController extends Controller
                     $paymentStatus = 'partial';
                 }
 
+                $salesCategory = $request->input('sales_category', $invoice->sales_category ?? 'books');
+
                 $invoice->update([
                     'invoice_no'           => $validated['invoice_no'],
                     'type'                 => $validated['type'],
+                    'sales_category'       => $salesCategory,
                     'subject'              => $validated['subject'] ?? null,
                     'reference_no'         => $validated['reference_no'] ?? null,
                     'customer_name'        => $validated['customer_name'],
@@ -735,5 +805,373 @@ class IdeaAccountingController extends Controller
         $invoice->delete();
         return redirect()->route('admin.accounting.invoices.index')
             ->with('success', 'ডকুমেন্টটি সফলভাবে মুছে ফেলা হয়েছে।');
+    }
+
+    /**
+     * Comprehensive Financial & Profit/Loss Reports (Daily, Weekly, Monthly, Yearly).
+     */
+    public function reports(Request $request): View
+    {
+        $period = $request->input('period', 'monthly'); // daily, weekly, monthly, yearly, custom
+        $year = (int) $request->input('year', date('Y'));
+        $month = (int) $request->input('month', date('n'));
+        $dateFrom = $request->input('date_from');
+        $dateTo = $request->input('date_to');
+
+        // Resolve Date Range based on period
+        $now = Carbon::now();
+        switch ($period) {
+            case 'daily':
+                $startDate = $now->copy()->startOfDay();
+                $endDate = $now->copy()->endOfDay();
+                $periodLabel = 'আজকের হিসাব (' . $now->format('d M, Y') . ')';
+                break;
+            case 'weekly':
+                $startDate = $now->copy()->startOfWeek();
+                $endDate = $now->copy()->endOfWeek();
+                $periodLabel = 'চলতি সপ্তাহের হিসাব (' . $startDate->format('d M') . ' - ' . $endDate->format('d M, Y') . ')';
+                break;
+            case 'yearly':
+                $startDate = Carbon::createFromDate($year, 1, 1)->startOfDay();
+                $endDate = Carbon::createFromDate($year, 12, 31)->endOfDay();
+                $periodLabel = $year . ' সালের বাৎসরিক হিসাব';
+                break;
+            case 'custom':
+                $startDate = $dateFrom ? Carbon::parse($dateFrom)->startOfDay() : $now->copy()->startOfMonth();
+                $endDate = $dateTo ? Carbon::parse($dateTo)->endOfDay() : $now->copy()->endOfDay();
+                $periodLabel = 'কাস্টম সময়কাল (' . $startDate->format('d M, Y') . ' - ' . $endDate->format('d M, Y') . ')';
+                break;
+            case 'monthly':
+            default:
+                $startDate = Carbon::createFromDate($year, $month, 1)->startOfDay();
+                $endDate = $startDate->copy()->endOfMonth()->endOfDay();
+                $periodLabel = $startDate->format('F Y') . ' এর মাসিক হিসাব';
+                break;
+        }
+
+        // Base Queries within range
+        $entriesQuery = IdeaAccountingEntry::whereBetween('entry_date', [$startDate->toDateString(), $endDate->toDateString()]);
+
+        $totalIncome = (float) (clone $entriesQuery)->where('type', 'income')->sum('amount');
+        $totalExpense = (float) (clone $entriesQuery)->where('type', 'expense')->sum('amount');
+
+        // Raw Materials & Production Costs
+        $prodCategories = IdeaAccountingEntry::productionCategories();
+        $productionCost = (float) (clone $entriesQuery)
+            ->where('type', 'expense')
+            ->whereIn('category', $prodCategories)
+            ->sum('amount');
+
+        // Production Cost Item Breakdown (কাগজ, বোর্ড, কালি, প্রেস, লেমিনেশন, ইত্যাদি)
+        $productionBreakdown = (clone $entriesQuery)
+            ->where('type', 'expense')
+            ->whereIn('category', $prodCategories)
+            ->select('category', DB::raw('SUM(amount) as total'), DB::raw('COUNT(*) as count'))
+            ->groupBy('category')
+            ->orderByDesc('total')
+            ->get();
+
+        // Staff & Payroll Costs
+        $payrollCategories = IdeaAccountingEntry::payrollCategories();
+        $payrollCost = (float) (clone $entriesQuery)
+            ->where('type', 'expense')
+            ->whereIn('category', $payrollCategories)
+            ->sum('amount');
+
+        // Other Operating & Administrative Expenses
+        $otherExpense = (float) (clone $entriesQuery)
+            ->where('type', 'expense')
+            ->whereNotIn('category', array_merge($prodCategories, $payrollCategories))
+            ->sum('amount');
+
+        // Operating Expenses Breakdown
+        $operatingBreakdown = (clone $entriesQuery)
+            ->where('type', 'expense')
+            ->whereNotIn('category', $prodCategories)
+            ->select('category', DB::raw('SUM(amount) as total'), DB::raw('COUNT(*) as count'))
+            ->groupBy('category')
+            ->orderByDesc('total')
+            ->get();
+
+        // Book Sales Specific Revenue
+        $bookSalesIncome = (float) (clone $entriesQuery)
+            ->where('type', 'income')
+            ->where(function($q) {
+                $q->where('category', 'LIKE', '%বই বিক্রয়%')
+                  ->orWhere('category', 'LIKE', '%পাইকারি%')
+                  ->orWhere('category', 'LIKE', '%Book Sales%');
+            })
+            ->sum('amount');
+        if ($bookSalesIncome <= 0 && $totalIncome > 0) {
+            $bookSalesIncome = $totalIncome;
+        }
+
+        // Gross Profit = Total Book Sales - Raw Materials & Production Cost
+        $grossProfit = $totalIncome - $productionCost;
+
+        // Net Profit = Total Income - Total Expense
+        $netProfit = $totalIncome - $totalExpense;
+        $netProfitMargin = $totalIncome > 0 ? round(($netProfit / $totalIncome) * 100, 2) : 0;
+
+        // Monthly breakdown for yearly view or daily breakdown for monthly view
+        $trendDataset = [];
+        if ($period === 'yearly') {
+            for ($m = 1; $m <= 12; $m++) {
+                $mStart = Carbon::createFromDate($year, $m, 1)->startOfDay();
+                $mEnd = $mStart->copy()->endOfMonth()->endOfDay();
+                $mInc = (float) IdeaAccountingEntry::whereBetween('entry_date', [$mStart->toDateString(), $mEnd->toDateString()])->where('type', 'income')->sum('amount');
+                $mExp = (float) IdeaAccountingEntry::whereBetween('entry_date', [$mStart->toDateString(), $mEnd->toDateString()])->where('type', 'expense')->sum('amount');
+                $mProd = (float) IdeaAccountingEntry::whereBetween('entry_date', [$mStart->toDateString(), $mEnd->toDateString()])->where('type', 'expense')->whereIn('category', $prodCategories)->sum('amount');
+                $trendDataset[] = [
+                    'label' => $mStart->format('M'),
+                    'income' => $mInc,
+                    'expense' => $mExp,
+                    'production' => $mProd,
+                    'profit' => $mInc - $mExp,
+                ];
+            }
+        } elseif ($period === 'monthly') {
+            $daysInMonth = $startDate->daysInMonth;
+            for ($d = 1; $d <= $daysInMonth; $d++) {
+                $dDate = Carbon::createFromDate($year, $month, $d)->toDateString();
+                $dInc = (float) IdeaAccountingEntry::whereDate('entry_date', $dDate)->where('type', 'income')->sum('amount');
+                $dExp = (float) IdeaAccountingEntry::whereDate('entry_date', $dDate)->where('type', 'expense')->sum('amount');
+                $trendDataset[] = [
+                    'label' => $d,
+                    'income' => $dInc,
+                    'expense' => $dExp,
+                    'profit' => $dInc - $dExp,
+                ];
+            }
+        }
+
+        // Detailed Transactions within the period
+        $transactions = (clone $entriesQuery)
+            ->with('creator')
+            ->orderBy('entry_date', 'asc')
+            ->orderBy('id', 'asc')
+            ->get();
+
+        $invoiceSettings = self::getInvoiceSettings();
+
+        return view('admin.accounting.reports.index', compact(
+            'period', 'year', 'month', 'dateFrom', 'dateTo', 'periodLabel',
+            'startDate', 'endDate', 'totalIncome', 'totalExpense', 'productionCost',
+            'productionBreakdown', 'payrollCost', 'otherExpense', 'operatingBreakdown',
+            'bookSalesIncome', 'grossProfit', 'netProfit', 'netProfitMargin',
+            'trendDataset', 'transactions', 'invoiceSettings'
+        ));
+    }
+
+    /**
+     * Employee Directory & Staff Management.
+     */
+    public function employees(Request $request): View
+    {
+        $search = $request->input('search');
+        $department = $request->input('department');
+        $status = $request->input('status');
+
+        $query = IdeaEmployee::query()
+            ->withCount('salaryPayments')
+            ->withSum('salaryPayments', 'net_paid')
+            ->when($department, fn($q) => $q->where('department', $department))
+            ->when($status, fn($q) => $q->where('status', $status))
+            ->when($search, function ($q, $term) {
+                $like = '%' . $term . '%';
+                $q->where(function ($w) use ($like) {
+                    $w->where('name', 'like', $like)
+                      ->orWhere('phone', 'like', $like)
+                      ->orWhere('designation', 'like', $like);
+                });
+            })
+            ->latest('id');
+
+        $employees = $query->paginate(20)->withQueryString();
+        $departments = IdeaEmployee::departments();
+        $totalEmployees = IdeaEmployee::count();
+        $activeEmployees = IdeaEmployee::where('status', 'active')->count();
+        $monthlyPayroll = (float) IdeaEmployee::where('status', 'active')->sum('basic_salary');
+
+        return view('admin.accounting.employees.index', compact(
+            'employees', 'departments', 'search', 'department', 'status',
+            'totalEmployees', 'activeEmployees', 'monthlyPayroll'
+        ));
+    }
+
+    /**
+     * Store a new employee.
+     */
+    public function storeEmployee(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'name'              => 'required|string|max:255',
+            'designation'       => 'required|string|max:255',
+            'department'        => 'required|string|max:255',
+            'phone'             => 'nullable|string|max:30',
+            'email'             => 'nullable|email|max:255',
+            'basic_salary'      => 'required|numeric|min:0',
+            'joining_date'      => 'nullable|date',
+            'status'            => 'required|in:active,inactive,on_leave',
+            'address'           => 'nullable|string|max:500',
+            'nid_passport'      => 'nullable|string|max:100',
+            'emergency_contact' => 'nullable|string|max:100',
+            'notes'             => 'nullable|string|max:1000',
+        ]);
+
+        IdeaEmployee::create($validated);
+
+        return back()->with('success', 'নতুন কর্মচারী সফলভাবে যুক্ত করা হয়েছে।');
+    }
+
+    /**
+     * Update employee details.
+     */
+    public function updateEmployee(Request $request, $id): RedirectResponse
+    {
+        $employee = IdeaEmployee::findOrFail($id);
+
+        $validated = $request->validate([
+            'name'              => 'required|string|max:255',
+            'designation'       => 'required|string|max:255',
+            'department'        => 'required|string|max:255',
+            'phone'             => 'nullable|string|max:30',
+            'email'             => 'nullable|email|max:255',
+            'basic_salary'      => 'required|numeric|min:0',
+            'joining_date'      => 'nullable|date',
+            'status'            => 'required|in:active,inactive,on_leave',
+            'address'           => 'nullable|string|max:500',
+            'nid_passport'      => 'nullable|string|max:100',
+            'emergency_contact' => 'nullable|string|max:100',
+            'notes'             => 'nullable|string|max:1000',
+        ]);
+
+        $employee->update($validated);
+
+        return back()->with('success', 'কর্মচারীর তথ্য সফলভাবে আপডেট করা হয়েছে।');
+    }
+
+    /**
+     * Delete employee record.
+     */
+    public function destroyEmployee($id): RedirectResponse
+    {
+        $employee = IdeaEmployee::findOrFail($id);
+        $employee->delete();
+
+        return back()->with('success', 'কর্মচারী সফলভাবে মুছে ফেলা হয়েছে।');
+    }
+
+    /**
+     * Salary Payments & Disbursement Ledger.
+     */
+    public function salaryDisbursements(Request $request): View
+    {
+        $search = $request->input('search');
+        $month = $request->input('month', date('Y-m'));
+        $employeeId = $request->input('employee_id');
+
+        $query = IdeaSalaryPayment::with('employee', 'accountingEntry', 'creator')
+            ->when($month, fn($q) => $q->where('salary_month', $month))
+            ->when($employeeId, fn($q) => $q->where('employee_id', $employeeId))
+            ->when($search, function ($q, $term) {
+                $like = '%' . $term . '%';
+                $q->whereHas('employee', function ($eq) use ($like) {
+                    $eq->where('name', 'like', $like)
+                       ->orWhere('designation', 'like', $like);
+                })->orWhere('slip_no', 'like', $like);
+            })
+            ->latest('payment_date')
+            ->latest('id');
+
+        $payments = $query->paginate(20)->withQueryString();
+        $employees = IdeaEmployee::where('status', 'active')->orderBy('name')->get();
+
+        $totalPaidInMonth = (float) IdeaSalaryPayment::where('salary_month', $month)->sum('net_paid');
+        $totalPaidAllTime = (float) IdeaSalaryPayment::sum('net_paid');
+
+        return view('admin.accounting.salary.index', compact(
+            'payments', 'employees', 'search', 'month', 'employeeId',
+            'totalPaidInMonth', 'totalPaidAllTime'
+        ));
+    }
+
+    /**
+     * Store Salary Payment & Automatically Create Accounting Expense Entry.
+     */
+    public function storeSalaryPayment(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'employee_id'      => 'required|exists:idea_employees,id',
+            'salary_month'     => 'required|string|max:7',
+            'payment_date'     => 'required|date',
+            'basic_amount'     => 'required|numeric|min:0',
+            'bonus_amount'     => 'nullable|numeric|min:0',
+            'overtime_amount'  => 'nullable|numeric|min:0',
+            'deduction_amount' => 'nullable|numeric|min:0',
+            'payment_method'   => 'required|string|max:50',
+            'trx_reference'    => 'nullable|string|max:100',
+            'notes'            => 'nullable|string|max:1000',
+        ]);
+
+        $employee = IdeaEmployee::findOrFail($validated['employee_id']);
+
+        $basic = (float) $validated['basic_amount'];
+        $bonus = (float) ($validated['bonus_amount'] ?? 0);
+        $overtime = (float) ($validated['overtime_amount'] ?? 0);
+        $deduction = (float) ($validated['deduction_amount'] ?? 0);
+        $netPaid = max(0, $basic + $bonus + $overtime - $deduction);
+
+        $slipNo = 'PAY-' . str_replace('-', '', $validated['salary_month']) . '-' . rand(1000, 9999);
+
+        // 1. Create corresponding expense entry in IdeaAccountingEntry
+        $entryDateStr = date('Ymd', strtotime($validated['payment_date']));
+        $entryNo = 'EXP-' . $entryDateStr . '-' . rand(1000, 9999);
+
+        $monthFormatted = Carbon::createFromFormat('Y-m', $validated['salary_month'])->format('F Y');
+        $entry = IdeaAccountingEntry::create([
+            'entry_no'       => $entryNo,
+            'type'           => 'expense',
+            'category'       => 'কর্মচারী মূল বেতন (Staff Basic Salary)',
+            'title'          => "বেতন প্রদান: {$employee->name} ({$employee->designation}) — {$monthFormatted}",
+            'amount'         => $netPaid,
+            'entry_date'     => $validated['payment_date'],
+            'voucher_no'     => $slipNo,
+            'payment_method' => $validated['payment_method'],
+            'party_name'     => $employee->name,
+            'notes'          => "মূল বেতন: ৳{$basic}, বোনাস: ৳{$bonus}, কর্তন: ৳{$deduction}. " . ($validated['notes'] ?? ''),
+            'created_by'     => auth()->id(),
+        ]);
+
+        // 2. Create Salary Payment Record
+        IdeaSalaryPayment::create([
+            'employee_id'         => $employee->id,
+            'salary_month'        => $validated['salary_month'],
+            'payment_date'        => $validated['payment_date'],
+            'basic_amount'        => $basic,
+            'bonus_amount'        => $bonus,
+            'overtime_amount'     => $overtime,
+            'deduction_amount'    => $deduction,
+            'net_paid'            => $netPaid,
+            'payment_method'      => $validated['payment_method'],
+            'trx_reference'       => $validated['trx_reference'],
+            'slip_no'             => $slipNo,
+            'accounting_entry_id' => $entry->id,
+            'notes'               => $validated['notes'],
+            'created_by'          => auth()->id(),
+        ]);
+
+        return back()->with('success', "{$employee->name} এর {$monthFormatted} মাসের বেতন (৳" . number_format($netPaid, 2) . ") সফলভাবে প্রদান ও হিসাব খতিয়ানে যুক্ত হয়েছে।");
+    }
+
+    /**
+     * Printable Salary Slip / Pay Receipt.
+     */
+    public function salarySlip($id): View
+    {
+        $salary = IdeaSalaryPayment::with('employee', 'creator')->findOrFail($id);
+        $invoiceSettings = self::getInvoiceSettings();
+
+        return view('admin.accounting.salary.slip', compact('salary', 'invoiceSettings'));
     }
 }

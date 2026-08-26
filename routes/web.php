@@ -347,6 +347,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::post('/', 'store')->name('store');
         Route::get('/payments', 'payments')->name('payments');
         Route::post('/payments', 'storePayment')->name('payments.store');
+        Route::get('/monthly-report', 'monthlyReport')->name('monthly-report');
         Route::get('/{purchase}', 'show')->name('show');
         Route::get('/{purchase}/edit', 'edit')->name('edit');
         Route::put('/{purchase}', 'update')->name('update');
@@ -368,6 +369,20 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::post('/invoices/{invoice}/convert', 'convertInvoiceType')->name('invoices.convert');
         Route::delete('/invoices/{invoice}', 'destroyInvoice')->name('invoices.destroy');
         Route::post('/settings', 'updateSettings')->name('settings.update');
+
+        // Financial & P&L Reports (Daily, Weekly, Monthly, Yearly)
+        Route::get('/reports', 'reports')->name('reports.index');
+
+        // Employees & Staff Payroll Management
+        Route::get('/employees', 'employees')->name('employees.index');
+        Route::post('/employees', 'storeEmployee')->name('employees.store');
+        Route::put('/employees/{employee}', 'updateEmployee')->name('employees.update');
+        Route::delete('/employees/{employee}', 'destroyEmployee')->name('employees.destroy');
+
+        // Salary Disbursement & Pay Slips
+        Route::get('/salary', 'salaryDisbursements')->name('salary.index');
+        Route::post('/salary', 'storeSalaryPayment')->name('salary.store');
+        Route::get('/salary/{salary}/slip', 'salarySlip')->name('salary.slip');
     });
 
     Route::get('/orders', [AdminController::class, 'orders'])->name('orders');

@@ -33,12 +33,17 @@
             ['route' => 'admin.royalty-payout-logs',    'icon' => 'file-invoice-dollar',  'label' => 'Payout Gateway Logs'],
         ],
         'Purchases & Inventory' => [
-            ['route' => 'admin.purchases.index',    'icon' => 'receipt',             'label' => 'Purchase Orders'],
-            ['route' => 'admin.purchases.create',   'icon' => 'cart-plus',           'label' => 'New Purchase Entry'],
-            ['route' => 'admin.purchases.payments', 'icon' => 'hand-holding-dollar', 'label' => 'Payment Installments'],
+            ['route' => 'admin.purchases.index',    'url' => route('admin.purchases.index', ['category' => 'books']), 'category' => 'books', 'icon' => 'book-open', 'label' => '১. বই ক্রয় (Books)'],
+            ['route' => 'admin.purchases.index',    'url' => route('admin.purchases.index', ['category' => 'raw_materials']), 'category' => 'raw_materials', 'icon' => 'boxes-stacked', 'label' => '২. কাঁচামাল ক্রয় (Raw Materials)'],
+            ['route' => 'admin.purchases.index',    'url' => route('admin.purchases.index', ['category' => 'other']), 'category' => 'other', 'icon' => 'cart-shopping', 'label' => '৩. অন্যান্য ক্রয় (Other Purchases)'],
+            ['route' => 'admin.purchases.create',   'icon' => 'cart-plus',           'label' => 'নতুন ক্রয় চালান এন্ট্রি'],
+            ['route' => 'admin.purchases.payments', 'icon' => 'hand-holding-dollar', 'label' => 'কিস্তি ও পেমেন্ট হিস্ট্রি'],
         ],
         'Idea Accounting' => [
-            ['route' => 'admin.accounting.index',           'icon' => 'scale-balanced',     'label' => 'Income & Expenses'],
+            ['route' => 'admin.accounting.reports.index',   'icon' => 'chart-pie',           'label' => 'P&L Reports & Analytics'],
+            ['route' => 'admin.accounting.salary.index',    'icon' => 'money-check-dollar',  'label' => 'Staff Payroll & Salary'],
+            ['route' => 'admin.accounting.employees.index', 'icon' => 'users-gear',          'label' => 'Employee Profiles'],
+            ['route' => 'admin.accounting.index',           'icon' => 'scale-balanced',      'label' => 'Income & Expenses Ledger'],
             ['route' => 'admin.accounting.invoices.index',  'icon' => 'file-invoice-dollar', 'label' => 'Invoices & Challans'],
             ['route' => 'admin.accounting.invoices.create', 'icon' => 'file-circle-plus',   'label' => 'Create Invoice'],
         ],
@@ -65,8 +70,11 @@
         'Administration' => [
             ['route' => 'admin.roles.index',       'icon' => 'key',             'label' => 'Roles & Permissions'],
             ['route' => 'admin.visitor-reports',   'icon' => 'chart-line',     'label' => 'Visitor Reports'],
-            ['route' => 'admin.activity-logs',     'icon' => 'clock-rotate-left', 'label' => 'Activity Logs'],
             ['route' => 'admin.system-settings',   'icon' => 'sliders',         'label' => 'System Settings'],
+            ['route' => 'admin.cache.manage',      'icon' => 'bolt',            'label' => 'Cache Management'],
+            ['route' => 'admin.media.index',       'icon' => 'images',          'label' => 'Media & Library'],
+            ['route' => 'admin.backup.index',      'icon' => 'database',        'label' => 'Backup Database'],
+            ['route' => 'admin.audit-logs.index',  'icon' => 'shield-halved',   'label' => 'Audit & Logs'],
         ],
         'Seller Panel' => [
             ['route' => 'subadmin.bills.index', 'icon' => 'file-invoice-dollar', 'label' => 'Bills List'],
@@ -78,7 +86,7 @@
     ];
 @endphp
 
-<aside class="adm-side">
+<aside class="adm-side" data-sidebar>
     <div class="adm-side__header d-flex align-items-center justify-content-between">
         <a href="{{ route('admin.dashboard') }}" class="adm-brand text-decoration-none">
             <x-brand-logo :size="38" />
@@ -106,11 +114,17 @@
 
                 @foreach ($items as $item)
                     @php
-                        // "admin.books" also highlights "admin.books.edit", etc.
+                        // Check if active based on route and query param
                         $base   = preg_replace('/\.index$/', '', $item['route']);
-                        $active = request()->routeIs($item['route']) || request()->routeIs($base . '.*');
+                        $isRouteActive = request()->routeIs($item['route']) || request()->routeIs($base . '.*');
+                        if (isset($item['category'])) {
+                            $active = $isRouteActive && request('category') === $item['category'];
+                        } else {
+                            $active = $isRouteActive && empty(request('category'));
+                        }
+                        $href = $item['url'] ?? route($item['route']);
                     @endphp
-                    <a href="{{ route($item['route']) }}"
+                    <a href="{{ $href }}"
                        class="adm-nav__link {{ $active ? 'is-active' : '' }}"
                        @isset($item['target']) target="{{ $item['target'] }}" rel="noopener" @endisset
                        @if ($active) aria-current="page" @endif>
