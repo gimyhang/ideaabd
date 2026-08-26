@@ -546,7 +546,7 @@
                                 <span class="badge bg-white text-dark border px-2.5 py-1 small fw-bold d-inline-flex align-items-center gap-1">
                                     <i class="fa-solid fa-eye text-primary"></i> লাইভ স্লাইডার সিমুলেটর প্রিভিউ (Live Slide Simulator)
                                 </span>
-                                <span class="text-muted small" id="liveSlideCountBadge">৩টি সক্রিয় স্লাইড</span>
+                                <span class="text-muted small" id="liveSlideCountBadge">৬টি সক্রিয় স্লাইড</span>
                             </div>
                             <div class="rounded-4 overflow-hidden shadow-sm p-4 text-white position-relative" id="liveHeroSlideSimulator" style="background: linear-gradient(135deg, #003366 0%, #0066cc 100%); min-height: 200px; transition: all 0.3s ease;">
                                 <div class="row align-items-center">
@@ -566,6 +566,34 @@
                                         </div>
                                     </div>
                                 </div>
+                            </div>
+                        </div>
+
+                        <!-- 1-Click Quick Preset Insert Bar for all 6 core banners -->
+                        <div class="card p-3 bg-white rounded-4 border shadow-2xs mb-4">
+                            <label class="form-label small fw-bold text-dark mb-2 d-flex align-items-center gap-1.5">
+                                <i class="fa-solid fa-bolt text-warning"></i>
+                                <span>১-ক্লিকে নতুন নির্ধারিত ব্যানার যুক্ত করুন (Quick Banner Presets):</span>
+                            </label>
+                            <div class="d-flex flex-wrap gap-2">
+                                <button type="button" class="btn btn-xs btn-outline-primary rounded-pill px-3 py-1.5 fw-semibold" onclick="addHeroSlidePreset('bookshop')">
+                                    <i class="fa-solid fa-book-open-reader me-1"></i>+ বুকশপ / বইমেলা ব্যানার
+                                </button>
+                                <button type="button" class="btn btn-xs btn-outline-dark rounded-pill px-3 py-1.5 fw-semibold" onclick="addHeroSlidePreset('ideapatra')">
+                                    <i class="fa-solid fa-pen-nib text-danger me-1"></i>+ আইডিয়াপত্র / ব্লগ ব্যানার
+                                </button>
+                                <button type="button" class="btn btn-xs btn-outline-success rounded-pill px-3 py-1.5 fw-semibold" onclick="addHeroSlidePreset('ebook')">
+                                    <i class="fa-solid fa-mobile-screen-button me-1"></i>+ ই-বুক শপ ব্যানার
+                                </button>
+                                <button type="button" class="btn btn-xs btn-outline-info rounded-pill px-3 py-1.5 fw-semibold text-dark" onclick="addHeroSlidePreset('webzine')">
+                                    <i class="fa-solid fa-newspaper text-info me-1"></i>+ ম্যাগাজিন / সাময়িকী ব্যানার
+                                </button>
+                                <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-3 py-1.5 fw-semibold" onclick="addHeroSlidePreset('authors')">
+                                    <i class="fa-solid fa-user-pen text-primary me-1"></i>+ লেখক ডিরেক্টরি ব্যানার
+                                </button>
+                                <button type="button" class="btn btn-xs btn-outline-danger rounded-pill px-3 py-1.5 fw-semibold" onclick="addHeroSlidePreset('publishers')">
+                                    <i class="fa-solid fa-building-columns me-1"></i>+ প্রকাশক ডিরেক্টরি ব্যানার
+                                </button>
                             </div>
                         </div>
 
@@ -2069,21 +2097,23 @@
             btn_icon: 'fa-solid fa-cart-shopping',
             btn_class: 'btn-light text-primary',
             icon: 'fa-solid fa-book-open-reader',
+            image_url: '',
             bg_gradient: 'linear-gradient(135deg, #003366 0%, #0066cc 100%)',
             is_active: true
         },
         {
             id: '2',
-            badge: 'অনলাইন সাহিত্য',
-            badge_color: 'bg-info text-dark',
-            title: 'আইডিয়া ওয়েবজিন ও ডিজিটাল সাময়িকী',
-            subtitle: 'সমকালীন গল্প, কবিতা, প্রবন্ধ ও মুক্তচিন্তার ডিজিটাল সংকলন এখন অনলাইনে।',
-            btn_text: 'সংখ্যাগুলো পড়ুন',
-            btn_url: '/webzine',
-            btn_icon: 'fa-solid fa-newspaper',
+            badge: 'আইডিয়াপত্র ও ব্লগ',
+            badge_color: 'bg-warning text-dark',
+            title: 'আইডিয়াপত্র — মুক্তচিন্তা, সাহিত্য ও ব্লগ',
+            subtitle: 'সমকালীন গল্প, কবিতা, প্রবন্ধ ও মুক্তচিন্তার ডিজিটাল প্রকাশনা ও নিবন্ধ।',
+            btn_text: 'আইডিয়াপত্র পড়ুন',
+            btn_url: '/blog',
+            btn_icon: 'fa-solid fa-pen-nib',
             btn_class: 'btn-warning text-dark',
-            icon: 'fa-solid fa-newspaper',
-            bg_gradient: 'linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%)',
+            icon: 'fa-solid fa-pen-nib',
+            image_url: '',
+            bg_gradient: 'linear-gradient(135deg, #4a044e 0%, #86198f 100%)',
             is_active: true
         },
         {
@@ -2091,13 +2121,59 @@
             badge: 'স্মার্ট রিডিং',
             badge_color: 'bg-success text-white',
             title: 'হাজারো ডিজিটাল ই-বুক কালেকশন',
-            subtitle: 'যেকোনো ডিভাইসে তাৎক্ষণিক পিডিএফ ও ই-পাব ডাউনলোড করে পড়ার সুবিধা।',
+            subtitle: 'স্মার্টফোন বা যেকোনো ডিভাইসে তাৎক্ষণিক পিডিএফ ও ই-পাব ডাউনলোড করে পড়ার সুবিধা।',
             btn_text: 'ই-বুক লাইব্রেরি',
             btn_url: '/ebooks',
-            btn_icon: 'fa-solid fa-tablet-screen-button',
+            btn_icon: 'fa-solid fa-mobile-screen-button',
             btn_class: 'btn-light text-primary',
-            icon: 'fa-solid fa-tablet-screen-button',
-            bg_gradient: 'linear-gradient(135deg, #312e81 0%, #4338ca 100%)',
+            icon: 'fa-solid fa-mobile-screen-button',
+            image_url: '',
+            bg_gradient: 'linear-gradient(135deg, #064e3b 0%, #059669 100%)',
+            is_active: true
+        },
+        {
+            id: '4',
+            badge: 'ডিজিটাল সাময়িকী',
+            badge_color: 'bg-info text-dark',
+            title: 'আইডিয়া ওয়েবজিন ও সাহিত্য সাময়িকী',
+            subtitle: 'সাহিত্য, শিল্প ও সংস্কৃতির মাসিক ও বিশেষ সংখ্যাগুলোর ডিজিটাল সংকলন।',
+            btn_text: 'সংখ্যাগুলো পড়ুন',
+            btn_url: '/webzine',
+            btn_icon: 'fa-solid fa-newspaper',
+            btn_class: 'btn-warning text-dark',
+            icon: 'fa-solid fa-newspaper',
+            image_url: '',
+            bg_gradient: 'linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%)',
+            is_active: true
+        },
+        {
+            id: '5',
+            badge: 'লেখক কর্নার',
+            badge_color: 'bg-light text-dark',
+            title: 'লেখক ডিরেক্টরি ও সাহিত্যিক পরিচিতি',
+            subtitle: 'দেশ-বিদেশের খ্যাতনামা ও প্রতিশ্রুতিশীল লেখকদের জীবন ও গ্রন্থাবলী।',
+            btn_text: 'লেখক তালিকা দেখুন',
+            btn_url: '/authors',
+            btn_icon: 'fa-solid fa-user-pen',
+            btn_class: 'btn-light text-primary',
+            icon: 'fa-solid fa-user-pen',
+            image_url: '',
+            bg_gradient: 'linear-gradient(135deg, #1e1b4b 0%, #4338ca 100%)',
+            is_active: true
+        },
+        {
+            id: '6',
+            badge: 'প্রকাশনা সংকলন',
+            badge_color: 'bg-danger text-white',
+            title: 'প্রকাশক ডিরেক্টরি ও প্রকাশনা সংস্থা',
+            subtitle: 'বাংলাদেশের সকল স্বনামধন্য প্রকাশনীর বইয়ের বিশাল সম্ভার এক প্ল্যাটফর্মে।',
+            btn_text: 'প্রকাশক তালিকা দেখুন',
+            btn_url: '/publishers',
+            btn_icon: 'fa-solid fa-building-columns',
+            btn_class: 'btn-light text-primary',
+            icon: 'fa-solid fa-building-columns',
+            image_url: '',
+            bg_gradient: 'linear-gradient(135deg, #881337 0%, #e11d48 100%)',
             is_active: true
         }
     ];
@@ -2108,10 +2184,13 @@
     }
 
     const iconPresets = [
-        { icon: 'fa-solid fa-book-open-reader', label: '📖 বই ও পাঠক' },
-        { icon: 'fa-solid fa-newspaper', label: '📰 ওয়েবজিন ও সাময়িকী' },
-        { icon: 'fa-solid fa-tablet-screen-button', label: '📱 স্মার্ট ই-বুক' },
-        { icon: 'fa-solid fa-feather-pointed', label: '✍️ লেখক ও সাহিত্য' },
+        { icon: 'fa-solid fa-pen-nib', label: '✍️ পেন / নিব (আইডিয়াপত্র)' },
+        { icon: 'fa-solid fa-book-open-reader', label: '📖 বই ও পাঠক (বুকশপ)' },
+        { icon: 'fa-solid fa-mobile-screen-button', label: '📱 স্মার্টফোন (ই-বুক)' },
+        { icon: 'fa-solid fa-newspaper', label: '📰 সাময়িকী ও ম্যাগাজিন' },
+        { icon: 'fa-solid fa-user-pen', label: '👤 লেখক ডিরেক্টরি' },
+        { icon: 'fa-solid fa-building-columns', label: '🏢 প্রকাশক ডিরেক্টরি' },
+        { icon: 'fa-solid fa-feather-pointed', label: '✒️ পালক ও সাহিত্য' },
         { icon: 'fa-solid fa-wand-magic-sparkles', label: '✨ জ্ঞান ও ম্যাজিক' },
         { icon: 'fa-solid fa-crown', label: '👑 রয়্যাল বেস্টসেলার' },
         { icon: 'fa-solid fa-rocket', label: '🚀 ফিউচার ও ইনোভেশন' },
@@ -2121,9 +2200,10 @@
 
     const gradientPresets = [
         { val: 'linear-gradient(135deg, #003366 0%, #0066cc 100%)', name: '🔵 রয়্যাল ব্লু' },
-        { val: 'linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%)', name: '🌌 মিডনাইট স্যাফায়ার' },
-        { val: 'linear-gradient(135deg, #312e81 0%, #4338ca 100%)', name: '🟣 ইন্ডিগো ভায়োলেট' },
+        { val: 'linear-gradient(135deg, #4a044e 0%, #86198f 100%)', name: '🟣 ম্যাজেন্টা পার্পল' },
         { val: 'linear-gradient(135deg, #064e3b 0%, #059669 100%)', name: '🟢 ডিপ এমারেল্ড' },
+        { val: 'linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%)', name: '🌌 মিডনাইট স্যাফায়ার' },
+        { val: 'linear-gradient(135deg, #1e1b4b 0%, #4338ca 100%)', name: '🟣 ইন্ডিগো ভায়োলেট' },
         { val: 'linear-gradient(135deg, #881337 0%, #e11d48 100%)', name: '🔴 সানসেট ক্রিমসন' },
         { val: 'linear-gradient(135deg, #18181b 0%, #27272a 100%)', name: '⚫ ডার্ক ওনিক্স' },
     ];
@@ -2223,7 +2303,9 @@
                             <div class="d-flex flex-wrap gap-1 mb-2">
                                 ${iconPresetBtns}
                             </div>
-                            <input type="text" class="form-control form-control-sm rounded-3" placeholder="কাস্টম FontAwesome আইকন ক্লাস (যেমন: fa-solid fa-star)" value="${escapeHtml(slide.icon || '')}" oninput="updateHeroSlideField(${idx}, 'icon', this.value)">
+                            <input type="text" class="form-control form-control-sm rounded-3 mb-2" placeholder="কাস্টম FontAwesome আইকন ক্লাস (যেমন: fa-solid fa-pen-nib)" value="${escapeHtml(slide.icon || '')}" oninput="updateHeroSlideField(${idx}, 'icon', this.value)">
+                            <div class="small text-muted mb-1">অথবা কাস্টম ছবি/SVG লিংক:</div>
+                            <input type="text" class="form-control form-control-sm rounded-3" placeholder="যেমন: images/icons/custom.png" value="${escapeHtml(slide.image_url || '')}" oninput="updateHeroSlideField(${idx}, 'image_url', this.value)">
                         </div>
 
                         <!-- Gradient Style Selector -->
@@ -2307,26 +2389,118 @@
         }
     }
 
+    function addHeroSlidePreset(type) {
+        let newSlide = null;
+        if (type === 'bookshop') {
+            newSlide = {
+                id: String(Date.now()),
+                badge: 'বইমেলা বিশেষ ছাড়',
+                badge_color: 'bg-warning text-dark',
+                title: 'জ্ঞানের আলোয় উদ্ভাসিত হোক প্রতিটি মন',
+                subtitle: 'আইডিয়া প্রকাশনীর সকল নতুন ও জনপ্রিয় বইয়ে পাচ্ছেন আকর্ষণীয় মূল্যছাড়।',
+                btn_text: 'বই কিনুন',
+                btn_url: '/books',
+                btn_icon: 'fa-solid fa-cart-shopping',
+                btn_class: 'btn-light text-primary',
+                icon: 'fa-solid fa-book-open-reader',
+                image_url: '',
+                bg_gradient: 'linear-gradient(135deg, #003366 0%, #0066cc 100%)',
+                is_active: true
+            };
+        } else if (type === 'ideapatra') {
+            newSlide = {
+                id: String(Date.now()),
+                badge: 'আইডিয়াপত্র ও ব্লগ',
+                badge_color: 'bg-warning text-dark',
+                title: 'আইডিয়াপত্র — মুক্তচিন্তা, সাহিত্য ও ব্লগ',
+                subtitle: 'সমকালীন গল্প, কবিতা, প্রবন্ধ ও মুক্তচিন্তার ডিজিটাল প্রকাশনা ও নিবন্ধ।',
+                btn_text: 'আইডিয়াপত্র পড়ুন',
+                btn_url: '/blog',
+                btn_icon: 'fa-solid fa-pen-nib',
+                btn_class: 'btn-warning text-dark',
+                icon: 'fa-solid fa-pen-nib',
+                image_url: '',
+                bg_gradient: 'linear-gradient(135deg, #4a044e 0%, #86198f 100%)',
+                is_active: true
+            };
+        } else if (type === 'ebook') {
+            newSlide = {
+                id: String(Date.now()),
+                badge: 'স্মার্ট রিডিং',
+                badge_color: 'bg-success text-white',
+                title: 'হাজারো ডিজিটাল ই-বুক কালেকশন',
+                subtitle: 'স্মার্টফোন বা যেকোনো ডিভাইসে তাৎক্ষণিক পিডিএফ ও ই-পাব ডাউনলোড করে পড়ার সুবিধা।',
+                btn_text: 'ই-বুক লাইব্রেরি',
+                btn_url: '/ebooks',
+                btn_icon: 'fa-solid fa-mobile-screen-button',
+                btn_class: 'btn-light text-primary',
+                icon: 'fa-solid fa-mobile-screen-button',
+                image_url: '',
+                bg_gradient: 'linear-gradient(135deg, #064e3b 0%, #059669 100%)',
+                is_active: true
+            };
+        } else if (type === 'webzine') {
+            newSlide = {
+                id: String(Date.now()),
+                badge: 'ডিজিটাল সাময়িকী',
+                badge_color: 'bg-info text-dark',
+                title: 'আইডিয়া ওয়েবজিন ও সাহিত্য সাময়িকী',
+                subtitle: 'সাহিত্য, শিল্প ও সংস্কৃতির মাসিক ও বিশেষ সংখ্যাগুলোর ডিজিটাল সংকলন।',
+                btn_text: 'সংখ্যাগুলো পড়ুন',
+                btn_url: '/webzine',
+                btn_icon: 'fa-solid fa-newspaper',
+                btn_class: 'btn-warning text-dark',
+                icon: 'fa-solid fa-newspaper',
+                image_url: '',
+                bg_gradient: 'linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%)',
+                is_active: true
+            };
+        } else if (type === 'authors') {
+            newSlide = {
+                id: String(Date.now()),
+                badge: 'লেখক কর্নার',
+                badge_color: 'bg-light text-dark',
+                title: 'লেখক ডিরেক্টরি ও সাহিত্যিক পরিচিতি',
+                subtitle: 'দেশ-বিদেশের খ্যাতনামা ও প্রতিশ্রুতিশীল লেখকদের জীবন ও গ্রন্থাবলী।',
+                btn_text: 'লেখক তালিকা দেখুন',
+                btn_url: '/authors',
+                btn_icon: 'fa-solid fa-user-pen',
+                btn_class: 'btn-light text-primary',
+                icon: 'fa-solid fa-user-pen',
+                image_url: '',
+                bg_gradient: 'linear-gradient(135deg, #1e1b4b 0%, #4338ca 100%)',
+                is_active: true
+            };
+        } else if (type === 'publishers') {
+            newSlide = {
+                id: String(Date.now()),
+                badge: 'প্রকাশনা সংকলন',
+                badge_color: 'bg-danger text-white',
+                title: 'প্রকাশক ডিরেক্টরি ও প্রকাশনা সংস্থা',
+                subtitle: 'বাংলাদেশের সকল স্বনামধন্য প্রকাশনীর বইয়ের বিশাল সম্ভার এক প্ল্যাটফর্মে।',
+                btn_text: 'প্রকাশক তালিকা দেখুন',
+                btn_url: '/publishers',
+                btn_icon: 'fa-solid fa-building-columns',
+                btn_class: 'btn-light text-primary',
+                icon: 'fa-solid fa-building-columns',
+                image_url: '',
+                bg_gradient: 'linear-gradient(135deg, #881337 0%, #e11d48 100%)',
+                is_active: true
+            };
+        }
+
+        if (newSlide) {
+            window.heroSlidesData.push(newSlide);
+            renderHeroSlides();
+        }
+    }
+
     function addNewHeroSlide() {
-        window.heroSlidesData.push({
-            id: String(Date.now()),
-            badge: 'নতুন কালেকশন',
-            badge_color: 'bg-primary text-white',
-            title: 'নতুন বইয়ের আকর্ষণীয় আয়োজন',
-            subtitle: 'আইডিয়া প্রকাশনীর নির্বাচিত সেরা বইগুলোতে বিশেষ সুযোগ।',
-            btn_text: 'অর্ডার করুন',
-            btn_url: '/books',
-            btn_icon: 'fa-solid fa-bag-shopping',
-            btn_class: 'btn-light text-primary',
-            icon: 'fa-solid fa-wand-magic-sparkles',
-            bg_gradient: 'linear-gradient(135deg, #1e1b4b 0%, #4338ca 100%)',
-            is_active: true
-        });
-        renderHeroSlides();
+        addHeroSlidePreset('bookshop');
     }
 
     function resetHeroSlidesToDefaults() {
-        if (confirm('আপনি কি ডিফল্ট হিরো স্লাইডার তালিকা রিস্টোর করতে চান?')) {
+        if (confirm('আপনি কি ডিফল্ট ৬টি হিরো স্লাইডার তালিকা রিস্টোর করতে চান?')) {
             window.heroSlidesData = JSON.parse(JSON.stringify(defaultHeroSlides));
             renderHeroSlides();
         }

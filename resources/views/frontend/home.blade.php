@@ -68,7 +68,11 @@
                                     <!-- Glassmorphic Icon Container -->
                                     <div class="rounded-circle d-flex align-items-center justify-content-center shadow-2xl position-relative hover-lift transition-all" 
                                          style="width: 170px; height: 170px; background: rgba(255, 255, 255, 0.12); border: 2px solid rgba(255, 255, 255, 0.35); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); z-index: 2;">
-                                        <i class="{{ $slideIcon }} text-white" style="font-size: 5.5rem; filter: drop-shadow(0 8px 24px rgba(0,0,0,0.35)); opacity: 0.95;"></i>
+                                        @if(!empty($slide['image_url']))
+                                            <img src="{{ asset($slide['image_url']) }}" alt="{{ $slideTitle }}" class="img-fluid p-3" style="max-height: 125px; filter: drop-shadow(0 8px 24px rgba(0,0,0,0.35));">
+                                        @else
+                                            <i class="{{ $slideIcon }} text-white" style="font-size: 5.5rem; filter: drop-shadow(0 8px 24px rgba(0,0,0,0.35)); opacity: 0.95;"></i>
+                                        @endif
                                     </div>
                                     
                                     <!-- Decorative Orbiting Floating Badges -->
