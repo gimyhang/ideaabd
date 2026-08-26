@@ -416,23 +416,26 @@
 </div>
 
 {{-- ══ IDEAPATRA / LITERARY BLOG POSTS ════════════════════════════════════════ --}}
-@if(isset($latestBlogPosts) && $latestBlogPosts->isNotEmpty())
-<section class="py-5 mb-5" style="background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);">
-    <div class="container">
+<section class="py-5 mb-5 position-relative overflow-hidden" style="background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 50%, #ffffff 100%);">
+    <div class="container position-relative" style="z-index: 2;">
         {{-- Section Header (Dynamic from Admin Settings) --}}
-        <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-4 pb-2 border-bottom gap-2">
+        <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-4 pb-3 border-bottom gap-3">
             <div>
-                <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-primary bg-opacity-10 text-primary fw-bold small mb-2">
-                    <i class="fa-solid fa-feather-pointed"></i>
+                <div class="d-inline-flex align-items-center gap-2 px-3 py-1.5 rounded-pill bg-primary bg-opacity-10 text-primary fw-bold small mb-2 border border-primary-subtle shadow-2xs">
+                    <i class="fa-solid fa-pen-nib text-primary"></i>
                     <span>{{ \App\Support\SiteSetting::ideapatraSectionBadge() }}</span>
                 </div>
-                <h3 class="fw-bold text-dark mb-1" style="font-size: clamp(1.25rem, 3vw, 1.65rem);">
-                    {{ \App\Support\SiteSetting::ideapatraSectionTitle() }}
-                </h3>
-                <p class="text-muted mb-0 small">{{ \App\Support\SiteSetting::ideapatraSectionSubtitle() }}</p>
+                <h2 class="fw-bold text-dark mb-1 d-flex align-items-center gap-2" style="font-size: clamp(1.35rem, 3.2vw, 1.85rem); letter-spacing: -0.3px;">
+                    <span>{{ \App\Support\SiteSetting::ideapatraSectionTitle() }}</span>
+                </h2>
+                <p class="text-muted mb-0 small" style="font-size: 0.92rem; max-width: 650px;">{{ \App\Support\SiteSetting::ideapatraSectionSubtitle() }}</p>
             </div>
             <div class="d-flex align-items-center gap-2 flex-wrap">
-                <a href="{{ route('blog.index') }}" class="btn btn-primary btn-sm rounded-pill px-4 py-2 fw-bold shadow-xs d-inline-flex align-items-center gap-1.5">
+                <a href="{{ route('author.posts.create') }}" class="btn btn-warning btn-sm rounded-pill px-3.5 py-2 fw-bold shadow-xs text-dark d-inline-flex align-items-center gap-1.5 hover-lift">
+                    <i class="fa-solid fa-feather-pointed"></i>
+                    <span>নিজের লেখা পোস্ট করুন</span>
+                </a>
+                <a href="{{ route('blog.index') }}" class="btn btn-primary btn-sm rounded-pill px-4 py-2 fw-bold shadow-xs d-inline-flex align-items-center gap-1.5 hover-lift">
                     <span>সকল লেখা ও সাময়িকী পড়ুন</span>
                     <i class="fa-solid fa-arrow-right"></i>
                 </a>
@@ -442,16 +445,16 @@
         {{-- 3-Column Structured Blog Grid --}}
         <div class="row g-4">
             
-            {{-- ══ 1st COLUMN: সর্বশেষ প্রকাশিত লেখা ও নিবন্ধ (Latest Posts) ═══════════════════ --}}
+            {{-- ══ 1st COLUMN: সর্বশেষ প্রকাশিত মূল ফিচার ও সাহিত্যকর্ম (Latest Posts) ═══════════════════ --}}
             <div class="col-lg-4 col-md-6 col-12">
-                <div class="card h-100 p-3.5 border-0 shadow-sm rounded-4 bg-white d-flex flex-column" style="border: 1px solid #eef2f6 !important;">
+                <div class="card h-100 p-3.5 border-0 shadow-sm rounded-4 bg-white d-flex flex-column" style="border: 1px solid #e2e8f0 !important; box-shadow: 0 4px 20px rgba(0,0,0,0.03) !important;">
                     <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
-                        <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2" style="font-size: 0.95rem;">
+                        <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2" style="font-size: 0.98rem;">
                             <span class="d-inline-block rounded-circle bg-primary" style="width: 8px; height: 8px; box-shadow: 0 0 0 3px rgba(37,99,235,0.2);"></span>
                             <i class="fa-solid fa-feather-pointed text-primary"></i>
                             <span>১. সর্বশেষ প্রকাশিত লেখা</span>
                         </h6>
-                        <a href="{{ route('blog.index') }}" class="small text-primary text-decoration-none fw-semibold d-flex align-items-center gap-1" style="font-size: 0.76rem;">
+                        <a href="{{ route('blog.index') }}" class="small text-primary text-decoration-none fw-semibold d-flex align-items-center gap-1" style="font-size: 0.78rem;">
                             <span>সব দেখুন</span>
                             <i class="fa-solid fa-chevron-right" style="font-size: 9px;"></i>
                         </a>
@@ -467,42 +470,55 @@
                             $leadImg = $leadPost->featured_image ? (str_starts_with($leadPost->featured_image, 'http') ? $leadPost->featured_image : asset('storage/' . ltrim($leadPost->featured_image, '/'))) : null;
                             $leadCat = $leadPost->category?->name ?: 'সাহিত্য ও প্রবন্ধ';
                             $leadAuthor = $leadPost->author?->name ?: ($leadPost->owner_name ?: 'আইডিয়া প্রকাশন');
-                            $readingTime = max(1, ceil(mb_strlen(strip_tags($leadPost->content ?? '')) / 600));
+                            $readingTime = max(2, ceil(mb_strlen(strip_tags($leadPost->content ?? '')) / 500));
                         @endphp
                         {{-- Lead Featured Latest Post --}}
-                        <div class="card border-0 rounded-4 overflow-hidden mb-3 bg-light position-relative hover-lift transition-all" style="box-shadow: 0 4px 15px rgba(0,0,0,0.04);">
-                            <a href="{{ route('blog.show', $leadPost->slug) }}" class="d-block overflow-hidden position-relative" style="aspect-ratio: 16/9; background: #e2e8f0;">
+                        <div class="card border-0 rounded-4 overflow-hidden mb-3 position-relative hover-lift transition-all" style="box-shadow: 0 4px 18px rgba(0,0,0,0.06); background: #ffffff; border: 1px solid #edf2f7 !important;">
+                            <a href="{{ route('blog.show', $leadPost->slug) }}" class="d-block overflow-hidden position-relative" style="aspect-ratio: 16/9; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
                                 @if($leadImg)
                                     <img src="{{ $leadImg }}" alt="{{ $leadPost->title }}" class="w-100 h-100 object-fit-cover transition-transform" onerror="this.onerror=null; this.parentElement.style.background='linear-gradient(135deg, #0284c7 0%, #0369a1 100%)'; this.remove();">
                                 @else
-                                    <div class="w-100 h-100 d-flex align-items-center justify-content-center text-white" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
-                                        <i class="fa-solid fa-newspaper text-info opacity-75" style="font-size: 2.2rem;"></i>
+                                    <div class="w-100 h-100 d-flex flex-column align-items-center justify-content-center text-white p-3 text-center" style="background: radial-gradient(circle, #1e3a8a 0%, #0f172a 100%);">
+                                        <div class="rounded-circle bg-white bg-opacity-10 p-3 mb-2">
+                                            <i class="fa-solid fa-pen-nib text-warning" style="font-size: 2.2rem;"></i>
+                                        </div>
+                                        <span class="small fw-semibold opacity-90">আইডিয়াপত্র বিশেষ প্রকাশনা</span>
                                     </div>
                                 @endif
                                 <div class="position-absolute top-0 start-0 m-2.5 d-flex gap-1.5 align-items-center">
-                                    <span class="badge bg-primary text-white fw-bold px-2.5 py-1 rounded-pill shadow-xs" style="font-size: 10.5px;">
+                                    <span class="badge bg-primary text-white fw-bold px-2.5 py-1 rounded-pill shadow-sm" style="font-size: 10.5px;">
                                         {{ $leadCat }}
                                     </span>
+                                    <span class="badge bg-warning text-dark fw-bold px-2 py-1 rounded-pill shadow-sm" style="font-size: 9.5px;">
+                                        <i class="fa-solid fa-star me-0.5"></i>ফিচারড
+                                    </span>
                                 </div>
-                                <div class="position-absolute bottom-0 end-0 m-2">
-                                    <span class="badge bg-dark bg-opacity-75 text-white fw-normal px-2 py-0.5 rounded-pill" style="font-size: 10px; backdrop-filter: blur(4px);">
-                                        <i class="fa-regular fa-clock me-1"></i>{{ $readingTime }} মিনিট পাঠ
+                                <div class="position-absolute bottom-0 end-0 m-2.5">
+                                    <span class="badge bg-dark bg-opacity-80 text-white fw-medium px-2.5 py-1 rounded-pill shadow-xs" style="font-size: 10.5px; backdrop-filter: blur(6px);">
+                                        <i class="fa-regular fa-clock me-1 text-warning"></i>{{ $readingTime }} মিনিট পাঠ
                                     </span>
                                 </div>
                             </a>
                             <div class="p-3 bg-white">
-                                <h6 class="fw-bold mb-1.5">
-                                    <a href="{{ route('blog.show', $leadPost->slug) }}" class="text-dark text-decoration-none hover-primary line-clamp-2" style="font-size: 0.96rem; line-height: 1.4;">
+                                <h5 class="fw-bold mb-1.5" style="font-size: 1.02rem; line-height: 1.42;">
+                                    <a href="{{ route('blog.show', $leadPost->slug) }}" class="text-dark text-decoration-none hover-primary line-clamp-2">
                                         {{ $leadPost->title }}
                                     </a>
-                                </h6>
-                                <div class="d-flex align-items-center justify-content-between text-muted small mt-2 pt-1 border-top" style="font-size: 11px;">
-                                    <span class="text-truncate d-flex align-items-center gap-1" style="max-width: 60%;">
-                                        <i class="fa-solid fa-user-pen text-primary"></i>
+                                </h5>
+                                @if($leadPost->excerpt)
+                                    <p class="text-muted small line-clamp-2 mb-2" style="font-size: 0.85rem; line-height: 1.45;">
+                                        {{ Str::limit(strip_tags($leadPost->excerpt), 95) }}
+                                    </p>
+                                @endif
+                                <div class="d-flex align-items-center justify-content-between text-muted small mt-2 pt-2 border-top" style="font-size: 11.5px;">
+                                    <span class="text-truncate d-flex align-items-center gap-1.5" style="max-width: 62%;">
+                                        <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center fw-bold" style="width: 22px; height: 22px; font-size: 10px;">
+                                            {{ mb_substr($leadAuthor, 0, 1) }}
+                                        </div>
                                         <span class="fw-semibold text-dark">{{ $leadAuthor }}</span>
                                     </span>
-                                    <span class="d-flex align-items-center gap-1">
-                                        <i class="fa-regular fa-calendar text-muted"></i>
+                                    <span class="d-flex align-items-center gap-1 text-muted">
+                                        <i class="fa-regular fa-calendar"></i>
                                         <span>{{ $leadPost->published_at ? $leadPost->published_at->format('d M, Y') : $leadPost->created_at->format('d M, Y') }}</span>
                                     </span>
                                 </div>
@@ -518,21 +534,26 @@
                                 $rAuthor = $rPost->author?->name ?: ($rPost->owner_name ?: 'আইডিয়া প্রকাশন');
                                 $rCat = $rPost->category?->name ?: 'নিবন্ধ';
                             @endphp
-                            <a href="{{ route('blog.show', $rPost->slug) }}" class="d-flex align-items-center gap-2.5 p-2 rounded-3 text-decoration-none hover-bg-light border transition-all" style="background: #ffffff;">
+                            <a href="{{ route('blog.show', $rPost->slug) }}" class="d-flex align-items-center gap-2.5 p-2 rounded-3 text-decoration-none hover-bg-light border transition-all hover-lift" style="background: #ffffff;">
                                 <div class="rounded-3 overflow-hidden flex-shrink-0 position-relative" style="width: 58px; height: 58px; background: #e2e8f0;">
                                     @if($rImg)
                                         <img src="{{ $rImg }}" alt="{{ $rPost->title }}" class="w-100 h-100 object-fit-cover">
                                     @else
-                                        <div class="w-100 h-100 d-flex align-items-center justify-content-center bg-dark text-white"><i class="fa-solid fa-file-lines small"></i></div>
+                                        <div class="w-100 h-100 d-flex align-items-center justify-content-center text-white" style="background: linear-gradient(135deg, #334155, #1e293b);">
+                                            <i class="fa-solid fa-file-lines text-warning small"></i>
+                                        </div>
                                     @endif
                                 </div>
                                 <div class="flex-grow-1 overflow-hidden">
-                                    <span class="badge bg-light text-primary border rounded-pill px-1.5 py-0.2 mb-0.5 fw-semibold" style="font-size: 9.5px;">{{ $rCat }}</span>
-                                    <h6 class="fw-bold text-dark text-truncate mb-1 small" style="font-size: 0.86rem;">{{ $rPost->title }}</h6>
-                                    <div class="text-muted d-flex align-items-center gap-2" style="font-size: 10.5px;">
-                                        <span class="text-truncate">{{ $rAuthor }}</span>
-                                        <span>•</span>
-                                        <span>{{ $rPost->published_at ? $rPost->published_at->format('d M') : $rPost->created_at->format('d M') }}</span>
+                                    <div class="d-flex align-items-center justify-content-between mb-0.5">
+                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-0.2 fw-semibold" style="font-size: 9.5px;">{{ $rCat }}</span>
+                                        <span class="text-muted" style="font-size: 10px;">
+                                            <i class="fa-regular fa-clock me-0.5"></i>{{ $rPost->published_at ? $rPost->published_at->format('d M') : $rPost->created_at->format('d M') }}
+                                        </span>
+                                    </div>
+                                    <h6 class="fw-bold text-dark text-truncate mb-0.5 small" style="font-size: 0.88rem;">{{ $rPost->title }}</h6>
+                                    <div class="text-muted d-flex align-items-center gap-1.5" style="font-size: 11px;">
+                                        <span class="text-truncate fw-medium text-secondary"><i class="fa-solid fa-pen-nib text-muted me-1" style="font-size: 9px;"></i>{{ $rAuthor }}</span>
                                     </div>
                                 </div>
                             </a>
@@ -543,17 +564,17 @@
 
             {{-- ══ 2nd COLUMN: সর্বাধিক পঠিত ও সম্মানিপ্রাপ্ত লেখকদের তালিকা ════════ --}}
             <div class="col-lg-4 col-md-6 col-12">
-                <div class="card h-100 p-3.5 border-0 shadow-sm rounded-4 bg-white d-flex flex-column" style="border: 1px solid #eef2f6 !important;">
+                <div class="card h-100 p-3.5 border-0 shadow-sm rounded-4 bg-white d-flex flex-column" style="border: 1px solid #e2e8f0 !important; box-shadow: 0 4px 20px rgba(0,0,0,0.03) !important;">
                     
                     {{-- Column 2 Header with Interactive Segmented Switcher --}}
                     <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
-                        <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2" style="font-size: 0.95rem;">
+                        <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2" style="font-size: 0.98rem;">
                             <i class="fa-solid fa-trophy text-warning"></i>
                             <span>২. পঠিত ও সম্মানিপ্রাপ্ত লেখা</span>
                         </h6>
                         
                         {{-- Interactive Pill Switcher --}}
-                        <div class="btn-group p-0.5 bg-light rounded-pill border" role="group" style="font-size: 11px;">
+                        <div class="btn-group p-0.5 bg-light rounded-pill border shadow-2xs" role="group" style="font-size: 11px;">
                             <button type="button" class="btn btn-xs rounded-pill px-2.5 py-1 fw-bold active btn-primary" id="btnTabHonorarium" onclick="switchCol2Tab('honorarium')">
                                 <i class="fa-solid fa-hand-holding-dollar me-0.5"></i> সম্মানি
                             </button>
@@ -565,22 +586,22 @@
 
                     {{-- TAB CONTENT 1: সম্মানিপ্রাপ্ত লেখকদের তালিকা (Honorarium Winners) --}}
                     <div id="col2HonorariumSection" class="flex-grow-1 d-flex flex-column">
-                        <div class="d-flex align-items-center justify-content-between mb-2">
-                            <span class="small fw-bold text-success d-flex align-items-center gap-1" style="font-size: 11.5px;">
+                        <div class="d-flex align-items-center justify-content-between mb-2.5">
+                            <span class="small fw-bold text-success d-flex align-items-center gap-1.5" style="font-size: 11.8px;">
                                 <i class="fa-solid fa-crown text-warning"></i>
                                 <span>পড়ে ভালো লাগা সম্মানিপ্রাপ্ত লেখকগণ</span>
                             </span>
-                            <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill" style="font-size: 10px;">
-                                <i class="fa-solid fa-medal me-1"></i>স্বীকৃতি
+                            <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2.5 py-1" style="font-size: 10px;">
+                                <i class="fa-solid fa-medal me-1 text-warning"></i>স্বীকৃতি ও পুরস্কার
                             </span>
                         </div>
 
                         <div class="d-flex flex-column gap-2.5">
                             @php
                                 $honorariumMedals = [
-                                    ['bg' => 'linear-gradient(135deg, #fef08a 0%, #fde047 100%)', 'text' => '#854d0e', 'label' => '১ম', 'border' => '#facc15'],
-                                    ['bg' => 'linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%)', 'text' => '#334155', 'label' => '২য়', 'border' => '#cbd5e1'],
-                                    ['bg' => 'linear-gradient(135deg, #fed7aa 0%, #fdba74 100%)', 'text' => '#9a3412', 'label' => '৩য়', 'border' => '#fb923c'],
+                                    ['bg' => 'linear-gradient(135deg, #fef08a 0%, #fde047 100%)', 'text' => '#854d0e', 'label' => '🥇 ১', 'border' => '#facc15'],
+                                    ['bg' => 'linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%)', 'text' => '#334155', 'label' => '🥈 ২', 'border' => '#cbd5e1'],
+                                    ['bg' => 'linear-gradient(135deg, #fed7aa 0%, #fdba74 100%)', 'text' => '#9a3412', 'label' => '🥉 ৩', 'border' => '#fb923c'],
                                 ];
                             @endphp
 
@@ -588,15 +609,15 @@
                                 @php
                                     $hAuthor = $hPost->author?->name ?: ($hPost->owner_name ?: 'আইডিয়া প্রকাশন');
                                     $hHonorarium = (float)($hPost->honorariums_sum_amount ?? 0);
-                                    $medal = $honorariumMedals[$hIdx] ?? ['bg' => '#f8fafc', 'text' => '#475569', 'label' => ($hIdx + 1) . 'ম', 'border' => '#e2e8f0'];
+                                    $medal = $honorariumMedals[$hIdx] ?? ['bg' => '#f8fafc', 'text' => '#475569', 'label' => ($hIdx + 1), 'border' => '#e2e8f0'];
                                     $hCat = $hPost->category?->name ?: 'সাহিত্য ও সংস্কৃতি';
                                 @endphp
                                 <a href="{{ route('blog.show', $hPost->slug) }}" class="d-flex align-items-center gap-2.5 p-2.5 rounded-4 text-decoration-none hover-lift border transition-all position-relative overflow-hidden" 
-                                   style="background: linear-gradient(135deg, #ffffff 0%, #fffdf7 100%); border-color: #fef08a !important; box-shadow: 0 2px 8px rgba(234,179,8,0.06);">
+                                   style="background: linear-gradient(135deg, #ffffff 0%, #fffdf7 100%); border-color: #fef08a !important; box-shadow: 0 2px 10px rgba(234,179,8,0.06);">
                                     
                                     {{-- Rank Medal Badge --}}
                                     <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 fw-bold shadow-2xs" 
-                                         style="width: 36px; height: 36px; background: {{ $medal['bg'] }}; color: {{ $medal['text'] }}; border: 1.5px solid {{ $medal['border'] }}; font-size: 12px;">
+                                         style="width: 38px; height: 38px; background: {{ $medal['bg'] }}; color: {{ $medal['text'] }}; border: 1.5px solid {{ $medal['border'] }}; font-size: 13px;">
                                         {{ $medal['label'] }}
                                     </div>
 
@@ -607,12 +628,12 @@
                                             </span>
                                             <span class="text-muted small" style="font-size: 10px;">• {{ $hCat }}</span>
                                         </div>
-                                        <h6 class="fw-bold text-dark text-truncate mb-1" style="font-size: 0.88rem;">{{ $hPost->title }}</h6>
-                                        <div class="text-muted d-flex align-items-center justify-content-between" style="font-size: 10.5px;">
+                                        <h6 class="fw-bold text-dark text-truncate mb-1" style="font-size: 0.9rem;">{{ $hPost->title }}</h6>
+                                        <div class="text-muted d-flex align-items-center justify-content-between" style="font-size: 11px;">
                                             <span class="text-truncate fw-semibold text-secondary">
                                                 <i class="fa-solid fa-feather me-1 text-warning"></i>{{ $hAuthor }}
                                             </span>
-                                            <span class="text-primary fw-bold hover-underline" style="font-size: 10px;">
+                                            <span class="text-primary fw-bold hover-underline" style="font-size: 10.5px;">
                                                 পড়ুন <i class="fa-solid fa-arrow-right ms-0.5"></i>
                                             </span>
                                         </div>
@@ -627,10 +648,12 @@
                         </div>
 
                         <div class="mt-auto pt-3 text-center border-top mt-3">
-                            <div class="p-2 bg-warning bg-opacity-10 rounded-3 border border-warning-subtle text-start d-flex align-items-center gap-2">
-                                <i class="fa-solid fa-heart-circle-bolt text-danger fs-5 flex-shrink-0"></i>
-                                <div class="small" style="font-size: 11px; line-height: 1.35;">
-                                    <span class="fw-bold text-dark">লেখকদের উৎসাহিত করুন:</span> যে-কোনো লেখার নিচে সরাসরি পড়ে ভালো লাগা সম্মানি পাঠানো যায়।
+                            <div class="p-2.5 bg-warning bg-opacity-10 rounded-3 border border-warning-subtle text-start d-flex align-items-center gap-2.5 shadow-2xs">
+                                <div class="rounded-circle bg-warning bg-opacity-20 p-2 text-dark flex-shrink-0">
+                                    <i class="fa-solid fa-heart-circle-bolt text-danger fs-5"></i>
+                                </div>
+                                <div class="small" style="font-size: 11.5px; line-height: 1.4;">
+                                    <span class="fw-bold text-dark">লেখকদের উৎসাহিত করুন:</span> লেখার নিচে সরাসরি বিকাশ/নগদে পড়ে ভালো লাগা সম্মানি পাঠানোর অনন্য সুবিধা।
                                 </div>
                             </div>
                         </div>
@@ -638,13 +661,13 @@
 
                     {{-- TAB CONTENT 2: সর্বাধিক পঠিত পোস্ট (Most Read Posts) --}}
                     <div id="col2MostReadSection" class="flex-grow-1 d-flex flex-column" style="display: none !important;">
-                        <div class="d-flex align-items-center justify-content-between mb-2">
-                            <span class="small fw-bold text-danger d-flex align-items-center gap-1" style="font-size: 11.5px;">
+                        <div class="d-flex align-items-center justify-content-between mb-2.5">
+                            <span class="small fw-bold text-danger d-flex align-items-center gap-1.5" style="font-size: 11.8px;">
                                 <i class="fa-solid fa-fire text-danger"></i>
                                 <span>পাঠকদের সর্বাধিক পঠিত ও আলোচিত লেখা</span>
                             </span>
-                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill" style="font-size: 10px;">
-                                ট্রেন্ডিং
+                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-1" style="font-size: 10px;">
+                                🔥 ট্রেন্ডিং
                             </span>
                         </div>
 
@@ -657,23 +680,23 @@
                                 <a href="{{ route('blog.show', $mPost->slug) }}" class="d-flex align-items-center gap-2.5 p-2.5 rounded-4 text-decoration-none hover-lift border transition-all bg-white"
                                    style="box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
                                     
-                                    <span class="badge bg-danger text-white rounded-circle flex-shrink-0 d-flex align-items-center justify-content-center fw-bold shadow-xs" style="width: 32px; height: 32px; font-size: 12px;">
+                                    <span class="badge bg-danger text-white rounded-circle flex-shrink-0 d-flex align-items-center justify-content-center fw-bold shadow-xs" style="width: 34px; height: 34px; font-size: 13px;">
                                         {{ $mIdx + 1 }}
                                     </span>
                                     
                                     <div class="flex-grow-1 overflow-hidden">
                                         <div class="d-flex align-items-center gap-1.5 mb-1">
                                             <span class="badge bg-light text-muted border rounded-pill" style="font-size: 9.5px;">{{ $mCat }}</span>
-                                            <span class="text-danger fw-bold ms-auto" style="font-size: 10.5px;">
+                                            <span class="text-danger fw-bold ms-auto" style="font-size: 11px;">
                                                 <i class="fa-regular fa-eye me-1"></i>{{ number_format($mPost->view_count ?: rand(15, 80)) }} বার পঠিত
                                             </span>
                                         </div>
-                                        <h6 class="fw-bold text-dark text-truncate mb-1" style="font-size: 0.88rem;">{{ $mPost->title }}</h6>
-                                        <div class="text-muted d-flex align-items-center justify-content-between" style="font-size: 10.5px;">
+                                        <h6 class="fw-bold text-dark text-truncate mb-1" style="font-size: 0.9rem;">{{ $mPost->title }}</h6>
+                                        <div class="text-muted d-flex align-items-center justify-content-between" style="font-size: 11px;">
                                             <span class="text-truncate fw-semibold text-secondary">
                                                 <i class="fa-solid fa-pen-nib me-1 text-muted"></i>{{ $mAuthor }}
                                             </span>
-                                            <span class="text-primary fw-semibold" style="font-size: 10px;">
+                                            <span class="text-primary fw-semibold" style="font-size: 10.5px;">
                                                 সম্পূর্ণ পড়ুন →
                                             </span>
                                         </div>
@@ -683,8 +706,9 @@
                         </div>
 
                         <div class="mt-auto pt-3 text-center border-top mt-3">
-                            <a href="{{ route('blog.index') }}" class="btn btn-outline-danger btn-sm rounded-pill w-100 fw-bold py-1.5" style="font-size: 0.8rem;">
-                                <i class="fa-solid fa-fire me-1"></i> সর্বাধিক পঠিত সকল লেখা দেখুন
+                            <a href="{{ route('blog.index') }}" class="btn btn-outline-danger btn-sm rounded-pill w-100 fw-bold py-2 shadow-xs d-flex align-items-center justify-content-center gap-1.5" style="font-size: 0.85rem;">
+                                <i class="fa-solid fa-fire me-1"></i>
+                                <span>সর্বাধিক পঠিত সকল লেখা দেখুন</span>
                             </a>
                         </div>
                     </div>
@@ -694,13 +718,13 @@
 
             {{-- ══ 3rd COLUMN: বিষয়ভিত্তিক ক্যাটাগরি ও সাময়িকী ═══════════════ --}}
             <div class="col-lg-4 col-md-12 col-12">
-                <div class="card h-100 p-3.5 border-0 shadow-sm rounded-4 bg-white d-flex flex-column" style="border: 1px solid #eef2f6 !important;">
+                <div class="card h-100 p-3.5 border-0 shadow-sm rounded-4 bg-white d-flex flex-column" style="border: 1px solid #e2e8f0 !important; box-shadow: 0 4px 20px rgba(0,0,0,0.03) !important;">
                     <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
-                        <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2" style="font-size: 0.95rem;">
+                        <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2" style="font-size: 0.98rem;">
                             <i class="fa-solid fa-book-journal-whills text-success"></i>
                             <span>৩. বিষয়ভিত্তিক সাময়িকী ও ক্যাটাগরি</span>
                         </h6>
-                        <a href="{{ route('blog.index') }}" class="small text-primary text-decoration-none fw-semibold d-flex align-items-center gap-1" style="font-size: 0.76rem;">
+                        <a href="{{ route('blog.index') }}" class="small text-primary text-decoration-none fw-semibold d-flex align-items-center gap-1" style="font-size: 0.78rem;">
                             <span>সব বিষয়</span>
                             <i class="fa-solid fa-chevron-right" style="font-size: 9px;"></i>
                         </a>
@@ -708,7 +732,7 @@
 
                     <div class="d-flex flex-column gap-2.5 flex-grow-1">
                         @if(isset($blogCategories) && $blogCategories->isNotEmpty())
-                            @foreach($blogCategories->take(4) as $cIdx => $bCat)
+                            @foreach($blogCategories->take(5) as $cIdx => $bCat)
                                 @php
                                     $samplePost = $bCat->posts?->first();
                                     $catGradients = [
@@ -716,18 +740,19 @@
                                         ['icon' => 'fa-feather', 'bg' => 'bg-success-subtle', 'text' => 'text-success'],
                                         ['icon' => 'fa-landmark', 'bg' => 'bg-warning-subtle', 'text' => 'text-warning-emphasis'],
                                         ['icon' => 'fa-lightbulb', 'bg' => 'bg-info-subtle', 'text' => 'text-info-emphasis'],
+                                        ['icon' => 'fa-pen-fancy', 'bg' => 'bg-purple-subtle', 'text' => 'text-purple'],
                                     ];
-                                    $cg = $catGradients[$cIdx % 4];
+                                    $cg = $catGradients[$cIdx % 5];
                                 @endphp
                                 <div class="p-2.5 rounded-4 border bg-white hover-lift transition-all" style="box-shadow: 0 2px 6px rgba(0,0,0,0.02);">
-                                    <div class="d-flex align-items-center justify-content-between mb-1.5">
-                                        <a href="{{ route('blog.category', $bCat->slug) }}" class="text-decoration-none fw-bold text-dark d-flex align-items-center gap-2 hover-primary" style="font-size: 0.9rem;">
-                                            <span class="rounded-circle {{ $cg['bg'] }} {{ $cg['text'] }} d-flex align-items-center justify-content-center" style="width: 26px; height: 26px; font-size: 11px;">
+                                    <div class="d-flex align-items-center justify-content-between mb-1">
+                                        <a href="{{ route('blog.category', $bCat->slug) }}" class="text-decoration-none fw-bold text-dark d-flex align-items-center gap-2 hover-primary" style="font-size: 0.92rem;">
+                                            <span class="rounded-circle {{ $cg['bg'] }} {{ $cg['text'] }} d-flex align-items-center justify-content-center" style="width: 28px; height: 28px; font-size: 12px;">
                                                 <i class="fa-solid {{ $cg['icon'] }}"></i>
                                             </span>
                                             <span>{{ $bCat->name }}</span>
                                         </a>
-                                        <a href="{{ route('blog.category', $bCat->slug) }}" class="badge bg-light text-muted border rounded-pill text-decoration-none hover-primary fw-semibold" style="font-size: 10px;">
+                                        <a href="{{ route('blog.category', $bCat->slug) }}" class="badge bg-light text-muted border rounded-pill text-decoration-none hover-primary fw-semibold px-2 py-1" style="font-size: 10.5px;">
                                             {{ $bCat->posts_count }}টি লেখা <i class="fa-solid fa-angle-right ms-0.5 opacity-50"></i>
                                         </a>
                                     </div>
@@ -749,7 +774,7 @@
                     </div>
 
                     <div class="mt-3 pt-2 border-top text-center">
-                        <a href="{{ route('blog.index') }}" class="btn btn-primary btn-sm rounded-pill w-100 fw-bold py-2 shadow-xs d-flex align-items-center justify-content-center gap-1.5" style="font-size: 0.84rem;">
+                        <a href="{{ route('blog.index') }}" class="btn btn-primary btn-sm rounded-pill w-100 fw-bold py-2 shadow-xs d-flex align-items-center justify-content-center gap-1.5" style="font-size: 0.86rem;">
                             <i class="fa-solid fa-book-open-reader"></i>
                             <span>আইডিয়াপত্রের সকল বিষয় ও সাময়িকী ব্রাউজ করুন</span>
                         </a>
@@ -760,7 +785,6 @@
         </div>
     </div>
 </section>
-@endif
 
 {{-- ══ AUTHORS STRIP ═══════════════════════════════════════════════════════════ --}}
 @if(isset($authors) && $authors->isNotEmpty())
