@@ -311,6 +311,22 @@ class AdminAccessController extends Controller
                     ['value' => (int) $request->input('site_logo_scale', 100), 'updated_by' => auth()->id()]
                 );
             }
+            if ($request->has('site_logo_padding_y')) {
+                AdminDashboardSetting::updateOrCreate(
+                    ['key' => 'site_logo_padding_y'],
+                    ['value' => (int) $request->input('site_logo_padding_y', 2), 'updated_by' => auth()->id()]
+                );
+            }
+            if ($request->has('site_logo_padding_x')) {
+                AdminDashboardSetting::updateOrCreate(
+                    ['key' => 'site_logo_padding_x'],
+                    ['value' => (int) $request->input('site_logo_padding_x', 0), 'updated_by' => auth()->id()]
+                );
+            }
+            AdminDashboardSetting::updateOrCreate(
+                ['key' => 'site_logo_show_text'],
+                ['value' => $request->boolean('site_logo_show_text'), 'updated_by' => auth()->id()]
+            );
 
             if ($request->boolean('remove_site_logo')) {
                 AdminDashboardSetting::where('key', 'site_logo')->delete();

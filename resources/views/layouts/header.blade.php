@@ -158,23 +158,30 @@
                     $logoHeight = \App\Support\SiteSetting::logoHeight();
                     $logoWidth = \App\Support\SiteSetting::logoWidth();
                     $logoScale = \App\Support\SiteSetting::logoScale();
+                    $logoPadY = \App\Support\SiteSetting::logoPaddingY();
+                    $logoPadX = \App\Support\SiteSetting::logoPaddingX();
+                    $showBrandText = \App\Support\SiteSetting::showBrandText();
                 @endphp
-                <div class="site-brand__logo-box d-flex align-items-center justify-content-start" 
-                     style="height: {{ $logoHeight }}px; max-height: {{ $logoHeight }}px; max-width: {{ $logoWidth }}px;">
+                <div class="site-brand__logo-box d-flex align-items-center justify-content-center" 
+                     style="height: {{ $logoHeight }}px; max-height: {{ $logoHeight }}px; max-width: {{ $logoWidth }}px; padding: {{ $logoPadY }}px {{ $logoPadX }}px;">
                     @if ($logoUrl)
                         <img src="{{ $logoUrl }}"
                              alt="{{ $siteName }}" 
                              class="site-brand__img"
-                             style="max-height: {{ $logoHeight }}px; max-width: {{ $logoWidth }}px; width: auto; height: auto; object-fit: contain; transform: scale({{ $logoScale / 100 }}); transform-origin: left center;"
+                             style="max-height: 100%; max-width: 100%; width: auto; height: auto; object-fit: contain; transform: scale({{ $logoScale / 100 }});"
                              onerror="this.onerror=null; this.src='{{ asset('images/logo.svg') }}';">
                     @else
                         <span class="site-brand__fallback">{{ config('brand.lettermark', 'আই') }}</span>
                     @endif
                 </div>
+                @if($showBrandText || !$logoUrl)
                 <div class="site-brand__text d-flex flex-column justify-content-center">
-                    <span class="site-brand__name" style="font-size: clamp(1.1rem, 3.5vw, 1.35rem);">{{ $siteName }}</span>
-                    <span class="site-brand__sub">{{ $siteTagline }}</span>
+                    <span class="site-brand__name" style="font-size: clamp(1.05rem, 3.2vw, 1.3rem);">{{ $siteName }}</span>
+                    @if($siteTagline)
+                        <span class="site-brand__sub">{{ $siteTagline }}</span>
+                    @endif
                 </div>
+                @endif
             </a>
 
             {{-- Large Wide Centered Classic Search Bar --}}
@@ -575,88 +582,300 @@
     </div>
 </header>
 
-{{-- Mobile Navigation Offcanvas --}}
-<div class="offcanvas offcanvas-start site-offcanvas" tabindex="-1" id="siteMobileNav" aria-labelledby="siteMobileNavLabel">
-    <div class="offcanvas-header bg-light border-bottom">
-        <h5 class="offcanvas-title d-flex align-items-center gap-2 fw-bold text-primary" id="siteMobileNavLabel">
-            <x-brand-logo :size="30" />
-            {{ config('brand.name', 'আইডিয়া প্রকাশন') }}
-        </h5>
-        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="বন্ধ করুন"></button>
+{{-- ══════════════════════════════════════════════════════════════════
+     MOBILE NAVIGATION DRAWER (World-Class Clean & Organized)
+══════════════════════════════════════════════════════════════════ --}}
+<div class="offcanvas offcanvas-start site-offcanvas" tabindex="-1" id="siteMobileNav" aria-labelledby="siteMobileNavLabel" style="width: min(340px, 86vw); border-top-right-radius: 20px; border-bottom-right-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.25);">
+    
+    {{-- Offcanvas Header with Brand Logo --}}
+    <div class="offcanvas-header border-bottom py-3 px-3.5 bg-light" style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);">
+        <a href="{{ route('home') }}" class="d-flex align-items-center gap-2 text-decoration-none" data-bs-dismiss="offcanvas">
+            @php 
+                $mLogoUrl = \App\Support\SiteSetting::logoUrl();
+                $mSiteName = \App\Support\SiteSetting::name();
+                $mSiteTagline = \App\Support\SiteSetting::tagline();
+            @endphp
+            @if ($mLogoUrl)
+                <img src="{{ $mLogoUrl }}" alt="{{ $mSiteName }}" style="height: 38px; max-width: 130px; object-fit: contain;">
+            @else
+                <span class="site-brand__fallback" style="width: 38px; height: 38px; font-size: 1.1rem;">{{ config('brand.lettermark', 'আই') }}</span>
+            @endif
+            <div class="d-flex flex-column lh-1">
+                <strong class="text-primary fw-bold" style="font-size: 1.05rem;">{{ $mSiteName }}</strong>
+                <span class="text-muted" style="font-size: 10px;">{{ $mSiteTagline }}</span>
+            </div>
+        </a>
+        <button type="button" class="btn-close rounded-circle p-2 shadow-2xs" data-bs-dismiss="offcanvas" aria-label="মেনু বন্ধ করুন"></button>
     </div>
 
-    <div class="offcanvas-body p-3">
-        @foreach ($nav as $item)
+    {{-- Offcanvas Body --}}
+    <div class="offcanvas-body p-3 overflow-y-auto">
+
+        {{-- 1. USER ACCOUNT PROFILE / GUEST BANNER CARD --}}
+        @auth
             @php
-                $isActive = false;
-                if (!empty($item['active'])) {
-                    $patterns = is_array($item['active']) ? $item['active'] : explode(',', $item['active']);
-                    $patterns = array_map('trim', $patterns);
-                    $isActive = collect($patterns)->contains(fn($pattern) => request()->routeIs($pattern) || request()->is(ltrim($pattern, '/')));
-                } elseif (!empty($item['route']) && Route::has($item['route'])) {
-                    $isActive = request()->routeIs($item['route']);
+                $mAvatarUrl = null;
+                if (!empty($me->avatar)) {
+                    $mAvatarUrl = \Illuminate\Support\Str::startsWith($me->avatar, ['http://', 'https://']) 
+                        ? $me->avatar 
+                        : asset('storage/' . ltrim($me->avatar, '/'));
                 }
             @endphp
-            <a class="site-m-link {{ $isActive ? 'active fw-bold text-primary' : '' }}" 
-               href="{{ $item['target_url'] }}" 
-               target="{{ $item['target'] ?? '_self' }}">
-                <i class="fas fa-{{ $item['icon'] ?? 'link' }} text-primary"></i>
-                <span class="d-inline-flex align-items-center justify-content-between flex-grow-1">
-                    <span>{{ $item['label'] }}</span>
-                    @if(!empty($item['badge']))
-                        <span class="badge bg-danger text-white rounded-pill px-1.5 py-0.2" style="font-size: 9px;">{{ $item['badge'] }}</span>
-                    @endif
-                </span>
-            </a>
-        @endforeach
+            <div class="card border-0 rounded-4 p-3 mb-3 text-white shadow-sm" style="background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);">
+                <div class="d-flex align-items-center gap-2.5 mb-2.5">
+                    <div class="rounded-circle overflow-hidden shadow-xs border border-2 border-white d-flex align-items-center justify-content-center bg-light text-primary fw-bold" style="width: 44px; height: 44px; font-size: 16px; flex-shrink: 0;">
+                        @if ($mAvatarUrl)
+                            <img src="{{ $mAvatarUrl }}" alt="{{ $me->name }}" class="w-100 h-100 object-fit-cover">
+                        @else
+                            {{ mb_substr($me->name, 0, 1) }}
+                        @endif
+                    </div>
+                    <div class="text-truncate">
+                        <h6 class="fw-bold mb-0 text-white text-truncate" style="font-size: 0.92rem;">{{ $me->name }}</h6>
+                        <span class="badge bg-white bg-opacity-20 text-warning px-2 py-0.5 rounded-pill" style="font-size: 10px;">
+                            {{ ['admin' => '👑 অ্যাডমিন', 'sub_admin' => '🛡️ সাব-অ্যাডমিন', 'seller' => '💼 সেলার', 'publisher' => '🏢 প্রকাশক', 'author' => '✍️ লেখক'][$me->role] ?? '👤 গ্রাহক' }}
+                        </span>
+                    </div>
+                </div>
 
-        {{-- Mobile Language Selector --}}
-        <div class="mt-3 p-3 rounded-4 bg-light border notranslate">
+                {{-- User Quick Actions Grid --}}
+                <div class="row g-1.5 pt-2 border-top border-white border-opacity-15 text-center">
+                    <div class="col-3">
+                        <a href="{{ route('my-account') }}" class="btn btn-sm btn-light bg-opacity-15 text-white border-0 rounded-3 w-100 py-1.5 px-0 d-flex flex-column align-items-center justify-content-center hover-bg-light hover-text-dark" title="প্রোফাইল">
+                            <i class="fa-solid fa-user small mb-1 text-info"></i>
+                            <span style="font-size: 9.5px;">প্রোফাইল</span>
+                        </a>
+                    </div>
+                    <div class="col-3">
+                        <a href="{{ route('my-account') }}" class="btn btn-sm btn-light bg-opacity-15 text-white border-0 rounded-3 w-100 py-1.5 px-0 d-flex flex-column align-items-center justify-content-center hover-bg-light hover-text-dark" title="অর্ডার">
+                            <i class="fa-solid fa-box-open small mb-1 text-warning"></i>
+                            <span style="font-size: 9.5px;">অর্ডারসমূহ</span>
+                        </a>
+                    </div>
+                    <div class="col-3">
+                        <a href="{{ Route::has('wishlist') ? route('wishlist') : url('/wishlist') }}" class="btn btn-sm btn-light bg-opacity-15 text-white border-0 rounded-3 w-100 py-1.5 px-0 d-flex flex-column align-items-center justify-content-center hover-bg-light hover-text-dark" title="উইশলিস্ট">
+                            <i class="fa-solid fa-heart small mb-1 text-danger"></i>
+                            <span style="font-size: 9.5px;">উইশলিস্ট</span>
+                        </a>
+                    </div>
+                    <div class="col-3">
+                        <a href="{{ route('cart') }}" class="btn btn-sm btn-light bg-opacity-15 text-white border-0 rounded-3 w-100 py-1.5 px-0 d-flex flex-column align-items-center justify-content-center hover-bg-light hover-text-dark" title="কার্ট">
+                            <i class="fa-solid fa-bag-shopping small mb-1 text-success"></i>
+                            <span style="font-size: 9.5px;">কার্ট</span>
+                        </a>
+                    </div>
+                </div>
+
+                {{-- Role Dashboard Shortcut if available --}}
+                @if ($me->isAdmin() && Route::has('admin.dashboard'))
+                    <a href="{{ route('admin.dashboard') }}" class="btn btn-warning btn-sm rounded-pill fw-bold text-dark w-100 mt-2 py-1 shadow-xs">
+                        <i class="fa-solid fa-gauge-high me-1"></i> অ্যাডমিন প্যানেল প্রবেশ করুন
+                    </a>
+                @elseif ($me->isPublisher() && Route::has('publisher.dashboard'))
+                    <a href="{{ route('publisher.dashboard') }}" class="btn btn-success btn-sm rounded-pill fw-bold text-white w-100 mt-2 py-1 shadow-xs">
+                        <i class="fa-solid fa-building me-1"></i> পাবলিশার ড্যাশবোর্ড
+                    </a>
+                @elseif ($me->isAuthor() && Route::has('author.dashboard'))
+                    <a href="{{ route('author.dashboard') }}" class="btn btn-success btn-sm rounded-pill fw-bold text-white w-100 mt-2 py-1 shadow-xs">
+                        <i class="fa-solid fa-feather-pointed me-1"></i> লেখক ড্যাশবোর্ড
+                    </a>
+                @endif
+            </div>
+        @else
+            {{-- Guest Welcome & Login/Register Cards --}}
+            <div class="card border-0 rounded-4 p-3 mb-3 shadow-sm" style="background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <div class="fw-bold text-dark" style="font-size: 0.95rem;">
+                        <i class="fa-solid fa-circle-user text-primary me-1"></i> স্বাগতম ভিজিটর!
+                    </div>
+                    <span class="badge bg-primary text-white rounded-pill px-2 py-0.5" style="font-size: 9.5px;">লগইন করুন</span>
+                </div>
+                <p class="small text-muted mb-2.5" style="font-size: 11.5px; line-height: 1.35;">বই কেনা, অর্ডার ট্র্যাকিং ও লেখকের সাথে যুক্ত হতে একাউন্টে প্রবেশ করুন।</p>
+                <div class="row g-2">
+                    <div class="col-6">
+                        <a href="{{ route('login') }}" class="btn btn-primary rounded-pill btn-sm fw-bold w-100 d-inline-flex align-items-center justify-content-center gap-1 shadow-xs">
+                            <i class="fa-solid fa-arrow-right-to-bracket small"></i>
+                            <span>লগইন</span>
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a href="{{ Route::has('register.choose') ? route('register.choose') : route('register') }}" class="btn btn-outline-primary bg-white rounded-pill btn-sm fw-bold w-100 d-inline-flex align-items-center justify-content-center gap-1 shadow-xs">
+                            <i class="fa-solid fa-user-plus small"></i>
+                            <span>রেজিস্ট্রেশন</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        @endauth
+
+        {{-- 2. PRIMARY EXPLORE MENU LIST --}}
+        <div class="mb-3">
+            <div class="text-uppercase fw-bold text-muted px-1 mb-1.5" style="font-size: 10.5px; letter-spacing: 0.6px;">
+                <i class="fa-solid fa-compass text-primary me-1"></i> প্রধান মেনু ও এক্সপ্লোর
+            </div>
+            <div class="d-flex flex-column gap-1 bg-light bg-opacity-75 p-2 rounded-4 border">
+                @foreach ($nav as $item)
+                    @php
+                        $isActive = false;
+                        if (!empty($item['active'])) {
+                            $patterns = is_array($item['active']) ? $item['active'] : explode(',', $item['active']);
+                            $patterns = array_map('trim', $patterns);
+                            $isActive = collect($patterns)->contains(fn($pattern) => request()->routeIs($pattern) || request()->is(ltrim($pattern, '/')));
+                        } elseif (!empty($item['route']) && Route::has($item['route'])) {
+                            $isActive = request()->routeIs($item['route']);
+                        }
+                        $iconClass = 'fas fa-' . ($item['icon'] ?? 'link');
+                        if (str_contains($item['icon'] ?? '', 'fa-')) {
+                            $iconClass = $item['icon'];
+                        }
+                    @endphp
+                    <a class="site-m-link rounded-3 px-2.5 py-2 text-decoration-none d-flex align-items-center justify-content-between transition-all {{ $isActive ? 'bg-primary text-white shadow-xs fw-bold' : 'text-dark hover-bg-white' }}" 
+                       href="{{ $item['target_url'] }}" 
+                       target="{{ $item['target'] ?? '_self' }}"
+                       style="font-size: 13.5px; border-bottom: 0;">
+                        <span class="d-flex align-items-center gap-2.5 text-truncate">
+                            <span class="rounded-circle d-inline-flex align-items-center justify-content-center {{ $isActive ? 'bg-white text-primary' : 'bg-primary bg-opacity-10 text-primary' }}" style="width: 28px; height: 28px; flex-shrink: 0;">
+                                <i class="{{ $iconClass }}" style="font-size: 12px;"></i>
+                            </span>
+                            <span class="text-truncate">{{ $item['label'] }}</span>
+                        </span>
+                        @if(!empty($item['badge']))
+                            <span class="badge {{ $isActive ? 'bg-warning text-dark' : 'bg-danger text-white' }} rounded-pill px-2 py-0.5" style="font-size: 9.5px;">{{ $item['badge'] }}</span>
+                        @else
+                            <i class="fa-solid fa-chevron-right small opacity-50" style="font-size: 10px;"></i>
+                        @endif
+                    </a>
+                @endforeach
+            </div>
+        </div>
+
+        {{-- 3. BOOK CATEGORIES EXPANDABLE ACCORDION (বইয়ের বিভাগসমূহ) --}}
+        <div class="mb-3">
+            <div class="accordion accordion-flush rounded-4 overflow-hidden border shadow-2xs" id="mobileCatAccordion">
+                <div class="accordion-item border-0">
+                    <h2 class="accordion-header" id="headingMobileCats">
+                        <button class="accordion-button collapsed py-2.5 px-3 fw-bold bg-white text-dark shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMobileCats" aria-expanded="false" aria-controls="collapseMobileCats" style="font-size: 13.5px;">
+                            <span class="d-flex align-items-center gap-2 text-primary">
+                                <i class="fa-solid fa-layer-group"></i>
+                                <span>বইয়ের ক্যাটাগরিসমূহ</span>
+                            </span>
+                            <span class="badge bg-primary bg-opacity-10 text-primary ms-auto me-2 rounded-pill px-2 py-0.5" style="font-size: 10px;">@bn($headerCategories->count())টি</span>
+                        </button>
+                    </h2>
+                    <div id="collapseMobileCats" class="accordion-collapse collapse" aria-labelledby="headingMobileCats" data-bs-parent="#mobileCatAccordion">
+                        <div class="accordion-body p-2 bg-light" style="max-height: 280px; overflow-y: auto;">
+                            @if ($headerCategories->isNotEmpty())
+                                <div class="d-flex flex-column gap-1">
+                                    @foreach ($headerCategories as $mCat)
+                                        <a href="{{ route('book.index', ['category' => $mCat->slug]) }}" class="d-flex align-items-center justify-content-between p-2 rounded-3 text-decoration-none text-dark bg-white hover-bg-light transition-all shadow-2xs" style="font-size: 12.5px;">
+                                            <span class="d-flex align-items-center gap-2 text-truncate">
+                                                <i class="fa-solid fa-book-bookmark text-primary" style="font-size: 11px;"></i>
+                                                <span class="text-truncate fw-medium">{{ $mCat->name }}</span>
+                                            </span>
+                                            @if(isset($mCat->books_count) && $mCat->books_count > 0)
+                                                <span class="badge bg-light text-muted border font-monospace" style="font-size: 9.5px;">@bn($mCat->books_count)</span>
+                                            @endif
+                                        </a>
+                                    @endforeach
+                                </div>
+                            @else
+                                <div class="text-muted text-center py-2 small">ক্যাটাগরি লোড হচ্ছে...</div>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- 4. SPECIAL DEALS & FESTIVAL STRIP --}}
+        <div class="mb-3">
+            <div class="text-uppercase fw-bold text-muted px-1 mb-1.5" style="font-size: 10.5px; letter-spacing: 0.6px;">
+                <i class="fa-solid fa-tags text-warning me-1"></i> স্পেশাল অফার ও মেলা
+            </div>
+            <div class="row g-2">
+                <div class="col-6">
+                    <a href="{{ route('book.index', ['filter' => 'boimela-2026']) }}" class="btn btn-outline-danger btn-sm rounded-4 w-100 py-2 px-2 d-flex align-items-center justify-content-center gap-1.5 text-nowrap fw-bold shadow-2xs hover-shadow" style="font-size: 12px; background: #fff5f5;">
+                        <i class="fa-solid fa-fire text-danger"></i>
+                        <span>বইমেলা ২০২৬</span>
+                    </a>
+                </div>
+                <div class="col-6">
+                    <a href="{{ route('book.index', ['filter' => 'flash_sale']) }}" class="btn btn-outline-warning btn-sm rounded-4 w-100 py-2 px-2 d-flex align-items-center justify-content-center gap-1.5 text-nowrap fw-bold text-dark shadow-2xs hover-shadow" style="font-size: 12px; background: #fffdf0;">
+                        <i class="fa-solid fa-bolt text-warning"></i>
+                        <span>ফ্ল্যাশ সেলস</span>
+                    </a>
+                </div>
+                <div class="col-6">
+                    <a href="{{ route('book.index', ['filter' => 'mega-discount']) }}" class="btn btn-outline-success btn-sm rounded-4 w-100 py-2 px-2 d-flex align-items-center justify-content-center gap-1.5 text-nowrap fw-bold shadow-2xs hover-shadow" style="font-size: 12px; background: #f0fdf4;">
+                        <i class="fa-solid fa-percent text-success"></i>
+                        <span>মেগা ডিসকাউন্ট</span>
+                    </a>
+                </div>
+                <div class="col-6">
+                    <a href="{{ route('book.index', ['category' => 'pshcimbnger-bi']) }}" class="btn btn-outline-primary btn-sm rounded-4 w-100 py-2 px-2 d-flex align-items-center justify-content-center gap-1.5 text-nowrap fw-bold shadow-2xs hover-shadow" style="font-size: 12px; background: #f0f9ff;">
+                        <i class="fa-solid fa-book text-primary"></i>
+                        <span>পশ্চিমবঙ্গের বই</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        {{-- 5. WRITE & EARN / POST WRITING CTA --}}
+        <div class="mb-3">
+            <a href="{{ route('blog.write') }}" class="btn btn-warning rounded-4 fw-bold text-dark w-100 py-2.5 px-3 d-flex align-items-center justify-content-between shadow-sm hover-shadow" style="font-size: 13.5px; background: linear-gradient(135deg, #fef08a 0%, #facc15 100%);">
+                <span class="d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-pen-nib text-dark fs-6"></i>
+                    <span>নিজের লেখা প্রকাশ করুন</span>
+                </span>
+                <i class="fa-solid fa-arrow-right small text-dark opacity-75"></i>
+            </a>
+        </div>
+
+        {{-- 6. HOTLINE & WHATSAPP SUPPORT CARD --}}
+        <div class="card border-0 rounded-4 p-3 mb-3 bg-light border shadow-2xs">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="fw-bold text-dark small"><i class="fa-solid fa-headset text-success me-1"></i> গ্রাহক সহায়তা কেন্দ্র:</span>
+                <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2 py-0.5" style="font-size: 9px;">সকাল ৯টা - রাত ১১টা</span>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="https://wa.me/8801726976982" target="_blank" rel="noopener" class="btn btn-success btn-sm rounded-pill flex-grow-1 fw-bold d-inline-flex align-items-center justify-content-center gap-1.5 shadow-xs">
+                    <i class="fa-brands fa-whatsapp fs-6"></i>
+                    <span>হোয়াটসঅ্যাপ</span>
+                </a>
+                <a href="tel:+8801726976982" class="btn btn-outline-primary btn-sm rounded-pill flex-grow-1 fw-bold d-inline-flex align-items-center justify-content-center gap-1.5 shadow-xs">
+                    <i class="fa-solid fa-phone small"></i>
+                    <span>কল দিন</span>
+                </a>
+            </div>
+        </div>
+
+        {{-- 7. MOBILE LANGUAGE SELECTOR --}}
+        <div class="mb-3 p-3 rounded-4 bg-light border notranslate shadow-2xs">
             <div class="d-flex align-items-center justify-content-between mb-2">
                 <span class="fw-bold text-dark small"><i class="fas fa-globe text-primary me-1.5"></i>ভাষা নির্বাচন / Language:</span>
                 <span class="badge bg-primary px-2.5 py-1 current-lang-display">বাংলা</span>
             </div>
             <div class="d-flex flex-wrap gap-1.5">
-                <button type="button" class="btn btn-sm btn-outline-primary py-1 px-2 rounded-pill flex-grow-1" onclick="switchSiteLanguage('bn', 'বাংলা')">🇧🇩 বাংলা</button>
-                <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2 rounded-pill flex-grow-1" onclick="switchSiteLanguage('en', 'English')">🇬🇧 English</button>
-                <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2 rounded-pill flex-grow-1" onclick="switchSiteLanguage('ar', 'العربية')">🇸🇦 العربية</button>
-                <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2 rounded-pill flex-grow-1" onclick="switchSiteLanguage('hi', 'हिन्दी')">🇮🇳 हिन्दी</button>
+                <button type="button" class="btn btn-sm btn-outline-primary py-1 px-2.5 rounded-pill flex-grow-1" onclick="switchSiteLanguage('bn', 'বাংলা')">🇧🇩 বাংলা</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2.5 rounded-pill flex-grow-1" onclick="switchSiteLanguage('en', 'English')">🇬🇧 English</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2.5 rounded-pill flex-grow-1" onclick="switchSiteLanguage('ar', 'العربية')">🇸🇦 العربية</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2.5 rounded-pill flex-grow-1" onclick="switchSiteLanguage('hi', 'हिन्दी')">🇮🇳 हिन्दी</button>
             </div>
         </div>
 
-        <div class="d-grid gap-2 mt-3 pt-3 border-top">
-            <a href="{{ route('blog.write') }}" class="btn btn-warning rounded-pill fw-bold text-dark shadow-sm">
-                <i class="fas fa-pen-nib me-1.5"></i> নিজের লেখা পোস্ট করুন
-            </a>
-            @auth
-                @if ($me->isAdmin() && Route::has('admin.dashboard'))
-                    <a href="{{ route('admin.dashboard') }}" class="btn btn-primary rounded-pill fw-semibold">অ্যাডমিন প্যানেল</a>
-                @elseif ($me->isSeller() && Route::has('subadmin.bills.index'))
-                    <a href="{{ route('subadmin.bills.index') }}" class="btn btn-primary rounded-pill fw-semibold">সেলার প্যানেল</a>
-                @endif
+        {{-- 8. LOGOUT (IF AUTH) --}}
+        @auth
+            <div class="pt-2 border-top">
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
-                    <button class="btn btn-outline-danger rounded-pill w-100 fw-semibold">লগ আউট</button>
+                    <button class="btn btn-outline-danger rounded-pill w-100 py-2 fw-semibold d-flex align-items-center justify-content-center gap-2">
+                        <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                        <span>লগ আউট করুন</span>
+                    </button>
                 </form>
-            @else
-                <div class="row g-2">
-                    <div class="col-6">
-                        <a href="{{ route('login') }}" class="btn btn-outline-primary rounded-pill fw-bold w-100 d-inline-flex align-items-center justify-content-center gap-1.5">
-                            <i class="fa-solid fa-arrow-right-to-bracket"></i>
-                            <span>লগইন</span>
-                        </a>
-                    </div>
-                    <div class="col-6">
-                        @if (Route::has('register.choose'))
-                            <a href="{{ route('register.choose') }}" class="btn btn-primary rounded-pill fw-bold w-100 d-inline-flex align-items-center justify-content-center gap-1.5 shadow-xs">
-                                <i class="fa-solid fa-user-plus"></i>
-                                <span>রেজিস্ট্রেশন</span>
-                            </a>
-                        @endif
-                    </div>
-                </div>
-            @endauth
-        </div>
+            </div>
+        @endauth
+
     </div>
 </div>
 

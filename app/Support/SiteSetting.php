@@ -85,6 +85,25 @@ class SiteSetting
         return (int) (self::get('site_logo_scale') ?: 100);
     }
 
+    public static function logoPaddingY(): int
+    {
+        return (int) (self::get('site_logo_padding_y') ?? 2);
+    }
+
+    public static function logoPaddingX(): int
+    {
+        return (int) (self::get('site_logo_padding_x') ?? 0);
+    }
+
+    public static function showBrandText(): bool
+    {
+        $val = self::get('site_logo_show_text');
+        if ($val === null) {
+            return true;
+        }
+        return filter_var($val, FILTER_VALIDATE_BOOLEAN);
+    }
+
     public static function faviconUrl(): ?string
     {
         $favicon = self::get('site_favicon') ?: config('brand.favicon');

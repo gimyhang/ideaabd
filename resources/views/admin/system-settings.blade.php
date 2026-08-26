@@ -264,18 +264,23 @@
                                              style="background: #ffffff; min-height: 74px; border-color: #cbd5e1 !important;">
                                             
                                             <!-- Logo Target Box -->
-                                            <div class="d-flex align-items-center justify-content-start overflow-hidden flex-shrink-0" 
-                                                 id="logoWrapper"
-                                                 style="max-height: {{ \App\Support\SiteSetting::logoHeight() }}px; max-width: {{ \App\Support\SiteSetting::logoWidth() }}px; transition: all 0.15s ease;">
-                                                @if($logoUrl)
-                                                    <img src="{{ $logoUrl }}" alt="Site Logo" id="logoPreviewImg" 
-                                                         style="max-height: {{ \App\Support\SiteSetting::logoHeight() }}px; max-width: {{ \App\Support\SiteSetting::logoWidth() }}px; width: auto; height: auto; object-fit: contain; transform: scale({{ \App\Support\SiteSetting::logoScale() / 100 }}); transform-origin: left center; transition: all 0.15s ease;">
-                                                @else
-                                                    <div class="d-flex align-items-center gap-2 text-primary" id="logoPreviewImg" style="transform: scale({{ \App\Support\SiteSetting::logoScale() / 100 }}); transform-origin: left center;">
-                                                        <span class="badge bg-primary text-white p-2 rounded fs-5">ID</span>
-                                                        <span class="fw-bold fs-5">Idea Prakashan</span>
-                                                    </div>
-                                                @endif
+                                            <div class="d-flex align-items-center gap-2" id="simBrandBox">
+                                                <div class="d-flex align-items-center justify-content-center overflow-hidden flex-shrink-0" 
+                                                     id="logoWrapper"
+                                                     style="height: {{ \App\Support\SiteSetting::logoHeight() }}px; max-height: {{ \App\Support\SiteSetting::logoHeight() }}px; max-width: {{ \App\Support\SiteSetting::logoWidth() }}px; padding: {{ \App\Support\SiteSetting::logoPaddingY() }}px {{ \App\Support\SiteSetting::logoPaddingX() }}px; transition: all 0.15s ease;">
+                                                    @if($logoUrl)
+                                                        <img src="{{ $logoUrl }}" alt="Site Logo" id="logoPreviewImg" 
+                                                             style="max-height: 100%; max-width: 100%; width: auto; height: auto; object-fit: contain; transform: scale({{ \App\Support\SiteSetting::logoScale() / 100 }}); transition: all 0.15s ease;">
+                                                    @else
+                                                        <div class="d-flex align-items-center gap-2 text-primary" id="logoPreviewImg" style="transform: scale({{ \App\Support\SiteSetting::logoScale() / 100 }});">
+                                                            <span class="badge bg-primary text-white p-2 rounded fs-5">ID</span>
+                                                        </div>
+                                                    @endif
+                                                </div>
+                                                <div class="site-brand__text d-flex flex-column justify-content-center" id="simBrandText" style="{{ \App\Support\SiteSetting::showBrandText() ? '' : 'display: none !important;' }}">
+                                                    <span class="fw-bold text-primary fs-5 lh-1" id="simSiteName">{{ \App\Support\SiteSetting::name() }}</span>
+                                                    <small class="text-muted" style="font-size: 11px;">{{ \App\Support\SiteSetting::tagline() }}</small>
+                                                </div>
                                             </div>
 
                                             <!-- Mock Navbar Navigation elements on the right -->
@@ -286,20 +291,20 @@
                                         </div>
                                     </div>
 
-                                    {{-- Sliders for Height, Width, and Scale --}}
+                                    {{-- Sliders for Height, Width, Scale, and Padding --}}
                                     <div class="p-3 bg-light rounded-3 border mb-3">
                                         <div class="d-flex justify-content-between align-items-center mb-2 pb-1 border-bottom">
-                                            <span class="fw-bold text-dark small"><i class="fa-solid fa-sliders text-primary me-1"></i> লোগোর আকার ও স্কেল সমন্বয় (Logo Size Sliders)</span>
+                                            <span class="fw-bold text-dark small"><i class="fa-solid fa-sliders text-primary me-1"></i> লোগোর আকার, পেডিং ও অ্যালাইনমেন্ট সমন্বয়</span>
                                             <button type="button" class="btn btn-sm btn-link text-primary p-0 text-decoration-none small fw-semibold" onclick="resetLogoSliders()">
                                                 <i class="fa-solid fa-rotate-left me-1"></i> ডিফল্ট সাইজ
                                             </button>
                                         </div>
 
-                                        <div class="row g-2">
+                                        <div class="row g-2 mb-2">
                                             <!-- Height Slider -->
                                             <div class="col-md-4">
                                                 <div class="d-flex justify-content-between align-items-center mb-1">
-                                                    <label class="form-label small fw-semibold text-muted mb-0">লোগো উচ্চতা (Height)</label>
+                                                    <label class="form-label small fw-semibold text-muted mb-0">উচ্চতা (Height)</label>
                                                     <span class="badge bg-white text-dark border px-2 py-0.5 small" id="badgeHeight">{{ \App\Support\SiteSetting::logoHeight() }}px</span>
                                                 </div>
                                                 <input type="range" class="form-range" name="site_logo_height" id="sliderLogoHeight" 
@@ -327,6 +332,39 @@
                                                 <input type="range" class="form-range" name="site_logo_scale" id="sliderLogoScale" 
                                                        min="50" max="150" step="5" value="{{ \App\Support\SiteSetting::logoScale() }}" 
                                                        oninput="updateLogoDimensions()">
+                                            </div>
+                                        </div>
+
+                                        <div class="row g-2 pt-2 border-top">
+                                            <!-- Vertical Padding (Y) -->
+                                            <div class="col-md-6">
+                                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                                    <label class="form-label small fw-semibold text-muted mb-0">উপরে-নিচে পেডিং (Padding Y)</label>
+                                                    <span class="badge bg-white text-dark border px-2 py-0.5 small" id="badgePadY">{{ \App\Support\SiteSetting::logoPaddingY() }}px</span>
+                                                </div>
+                                                <input type="range" class="form-range" name="site_logo_padding_y" id="sliderLogoPadY" 
+                                                       min="0" max="25" step="1" value="{{ \App\Support\SiteSetting::logoPaddingY() }}" 
+                                                       oninput="updateLogoDimensions()">
+                                            </div>
+
+                                            <!-- Horizontal Padding (X) -->
+                                            <div class="col-md-6">
+                                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                                    <label class="form-label small fw-semibold text-muted mb-0">ডানে-বামে পেডিং (Padding X)</label>
+                                                    <span class="badge bg-white text-dark border px-2 py-0.5 small" id="badgePadX">{{ \App\Support\SiteSetting::logoPaddingX() }}px</span>
+                                                </div>
+                                                <input type="range" class="form-range" name="site_logo_padding_x" id="sliderLogoPadX" 
+                                                       min="0" max="30" step="1" value="{{ \App\Support\SiteSetting::logoPaddingX() }}" 
+                                                       oninput="updateLogoDimensions()">
+                                            </div>
+                                        </div>
+
+                                        <div class="pt-2 mt-2 border-top">
+                                            <div class="form-check form-switch mb-0">
+                                                <input class="form-check-input" type="checkbox" name="site_logo_show_text" value="1" id="chkShowBrandText" {{ \App\Support\SiteSetting::showBrandText() ? 'checked' : '' }} onchange="updateLogoDimensions()">
+                                                <label class="form-check-label small fw-semibold text-dark" for="chkShowBrandText">
+                                                    লোগোর পাশে সাইটের নাম ও স্লোগান দেখান (Show Brand Name Text Beside Logo)
+                                                </label>
                                             </div>
                                         </div>
                                     </div>
@@ -1829,6 +1867,71 @@
             window.headerMenuItemsData.splice(index, 1);
             renderMenuTable();
         }
+    }
+
+    // Live Logo Dimensions & Simulator Updates
+    function updateLogoDimensions() {
+        const h = document.getElementById('sliderLogoHeight')?.value || 52;
+        const w = document.getElementById('sliderLogoWidth')?.value || 220;
+        const s = document.getElementById('sliderLogoScale')?.value || 100;
+        const py = document.getElementById('sliderLogoPadY')?.value || 0;
+        const px = document.getElementById('sliderLogoPadX')?.value || 0;
+        const showText = document.getElementById('chkShowBrandText')?.checked ?? true;
+
+        const badgeH = document.getElementById('badgeHeight');
+        const badgeW = document.getElementById('badgeWidth');
+        const badgeS = document.getElementById('badgeScale');
+        const badgePy = document.getElementById('badgePadY');
+        const badgePx = document.getElementById('badgePadX');
+
+        const lblH = document.getElementById('lblHeight');
+        const lblW = document.getElementById('lblWidth');
+        const lblS = document.getElementById('lblScale');
+
+        if (badgeH) badgeH.textContent = h + 'px';
+        if (badgeW) badgeW.textContent = w + 'px';
+        if (badgeS) badgeS.textContent = s + '%';
+        if (badgePy) badgePy.textContent = py + 'px';
+        if (badgePx) badgePx.textContent = px + 'px';
+
+        if (lblH) lblH.textContent = h + 'px';
+        if (lblW) lblW.textContent = w + 'px';
+        if (lblS) lblS.textContent = s + '%';
+
+        const wrapper = document.getElementById('logoWrapper');
+        const img = document.getElementById('logoPreviewImg');
+        const simBrandText = document.getElementById('simBrandText');
+
+        if (wrapper) {
+            wrapper.style.height = h + 'px';
+            wrapper.style.maxHeight = h + 'px';
+            wrapper.style.maxWidth = w + 'px';
+            wrapper.style.padding = `${py}px ${px}px`;
+        }
+        if (img) {
+            img.style.transform = `scale(${s / 100})`;
+        }
+        if (simBrandText) {
+            simBrandText.style.display = showText ? '' : 'none';
+        }
+    }
+
+    function resetLogoSliders() {
+        const slH = document.getElementById('sliderLogoHeight');
+        const slW = document.getElementById('sliderLogoWidth');
+        const slS = document.getElementById('sliderLogoScale');
+        const slPy = document.getElementById('sliderLogoPadY');
+        const slPx = document.getElementById('sliderLogoPadX');
+        const chkText = document.getElementById('chkShowBrandText');
+
+        if (slH) slH.value = 52;
+        if (slW) slW.value = 220;
+        if (slS) slS.value = 100;
+        if (slPy) slPy.value = 2;
+        if (slPx) slPx.value = 0;
+        if (chkText) chkText.checked = true;
+
+        updateLogoDimensions();
     }
 
     function addMenuItemPreset(label, route, url, icon, badge) {
