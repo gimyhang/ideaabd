@@ -122,6 +122,59 @@ class SiteSetting
         return self::resolveImageUrl($banner);
     }
 
+    public static function heroSlides(): array
+    {
+        $slides = self::get('home_hero_slides');
+        if (is_array($slides) && !empty($slides)) {
+            return array_values(array_filter($slides, fn($s) => $s['is_active'] ?? true));
+        }
+
+        return [
+            [
+                'id' => '1',
+                'badge' => 'বইমেলা বিশেষ ছাড়',
+                'badge_color' => 'bg-warning text-dark',
+                'title' => 'জ্ঞানের আলোয় উদ্ভাসিত হোক প্রতিটি মন',
+                'subtitle' => 'আইডিয়া প্রকাশনীর সকল নতুন ও জনপ্রিয় বইয়ে পাচ্ছেন আকর্ষণীয় মূল্যছাড়।',
+                'btn_text' => 'বই কিনুন',
+                'btn_url' => '/books',
+                'btn_icon' => 'fa-solid fa-cart-shopping',
+                'btn_class' => 'btn-light text-primary',
+                'icon' => 'fa-solid fa-book-open-reader',
+                'bg_gradient' => 'linear-gradient(135deg, #003366 0%, #0066cc 100%)',
+                'is_active' => true,
+            ],
+            [
+                'id' => '2',
+                'badge' => 'অনলাইন সাহিত্য',
+                'badge_color' => 'bg-info text-dark',
+                'title' => 'আইডিয়া ওয়েবজিন ও ডিজিটাল সাময়িকী',
+                'subtitle' => 'সমকালীন গল্প, কবিতা, প্রবন্ধ ও মুক্তচিন্তার ডিজিটাল সংকলন এখন অনলাইনে।',
+                'btn_text' => 'সংখ্যাগুলো পড়ুন',
+                'btn_url' => '/webzine',
+                'btn_icon' => 'fa-solid fa-newspaper',
+                'btn_class' => 'btn-warning text-dark',
+                'icon' => 'fa-solid fa-newspaper',
+                'bg_gradient' => 'linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%)',
+                'is_active' => true,
+            ],
+            [
+                'id' => '3',
+                'badge' => 'স্মার্ট রিডিং',
+                'badge_color' => 'bg-success text-white',
+                'title' => 'হাজারো ডিজিটাল ই-বুক কালেকশন',
+                'subtitle' => 'যেকোনো ডিভাইসে তাৎক্ষণিক পিডিএফ ও ই-পাব ডাউনলোড করে পড়ার সুবিধা।',
+                'btn_text' => 'ই-বুক লাইব্রেরি',
+                'btn_url' => '/ebooks',
+                'btn_icon' => 'fa-solid fa-tablet-screen-button',
+                'btn_class' => 'btn-light text-primary',
+                'icon' => 'fa-solid fa-tablet-screen-button',
+                'bg_gradient' => 'linear-gradient(135deg, #312e81 0%, #4338ca 100%)',
+                'is_active' => true,
+            ],
+        ];
+    }
+
     public static function blogOgBannerUrl(): ?string
     {
         $banner = self::get('blog_og_banner') ?: self::get('social_og_banner');

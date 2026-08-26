@@ -5,73 +5,97 @@
 @section('content')
 
 {{-- ══ HERO CAROUSEL ═══════════════════════════════════════════════════════════ --}}
+@php
+    $heroSlides = \App\Support\SiteSetting::heroSlides();
+@endphp
+@if(!empty($heroSlides))
 <section class="mb-4">
     <div class="container">
         <div id="homeHeroCarousel" class="carousel slide carousel-fade shadow-sm rounded-4 overflow-hidden" data-bs-ride="carousel" data-bs-interval="4500">
-            <div class="carousel-indicators">
-                <button type="button" data-bs-target="#homeHeroCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
-                <button type="button" data-bs-target="#homeHeroCarousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
-                <button type="button" data-bs-target="#homeHeroCarousel" data-bs-slide-to="2" aria-label="Slide 3"></button>
-            </div>
+            @if(count($heroSlides) > 1)
+                <div class="carousel-indicators">
+                    @foreach($heroSlides as $idx => $slide)
+                        <button type="button" data-bs-target="#homeHeroCarousel" data-bs-slide-to="{{ $idx }}" class="{{ $loop->first ? 'active' : '' }}" aria-current="{{ $loop->first ? 'true' : 'false' }}" aria-label="Slide {{ $idx + 1 }}"></button>
+                    @endforeach
+                </div>
+            @endif
             <div class="carousel-inner" style="min-height: 260px;">
-                <!-- Slide 1 -->
-                <div class="carousel-item active" style="background: linear-gradient(135deg, #003366 0%, #0066cc 100%);">
-                    <div class="row align-items-center py-4 py-md-5 text-white" style="padding-left: clamp(2.75rem, 7vw, 4.5rem) !important; padding-right: clamp(2.75rem, 7vw, 4.5rem) !important;">
-                        <div class="col-md-7 py-2 py-md-3">
-                            <span class="badge bg-warning text-dark fw-bold px-3 py-1 mb-2 rounded-pill shadow-sm">বইমেলা বিশেষ ছাড়</span>
-                            <h1 class="fw-bold mb-2 text-white" style="font-size: clamp(1.25rem, 4.5vw, 2.25rem); line-height: 1.35;">জ্ঞানের আলোয় উদ্ভাসিত হোক প্রতিটি মন</h1>
-                            <p class="fs-6 opacity-90 mb-3 mb-md-4" style="font-size: clamp(0.85rem, 2.5vw, 1rem) !important;">আইডিয়া প্রকাশনীর সকল নতুন ও জনপ্রিয় বইয়ে পাচ্ছেন আকর্ষণীয় মূল্যছাড়।</p>
-                            <a href="{{ route('book.index') }}" class="btn btn-light fw-bold rounded-pill px-4 shadow-sm text-primary">
-                                <i class="fa-solid fa-cart-shopping me-1"></i> বই কিনুন
-                            </a>
-                        </div>
-                        <div class="col-md-5 d-none d-md-block text-center">
-                            <i class="fa-solid fa-book-open-reader" style="font-size: 8rem; color: rgba(255,255,255,0.7)"></i>
+                @foreach($heroSlides as $idx => $slide)
+                    @php
+                        $slideBg = $slide['bg_gradient'] ?? 'linear-gradient(135deg, #003366 0%, #0066cc 100%)';
+                        $slideBadge = $slide['badge'] ?? 'বিশেষ অফার';
+                        $slideBadgeColor = $slide['badge_color'] ?? 'bg-warning text-dark';
+                        $slideTitle = $slide['title'] ?? '';
+                        $slideSubtitle = $slide['subtitle'] ?? '';
+                        $slideBtnText = $slide['btn_text'] ?? 'দেখুন';
+                        $slideBtnUrl = $slide['btn_url'] ?? route('book.index');
+                        $slideBtnIcon = $slide['btn_icon'] ?? 'fa-solid fa-arrow-right';
+                        $slideBtnClass = $slide['btn_class'] ?? 'btn-light text-primary';
+                        $slideIcon = $slide['icon'] ?? 'fa-solid fa-book-open-reader';
+                    @endphp
+                    <div class="carousel-item {{ $loop->first ? 'active' : '' }}" style="background: {{ $slideBg }};">
+                        <div class="row align-items-center py-4 py-md-5 text-white position-relative" style="padding-left: clamp(2.75rem, 7vw, 4.5rem) !important; padding-right: clamp(2.75rem, 7vw, 4.5rem) !important; z-index: 2;">
+                            <div class="col-md-7 py-2 py-md-3">
+                                @if($slideBadge)
+                                    <span class="badge {{ $slideBadgeColor }} fw-bold px-3 py-1 mb-2.5 rounded-pill shadow-sm" style="font-size: 0.85rem; letter-spacing: 0.3px;">
+                                        <i class="fa-solid fa-sparkles me-1 small"></i>{{ $slideBadge }}
+                                    </span>
+                                @endif
+                                <h1 class="fw-bold mb-2 text-white" style="font-size: clamp(1.25rem, 4.5vw, 2.25rem); line-height: 1.35; text-shadow: 0 2px 10px rgba(0,0,0,0.25);">
+                                    {{ $slideTitle }}
+                                </h1>
+                                @if($slideSubtitle)
+                                    <p class="fs-6 opacity-90 mb-3 mb-md-4" style="font-size: clamp(0.85rem, 2.5vw, 1rem) !important; line-height: 1.5; max-width: 540px;">
+                                        {{ $slideSubtitle }}
+                                    </p>
+                                @endif
+                                @if($slideBtnText)
+                                    <a href="{{ url($slideBtnUrl) }}" class="btn {{ $slideBtnClass }} fw-bold rounded-pill px-4 py-2 shadow-sm d-inline-flex align-items-center gap-1.5 hover-shadow hover-lift" style="font-size: 0.92rem;">
+                                        @if($slideBtnIcon)
+                                            <i class="{{ $slideBtnIcon }}"></i>
+                                        @endif
+                                        <span>{{ $slideBtnText }}</span>
+                                    </a>
+                                @endif
+                            </div>
+                            
+                            {{-- Exclusive Modern 3D & Glass Graphic Presentation --}}
+                            <div class="col-md-5 d-none d-md-flex align-items-center justify-content-center">
+                                <div class="position-relative d-inline-flex align-items-center justify-content-center p-4">
+                                    <!-- Ambient Glow Ring -->
+                                    <div class="position-absolute rounded-circle" style="width: 220px; height: 220px; background: radial-gradient(circle, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0) 70%); filter: blur(10px); z-index: 1;"></div>
+                                    
+                                    <!-- Glassmorphic Icon Container -->
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center shadow-2xl position-relative hover-lift transition-all" 
+                                         style="width: 170px; height: 170px; background: rgba(255, 255, 255, 0.12); border: 2px solid rgba(255, 255, 255, 0.35); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); z-index: 2;">
+                                        <i class="{{ $slideIcon }} text-white" style="font-size: 5.5rem; filter: drop-shadow(0 8px 24px rgba(0,0,0,0.35)); opacity: 0.95;"></i>
+                                    </div>
+                                    
+                                    <!-- Decorative Orbiting Floating Badges -->
+                                    <div class="position-absolute top-0 end-0 bg-warning text-dark px-2.5 py-1 rounded-pill shadow-sm small fw-bold" style="z-index: 3; font-size: 11px; transform: rotate(6deg);">
+                                        <i class="fa-solid fa-star me-1"></i>আইডিয়া
+                                    </div>
+                                    <div class="position-absolute bottom-0 start-0 bg-white text-primary px-2.5 py-1 rounded-pill shadow-sm small fw-bold" style="z-index: 3; font-size: 11px; transform: rotate(-6deg);">
+                                        <i class="fa-solid fa-check-double me-1"></i>প্রিমিয়াম
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <!-- Slide 2 -->
-                <div class="carousel-item" style="background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);">
-                    <div class="row align-items-center py-4 py-md-5 text-white" style="padding-left: clamp(2.75rem, 7vw, 4.5rem) !important; padding-right: clamp(2.75rem, 7vw, 4.5rem) !important;">
-                        <div class="col-md-7 py-2 py-md-3">
-                            <span class="badge bg-info text-dark fw-bold px-3 py-1 mb-2 rounded-pill shadow-sm">অনলাইন সাহিত্য</span>
-                            <h1 class="fw-bold mb-2 text-white" style="font-size: clamp(1.25rem, 4.5vw, 2.25rem); line-height: 1.35;">আইডিয়া ওয়েবজিন ও ডিজিটাল সাময়িকী</h1>
-                            <p class="fs-6 opacity-90 mb-3 mb-md-4" style="font-size: clamp(0.85rem, 2.5vw, 1rem) !important;">সমকালীন গল্প, কবিতা, প্রবন্ধ ও মুক্তচিন্তার ডিজিটাল সংকলন এখন অনলাইনে।</p>
-                            <a href="{{ route('webzine.index') }}" class="btn btn-warning fw-bold rounded-pill px-4 shadow-sm text-dark">
-                                <i class="fa-solid fa-newspaper me-1"></i> সংখ্যাগুলো পড়ুন
-                            </a>
-                        </div>
-                        <div class="col-md-5 d-none d-md-block text-center">
-                            <i class="fa-solid fa-newspaper" style="font-size: 8rem; color: rgba(255,255,255,0.7)"></i>
-                        </div>
-                    </div>
-                </div>
-                <!-- Slide 3 -->
-                <div class="carousel-item" style="background: linear-gradient(135deg, #312e81 0%, #4338ca 100%);">
-                    <div class="row align-items-center py-4 py-md-5 text-white" style="padding-left: clamp(2.75rem, 7vw, 4.5rem) !important; padding-right: clamp(2.75rem, 7vw, 4.5rem) !important;">
-                        <div class="col-md-7 py-2 py-md-3">
-                            <span class="badge bg-success fw-bold px-3 py-1 mb-2 rounded-pill shadow-sm">স্মার্ট রিডিং</span>
-                            <h1 class="fw-bold mb-2 text-white" style="font-size: clamp(1.25rem, 4.5vw, 2.25rem); line-height: 1.35;">হাজারো ডিজিটাল ই-বুক কালেকশন</h1>
-                            <p class="fs-6 opacity-90 mb-3 mb-md-4" style="font-size: clamp(0.85rem, 2.5vw, 1rem) !important;">যেকোনো ডিভাইসে তাৎক্ষণিক পিডিএফ ও ই-পাব ডাউনলোড করে পড়ার সুবিধা।</p>
-                            <a href="{{ route('ebook.index') }}" class="btn btn-light fw-bold rounded-pill px-4 shadow-sm text-primary">
-                                <i class="fa-solid fa-tablet-screen-button me-1"></i> ই-বুক লাইব্রেরি
-                            </a>
-                        </div>
-                        <div class="col-md-5 d-none d-md-block text-center">
-                            <i class="fa-solid fa-tablet-screen-button" style="font-size: 8rem; color: rgba(255,255,255,0.7)"></i>
-                        </div>
-                    </div>
-                </div>
+                @endforeach
             </div>
-            <button class="carousel-control-prev" type="button" data-bs-target="#homeHeroCarousel" data-bs-slide="prev" aria-label="পূর্ববর্তী">
-                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-            </button>
-            <button class="carousel-control-next" type="button" data-bs-target="#homeHeroCarousel" data-bs-slide="next" aria-label="পরবর্তী">
-                <span class="carousel-control-next-icon" aria-hidden="true"></span>
-            </button>
+            @if(count($heroSlides) > 1)
+                <button class="carousel-control-prev" type="button" data-bs-target="#homeHeroCarousel" data-bs-slide="prev" aria-label="পূর্ববর্তী">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#homeHeroCarousel" data-bs-slide="next" aria-label="পরবর্তী">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                </button>
+            @endif
         </div>
     </div>
 </section>
+@endif
 
 {{-- ══ FEATURES STRIP ════════════════════════════════════════════════════════ --}}
 <section class="mb-4">

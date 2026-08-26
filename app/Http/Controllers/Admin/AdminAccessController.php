@@ -371,6 +371,28 @@ class AdminAccessController extends Controller
                 );
             }
 
+            // 5.0 Handle Hero Slides JSON
+            if ($request->filled('home_hero_slides')) {
+                $slides = json_decode($request->input('home_hero_slides'), true);
+                if (is_array($slides)) {
+                    AdminDashboardSetting::updateOrCreate(
+                        ['key' => 'home_hero_slides'],
+                        ['value' => $slides, 'updated_by' => auth()->id()]
+                    );
+                }
+            }
+
+            // 5.0.1 Handle Header Menu Items JSON
+            if ($request->filled('header_menu_items')) {
+                $menuItems = json_decode($request->input('header_menu_items'), true);
+                if (is_array($menuItems)) {
+                    AdminDashboardSetting::updateOrCreate(
+                        ['key' => 'header_menu_items'],
+                        ['value' => $menuItems, 'updated_by' => auth()->id()]
+                    );
+                }
+            }
+
             // 5.1 Handle Blog / Social OG Share Banner
             if ($request->boolean('remove_blog_og_banner')) {
                 AdminDashboardSetting::where('key', 'blog_og_banner')->delete();

@@ -101,6 +101,7 @@
         <input type="hidden" name="banner_1_cropped" id="banner_1_cropped">
         <input type="hidden" name="banner_2_cropped" id="banner_2_cropped">
         <input type="hidden" name="header_menu_items" id="header_menu_items">
+        <input type="hidden" name="home_hero_slides" id="home_hero_slides">
 
         <div class="card border-0 shadow-sm rounded-4 bg-white overflow-hidden">
             
@@ -111,7 +112,14 @@
                         <button class="nav-link active rounded-pill fw-semibold py-2.5 px-3 d-flex align-items-center justify-content-center gap-2" 
                                 id="tab-brand-btn" data-bs-toggle="pill" data-bs-target="#tab-brand" type="button" role="tab">
                             <i class="fa-solid fa-crop-simple text-primary"></i>
-                            <span>Branding, Logo & Cropper</span>
+                            <span>Branding & Logo</span>
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link rounded-pill fw-semibold py-2.5 px-3 d-flex align-items-center justify-content-center gap-2" 
+                                id="tab-hero-btn" data-bs-toggle="pill" data-bs-target="#tab-hero" type="button" role="tab">
+                            <i class="fa-solid fa-images text-warning"></i>
+                            <span>Hero Slides & Carousel</span>
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
@@ -509,6 +517,70 @@
                                     </div>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab: Hero Carousel & Slides Customizer -->
+                    <div class="tab-pane fade" id="tab-hero" role="tabpanel">
+                        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 pb-3 border-bottom">
+                            <div>
+                                <h6 class="fw-bold text-dark mb-1 d-flex align-items-center gap-2">
+                                    <i class="fa-solid fa-images text-warning"></i>
+                                    <span>হোমপেজ ব্যানার ও হিরো স্লাইডার কাস্টমাইজার (Hero Carousel Slides & Icons)</span>
+                                </h6>
+                                <p class="text-muted small mb-0">হোমপেজের ৩টি মূল ব্যানার স্লাইডের লেখা, আকর্ষণীয় আধুনিক ৩ডি/গ্লাস আইকন, ব্যাকগ্রাউন্ড গ্রেডিয়েন্ট ও বাটন লিঙ্ক সহজে পরিবর্তন ও যোগ করুন।</p>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-3 py-1.5 fw-semibold shadow-2xs" onclick="resetHeroSlidesToDefaults()">
+                                    <i class="fa-solid fa-rotate-left me-1"></i> ডিফল্ট স্লাইড রিস্টোর
+                                </button>
+                                <button type="button" class="btn btn-warning btn-sm rounded-pill px-3.5 py-1.5 fw-bold shadow-xs text-dark d-inline-flex align-items-center gap-1.5" onclick="addNewHeroSlide()">
+                                    <i class="fa-solid fa-plus"></i> নতুন স্লাইড যোগ করুন
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Live Slide Simulator Preview -->
+                        <div class="card p-3.5 bg-light rounded-4 border shadow-2xs mb-4">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="badge bg-white text-dark border px-2.5 py-1 small fw-bold d-inline-flex align-items-center gap-1">
+                                    <i class="fa-solid fa-eye text-primary"></i> লাইভ স্লাইডার সিমুলেটর প্রিভিউ (Live Slide Simulator)
+                                </span>
+                                <span class="text-muted small" id="liveSlideCountBadge">৩টি সক্রিয় স্লাইড</span>
+                            </div>
+                            <div class="rounded-4 overflow-hidden shadow-sm p-4 text-white position-relative" id="liveHeroSlideSimulator" style="background: linear-gradient(135deg, #003366 0%, #0066cc 100%); min-height: 200px; transition: all 0.3s ease;">
+                                <div class="row align-items-center">
+                                    <div class="col-md-8">
+                                        <span class="badge bg-warning text-dark fw-bold px-3 py-1 mb-2 rounded-pill shadow-sm small" id="simSlideBadge">বইমেলা বিশেষ ছাড়</span>
+                                        <h4 class="fw-bold mb-2 text-white" id="simSlideTitle">জ্ঞানের আলোয় উদ্ভাসিত হোক প্রতিটি মন</h4>
+                                        <p class="small opacity-90 mb-3" id="simSlideSubtitle" style="max-width: 480px;">আইডিয়া প্রকাশনীর সকল নতুন ও জনপ্রিয় বইয়ে পাচ্ছেন আকর্ষণীয় মূল্যছাড়।</p>
+                                        <button type="button" class="btn btn-light btn-sm fw-bold rounded-pill px-3 py-1.5 text-primary shadow-sm d-inline-flex align-items-center gap-1.5" id="simSlideBtn">
+                                            <i class="fa-solid fa-cart-shopping" id="simSlideBtnIcon"></i>
+                                            <span id="simSlideBtnText">বই কিনুন</span>
+                                        </button>
+                                    </div>
+                                    <div class="col-md-4 text-center d-none d-md-flex align-items-center justify-content-center">
+                                        <div class="rounded-circle d-flex align-items-center justify-content-center shadow-lg position-relative" 
+                                             style="width: 120px; height: 120px; background: rgba(255, 255, 255, 0.15); border: 2px solid rgba(255, 255, 255, 0.4); backdrop-filter: blur(8px);">
+                                            <i class="fa-solid fa-book-open-reader text-white" id="simSlideIcon" style="font-size: 3.8rem; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.3));"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Dynamic Slide Cards Container -->
+                        <div id="heroSlidesContainer" class="d-flex flex-column gap-3 mb-4">
+                            <!-- Injected via JavaScript -->
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center">
+                            <button type="button" class="btn btn-outline-warning text-dark btn-sm rounded-pill px-3 fw-bold shadow-2xs" onclick="addNewHeroSlide()">
+                                <i class="fa-solid fa-plus me-1"></i> আরও একটি ব্যানার স্লাইড যোগ করুন
+                            </button>
+                            <span class="small text-muted">
+                                <i class="fa-solid fa-circle-info text-primary me-1"></i> পরিবর্তন সংরক্ষণ করতে উপরের <strong>Save Changes</strong> বাটনে ক্লিক করুন।
+                            </span>
                         </div>
                     </div>
 
@@ -1982,13 +2054,300 @@
         return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 
-    // Auto-restore Active Tab from URL Hash & Init Menu Table
+    // ══════════════════════════════════════════════════════════════════
+    // HERO SLIDES & CAROUSEL MANAGER JAVASCRIPT ENGINE
+    // ══════════════════════════════════════════════════════════════════
+    const defaultHeroSlides = [
+        {
+            id: '1',
+            badge: 'বইমেলা বিশেষ ছাড়',
+            badge_color: 'bg-warning text-dark',
+            title: 'জ্ঞানের আলোয় উদ্ভাসিত হোক প্রতিটি মন',
+            subtitle: 'আইডিয়া প্রকাশনীর সকল নতুন ও জনপ্রিয় বইয়ে পাচ্ছেন আকর্ষণীয় মূল্যছাড়।',
+            btn_text: 'বই কিনুন',
+            btn_url: '/books',
+            btn_icon: 'fa-solid fa-cart-shopping',
+            btn_class: 'btn-light text-primary',
+            icon: 'fa-solid fa-book-open-reader',
+            bg_gradient: 'linear-gradient(135deg, #003366 0%, #0066cc 100%)',
+            is_active: true
+        },
+        {
+            id: '2',
+            badge: 'অনলাইন সাহিত্য',
+            badge_color: 'bg-info text-dark',
+            title: 'আইডিয়া ওয়েবজিন ও ডিজিটাল সাময়িকী',
+            subtitle: 'সমকালীন গল্প, কবিতা, প্রবন্ধ ও মুক্তচিন্তার ডিজিটাল সংকলন এখন অনলাইনে।',
+            btn_text: 'সংখ্যাগুলো পড়ুন',
+            btn_url: '/webzine',
+            btn_icon: 'fa-solid fa-newspaper',
+            btn_class: 'btn-warning text-dark',
+            icon: 'fa-solid fa-newspaper',
+            bg_gradient: 'linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%)',
+            is_active: true
+        },
+        {
+            id: '3',
+            badge: 'স্মার্ট রিডিং',
+            badge_color: 'bg-success text-white',
+            title: 'হাজারো ডিজিটাল ই-বুক কালেকশন',
+            subtitle: 'যেকোনো ডিভাইসে তাৎক্ষণিক পিডিএফ ও ই-পাব ডাউনলোড করে পড়ার সুবিধা।',
+            btn_text: 'ই-বুক লাইব্রেরি',
+            btn_url: '/ebooks',
+            btn_icon: 'fa-solid fa-tablet-screen-button',
+            btn_class: 'btn-light text-primary',
+            icon: 'fa-solid fa-tablet-screen-button',
+            bg_gradient: 'linear-gradient(135deg, #312e81 0%, #4338ca 100%)',
+            is_active: true
+        }
+    ];
+
+    window.heroSlidesData = @json(\App\Support\SiteSetting::heroSlides());
+    if (!Array.isArray(window.heroSlidesData) || window.heroSlidesData.length === 0) {
+        window.heroSlidesData = JSON.parse(JSON.stringify(defaultHeroSlides));
+    }
+
+    const iconPresets = [
+        { icon: 'fa-solid fa-book-open-reader', label: '📖 বই ও পাঠক' },
+        { icon: 'fa-solid fa-newspaper', label: '📰 ওয়েবজিন ও সাময়িকী' },
+        { icon: 'fa-solid fa-tablet-screen-button', label: '📱 স্মার্ট ই-বুক' },
+        { icon: 'fa-solid fa-feather-pointed', label: '✍️ লেখক ও সাহিত্য' },
+        { icon: 'fa-solid fa-wand-magic-sparkles', label: '✨ জ্ঞান ও ম্যাজিক' },
+        { icon: 'fa-solid fa-crown', label: '👑 রয়্যাল বেস্টসেলার' },
+        { icon: 'fa-solid fa-rocket', label: '🚀 ফিউচার ও ইনোভেশন' },
+        { icon: 'fa-solid fa-graduation-cap', label: '🎓 শিক্ষা ও একাডেমি' },
+        { icon: 'fa-solid fa-fire', label: '🔥 মেগা বইমেলা' },
+    ];
+
+    const gradientPresets = [
+        { val: 'linear-gradient(135deg, #003366 0%, #0066cc 100%)', name: '🔵 রয়্যাল ব্লু' },
+        { val: 'linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%)', name: '🌌 মিডনাইট স্যাফায়ার' },
+        { val: 'linear-gradient(135deg, #312e81 0%, #4338ca 100%)', name: '🟣 ইন্ডিগো ভায়োলেট' },
+        { val: 'linear-gradient(135deg, #064e3b 0%, #059669 100%)', name: '🟢 ডিপ এমারেল্ড' },
+        { val: 'linear-gradient(135deg, #881337 0%, #e11d48 100%)', name: '🔴 সানসেট ক্রিমসন' },
+        { val: 'linear-gradient(135deg, #18181b 0%, #27272a 100%)', name: '⚫ ডার্ক ওনিক্স' },
+    ];
+
+    function renderHeroSlides() {
+        const container = document.getElementById('heroSlidesContainer');
+        if (!container) return;
+        container.innerHTML = '';
+
+        window.heroSlidesData.forEach((slide, idx) => {
+            const card = document.createElement('div');
+            card.className = `card border rounded-4 shadow-sm overflow-hidden p-3 p-md-4 transition-all ${slide.is_active ? 'bg-white' : 'bg-light opacity-75'}`;
+            
+            let iconPresetBtns = iconPresets.map(p => `
+                <button type="button" class="btn btn-xs ${slide.icon === p.icon ? 'btn-primary' : 'btn-outline-secondary'} rounded-pill px-2.5 py-1" onclick="updateHeroSlideField(${idx}, 'icon', '${p.icon}')">
+                    <i class="${p.icon} me-1"></i>${p.label}
+                </button>
+            `).join('');
+
+            let gradientPresetBtns = gradientPresets.map(g => `
+                <button type="button" class="btn btn-xs ${slide.bg_gradient === g.val ? 'btn-primary' : 'btn-outline-secondary'} rounded-pill px-2.5 py-1" onclick="updateHeroSlideField(${idx}, 'bg_gradient', '${g.val}')">
+                    ${g.name}
+                </button>
+            `).join('');
+
+            card.innerHTML = `
+                <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge bg-dark text-white rounded-pill px-2.5 py-1">Slide #${idx + 1}</span>
+                        <strong class="text-dark fs-6">${escapeHtml(slide.title || 'শিরোনামহীন স্লাইড')}</strong>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <button type="button" class="btn btn-outline-info btn-xs rounded-pill px-2.5" onclick="renderLiveSlideSimulator(${idx})" title="সিমুলেটরে দেখুন">
+                            <i class="fa-solid fa-eye me-1"></i>প্রিভিউ
+                        </button>
+                        <div class="form-check form-switch mb-0">
+                            <input class="form-check-input" type="checkbox" ${slide.is_active ? 'checked' : ''} onchange="toggleHeroSlideActive(${idx})" title="সক্রিয়/নিষ্ক্রিয়">
+                        </div>
+                        <div class="btn-group btn-group-sm">
+                            <button type="button" class="btn btn-outline-secondary btn-xs" onclick="moveHeroSlide(${idx}, -1)" ${idx === 0 ? 'disabled' : ''} title="উপরে নিন"><i class="fa-solid fa-arrow-up"></i></button>
+                            <button type="button" class="btn btn-outline-secondary btn-xs" onclick="moveHeroSlide(${idx}, 1)" ${idx === window.heroSlidesData.length - 1 ? 'disabled' : ''} title="নিচে নিন"><i class="fa-solid fa-arrow-down"></i></button>
+                            <button type="button" class="btn btn-outline-danger btn-xs" onclick="deleteHeroSlide(${idx})" title="মুছুন"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-md-7">
+                        <div class="mb-2.5">
+                            <label class="form-label small fw-bold text-dark mb-1">মূল শিরোনাম (Title / Headline):</label>
+                            <input type="text" class="form-control rounded-3" value="${escapeHtml(slide.title || '')}" oninput="updateHeroSlideField(${idx}, 'title', this.value)">
+                        </div>
+                        <div class="mb-2.5">
+                            <label class="form-label small fw-bold text-dark mb-1">সংক্ষিপ্ত বিবরণী (Subtitle / Description):</label>
+                            <textarea class="form-control rounded-3" rows="2" oninput="updateHeroSlideField(${idx}, 'subtitle', this.value)">${escapeHtml(slide.subtitle || '')}</textarea>
+                        </div>
+                        <div class="row g-2 mb-2.5">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-dark mb-1">টপ ব্যাজ লেখা (Badge Text):</label>
+                                <input type="text" class="form-control form-control-sm rounded-3" value="${escapeHtml(slide.badge || '')}" oninput="updateHeroSlideField(${idx}, 'badge', this.value)">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-dark mb-1">ব্যাজ কালার (Badge Color):</label>
+                                <select class="form-select form-select-sm rounded-3" onchange="updateHeroSlideField(${idx}, 'badge_color', this.value)">
+                                    <option value="bg-warning text-dark" ${slide.badge_color === 'bg-warning text-dark' ? 'selected' : ''}>🟡 গোল্ডেন হলুদ (Warning)</option>
+                                    <option value="bg-info text-dark" ${slide.badge_color === 'bg-info text-dark' ? 'selected' : ''}>🔵 আকাশি নীল (Info)</option>
+                                    <option value="bg-success text-white" ${slide.badge_color === 'bg-success text-white' ? 'selected' : ''}>🟢 সবুজ (Success)</option>
+                                    <option value="bg-danger text-white" ${slide.badge_color === 'bg-danger text-white' ? 'selected' : ''}>🔴 লাল (Danger)</option>
+                                    <option value="bg-primary text-white" ${slide.badge_color === 'bg-primary text-white' ? 'selected' : ''}>🔷 ব্লু (Primary)</option>
+                                    <option value="bg-light text-dark" ${slide.badge_color === 'bg-light text-dark' ? 'selected' : ''}>⚪ সাদা (Light)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row g-2">
+                            <div class="col-md-4">
+                                <label class="form-label small fw-bold text-dark mb-1">বাটন টেক্সট:</label>
+                                <input type="text" class="form-control form-control-sm rounded-3" value="${escapeHtml(slide.btn_text || '')}" oninput="updateHeroSlideField(${idx}, 'btn_text', this.value)">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-bold text-dark mb-1">বাটন লিংক (URL):</label>
+                                <input type="text" class="form-control form-control-sm rounded-3" value="${escapeHtml(slide.btn_url || '')}" oninput="updateHeroSlideField(${idx}, 'btn_url', this.value)">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-bold text-dark mb-1">বাটন আইকন:</label>
+                                <input type="text" class="form-control form-control-sm rounded-3" value="${escapeHtml(slide.btn_icon || 'fa-solid fa-arrow-right')}" oninput="updateHeroSlideField(${idx}, 'btn_icon', this.value)">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-5">
+                        <!-- Modern Exclusive Icon Selector -->
+                        <div class="p-3 bg-light rounded-4 border mb-3">
+                            <label class="form-label small fw-bold text-dark mb-1 d-flex align-items-center justify-content-between">
+                                <span><i class="fa-solid fa-wand-magic-sparkles text-primary me-1"></i>আধুনিক ৩ডি/গ্লাস আইকন:</span>
+                                <span class="badge bg-white text-primary border"><i class="${slide.icon || 'fa-solid fa-book'} me-1"></i>প্রিভিউ</span>
+                            </label>
+                            <div class="d-flex flex-wrap gap-1 mb-2">
+                                ${iconPresetBtns}
+                            </div>
+                            <input type="text" class="form-control form-control-sm rounded-3" placeholder="কাস্টম FontAwesome আইকন ক্লাস (যেমন: fa-solid fa-star)" value="${escapeHtml(slide.icon || '')}" oninput="updateHeroSlideField(${idx}, 'icon', this.value)">
+                        </div>
+
+                        <!-- Gradient Style Selector -->
+                        <div class="p-3 bg-light rounded-4 border">
+                            <label class="form-label small fw-bold text-dark mb-1 d-flex align-items-center justify-content-between">
+                                <span><i class="fa-solid fa-palette text-info me-1"></i>ব্যাকগ্রাউন্ড গ্রেডিয়েন্ট কালার:</span>
+                            </label>
+                            <div class="d-flex flex-wrap gap-1 mb-2">
+                                ${gradientPresetBtns}
+                            </div>
+                            <input type="text" class="form-control form-control-sm rounded-3 font-monospace" style="font-size: 11px;" value="${escapeHtml(slide.bg_gradient || '')}" oninput="updateHeroSlideField(${idx}, 'bg_gradient', this.value)">
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.appendChild(card);
+        });
+
+        renderLiveSlideSimulator(0);
+        syncHeroSlidesJson();
+    }
+
+    function renderLiveSlideSimulator(slideIndex = 0) {
+        const slide = window.heroSlidesData[slideIndex] || window.heroSlidesData[0];
+        if (!slide) return;
+
+        const simBox = document.getElementById('liveHeroSlideSimulator');
+        const badgeEl = document.getElementById('simSlideBadge');
+        const titleEl = document.getElementById('simSlideTitle');
+        const subtitleEl = document.getElementById('simSlideSubtitle');
+        const btnTextEl = document.getElementById('simSlideBtnText');
+        const btnIconEl = document.getElementById('simSlideBtnIcon');
+        const iconEl = document.getElementById('simSlideIcon');
+        const countBadge = document.getElementById('liveSlideCountBadge');
+
+        if (simBox) simBox.style.background = slide.bg_gradient || 'linear-gradient(135deg, #003366 0%, #0066cc 100%)';
+        if (badgeEl) {
+            badgeEl.textContent = slide.badge || 'অফার';
+            badgeEl.className = `badge ${slide.badge_color || 'bg-warning text-dark'} fw-bold px-3 py-1 mb-2 rounded-pill shadow-sm small`;
+        }
+        if (titleEl) titleEl.textContent = slide.title || '';
+        if (subtitleEl) subtitleEl.textContent = slide.subtitle || '';
+        if (btnTextEl) btnTextEl.textContent = slide.btn_text || 'দেখুন';
+        if (btnIconEl) btnIconEl.className = slide.btn_icon || 'fa-solid fa-arrow-right';
+        if (iconEl) iconEl.className = `${slide.icon || 'fa-solid fa-book-open-reader'} text-white`;
+
+        const activeCount = window.heroSlidesData.filter(s => s.is_active).length;
+        if (countBadge) countBadge.textContent = `${activeCount}টি সক্রিয় স্লাইড`;
+    }
+
+    function updateHeroSlideField(index, field, value) {
+        if (!window.heroSlidesData[index]) return;
+        window.heroSlidesData[index][field] = value;
+        renderLiveSlideSimulator(index);
+        syncHeroSlidesJson();
+    }
+
+    function toggleHeroSlideActive(index) {
+        if (!window.heroSlidesData[index]) return;
+        window.heroSlidesData[index].is_active = !window.heroSlidesData[index].is_active;
+        renderHeroSlides();
+    }
+
+    function moveHeroSlide(index, direction) {
+        const targetIndex = index + direction;
+        if (targetIndex < 0 || targetIndex >= window.heroSlidesData.length) return;
+        const temp = window.heroSlidesData[index];
+        window.heroSlidesData[index] = window.heroSlidesData[targetIndex];
+        window.heroSlidesData[targetIndex] = temp;
+        renderHeroSlides();
+    }
+
+    function deleteHeroSlide(index) {
+        if (window.heroSlidesData.length <= 1) {
+            alert('কমপক্ষে একটি স্লাইড থাকা আবশ্যক!');
+            return;
+        }
+        if (confirm(`আপনি কি "${window.heroSlidesData[index]?.title || 'এই'}" স্লাইডটি মুছে ফেলতে চান?`)) {
+            window.heroSlidesData.splice(index, 1);
+            renderHeroSlides();
+        }
+    }
+
+    function addNewHeroSlide() {
+        window.heroSlidesData.push({
+            id: String(Date.now()),
+            badge: 'নতুন কালেকশন',
+            badge_color: 'bg-primary text-white',
+            title: 'নতুন বইয়ের আকর্ষণীয় আয়োজন',
+            subtitle: 'আইডিয়া প্রকাশনীর নির্বাচিত সেরা বইগুলোতে বিশেষ সুযোগ।',
+            btn_text: 'অর্ডার করুন',
+            btn_url: '/books',
+            btn_icon: 'fa-solid fa-bag-shopping',
+            btn_class: 'btn-light text-primary',
+            icon: 'fa-solid fa-wand-magic-sparkles',
+            bg_gradient: 'linear-gradient(135deg, #1e1b4b 0%, #4338ca 100%)',
+            is_active: true
+        });
+        renderHeroSlides();
+    }
+
+    function resetHeroSlidesToDefaults() {
+        if (confirm('আপনি কি ডিফল্ট হিরো স্লাইডার তালিকা রিস্টোর করতে চান?')) {
+            window.heroSlidesData = JSON.parse(JSON.stringify(defaultHeroSlides));
+            renderHeroSlides();
+        }
+    }
+
+    function syncHeroSlidesJson() {
+        const input = document.getElementById('home_hero_slides');
+        if (input) {
+            input.value = JSON.stringify(window.heroSlidesData);
+        }
+    }
+
+    // Auto-restore Active Tab from URL Hash & Init Menu/Slide Tables
     document.addEventListener('DOMContentLoaded', function () {
+        renderHeroSlides();
         renderMenuTable();
 
         const form = document.getElementById('systemSettingsForm');
         if (form) {
             form.addEventListener('submit', function () {
+                syncHeroSlidesJson();
                 syncMenuJson();
             });
         }
