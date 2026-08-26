@@ -85,6 +85,10 @@ class HomeController extends Controller
                 // Column 3: Category with articles
                 if (\Illuminate\Support\Facades\Schema::hasTable('blog_categories')) {
                     $blogCategories = \Modules\Blog\Models\BlogCategory::query()
+                        ->whereHas('posts', function($sq) {
+                            $sq->where('status', 'published')
+                               ->orWhere('mod_status', 'approved');
+                        })
                         ->withCount(['posts' => function($q) {
                             $q->where(function($sq) {
                                 $sq->where('status', 'published')
@@ -97,7 +101,6 @@ class HomeController extends Controller
                                    ->orWhere('mod_status', 'approved');
                             })->latest('id')->take(2);
                         }])
-                        ->having('posts_count', '>', 0)
                         ->orderByDesc('posts_count')
                         ->take(6)
                         ->get();
@@ -360,8 +363,8 @@ class HomeController extends Controller
             // 8. বিষয়ভিত্তিক ডায়নামিক ক্যাটাগরিগুলো (উপন্যাস, ইসলামি বই, শিশু-কিশোর ইত্যাদি)
             $dynamicCategories = \Modules\Book\Models\Category::query()
                 ->where('is_active', true)
+                ->whereHas('books', fn($q) => $q->where('is_active', true))
                 ->withCount(['books' => fn($q) => $q->where('is_active', true)])
-                ->having('books_count', '>', 0)
                 ->orderByDesc('books_count')
                 ->take(12)
                 ->get();
