@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
-@section('title', 'Publisher Purchases & Accounts')
-@section('heading', 'Publisher Purchases & Payment Management')
+@section('title', 'Publisher Purchases & Inventory')
+@section('heading', 'Purchases & Inventory Management')
 @section('breadcrumb')
     <li class="breadcrumb-item active" aria-current="page">Purchases & Invoices</li>
 @endsection
@@ -9,19 +9,19 @@
 @section('actions')
     <div class="d-flex flex-wrap align-items-center gap-2">
         <a href="{{ route('admin.purchases.monthly-report') }}" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-xs fw-bold">
-            <i class="fa-solid fa-chart-pie me-1"></i> মাসিক রিপোর্ট
+            <i class="fa-solid fa-chart-pie me-1"></i> Monthly Report
         </a>
         <a href="{{ route('admin.purchases.create', ['type' => 'books']) }}" class="btn btn-primary btn-sm rounded-pill px-3 shadow-xs fw-bold">
-            <i class="fas fa-book me-1"></i> নতুন বই ক্রয়
+            <i class="fas fa-book me-1"></i> New Book Purchase
         </a>
         <a href="{{ route('admin.purchases.create', ['type' => 'raw_materials']) }}" class="btn btn-warning text-dark btn-sm rounded-pill px-3 shadow-xs fw-bold">
-            <i class="fas fa-boxes-stacked me-1"></i> কাঁচামাল ও প্রেস ক্রয়
+            <i class="fas fa-boxes-stacked me-1"></i> Raw Materials Purchase
         </a>
         <a href="{{ route('admin.purchases.create', ['type' => 'other']) }}" class="btn btn-info text-dark btn-sm rounded-pill px-3 shadow-xs fw-bold">
-            <i class="fas fa-cart-shopping me-1"></i> অন্যান্য ক্রয়
+            <i class="fas fa-cart-shopping me-1"></i> Other Purchases
         </a>
         <a href="{{ route('admin.purchases.payments') }}" class="btn btn-outline-success btn-sm rounded-pill px-3 shadow-xs">
-            <i class="fas fa-money-bill-transfer me-1"></i> কিস্তি ও পেমেন্ট
+            <i class="fas fa-money-bill-transfer me-1"></i> Installments & Payments
         </a>
     </div>
 @endsection
@@ -35,24 +35,24 @@
             <div class="btn-group shadow-2xs rounded-pill p-1 bg-light border w-100 w-lg-auto" role="group">
                 <a href="{{ route('admin.purchases.index') }}" 
                    class="btn btn-sm rounded-pill px-3 py-1.5 fw-bold {{ empty($category) ? 'btn-white text-primary shadow-xs' : 'btn-light text-muted' }}">
-                    <i class="fa-solid fa-layer-group me-1"></i> সকল ক্রয় ({{ $stats['total_invoices'] }})
+                    <i class="fa-solid fa-layer-group me-1"></i> All Purchases ({{ $stats['total_invoices'] }})
                 </a>
                 <a href="{{ route('admin.purchases.index', ['category' => 'books']) }}" 
                    class="btn btn-sm rounded-pill px-3 py-1.5 fw-bold {{ $category === 'books' ? 'btn-white text-primary shadow-xs' : 'btn-light text-muted' }}">
-                    <i class="fa-solid fa-book-open me-1"></i> ১. বই ক্রয় ({{ $stats['books_count'] }}টি | ৳{{ number_format($stats['books_total'], 0) }})
+                    <i class="fa-solid fa-book-open me-1"></i> 1. Book Purchases ({{ $stats['books_count'] }} | ৳{{ number_format($stats['books_total'], 0) }})
                 </a>
                 <a href="{{ route('admin.purchases.index', ['category' => 'raw_materials']) }}" 
                    class="btn btn-sm rounded-pill px-3 py-1.5 fw-bold {{ $category === 'raw_materials' ? 'btn-white text-warning text-dark shadow-xs' : 'btn-light text-muted' }}">
-                    <i class="fa-solid fa-boxes-stacked me-1"></i> ২. কাঁচামাল ক্রয় ({{ $stats['raw_count'] }}টি | ৳{{ number_format($stats['raw_total'], 0) }})
+                    <i class="fa-solid fa-boxes-stacked me-1"></i> 2. Raw Materials ({{ $stats['raw_count'] }} | ৳{{ number_format($stats['raw_total'], 0) }})
                 </a>
                 <a href="{{ route('admin.purchases.index', ['category' => 'other']) }}" 
                    class="btn btn-sm rounded-pill px-3 py-1.5 fw-bold {{ $category === 'other' ? 'btn-white text-info text-dark shadow-xs' : 'btn-light text-muted' }}">
-                    <i class="fa-solid fa-cart-shopping me-1"></i> ৩. অন্যান্য ক্রয় ({{ $stats['other_count'] }}টি | ৳{{ number_format($stats['other_total'], 0) }})
+                    <i class="fa-solid fa-cart-shopping me-1"></i> 3. Other Purchases ({{ $stats['other_count'] }} | ৳{{ number_format($stats['other_total'], 0) }})
                 </a>
             </div>
 
             <span class="small text-muted d-none d-xl-inline">
-                <i class="fa-solid fa-circle-check text-success me-1"></i> বই, কাঁচামাল ও বিবিধ ক্রয়ের হিসাব আলাদা ক্লাসে সম্পূর্ণ কাস্টমাইজড।
+                <i class="fa-solid fa-circle-check text-success me-1"></i> Books, Raw Materials & Misc Purchases organized in distinct classes.
             </span>
         </div>
     </div>
@@ -64,7 +64,7 @@
         <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-primary">
             <div class="d-flex align-items-center justify-content-between">
                 <div>
-                    <span class="text-muted small fw-semibold">মোট ইনভয়েস সংখ্যা</span>
+                    <span class="text-muted small fw-semibold">Total Invoices</span>
                     <h3 class="fw-bold mb-0 text-primary">{{ number_format($stats['total_invoices']) }}</h3>
                 </div>
                 <div class="rounded-circle bg-primary-subtle text-primary p-3"><i class="fas fa-receipt fs-4"></i></div>
@@ -75,7 +75,7 @@
         <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-dark">
             <div class="d-flex align-items-center justify-content-between">
                 <div>
-                    <span class="text-muted small fw-semibold">সর্বমোট ক্রয়মূল্য</span>
+                    <span class="text-muted small fw-semibold">Total Purchase Value</span>
                     <h3 class="fw-bold mb-0 text-dark">৳{{ number_format($stats['total_purchase'], 2) }}</h3>
                 </div>
                 <div class="rounded-circle bg-dark-subtle text-dark p-3"><i class="fas fa-cart-flatbed fs-4"></i></div>
@@ -86,7 +86,7 @@
         <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-success">
             <div class="d-flex align-items-center justify-content-between">
                 <div>
-                    <span class="text-muted small fw-semibold">পরিশোধিত অর্থ</span>
+                    <span class="text-muted small fw-semibold">Paid Amount</span>
                     <h3 class="fw-bold mb-0 text-success">৳{{ number_format($stats['total_paid'], 2) }}</h3>
                 </div>
                 <div class="rounded-circle bg-success-subtle text-success p-3"><i class="fas fa-hand-holding-dollar fs-4"></i></div>
@@ -97,7 +97,7 @@
         <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-danger">
             <div class="d-flex align-items-center justify-content-between">
                 <div>
-                    <span class="text-muted small fw-semibold">বকেয়া দেনা (Due)</span>
+                    <span class="text-muted small fw-semibold">Outstanding Due</span>
                     <h3 class="fw-bold mb-0 text-danger">৳{{ number_format($stats['total_due'], 2) }}</h3>
                 </div>
                 <div class="rounded-circle bg-danger-subtle text-danger p-3"><i class="fas fa-clock-rotate-left fs-4"></i></div>
@@ -117,12 +117,12 @@
                 <div class="input-group">
                     <span class="input-group-text bg-light border-end-0"><i class="fas fa-search text-muted"></i></span>
                     <input type="search" name="search" class="form-control border-start-0" 
-                           placeholder="ইনভয়েস নং, বই বা সরবরাহকারী..." value="{{ request('search') }}">
+                           placeholder="Invoice no, book or supplier..." value="{{ request('search') }}">
                 </div>
             </div>
             <div class="col-md-3">
                 <select name="publisher_id" class="form-select" onchange="this.form.submit()">
-                    <option value="">সকল প্রকাশনী / সরবরাহকারী</option>
+                    <option value="">All Publishers / Suppliers</option>
                     @foreach($publishers as $id => $name)
                         <option value="{{ $id }}" @selected(request('publisher_id') == $id)>{{ $name }}</option>
                     @endforeach
@@ -130,17 +130,17 @@
             </div>
             <div class="col-md-2">
                 <select name="payment_status" class="form-select" onchange="this.form.submit()">
-                    <option value="all">সকল পেমেন্ট স্ট্যাটাস</option>
-                    <option value="paid" @selected(request('payment_status') === 'paid')>পরিশোধিত (Paid)</option>
-                    <option value="partial" @selected(request('payment_status') === 'partial')>আংশিক পরিশোধ</option>
-                    <option value="due" @selected(request('payment_status') === 'due')>বকেয়া (Due)</option>
+                    <option value="all">All Payment Status</option>
+                    <option value="paid" @selected(request('payment_status') === 'paid')>Paid</option>
+                    <option value="partial" @selected(request('payment_status') === 'partial')>Partial Due</option>
+                    <option value="due" @selected(request('payment_status') === 'due')>Full Due</option>
                 </select>
             </div>
             <div class="col-md-2">
                 <input type="date" name="date_from" class="form-control" value="{{ request('date_from') }}" title="Start Date">
             </div>
             <div class="col-md-2 d-flex gap-2">
-                <button type="submit" class="btn btn-primary w-100"><i class="fas fa-filter me-1"></i> ফিল্টার</button>
+                <button type="submit" class="btn btn-primary w-100"><i class="fas fa-filter me-1"></i> Filter</button>
                 @if(request()->hasAny(['search', 'publisher_id', 'payment_status', 'date_from']))
                     <a href="{{ route('admin.purchases.index', $category ? ['category' => $category] : []) }}" class="btn btn-light border" title="Reset"><i class="fas fa-rotate-left"></i></a>
                 @endif
@@ -154,17 +154,17 @@
     @if ($purchases->isEmpty())
         <div class="empty-state py-5 text-center">
             <i class="fas fa-receipt fs-1 text-muted opacity-50 mb-3"></i>
-            <h5 class="fw-bold text-muted">কোনো ক্রয় চালান পাওয়া যায়নি</h5>
-            <p class="text-muted small">উপরের বাটন দিয়ে নতুন বই ক্রয়, কাঁচামাল ক্রয় অথবা অন্যান্য ক্রয় চালান যোগ করুন।</p>
+            <h5 class="fw-bold text-muted">No purchase invoices found</h5>
+            <p class="text-muted small">Use the buttons above to record a new book purchase, raw materials, or other purchase entry.</p>
             <div class="d-flex justify-content-center flex-wrap gap-2">
                 <a href="{{ route('admin.purchases.create', ['type' => 'books']) }}" class="btn btn-primary rounded-pill px-4">
-                    <i class="fas fa-book me-1"></i> বই ক্রয়
+                    <i class="fas fa-book me-1"></i> Book Purchase
                 </a>
                 <a href="{{ route('admin.purchases.create', ['type' => 'raw_materials']) }}" class="btn btn-warning rounded-pill px-4 text-dark fw-bold">
-                    <i class="fas fa-boxes-stacked me-1"></i> কাঁচামাল ক্রয়
+                    <i class="fas fa-boxes-stacked me-1"></i> Raw Materials Purchase
                 </a>
                 <a href="{{ route('admin.purchases.create', ['type' => 'other']) }}" class="btn btn-info rounded-pill px-4 text-dark fw-bold">
-                    <i class="fas fa-cart-shopping me-1"></i> অন্যান্য ক্রয়
+                    <i class="fas fa-cart-shopping me-1"></i> Other Purchase
                 </a>
             </div>
         </div>
@@ -173,15 +173,15 @@
             <table class="table table-hover align-middle mb-0">
                 <thead class="bg-light table-light small text-muted">
                     <tr>
-                        <th class="ps-3.5">ইনভয়েস ও শ্রেণি</th>
-                        <th>সরবরাহকারী / প্রকাশনী / ভেন্ডর</th>
-                        <th>তারিখ</th>
-                        <th>আইটেম সংখ্যা</th>
-                        <th class="text-end">মোট টাকা</th>
-                        <th class="text-end">পরিশোধিত</th>
-                        <th class="text-end">বকেয়া</th>
-                        <th class="text-center">স্ট্যাটাস</th>
-                        <th class="text-end pe-3.5">অ্যাকশন</th>
+                        <th class="ps-3.5">Invoice & Category</th>
+                        <th>Supplier / Publisher / Vendor</th>
+                        <th>Date</th>
+                        <th>Items Count</th>
+                        <th class="text-end">Total Amount</th>
+                        <th class="text-end">Paid Amount</th>
+                        <th class="text-end">Due Amount</th>
+                        <th class="text-center">Status</th>
+                        <th class="text-end pe-3.5">Action</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -197,15 +197,15 @@
                                 <div>
                                     @if($catType === 'raw_materials')
                                         <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2 py-0.5" style="font-size: 11px;">
-                                            <i class="fa-solid fa-boxes-stacked me-1"></i>কাঁচামাল ও প্রেস
+                                            <i class="fa-solid fa-boxes-stacked me-1"></i>Raw Materials & Press
                                         </span>
                                     @elseif($catType === 'other')
                                         <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle rounded-pill px-2 py-0.5" style="font-size: 11px;">
-                                            <i class="fa-solid fa-cart-shopping me-1"></i>অন্যান্য ক্রয়
+                                            <i class="fa-solid fa-cart-shopping me-1"></i>Other Purchases
                                         </span>
                                     @else
                                         <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-0.5" style="font-size: 11px;">
-                                            <i class="fa-solid fa-book me-1"></i>বই ক্রয়
+                                            <i class="fa-solid fa-book me-1"></i>Book Purchases
                                         </span>
                                     @endif
                                 </div>
@@ -215,7 +215,7 @@
                                     {{ $purchase->vendor_name ?: ($purchase->supplier_name ?: ($purchase->publisher->name ?? '—')) }}
                                 </div>
                                 @if($purchase->publisher_memo_no)
-                                    <span class="small text-muted font-monospace">মেমো: {{ $purchase->publisher_memo_no }}</span>
+                                    <span class="small text-muted font-monospace">Memo: {{ $purchase->publisher_memo_no }}</span>
                                 @endif
                             </td>
                             <td class="small text-muted text-nowrap">
@@ -223,7 +223,7 @@
                             </td>
                             <td class="small text-muted">
                                 <span class="badge bg-light text-dark border rounded-pill px-2.5 py-1">
-                                    {{ $purchase->items->count() }} টি আইটেম
+                                    {{ $purchase->items->count() }} Items
                                 </span>
                             </td>
                             <td class="text-end fw-bold text-dark font-monospace">
@@ -237,16 +237,16 @@
                             </td>
                             <td class="text-center">
                                 @if($purchase->payment_status === 'paid')
-                                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1 small">পরিশোধিত</span>
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1 small">Paid</span>
                                 @elseif($purchase->payment_status === 'partial')
-                                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2.5 py-1 small">আংশিক বাকি</span>
+                                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2.5 py-1 small">Partial Due</span>
                                 @else
-                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-1 small">সম্পূর্ণ বকেয়া</span>
+                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-1 small">Full Due</span>
                                 @endif
                             </td>
                             <td class="text-end pe-3.5">
                                 <a href="{{ route('admin.purchases.show', $purchase->id) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 fw-semibold">
-                                    দেখুন <i class="fa-solid fa-arrow-right ms-1"></i>
+                                    View <i class="fa-solid fa-arrow-right ms-1"></i>
                                 </a>
                             </td>
                         </tr>

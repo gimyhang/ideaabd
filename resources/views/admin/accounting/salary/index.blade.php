@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'কর্মচারী বেতন বিতরণ ও পে-রোল (Staff Salary Disbursements) — আইডিয়া প্রকাশন')
+@section('title', 'কর্মচারী ও কারিগর বেতন-মজুরি বিতরণ (Salary & Wages) — আইডিয়া প্রকাশন')
 
 @section('content')
 <div class="container-fluid px-3 px-md-4 py-3">
@@ -12,22 +12,22 @@
                 <div>
                     <div class="d-flex align-items-center gap-2 mb-1">
                         <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1 small fw-bold">
-                            <i class="fa-solid fa-money-check-dollar me-1"></i> পে-রোল ও বেতন বিতরণ
+                            <i class="fa-solid fa-money-check-dollar me-1"></i> পে-রোল ও মজুরি বিতরণ
                         </span>
                         <span class="text-muted small">
                             <i class="fa-solid fa-calendar me-1"></i> মাস: <strong>{{ \Carbon\Carbon::createFromFormat('Y-m', $month)->format('F Y') }}</strong>
                         </span>
                     </div>
-                    <h4 class="fw-bold text-dark mb-0">কর্মচারীদের বেতন বিতরণ ও রেজিস্টার</h4>
-                    <p class="text-muted small mb-0">মাসিক বেতন প্রদান, বোনাস, ওভারটাইম ও কর্তন হিসাব স্বয়ংক্রিয়ভাবে মূল খতিয়ানে যুক্ত হয়।</p>
+                    <h4 class="fw-bold text-dark mb-0">কর্মচারী ও কারিগরদের বেতন-মজুরি প্রদান রেজিস্টার</h4>
+                    <p class="text-muted small mb-0">মাসিক বেতন, চুক্তিভিত্তিক বই বাঁধাই বিল ও দৈনিক হাজিরা মজুরি স্বয়ংক্রিয়ভাবে মূল হিসাব খতিয়ানে যুক্ত হয়।</p>
                 </div>
 
                 <div class="d-flex align-items-center gap-2 flex-wrap ms-md-auto">
                     <a href="{{ route('admin.accounting.employees.index') }}" class="btn btn-outline-secondary rounded-pill px-3 py-2 fw-semibold shadow-2xs">
-                        <i class="fa-solid fa-users me-1"></i> কর্মচারী তালিকা
+                        <i class="fa-solid fa-users me-1"></i> কর্মী ও কারিগর তালিকা
                     </a>
-                    <button type="button" class="btn btn-success rounded-pill px-3.5 py-2 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#paySalaryModal">
-                        <i class="fa-solid fa-hand-holding-dollar me-1.5"></i> নতুন বেতন প্রদান করুন
+                    <button type="button" class="btn btn-success rounded-pill px-4 py-2 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#paySalaryModal">
+                        <i class="fa-solid fa-hand-holding-dollar me-1.5"></i> নতুন বেতন / মজুরি প্রদান করুন
                     </button>
                 </div>
             </div>
@@ -39,8 +39,8 @@
                 <div class="col-sm-6">
                     <div class="p-3 bg-light rounded-3 border d-flex align-items-center justify-content-between">
                         <div>
-                            <span class="small text-muted fw-semibold">{{ \Carbon\Carbon::createFromFormat('Y-m', $month)->format('F Y') }} মাসে মোট পরিশোধিত বেতন</span>
-                            <h4 class="fw-bold text-success mb-0">৳{{ number_format($totalPaidInMonth, 2) }}</h4>
+                            <span class="small text-muted fw-semibold">{{ \Carbon\Carbon::createFromFormat('Y-m', $month)->format('F Y') }} মাসে মোট পরিশোধিত মজুরি ও বেতন</span>
+                            <h4 class="fw-bold text-success mb-0 font-monospace">৳{{ number_format($totalPaidInMonth, 2) }}</h4>
                         </div>
                         <span class="badge bg-white text-success border p-2.5 rounded-circle fs-5"><i class="fa-solid fa-calendar-check"></i></span>
                     </div>
@@ -48,8 +48,8 @@
                 <div class="col-sm-6">
                     <div class="p-3 bg-light rounded-3 border d-flex align-items-center justify-content-between">
                         <div>
-                            <span class="small text-muted fw-semibold">সর্বমোট আজ পর্যন্ত প্রদত্ত বেতন</span>
-                            <h4 class="fw-bold text-primary mb-0">৳{{ number_format($totalPaidAllTime, 2) }}</h4>
+                            <span class="small text-muted fw-semibold">সর্বমোট আজ পর্যন্ত প্রদত্ত মোট পে-রোল</span>
+                            <h4 class="fw-bold text-primary mb-0 font-monospace">৳{{ number_format($totalPaidAllTime, 2) }}</h4>
                         </div>
                         <span class="badge bg-white text-primary border p-2.5 rounded-circle fs-5"><i class="fa-solid fa-vault"></i></span>
                     </div>
@@ -70,15 +70,17 @@
                 </div>
                 <div class="col-md-4">
                     <select name="employee_id" class="form-select form-select-sm rounded-3" onchange="this.form.submit()">
-                        <option value="">সকল কর্মচারী</option>
+                        <option value="">সকল কর্মী ও কারিগর</option>
                         @foreach($employees as $emp)
-                            <option value="{{ $emp->id }}" @selected($employeeId == $emp->id)>{{ $emp->name }} ({{ $emp->designation }})</option>
+                            <option value="{{ $emp->id }}" @selected($employeeId == $emp->id)>
+                                {{ $emp->name }} ({{ $emp->designation }} — {{ $emp->formatted_rate }})
+                            </option>
                         @endforeach
                     </select>
                 </div>
                 <div class="col-md-3">
                     <div class="input-group input-group-sm">
-                        <input type="text" name="search" value="{{ $search }}" class="form-control rounded-start-3" placeholder="রিসিট নং বা নাম...">
+                        <input type="text" name="search" value="{{ $search }}" class="form-control rounded-start-3" placeholder="ভাউচার নং, নাম বা কাজের বিবরণ...">
                         <button type="submit" class="btn btn-primary fw-semibold"><i class="fa-solid fa-search"></i></button>
                     </div>
                 </div>
@@ -98,19 +100,22 @@
                 <table class="table table-hover align-middle mb-0">
                     <thead class="bg-light table-light small text-muted">
                         <tr>
-                            <th class="ps-3.5">রিসিট নং ও তারিখ</th>
-                            <th>কর্মচারীর নাম ও পদবি</th>
-                            <th>বেতনের মাস</th>
-                            <th class="text-end">মূল বেতন</th>
-                            <th class="text-end">বোনাস / ভাতা</th>
-                            <th class="text-end">কর্তন</th>
-                            <th class="text-end">মোট প্রদেয় অর্থ</th>
-                            <th class="text-center">মাধ্যম</th>
-                            <th class="text-end pe-3.5" style="width: 130px;">পে-স্লিপ</th>
+                            <th class="ps-3.5" style="min-width: 150px;">ভাউচার নং ও তারিখ</th>
+                            <th style="min-width: 220px;">কর্মী / কারিগর ও পদবি</th>
+                            <th style="min-width: 200px;">কাজের বিবরণ / কাজের ভিত্তি</th>
+                            <th class="text-end" style="min-width: 120px;">মূল পরিমাণ</th>
+                            <th class="text-end" style="min-width: 100px;">বোনাস/ভাতা</th>
+                            <th class="text-end" style="min-width: 90px;">কর্তন</th>
+                            <th class="text-end" style="min-width: 130px;">মোট প্রদেয় অর্থ</th>
+                            <th class="text-center" style="width: 100px;">মাধ্যম</th>
+                            <th class="text-end pe-3.5" style="width: 120px;">পে-স্লিপ</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse($payments as $pay)
+                            @php
+                                $empType = $pay->employment_type ?? ($pay->employee->employment_type ?? 'monthly');
+                            @endphp
                             <tr>
                                 <td class="ps-3.5">
                                     <div class="fw-bold text-dark font-monospace small">{{ $pay->slip_no }}</div>
@@ -118,16 +123,44 @@
                                 </td>
                                 <td>
                                     <div class="fw-bold text-dark">{{ $pay->employee->name ?? '—' }}</div>
-                                    <span class="small text-muted">{{ $pay->employee->designation ?? '' }} ({{ $pay->employee->department ?? '' }})</span>
+                                    <div class="d-flex align-items-center gap-1.5 mt-0.5">
+                                        <span class="small text-muted">{{ $pay->employee->designation ?? '' }}</span>
+                                        @if($empType === 'contract_piece')
+                                            <span class="badge border px-1.5 py-0" style="font-size: 9px; background-color: #f3e8ff; color: #7e22ce; border-color: #d8b4fe;">পিস-রেট বাইন্ডার</span>
+                                        @elseif($empType === 'daily')
+                                            <span class="badge border px-1.5 py-0" style="font-size: 9px; background-color: #fef3c7; color: #b45309; border-color: #fde68a;">দৈনিক হাজিরা</span>
+                                        @endif
+                                    </div>
                                 </td>
                                 <td>
-                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1 small fw-semibold">
-                                        {{ \Carbon\Carbon::createFromFormat('Y-m', $pay->salary_month)->format('M Y') }}
-                                    </span>
+                                    @if($pay->work_details)
+                                        <div class="small fw-semibold text-dark">{{ $pay->work_details }}</div>
+                                    @endif
+                                    @if($pay->job_quantity && $pay->rate_per_unit)
+                                        <div class="text-muted" style="font-size: 11px;">
+                                            {{ (float)$pay->job_quantity }} {{ $pay->rate_unit_name ?: 'একক' }} × ৳{{ number_format($pay->rate_per_unit, 2) }}
+                                        </div>
+                                    @else
+                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-0.5" style="font-size: 10px;">
+                                            {{ \Carbon\Carbon::createFromFormat('Y-m', $pay->salary_month)->format('M Y') }}
+                                        </span>
+                                    @endif
                                 </td>
                                 <td class="text-end fw-semibold text-muted font-monospace">৳{{ number_format($pay->basic_amount, 2) }}</td>
-                                <td class="text-end fw-semibold text-success font-monospace">+৳{{ number_format($pay->bonus_amount + $pay->overtime_amount, 2) }}</td>
-                                <td class="text-end fw-semibold text-danger font-monospace">-৳{{ number_format($pay->deduction_amount, 2) }}</td>
+                                <td class="text-end fw-semibold text-success font-monospace">
+                                    @if(($pay->bonus_amount + $pay->overtime_amount) > 0)
+                                        +৳{{ number_format($pay->bonus_amount + $pay->overtime_amount, 2) }}
+                                    @else
+                                        —
+                                    @endif
+                                </td>
+                                <td class="text-end fw-semibold text-danger font-monospace">
+                                    @if($pay->deduction_amount > 0)
+                                        -৳{{ number_format($pay->deduction_amount, 2) }}
+                                    @else
+                                        —
+                                    @endif
+                                </td>
                                 <td class="text-end fw-bold text-dark font-monospace fs-6">
                                     ৳{{ number_format($pay->net_paid, 2) }}
                                 </td>
@@ -139,7 +172,7 @@
                                 <td class="text-end pe-3.5">
                                     <a href="{{ route('admin.accounting.salary.slip', $pay->id) }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 fw-semibold d-inline-flex align-items-center gap-1">
                                         <i class="fa-solid fa-receipt"></i>
-                                        <span>পে-স্লিপ</span>
+                                        <span>ভাউচার</span>
                                     </a>
                                 </td>
                             </tr>
@@ -147,7 +180,7 @@
                             <tr>
                                 <td colspan="9" class="text-center py-5 text-muted">
                                     <i class="fa-solid fa-hand-holding-dollar text-muted opacity-50 fs-2 mb-2"></i>
-                                    <p class="small mb-0">এই মাসে কোনো বেতন প্রদানের রেকর্ড নেই। নতুন বেতন বিতরণ করতে উপরের বাটনে চাপুন।</p>
+                                    <p class="small mb-0">এই মাসে কোনো বেতন বা মজুরি প্রদানের রেকর্ড নেই। নতুন বেতন বিতরণ করতে উপরের বাটনে চাপুন।</p>
                                 </td>
                             </tr>
                         @endforelse
@@ -165,32 +198,36 @@
 
 </div>
 
-<!-- Modal: Pay Salary -->
+<!-- Modal: Pay Salary / Wages -->
 <div class="modal fade" id="paySalaryModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <form action="{{ route('admin.accounting.salary.store') }}" method="POST" class="modal-content rounded-4 border-0 shadow-lg">
             @csrf
             <div class="modal-header bg-dark text-white border-0 py-3">
                 <h5 class="modal-title fw-bold fs-6 d-flex align-items-center gap-2">
-                    <i class="fa-solid fa-hand-holding-dollar text-success"></i> কর্মচারী বেতন বিতরণ ও ভাউচার
+                    <i class="fa-solid fa-hand-holding-dollar text-success"></i> কর্মচারী ও কারিগর বেতন / মজুরি ভাউচার
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body p-4">
                 <div class="row g-3">
                     <div class="col-md-6">
-                        <label class="form-label small fw-bold text-dark">কর্মচারী নির্বাচন করুন *</label>
-                        <select name="employee_id" id="modal_employee_id" class="form-select rounded-3" required onchange="onEmployeeSelect(this)">
-                            <option value="">কর্মচারী নির্বাচন করুন...</option>
+                        <label class="form-label small fw-bold text-dark">কর্মী / কারিগর নির্বাচন করুন *</label>
+                        <select name="employee_id" id="modal_employee_id" class="form-select rounded-3 fw-semibold border-primary" required onchange="onEmployeeSelect(this)">
+                            <option value="">-- কর্মী / কারিগর নির্বাচন করুন --</option>
                             @foreach($employees as $emp)
-                                <option value="{{ $emp->id }}" data-salary="{{ $emp->basic_salary }}">
-                                    {{ $emp->name }} ({{ $emp->designation }} — মূল বেতন: ৳{{ number_format($emp->basic_salary, 0) }})
+                                <option value="{{ $emp->id }}" 
+                                        data-type="{{ $emp->employment_type ?? 'monthly' }}"
+                                        data-rate-type="{{ $emp->salary_rate_type ?? 'monthly' }}"
+                                        data-salary="{{ $emp->basic_salary }}"
+                                        data-unit="{{ $emp->rate_unit_name ?: 'একক' }}">
+                                    {{ $emp->name }} ({{ $emp->designation }} — {{ $emp->formatted_rate }})
                                 </option>
                             @endforeach
                         </select>
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label small fw-bold text-dark">বেতনের মাস *</label>
+                        <label class="form-label small fw-bold text-dark">কাজের মাস / বিল মাস *</label>
                         <input type="month" name="salary_month" value="{{ $month }}" class="form-control rounded-3" required>
                     </div>
                     <div class="col-md-3">
@@ -198,24 +235,54 @@
                         <input type="date" name="payment_date" value="{{ date('Y-m-d') }}" class="form-control rounded-3" required>
                     </div>
 
+                    <!-- Dynamic Job / Piece-rate / Daily Work Calculation Section -->
+                    <div class="col-12" id="pieceRateWorkBox" style="display: none;">
+                        <div class="p-3 rounded-4 border" style="background-color: #faf5ff; border-color: #d8b4fe !important;">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <span class="badge" style="background-color: #7e22ce; color: white;">
+                                    <i class="fa-solid fa-book-bookmark me-1"></i> প্রেস কাজ ও পিস-রেট হিসাব
+                                </span>
+                                <span class="small text-muted" id="pieceRateBoxTitle">বইয়ের নাম ও কাজের পরিমাণ লিখুন</span>
+                            </div>
+                            <div class="row g-2">
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-bold text-dark">কাজের বিবরণ / বইয়ের নাম</label>
+                                    <input type="text" name="work_details" id="modal_work_details" class="form-control rounded-3" placeholder="যেমন: ৫০০০ কপি 'বাংলা গল্প' বই বাঁধাই">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label small fw-bold text-dark" id="modal_qty_label">কাজের পরিমাণ (Qty)</label>
+                                    <input type="number" step="0.01" name="job_quantity" id="modal_job_qty" class="form-control rounded-3 font-monospace" placeholder="যেমন: 5000" oninput="calcPieceRateSubtotal()">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label small fw-bold text-dark" id="modal_rate_label">একক দর (৳ Rate)</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-white">৳</span>
+                                        <input type="number" step="0.01" name="rate_per_unit" id="modal_rate_per_unit" class="form-control font-monospace" placeholder="যেমন: 4.50" oninput="calcPieceRateSubtotal()">
+                                    </div>
+                                </div>
+                                <input type="hidden" name="rate_unit_name" id="modal_rate_unit_name" value="">
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Salary Breakdown Calculation Box -->
                     <div class="col-12">
                         <div class="p-3 bg-light rounded-4 border">
                             <div class="row g-2 align-items-center">
                                 <div class="col-sm-3">
-                                    <label class="form-label small fw-semibold text-muted mb-1">মূল বেতন (৳)</label>
-                                    <input type="number" step="0.01" name="basic_amount" id="modal_basic_salary" class="form-control rounded-3" required oninput="calcNetSalary()">
+                                    <label class="form-label small fw-semibold text-muted mb-1" id="lblBasicSalaryTitle">মূল বেতন / মজুরি (৳)</label>
+                                    <input type="number" step="0.01" name="basic_amount" id="modal_basic_salary" class="form-control rounded-3 font-monospace fw-bold" required oninput="calcNetSalary()">
                                 </div>
                                 <div class="col-sm-3">
-                                    <label class="form-label small fw-semibold text-success mb-1">+ বোনাস / ভাতা (৳)</label>
-                                    <input type="number" step="0.01" name="bonus_amount" id="modal_bonus" value="0" class="form-control rounded-3" oninput="calcNetSalary()">
+                                    <label class="form-label small fw-semibold text-success mb-1">+ বোনাস / ওভারটাইম (৳)</label>
+                                    <input type="number" step="0.01" name="bonus_amount" id="modal_bonus" value="0" class="form-control rounded-3 font-monospace" oninput="calcNetSalary()">
                                 </div>
                                 <div class="col-sm-3">
-                                    <label class="form-label small fw-semibold text-danger mb-1">- কর্তন / অগ্রিম (৳)</label>
-                                    <input type="number" step="0.01" name="deduction_amount" id="modal_deduction" value="0" class="form-control rounded-3" oninput="calcNetSalary()">
+                                    <label class="form-label small fw-semibold text-danger mb-1">- কর্তন / অগ্রিম সমন্বয় (৳)</label>
+                                    <input type="number" step="0.01" name="deduction_amount" id="modal_deduction" value="0" class="form-control rounded-3 font-monospace" oninput="calcNetSalary()">
                                 </div>
                                 <div class="col-sm-3">
-                                    <label class="form-label small fw-bold text-dark mb-1">= মোট প্রদেয় বেতন (৳)</label>
+                                    <label class="form-label small fw-bold text-dark mb-1">= নিট প্রদেয় (Net ৳)</label>
                                     <div class="p-2 bg-white rounded-3 border fw-bold text-success fs-5 text-end font-monospace" id="lblNetSalary">
                                         ৳0.00
                                     </div>
@@ -242,15 +309,15 @@
                     </div>
 
                     <div class="col-12">
-                        <label class="form-label small fw-semibold text-muted">বিশেষ নোট / বিবরণ</label>
-                        <textarea name="notes" class="form-control rounded-3" rows="2" placeholder="যেমন: ঈদ বোনাস সহ অগ্রিম সমন্বয়..."></textarea>
+                        <label class="form-label small fw-semibold text-muted">বিশেষ নোট / চালান বিবরণ</label>
+                        <textarea name="notes" class="form-control rounded-3" rows="2" placeholder="যেমন: 'বাংলা একাডেমি বইমেলার ৫০০০ বই বাঁধাই বিল' অথবা বিশেষ অগ্রিম সমন্বয়..."></textarea>
                     </div>
                 </div>
             </div>
             <div class="modal-footer bg-light border-top p-3">
                 <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">বাতিল</button>
                 <button type="submit" class="btn btn-success rounded-pill px-5 fw-bold shadow-sm">
-                    <i class="fa-solid fa-check me-1.5"></i> বেতন প্রদান ও খতিয়ানে সংরক্ষণ
+                    <i class="fa-solid fa-check me-1.5"></i> মজুরি / বেতন প্রদান সম্পন্ন করুন
                 </button>
             </div>
         </form>
@@ -261,8 +328,74 @@
 <script>
 function onEmployeeSelect(sel) {
     const opt = sel.options[sel.selectedIndex];
-    const salary = opt.getAttribute('data-salary') || 0;
-    document.getElementById('modal_basic_salary').value = parseFloat(salary).toFixed(2);
+    if (!opt || !opt.value) {
+        document.getElementById('pieceRateWorkBox').style.display = 'none';
+        document.getElementById('modal_basic_salary').value = '';
+        calcNetSalary();
+        return;
+    }
+
+    const type = opt.getAttribute('data-type') || 'monthly';
+    const rateType = opt.getAttribute('data-rate-type') || 'monthly';
+    const salary = parseFloat(opt.getAttribute('data-salary')) || 0;
+    const unit = opt.getAttribute('data-unit') || '';
+
+    const workBox = document.getElementById('pieceRateWorkBox');
+    const basicInput = document.getElementById('modal_basic_salary');
+    const ratePerUnitInput = document.getElementById('modal_rate_per_unit');
+    const jobQtyInput = document.getElementById('modal_job_qty');
+    const unitHidden = document.getElementById('modal_rate_unit_name');
+    const qtyLabel = document.getElementById('modal_qty_label');
+    const rateLabel = document.getElementById('modal_rate_label');
+    const boxTitle = document.getElementById('pieceRateBoxTitle');
+    const basicTitle = document.getElementById('lblBasicSalaryTitle');
+
+    unitHidden.value = unit;
+
+    if (type === 'contract_piece' || rateType === 'per_book' || rateType === 'per_forma' || rateType === 'per_thousand' || rateType === 'per_page') {
+        workBox.style.display = 'block';
+        ratePerUnitInput.value = salary.toFixed(2);
+        jobQtyInput.value = '';
+        basicInput.value = '0.00';
+        boxTitle.textContent = `কাজের পরিমাণ × দর (${salary} / ${unit})`;
+        qtyLabel.textContent = `মোট সংখ্যা (${unit})`;
+        rateLabel.textContent = `একক দর (৳ / ${unit})`;
+        basicTitle.textContent = 'কাজের মোট মজুরি (৳)';
+    } else if (type === 'daily' || rateType === 'daily') {
+        workBox.style.display = 'block';
+        ratePerUnitInput.value = salary.toFixed(2);
+        jobQtyInput.value = '';
+        basicInput.value = '0.00';
+        boxTitle.textContent = `হাজিরা দিন × দৈনিক মজুরি (${salary} / দিন)`;
+        qtyLabel.textContent = 'মোট কার্যদিবস (দিন)';
+        rateLabel.textContent = 'দৈনিক দর (৳ / দিন)';
+        basicTitle.textContent = 'হাজিরা বাবদ মজুরি (৳)';
+    } else if (type === 'weekly' || rateType === 'weekly') {
+        workBox.style.display = 'block';
+        ratePerUnitInput.value = salary.toFixed(2);
+        jobQtyInput.value = '1';
+        basicInput.value = salary.toFixed(2);
+        boxTitle.textContent = `সাপ্তাহিক মজুরি (${salary} / সপ্তাহ)`;
+        qtyLabel.textContent = 'সপ্তাহ সংখ্যা';
+        rateLabel.textContent = 'সাপ্তাহিক দর (৳)';
+        basicTitle.textContent = 'মোট সাপ্তাহিক মজুরি (৳)';
+    } else {
+        workBox.style.display = 'none';
+        ratePerUnitInput.value = '';
+        jobQtyInput.value = '';
+        basicInput.value = salary.toFixed(2);
+        basicTitle.textContent = 'মূল মাসিক বেতন (৳)';
+    }
+
+    calcNetSalary();
+}
+
+function calcPieceRateSubtotal() {
+    const qty = parseFloat(document.getElementById('modal_job_qty').value) || 0;
+    const rate = parseFloat(document.getElementById('modal_rate_per_unit').value) || 0;
+    if (qty > 0 && rate > 0) {
+        document.getElementById('modal_basic_salary').value = (qty * rate).toFixed(2);
+    }
     calcNetSalary();
 }
 

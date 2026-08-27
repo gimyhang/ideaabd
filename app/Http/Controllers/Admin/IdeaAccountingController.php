@@ -994,32 +994,44 @@ class IdeaAccountingController extends Controller
     {
         $search = $request->input('search');
         $department = $request->input('department');
+        $employmentType = $request->input('employment_type');
         $status = $request->input('status');
 
         $query = IdeaEmployee::query()
             ->withCount('salaryPayments')
             ->withSum('salaryPayments', 'net_paid')
             ->when($department, fn($q) => $q->where('department', $department))
+            ->when($employmentType, fn($q) => $q->where('employment_type', $employmentType))
             ->when($status, fn($q) => $q->where('status', $status))
             ->when($search, function ($q, $term) {
                 $like = '%' . $term . '%';
                 $q->where(function ($w) use ($like) {
                     $w->where('name', 'like', $like)
                       ->orWhere('phone', 'like', $like)
-                      ->orWhere('designation', 'like', $like);
+                      ->orWhere('designation', 'like', $like)
+                      ->orWhere('skill_category', 'like', $like);
                 });
             })
             ->latest('id');
 
         $employees = $query->paginate(20)->withQueryString();
         $departments = IdeaEmployee::departments();
+        $employmentTypes = IdeaEmployee::employmentTypes();
+        $rateTypes = IdeaEmployee::rateTypes();
+        $skillCategories = IdeaEmployee::skillCategories();
+
         $totalEmployees = IdeaEmployee::count();
         $activeEmployees = IdeaEmployee::where('status', 'active')->count();
-        $monthlyPayroll = (float) IdeaEmployee::where('status', 'active')->sum('basic_salary');
+        $monthlyPayroll = (float) IdeaEmployee::where('status', 'active')->where(function($q) {
+            $q->where('employment_type', 'monthly')->orWhereNull('employment_type');
+        })->sum('basic_salary');
+        $pieceRateCount = IdeaEmployee::where('status', 'active')->where('employment_type', 'contract_piece')->count();
+        $dailyWageCount = IdeaEmployee::where('status', 'active')->where('employment_type', 'daily')->count();
 
         return view('admin.accounting.employees.index', compact(
-            'employees', 'departments', 'search', 'department', 'status',
-            'totalEmployees', 'activeEmployees', 'monthlyPayroll'
+            'employees', 'departments', 'employmentTypes', 'rateTypes', 'skillCategories',
+            'search', 'department', 'employmentType', 'status',
+            'totalEmployees', 'activeEmployees', 'monthlyPayroll', 'pieceRateCount', 'dailyWageCount'
         ));
     }
 
@@ -1032,9 +1044,14 @@ class IdeaAccountingController extends Controller
             'name'              => 'required|string|max:255',
             'designation'       => 'required|string|max:255',
             'department'        => 'required|string|max:255',
+            'employment_type'   => 'required|string|max:40',
+            'skill_category'    => 'nullable|string|max:100',
             'phone'             => 'nullable|string|max:30',
             'email'             => 'nullable|email|max:255',
             'basic_salary'      => 'required|numeric|min:0',
+            'salary_rate_type'  => 'required|string|max:40',
+            'rate_unit_name'    => 'nullable|string|max:60',
+            'payment_schedule'  => 'nullable|string|max:40',
             'joining_date'      => 'nullable|date',
             'status'            => 'required|in:active,inactive,on_leave',
             'address'           => 'nullable|string|max:500',
@@ -1045,7 +1062,7 @@ class IdeaAccountingController extends Controller
 
         IdeaEmployee::create($validated);
 
-        return back()->with('success', 'নতুন কর্মচারী সফলভাবে যুক্ত করা হয়েছে।');
+        return back()->with('success', 'নতুন কর্মচারী / কারিগরের তথ্য সফলভাবে যুক্ত করা হয়েছে।');
     }
 
     /**
@@ -1059,9 +1076,14 @@ class IdeaAccountingController extends Controller
             'name'              => 'required|string|max:255',
             'designation'       => 'required|string|max:255',
             'department'        => 'required|string|max:255',
+            'employment_type'   => 'required|string|max:40',
+            'skill_category'    => 'nullable|string|max:100',
             'phone'             => 'nullable|string|max:30',
             'email'             => 'nullable|email|max:255',
             'basic_salary'      => 'required|numeric|min:0',
+            'salary_rate_type'  => 'required|string|max:40',
+            'rate_unit_name'    => 'nullable|string|max:60',
+            'payment_schedule'  => 'nullable|string|max:40',
             'joining_date'      => 'nullable|date',
             'status'            => 'required|in:active,inactive,on_leave',
             'address'           => 'nullable|string|max:500',
@@ -1072,7 +1094,7 @@ class IdeaAccountingController extends Controller
 
         $employee->update($validated);
 
-        return back()->with('success', 'কর্মচারীর তথ্য সফলভাবে আপডেট করা হয়েছে।');
+        return back()->with('success', 'কর্মচারী / কারিগরের তথ্য সফলভাবে আপডেট করা হয়েছে।');
     }
 
     /**
@@ -1084,6 +1106,124 @@ class IdeaAccountingController extends Controller
         $employee->delete();
 
         return back()->with('success', 'কর্মচারী সফলভাবে মুছে ফেলা হয়েছে।');
+    }
+
+    /**
+     * Book Binder & Worker Work Log & Cash Ledger (কাজের খতিয়ান ও টাকা তোলার হিসাব).
+     */
+    public function employeeLedger($id, Request $request): View
+    {
+        $employee = IdeaEmployee::with(['workLogs' => fn($q) => $q->latest('log_date')->latest('id')])->findOrFail($id);
+        $workLogs = $employee->workLogs()->paginate(30);
+
+        $totalEarned = (float) $employee->totalWorkEarned();
+        $totalPaid = (float) $employee->totalWorkPaid();
+        $balanceDue = $totalEarned - $totalPaid;
+        $totalWorkQuantity = (float) $employee->workLogs()->where('entry_type', 'work')->sum('quantity');
+
+        $invoiceSettings = self::getInvoiceSettings();
+
+        return view('admin.accounting.employees.ledger', compact(
+            'employee', 'workLogs', 'totalEarned', 'totalPaid', 'balanceDue', 'totalWorkQuantity', 'invoiceSettings'
+        ));
+    }
+
+    /**
+     * Store Work Entry or Cash Withdrawal for Book Binder / Worker.
+     */
+    public function storeWorkLog($id, Request $request): RedirectResponse
+    {
+        $employee = IdeaEmployee::findOrFail($id);
+
+        $validated = $request->validate([
+            'entry_type'     => 'required|in:work,payment',
+            'log_date'       => 'required|date',
+            'book_title'     => 'nullable|string|max:255',
+            'quantity'       => 'nullable|numeric|min:0',
+            'unit_rate'      => 'nullable|numeric|min:0',
+            'unit_name'      => 'nullable|string|max:50',
+            'earned_amount'  => 'nullable|numeric|min:0',
+            'paid_amount'    => 'nullable|numeric|min:0',
+            'payment_method' => 'nullable|string|max:50',
+            'notes'          => 'nullable|string|max:1000',
+        ]);
+
+        $entryType = $validated['entry_type'];
+        $qty = (float) ($validated['quantity'] ?? 0);
+        $rate = (float) ($validated['unit_rate'] ?? 0);
+        $earned = (float) ($validated['earned_amount'] ?? 0);
+        $paid = (float) ($validated['paid_amount'] ?? 0);
+
+        if ($entryType === 'work') {
+            if ($earned <= 0 && $qty > 0 && $rate > 0) {
+                $earned = $qty * $rate;
+            }
+            $paid = 0;
+        } else {
+            $earned = 0;
+            if ($paid <= 0) {
+                return back()->with('error', 'টাকা তোলার পরিমাণ লিখুন।');
+            }
+        }
+
+        $voucherNo = 'LOG-' . date('Ymd', strtotime($validated['log_date'])) . '-' . rand(1000, 9999);
+        $accountingEntryId = null;
+
+        // If it's a cash withdrawal or payment, automatically record in IdeaAccountingEntry
+        if ($entryType === 'payment' && $paid > 0) {
+            $paymentMethod = $validated['payment_method'] ?? 'cash';
+            $accEntry = IdeaAccountingEntry::create([
+                'entry_no'       => 'EXP-' . date('Ymd', strtotime($validated['log_date'])) . '-' . rand(1000, 9999),
+                'type'           => 'expense',
+                'category'       => 'চুক্তিভিত্তিক ও বাইন্ডিং মজুরি (Piece-rate Wages)',
+                'title'          => "কারিগর টাকা উত্তোলন / মজুরি: {$employee->name} ({$employee->designation})",
+                'amount'         => $paid,
+                'entry_date'     => $validated['log_date'],
+                'voucher_no'     => $voucherNo,
+                'payment_method' => $paymentMethod,
+                'party_name'     => $employee->name,
+                'notes'          => "বাঁধাইকার/কারিগর উত্তোলন: ৳{$paid}. " . ($validated['notes'] ?? ''),
+                'created_by'     => auth()->id(),
+            ]);
+            $accountingEntryId = $accEntry->id;
+        }
+
+        IdeaEmployeeWorkLog::create([
+            'employee_id'         => $employee->id,
+            'entry_type'          => $entryType,
+            'log_date'            => $validated['log_date'],
+            'book_title'          => $validated['book_title'] ?? null,
+            'quantity'            => $qty,
+            'unit_rate'           => $rate,
+            'unit_name'           => $validated['unit_name'] ?? ($employee->rate_unit_name ?: 'বই বাঁধাই'),
+            'earned_amount'       => $earned,
+            'paid_amount'         => $paid,
+            'payment_method'      => $validated['payment_method'] ?? 'cash',
+            'voucher_no'          => $voucherNo,
+            'accounting_entry_id' => $accountingEntryId,
+            'notes'               => $validated['notes'] ?? null,
+            'created_by'          => auth()->id(),
+        ]);
+
+        $msg = $entryType === 'work' 
+            ? "কাজের এন্ট্রি সফলভাবে যুক্ত হয়েছে (মোট পাওনা: ৳" . number_format($earned, 2) . ")।"
+            : "টাকা উত্তোলনের এন্ট্রি সফলভাবে যুক্ত হয়েছে (৳" . number_format($paid, 2) . ") এবং হিসাব খতিয়ানে সংরক্ষিত হয়েছে।";
+
+        return back()->with('success', $msg);
+    }
+
+    /**
+     * Delete a work log entry.
+     */
+    public function destroyWorkLog($workLogId): RedirectResponse
+    {
+        $log = IdeaEmployeeWorkLog::findOrFail($workLogId);
+        if ($log->accounting_entry_id) {
+            IdeaAccountingEntry::where('id', $log->accounting_entry_id)->delete();
+        }
+        $log->delete();
+
+        return back()->with('success', 'এন্ট্রি সফলভাবে মুছে ফেলা হয়েছে।');
     }
 
     /**
@@ -1102,8 +1242,10 @@ class IdeaAccountingController extends Controller
                 $like = '%' . $term . '%';
                 $q->whereHas('employee', function ($eq) use ($like) {
                     $eq->where('name', 'like', $like)
-                       ->orWhere('designation', 'like', $like);
-                })->orWhere('slip_no', 'like', $like);
+                       ->orWhere('designation', 'like', $like)
+                       ->orWhere('skill_category', 'like', $like);
+                })->orWhere('slip_no', 'like', $like)
+                  ->orWhere('work_details', 'like', $like);
             })
             ->latest('payment_date')
             ->latest('id');
@@ -1129,6 +1271,10 @@ class IdeaAccountingController extends Controller
             'employee_id'      => 'required|exists:idea_employees,id',
             'salary_month'     => 'required|string|max:7',
             'payment_date'     => 'required|date',
+            'work_details'     => 'nullable|string|max:1000',
+            'job_quantity'     => 'nullable|numeric|min:0',
+            'rate_per_unit'    => 'nullable|numeric|min:0',
+            'rate_unit_name'   => 'nullable|string|max:60',
             'basic_amount'     => 'required|numeric|min:0',
             'bonus_amount'     => 'nullable|numeric|min:0',
             'overtime_amount'  => 'nullable|numeric|min:0',
@@ -1153,17 +1299,38 @@ class IdeaAccountingController extends Controller
         $entryNo = 'EXP-' . $entryDateStr . '-' . rand(1000, 9999);
 
         $monthFormatted = Carbon::createFromFormat('Y-m', $validated['salary_month'])->format('F Y');
+        
+        $expenseCategory = 'কর্মচারী মূল বেতন (Staff Basic Salary)';
+        if ($employee->employment_type === 'contract_piece') {
+            $expenseCategory = 'চুক্তিভিত্তিক ও বাইন্ডিং মজুরি (Piece-rate Wages)';
+        } elseif ($employee->employment_type === 'daily' || $employee->employment_type === 'weekly') {
+            $expenseCategory = 'দৈনিক/সাপ্তাহিক মজুরি (Wages & Labour)';
+        } elseif ($employee->employment_type === 'contract_project') {
+            $expenseCategory = 'চুক্তিভিত্তিক প্রজেক্ট ফি (Contract Project Fee)';
+        }
+
+        $entryTitle = "বেতন/মজুরি প্রদান: {$employee->name} ({$employee->designation}) — {$monthFormatted}";
+        if (!empty($validated['work_details'])) {
+            $entryTitle .= " [{$validated['work_details']}]";
+        }
+
+        $calcBreakdown = "মূল মজুরি/বেতন: ৳{$basic}";
+        if (!empty($validated['job_quantity']) && !empty($validated['rate_per_unit'])) {
+            $calcBreakdown .= " ({$validated['job_quantity']} {$validated['rate_unit_name']} @ ৳{$validated['rate_per_unit']})";
+        }
+        $calcBreakdown .= ", বোনাস: ৳{$bonus}, ওভারটাইম: ৳{$overtime}, কর্তন: ৳{$deduction}. " . ($validated['notes'] ?? '');
+
         $entry = IdeaAccountingEntry::create([
             'entry_no'       => $entryNo,
             'type'           => 'expense',
-            'category'       => 'কর্মচারী মূল বেতন (Staff Basic Salary)',
-            'title'          => "বেতন প্রদান: {$employee->name} ({$employee->designation}) — {$monthFormatted}",
+            'category'       => $expenseCategory,
+            'title'          => $entryTitle,
             'amount'         => $netPaid,
             'entry_date'     => $validated['payment_date'],
             'voucher_no'     => $slipNo,
             'payment_method' => $validated['payment_method'],
             'party_name'     => $employee->name,
-            'notes'          => "মূল বেতন: ৳{$basic}, বোনাস: ৳{$bonus}, কর্তন: ৳{$deduction}. " . ($validated['notes'] ?? ''),
+            'notes'          => $calcBreakdown,
             'created_by'     => auth()->id(),
         ]);
 
@@ -1171,7 +1338,12 @@ class IdeaAccountingController extends Controller
         IdeaSalaryPayment::create([
             'employee_id'         => $employee->id,
             'salary_month'        => $validated['salary_month'],
+            'employment_type'     => $employee->employment_type,
             'payment_date'        => $validated['payment_date'],
+            'work_details'        => $validated['work_details'] ?? null,
+            'job_quantity'        => $validated['job_quantity'] ?? null,
+            'rate_per_unit'       => $validated['rate_per_unit'] ?? null,
+            'rate_unit_name'      => $validated['rate_unit_name'] ?? null,
             'basic_amount'        => $basic,
             'bonus_amount'        => $bonus,
             'overtime_amount'     => $overtime,
@@ -1185,7 +1357,7 @@ class IdeaAccountingController extends Controller
             'created_by'          => auth()->id(),
         ]);
 
-        return back()->with('success', "{$employee->name} এর {$monthFormatted} মাসের বেতন (৳" . number_format($netPaid, 2) . ") সফলভাবে প্রদান ও হিসাব খতিয়ানে যুক্ত হয়েছে।");
+        return back()->with('success', "{$employee->name} এর {$monthFormatted} এর বেতন/মজুরি (৳" . number_format($netPaid, 2) . ") সফলভাবে প্রদান ও হিসাব খতিয়ানে যুক্ত হয়েছে।");
     }
 
     /**

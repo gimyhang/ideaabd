@@ -378,6 +378,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::post('/employees', 'storeEmployee')->name('employees.store');
         Route::put('/employees/{employee}', 'updateEmployee')->name('employees.update');
         Route::delete('/employees/{employee}', 'destroyEmployee')->name('employees.destroy');
+        Route::get('/employees/{employee}/ledger', 'employeeLedger')->name('employees.ledger');
+        Route::post('/employees/{employee}/work-logs', 'storeWorkLog')->name('employees.work-logs.store');
+        Route::delete('/employees/work-logs/{workLog}', 'destroyWorkLog')->name('employees.work-logs.destroy');
 
         // Salary Disbursement & Pay Slips
         Route::get('/salary', 'salaryDisbursements')->name('salary.index');

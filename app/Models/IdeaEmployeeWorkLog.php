@@ -6,43 +6,35 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class IdeaSalaryPayment extends Model
+class IdeaEmployeeWorkLog extends Model
 {
     use HasFactory;
 
-    protected $table = 'idea_salary_payments';
+    protected $table = 'idea_employee_work_logs';
 
     protected $fillable = [
         'employee_id',
-        'salary_month',
-        'employment_type',
-        'payment_date',
-        'work_details',
-        'job_quantity',
-        'rate_per_unit',
-        'rate_unit_name',
-        'basic_amount',
-        'bonus_amount',
-        'overtime_amount',
-        'deduction_amount',
-        'net_paid',
+        'entry_type',
+        'log_date',
+        'book_title',
+        'quantity',
+        'unit_rate',
+        'unit_name',
+        'earned_amount',
+        'paid_amount',
         'payment_method',
-        'trx_reference',
-        'slip_no',
+        'voucher_no',
         'accounting_entry_id',
         'notes',
         'created_by',
     ];
 
     protected $casts = [
-        'payment_date'     => 'date',
-        'job_quantity'     => 'decimal:2',
-        'rate_per_unit'    => 'decimal:2',
-        'basic_amount'     => 'decimal:2',
-        'bonus_amount'     => 'decimal:2',
-        'overtime_amount'  => 'decimal:2',
-        'deduction_amount' => 'decimal:2',
-        'net_paid'         => 'decimal:2',
+        'log_date'      => 'date',
+        'quantity'      => 'decimal:2',
+        'unit_rate'     => 'decimal:2',
+        'earned_amount' => 'decimal:2',
+        'paid_amount'   => 'decimal:2',
     ];
 
     public function employee(): BelongsTo

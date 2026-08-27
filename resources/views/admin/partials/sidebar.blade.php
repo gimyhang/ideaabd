@@ -33,11 +33,11 @@
             ['route' => 'admin.royalty-payout-logs',    'icon' => 'file-invoice-dollar',  'label' => 'Payout Gateway Logs'],
         ],
         'Purchases & Inventory' => [
-            ['route' => 'admin.purchases.index',    'url' => route('admin.purchases.index', ['category' => 'books']), 'category' => 'books', 'icon' => 'book-open', 'label' => '১. বই ক্রয় (Books)'],
-            ['route' => 'admin.purchases.index',    'url' => route('admin.purchases.index', ['category' => 'raw_materials']), 'category' => 'raw_materials', 'icon' => 'boxes-stacked', 'label' => '২. কাঁচামাল ক্রয় (Raw Materials)'],
-            ['route' => 'admin.purchases.index',    'url' => route('admin.purchases.index', ['category' => 'other']), 'category' => 'other', 'icon' => 'cart-shopping', 'label' => '৩. অন্যান্য ক্রয় (Other Purchases)'],
-            ['route' => 'admin.purchases.create',   'icon' => 'cart-plus',           'label' => 'নতুন ক্রয় চালান এন্ট্রি'],
-            ['route' => 'admin.purchases.payments', 'icon' => 'hand-holding-dollar', 'label' => 'কিস্তি ও পেমেন্ট হিস্ট্রি'],
+            ['route' => 'admin.purchases.index',    'url' => route('admin.purchases.index', ['category' => 'books']), 'category' => 'books', 'icon' => 'book-open', 'label' => '1. Book Purchases'],
+            ['route' => 'admin.purchases.index',    'url' => route('admin.purchases.index', ['category' => 'raw_materials']), 'category' => 'raw_materials', 'icon' => 'boxes-stacked', 'label' => '2. Raw Materials Purchases'],
+            ['route' => 'admin.purchases.index',    'url' => route('admin.purchases.index', ['category' => 'other']), 'category' => 'other', 'icon' => 'cart-shopping', 'label' => '3. Other Purchases'],
+            ['route' => 'admin.purchases.create',   'icon' => 'cart-plus',           'label' => 'New Purchase Entry'],
+            ['route' => 'admin.purchases.payments', 'icon' => 'hand-holding-dollar', 'label' => 'Installments & Payments'],
         ],
         'Idea Accounting' => [
             ['route' => 'admin.accounting.reports.index',   'icon' => 'chart-pie',           'label' => 'P&L Reports & Analytics'],
