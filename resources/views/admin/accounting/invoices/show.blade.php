@@ -356,7 +356,7 @@
                             <tr>
                                 <td class="text-center py-0.5 px-1 text-muted">{{ $idx + 1 }}</td>
                                 <td class="py-0.5 px-1.5">
-                                    <span class="fw-semibold text-dark">{{ $item['title'] ?? '—' }}</span>
+                                    <span class="fw-semibold text-dark" style="white-space: pre-line; line-height: 1.35; display: inline-block;">{!! nl2br(e($item['title'] ?? '—')) !!}</span>
                                     @if(!empty($item['item_type']) && !str_starts_with($item['item_type'], 'Book'))
                                         <span class="badge bg-light text-dark border px-1 py-0 ms-1" style="font-size: 8px;">{{ $item['item_type'] }}</span>
                                     @endif
@@ -582,8 +582,26 @@
                         <thead class="table-light">
                             <tr class="text-muted text-uppercase" style="font-size: 9px;">
                                 <th class="text-center py-1 px-1" style="width: 28px;">#</th>
-                                <th class="py-1 px-1.5">Delivered Item / Description</th>
-                                <th class="py-1 px-1" style="width: 110px;">Author / Spec</th>
+                                <th class="py-1 px-1.5">
+                                    @if($invoice->sales_category === 'stationery')
+                                        Delivered Stationery Items / Description
+                                    @elseif($invoice->sales_category === 'printing_goods')
+                                        Delivered Printing Goods / Press Work
+                                    @elseif($invoice->sales_category === 'other')
+                                        Delivered Products / Goods Description
+                                    @else
+                                        Delivered Book Title / Description
+                                    @endif
+                                </th>
+                                <th class="py-1 px-1" style="width: 110px;">
+                                    @if($invoice->sales_category === 'stationery' || $invoice->sales_category === 'printing_goods')
+                                        Spec / Size
+                                    @elseif($invoice->sales_category === 'other')
+                                        Specification
+                                    @else
+                                        Author / Edition
+                                    @endif
+                                </th>
                                 <th class="text-center py-1 px-1" style="width: 55px;">Type</th>
                                 <th class="text-center py-1 px-1" style="width: 45px;">Unit</th>
                                 <th class="text-center py-1 px-1" style="width: 50px;">Qty</th>
@@ -603,7 +621,7 @@
                                 <tr>
                                     <td class="text-center py-0.5 px-1 text-muted">{{ $idx + 1 }}</td>
                                     <td class="py-0.5 px-1.5">
-                                        <span class="fw-semibold text-dark">{{ $item['title'] ?? '—' }}</span>
+                                        <span class="fw-semibold text-dark" style="white-space: pre-line; line-height: 1.35; display: inline-block;">{!! nl2br(e($item['title'] ?? '—')) !!}</span>
                                     </td>
                                     <td class="py-0.5 px-1 text-muted" style="font-size: 9.5px;">{{ $authorName }}</td>
                                     <td class="text-center py-0.5 px-1"><span class="badge bg-light text-dark border px-1 py-0" style="font-size: 8.5px;">{{ $item['item_type'] ?? 'Book' }}</span></td>

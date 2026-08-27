@@ -397,12 +397,38 @@
                         <thead class="table-light">
                             <tr class="text-muted text-uppercase" style="font-size: 9px;">
                                 <th class="text-center py-1 px-1" style="width: 26px;">#</th>
-                                <th class="py-1 px-1.5">বইয়ের নাম ও বিবরণ</th>
-                                <th class="py-1 px-1" style="width: 105px;">লেখক</th>
+                                <th class="py-1 px-1.5">
+                                    @if($invoice->sales_category === 'stationery')
+                                        পণ্যের নাম ও বিবরণ (Item Title & Description)
+                                    @elseif($invoice->sales_category === 'printing_goods')
+                                        কাজের নাম ও প্রিন্টিং বিবরণ (Job / Printing Description)
+                                    @elseif($invoice->sales_category === 'other')
+                                        মালের বিবরণ ও বিবরণী (Description)
+                                    @else
+                                        বইয়ের নাম ও বিবরণ (Book Title & Description)
+                                    @endif
+                                </th>
+                                <th class="py-1 px-1" style="width: 105px;">
+                                    @if($invoice->sales_category === 'stationery' || $invoice->sales_category === 'printing_goods')
+                                        স্পেক / সাইজ
+                                    @elseif($invoice->sales_category === 'other')
+                                        স্পেসিফিকেশন
+                                    @else
+                                        লেখক (Author)
+                                    @endif
+                                </th>
                                 <th class="text-center py-1 px-1" style="width: 45px;">পরিমাণ</th>
-                                <th class="text-end py-1 px-1" style="width: 70px;">গায়ের মূল্য</th>
+                                <th class="text-end py-1 px-1" style="width: 70px;">
+                                    @if($invoice->sales_category === 'stationery')
+                                        MRP (৳)
+                                    @elseif($invoice->sales_category === 'printing_goods')
+                                        বেসিক রেট
+                                    @else
+                                        গায়ের মূল্য
+                                    @endif
+                                </th>
                                 <th class="text-center py-1 px-1" style="width: 55px;">কমিশন %</th>
-                                <th class="text-end py-1 px-1" style="width: 80px;">কমিশন বাদে একক</th>
+                                <th class="text-end py-1 px-1" style="width: 80px;">বিক্রয় দর</th>
                                 <th class="text-end py-1 pe-1.5" style="width: 85px;">মোট টাকা (৳)</th>
                             </tr>
                         </thead>
@@ -418,7 +444,7 @@
                                     $qty = (float)($item['quantity'] ?? 1);
                                     $netUnitPrice = (float)($item['unit_price'] ?? 0);
                                     
-                                    $coverPrice = (float)($item['cover_price'] ?? $item['original_price'] ?? ($matchedBook->price ?? $netUnitPrice));
+                                    $coverPrice = (float)($item['cover_price'] ?? $item['regular_price'] ?? $item['original_price'] ?? ($matchedBook->price ?? $netUnitPrice));
                                     if ($coverPrice <= 0) {
                                         $coverPrice = $netUnitPrice;
                                     }
@@ -438,7 +464,10 @@
                                 <tr>
                                     <td class="text-center py-0.5 px-1 text-muted">@bn($idx + 1)</td>
                                     <td class="py-0.5 px-1.5">
-                                        <span class="fw-semibold text-dark">{{ $item['title'] ?? '—' }}</span>
+                                        <span class="fw-semibold text-dark" style="white-space: pre-line; line-height: 1.35; display: inline-block;">{!! nl2br(e($item['title'] ?? '—')) !!}</span>
+                                        @if(!empty($item['item_type']) && !str_starts_with($item['item_type'], 'Book'))
+                                            <span class="badge bg-light text-dark border px-1 py-0 ms-1" style="font-size: 8px;">{{ $item['item_type'] }}</span>
+                                        @endif
                                     </td>
                                     <td class="py-0.5 px-1 text-muted" style="font-size: 9.5px;">{{ $authorName }}</td>
                                     <td class="text-center py-0.5 px-1 fw-bold">@bn($qty)</td>
@@ -660,8 +689,26 @@
                             <thead class="table-light">
                                 <tr class="text-muted text-uppercase" style="font-size: 9px;">
                                     <th class="text-center py-1 px-1" style="width: 28px;">#</th>
-                                    <th class="py-1 px-1.5">সরবরাহকৃত পণ্য / বইয়ের বিবরণ</th>
-                                    <th class="py-1 px-1" style="width: 115px;">লেখক</th>
+                                    <th class="py-1 px-1.5">
+                                        @if($invoice->sales_category === 'stationery')
+                                            সরবরাহকৃত স্টেশনারী পণ্য ও বিবরণ
+                                        @elseif($invoice->sales_category === 'printing_goods')
+                                            সরবরাহকৃত মুদ্রণ সামগ্রী / প্রিন্টিং কাজ
+                                        @elseif($invoice->sales_category === 'other')
+                                            সরবরাহকৃত পণ্যের বিবরণ ও বিবরণী
+                                        @else
+                                            সরবরাহকৃত বইয়ের নাম ও বিবরণ
+                                        @endif
+                                    </th>
+                                    <th class="py-1 px-1" style="width: 115px;">
+                                        @if($invoice->sales_category === 'stationery' || $invoice->sales_category === 'printing_goods')
+                                            স্পেক / সাইজ
+                                        @elseif($invoice->sales_category === 'other')
+                                            স্পেসিফিকেশন
+                                        @else
+                                            লেখক / সংস্করণ
+                                        @endif
+                                    </th>
                                     <th class="text-center py-1 px-1" style="width: 60px;">ধরন</th>
                                     <th class="text-center py-1 px-1" style="width: 55px;">পরিমাণ</th>
                                     <th class="text-center py-1 px-1" style="width: 75px;">প্যাকিং অবস্থা</th>
@@ -679,7 +726,7 @@
                                     <tr>
                                         <td class="text-center py-0.5 px-1 text-muted">@bn($idx + 1)</td>
                                         <td class="py-0.5 px-1.5">
-                                            <span class="fw-semibold text-dark">{{ $item['title'] ?? '—' }}</span>
+                                            <span class="fw-semibold text-dark" style="white-space: pre-line; line-height: 1.35; display: inline-block;">{!! nl2br(e($item['title'] ?? '—')) !!}</span>
                                         </td>
                                         <td class="py-0.5 px-1 text-muted" style="font-size: 9.5px;">{{ $authorName }}</td>
                                         <td class="text-center py-0.5 px-1"><span class="badge bg-light text-dark border px-1 py-0" style="font-size: 8.5px;">{{ $item['item_type'] ?? 'বই' }}</span></td>

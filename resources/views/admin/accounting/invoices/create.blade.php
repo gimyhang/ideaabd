@@ -40,36 +40,26 @@
     $currentType = old('type', $selectedType ?? request('type', 'invoice'));
 @endphp
 
-{{-- Segmented Category Switcher for Sales Type --}}
+{{-- Sleek Category Selector for Sales Type (Dropdown) --}}
 <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white">
     <div class="card-body p-3">
-        <div class="d-flex flex-column flex-lg-row align-items-center justify-content-between gap-3">
+        <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
             <div class="d-flex align-items-center gap-2">
-                <span class="badge bg-primary-subtle text-primary border rounded-pill px-3 py-1.5 fw-bold">
-                    <i class="fa-solid fa-shapes me-1"></i> ইনভয়েসের শ্রেণি (Sales Category)
+                <span class="badge bg-primary-subtle text-primary border rounded-pill px-3 py-2 fw-bold fs-6">
+                    <i class="fa-solid fa-shapes me-1.5"></i> ইনভয়েসের শ্রেণি (Sales Category)
                 </span>
                 <span class="small text-muted" id="categoryHintText">বই বিক্রয়, পাইকারি ও রিটেইল চালান</span>
             </div>
-            <div class="btn-group shadow-2xs rounded-pill p-1 bg-light border w-100 w-lg-auto" role="group">
-                <input type="radio" class="btn-check" name="sales_category" id="catBooks" value="books" autocomplete="off" @checked(($salesCategory ?? 'books') === 'books') onchange="toggleSalesCategory('books')">
-                <label class="btn btn-sm rounded-pill px-3.5 py-2 fw-bold" for="catBooks">
-                    <i class="fa-solid fa-book me-1.5 text-primary"></i> ১. বই বিক্রয় (Books)
+            <div class="d-flex align-items-center gap-2" style="min-width: 320px;">
+                <label for="salesCategorySelect" class="form-label small fw-bold text-secondary mb-0 text-nowrap">
+                    <i class="fa-solid fa-filter me-1 text-primary"></i>শ্রেণি নির্বাচন:
                 </label>
-
-                <input type="radio" class="btn-check" name="sales_category" id="catStationery" value="stationery" autocomplete="off" @checked(($salesCategory ?? 'books') === 'stationery') onchange="toggleSalesCategory('stationery')">
-                <label class="btn btn-sm rounded-pill px-3.5 py-2 fw-bold" for="catStationery">
-                    <i class="fa-solid fa-pen-ruler me-1.5 text-info"></i> ২. স্টেশনারী বিক্রয় (Stationery)
-                </label>
-
-                <input type="radio" class="btn-check" name="sales_category" id="catPrinting" value="printing_goods" autocomplete="off" @checked(($salesCategory ?? 'books') === 'printing_goods') onchange="toggleSalesCategory('printing_goods')">
-                <label class="btn btn-sm rounded-pill px-3.5 py-2 fw-bold" for="catPrinting">
-                    <i class="fa-solid fa-print me-1.5 text-warning"></i> ৩. প্রিন্টিং গুডস ও সেবা
-                </label>
-
-                <input type="radio" class="btn-check" name="sales_category" id="catOtherSales" value="other" autocomplete="off" @checked(($salesCategory ?? 'books') === 'other') onchange="toggleSalesCategory('other')">
-                <label class="btn btn-sm rounded-pill px-3.5 py-2 fw-bold" for="catOtherSales">
-                    <i class="fa-solid fa-cart-plus me-1.5 text-secondary"></i> ৪. অন্যান্য বিক্রয় (Other)
-                </label>
+                <select name="sales_category" id="salesCategorySelect" class="form-select form-select-sm rounded-pill fw-bold border-primary shadow-2xs py-2" onchange="toggleSalesCategory(this.value)">
+                    <option value="books" @selected(($salesCategory ?? 'books') === 'books')>📚 ১. বই বিক্রয় ও প্রকাশনা (Books & Publications)</option>
+                    <option value="stationery" @selected(($salesCategory ?? 'books') === 'stationery')>✏️ ২. স্টেশনারী বিক্রয় (Stationery Sales)</option>
+                    <option value="printing_goods" @selected(($salesCategory ?? 'books') === 'printing_goods')>🖨️ ৩. প্রিন্টিং গুডস ও প্রেস সেবা (Printing & Press Work)</option>
+                    <option value="other" @selected(($salesCategory ?? 'books') === 'other')>📦 ৪. অন্যান্য বিক্রয় ও সেবা (Other Sales & Misc)</option>
+                </select>
             </div>
         </div>
     </div>
@@ -229,57 +219,81 @@
                 </div>
                 <div class="card-body p-3">
                     
-                    {{-- 1-Click Quick Presets for Stationery --}}
+                    {{-- Dropdown Quick Presets for Stationery --}}
                     <div id="stationeryPresetsWrap" class="mb-3 p-3 bg-light rounded-3 border" style="display: none;">
-                        <div class="d-flex align-items-center justify-content-between mb-2">
-                            <span class="small fw-bold text-dark"><i class="fa-solid fa-pen-ruler text-info me-1"></i> স্টেশনারী আইটেম দ্রুত যোগ করুন (১-ক্লিক প্রিসেট):</span>
-                        </div>
-                        <div class="d-flex flex-wrap gap-2">
-                            <button type="button" class="btn btn-white btn-sm border rounded-pill px-3 py-1 shadow-2xs text-dark" onclick="addPresetItem('প্রিমিয়াম হার্ডবাউন্ড ডায়েরি', 'আইডিয়া ব্র্যান্ড ২০২৬', 'Stationery', 'পিস', 350, 450)">
-                                📓 হার্ডবাউন্ড ডায়েরি
-                            </button>
-                            <button type="button" class="btn btn-white btn-sm border rounded-pill px-3 py-1 shadow-2xs text-dark" onclick="addPresetItem('এক্সিকিউটিভ নোটবুক / খাতা', '১২০ পৃষ্ঠা রুল্ড', 'Stationery', 'পিস', 120, 150)">
-                                📒 এক্সিকিউটিভ নোটবুক
-                            </button>
-                            <button type="button" class="btn btn-white btn-sm border rounded-pill px-3 py-1 shadow-2xs text-dark" onclick="addPresetItem('বলপয়েন্ট কলম বক্স (১০ পিস)', 'স্মুথ ০.৭মিমি', 'Stationery', 'বক্স', 100, 120)">
-                                🖊️ বলপেন বক্স (১০টি)
-                            </button>
-                            <button type="button" class="btn btn-white btn-sm border rounded-pill px-3 py-1 shadow-2xs text-dark" onclick="addPresetItem('অফিস পেপার ফাইল ও ফোল্ডার', 'লেদারটেক্স প্রিমিয়াম', 'Stationery', 'পিস', 45, 60)">
-                                📁 পেপার ফাইল ফোল্ডার
-                            </button>
-                            <button type="button" class="btn btn-white btn-sm border rounded-pill px-3 py-1 shadow-2xs text-dark" onclick="addPresetItem('আর্ট পেপার প্যাড (A4)', '১০০ জিএসএম ৫০ পাতা', 'Stationery', 'প্যাড', 180, 220)">
-                                📑 আর্ট পেপার প্যাড
-                            </button>
-                            <button type="button" class="btn btn-white btn-sm border rounded-pill px-3 py-1 shadow-2xs text-dark" onclick="addPresetItem('প্রিমিয়াম বুকমার্ক সেট (৫ পিস)', 'ল্যামিনেটেড গোল্ডেন ফয়েল', 'Stationery', 'সেট', 80, 100)">
-                                🔖 বুকমার্ক সেট
-                            </button>
+                        <div class="row align-items-center g-2">
+                            <div class="col-md-5">
+                                <span class="small fw-bold text-dark">
+                                    <i class="fa-solid fa-pen-ruler text-info me-1"></i> স্টেশনারী আইটেম দ্রুত যোগ করুন (ড্রপডাউন প্রিসেট):
+                                </span>
+                            </div>
+                            <div class="col-md-7">
+                                <select class="form-select form-select-sm rounded-pill border-info fw-semibold" id="stationeryPresetSelect" onchange="onStationeryPresetSelected(this)">
+                                    <option value="">-- স্টেশনারী আইটেম নির্বাচন করুন (১-ক্লিক যোগ) --</option>
+                                    <option value='{"title":"প্রিমিয়াম হার্ডবাউন্ড ডায়েরি ২০২৬","spec":"আইডিয়া ব্র্যান্ড, গোল্ড ফয়েল","type":"Stationery","unit":"পিস","price":350,"reg":450}'>📓 প্রিমিয়াম হার্ডবাউন্ড ডায়েরি ২০২৬ (৳৩৫০)</option>
+                                    <option value='{"title":"এক্সিকিউটিভ নোটবুক / খাতা","spec":"১২০ পৃষ্ঠা রুল্ড অফসেট","type":"Stationery","unit":"পিস","price":120,"reg":150}'>📒 এক্সিকিউটিভ নোটবুক / খাতা (৳১২০)</option>
+                                    <option value='{"title":"বলপয়েন্ট কলম বক্স (১০ পিস)","spec":"স্মুথ ০.৭মিমি ব্লু/ব্ল্যাক","type":"Stationery","unit":"বক্স","price":100,"reg":120}'>🖊️ বলপয়েন্ট কলম বক্স (১০ পিস) (৳১০০)</option>
+                                    <option value='{"title":"অফিস পেপার ফাইল ও ফোল্ডার","spec":"লেদারটেক্স প্রিমিয়াম কোয়ালিটি","type":"Stationery","unit":"পিস","price":45,"reg":60}'>📁 অফিস পেপার ফাইল ও ফোল্ডার (৳৪৫)</option>
+                                    <option value='{"title":"আর্ট পেপার প্যাড (A4)","spec":"১০০ জিএসএম ৫০ পাতা","type":"Stationery","unit":"প্যাড","price":180,"reg":220}'>📑 আর্ট পেপার প্যাড (A4) (৳১৮০)</option>
+                                    <option value='{"title":"প্রিমিয়াম বুকমার্ক সেট (৫ পিস)","spec":"ল্যামিনেটেড গোল্ডেন ফয়েল","type":"Stationery","unit":"সেট","price":80,"reg":100}'>🔖 প্রিমিয়াম বুকমার্ক সেট (৫ পিস) (৳৮০)</option>
+                                    <option value='{"title":"হোয়াইটবোর্ড মার্কার ও ডাস্টার সেট","spec":"৪ কালার নন-টক্সিক মার্কার","type":"Stationery","unit":"সেট","price":160,"reg":200}'>🖍️ হোয়াইটবোর্ড মার্কার ও ডাস্টার সেট (৳১৬০)</option>
+                                    <option value='{"title":"স্ট্যাপলার ও স্ট্যাপল পিন বক্স","spec":"হেভি ডিউটি অফিস স্ট্যাপলার","type":"Stationery","unit":"সেট","price":140,"reg":180}'>📎 স্ট্যাপলার ও পিন সেট (৳১৪০)</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
 
-                    {{-- 1-Click Quick Presets for Printing Goods & Services --}}
+                    {{-- Dropdown Quick Presets for Printing Goods & Services --}}
                     <div id="printingPresetsWrap" class="mb-3 p-3 bg-light rounded-3 border" style="display: none;">
-                        <div class="d-flex align-items-center justify-content-between mb-2">
-                            <span class="small fw-bold text-dark"><i class="fa-solid fa-print text-warning me-1"></i> প্রিন্টিং গুডস ও সেবা আইটেম দ্রুত যোগ করুন (১-ক্লিক প্রিসেট):</span>
-                        </div>
-                        <div class="d-flex flex-wrap gap-2">
-                            <button type="button" class="btn btn-white btn-sm border rounded-pill px-3 py-1 shadow-2xs text-dark" onclick="addPresetItem('কাস্টম বই মুদ্রণ ও প্রকাশনা অর্ডার', 'ডিমাই সাইজ ৮০ GSM', 'Printing & Binding', 'কপি', 140, 160)">
-                                📚 কাস্টম বই প্রিন্টিং
-                            </button>
-                            <button type="button" class="btn btn-white btn-sm border rounded-pill px-3 py-1 shadow-2xs text-dark" onclick="addPresetItem('দেয়াল ক্যালেন্ডার মুদ্রণ বিল', '৬ পাতা আর্ট পেপার স্পাইরাল', 'Printing & Binding', 'পিস', 85, 110)">
-                                🗓️ দেয়াল ক্যালেন্ডার প্রিন্ট
-                            </button>
-                            <button type="button" class="btn btn-white btn-sm border rounded-pill px-3 py-1 shadow-2xs text-dark" onclick="addPresetItem('টেবিল / ডেস্ক ক্যালেন্ডার বিল', '১২ পাতা ম্যাট ল্যামিনেশন', 'Printing & Binding', 'পিস', 120, 150)">
-                                📅 টেবিল ক্যালেন্ডার প্রিন্ট
-                            </button>
-                            <button type="button" class="btn btn-white btn-sm border rounded-pill px-3 py-1 shadow-2xs text-dark" onclick="addPresetItem('স্মরণিকা / ম্যাগাজিন মুদ্রণ বিল', '৪-কালার কভার ৮০ GSM বডি', 'Printing & Binding', 'কপি', 95, 120)">
-                                📖 স্মরণিকা / ম্যাগাজিন
-                            </button>
-                            <button type="button" class="btn btn-white btn-sm border rounded-pill px-3 py-1 shadow-2xs text-dark" onclick="addPresetItem('৪-কালার পোস্টার / প্রচারপত্র বিল', 'আর্ট পেপার ২×৩ ফুট', 'Printing & Binding', 'হাজার', 3500, 4000)">
-                                🖼️ পোস্টার / লিফলেট প্রিন্ট
-                            </button>
-                            <button type="button" class="btn btn-white btn-sm border rounded-pill px-3 py-1 shadow-2xs text-dark" onclick="addPresetItem('প্রিমিয়াম হার্ডকাভার বাঁধাই চার্জ', 'গোল্ডেন এম্বস ফয়েল', 'Printing & Binding', 'কপি', 65, 80)">
-                                📕 হার্ডকাভার বাঁধাই সেবা
-                            </button>
+                        <div class="row align-items-center g-2">
+                            <div class="col-md-5">
+                                <span class="small fw-bold text-dark">
+                                    <i class="fa-solid fa-print text-warning me-1"></i> প্রিন্টিং গুডস ও সেবা আইটেম দ্রুত যোগ করুন (ড্রপডাউন প্রিসেট):
+                                </span>
+                            </div>
+                            <div class="col-md-7">
+                                <select class="form-select form-select-sm rounded-pill border-warning fw-semibold" id="printingPresetSelect" onchange="onPrintingPresetSelected(this)">
+                                    <option value="">-- মুদ্রণ কাজের নাম নির্বাচন করুন (১-ক্লিক যোগ) --</option>
+                                    
+                                    <optgroup label="📚 বই, ম্যাগাজিন ও সাময়িকী মুদ্রণ (Books & Publications)">
+                                        <option value='{"title":"কাস্টম বই মুদ্রণ ও প্রকাশনা অর্ডার","spec":"ডিমাই সাইজ (৫.৫×৮.৫ ইঞ্চি), ৮০ GSM অফসেট, ৪-কালার কভার","type":"Printing & Binding","unit":"কপি","price":140,"reg":160}'>📚 কাস্টম বই মুদ্রণ ও প্রকাশনা অর্ডার (ডিমাই সাইজ ৮০ GSM)</option>
+                                        <option value='{"title":"প্রিমিয়াম হার্ডবাউন্ড বই বাঁধাই ও মুদ্রণ","spec":"রয়েল সাইজ (৬.২৫×৯.৫ ইঞ্চি), ১০০ GSM প্রিমিয়াম, গোল্ড ফয়েল","type":"Printing & Binding","unit":"কপি","price":220,"reg":260}'>📖 প্রিমিয়াম হার্ডবাউন্ড বই বাঁধাই ও মুদ্রণ (রয়েল সাইজ)</option>
+                                        <option value='{"title":"স্মরণিকা / ম্যাগাজিন মুদ্রণ বিল","spec":"A4 সাইজ, ৪-কালার কভার ১২০ GSM আর্ট পেপার, ৮০ GSM বডি","type":"Printing & Binding","unit":"কপি","price":95,"reg":120}'>📕 স্মরণিকা / ম্যাগাজিন মুদ্রণ বিল (A4 সাইজ)</option>
+                                        <option value='{"title":"বার্ষিক প্রতিবেদন / অ্যানুয়াল রিপোর্ট","spec":"A4 সাইজ, ১৫০ GSM আর্ট পেপার, স্পাইরাল বা পারফেক্ট বাঁধাই","type":"Printing & Binding","unit":"কপি","price":160,"reg":190}'>📊 বার্ষিক প্রতিবেদন / অ্যানুয়াল রিপোর্ট (A4 আর্ট পেপার)</option>
+                                        <option value='{"title":"সাহিত্য পত্রিকা / লিটলম্যাগ মুদ্রণ বিল","spec":"ডাবল ডিমাই সাইজ, ৭০ GSM নিউজপ্রিন্ট/অফসেট, ২-কালার কভার","type":"Printing & Binding","unit":"কপি","price":55,"reg":70}'>📰 সাহিত্য পত্রিকা / লিটলম্যাগ মুদ্রণ</option>
+                                    </optgroup>
+
+                                    <optgroup label="🏢 অফিসিয়াল ও বাণিজ্যিক স্টেশনারী মুদ্রণ (Corporate Stationery)">
+                                        <option value='{"title":"ক্যাশ মেমো / মানি রিসিট বই মুদ্রণ","spec":"২-পার্ট / ৩-পার্ট কার্বনলেস NCR পেপার, ১০০ পাতা, ক্রমিক নম্বর","type":"Printing & Binding","unit":"বই","price":120,"reg":150}'>🧾 ক্যাশ মেমো / মানি রিসিট বই মুদ্রণ (NCR পেপার)</option>
+                                        <option value='{"title":"ডেলিভারি চালান বই মুদ্রণ বিল","spec":"৩-পার্ট কার্বনলেস NCR পেপার, শক্ত বোর্ড কভার, ক্রমিক নম্বর","type":"Printing & Binding","unit":"বই","price":135,"reg":165}'>🚚 ডেলিভারি চালান বই মুদ্রণ (৩-পার্ট NCR)</option>
+                                        <option value='{"title":"অফিসিয়াল লেটারহেড / প্যাড মুদ্রণ","spec":"১০০ GSM লেজার পেপার, ৪-কালার অফসেট প্রিন্ট, ৫০ পাতার প্যাড","type":"Printing & Binding","unit":"প্যাড","price":180,"reg":220}'>📑 অফিসিয়াল লেটারহেড / প্যাড মুদ্রণ (১০০ GSM)</option>
+                                        <option value='{"title":"প্রেসক্রিপশন প্যাড মুদ্রণ (ডাক্তারি প্যাড)","spec":"৮০ GSM অফসেট পেপার, ১০০ পাতা প্যাড বাঁধাই","type":"Printing & Binding","unit":"প্যাড","price":110,"reg":130}'>🩺 প্রেসক্রিপশন প্যাড মুদ্রণ (১০০ পাতা)</option>
+                                        <option value='{"title":"অফিস এনভেলপ / খাম মুদ্রণ (১০×৪.৫ ইঞ্চি)","spec":"১০০ GSM অফসেট পেপার, ৪-কালার প্রিন্টিং ও সেলফ-আঠালো","type":"Printing & Binding","unit":"হাজার","price":2200,"reg":2600}'>✉️ অফিস এনভেলপ / খাম মুদ্রণ (১০×৪.৫ ইঞ্চি)</option>
+                                        <option value='{"title":"ডক্যুমেন্ট ফাইল খাম মুদ্রণ (A4 / 9×12)","spec":"১২০ GSM ক্রাফট / আর্ট পেপার, ফ্ল্যাপসহ প্রিমিয়াম প্রিন্ট","type":"Printing & Binding","unit":"হাজার","price":3800,"reg":4500}'>📂 ডক্যুমেন্ট ফাইল খাম মুদ্রণ (A4 সাইজ)</option>
+                                        <option value='{"title":"ভিজিটিং কার্ড / বিজনেস কার্ড মুদ্রণ","spec":"৩০০ GSM আর্ট কার্ড, ডাবল সাইড ৪-কালার, ম্যাট + স্পট UV","type":"Printing & Binding","unit":"বক্স","price":350,"reg":450}'>💳 ভিজিটিং কার্ড / বিজনেস কার্ড (ম্যাট + স্পট UV)</option>
+                                        <option value='{"title":"ডিজিটাল আইডি কার্ড ও প্রিন্টেড রিবন / লেইস","spec":"PVC স্মার্ট কার্ড, মাল্টিকালার থার্মাল প্রিন্ট, ডিজিটাল ফিতা","type":"Printing & Binding","unit":"সেট","price":90,"reg":120}'>🪪 ডিজিটাল আইডি কার্ড ও প্রিন্টেড রিবন ফিতা</option>
+                                        <option value='{"title":"অফিস ফাইল ফোল্ডার / ডক্যুমেন্ট ফোল্ডার","spec":"৩৫০ GSM আর্ট কার্ড, ল্যামিনেশন, পকেটসহ কাস্টম ডাই-কাট","type":"Printing & Binding","unit":"পিস","price":45,"reg":60}'>📁 অফিস ফাইল ফোল্ডার (পকেটসহ ডাই-কাট)</option>
+                                    </optgroup>
+
+                                    <optgroup label="📢 প্রচারণা, মার্কেটিং ও বিজ্ঞাপন (Marketing & Advertising)">
+                                        <option value='{"title":"প্রচারপত্র / লিফলেট মুদ্রণ (A4 / A5 সাইজ)","spec":"১২০ GSM আর্ট পেপার, ২-সাইড ৪-কালার হাই-রেজুলেশন অফসেট","type":"Printing & Binding","unit":"হাজার","price":2800,"reg":3300}'>📜 প্রচারপত্র / লিফলেট মুদ্রণ (১২০ GSM আর্ট পেপার)</option>
+                                        <option value='{"title":"ফোল্ডেড ব্রোশিওর / ক্যাটালগ মুদ্রণ বিল","spec":"৩-ফোল্ড, ১৭০ GSM গ্লসি আর্ট পেপার, ফুল কালার","type":"Printing & Binding","unit":"কপি","price":25,"reg":35}'>📑 ফোল্ডেড ব্রোশিওর / প্রডাক্ট ক্যাটালগ (৩-ফোল্ড)</option>
+                                        <option value='{"title":"দেয়াল ক্যালেন্ডার মুদ্রণ বিল","spec":"৬ পাতা / ১২ পাতা আর্ট পেপার, টিন রিম ও স্পাইরাল হ্যাঙ্গার","type":"Printing & Binding","unit":"পিস","price":85,"reg":110}'>🗓️ দেয়াল ক্যালেন্ডার মুদ্রণ (৬ পাতা / ১২ পাতা)</option>
+                                        <option value='{"title":"এক্সিকিউটিভ ডেস্ক / টেবিল ক্যালেন্ডার","spec":"১২ পাতা ম্যাট ল্যামিনেশন, প্রিমিয়াম হার্ড স্ট্যান্ড বোর্ড","type":"Printing & Binding","unit":"পিস","price":120,"reg":150}'>📅 এক্সিকিউটিভ ডেস্ক / টেবিল ক্যালেন্ডার</option>
+                                        <option value='{"title":"৪-কালার পোস্টার প্রিন্টিং (১৮×২৩ / ১৮×২৮)","spec":"১৫০ GSM আর্ট পেপার, হাই-গ্লস ল্যামিনেশন","type":"Printing & Binding","unit":"হাজার","price":3500,"reg":4000}'>🖼️ ৪-কালার পোস্টার প্রিন্টিং (১৮×২৩ / ১৮×২৮ ইঞ্চি)</option>
+                                        <option value='{"title":"স্টিকার ও প্রডাক্ট লেবেল মুদ্রণ","spec":"গ্লসি পিভিসি সেলফ-আঠালো স্টিকার, ডাই-কাট কাটিং","type":"Printing & Binding","unit":"হাজার","price":1800,"reg":2200}'>🏷️ স্টিকার ও প্রডাক্ট লেবেল মুদ্রণ (ডাই-কাট)</option>
+                                    </optgroup>
+
+                                    <optgroup label="🎁 ইভেন্ট, প্যাকেজিং ও স্পেশাল প্রিন্টিং (Events & Packaging)">
+                                        <option value='{"title":"সার্টিফিকেট ও প্রিমিয়াম ফোল্ডার মুদ্রণ","spec":"৩০০ GSM টেক্সচারড কার্ড, গোল্ডেন এমবসড ফয়েল","type":"Printing & Binding","unit":"পিস","price":60,"reg":80}'>🎓 সার্টিফিকেট ও প্রিমিয়াম ফোল্ডার মুদ্রণ</option>
+                                        <option value='{"title":"আমন্ত্রণপত্র / ইনভাইটেশন কার্ড মুদ্রণ","spec":"প্রিমিয়াম এমবসড ফয়েল কার্ড, বাটার পেপার ও ম্যাচিং খাম","type":"Printing & Binding","unit":"পিস","price":45,"reg":65}'>💌 আমন্ত্রণপত্র / ইনভাইটেশন কার্ড মুদ্রণ</option>
+                                        <option value='{"title":"কাস্টম পেপার শপিং ব্যাগ মুদ্রণ","spec":"২৫০ GSM আর্ট কার্ড, ম্যাট ল্যামিনেশন, রশি হ্যান্ডেল","type":"Printing & Binding","unit":"পিস","price":35,"reg":50}'>🛍️ কাস্টম পেপার শপিং ব্যাগ মুদ্রণ</option>
+                                        <option value='{"title":"পিভিসি ব্যানার ও ফেস্টুন ডিজিটাল প্রিন্ট","spec":"প্রিমিয়াম ডিজিটাল ইনডোর/আউটডোর পিভিসি","type":"Service","unit":"স্কয়ার ফুট","price":25,"reg":35}'>🚩 পিভিসি ব্যানার ও ফেস্টুন ডিজিটাল প্রিন্ট</option>
+                                        <option value='{"title":"প্রিমিয়াম হার্ডকাভার বাঁধাই ও গোল্ড ফয়েল চার্জ","spec":"লেদারটেক্স / হার্ডবোর্ড বাঁধাই ও গোল্ডেন এমবসিং","type":"Printing & Binding","unit":"কপি","price":65,"reg":80}'>📕 প্রিমিয়াম হার্ডকাভার বাঁধাই ও গোল্ড ফয়েল</option>
+                                        <option value='{"title":"বুকমার্ক ও জ্যাকেট কভার মুদ্রণ বিল","spec":"৩০০ GSM আর্ট কার্ড, ম্যাট ল্যামিনেশন + ফয়েল","type":"Printing & Binding","unit":"পিস","price":12,"reg":18}'>🔖 বুকমার্ক ও জ্যাকেট কভার মুদ্রণ</option>
+                                    </optgroup>
+                                </select>
+                            </div>
                         </div>
                     </div>
 
@@ -302,8 +316,8 @@
                             <tbody id="itemsBody">
                                 <tr class="item-row" data-row="0">
                                     <td>
-                                        <input type="text" name="items[0][title]" class="form-control item-title fw-semibold" 
-                                               placeholder="Type or enter item title..." required oninput="onTitleInput(this, 0)" onchange="onTitleInput(this, 0)" autocomplete="off">
+                                        <textarea name="items[0][title]" class="form-control item-title fw-semibold" rows="2" 
+                                                  placeholder="কাজের নাম / বইয়ের নাম / প্রিন্টিং বিবরণ..." required oninput="onTitleInput(this, 0)" onchange="onTitleInput(this, 0)" autocomplete="off" style="resize: vertical; min-height: 52px; font-size: 13.5px; line-height: 1.4;"></textarea>
                                         <input type="hidden" name="items[0][book_id]" class="item-book-id" value="">
                                     </td>
                                     <td>
@@ -372,16 +386,22 @@
                         </div>
                         <div class="col-md-6">
                             <div class="d-flex align-items-center justify-content-between mb-1">
-                                <label class="form-label small fw-semibold text-muted mb-0">কোটেশন / টেন্ডার শর্তাবলী (Terms & Conditions)</label>
-                                <div class="d-flex gap-1">
-                                    <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none small text-primary fw-semibold" onclick="setTermsPreset('printing')">📋 প্রিন্টিং শর্ত</button>
-                                    <span class="text-muted small">|</span>
-                                    <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none small text-primary fw-semibold" onclick="setTermsPreset('delivery')">🚚 ডেলিভারি শর্ত</button>
-                                    <span class="text-muted small">|</span>
-                                    <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none small text-primary fw-semibold" onclick="setTermsPreset('tender')">🏛️ টেন্ডার শর্ত</button>
+                                <label class="form-label small fw-semibold text-muted mb-0">
+                                    <i class="fa-solid fa-file-contract me-1 text-primary"></i>কোটেশন / টেন্ডার শর্তাবলী (Terms & Conditions)
+                                </label>
+                                <div style="min-width: 220px;">
+                                    <select class="form-select form-select-sm rounded-pill border-primary fw-semibold" id="termsPresetSelect" onchange="applyTermsPreset(this.value)">
+                                        <option value="">-- শর্তাবলী টেমপ্লেট নির্বাচন করুন --</option>
+                                        <option value="printing">🖨️ প্রিন্টিং ও প্রেস কাজের শর্তাবলী</option>
+                                        <option value="delivery">🚚 মালামাল সরবরাহ ও ডেলিভারি শর্ত</option>
+                                        <option value="tender">🏛️ সরকারি / প্রাতিষ্ঠানিক টেন্ডার শর্ত</option>
+                                        <option value="books">📚 বই বিক্রয় ও লাইব্রেরি সরবরাহ শর্ত</option>
+                                        <option value="advance">💳 ৫০% অগ্রিম ও পেমেন্ট শর্তাবলী</option>
+                                        <option value="general">🏢 সাধারণ বিক্রয় ও বাণিজ্যিক শর্তাবলী</option>
+                                    </select>
                                 </div>
                             </div>
-                            <textarea name="terms_conditions" id="termsConditionsInput" rows="3" class="form-control rounded-3" placeholder="কোটেশনের শর্তাবলী লিখুন অথবা উপরের প্রিসেট বাটনে ক্লিক করুন..."></textarea>
+                            <textarea name="terms_conditions" id="termsConditionsInput" rows="3" class="form-control rounded-3" placeholder="কোটেশনের শর্তাবলী লিখুন অথবা উপরের ড্রপডাউন থেকে প্রিসেট নির্বাচন করুন..."></textarea>
                         </div>
                     </div>
                 </div>
@@ -650,7 +670,8 @@
         if (!rawVal || rawVal.length < 2) return;
 
         // Check active category (e.g. books, stationery, printing_goods, other)
-        const activeCategory = document.querySelector('input[name="sales_category"]:checked')?.value || 'books';
+        const catSelect = document.getElementById('salesCategorySelect');
+        const activeCategory = catSelect ? catSelect.value : (document.querySelector('input[name="sales_category"]:checked')?.value || 'books');
         
         const row = document.querySelector(`tr[data-row="${index}"]`);
         if (!row) return;
@@ -803,14 +824,10 @@
             const price = parseFloat(row.querySelector('.item-price')?.value) || 0;
             subtotal += (qty * price);
         });
-        const amount = parseFloat(document.getElementById('discountInput')?.value) || 0;
+        const discAmount = parseFloat(document.getElementById('discountInput')?.value) || 0;
         const pctInput = document.getElementById('discountPercentInput');
-        if (pctInput) {
-            if (subtotal > 0 && amount > 0) {
-                pctInput.value = Math.round((amount / subtotal) * 1000) / 10;
-            } else {
-                pctInput.value = 0;
-            }
+        if (pctInput && subtotal > 0) {
+            pctInput.value = Math.round((discAmount / subtotal) * 100);
         }
         calcTotals();
     }
@@ -932,8 +949,8 @@
             tr.setAttribute('data-row', i);
             tr.innerHTML = `
                 <td>
-                    <input type="text" name="items[${i}][title]" class="form-control item-title fw-semibold" 
-                           value="${title}" placeholder="Item title..." required oninput="onTitleInput(this, ${i})" autocomplete="off">
+                    <textarea name="items[${i}][title]" class="form-control item-title fw-semibold" rows="2" 
+                              placeholder="কাজের নাম / বইয়ের নাম / প্রিন্টিং বিবরণ..." required oninput="onTitleInput(this, ${i})" onchange="onTitleInput(this, ${i})" autocomplete="off" style="resize: vertical; min-height: 52px; font-size: 13.5px; line-height: 1.4;">${title}</textarea>
                     <input type="hidden" name="items[${i}][book_id]" class="item-book-id" value="">
                 </td>
                 <td>
@@ -983,6 +1000,28 @@
             tbody.appendChild(tr);
         }
         calcTotals();
+    }
+
+    function onStationeryPresetSelected(selectEl) {
+        if (!selectEl || !selectEl.value) return;
+        try {
+            const item = JSON.parse(selectEl.value);
+            addPresetItem(item.title, item.spec, item.type, item.unit, item.price, item.reg, 1);
+            selectEl.value = '';
+        } catch (e) {
+            console.error('Error adding stationery preset', e);
+        }
+    }
+
+    function onPrintingPresetSelected(selectEl) {
+        if (!selectEl || !selectEl.value) return;
+        try {
+            const item = JSON.parse(selectEl.value);
+            addPresetItem(item.title, item.spec, item.type, item.unit, item.price, item.reg, 1);
+            selectEl.value = '';
+        } catch (e) {
+            console.error('Error adding printing preset', e);
+        }
     }
 
     function toggleSalesCategory(cat) {
@@ -1063,13 +1102,13 @@
         tr.setAttribute('data-row', i);
         tr.innerHTML = `
             <td>
-                <input type="text" name="items[${i}][title]" class="form-control item-title fw-semibold" 
-                       placeholder="Type or enter item title..." required oninput="onTitleInput(this, ${i})" onchange="onTitleInput(this, ${i})" autocomplete="off">
+                <textarea name="items[${i}][title]" class="form-control item-title fw-semibold" rows="2" 
+                          placeholder="কাজের নাম / বইয়ের নাম / প্রিন্টিং বিবরণ..." required oninput="onTitleInput(this, ${i})" onchange="onTitleInput(this, ${i})" autocomplete="off" style="resize: vertical; min-height: 52px; font-size: 13.5px; line-height: 1.4;"></textarea>
                 <input type="hidden" name="items[${i}][book_id]" class="item-book-id" value="">
             </td>
             <td>
                 <input type="text" name="items[${i}][author_name]" class="form-control item-author" 
-                       placeholder="Author name" autocomplete="off">
+                       placeholder="Author / Spec" autocomplete="off">
             </td>
             <td>
                 <select name="items[${i}][item_type]" class="form-select item-type-select" onchange="onTypeChange(this, ${i})">
@@ -1130,21 +1169,31 @@
         }
     }
 
-    function setTermsPreset(type) {
+    function applyTermsPreset(type) {
         const termsInput = document.getElementById('termsConditionsInput');
-        if (!termsInput) return;
+        if (!termsInput || !type) return;
 
         let presetText = '';
         if (type === 'printing') {
-            presetText = `১. সকল প্রকার মুদ্রণ ও ফিনিশিং প্রিমিয়াম কোয়ালিটিতে সম্পন্ন করা হবে।\n২. কাজের চূড়ান্ত প্রুফ ও কালার অনুমোদন দেওয়ার পর মুদ্রণ কাজ শুরু হবে।\n৩. কার্যাদেশ ও ৫০% অগ্রিম প্রাপ্তির ৭-১০ কার্যদিবসের মধ্যে ডেলিভারি দেওয়া হবে।\n৪. দরপত্রে উল্লেখিত মূল্য সকল প্রকার মুদ্রণ, ল্যামিনেশন ও বাঁধাই অন্তর্ভুক্ত।\n৫. অবশিষ্ট ৫০% মূল্য মালামাল হস্তান্তরের সময় প্রদেয়।`;
+            presetText = `১. সকল প্রকার মুদ্রণ, ল্যামিনেশন ও বাঁধাই প্রিমিয়াম কোয়ালিটিতে নির্ধারিত মান বজায় রেখে সম্পন্ন করা হবে।\n২. কাজের চূড়ান্ত প্রুফ, ডামি ও কালার অনুমোদন দেওয়ার পর মূল অফসেট মুদ্রণ শুরু হবে।\n৩. কার্যাদেশ ও ৫০% অগ্রিম প্রাপ্তির ৭-১০ কার্যদিবসের মধ্যে পূর্ণাঙ্গ মালামাল সরবরাহ করা হবে।\n৪. দরপত্রে উল্লেখিত মূল্য সকল প্রকার মুদ্রণ, ল্যামিনেশন, কাটিং ও বাঁধাই অন্তর্ভুক্ত।\n৫. অবশিষ্ট ৫০% মূল্য মালামাল হস্তান্তরের সময় বা চালান স্বাক্ষরের পর প্রদেয়।`;
         } else if (type === 'delivery') {
-            presetText = `১. প্রস্তুতকৃত মালামাল ক্লায়েন্টের নির্দিষ্ট ঠিকানায় বা কুরিয়ারে সরবরাহ করা হবে।\n২. পরিবহন ও ডেলিভারি চার্জ সমঝোতা সাপেক্ষে প্রযোজ্য।\n৩. ডেলিভারি চালান স্বাক্ষরের মাধ্যমে পণ্য গ্রহণ সম্পন্ন হবে।\n৪. কোনো ত্রুটি পরিলক্ষিত হলে ডেলিভারির ২৪ ঘণ্টার মধ্যে অবহিত করতে হবে।`;
+            presetText = `১. প্রস্তুতকৃত মালামাল ক্লায়েন্টের নির্দিষ্ট ঠিকানায় অথবা কুরিয়ার সার্ভিসের মাধ্যমে সরবরাহ করা হবে।\n২. পরিবহন ও ডেলিভারি চার্জ সমঝোতা বা চুক্তিপত্রের শর্তানুযায়ী প্রযোজ্য।\n৩. ডেলিভারি চালান যাচাইপূর্বক স্বাক্ষরের মাধ্যমে পণ্য গ্রহণ সম্পন্ন হবে।\n৪. কোনো মুদ্রণ বা বাঁধাই ত্রুটি পরিলক্ষিত হলে ডেলিভারির ২৪ ঘণ্টার মধ্যে অবহিত করতে হবে।`;
         } else if (type === 'tender') {
-            presetText = `১. এই দরপত্র/কোটেশন পত্র জারির তারিখ থেকে ৩০ দিন পর্যন্ত কার্যকর থাকবে।\n২. সকল মালামাল নির্ধারিত স্পেসিফিকেশন ও সরকারি মানদণ্ড অনুযায়ী সরবরাহ করা হবে।\n৩. সরকারি ভ্যাট/ট্যাক্স ও চালান বিধিমোতাবেক সমন্বয়যোগ্য।\n৪. ওয়ার্ক অর্ডার প্রাপ্তির পর নির্ধারিত শিডিউল অনুযায়ী পর্যায়ক্রমে সরবরাহ সম্পন্ন হবে।`;
+            presetText = `১. এই দরপত্র/কোটেশন পত্র জারির তারিখ থেকে ৩০ দিন পর্যন্ত কার্যকর থাকবে।\n২. সকল মালামাল নির্ধারিত স্পেসিফিকেশন, কাগজের জিএসএম ও সরকারি মানদণ্ড অনুযায়ী সরবরাহ করা হবে।\n৩. সরকারি ভ্যাট/ট্যাক্স ও চালান বিল সমন্বয়ের মাধ্যমে পরিশোধযোগ্য।\n৪. ওয়ার্ক অর্ডার প্রাপ্তির পর নির্ধারিত শিডিউল অনুযায়ী পর্যায়ক্রমে সরবরাহ সম্পন্ন হবে।\n৫. নমুনা প্রুফ অনুমোদনের পর চূড়ান্ত সরবরাহ কার্যকর হবে।`;
+        } else if (type === 'books') {
+            presetText = `১. অর্ডারকৃত সকল বই প্রকাশনীর অনুমোদিত নতুন ও অবিকৃত কপি সরবরাহ করা হবে।\n২. চুক্তি অনুযায়ী নির্দিষ্ট কমিশন সমন্বয়ের পর নীট প্রদেয় মূল্য নির্ধারণ করা হয়েছে।\n৩. লাইব্রেরি বা পাইকারি ক্রয়ের ক্ষেত্রে চালান স্বাক্ষরের মাধ্যমে হস্তান্তর সম্পন্ন হবে।\n৪. প্যাকিং ও বাঁধাই ত্রুটিযুক্ত বই বিনামূল্যে পরিবর্তনযোগ্য।`;
+        } else if (type === 'advance') {
+            presetText = `১. কার্যাদেশ চূড়ান্তকরণের সময় মোট মূল্যের ৫০% অগ্রিম প্রদেয়।\n২. কাজের মধ্যবর্তী প্রুফিং পর্যায়ে ২৫% এবং মালামাল ডেলিভারির সময় অবশিষ্ট ২৫% প্রদেয়।\n৩. চেক বা ব্যাংক ট্রান্সফারের ক্ষেত্রে ক্লিয়ারেন্স সাপেক্ষে চালান ইস্যু করা হবে।`;
+        } else if (type === 'general') {
+            presetText = `১. বিল জারির ৭ কার্যদিবসের মধ্যে সম্পূর্ণ অর্থ পরিশোধযোগ্য।\n২. বিশেষ ছাড় বা কমিশন চুক্তি শর্ত অনুযায়ী প্রযোজ্য।\n৩. কোনো অসঙ্গতি থাকলে চালান প্রাপ্তির ৩ কার্যদিবসের মধ্যে যোগাযোগ করার অনুরোধ রইল।`;
         }
 
         termsInput.value = presetText;
         termsInput.classList.add('bg-light-subtle');
+    }
+
+    function setTermsPreset(type) {
+        applyTermsPreset(type);
     }
 
     function openPrintCostCalculator() {
@@ -3173,13 +3222,21 @@
     #itemsTable tbody tr:hover td {
         background-color: #f8fafc;
     }
-    #itemsTable .form-control, 
+    #itemsTable .form-control:not(textarea), 
     #itemsTable .form-select {
         height: 38px;
         font-size: 13.5px;
         border-radius: 8px;
         border: 1px solid #cbd5e1;
         padding: 6px 12px;
+        transition: all 0.2s ease;
+    }
+    #itemsTable textarea.form-control {
+        font-size: 13.5px;
+        border-radius: 8px;
+        border: 1px solid #cbd5e1;
+        padding: 6px 10px;
+        line-height: 1.35;
         transition: all 0.2s ease;
     }
     #itemsTable .form-control:focus, 
