@@ -105,8 +105,8 @@
                         <tr>
                             <td class="ps-3 fw-bold text-primary">{{ $pay->payment_no }}</td>
                             <td>
-                                <div class="fw-bold text-dark">{{ $pay->publisher->name ?? '—' }}</div>
-                                <div class="text-muted small">{{ $pay->publisher->phone ?? '' }}</div>
+                                <div class="fw-bold text-dark">{{ $pay->publisher->name ?? $pay->purchase?->party_name ?? '—' }}</div>
+                                <div class="text-muted small">{{ $pay->publisher->phone ?? ($pay->purchase?->purchase_category === 'raw_materials' ? 'কাঁচামাল ও প্রেস' : '') }}</div>
                             </td>
                             <td>
                                 @if($pay->purchase)

@@ -124,7 +124,10 @@ class PublisherPurchaseController extends Controller
             'publisher_memo_no'           => 'nullable|string|max:100',
             'purchase_no'                 => 'required|string|max:50|unique:publisher_purchases,purchase_no',
             'purchase_date'               => 'required|date',
-            'payment_type'                => 'required|in:cash,credit,partial',
+            'due_date'                    => 'nullable|date',
+            'payment_type'                => 'required|in:cash,credit,partial,installment',
+            'installment_count'           => 'nullable|integer|min:1',
+            'installment_notes'           => 'nullable|string|max:1000',
             'discount_amount'             => 'nullable|numeric|min:0',
             'paid_amount'                 => 'nullable|numeric|min:0',
             'payment_method'              => 'nullable|string|max:50',
@@ -211,7 +214,10 @@ class PublisherPurchaseController extends Controller
             $purchase->supplier_name = $vendorName;
             $purchase->vendor_name = $vendorName;
             $purchase->purchase_date = $validated['purchase_date'];
+            $purchase->due_date = $validated['due_date'] ?? null;
             $purchase->payment_type = $validated['payment_type'];
+            $purchase->installment_count = !empty($validated['installment_count']) ? (int)$validated['installment_count'] : 1;
+            $purchase->installment_notes = $validated['installment_notes'] ?? null;
             $purchase->discount_amount = $discount;
             $purchase->notes = $validated['notes'] ?? null;
             $purchase->created_by = auth()->id();
@@ -374,6 +380,7 @@ class PublisherPurchaseController extends Controller
                 $item->author_name = $authorName ?: null;
                 $item->category_id = $categoryId;
                 $item->quantity = $qty;
+                $item->reams_quantity = isset($itemData['reams_quantity']) && $itemData['reams_quantity'] !== '' ? (float)$itemData['reams_quantity'] : null;
                 $item->mrp_price = $mrp;
                 $item->purchase_commission_percent = $commPercent;
                 $item->unit_cost_price = $cost;
@@ -441,7 +448,10 @@ class PublisherPurchaseController extends Controller
             'publisher_memo_no'           => 'nullable|string|max:100',
             'purchase_no'                 => 'required|string|max:50|unique:publisher_purchases,purchase_no,' . $purchase->id,
             'purchase_date'               => 'required|date',
-            'payment_type'                => 'required|in:cash,credit,partial',
+            'due_date'                    => 'nullable|date',
+            'payment_type'                => 'required|in:cash,credit,partial,installment',
+            'installment_count'           => 'nullable|integer|min:1',
+            'installment_notes'           => 'nullable|string|max:1000',
             'discount_amount'             => 'nullable|numeric|min:0',
             'notes'                       => 'nullable|string|max:1000',
             'items'                       => 'required|array|min:1',
@@ -525,7 +535,10 @@ class PublisherPurchaseController extends Controller
             $purchase->supplier_name = $vendorName ?: ($purchaseCategory === 'books' ? 'বই প্রকাশনী' : 'ভেন্ডর');
             $purchase->vendor_name = $vendorName ?: ($purchaseCategory === 'books' ? 'বই প্রকাশনী' : 'ভেন্ডর');
             $purchase->purchase_date = $validated['purchase_date'];
+            $purchase->due_date = $validated['due_date'] ?? null;
             $purchase->payment_type = $validated['payment_type'];
+            $purchase->installment_count = !empty($validated['installment_count']) ? (int)$validated['installment_count'] : 1;
+            $purchase->installment_notes = $validated['installment_notes'] ?? null;
             $purchase->discount_amount = $discount;
             $purchase->notes = $validated['notes'] ?? null;
 
@@ -660,6 +673,7 @@ class PublisherPurchaseController extends Controller
                 $item->author_name = $authorName ?: null;
                 $item->category_id = $categoryId;
                 $item->quantity = $qty;
+                $item->reams_quantity = isset($itemData['reams_quantity']) && $itemData['reams_quantity'] !== '' ? (float)$itemData['reams_quantity'] : null;
                 $item->mrp_price = $mrp;
                 $item->purchase_commission_percent = $commPercent;
                 $item->unit_cost_price = $cost;

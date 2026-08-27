@@ -23,6 +23,7 @@ class PublisherPurchaseItem extends Model
         'author_name',
         'category_id',
         'quantity',
+        'reams_quantity',
         'mrp_price',
         'purchase_commission_percent',
         'unit_cost_price',
@@ -42,6 +43,7 @@ class PublisherPurchaseItem extends Model
 
     protected $casts = [
         'quantity'                    => 'integer',
+        'reams_quantity'              => 'decimal:3',
         'mrp_price'                   => 'decimal:2',
         'purchase_commission_percent' => 'decimal:2',
         'unit_cost_price'             => 'decimal:2',

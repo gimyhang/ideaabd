@@ -52,8 +52,8 @@ class MinifyHtmlResponse
             return false;
         }
 
-        // Don't minify dev tools / livewire internal routes
-        if ($request->is('_debugbar/*', 'livewire/*')) {
+        // Don't minify Admin Panel, Dev tools, livewire internal routes
+        if ($request->is('admin/*', 'admin', '_debugbar/*', 'livewire/*')) {
             return false;
         }
 
@@ -69,19 +69,7 @@ class MinifyHtmlResponse
         $token = '___PRESERVED_CHUNK_' . md5(uniqid((string)mt_rand(), true)) . '_';
         $index = 0;
 
-        // 1. Preserve <textarea> and <pre> tags EXACTLY as they are
-        $html = preg_replace_callback(
-            '#<(textarea|pre)\b[^>]*>.*?</\1>#is',
-            function ($matches) use (&$placeholders, $token, &$index) {
-                $key = "{$token}{$index}___";
-                $placeholders[$key] = $matches[0];
-                $index++;
-                return $key;
-            },
-            $html
-        );
-
-        // 2. Preserve and safely compress <script> tags without breaking JS lines
+        // 1. Preserve <script> tags FIRST so inner template strings (like <textarea>) aren't matched separately
         $html = preg_replace_callback(
             '#<script\b([^>]*)>(.*?)</script>#is',
             function ($matches) use (&$placeholders, $token, &$index) {
@@ -119,6 +107,18 @@ class MinifyHtmlResponse
 
                 $key = "{$token}{$index}___";
                 $placeholders[$key] = "<script{$attrs}>" . $trimmedJs . "</script>";
+                $index++;
+                return $key;
+            },
+            $html
+        );
+
+        // 2. Preserve <textarea> and <pre> tags
+        $html = preg_replace_callback(
+            '#<(textarea|pre)\b[^>]*>.*?</\1>#is',
+            function ($matches) use (&$placeholders, $token, &$index) {
+                $key = "{$token}{$index}___";
+                $placeholders[$key] = $matches[0];
                 $index++;
                 return $key;
             },

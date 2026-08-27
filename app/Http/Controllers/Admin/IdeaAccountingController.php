@@ -1115,7 +1115,26 @@ class IdeaAccountingController extends Controller
     public function employeeLedger($id, Request $request): View
     {
         $employee = IdeaEmployee::with(['workLogs' => fn($q) => $q->latest('log_date')->latest('id')])->findOrFail($id);
-        $workLogs = $employee->workLogs()->latest('log_date')->latest('id')->paginate(30);
+        
+        $perPage = $request->input('per_page', 25);
+        $dateFrom = $request->input('date_from');
+        $dateTo = $request->input('date_to');
+        $bookFilter = $request->input('book_title');
+
+        $query = $employee->workLogs()->latest('log_date')->latest('id');
+        if ($dateFrom) {
+            $query->whereDate('log_date', '>=', $dateFrom);
+        }
+        if ($dateTo) {
+            $query->whereDate('log_date', '<=', $dateTo);
+        }
+        if ($bookFilter) {
+            $query->where('book_title', 'like', '%' . $bookFilter . '%');
+        }
+
+        $workLogs = ($perPage === 'all' || $request->has('print'))
+            ? $query->paginate(500)
+            : $query->paginate((int) $perPage);
 
         $totalEarned = (float) $employee->totalWorkEarned();
         $totalPaid = (float) $employee->totalWorkPaid();

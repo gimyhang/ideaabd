@@ -18,32 +18,26 @@
 <form action="{{ route('admin.purchases.store') }}" method="POST" id="purchaseForm">
     @csrf
 
-    {{-- Top Segmented Switcher for Purchase Class --}}
+    {{-- Top Switcher / Dropdown for Purchase Class --}}
     <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white">
-        <div class="card-body p-3">
-            <div class="d-flex flex-column flex-lg-row align-items-center justify-content-between gap-3">
+        <div class="card-body p-2.5 px-3">
+            <div class="d-flex flex-wrap align-items-center gap-3">
                 <div class="d-flex align-items-center gap-2">
-                    <span class="badge bg-primary-subtle text-primary border rounded-pill px-3 py-1.5 fw-bold">
-                        <i class="fa-solid fa-shapes me-1"></i> ক্রয়ের শ্রেণি (Purchase Class)
+                    <span class="badge bg-primary-subtle text-primary border rounded-pill px-3 py-2 fw-bold">
+                        <i class="fa-solid fa-shapes me-1"></i> Purchase Class
                     </span>
-                    <span class="small text-muted" id="classHintText">বইয়ের স্টক ও পাইকারি চালান ইনভেন্টরি এন্ট্রি</span>
+                    <div class="input-group shadow-2xs rounded-pill overflow-hidden border" style="min-width: 270px; max-width: 380px;">
+                        <span class="input-group-text bg-light border-0 ps-3">
+                            <i class="fa-solid fa-layer-group text-primary" id="purchaseCategoryIcon"></i>
+                        </span>
+                        <select name="purchase_category" id="purchaseCategorySelect" class="form-select border-0 bg-light fw-bold py-1.5 pe-4 text-dark" onchange="togglePurchaseClass(this.value)" style="cursor: pointer;">
+                            <option value="books" @selected(($currentType ?? 'books') === 'books')>📚 Book Purchase (বই)</option>
+                            <option value="raw_materials" @selected(($currentType ?? 'books') === 'raw_materials')>📦 Raw Materials & Production (কাঁচামাল ও প্রেস)</option>
+                            <option value="other" @selected(($currentType ?? 'books') === 'other')>🛒 Other Expenses (অন্যান্য)</option>
+                        </select>
+                    </div>
                 </div>
-                <div class="btn-group shadow-2xs rounded-pill p-1 bg-light border w-100 w-lg-auto" role="group">
-                    <input type="radio" class="btn-check" name="purchase_category" id="catBooks" value="books" autocomplete="off" @checked(($currentType ?? 'books') === 'books') onchange="togglePurchaseClass('books')">
-                    <label class="btn btn-sm rounded-pill px-3.5 py-2 fw-bold" for="catBooks">
-                        <i class="fa-solid fa-book-open me-1.5 text-primary"></i> ১. বই ক্রয় (Books)
-                    </label>
-
-                    <input type="radio" class="btn-check" name="purchase_category" id="catRaw" value="raw_materials" autocomplete="off" @checked(($currentType ?? 'books') === 'raw_materials') onchange="togglePurchaseClass('raw_materials')">
-                    <label class="btn btn-sm rounded-pill px-3.5 py-2 fw-bold" for="catRaw">
-                        <i class="fa-solid fa-boxes-stacked me-1.5 text-warning"></i> ২. কাঁচামাল ক্রয় (Raw Materials)
-                    </label>
-
-                    <input type="radio" class="btn-check" name="purchase_category" id="catOther" value="other" autocomplete="off" @checked(($currentType ?? 'books') === 'other') onchange="togglePurchaseClass('other')">
-                    <label class="btn btn-sm rounded-pill px-3.5 py-2 fw-bold" for="catOther">
-                        <i class="fa-solid fa-cart-shopping me-1.5 text-info"></i> ৩. অন্যান্য ক্রয় (Other Purchases)
-                    </label>
-                </div>
+                <span class="small text-muted" id="classHintText">Paper, Press Bills, Binding & Production Materials</span>
             </div>
         </div>
     </div>
@@ -264,108 +258,192 @@
         <div class="col-12">
             <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
                 <div class="card-header bg-white py-3 px-4 border-bottom d-flex flex-wrap align-items-center justify-content-between gap-3">
-                    <div class="d-flex align-items-center gap-2">
+                    <div class="d-flex align-items-center flex-wrap gap-2.5">
                         <span class="badge bg-success-subtle text-success p-2 rounded-3" id="itemSectionIconBadge">
                             <i class="fas fa-book-bookmark fs-5"></i>
                         </span>
                         <div>
-                            <h5 class="fw-bold mb-0 text-dark" id="itemCardHeading">Purchased Books & Inventory Stock Entry</h5>
-                            <small class="text-muted" id="itemCardSubheading">Cost price is auto-calculated from MRP & Commission; Store price is calculated from MRP & Discount</small>
+                            <h5 class="fw-bold mb-0 text-dark" id="itemCardHeading">Purchased Books & Stock</h5>
+                            <small class="text-muted" id="itemCardSubheading">Catalog pricing & stock entry</small>
+                        </div>
+
+                        {{-- Quick 1-Click Presets Dropdown (Positioned on the LEFT next to heading) --}}
+                        <div class="dropdown ms-lg-2" id="rawMaterialsPresetsWrap" style="display: none;">
+                            <button class="btn btn-warning btn-sm rounded-pill px-3 py-1.5 fw-bold dropdown-toggle shadow-sm text-dark d-flex align-items-center gap-1.5" type="button" id="rawPresetsDropdown" data-bs-toggle="dropdown" data-bs-display="static" data-bs-auto-close="true" aria-expanded="false">
+                                <i class="fa-solid fa-wand-magic-sparkles text-dark"></i>
+                                <span>কাঁচামাল ও প্রেস বিল প্রিসেট নির্বাচন ▾</span>
+                            </button>
+                            <ul class="dropdown-menu shadow-lg border-0 rounded-4 p-2" aria-labelledby="rawPresetsDropdown" style="min-width: 340px; max-height: 420px; overflow-y: auto; z-index: 1060;">
+                                <li class="dropdown-header small text-muted fw-bold text-uppercase pb-1 px-3">
+                                    <i class="fas fa-layer-group me-1 text-primary"></i> কাঁচামাল ও প্রেস বিল প্রিসেট তালিকা:
+                                </li>
+                                <li>
+                                    <a class="dropdown-item rounded-3 py-2 px-3 d-flex align-items-center gap-2.5" href="javascript:void(0)" onclick="addRawMaterialRow('অফসেট কাগজ', '২৩x৩৬ ইঞ্চি (ডিমাই - Demy)', 'রিম', 3200, '৮০ GSM অফসেট পেপার (Offset 80 GSM)', '1.67')">
+                                        <span class="fs-5">📄</span>
+                                        <div>
+                                            <div class="fw-bold text-dark">১. অফসেট কাগজ</div>
+                                            <small class="text-muted">৮০ GSM ডিমাই (২৩x৩৬) — ১.৬৭ রিম</small>
+                                        </div>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item rounded-3 py-2 px-3 d-flex align-items-center gap-2.5" href="javascript:void(0)" onclick="addRawMaterialRow('গ্লোসি পেপার', '২৩x৩৬ ইঞ্চি (ডিমাই - Demy)', 'রিম', 4500, '১০০ GSM আর্ট পেপার (Art Paper 100 GSM)', '1.00')">
+                                        <span class="fs-5">📑</span>
+                                        <div>
+                                            <div class="fw-bold text-dark">২. গ্লোসি পেপার</div>
+                                            <small class="text-muted">১০০ GSM আর্ট পেপার — ১.০০ রিম</small>
+                                        </div>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item rounded-3 py-2 px-3 d-flex align-items-center gap-2.5" href="javascript:void(0)" onclick="addRawMaterialRow('আর্ট কার্ড / বোর্ড', '২২x২৮ ইঞ্চি (Art Card)', 'রিম / পিস', 5200, '৩০০ GSM আর্ট কার্ড (Art Card 300 GSM)', '1.00')">
+                                        <span class="fs-5">📦</span>
+                                        <div>
+                                            <div class="fw-bold text-dark">৩. আর্ট কার্ড / বোর্ড</div>
+                                            <small class="text-muted">৩০০ GSM কভার আর্ট কার্ড</small>
+                                        </div>
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider my-1"></li>
+                                <li>
+                                    <a class="dropdown-item rounded-3 py-2 px-3 d-flex align-items-center gap-2.5" href="javascript:void(0)" onclick="addRawMaterialRow('প্রিন্টিং বিল প্লেট হিসেবে/ ইমপ্রেশন হিসেবে', '১৬ পৃষ্ঠা ফর্মা (16-Page Forma)', 'ফর্মা', 850, '৪ কালার নিখুঁত প্রিন্ট (4-Color Process)')">
+                                        <span class="fs-5">🖨️</span>
+                                        <div>
+                                            <div class="fw-bold text-dark">৪. প্রিন্টিং বিল প্লেট/ইমপ্রেশন</div>
+                                            <small class="text-muted">৪-কালার / ১-কালার ফর্মা বিল</small>
+                                        </div>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item rounded-3 py-2 px-3 d-flex align-items-center gap-2.5" href="javascript:void(0)" onclick="addRawMaterialRow('সিটিপি', 'ডাবল ক্রাউন প্লেট (Double Crown Plate)', 'প্লেট', 250, 'সিটিপি প্লেট (CTP Plate)')">
+                                        <span class="fs-5">⚙️</span>
+                                        <div>
+                                            <div class="fw-bold text-dark">৫. সিটিপি (CTP Plate)</div>
+                                            <small class="text-muted">থার্মাল সিটিপি প্লেট খরচ</small>
+                                        </div>
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider my-1"></li>
+                                <li>
+                                    <a class="dropdown-item rounded-3 py-2 px-3 d-flex align-items-center gap-2.5" href="javascript:void(0)" onclick="addRawMaterialRow('লেমিনেশন', 'কভার সাইজ (Cover Size)', 'পিস', 5, 'থার্মাল ম্যাট ফিল্ম (Thermal Matt)')">
+                                        <span class="fs-5">✨</span>
+                                        <div>
+                                            <div class="fw-bold text-dark">৬. লেমিনেশন</div>
+                                            <small class="text-muted">থার্মাল ম্যাট / গ্লসি ফিল্ম</small>
+                                        </div>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item rounded-3 py-2 px-3 d-flex align-items-center gap-2.5" href="javascript:void(0)" onclick="addRawMaterialRow('স্পট লেমিনেশন', 'কভার সাইজ (Cover Size)', 'পিস', 8, 'স্পট ইউভি (Spot UV Coating)')">
+                                        <span class="fs-5">💎</span>
+                                        <div>
+                                            <div class="fw-bold text-dark">৭. স্পট লেমিনেশন</div>
+                                            <small class="text-muted">স্পট ইউভি কোটিং</small>
+                                        </div>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item rounded-3 py-2 px-3 d-flex align-items-center gap-2.5" href="javascript:void(0)" onclick="addRawMaterialRow('এম্বুস', 'টাইটেল / লোগো এরিয়া', 'কপি', 12, 'গোল্ডেন ফয়েল এম্বুসিং (Golden Foil)')">
+                                        <span class="fs-5">🏷️</span>
+                                        <div>
+                                            <div class="fw-bold text-dark">৮. এম্বুস</div>
+                                            <small class="text-muted">ডাই এম্বুসিং ও গোল্ডেন ফয়েল</small>
+                                        </div>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item rounded-3 py-2 px-3 d-flex align-items-center gap-2.5" href="javascript:void(0)" onclick="addRawMaterialRow('স্ক্রিনপ্রিন্ট', 'কভার / ফেব্রিক', 'কপি', 15, 'ম্যানুয়াল স্ক্রিন প্রিন্টিং')">
+                                        <span class="fs-5">🎨</span>
+                                        <div>
+                                            <div class="fw-bold text-dark">৯. স্ক্রিনপ্রিন্ট</div>
+                                            <small class="text-muted">ম্যানুয়াল স্ক্রিন প্রিন্টিং</small>
+                                        </div>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item rounded-3 py-2 px-3 d-flex align-items-center gap-2.5" href="javascript:void(0)" onclick="addRawMaterialRow('বাইন্ডিং বিল', 'ডিমাই / রয়েল সাইজ বই', 'কপি', 18, 'সেলাই ও পারফেক্ট গ্লু বাইন্ডিং')">
+                                        <span class="fs-5">📚</span>
+                                        <div>
+                                            <div class="fw-bold text-dark">১০. বাইন্ডিং বিল / পেস্টিং</div>
+                                            <small class="text-muted">সেলাই, ফর্মা ভাঁজ ও পারফেক্ট বাইন্ডিং</small>
+                                        </div>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item rounded-3 py-2 px-3 d-flex align-items-center gap-2.5" href="javascript:void(0)" onclick="addRawMaterialRow('ভিজিটিং কার্ড প্রিন্ট', '৩.৫ x ২.০ ইঞ্চি (Visiting Card)', 'বক্স (১০০ পিস)', 350, '৩০০ GSM আর্ট কার্ড (Art Card 300 GSM)')">
+                                        <span class="fs-5">📇</span>
+                                        <div>
+                                            <div class="fw-bold text-dark">১১. ভিজিটিং কার্ড প্রিন্ট</div>
+                                            <small class="text-muted">৩০০ GSM আর্ট কার্ড ম্যাট + স্পট</small>
+                                        </div>
+                                    </a>
+                                </li>
+                            </ul>
                         </div>
                     </div>
 
-                    {{-- Global Commission & Discount Batch Tools (for books) --}}
-                    <div class="d-flex flex-wrap align-items-center gap-2" id="booksBatchToolsWrap">
-                        <div class="input-group input-group-sm" style="max-width: 220px;">
-                            <span class="input-group-text bg-light text-primary fw-semibold" style="font-size: 0.75rem;">Batch Cost Comm %</span>
-                            <input type="number" step="0.5" id="batchCommInput" class="form-control text-center" placeholder="40" min="0" max="100">
-                            <button type="button" class="btn btn-outline-primary" onclick="applyBatchCommission()" title="Apply to all items">
-                                <i class="fas fa-bolt"></i>
-                            </button>
-                        </div>
+                    {{-- Right side: Global Commission / Discount Batch Tools & Add Row Button --}}
+                    <div class="d-flex flex-wrap align-items-center gap-2">
+                        <div class="d-flex flex-wrap align-items-center gap-2" id="booksBatchToolsWrap" style="{{ ($currentType ?? 'books') === 'books' ? '' : 'display: none;' }}">
+                            <div class="input-group input-group-sm" style="max-width: 190px;">
+                                <span class="input-group-text bg-light text-primary fw-semibold" style="font-size: 0.75rem;">Comm %</span>
+                                <input type="number" step="0.5" id="batchCommInput" class="form-control text-center" placeholder="40" min="0" max="100">
+                                <button type="button" class="btn btn-outline-primary" onclick="applyBatchCommission()" title="Apply to all items">
+                                    <i class="fas fa-bolt"></i>
+                                </button>
+                            </div>
 
-                        <div class="input-group input-group-sm" style="max-width: 220px;">
-                            <span class="input-group-text bg-light text-success fw-semibold" style="font-size: 0.75rem;">Batch Store Disc %</span>
-                            <input type="number" step="0.5" id="batchSaleDiscInput" class="form-control text-center" placeholder="25" min="0" max="100">
-                            <button type="button" class="btn btn-outline-success" onclick="applyBatchShopDiscount()" title="Apply to all items">
-                                <i class="fas fa-bolt"></i>
-                            </button>
+                            <div class="input-group input-group-sm" style="max-width: 190px;">
+                                <span class="input-group-text bg-light text-success fw-semibold" style="font-size: 0.75rem;">Store Disc %</span>
+                                <input type="number" step="0.5" id="batchSaleDiscInput" class="form-control text-center" placeholder="25" min="0" max="100">
+                                <button type="button" class="btn btn-outline-success" onclick="applyBatchShopDiscount()" title="Apply to all items">
+                                    <i class="fas fa-bolt"></i>
+                                </button>
+                            </div>
                         </div>
 
                         <button type="button" class="btn btn-success btn-sm rounded-pill px-3.5 fw-bold shadow-sm" id="btnAddMoreItems" onclick="addItemRow()">
-                            <i class="fas fa-plus me-1"></i> Add More Books
+                            <i class="fas fa-plus me-1"></i> {{ ($currentType ?? 'books') === 'raw_materials' ? 'Add Material Row' : (($currentType ?? 'books') === 'other' ? 'Add Expense Row' : 'Add More Books') }}
                         </button>
                     </div>
                 </div>
 
                 <div class="card-body p-3 p-md-4">
-                    {{-- Quick Raw Material & Production Preset Chips --}}
-                    <div id="rawMaterialsPresetsWrap" class="mb-3 p-3 bg-light rounded-3 border" style="display: none;">
-                        <div class="d-flex align-items-center justify-content-between mb-2">
-                            <span class="small fw-bold text-dark"><i class="fa-solid fa-wand-magic-sparkles text-warning me-1"></i> দ্রুত কাঁচামাল ও প্রেস বিল আইটেম যোগ করুন (১-ক্লিক প্রিসেট):</span>
-                        </div>
-                        <div class="d-flex flex-wrap gap-2">
-                            <button type="button" class="btn btn-white btn-sm border rounded-pill px-3 py-1 shadow-2xs text-dark" onclick="addRawMaterialRow('৮০ জিএসএম ডিমাই কাগজ', '২৩x৩৬ ইঞ্চি', 'রিম', 3200, '৮০ GSM ভার্জিন পাল্প')">
-                                📄 ৮০ GSM কাগজ (রিম)
-                            </button>
-                            <button type="button" class="btn btn-white btn-sm border rounded-pill px-3 py-1 shadow-2xs text-dark" onclick="addRawMaterialRow('১০০ জিএসএম আর্ট পেপার', '২৩x৩৬ ইঞ্চি', 'রিম', 4500, '১০০ GSM গ্লসি আর্ট')">
-                                📑 ১০০ GSM আর্ট পেপার
-                            </button>
-                            <button type="button" class="btn btn-white btn-sm border rounded-pill px-3 py-1 shadow-2xs text-dark" onclick="addRawMaterialRow('৪-কালার অফসেট ছাপা বিল', '১৬ পৃষ্ঠা ফর্মা', 'ফর্মা/ইম্প্রেশন', 850, '৪ কালার নিখুঁত প্রিন্ট')">
-                                🖨️ ৪-কালার ছাপা বিল
-                            </button>
-                            <button type="button" class="btn btn-white btn-sm border rounded-pill px-3 py-1 shadow-2xs text-dark" onclick="addRawMaterialRow('১-কালার টেক্সট ছাপা বিল', '১৬ পৃষ্ঠা ফর্মা', 'ফর্মা/ইম্প্রেশন', 400, '১ কালার ব্ল্যাক প্রিন্ট')">
-                                🖨️ ১-কালার ছাপা বিল
-                            </button>
-                            <button type="button" class="btn btn-white btn-sm border rounded-pill px-3 py-1 shadow-2xs text-dark" onclick="addRawMaterialRow('প্রিমিয়াম হার্ডকাভার বাঁধাই বিল', 'রয়েল সাইজ', 'কপি', 60, 'হার্ডবোর্ড ও ফয়েল প্রিন্ট')">
-                                📖 হার্ডকাভার বাঁধাই বিল
-                            </button>
-                            <button type="button" class="btn btn-white btn-sm border rounded-pill px-3 py-1 shadow-2xs text-dark" onclick="addRawMaterialRow('পেপারব্যাক গ্লু বাঁধাই বিল', 'ডিমাই সাইজ', 'কপি', 22, 'পারফেক্ট হট গ্লু বাইন্ডিং')">
-                                📖 পেপারব্যাক বাঁধাই বিল
-                            </button>
-                            <button type="button" class="btn btn-white btn-sm border rounded-pill px-3 py-1 shadow-2xs text-dark" onclick="addRawMaterialRow('সিটিপি প্লেট বিল', 'ডাবল ক্রাউন', 'প্লেট', 250, 'থার্মাল CTP প্লেট')">
-                                ⚙️ CTP প্লেট খরচ
-                            </button>
-                            <button type="button" class="btn btn-white btn-sm border rounded-pill px-3 py-1 shadow-2xs text-dark" onclick="addRawMaterialRow('থার্মাল ম্যাট ল্যামিনেশন', 'কভার সাইজ', 'পিস', 5, 'ম্যাট ফিল্ম কোটিং')">
-                                ✨ ল্যামিনেশন বিল
-                            </button>
-                            <button type="button" class="btn btn-white btn-sm border rounded-pill px-3 py-1 shadow-2xs text-dark" onclick="addRawMaterialRow('প্রিন্টিং অফসেট কালি', '৪ কালার সেট', 'কেজি', 1200, 'প্রিমিয়াম ইঙ্ক')">
-                                🎨 প্রিন্টিং কালি
-                            </button>
-                        </div>
-                    </div>
 
                     <div class="table-responsive rounded-3 border shadow-2xs">
-                        <table class="table table-hover align-middle mb-0" id="itemsTable" style="min-width: 1580px;">
+                        <table class="table table-hover align-middle mb-0" id="itemsTable" style="min-width: 1100px;">
                             <thead>
                                 <tr class="table-light text-center small text-muted text-uppercase align-middle" style="font-size: 11.5px; letter-spacing: 0.4px;">
-                                    <th style="min-width: 380px; width: 400px;" class="text-start ps-3 py-3">
+                                    <th style="min-width: 170px; width: 180px;" class="text-start ps-3 py-2.5">
                                         <span id="thTitleLabel">Book Title</span> <span class="text-danger">*</span>
                                     </th>
-                                    <th style="min-width: 240px; width: 250px;" class="text-start py-3" id="thAuthorCol">
+                                    <th style="min-width: 235px; width: 240px;" class="text-start py-2.5" id="thAuthorCol">
                                         <span id="thAuthorLabel">Author</span>
                                     </th>
-                                    <th style="min-width: 220px; width: 230px;" class="text-start py-3" id="thCategoryCol">
+                                    <th style="min-width: 235px; width: 240px;" class="text-start py-2.5" id="thCategoryCol">
                                         <span id="thCategoryLabel">Category</span>
                                     </th>
-                                    <th style="min-width: 100px; width: 105px;" class="py-3">
-                                        <span id="thQtyLabel">Quantity</span>
+                                    <th style="min-width: 80px; width: 85px;" class="py-2.5" id="thQtyCol">
+                                        <span id="thQtyLabel">Qty</span>
                                     </th>
-                                    <th style="min-width: 130px; width: 135px;" class="py-3 bg-light-subtle" id="thMrpCol">
-                                        <span id="thMrpLabel">Price (MRP ৳)</span>
+                                    <th style="min-width: 95px; width: 100px;" class="py-2.5" id="thReamsCol">
+                                        <span id="thReamsLabel">Reams</span>
                                     </th>
-                                    <th style="min-width: 110px; width: 115px;" class="py-3 bg-primary-subtle text-primary" id="thCommCol">Cost Comm %</th>
-                                    <th style="min-width: 135px; width: 140px;" class="py-3 bg-primary-subtle text-primary">
-                                        <span id="thCostLabel">Cost Price (৳)</span>
+                                    <th style="min-width: 105px; width: 110px;" class="py-2.5 bg-light-subtle col-mrp" id="thMrpCol">
+                                        <span id="thMrpLabel">MRP (৳)</span>
                                     </th>
-                                    <th style="min-width: 110px; width: 115px;" class="py-3 bg-success-subtle text-success" id="thShopDiscCol">Store Disc %</th>
-                                    <th style="min-width: 135px; width: 140px;" class="py-3 bg-success-subtle text-success" id="thSalePriceCol">
+                                    <th style="min-width: 90px; width: 95px;" class="py-2.5 bg-primary-subtle text-primary col-comm" id="thCommCol">Comm %</th>
+                                    <th style="min-width: 110px; width: 115px;" class="py-2.5 bg-primary-subtle text-primary" id="thCostCol">
+                                        <span id="thCostLabel">Cost (৳)</span>
+                                    </th>
+                                    <th style="min-width: 90px; width: 95px;" class="py-2.5 bg-success-subtle text-success col-shop-disc" id="thShopDiscCol">Disc %</th>
+                                    <th style="min-width: 115px; width: 120px;" class="py-2.5 bg-success-subtle text-success col-sale-price" id="thSalePriceCol">
                                         <span id="thSaleLabel">Store Price (৳)</span>
                                     </th>
-                                    <th style="min-width: 140px; width: 145px;" class="text-end pe-3 py-3">
-                                        <span id="thTotalLabel">Total Cost (৳)</span>
+                                    <th style="min-width: 115px; width: 120px;" class="text-end pe-3 py-2.5">
+                                        <span id="thTotalLabel">Total (৳)</span>
                                     </th>
-                                    <th style="min-width: 80px; width: 85px;" class="py-3">Actions</th>
+                                    <th style="min-width: 65px; width: 70px;" class="py-2.5"></th>
                                 </tr>
                             </thead>
                             <tbody id="itemsBody">
@@ -373,8 +451,8 @@
                                 <tr class="item-row" data-row="0">
                                     <td class="ps-3">
                                         <div class="d-flex align-items-center gap-1.5">
-                                            <input type="text" name="items[0][title]" class="form-control item-title fw-semibold" 
-                                                   list="booksList" placeholder="Type book title..." required oninput="onTitleInput(this, 0)">
+                                            <textarea name="items[0][title]" class="form-control item-title fw-semibold" rows="2"
+                                                   placeholder="Book / Item description..." required oninput="onTitleInput(this, 0)" style="min-height: 48px; resize: vertical; line-height: 1.35; font-size: 0.88rem;"></textarea>
                                         </div>
                                         <input type="hidden" name="items[0][book_id]" class="item-book-id" value="">
                                         
@@ -386,42 +464,46 @@
                                         </div>
                                     </td>
                                     <td>
-                                        <input type="text" name="items[0][author]" class="form-control item-author" 
-                                               list="authorsList" placeholder="Author name...">
+                                        <textarea name="items[0][author]" class="form-control item-author" rows="2"
+                                               placeholder="Author / Quality..." style="min-height: 48px; resize: vertical; line-height: 1.35; font-size: 0.88rem;"></textarea>
                                     </td>
                                     <td>
-                                        <input type="text" name="items[0][category_name]" class="form-control item-category" 
-                                               list="categoriesList" placeholder="Category...">
+                                        <textarea name="items[0][category_name]" class="form-control item-category" rows="2"
+                                               placeholder="Category / Spec..." style="min-height: 48px; resize: vertical; line-height: 1.35; font-size: 0.88rem;"></textarea>
                                         <input type="hidden" name="items[0][category_id]" class="item-category-id" value="">
                                     </td>
                                     <td>
                                         <input type="number" name="items[0][quantity]" class="form-control item-qty text-center fw-bold" 
-                                               value="1" min="1" required oninput="onQtyChange(0)">
+                                               value="1" min="1" required oninput="onQtyChange(0)" style="min-height: 48px;">
                                     </td>
-                                    <td class="bg-light-subtle">
+                                    <td class="col-reams">
+                                        <input type="text" name="items[0][reams_quantity]" class="form-control item-reams text-center font-monospace" 
+                                               placeholder="1.67" style="min-height: 48px;">
+                                    </td>
+                                    <td class="bg-light-subtle col-mrp">
                                         <input type="number" step="0.01" name="items[0][mrp_price]" class="form-control item-mrp text-end fw-semibold" 
-                                               value="0" min="0" placeholder="MRP" oninput="onMrpChange(0)">
+                                               value="0" min="0" placeholder="MRP" oninput="onMrpChange(0)" style="min-height: 48px;">
                                     </td>
-                                    <td class="bg-primary-subtle bg-opacity-25">
+                                    <td class="bg-primary-subtle bg-opacity-25 col-comm">
                                         <input type="number" step="0.01" name="items[0][purchase_commission_percent]" class="form-control item-comm text-center text-primary fw-bold" 
-                                               value="0" min="0" max="100" placeholder="%" oninput="onCommChange(0)">
+                                               value="0" min="0" max="100" placeholder="%" oninput="onCommChange(0)" style="min-height: 48px;">
                                     </td>
                                     <td class="bg-primary-subtle bg-opacity-25">
                                         <input type="number" step="0.01" name="items[0][cost_price]" class="form-control item-cost text-end fw-bold text-danger" 
-                                               value="0" min="0" required oninput="onCostChange(0)">
+                                               value="0" min="0" required oninput="onCostChange(0)" style="min-height: 48px;">
                                     </td>
-                                    <td class="bg-success-subtle bg-opacity-25">
+                                    <td class="bg-success-subtle bg-opacity-25 col-shop-disc">
                                         <input type="number" step="0.01" name="items[0][shop_discount_percent]" class="form-control item-shop-disc text-center text-success fw-bold" 
-                                               value="0" min="0" max="100" placeholder="%" oninput="onShopDiscChange(0)">
+                                               value="0" min="0" max="100" placeholder="%" oninput="onShopDiscChange(0)" style="min-height: 48px;">
                                     </td>
-                                    <td class="bg-success-subtle bg-opacity-25">
+                                    <td class="bg-success-subtle bg-opacity-25 col-sale-price">
                                         <input type="number" step="0.01" name="items[0][sale_price]" class="form-control item-sale text-end fw-bold text-success" 
                                                value="0" min="0" required oninput="onSaleChange(0)">
                                     </td>
                                     <td class="text-end pe-3 fw-bold text-dark item-subtotal fs-6">৳0.00</td>
                                     <td class="text-center">
                                         <div class="d-flex align-items-center justify-content-center gap-1">
-                                            <button type="button" class="btn btn-sm btn-outline-secondary p-1.5 rounded-circle border-0" onclick="toggleExtraDetails(0)" title="Extra book details (ISBN, Edition, Binding)">
+                                            <button type="button" class="btn btn-sm btn-outline-secondary p-1.5 rounded-circle border-0" onclick="toggleExtraDetails(0)" title="Extra details">
                                                 <i class="fas fa-sliders text-secondary"></i>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-outline-danger p-1.5 rounded-circle border-0" onclick="removeRow(this)" title="Remove row">
@@ -517,6 +599,45 @@
                             </option>
                         @endforeach
                     </datalist>
+
+                    {{-- Raw Materials Quality & Size Standard Datalists --}}
+                    <datalist id="rawQualityList">
+                        <option value="৮০ GSM অফসেট পেপার (Offset 80 GSM)">৮০ GSM ভার্জিন পাল্প</option>
+                        <option value="৭০ GSM অফসেট পেপার (Offset 70 GSM)">৭০ GSM অফসেট</option>
+                        <option value="১০০ GSM আর্ট পেপার (Art Paper 100 GSM)">১০০ GSM গ্লসি আর্ট</option>
+                        <option value="১২০ GSM আর্ট পেপার (Art Paper 120 GSM)">১২০ GSM আর্ট পেপার</option>
+                        <option value="১৫০ GSM আর্ট পেপার (Art Paper 150 GSM)">১৫০ GSM আর্ট পেপার</option>
+                        <option value="৩০০ GSM আর্ট কার্ড (Art Card 300 GSM)">৩০০ GSM কভার কার্ড</option>
+                        <option value="৩৫০ GSM আর্ট কার্ড (Art Card 350 GSM)">৩৫০ GSM প্রিমিয়াম কার্ড</option>
+                        <option value="সুইডিশ বোর্ড (Swedish Board 300 GSM)">সুইডিশ বোর্ড</option>
+                        <option value="ডাচ গ্রে বোর্ড (Dutch Grey Board)">২৮-৩২ আউন্স হার্ডবোর্ড</option>
+                        <option value="৪ কালার নিখুঁত প্রিন্ট (4-Color Process)">৪ কালার অফসেট প্রিন্ট</option>
+                        <option value="১ কালার ব্ল্যাক প্রিন্ট (1-Color Black)">১ কালার টেক্সট প্রিন্ট</option>
+                        <option value="থার্মাল ম্যাট ফিল্ম (Thermal Matt)">ম্যাট ল্যামিনেশন</option>
+                        <option value="থার্মাল গ্লসি ফিল্ম (Thermal Glossy)">গ্লসি ল্যামিনেশন</option>
+                        <option value="স্পট ইউভি (Spot UV Coating)">স্পট ইউভি কোটিং</option>
+                        <option value="গোল্ডেন ফয়েল এম্বুসিং (Golden Foil)">ডাই এম্বুসিং ও ফয়েল</option>
+                        <option value="পারফেক্ট হট গ্লু বাইন্ডিং (Perfect Glue)">গ্লু বাইন্ডিং</option>
+                        <option value="হার্ডকাভার সেলাই ও বোর্ড (Hardcover)">হার্ডকাভার বাঁধাই</option>
+                    </datalist>
+
+                    <datalist id="rawSizeList">
+                        <option value="২৩x৩৬ ইঞ্চি (ডিমাই - Demy)">২৩x৩৬ ইঞ্চি (ডিমাই)</option>
+                        <option value="২৫x৩৭ ইঞ্চি (রয়েল - Royal)">২৫x৩৭ ইঞ্চি (রয়েল)</option>
+                        <option value="২০x৩০ ইঞ্চি (ক্রাউন - Crown)">২০x৩০ ইঞ্চি (ক্রাউন)</option>
+                        <option value="২২x২৮ ইঞ্চি (মিডিয়াম - Medium)">২২x২৮ ইঞ্চি (মিডিয়াম)</option>
+                        <option value="২৪x৩৬ ইঞ্চি">২৪x৩৬ ইঞ্চি</option>
+                        <option value="১৬ পৃষ্ঠা ফর্মা (16-Page Forma)">১৬ পৃষ্ঠা ফর্মা</option>
+                        <option value="৮ পৃষ্ঠা ফর্মা (8-Page Half Forma)">৮ পৃষ্ঠা ফর্মা</option>
+                        <option value="ডাবল ক্রাউন প্লেট (Double Crown Plate)">ডাবল ক্রাউন</option>
+                        <option value="ডিমাই সাইজ প্লেট (Demy Plate)">ডিমাই প্লেট</option>
+                        <option value="কভার সাইজ (Cover Size)">কভার সাইজ</option>
+                        <option value="৩.৫ x ২.০ ইঞ্চি (Visiting Card)">ভিজিটিং কার্ড সাইজ</option>
+                        <option value="বক্স (১০০ পিস)">১০০ পিস বক্স</option>
+                        <option value="১.৬৭ রিম (1.67 Ream)">১.৬৭ রিম</option>
+                        <option value="১.০০ রিম (1.00 Ream)">১.০০ রিম</option>
+                        <option value="২.৫০ রিম (2.50 Ream)">২.৫০ রিম</option>
+                    </datalist>
                 </div>
             </div>
         </div>
@@ -586,18 +707,22 @@
 
                     <div class="mb-3">
                         <label class="form-label fw-bold text-dark">
-                            <i class="fas fa-hand-holding-dollar text-primary me-1"></i> Payment Terms <span class="text-danger">*</span>
+                            <i class="fas fa-hand-holding-dollar text-primary me-1"></i> ক্রয়ের পরিশোধের শর্ত (Payment Terms) <span class="text-danger">*</span>
                         </label>
                         <select name="payment_type" id="paymentType" class="form-select form-select-lg fs-6 fw-semibold" required onchange="onPaymentTypeChange()">
-                            <option value="cash">💵 Cash Purchase (Paid in Full)</option>
-                            <option value="credit">⏳ Credit Purchase (Full Due)</option>
-                            <option value="partial">⚖️ Partial Payment & Due</option>
+                            <option value="cash">💵 ১. নগদ সম্পূর্ণ পরিশোধ (Cash - Full Paid)</option>
+                            <option value="credit">⏳ ২. সম্পূর্ণ বাকি (Credit - Full Due)</option>
+                            <option value="partial">⚖️ ৩. আংশিক পরিশোধ ও বাকি (Partial Payment)</option>
+                            <option value="installment">📅 ৪. পরবর্তীতে কিস্তিতে পরিশোধ (Installment Payment)</option>
                         </select>
                     </div>
 
+                    {{-- Paid Section (Active for Cash, Partial, Installment) --}}
                     <div id="paidSectionWrapper">
                         <div class="mb-3" id="paidAmountGroup">
-                            <label class="form-label fw-bold text-dark">Amount Paid Now (৳):</label>
+                            <label class="form-label fw-bold text-dark" id="paidAmountLabel">
+                                <i class="fas fa-money-bill-wave text-success me-1"></i> তাৎক্ষণিক পরিশোধ / ডাউনপেমেন্ট (৳):
+                            </label>
                             <div class="input-group">
                                 <span class="input-group-text bg-light fw-bold text-success">৳</span>
                                 <input type="number" step="0.01" name="paid_amount" id="paidAmountInput" class="form-control form-control-lg text-end fw-bold text-success" value="0" min="0" oninput="calcTotals()">
@@ -606,9 +731,9 @@
 
                         <div class="row g-2 mb-3" id="paymentDetailsGroup">
                             <div class="col-sm-6" id="paymentMethodGroup">
-                                <label class="form-label small fw-semibold text-muted">Payment Method:</label>
+                                <label class="form-label small fw-semibold text-muted">পরিশোধের মাধ্যম:</label>
                                 <select name="payment_method" class="form-select">
-                                    <option value="cash">Cash</option>
+                                    <option value="cash">Cash (নগদ)</option>
                                     <option value="bank">Bank Transfer</option>
                                     <option value="bkash">bKash</option>
                                     <option value="nagad">Nagad</option>
@@ -616,16 +741,43 @@
                                 </select>
                             </div>
                             <div class="col-sm-6" id="trxRefGroup">
-                                <label class="form-label small fw-semibold text-muted">Cheque / Trx ID:</label>
+                                <label class="form-label small fw-semibold text-muted">চেক নং / Trx ID:</label>
                                 <input type="text" name="transaction_ref" class="form-control" placeholder="Reference #...">
                             </div>
+                        </div>
+                    </div>
+
+                    {{-- Installment / Due Schedule Section (Active for Installment, Partial & Credit) --}}
+                    <div id="installmentSectionWrapper" class="card border border-warning-subtle bg-warning-subtle bg-opacity-25 rounded-3 p-3 mb-3" style="display: none;">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="small fw-bold text-dark">
+                                <i class="fas fa-calendar-days text-warning me-1"></i> কিস্তি ও পরিশোধ পরিকল্পনা:
+                            </span>
+                            <span id="perInstallmentAmount" class="badge bg-warning text-dark fw-bold px-2.5 py-1">৳0.00 / কিস্তি</span>
+                        </div>
+                        <div class="row g-2 mb-2">
+                            <div class="col-sm-6">
+                                <label class="form-label small text-muted mb-1">কিস্তির সংখ্যা:</label>
+                                <div class="input-group input-group-sm">
+                                    <input type="number" name="installment_count" id="installmentCountInput" class="form-control text-center fw-bold" value="2" min="1" max="36" oninput="calcInstallmentBreakdown()">
+                                    <span class="input-group-text bg-white">টি কিস্তি</span>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <label class="form-label small text-muted mb-1">পরবর্তী কিস্তির তারিখ:</label>
+                                <input type="date" name="due_date" id="dueDateInput" class="form-control form-control-sm" value="{{ date('Y-m-d', strtotime('+30 days')) }}">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="form-label small text-muted mb-1">কিস্তির বিবরণ / শর্তাবলি:</label>
+                            <input type="text" name="installment_notes" id="installmentNotesInput" class="form-control form-control-sm" placeholder="যেমন: প্রতি মাসের ১০ তারিখে কিস্তির টাকা পরিশোধ করা হবে...">
                         </div>
                     </div>
 
                     <div class="alert alert-danger p-3 rounded-3 mb-4 d-flex justify-content-between align-items-center border-0 bg-danger-subtle text-danger" id="dueAlert">
                         <div class="d-flex align-items-center gap-2">
                             <i class="fas fa-circle-exclamation fs-5"></i>
-                            <span class="fw-bold">Due Balance:</span>
+                            <span class="fw-bold">অবশিষ্ট বকেয়া (Due):</span>
                         </div>
                         <span class="fw-bolder fs-4 text-danger" id="displayDue">৳0.00</span>
                     </div>
@@ -912,6 +1064,25 @@
             dueAlert.classList.remove('alert-success', 'bg-success-subtle', 'text-success');
             dueAlert.classList.add('alert-danger', 'bg-danger-subtle', 'text-danger');
         }
+
+        calcInstallmentBreakdown();
+    }
+
+    function calcInstallmentBreakdown() {
+        const grandTotalText = document.getElementById('displayGrandTotal').textContent.replace(/[^\d.]/g, '');
+        const grandTotal = parseFloat(grandTotalText) || 0;
+        const paidInput = document.getElementById('paidAmountInput');
+        const paid = parseFloat(paidInput ? paidInput.value : 0) || 0;
+        const due = Math.max(0, grandTotal - paid);
+
+        const countInput = document.getElementById('installmentCountInput');
+        const count = parseInt(countInput ? countInput.value : 1) || 1;
+        const perInst = count > 0 ? (due / count) : due;
+
+        const badge = document.getElementById('perInstallmentAmount');
+        if (badge) {
+            badge.textContent = `৳${perInst.toFixed(2)} / কিস্তি (${count}টি)`;
+        }
     }
 
     function applyBatchCommission() {
@@ -944,12 +1115,28 @@
         const type = document.getElementById('paymentType').value;
         const paidSection = document.getElementById('paidSectionWrapper');
         const paidInput = document.getElementById('paidAmountInput');
+        const installmentSection = document.getElementById('installmentSectionWrapper');
+        const paidLabel = document.getElementById('paidAmountLabel');
 
         if (type === 'credit') {
             paidSection.style.display = 'none';
             paidInput.value = 0;
-        } else {
+            if (installmentSection) installmentSection.style.display = 'block';
+        } else if (type === 'installment') {
             paidSection.style.display = 'block';
+            if (installmentSection) installmentSection.style.display = 'block';
+            if (paidLabel) paidLabel.innerHTML = '<i class="fas fa-money-bill-wave text-success me-1"></i> ডাউনপেমেন্ট / প্রাথমিক নগদ পরিশোধ (৳):';
+            if (parseFloat(paidInput.value) >= parseFloat(document.getElementById('displayGrandTotal').textContent.replace(/[^\d.]/g, '') || 0)) {
+                paidInput.value = 0;
+            }
+        } else if (type === 'partial') {
+            paidSection.style.display = 'block';
+            if (installmentSection) installmentSection.style.display = 'block';
+            if (paidLabel) paidLabel.innerHTML = '<i class="fas fa-money-bill-wave text-success me-1"></i> তাৎক্ষণিক নগদ পরিশোধ (৳):';
+        } else { // cash
+            paidSection.style.display = 'block';
+            if (installmentSection) installmentSection.style.display = 'none';
+            if (paidLabel) paidLabel.innerHTML = '<i class="fas fa-money-bill-wave text-success me-1"></i> তাৎক্ষণিক সম্পূর্ণ নগদ পরিশোধ (৳):';
         }
         calcTotals();
     }
@@ -957,14 +1144,16 @@
     function addItemRow() {
         const tbody = document.getElementById('itemsBody');
         const i = rowCounter++;
+        const activeClass = document.getElementById('purchaseCategorySelect')?.value || 'books';
+        const isRaw = (activeClass === 'raw_materials' || activeClass === 'other');
 
         const tr = document.createElement('tr');
         tr.className = 'item-row';
         tr.setAttribute('data-row', i);
         tr.innerHTML = `
             <td class="ps-3">
-                <input type="text" name="items[${i}][title]" class="form-control item-title fw-semibold" 
-                       list="booksList" placeholder="Type book title..." required oninput="onTitleInput(this, ${i})">
+                <textarea name="items[${i}][title]" class="form-control item-title fw-semibold" rows="2"
+                       placeholder="${isRaw ? 'Item / Description...' : 'Book title...'}" required oninput="onTitleInput(this, ${i})" style="min-height: 48px; resize: vertical; line-height: 1.35; font-size: 0.88rem;"></textarea>
                 <input type="hidden" name="items[${i}][book_id]" class="item-book-id" value="">
                 <div class="item-book-badge mt-1 small" style="display: none;">
                     <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill px-2 py-0.5" style="font-size: 0.68rem;">
@@ -973,42 +1162,46 @@
                 </div>
             </td>
             <td>
-                <input type="text" name="items[${i}][author]" class="form-control item-author" 
-                       list="authorsList" placeholder="Author name...">
+                <textarea name="items[${i}][author]" class="form-control item-author" rows="2"
+                       placeholder="${isRaw ? 'Quality...' : 'Author...'}" style="min-height: 48px; resize: vertical; line-height: 1.35; font-size: 0.88rem;"></textarea>
             </td>
             <td>
-                <input type="text" name="items[${i}][category_name]" class="form-control item-category" 
-                       list="categoriesList" placeholder="Category...">
+                <textarea name="items[${i}][category_name]" class="form-control item-category" rows="2"
+                       placeholder="${isRaw ? 'Size / Spec...' : 'Category...'}" style="min-height: 48px; resize: vertical; line-height: 1.35; font-size: 0.88rem;"></textarea>
                 <input type="hidden" name="items[${i}][category_id]" class="item-category-id" value="">
             </td>
             <td>
                 <input type="number" name="items[${i}][quantity]" class="form-control item-qty text-center fw-bold" 
-                       value="1" min="1" required oninput="onQtyChange(${i})">
+                       value="1" min="1" required oninput="onQtyChange(${i})" style="min-height: 48px;">
             </td>
-            <td class="bg-light-subtle">
+            <td class="col-reams" style="${isRaw ? '' : 'display: none;'}">
+                <input type="text" name="items[${i}][reams_quantity]" class="form-control item-reams text-center font-monospace" 
+                       placeholder="1.67" style="min-height: 48px;">
+            </td>
+            <td class="bg-light-subtle col-mrp" style="${isRaw ? 'display: none;' : ''}">
                 <input type="number" step="0.01" name="items[${i}][mrp_price]" class="form-control item-mrp text-end fw-semibold" 
-                       value="0" min="0" placeholder="MRP" oninput="onMrpChange(${i})">
+                       value="0" min="0" placeholder="MRP" oninput="onMrpChange(${i})" style="min-height: 48px;">
             </td>
-            <td class="bg-primary-subtle bg-opacity-25">
+            <td class="bg-primary-subtle bg-opacity-25 col-comm" style="${isRaw ? 'display: none;' : ''}">
                 <input type="number" step="0.01" name="items[${i}][purchase_commission_percent]" class="form-control item-comm text-center text-primary fw-bold" 
-                       value="0" min="0" max="100" placeholder="%" oninput="onCommChange(${i})">
+                       value="0" min="0" max="100" placeholder="%" oninput="onCommChange(${i})" style="min-height: 48px;">
             </td>
             <td class="bg-primary-subtle bg-opacity-25">
                 <input type="number" step="0.01" name="items[${i}][cost_price]" class="form-control item-cost text-end fw-bold text-danger" 
-                       value="0" min="0" required oninput="onCostChange(${i})">
+                       value="0" min="0" required oninput="onCostChange(${i})" style="min-height: 48px;">
             </td>
-            <td class="bg-success-subtle bg-opacity-25">
+            <td class="bg-success-subtle bg-opacity-25 col-shop-disc" style="${isRaw ? 'display: none;' : ''}">
                 <input type="number" step="0.01" name="items[${i}][shop_discount_percent]" class="form-control item-shop-disc text-center text-success fw-bold" 
-                       value="0" min="0" max="100" placeholder="%" oninput="onShopDiscChange(${i})">
+                       value="0" min="0" max="100" placeholder="%" oninput="onShopDiscChange(${i})" style="min-height: 48px;">
             </td>
-            <td class="bg-success-subtle bg-opacity-25">
+            <td class="bg-success-subtle bg-opacity-25 col-sale-price" style="${isRaw ? 'display: none;' : ''}">
                 <input type="number" step="0.01" name="items[${i}][sale_price]" class="form-control item-sale text-end fw-bold text-success" 
-                       value="0" min="0" required oninput="onSaleChange(${i})">
+                       value="0" min="0" required oninput="onSaleChange(${i})" style="min-height: 48px;">
             </td>
             <td class="text-end pe-3 fw-bold text-dark item-subtotal fs-6">৳0.00</td>
             <td class="text-center">
                 <div class="d-flex align-items-center justify-content-center gap-1">
-                    <button type="button" class="btn btn-sm btn-outline-secondary p-1.5 rounded-circle border-0" onclick="toggleExtraDetails(${i})" title="Extra book attributes (ISBN, Edition, Binding)">
+                    <button type="button" class="btn btn-sm btn-outline-secondary p-1.5 rounded-circle border-0" onclick="toggleExtraDetails(${i})" title="Extra details">
                         <i class="fas fa-sliders text-secondary"></i>
                     </button>
                     <button type="button" class="btn btn-sm btn-outline-danger p-1.5 rounded-circle border-0" onclick="removeRow(this)" title="Remove row">
@@ -1023,39 +1216,28 @@
         extraTr.id = `extraRow-${i}`;
         extraTr.style.display = 'none';
         extraTr.innerHTML = `
-            <td colspan="11" class="p-3">
+            <td colspan="12" class="p-3">
                 <div class="p-2.5 bg-white rounded-3 border">
                     <div class="small fw-bold text-muted mb-2 d-flex align-items-center gap-1.5">
                         <i class="fas fa-info-circle text-primary"></i>
-                        <span>Bookshop Catalog Extra Attributes (Optional):</span>
+                        <span>Extra Attributes & Specifications (Optional):</span>
                     </div>
                     <div class="row g-2">
-                        <div class="col-md-2">
-                            <label class="form-label text-muted" style="font-size: 0.72rem;">ISBN</label>
-                            <input type="text" name="items[${i}][isbn]" class="form-control item-isbn font-monospace" placeholder="978-...">
+                        <div class="col-md-3">
+                            <label class="form-label text-muted" style="font-size: 0.72rem;">Size / Dimensions</label>
+                            <input type="text" name="items[${i}][size_spec]" class="form-control form-control-sm" list="rawSizeList" placeholder="e.g. 23x36 inch">
                         </div>
-                        <div class="col-md-2">
-                            <label class="form-label text-muted" style="font-size: 0.72rem;">Edition / Year</label>
-                            <input type="text" name="items[${i}][edition]" class="form-control item-edition" placeholder="e.g. 1st Edition 2026">
+                        <div class="col-md-3">
+                            <label class="form-label text-muted" style="font-size: 0.72rem;">Unit (একক)</label>
+                            <input type="text" name="items[${i}][unit]" class="form-control form-control-sm" placeholder="e.g. Ream / Forma / Pcs">
                         </div>
-                        <div class="col-md-2">
-                            <label class="form-label text-muted" style="font-size: 0.72rem;">Binding (Cover Type)</label>
-                            <select name="items[${i}][cover_type]" class="form-select item-cover-type">
-                                <option value="paperback">Paperback</option>
-                                <option value="hardcover">Hardcover</option>
-                            </select>
+                        <div class="col-md-3">
+                            <label class="form-label text-muted" style="font-size: 0.72rem;">Quality / Paper GSM</label>
+                            <input type="text" name="items[${i}][quality_spec]" class="form-control form-control-sm" list="rawQualityList" placeholder="e.g. 80 GSM Virgin Pulp">
                         </div>
-                        <div class="col-md-2">
-                            <label class="form-label text-muted" style="font-size: 0.72rem;">Page Count</label>
-                            <input type="number" name="items[${i}][page_count]" class="form-control item-page-count" placeholder="e.g. 120">
-                        </div>
-                        <div class="col-md-2">
-                            <label class="form-label text-muted" style="font-size: 0.72rem;">Book Size</label>
-                            <input type="text" name="items[${i}][book_size]" class="form-control item-book-size" placeholder="e.g. 8.5x5.5">
-                        </div>
-                        <div class="col-md-2">
-                            <label class="form-label text-muted" style="font-size: 0.72rem;">Paper Type</label>
-                            <input type="text" name="items[${i}][paper_type]" class="form-control item-paper-type" placeholder="e.g. Offset 80 GSM">
+                        <div class="col-md-3">
+                            <label class="form-label text-muted" style="font-size: 0.72rem;">Remarks / Notes</label>
+                            <input type="text" name="items[${i}][item_notes]" class="form-control form-control-sm" placeholder="Special notes...">
                         </div>
                     </div>
                 </div>
@@ -1069,7 +1251,7 @@
     function removeRow(btn) {
         const rows = document.querySelectorAll('.item-row');
         if (rows.length <= 1) {
-            alert('At least one book item must remain in the order.');
+            alert('At least one item must remain in the order.');
             return;
         }
         const tr = btn.closest('tr');
@@ -1088,7 +1270,71 @@
         }
     }
 
-    function addRawMaterialRow(name, size, unit, rate, quality) {
+    function addRawMaterialRow(name, size, unit, rate, quality, reams = '') {
+        const rows = document.querySelectorAll('.item-row');
+        let targetRow = null;
+        let targetIndex = null;
+
+        // Check if there is an existing empty row (e.g. initial blank row)
+        for (let r of rows) {
+            const titleInput = r.querySelector('.item-title');
+            const costInput = r.querySelector('.item-cost');
+            const currentTitle = titleInput ? titleInput.value.trim() : '';
+            const currentCost = costInput ? parseFloat(costInput.value) : 0;
+            if (!currentTitle || (currentTitle === '' && (!currentCost || currentCost === 0))) {
+                targetRow = r;
+                targetIndex = r.getAttribute('data-row');
+                break;
+            }
+        }
+
+        if (targetRow && targetIndex !== null) {
+            // Fill into existing blank row!
+            const titleInput = targetRow.querySelector('.item-title');
+            if (titleInput) titleInput.value = name;
+            
+            const authorInput = targetRow.querySelector('.item-author');
+            if (authorInput) authorInput.value = quality || '';
+
+            const categoryInput = targetRow.querySelector('.item-category');
+            if (categoryInput) categoryInput.value = size || '';
+
+            const qtyInput = targetRow.querySelector('.item-qty');
+            if (qtyInput && (!qtyInput.value || qtyInput.value === '0')) qtyInput.value = 1;
+
+            const reamsInput = targetRow.querySelector('.item-reams');
+            if (reamsInput) reamsInput.value = reams || '';
+
+            const costInput = targetRow.querySelector('.item-cost');
+            if (costInput) costInput.value = rate || 0;
+
+            const mrpInput = targetRow.querySelector('.item-mrp');
+            if (mrpInput) mrpInput.value = rate || 0;
+
+            const saleInput = targetRow.querySelector('.item-sale');
+            if (saleInput) saleInput.value = rate || 0;
+
+            const subtotalEl = targetRow.querySelector('.item-subtotal');
+            if (subtotalEl) {
+                const q = parseFloat(qtyInput ? qtyInput.value : 1) || 1;
+                subtotalEl.textContent = '৳' + (q * (rate || 0)).toFixed(2);
+            }
+
+            // Update extra row if present
+            const extraTr = document.getElementById(`extraRow-${targetIndex}`);
+            if (extraTr) {
+                const sizeSpec = extraTr.querySelector(`input[name="items[${targetIndex}][size_spec]"]`);
+                if (sizeSpec) sizeSpec.value = size || '';
+                const unitSpec = extraTr.querySelector(`input[name="items[${targetIndex}][unit]"]`);
+                if (unitSpec) unitSpec.value = unit || 'রিম';
+                const qualitySpec = extraTr.querySelector(`input[name="items[${targetIndex}][quality_spec]"]`);
+                if (qualitySpec) qualitySpec.value = quality || '';
+            }
+
+            calcTotals();
+            return;
+        }
+
         const tbody = document.getElementById('itemsBody');
         const i = rowCounter++;
 
@@ -1097,42 +1343,42 @@
         tr.setAttribute('data-row', i);
         tr.innerHTML = `
             <td class="ps-3">
-                <input type="text" name="items[${i}][title]" class="form-control item-title fw-semibold" 
-                       value="${name}" placeholder="মালের বিবরণ..." required oninput="onTitleInput(this, ${i})">
+                <textarea name="items[${i}][title]" class="form-control item-title fw-semibold" rows="2"
+                       placeholder="Item / Description..." required oninput="onTitleInput(this, ${i})" style="min-height: 48px; resize: vertical; line-height: 1.35; font-size: 0.88rem;">${name}</textarea>
                 <input type="hidden" name="items[${i}][item_name]" value="${name}">
                 <input type="hidden" name="items[${i}][item_type]" value="raw_material">
             </td>
             <td>
-                <input type="text" name="items[${i}][author]" class="form-control item-author" 
-                       value="${quality || ''}" placeholder="কোয়ালিটি / গ্রেড...">
+                <textarea name="items[${i}][author]" class="form-control item-author" rows="2"
+                       placeholder="Quality..." style="min-height: 48px; resize: vertical; line-height: 1.35; font-size: 0.88rem;">${quality || ''}</textarea>
             </td>
             <td>
-                <input type="text" name="items[${i}][category_name]" class="form-control item-category" 
-                       value="${size || ''}" placeholder="সাইজ / স্পেসিফিকেশন...">
+                <textarea name="items[${i}][category_name]" class="form-control item-category" rows="2"
+                       placeholder="Size / Spec..." style="min-height: 48px; resize: vertical; line-height: 1.35; font-size: 0.88rem;">${size || ''}</textarea>
             </td>
             <td>
                 <input type="number" name="items[${i}][quantity]" class="form-control item-qty text-center fw-bold" 
-                       value="1" min="1" required oninput="onQtyChange(${i})">
+                       value="1" min="1" required oninput="onQtyChange(${i})" style="min-height: 48px;">
             </td>
-            <td class="bg-light-subtle d-none-raw">
-                <input type="number" step="0.01" name="items[${i}][mrp_price]" class="form-control item-mrp text-end fw-semibold" 
-                       value="${rate || 0}" min="0" placeholder="দর" oninput="onMrpChange(${i})">
+            <td class="col-reams">
+                <input type="text" name="items[${i}][reams_quantity]" class="form-control item-reams text-center font-monospace" 
+                       value="${reams || ''}" placeholder="1.67" style="min-height: 48px;">
             </td>
-            <td class="bg-primary-subtle bg-opacity-25 d-none-raw">
-                <input type="number" step="0.01" name="items[${i}][purchase_commission_percent]" class="form-control item-comm text-center text-primary fw-bold" 
-                       value="0" min="0" max="100" placeholder="%" oninput="onCommChange(${i})">
+            <td class="col-mrp" style="display: none;">
+                <input type="number" step="0.01" name="items[${i}][mrp_price]" class="form-control item-mrp" value="${rate || 0}">
+            </td>
+            <td class="col-comm" style="display: none;">
+                <input type="number" step="0.01" name="items[${i}][purchase_commission_percent]" class="form-control item-comm" value="0">
             </td>
             <td class="bg-primary-subtle bg-opacity-25">
                 <input type="number" step="0.01" name="items[${i}][cost_price]" class="form-control item-cost text-end fw-bold text-danger" 
-                       value="${rate || 0}" min="0" required oninput="onCostChange(${i})">
+                       value="${rate || 0}" min="0" required oninput="onCostChange(${i})" style="min-height: 48px;">
             </td>
-            <td class="bg-success-subtle bg-opacity-25 d-none-raw">
-                <input type="number" step="0.01" name="items[${i}][shop_discount_percent]" class="form-control item-shop-disc text-center text-success fw-bold" 
-                       value="0" min="0" max="100" placeholder="%" oninput="onShopDiscChange(${i})">
+            <td class="col-shop-disc" style="display: none;">
+                <input type="number" step="0.01" name="items[${i}][shop_discount_percent]" class="form-control item-shop-disc" value="0">
             </td>
-            <td class="bg-success-subtle bg-opacity-25 d-none-raw">
-                <input type="number" step="0.01" name="items[${i}][sale_price]" class="form-control item-sale text-end fw-bold text-success" 
-                       value="${rate || 0}" min="0" required oninput="onSaleChange(${i})">
+            <td class="col-sale-price" style="display: none;">
+                <input type="number" step="0.01" name="items[${i}][sale_price]" class="form-control item-sale" value="${rate || 0}">
             </td>
             <td class="text-end pe-3 fw-bold text-dark item-subtotal fs-6">৳${(rate || 0).toFixed(2)}</td>
             <td class="text-center">
@@ -1152,24 +1398,24 @@
         extraTr.id = `extraRow-${i}`;
         extraTr.style.display = 'none';
         extraTr.innerHTML = `
-            <td colspan="11" class="p-3">
+            <td colspan="12" class="p-3">
                 <div class="p-2.5 bg-white rounded-3 border">
                     <div class="row g-2">
                         <div class="col-md-3">
-                            <label class="form-label text-muted" style="font-size: 0.72rem;">সাইজ / পরিমাপ</label>
-                            <input type="text" name="items[${i}][size_spec]" class="form-control form-control-sm" value="${size || ''}" placeholder="যেমন: ২৩x৩৬ ইঞ্চি">
+                            <label class="form-label text-muted" style="font-size: 0.72rem;">Size / Dimensions</label>
+                            <input type="text" name="items[${i}][size_spec]" class="form-control form-control-sm" list="rawSizeList" value="${size || ''}" placeholder="e.g. 23x36 inch">
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label text-muted" style="font-size: 0.72rem;">একক (Unit)</label>
-                            <input type="text" name="items[${i}][unit]" class="form-control form-control-sm" value="${unit || 'রিম'}" placeholder="যেমন: রিম / ফর্মা / ইম্প্রেশন">
+                            <label class="form-label text-muted" style="font-size: 0.72rem;">Unit (একক)</label>
+                            <input type="text" name="items[${i}][unit]" class="form-control form-control-sm" value="${unit || 'রিম'}" placeholder="e.g. Ream / Forma / Pcs">
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label text-muted" style="font-size: 0.72rem;">কোয়ালিটি / গ্রেড</label>
-                            <input type="text" name="items[${i}][quality_spec]" class="form-control form-control-sm" value="${quality || ''}" placeholder="যেমন: ৮০ জিএসএম ভার্জিন">
+                            <label class="form-label text-muted" style="font-size: 0.72rem;">Quality / Paper GSM</label>
+                            <input type="text" name="items[${i}][quality_spec]" class="form-control form-control-sm" list="rawQualityList" value="${quality || ''}" placeholder="e.g. 80 GSM Virgin Pulp">
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label text-muted" style="font-size: 0.72rem;">মন্তব্য / নোট</label>
-                            <input type="text" name="items[${i}][item_notes]" class="form-control form-control-sm" placeholder="অতিরিক্ত বিবরণ...">
+                            <label class="form-label text-muted" style="font-size: 0.72rem;">Remarks / Notes</label>
+                            <input type="text" name="items[${i}][item_notes]" class="form-control form-control-sm" placeholder="Special notes...">
                         </div>
                     </div>
                 </div>
@@ -1202,15 +1448,50 @@
         const thAuthor = document.getElementById('thAuthorLabel');
         const thCategory = document.getElementById('thCategoryLabel');
         const thQty = document.getElementById('thQtyLabel');
+        const thReams = document.getElementById('thReamsCol');
+        const thMrp = document.getElementById('thMrpCol');
+        const thComm = document.getElementById('thCommCol');
         const thCost = document.getElementById('thCostLabel');
+        const thShopDisc = document.getElementById('thShopDiscCol');
+        const thSalePrice = document.getElementById('thSalePriceCol');
         const thTotal = document.getElementById('thTotalLabel');
 
+        const isRaw = (cls === 'raw_materials' || cls === 'other');
+
+        // Toggle Columns Visibility (Cost Comm %, Store Disc %, Store Price % are hidden for raw materials)
+        if (thComm) thComm.style.display = isRaw ? 'none' : '';
+        if (thShopDisc) thShopDisc.style.display = isRaw ? 'none' : '';
+        if (thSalePrice) thSalePrice.style.display = isRaw ? 'none' : '';
+        if (thMrp) thMrp.style.display = isRaw ? 'none' : '';
+        if (thReams) thReams.style.display = isRaw ? '' : 'none';
+
+        document.querySelectorAll('.col-comm').forEach(el => el.style.display = isRaw ? 'none' : '');
+        document.querySelectorAll('.col-shop-disc').forEach(el => el.style.display = isRaw ? 'none' : '');
+        document.querySelectorAll('.col-sale-price').forEach(el => el.style.display = isRaw ? 'none' : '');
+        document.querySelectorAll('.col-mrp').forEach(el => el.style.display = isRaw ? 'none' : '');
+        document.querySelectorAll('.col-reams').forEach(el => el.style.display = isRaw ? '' : 'none');
+
+        const catSelect = document.getElementById('purchaseCategorySelect');
+        if (catSelect && catSelect.value !== cls) {
+            catSelect.value = cls;
+        }
+        const catIcon = document.getElementById('purchaseCategoryIcon');
+        if (catIcon) {
+            if (cls === 'raw_materials') {
+                catIcon.className = 'fa-solid fa-boxes-stacked text-warning';
+            } else if (cls === 'other') {
+                catIcon.className = 'fa-solid fa-cart-shopping text-info';
+            } else {
+                catIcon.className = 'fa-solid fa-book-open text-primary';
+            }
+        }
+
         if (cls === 'raw_materials') {
-            if (hintText) hintText.textContent = 'কাগজ, বোর্ড, কালি, প্রেস ও মুদ্রণ খরচ চালান এন্ট্রি';
-            if (cardTitle) cardTitle.textContent = 'কাঁচামাল সরবরাহকারী / প্রেস ও ভাউচার বিবরণ';
-            if (cardSubtitle) cardSubtitle.textContent = 'সরবরাহকারী প্রতিষ্ঠান, প্রেস বা ভেন্ডর ও মেমো নম্বর প্রদান করুন';
-            if (vendorFieldLabel) vendorFieldLabel.textContent = 'কাঁচামাল সরবরাহকারী / প্রেসের নাম';
-            if (vendorInput) vendorInput.placeholder = 'যেমন: কর্ণফুলী পেপার্স / আল-মদিনা বোর্ড / জনতা প্রেস...';
+            if (hintText) hintText.textContent = 'Paper, Press Bills, Binding & Production Materials';
+            if (cardTitle) cardTitle.textContent = 'Vendor / Supplier / Press & Invoice Details';
+            if (cardSubtitle) cardSubtitle.textContent = 'Enter supplier firm, printing press or vendor name and memo';
+            if (vendorFieldLabel) vendorFieldLabel.textContent = 'Vendor / Supplier / Press Name';
+            if (vendorInput) vendorInput.placeholder = 'e.g. Karnaphuli Paper House / Janata Press...';
             if (iconBadge) {
                 iconBadge.className = 'badge bg-warning-subtle text-warning-emphasis p-2 rounded-3';
                 iconBadge.innerHTML = '<i class="fas fa-boxes-stacked fs-5"></i>';
@@ -1219,31 +1500,37 @@
                 itemIconBadge.className = 'badge bg-warning-subtle text-warning-emphasis p-2 rounded-3';
                 itemIconBadge.innerHTML = '<i class="fas fa-boxes-stacked fs-5"></i>';
             }
-            if (itemCardHeading) itemCardHeading.textContent = 'কাঁচামাল ও উৎপাদন সামগ্রীর তালিকা (Raw Materials & Production)';
-            if (itemCardSubheading) itemCardSubheading.textContent = 'কাগজ, কালি, ছাপা বিল (১/৪ কালার), বাঁধাই বিল, প্লেট ইত্যাদির বিবরণ ও একক দর';
+            if (itemCardHeading) itemCardHeading.textContent = 'Raw Materials & Production';
+            if (itemCardSubheading) itemCardSubheading.textContent = 'Paper, Press Bills & Production Materials';
             if (pubModeToggle) pubModeToggle.style.display = 'none';
             if (customVendorWrap) customVendorWrap.style.display = 'block';
             if (bookPublisherWrap) bookPublisherWrap.style.display = 'none';
-            if (rawPresetsWrap) rawPresetsWrap.style.display = 'block';
-            if (batchToolsWrap) batchToolsWrap.style.display = 'flex';
-            if (btnAddMore) btnAddMore.innerHTML = '<i class="fas fa-plus me-1"></i> + আরও কাঁচামাল যোগ করুন';
+            if (rawPresetsWrap) rawPresetsWrap.style.display = 'inline-block';
+            if (batchToolsWrap) batchToolsWrap.style.display = 'none';
+            if (btnAddMore) btnAddMore.innerHTML = '<i class="fas fa-plus me-1"></i> Add Material Row';
 
-            if (thTitle) thTitle.textContent = 'মালের বিবরণ / কাজের নাম';
-            if (thAuthor) thAuthor.textContent = 'কোয়ালিটি / গ্রেড';
-            if (thCategory) thCategory.textContent = 'সাইজ / স্পেসিফিকেশন';
-            if (thQty) thQty.textContent = 'পরিমাণ';
-            if (thCost) thCost.textContent = 'একক দর (৳)';
-            if (thTotal) thTotal.textContent = 'মোট মূল্য (৳)';
+            if (thTitle) thTitle.textContent = 'Item / Description';
+            if (thAuthor) thAuthor.textContent = 'Quality';
+            if (thCategory) thCategory.textContent = 'Size / Spec';
+            if (thQty) thQty.textContent = 'Qty';
+            if (thCost) thCost.textContent = 'Rate (৳)';
+            if (thTotal) thTotal.textContent = 'Total (৳)';
 
             document.querySelectorAll('.item-title').forEach(el => {
-                if (!el.value) el.placeholder = 'যেমন: ৮০ GSM ডিমাই কাগজ / ছাপা বিল...';
+                if (!el.value) el.placeholder = 'Item / Description...';
+            });
+            document.querySelectorAll('.item-author').forEach(el => {
+                if (!el.value) el.placeholder = 'Quality...';
+            });
+            document.querySelectorAll('.item-category').forEach(el => {
+                if (!el.value) el.placeholder = 'Size / Spec...';
             });
         } else if (cls === 'other') {
-            if (hintText) hintText.textContent = 'স্টেশনারি, পিন, ফার্নিচার, মেহমান আপ্যায়ন ও বিবিধ কেনাকাটা এন্ট্রি';
-            if (cardTitle) cardTitle.textContent = 'দোকান / ভেন্ডর / সরবরাহকারী বিবরণ';
-            if (cardSubtitle) cardSubtitle.textContent = 'দোকানের নাম, ক্যাশ মেমো ও কেনাকাটার তালিকা';
-            if (vendorFieldLabel) vendorFieldLabel.textContent = 'দোকান / সরবরাহকারী / ভেন্ডরের নাম';
-            if (vendorInput) vendorInput.placeholder = 'যেমন: সিটি স্টেশনারি / ইত্যাদি ফার্নিচার / মতিন টি স্টল...';
+            if (hintText) hintText.textContent = 'Stationery & miscellaneous expenses';
+            if (cardTitle) cardTitle.textContent = 'Vendor / Store / Supplier Details';
+            if (cardSubtitle) cardSubtitle.textContent = 'Enter shop name, cash memo and items purchased';
+            if (vendorFieldLabel) vendorFieldLabel.textContent = 'Shop / Store / Vendor Name';
+            if (vendorInput) vendorInput.placeholder = 'e.g. City Stationery / Motin Tea Stall...';
             if (iconBadge) {
                 iconBadge.className = 'badge bg-info-subtle text-info-emphasis p-2 rounded-3';
                 iconBadge.innerHTML = '<i class="fas fa-cart-shopping fs-5"></i>';
@@ -1252,29 +1539,35 @@
                 itemIconBadge.className = 'badge bg-info-subtle text-info-emphasis p-2 rounded-3';
                 itemIconBadge.innerHTML = '<i class="fas fa-cart-shopping fs-5"></i>';
             }
-            if (itemCardHeading) itemCardHeading.textContent = 'অন্যান্য ক্রয় ও মালামালের তালিকা (Other Purchases)';
-            if (itemCardSubheading) itemCardSubheading.textContent = 'অফিসের দ্রব্যাদি, স্টেশনারি ও আনুষঙ্গিক খরচের তালিকা';
+            if (itemCardHeading) itemCardHeading.textContent = 'Other Purchases & Expenses';
+            if (itemCardSubheading) itemCardSubheading.textContent = 'Office supplies & miscellaneous';
             if (pubModeToggle) pubModeToggle.style.display = 'none';
             if (customVendorWrap) customVendorWrap.style.display = 'block';
             if (bookPublisherWrap) bookPublisherWrap.style.display = 'none';
             if (rawPresetsWrap) rawPresetsWrap.style.display = 'none';
-            if (batchToolsWrap) batchToolsWrap.style.display = 'flex';
-            if (btnAddMore) btnAddMore.innerHTML = '<i class="fas fa-plus me-1"></i> + আরও পণ্য যোগ করুন';
+            if (batchToolsWrap) batchToolsWrap.style.display = 'none';
+            if (btnAddMore) btnAddMore.innerHTML = '<i class="fas fa-plus me-1"></i> Add Expense Row';
 
-            if (thTitle) thTitle.textContent = 'পণ্যের নাম ও বিবরণ';
-            if (thAuthor) thAuthor.textContent = 'একক / পরিমাপ';
-            if (thCategory) thCategory.textContent = 'বিবরণ / নোট';
-            if (thQty) thQty.textContent = 'পরিমাণ';
-            if (thCost) thCost.textContent = 'একক দর (৳)';
-            if (thTotal) thTotal.textContent = 'মোট টাকা (৳)';
+            if (thTitle) thTitle.textContent = 'Item / Service';
+            if (thAuthor) thAuthor.textContent = 'Quality / Unit';
+            if (thCategory) thCategory.textContent = 'Spec / Notes';
+            if (thQty) thQty.textContent = 'Qty';
+            if (thCost) thCost.textContent = 'Rate (৳)';
+            if (thTotal) thTotal.textContent = 'Total (৳)';
 
             document.querySelectorAll('.item-title').forEach(el => {
-                if (!el.value) el.placeholder = 'যেমন: স্ট্যাপলার পিন ও ক্লিপ / মেহমান আপ্যায়ন...';
+                if (!el.value) el.placeholder = 'Item / Service...';
+            });
+            document.querySelectorAll('.item-author').forEach(el => {
+                if (!el.value) el.placeholder = 'Quality / Unit...';
+            });
+            document.querySelectorAll('.item-category').forEach(el => {
+                if (!el.value) el.placeholder = 'Notes...';
             });
         } else { // books
-            if (hintText) hintText.textContent = 'বইয়ের স্টক, কমিশন ও পাইকারি চালান ইনভেন্টরি এন্ট্রি';
+            if (hintText) hintText.textContent = 'Book stock & wholesale catalog inventory';
             if (cardTitle) cardTitle.textContent = 'Publisher / Supplier & Invoice Details';
-            if (cardSubtitle) cardSubtitle.textContent = 'Select publisher/supplier, memo number and previous due records';
+            if (cardSubtitle) cardSubtitle.textContent = 'Select publisher/supplier, memo number and records';
             if (iconBadge) {
                 iconBadge.className = 'badge bg-primary-subtle text-primary p-2 rounded-3';
                 iconBadge.innerHTML = '<i class="fas fa-building fs-5"></i>';
@@ -1283,8 +1576,8 @@
                 itemIconBadge.className = 'badge bg-success-subtle text-success p-2 rounded-3';
                 itemIconBadge.innerHTML = '<i class="fas fa-book-bookmark fs-5"></i>';
             }
-            if (itemCardHeading) itemCardHeading.textContent = 'Purchased Books & Inventory Stock Entry';
-            if (itemCardSubheading) itemCardSubheading.textContent = 'Cost price is auto-calculated from MRP & Commission; Store price is calculated from MRP & Discount';
+            if (itemCardHeading) itemCardHeading.textContent = 'Purchased Books & Stock';
+            if (itemCardSubheading) itemCardSubheading.textContent = 'Catalog pricing & stock entry';
             if (pubModeToggle) pubModeToggle.style.display = 'inline-flex';
             if (customVendorWrap) customVendorWrap.style.display = 'none';
             if (bookPublisherWrap) bookPublisherWrap.style.display = 'block';
@@ -1295,12 +1588,18 @@
             if (thTitle) thTitle.textContent = 'Book Title';
             if (thAuthor) thAuthor.textContent = 'Author';
             if (thCategory) thCategory.textContent = 'Category';
-            if (thQty) thQty.textContent = 'Quantity';
-            if (thCost) thCost.textContent = 'Cost Price (৳)';
-            if (thTotal) thTotal.textContent = 'Total Cost (৳)';
+            if (thQty) thQty.textContent = 'Qty';
+            if (thCost) thCost.textContent = 'Cost (৳)';
+            if (thTotal) thTotal.textContent = 'Total (৳)';
 
             document.querySelectorAll('.item-title').forEach(el => {
-                if (!el.value) el.placeholder = 'Type book title...';
+                if (!el.value) el.placeholder = 'Book title...';
+            });
+            document.querySelectorAll('.item-author').forEach(el => {
+                if (!el.value) el.placeholder = 'Author name...';
+            });
+            document.querySelectorAll('.item-category').forEach(el => {
+                if (!el.value) el.placeholder = 'Category...';
             });
         }
     }
@@ -1313,7 +1612,7 @@
         if (pubSelect && pubSelect.value) {
             onPublisherSelected(pubSelect);
         }
-        const activeClass = document.querySelector('input[name="purchase_category"]:checked')?.value || 'books';
+        const activeClass = document.getElementById('purchaseCategorySelect')?.value || 'books';
         togglePurchaseClass(activeClass);
     });
 </script>
@@ -1338,13 +1637,24 @@
     #itemsTable tbody tr:hover td {
         background-color: #fbfcfe;
     }
-    #itemsTable .form-control, 
-    #itemsTable .form-select {
+    #itemsTable input.form-control, 
+    #itemsTable select.form-select {
         height: 38px;
         font-size: 13.5px;
         border-radius: 8px;
         border: 1px solid #cbd5e1;
-        padding: 6px 12px;
+        padding: 6px 10px;
+        transition: all 0.2s ease;
+    }
+    #itemsTable textarea.form-control {
+        min-height: 52px;
+        height: auto;
+        font-size: 13.5px;
+        border-radius: 8px;
+        border: 1px solid #cbd5e1;
+        padding: 6px 10px;
+        resize: vertical;
+        line-height: 1.35;
         transition: all 0.2s ease;
     }
     #itemsTable .form-control:focus, 

@@ -21,6 +21,9 @@ class PublisherPurchase extends Model
         'vendor_name',
         'purchase_date',
         'payment_type',
+        'due_date',
+        'installment_count',
+        'installment_notes',
         'total_amount',
         'discount_amount',
         'grand_total',
@@ -32,12 +35,14 @@ class PublisherPurchase extends Model
     ];
 
     protected $casts = [
-        'purchase_date'   => 'date',
-        'total_amount'    => 'decimal:2',
-        'discount_amount' => 'decimal:2',
-        'grand_total'     => 'decimal:2',
-        'paid_amount'     => 'decimal:2',
-        'due_amount'      => 'decimal:2',
+        'purchase_date'     => 'date',
+        'due_date'          => 'date',
+        'installment_count' => 'integer',
+        'total_amount'      => 'decimal:2',
+        'discount_amount'   => 'decimal:2',
+        'grand_total'       => 'decimal:2',
+        'paid_amount'       => 'decimal:2',
+        'due_amount'        => 'decimal:2',
     ];
 
     public function getPartyNameAttribute(): string

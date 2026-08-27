@@ -91,8 +91,17 @@
                         @if($purchase->publisher_memo_no)
                             <div class="text-primary fw-bold mb-1"><i class="fas fa-receipt me-1"></i>মেমো / চালান নং: {{ $purchase->publisher_memo_no }}</div>
                         @endif
-                        <div>পেমেন্ট মেথড: <strong>{{ ['cash' => 'Cash Purchase', 'credit' => 'Credit Purchase', 'partial' => 'Partial Credit'][$purchase->payment_type] ?? ucfirst($purchase->payment_type) }}</strong></div>
-                        <div>এন্ট্রি করেছেন: <strong>{{ $purchase->creator->name ?? 'Admin' }}</strong></div>
+                        <div>পরিশোধের শর্ত: <strong>{{ ['cash' => 'নগদ সম্পূর্ণ পরিশোধ (Cash)', 'credit' => 'সম্পূর্ণ বাকি (Full Credit)', 'partial' => 'আংশিক পরিশোধ (Partial)', 'installment' => 'কিস্তিতে পরিশোধ (Installment)'][$purchase->payment_type] ?? ucfirst($purchase->payment_type) }}</strong></div>
+                        @if($purchase->due_date)
+                            <div class="text-danger fw-semibold"><i class="fas fa-calendar-day me-1"></i>পরবর্তী কিস্তি / বকেয়া তারিখ: {{ $purchase->due_date->format('d M, Y') }}</div>
+                        @endif
+                        @if($purchase->installment_count > 1)
+                            <div class="text-muted small"><i class="fas fa-layer-group me-1"></i>মোট কিস্তি: {{ $purchase->installment_count }}টি</div>
+                        @endif
+                        @if($purchase->installment_notes)
+                            <div class="text-muted small italic">কিস্তির শর্ত: {{ $purchase->installment_notes }}</div>
+                        @endif
+                        <div class="text-muted small">এন্ট্রি করেছেন: <strong>{{ $purchase->creator->name ?? 'Admin' }}</strong></div>
                     </div>
                 </div>
             </div>
@@ -104,12 +113,13 @@
                         <thead class="table-warning text-center small text-dark text-uppercase">
                             <tr>
                                 <th class="ps-3" style="width: 40px;">#</th>
-                                <th class="text-start">মালের বিবরণ / কাজের নাম</th>
-                                <th>সাইজ / স্পেসিফিকেশন</th>
-                                <th>একক</th>
-                                <th>পরিমাণ</th>
-                                <th>একক দর</th>
-                                <th class="text-end pe-3">মোট মূল্য</th>
+                                <th class="text-start">Item Description / Press Work</th>
+                                <th>Quality / Grade</th>
+                                <th>Size / Specification</th>
+                                <th>Quantity</th>
+                                <th>Reams (রিম)</th>
+                                <th>Unit Rate (৳)</th>
+                                <th class="text-end pe-3">Total Amount (৳)</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -118,21 +128,21 @@
                                     <td class="ps-3 text-muted small text-center">{{ $i + 1 }}</td>
                                     <td>
                                         <div class="fw-bold text-dark">{{ $item->displayName }}</div>
-                                        @if($item->quality_spec || $item->item_notes)
-                                            <div class="small text-muted">
-                                                {{ $item->quality_spec ? 'কোয়ালিটি: ' . $item->quality_spec : '' }}
-                                                {{ $item->item_notes ? ' | নোট: ' . $item->item_notes : '' }}
-                                            </div>
+                                        @if($item->item_notes)
+                                            <div class="small text-muted">Note: {{ $item->item_notes }}</div>
                                         @endif
+                                    </td>
+                                    <td class="text-center small">
+                                        {{ $item->quality_spec ?: '—' }}
                                     </td>
                                     <td class="text-center font-monospace small">
                                         {{ $item->size_spec ?: ($item->book_size ?: '—') }}
                                     </td>
-                                    <td class="text-center small">
-                                        {{ $item->unit ?: 'রিম/পিস' }}
-                                    </td>
                                     <td class="text-center fw-bold font-monospace">
                                         {{ $item->quantity }} {{ $item->unit ?: '' }}
+                                    </td>
+                                    <td class="text-center fw-bold font-monospace text-primary">
+                                        {{ $item->reams_quantity ? number_format($item->reams_quantity, 2) . ' Ream' : '—' }}
                                     </td>
                                     <td class="text-center fw-bold text-danger font-monospace">
                                         ৳{{ number_format($item->unit_cost_price, 2) }}
