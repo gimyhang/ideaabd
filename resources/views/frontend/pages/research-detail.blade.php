@@ -1,8 +1,39 @@
 @extends('layouts.app')
+@php
+    $resAuthor = $paper->author ? $paper->author->name : ($paper->author_name ?: 'আইডিয়া গবেষক');
+    $resDesc = $paper->abstract ?: Str::limit(strip_tags($paper->content ?? $paper->title), 180);
+@endphp
 
-@section('title', ($paper->title ?? 'গবেষণাপত্র') . ' — আইডিয়া গবেষণা')
+@section('title', ($paper->title ?? 'গবেষণাপত্র') . ' — ' . $resAuthor . ' | আইডিয়া গবেষণা')
+@section('meta_keywords', e($paper->title) . ', ' . e($resAuthor) . ', গবেষণাপত্র, রিসার্চ পেপার, সাহিত্য গবেষণা, গবেষণা ও নিবন্ধ, আইডিয়া প্রকাশন')
+@section('meta_author', e($resAuthor))
+@section('og_type', 'article')
+@section('og_title', $paper->title . ' — ' . $resAuthor)
+@section('og_description', Str::limit(strip_tags($resDesc), 180))
+@section('og_url', route('research.show', $paper->slug ?: $paper->id))
 
-@section('content')
+@section('schema_json')
+<script type="application/ld+json">
+{
+  "@@context": "https://schema.org",
+  "@@type": "ScholarlyArticle",
+  "headline": @json($paper->title),
+  "name": @json($paper->title),
+  "description": @json(Str::limit(strip_tags($resDesc), 300)),
+  "url": @json(route('research.show', $paper->slug ?: $paper->id)),
+  "author": {
+    "@@type": "Person",
+    "name": @json($resAuthor)
+  },
+  "publisher": {
+    "@@type": "Organization",
+    "name": "আইডিয়া প্রকাশন (Idea Publication)",
+    "url": "https://www.ideaabd.com"
+  },
+  "inLanguage": "bn"
+}
+</script>
+@endsection
 <div class="container py-4 mb-5">
     <!-- Breadcrumb -->
     <nav aria-label="breadcrumb" class="mb-4">

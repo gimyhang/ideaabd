@@ -1,8 +1,37 @@
 @extends('layouts.app')
+@php
+    $cover = $webzine->cover_image;
+    $coverUrl = $cover ? (str_starts_with($cover, 'http') ? $cover : asset('storage/' . $cover)) : asset('images/logo.png');
+    $wzDesc = $webzine->description ?: ($webzine->title . ' - আইডিয়া প্রকাশনের ডিজিটাল ওয়েবজিন সংকলন');
+@endphp
 
 @section('title', ($webzine->title ?? 'ওয়েবজিন') . ' — আইডিয়া প্রকাশন')
+@section('meta_keywords', e($webzine->title) . ', ওয়েবজিন, আইডিয়া প্রকাশন, সাহিত্য পত্রিকা, ম্যাগাজিন, ডিজিটাল সাহিত্য, Webzine Idea Prokashon')
+@section('og_type', 'article')
+@section('og_title', $webzine->title . ' — আইডিয়া ওয়েবজিন')
+@section('og_description', Str::limit(strip_tags($wzDesc), 180))
+@section('og_image', $coverUrl)
+@section('og_url', route('webzine.show', $webzine->slug ?: $webzine->id))
 
-@section('content')
+@section('schema_json')
+<script type="application/ld+json">
+{
+  "@@context": "https://schema.org",
+  "@@type": "Periodical",
+  "name": @json($webzine->title),
+  "headline": @json($webzine->title . ' — আইডিয়া ওয়েবজিন'),
+  "description": @json(Str::limit(strip_tags($wzDesc), 300)),
+  "image": @json($coverUrl),
+  "url": @json(route('webzine.show', $webzine->slug ?: $webzine->id)),
+  "publisher": {
+    "@@type": "Organization",
+    "name": "আইডিয়া প্রকাশন (Idea Publication)",
+    "url": "https://www.ideaabd.com"
+  },
+  "inLanguage": "bn"
+}
+</script>
+@endsection
 <div class="container py-4 mb-5">
     <!-- Breadcrumb -->
     <nav aria-label="breadcrumb" class="mb-4">

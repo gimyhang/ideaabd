@@ -68,6 +68,16 @@
     @endphp
 
     <meta name="description" content="{{ Str::limit(strip_tags($metaPageDescription), 220) }}">
+    <meta name="keywords" content="@yield('meta_keywords', 'আইডিয়া প্রকাশন, বাংলা বই, ইবুক, সাহিত্য, ব্লগ, কবিতা, প্রবন্ধ, প্রকাশনা, বই অর্ডার, অনলাইন বই মেলা, Idea Publication, Bangla Books, Ebooks, Publishers, Research, Webzine')">
+    <meta name="author" content="@yield('meta_author', $defaultSiteName)">
+    <meta name="publisher" content="{{ $defaultSiteName }}">
+    <meta name="copyright" content="© {{ date('Y') }} {{ $defaultSiteName }}. All Rights Reserved.">
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+    <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+    <meta name="bingbot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+    <meta name="revisit-after" content="1 days">
+    <meta name="rating" content="general">
+    <meta name="distribution" content="global">
     <link rel="canonical" href="{{ $metaPageUrl }}">
 
     <!-- Open Graph / Facebook / WhatsApp / LinkedIn -->
@@ -91,6 +101,56 @@
     <meta name="twitter:description" content="{{ Str::limit(strip_tags($metaPageDescription), 220) }}">
     <meta name="twitter:image" content="{{ $metaPageImage }}">
     <meta name="twitter:image:alt" content="{{ $metaPageTitle }}">
+
+    {{-- Universal Google JSON-LD Schema.org Structured Data --}}
+    <script type="application/ld+json">
+    {
+      "@@context": "https://schema.org",
+      "@@graph": [
+        {
+          "@@type": "Organization",
+          "@@id": "{{ $canonicalDomain }}/#organization",
+          "name": "{{ $defaultSiteName }}",
+          "url": "{{ $canonicalDomain }}",
+          "logo": {
+            "@@type": "ImageObject",
+            "url": "{{ asset('images/logo.png') }}",
+            "caption": "{{ $defaultSiteName }}"
+          },
+          "sameAs": [
+            "https://www.facebook.com/ideaprokashon"
+          ],
+          "contactPoint": {
+            "@@type": "ContactPoint",
+            "telephone": "+8801726976982",
+            "contactType": "customer service",
+            "areaServed": "BD",
+            "availableLanguage": ["bn", "en"]
+          }
+        },
+        {
+          "@@type": "WebSite",
+          "@@id": "{{ $canonicalDomain }}/#website",
+          "url": "{{ $canonicalDomain }}",
+          "name": "{{ $defaultSiteName }}",
+          "description": "{{ $defaultSiteTagline }}",
+          "publisher": {
+            "@@id": "{{ $canonicalDomain }}/#organization"
+          },
+          "potentialAction": {
+            "@@type": "SearchAction",
+            "target": {
+              "@@type": "EntryPoint",
+              "urlTemplate": "{{ $canonicalDomain }}/search?q={search_term_string}"
+            },
+            "query-input": "required name=search_term_string"
+          }
+        }
+      ]
+    }
+    </script>
+    @yield('schema_json')
+    @stack('schema')
 
     {{-- Dynamic Site Favicon --}}
     @php $siteFaviconUrl = \App\Support\SiteSetting::faviconUrl(); @endphp
@@ -388,6 +448,140 @@
        onmouseout="this.style.transform='scale(1) rotate(0deg)'; this.style.color='#ffffff';">
         <i class="fa-brands fa-whatsapp"></i>
     </a>
+
+    {{-- Floating Copy Claim Notification Toast --}}
+    <div id="copyClaimToast" style="position: fixed; bottom: 85px; right: 24px; z-index: 99999; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px); color: #ffffff; padding: 14px 20px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.15); display: none; font-size: 13px; font-weight: 500; max-width: 380px; animation: slideInUp 0.3s ease;">
+        <div class="d-flex align-items-center gap-2">
+            <i class="fa-solid fa-shield-halved text-warning fs-5"></i>
+            <div>
+                <strong class="d-block text-warning" style="font-size: 13.5px;">আইডিয়া প্রকাশন • কপিরাইট নোটিশ</strong>
+                <span>লেখাটি কপি করা হয়েছে! মেধা-স্বত্ব আইন অনুসারে মূল উৎস ও কপিরাইট তথ্য যুক্ত করা হয়েছে।</span>
+            </div>
+        </div>
+    </div>
+
+    {{-- Inspect Element, Page Source Protection & Copy Claim Attribution Engine --}}
+    <script>
+        (function() {
+            // 1. Disable Right Click Context Menu (Except input/textarea for accessibility)
+            document.addEventListener('contextmenu', function(e) {
+                var targetTag = e.target.tagName.toLowerCase();
+                if (targetTag !== 'input' && targetTag !== 'textarea' && !e.target.isContentEditable) {
+                    e.preventDefault();
+                    showProtectionToast('ডান পাশের ক্লিক (Right-Click) ও ইন্সপেক্ট বন্ধ রাখা হয়েছে।');
+                    return false;
+                }
+            });
+
+            // 2. Disable Keyboard Shortcuts (F12, View Source Ctrl+U, Inspect Ctrl+Shift+I/J/C, Save Ctrl+S)
+            document.addEventListener('keydown', function(e) {
+                // F12
+                if (e.key === 'F12' || e.keyCode === 123) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+
+                var isCtrlOrCmd = e.ctrlKey || e.metaKey;
+
+                // View Source (Ctrl + U / Cmd + Option + U)
+                if (isCtrlOrCmd && (e.key === 'u' || e.key === 'U' || e.keyCode === 85)) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showProtectionToast('পেজ সোর্স দেখা সুরক্ষিত ও নিষিদ্ধ।');
+                    return false;
+                }
+
+                // Save Page (Ctrl + S)
+                if (isCtrlOrCmd && (e.key === 's' || e.key === 'S' || e.keyCode === 83)) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+
+                // Inspect / Developer Tools (Ctrl + Shift + I/J/C or Cmd + Option + I/J/C)
+                if (isCtrlOrCmd && e.shiftKey && (
+                    e.key === 'I' || e.key === 'i' || e.keyCode === 73 ||
+                    e.key === 'J' || e.key === 'j' || e.keyCode === 74 ||
+                    e.key === 'C' || e.key === 'c' || e.keyCode === 67
+                )) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showProtectionToast('ইন্সপেক্ট এলিমেন্ট বন্ধ রাখা হয়েছে।');
+                    return false;
+                }
+            }, true);
+
+            // 3. Smart Copy Attribution & Copyright Claim Appender
+            document.addEventListener('copy', function(e) {
+                var selection = window.getSelection().toString();
+                if (selection && selection.length > 5) {
+                    var pageTitle = document.title || 'আইডিয়া প্রকাশন';
+                    var pageUrl = window.location.href;
+                    var claimNotice = '\n\n' +
+                        '----------------------------------------------------------------------\n' +
+                        '© আইডিয়া প্রকাশন (Idea Prokashon) | সর্বস্বত্ব সংরক্ষিত\n' +
+                        'শিরোনাম: ' + pageTitle + '\n' +
+                        'মূল উৎস লিংক: ' + pageUrl + '\n' +
+                        'আইডিয়া প্রকাশনের অনুমতি ব্যতীত এই লেখার অননুমোদিত বাণিজ্যিক বা অবাণিজ্যিক পুনঃপ্রকাশ কপিরাইট আইনে শাস্তিযোগ্য অপরাধ।\n' +
+                        'ওয়েবসাইট: https://www.ideaabd.com\n' +
+                        '----------------------------------------------------------------------';
+
+                    var copyWithClaim = selection + claimNotice;
+
+                    if (e.clipboardData) {
+                        e.clipboardData.setData('text/plain', copyWithClaim);
+                        e.preventDefault();
+                    } else if (window.clipboardData) {
+                        window.clipboardData.setData('Text', copyWithClaim);
+                        e.preventDefault();
+                    }
+
+                    showCopyToast();
+                }
+            });
+
+            // 4. Developer Console Warning
+            try {
+                console.log(
+                    "%c🛑 সাবধান! STOP!",
+                    "color: #ef4444; font-size: 36px; font-weight: 900; -webkit-text-stroke: 1px black;"
+                );
+                console.log(
+                    "%cএটি আইডিয়া প্রকাশনের কপিরাইট ও মেধাস্বত্ব দ্বারা সুরক্ষিত ডিজিটাল প্ল্যাটফর্ম।\nঅনুমতি ব্যতীত সোর্স কোড দেখা, স্ক্র্যাপিং বা অননুমোদিত ব্যবহারের অপচেষ্টা আইনত দণ্ডনীয়।\n© Idea Prokashon | https://www.ideaabd.com",
+                    "color: #0284c7; font-size: 14px; font-weight: bold;"
+                );
+            } catch(err){}
+
+            var toastTimer = null;
+            function showCopyToast() {
+                var toast = document.getElementById('copyClaimToast');
+                if (!toast) return;
+                toast.style.display = 'block';
+                clearTimeout(toastTimer);
+                toastTimer = setTimeout(function() {
+                    toast.style.display = 'none';
+                }, 4000);
+            }
+
+            function showProtectionToast(msg) {
+                var toast = document.getElementById('copyClaimToast');
+                if (!toast) return;
+                var textSpan = toast.querySelector('span');
+                if (textSpan && msg) {
+                    textSpan.textContent = msg;
+                }
+                toast.style.display = 'block';
+                clearTimeout(toastTimer);
+                toastTimer = setTimeout(function() {
+                    toast.style.display = 'none';
+                    if (textSpan) {
+                        textSpan.textContent = 'লেখাটি কপি করা হয়েছে! মেধা-স্বত্ব আইন অনুসারে মূল উৎস ও কপিরাইট তথ্য যুক্ত করা হয়েছে।';
+                    }
+                }, 3000);
+            }
+        })();
+    </script>
 
     {{-- Both mechanisms are supported: @section('scripts') and @push('scripts') --}}
     @yield('scripts')

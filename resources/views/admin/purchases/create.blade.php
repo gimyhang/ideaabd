@@ -335,37 +335,37 @@
                         </div>
                     </div>
 
-                    <div class="table-responsive rounded-3 border">
-                        <table class="table table-hover align-middle mb-0" id="itemsTable">
+                    <div class="table-responsive rounded-3 border shadow-2xs">
+                        <table class="table table-hover align-middle mb-0" id="itemsTable" style="min-width: 1580px;">
                             <thead>
-                                <tr class="table-light text-center small text-muted text-uppercase align-middle">
-                                    <th style="min-width: 220px;" class="text-start ps-3 py-3">
+                                <tr class="table-light text-center small text-muted text-uppercase align-middle" style="font-size: 11.5px; letter-spacing: 0.4px;">
+                                    <th style="min-width: 380px; width: 400px;" class="text-start ps-3 py-3">
                                         <span id="thTitleLabel">Book Title</span> <span class="text-danger">*</span>
                                     </th>
-                                    <th style="min-width: 140px;" class="text-start py-3" id="thAuthorCol">
+                                    <th style="min-width: 240px; width: 250px;" class="text-start py-3" id="thAuthorCol">
                                         <span id="thAuthorLabel">Author</span>
                                     </th>
-                                    <th style="min-width: 130px;" class="text-start py-3" id="thCategoryCol">
+                                    <th style="min-width: 220px; width: 230px;" class="text-start py-3" id="thCategoryCol">
                                         <span id="thCategoryLabel">Category</span>
                                     </th>
-                                    <th style="width: 85px;" class="py-3">
+                                    <th style="min-width: 100px; width: 105px;" class="py-3">
                                         <span id="thQtyLabel">Quantity</span>
                                     </th>
-                                    <th style="width: 110px;" class="py-3 bg-light-subtle" id="thMrpCol">
+                                    <th style="min-width: 130px; width: 135px;" class="py-3 bg-light-subtle" id="thMrpCol">
                                         <span id="thMrpLabel">Price (MRP ৳)</span>
                                     </th>
-                                    <th style="width: 90px;" class="py-3 bg-primary-subtle text-primary" id="thCommCol">Cost Comm %</th>
-                                    <th style="width: 110px;" class="py-3 bg-primary-subtle text-primary">
+                                    <th style="min-width: 110px; width: 115px;" class="py-3 bg-primary-subtle text-primary" id="thCommCol">Cost Comm %</th>
+                                    <th style="min-width: 135px; width: 140px;" class="py-3 bg-primary-subtle text-primary">
                                         <span id="thCostLabel">Cost Price (৳)</span>
                                     </th>
-                                    <th style="width: 90px;" class="py-3 bg-success-subtle text-success" id="thShopDiscCol">Store Disc %</th>
-                                    <th style="width: 110px;" class="py-3 bg-success-subtle text-success" id="thSalePriceCol">
+                                    <th style="min-width: 110px; width: 115px;" class="py-3 bg-success-subtle text-success" id="thShopDiscCol">Store Disc %</th>
+                                    <th style="min-width: 135px; width: 140px;" class="py-3 bg-success-subtle text-success" id="thSalePriceCol">
                                         <span id="thSaleLabel">Store Price (৳)</span>
                                     </th>
-                                    <th style="width: 120px;" class="text-end pe-3 py-3">
+                                    <th style="min-width: 140px; width: 145px;" class="text-end pe-3 py-3">
                                         <span id="thTotalLabel">Total Cost (৳)</span>
                                     </th>
-                                    <th style="width: 75px;" class="py-3">Actions</th>
+                                    <th style="min-width: 80px; width: 85px;" class="py-3">Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="itemsBody">
@@ -373,7 +373,7 @@
                                 <tr class="item-row" data-row="0">
                                     <td class="ps-3">
                                         <div class="d-flex align-items-center gap-1.5">
-                                            <input type="text" name="items[0][title]" class="form-control form-control-sm item-title fw-semibold" 
+                                            <input type="text" name="items[0][title]" class="form-control item-title fw-semibold" 
                                                    list="booksList" placeholder="Type book title..." required oninput="onTitleInput(this, 0)">
                                         </div>
                                         <input type="hidden" name="items[0][book_id]" class="item-book-id" value="">
@@ -386,45 +386,45 @@
                                         </div>
                                     </td>
                                     <td>
-                                        <input type="text" name="items[0][author]" class="form-control form-control-sm item-author" 
+                                        <input type="text" name="items[0][author]" class="form-control item-author" 
                                                list="authorsList" placeholder="Author name...">
                                     </td>
                                     <td>
-                                        <input type="text" name="items[0][category_name]" class="form-control form-control-sm item-category" 
+                                        <input type="text" name="items[0][category_name]" class="form-control item-category" 
                                                list="categoriesList" placeholder="Category...">
                                         <input type="hidden" name="items[0][category_id]" class="item-category-id" value="">
                                     </td>
                                     <td>
-                                        <input type="number" name="items[0][quantity]" class="form-control form-control-sm item-qty text-center fw-bold" 
+                                        <input type="number" name="items[0][quantity]" class="form-control item-qty text-center fw-bold" 
                                                value="1" min="1" required oninput="onQtyChange(0)">
                                     </td>
                                     <td class="bg-light-subtle">
-                                        <input type="number" step="0.01" name="items[0][mrp_price]" class="form-control form-control-sm item-mrp text-end fw-semibold" 
+                                        <input type="number" step="0.01" name="items[0][mrp_price]" class="form-control item-mrp text-end fw-semibold" 
                                                value="0" min="0" placeholder="MRP" oninput="onMrpChange(0)">
                                     </td>
                                     <td class="bg-primary-subtle bg-opacity-25">
-                                        <input type="number" step="0.01" name="items[0][purchase_commission_percent]" class="form-control form-control-sm item-comm text-center text-primary fw-bold" 
+                                        <input type="number" step="0.01" name="items[0][purchase_commission_percent]" class="form-control item-comm text-center text-primary fw-bold" 
                                                value="0" min="0" max="100" placeholder="%" oninput="onCommChange(0)">
                                     </td>
                                     <td class="bg-primary-subtle bg-opacity-25">
-                                        <input type="number" step="0.01" name="items[0][cost_price]" class="form-control form-control-sm item-cost text-end fw-bold text-danger" 
+                                        <input type="number" step="0.01" name="items[0][cost_price]" class="form-control item-cost text-end fw-bold text-danger" 
                                                value="0" min="0" required oninput="onCostChange(0)">
                                     </td>
                                     <td class="bg-success-subtle bg-opacity-25">
-                                        <input type="number" step="0.01" name="items[0][shop_discount_percent]" class="form-control form-control-sm item-shop-disc text-center text-success fw-bold" 
+                                        <input type="number" step="0.01" name="items[0][shop_discount_percent]" class="form-control item-shop-disc text-center text-success fw-bold" 
                                                value="0" min="0" max="100" placeholder="%" oninput="onShopDiscChange(0)">
                                     </td>
                                     <td class="bg-success-subtle bg-opacity-25">
-                                        <input type="number" step="0.01" name="items[0][sale_price]" class="form-control form-control-sm item-sale text-end fw-bold text-success" 
+                                        <input type="number" step="0.01" name="items[0][sale_price]" class="form-control item-sale text-end fw-bold text-success" 
                                                value="0" min="0" required oninput="onSaleChange(0)">
                                     </td>
                                     <td class="text-end pe-3 fw-bold text-dark item-subtotal fs-6">৳0.00</td>
                                     <td class="text-center">
                                         <div class="d-flex align-items-center justify-content-center gap-1">
-                                            <button type="button" class="btn btn-sm btn-outline-secondary p-1 rounded-circle border-0" onclick="toggleExtraDetails(0)" title="Extra book details (ISBN, Edition, Binding)">
+                                            <button type="button" class="btn btn-sm btn-outline-secondary p-1.5 rounded-circle border-0" onclick="toggleExtraDetails(0)" title="Extra book details (ISBN, Edition, Binding)">
                                                 <i class="fas fa-sliders text-secondary"></i>
                                             </button>
-                                            <button type="button" class="btn btn-sm btn-outline-danger p-1 rounded-circle border-0" onclick="removeRow(this)" title="Remove row">
+                                            <button type="button" class="btn btn-sm btn-outline-danger p-1.5 rounded-circle border-0" onclick="removeRow(this)" title="Remove row">
                                                 <i class="fas fa-trash-can"></i>
                                             </button>
                                         </div>
@@ -963,7 +963,7 @@
         tr.setAttribute('data-row', i);
         tr.innerHTML = `
             <td class="ps-3">
-                <input type="text" name="items[${i}][title]" class="form-control form-control-sm item-title fw-semibold" 
+                <input type="text" name="items[${i}][title]" class="form-control item-title fw-semibold" 
                        list="booksList" placeholder="Type book title..." required oninput="onTitleInput(this, ${i})">
                 <input type="hidden" name="items[${i}][book_id]" class="item-book-id" value="">
                 <div class="item-book-badge mt-1 small" style="display: none;">
@@ -973,45 +973,45 @@
                 </div>
             </td>
             <td>
-                <input type="text" name="items[${i}][author]" class="form-control form-control-sm item-author" 
+                <input type="text" name="items[${i}][author]" class="form-control item-author" 
                        list="authorsList" placeholder="Author name...">
             </td>
             <td>
-                <input type="text" name="items[${i}][category_name]" class="form-control form-control-sm item-category" 
+                <input type="text" name="items[${i}][category_name]" class="form-control item-category" 
                        list="categoriesList" placeholder="Category...">
                 <input type="hidden" name="items[${i}][category_id]" class="item-category-id" value="">
             </td>
             <td>
-                <input type="number" name="items[${i}][quantity]" class="form-control form-control-sm item-qty text-center fw-bold" 
+                <input type="number" name="items[${i}][quantity]" class="form-control item-qty text-center fw-bold" 
                        value="1" min="1" required oninput="onQtyChange(${i})">
             </td>
             <td class="bg-light-subtle">
-                <input type="number" step="0.01" name="items[${i}][mrp_price]" class="form-control form-control-sm item-mrp text-end fw-semibold" 
+                <input type="number" step="0.01" name="items[${i}][mrp_price]" class="form-control item-mrp text-end fw-semibold" 
                        value="0" min="0" placeholder="MRP" oninput="onMrpChange(${i})">
             </td>
             <td class="bg-primary-subtle bg-opacity-25">
-                <input type="number" step="0.01" name="items[${i}][purchase_commission_percent]" class="form-control form-control-sm item-comm text-center text-primary fw-bold" 
+                <input type="number" step="0.01" name="items[${i}][purchase_commission_percent]" class="form-control item-comm text-center text-primary fw-bold" 
                        value="0" min="0" max="100" placeholder="%" oninput="onCommChange(${i})">
             </td>
             <td class="bg-primary-subtle bg-opacity-25">
-                <input type="number" step="0.01" name="items[${i}][cost_price]" class="form-control form-control-sm item-cost text-end fw-bold text-danger" 
+                <input type="number" step="0.01" name="items[${i}][cost_price]" class="form-control item-cost text-end fw-bold text-danger" 
                        value="0" min="0" required oninput="onCostChange(${i})">
             </td>
             <td class="bg-success-subtle bg-opacity-25">
-                <input type="number" step="0.01" name="items[${i}][shop_discount_percent]" class="form-control form-control-sm item-shop-disc text-center text-success fw-bold" 
+                <input type="number" step="0.01" name="items[${i}][shop_discount_percent]" class="form-control item-shop-disc text-center text-success fw-bold" 
                        value="0" min="0" max="100" placeholder="%" oninput="onShopDiscChange(${i})">
             </td>
             <td class="bg-success-subtle bg-opacity-25">
-                <input type="number" step="0.01" name="items[${i}][sale_price]" class="form-control form-control-sm item-sale text-end fw-bold text-success" 
+                <input type="number" step="0.01" name="items[${i}][sale_price]" class="form-control item-sale text-end fw-bold text-success" 
                        value="0" min="0" required oninput="onSaleChange(${i})">
             </td>
             <td class="text-end pe-3 fw-bold text-dark item-subtotal fs-6">৳0.00</td>
             <td class="text-center">
                 <div class="d-flex align-items-center justify-content-center gap-1">
-                    <button type="button" class="btn btn-sm btn-outline-secondary p-1 rounded-circle border-0" onclick="toggleExtraDetails(${i})" title="Extra book attributes (ISBN, Edition, Binding)">
+                    <button type="button" class="btn btn-sm btn-outline-secondary p-1.5 rounded-circle border-0" onclick="toggleExtraDetails(${i})" title="Extra book attributes (ISBN, Edition, Binding)">
                         <i class="fas fa-sliders text-secondary"></i>
                     </button>
-                    <button type="button" class="btn btn-sm btn-outline-danger p-1 rounded-circle border-0" onclick="removeRow(this)" title="Remove row">
+                    <button type="button" class="btn btn-sm btn-outline-danger p-1.5 rounded-circle border-0" onclick="removeRow(this)" title="Remove row">
                         <i class="fas fa-trash-can"></i>
                     </button>
                 </div>
@@ -1032,30 +1032,30 @@
                     <div class="row g-2">
                         <div class="col-md-2">
                             <label class="form-label text-muted" style="font-size: 0.72rem;">ISBN</label>
-                            <input type="text" name="items[${i}][isbn]" class="form-control form-control-sm item-isbn font-monospace" placeholder="978-...">
+                            <input type="text" name="items[${i}][isbn]" class="form-control item-isbn font-monospace" placeholder="978-...">
                         </div>
                         <div class="col-md-2">
                             <label class="form-label text-muted" style="font-size: 0.72rem;">Edition / Year</label>
-                            <input type="text" name="items[${i}][edition]" class="form-control form-control-sm item-edition" placeholder="e.g. 1st Edition 2026">
+                            <input type="text" name="items[${i}][edition]" class="form-control item-edition" placeholder="e.g. 1st Edition 2026">
                         </div>
                         <div class="col-md-2">
                             <label class="form-label text-muted" style="font-size: 0.72rem;">Binding (Cover Type)</label>
-                            <select name="items[${i}][cover_type]" class="form-select form-select-sm item-cover-type">
+                            <select name="items[${i}][cover_type]" class="form-select item-cover-type">
                                 <option value="paperback">Paperback</option>
                                 <option value="hardcover">Hardcover</option>
                             </select>
                         </div>
                         <div class="col-md-2">
                             <label class="form-label text-muted" style="font-size: 0.72rem;">Page Count</label>
-                            <input type="number" name="items[${i}][page_count]" class="form-control form-control-sm item-page-count" placeholder="e.g. 120">
+                            <input type="number" name="items[${i}][page_count]" class="form-control item-page-count" placeholder="e.g. 120">
                         </div>
                         <div class="col-md-2">
                             <label class="form-label text-muted" style="font-size: 0.72rem;">Book Size</label>
-                            <input type="text" name="items[${i}][book_size]" class="form-control form-control-sm item-book-size" placeholder="e.g. 8.5x5.5">
+                            <input type="text" name="items[${i}][book_size]" class="form-control item-book-size" placeholder="e.g. 8.5x5.5">
                         </div>
                         <div class="col-md-2">
                             <label class="form-label text-muted" style="font-size: 0.72rem;">Paper Type</label>
-                            <input type="text" name="items[${i}][paper_type]" class="form-control form-control-sm item-paper-type" placeholder="e.g. Offset 80 GSM">
+                            <input type="text" name="items[${i}][paper_type]" class="form-control item-paper-type" placeholder="e.g. Offset 80 GSM">
                         </div>
                     </div>
                 </div>
@@ -1097,50 +1097,50 @@
         tr.setAttribute('data-row', i);
         tr.innerHTML = `
             <td class="ps-3">
-                <input type="text" name="items[${i}][title]" class="form-control form-control-sm item-title fw-semibold" 
+                <input type="text" name="items[${i}][title]" class="form-control item-title fw-semibold" 
                        value="${name}" placeholder="মালের বিবরণ..." required oninput="onTitleInput(this, ${i})">
                 <input type="hidden" name="items[${i}][item_name]" value="${name}">
                 <input type="hidden" name="items[${i}][item_type]" value="raw_material">
             </td>
             <td>
-                <input type="text" name="items[${i}][author]" class="form-control form-control-sm item-author" 
+                <input type="text" name="items[${i}][author]" class="form-control item-author" 
                        value="${quality || ''}" placeholder="কোয়ালিটি / গ্রেড...">
             </td>
             <td>
-                <input type="text" name="items[${i}][category_name]" class="form-control form-control-sm item-category" 
+                <input type="text" name="items[${i}][category_name]" class="form-control item-category" 
                        value="${size || ''}" placeholder="সাইজ / স্পেসিফিকেশন...">
             </td>
             <td>
-                <input type="number" name="items[${i}][quantity]" class="form-control form-control-sm item-qty text-center fw-bold" 
+                <input type="number" name="items[${i}][quantity]" class="form-control item-qty text-center fw-bold" 
                        value="1" min="1" required oninput="onQtyChange(${i})">
             </td>
             <td class="bg-light-subtle d-none-raw">
-                <input type="number" step="0.01" name="items[${i}][mrp_price]" class="form-control form-control-sm item-mrp text-end fw-semibold" 
+                <input type="number" step="0.01" name="items[${i}][mrp_price]" class="form-control item-mrp text-end fw-semibold" 
                        value="${rate || 0}" min="0" placeholder="দর" oninput="onMrpChange(${i})">
             </td>
             <td class="bg-primary-subtle bg-opacity-25 d-none-raw">
-                <input type="number" step="0.01" name="items[${i}][purchase_commission_percent]" class="form-control form-control-sm item-comm text-center text-primary fw-bold" 
+                <input type="number" step="0.01" name="items[${i}][purchase_commission_percent]" class="form-control item-comm text-center text-primary fw-bold" 
                        value="0" min="0" max="100" placeholder="%" oninput="onCommChange(${i})">
             </td>
             <td class="bg-primary-subtle bg-opacity-25">
-                <input type="number" step="0.01" name="items[${i}][cost_price]" class="form-control form-control-sm item-cost text-end fw-bold text-danger" 
+                <input type="number" step="0.01" name="items[${i}][cost_price]" class="form-control item-cost text-end fw-bold text-danger" 
                        value="${rate || 0}" min="0" required oninput="onCostChange(${i})">
             </td>
             <td class="bg-success-subtle bg-opacity-25 d-none-raw">
-                <input type="number" step="0.01" name="items[${i}][shop_discount_percent]" class="form-control form-control-sm item-shop-disc text-center text-success fw-bold" 
+                <input type="number" step="0.01" name="items[${i}][shop_discount_percent]" class="form-control item-shop-disc text-center text-success fw-bold" 
                        value="0" min="0" max="100" placeholder="%" oninput="onShopDiscChange(${i})">
             </td>
             <td class="bg-success-subtle bg-opacity-25 d-none-raw">
-                <input type="number" step="0.01" name="items[${i}][sale_price]" class="form-control form-control-sm item-sale text-end fw-bold text-success" 
+                <input type="number" step="0.01" name="items[${i}][sale_price]" class="form-control item-sale text-end fw-bold text-success" 
                        value="${rate || 0}" min="0" required oninput="onSaleChange(${i})">
             </td>
             <td class="text-end pe-3 fw-bold text-dark item-subtotal fs-6">৳${(rate || 0).toFixed(2)}</td>
             <td class="text-center">
                 <div class="d-flex align-items-center justify-content-center gap-1">
-                    <button type="button" class="btn btn-sm btn-outline-secondary p-1 rounded-circle border-0" onclick="toggleExtraDetails(${i})" title="Extra details">
+                    <button type="button" class="btn btn-sm btn-outline-secondary p-1.5 rounded-circle border-0" onclick="toggleExtraDetails(${i})" title="Extra details">
                         <i class="fas fa-sliders text-secondary"></i>
                     </button>
-                    <button type="button" class="btn btn-sm btn-outline-danger p-1 rounded-circle border-0" onclick="removeRow(this)" title="Remove row">
+                    <button type="button" class="btn btn-sm btn-outline-danger p-1.5 rounded-circle border-0" onclick="removeRow(this)" title="Remove row">
                         <i class="fas fa-trash-can"></i>
                     </button>
                 </div>
@@ -1317,5 +1317,59 @@
         togglePurchaseClass(activeClass);
     });
 </script>
+
+<style>
+    #itemsTable {
+        min-width: 1580px;
+    }
+    #itemsTable thead th {
+        background-color: #f8fafc;
+        color: #334155;
+        font-weight: 700;
+        padding: 12px 10px;
+        border-bottom: 2px solid #e2e8f0;
+        vertical-align: middle;
+    }
+    #itemsTable tbody td {
+        padding: 7px 8px;
+        vertical-align: middle;
+        background-color: #fff;
+    }
+    #itemsTable tbody tr:hover td {
+        background-color: #fbfcfe;
+    }
+    #itemsTable .form-control, 
+    #itemsTable .form-select {
+        height: 38px;
+        font-size: 13.5px;
+        border-radius: 8px;
+        border: 1px solid #cbd5e1;
+        padding: 6px 12px;
+        transition: all 0.2s ease;
+    }
+    #itemsTable .form-control:focus, 
+    #itemsTable .form-select:focus {
+        border-color: #10b981;
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+        background-color: #ffffff;
+    }
+    #itemsTable .item-title {
+        font-weight: 600;
+    }
+    .table-responsive::-webkit-scrollbar {
+        height: 8px;
+    }
+    .table-responsive::-webkit-scrollbar-track {
+        background: #f1f5f9;
+        border-radius: 4px;
+    }
+    .table-responsive::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 4px;
+    }
+    .table-responsive::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+    }
+</style>
 
 @endsection

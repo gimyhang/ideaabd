@@ -261,6 +261,17 @@ class IdeaAccountingController extends Controller
      */
     public function storeInvoice(Request $request): RedirectResponse
     {
+        if ($request->has('items') && is_array($request->items)) {
+            $filteredItems = array_values(array_filter($request->items, function ($item) {
+                return is_array($item) && !empty(trim((string)($item['title'] ?? '')));
+            }));
+            $request->merge(['items' => $filteredItems]);
+        }
+
+        if (!$request->filled('payment_method')) {
+            $request->merge(['payment_method' => 'Cash']);
+        }
+
         $validated = $request->validate([
             'type'             => 'required|in:invoice,challan,quotation,tender',
             'sales_category'   => 'nullable|in:books,stationery,printing_goods,other',
@@ -285,6 +296,7 @@ class IdeaAccountingController extends Controller
             'items.*.title'            => 'required|string|max:255',
             'items.*.author_name'      => 'nullable|string|max:255',
             'items.*.item_type'        => 'nullable|string|max:50',
+            'items.*.unit'             => 'nullable|string|max:50',
             'items.*.book_id'          => 'nullable|integer',
             'items.*.quantity'         => 'required|numeric|min:0.01',
             'items.*.regular_price'    => 'nullable|numeric|min:0',
@@ -293,10 +305,11 @@ class IdeaAccountingController extends Controller
         ], [
             'customer_name.required' => 'গ্রাহক বা প্রতিনিধির নাম লিখুন।',
             'items.required'         => 'কমপক্ষে একটি আইটেম বা বিবরণ যোগ করুন।',
+            'items.min'              => 'কমপক্ষে একটি আইটেম বা বিবরণ যোগ করুন।',
         ]);
 
         try {
-            return DB::transaction(function () use ($validated) {
+            return DB::transaction(function () use ($validated, $request) {
                 $subtotal = 0.0;
                 $itemsProcessed = [];
 
@@ -333,7 +346,7 @@ class IdeaAccountingController extends Controller
 
                 $discount = (float) ($validated['discount'] ?? 0);
                 $tax = (float) ($validated['tax'] ?? 0);
-                $grandTotal = max(0, $subtotal - $discount + $tax);
+                $grandTotal = max(0, $subtotal - discount + $tax);
                 $paid = (float) ($validated['paid_amount'] ?? 0);
                 $due = max(0, $grandTotal - $paid);
 
@@ -349,7 +362,7 @@ class IdeaAccountingController extends Controller
                     $userId = null;
                 }
 
-                $salesCategory = $request->input('sales_category', 'books');
+                $salesCategory = $validated['sales_category'] ?? $request->input('sales_category', 'books');
 
                 $invoice = IdeaInvoice::create([
                     'invoice_no'           => $validated['invoice_no'],
@@ -439,6 +452,17 @@ class IdeaAccountingController extends Controller
      */
     public function updateInvoice(Request $request, IdeaInvoice $invoice): RedirectResponse
     {
+        if ($request->has('items') && is_array($request->items)) {
+            $filteredItems = array_values(array_filter($request->items, function ($item) {
+                return is_array($item) && !empty(trim((string)($item['title'] ?? '')));
+            }));
+            $request->merge(['items' => $filteredItems]);
+        }
+
+        if (!$request->filled('payment_method')) {
+            $request->merge(['payment_method' => $invoice->payment_method ?: 'Cash']);
+        }
+
         $validated = $request->validate([
             'type'             => 'required|in:invoice,challan,quotation,tender',
             'sales_category'   => 'nullable|in:books,stationery,printing_goods,other',

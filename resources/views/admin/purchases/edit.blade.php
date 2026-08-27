@@ -187,67 +187,67 @@
                 </div>
 
                 <div class="card-body p-3 p-md-4">
-                    <div class="table-responsive rounded-3 border">
-                        <table class="table table-hover align-middle mb-0" id="itemsTable">
+                    <div class="table-responsive rounded-3 border shadow-2xs">
+                        <table class="table table-hover align-middle mb-0" id="itemsTable" style="min-width: 1580px;">
                             <thead>
-                                <tr class="table-light text-center small text-muted text-uppercase align-middle">
-                                    <th style="min-width: 220px;" class="text-start ps-3 py-3">Book Title <span class="text-danger">*</span></th>
-                                    <th style="min-width: 140px;" class="text-start py-3">Author</th>
-                                    <th style="min-width: 130px;" class="text-start py-3">Category</th>
-                                    <th style="width: 85px;" class="py-3">Quantity</th>
-                                    <th style="width: 115px;" class="py-3 bg-light-subtle">Price (MRP ৳)</th>
-                                    <th style="width: 95px;" class="py-3 bg-primary-subtle text-primary">Cost Comm %</th>
-                                    <th style="width: 115px;" class="py-3 bg-primary-subtle text-primary">Cost Price (৳)</th>
-                                    <th style="width: 95px;" class="py-3 bg-success-subtle text-success">Store Disc %</th>
-                                    <th style="width: 115px;" class="py-3 bg-success-subtle text-success">Store Price (৳)</th>
-                                    <th style="width: 125px;" class="text-end pe-3 py-3">Total Cost (৳)</th>
-                                    <th style="width: 45px;" class="py-3"></th>
+                                <tr class="table-light text-center small text-muted text-uppercase align-middle" style="font-size: 11.5px; letter-spacing: 0.4px;">
+                                    <th style="min-width: 380px; width: 400px;" class="text-start ps-3 py-3">Book Title <span class="text-danger">*</span></th>
+                                    <th style="min-width: 240px; width: 250px;" class="text-start py-3">Author</th>
+                                    <th style="min-width: 220px; width: 230px;" class="text-start py-3">Category</th>
+                                    <th style="min-width: 100px; width: 105px;" class="py-3">Quantity</th>
+                                    <th style="min-width: 130px; width: 135px;" class="py-3 bg-light-subtle">Price (MRP ৳)</th>
+                                    <th style="min-width: 110px; width: 115px;" class="py-3 bg-primary-subtle text-primary">Cost Comm %</th>
+                                    <th style="min-width: 135px; width: 140px;" class="py-3 bg-primary-subtle text-primary">Cost Price (৳)</th>
+                                    <th style="min-width: 110px; width: 115px;" class="py-3 bg-success-subtle text-success">Store Disc %</th>
+                                    <th style="min-width: 135px; width: 140px;" class="py-3 bg-success-subtle text-success">Store Price (৳)</th>
+                                    <th style="min-width: 140px; width: 145px;" class="text-end pe-3 py-3">Total Cost (৳)</th>
+                                    <th style="min-width: 50px; width: 50px;" class="py-3"></th>
                                 </tr>
                             </thead>
                             <tbody id="itemsBody">
                                 @forelse($purchase->items as $i => $item)
                                     <tr class="item-row" data-row="{{ $i }}">
                                         <td class="ps-3">
-                                            <input type="text" name="items[{{ $i }}][title]" class="form-control form-control-sm item-title fw-semibold" 
+                                            <input type="text" name="items[{{ $i }}][title]" class="form-control item-title fw-semibold" 
                                                    list="booksList" placeholder="Book title..." value="{{ $item->book_title }}" required oninput="onTitleInput(this, {{ $i }})">
                                             <input type="hidden" name="items[{{ $i }}][book_id]" class="item-book-id" value="{{ $item->book_id }}">
                                         </td>
                                         <td>
-                                            <input type="text" name="items[{{ $i }}][author]" class="form-control form-control-sm item-author" 
+                                            <input type="text" name="items[{{ $i }}][author]" class="form-control item-author" 
                                                    list="authorsList" placeholder="Author name..." value="{{ $item->author_name ?? ($item->book?->author_name ?? '') }}">
                                         </td>
                                         <td>
-                                            <input type="text" name="items[{{ $i }}][category_name]" class="form-control form-control-sm item-category" 
+                                            <input type="text" name="items[{{ $i }}][category_name]" class="form-control item-category" 
                                                    list="categoriesList" placeholder="Category..." value="{{ $item->category?->name ?? ($item->book?->category?->name ?? '') }}">
                                             <input type="hidden" name="items[{{ $i }}][category_id]" class="item-category-id" value="{{ $item->category_id ?? ($item->book?->category_id ?? '') }}">
                                         </td>
                                         <td>
-                                            <input type="number" name="items[{{ $i }}][quantity]" class="form-control form-control-sm item-qty text-center fw-bold" 
+                                            <input type="number" name="items[{{ $i }}][quantity]" class="form-control item-qty text-center fw-bold" 
                                                    value="{{ $item->quantity }}" min="1" required oninput="onQtyChange({{ $i }})">
                                         </td>
                                         <td class="bg-light-subtle">
-                                            <input type="number" step="0.01" name="items[{{ $i }}][mrp_price]" class="form-control form-control-sm item-mrp text-end fw-semibold" 
+                                            <input type="number" step="0.01" name="items[{{ $i }}][mrp_price]" class="form-control item-mrp text-end fw-semibold" 
                                                    value="{{ $item->mrp_price > 0 ? $item->mrp_price : ($item->book?->price ?? 0) }}" min="0" placeholder="MRP" oninput="onMrpChange({{ $i }})">
                                         </td>
                                         <td class="bg-primary-subtle bg-opacity-25">
-                                            <input type="number" step="0.01" name="items[{{ $i }}][purchase_commission_percent]" class="form-control form-control-sm item-comm text-center text-primary fw-bold" 
+                                            <input type="number" step="0.01" name="items[{{ $i }}][purchase_commission_percent]" class="form-control item-comm text-center text-primary fw-bold" 
                                                    value="{{ $item->purchase_commission_percent ?? 0 }}" min="0" max="100" placeholder="%" oninput="onCommChange({{ $i }})">
                                         </td>
                                         <td class="bg-primary-subtle bg-opacity-25">
-                                            <input type="number" step="0.01" name="items[{{ $i }}][cost_price]" class="form-control form-control-sm item-cost text-end fw-bold text-danger" 
+                                            <input type="number" step="0.01" name="items[{{ $i }}][cost_price]" class="form-control item-cost text-end fw-bold text-danger" 
                                                    value="{{ $item->unit_cost_price }}" min="0" required oninput="onCostChange({{ $i }})">
                                         </td>
                                         <td class="bg-success-subtle bg-opacity-25">
-                                            <input type="number" step="0.01" name="items[{{ $i }}][shop_discount_percent]" class="form-control form-control-sm item-shop-disc text-center text-success fw-bold" 
+                                            <input type="number" step="0.01" name="items[{{ $i }}][shop_discount_percent]" class="form-control item-shop-disc text-center text-success fw-bold" 
                                                    value="{{ $item->shop_discount_percent ?? 0 }}" min="0" max="100" placeholder="%" oninput="onShopDiscChange({{ $i }})">
                                         </td>
                                         <td class="bg-success-subtle bg-opacity-25">
-                                            <input type="number" step="0.01" name="items[{{ $i }}][sale_price]" class="form-control form-control-sm item-sale text-end fw-bold text-success" 
+                                            <input type="number" step="0.01" name="items[{{ $i }}][sale_price]" class="form-control item-sale text-end fw-bold text-success" 
                                                    value="{{ $item->unit_sale_price }}" min="0" required oninput="onSaleChange({{ $i }})">
                                         </td>
                                         <td class="text-end pe-3 fw-bold text-dark item-subtotal fs-6">৳{{ number_format($item->subtotal, 2) }}</td>
                                         <td class="text-center">
-                                            <button type="button" class="btn btn-sm btn-outline-danger p-1 rounded-circle border-0" onclick="removeRow(this)" title="Remove row">
+                                            <button type="button" class="btn btn-sm btn-outline-danger p-1.5 rounded-circle border-0" onclick="removeRow(this)" title="Remove row">
                                                 <i class="fas fa-trash-can"></i>
                                             </button>
                                         </td>
@@ -255,46 +255,46 @@
                                 @empty
                                     <tr class="item-row" data-row="0">
                                         <td class="ps-3">
-                                            <input type="text" name="items[0][title]" class="form-control form-control-sm item-title fw-semibold" 
+                                            <input type="text" name="items[0][title]" class="form-control item-title fw-semibold" 
                                                    list="booksList" placeholder="Book title..." required oninput="onTitleInput(this, 0)">
                                             <input type="hidden" name="items[0][book_id]" class="item-book-id" value="">
                                         </td>
                                         <td>
-                                            <input type="text" name="items[0][author]" class="form-control form-control-sm item-author" 
+                                            <input type="text" name="items[0][author]" class="form-control item-author" 
                                                    list="authorsList" placeholder="Author name...">
                                         </td>
                                         <td>
-                                            <input type="text" name="items[0][category_name]" class="form-control form-control-sm item-category" 
+                                            <input type="text" name="items[0][category_name]" class="form-control item-category" 
                                                    list="categoriesList" placeholder="Category...">
                                             <input type="hidden" name="items[0][category_id]" class="item-category-id" value="">
                                         </td>
                                         <td>
-                                            <input type="number" name="items[0][quantity]" class="form-control form-control-sm item-qty text-center fw-bold" 
+                                            <input type="number" name="items[0][quantity]" class="form-control item-qty text-center fw-bold" 
                                                    value="1" min="1" required oninput="onQtyChange(0)">
                                         </td>
                                         <td class="bg-light-subtle">
-                                            <input type="number" step="0.01" name="items[0][mrp_price]" class="form-control form-control-sm item-mrp text-end fw-semibold" 
+                                            <input type="number" step="0.01" name="items[0][mrp_price]" class="form-control item-mrp text-end fw-semibold" 
                                                    value="0" min="0" placeholder="MRP" oninput="onMrpChange(0)">
                                         </td>
                                         <td class="bg-primary-subtle bg-opacity-25">
-                                            <input type="number" step="0.01" name="items[0][purchase_commission_percent]" class="form-control form-control-sm item-comm text-center text-primary fw-bold" 
+                                            <input type="number" step="0.01" name="items[0][purchase_commission_percent]" class="form-control item-comm text-center text-primary fw-bold" 
                                                    value="0" min="0" max="100" placeholder="%" oninput="onCommChange(0)">
                                         </td>
                                         <td class="bg-primary-subtle bg-opacity-25">
-                                            <input type="number" step="0.01" name="items[0][cost_price]" class="form-control form-control-sm item-cost text-end fw-bold text-danger" 
+                                            <input type="number" step="0.01" name="items[0][cost_price]" class="form-control item-cost text-end fw-bold text-danger" 
                                                    value="0" min="0" required oninput="onCostChange(0)">
                                         </td>
                                         <td class="bg-success-subtle bg-opacity-25">
-                                            <input type="number" step="0.01" name="items[0][shop_discount_percent]" class="form-control form-control-sm item-shop-disc text-center text-success fw-bold" 
+                                            <input type="number" step="0.01" name="items[0][shop_discount_percent]" class="form-control item-shop-disc text-center text-success fw-bold" 
                                                    value="0" min="0" max="100" placeholder="%" oninput="onShopDiscChange(0)">
                                         </td>
                                         <td class="bg-success-subtle bg-opacity-25">
-                                            <input type="number" step="0.01" name="items[0][sale_price]" class="form-control form-control-sm item-sale text-end fw-bold text-success" 
+                                            <input type="number" step="0.01" name="items[0][sale_price]" class="form-control item-sale text-end fw-bold text-success" 
                                                    value="0" min="0" required oninput="onSaleChange(0)">
                                         </td>
                                         <td class="text-end pe-3 fw-bold text-dark item-subtotal fs-6">৳0.00</td>
                                         <td class="text-center">
-                                            <button type="button" class="btn btn-sm btn-outline-danger p-1 rounded-circle border-0" onclick="removeRow(this)" title="Remove row">
+                                            <button type="button" class="btn btn-sm btn-outline-danger p-1.5 rounded-circle border-0" onclick="removeRow(this)" title="Remove row">
                                                 <i class="fas fa-trash-can"></i>
                                             </button>
                                         </td>
@@ -677,46 +677,46 @@
         tr.setAttribute('data-row', i);
         tr.innerHTML = `
             <td class="ps-3">
-                <input type="text" name="items[${i}][title]" class="form-control form-control-sm item-title fw-semibold" 
+                <input type="text" name="items[${i}][title]" class="form-control item-title fw-semibold" 
                        list="booksList" placeholder="Book title..." required oninput="onTitleInput(this, ${i})">
                 <input type="hidden" name="items[${i}][book_id]" class="item-book-id" value="">
             </td>
             <td>
-                <input type="text" name="items[${i}][author]" class="form-control form-control-sm item-author" 
+                <input type="text" name="items[${i}][author]" class="form-control item-author" 
                        list="authorsList" placeholder="Author name...">
             </td>
             <td>
-                <input type="text" name="items[${i}][category_name]" class="form-control form-control-sm item-category" 
+                <input type="text" name="items[${i}][category_name]" class="form-control item-category" 
                        list="categoriesList" placeholder="Category...">
                 <input type="hidden" name="items[${i}][category_id]" class="item-category-id" value="">
             </td>
             <td>
-                <input type="number" name="items[${i}][quantity]" class="form-control form-control-sm item-qty text-center fw-bold" 
+                <input type="number" name="items[${i}][quantity]" class="form-control item-qty text-center fw-bold" 
                        value="1" min="1" required oninput="onQtyChange(${i})">
             </td>
             <td class="bg-light-subtle">
-                <input type="number" step="0.01" name="items[${i}][mrp_price]" class="form-control form-control-sm item-mrp text-end fw-semibold" 
+                <input type="number" step="0.01" name="items[${i}][mrp_price]" class="form-control item-mrp text-end fw-semibold" 
                        value="0" min="0" placeholder="MRP" oninput="onMrpChange(${i})">
             </td>
             <td class="bg-primary-subtle bg-opacity-25">
-                <input type="number" step="0.01" name="items[${i}][purchase_commission_percent]" class="form-control form-control-sm item-comm text-center text-primary fw-bold" 
+                <input type="number" step="0.01" name="items[${i}][purchase_commission_percent]" class="form-control item-comm text-center text-primary fw-bold" 
                        value="0" min="0" max="100" placeholder="%" oninput="onCommChange(${i})">
             </td>
             <td class="bg-primary-subtle bg-opacity-25">
-                <input type="number" step="0.01" name="items[${i}][cost_price]" class="form-control form-control-sm item-cost text-end fw-bold text-danger" 
+                <input type="number" step="0.01" name="items[${i}][cost_price]" class="form-control item-cost text-end fw-bold text-danger" 
                        value="0" min="0" required oninput="onCostChange(${i})">
             </td>
             <td class="bg-success-subtle bg-opacity-25">
-                <input type="number" step="0.01" name="items[${i}][shop_discount_percent]" class="form-control form-control-sm item-shop-disc text-center text-success fw-bold" 
+                <input type="number" step="0.01" name="items[${i}][shop_discount_percent]" class="form-control item-shop-disc text-center text-success fw-bold" 
                        value="0" min="0" max="100" placeholder="%" oninput="onShopDiscChange(${i})">
             </td>
             <td class="bg-success-subtle bg-opacity-25">
-                <input type="number" step="0.01" name="items[${i}][sale_price]" class="form-control form-control-sm item-sale text-end fw-bold text-success" 
+                <input type="number" step="0.01" name="items[${i}][sale_price]" class="form-control item-sale text-end fw-bold text-success" 
                        value="0" min="0" required oninput="onSaleChange(${i})">
             </td>
             <td class="text-end pe-3 fw-bold text-dark item-subtotal fs-6">৳0.00</td>
             <td class="text-center">
-                <button type="button" class="btn btn-sm btn-outline-danger p-1 rounded-circle border-0" onclick="removeRow(this)" title="Remove row">
+                <button type="button" class="btn btn-sm btn-outline-danger p-1.5 rounded-circle border-0" onclick="removeRow(this)" title="Remove row">
                     <i class="fas fa-trash-can"></i>
                 </button>
             </td>
@@ -739,5 +739,59 @@
         calcTotals();
     });
 </script>
+
+<style>
+    #itemsTable {
+        min-width: 1580px;
+    }
+    #itemsTable thead th {
+        background-color: #f8fafc;
+        color: #334155;
+        font-weight: 700;
+        padding: 12px 10px;
+        border-bottom: 2px solid #e2e8f0;
+        vertical-align: middle;
+    }
+    #itemsTable tbody td {
+        padding: 7px 8px;
+        vertical-align: middle;
+        background-color: #fff;
+    }
+    #itemsTable tbody tr:hover td {
+        background-color: #fbfcfe;
+    }
+    #itemsTable .form-control, 
+    #itemsTable .form-select {
+        height: 38px;
+        font-size: 13.5px;
+        border-radius: 8px;
+        border: 1px solid #cbd5e1;
+        padding: 6px 12px;
+        transition: all 0.2s ease;
+    }
+    #itemsTable .form-control:focus, 
+    #itemsTable .form-select:focus {
+        border-color: #10b981;
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+        background-color: #ffffff;
+    }
+    #itemsTable .item-title {
+        font-weight: 600;
+    }
+    .table-responsive::-webkit-scrollbar {
+        height: 8px;
+    }
+    .table-responsive::-webkit-scrollbar-track {
+        background: #f1f5f9;
+        border-radius: 4px;
+    }
+    .table-responsive::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 4px;
+    }
+    .table-responsive::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+    }
+</style>
 
 @endsection

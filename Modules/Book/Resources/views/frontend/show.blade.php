@@ -19,11 +19,59 @@
 @endphp
 
 @section('title', $book->title . ' — ' . $authorNames . ' | বই কেনাকাটা')
+@section('meta_keywords', e($book->title) . ', ' . e($authorNames) . ', বাংলা বই, ' . ($book->category->name ?? 'বই') . ', বই অর্ডার, আইডিয়া প্রকাশন, ' . e($book->title) . ' বই, buy bangla book ' . e($book->title) . ', Idea Publication')
+@section('meta_author', e($authorNames))
 @section('og_type', 'book')
 @section('og_title', $book->title . ' — ' . $authorNames . ' | আইডিয়া প্রকাশন')
 @section('og_description', $bookDesc ?: 'আইডিয়া প্রকাশনে বইটি অর্ডার করুন ও বিস্তারিত জানুন।')
 @section('og_image', $coverUrl)
 @section('og_url', route('book.show', $book->slug ?: $book->id))
+
+@section('schema_json')
+<script type="application/ld+json">
+{
+  "@@context": "https://schema.org",
+  "@@type": "Book",
+  "name": @json($book->title),
+  "headline": @json($book->title . ' — ' . $authorNames),
+  "url": @json(route('book.show', $book->slug ?: $book->id)),
+  "image": @json($coverUrl),
+  "description": @json(Str::limit(strip_tags($bookDesc ?: $book->title), 300)),
+  "author": [
+    @if($book->authors->isNotEmpty())
+      @foreach($book->authors as $idx => $auth)
+        {
+          "@@type": "Person",
+          "name": @json($auth->name)
+        }{{ $loop->last ? '' : ',' }}
+      @endforeach
+    @else
+      {
+        "@@type": "Person",
+        "name": @json($authorNames)
+      }
+    @endif
+  ],
+  "publisher": {
+    "@@type": "Organization",
+    "name": "আইডিয়া প্রকাশন (Idea Publication)",
+    "url": "https://www.ideaabd.com"
+  },
+  "inLanguage": "bn",
+  "offers": {
+    "@@type": "Offer",
+    "price": "{{ $book->discount_price > 0 ? $book->discount_price : ($book->price ?: 0) }}",
+    "priceCurrency": "BDT",
+    "availability": "{{ ($book->stock_quantity ?? 1) > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock' }}",
+    "url": @json(route('book.show', $book->slug ?: $book->id)),
+    "seller": {
+      "@@type": "Organization",
+      "name": "আইডিয়া প্রকাশন"
+    }
+  }
+}
+</script>
+@endsection
 
 @php
     $samplePdf = $book->sample_pdf_path;

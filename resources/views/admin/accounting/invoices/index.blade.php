@@ -178,20 +178,20 @@
             <p class="text-muted small">Create a new bill, delivery challan, quotation or tender document using the button above.</p>
         </div>
     @else
-        <div class="table-responsive">
-            <table class="table adm-table align-middle mb-0">
-                <thead class="table-light">
+        <div class="table-responsive rounded-bottom-4">
+            <table class="table adm-table align-middle mb-0" style="min-width: 1080px;">
+                <thead class="table-light text-muted small text-uppercase" style="font-size: 11.5px; letter-spacing: 0.3px;">
                     <tr>
-                        <th class="ps-3">Document #</th>
-                        <th>Type</th>
-                        <th>Date</th>
-                        <th>Client & Organization</th>
-                        <th>Items</th>
-                        <th>Grand Total</th>
-                        <th>Paid</th>
-                        <th>Due</th>
-                        <th>Status</th>
-                        <th class="text-center pe-3">Actions</th>
+                        <th class="ps-3 py-3" style="width: 170px;">Document #</th>
+                        <th class="py-3" style="width: 120px;">Type</th>
+                        <th class="py-3" style="width: 120px;">Date</th>
+                        <th class="py-3" style="min-width: 220px;">Client & Organization</th>
+                        <th class="py-3" style="width: 100px;">Items</th>
+                        <th class="py-3 text-end" style="width: 130px;">Grand Total</th>
+                        <th class="py-3 text-end" style="width: 120px;">Paid</th>
+                        <th class="py-3 text-end" style="width: 120px;">Due</th>
+                        <th class="py-3 text-center" style="width: 110px;">Status</th>
+                        <th class="text-center pe-3 py-3" style="width: 110px;">Actions</th>
                     </tr>
                 </thead>
                 <tbody>

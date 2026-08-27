@@ -23,11 +23,47 @@
 @endphp
 
 @section('title', ($post->title ?? 'সাহিত্যকর্ম') . ' — ' . $ogAuthor)
+@section('meta_keywords', e($post->title) . ', ' . e($ogAuthor) . ', বাংলা সাহিত্য, কবিতা, গল্প, প্রবন্ধ, ব্লগ, সাহিত্য পাঠ, আইডিয়া প্রকাশন, ' . e($post->category->name ?? 'সাহিত্য') . ', Idea Prokashon Blog')
+@section('meta_author', e($ogAuthor))
 @section('og_type', 'article')
 @section('og_title', $post->title . ' — ' . $ogAuthor)
 @section('og_description', $ogDesc)
 @section('og_image', $ogCover)
 @section('og_url', route('blog.show', $post->slug))
+
+@section('schema_json')
+<script type="application/ld+json">
+{
+  "@@context": "https://schema.org",
+  "@@type": "BlogPosting",
+  "headline": @json($post->title),
+  "name": @json($post->title),
+  "description": @json(Str::limit(strip_tags($ogDesc ?: $post->title), 300)),
+  "image": @json($ogCover),
+  "url": @json(route('blog.show', $post->slug)),
+  "datePublished": "{{ optional($post->created_at)->toIso8601String() ?: date('c') }}",
+  "dateModified": "{{ optional($post->updated_at)->toIso8601String() ?: date('c') }}",
+  "author": {
+    "@@type": "Person",
+    "name": @json($ogAuthor)
+  },
+  "publisher": {
+    "@@type": "Organization",
+    "name": "আইডিয়া প্রকাশন (Idea Publication)",
+    "url": "https://www.ideaabd.com",
+    "logo": {
+      "@@type": "ImageObject",
+      "url": "{{ asset('images/logo.png') }}"
+    }
+  },
+  "mainEntityOfPage": {
+    "@@type": "WebPage",
+    "@@id": @json(route('blog.show', $post->slug))
+  },
+  "inLanguage": "bn"
+}
+</script>
+@endsection
 
 @section('content')
 <!-- Scroll Reading Progress Bar -->
