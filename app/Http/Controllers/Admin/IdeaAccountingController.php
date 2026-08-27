@@ -8,6 +8,7 @@ use App\Models\IdeaAccountingEntry;
 use App\Models\IdeaInvoice;
 use App\Models\IdeaEmployee;
 use App\Models\IdeaSalaryPayment;
+use App\Models\IdeaEmployeeWorkLog;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -1114,17 +1115,56 @@ class IdeaAccountingController extends Controller
     public function employeeLedger($id, Request $request): View
     {
         $employee = IdeaEmployee::with(['workLogs' => fn($q) => $q->latest('log_date')->latest('id')])->findOrFail($id);
-        $workLogs = $employee->workLogs()->paginate(30);
+        $workLogs = $employee->workLogs()->latest('log_date')->latest('id')->paginate(30);
 
         $totalEarned = (float) $employee->totalWorkEarned();
         $totalPaid = (float) $employee->totalWorkPaid();
         $balanceDue = $totalEarned - $totalPaid;
         $totalWorkQuantity = (float) $employee->workLogs()->where('entry_type', 'work')->sum('quantity');
 
+        // Multi-day Book Production Aggregation
+        $allWorkLogs = $employee->workLogs()->where('entry_type', 'work')->get();
+        $bookSummaries = $allWorkLogs
+            ->filter(fn($l) => !empty($l->book_title))
+            ->groupBy('book_title')
+            ->map(function ($logs, $bookTitle) {
+                $maxPrinted = (float) $logs->max('printed_quantity');
+                $maxReceived = (float) ($logs->max('received_quantity') ?: $maxPrinted);
+                $totalDelivered = (float) $logs->sum('delivered_quantity');
+                if ($totalDelivered == 0) {
+                    $totalDelivered = (float) $logs->sum('quantity');
+                }
+                $totalWastage = (float) $logs->sum('wastage_quantity');
+                $totalEarned = (float) $logs->sum('earned_amount');
+                $firstPrintDate = $logs->whereNotNull('print_date')->sortBy('print_date')->first()?->print_date;
+                $lastLogDate = $logs->sortByDesc('log_date')->first()?->log_date;
+                $daysCount = $logs->pluck('log_date')->map(fn($d) => $d ? $d->format('Y-m-d') : '')->unique()->filter()->count();
+                $incomplete = max(0, $maxReceived - ($totalDelivered + $totalWastage));
+                $progress = $maxReceived > 0 ? min(100, round(($totalDelivered / $maxReceived) * 100, 1)) : 100;
+                $lastUnitRate = (float) ($logs->sortByDesc('id')->first()?->unit_rate ?: 0);
+
+                return [
+                    'book_title'      => $bookTitle,
+                    'print_date'      => $firstPrintDate ? $firstPrintDate->format('Y-m-d') : null,
+                    'last_log_date'   => $lastLogDate ? $lastLogDate->format('d M, Y') : null,
+                    'days_count'      => $daysCount,
+                    'entries_count'   => $logs->count(),
+                    'printed_qty'     => $maxPrinted,
+                    'received_qty'    => $maxReceived,
+                    'total_delivered' => $totalDelivered,
+                    'total_wastage'   => $totalWastage,
+                    'incomplete_qty'  => $incomplete,
+                    'total_earned'    => $totalEarned,
+                    'progress'        => $progress,
+                    'unit_rate'       => $lastUnitRate,
+                    'status'          => $incomplete <= 0 ? 'completed' : 'in_progress',
+                ];
+            })->values();
+
         $invoiceSettings = self::getInvoiceSettings();
 
         return view('admin.accounting.employees.ledger', compact(
-            'employee', 'workLogs', 'totalEarned', 'totalPaid', 'balanceDue', 'totalWorkQuantity', 'invoiceSettings'
+            'employee', 'workLogs', 'totalEarned', 'totalPaid', 'balanceDue', 'totalWorkQuantity', 'bookSummaries', 'invoiceSettings'
         ));
     }
 
@@ -1136,20 +1176,44 @@ class IdeaAccountingController extends Controller
         $employee = IdeaEmployee::findOrFail($id);
 
         $validated = $request->validate([
-            'entry_type'     => 'required|in:work,payment',
-            'log_date'       => 'required|date',
-            'book_title'     => 'nullable|string|max:255',
-            'quantity'       => 'nullable|numeric|min:0',
-            'unit_rate'      => 'nullable|numeric|min:0',
-            'unit_name'      => 'nullable|string|max:50',
-            'earned_amount'  => 'nullable|numeric|min:0',
-            'paid_amount'    => 'nullable|numeric|min:0',
-            'payment_method' => 'nullable|string|max:50',
-            'notes'          => 'nullable|string|max:1000',
+            'entry_type'          => 'required|in:work,payment',
+            'log_date'            => 'required|date',
+            'print_date'          => 'nullable|date',
+            'book_title'          => 'nullable|string|max:255',
+            'printed_quantity'    => 'nullable|numeric|min:0',
+            'received_quantity'   => 'nullable|numeric|min:0',
+            'delivered_quantity'  => 'nullable|numeric|min:0',
+            'incomplete_quantity' => 'nullable|numeric|min:0',
+            'wastage_quantity'    => 'nullable|numeric|min:0',
+            'quantity'            => 'nullable|numeric|min:0',
+            'unit_rate'           => 'nullable|numeric|min:0',
+            'unit_name'           => 'nullable|string|max:50',
+            'earned_amount'       => 'nullable|numeric|min:0',
+            'paid_amount'         => 'nullable|numeric|min:0',
+            'payment_method'      => 'nullable|string|max:50',
+            'notes'               => 'nullable|string|max:1000',
         ]);
 
         $entryType = $validated['entry_type'];
-        $qty = (float) ($validated['quantity'] ?? 0);
+        $bookTitle = trim($validated['book_title'] ?? '');
+        $printedQty = (float) ($validated['printed_quantity'] ?? 0);
+        $receivedQty = (float) ($validated['received_quantity'] ?? 0);
+        $deliveredQty = (float) ($validated['delivered_quantity'] ?? 0);
+        $wastageQty = (float) ($validated['wastage_quantity'] ?? 0);
+
+        // 5. Total Binding (Auto) = 2. Received for Binding + 3. Delivered to Godown
+        $totalBinding = (float) ($validated['quantity'] ?? ($receivedQty + $deliveredQty));
+        if ($totalBinding <= 0 && ($receivedQty > 0 || $deliveredQty > 0)) {
+            $totalBinding = $receivedQty + $deliveredQty;
+        }
+
+        // 4. Incomplete (Auto) = 1. Total Printed - (2. Received for Binding + 3. Delivered to Godown + Wastage)
+        $incompleteQty = isset($validated['incomplete_quantity']) && $validated['incomplete_quantity'] !== null && $validated['incomplete_quantity'] !== ''
+            ? (float) $validated['incomplete_quantity']
+            : ($printedQty > 0 ? max(0, $printedQty - ($totalBinding + $wastageQty)) : 0);
+
+        // Billable quantity is 5. Total Binding
+        $qty = $totalBinding > 0 ? $totalBinding : ($deliveredQty > 0 ? $deliveredQty : 0);
         $rate = (float) ($validated['unit_rate'] ?? 0);
         $earned = (float) ($validated['earned_amount'] ?? 0);
         $paid = (float) ($validated['paid_amount'] ?? 0);
@@ -1162,7 +1226,7 @@ class IdeaAccountingController extends Controller
         } else {
             $earned = 0;
             if ($paid <= 0) {
-                return back()->with('error', 'টাকা তোলার পরিমাণ লিখুন।');
+                return back()->with('error', 'Please enter withdrawal amount.');
             }
         }
 
@@ -1176,13 +1240,13 @@ class IdeaAccountingController extends Controller
                 'entry_no'       => 'EXP-' . date('Ymd', strtotime($validated['log_date'])) . '-' . rand(1000, 9999),
                 'type'           => 'expense',
                 'category'       => 'চুক্তিভিত্তিক ও বাইন্ডিং মজুরি (Piece-rate Wages)',
-                'title'          => "কারিগর টাকা উত্তোলন / মজুরি: {$employee->name} ({$employee->designation})",
+                'title'          => "Artisan Payout / Wage Draw: {$employee->name} ({$employee->designation})",
                 'amount'         => $paid,
                 'entry_date'     => $validated['log_date'],
                 'voucher_no'     => $voucherNo,
                 'payment_method' => $paymentMethod,
                 'party_name'     => $employee->name,
-                'notes'          => "বাঁধাইকার/কারিগর উত্তোলন: ৳{$paid}. " . ($validated['notes'] ?? ''),
+                'notes'          => "Artisan Cash Withdrawal: ৳{$paid}. " . ($validated['notes'] ?? ''),
                 'created_by'     => auth()->id(),
             ]);
             $accountingEntryId = $accEntry->id;
@@ -1192,10 +1256,16 @@ class IdeaAccountingController extends Controller
             'employee_id'         => $employee->id,
             'entry_type'          => $entryType,
             'log_date'            => $validated['log_date'],
+            'print_date'          => $validated['print_date'] ?? null,
             'book_title'          => $validated['book_title'] ?? null,
+            'printed_quantity'    => $printedQty,
+            'received_quantity'   => $receivedQty,
+            'delivered_quantity'  => $deliveredQty,
+            'incomplete_quantity' => $incompleteQty,
+            'wastage_quantity'    => $wastageQty,
             'quantity'            => $qty,
             'unit_rate'           => $rate,
-            'unit_name'           => $validated['unit_name'] ?? ($employee->rate_unit_name ?: 'বই বাঁধাই'),
+            'unit_name'           => $validated['unit_name'] ?? ($employee->rate_unit_name ?: 'Book'),
             'earned_amount'       => $earned,
             'paid_amount'         => $paid,
             'payment_method'      => $validated['payment_method'] ?? 'cash',
@@ -1206,8 +1276,8 @@ class IdeaAccountingController extends Controller
         ]);
 
         $msg = $entryType === 'work' 
-            ? "কাজের এন্ট্রি সফলভাবে যুক্ত হয়েছে (মোট পাওনা: ৳" . number_format($earned, 2) . ")।"
-            : "টাকা উত্তোলনের এন্ট্রি সফলভাবে যুক্ত হয়েছে (৳" . number_format($paid, 2) . ") এবং হিসাব খতিয়ানে সংরক্ষিত হয়েছে।";
+            ? "Work entry successfully saved. Delivered: {$deliveredQty}, Incomplete: {$incompleteQty} (Total Earned: ৳" . number_format($earned, 2) . ")."
+            : "Cash payout of ৳" . number_format($paid, 2) . " successfully recorded and posted to accounts ledger.";
 
         return back()->with('success', $msg);
     }

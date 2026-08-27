@@ -79,7 +79,21 @@
             overflow: hidden;
             transition: background-color 0.25s ease, color 0.25s ease;
             -webkit-font-smoothing: antialiased;
-            user-select: text;
+            user-select: none !important;
+            -webkit-user-select: none !important;
+        }
+
+        /* Whitelist book title, nav links and buttons */
+        .reader-head, 
+        .reader-head a, 
+        .reader-title, 
+        .book-title, 
+        .allow-copy, 
+        .reader-btn, 
+        input, 
+        textarea {
+            user-select: text !important;
+            -webkit-user-select: text !important;
         }
 
         /* Top Header Navbar */

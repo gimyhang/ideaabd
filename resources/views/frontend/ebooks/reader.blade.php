@@ -74,6 +74,17 @@
             z-index: 1050;
             border-bottom: 1px solid var(--reader-border);
             color: var(--reader-text);
+            user-select: text !important;
+            -webkit-user-select: text !important;
+        }
+
+        .reader-toolbar a,
+        .reader-toolbar .book-title,
+        .allow-copy,
+        input,
+        textarea {
+            user-select: text !important;
+            -webkit-user-select: text !important;
         }
 
         .reader-btn {

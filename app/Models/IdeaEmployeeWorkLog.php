@@ -16,7 +16,13 @@ class IdeaEmployeeWorkLog extends Model
         'employee_id',
         'entry_type',
         'log_date',
+        'print_date',
         'book_title',
+        'printed_quantity',
+        'received_quantity',
+        'delivered_quantity',
+        'incomplete_quantity',
+        'wastage_quantity',
         'quantity',
         'unit_rate',
         'unit_name',
@@ -30,11 +36,17 @@ class IdeaEmployeeWorkLog extends Model
     ];
 
     protected $casts = [
-        'log_date'      => 'date',
-        'quantity'      => 'decimal:2',
-        'unit_rate'     => 'decimal:2',
-        'earned_amount' => 'decimal:2',
-        'paid_amount'   => 'decimal:2',
+        'log_date'            => 'date',
+        'print_date'          => 'date',
+        'printed_quantity'    => 'decimal:2',
+        'received_quantity'   => 'decimal:2',
+        'delivered_quantity'  => 'decimal:2',
+        'incomplete_quantity' => 'decimal:2',
+        'wastage_quantity'    => 'decimal:2',
+        'quantity'            => 'decimal:2',
+        'unit_rate'           => 'decimal:2',
+        'earned_amount'       => 'decimal:2',
+        'paid_amount'         => 'decimal:2',
     ];
 
     public function employee(): BelongsTo

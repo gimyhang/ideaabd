@@ -175,8 +175,28 @@
         text-align: justify;
         text-justify: inter-word;
         font-family: {!! $custFont !!};
+        user-select: none !important;
+        -webkit-user-select: none !important;
+        -moz-user-select: none !important;
+        -ms-user-select: none !important;
+    }
+    /* Whitelist titles, links, book names, inputs to remain freely copyable */
+    .allow-copy, 
+    .book-title, 
+    .lit-title, 
+    .post-title, 
+    h1, h2.lit-title, 
+    a, 
+    a *, 
+    input, 
+    textarea, 
+    .copy-link-btn, 
+    .share-btn, 
+    .book-card, 
+    .btn {
         user-select: text !important;
         -webkit-user-select: text !important;
+        -moz-user-select: text !important;
     }
     .article-content p {
         margin-bottom: {{ $custParaMargin }};
@@ -1492,5 +1512,33 @@
             submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> <span>মন্তব্য পোস্ট করুন</span>';
         }
     }
+
+    // Content Copy Restriction Protection (Allowing titles & links)
+    document.addEventListener('DOMContentLoaded', function() {
+        const protectedAreas = document.querySelectorAll('.article-content, #readingModeOverlay .reading-mode-content');
+        
+        protectedAreas.forEach(area => {
+            area.addEventListener('copy', function(e) {
+                // Check if the copied selection is inside an allowed copy element
+                const selection = window.getSelection();
+                if (selection && selection.anchorNode) {
+                    const parent = selection.anchorNode.parentElement;
+                    if (parent && (parent.closest('a') || parent.closest('.allow-copy') || parent.closest('.lit-title') || parent.closest('h1') || parent.closest('input') || parent.closest('textarea'))) {
+                        return; // Allow copying
+                    }
+                }
+                e.preventDefault();
+                showToast('কপিরাইট সংরক্ষিত — মূল লেখার টেক্সট কপি সুরক্ষিত। তবে বইয়ের নাম ও লিংক কপি করতে পারেন।', 'fa-solid fa-shield-halved text-warning');
+            });
+
+            area.addEventListener('contextmenu', function(e) {
+                if (e.target.closest('a') || e.target.closest('button') || e.target.closest('input') || e.target.closest('.allow-copy')) {
+                    return; // Allow normal right-click for links and controls
+                }
+                e.preventDefault();
+                showToast('কপিরাইট সংরক্ষিত — আইডিয়া প্রকাশন', 'fa-solid fa-shield-halved text-warning');
+            });
+        });
+    });
 </script>
 @endsection

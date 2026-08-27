@@ -379,6 +379,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::put('/employees/{employee}', 'updateEmployee')->name('employees.update');
         Route::delete('/employees/{employee}', 'destroyEmployee')->name('employees.destroy');
         Route::get('/employees/{employee}/ledger', 'employeeLedger')->name('employees.ledger');
+        Route::get('/employees/{employee}/work-logs', 'employeeLedger')->name('employees.work-logs.index');
         Route::post('/employees/{employee}/work-logs', 'storeWorkLog')->name('employees.work-logs.store');
         Route::delete('/employees/work-logs/{workLog}', 'destroyWorkLog')->name('employees.work-logs.destroy');
 
