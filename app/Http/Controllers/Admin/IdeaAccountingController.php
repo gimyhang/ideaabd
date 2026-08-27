@@ -346,7 +346,7 @@ class IdeaAccountingController extends Controller
 
                 $discount = (float) ($validated['discount'] ?? 0);
                 $tax = (float) ($validated['tax'] ?? 0);
-                $grandTotal = max(0, $subtotal - discount + $tax);
+                $grandTotal = max(0, $subtotal - $discount + $tax);
                 $paid = (float) ($validated['paid_amount'] ?? 0);
                 $due = max(0, $grandTotal - $paid);
 

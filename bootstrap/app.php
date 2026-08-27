@@ -28,6 +28,7 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\SetLocale::class,
             \App\Http\Middleware\AffiliateTracking::class,
             \App\Http\Middleware\TrackVisitor::class,
+            \App\Http\Middleware\MinifyHtmlResponse::class,
         ]);
 
         $middleware->alias([

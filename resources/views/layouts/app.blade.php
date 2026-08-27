@@ -460,18 +460,13 @@
         </div>
     </div>
 
+    <!-- 0x7FA3 0x9B12 0x3F88 0x0119 0xEE43 0x889A 0x33B1 0x778A 0x22C9 0xFA4B 0x8801 0x5D3E 0x992B 0x71AF 0x44BC 0x110E -->
+    <!-- [IDEA-PROKASHON-ENCRYPTED-SECURITY-STREAM-V2.6] 9f8a88c3d10e55b729a4c8e71b2390ff5b0981aa7c3d42e1 -->
+    <!-- 01001001 01000100 01000101 01000001 00100000 01010000 01010010 01001111 01001011 01000001 01010011 01001000 01001111 01001110 -->
+
     {{-- Inspect Element, Page Source Protection & Copy Claim Attribution Engine --}}
     <script>
         (function() {
-            // 1. Disable Right Click Context Menu (Except input/textarea for accessibility)
-            document.addEventListener('contextmenu', function(e) {
-                var targetTag = e.target.tagName.toLowerCase();
-                if (targetTag !== 'input' && targetTag !== 'textarea' && !e.target.isContentEditable) {
-                    e.preventDefault();
-                    showProtectionToast('ডান পাশের ক্লিক (Right-Click) ও ইন্সপেক্ট বন্ধ রাখা হয়েছে।');
-                    return false;
-                }
-            });
 
             // 2. Disable Keyboard Shortcuts (F12, View Source Ctrl+U, Inspect Ctrl+Shift+I/J/C, Save Ctrl+S)
             document.addEventListener('keydown', function(e) {
@@ -541,15 +536,15 @@
                 }
             });
 
-            // 4. Developer Console Warning
+            // 4. Developer Console Warning & Obfuscated Security Stream
             try {
                 console.log(
-                    "%c🛑 সাবধান! STOP!",
-                    "color: #ef4444; font-size: 36px; font-weight: 900; -webkit-text-stroke: 1px black;"
+                    "%c🛑 সাবধান! STOP! | 0x7FA3 0x9B12 0x3F88 0x0119 0xEE43 0x889A",
+                    "color: #ef4444; font-size: 26px; font-weight: 900; -webkit-text-stroke: 1px black;"
                 );
                 console.log(
-                    "%cএটি আইডিয়া প্রকাশনের কপিরাইট ও মেধাস্বত্ব দ্বারা সুরক্ষিত ডিজিটাল প্ল্যাটফর্ম।\nঅনুমতি ব্যতীত সোর্স কোড দেখা, স্ক্র্যাপিং বা অননুমোদিত ব্যবহারের অপচেষ্টা আইনত দণ্ডনীয়।\n© Idea Prokashon | https://www.ideaabd.com",
-                    "color: #0284c7; font-size: 14px; font-weight: bold;"
+                    "%c[SECURITY-HASH: 9f8a88c3d10e55b729a4c8e71b2390ff5b0981aa7c3d42e1]\n[DATA-STREAM: 0x22C9 0xFA4B 0x8801 0x5D3E 0x992B 0x71AF 0x44BC 0x110E]\nএটি আইডিয়া প্রকাশনের কপিরাইট ও মেধাস্বত্ব দ্বারা সুরক্ষিত ডিজিটাল প্ল্যাটফর্ম।\nঅনুমতি ব্যতীত সোর্স কোড দেখা, স্ক্র্যাপিং বা অননুমোদিত ব্যবহারের অপচেষ্টা আইনত দণ্ডনীয়।\n© Idea Prokashon | https://www.ideaabd.com",
+                    "color: #0284c7; font-size: 13px; font-weight: bold;"
                 );
             } catch(err){}
 
