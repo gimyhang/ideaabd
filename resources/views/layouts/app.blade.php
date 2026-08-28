@@ -509,7 +509,20 @@
 
             // 3. Smart Copy Attribution & Copyright Claim Appender
             document.addEventListener('copy', function(e) {
-                var selection = window.getSelection().toString();
+                var selObj = window.getSelection();
+                var selection = selObj ? selObj.toString() : '';
+                
+                // Do not intercept if copying from inputs, textareas, comments, or interactive widgets
+                if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable || e.target.closest('#blogCommentsListContainer') || e.target.closest('.blog-comments-card') || e.target.closest('.allow-normal-copy'))) {
+                    return; // Normal clean copy without attribution
+                }
+
+                if (selObj && selObj.anchorNode && selObj.anchorNode.parentElement) {
+                    if (selObj.anchorNode.parentElement.closest('#blogCommentsListContainer') || selObj.anchorNode.parentElement.closest('.blog-comments-card')) {
+                        return; // Normal clean copy for comments
+                    }
+                }
+
                 if (selection && selection.length > 5) {
                     var pageTitle = document.title || 'আইডিয়া প্রকাশন';
                     var pageUrl = window.location.href;

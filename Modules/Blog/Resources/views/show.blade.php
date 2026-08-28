@@ -1,11 +1,19 @@
 @extends('layouts.app')
 
 @php
+    $authorRecord = $post->resolveAuthorRecord();
+    $authorName = $post->author_name ?: ($authorRecord?->name ?: 'সম্পাদকীয় বিভাগ');
+    $ogAuthor = $authorName ?: 'আইডিয়া প্রকাশন';
+
+    $authorAvatarUrl = $authorRecord?->avatar_url ?: ($post->author?->avatar ? (str_starts_with($post->author->avatar, 'http') ? $post->author->avatar : asset('storage/' . ltrim($post->author->avatar, '/'))) : null);
+    $authorInitials = $authorRecord ? $authorRecord->initials : mb_substr($authorName, 0, 1);
+    $authorBgColor = $authorRecord ? $authorRecord->avatar_bg_color : 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)';
+    $authorUrl = $authorRecord ? route('authors.show', $authorRecord->slug ?: $authorRecord->id) : route('authors.index') . '?search=' . urlencode($authorName);
+
     $ogCover = $post->cover_url ?: ($post->featured_image ? (str_starts_with($post->featured_image, 'http') ? $post->featured_image : asset('storage/' . ltrim($post->featured_image, '/'))) : asset('images/logo.svg'));
     $rawPostContent = html_entity_decode((string)$post->content, ENT_QUOTES | ENT_HTML5, 'UTF-8');
     $cleanPlainText = trim(strip_tags($rawPostContent));
     $ogDesc = !empty($post->subtitle) ? $post->subtitle : (!empty($post->excerpt) ? $post->excerpt : Str::limit($cleanPlainText, 180));
-    $ogAuthor = $post->author_name ?: 'আইডিয়া প্রকাশন';
 
     // Dynamic Word Count & Reading Time
     $charCount = mb_strlen($cleanPlainText, 'UTF-8');
@@ -167,7 +175,8 @@
         font-family: 'Kalpurush', 'Nikosh', Georgia, 'SolaimanLipi', serif;
     }
 
-    .article-content {
+    /* Content Protection: user-select none strictly for article text */
+    #articleBody, .article-content {
         font-size: {{ $custFontSize }};
         line-height: {{ $custLineHeight }};
         color: #1e293b;
@@ -179,13 +188,22 @@
         -webkit-user-select: none !important;
         -moz-user-select: none !important;
         -ms-user-select: none !important;
+        -webkit-touch-callout: none !important;
     }
-    /* Whitelist titles, links, book names, inputs to remain freely copyable */
-    .allow-copy, 
-    .book-title, 
+    /* Whitelist comments, titles, author details, sidebars, links, inputs to remain freely copyable and selectable */
+    body, 
+    .lit-book-sheet header, 
     .lit-title, 
     .post-title, 
-    h1, h2.lit-title, 
+    h1, h2, h3, h4, h5, h6, 
+    #blogCommentsListContainer, 
+    #blogCommentsListContainer *, 
+    .card, 
+    .card *, 
+    .sidebar-recent-item, 
+    .sidebar-recent-item *, 
+    .allow-copy, 
+    .allow-normal-copy, 
     a, 
     a *, 
     input, 
@@ -193,7 +211,9 @@
     .copy-link-btn, 
     .share-btn, 
     .book-card, 
-    .btn {
+    .btn, 
+    .breadcrumb, 
+    .breadcrumb * {
         user-select: text !important;
         -webkit-user-select: text !important;
         -moz-user-select: text !important;
@@ -246,31 +266,54 @@
 
     /* Reading Controls Toolbar */
     .lit-reading-bar {
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(10px);
+        background: rgba(255, 255, 255, 0.98);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
         border: 1px solid #e2e8f0;
         border-radius: 50rem;
         padding: 5px 12px;
-        box-shadow: 0 4px 18px rgba(0,0,0,0.06);
-    }
-
-    /* Audio Player Pill */
-    .tts-player-pill {
-        background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
-        color: #ffffff;
-        border-radius: 50rem;
-        padding: 4px 12px;
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.05);
         display: inline-flex;
         align-items: center;
+        flex-wrap: wrap;
         gap: 6px;
-        font-size: 0.82rem;
+    }
+
+    /* High-Contrast Audio Player Pill */
+    .tts-player-pill {
+        background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+        color: #ffffff !important;
+        border-radius: 50rem;
+        padding: 5px 15px 5px 10px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.88rem;
+        font-weight: 700;
         cursor: pointer;
         border: none;
-        transition: all 0.2s ease;
+        box-shadow: 0 2px 10px rgba(2, 132, 199, 0.35);
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        line-height: 1.3;
+        min-height: 34px;
+    }
+    .tts-player-pill i, .tts-player-pill #ttsIcon {
+        font-size: 1.30rem !important;
+        line-height: 1;
+        color: #ffffff;
+        transition: transform 0.2s ease;
     }
     .tts-player-pill:hover {
-        opacity: 0.92;
+        background: linear-gradient(135deg, #0369a1 0%, #075985 100%);
         transform: translateY(-1px);
+        box-shadow: 0 4px 14px rgba(2, 132, 199, 0.45);
+    }
+    .tts-player-pill:hover i {
+        transform: scale(1.12);
+    }
+    .tts-player-pill.is-playing {
+        background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+        box-shadow: 0 2px 10px rgba(217, 119, 6, 0.4);
     }
     .tts-wave-bar {
         width: 3px;
@@ -285,6 +328,78 @@
     @keyframes ttsWave {
         0%, 100% { transform: scaleY(0.5); }
         50% { transform: scaleY(1.3); }
+    }
+
+    /* Toolbar Action Buttons */
+    .lit-tool-btn {
+        width: 30px;
+        height: 30px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        border: 1px solid #e2e8f0;
+        background: #f8fafc;
+        color: #475569;
+        font-size: 0.8rem;
+        padding: 0;
+        transition: all 0.18s ease;
+    }
+    .lit-tool-btn:hover {
+        background: #f1f5f9;
+        color: #0f172a;
+        border-color: #cbd5e1;
+        transform: translateY(-1px);
+    }
+
+    /* Sidebar Recent Posts Layout */
+    .sidebar-recent-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 6px 8px;
+        border-radius: 12px;
+        transition: all 0.2s ease;
+        text-decoration: none !important;
+        min-width: 0;
+    }
+    .sidebar-recent-item:hover {
+        background: #f8fafc;
+        transform: translateX(3px);
+    }
+    .sidebar-recent-thumb {
+        width: 72px;
+        height: 52px;
+        flex-shrink: 0;
+        border-radius: 8px;
+        overflow: hidden;
+        background: #f1f5f9;
+        border: 1px solid #e2e8f0;
+    }
+    .sidebar-recent-info {
+        flex: 1 1 auto;
+        min-width: 0;
+        overflow: hidden;
+    }
+    .sidebar-recent-title {
+        font-size: 0.86rem;
+        font-weight: 600;
+        line-height: 1.4;
+        color: #1e293b;
+        margin-bottom: 3px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        word-break: break-word;
+    }
+    .sidebar-recent-date {
+        font-size: 0.72rem;
+        color: #64748b;
+        display: flex;
+        align-items: center;
+        gap: 4px;
     }
 
     /* Print Specific Styles */
@@ -381,7 +496,7 @@
         <div class="lit-reading-bar d-flex flex-wrap align-items-center gap-2">
             {{-- Audio TTS Player --}}
             <button type="button" class="tts-player-pill" id="ttsToggleBtn" onclick="toggleArticleAudio()" title="লেখাটি স্বয়ংক্রিয় কণ্ঠে শুনুন">
-                <i class="fa-solid fa-volume-high" id="ttsIcon"></i>
+                <i class="fa-solid fa-circle-play" id="ttsIcon"></i>
                 <span id="ttsBtnLabel">পাঠ শুনুন</span>
                 <span id="ttsWaveAnimation" class="d-none ms-1">
                     <span class="tts-wave-bar"></span>
@@ -390,20 +505,20 @@
                 </span>
             </button>
 
-            <div class="vr my-1 d-none d-sm-block"></div>
+            <div class="vr my-1 d-none d-sm-block text-secondary opacity-25"></div>
 
             {{-- Font Sizing --}}
-            <button type="button" class="btn btn-sm btn-light rounded-circle p-0 d-flex align-items-center justify-content-center" style="width: 28px; height: 28px;" onclick="adjustFontSize(-1)" title="ফন্ট ছোট করুন">
+            <button type="button" class="lit-tool-btn" onclick="adjustFontSize(-1)" title="ফন্ট ছোট করুন">
                 <span style="font-size: 0.75rem;">A-</span>
             </button>
-            <button type="button" class="btn btn-sm btn-light rounded-circle p-0 d-flex align-items-center justify-content-center" style="width: 28px; height: 28px;" onclick="adjustFontSize(1)" title="ফন্ট বড় করুন">
-                <span style="font-size: 0.85rem; font-weight: bold;">A+</span>
+            <button type="button" class="lit-tool-btn fw-bold" onclick="adjustFontSize(1)" title="ফন্ট বড় করুন">
+                <span style="font-size: 0.85rem;">A+</span>
             </button>
 
             {{-- Font Family Dropdown --}}
             <div class="dropdown d-inline-block">
-                <button class="btn btn-sm btn-light rounded-pill px-2 py-1 text-muted dropdown-toggle" type="button" data-bs-toggle="dropdown" title="বাংলা ফন্ট পরিবর্তন করুন">
-                    <i class="fa-solid fa-font text-secondary"></i>
+                <button class="lit-tool-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" title="বাংলা ফন্ট পরিবর্তন করুন">
+                    <i class="fa-solid fa-font"></i>
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 small">
                     <li><h6 class="dropdown-header small text-muted">পছন্দের বাংলা ফন্ট</h6></li>
@@ -416,7 +531,7 @@
 
             {{-- Theme Modes: Day / Sepia / Dark --}}
             <div class="dropdown d-inline-block">
-                <button class="btn btn-sm btn-light rounded-pill px-2 py-1 text-muted dropdown-toggle" type="button" data-bs-toggle="dropdown" title="পড়ার ব্যাকগ্রাউন্ড কালার">
+                <button class="lit-tool-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" title="পড়ার ব্যাকগ্রাউন্ড কালার">
                     <i class="fa-solid fa-circle-half-stroke text-warning" id="themeIcon"></i>
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 small">
@@ -427,23 +542,23 @@
             </div>
 
             {{-- Bookmark --}}
-            <button type="button" class="btn btn-sm btn-light rounded-pill px-2 py-1 text-muted" id="bookmarkBtn" onclick="toggleBookmarkArticle()" title="বুকমার্ক / সংরক্ষণ করুন">
+            <button type="button" class="lit-tool-btn" id="bookmarkBtn" onclick="toggleBookmarkArticle()" title="বুকমার্ক / সংরক্ষণ করুন">
                 <i class="fa-regular fa-bookmark" id="bookmarkIcon"></i>
             </button>
 
             {{-- Print / PDF --}}
-            <button type="button" class="btn btn-sm btn-light rounded-pill px-2.5 py-1 text-dark fw-semibold" onclick="window.print()" title="প্রিন্ট করুন বা PDF হিসেবে সংরক্ষণ করুন">
-                <i class="fa-solid fa-print text-primary me-1"></i><span class="d-none d-sm-inline">প্রিন্ট</span>
+            <button type="button" class="btn btn-sm btn-light border rounded-pill px-2.5 py-1 text-dark fw-semibold d-inline-flex align-items-center gap-1 shadow-2xs" style="height: 30px; font-size: 0.8rem;" onclick="window.print()" title="প্রিন্ট করুন বা PDF হিসেবে সংরক্ষণ করুন">
+                <i class="fa-solid fa-print text-primary"></i><span class="d-none d-sm-inline">প্রিন্ট</span>
             </button>
 
             {{-- Copy Link --}}
-            <button type="button" class="btn btn-sm btn-light rounded-pill px-2 py-1 text-muted" onclick="copyArticleLink()" title="লিংক কপি করুন">
+            <button type="button" class="lit-tool-btn" onclick="copyArticleLink()" title="লিংক কপি করুন">
                 <i class="fa-solid fa-link"></i>
             </button>
         </div>
     </div>
 
-    <div class="row g-4">
+    <div class="row g-4 g-lg-5">
         <!-- Main Reading Column -->
         <div class="col-lg-8">
             <!-- Book Sheet Reading Card -->
@@ -487,23 +602,32 @@
                         {{ $post->title }}
                     </h1>
 
-                    @if($post->subtitle)
+                    @php
+                        $cleanSub = trim(mb_strtolower($post->subtitle ?? ''));
+                        $cleanTitle = trim(mb_strtolower($post->title ?? ''));
+                    @endphp
+                    @if(!empty($post->subtitle) && $cleanSub !== $cleanTitle)
                         <div class="fs-6 text-secondary mb-3 fst-italic fw-normal d-flex align-items-center gap-1.5" style="font-family: 'Kalpurush', 'Nikosh', 'SolaimanLipi', Georgia, serif; line-height: 1.6;">
                             <i class="fa-solid fa-feather text-primary opacity-50"></i>
                             <span>{{ $post->subtitle }}</span>
                         </div>
                     @endif
 
-                    {{-- Author Details Linked to Author Directory & Exact Publish Date/Time --}}
-                    @php
-                        $authorName = $post->author_name ?: 'সম্পাদকীয় বিভাগ';
-                        $authorSearchUrl = route('authors.index') . '?search=' . urlencode($authorName);
-                    @endphp
+                    {{-- Author Details Linked to Author Profile / Directory & Exact Publish Date/Time --}}
                     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 text-muted small py-3 my-3 border-top border-bottom" style="background: rgba(0,0,0,0.015); border-color: #e2e8f0 !important;">
                         <div class="d-flex align-items-center gap-2.5">
-                            <a href="{{ $authorSearchUrl }}" class="d-flex align-items-center gap-2 text-decoration-none text-dark hover-primary" title="লেখকের প্রোফাইল ও সকল বই দেখুন">
-                                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold shadow-sm" style="width: 42px; height: 42px; font-size: 1.05rem;">
-                                    {{ mb_substr($authorName, 0, 1) }}
+                            <a href="{{ $authorUrl }}" class="d-flex align-items-center gap-2.5 text-decoration-none text-dark hover-primary" title="লেখকের প্রোফাইল ও সকল বই দেখুন">
+                                <div class="position-relative flex-shrink-0" style="width: 44px; height: 44px;">
+                                    @if($authorAvatarUrl)
+                                        <img src="{{ $authorAvatarUrl }}" alt="{{ $authorName }}" class="rounded-circle object-fit-cover shadow-sm w-100 h-100 border" onerror="this.style.display='none'; this.nextElementSibling.classList.remove('d-none');">
+                                        <div class="rounded-circle text-white d-none align-items-center justify-content-center fw-bold shadow-sm w-100 h-100" style="font-size: 1.05rem; background: {{ $authorBgColor }};">
+                                            {{ $authorInitials }}
+                                        </div>
+                                    @else
+                                        <div class="rounded-circle text-white d-flex align-items-center justify-content-center fw-bold shadow-sm w-100 h-100" style="font-size: 1.05rem; background: {{ $authorBgColor }};">
+                                            {{ $authorInitials }}
+                                        </div>
+                                    @endif
                                 </div>
                                 <div>
                                     <span class="fw-bold text-dark d-block" style="font-size: 0.98rem;">
@@ -1048,17 +1172,26 @@
                 
                 {{-- Author Profile Widget --}}
                 <div class="card p-4 border-0 shadow-sm rounded-4 bg-white text-center">
-                    <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold shadow-sm mx-auto mb-2.5" style="width: 64px; height: 64px; font-size: 1.5rem;">
-                        {{ mb_substr($authorName, 0, 1) }}
+                    <div class="mx-auto mb-3 position-relative" style="width: 72px; height: 72px;">
+                        @if($authorAvatarUrl)
+                            <img src="{{ $authorAvatarUrl }}" alt="{{ $authorName }}" class="rounded-circle object-fit-cover shadow-sm w-100 h-100 border border-2 border-primary-subtle" onerror="this.style.display='none'; this.nextElementSibling.classList.remove('d-none');">
+                            <div class="rounded-circle text-white d-none align-items-center justify-content-center fw-bold shadow-sm w-100 h-100" style="font-size: 1.6rem; background: {{ $authorBgColor }};">
+                                {{ $authorInitials }}
+                            </div>
+                        @else
+                            <div class="rounded-circle text-white d-flex align-items-center justify-content-center fw-bold shadow-sm w-100 h-100" style="font-size: 1.6rem; background: {{ $authorBgColor }};">
+                                {{ $authorInitials }}
+                            </div>
+                        @endif
                     </div>
                     <h6 class="fw-bold text-dark mb-1">
                         {{ $authorName }}
-                        <i class="fa-solid fa-circle-check text-primary ms-1" style="font-size: 0.85rem;" title="ভেরিফাইড লেখক"></i>
+                        <i class="fa-solid fa-circle-check text-primary ms-1" style="font-size: 0.85rem;" title="ভেরিফاید লেখক"></i>
                     </h6>
                     <p class="text-muted small mb-3">আইডিয়া সাহিত্যপত্র লেখক ও গবেষক</p>
                     <div class="d-flex justify-content-center gap-2">
-                        <a href="{{ $authorSearchUrl }}" class="btn btn-outline-primary btn-sm rounded-pill px-3.5 fw-bold shadow-xs">
-                            <i class="fa-solid fa-user-pen me-1.5"></i> লেখকের বই ও লেখা
+                        <a href="{{ $authorUrl }}" class="btn btn-outline-primary btn-sm rounded-pill px-3.5 fw-bold shadow-xs">
+                            <i class="fa-solid fa-user-pen me-1.5"></i> লেখকের বই ও প্রোফাইল
                         </a>
                     </div>
                 </div>
@@ -1080,21 +1213,22 @@
                             <i class="fa-solid fa-fire text-danger"></i>
                             <span>সাম্প্রতিক সাহিত্যকর্ম</span>
                         </h6>
-                        <div class="d-flex flex-column gap-3">
+                        <div class="d-flex flex-column gap-2.5">
                             @foreach($sidebarPosts as $sPost)
-                                <a href="{{ route('blog.show', $sPost->slug) }}" class="text-decoration-none d-flex gap-2.5 align-items-center group hover-lift">
-                                    <div class="rounded-3 overflow-hidden flex-shrink-0" style="width: 65px; height: 50px; background: #e2e8f0;">
+                                <a href="{{ route('blog.show', $sPost->slug) }}" class="sidebar-recent-item group">
+                                    <div class="sidebar-recent-thumb">
                                         @php $sImg = $sPost->featured_image; @endphp
                                         @if($sImg)
-                                            <img src="{{ str_starts_with($sImg, 'http') ? $sImg : (str_starts_with($sImg, 'storage/') ? asset($sImg) : asset('storage/' . $sImg)) }}" class="w-100 h-100 object-fit-cover">
+                                            <img src="{{ str_starts_with($sImg, 'http') ? $sImg : (str_starts_with($sImg, 'storage/') ? asset($sImg) : asset('storage/' . $sImg)) }}" class="w-100 h-100 object-fit-cover" alt="{{ $sPost->title }}">
                                         @else
-                                            <div class="w-100 h-100 d-flex align-items-center justify-content-center text-muted" style="font-size: 0.8rem;">📖</div>
+                                            <div class="w-100 h-100 d-flex align-items-center justify-content-center text-muted" style="font-size: 0.85rem;">📖</div>
                                         @endif
                                     </div>
-                                    <div class="flex-grow-1 overflow-hidden">
-                                        <h6 class="fw-bold text-dark mb-1 line-clamp-2" style="font-size: 0.85rem; line-height: 1.35;">{{ $sPost->title }}</h6>
-                                        <span class="text-muted small" style="font-size: 0.72rem;">
-                                            <i class="fa-regular fa-calendar me-1"></i>{{ $sPost->published_at ? $sPost->published_at->format('d M, Y') : ($sPost->created_at ? $sPost->created_at->format('d M, Y') : '') }}
+                                    <div class="sidebar-recent-info">
+                                        <h6 class="sidebar-recent-title" title="{{ $sPost->title }}">{{ $sPost->title }}</h6>
+                                        <span class="sidebar-recent-date">
+                                            <i class="fa-regular fa-calendar text-primary"></i>
+                                            <span>{{ $sPost->published_at ? $sPost->published_at->format('d M, Y') : ($sPost->created_at ? $sPost->created_at->format('d M, Y') : '') }}</span>
                                         </span>
                                     </div>
                                 </a>
@@ -1175,58 +1309,219 @@
         }
     }
 
-    // 3. Audio Reader (Text-to-Speech)
+    // 3. Audio Reader (Text-to-Speech Streaming Chunked Engine)
     let isSpeaking = false;
     let synth = window.speechSynthesis;
-    let utterance = null;
+    let speechChunks = [];
+    let currentChunkIndex = 0;
+    let ttsHeartbeat = null;
+    let activeUtterance = null;
+    let bengaliVoice = null;
 
-    function toggleArticleAudio() {
-        if (!synth) {
-            showToast('আপনার ব্রাউজারে অডিও স্পিচ সাপোর্ট নেই।', 'fa-solid fa-triangle-exclamation text-warning');
-            return;
+    function initTTSVoices() {
+        if (!synth) return;
+        try {
+            const voices = synth.getVoices() || [];
+            bengaliVoice = voices.find(v => (v.lang && v.lang.toLowerCase().startsWith('bn')) || (v.name && (v.name.toLowerCase().includes('bangla') || v.name.toLowerCase().includes('bengali')))) || null;
+        } catch (err) {}
+    }
+
+    if (synth) {
+        initTTSVoices();
+        if (speechSynthesis.onvoiceschanged !== undefined) {
+            speechSynthesis.onvoiceschanged = initTTSVoices;
+        }
+    }
+
+    function splitTextIntoSentences(text, maxChunkLen = 120) {
+        if (!text) return [];
+        const clean = text.replace(/[\r\n\t]+/g, ' ').replace(/\s+/g, ' ').trim();
+        const rawPieces = clean.split(/([।!?؛;\n\r]+|\.\s+)/);
+        const chunks = [];
+        let cur = '';
+
+        for (let i = 0; i < rawPieces.length; i++) {
+            const piece = rawPieces[i] ? rawPieces[i].trim() : '';
+            if (!piece) continue;
+
+            if ((cur + ' ' + piece).length <= maxChunkLen) {
+                cur = cur ? (cur + ' ' + piece) : piece;
+            } else {
+                if (cur) chunks.push(cur);
+                if (piece.length > maxChunkLen) {
+                    const words = piece.split(' ');
+                    let sub = '';
+                    for (const w of words) {
+                        if ((sub + ' ' + w).length <= maxChunkLen) {
+                            sub = sub ? (sub + ' ' + w) : w;
+                        } else {
+                            if (sub) chunks.push(sub);
+                            sub = w;
+                        }
+                    }
+                    if (sub) chunks.push(sub);
+                    cur = '';
+                } else {
+                    cur = piece;
+                }
+            }
+        }
+        if (cur) chunks.push(cur);
+        return chunks.filter(c => c.length > 0);
+    }
+
+    function stopArticleAudio(showNotice = true) {
+        if (ttsHeartbeat) {
+            clearInterval(ttsHeartbeat);
+            ttsHeartbeat = null;
+        }
+        isSpeaking = false;
+        speechChunks = [];
+        currentChunkIndex = 0;
+        activeUtterance = null;
+        window._activeTTSUtterance = null;
+
+        if (synth) {
+            try { synth.cancel(); } catch (e) {}
         }
 
+        const btn = document.getElementById('ttsToggleBtn');
         const label = document.getElementById('ttsBtnLabel');
         const icon = document.getElementById('ttsIcon');
         const wave = document.getElementById('ttsWaveAnimation');
 
-        if (isSpeaking) {
-            synth.cancel();
-            isSpeaking = false;
-            if (label) label.textContent = 'পাঠ শুনুন';
-            if (icon) icon.className = 'fa-solid fa-volume-high';
-            if (wave) wave.classList.add('d-none');
-            showToast('অডিও পাঠ বন্ধ করা হয়েছে।', 'fa-solid fa-circle-pause text-secondary');
-        } else {
-            const articleEl = document.getElementById('articleBody');
-            const textToRead = (document.querySelector('.lit-title') ? document.querySelector('.lit-title').textContent + '. ' : '') + (articleEl ? articleEl.textContent : '');
-            
-            utterance = new SpeechSynthesisUtterance(textToRead.trim());
-            utterance.lang = 'bn-BD';
-            utterance.rate = 0.95;
+        if (btn) btn.classList.remove('is-playing');
+        if (label) label.textContent = 'পাঠ শুনুন';
+        if (icon) icon.className = 'fa-solid fa-circle-play fs-5';
+        if (wave) wave.classList.add('d-none');
 
-            utterance.onend = function() {
-                isSpeaking = false;
-                if (label) label.textContent = 'পাঠ শুনুন';
-                if (icon) icon.className = 'fa-solid fa-volume-high';
-                if (wave) wave.classList.add('d-none');
-            };
-
-            utterance.onerror = function() {
-                isSpeaking = false;
-                if (label) label.textContent = 'পাঠ শুনুন';
-                if (icon) icon.className = 'fa-solid fa-volume-high';
-                if (wave) wave.classList.add('d-none');
-            };
-
-            synth.speak(utterance);
-            isSpeaking = true;
-            if (label) label.textContent = 'পাঠ চলছে...';
-            if (icon) icon.className = 'fa-solid fa-circle-pause text-warning';
-            if (wave) wave.classList.remove('d-none');
-            showToast('স্বয়ংক্রিয় কণ্ঠে পাঠ শুরু হয়েছে...', 'fa-solid fa-volume-high text-info');
+        if (showNotice) {
+            showToast('অডিও পাঠ বন্ধ করা হয়েছে।', 'fa-solid fa-circle-stop text-secondary');
         }
     }
+
+    function playNextTTSChunk() {
+        if (!isSpeaking || !synth) return;
+
+        if (currentChunkIndex >= speechChunks.length) {
+            stopArticleAudio(false);
+            showToast('সম্পূর্ণ লেখার পাঠ সম্পন্ন হয়েছে।', 'fa-solid fa-circle-check text-success');
+            return;
+        }
+
+        const chunkText = speechChunks[currentChunkIndex];
+        if (!chunkText || !chunkText.trim()) {
+            currentChunkIndex++;
+            playNextTTSChunk();
+            return;
+        }
+
+        // Global reference prevents browser garbage-collection bug
+        activeUtterance = new SpeechSynthesisUtterance(chunkText);
+        window._activeTTSUtterance = activeUtterance;
+        
+        if (bengaliVoice) {
+            activeUtterance.voice = bengaliVoice;
+        }
+        activeUtterance.lang = 'bn-BD';
+        activeUtterance.rate = 0.95;
+        activeUtterance.pitch = 1.0;
+
+        activeUtterance.onend = function() {
+            if (isSpeaking) {
+                currentChunkIndex++;
+                playNextTTSChunk();
+            }
+        };
+
+        activeUtterance.onerror = function(e) {
+            console.warn('TTS playback issue on chunk:', e);
+            if (isSpeaking) {
+                currentChunkIndex++;
+                playNextTTSChunk();
+            }
+        };
+
+        try {
+            synth.resume();
+            synth.speak(activeUtterance);
+        } catch (err) {
+            console.error('Speech synthesis speak error:', err);
+        }
+    }
+
+    function toggleArticleAudio() {
+        if (!('speechSynthesis' in window) || !synth) {
+            showToast('আপনার ব্রাউজারে অডিও স্পিচ সাপোর্ট পাওয়া যায়নি।', 'fa-solid fa-triangle-exclamation text-warning');
+            return;
+        }
+
+        if (isSpeaking) {
+            stopArticleAudio(true);
+        } else {
+            initTTSVoices();
+            const articleEl = document.getElementById('articleBody');
+            const titleEl = document.querySelector('.lit-title');
+            
+            let fullText = '';
+            if (titleEl) fullText += titleEl.textContent.trim() + '। ';
+            if (articleEl) {
+                const clone = articleEl.cloneNode(true);
+                clone.querySelectorAll('script, style, .no-print, button, iframe, noscript').forEach(n => n.remove());
+                fullText += clone.textContent.trim();
+            }
+
+            if (!fullText.trim()) {
+                showToast('পড়ার মতো পর্যাপ্ত লেখা পাওয়া যায়নি।', 'fa-solid fa-triangle-exclamation text-warning');
+                return;
+            }
+
+            speechChunks = splitTextIntoSentences(fullText, 120);
+            if (speechChunks.length === 0) {
+                showToast('অডিও প্রস্তুত করা সম্ভব হয়নি।', 'fa-solid fa-triangle-exclamation text-warning');
+                return;
+            }
+
+            currentChunkIndex = 0;
+            isSpeaking = true;
+
+            const btn = document.getElementById('ttsToggleBtn');
+            const label = document.getElementById('ttsBtnLabel');
+            const icon = document.getElementById('ttsIcon');
+            const wave = document.getElementById('ttsWaveAnimation');
+
+            if (btn) btn.classList.add('is-playing');
+            if (label) label.textContent = 'পাঠ থামান';
+            if (icon) icon.className = 'fa-solid fa-circle-pause fs-5 text-white';
+            if (wave) wave.classList.remove('d-none');
+
+            showToast('অডিও পাঠ শুরু হয়েছে...', 'fa-solid fa-volume-high text-primary');
+
+            // Heartbeat to prevent browser speech synthesis idle freeze
+            if (ttsHeartbeat) clearInterval(ttsHeartbeat);
+            ttsHeartbeat = setInterval(() => {
+                if (synth && isSpeaking) {
+                    try {
+                        synth.pause();
+                        synth.resume();
+                    } catch (e) {}
+                }
+            }, 8000);
+
+            try { synth.cancel(); } catch (e) {}
+            setTimeout(() => {
+                if (isSpeaking) {
+                    playNextTTSChunk();
+                }
+            }, 60);
+        }
+    }
+
+    window.addEventListener('beforeunload', () => {
+        if (isSpeaking && synth) {
+            try { synth.cancel(); } catch (e) {}
+        }
+    });
 
     // 4. Interactive Like Counter
     let articleLiked = localStorage.getItem('liked_post_{{ $post->id }}') === 'true';
@@ -1513,30 +1808,40 @@
         }
     }
 
-    // Content Copy Restriction Protection (Allowing titles & links)
+    // Content Copy, Cut, Select & ContextMenu Restriction Protection Strictly on Article Body Text
     document.addEventListener('DOMContentLoaded', function() {
-        const protectedAreas = document.querySelectorAll('.article-content, #readingModeOverlay .reading-mode-content');
-        
-        protectedAreas.forEach(area => {
+        const articleBody = document.getElementById('articleBody');
+        const readingBody = document.querySelector('#readingModeOverlay .reading-mode-content');
+        const protectedBlocks = [articleBody, readingBody].filter(Boolean);
+
+        protectedBlocks.forEach(area => {
+            // Prevent copying from published article body only
             area.addEventListener('copy', function(e) {
-                // Check if the copied selection is inside an allowed copy element
                 const selection = window.getSelection();
                 if (selection && selection.anchorNode) {
                     const parent = selection.anchorNode.parentElement;
-                    if (parent && (parent.closest('a') || parent.closest('.allow-copy') || parent.closest('.lit-title') || parent.closest('h1') || parent.closest('input') || parent.closest('textarea'))) {
-                        return; // Allow copying
+                    if (parent && (parent.closest('a') || parent.closest('.allow-copy') || parent.closest('input') || parent.closest('textarea') || parent.closest('button'))) {
+                        return; // Allow copying links/buttons inside article
                     }
                 }
                 e.preventDefault();
                 showToast('কপিরাইট সংরক্ষিত — মূল লেখার টেক্সট কপি সুরক্ষিত। তবে বইয়ের নাম ও লিংক কপি করতে পারেন।', 'fa-solid fa-shield-halved text-warning');
             });
 
+            // Prevent cutting inside article body
+            area.addEventListener('cut', function(e) {
+                if (e.target.closest('input') || e.target.closest('textarea')) return;
+                e.preventDefault();
+                showToast('কপিরাইট সংরক্ষিত — টেক্সট কাট করা নিষিদ্ধ।', 'fa-solid fa-shield-halved text-warning');
+            });
+
+            // Prevent right-click context menu on article body
             area.addEventListener('contextmenu', function(e) {
-                if (e.target.closest('a') || e.target.closest('button') || e.target.closest('input') || e.target.closest('.allow-copy')) {
-                    return; // Allow normal right-click for links and controls
+                if (e.target.closest('a') || e.target.closest('button') || e.target.closest('input') || e.target.closest('textarea') || e.target.closest('.allow-copy')) {
+                    return; // Allow normal right-click on links/buttons
                 }
                 e.preventDefault();
-                showToast('কপিরাইট সংরক্ষিত — আইডিয়া প্রকাশন', 'fa-solid fa-shield-halved text-warning');
+                showToast('কপিরাইট সংরক্ষিত — আইডিয়া সাহিত্যপত্র', 'fa-solid fa-shield-halved text-warning');
             });
         });
     });
