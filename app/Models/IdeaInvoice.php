@@ -153,6 +153,21 @@ class IdeaInvoice extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
+    public function getCreatorNameAttribute(): string
+    {
+        return $this->creator?->name ?? 'Admin / Authority';
+    }
+
+    public function getCreatorDesignationAttribute(): string
+    {
+        return $this->creator?->designation ?? 'বিল প্রস্তুতকারী / হিসাব কর্মকর্তা';
+    }
+
+    public function getCreatorDesignationEnAttribute(): string
+    {
+        return $this->creator?->designation_en ?? 'Authorized Signatory / Billing Officer';
+    }
+
     public function accountingEntries(): HasMany
     {
         return $this->hasMany(IdeaAccountingEntry::class, 'invoice_id');

@@ -17,7 +17,12 @@ class VisitorLog extends Model
         'device',
         'browser',
         'os',
+        'country',
+        'country_code',
+        'city',
         'referer',
+        'traffic_source',
+        'utm_source',
         'user_id',
         'visited_at',
     ];
@@ -29,5 +34,21 @@ class VisitorLog extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Get Emoji flag from country code.
+     */
+    public function getCountryFlagAttribute(): string
+    {
+        $code = strtoupper((string) ($this->country_code ?: 'BD'));
+        if (strlen($code) !== 2) {
+            return '🌐';
+        }
+        $flag = '';
+        foreach (str_split($code) as $char) {
+            $flag .= mb_chr(ord($char) + 127397, 'UTF-8');
+        }
+        return $flag;
     }
 }

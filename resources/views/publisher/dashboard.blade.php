@@ -612,10 +612,22 @@
                                             @endif
                                         </td>
                                         <td>
-                                            @if($b->is_active)
-                                                <span class="badge bg-success text-white px-2 py-0.5 rounded-pill" style="font-size: 10px;"><i class="fas fa-check-circle me-0.5"></i> Live</span>
+                                            @if($b->mod_status === 'pending')
+                                                <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2.5 py-1 rounded-pill fw-semibold" style="font-size: 10.5px;">
+                                                    <i class="fas fa-hourglass-half me-1"></i> অপেক্ষমান (Pending)
+                                                </span>
+                                            @elseif($b->mod_status === 'rejected')
+                                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2.5 py-1 rounded-pill fw-semibold" style="font-size: 10.5px;" title="{{ $b->rejection_reason ?? 'সংশোধন প্রয়োজন' }}" data-bs-toggle="tooltip">
+                                                    <i class="fas fa-circle-xmark me-1"></i> সংশোধন প্রয়োজন
+                                                </span>
+                                            @elseif($b->is_active)
+                                                <span class="badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1 rounded-pill fw-semibold" style="font-size: 10.5px;">
+                                                    <i class="fas fa-circle-check me-1"></i> অনুমোদিত (Live)
+                                                </span>
                                             @else
-                                                <span class="badge bg-secondary text-white px-2 py-0.5 rounded-pill" style="font-size: 10px;">Draft</span>
+                                                <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2.5 py-1 rounded-pill fw-semibold" style="font-size: 10.5px;">
+                                                    <i class="fas fa-pause me-1"></i> নিষ্ক্রিয় (Draft)
+                                                </span>
                                             @endif
                                         </td>
                                         <td class="text-end pe-3">
@@ -658,6 +670,16 @@
         {{-- ───────────────────────────────────────────────────────────────── --}}
         <div class="tab-pane fade {{ request('tab') === 'add-book' || $editBook ? 'show active' : '' }}" id="tab-add-book" role="tabpanel">
             
+            <div class="alert alert-primary bg-primary-subtle border-0 rounded-4 shadow-sm mb-4 p-3 d-flex align-items-center gap-3">
+                <div class="p-2.5 bg-white bg-opacity-75 rounded-circle text-primary fs-4 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px;">
+                    <i class="fas fa-shield-halved"></i>
+                </div>
+                <div>
+                    <h6 class="fw-bold text-dark mb-0.5"><i class="fas fa-circle-info text-primary me-1"></i> প্রকাশনা ও এডমিন মডারেশন পলিসি</h6>
+                    <p class="small text-muted mb-0">নতুন বই এন্ট্রি করার পর বা কোনো তথ্য পরিবর্তন করার পর বইটি সরাসরি এডমিন প্যানেলের <strong>অপেক্ষমান (Pending Review)</strong> তালিকায় সংরক্ষিত থাকবে। আইডিয়া প্রকাশন এডমিন টিম অনুমোদন (Approve) করলেই তা সাথে সাথে লাইভ শপে প্রকাশিত হবে।</p>
+                </div>
+            </div>
+
             <form method="POST" action="{{ $editBook ? route('publisher.books.update', $editBook->id) : route('publisher.books.store') }}" enctype="multipart/form-data" id="pubBookForm">
                 @csrf
                 @if($editBook)
@@ -1235,18 +1257,52 @@
                                     </div>
 
                                     {{-- Row 3: ৩. অমর একুশে বইমেলা ক্যাটাগরি (Ekushey Boimela Category / Year) --}}
+                                    @php
+                                        $pubCurrentBoimela = (string)old('ekushey_category', $editBook->ekushey_category ?? '');
+                                        $pubCurYear = (int)date('Y');
+                                        $pubBoimelaYears = range($pubCurYear + 4, 2020);
+                                        $pubStandardKeys = array_map(fn($y) => "boimela_{$y}", $pubBoimelaYears);
+                                        $pubStandardKeys[] = 'boimela_pavilion';
+                                        $pubStandardKeys[] = 'boimela_previous';
+                                        $pubIsCustom = !empty($pubCurrentBoimela) && !in_array($pubCurrentBoimela, $pubStandardKeys, true);
+                                    @endphp
                                     <div>
-                                        <label for="pubEkusheyCategory" class="form-label text-dark fw-bold mb-1" style="font-size: 11.5px;">
-                                            <i class="fas fa-monument text-danger me-1"></i> ৩. অমর একুশে বইমেলা ক্যাটাগরি
-                                        </label>
-                                        <select id="pubEkusheyCategory" name="ekushey_category" class="form-select form-select-sm rounded-3">
-                                            <option value="">— একুশে বইমেলা নির্বাচন করুন —</option>
-                                            <option value="boimela_2026" @selected(old('ekushey_category', $editBook->ekushey_category ?? '') === 'boimela_2026')>অমর একুশে বইমেলা ২০২৬</option>
-                                            <option value="boimela_2025" @selected(old('ekushey_category', $editBook->ekushey_category ?? '') === 'boimela_2025')>অমর একুশে বইমেলা ২০২৫</option>
-                                            <option value="boimela_2024" @selected(old('ekushey_category', $editBook->ekushey_category ?? '') === 'boimela_2024')>অমর একুশে বইমেলা ২০২৪</option>
-                                            <option value="boimela_previous" @selected(old('ekushey_category', $editBook->ekushey_category ?? '') === 'boimela_previous')>পূর্ববর্তী বইমেলাসমূহ</option>
-                                            <option value="boimela_pavilion" @selected(old('ekushey_category', $editBook->ekushey_category ?? '') === 'boimela_pavilion')>প্যাভিলিয়ন ও বিশেষ প্রদর্শনী</option>
+                                        <div class="d-flex align-items-center justify-content-between mb-1">
+                                            <label for="pubEkusheyCategorySelect" class="form-label text-dark fw-bold mb-0" style="font-size: 11.5px;">
+                                                <i class="fas fa-monument text-danger me-1"></i> ৩. অমর একুশে বইমেলা / ইভেন্ট
+                                            </label>
+                                            <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none text-primary fw-semibold" style="font-size: 10.5px;" onclick="togglePubCustomBoimela()">
+                                                <i class="fas fa-pen-to-square me-0.5"></i>কাস্টম ইভেন্ট
+                                            </button>
+                                        </div>
+                                        <select id="pubEkusheyCategorySelect" class="form-select form-select-sm rounded-3 {{ $pubIsCustom ? 'd-none' : '' }}" onchange="handlePubBoimelaSelect(this.value)">
+                                            <option value="">— একুশে বইমেলা / বছর নির্বাচন করুন —</option>
+                                            <optgroup label="── বছর অনুযায়ী অমর একুশে বইমেলা ──">
+                                                @foreach($pubBoimelaYears as $pYear)
+                                                    <option value="boimela_{{ $pYear }}" @selected($pubCurrentBoimela === "boimela_{$pYear}")>অমর একুশে বইমেলা {{ $pYear }}</option>
+                                                @endforeach
+                                            </optgroup>
+                                            <optgroup label="── বিশেষ ও পূর্ববর্তী ──">
+                                                <option value="boimela_pavilion" @selected($pubCurrentBoimela === 'boimela_pavilion')>প্যাভিলিয়ন ও বিশেষ প্রদর্শনী</option>
+                                                <option value="boimela_previous" @selected($pubCurrentBoimela === 'boimela_previous')>পূর্ববর্তী বইমেলাসমূহ</option>
+                                            </optgroup>
+                                            <option value="__custom__" @selected($pubIsCustom)>+ কাস্টম ইভেন্ট / অন্যান্য মেলা...</option>
                                         </select>
+
+                                        <div id="pubCustomBoimelaWrapper" class="{{ $pubIsCustom ? '' : 'd-none' }} mt-1">
+                                            <div class="input-group input-group-sm">
+                                                <input type="text" id="pubEkusheyCategoryCustom" 
+                                                       value="{{ $pubIsCustom ? $pubCurrentBoimela : '' }}" 
+                                                       class="form-control form-control-sm rounded-start-3" 
+                                                       placeholder="যেমন: বইমেলা ২০২৭ / ঢাকা লিট ফেস্ট ২০২৮"
+                                                       oninput="document.getElementById('pubEkusheyCategory').value = this.value.trim()">
+                                                <button type="button" class="btn btn-outline-secondary rounded-end-3" onclick="resetPubBoimelaToSelect()" title="তালিকায় ফিরে যান">
+                                                    <i class="fas fa-list"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <input type="hidden" id="pubEkusheyCategory" name="ekushey_category" value="{{ $pubCurrentBoimela }}">
                                     </div>
 
                                     {{-- Row 4: ৪. বিষয় ও ধারা (Subject / Genre) --}}
@@ -2073,6 +2129,56 @@ function submitQuickAuthor() {
         if (modal) modal.hide();
     }
     updatePubMockup();
+}
+
+function handlePubBoimelaSelect(val) {
+    if (val === '__custom__') {
+        togglePubCustomBoimela(true);
+    } else {
+        const hidden = document.getElementById('pubEkusheyCategory');
+        if (hidden) hidden.value = val;
+        const wrapper = document.getElementById('pubCustomBoimelaWrapper');
+        if (wrapper) wrapper.classList.add('d-none');
+        const select = document.getElementById('pubEkusheyCategorySelect');
+        if (select) select.classList.remove('d-none');
+    }
+}
+
+function togglePubCustomBoimela(show = null) {
+    const wrapper = document.getElementById('pubCustomBoimelaWrapper');
+    const select = document.getElementById('pubEkusheyCategorySelect');
+    const customInput = document.getElementById('pubEkusheyCategoryCustom');
+    const hidden = document.getElementById('pubEkusheyCategory');
+    if (!wrapper || !select) return;
+
+    const shouldShow = show !== null ? show : wrapper.classList.contains('d-none');
+    if (shouldShow) {
+        wrapper.classList.remove('d-none');
+        select.classList.add('d-none');
+        select.value = '__custom__';
+        if (customInput) {
+            customInput.focus();
+            if (customInput.value.trim() && hidden) {
+                hidden.value = customInput.value.trim();
+            }
+        }
+    } else {
+        resetPubBoimelaToSelect();
+    }
+}
+
+function resetPubBoimelaToSelect() {
+    const wrapper = document.getElementById('pubCustomBoimelaWrapper');
+    const select = document.getElementById('pubEkusheyCategorySelect');
+    const hidden = document.getElementById('pubEkusheyCategory');
+    const customInput = document.getElementById('pubEkusheyCategoryCustom');
+    if (wrapper) wrapper.classList.add('d-none');
+    if (select) {
+        select.classList.remove('d-none');
+        select.value = '';
+    }
+    if (customInput) customInput.value = '';
+    if (hidden) hidden.value = '';
 }
 
 function onOrderTypeChange() {

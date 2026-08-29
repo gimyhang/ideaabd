@@ -49,25 +49,27 @@
         {{-- ========================================================================= --}}
         <div class="col-12">
             <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
-                <div class="card-header bg-white py-3 px-4 border-bottom d-flex flex-wrap justify-content-between align-items-center gap-2">
-                    <div class="d-flex align-items-center gap-2">
-                        <span class="badge bg-primary-subtle text-primary p-2 rounded-3" id="supplierIconBadge">
-                            <i class="fas fa-building fs-5"></i>
-                        </span>
-                        <div>
-                            <h5 class="fw-bold mb-0 text-dark" id="supplierCardTitle">Publisher / Supplier & Invoice Details</h5>
-                            <small class="text-muted" id="supplierCardSubtitle">Select publisher/supplier, memo number and previous due records</small>
+                <div class="card-header bg-white py-3 px-4 border-bottom d-flex flex-wrap justify-content-between align-items-center gap-3">
+                    <div class="d-flex align-items-center flex-wrap gap-3">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-primary-subtle text-primary p-2 rounded-3" id="supplierIconBadge">
+                                <i class="fas fa-building fs-5"></i>
+                            </span>
+                            <div>
+                                <h5 class="fw-bold mb-0 text-dark" id="supplierCardTitle">Publisher / Supplier & Invoice Details</h5>
+                                <small class="text-muted" id="supplierCardSubtitle">Select publisher/supplier, memo number and records</small>
+                            </div>
                         </div>
-                    </div>
 
-                    {{-- Publisher Mode Toggle (for Books class) --}}
-                    <div class="btn-group p-1 bg-light rounded-pill border" role="group" id="pubModeToggleWrap">
-                        <button type="button" class="btn btn-sm rounded-pill fw-semibold px-3 active" id="btnExistingPub" onclick="setPublisherMode(false)">
-                            <i class="fas fa-list-check me-1"></i> তালিকা থেকে নির্বাচন
-                        </button>
-                        <button type="button" class="btn btn-sm rounded-pill fw-semibold px-3 text-muted" id="btnNewPub" onclick="setPublisherMode(true)">
-                            <i class="fas fa-plus-circle me-1"></i> + নতুন প্রকাশনী
-                        </button>
+                        {{-- Publisher Mode Toggle (Positioned on the LEFT next to heading) --}}
+                        <div class="btn-group p-1 bg-light rounded-pill border ms-lg-2" role="group" id="pubModeToggleWrap">
+                            <button type="button" class="btn btn-sm rounded-pill fw-semibold px-3 active" id="btnExistingPub" onclick="setPublisherMode(false)">
+                                <i class="fas fa-list-check me-1"></i> Select Existing
+                            </button>
+                            <button type="button" class="btn btn-sm rounded-pill fw-semibold px-3 text-muted" id="btnNewPub" onclick="setPublisherMode(true)">
+                                <i class="fas fa-plus-circle me-1"></i> + New Publisher
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -80,16 +82,29 @@
                             {{-- Dedicated Non-Book Vendor Input (for Raw Materials & Other) --}}
                             <div id="customVendorWrapper" style="display: none;">
                                 <label class="form-label fw-bold text-dark mb-1">
-                                    <i class="fas fa-store text-warning me-1"></i> <span id="vendorFieldLabel">ভেন্ডর / সরবরাহকারী / প্রতিষ্ঠানের নাম</span> <span class="text-danger">*</span>
+                                    <i class="fas fa-store text-warning me-1"></i> <span id="vendorFieldLabel">Vendor / Supplier / Press Name</span> <span class="text-danger">*</span>
                                 </label>
                                 <input type="text" name="vendor_name" id="customVendorInput" class="form-control form-control-lg fs-6 rounded-3 mb-2" 
-                                       placeholder="যেমন: কর্ণফুলী পেপার্স / আল-মদিনা বোর্ড / মতিন স্টেশনারি...">
-                                <div class="d-flex flex-wrap gap-1.5 align-items-center">
-                                    <span class="small text-muted me-1">জনপ্রিয় ভেন্ডর:</span>
-                                    <button type="button" class="btn btn-outline-secondary btn-xs rounded-pill px-2.5 py-0.5" onclick="setVendorName('কর্ণফুলী পেপার্স (কাগজ)')">কর্ণফুলী পেপার্স</button>
-                                    <button type="button" class="btn btn-outline-secondary btn-xs rounded-pill px-2.5 py-0.5" onclick="setVendorName('আল-মদিনা বাইন্ডিং বোর্ড')">আল-মদিনা বোর্ড</button>
-                                    <button type="button" class="btn btn-outline-secondary btn-xs rounded-pill px-2.5 py-0.5" onclick="setVendorName('জনতা প্রিন্টিং প্রেস')">জনতা প্রেস</button>
-                                    <button type="button" class="btn btn-outline-secondary btn-xs rounded-pill px-2.5 py-0.5" onclick="setVendorName('বাংলাবাজার পেপার হাউজ')">বাংলাবাজার পেপার</button>
+                                       placeholder="e.g. Karnafuli Paper Mills / Al-Madina Press / Dhaka Binding...">
+                                <div class="d-flex flex-wrap gap-1.5 align-items-center mb-2">
+                                    <span class="small text-muted me-1">Quick Select:</span>
+                                    <button type="button" class="btn btn-outline-secondary btn-xs rounded-pill px-2.5 py-0.5" onclick="setVendorName('Karnafuli Paper Mills')">Karnafuli Paper</button>
+                                    <button type="button" class="btn btn-outline-secondary btn-xs rounded-pill px-2.5 py-0.5" onclick="setVendorName('Al-Madina Press & Binding')">Al-Madina Press</button>
+                                    <button type="button" class="btn btn-outline-secondary btn-xs rounded-pill px-2.5 py-0.5" onclick="setVendorName('Banglabazar Paper House')">Banglabazar Paper</button>
+                                </div>
+                                <div class="row g-2">
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-semibold text-muted mb-1">
+                                            <i class="fas fa-phone-alt text-primary me-1"></i> Mobile / Phone
+                                        </label>
+                                        <input type="text" name="vendor_phone" class="form-control form-control-sm rounded-2" placeholder="e.g. 017XXXXXXXX">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-semibold text-muted mb-1">
+                                            <i class="fas fa-location-dot text-danger me-1"></i> Address
+                                        </label>
+                                        <input type="text" name="vendor_address" class="form-control form-control-sm rounded-2" placeholder="e.g. Arambagh / Banglabazar, Dhaka">
+                                    </div>
                                 </div>
                             </div>
 
@@ -449,17 +464,21 @@
                             <tbody id="itemsBody">
                                 {{-- Initial Row --}}
                                 <tr class="item-row" data-row="0">
-                                    <td class="ps-3">
-                                        <div class="d-flex align-items-center gap-1.5">
+                                    <td class="ps-3 position-relative">
+                                        <div class="d-flex align-items-center gap-1.5 position-relative">
                                             <textarea name="items[0][title]" class="form-control item-title fw-semibold" rows="2"
-                                                   placeholder="Book / Item description..." required oninput="onTitleInput(this, 0)" style="min-height: 48px; resize: vertical; line-height: 1.35; font-size: 0.88rem;"></textarea>
+                                                   placeholder="Book / Item description..." required oninput="handleLiveBookSearch(this, 0)" onfocus="handleLiveBookSearch(this, 0)" autocomplete="off" style="min-height: 48px; resize: vertical; line-height: 1.35; font-size: 0.88rem;"></textarea>
                                         </div>
                                         <input type="hidden" name="items[0][book_id]" class="item-book-id" value="">
                                         
+                                        {{-- Floating Live Search Suggestions Dropdown --}}
+                                        <div class="book-search-dropdown shadow-lg rounded-3 border bg-white position-absolute" id="bookSearchDropdown-0" style="display: none; top: 100%; left: 10px; right: 10px; z-index: 1080; max-height: 280px; overflow-y: auto;">
+                                        </div>
+
                                         {{-- Book Mini Info Badge --}}
                                         <div class="item-book-badge mt-1 small" style="display: none;">
-                                            <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill px-2 py-0.5" style="font-size: 0.68rem;">
-                                                <i class="fas fa-check-circle me-0.5"></i>Existing Book (Stock: <span class="badge-stock">0</span>)
+                                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5" style="font-size: 0.68rem;">
+                                                <i class="fas fa-check-circle me-0.5"></i>Linked Book (Stock: <span class="badge-stock">0</span>)
                                             </span>
                                         </div>
                                     </td>
@@ -882,50 +901,199 @@
         }
     }
 
-    function onTitleInput(input, index) {
-        const val = input.value.trim().toLowerCase();
+    // Preloaded books list for instant sub-millisecond local autocomplete
+    const preloadedBooks = @json($books);
+    let searchDebounceTimer = null;
+
+    function handleLiveBookSearch(input, index) {
+        const query = input.value.trim();
+        const dropdown = document.getElementById(`bookSearchDropdown-${index}`);
+        const activeClass = document.getElementById('purchaseCategorySelect')?.value || 'books';
+
+        if (activeClass !== 'books') {
+            if (dropdown) dropdown.style.display = 'none';
+            return;
+        }
+
+        if (!query || query.length < 1) {
+            if (dropdown) dropdown.style.display = 'none';
+            const row = document.querySelector(`tr.item-row[data-row="${index}"]`);
+            if (row) {
+                row.querySelector('.item-book-id').value = '';
+                const badge = row.querySelector('.item-book-badge');
+                if (badge) badge.style.display = 'none';
+            }
+            return;
+        }
+
+        // 1. Instant local search from preloaded books (matches title, author, or ISBN)
+        const qLower = query.toLowerCase();
+        const localMatches = preloadedBooks.filter(b => {
+            const t = (b.title || '').toLowerCase();
+            const a = (b.author_name || '').toLowerCase();
+            const isbn = (b.isbn || '').toLowerCase();
+            return t.includes(qLower) || a.includes(qLower) || isbn.includes(qLower);
+        }).slice(0, 15);
+
+        if (localMatches.length > 0) {
+            renderBookSearchResults(localMatches, dropdown, index, query);
+        }
+
+        // 2. Debounced AJAX search to catch all books in database
+        clearTimeout(searchDebounceTimer);
+        searchDebounceTimer = setTimeout(() => {
+            const pubId = document.getElementById('publisherSelect')?.value || '';
+            fetch(`{{ route('admin.purchases.search-books') }}?q=${encodeURIComponent(query)}&publisher_id=${encodeURIComponent(pubId)}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data && data.length > 0) {
+                        renderBookSearchResults(data, dropdown, index, query);
+                    } else if (localMatches.length === 0) {
+                        dropdown.innerHTML = `
+                            <div class="p-2.5 text-muted small text-center">
+                                <i class="fas fa-plus-circle text-primary me-1"></i> নতুন বই হিসেবে তৈরি ও স্টক যুক্ত হবে: <strong>"${escapeHtml(query)}"</strong>
+                            </div>
+                        `;
+                        dropdown.style.display = 'block';
+                    }
+                })
+                .catch(() => {});
+        }, 150);
+    }
+
+    function renderBookSearchResults(books, dropdown, index, query) {
+        if (!dropdown) return;
+        dropdown.innerHTML = '';
+
+        const header = document.createElement('div');
+        header.className = 'px-3 py-1.5 bg-light border-bottom small fw-bold text-muted d-flex justify-content-between align-items-center';
+        header.innerHTML = `
+            <span><i class="fas fa-book-open text-primary me-1"></i> পূর্বের বই নির্বাচন করুন (${books.length}টি পাওয়া গেছে):</span>
+            <span class="badge bg-white text-muted border">Enter বা Click করুন</span>
+        `;
+        dropdown.appendChild(header);
+
+        const listWrap = document.createElement('div');
+        listWrap.className = 'list-group list-group-flush';
+
+        books.forEach(b => {
+            const item = document.createElement('a');
+            item.href = 'javascript:void(0)';
+            item.className = 'list-group-item list-group-item-action p-2.5 px-3 d-flex align-items-center justify-content-between gap-2 text-decoration-none';
+            
+            const mrp = parseFloat(b.price || b.mrp_price || 0);
+            const cost = parseFloat(b.cost_price || 0);
+            const stock = parseInt(b.stock_quantity || b.stock || 0);
+            const author = b.author || b.author_name || '—';
+            const pubName = b.publisher?.name || b.publisher_name || '';
+
+            item.innerHTML = `
+                <div class="flex-grow-1 text-truncate">
+                    <div class="fw-bold text-dark fs-6 text-truncate">${escapeHtml(b.title)}</div>
+                    <div class="small text-muted text-truncate">
+                        <i class="fas fa-pen-nib me-1 text-primary"></i>${escapeHtml(author)}
+                        ${pubName ? `· <span class="text-secondary">${escapeHtml(pubName)}</span>` : ''}
+                    </div>
+                </div>
+                <div class="text-end text-nowrap">
+                    <div><strong class="text-dark font-monospace">৳${mrp.toFixed(2)}</strong></div>
+                    <span class="badge ${stock > 0 ? 'bg-success-subtle text-success border-success-subtle' : 'bg-danger-subtle text-danger border-danger-subtle'} border px-1.5 py-0.5 rounded-pill" style="font-size: 10px;">
+                        Stock: ${stock}
+                    </span>
+                </div>
+            `;
+
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                selectBookSuggestion(b, index);
+                dropdown.style.display = 'none';
+            });
+
+            listWrap.appendChild(item);
+        });
+
+        dropdown.appendChild(listWrap);
+        dropdown.style.display = 'block';
+    }
+
+    function selectBookSuggestion(b, index) {
         const row = document.querySelector(`tr.item-row[data-row="${index}"]`);
         if (!row) return;
 
+        const titleInput = row.querySelector('.item-title');
         const hiddenId = row.querySelector('.item-book-id');
         const authorInput = row.querySelector('.item-author');
         const catInput = row.querySelector('.item-category');
         const catIdInput = row.querySelector('.item-category-id');
         const mrpInput = row.querySelector('.item-mrp');
         const saleInput = row.querySelector('.item-sale');
+        const costInput = row.querySelector('.item-cost');
         const badge = row.querySelector('.item-book-badge');
         const extraRow = document.getElementById(`extraRow-${index}`);
 
-        if (existingBooksMap[val]) {
-            const b = existingBooksMap[val];
-            hiddenId.value = b.id;
-            if (b.author && !authorInput.value) authorInput.value = b.author;
-            if (b.categoryName && !catInput.value) {
-                catInput.value = b.categoryName;
-                catIdInput.value = b.categoryId;
-            }
-            if (b.price) {
-                if (!mrpInput.value || mrpInput.value == '0') mrpInput.value = b.price;
-                if (!saleInput.value || saleInput.value == '0') saleInput.value = b.discountPrice || b.price;
+        titleInput.value = b.title;
+        hiddenId.value = b.id;
+        
+        const author = b.author || b.author_name || '';
+        if (author) authorInput.value = author;
+
+        const catName = b.category_name || b.category?.name || '';
+        const catId = b.category_id || b.category?.id || '';
+        if (catName) {
+            catInput.value = catName;
+            if (catIdInput) catIdInput.value = catId;
+        }
+
+        const mrp = parseFloat(b.price || b.mrp_price || 0);
+        const sale = parseFloat(b.discount_price || b.sale_price || mrp);
+        const cost = parseFloat(b.cost_price || 0);
+
+        if (mrp > 0) {
+            mrpInput.value = mrp.toFixed(2);
+            saleInput.value = (sale > 0 ? sale : mrp).toFixed(2);
+            if (cost > 0) {
+                costInput.value = cost.toFixed(2);
+                onCostChange(index);
+            } else {
                 onMrpChange(index);
             }
-            if (badge) {
-                badge.querySelector('.badge-stock').textContent = b.stock || 0;
-                badge.style.display = 'block';
-            }
-            if (extraRow) {
-                if (b.isbn) extraRow.querySelector('.item-isbn').value = b.isbn;
-                if (b.edition) extraRow.querySelector('.item-edition').value = b.edition;
-                if (b.coverType) extraRow.querySelector('.item-cover-type').value = b.coverType;
-                if (b.pageCount) extraRow.querySelector('.item-page-count').value = b.pageCount;
-                if (b.bookSize) extraRow.querySelector('.item-book-size').value = b.bookSize;
-                if (b.paperType) extraRow.querySelector('.item-paper-type').value = b.paperType;
-            }
-        } else {
-            hiddenId.value = '';
-            if (badge) badge.style.display = 'none';
         }
+
+        const stock = parseInt(b.stock_quantity || b.stock || 0);
+        if (badge) {
+            badge.querySelector('.badge-stock').textContent = stock;
+            badge.style.display = 'block';
+        }
+
+        if (extraRow) {
+            if (b.isbn) extraRow.querySelector('.item-isbn').value = b.isbn;
+            if (b.edition) extraRow.querySelector('.item-edition').value = b.edition;
+            if (b.cover_type) extraRow.querySelector('.item-cover-type').value = b.cover_type;
+            if (b.page_count) extraRow.querySelector('.item-page-count').value = b.page_count;
+            if (b.book_size) extraRow.querySelector('.item-book-size').value = b.book_size;
+            if (b.paper_type) extraRow.querySelector('.item-paper-type').value = b.paper_type;
+        }
+
+        calcRow(index);
     }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    // Close open search dropdowns when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.item-row') && !e.target.closest('.book-search-dropdown')) {
+            document.querySelectorAll('.book-search-dropdown').forEach(d => d.style.display = 'none');
+        }
+    });
 
     function onMrpChange(index) {
         const row = document.querySelector(`tr.item-row[data-row="${index}"]`);
@@ -1151,13 +1319,15 @@
         tr.className = 'item-row';
         tr.setAttribute('data-row', i);
         tr.innerHTML = `
-            <td class="ps-3">
+            <td class="ps-3 position-relative">
                 <textarea name="items[${i}][title]" class="form-control item-title fw-semibold" rows="2"
-                       placeholder="${isRaw ? 'Item / Description...' : 'Book title...'}" required oninput="onTitleInput(this, ${i})" style="min-height: 48px; resize: vertical; line-height: 1.35; font-size: 0.88rem;"></textarea>
+                       placeholder="${isRaw ? 'Item / Description...' : 'Type book title to search...'}" required oninput="handleLiveBookSearch(this, ${i})" onfocus="handleLiveBookSearch(this, ${i})" autocomplete="off" style="min-height: 48px; resize: vertical; line-height: 1.35; font-size: 0.88rem;"></textarea>
                 <input type="hidden" name="items[${i}][book_id]" class="item-book-id" value="">
+                <div class="book-search-dropdown shadow-lg rounded-3 border bg-white position-absolute" id="bookSearchDropdown-${i}" style="display: none; top: 100%; left: 10px; right: 10px; z-index: 1080; max-height: 280px; overflow-y: auto;">
+                </div>
                 <div class="item-book-badge mt-1 small" style="display: none;">
-                    <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill px-2 py-0.5" style="font-size: 0.68rem;">
-                        <i class="fas fa-check-circle me-0.5"></i>Existing Book (Stock: <span class="badge-stock">0</span>)
+                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5" style="font-size: 0.68rem;">
+                        <i class="fas fa-check-circle me-0.5"></i>Linked Book (Stock: <span class="badge-stock">0</span>)
                     </span>
                 </div>
             </td>

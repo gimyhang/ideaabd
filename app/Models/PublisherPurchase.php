@@ -19,6 +19,8 @@ class PublisherPurchase extends Model
         'publisher_id',
         'supplier_name',
         'vendor_name',
+        'vendor_phone',
+        'vendor_address',
         'purchase_date',
         'payment_type',
         'due_date',
@@ -50,6 +52,18 @@ class PublisherPurchase extends Model
         if (!empty($this->vendor_name)) return $this->vendor_name;
         if (!empty($this->supplier_name)) return $this->supplier_name;
         return $this->publisher->name ?? '—';
+    }
+
+    public function getPartyPhoneAttribute(): ?string
+    {
+        if (!empty($this->vendor_phone)) return $this->vendor_phone;
+        return $this->publisher->phone ?? null;
+    }
+
+    public function getPartyAddressAttribute(): ?string
+    {
+        if (!empty($this->vendor_address)) return $this->vendor_address;
+        return $this->publisher->address ?? null;
     }
 
     public function publisher()

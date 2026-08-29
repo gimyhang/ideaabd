@@ -58,15 +58,24 @@
         }
 
         .signature-box {
-            margin-top: 36px;
+            margin-top: 24px;
+        }
+
+        .destination-box {
+            box-sizing: border-box !important;
+            width: 100% !important;
         }
 
         @page {
-            size: portrait;
-            margin: 8mm 0.5in 8mm 0.5in;
+            size: A4 portrait;
+            margin: 8mm 8mm 8mm 8mm;
         }
 
         @media print {
+            *, ::before, ::after {
+                box-sizing: border-box !important;
+            }
+
             html, body {
                 background: #ffffff !important;
                 color: #000000 !important;
@@ -75,6 +84,8 @@
                 margin: 0 !important;
                 padding: 0 !important;
                 width: 100% !important;
+                max-width: 100% !important;
+                overflow: visible !important;
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
             }
@@ -88,62 +99,99 @@
                 overflow: hidden !important;
             }
 
-            .container, .container-fluid, .row, .col-lg-10 {
+            .container, .container-fluid, #invoicePrintWrapper, .col-lg-10 {
                 margin: 0 !important;
                 padding: 0 !important;
                 width: 100% !important;
                 max-width: 100% !important;
+                border: none !important;
+                box-shadow: none !important;
+                overflow: visible !important;
             }
 
             .row {
                 display: flex !important;
                 flex-direction: row !important;
                 flex-wrap: wrap !important;
-                margin-right: -0.5rem !important;
-                margin-left: -0.5rem !important;
+                margin-right: 0 !important;
+                margin-left: 0 !important;
+                width: 100% !important;
             }
 
             .row > * {
-                padding-right: 0.5rem !important;
-                padding-left: 0.5rem !important;
+                padding-right: 4px !important;
+                padding-left: 4px !important;
+                box-sizing: border-box !important;
             }
 
             .col-7 {
-                flex: 0 0 auto !important;
-                width: 58.33333333% !important;
-                max-width: 58.33333333% !important;
+                flex: 0 0 58.333333% !important;
+                width: 58.333333% !important;
+                max-width: 58.333333% !important;
             }
 
             .col-5 {
-                flex: 0 0 auto !important;
-                width: 41.66666667% !important;
-                max-width: 41.66666667% !important;
+                flex: 0 0 41.666667% !important;
+                width: 41.666667% !important;
+                max-width: 41.666667% !important;
             }
 
             .col-6 {
-                flex: 0 0 auto !important;
+                flex: 0 0 50% !important;
                 width: 50% !important;
                 max-width: 50% !important;
             }
 
             .col-4 {
-                flex: 0 0 auto !important;
-                width: 33.33333333% !important;
-                max-width: 33.33333333% !important;
+                flex: 0 0 33.333333% !important;
+                width: 33.333333% !important;
+                max-width: 33.333333% !important;
+            }
+
+            .col-12 {
+                flex: 0 0 100% !important;
+                width: 100% !important;
+                max-width: 100% !important;
             }
 
             .invoice-page-card {
                 border: none !important;
                 box-shadow: none !important;
                 padding: 0 !important;
-                margin: 0 !important;
+                margin: 0 0 10px 0 !important;
                 width: 100% !important;
+                max-width: 100% !important;
                 background: #ffffff !important;
                 min-height: auto !important;
                 height: auto !important;
                 display: block !important;
                 page-break-inside: avoid !important;
                 break-inside: avoid !important;
+                overflow: visible !important;
+            }
+
+            .destination-box {
+                width: 100% !important;
+                margin-left: 0 !important;
+                margin-right: 0 !important;
+                box-sizing: border-box !important;
+                border-color: #cbd5e1 !important;
+            }
+
+            .table-responsive {
+                overflow: visible !important;
+                display: block !important;
+                width: 100% !important;
+                margin: 0 0 8px 0 !important;
+                padding: 0 !important;
+                border: none !important;
+            }
+
+            .invoice-table {
+                width: 100% !important;
+                max-width: 100% !important;
+                border-collapse: collapse !important;
+                margin: 0 !important;
             }
 
             .invoice-table th,
@@ -194,6 +242,15 @@
     $settings = $invoiceSettings ?? \App\Http\Controllers\Admin\IdeaAccountingController::getInvoiceSettings();
     $bizLogo = $settings['logo'] ?? '/images/logo.png';
     $logoSrc = \App\Support\SiteSetting::resolveImageUrl($bizLogo, 'images/logo.png') ?: asset('images/logo.png');
+
+    $creatorName = !empty($settings['default_creator_name']) ? $settings['default_creator_name'] : ($invoice->creator_name ?? 'আইডিয়া প্রকাশন কর্তৃপক্ষ');
+    $creatorDesignation = !empty($settings['default_creator_designation']) ? $settings['default_creator_designation'] : ($invoice->creator_designation ?? 'বিল প্রস্তুতকারী / হিসাব কর্মকর্তা');
+
+    $recipientNameSize = $settings['challan_recipient_name_size'] ?? '13px';
+    $recipientPhoneSize = $settings['challan_recipient_phone_size'] ?? '12px';
+    $recipientAddressSize = $settings['challan_recipient_address_size'] ?? '11.5px';
+    $recipientDesigSize = $settings['challan_recipient_desig_size'] ?? '11.5px';
+    $recipientOrgSize = $settings['challan_recipient_org_size'] ?? '12px';
 
     $invoiceUrl = $invoice->public_url;
     $qrCodeUrl = "https://api.qrserver.com/v1/create-qr-code/?size=130x130&margin=4&data=" . urlencode($invoiceUrl);
@@ -333,47 +390,48 @@
                 @endif
 
                 {{-- Customer & Billed To Info (Font 12 structured format) --}}
-                <div class="row mb-2.5 p-2 bg-light rounded-2 border g-2 align-items-start" style="font-size: 12px;">
-                    <div class="col-7">
-                        <div class="fw-bold text-dark mb-1" style="font-size: 12px;"><i class="fas fa-user-tag me-1 text-primary"></i>প্রাপক:</div>
-                        <table class="table-borderless p-0 m-0 w-100" style="font-size: 12px; line-height: 1.45;">
-                            @if($invoice->customer_name)
-                                <tr>
-                                    <td class="text-muted pe-1 text-nowrap" style="width: 105px; vertical-align: top;">প্রাপক নাম:</td>
-                                    <td class="fw-bold text-dark">{{ $invoice->customer_name }}</td>
-                                </tr>
-                            @endif
-                            @if(!empty($invoice->customer_designation))
-                                <tr>
-                                    <td class="text-muted pe-1 text-nowrap" style="vertical-align: top;">পদবী:</td>
-                                    <td class="fw-semibold text-dark">{{ $invoice->customer_designation }}</td>
-                                </tr>
-                            @endif
-                            @if($invoice->customer_org)
-                                <tr>
-                                    <td class="text-muted pe-1 text-nowrap" style="vertical-align: top;">প্রতিষ্ঠানের নাম:</td>
-                                    <td class="fw-semibold text-primary">{{ $invoice->customer_org }}</td>
-                                </tr>
-                            @endif
-                            @if($invoice->customer_address)
-                                <tr>
-                                    <td class="text-muted pe-1 text-nowrap" style="vertical-align: top;">ঠিকানা:</td>
-                                    <td class="text-dark">{{ $invoice->customer_address }}</td>
-                                </tr>
-                            @endif
-                            @if($invoice->customer_phone)
-                                <tr>
-                                    <td class="text-muted pe-1 text-nowrap" style="vertical-align: top;">মোবাইল:</td>
-                                    <td class="text-dark fw-bold font-monospace">{{ $invoice->customer_phone }}</td>
-                                </tr>
-                            @endif
-                        </table>
-                    </div>
-                    <div class="col-5 text-end">
-                        <div class="text-muted text-uppercase fw-semibold mb-1" style="font-size: 11px;">অর্ডার ও পেমেন্ট বিবরণ:</div>
-                        <div style="font-size: 12px; line-height: 1.5;">
-                            <div>ধরন: <strong>{{ $invoice->type_label }}</strong> · মাধ্যম: <strong>{{ $invoice->payment_method ?? 'ক্যাশ / ব্যাংক' }}</strong></div>
-                            @if(in_array($invoice->type, ['invoice', 'challan']))
+                <div class="p-2.5 bg-light rounded-2 border mb-2.5 destination-box" style="font-size: 12px; box-sizing: border-box;">
+                    <div class="row g-2 align-items-start m-0">
+                        <div class="col-7 p-0 pe-2">
+                            <div class="fw-bold text-dark mb-1" style="font-size: 12px;"><i class="fas fa-user-tag me-1 text-primary"></i>প্রাপক:</div>
+                            <table class="table-borderless p-0 m-0 w-100" style="font-size: 12px; line-height: 1.45;">
+                                @if($invoice->customer_name)
+                                    <tr>
+                                        <td class="text-muted pe-1 text-nowrap" style="width: 105px; vertical-align: top; font-size: 11px;">প্রাপক নাম:</td>
+                                        <td class="fw-bold text-dark" style="font-size: {{ $recipientNameSize }};">{{ $invoice->customer_name }}</td>
+                                    </tr>
+                                @endif
+                                @if(!empty($invoice->customer_designation))
+                                    <tr>
+                                        <td class="text-muted pe-1 text-nowrap" style="vertical-align: top; font-size: 11px;">পদবী:</td>
+                                        <td class="fw-semibold text-dark" style="font-size: {{ $recipientDesigSize }};">{{ $invoice->customer_designation }}</td>
+                                    </tr>
+                                @endif
+                                @if($invoice->customer_org)
+                                    <tr>
+                                        <td class="text-muted pe-1 text-nowrap" style="vertical-align: top; font-size: 11px;">প্রতিষ্ঠানের নাম:</td>
+                                        <td class="fw-semibold text-primary" style="font-size: {{ $recipientOrgSize }};">{{ $invoice->customer_org }}</td>
+                                    </tr>
+                                @endif
+                                @if($invoice->customer_address)
+                                    <tr>
+                                        <td class="text-muted pe-1 text-nowrap" style="vertical-align: top; font-size: 11px;">ঠিকানা:</td>
+                                        <td class="text-dark" style="font-size: {{ $recipientAddressSize }}; line-height: 1.35;">{{ $invoice->customer_address }}</td>
+                                    </tr>
+                                @endif
+                                @if($invoice->customer_phone)
+                                    <tr>
+                                        <td class="text-muted pe-1 text-nowrap" style="vertical-align: top; font-size: 11px;">মোবাইল:</td>
+                                        <td class="text-dark fw-bold font-monospace" style="font-size: {{ $recipientPhoneSize }};">{{ $invoice->customer_phone }}</td>
+                                    </tr>
+                                @endif
+                            </table>
+                        </div>
+                        <div class="col-5 p-0 ps-2 text-end">
+                            <div class="text-muted text-uppercase fw-semibold mb-1" style="font-size: 11px;">অর্ডার ও পেমেন্ট বিবরণ:</div>
+                            <div style="font-size: 12px; line-height: 1.5;">
+                                <div>ধরন: <strong>{{ $invoice->type_label }}</strong> · মাধ্যম: <strong>{{ $invoice->payment_method ?? 'ক্যাশ / ব্যাংক' }}</strong></div>
+                                @if(in_array($invoice->type, ['invoice', 'challan']))
                                 <div>
                                     স্ট্যাটাস: 
                                     @if($invoice->payment_status === 'paid')
@@ -578,10 +636,16 @@
                             </div>
                         </div>
 
-                        <div class="col-4">
-                            <div class="signature-box" style="margin-top: 36px;">
-                                <div class="border-top border-dark pt-1 fw-semibold text-dark">
-                                    বিল প্রস্তুতকারীর স্বাক্ষর
+                        <div class="col-4 text-center">
+                            <div class="signature-box" style="margin-top: 24px;">
+                                <div class="fw-bold text-dark" style="font-size: 11px; line-height: 1.25;">
+                                    {{ $creatorName }}
+                                </div>
+                                <div class="text-muted fw-semibold" style="font-size: 9.5px; line-height: 1.25;">
+                                    {{ $creatorDesignation }}
+                                </div>
+                                <div class="border-top border-dark pt-1 mt-1 fw-semibold text-dark" style="font-size: 9.5px;">
+                                    অনুমোদিত স্বাক্ষরকারী / বিল প্রস্তুতকারক
                                 </div>
                             </div>
                         </div>
@@ -637,48 +701,51 @@
                     </div>
 
                     {{-- Delivery Destination & Client Details (Font 12 structured format) --}}
-                    <div class="row mb-2.5 p-2 bg-light rounded-2 border g-2 align-items-start" style="font-size: 12px;">
-                        <div class="col-7">
-                            <div class="fw-bold text-dark mb-1" style="font-size: 12px;"><i class="fas fa-truck-ramp-box me-1 text-primary"></i>প্রাপক ও গন্তব্য:</div>
-                            <table class="table-borderless p-0 m-0 w-100" style="font-size: 12px; line-height: 1.45;">
-                                @if($invoice->customer_name)
-                                    <tr>
-                                        <td class="text-muted pe-1 text-nowrap" style="width: 110px; vertical-align: top;">প্রাপক নাম:</td>
-                                        <td class="fw-bold text-dark">{{ $invoice->customer_name }}</td>
-                                    </tr>
-                                @endif
-                                @if(!empty($invoice->customer_designation))
-                                    <tr>
-                                        <td class="text-muted pe-1 text-nowrap" style="vertical-align: top;">পদবী:</td>
-                                        <td class="fw-semibold text-dark">{{ $invoice->customer_designation }}</td>
-                                    </tr>
-                                @endif
-                                @if($invoice->customer_org)
-                                    <tr>
-                                        <td class="text-muted pe-1 text-nowrap" style="vertical-align: top;">প্রতিষ্ঠানের নাম:</td>
-                                        <td class="fw-semibold text-primary">{{ $invoice->customer_org }}</td>
-                                    </tr>
-                                @endif
-                                @if($invoice->customer_address)
-                                    <tr>
-                                        <td class="text-muted pe-1 text-nowrap" style="vertical-align: top;">গন্তব্য ঠিকানা:</td>
-                                        <td class="text-dark">{{ $invoice->customer_address }}</td>
-                                    </tr>
-                                @endif
-                                @if($invoice->customer_phone)
-                                    <tr>
-                                        <td class="text-muted pe-1 text-nowrap" style="vertical-align: top;">মোবাইল:</td>
-                                        <td class="text-dark fw-bold font-monospace">{{ $invoice->customer_phone }}</td>
-                                    </tr>
-                                @endif
-                            </table>
-                        </div>
-                        <div class="col-5 text-end">
-                            <div class="text-muted text-uppercase fw-semibold mb-1" style="font-size: 11px;">চালান বিবরণ ও পরিবহন:</div>
-                            <div style="font-size: 12px; line-height: 1.5;">
-                                <div>চালান অবস্থা: <span class="badge bg-info-subtle text-dark border px-2 py-0.5" style="font-size: 10.5px;">পণ্য ডেলিভারি সম্পন্ন</span></div>
-                                <div>পেমেন্ট মোড: <strong>{{ $invoice->payment_method ?? 'ক্যাশ / ব্যাংক' }}</strong></div>
-                                <div>ইস্যু তারিখ: <strong>@bnDate($invoice->invoice_date)</strong></div>
+                    <div class="p-2.5 bg-light rounded-2 border mb-2.5 destination-box" style="font-size: 12px; box-sizing: border-box;">
+                        <div class="row g-2 align-items-start m-0">
+                            <div class="col-7 p-0 pe-2">
+                                <div class="fw-bold text-dark mb-1" style="font-size: 12px;"><i class="fas fa-truck-ramp-box me-1 text-primary"></i>প্রাপক ও গন্তব্য:</div>
+                                <table class="table-borderless p-0 m-0 w-100" style="line-height: 1.45;">
+                                    @if($invoice->customer_name)
+                                        <tr>
+                                            <td class="text-muted pe-1 text-nowrap" style="width: 105px; vertical-align: top; font-size: 11px;">প্রাপক নাম:</td>
+                                            <td class="fw-bold text-dark" style="font-size: {{ $recipientNameSize }};">{{ $invoice->customer_name }}</td>
+                                        </tr>
+                                    @endif
+                                    @if(!empty($invoice->customer_designation))
+                                        <tr>
+                                            <td class="text-muted pe-1 text-nowrap" style="vertical-align: top; font-size: 11px;">পদবী:</td>
+                                            <td class="fw-semibold text-dark" style="font-size: {{ $recipientDesigSize }};">{{ $invoice->customer_designation }}</td>
+                                        </tr>
+                                    @endif
+                                    @if($invoice->customer_org)
+                                        <tr>
+                                            <td class="text-muted pe-1 text-nowrap" style="vertical-align: top; font-size: 11px;">প্রতিষ্ঠানের নাম:</td>
+                                            <td class="fw-semibold text-primary" style="font-size: {{ $recipientOrgSize }};">{{ $invoice->customer_org }}</td>
+                                        </tr>
+                                    @endif
+                                    @if($invoice->customer_address)
+                                        <tr>
+                                            <td class="text-muted pe-1 text-nowrap" style="vertical-align: top; font-size: 11px;">গন্তব্য ঠিকানা:</td>
+                                            <td class="text-dark" style="font-size: {{ $recipientAddressSize }}; line-height: 1.35;">{{ $invoice->customer_address }}</td>
+                                        </tr>
+                                    @endif
+                                    @if($invoice->customer_phone)
+                                        <tr>
+                                            <td class="text-muted pe-1 text-nowrap" style="vertical-align: top; font-size: 11px;">মোবাইল:</td>
+                                            <td class="text-dark fw-bold font-monospace" style="font-size: {{ $recipientPhoneSize }};">{{ $invoice->customer_phone }}</td>
+                                        </tr>
+                                    @endif
+                                </table>
+                            </div>
+                            <div class="col-5 p-0 ps-2 text-end">
+                                <div class="text-muted text-uppercase fw-semibold mb-1" style="font-size: 11px;">চালান বিবরণ ও পরিবহন:</div>
+                                <div style="font-size: 11.5px; line-height: 1.5;">
+                                    <div>চালান অবস্থা: <span class="badge bg-info-subtle text-dark border px-2 py-0.5" style="font-size: 10.5px;">পণ্য ডেলিভারি সম্পন্ন</span></div>
+                                    <div>পেমেন্ট মোড: <strong>{{ $invoice->payment_method ?? 'ক্যাশ / ব্যাংক' }}</strong></div>
+                                    <div>ইস্যু তারিখ: <strong>@bnDate($invoice->invoice_date)</strong></div>
+                                    <div class="text-muted">প্রেরক / প্যাকার: <strong>{{ $creatorName }}</strong></div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -758,7 +825,7 @@
                     <div class="invoice-footer-compact pt-2 mt-auto border-top">
                         <div class="row g-2 align-items-end text-center" style="font-size: 10px;">
                             <div class="col-4">
-                                <div class="signature-box" style="margin-top: 36px;">
+                                <div class="signature-box" style="margin-top: 24px;">
                                     <div class="border-top border-dark pt-1 fw-semibold text-dark">
                                         গ্রাহকের স্বাক্ষর
                                     </div>
@@ -776,10 +843,16 @@
                                 </div>
                             </div>
 
-                            <div class="col-4">
-                                <div class="signature-box" style="margin-top: 36px;">
-                                    <div class="border-top border-dark pt-1 fw-semibold text-dark">
-                                        বিল প্রস্তুতকারীর স্বাক্ষর
+                            <div class="col-4 text-center">
+                                <div class="signature-box" style="margin-top: 24px;">
+                                    <div class="fw-bold text-dark" style="font-size: 11px; line-height: 1.25;">
+                                        {{ $creatorName }}
+                                    </div>
+                                    <div class="text-muted fw-semibold" style="font-size: 9.5px; line-height: 1.25;">
+                                        {{ $creatorDesignation }}
+                                    </div>
+                                    <div class="border-top border-dark pt-1 mt-1 fw-semibold text-dark" style="font-size: 9.5px;">
+                                        অনুমোদিত স্বাক্ষরকারী / বিল প্রস্তুতকারক
                                     </div>
                                 </div>
                             </div>

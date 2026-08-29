@@ -359,7 +359,7 @@
                                         <i class="fas fa-eye"></i>
                                     </a>
                                     <form action="{{ route('admin.content.destroy', ['type' => 'publishers', 'id' => $publisher->id]) }}" method="POST" class="d-inline"
-                                          onsubmit="return confirm('Are you sure you want to delete this publisher?');">
+                                          data-confirm="আপনি কি নিশ্চিত যে এই প্রকাশক অ্যাকাউন্টটি মুছে ফেলতে চান?" data-confirm-title="প্রকাশক ডিলিট">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-2 py-0.5" title="Delete Publisher">

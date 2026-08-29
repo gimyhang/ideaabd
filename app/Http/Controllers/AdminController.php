@@ -420,6 +420,7 @@ class AdminController extends Controller
         $maxPrice      = $request->filled('max_price') ? $request->float('max_price') : null;
         $discountOnly  = $request->boolean('discount_only') || $request->input('discount_only') === '1';
         $status        = $request->input('is_active');
+        $modStatus     = $request->string('mod_status')->trim()->value();
         $sort          = $request->string('sort')->trim()->value() ?: 'latest';
         $perPage       = in_array((int) $request->input('per_page'), [10, 20, 50, 100, 200], true) ? (int) $request->input('per_page') : 20;
 
@@ -495,6 +496,8 @@ class AdminController extends Controller
             ->when($publisherId, function ($q, $pId) {
                 if ($pId === 'idea' || $pId === 'in_house') {
                     $q->whereNull('publisher_id');
+                } elseif ($pId === 'registered') {
+                    $q->whereNotNull('publisher_id');
                 } else {
                     $q->where('publisher_id', $pId);
                 }
@@ -513,6 +516,7 @@ class AdminController extends Controller
             ->when($minPrice !== null, fn ($q) => $q->where('price', '>=', $minPrice))
             ->when($maxPrice !== null, fn ($q) => $q->where('price', '<=', $maxPrice))
             ->when($discountOnly, fn ($q) => $q->whereNotNull('discount_price')->where('discount_price', '>', 0)->whereColumn('discount_price', '<', 'price'))
+            ->when($modStatus !== '', fn ($q) => $q->where('mod_status', $modStatus))
             ->when($status !== null && $status !== '', fn ($q) => $q->where('is_active', (bool) $status));
 
         match ($sort) {
@@ -549,15 +553,86 @@ class AdminController extends Controller
         $publishers = \Modules\Publisher\Models\Publisher::whereNull('deleted_at')->orderBy('name')->pluck('name', 'id')->all();
 
         $stats = [
-            'total'     => \Modules\Book\Models\Book::count(),
-            'active'    => \Modules\Book\Models\Book::where('is_active', true)->count(),
-            'pre_order' => \Modules\Book\Models\Book::where('stock_status', 'pre_order')->count(),
-            'low_stock' => \Modules\Book\Models\Book::where('stock_quantity', '<=', 5)->where('stock_quantity', '>', 0)->count(),
-            'out_stock' => \Modules\Book\Models\Book::where('stock_quantity', '<=', 0)->count(),
-            'discount'  => \Modules\Book\Models\Book::whereNotNull('discount_price')->where('discount_price', '>', 0)->whereColumn('discount_price', '<', 'price')->count(),
+            'total'               => \Modules\Book\Models\Book::count(),
+            'active'              => \Modules\Book\Models\Book::where('is_active', true)->count(),
+            'pending'             => \Modules\Book\Models\Book::where('mod_status', 'pending')->count(),
+            'publisher_pending'   => \Modules\Book\Models\Book::whereNotNull('publisher_id')->where('mod_status', 'pending')->count(),
+            'publisher_total'     => \Modules\Book\Models\Book::whereNotNull('publisher_id')->count(),
+            'pre_order'           => \Modules\Book\Models\Book::where('stock_status', 'pre_order')->count(),
+            'low_stock'           => \Modules\Book\Models\Book::where('stock_quantity', '<=', 5)->where('stock_quantity', '>', 0)->count(),
+            'out_stock'           => \Modules\Book\Models\Book::where('stock_quantity', '<=', 0)->count(),
+            'discount'            => \Modules\Book\Models\Book::whereNotNull('discount_price')->where('discount_price', '>', 0)->whereColumn('discount_price', '<', 'price')->count(),
         ];
 
         return view('admin.books', compact('books', 'categories', 'publishers', 'authors', 'stats', 'sort', 'perPage'));
+    }
+
+    public function toggleBookStatus(Request $request, int $id): \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
+    {
+        $book = \Modules\Book\Models\Book::findOrFail($id);
+        $book->is_active = !$book->is_active;
+        $book->save();
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success'   => true,
+                'is_active' => $book->is_active,
+                'message'   => $book->is_active ? 'বইটি লাইভ শপে সক্রিয় করা হয়েছে।' : 'বইটি ড্রাফট / নিষ্ক্রিয় করা হয়েছে।',
+            ]);
+        }
+
+        return back()->with('success', 'বইয়ের স্ট্যাটাস সফলভাবে পরিবর্তন করা হয়েছে।');
+    }
+
+    public function approveBook(Request $request, int $id): \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
+    {
+        $book = \Modules\Book\Models\Book::findOrFail($id);
+        $book->update([
+            'mod_status'       => 'approved',
+            'is_active'        => true,
+            'reviewed_by'      => auth()->id(),
+            'reviewed_at'      => now(),
+            'rejection_reason' => null,
+        ]);
+
+        $this->accessService->log('book_approved', "বই '{$book->title}' অনুমোদন করা হয়েছে");
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success'    => true,
+                'mod_status' => 'approved',
+                'is_active'  => true,
+                'message'    => "‘{$book->title}’ বইটি সফলভাবে অনুমোদন করা হয়েছে এবং শপে লাইভ হয়েছে!",
+            ]);
+        }
+
+        return back()->with('success', "‘{$book->title}’ বইটি সফলভাবে অনুমোদন করা হয়েছে এবং শপে লাইভ হয়েছে!");
+    }
+
+    public function rejectBook(Request $request, int $id): \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
+    {
+        $reason = $request->input('rejection_reason') ?: 'অসম্পূর্ণ বা ভুল তথ্য রয়েছে।';
+        $book = \Modules\Book\Models\Book::findOrFail($id);
+        $book->update([
+            'mod_status'       => 'rejected',
+            'is_active'        => false,
+            'rejection_reason' => $reason,
+            'reviewed_by'      => auth()->id(),
+            'reviewed_at'      => now(),
+        ]);
+
+        $this->accessService->log('book_rejected', "বই '{$book->title}' বাতিল করা হয়েছে");
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success'    => true,
+                'mod_status' => 'rejected',
+                'is_active'  => false,
+                'message'    => "‘{$book->title}’ বইটি বাতিল করা হয়েছে।",
+            ]);
+        }
+
+        return back()->with('success', "‘{$book->title}’ বইটি বাতিল করা হয়েছে।");
     }
 
     public function ebooks(Request $request): View
@@ -711,33 +786,53 @@ class AdminController extends Controller
         return back()->with('success', 'ই-বুক স্ট্যাটাস সফলভাবে পরিবর্তন করা হয়েছে।');
     }
 
-    public function approveEbook(Request $request, int $id): \Illuminate\Http\RedirectResponse
+    public function approveEbook(Request $request, int $id): \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
     {
         $ebook = \Modules\Ebook\Models\Ebook::findOrFail($id);
         $ebook->update([
-            'mod_status'  => 'approved',
-            'is_active'   => true,
-            'reviewed_by' => auth()->id(),
-            'reviewed_at' => now(),
+            'mod_status'       => 'approved',
+            'is_active'        => true,
+            'reviewed_by'      => auth()->id(),
+            'reviewed_at'      => now(),
+            'rejection_reason' => null,
         ]);
+
+        $this->accessService->log('ebook_approved', "ই-বুক '{$ebook->title}' অনুমোদন করা হয়েছে");
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success'    => true,
+                'mod_status' => 'approved',
+                'is_active'  => true,
+                'message'    => "‘{$ebook->title}’ ই-বুকটি অনুমোদিত ও লাইভ স্টোরে প্রকাশিত হয়েছে!",
+            ]);
+        }
 
         return back()->with('success', "‘{$ebook->title}’ ই-বুকটি অনুমোদিত ও লাইভ স্টোরে প্রকাশিত হয়েছে!");
     }
 
-    public function rejectEbook(Request $request, int $id): \Illuminate\Http\RedirectResponse
+    public function rejectEbook(Request $request, int $id): \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
     {
-        $request->validate([
-            'rejection_reason' => 'required|string|max:500',
-        ]);
-
+        $reason = $request->input('rejection_reason') ?: 'অসম্পূর্ণ বা সংশোধন প্রয়োজন।';
         $ebook = \Modules\Ebook\Models\Ebook::findOrFail($id);
         $ebook->update([
             'mod_status'       => 'rejected',
             'is_active'        => false,
-            'rejection_reason' => $request->rejection_reason,
+            'rejection_reason' => $reason,
             'reviewed_by'      => auth()->id(),
             'reviewed_at'      => now(),
         ]);
+
+        $this->accessService->log('ebook_rejected', "ই-বুক '{$ebook->title}' বাতিল করা হয়েছে");
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success'    => true,
+                'mod_status' => 'rejected',
+                'is_active'  => false,
+                'message'    => "‘{$ebook->title}’ বইটি সংশোধনের জন্য লেখকের কাছে ফেরত পাঠানো হয়েছে।",
+            ]);
+        }
 
         return back()->with('success', "‘{$ebook->title}’ বইটি সংশোধনের জন্য লেখকের কাছে ফেরত পাঠানো হয়েছে।");
     }
@@ -965,13 +1060,21 @@ class AdminController extends Controller
         $post->status = $newStatus;
         if ($newStatus === 'published') {
             $post->mod_status = 'approved';
+            $post->rejection_reason = null;
             if (!$post->published_at) {
                 $post->published_at = now();
             }
+            $message = "‘{$post->title}’ পোস্টটি সফলভাবে অনুমোদন করা হয়েছে এবং ব্লগে প্রকাশিত হয়েছে!";
         } elseif ($newStatus === 'rejected') {
             $post->mod_status = 'rejected';
+            $post->rejection_reason = $request->input('rejection_reason') ?: 'অসম্পূর্ণ বা সংশোধন প্রয়োজন।';
+            $message = "‘{$post->title}’ পোস্টটি বাতিল করা হয়েছে।";
         } elseif ($newStatus === 'pending') {
             $post->mod_status = 'pending';
+            $message = "‘{$post->title}’ পোস্টটি পর্যালোচনার জন্য পেন্ডিং রাখা হয়েছে।";
+        } else {
+            $post->mod_status = 'pending';
+            $message = "‘{$post->title}’ পোস্টটি খসড়া (Draft) হিসেবে সংরক্ষিত হয়েছে।";
         }
 
         $post->save();
@@ -980,13 +1083,16 @@ class AdminController extends Controller
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
-                'success' => true,
-                'message' => "পোস্টের স্ট্যাটাস সফলভাবে '{$newStatus}' করা হয়েছে।",
-                'status'  => $newStatus,
+                'success'    => true,
+                'message'    => $message,
+                'status'     => $newStatus,
+                'mod_status' => $post->mod_status,
+                'slug'       => $post->slug,
+                'show_url'   => route('blog.show', $post->slug),
             ]);
         }
 
-        return back()->with('success', "পোস্টের স্ট্যাটাস সফলভাবে আপডেট করা হয়েছে।");
+        return back()->with('success', $message);
     }
 
     public function togglePostFeatured(Request $request, $id): \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
@@ -1851,6 +1957,7 @@ class AdminController extends Controller
             'stock_quantity'           => 'nullable|integer|min:0',
             'stock_status'             => 'nullable|string|in:in_stock,low,out,pre_order',
             'is_active'                => 'nullable|boolean',
+            'mod_status'               => 'nullable|string|in:pending,approved,rejected',
             'cover_image_file'         => 'nullable|image|max:5120',
         ]);
 
@@ -1892,7 +1999,20 @@ class AdminController extends Controller
         if ($request->filled('stock_status')) {
             $updates['stock_status'] = $validated['stock_status'];
         }
-        if ($request->has('is_active')) {
+        if ($request->filled('mod_status')) {
+            $updates['mod_status'] = $validated['mod_status'];
+            if ($validated['mod_status'] === 'approved') {
+                $updates['is_active'] = true;
+                $updates['reviewed_by'] = auth()->id();
+                $updates['reviewed_at'] = now();
+                $updates['rejection_reason'] = null;
+            } elseif ($validated['mod_status'] === 'rejected') {
+                $updates['is_active'] = false;
+                $updates['reviewed_by'] = auth()->id();
+                $updates['reviewed_at'] = now();
+            }
+        }
+        if ($request->has('is_active') && !$request->filled('mod_status')) {
             $updates['is_active'] = $request->boolean('is_active');
         }
 
@@ -2005,8 +2125,10 @@ class AdminController extends Controller
         $today = now()->startOfDay();
         $thisWeek = now()->startOfWeek();
         $thisMonth = now()->startOfMonth();
+        $liveThreshold = now()->subMinutes(5);
 
         $stats = [
+            'live_now'        => \App\Models\VisitorLog::where('visited_at', '>=', $liveThreshold)->distinct('ip_address')->count('ip_address'),
             'today_views'     => \App\Models\VisitorLog::where('visited_at', '>=', $today)->count(),
             'today_uniques'   => \App\Models\VisitorLog::where('visited_at', '>=', $today)->distinct('ip_address')->count('ip_address'),
             'week_views'      => \App\Models\VisitorLog::where('visited_at', '>=', $thisWeek)->count(),
@@ -2014,6 +2136,58 @@ class AdminController extends Controller
             'total_views'     => \App\Models\VisitorLog::count(),
             'total_uniques'   => \App\Models\VisitorLog::distinct('ip_address')->count('ip_address'),
         ];
+
+        // 14-Day Traffic Trend Data for Interactive Chart
+        $trendDays = collect(range(13, 0))->map(function ($daysAgo) {
+            $date = now()->subDays($daysAgo)->format('Y-m-d');
+            $views = \App\Models\VisitorLog::whereDate('visited_at', $date)->count();
+            $uniques = \App\Models\VisitorLog::whereDate('visited_at', $date)->distinct('ip_address')->count('ip_address');
+            return [
+                'date'    => now()->subDays($daysAgo)->format('d M'),
+                'views'   => $views,
+                'uniques' => $uniques,
+            ];
+        });
+
+        // Geographic Country Distribution (Worldwide)
+        $countryRecords = \App\Models\VisitorLog::select(
+                DB::raw("COALESCE(country, 'Bangladesh') as country_name"),
+                DB::raw("COALESCE(country_code, 'BD') as c_code"),
+                DB::raw("count(*) as total")
+            )
+            ->groupBy('country_name', 'c_code')
+            ->orderByDesc('total')
+            ->limit(10)
+            ->get();
+
+        $totalGeo = max(1, $countryRecords->sum('total'));
+        $countries = $countryRecords->map(function ($item) use ($totalGeo) {
+            $code = strtoupper((string) $item->c_code);
+            $flag = '🌐';
+            if (strlen($code) === 2) {
+                $flag = '';
+                foreach (str_split($code) as $c) {
+                    $flag .= mb_chr(ord($c) + 127397, 'UTF-8');
+                }
+            }
+            return [
+                'country' => $item->country_name,
+                'code'    => $code,
+                'flag'    => $flag,
+                'total'   => $item->total,
+                'percent' => round(($item->total / $totalGeo) * 100, 1),
+            ];
+        });
+
+        // Acquisition & Traffic Channels
+        $channels = \App\Models\VisitorLog::select(
+                DB::raw("COALESCE(traffic_source, 'Direct / Organic') as channel_name"),
+                DB::raw("count(*) as total")
+            )
+            ->groupBy('channel_name')
+            ->orderByDesc('total')
+            ->limit(8)
+            ->get();
 
         // Device Breakdown
         $devices = \App\Models\VisitorLog::select('device', DB::raw('count(*) as total'))
@@ -2025,33 +2199,59 @@ class AdminController extends Controller
         $browsers = \App\Models\VisitorLog::select('browser', DB::raw('count(*) as total'))
             ->groupBy('browser')
             ->orderByDesc('total')
-            ->limit(5)
+            ->limit(6)
             ->get();
 
-        // Top Visited Pages
+        // Operating System Breakdown
+        $osList = \App\Models\VisitorLog::select('os', DB::raw('count(*) as total'))
+            ->groupBy('os')
+            ->orderByDesc('total')
+            ->limit(6)
+            ->get();
+
+        // Top Visited Pages (All)
         $topPages = \App\Models\VisitorLog::select('url', 'page_title', DB::raw('count(*) as views'))
             ->groupBy('url', 'page_title')
             ->orderByDesc('views')
             ->limit(10)
             ->get();
 
-        // Recent Logs Stream
+        // Top Visited Books
+        $topBooks = \App\Models\VisitorLog::where('url', 'like', '%/books/%')
+            ->select('url', 'page_title', DB::raw('count(*) as views'))
+            ->groupBy('url', 'page_title')
+            ->orderByDesc('views')
+            ->limit(8)
+            ->get();
+
+        // Filtered Real-Time Logs Stream
         $logs = \App\Models\VisitorLog::with('user')
             ->when($request->filled('device'), fn($q) => $q->where('device', $request->string('device')))
+            ->when($request->filled('country_code'), fn($q) => $q->where('country_code', $request->string('country_code')))
+            ->when($request->filled('traffic_source'), fn($q) => $q->where('traffic_source', 'like', '%' . $request->string('traffic_source') . '%'))
             ->when($request->filled('search'), function($q) use ($request) {
                 $term = '%' . $request->string('search')->trim() . '%';
-                $q->where(fn($w) => $w->where('url', 'like', $term)->orWhere('ip_address', 'like', $term)->orWhere('page_title', 'like', $term));
+                $q->where(fn($w) => $w->where('url', 'like', $term)
+                    ->orWhere('ip_address', 'like', $term)
+                    ->orWhere('page_title', 'like', $term)
+                    ->orWhere('country', 'like', $term)
+                    ->orWhere('browser', 'like', $term));
             })
             ->latest('visited_at')
-            ->paginate(25)
+            ->paginate(30)
             ->withQueryString();
 
         return view('admin.analytics', [
-            'stats'    => $stats,
-            'devices'  => $devices,
-            'browsers' => $browsers,
-            'topPages' => $topPages,
-            'logs'     => $logs,
+            'stats'      => $stats,
+            'trendDays'  => $trendDays,
+            'countries'  => $countries,
+            'channels'   => $channels,
+            'devices'    => $devices,
+            'browsers'   => $browsers,
+            'osList'     => $osList,
+            'topPages'   => $topPages,
+            'topBooks'   => $topBooks,
+            'logs'       => $logs,
         ]);
     }
 

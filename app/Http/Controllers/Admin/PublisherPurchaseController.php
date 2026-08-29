@@ -107,6 +107,75 @@ class PublisherPurchaseController extends Controller
     }
 
     /**
+     * Search books dynamically for autocomplete with single character, tokenized search, publisher filter, and full metadata.
+     */
+    public function searchBooks(Request $request): JsonResponse
+    {
+        $q = $request->string('q')->trim()->value();
+        $publisherId = $request->input('publisher_id');
+
+        if (strlen($q) < 1) {
+            return response()->json([]);
+        }
+
+        $bnDigits = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+        $enDigits = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+        $normalized = str_replace($bnDigits, $enDigits, $q);
+        $words = preg_split('/\s+/', $q, -1, PREG_SPLIT_NO_EMPTY);
+        $tokens = array_values(array_unique(array_filter(array_merge([$q, $normalized], $words))));
+
+        $books = Book::query()
+            ->with(['publisher', 'authorLink', 'authors', 'category'])
+            ->when($publisherId, fn($query) => $query->where('publisher_id', $publisherId))
+            ->where(function ($masterQuery) use ($tokens) {
+                foreach ($tokens as $token) {
+                    $like = '%' . $token . '%';
+                    $masterQuery->where(function ($query) use ($like, $token) {
+                        $query->where('title', 'like', $like)
+                              ->orWhere('subtitle', 'like', $like)
+                              ->orWhere('isbn', 'like', $like)
+                              ->orWhere('sku', 'like', $like)
+                              ->orWhere('author_name', 'like', $like)
+                              ->orWhereHas('authorLink', fn($a) => $a->where('name', 'like', $like))
+                              ->orWhereHas('authors', fn($a) => $a->where('name', 'like', $like))
+                              ->orWhereHas('publisher', fn($p) => $p->where('name', 'like', $like));
+                    });
+                }
+            })
+            ->limit(30)
+            ->get()
+            ->map(function ($book) {
+                $regular = (float)($book->price ?: ($book->hardcover_price ?: 0));
+                $discount = (float)($book->discount_price ?: 0);
+                $cost = (float)($book->cost_price ?: ($regular > 0 ? $regular * 0.6 : 0));
+                $authorName = $book->author_name ?: ($book->authors->pluck('name')->implode(', ') ?: ($book->authorLink->name ?? ''));
+
+                return [
+                    'id'            => $book->id,
+                    'title'         => $book->title,
+                    'subtitle'      => $book->subtitle,
+                    'author'        => $authorName,
+                    'category_id'   => $book->category_id,
+                    'category_name' => $book->category?->name ?? '',
+                    'publisher_id'  => $book->publisher_id,
+                    'publisher_name'=> $book->publisher?->name ?? '',
+                    'mrp_price'     => $regular,
+                    'sale_price'    => $discount > 0 ? $discount : $regular,
+                    'cost_price'    => $cost,
+                    'stock'         => (int) $book->stock_quantity,
+                    'isbn'          => $book->isbn ?? '',
+                    'edition'       => $book->edition ?? '',
+                    'cover_type'    => $book->cover_type ?? 'paperback',
+                    'page_count'    => $book->page_count ?? '',
+                    'book_size'     => $book->book_size ?? '',
+                    'paper_type'    => $book->paper_type ?? '',
+                ];
+            });
+
+        return response()->json($books);
+    }
+
+    /**
      * Store new purchase (Books, Raw Materials, or Other).
      */
     public function store(Request $request): RedirectResponse
@@ -213,6 +282,8 @@ class PublisherPurchaseController extends Controller
             $purchase->publisher_id = $publisherId;
             $purchase->supplier_name = $vendorName;
             $purchase->vendor_name = $vendorName;
+            $purchase->vendor_phone = $request->input('vendor_phone') ?: ($publisher ? $publisher->phone : null);
+            $purchase->vendor_address = $request->input('vendor_address') ?: ($publisher ? $publisher->address : null);
             $purchase->purchase_date = $validated['purchase_date'];
             $purchase->due_date = $validated['due_date'] ?? null;
             $purchase->payment_type = $validated['payment_type'];
@@ -708,21 +779,42 @@ class PublisherPurchaseController extends Controller
     }
 
     /**
-     * Repayment history and installment payments list.
+     * Repayment history, installment payments list, and vendor ledger overview.
      */
     public function payments(Request $request): View
     {
         $publisherId = $request->input('publisher_id');
+        $vendorName = $request->string('vendor_name')->trim()->value();
         $method = $request->input('payment_method');
+        $category = $request->input('category');
         $dateFrom = $request->input('date_from');
         $dateTo = $request->input('date_to');
+        $search = $request->string('search')->trim()->value();
 
         $query = PublisherPayment::query()
             ->with(['publisher', 'purchase', 'recorder'])
             ->when($publisherId, fn($q) => $q->where('publisher_id', $publisherId))
+            ->when($vendorName, function($q) use ($vendorName) {
+                $q->where(function($sub) use ($vendorName) {
+                    $sub->where('vendor_name', $vendorName)
+                        ->orWhereHas('purchase', fn($p) => $p->where('vendor_name', $vendorName)->orWhere('supplier_name', $vendorName));
+                });
+            })
             ->when($method, fn($q) => $q->where('payment_method', $method))
+            ->when($category, function($q) use ($category) {
+                $q->whereHas('purchase', fn($p) => $p->where('purchase_category', $category));
+            })
             ->when($dateFrom, fn($q) => $q->whereDate('payment_date', '>=', $dateFrom))
             ->when($dateTo, fn($q) => $q->whereDate('payment_date', '<=', $dateTo))
+            ->when($search, function($q, $term) {
+                $like = '%' . $term . '%';
+                $q->where('payment_no', 'like', $like)
+                  ->orWhere('transaction_ref', 'like', $like)
+                  ->orWhere('note', 'like', $like)
+                  ->orWhere('vendor_name', 'like', $like)
+                  ->orWhereHas('publisher', fn($p) => $p->where('name', 'like', $like))
+                  ->orWhereHas('purchase', fn($p) => $p->where('purchase_no', 'like', $like)->orWhere('vendor_name', 'like', $like)->orWhere('supplier_name', 'like', $like));
+            })
             ->latest('payment_date')
             ->latest('id');
 
@@ -731,57 +823,405 @@ class PublisherPurchaseController extends Controller
         $publishers = Publisher::orderBy('name')->pluck('name', 'id')->all();
         $paymentMethods = PublisherPayment::paymentMethods();
 
+        // Get unique vendors (raw materials, press, paper shops, other)
+        $rawVendors = PublisherPurchase::whereNotNull('vendor_name')
+            ->where('vendor_name', '!=', '')
+            ->distinct()
+            ->pluck('vendor_name')
+            ->merge(
+                PublisherPurchase::whereNotNull('supplier_name')
+                    ->where('supplier_name', '!=', '')
+                    ->distinct()
+                    ->pluck('supplier_name')
+            )
+            ->unique()
+            ->sort()
+            ->values()
+            ->all();
+
+        // Fetch all pending purchases with safe party name and due amounts
         $pendingPurchases = PublisherPurchase::whereIn('payment_status', ['due', 'partial'])
             ->with('publisher')
             ->orderBy('purchase_date')
             ->get();
 
+        // Overall stats
         $totalPaidSum = (float) PublisherPayment::sum('amount');
+        $totalDueSum = (float) PublisherPurchase::sum('due_amount');
+        $totalPurchaseSum = (float) PublisherPurchase::sum('grand_total');
+        $pendingCount = $pendingPurchases->count();
 
-        return view('admin.purchases.payments', compact('payments', 'publishers', 'paymentMethods', 'pendingPurchases', 'totalPaidSum', 'publisherId', 'method', 'dateFrom', 'dateTo'));
+        // Build summary cards for vendor ledger
+        $vendorLedgers = $this->buildVendorLedgersSummary();
+
+        return view('admin.purchases.payments', compact(
+            'payments', 'publishers', 'rawVendors', 'paymentMethods', 'pendingPurchases',
+            'totalPaidSum', 'totalDueSum', 'totalPurchaseSum', 'pendingCount',
+            'vendorLedgers', 'publisherId', 'vendorName', 'method', 'category', 'dateFrom', 'dateTo', 'search'
+        ));
     }
 
     /**
-     * Record a new installment payment against a purchase.
+     * Dedicated Vendor / Supplier / Press / Paper Shop Running Ledger & Statement.
+     */
+    public function ledger(Request $request): View
+    {
+        $publisherId = $request->input('publisher_id');
+        $vendorName = $request->string('vendor_name')->trim()->value();
+        $partyKey = $request->input('party'); // e.g. "pub_1" or "vendor_XYZ"
+        $dateFrom = $request->input('date_from');
+        $dateTo = $request->input('date_to');
+
+        if (!empty($partyKey)) {
+            if (str_starts_with($partyKey, 'pub_')) {
+                $publisherId = (int) substr($partyKey, 4);
+                $vendorName = null;
+            } elseif (str_starts_with($partyKey, 'vendor_')) {
+                $vendorName = substr($partyKey, 7);
+                $publisherId = null;
+            }
+        }
+
+        $publishers = Publisher::orderBy('name')->pluck('name', 'id')->all();
+        $rawVendors = PublisherPurchase::whereNotNull('vendor_name')
+            ->where('vendor_name', '!=', '')
+            ->distinct()
+            ->pluck('vendor_name')
+            ->unique()
+            ->sort()
+            ->values()
+            ->all();
+
+        $paymentMethods = PublisherPayment::paymentMethods();
+
+        // If a specific party is selected, generate their detailed running statement
+        $statement = null;
+        $activeParty = null;
+
+        if ($publisherId || !empty($vendorName)) {
+            $statement = $this->generatePartyStatement($publisherId, $vendorName, $dateFrom, $dateTo);
+            $activeParty = $statement['party'];
+        }
+
+        $allSummaries = $this->buildVendorLedgersSummary();
+
+        return view('admin.purchases.ledger', compact(
+            'publishers', 'rawVendors', 'paymentMethods', 'statement', 'activeParty',
+            'allSummaries', 'publisherId', 'vendorName', 'dateFrom', 'dateTo'
+        ));
+    }
+
+    /**
+     * Record a new payment (either against a specific purchase or direct to supplier ledger with FIFO auto-settlement).
      */
     public function storePayment(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'purchase_id'     => 'required|integer|exists:publisher_purchases,id',
+            'payment_target'  => 'nullable|in:specific_invoice,supplier_account',
+            'purchase_id'     => 'nullable|integer|exists:publisher_purchases,id',
+            'publisher_id'    => 'nullable|integer|exists:publishers,id',
+            'vendor_name'     => 'nullable|string|max:255',
             'payment_date'    => 'required|date',
-            'amount'          => 'required|numeric|min:1',
+            'amount'          => 'required|numeric|min:0.01',
             'payment_method'  => 'required|string|max:50',
             'transaction_ref' => 'nullable|string|max:100',
             'note'            => 'nullable|string|max:500',
         ], [
-            'purchase_id.required' => 'ক্রয় ইনভয়েস নির্বাচন করুন।',
-            'amount.required'      => 'পরিশোধের পরিমাণ টাকা দিন।',
-            'amount.min'           => 'পরিশোধের পরিমাণ কমপক্ষে ১ টাকা হতে হবে।',
+            'amount.required' => 'পরিশোধের পরিমাণ টাকা দিন।',
+            'amount.min'      => 'পরিশোধের পরিমাণ কমপক্ষে ০.০১ টাকা হতে হবে।',
         ]);
 
-        $purchase = PublisherPurchase::findOrFail($validated['purchase_id']);
+        $amount = (float) $validated['amount'];
+        $paymentDate = $validated['payment_date'];
+        $paymentMethod = $validated['payment_method'];
+        $trxRef = $validated['transaction_ref'] ?? null;
+        $note = $validated['note'] ?? null;
 
-        if ((float)$validated['amount'] > (float)$purchase->due_amount) {
-            return back()->with('error', "পরিশোধের পরিমাণ বকেয়া টাকার চেয়ে বেশি হতে পারে না। বর্তমান বকেয়া: ৳" . number_format($purchase->due_amount, 2));
+        return DB::transaction(function () use ($validated, $amount, $paymentDate, $paymentMethod, $trxRef, $note) {
+            $purchaseId = !empty($validated['purchase_id']) ? (int)$validated['purchase_id'] : null;
+
+            // 1. SPECIFIC INVOICE PAYMENT
+            if ($purchaseId) {
+                $purchase = PublisherPurchase::findOrFail($purchaseId);
+                $payNo = 'PAY-' . date('Ymd') . '-' . rand(1000, 9999);
+
+                PublisherPayment::create([
+                    'purchase_id'     => $purchase->id,
+                    'publisher_id'    => $purchase->publisher_id,
+                    'vendor_name'     => $purchase->vendor_name ?: $purchase->supplier_name,
+                    'payment_no'      => $payNo,
+                    'payment_date'    => $paymentDate,
+                    'amount'          => $amount,
+                    'payment_method'  => $paymentMethod,
+                    'transaction_ref' => $trxRef,
+                    'note'            => $note,
+                    'recorded_by'     => auth()->id(),
+                ]);
+
+                $purchase->recalculate();
+
+                $party = $purchase->party_name;
+                return back()->with('success', "ইনভয়েস #{$purchase->purchase_no} ({$party})-এর বিপরীতে ৳" . number_format($amount, 2) . " টাকা সফলভাবে পরিশোধ রেকর্ড করা হয়েছে।");
+            }
+
+            // 2. SUPPLIER ACCOUNT / RUNNING LEDGER PAYMENT (FIFO Auto-Settlement across due invoices)
+            $publisherId = !empty($validated['publisher_id']) ? (int)$validated['publisher_id'] : null;
+            $vendorName = trim((string)($validated['vendor_name'] ?? ''));
+
+            if (!$publisherId && empty($vendorName)) {
+                return back()->withInput()->withErrors(['purchase_id' => 'অনুগ্রহ করে একটি ক্রয় ইনভয়েস নির্বাচন করুন অথবা সরবরাহকারী/ভেন্ডরের নাম দিন।']);
+            }
+
+            // Find all pending / partial due purchases for this party in chronological order
+            $duePurchasesQuery = PublisherPurchase::whereIn('payment_status', ['due', 'partial'])
+                ->orderBy('purchase_date', 'asc')
+                ->orderBy('id', 'asc');
+
+            if ($publisherId) {
+                $duePurchasesQuery->where('publisher_id', $publisherId);
+                $pubModel = Publisher::find($publisherId);
+                $partyDisplayName = $pubModel ? $pubModel->name : 'প্রকাশনী #' . $publisherId;
+            } else {
+                $duePurchasesQuery->where(function($q) use ($vendorName) {
+                    $q->where('vendor_name', $vendorName)->orWhere('supplier_name', $vendorName);
+                });
+                $partyDisplayName = $vendorName;
+            }
+
+            $duePurchases = $duePurchasesQuery->get();
+            $remainingPayment = $amount;
+            $settledInvoices = [];
+
+            foreach ($duePurchases as $p) {
+                if ($remainingPayment <= 0.001) {
+                    break;
+                }
+
+                $pDue = (float) $p->due_amount;
+                if ($pDue <= 0) continue;
+
+                $allocatedAmount = min($remainingPayment, $pDue);
+                $payNo = 'PAY-' . date('Ymd') . '-' . rand(1000, 9999);
+
+                PublisherPayment::create([
+                    'purchase_id'     => $p->id,
+                    'publisher_id'    => $p->publisher_id,
+                    'vendor_name'     => $p->vendor_name ?: ($p->supplier_name ?: $vendorName),
+                    'payment_no'      => $payNo,
+                    'payment_date'    => $paymentDate,
+                    'amount'          => $allocatedAmount,
+                    'payment_method'  => $paymentMethod,
+                    'transaction_ref' => $trxRef,
+                    'note'            => $note ? "{$note} [সাপ্লায়ার চলতি খাতা থেকে সমন্বয়]" : "সাপ্লায়ার চলতি খাতা থেকে ইনভয়েস #{$p->purchase_no} সমন্বয়",
+                    'recorded_by'     => auth()->id(),
+                ]);
+
+                $p->recalculate();
+                $settledInvoices[] = "#{$p->purchase_no} (৳" . number_format($allocatedAmount, 2) . ")";
+                $remainingPayment -= $allocatedAmount;
+            }
+
+            // If there was extra money or no due invoices at all, record a standalone unallocated payment on account
+            if ($remainingPayment > 0.001 || empty($settledInvoices)) {
+                $payNo = 'PAY-' . date('Ymd') . '-' . rand(1000, 9999);
+                PublisherPayment::create([
+                    'purchase_id'     => null,
+                    'publisher_id'    => $publisherId,
+                    'vendor_name'     => $vendorName ?: null,
+                    'payment_no'      => $payNo,
+                    'payment_date'    => $paymentDate,
+                    'amount'          => $remainingPayment > 0.001 ? $remainingPayment : $amount,
+                    'payment_method'  => $paymentMethod,
+                    'transaction_ref' => $trxRef,
+                    'note'            => $note ? "{$note} [চলতি খাতা অগ্রিম/অতিরিক্ত জমা]" : "চলতি খাতা জমা / কিস্তি",
+                    'recorded_by'     => auth()->id(),
+                ]);
+            }
+
+            $settledSummary = !empty($settledInvoices) ? ' (' . implode(', ', $settledInvoices) . ')' : '';
+            return back()->with('success', "{$partyDisplayName}-এর চলতি খাতায় ৳" . number_format($amount, 2) . " টাকা সফলভাবে জমা ও সমন্বয় করা হয়েছে{$settledSummary}!");
+        });
+    }
+
+    /**
+     * Helper to build master ledger summaries for all active suppliers / vendors / publishers.
+     */
+    private function buildVendorLedgersSummary(): array
+    {
+        $purchases = PublisherPurchase::with('publisher')->get();
+        $standalonePayments = PublisherPayment::whereNull('purchase_id')->get();
+
+        $parties = [];
+
+        // 1. Process from purchases
+        foreach ($purchases as $p) {
+            $isPub = !empty($p->publisher_id) && $p->publisher;
+            $key = $isPub ? 'pub_' . $p->publisher_id : 'vendor_' . ($p->vendor_name ?: ($p->supplier_name ?: 'Unknown'));
+            $name = $p->party_name;
+            $category = $p->purchase_category ?: ($isPub ? 'books' : 'raw_materials');
+            $phone = $p->party_phone ?: ($isPub ? ($p->publisher->phone ?? '—') : '—');
+            $address = $p->party_address ?: ($isPub ? ($p->publisher->address ?? '—') : '—');
+
+            if (!isset($parties[$key])) {
+                $parties[$key] = [
+                    'key'              => $key,
+                    'party_type'       => $isPub ? 'publisher' : 'vendor',
+                    'publisher_id'     => $p->publisher_id,
+                    'vendor_name'      => $p->vendor_name ?: $p->supplier_name,
+                    'name'             => $name,
+                    'phone'            => $phone,
+                    'address'          => $address,
+                    'category'         => $category,
+                    'total_billed'     => 0.0,
+                    'total_paid'       => 0.0,
+                    'current_due'      => 0.0,
+                    'invoice_count'    => 0,
+                    'last_transaction' => null,
+                ];
+            }
+
+            if ($phone !== '—' && $parties[$key]['phone'] === '—') {
+                $parties[$key]['phone'] = $phone;
+            }
+            if ($address !== '—' && $parties[$key]['address'] === '—') {
+                $parties[$key]['address'] = $address;
+            }
+
+            $parties[$key]['total_billed'] += (float)$p->grand_total;
+            $parties[$key]['total_paid'] += (float)$p->paid_amount;
+            $parties[$key]['current_due'] += (float)$p->due_amount;
+            $parties[$key]['invoice_count'] += 1;
+
+            if (!$parties[$key]['last_transaction'] || $p->purchase_date > $parties[$key]['last_transaction']) {
+                $parties[$key]['last_transaction'] = $p->purchase_date;
+            }
         }
 
-        $payNo = 'PAY-' . date('Ymd') . '-' . rand(1000, 9999);
+        // 2. Adjust standalone payments on account
+        foreach ($standalonePayments as $pay) {
+            $isPub = !empty($pay->publisher_id);
+            $key = $isPub ? 'pub_' . $pay->publisher_id : 'vendor_' . ($pay->vendor_name ?: 'Unknown');
 
-        PublisherPayment::create([
-            'purchase_id'     => $purchase->id,
-            'publisher_id'    => $purchase->publisher_id,
-            'payment_no'      => $payNo,
-            'payment_date'    => $validated['payment_date'],
-            'amount'          => $validated['amount'],
-            'payment_method'  => $validated['payment_method'],
-            'transaction_ref' => $validated['transaction_ref'] ?? null,
-            'note'            => $validated['note'] ?? null,
-            'recorded_by'     => auth()->id(),
-        ]);
+            if (isset($parties[$key])) {
+                $parties[$key]['total_paid'] += (float)$pay->amount;
+                $parties[$key]['current_due'] = max(0, $parties[$key]['total_billed'] - $parties[$key]['total_paid']);
+            }
+        }
 
-        $purchase->recalculate();
+        // Sort parties by highest due balance first
+        uasort($parties, fn($a, $b) => $b['current_due'] <=> $a['current_due']);
 
-        return back()->with('success', "৳" . number_format($validated['amount'], 2) . " টাকা সফলভাবে পরিশোধ রেকর্ড করা হয়েছে।");
+        return array_values($parties);
+    }
+
+    /**
+     * Helper to generate full chronological statement for a specific vendor or publisher.
+     */
+    private function generatePartyStatement(?int $publisherId, ?string $vendorName, ?string $dateFrom, ?string $dateTo): array
+    {
+        $purchasesQuery = PublisherPurchase::with(['items', 'payments.recorder'])
+            ->when($publisherId, fn($q) => $q->where('publisher_id', $publisherId))
+            ->when(!$publisherId && $vendorName, fn($q) => $q->where(fn($sub) => $sub->where('vendor_name', $vendorName)->orWhere('supplier_name', $vendorName)));
+
+        $paymentsQuery = PublisherPayment::with(['purchase', 'recorder'])
+            ->when($publisherId, fn($q) => $q->where('publisher_id', $publisherId))
+            ->when(!$publisherId && $vendorName, fn($q) => $q->where(fn($sub) => $sub->where('vendor_name', $vendorName)->orWhereHas('purchase', fn($p) => $p->where('vendor_name', $vendorName)->orWhere('supplier_name', $vendorName))));
+
+        $allPurchases = $purchasesQuery->get();
+        $allPayments = $paymentsQuery->get();
+        $latestPurchase = $allPurchases->last();
+
+        $partyInfo = [
+            'name'     => $publisherId ? (Publisher::find($publisherId)?->name ?? 'Publisher #' . $publisherId) : ($vendorName ?: 'Vendor'),
+            'phone'    => $publisherId ? (Publisher::find($publisherId)?->phone ?? '—') : ($latestPurchase?->party_phone ?? '—'),
+            'address'  => $publisherId ? (Publisher::find($publisherId)?->address ?? '—') : ($latestPurchase?->party_address ?? '—'),
+            'category' => $publisherId ? 'books' : ($allPurchases->first()?->purchase_category ?? 'raw_materials'),
+            'type'     => $publisherId ? 'publisher' : 'vendor',
+            'pub_id'   => $publisherId,
+            'vendor'   => $vendorName,
+        ];
+
+        // Combine into unified entries
+        $entries = [];
+
+        foreach ($allPurchases as $pur) {
+            $itemTitles = $pur->items->pluck('item_name')->filter()->take(3)->implode(', ');
+            $desc = "ক্রয় ইনভয়েস #{$pur->purchase_no}";
+            if ($itemTitles) $desc .= " ({$itemTitles})";
+
+            $entries[] = [
+                'date'        => $pur->purchase_date ? $pur->purchase_date->format('Y-m-d') : $pur->created_at->format('Y-m-d'),
+                'sort_time'   => $pur->purchase_date ? $pur->purchase_date->timestamp : $pur->created_at->timestamp,
+                'type'        => 'purchase',
+                'type_label'  => 'বাকিতে ক্রয় (Purchase)',
+                'ref_no'      => $pur->purchase_no,
+                'purchase_id' => $pur->id,
+                'description' => $desc,
+                'category'    => $pur->purchase_category,
+                'debit'       => (float) $pur->grand_total, // Payable added
+                'credit'      => 0.0,
+                'notes'       => $pur->notes,
+            ];
+        }
+
+        foreach ($allPayments as $pay) {
+            $desc = "পরিশোধ / কিস্তি জমা (#{$pay->payment_no})";
+            if ($pay->purchase) {
+                $desc .= " — ইনভয়েস #{$pay->purchase->purchase_no}";
+            }
+            if ($pay->transaction_ref) {
+                $desc .= " (Trx: {$pay->transaction_ref})";
+            }
+
+            $entries[] = [
+                'date'        => $pay->payment_date ? $pay->payment_date->format('Y-m-d') : $pay->created_at->format('Y-m-d'),
+                'sort_time'   => ($pay->payment_date ? $pay->payment_date->timestamp : $pay->created_at->timestamp) + 1, // payments after purchases on same day
+                'type'        => 'payment',
+                'type_label'  => 'জমা / পরিশোধ (Payment)',
+                'ref_no'      => $pay->payment_no,
+                'purchase_id' => $pay->purchase_id,
+                'description' => $desc,
+                'category'    => $pay->purchase?->purchase_category ?? 'payment',
+                'debit'       => 0.0,
+                'credit'      => (float) $pay->amount, // Paid
+                'notes'       => $pay->note,
+                'method'      => $pay->payment_method,
+            ];
+        }
+
+        // Sort chronologically
+        usort($entries, fn($a, $b) => $a['sort_time'] <=> $b['sort_time']);
+
+        // Calculate running balance
+        $runningBalance = 0.0;
+        $totalBilled = 0.0;
+        $totalPaid = 0.0;
+
+        foreach ($entries as &$entry) {
+            $runningBalance += ($entry['debit'] - $entry['credit']);
+            $entry['balance'] = $runningBalance;
+            $totalBilled += $entry['debit'];
+            $totalPaid += $entry['credit'];
+        }
+        unset($entry);
+
+        // Filter by date range if provided
+        $filteredEntries = $entries;
+        if ($dateFrom) {
+            $filteredEntries = array_filter($filteredEntries, fn($e) => $e['date'] >= $dateFrom);
+        }
+        if ($dateTo) {
+            $filteredEntries = array_filter($filteredEntries, fn($e) => $e['date'] <= $dateTo);
+        }
+
+        return [
+            'party'           => $partyInfo,
+            'entries'         => array_values($filteredEntries),
+            'total_billed'    => $totalBilled,
+            'total_paid'      => $totalPaid,
+            'net_due_balance' => max(0, $totalBilled - $totalPaid),
+            'total_entries'   => count($filteredEntries),
+        ];
     }
 
     /**

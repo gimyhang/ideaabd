@@ -552,7 +552,7 @@
                                     @endif
                                 </td>
                                 <td class="no-print text-end pe-2.5">
-                                    <form action="{{ route('admin.accounting.employees.work-logs.destroy', $log->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this ledger record?');">
+                                    <form action="{{ route('admin.accounting.employees.work-logs.destroy', $log->id) }}" method="POST" data-confirm="আপনি কি নিশ্চিত যে এই লেজার রেকর্ডটি মুছে ফেলতে চান?" data-confirm-title="রেকর্ড ডিলিট">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn btn-sm btn-outline-danger border-0 rounded-circle p-1" title="Delete Record">

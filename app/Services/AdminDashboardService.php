@@ -43,6 +43,16 @@ class AdminDashboardService
             ->where('reg_status', User::STATUS_PENDING)
             ->count(), 0);
         
+        $pendingBooks = 0;
+        if (Schema::hasTable('books')) {
+            $pendingBooks = (int) $this->safe(fn () => \Modules\Book\Models\Book::where('mod_status', 'pending')->count(), 0);
+        }
+
+        $pendingEbooks = 0;
+        if (Schema::hasTable('ebooks')) {
+            $pendingEbooks = (int) $this->safe(fn () => \Modules\Ebook\Models\Ebook::where('mod_status', 'pending')->count(), 0);
+        }
+
         $pendingBlogs = 0;
         if (Schema::hasTable('blog_posts')) {
             $pendingBlogs = (int) $this->safe(fn () => \Modules\Blog\Models\BlogPost::where(function ($q) {
@@ -60,13 +70,15 @@ class AdminDashboardService
             $pendingSubmissions = (int) $this->safe(fn () => \Modules\Author\Models\AuthorSubmission::where('status', 'pending')->count(), 0);
         }
 
-        $totalCount = $pendingOrders + $pendingRegistrations + $pendingBlogs + $pendingBookRequests + $pendingSubmissions;
+        $totalCount = $pendingOrders + $pendingRegistrations + $pendingBooks + $pendingEbooks + $pendingBlogs + $pendingBookRequests + $pendingSubmissions;
 
         return [
             'total_count'          => $totalCount,
             'has_alerts'           => $totalCount > 0,
             'orders'               => $pendingOrders,
             'registrations'        => $pendingRegistrations,
+            'books'                => $pendingBooks,
+            'ebooks'               => $pendingEbooks,
             'blogs'                => $pendingBlogs,
             'book_requests'        => $pendingBookRequests,
             'submissions'          => $pendingSubmissions,

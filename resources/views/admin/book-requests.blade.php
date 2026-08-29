@@ -184,7 +184,7 @@
                     <option value="closed">Status: Closed</option>
                     <option value="delete">🗑️ Delete Selected</option>
                 </select>
-                <button type="submit" class="btn btn-primary btn-sm rounded-pill px-3 fw-bold" onclick="return confirmBulkAction()">
+                <button type="button" class="btn btn-primary btn-sm rounded-pill px-3 fw-bold" onclick="handleBulkActionSubmit()">
                     Apply
                 </button>
             </div>
@@ -315,7 +315,7 @@
                                     </button>
 
                                     <form action="{{ route('admin.book-requests.destroy', $req->id) }}" method="POST" 
-                                          onsubmit="return confirm('Are you sure you want to delete this book request?');" class="d-inline">
+                                          data-confirm="আপনি কি নিশ্চিত যে এই বইয়ের অনুরোধটি মুছে ফেলতে চান?" data-confirm-title="অনুরোধ ডিলিট" class="d-inline">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn btn-sm btn-light border p-1 rounded-circle shadow-xs text-danger" title="Delete">
@@ -595,8 +595,28 @@ function onRowCheckboxChange() {
     }
 }
 
-function confirmBulkAction() {
-    return confirm('Are you sure you want to apply this action on selected requests?');
+function handleBulkActionSubmit() {
+    const checked = document.querySelectorAll('.row-checkbox:checked');
+    if (checked.length === 0) {
+        Swal.fire({ title: 'অনুরোধ নির্বাচন করুন', text: 'অনুগ্রহ করে অন্তত একটি অনুরোধ সিলেক্ট করুন।', icon: 'warning' });
+        return;
+    }
+    const action = document.querySelector('select[name="bulk_action"]').value;
+    if (!action) {
+        Swal.fire({ title: 'অ্যাকশন নির্বাচন করুন', text: 'অনুগ্রহ করে একটি অ্যাকশন বেছে নিন।', icon: 'info' });
+        return;
+    }
+
+    SwalConfirm({
+        title: 'বাল্ক অ্যাকশন নিশ্চিতকরণ',
+        text: `আপনি কি নিশ্চিত যে নির্বাচিত ${checked.length}টি অনুরোধে এই অ্যাকশন প্রয়োগ করতে চান?`,
+        icon: 'question',
+        confirmButtonText: '<i class="fas fa-check me-1"></i> হ্যাঁ, প্রয়োগ করুন',
+    }).then(function(result) {
+        if (result.isConfirmed) {
+            document.getElementById('bulkForm').submit();
+        }
+    });
 }
 
 function showToast(msg) {

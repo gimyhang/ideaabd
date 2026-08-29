@@ -192,4 +192,54 @@ class User extends Authenticatable
 
         return $author;
     }
+
+    public function getDesignationAttribute(): string
+    {
+        if (!empty($this->reg_data['designation'])) {
+            return (string) $this->reg_data['designation'];
+        }
+
+        try {
+            $emp = \App\Models\IdeaEmployee::where('email', $this->email)
+                ->orWhere('phone', $this->phone)
+                ->orWhere('name', $this->name)
+                ->first();
+            if ($emp && !empty($emp->designation)) {
+                return $emp->designation;
+            }
+        } catch (\Throwable $e) {}
+
+        return match ($this->role) {
+            'admin'     => 'ব্যবস্থাপনা পরিচালক (অ্যাডমিন)',
+            'sub_admin' => 'সহকারী ব্যবস্থাপক / কর্মকর্তা',
+            'seller'    => 'সেলস ও বিলিং এক্সিকিউটিভ',
+            'publisher' => 'প্রকাশক ও পরিবেশক',
+            default     => 'বিল প্রস্তুতকারী কর্মকর্তা',
+        };
+    }
+
+    public function getDesignationEnAttribute(): string
+    {
+        if (!empty($this->reg_data['designation'])) {
+            return (string) $this->reg_data['designation'];
+        }
+
+        try {
+            $emp = \App\Models\IdeaEmployee::where('email', $this->email)
+                ->orWhere('phone', $this->phone)
+                ->orWhere('name', $this->name)
+                ->first();
+            if ($emp && !empty($emp->designation)) {
+                return $emp->designation;
+            }
+        } catch (\Throwable $e) {}
+
+        return match ($this->role) {
+            'admin'     => 'Managing Director / Admin',
+            'sub_admin' => 'Assistant Manager / Executive',
+            'seller'    => 'Sales & Billing Executive',
+            'publisher' => 'Publisher / Distributor',
+            default     => 'Billing Officer / Creator',
+        };
+    }
 }

@@ -1,233 +1,624 @@
 @extends('layouts.admin')
 
-@section('title', 'Site Visitors & Traffic Analytics')
-@section('heading', 'Visitors & Traffic Analytics')
+@section('title', 'Site Visitors & Traffic Analytics — আইডিয়া প্রকাশন')
+@section('heading', 'Visitors & Traffic Analytics Engine')
 @section('breadcrumb')
-    <li class="breadcrumb-item active" aria-current="page">Analytics Report</li>
+    <li class="breadcrumb-item active" aria-current="page">Analytics & Intelligence</li>
+@endsection
+
+@section('actions')
+    <div class="d-flex align-items-center gap-2">
+        <button type="button" class="btn btn-outline-success btn-sm rounded-pill px-3 shadow-xs" onclick="exportAnalyticsCSV()" title="Export Analytics to CSV">
+            <i class="fas fa-file-csv me-1"></i> Export (CSV)
+        </button>
+        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-xs" onclick="window.print()" title="Print Analytics Report">
+            <i class="fas fa-print me-1"></i> Print Report
+        </button>
+        <a href="{{ route('admin.visitor-reports') }}" class="btn btn-primary btn-sm rounded-pill px-3 fw-bold shadow-xs">
+            <i class="fas fa-rotate me-1"></i> Refresh Live
+        </a>
+    </div>
 @endsection
 
 @section('content')
+<div class="d-flex flex-column gap-4">
 
-<!-- KPI Summary Cards -->
-<div class="row g-3 mb-4">
-    <!-- Today Views -->
-    <div class="col-xl-3 col-sm-6">
-        <div class="card border-0 shadow-xs rounded-4 p-3 bg-white border-start border-4 border-primary">
-            <div class="d-flex align-items-center justify-content-between">
+    {{-- Live Real-Time Pulse Banner --}}
+    <div class="card border-0 shadow-xs rounded-4 text-white overflow-hidden" 
+         style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #0369a1 100%);">
+        <div class="card-body p-4 d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <div class="d-flex align-items-center gap-3">
+                <div class="position-relative d-flex align-items-center justify-content-center" 
+                     style="width: 56px; height: 56px; background: rgba(255, 255, 255, 0.1); border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.15);">
+                    <i class="fas fa-globe text-info fs-3"></i>
+                    <span class="position-absolute top-0 start-100 translate-middle p-1.5 bg-success border border-light rounded-circle animate-pulse" 
+                          style="box-shadow: 0 0 12px #22c55e;" title="Real-time Stream Online"></span>
+                </div>
                 <div>
-                    <span class="small fw-semibold text-muted d-block mb-1">Today's Pageviews</span>
-                    <h3 class="fw-bold mb-0 text-dark">{{ number_format($stats['today_views']) }}</h3>
-                </div>
-                <div class="rounded-circle p-2.5 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px; background: rgba(0, 102, 204, 0.08);">
-                    <i class="fa-solid fa-eye fs-5 text-primary"></i>
-                </div>
-            </div>
-            <div class="small text-muted mt-2 pt-1 border-top" style="font-size: 11.5px;">
-                Unique Visitors: <strong class="text-primary">{{ number_format($stats['today_uniques']) }}</strong>
-            </div>
-        </div>
-    </div>
-
-    <!-- Week Views -->
-    <div class="col-xl-3 col-sm-6">
-        <div class="card border-0 shadow-xs rounded-4 p-3 bg-white border-start border-4 border-info">
-            <div class="d-flex align-items-center justify-content-between">
-                <div>
-                    <span class="small fw-semibold text-muted d-block mb-1">This Week Views</span>
-                    <h3 class="fw-bold mb-0 text-dark">{{ number_format($stats['week_views']) }}</h3>
-                </div>
-                <div class="rounded-circle p-2.5 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px; background: rgba(13, 202, 240, 0.08);">
-                    <i class="fa-solid fa-chart-simple fs-5 text-info"></i>
-                </div>
-            </div>
-            <div class="small text-muted mt-2 pt-1 border-top" style="font-size: 11.5px;">
-                Total traffic past 7 days
-            </div>
-        </div>
-    </div>
-
-    <!-- Month Views -->
-    <div class="col-xl-3 col-sm-6">
-        <div class="card border-0 shadow-xs rounded-4 p-3 bg-white border-start border-4 border-success">
-            <div class="d-flex align-items-center justify-content-between">
-                <div>
-                    <span class="small fw-semibold text-muted d-block mb-1">This Month Views</span>
-                    <h3 class="fw-bold mb-0 text-dark">{{ number_format($stats['month_views']) }}</h3>
-                </div>
-                <div class="rounded-circle p-2.5 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px; background: rgba(25, 135, 84, 0.08);">
-                    <i class="fa-solid fa-calendar-check fs-5 text-success"></i>
-                </div>
-            </div>
-            <div class="small text-muted mt-2 pt-1 border-top" style="font-size: 11.5px;">
-                Monthly total visitor volume
-            </div>
-        </div>
-    </div>
-
-    <!-- Total All Time -->
-    <div class="col-xl-3 col-sm-6">
-        <div class="card border-0 shadow-xs rounded-4 p-3 bg-white border-start border-4 border-warning">
-            <div class="d-flex align-items-center justify-content-between">
-                <div>
-                    <span class="small fw-semibold text-muted d-block mb-1">All-Time Pageviews</span>
-                    <h3 class="fw-bold mb-0 text-dark">{{ number_format($stats['total_views']) }}</h3>
-                </div>
-                <div class="rounded-circle p-2.5 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px; background: rgba(255, 193, 7, 0.1);">
-                    <i class="fa-solid fa-users-viewfinder fs-5 text-warning"></i>
-                </div>
-            </div>
-            <div class="small text-muted mt-2 pt-1 border-top" style="font-size: 11.5px;">
-                Total Unique Visitors: <strong class="text-dark">{{ number_format($stats['total_uniques']) }}</strong>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="row g-4 mb-4">
-    <!-- Device Distribution -->
-    <div class="col-lg-4">
-        <div class="card border-0 shadow-xs rounded-4 h-100 bg-white">
-            <div class="card-header bg-white border-bottom py-3">
-                <h6 class="fw-bold text-dark mb-0"><i class="fa-solid fa-mobile-screen-button text-primary me-1.5"></i> Device Distribution</h6>
-            </div>
-            <div class="card-body p-3">
-                @php
-                    $mobileCount = $devices['mobile'] ?? 0;
-                    $desktopCount = $devices['desktop'] ?? 0;
-                    $tabletCount = $devices['tablet'] ?? 0;
-                    $totalDev = max(1, $mobileCount + $desktopCount + $tabletCount);
-                    $mobilePct = round(($mobileCount / $totalDev) * 100);
-                    $desktopPct = round(($desktopCount / $totalDev) * 100);
-                    $tabletPct = round(($tabletCount / $totalDev) * 100);
-                @endphp
-
-                <!-- Mobile -->
-                <div class="mb-3">
-                    <div class="d-flex justify-content-between align-items-center mb-1 small fw-semibold">
-                        <span><i class="fa-solid fa-mobile-screen text-primary me-1"></i> Mobile / Smartphone</span>
-                        <span>{{ number_format($mobileCount) }} ({{ $mobilePct }}%)</span>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-0.5 fw-bold" style="font-size: 11px;">
+                            <i class="fas fa-circle-dot me-1 fa-beat-fade" style="--fa-beat-fade-scale: 1.3;"></i> REAL-TIME ACTIVE
+                        </span>
+                        <span class="text-white-50 small">Worldwide Traffic Engine</span>
                     </div>
-                    <div class="progress" style="height: 8px;">
-                        <div class="progress-bar bg-primary" role="progressbar" style="width: {{ $mobilePct }}%"></div>
-                    </div>
+                    <h4 class="fw-bold text-white mb-0 mt-1">
+                        Site Visitors & Global Traffic Intelligence
+                    </h4>
                 </div>
+            </div>
 
-                <!-- Desktop -->
-                <div class="mb-3">
-                    <div class="d-flex justify-content-between align-items-center mb-1 small fw-semibold">
-                        <span><i class="fa-solid fa-laptop text-info me-1"></i> Desktop / Laptop</span>
-                        <span>{{ number_format($desktopCount) }} ({{ $desktopPct }}%)</span>
-                    </div>
-                    <div class="progress" style="height: 8px;">
-                        <div class="progress-bar bg-info" role="progressbar" style="width: {{ $desktopPct }}%"></div>
-                    </div>
+            <div class="d-flex align-items-center gap-4 bg-white bg-opacity-10 px-4 py-2.5 rounded-4 border border-white border-opacity-15">
+                <div class="text-center">
+                    <span class="d-block text-white-50 small fw-semibold" style="font-size: 11px;">LIVE ONLINE NOW</span>
+                    <h3 class="fw-black text-warning mb-0">{{ number_format($stats['live_now'] ?? 0) }}</h3>
                 </div>
-
-                <!-- Tablet -->
-                <div>
-                    <div class="d-flex justify-content-between align-items-center mb-1 small fw-semibold">
-                        <span><i class="fa-solid fa-tablet-screen-button text-success me-1"></i> Tablet & Others</span>
-                        <span>{{ number_format($tabletCount) }} ({{ $tabletPct }}%)</span>
-                    </div>
-                    <div class="progress" style="height: 8px;">
-                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ $tabletPct }}%"></div>
-                    </div>
+                <div class="vr bg-white opacity-25"></div>
+                <div class="text-center">
+                    <span class="d-block text-white-50 small fw-semibold" style="font-size: 11px;">TODAY'S VISITS</span>
+                    <h3 class="fw-black text-white mb-0">{{ number_format($stats['today_views'] ?? 0) }}</h3>
+                </div>
+                <div class="vr bg-white opacity-25"></div>
+                <div class="text-center">
+                    <span class="d-block text-white-50 small fw-semibold" style="font-size: 11px;">UNIQUE USERS</span>
+                    <h3 class="fw-black text-info mb-0">{{ number_format($stats['today_uniques'] ?? 0) }}</h3>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Top Visited Pages -->
-    <div class="col-lg-8">
-        <div class="card border-0 shadow-xs rounded-4 h-100 bg-white">
-            <div class="card-header bg-white border-bottom py-3">
-                <h6 class="fw-bold text-dark mb-0"><i class="fa-solid fa-fire text-danger me-1.5"></i> Most Visited Pages & Books</h6>
+    {{-- 1. KPI Summary Cards --}}
+    <div class="row g-3">
+        <!-- Today Views -->
+        <div class="col-6 col-xl-3">
+            <div class="card border-0 shadow-xs rounded-4 p-3 bg-white border-start border-4 border-primary h-100">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <span class="small fw-semibold text-muted d-block mb-1">Today's Pageviews</span>
+                        <h3 class="fw-bold mb-0 text-dark">{{ number_format($stats['today_views']) }}</h3>
+                    </div>
+                    <div class="rounded-circle p-2.5 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px; background: rgba(2, 132, 199, 0.1);">
+                        <i class="fa-solid fa-eye fs-5 text-primary"></i>
+                    </div>
+                </div>
+                <div class="small text-muted mt-2 pt-2 border-top d-flex justify-content-between" style="font-size: 11.5px;">
+                    <span>Unique IPs:</span>
+                    <strong class="text-primary">{{ number_format($stats['today_uniques']) }}</strong>
+                </div>
             </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0" style="font-size: 13px;">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Page URL / Title</th>
-                                <th class="text-end" style="width: 25%;">Views</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($topPages as $page)
-                            <tr>
-                                <td>
-                                    <a href="{{ $page->url }}" target="_blank" class="text-decoration-none fw-semibold text-dark d-block text-truncate" style="max-width: 480px;">
-                                        <i class="fa-solid fa-link text-muted me-1 small"></i> {{ $page->url }}
-                                    </a>
-                                </td>
-                                <td class="text-end">
-                                    <span class="badge bg-primary-subtle text-primary rounded-pill px-2.5 py-1 fw-bold">{{ number_format($page->views) }} views</span>
-                                </td>
-                            </tr>
-                            @empty
-                            <tr>
-                                <td colspan="2" class="text-center py-4 text-muted">No page view records yet</td>
-                            </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
+        </div>
+
+        <!-- Week Views -->
+        <div class="col-6 col-xl-3">
+            <div class="card border-0 shadow-xs rounded-4 p-3 bg-white border-start border-4 border-info h-100">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <span class="small fw-semibold text-muted d-block mb-1">Past 7 Days Traffic</span>
+                        <h3 class="fw-bold mb-0 text-dark">{{ number_format($stats['week_views']) }}</h3>
+                    </div>
+                    <div class="rounded-circle p-2.5 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px; background: rgba(6, 182, 212, 0.1);">
+                        <i class="fa-solid fa-chart-line fs-5 text-info"></i>
+                    </div>
+                </div>
+                <div class="small text-muted mt-2 pt-2 border-top d-flex justify-content-between" style="font-size: 11.5px;">
+                    <span>Weekly Traffic Momentum:</span>
+                    <strong class="text-success"><i class="fas fa-arrow-trend-up"></i> Active</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- Month Views -->
+        <div class="col-6 col-xl-3">
+            <div class="card border-0 shadow-xs rounded-4 p-3 bg-white border-start border-4 border-success h-100">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <span class="small fw-semibold text-muted d-block mb-1">Monthly Volume</span>
+                        <h3 class="fw-bold mb-0 text-dark">{{ number_format($stats['month_views']) }}</h3>
+                    </div>
+                    <div class="rounded-circle p-2.5 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px; background: rgba(16, 185, 129, 0.1);">
+                        <i class="fa-solid fa-calendar-check fs-5 text-success"></i>
+                    </div>
+                </div>
+                <div class="small text-muted mt-2 pt-2 border-top d-flex justify-content-between" style="font-size: 11.5px;">
+                    <span>Period:</span>
+                    <strong class="text-dark">{{ now()->format('F Y') }}</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- All-Time Total Views -->
+        <div class="col-6 col-xl-3">
+            <div class="card border-0 shadow-xs rounded-4 p-3 bg-white border-start border-4 border-warning h-100">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <span class="small fw-semibold text-muted d-block mb-1">All-Time Cumulative</span>
+                        <h3 class="fw-bold mb-0 text-dark">{{ number_format($stats['total_views']) }}</h3>
+                    </div>
+                    <div class="rounded-circle p-2.5 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px; background: rgba(245, 158, 11, 0.12);">
+                        <i class="fa-solid fa-users-viewfinder fs-5 text-warning"></i>
+                    </div>
+                </div>
+                <div class="small text-muted mt-2 pt-2 border-top d-flex justify-content-between" style="font-size: 11.5px;">
+                    <span>Total Unique Visitors:</span>
+                    <strong class="text-dark">{{ number_format($stats['total_uniques']) }}</strong>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Live Real-Time Logs Stream Table -->
-<div class="card border-0 shadow-xs rounded-4 bg-white overflow-hidden">
-    <div class="card-header bg-white border-bottom py-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
-        <h6 class="fw-bold text-dark mb-0"><i class="fa-solid fa-list text-primary me-1.5"></i> Live Real-Time Stream</h6>
-        <span class="badge bg-success text-white rounded-pill px-2.5 py-1"><i class="fa-solid fa-circle-dot me-1"></i> Tracking Active</span>
+    {{-- 2. 14-Day Traffic Trend Interactive Chart --}}
+    <div class="card border-0 shadow-xs rounded-4 bg-white overflow-hidden">
+        <div class="card-header bg-white border-bottom py-3 d-flex flex-wrap align-items-center justify-content-between gap-2">
+            <div>
+                <h6 class="fw-bold text-dark mb-0">
+                    <i class="fas fa-chart-area text-primary me-1.5"></i> 14-Day Traffic & Engagement Trend
+                </h6>
+                <span class="text-muted small">Daily pageviews and unique user volume graph</span>
+            </div>
+            <div class="d-flex align-items-center gap-3 small">
+                <div class="d-flex align-items-center gap-1.5">
+                    <span class="d-inline-block rounded-circle" style="width: 10px; height: 10px; background: #0284c7;"></span>
+                    <span class="fw-semibold text-muted">Pageviews</span>
+                </div>
+                <div class="d-flex align-items-center gap-1.5">
+                    <span class="d-inline-block rounded-circle" style="width: 10px; height: 10px; background: #10b981;"></span>
+                    <span class="fw-semibold text-muted">Unique Visitors</span>
+                </div>
+            </div>
+        </div>
+        <div class="card-body p-3">
+            <div style="height: 260px; position: relative;">
+                <canvas id="trafficTrendChart"></canvas>
+            </div>
+        </div>
     </div>
 
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0" style="font-size: 13px;">
-                <thead class="table-light">
-                    <tr>
-                        <th>IP Address</th>
-                        <th>Device & Browser</th>
-                        <th>Visited URL</th>
-                        <th>OS</th>
-                        <th>Visited Time</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($logs as $log)
-                    <tr>
-                        <td class="font-monospace text-primary fw-bold">{{ $log->ip_address }}</td>
-                        <td>
-                            <i class="fa-solid {{ $log->device === 'mobile' ? 'fa-mobile-screen' : 'fa-laptop' }} text-secondary me-1"></i>
-                            <span class="fw-semibold">{{ $log->browser ?? 'Browser' }}</span>
-                        </td>
-                        <td>
-                            <div class="text-truncate" style="max-width: 320px;" title="{{ $log->url }}">
-                                {{ $log->url }}
+    {{-- 3. Geography & Acquisition Channels Matrix --}}
+    <div class="row g-3">
+        <!-- Worldwide Geography Breakdown -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-xs rounded-4 bg-white h-100 overflow-hidden">
+                <div class="card-header bg-white border-bottom py-3 d-flex align-items-center justify-content-between">
+                    <div>
+                        <h6 class="fw-bold text-dark mb-0"><i class="fas fa-earth-americas text-primary me-1.5"></i> Worldwide Geographic Reach</h6>
+                        <span class="text-muted small" style="font-size: 11px;">Visitors classified by Country & Region</span>
+                    </div>
+                    <span class="badge bg-primary-subtle text-primary rounded-pill px-2.5 py-1 fw-bold">Global Scale</span>
+                </div>
+                <div class="card-body p-3">
+                    <div class="d-flex flex-column gap-3">
+                        @forelse($countries as $geo)
+                            <div>
+                                <div class="d-flex justify-content-between align-items-center mb-1 small fw-semibold">
+                                    <span class="d-flex align-items-center gap-2 text-dark">
+                                        <span style="font-size: 16px;">{{ $geo['flag'] }}</span>
+                                        <span>{{ $geo['country'] }}</span>
+                                        <span class="badge bg-light text-secondary border px-1.5 py-0.5" style="font-size: 9.5px;">{{ $geo['code'] }}</span>
+                                    </span>
+                                    <span class="text-muted">
+                                        <strong class="text-dark">{{ number_format($geo['total']) }}</strong> views 
+                                        <span class="text-primary fw-bold ms-1">({{ $geo['percent'] }}%)</span>
+                                    </span>
+                                </div>
+                                <div class="progress rounded-pill" style="height: 7px; background-color: #f1f5f9;">
+                                    <div class="progress-bar rounded-pill" role="progressbar" 
+                                         style="width: {{ $geo['percent'] }}%; background: linear-gradient(90deg, #0284c7, #38bdf8);" 
+                                         aria-valuenow="{{ $geo['percent'] }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
                             </div>
-                        </td>
-                        <td><span class="badge bg-light text-dark border">{{ $log->os ?? 'OS' }}</span></td>
-                        <td class="text-muted small">{{ $log->visited_at ? $log->visited_at->diffForHumans() : 'Just now' }}</td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="5" class="text-center py-5 text-muted">No visitor stream logs recorded</td>
-                    </tr>
-                    @endforelse
-                </tbody>
-            </table>
+                        @empty
+                            <div class="text-center py-4 text-muted small">
+                                <i class="fas fa-globe fs-2 mb-2 text-secondary opacity-50 d-block"></i>
+                                No geographic visitor data recorded yet.
+                            </div>
+                        @endforelse
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Acquisition Channels & Search Engines -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-xs rounded-4 bg-white h-100 overflow-hidden">
+                <div class="card-header bg-white border-bottom py-3 d-flex align-items-center justify-content-between">
+                    <div>
+                        <h6 class="fw-bold text-dark mb-0"><i class="fas fa-arrows-split-up-and-left text-info me-1.5"></i> Traffic Acquisition Channels</h6>
+                        <span class="text-muted small" style="font-size: 11px;">Search Engines, Social Media, Direct & Referrals</span>
+                    </div>
+                    <span class="badge bg-info-subtle text-info rounded-pill px-2.5 py-1 fw-bold">Discovery</span>
+                </div>
+                <div class="card-body p-3">
+                    @php $totalChannels = max(1, $channels->sum('total')); @endphp
+                    <div class="d-flex flex-column gap-3">
+                        @forelse($channels as $chan)
+                            @php 
+                                $chanPct = round(($chan->total / $totalChannels) * 100, 1);
+                                $isSearch = str_contains(strtolower($chan->channel_name), 'search') || str_contains(strtolower($chan->channel_name), 'google') || str_contains(strtolower($chan->channel_name), 'bing');
+                                $isSocial = str_contains(strtolower($chan->channel_name), 'facebook') || str_contains(strtolower($chan->channel_name), 'whatsapp') || str_contains(strtolower($chan->channel_name), 'youtube') || str_contains(strtolower($chan->channel_name), 'twitter');
+                            @endphp
+                            <div>
+                                <div class="d-flex justify-content-between align-items-center mb-1 small fw-semibold">
+                                    <span class="d-flex align-items-center gap-1.5 text-dark">
+                                        @if($isSearch)
+                                            <i class="fab fa-google text-danger"></i>
+                                        @elseif($isSocial)
+                                            <i class="fas fa-share-nodes text-primary"></i>
+                                        @else
+                                            <i class="fas fa-compass text-success"></i>
+                                        @endif
+                                        <span>{{ $chan->channel_name }}</span>
+                                    </span>
+                                    <span class="text-muted">
+                                        <strong class="text-dark">{{ number_format($chan->total) }}</strong> visits
+                                        <span class="text-info fw-bold ms-1">({{ $chanPct }}%)</span>
+                                    </span>
+                                </div>
+                                <div class="progress rounded-pill" style="height: 7px; background-color: #f1f5f9;">
+                                    <div class="progress-bar rounded-pill" role="progressbar" 
+                                         style="width: {{ $chanPct }}%; background: linear-gradient(90deg, #10b981, #34d399);" 
+                                         aria-valuenow="{{ $chanPct }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                            </div>
+                        @empty
+                            <div class="text-center py-4 text-muted small">
+                                <i class="fas fa-compass fs-2 mb-2 text-secondary opacity-50 d-block"></i>
+                                Direct & Organic visitor tracking active.
+                            </div>
+                        @endforelse
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
-    @if($logs->hasPages())
-    <div class="card-footer bg-white border-top p-3 d-flex justify-content-between align-items-center">
-        <span class="small text-muted">Showing {{ $logs->firstItem() }} to {{ $logs->lastItem() }} of {{ $logs->total() }} logs</span>
-        <div>{{ $logs->links('pagination::bootstrap-5') }}</div>
+    {{-- 4. Content Performance & Technology Stack --}}
+    <div class="row g-3">
+        <!-- Most Visited Books -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-xs rounded-4 bg-white h-100 overflow-hidden">
+                <div class="card-header bg-white border-bottom py-3">
+                    <h6 class="fw-bold text-dark mb-0"><i class="fas fa-book-bookmark text-primary me-1.5"></i> Top Performing Books</h6>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush" style="font-size: 12.5px;">
+                        @forelse($topBooks as $bIdx => $bookItem)
+                            <div class="list-group-item d-flex align-items-center justify-content-between py-2.5 px-3">
+                                <div class="d-flex align-items-center gap-2 overflow-hidden">
+                                    <span class="badge rounded-circle bg-primary-subtle text-primary fw-bold" style="width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; font-size: 10px;">
+                                        {{ $bIdx + 1 }}
+                                    </span>
+                                    <a href="{{ $bookItem->url }}" target="_blank" class="text-decoration-none text-dark fw-semibold text-truncate d-block" style="max-width: 210px;" title="{{ $bookItem->page_title }}">
+                                        {{ $bookItem->page_title }}
+                                    </a>
+                                </div>
+                                <span class="badge bg-light text-dark border rounded-pill px-2 py-1 fw-bold">
+                                    {{ number_format($bookItem->views) }} views
+                                </span>
+                            </div>
+                        @empty
+                            <div class="text-center py-4 text-muted small">No book view analytics yet</div>
+                        @endforelse
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Most Visited Pages & Articles -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-xs rounded-4 bg-white h-100 overflow-hidden">
+                <div class="card-header bg-white border-bottom py-3">
+                    <h6 class="fw-bold text-dark mb-0"><i class="fas fa-fire text-danger me-1.5"></i> Top Pages & Articles</h6>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush" style="font-size: 12.5px;">
+                        @forelse($topPages as $pIdx => $pageItem)
+                            <div class="list-group-item d-flex align-items-center justify-content-between py-2.5 px-3">
+                                <div class="d-flex align-items-center gap-2 overflow-hidden">
+                                    <span class="badge rounded-circle bg-danger-subtle text-danger fw-bold" style="width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; font-size: 10px;">
+                                        {{ $pIdx + 1 }}
+                                    </span>
+                                    <a href="{{ $pageItem->url }}" target="_blank" class="text-decoration-none text-dark fw-semibold text-truncate d-block" style="max-width: 210px;" title="{{ $pageItem->page_title }}">
+                                        {{ $pageItem->page_title }}
+                                    </a>
+                                </div>
+                                <span class="badge bg-light text-dark border rounded-pill px-2 py-1 fw-bold">
+                                    {{ number_format($pageItem->views) }}
+                                </span>
+                            </div>
+                        @empty
+                            <div class="text-center py-4 text-muted small">No page view analytics yet</div>
+                        @endforelse
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Technology & Platform Breakdown (Devices, Browsers, OS) -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-xs rounded-4 bg-white h-100 overflow-hidden">
+                <div class="card-header bg-white border-bottom py-3">
+                    <h6 class="fw-bold text-dark mb-0"><i class="fas fa-laptop-code text-success me-1.5"></i> Device & Technology Stack</h6>
+                </div>
+                <div class="card-body p-3">
+                    @php
+                        $mCount = $devices['mobile'] ?? 0;
+                        $dCount = $devices['desktop'] ?? 0;
+                        $tCount = $devices['tablet'] ?? 0;
+                        $tDev = max(1, $mCount + $dCount + $tCount);
+                        $mPct = round(($mCount / $tDev) * 100);
+                        $dPct = round(($dCount / $tDev) * 100);
+                        $tPct = round(($tCount / $tDev) * 100);
+                    @endphp
+
+                    <!-- Device Progress -->
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1 small fw-semibold">
+                            <span><i class="fas fa-mobile-screen text-primary me-1"></i> Mobile ({{ $mPct }}%)</span>
+                            <span><i class="fas fa-laptop text-info me-1"></i> Desktop ({{ $dPct }}%)</span>
+                            <span><i class="fas fa-tablet-screen-button text-success me-1"></i> Tablet ({{ $tPct }}%)</span>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-primary" role="progressbar" style="width: {{ $mPct }}%"></div>
+                            <div class="progress-bar bg-info" role="progressbar" style="width: {{ $dPct }}%"></div>
+                            <div class="progress-bar bg-success" role="progressbar" style="width: {{ $tPct }}%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Top Browsers -->
+                    <div class="border-top pt-2.5 mt-2.5">
+                        <span class="small fw-bold text-muted d-block mb-2 text-uppercase" style="font-size: 10px;">Top Browsers</span>
+                        <div class="d-flex flex-wrap gap-1.5">
+                            @foreach($browsers as $b)
+                                <span class="badge bg-light text-dark border rounded-pill px-2.5 py-1 small">
+                                    <i class="fab fa-chrome text-primary me-1"></i> {{ $b->browser }}: <strong>{{ number_format($b->total) }}</strong>
+                                </span>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    <!-- Top OS -->
+                    <div class="border-top pt-2.5 mt-2.5">
+                        <span class="small fw-bold text-muted d-block mb-2 text-uppercase" style="font-size: 10px;">Operating Systems</span>
+                        <div class="d-flex flex-wrap gap-1.5">
+                            @foreach($osList as $o)
+                                <span class="badge bg-light text-dark border rounded-pill px-2.5 py-1 small">
+                                    <i class="fab fa-windows text-info me-1"></i> {{ $o->os }}: <strong>{{ number_format($o->total) }}</strong>
+                                </span>
+                            @endforeach
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
     </div>
-    @endif
+
+    {{-- 5. Real-Time Visitor Activity Stream & Filter Toolbar --}}
+    <div class="card border-0 shadow-xs rounded-4 bg-white overflow-hidden">
+        <div class="card-header bg-white border-bottom py-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <div>
+                <h6 class="fw-bold text-dark mb-0"><i class="fas fa-tower-broadcast text-primary me-1.5"></i> Live Real-Time Activity Log</h6>
+                <span class="text-muted small">Chronological stream of visitor clicks and sessions</span>
+            </div>
+
+            <!-- Filter Controls -->
+            <form action="{{ route('admin.visitor-reports') }}" method="GET" class="d-flex flex-wrap align-items-center gap-2">
+                <input type="text" name="search" value="{{ request('search') }}" placeholder="Search IP, URL, title..." class="form-control form-control-sm rounded-pill px-3" style="width: 200px;">
+                <select name="device" class="form-select form-select-sm rounded-pill" onchange="this.form.submit()" style="width: 120px;">
+                    <option value="">All Devices</option>
+                    <option value="desktop" @selected(request('device') === 'desktop')>Desktop</option>
+                    <option value="mobile" @selected(request('device') === 'mobile')>Mobile</option>
+                    <option value="tablet" @selected(request('device') === 'tablet')>Tablet</option>
+                </select>
+                <button type="submit" class="btn btn-sm btn-primary rounded-pill px-3">
+                    <i class="fas fa-filter me-1"></i> Filter
+                </button>
+                @if(request()->hasAny(['search', 'device', 'country_code', 'traffic_source']))
+                    <a href="{{ route('admin.visitor-reports') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5" title="Clear Filters">
+                        <i class="fas fa-times"></i>
+                    </a>
+                @endif
+            </form>
+        </div>
+
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" id="analyticsLiveTable" style="font-size: 12.5px;">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-3" style="width: 13%;">Country & Region</th>
+                            <th style="width: 14%;">IP Address</th>
+                            <th style="width: 16%;">Device & OS</th>
+                            <th style="width: 28%;">Page URL & Content</th>
+                            <th style="width: 15%;">Acquisition Source</th>
+                            <th class="pe-3 text-end" style="width: 14%;">Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($logs as $log)
+                            <tr>
+                                <td class="ps-3">
+                                    <div class="d-flex align-items-center gap-1.5">
+                                        <span style="font-size: 16px;">{{ $log->country_flag }}</span>
+                                        <span class="fw-semibold text-dark">{{ $log->country ?: 'Bangladesh' }}</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-1.5">
+                                        <span class="font-monospace text-muted">{{ $log->ip_address }}</span>
+                                        @if($log->user_id)
+                                            <span class="badge bg-success-subtle text-success border rounded-circle p-1" title="Logged in user: {{ $log->user?->name }}">
+                                                <i class="fas fa-user-check" style="font-size: 9px;"></i>
+                                            </span>
+                                        @endif
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-1.5">
+                                        @if($log->device === 'mobile')
+                                            <span class="badge bg-primary-subtle text-primary border rounded-pill px-2 py-0.5"><i class="fas fa-mobile-screen me-1"></i> Mobile</span>
+                                        @elseif($log->device === 'tablet')
+                                            <span class="badge bg-success-subtle text-success border rounded-pill px-2 py-0.5"><i class="fas fa-tablet-screen-button me-1"></i> Tablet</span>
+                                        @else
+                                            <span class="badge bg-info-subtle text-info border rounded-pill px-2 py-0.5"><i class="fas fa-laptop me-1"></i> Desktop</span>
+                                        @endif
+                                        <span class="text-muted small">{{ $log->browser }} / {{ $log->os }}</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div>
+                                        <span class="fw-bold text-dark d-block text-truncate" style="max-width: 320px;" title="{{ $log->page_title }}">
+                                            {{ $log->page_title ?: 'Page' }}
+                                        </span>
+                                        <a href="{{ $log->url }}" target="_blank" rel="noopener" class="text-muted text-decoration-none small text-truncate d-block" style="max-width: 320px; font-size: 11px;">
+                                            <i class="fas fa-link me-1 text-secondary opacity-75"></i> {{ $log->url }}
+                                        </a>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-dark border rounded-pill px-2 py-0.5 fw-semibold" style="font-size: 11px;">
+                                        {{ $log->traffic_source ?: 'Direct / Organic' }}
+                                    </span>
+                                </td>
+                                <td class="pe-3 text-end text-muted font-monospace small">
+                                    <span title="{{ $log->visited_at?->format('Y-m-d H:i:s') }}">
+                                        {{ $log->visited_at ? $log->visited_at->diffForHumans() : 'Just now' }}
+                                    </span>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="6" class="text-center py-5 text-muted">
+                                    <i class="fas fa-chart-simple fs-1 mb-2 text-secondary opacity-50 d-block"></i>
+                                    No visitor logs recorded for this criteria.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+
+            @if($logs->hasPages())
+                <div class="p-3 border-top d-flex justify-content-between align-items-center">
+                    <span class="text-muted small">
+                        Showing {{ $logs->firstItem() }} to {{ $logs->lastItem() }} of {{ $logs->total() }} events
+                    </span>
+                    <div>
+                        {{ $logs->links() }}
+                    </div>
+                </div>
+            @endif
+        </div>
+    </div>
+
 </div>
 
+{{-- Chart.js Script for Interactive 14-Day Traffic Graph --}}
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('trafficTrendChart');
+    if (!ctx) return;
+
+    const trendData = @json($trendDays);
+    const labels = trendData.map(d => d.date);
+    const viewsData = trendData.map(d => d.views);
+    const uniquesData = trendData.map(d => d.uniques);
+
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Pageviews',
+                    data: viewsData,
+                    borderColor: '#0284c7',
+                    backgroundColor: 'rgba(2, 132, 199, 0.08)',
+                    fill: true,
+                    tension: 0.35,
+                    borderWidth: 2.5,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    pointBackgroundColor: '#0284c7',
+                },
+                {
+                    label: 'Unique Visitors',
+                    data: uniquesData,
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.06)',
+                    fill: true,
+                    tension: 0.35,
+                    borderWidth: 2.5,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    pointBackgroundColor: '#10b981',
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                mode: 'index',
+                intersect: false,
+            },
+            plugins: {
+                legend: {
+                    display: false,
+                },
+                tooltip: {
+                    backgroundColor: '#0f172a',
+                    titleFont: { size: 13, weight: 'bold' },
+                    bodyFont: { size: 12 },
+                    padding: 10,
+                    cornerRadius: 8,
+                }
+            },
+            scales: {
+                x: {
+                    grid: { display: false },
+                    ticks: { font: { size: 11 } }
+                },
+                y: {
+                    beginAtZero: true,
+                    grid: { color: 'rgba(0, 0, 0, 0.04)' },
+                    ticks: {
+                        precision: 0,
+                        font: { size: 11 }
+                    }
+                }
+            }
+        }
+    });
+});
+
+function exportAnalyticsCSV() {
+    const table = document.getElementById('analyticsLiveTable');
+    if (!table) return;
+
+    let csv = [];
+    const rows = table.querySelectorAll('tr');
+    rows.forEach(row => {
+        const cols = row.querySelectorAll('th, td');
+        let rowData = [];
+        cols.forEach(col => {
+            let text = col.innerText.replace(/(\r\n|\n|\r)/gm, ' ').replace(/\s+/g, ' ').trim();
+            text = text.replace(/"/g, '""');
+            rowData.push(`"${text}"`);
+        });
+        if (rowData.length > 0) csv.push(rowData.join(','));
+    });
+
+    const csvContent = "data:text/csv;charset=utf-8,\uFEFF" + csv.join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `Idea_Prakashon_Traffic_Analytics_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+</script>
+@endpush
 @endsection

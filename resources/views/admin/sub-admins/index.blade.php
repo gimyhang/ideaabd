@@ -103,7 +103,7 @@
                                         </button>
                                     </form>
                                     <form method="POST" action="{{ route('admin.sub-admins.destroy', $member) }}"
-                                          onsubmit="return confirm('Delete account for {{ $member->name }}?')">
+                                          data-confirm="আপনি কি নিশ্চিত যে {{ $member->name }} এর সাব-অ্যাডমিন অ্যাকাউন্টটি মুছে ফেলতে চান?" data-confirm-title="সাব-অ্যাডমিন ডিলিট">
                                         @csrf @method('DELETE')
                                         <button class="btn btn-sm btn-outline-danger rounded-pill px-2.5" title="Delete"><i class="fas fa-trash"></i></button>
                                     </form>

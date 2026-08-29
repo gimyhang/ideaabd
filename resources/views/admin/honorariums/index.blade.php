@@ -263,7 +263,7 @@
                                         </li>
                                         <li><hr class="dropdown-divider"></li>
                                         <li>
-                                            <form action="{{ route('admin.author-honorariums.destroy', $h->id) }}" method="POST" onsubmit="return confirm('আপনি কি নিশ্চিতভাবে এই সম্মানি রেকর্ডটি মুছে ফেলতে চান?');">
+                                            <form action="{{ route('admin.author-honorariums.destroy', $h->id) }}" method="POST" data-confirm="আপনি কি নিশ্চিতভাবে এই সম্মানি রেকর্ডটি মুছে ফেলতে চান?" data-confirm-title="সম্মানি রেকর্ড ডিলিট">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="dropdown-item small text-danger">

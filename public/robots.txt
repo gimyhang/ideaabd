@@ -1,6 +1,75 @@
+# ==============================================================================
+# IDEA PUBLICATION (আইডিয়া প্রকাশন) - Worldwide Search Engine Optimization Robots Directive
+# Target: Google, Bing, Yahoo, Yandex, Baidu, DuckDuckGo, Facebook, Apple, Pinterest
+# ==============================================================================
+
 User-agent: *
+Allow: /
+Allow: /books/
+Allow: /blog/
+Allow: /ebooks/
+Allow: /authors/
+Allow: /publishers/
+Allow: /webzines/
+Allow: /research/
+Allow: /images/
+Allow: /storage/
+Allow: /feed
+Allow: /sitemap.xml
+
+# Disallow Private & Admin Areas
 Disallow: /admin/
 Disallow: /seller/
+Disallow: /publisher/
 Disallow: /author/dashboard
+Disallow: /my-account/
+Disallow: /cart/
+Disallow: /checkout
+Disallow: /login
+Disallow: /register/
+Disallow: /password/
+Disallow: /api/
 
+# Explicit Rules for Googlebot (Web, News & Images)
+User-agent: Googlebot
+Allow: /
+Allow: /books
+Allow: /blog
+Allow: /storage/
+Disallow: /admin/
+Disallow: /seller/
+
+User-agent: Googlebot-Image
+Allow: /storage/
+Allow: /images/
+
+User-agent: Googlebot-News
+Allow: /blog/
+Allow: /webzines/
+
+# Explicit Rules for Bingbot & BingPreview
+User-agent: Bingbot
+Allow: /
+Disallow: /admin/
+Disallow: /seller/
+Crawl-delay: 1
+
+# Explicit Rules for Social Media Scrapers (Rich OpenGraph Preview Unblocked)
+User-agent: facebookexternalhit
+Allow: /
+
+User-agent: Twitterbot
+Allow: /
+
+User-agent: LinkedInBot
+Allow: /
+
+User-agent: Pinterestbot
+Allow: /
+
+User-agent: Applebot
+Allow: /
+
+# Canonical XML Sitemaps
 Sitemap: https://www.ideaabd.com/sitemap.xml
+Sitemap: https://www.ideaabd.com/feed

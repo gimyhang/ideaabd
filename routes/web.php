@@ -37,8 +37,10 @@ Route::get('/lang/{locale}', function (string $locale) {
     return redirect()->back();
 })->name('lang.switch');
 
-// --- XML Sitemap for SEO ---
+// --- XML Sitemap & RSS Feed for Worldwide SEO & Aggregators ---
 Route::get('/sitemap.xml', [\App\Http\Controllers\SitemapController::class, 'index'])->name('sitemap');
+Route::get('/feed', [\App\Http\Controllers\SitemapController::class, 'feed'])->name('feed');
+Route::get('/rss.xml', [\App\Http\Controllers\SitemapController::class, 'feed'])->name('rss');
 
 // --- Auth routes (login / logout) --------------------------------------------
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login')->middleware('guest');
@@ -310,6 +312,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
 
     Route::get('/users', [AdminController::class, 'users'])->name('users');
     Route::get('/books', [AdminController::class, 'books'])->name('books');
+    Route::post('/books/{id}/toggle-status', [AdminController::class, 'toggleBookStatus'])->name('books.toggle-status');
+    Route::post('/books/{id}/approve', [AdminController::class, 'approveBook'])->name('books.approve');
+    Route::post('/books/{id}/reject', [AdminController::class, 'rejectBook'])->name('books.reject');
     Route::get('/categories', [AdminController::class, 'categories'])->name('categories');
     Route::get('/blog', [AdminController::class, 'blog'])->name('blog');
     Route::get('/blog-categories', [AdminController::class, 'blogCategories'])->name('blog-categories');
@@ -347,6 +352,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::post('/', 'store')->name('store');
         Route::get('/payments', 'payments')->name('payments');
         Route::post('/payments', 'storePayment')->name('payments.store');
+        Route::get('/ledger', 'ledger')->name('ledger');
+        Route::get('/search-books', 'searchBooks')->name('search-books');
         Route::get('/monthly-report', 'monthlyReport')->name('monthly-report');
         Route::get('/{purchase}', 'show')->name('show');
         Route::get('/{purchase}/edit', 'edit')->name('edit');

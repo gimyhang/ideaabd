@@ -270,7 +270,7 @@
                                                 </li>
                                                 <li><hr class="dropdown-divider my-1"></li>
                                                 <li>
-                                                    <form action="{{ route('admin.accounting.employees.destroy', $emp->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this staff record?');">
+                                                    <form action="{{ route('admin.accounting.employees.destroy', $emp->id) }}" method="POST" data-confirm="আপনি কি নিশ্চিত যে এই কর্মী রেকর্ডটি ({{ $emp->name }}) মুছে ফেলতে চান?" data-confirm-title="কর্মী ডিলিট">
                                                         @csrf
                                                         @method('DELETE')
                                                         <button type="submit" class="dropdown-item small text-danger">

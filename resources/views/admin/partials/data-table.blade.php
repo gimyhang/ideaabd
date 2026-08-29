@@ -107,7 +107,7 @@
                                         <form action="{{ route('admin.content.destroy', ['type' => $contentType, 'id' => data_get($row, 'id')]) }}" 
                                               method="POST" 
                                               class="d-inline"
-                                              onsubmit="return confirm('Are you sure you want to delete this record?');">
+                                              data-confirm="আপনি কি নিশ্চিত যে এই রেকর্ডটি মুছে ফেলতে চান?" data-confirm-title="রেকর্ড ডিলিট">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" 

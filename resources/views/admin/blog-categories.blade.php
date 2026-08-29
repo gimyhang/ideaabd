@@ -133,7 +133,7 @@
                                 <a href="{{ route('admin.content.edit', ['type' => 'blog_categories', 'id' => $category->id]) }}" class="btn btn-outline-primary" title="Edit">
                                     <i class="fas fa-edit"></i>
                                 </a>
-                                <form action="{{ route('admin.content.destroy', ['type' => 'blog_categories', 'id' => $category->id]) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this category?')">
+                                <form action="{{ route('admin.content.destroy', ['type' => 'blog_categories', 'id' => $category->id]) }}" method="POST" class="d-inline" data-confirm="আপনি কি নিশ্চিত যে এই ব্লগ ক্যাটাগরিটি মুছে ফেলতে চান?" data-confirm-title="ব্লগ ক্যাটাগরি ডিলিট">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="btn btn-outline-danger" title="Delete">

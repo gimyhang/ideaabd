@@ -362,18 +362,21 @@
 
                             {{-- Actions --}}
                             <td class="text-end pe-3">
-                                <div class="d-inline-flex align-items-center gap-1">
-                                    {{-- If Pending: Show Approve & Reject buttons --}}
+                                <div class="d-inline-flex align-items-center gap-1" id="ebookActionBtns_{{ $ebook->id }}">
+                                    {{-- If Pending: Show 1-Click Approve & Reject buttons --}}
                                     @if($ebook->mod_status === 'pending')
-                                        <form action="{{ route('admin.ebooks.approve', $ebook->id) }}" method="POST" class="d-inline">
-                                            @csrf
-                                            <button type="submit" class="btn btn-sm btn-success rounded-pill px-2 py-0.5" title="Approve & Publish to Live Store">
-                                                <i class="fas fa-check"></i> Approve
-                                            </button>
-                                        </form>
+                                        <button type="button" class="btn btn-sm btn-success rounded-pill px-2.5 py-0.5 fw-semibold shadow-xs" 
+                                                onclick="ajaxApproveEbook({{ $ebook->id }})" title="Approve & Publish to Live Store">
+                                            <i class="fas fa-check me-1"></i> Approve
+                                        </button>
                                         <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-2 py-0.5" 
                                                 data-bs-toggle="modal" data-bs-target="#rejectModal{{ $ebook->id }}" title="Reject / Request Revision">
                                             <i class="fas fa-xmark"></i>
+                                        </button>
+                                    @elseif($ebook->mod_status === 'rejected')
+                                        <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-2 py-0.5 fw-semibold" 
+                                                onclick="ajaxApproveEbook({{ $ebook->id }})" title="Re-approve E-Book">
+                                            <i class="fas fa-check me-1"></i> Approve
                                         </button>
                                     @endif
 
@@ -391,7 +394,7 @@
 
                                     {{-- Delete --}}
                                     <form action="{{ route('admin.content.destroy', ['type' => 'ebooks', 'id' => $ebook->id]) }}" method="POST" class="d-inline"
-                                          onsubmit="return confirm('Are you sure you want to delete this e-book?');">
+                                          data-confirm="আপনি কি নিশ্চিত যে এই ই-বুকটি ডিলিট করতে চান?" data-confirm-title="ই-বুক ডিলিট">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-2 py-0.5" title="Delete">
@@ -523,6 +526,61 @@
 
 @push('scripts')
 <script>
+// 1-Click Instant AJAX Ebook Approval
+async function ajaxApproveEbook(id) {
+    const result = await SwalConfirm({
+        title: 'ই-বুক অনুমোদন ও লাইভ প্রকাশ',
+        text: 'আপনি কি এই ই-বুকটি অনুমোদন করে লাইভ স্টোরে প্রকাশ করতে চান?',
+        icon: 'question',
+        confirmButtonText: '<i class="fas fa-check-circle me-1"></i> হ্যাঁ, অনুমোদন করুন',
+        confirmButtonColor: '#10b981',
+        cancelButtonText: 'বাতিল'
+    });
+    if (!result.isConfirmed) return;
+
+    try {
+        const res = await fetch('/admin/ebooks/' + id + '/approve', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Accept': 'application/json'
+            }
+        });
+        const data = await res.json();
+        if (data.success) {
+            // Update toggle switch
+            const toggleEl = document.getElementById('toggle-' + id);
+            if (toggleEl) toggleEl.checked = true;
+
+            // Update row badge
+            const row = document.getElementById('ebook-row-' + id);
+            if (row) {
+                const badgeTd = row.children[6];
+                if (badgeTd) {
+                    badgeTd.innerHTML = `<span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1"><i class="fas fa-circle-check me-1"></i> Approved</span>`;
+                }
+            }
+
+            // Remove approve button
+            const actionsEl = document.getElementById('ebookActionBtns_' + id);
+            if (actionsEl) {
+                const approveBtn = actionsEl.querySelector('.btn-success, .btn-outline-success');
+                if (approveBtn) approveBtn.remove();
+                const rejectBtn = actionsEl.querySelector('.btn-outline-danger');
+                if (rejectBtn) rejectBtn.remove();
+            }
+
+            showEbookToast('success', data.message || 'ই-বুকটি সফলভাবে অনুমোদিত হয়েছে!');
+        } else {
+            showEbookToast('error', data.message || 'অনুমোদনে ত্রুটি হয়েছে।');
+        }
+    } catch (err) {
+        console.error(err);
+        showEbookToast('error', 'সার্ভারে সংযোগ করতে সমস্যা হয়েছে।');
+    }
+}
+
 // AJAX Toggle Active State
 function toggleEbookActive(id) {
     fetch('/admin/ebooks/' + id + '/toggle-status', {
@@ -536,10 +594,28 @@ function toggleEbookActive(id) {
     .then(res => res.json())
     .then(data => {
         if (data.success) {
-            console.log('Status updated: ' + data.message);
+            showEbookToast('success', data.message);
         }
     })
-    .catch(err => console.error('Error updating status:', err));
+    .catch(err => {
+        console.error('Error updating status:', err);
+        showEbookToast('error', 'স্ট্যাটাস আপডেটে সমস্যা হয়েছে।');
+    });
+}
+
+function showEbookToast(type, msg) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show position-fixed top-0 end-0 m-3 shadow-lg rounded-4`;
+    alertDiv.style.zIndex = '99999';
+    alertDiv.innerHTML = `
+        <div class="d-flex align-items-center gap-2">
+            <i class="fas ${type === 'success' ? 'fa-check-circle text-success' : (type === 'warning' ? 'fa-triangle-exclamation text-warning' : 'fa-circle-xmark text-danger')} fs-5"></i>
+            <div class="small fw-semibold">${msg}</div>
+            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+        </div>
+    `;
+    document.body.appendChild(alertDiv);
+    setTimeout(() => { alertDiv.remove(); }, 4000);
 }
 
 // CSV Export

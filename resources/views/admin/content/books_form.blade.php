@@ -1,5 +1,5 @@
 {{-- ═══════════════════════════════════════════════════════════════════════════ --}}
-{{-- DEDICATED ROKOMARI-STYLE STRUCTURED BOOK ENTRY FORM                         --}}
+{{-- STRUCTURED BOOK ENTRY & EDIT FORM (CLEAN, CONCISE ENGLISH)                --}}
 {{-- ═══════════════════════════════════════════════════════════════════════════ --}}
 
 {{-- LEFT COLUMN: MAIN FORM GRID & SPECIFICATIONS --}}
@@ -7,22 +7,22 @@
     <div class="adm-card p-3 p-md-4 mb-4">
         <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
             <h2 class="h6 fw-bold mb-0 text-dark">
-                <i class="fas fa-book me-1.5 text-primary"></i> Product & Book Entry Details
+                <i class="fas fa-book me-1.5 text-primary"></i> Book Specifications
             </h2>
-            <span class="badge bg-light text-muted border small">Fields marked * are required</span>
+            <span class="badge bg-light text-muted border small">* Required fields</span>
         </div>
 
         <div class="row g-3">
-            {{-- ROW 1: Product Type * & Order Type * (2 columns in 1 row) --}}
+            {{-- ROW 1: Product Type * & Order Type * --}}
             <div class="col-12 col-md-6">
                 <label for="f-product_type" class="form-label small fw-bold text-dark mb-1">
                     <i class="fas fa-box text-primary me-1"></i> Product Type <span class="text-danger">*</span>
                 </label>
                 <select id="f-product_type" name="product_type" class="form-select form-select-sm fw-semibold @error('product_type') is-invalid @enderror">
-                    <option value="book" @selected($val('product_type', 'book') === 'book')>Book (বই)</option>
-                    <option value="stationery" @selected($val('product_type') === 'stationery')>Stationery (স্টেশনারি)</option>
-                    <option value="islamic_gift" @selected($val('product_type') === 'islamic_gift')>Islamic Gift / Art (ইসলামিক গিফট)</option>
-                    <option value="other" @selected($val('product_type') === 'other')>Other Item (অন্যান্য)</option>
+                    <option value="book" @selected($val('product_type', 'book') === 'book')>Book</option>
+                    <option value="stationery" @selected($val('product_type') === 'stationery')>Stationery</option>
+                    <option value="islamic_gift" @selected($val('product_type') === 'islamic_gift')>Gift / Art Item</option>
+                    <option value="other" @selected($val('product_type') === 'other')>Other Item</option>
                 </select>
                 @error('product_type')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
@@ -32,10 +32,10 @@
                     <i class="fas fa-dolly text-success me-1"></i> Order Type <span class="text-danger">*</span>
                 </label>
                 <select id="f-stock_status" name="stock_status" class="form-select form-select-sm fw-semibold @error('stock_status') is-invalid @enderror" onchange="toggleAdminPreOrderFields(this.value)">
-                    <option value="in_stock" @selected($val('stock_status', 'in_stock') === 'in_stock')>Buy Now / In Stock (সরাসরি ক্রয়)</option>
-                    <option value="pre_order" @selected($val('stock_status') === 'pre_order')>Pre-Order (প্রি-অর্ডার)</option>
-                    <option value="out_of_stock" @selected($val('stock_status') === 'out_of_stock')>Out of Stock (স্টক শেষ)</option>
-                    <option value="upcoming" @selected($val('stock_status') === 'upcoming')>Upcoming (শীঘ্রই আসছে)</option>
+                    <option value="in_stock" @selected($val('stock_status', 'in_stock') === 'in_stock')>In Stock (Buy Now)</option>
+                    <option value="pre_order" @selected($val('stock_status') === 'pre_order')>Pre-Order</option>
+                    <option value="out_of_stock" @selected($val('stock_status') === 'out_of_stock')>Out of Stock</option>
+                    <option value="upcoming" @selected($val('stock_status') === 'upcoming')>Upcoming</option>
                 </select>
                 @error('stock_status')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
@@ -53,47 +53,47 @@
                         </div>
                         <div class="col-12 col-md-6">
                             <label for="f-pre_order_note" class="form-label small fw-bold text-dark mb-1">
-                                <i class="fas fa-gift text-warning me-1"></i> Pre-Order Gift Note / Autograph Offer
+                                <i class="fas fa-gift text-warning me-1"></i> Pre-Order Note / Offer
                             </label>
                             <input type="text" id="f-pre_order_note" name="pre_order_note" 
-                                   value="{{ $val('pre_order_note') }}" class="form-control form-control-sm" placeholder="e.g. লেখক অটোগ্রাফ ও বুকমার্ক সহ...">
+                                   value="{{ $val('pre_order_note') }}" class="form-control form-control-sm" placeholder="e.g. Includes author autograph & bookmark">
                         </div>
                     </div>
                 </div>
             </div>
 
-            {{-- ROW 2: Title / Product Name (BN) * & Product Name (EN) * (2 columns in 1 row) --}}
+            {{-- ROW 2: Title (BN) * & Title (EN) --}}
             <div class="col-12 col-md-6">
                 <label for="f-title" class="form-label small fw-bold text-dark mb-1">
-                    <i class="fas fa-book text-primary me-1"></i> Title / Product Name (BN) <span class="text-danger">*</span>
+                    <i class="fas fa-book text-primary me-1"></i> Title (Bengali) <span class="text-danger">*</span>
                 </label>
                 <input type="text" id="f-title" name="title" value="{{ $val('title') }}" required
                        class="form-control form-control-sm fw-semibold @error('title') is-invalid @enderror"
-                       placeholder="বইয়ের বাংলা নাম (যেমন: পথের পাঁচালী)"
+                       placeholder="Book Title in Bengali"
                        oninput="updateLiveMockupCard()">
                 @error('title')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
 
             <div class="col-12 col-md-6">
                 <label for="f-title_en" class="form-label small fw-bold text-dark mb-1">
-                    <i class="fas fa-language text-secondary me-1"></i> Product Name (EN) <span class="text-danger">*</span>
+                    <i class="fas fa-language text-secondary me-1"></i> Title (English) <span class="text-danger">*</span>
                 </label>
                 <input type="text" id="f-title_en" name="title_en" value="{{ old('title_en', $record->title_en ?? $val('subtitle')) }}"
                        class="form-control form-control-sm @error('title_en') is-invalid @enderror"
-                       placeholder="Product Name in English (e.g. Pather Panchali)">
+                       placeholder="Book Title in English">
                 @error('title_en')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
 
-            {{-- ROW 3: Author Name * & Translator Name (2 columns in 1 row with + Dynamic Multiple Adder) --}}
+            {{-- ROW 3: Authors & Translators --}}
             <div class="col-12 col-md-6">
                 <div class="d-flex align-items-center justify-content-between mb-1">
                     <label class="form-label small fw-bold text-dark mb-0">
-                        <i class="fas fa-pen-nib text-primary me-1"></i> Author Name <span class="text-danger">*</span>
+                        <i class="fas fa-pen-nib text-primary me-1"></i> Author <span class="text-danger">*</span>
                     </label>
                     <div class="d-flex align-items-center gap-1.5">
                         <button type="button" class="btn btn-sm btn-outline-success py-0 px-2 rounded-pill fw-semibold" 
                                 onclick="addAuthorField()" style="font-size: 11px;">
-                            <i class="fas fa-plus me-0.5"></i>+ Add Author
+                            <i class="fas fa-plus me-0.5"></i>Add
                         </button>
                         <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2 rounded-pill fw-semibold" 
                                 data-bs-toggle="modal" data-bs-target="#quickAddAuthorModal" style="font-size: 11px;">
@@ -127,7 +127,7 @@
                     @foreach($existingAuthors as $aIdx => $aName)
                         @php $aIdVal = $existingAuthorIds[$aIdx] ?? ''; @endphp
                         <div class="input-group input-group-sm author-field-row">
-                            <select name="author_ids[]" class="form-select form-select-sm" style="max-width: 140px;" onchange="onAuthorSelectRowChange(this)">
+                            <select name="author_ids[]" class="form-select form-select-sm" style="max-width: 135px;" onchange="onAuthorSelectRowChange(this)">
                                 <option value="">— Directory —</option>
                                 @foreach (($lookups['authors'] ?? []) as $aId => $aLookupName)
                                     <option value="{{ $aId }}" @selected((string)$aIdVal === (string)$aId || ((string)old('author_link_id', $record->author_link_id ?? '') === (string)$aId && $aIdx === 0) || $aName === $aLookupName)>
@@ -136,7 +136,7 @@
                                 @endforeach
                             </select>
                             <input type="text" name="author_names[]" class="form-control form-control-sm author-name-input @error('author_names') is-invalid @enderror" 
-                                   value="{{ $aName }}" placeholder="লেখকের নাম লিখুন..." oninput="updateLiveMockupCard()">
+                                   value="{{ $aName }}" placeholder="Author name..." oninput="updateLiveMockupCard()">
                             @if($aIdx === 0)
                                 <button type="button" class="btn btn-outline-secondary" onclick="addAuthorField()"><i class="fas fa-plus text-success"></i></button>
                             @else
@@ -152,11 +152,11 @@
             <div class="col-12 col-md-6">
                 <div class="d-flex align-items-center justify-content-between mb-1">
                     <label class="form-label small fw-bold text-dark mb-0">
-                        <i class="fas fa-language text-info me-1"></i> Translator Name
+                        <i class="fas fa-language text-info me-1"></i> Translator
                     </label>
                     <button type="button" class="btn btn-sm btn-outline-success py-0 px-2 rounded-pill fw-semibold" 
                             onclick="addTranslatorField()" style="font-size: 11px;">
-                        <i class="fas fa-plus me-0.5"></i>+ Add Translator
+                        <i class="fas fa-plus me-0.5"></i>Add
                     </button>
                 </div>
 
@@ -176,7 +176,7 @@
                     @foreach($existingTranslators as $tIdx => $tName)
                         <div class="input-group input-group-sm translator-field-row">
                             <input type="text" name="translator_names[]" class="form-control form-control-sm" 
-                                   value="{{ $tName }}" placeholder="অনুবাদকের নাম...">
+                                   value="{{ $tName }}" placeholder="Translator name...">
                             @if($tIdx === 0)
                                 <button type="button" class="btn btn-outline-secondary" onclick="addTranslatorField()"><i class="fas fa-plus text-success"></i></button>
                             @else
@@ -189,15 +189,15 @@
                 @error('translator_name')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
             </div>
 
-            {{-- ROW 4: Editor Name & Rewriter Name (2 columns in 1 row with + Dynamic Multiple Adder) --}}
+            {{-- ROW 4: Editor & Rewriter --}}
             <div class="col-12 col-md-6">
                 <div class="d-flex align-items-center justify-content-between mb-1">
                     <label class="form-label small fw-bold text-dark mb-0">
-                        <i class="fas fa-user-pen text-secondary me-1"></i> Editor Name
+                        <i class="fas fa-user-pen text-secondary me-1"></i> Editor
                     </label>
                     <button type="button" class="btn btn-sm btn-outline-success py-0 px-2 rounded-pill fw-semibold" 
                             onclick="addEditorField()" style="font-size: 11px;">
-                        <i class="fas fa-plus me-0.5"></i>+ Add Editor
+                        <i class="fas fa-plus me-0.5"></i>Add
                     </button>
                 </div>
 
@@ -217,7 +217,7 @@
                     @foreach($existingEditors as $eIdx => $eName)
                         <div class="input-group input-group-sm editor-field-row">
                             <input type="text" name="editor_names[]" class="form-control form-control-sm" 
-                                   value="{{ $eName }}" placeholder="সম্পাদকের নাম...">
+                                   value="{{ $eName }}" placeholder="Editor name...">
                             @if($eIdx === 0)
                                 <button type="button" class="btn btn-outline-secondary" onclick="addEditorField()"><i class="fas fa-plus text-success"></i></button>
                             @else
@@ -233,11 +233,11 @@
             <div class="col-12 col-md-6">
                 <div class="d-flex align-items-center justify-content-between mb-1">
                     <label class="form-label small fw-bold text-dark mb-0">
-                        <i class="fas fa-pen-fancy text-secondary me-1"></i> Rewriter Name
+                        <i class="fas fa-pen-fancy text-secondary me-1"></i> Rewriter / Adapter
                     </label>
                     <button type="button" class="btn btn-sm btn-outline-success py-0 px-2 rounded-pill fw-semibold" 
                             onclick="addRewriterField()" style="font-size: 11px;">
-                        <i class="fas fa-plus me-0.5"></i>+ Add Rewriter
+                        <i class="fas fa-plus me-0.5"></i>Add
                     </button>
                 </div>
 
@@ -257,7 +257,7 @@
                     @foreach($existingRewriters as $rIdx => $rName)
                         <div class="input-group input-group-sm rewriter-field-row">
                             <input type="text" name="rewriter_names[]" class="form-control form-control-sm" 
-                                   value="{{ $rName }}" placeholder="পুনর্লিখনকারী / রূপান্তরকারীর নাম...">
+                                   value="{{ $rName }}" placeholder="Rewriter name...">
                             @if($rIdx === 0)
                                 <button type="button" class="btn btn-outline-secondary" onclick="addRewriterField()"><i class="fas fa-plus text-success"></i></button>
                             @else
@@ -270,14 +270,14 @@
                 @error('rewriter_name')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
             </div>
 
-            {{-- ROW 5: Language * & Country (2 columns in 1 row - Dropdowns) --}}
+            {{-- ROW 5: Language * & Country --}}
             <div class="col-12 col-md-6">
                 <label for="f-language" class="form-label small fw-bold text-dark mb-1">
                     <i class="fas fa-globe text-primary me-1"></i> Language <span class="text-danger">*</span>
                 </label>
                 <select id="f-language" name="language" class="form-select form-select-sm @error('language') is-invalid @enderror">
-                    @foreach (['Bengali' => 'Bengali (বাংলা)', 'English' => 'English (ইংরেজি)', 'Arabic' => 'Arabic (আরবি)', 'Urdu' => 'Urdu (উর্দু)', 'Hindi' => 'Hindi (হিন্দি)', 'Persian' => 'Persian (ফারসি)', 'Other' => 'Other (অন্যান্য)'] as $langKey => $langLabel)
-                        <option value="{{ $langKey }}" @selected($val('language', 'Bengali') === $langKey)>{{ $langLabel }}</option>
+                    @foreach (['Bengali', 'English', 'Arabic', 'Urdu', 'Hindi', 'Persian', 'Other'] as $langKey)
+                        <option value="{{ $langKey }}" @selected($val('language', 'Bengali') === $langKey)>{{ $langKey }}</option>
                     @endforeach
                 </select>
                 @error('language')<div class="invalid-feedback">{{ $message }}</div>@enderror
@@ -288,62 +288,62 @@
                     <i class="fas fa-flag text-danger me-1"></i> Country
                 </label>
                 <select id="f-country" name="country" class="form-select form-select-sm @error('country') is-invalid @enderror">
-                    @foreach (['Bangladesh' => 'Bangladesh (বাংলাদেশ)', 'India' => 'India (ভারত)', 'Saudi Arabia' => 'Saudi Arabia (সৌদি আরব)', 'Egypt' => 'Egypt (মিশর)', 'United Kingdom' => 'United Kingdom (যুক্তরাজ্য)', 'United States' => 'United States (যুক্তরাষ্ট্র)', 'Other' => 'Other (অন্যান্য)'] as $cKey => $cLabel)
-                        <option value="{{ $cKey }}" @selected($val('country', 'Bangladesh') === $cKey)>{{ $cLabel }}</option>
+                    @foreach (['Bangladesh', 'India', 'Saudi Arabia', 'Egypt', 'United Kingdom', 'United States', 'Other'] as $cKey)
+                        <option value="{{ $cKey }}" @selected($val('country', 'Bangladesh') === $cKey)>{{ $cKey }}</option>
                     @endforeach
                 </select>
                 @error('country')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
 
-            {{-- ROW 6: Binding * / Paper Quality (Offset, Newsprint, Glossy 50-300 GSM) / Edition * (3 columns in 1 row) --}}
+            {{-- ROW 6: Binding * / Paper Quality / Edition * --}}
             <div class="col-12 col-md-4">
                 <label for="f-cover_type" class="form-label small fw-bold text-dark mb-1">
                     <i class="fas fa-book-bookmark text-primary me-1"></i> Binding <span class="text-danger">*</span>
                 </label>
                 <select id="f-cover_type" name="cover_type" class="form-select form-select-sm @error('cover_type') is-invalid @enderror" onchange="onCoverTypeDropdownChange(this.value)">
-                    <option value="paperback" @selected($val('cover_type', 'paperback') === 'paperback')>Paperback (পেপারব্যাক)</option>
-                    <option value="hardcover" @selected($val('cover_type') === 'hardcover')>Hardcover (হার্ডকভার)</option>
-                    <option value="board_book" @selected($val('cover_type') === 'board_book')>Board Book (বোর্ড বুক)</option>
-                    <option value="spiral" @selected($val('cover_type') === 'spiral')>Spiral Bound (স্পাইরাল বাঁধাই)</option>
-                    <option value="both" @selected($val('cover_type') === 'both')>Both (হার্ডকভার ও পেপারব্যাক)</option>
+                    <option value="paperback" @selected($val('cover_type', 'paperback') === 'paperback')>Paperback</option>
+                    <option value="hardcover" @selected($val('cover_type') === 'hardcover')>Hardcover</option>
+                    <option value="board_book" @selected($val('cover_type') === 'board_book')>Board Book</option>
+                    <option value="spiral" @selected($val('cover_type') === 'spiral')>Spiral Bound</option>
+                    <option value="both" @selected($val('cover_type') === 'both')>Both (Paperback & Hardcover)</option>
                 </select>
                 @error('cover_type')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
 
             <div class="col-12 col-md-4">
                 <label for="f-paper_type" class="form-label small fw-bold text-dark mb-1">
-                    <i class="fas fa-scroll text-secondary me-1"></i> Paper Quality (কাগজের মান ও GSM)
+                    <i class="fas fa-scroll text-secondary me-1"></i> Paper Quality (GSM)
                 </label>
                 <select id="f-paper_type" name="paper_type" class="form-select form-select-sm @error('paper_type') is-invalid @enderror">
-                    <optgroup label="── অফহোয়াইট পেপার (Off-white Paper) ──">
-                        <option value="50 GSM Off-white" @selected($val('paper_type') === '50 GSM Off-white' || $val('paper_type') === '50 GSM Offset')>৫০ GSM অফহোয়াইট পেপার (50 GSM Off-white)</option>
-                        <option value="55 GSM Off-white" @selected($val('paper_type') === '55 GSM Off-white' || $val('paper_type') === '55 GSM Offset')>৫৫ GSM অফহোয়াইট পেপার (55 GSM Off-white)</option>
-                        <option value="60 GSM Off-white" @selected($val('paper_type') === '60 GSM Off-white' || $val('paper_type') === '60 GSM Offset')>৬০ GSM অফহোয়াইট পেপার (60 GSM Off-white)</option>
-                        <option value="65 GSM Off-white" @selected($val('paper_type') === '65 GSM Off-white' || $val('paper_type') === '65 GSM Offset')>৬৫ GSM অফহোয়াইট পেপার (65 GSM Off-white)</option>
-                        <option value="70 GSM Off-white" @selected($val('paper_type') === '70 GSM Off-white' || $val('paper_type') === '70 GSM Offset')>৭০ GSM অফহোয়াইট পেপার (70 GSM Off-white)</option>
-                        <option value="80 GSM Off-white" @selected($val('paper_type', '80 GSM Off-white') === '80 GSM Off-white' || $val('paper_type') === '80 GSM Offset')>৮০ GSM অফহোয়াইট পেপার (80 GSM Off-white)</option>
-                        <option value="100 GSM Off-white" @selected($val('paper_type') === '100 GSM Off-white' || $val('paper_type') === '100 GSM Offset')>১০০ GSM অফহোয়াইট পেপার (100 GSM Off-white)</option>
-                        <option value="120 GSM Off-white" @selected($val('paper_type') === '120 GSM Off-white' || $val('paper_type') === '120 GSM Offset')>১২০ GSM অফহোয়াইট পেপার (120 GSM Off-white)</option>
+                    <optgroup label="── Off-white Paper ──">
+                        <option value="50 GSM Off-white" @selected($val('paper_type') === '50 GSM Off-white' || $val('paper_type') === '50 GSM Offset')>50 GSM Off-white</option>
+                        <option value="55 GSM Off-white" @selected($val('paper_type') === '55 GSM Off-white' || $val('paper_type') === '55 GSM Offset')>55 GSM Off-white</option>
+                        <option value="60 GSM Off-white" @selected($val('paper_type') === '60 GSM Off-white' || $val('paper_type') === '60 GSM Offset')>60 GSM Off-white</option>
+                        <option value="65 GSM Off-white" @selected($val('paper_type') === '65 GSM Off-white' || $val('paper_type') === '65 GSM Offset')>65 GSM Off-white</option>
+                        <option value="70 GSM Off-white" @selected($val('paper_type') === '70 GSM Off-white' || $val('paper_type') === '70 GSM Offset')>70 GSM Off-white</option>
+                        <option value="80 GSM Off-white" @selected($val('paper_type', '80 GSM Off-white') === '80 GSM Off-white' || $val('paper_type') === '80 GSM Offset')>80 GSM Off-white</option>
+                        <option value="100 GSM Off-white" @selected($val('paper_type') === '100 GSM Off-white' || $val('paper_type') === '100 GSM Offset')>100 GSM Off-white</option>
+                        <option value="120 GSM Off-white" @selected($val('paper_type') === '120 GSM Off-white' || $val('paper_type') === '120 GSM Offset')>120 GSM Off-white</option>
                     </optgroup>
-                    <optgroup label="── নিউজপ্রিন্ট (Newsprint Paper) ──">
-                        <option value="50 GSM Newsprint" @selected($val('paper_type') === '50 GSM Newsprint')>৫০ GSM নিউজপ্রিন্ট (50 GSM Newsprint)</option>
-                        <option value="55 GSM Newsprint" @selected($val('paper_type') === '55 GSM Newsprint')>৫৫ GSM নিউজপ্রিন্ট (55 GSM Newsprint)</option>
-                        <option value="60 GSM Newsprint" @selected($val('paper_type') === '60 GSM Newsprint')>৬০ GSM নিউজপ্রিন্ট (60 GSM Newsprint)</option>
-                        <option value="70 GSM Newsprint" @selected($val('paper_type') === '70 GSM Newsprint')>৭০ GSM নিউজপ্রিন্ট (70 GSM Newsprint)</option>
+                    <optgroup label="── Newsprint Paper ──">
+                        <option value="50 GSM Newsprint" @selected($val('paper_type') === '50 GSM Newsprint')>50 GSM Newsprint</option>
+                        <option value="55 GSM Newsprint" @selected($val('paper_type') === '55 GSM Newsprint')>55 GSM Newsprint</option>
+                        <option value="60 GSM Newsprint" @selected($val('paper_type') === '60 GSM Newsprint')>60 GSM Newsprint</option>
+                        <option value="70 GSM Newsprint" @selected($val('paper_type') === '70 GSM Newsprint')>70 GSM Newsprint</option>
                     </optgroup>
-                    <optgroup label="── গ্লোসি পেপার / আর্ট পেপার (Glossy / Art Paper) ──">
-                        <option value="100 GSM Glossy Paper" @selected($val('paper_type') === '100 GSM Glossy Paper')>১০০ GSM গ্লোসি পেপার (100 GSM Glossy)</option>
-                        <option value="120 GSM Glossy Paper" @selected($val('paper_type') === '120 GSM Glossy Paper')>১২০ GSM গ্লোসি পেপার (120 GSM Glossy)</option>
-                        <option value="130 GSM Glossy Paper" @selected($val('paper_type') === '130 GSM Glossy Paper')>১৩০ GSM গ্লোসি পেপার (130 GSM Glossy)</option>
-                        <option value="150 GSM Glossy Paper" @selected($val('paper_type') === '150 GSM Glossy Paper')>১৫০ GSM গ্লোসি পেপার (150 GSM Glossy)</option>
-                        <option value="170 GSM Glossy Paper" @selected($val('paper_type') === '170 GSM Glossy Paper')>১৭০ GSM গ্লোসি পেপার (170 GSM Glossy)</option>
-                        <option value="200 GSM Glossy Paper" @selected($val('paper_type') === '200 GSM Glossy Paper')>২০০ GSM গ্লোসি পেপার (200 GSM Glossy)</option>
-                        <option value="250 GSM Glossy Paper" @selected($val('paper_type') === '250 GSM Glossy Paper')>২৫০ GSM গ্লোসি পেপার (250 GSM Glossy)</option>
-                        <option value="300 GSM Glossy Paper" @selected($val('paper_type') === '300 GSM Glossy Paper')>৩০০ GSM গ্লোসি পেপার / বোর্ড (300 GSM)</option>
+                    <optgroup label="── Glossy / Art Paper ──">
+                        <option value="100 GSM Glossy Paper" @selected($val('paper_type') === '100 GSM Glossy Paper')>100 GSM Glossy</option>
+                        <option value="120 GSM Glossy Paper" @selected($val('paper_type') === '120 GSM Glossy Paper')>120 GSM Glossy</option>
+                        <option value="130 GSM Glossy Paper" @selected($val('paper_type') === '130 GSM Glossy Paper')>130 GSM Glossy</option>
+                        <option value="150 GSM Glossy Paper" @selected($val('paper_type') === '150 GSM Glossy Paper')>150 GSM Glossy</option>
+                        <option value="170 GSM Glossy Paper" @selected($val('paper_type') === '170 GSM Glossy Paper')>170 GSM Glossy</option>
+                        <option value="200 GSM Glossy Paper" @selected($val('paper_type') === '200 GSM Glossy Paper')>200 GSM Glossy</option>
+                        <option value="250 GSM Glossy Paper" @selected($val('paper_type') === '250 GSM Glossy Paper')>250 GSM Glossy</option>
+                        <option value="300 GSM Glossy Paper" @selected($val('paper_type') === '300 GSM Glossy Paper')>300 GSM Glossy / Board</option>
                     </optgroup>
-                    <optgroup label="── অন্যান্য পেপার কোয়ালিটি ──">
-                        <option value="100 GSM Cream Paper" @selected($val('paper_type') === '100 GSM Cream Paper')>১০০ GSM ক্রিম / বুক পেপার (Cream Paper)</option>
-                        <option value="Other" @selected($val('paper_type') === 'Other')>Other Quality / কাস্টম পেপার</option>
+                    <optgroup label="── Other Paper Types ──">
+                        <option value="100 GSM Cream Paper" @selected($val('paper_type') === '100 GSM Cream Paper')>100 GSM Cream Paper</option>
+                        <option value="Other" @selected($val('paper_type') === 'Other')>Other Custom Paper</option>
                     </optgroup>
                 </select>
                 @error('paper_type')<div class="invalid-feedback">{{ $message }}</div>@enderror
@@ -359,11 +359,11 @@
                 @error('edition')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
 
-            {{-- ROW 7: PRICING ENGINE (মূল্য নির্ধারণ ও ক্রয়-বিক্রয় লাভ হিসাব) --}}
+            {{-- ROW 7: PRICING ENGINE --}}
             <div class="col-12">
                 <div class="p-3 bg-white rounded-3 border shadow-xs" id="pricingEngineContainer">
                     <div class="d-flex align-items-center justify-content-between mb-2.5 pb-1.5 border-bottom">
-                        <span class="small fw-bold text-dark"><i class="fas fa-calculator text-primary me-1.5"></i> মূল্য নির্ধারণ ও ক্রয়-বিক্রয় লাভ হিসাব (Pricing Engine)</span>
+                        <span class="small fw-bold text-dark"><i class="fas fa-calculator text-primary me-1.5"></i> Pricing & Margin Calculator</span>
                         <span class="badge bg-light text-secondary border small" id="pricingBindingBadge">Paperback Mode</span>
                     </div>
 
@@ -371,7 +371,7 @@
                     <div id="paperbackPricingPanel" class="mb-3 {{ $val('cover_type') === 'hardcover' ? 'd-none' : '' }}">
                         <div class="d-flex align-items-center justify-content-between mb-1.5">
                             <span class="small fw-bold text-dark" style="font-size: 12px;">
-                                <i class="fas fa-book text-muted me-1"></i> পেপারব্যাক / মূল বাঁধাই মূল্য (Paperback Pricing)
+                                <i class="fas fa-book text-muted me-1"></i> Paperback Pricing
                             </span>
                         </div>
                         <div class="row g-2">
@@ -401,7 +401,7 @@
 
                             <div class="col-12 col-md-3">
                                 <label for="f-cost_price" class="form-label small fw-semibold text-dark mb-1">
-                                    Purchase Amount (Cost ৳)
+                                    Cost Price (৳)
                                 </label>
                                 <div class="input-group input-group-sm">
                                     <span class="input-group-text bg-light text-dark fw-bold">৳</span>
@@ -413,7 +413,7 @@
 
                             <div class="col-12 col-md-3">
                                 <label for="f-sold_percent" class="form-label small fw-semibold text-dark mb-1">
-                                    Sold % (Sale Discount)
+                                    Sale Discount (%)
                                 </label>
                                 <div class="input-group input-group-sm">
                                     <input type="number" step="0.5" min="0" max="100" id="f-sold_percent" 
@@ -424,8 +424,8 @@
                         </div>
 
                         <div class="d-flex align-items-center justify-content-between mt-2 pt-1.5 border-top bg-light p-2 rounded-2" style="font-size: 11.5px;">
-                            <span class="text-muted">Customer Offer Price: <strong class="text-dark fw-bold" id="liveCalculatedOfferPrice">৳{{ number_format((float)$val('discount_price', $val('price', 0)), 2) }}</strong></span>
-                            <span class="text-muted">Estimated Profit: <strong class="text-success fw-bold" id="liveCalculatedProfit">৳0.00 (0%)</strong></span>
+                            <span class="text-muted">Customer Sale Price: <strong class="text-dark fw-bold" id="liveCalculatedOfferPrice">৳{{ number_format((float)$val('discount_price', $val('price', 0)), 2) }}</strong></span>
+                            <span class="text-muted">Estimated Margin: <strong class="text-success fw-bold" id="liveCalculatedProfit">৳0.00 (0%)</strong></span>
                         </div>
                         <input type="hidden" id="f-discount_price" name="discount_price" value="{{ $val('discount_price') }}">
                     </div>
@@ -434,7 +434,7 @@
                     <div id="hardcoverPricingPanel" class="{{ in_array($val('cover_type'), ['hardcover', 'both']) ? '' : 'd-none' }}">
                         <div class="d-flex align-items-center justify-content-between mb-1.5 pt-2 border-top">
                             <span class="small fw-bold text-dark" style="font-size: 12px;">
-                                <i class="fas fa-book-bookmark text-primary me-1"></i> হার্ডকভার বাঁধাই মূল্য (Hardcover Pricing)
+                                <i class="fas fa-book-bookmark text-primary me-1"></i> Hardcover Pricing
                             </span>
                         </div>
                         <div class="row g-2">
@@ -464,7 +464,7 @@
 
                             <div class="col-12 col-md-3">
                                 <label for="f-hardcover_cost_price" class="form-label small fw-semibold text-dark mb-1">
-                                    Purchase Amount (Cost ৳)
+                                    Cost Price (৳)
                                 </label>
                                 <div class="input-group input-group-sm">
                                     <span class="input-group-text bg-light text-dark fw-bold">৳</span>
@@ -475,7 +475,7 @@
 
                             <div class="col-12 col-md-3">
                                 <label for="f-hardcover_sold_percent" class="form-label small fw-semibold text-dark mb-1">
-                                    Sold % (Sale Discount)
+                                    Sale Discount (%)
                                 </label>
                                 <div class="input-group input-group-sm">
                                     <input type="number" step="0.5" min="0" max="100" id="f-hardcover_sold_percent" name="hardcover_sold_percent"
@@ -486,23 +486,23 @@
                         </div>
 
                         <div class="d-flex align-items-center justify-content-between mt-2 pt-1.5 border-top bg-light p-2 rounded-2" style="font-size: 11.5px;">
-                            <span class="text-muted">Hardcover Offer Price: <strong class="text-dark fw-bold" id="liveHardcoverOfferPrice">৳{{ number_format((float)$val('hardcover_discount_price', $val('hardcover_price', 0)), 2) }}</strong></span>
-                            <span class="text-muted">Estimated Profit: <strong class="text-success fw-bold" id="liveHardcoverProfit">৳0.00 (0%)</strong></span>
+                            <span class="text-muted">Hardcover Sale Price: <strong class="text-dark fw-bold" id="liveHardcoverOfferPrice">৳{{ number_format((float)$val('hardcover_discount_price', $val('hardcover_price', 0)), 2) }}</strong></span>
+                            <span class="text-muted">Estimated Margin: <strong class="text-success fw-bold" id="liveHardcoverProfit">৳0.00 (0%)</strong></span>
                         </div>
                         <input type="hidden" id="f-hardcover_discount_price" name="hardcover_discount_price" value="{{ $val('hardcover_discount_price') }}">
                     </div>
                 </div>
             </div>
 
-            {{-- ROW 8: Category * & Supplier / Publisher * (2 columns in 1 row) --}}
+            {{-- ROW 8: Category * & Publisher * --}}
             <div class="col-12 col-md-6">
                 <div class="d-flex align-items-center justify-content-between mb-1">
                     <label for="f-category_id" class="form-label small fw-bold text-dark mb-0">
-                        <i class="fas fa-shapes text-primary me-1"></i> Category / মূল বিষয়শ্রেণী <span class="text-danger">*</span>
+                        <i class="fas fa-shapes text-primary me-1"></i> Category <span class="text-danger">*</span>
                     </label>
                     <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2 rounded-pill fw-semibold" 
                             data-bs-toggle="modal" data-bs-target="#quickAddCategoryModal" style="font-size: 11px;">
-                        <i class="fas fa-plus-circle me-0.5"></i>+ Add Category
+                        <i class="fas fa-plus-circle me-0.5"></i>+ Add
                     </button>
                 </div>
                 <select id="f-category_id" name="category_id" required 
@@ -519,15 +519,15 @@
             <div class="col-12 col-md-6">
                 <div class="d-flex align-items-center justify-content-between mb-1">
                     <label for="f-publisher_id" class="form-label small fw-bold text-dark mb-0">
-                        <i class="fas fa-building text-primary me-1"></i> Supplier / Publisher <span class="text-danger">*</span>
+                        <i class="fas fa-building text-primary me-1"></i> Publisher <span class="text-danger">*</span>
                     </label>
                     <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2 rounded-pill fw-semibold" 
                             data-bs-toggle="modal" data-bs-target="#quickAddPublisherModal" style="font-size: 11px;">
-                        <i class="fas fa-plus-circle me-0.5"></i>+ Add Publisher
+                        <i class="fas fa-plus-circle me-0.5"></i>+ Add
                     </button>
                 </div>
                 <select id="f-publisher_id" name="publisher_id" class="form-select form-select-sm @error('publisher_id') is-invalid @enderror">
-                    <option value="">— Select Supplier / Publisher —</option>
+                    <option value="">— Select Publisher —</option>
                     @foreach (($lookups['publishers'] ?? []) as $pId => $pName)
                         <option value="{{ $pId }}" @selected((string)$val('publisher_id') === (string)$pId)>{{ $pName }}</option>
                     @endforeach
@@ -535,20 +535,20 @@
                 @error('publisher_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
 
-            {{-- ROW 9: Number of Pages, Book Size, Publication Date & ISBN (4 columns in 1 row) --}}
+            {{-- ROW 9: Number of Pages, Book Size, Publication Date & ISBN --}}
             <div class="col-6 col-md-3">
                 <label for="f-page_count" class="form-label small fw-bold text-dark mb-1">
-                    <i class="fas fa-file-lines text-secondary me-1"></i> Number of Pages
+                    <i class="fas fa-file-lines text-secondary me-1"></i> Pages
                 </label>
                 <input type="number" id="f-page_count" name="page_count" value="{{ $val('page_count') }}" min="0"
                        class="form-control form-control-sm @error('page_count') is-invalid @enderror"
-                       placeholder="মোট পৃষ্ঠা">
+                       placeholder="e.g. 240">
                 @error('page_count')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
 
             <div class="col-6 col-md-3">
                 <label class="form-label small fw-bold text-dark mb-1">
-                    <i class="fas fa-ruler-combined text-secondary me-1"></i> Book Size (H × W cm)
+                    <i class="fas fa-ruler-combined text-secondary me-1"></i> Size (H × W cm)
                 </label>
                 <div class="row g-1">
                     <div class="col-6">
@@ -565,7 +565,7 @@
 
             <div class="col-6 col-md-3">
                 <label for="f-published_at" class="form-label small fw-bold text-dark mb-1">
-                    <i class="fas fa-calendar-check text-warning me-1"></i> Publication Date
+                    <i class="fas fa-calendar-check text-warning me-1"></i> Published Date
                 </label>
                 <input type="date" id="f-published_at" name="published_at" value="{{ $val('published_at') ? date('Y-m-d', strtotime((string)$val('published_at'))) : '' }}"
                        class="form-control form-control-sm @error('published_at') is-invalid @enderror">
@@ -574,7 +574,7 @@
 
             <div class="col-6 col-md-3">
                 <label for="f-isbn" class="form-label small fw-bold text-dark mb-1">
-                    <i class="fas fa-barcode text-secondary me-1"></i> ISBN / Barcode
+                    <i class="fas fa-barcode text-secondary me-1"></i> ISBN
                 </label>
                 <input type="text" id="f-isbn" name="isbn" value="{{ $val('isbn') }}"
                        class="form-control form-control-sm @error('isbn') is-invalid @enderror"
@@ -582,11 +582,11 @@
                 @error('isbn')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
 
-            {{-- ROW 10: Summary (1000 words limit) --}}
+            {{-- ROW 10: Summary --}}
             <div class="col-12">
                 <div class="d-flex align-items-center justify-content-between mb-1">
                     <label for="f-summary" class="form-label small fw-bold text-dark mb-0">
-                        <i class="fas fa-align-left text-primary me-1"></i> Product Summary (বইয়ের সংক্ষেপ — সর্বোচ্চ ১০০০ শব্দ)
+                        <i class="fas fa-align-left text-primary me-1"></i> Product Summary
                     </label>
                     <div class="word-counter-badge safe" id="summaryWordBadge">
                         <i class="fas fa-font me-1"></i> Words: <span id="summaryWordCount">0</span> / 1000
@@ -594,13 +594,13 @@
                 </div>
                 <textarea id="f-summary" name="summary" rows="5"
                           class="form-control @error('summary') is-invalid @enderror"
-                          placeholder="বইয়ের সংক্ষেপ, বিষয়বস্তু বা আকর্ষণীয় সারসংক্ষেপ লিখুন (সর্বোচ্চ ১০০০ শব্দ)..."
+                          placeholder="Brief summary, synopsis or flap description (Max. 1000 words)..."
                           oninput="updateGenericWordCount(this, 1000, 'summaryWordCount', 'summaryWordBadge', 'summaryProgressBar', 'summaryWarning')">{{ $val('summary') }}</textarea>
                 <div class="word-counter-progress mt-1">
                     <div class="word-counter-progress__bar" id="summaryProgressBar"></div>
                 </div>
                 <div class="d-flex justify-content-between align-items-center mt-1">
-                    <div class="form-text text-muted mb-0" style="font-size: 11px;">বইয়ের সারাংশ ও ফ্ল্যাপ বর্ণনা (সর্বোচ্চ ১০০০ শব্দ)।</div>
+                    <div class="form-text text-muted mb-0" style="font-size: 11px;">Book synopsis, plot or flap text (Max 1000 words).</div>
                     <div id="summaryWarning" class="text-danger small fw-bold d-none"></div>
                 </div>
                 @error('summary')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
@@ -608,39 +608,22 @@
         </div>
     </div>
 
-    {{-- ═════════════════════════════════════════════════════════════════════ --}}
-    {{-- BANGLADESHI LEGAL & PUBLISHING COMPLIANCE AGREEMENT (BELOW SUMMARY)   --}}
-    {{-- ═════════════════════════════════════════════════════════════════════ --}}
-    <div class="adm-card p-3.5 p-md-4 mb-4 border-start border-4 border-success shadow-xs">
-        <div class="d-flex align-items-center gap-2 mb-2.5 text-dark fw-bold" style="font-size: 0.95rem;">
-            <i class="fas fa-scale-balanced text-success fs-5"></i>
-            <span>বাংলাদেশে বই প্রকাশ ও মুদ্রণ আইন ও নীতিমালা সম্মতি</span>
-        </div>
-
-        <div class="p-3 bg-light rounded-3 border mb-3 small text-secondary" style="font-size: 11.5px; line-height: 1.6; max-height: 220px; overflow-y: auto;">
-            <p class="mb-2"><strong>১. সাধারণ বিধি ও নৈতিকতা:</strong> বাংলাদেশে বই প্রকাশ ও মুদ্রণের ক্ষেত্রে প্রেস ও প্রকাশনা, কপিরাইট, দণ্ডবিধি, অশ্লীল প্রকাশনা এবং ডিজিটাল মাধ্যমে প্রকাশিত কনটেন্টসংক্রান্ত প্রচলিত আইন ও বিধি মানা আবশ্যক। প্রকাশনা ও মুদ্রণ প্রতিষ্ঠানের প্রয়োজনীয় নিবন্ধন/অনুমোদন থাকতে হবে এবং বইয়ের বিষয়বস্তু রাষ্ট্রীয় নিরাপত্তা, জনশৃঙ্খলা, ধর্মীয় অনুভূতি, নৈতিকতা ও শালীনতার পরিপন্থী হওয়া যাবে না।</p>
-            <p class="mb-2"><strong>২. দণ্ডবিধি ও প্রকাশনা আইন:</strong> দণ্ডবিধি, ১৮৬০-এর ২৯২, ২৯৩ ও ৫০৫ ধারায় অশ্লীল প্রকাশনা, অপ্রাপ্তবয়স্কদের কাছে অশ্লীল উপাদান সরবরাহ এবং জনশৃঙ্খলা বিনষ্টকারী বক্তব্যের বিষয়ে বিধান রয়েছে। মুদ্রণ ও প্রকাশনা আইন, ১৯৭৩-এর সংশ্লিষ্ট বিধান অনুযায়ী প্রেস পরিচালনা ও প্রকাশনার ক্ষেত্রে প্রয়োজনীয় অনুমোদন এবং সরকারি নির্দেশনা অনুসরণ করতে হবে।</p>
-            <p class="mb-2"><strong>৩. কপিরাইট ও মেধাস্বত্ব:</strong> কপিরাইট আইন, ২০০০ অনুযায়ী অন্যের লেখা, ছবি, ডিজাইন বা মেধাস্বত্ব অনুমতি ছাড়া ব্যবহার বা প্রকাশ করা যাবে না। প্রযোজ্য ক্ষেত্রে কপিরাইট নিবন্ধন, ISBN গ্রহণ এবং প্রকাশিত বইয়ের বাধ্যতামূলক কপি জাতীয় গ্রন্থাগারে জমা দেওয়ার বিধানও অনুসরণ করতে হবে। ডিজিটাল মাধ্যমে প্রকাশের ক্ষেত্রে সংশ্লিষ্ট সাইবার ও প্রচলিত আইনও প্রযোজ্য।</p>
-            <p class="mb-2"><strong>৪. দায়বদ্ধতা ও বিতরণব্যবস্থা:</strong> বইয়ের তথ্য, বক্তব্য ও উপাদান যথাসম্ভব নির্ভুল, দায়িত্বশীল ও আইনসম্মত হতে হবে। প্রকাশনা বাজারজাতকরণে পরিবেশক/বিক্রেতার সঙ্গে প্রয়োজনীয় চুক্তি ও স্বচ্ছ বিতরণব্যবস্থা নিশ্চিত করা উচিত।</p>
-            <p class="mb-0"><strong>৫. পর্যালোচনা ও প্রত্যাহার নীতি:</strong> আইডিয়া প্রকাশন / প্ল্যাটফর্মে কোনো বইয়ের বিষয়বস্তু নিয়ে অভিযোগ বা সংশয় দেখা দিলে, বইটি সাময়িকভাবে প্রদর্শন থেকে সরিয়ে নির্ধারিত পর্যালোচনা টিমের মাধ্যমে মূল্যায়ন করা হতে পারে। পর্যালোচনার ভিত্তিতে বইটি স্থায়ীভাবে অপসারণ অথবা পুনরায় প্রদর্শনের সিদ্ধান্ত নেওয়া হবে।</p>
-        </div>
-
-        <div class="form-check">
+    {{-- PUBLISHING COMPLIANCE CONFIRMATION --}}
+    <div class="adm-card p-3 mb-4 border-start border-3 border-success shadow-xs">
+        <div class="form-check mb-0">
             <input class="form-check-input" type="checkbox" id="adminComplianceCheck" name="compliance_agreed" value="1" checked>
-            <label class="form-check-label small text-dark fw-bold" for="adminComplianceCheck" style="font-size: 12px; line-height: 1.5;">
-                উপরোক্ত সকল শর্ত ও প্রযোজ্য আইন-বিধি মেনে বই প্রকাশের বিষয়ে আমি সম্মত।
+            <label class="form-check-label small text-dark fw-bold" for="adminComplianceCheck">
+                <i class="fas fa-shield-halved text-success me-1"></i> Publishing Rights & Content Quality Confirmed
             </label>
         </div>
     </div>
 
-    {{-- ═════════════════════════════════════════════════════════════════════ --}}
-    {{-- PUBLISHED & SAVE BUTTON (MOVED HERE AT THE END OF MAIN FORM)          --}}
-    {{-- ═════════════════════════════════════════════════════════════════════ --}}
+    {{-- SAVE & PUBLISH ACTION BAR --}}
     <div class="adm-card p-3 p-md-4 mb-4 bg-white border shadow-sm">
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
             <div>
-                <h6 class="fw-bold mb-0 text-dark">Save & Publish to Catalog</h6>
-                <small class="text-muted">Review specifications and publish the book directly.</small>
+                <h6 class="fw-bold mb-0 text-dark">Save Changes</h6>
+                <small class="text-muted">Update catalog listing and live storefront.</small>
             </div>
             <div class="d-flex flex-wrap align-items-center gap-2">
                 <a href="{{ route($spec['listRoute']) }}" class="btn btn-outline-secondary rounded-pill px-3.5 py-2 fw-semibold">
@@ -648,31 +631,31 @@
                 </a>
                 <button type="submit" form="contentMainForm" id="btnPublishSaveBook" class="btn btn-success btn-lg rounded-pill px-4 py-2.5 fw-bold shadow-sm d-flex align-items-center gap-2">
                     <i class="fas fa-circle-check fs-5"></i>
-                    <span>{{ $editing ? 'Save & Update Book' : 'Publish & Save Book' }}</span>
+                    <span>{{ $editing ? 'Save Changes' : 'Publish Book' }}</span>
                 </button>
             </div>
         </div>
     </div>
 </div>
 
-{{-- RIGHT COLUMN: STICKY SIDEBAR (5-ROW CATEGORY, COVER UPLOAD, LOOK INSIDE, MODERATION & URL) --}}
+{{-- RIGHT COLUMN: STICKY SIDEBAR (CATEGORY, COVER UPLOAD, LOOK INSIDE, MODERATION & URL) --}}
 <div class="col-12 col-lg-4">
     <div style="position: sticky; top: 20px; z-index: 1020;">
 
-        {{-- 1. ADD CLASSIFICATIONS & CATEGORY --}}
+        {{-- 1. CLASSIFICATIONS & CATEGORY --}}
         <div class="adm-card p-3 mb-3 border-start border-4 border-primary shadow-xs">
             <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom">
-                <span class="fw-bold text-dark small"><i class="fas fa-shapes text-primary me-1.5"></i> Category & Classification</span>
+                <span class="fw-bold text-dark small"><i class="fas fa-shapes text-primary me-1.5"></i> Categories & Tags</span>
                 <button type="button" class="btn btn-sm btn-link text-primary p-0 text-decoration-none fw-semibold" data-bs-toggle="modal" data-bs-target="#quickAddCategoryModal" style="font-size: 11px;">
                     <i class="fas fa-plus-circle me-0.5"></i>+ Add New
                 </button>
             </div>
 
             <div class="vstack gap-2">
-                {{-- Row 1: ক্যাটাগরি সিঙ্ক (Primary Category Sync) --}}
+                {{-- Primary Category --}}
                 <div>
                     <label for="f-category_id_sidebar" class="form-label text-dark fw-bold mb-1" style="font-size: 11.5px;">
-                        ১. মূল ক্যাটাগরি (Primary Category)
+                        1. Primary Category
                     </label>
                     <select id="f-category_id_sidebar" class="form-select form-select-sm" onchange="syncCategorySelects(this.value); updateLiveMockupCard();">
                         <option value="">— Select Category —</option>
@@ -682,76 +665,111 @@
                     </select>
                 </div>
 
-                {{-- Row 2: ২ নম্বরে সাব ক্যাটাগরি (Sub-Category) --}}
+                {{-- Sub-Category --}}
                 <div>
                     <label for="f-sub_category_name" class="form-label text-dark fw-bold mb-1" style="font-size: 11.5px;">
-                        ২. সাব-ক্যাটাগরি (Sub-Category)
+                        2. Sub-Category
                     </label>
                     <input type="text" id="f-sub_category_name" name="sub_category_name" 
                            value="{{ old('sub_category_name', $record->sub_category_name ?? '') }}"
-                           class="form-control form-control-sm" placeholder="e.g. সমকালীন উপন্যাস / চিরায়ত কবিতা">
+                           class="form-control form-control-sm" placeholder="e.g. Contemporary Fiction">
                 </div>
 
-                {{-- Row 3: ৩. অমর একুশে বইমেলা ক্যাটাগরি (Ekushey Boimela Category / Year) --}}
+                {{-- Boimela / Event Category (Dynamic Years 2026, 2027, 2028... + Custom Event) --}}
+                @php
+                    $currentBoimelaVal = (string)old('ekushey_category', $record->ekushey_category ?? '');
+                    $curYear = (int)date('Y');
+                    $boimelaYears = range($curYear + 4, 2020);
+                    $standardBoimelaKeys = array_map(fn($y) => "boimela_{$y}", $boimelaYears);
+                    $standardBoimelaKeys[] = 'boimela_pavilion';
+                    $standardBoimelaKeys[] = 'boimela_previous';
+                    $isCustomBoimela = !empty($currentBoimelaVal) && !in_array($currentBoimelaVal, $standardBoimelaKeys, true);
+                @endphp
                 <div>
-                    <label for="f-ekushey_category" class="form-label text-dark fw-bold mb-1" style="font-size: 11.5px;">
-                        <i class="fas fa-monument text-danger me-1"></i> ৩. অমর একুশে বইমেলা ক্যাটাগরি
-                    </label>
-                    <select id="f-ekushey_category" name="ekushey_category" class="form-select form-select-sm">
-                        <option value="">— একুশে বইমেলা নির্বাচন করুন —</option>
-                        <option value="boimela_2026" @selected(old('ekushey_category', $record->ekushey_category ?? '') === 'boimela_2026')>অমর একুশে বইমেলা ২০২৬</option>
-                        <option value="boimela_2025" @selected(old('ekushey_category', $record->ekushey_category ?? '') === 'boimela_2025')>অমর একুশে বইমেলা ২০২৫</option>
-                        <option value="boimela_2024" @selected(old('ekushey_category', $record->ekushey_category ?? '') === 'boimela_2024')>অমর একুশে বইমেলা ২০২৪</option>
-                        <option value="boimela_previous" @selected(old('ekushey_category', $record->ekushey_category ?? '') === 'boimela_previous')>পূর্ববর্তী বইমেলাসমূহ</option>
-                        <option value="boimela_pavilion" @selected(old('ekushey_category', $record->ekushey_category ?? '') === 'boimela_pavilion')>প্যাভিলিয়ন ও বিশেষ প্রদর্শনী</option>
+                    <div class="d-flex align-items-center justify-content-between mb-1">
+                        <label for="f-ekushey_category_select" class="form-label text-dark fw-bold mb-0" style="font-size: 11.5px;">
+                            <i class="fas fa-monument text-danger me-1"></i> 3. Boimela / Event
+                        </label>
+                        <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none text-primary fw-semibold" style="font-size: 10.5px;" onclick="toggleAdminCustomBoimela()">
+                            <i class="fas fa-pen-to-square me-0.5"></i>Custom
+                        </button>
+                    </div>
+
+                    <select id="f-ekushey_category_select" class="form-select form-select-sm {{ $isCustomBoimela ? 'd-none' : '' }}" onchange="handleAdminBoimelaSelect(this.value)">
+                        <option value="">— Select Event / Year —</option>
+                        <optgroup label="── Ekushey Boimela by Year ──">
+                            @foreach($boimelaYears as $bYear)
+                                <option value="boimela_{{ $bYear }}" @selected($currentBoimelaVal === "boimela_{$bYear}")>Ekushey Boimela {{ $bYear }}</option>
+                            @endforeach
+                        </optgroup>
+                        <optgroup label="── Special & Previous ──">
+                            <option value="boimela_pavilion" @selected($currentBoimelaVal === 'boimela_pavilion')>Pavilion & Special Exhibition</option>
+                            <option value="boimela_previous" @selected($currentBoimelaVal === 'boimela_previous')>Previous Boimela</option>
+                        </optgroup>
+                        <option value="__custom__" @selected($isCustomBoimela)>+ Custom Event / Other Year...</option>
                     </select>
+
+                    <div id="adminCustomBoimelaWrapper" class="{{ $isCustomBoimela ? '' : 'd-none' }} mt-1">
+                        <div class="input-group input-group-sm">
+                            <input type="text" id="f-ekushey_category_custom" 
+                                   value="{{ $isCustomBoimela ? $currentBoimelaVal : '' }}" 
+                                   class="form-control form-control-sm" 
+                                   placeholder="e.g. Boimela 2027 / Dhaka Lit Fest 2028"
+                                   oninput="document.getElementById('f-ekushey_category').value = this.value.trim()">
+                            <button type="button" class="btn btn-outline-secondary" onclick="resetAdminBoimelaToSelect()" title="Switch back to list">
+                                <i class="fas fa-list"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <input type="hidden" id="f-ekushey_category" name="ekushey_category" value="{{ $currentBoimelaVal }}">
                 </div>
 
-                {{-- Row 4: ৪. বিষয় ও ধারা (Subject / Genre) --}}
+                {{-- Genre / Theme --}}
                 <div>
                     <label for="f-genre_category" class="form-label text-dark fw-bold mb-1" style="font-size: 11.5px;">
-                        <i class="fas fa-layer-group text-info me-1"></i> ৪. বিষয় ও ধারা (Genre / Theme)
+                        <i class="fas fa-layer-group text-info me-1"></i> 4. Genre / Subject
                     </label>
                     <select id="f-genre_category" name="genre_category" class="form-select form-select-sm">
-                        <option value="">— বিষয় ও ধারা নির্বাচন করুন —</option>
-                        <option value="novel" @selected(old('genre_category', $record->genre_category ?? '') === 'novel')>উপন্যাস (Novel)</option>
-                        <option value="story" @selected(old('genre_category', $record->genre_category ?? '') === 'story')>গল্পগ্রন্থ (Short Stories)</option>
-                        <option value="poetry" @selected(old('genre_category', $record->genre_category ?? '') === 'poetry')>কবিতা (Poetry)</option>
-                        <option value="essay_research" @selected(old('genre_category', $record->genre_category ?? '') === 'essay_research')>প্রবন্ধ ও গবেষণা (Essays & Research)</option>
-                        <option value="history_liberation" @selected(old('genre_category', $record->genre_category ?? '') === 'history_liberation')>মুক্তিযুদ্ধ ও ইতিহাস (History & Liberation War)</option>
-                        <option value="islamic" @selected(old('genre_category', $record->genre_category ?? '') === 'islamic')>ইসলামিক ও ধর্মীয় (Islamic & Religious)</option>
-                        <option value="juvenile_comics" @selected(old('genre_category', $record->genre_category ?? '') === 'juvenile_comics')>শিশু-কিশোর ও কমিক্স (Juvenile & Comics)</option>
-                        <option value="scifi_thriller" @selected(old('genre_category', $record->genre_category ?? '') === 'scifi_thriller')>সায়েন্স ফিকশন ও থ্রিলার (Sci-Fi & Thriller)</option>
-                        <option value="motivation_selfhelp" @selected(old('genre_category', $record->genre_category ?? '') === 'motivation_selfhelp')>আত্মউন্নয়ন ও মোটিভেশন (Self-Help & Motivation)</option>
-                        <option value="translated" @selected(old('genre_category', $record->genre_category ?? '') === 'translated')>অনুবাদ সাহিত্য (Translated Literature)</option>
+                        <option value="">— Select Genre —</option>
+                        <option value="novel" @selected(old('genre_category', $record->genre_category ?? '') === 'novel')>Novel</option>
+                        <option value="story" @selected(old('genre_category', $record->genre_category ?? '') === 'story')>Short Stories</option>
+                        <option value="poetry" @selected(old('genre_category', $record->genre_category ?? '') === 'poetry')>Poetry</option>
+                        <option value="essay_research" @selected(old('genre_category', $record->genre_category ?? '') === 'essay_research')>Essays & Research</option>
+                        <option value="history_liberation" @selected(old('genre_category', $record->genre_category ?? '') === 'history_liberation')>History & Liberation War</option>
+                        <option value="islamic" @selected(old('genre_category', $record->genre_category ?? '') === 'islamic')>Islamic & Religious</option>
+                        <option value="juvenile_comics" @selected(old('genre_category', $record->genre_category ?? '') === 'juvenile_comics')>Juvenile & Comics</option>
+                        <option value="scifi_thriller" @selected(old('genre_category', $record->genre_category ?? '') === 'scifi_thriller')>Sci-Fi & Thriller</option>
+                        <option value="motivation_selfhelp" @selected(old('genre_category', $record->genre_category ?? '') === 'motivation_selfhelp')>Self-Help & Motivation</option>
+                        <option value="translated" @selected(old('genre_category', $record->genre_category ?? '') === 'translated')>Translated Literature</option>
                     </select>
                 </div>
 
-                {{-- Row 5: ৫. বয়স ও পাঠক স্তর (Target Audience / Reader Level) --}}
+                {{-- Target Audience --}}
                 <div>
                     <label for="f-audience_category" class="form-label text-dark fw-bold mb-1" style="font-size: 11.5px;">
-                        <i class="fas fa-users text-success me-1"></i> ৫. বয়স ও পাঠক স্তর (Target Audience)
+                        <i class="fas fa-users text-success me-1"></i> 5. Target Audience
                     </label>
                     <select id="f-audience_category" name="audience_category" class="form-select form-select-sm">
-                        <option value="">— পাঠক স্তর নির্বাচন করুন —</option>
-                        <option value="general" @selected(old('audience_category', $record->audience_category ?? '') === 'general')>সাধারণ পাঠক (General Readers)</option>
-                        <option value="children_5_12" @selected(old('audience_category', $record->audience_category ?? '') === 'children_5_12')>শিশু-কিশোর (৫-১২ বছর)</option>
-                        <option value="teen_13_18" @selected(old('audience_category', $record->audience_category ?? '') === 'teen_13_18')>তরুণ ও কিশোর (১৩-১৮ বছর)</option>
-                        <option value="adult" @selected(old('audience_category', $record->audience_category ?? '') === 'adult')>প্রাপ্তবয়স্ক / সার্বজনীন</option>
-                        <option value="academic" @selected(old('audience_category', $record->audience_category ?? '') === 'academic')>অ্যাকাডেমিক ও গবেষক</option>
+                        <option value="">— Select Audience —</option>
+                        <option value="general" @selected(old('audience_category', $record->audience_category ?? '') === 'general')>General Readers</option>
+                        <option value="children_5_12" @selected(old('audience_category', $record->audience_category ?? '') === 'children_5_12')>Children (5-12 yrs)</option>
+                        <option value="teen_13_18" @selected(old('audience_category', $record->audience_category ?? '') === 'teen_13_18')>Teens (13-18 yrs)</option>
+                        <option value="adult" @selected(old('audience_category', $record->audience_category ?? '') === 'adult')>Adults / Universal</option>
+                        <option value="academic" @selected(old('audience_category', $record->audience_category ?? '') === 'academic')>Academic & Researchers</option>
                     </select>
                 </div>
             </div>
         </div>
 
-        {{-- 2. UPLOAD COVER IMAGE * --}}
+        {{-- 2. COVER IMAGE --}}
         <div class="adm-card p-3 mb-3">
             <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom">
-                <span class="fw-bold text-dark small"><i class="fas fa-image text-primary me-1.5"></i> Upload Cover Image *</span>
+                <span class="fw-bold text-dark small"><i class="fas fa-image text-primary me-1.5"></i> Cover Image *</span>
                 <span class="badge bg-primary-subtle text-primary small">2:3 Ratio</span>
             </div>
             
-            {{-- Live 3D Realistic Mockup --}}
+            {{-- Realistic Mockup Preview --}}
             <div class="p-2.5 bg-light rounded-3 border text-center mb-2.5">
                 <div class="position-relative mx-auto mb-2 shadow-sm rounded-2 overflow-hidden" 
                      style="width: 120px; height: 175px; background: #e2e8f0; border-left: 4px solid #1e293b;">
@@ -785,11 +803,11 @@
                        class="adm-dropzone__file-input"
                        onchange="previewAdminCoverInput(this)">
                 <div class="adm-dropzone__icon"><i class="fas fa-cloud-arrow-up text-primary fs-4"></i></div>
-                <div class="fw-bold text-dark small">Upload Cover Image *</div>
-                <div class="text-muted small" style="font-size: 11px;">* JPG, JPEG, BMP, PNG, WebP (Max. 10MB)</div>
+                <div class="fw-bold text-dark small">Upload Cover Image</div>
+                <div class="text-muted small" style="font-size: 11px;">JPG, PNG, WebP (Max. 10MB)</div>
             </div>
             
-            {{-- Cover Image Upload Report & Action Bar --}}
+            {{-- Cover Upload Status --}}
             <div id="preview-container-cover_image" class="mt-2 p-2 bg-light rounded-3 border d-none">
                 <div class="d-flex align-items-center gap-2">
                     <img id="preview-img-cover_image" src="" class="rounded border shadow-xs" style="width: 42px; height: 58px; object-fit: cover;">
@@ -808,21 +826,21 @@
             @error('cover_image')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
         </div>
 
-        {{-- 3. UPLOAD LOOK INSIDE (PDF / MULTI-IMAGES FORMAT SWITCHER) --}}
+        {{-- 3. LOOK INSIDE PREVIEW --}}
         <div class="adm-card p-3 mb-3 border-start border-4 border-info">
             <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom">
-                <span class="fw-bold text-dark small"><i class="fas fa-book-open text-info me-1.5"></i> Upload Look Inside (লুক ইনসাইড)</span>
-                <span class="badge bg-info-subtle text-info small">Preview</span>
+                <span class="fw-bold text-dark small"><i class="fas fa-book-open text-info me-1.5"></i> Look Inside Preview</span>
+                <span class="badge bg-info-subtle text-info small">Sample</span>
             </div>
 
-            {{-- Format Selector Dropdown --}}
+            {{-- Format Selector --}}
             <div class="mb-2.5">
                 <label for="f-look_inside_type" class="form-label small fw-bold text-dark mb-1">
-                    Select Format (ড্রপডাউন অপশন)
+                    Preview Format
                 </label>
                 <select id="f-look_inside_type" name="look_inside_type" class="form-select form-select-sm" onchange="toggleLookInsideFormat(this.value)">
-                    <option value="pdf" @selected(old('look_inside_type', $record->look_inside_type ?? 'pdf') === 'pdf')>Choose PDF (পিডিএফ ফাইল আপলোড)</option>
-                    <option value="images" @selected(old('look_inside_type', $record->look_inside_type ?? '') === 'images')>Choose Images (একাধিক ইমেজ আপলোড)</option>
+                    <option value="pdf" @selected(old('look_inside_type', $record->look_inside_type ?? 'pdf') === 'pdf')>PDF Document</option>
+                    <option value="images" @selected(old('look_inside_type', $record->look_inside_type ?? '') === 'images')>Sample Page Images</option>
                 </select>
             </div>
 
@@ -836,11 +854,11 @@
                            class="adm-dropzone__file-input"
                            onchange="previewAdminPdfInput(this)">
                     <div class="adm-dropzone__icon"><i class="fas fa-file-pdf text-danger fs-4"></i></div>
-                    <div class="fw-bold text-dark small">Upload Sample PDF File</div>
+                    <div class="fw-bold text-dark small">Upload Sample PDF</div>
                     <div class="text-muted small" style="font-size: 11px;">PDF Format (Max. 10MB)</div>
                 </div>
 
-                {{-- PDF Upload Report Card --}}
+                {{-- PDF Upload Report --}}
                 <div id="preview-container-sample_pdf_path" class="p-2 bg-light rounded-3 border mb-2 d-none">
                     <div class="d-flex align-items-center gap-2">
                         <div class="bg-danger-subtle text-danger rounded-2 p-2 text-center shadow-xs" style="width: 40px; height: 44px;">
@@ -848,7 +866,7 @@
                         </div>
                         <div class="flex-grow-1 overflow-hidden" style="min-width: 0;">
                             <div class="d-flex align-items-center gap-1 mb-0.5">
-                                <span class="badge bg-danger text-white py-0.5 px-1.5" style="font-size: 9.5px;">PDF Attached</span>
+                                <span class="badge bg-danger text-white py-0.5 px-1.5" style="font-size: 9.5px;">PDF Ready</span>
                                 <span id="preview-filesize-sample_pdf_path" class="text-muted small fw-semibold" style="font-size: 10.5px;"></span>
                             </div>
                             <div id="preview-filename-sample_pdf_path" class="text-dark small fw-bold text-truncate" style="font-size: 11.5px;"></div>
@@ -870,14 +888,13 @@
                            class="adm-dropzone__file-input"
                            onchange="previewAdminMultiImages(this)">
                     <div class="adm-dropzone__icon"><i class="fas fa-images text-info fs-4"></i></div>
-                    <div class="fw-bold text-dark small">Upload Sample Page Images</div>
-                    <div class="text-muted small" style="font-size: 11px;">Select multiple images in order (img-1.jpg, img-2.jpg...)</div>
+                    <div class="fw-bold text-dark small">Upload Page Images</div>
+                    <div class="text-muted small" style="font-size: 11px;">Select multiple images in order</div>
                 </div>
 
-                {{-- Multi-images summary report & Clear --}}
                 <div id="multiImagesSummaryReport" class="p-2 bg-light rounded-3 border mb-2 d-none">
                     <div class="d-flex align-items-center justify-content-between">
-                        <span class="small fw-bold text-dark"><i class="fas fa-images text-info me-1"></i> <span id="multiImagesCountText">0</span> টি পৃষ্ঠা প্রিভিউয়ের জন্য প্রস্তুত</span>
+                        <span class="small fw-bold text-dark"><i class="fas fa-images text-info me-1"></i> <span id="multiImagesCountText">0</span> pages ready</span>
                         <button type="button" class="btn btn-sm btn-outline-danger py-0.5 px-2 rounded-pill" onclick="clearAdminMultiImages()" style="font-size: 11px;">
                             <i class="fas fa-trash-can me-1"></i> Clear All
                         </button>
@@ -885,36 +902,24 @@
                 </div>
                 <div id="multiImagesPreviewContainer" class="d-flex flex-wrap gap-2 mb-2"></div>
             </div>
-
-            {{-- Explicit File Specifications Notice Box --}}
-            <div class="p-2.5 bg-light rounded-3 border text-secondary" style="font-size: 11px; line-height: 1.55;">
-                <div class="fw-bold text-dark mb-1"><i class="fas fa-circle-info text-primary me-1"></i> File Specification:</div>
-                <ol class="ps-3 mb-0">
-                    <li><strong>File Format:</strong> JPG, JPEG, BMP, PNG or PDF</li>
-                    <li><strong>File Max Size:</strong> image-500kb & PDF-10MB</li>
-                    <li><strong>Image Dimensions:</strong> Width: 700px to 1000px , Height: 1100px to 1600px</li>
-                    <li><strong>Naming Order:</strong> Image names should be in increasing order. For example: img-1.jpg, img-2.jpg</li>
-                </ol>
-            </div>
         </div>
 
         {{-- 4. MODERATION & URL --}}
         <div class="adm-card p-3 mb-3">
-            <h2 class="h6 fw-bold mb-2 text-dark"><i class="fas fa-circle-check me-1 text-muted"></i> Moderation & URL</h2>
+            <h2 class="h6 fw-bold mb-2 text-dark"><i class="fas fa-circle-check me-1 text-muted"></i> Visibility & Status</h2>
             <div class="mb-2.5 p-2 bg-success-subtle rounded-3 border border-success-subtle">
                 <div class="form-check form-switch mb-0">
                     <input class="form-check-input" type="checkbox" role="switch" id="f-is_active" name="is_active" value="1" 
                            @checked(old('is_active', $record->is_active ?? true))>
                     <label class="form-check-label small fw-bold text-success" for="f-is_active">
-                        <i class="fas fa-signal me-1"></i> লাইভ প্রকাশনা (Live on Website)
+                        <i class="fas fa-signal me-1"></i> Live on Website
                     </label>
                 </div>
-                <div class="text-muted small mt-1" style="font-size: 10.5px;">অন থাকলে ওয়েবসাইট ক্যাটালগ ও সার্চে সরাসরি দৃশ্যমান থাকবে।</div>
             </div>
             <div class="mb-2.5">
-                <label for="f-mod_status" class="form-label small fw-semibold mb-1">Status</label>
+                <label for="f-mod_status" class="form-label small fw-semibold mb-1">Moderation Status</label>
                 <select id="f-mod_status" name="mod_status" class="form-select form-select-sm">
-                    @foreach (['approved' => 'Approved (Live on site)', 'pending' => 'Pending (Under Review)', 'rejected' => 'Rejected'] as $value => $text)
+                    @foreach (['approved' => 'Approved (Live)', 'pending' => 'Pending (Under Review)', 'rejected' => 'Rejected'] as $value => $text)
                         <option value="{{ $value }}" @selected($val('mod_status', 'approved') === $value)>{{ $text }}</option>
                     @endforeach
                 </select>

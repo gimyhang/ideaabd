@@ -305,7 +305,7 @@
                                     </li>
                                     <li><hr class="dropdown-divider my-1"></li>
                                     <li>
-                                        <form action="{{ route('admin.ecommerce-orders.destroy', $order) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this order?');">
+                                        <form action="{{ route('admin.ecommerce-orders.destroy', $order) }}" method="POST" data-confirm="আপনি কি নিশ্চিত যে এই অর্ডারটি (#{{ $order->id }}) ডিলিট করতে চান?" data-confirm-title="অর্ডার ডিলিট">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="dropdown-item py-1.5 small text-danger">

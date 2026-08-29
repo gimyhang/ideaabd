@@ -81,6 +81,14 @@ class Book extends Model
         'preview_pages',
         'sales_count',
         'is_active',
+        'mod_status',
+        'reviewed_by',
+        'reviewed_at',
+        'rejection_reason',
+        'submitted_by',
+        'created_by',
+        'owner_name',
+        'owner_phone',
     ];
 
     /**

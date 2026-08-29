@@ -79,7 +79,75 @@
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
+    // Global SweetAlert2 World-Class Confirmation Helper
+    window.SwalConfirm = function(options) {
+        var isDark = document.body.classList.contains('dark-mode');
+        return Swal.fire({
+            title: options.title || 'আপনি কি নিশ্চিত?',
+            text: options.text || '',
+            html: options.html || undefined,
+            icon: options.icon || 'warning',
+            showCancelButton: true,
+            confirmButtonColor: options.confirmButtonColor || '#0284c7',
+            cancelButtonColor: options.cancelButtonColor || '#64748b',
+            confirmButtonText: options.confirmButtonText || '<i class="fas fa-check me-1"></i> হ্যাঁ, নিশ্চিত',
+            cancelButtonText: options.cancelButtonText || '<i class="fas fa-times me-1"></i> বাতিল',
+            reverseButtons: true,
+            focusCancel: options.focusCancel || false,
+            background: isDark ? '#1e293b' : '#ffffff',
+            color: isDark ? '#f8fafc' : '#1e293b',
+            customClass: {
+                popup: 'rounded-4 shadow-lg border border-slate-200',
+                confirmButton: 'btn btn-primary rounded-pill px-4 py-2 fw-semibold mx-1 shadow-sm',
+                cancelButton: 'btn btn-secondary rounded-pill px-4 py-2 fw-semibold mx-1 shadow-sm'
+            },
+            buttonsStyling: false
+        });
+    };
+
+    // Global SweetAlert2 Toast Helper
+    window.SwalToast = function(type, message) {
+        var isDark = document.body.classList.contains('dark-mode');
+        var Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3500,
+            timerProgressBar: true,
+            background: isDark ? '#1e293b' : '#ffffff',
+            color: isDark ? '#f8fafc' : '#1e293b',
+            didOpen: function(toast) {
+                toast.addEventListener('mouseenter', Swal.stopTimer);
+                toast.addEventListener('mouseleave', Swal.resumeTimer);
+            }
+        });
+        Toast.fire({
+            icon: type || 'success',
+            title: message
+        });
+    };
+
+    // Automatic SweetAlert2 Form Confirmation Interceptor
+    document.addEventListener('submit', function(e) {
+        var form = e.target;
+        if (form && form.dataset && form.dataset.confirm && !form.dataset.confirmed) {
+            e.preventDefault();
+            SwalConfirm({
+                title: form.dataset.confirmTitle || 'আপনি কি নিশ্চিত?',
+                text: form.dataset.confirm,
+                icon: form.dataset.confirmIcon || 'warning',
+                confirmButtonText: form.dataset.confirmBtn || '<i class="fas fa-check me-1"></i> হ্যাঁ, নিশ্চিত',
+            }).then(function(result) {
+                if (result.isConfirmed) {
+                    form.dataset.confirmed = 'true';
+                    form.submit();
+                }
+            });
+        }
+    });
+
     // Sidebar & Dark Mode toggle — stored in localStorage
     (function () {
         var body = document.body;

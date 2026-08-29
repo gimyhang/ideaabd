@@ -3554,6 +3554,59 @@ function renumberWebzineTocRows() {
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
+// DYNAMIC BOIMELA / EVENT SELECTOR HANDLERS
+// ══════════════════════════════════════════════════════════════════════════════
+function handleAdminBoimelaSelect(val) {
+    if (val === '__custom__') {
+        toggleAdminCustomBoimela(true);
+    } else {
+        const hidden = document.getElementById('f-ekushey_category');
+        if (hidden) hidden.value = val;
+        const wrapper = document.getElementById('adminCustomBoimelaWrapper');
+        if (wrapper) wrapper.classList.add('d-none');
+        const select = document.getElementById('f-ekushey_category_select');
+        if (select) select.classList.remove('d-none');
+    }
+}
+
+function toggleAdminCustomBoimela(show = null) {
+    const wrapper = document.getElementById('adminCustomBoimelaWrapper');
+    const select = document.getElementById('f-ekushey_category_select');
+    const customInput = document.getElementById('f-ekushey_category_custom');
+    const hidden = document.getElementById('f-ekushey_category');
+    if (!wrapper || !select) return;
+
+    const shouldShow = show !== null ? show : wrapper.classList.contains('d-none');
+    if (shouldShow) {
+        wrapper.classList.remove('d-none');
+        select.classList.add('d-none');
+        select.value = '__custom__';
+        if (customInput) {
+            customInput.focus();
+            if (customInput.value.trim() && hidden) {
+                hidden.value = customInput.value.trim();
+            }
+        }
+    } else {
+        resetAdminBoimelaToSelect();
+    }
+}
+
+function resetAdminBoimelaToSelect() {
+    const wrapper = document.getElementById('adminCustomBoimelaWrapper');
+    const select = document.getElementById('f-ekushey_category_select');
+    const hidden = document.getElementById('f-ekushey_category');
+    const customInput = document.getElementById('f-ekushey_category_custom');
+    if (wrapper) wrapper.classList.add('d-none');
+    if (select) {
+        select.classList.remove('d-none');
+        select.value = '';
+    }
+    if (customInput) customInput.value = '';
+    if (hidden) hidden.value = '';
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
 // AUTO-FOCUS & SMOOTH SCROLL TO UNFILLED / INVALID REQUIRED FIELDS
 // ══════════════════════════════════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', function () {

@@ -160,7 +160,7 @@
                                     <i class="fas fa-pen-to-square"></i>
                                 </a>
                                 <form method="POST" action="{{ route('admin.content.destroy', ['type' => 'categories', 'id' => $cat->id]) }}"
-                                      onsubmit="return confirm('Are you sure you want to delete this category?');" class="d-inline">
+                                      data-confirm="আপনি কি নিশ্চিত যে এই ক্যাটাগরিটি মুছে ফেলতে চান?" data-confirm-title="ক্যাটাগরি ডিলিট" class="d-inline">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="btn btn-sm btn-outline-danger py-1 px-2" title="Delete">

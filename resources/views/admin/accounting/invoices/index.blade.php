@@ -75,38 +75,35 @@
 @section('actions')
     <div class="d-flex flex-wrap align-items-center gap-2">
         <div class="dropdown">
-            <button class="btn btn-primary btn-sm rounded-pill px-3 fw-bold shadow-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                <i class="fas fa-plus me-1"></i> New Invoice
+            <button class="btn btn-primary btn-sm rounded-pill px-3.5 fw-semibold shadow-xs dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fas fa-plus-circle me-1"></i> New Document
             </button>
-            <ul class="dropdown-menu dropdown-menu-end shadow rounded-4 border-0 p-2" style="min-width: 220px;">
-                <li><h6 class="dropdown-header small text-uppercase fw-bold text-muted">Sales Category:</h6></li>
+            <ul class="dropdown-menu dropdown-menu-end shadow rounded-3 border-0 p-2" style="min-width: 220px;">
+                <li><h6 class="dropdown-header small text-uppercase fw-bold text-muted px-2 py-1">Document Type:</h6></li>
                 <li>
-                    <a class="dropdown-item rounded-3 py-2 fw-semibold d-flex align-items-center gap-2" href="{{ route('admin.accounting.invoices.create', ['sales_category' => 'books']) }}">
-                        <i class="fa-solid fa-book text-primary"></i> Books Sales
+                    <a class="dropdown-item rounded-2 py-2 fw-semibold d-flex align-items-center gap-2" href="{{ route('admin.accounting.invoices.create', ['type' => 'invoice', 'sales_category' => 'books']) }}">
+                        <i class="fas fa-receipt text-primary"></i> Sales Invoice / Bill
                     </a>
                 </li>
                 <li>
-                    <a class="dropdown-item rounded-3 py-2 fw-semibold d-flex align-items-center gap-2" href="{{ route('admin.accounting.invoices.create', ['sales_category' => 'stationery']) }}">
-                        <i class="fa-solid fa-pen-ruler text-info"></i> Stationery
+                    <a class="dropdown-item rounded-2 py-2 fw-semibold d-flex align-items-center gap-2" href="{{ route('admin.accounting.invoices.create', ['type' => 'challan', 'sales_category' => 'books']) }}">
+                        <i class="fas fa-truck text-success"></i> Delivery Challan
                     </a>
                 </li>
                 <li>
-                    <a class="dropdown-item rounded-3 py-2 fw-semibold d-flex align-items-center gap-2" href="{{ route('admin.accounting.invoices.create', ['sales_category' => 'printing_goods']) }}">
-                        <i class="fa-solid fa-print text-warning"></i> Printing & Press
+                    <a class="dropdown-item rounded-2 py-2 fw-semibold d-flex align-items-center gap-2" href="{{ route('admin.accounting.invoices.create', ['type' => 'quotation']) }}">
+                        <i class="fas fa-file-lines text-warning"></i> Price Quotation
                     </a>
                 </li>
                 <li>
-                    <a class="dropdown-item rounded-3 py-2 fw-semibold d-flex align-items-center gap-2" href="{{ route('admin.accounting.invoices.create', ['sales_category' => 'other']) }}">
-                        <i class="fa-solid fa-cart-plus text-secondary"></i> Other Sales
+                    <a class="dropdown-item rounded-2 py-2 fw-semibold d-flex align-items-center gap-2" href="{{ route('admin.accounting.invoices.create', ['type' => 'tender']) }}">
+                        <i class="fas fa-landmark" style="color: #6f42c1;"></i> Tender Proposal
                     </a>
                 </li>
             </ul>
         </div>
-        <a href="{{ route('admin.accounting.invoices.create', ['type' => 'tender']) }}" class="btn btn-purple text-white btn-sm rounded-pill px-3 fw-semibold shadow-sm" style="background-color: #6f42c1;">
-            <i class="fas fa-landmark me-1"></i> + Tender
-        </a>
-        <button type="button" class="btn btn-outline-dark btn-sm rounded-pill px-3 fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#invoiceSettingsModal" title="Branding Settings">
-            <i class="fas fa-palette me-1.5 text-primary"></i> Branding
+        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 fw-semibold shadow-xs" data-bs-toggle="modal" data-bs-target="#invoiceSettingsModal" title="Design & Typography Settings">
+            <i class="fas fa-palette me-1 text-primary"></i> Design Settings
         </button>
         <a href="{{ route('admin.accounting.index') }}" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-semibold shadow-xs">
             <i class="fas fa-scale-balanced me-1"></i> Cashbook
@@ -360,7 +357,7 @@
                                     <a href="{{ route('admin.accounting.invoices.edit', $inv->id) }}" class="btn btn-outline-warning text-dark" title="Edit">
                                         <i class="fas fa-edit"></i>
                                     </a>
-                                    <form action="{{ route('admin.accounting.invoices.destroy', $inv->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this invoice document?')">
+                                    <form action="{{ route('admin.accounting.invoices.destroy', $inv->id) }}" method="POST" class="d-inline" data-confirm="আপনি কি নিশ্চিত যে এই ইনভয়েসটি (#{{ $inv->invoice_number }}) মুছে ফেলতে চান?" data-confirm-title="ইনভয়েস ডিলিট">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn btn-outline-danger" title="Delete">
@@ -451,6 +448,77 @@
                                     </div>
                                     <div class="text-success small fw-bold mt-1.5"><i class="fas fa-check-circle me-1"></i>2:1 Aspect Ratio Ready</div>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Challan Destination & Recipient Typography Controls --}}
+                    <div class="card border border-primary-subtle rounded-3 p-3 mb-3 bg-primary bg-opacity-10">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label class="form-label fw-bold text-primary mb-0">
+                                <i class="fas fa-truck-ramp-box me-1"></i> Delivery Destination & Recipient ফন্ট সাইজ নিয়ন্ত্রণ
+                            </label>
+                            <span class="badge bg-primary text-white">Challan Typography</span>
+                        </div>
+                        <p class="small text-muted mb-3" style="font-size: 11px;">
+                            চালানের <strong>Delivery Destination & Recipient:</strong> সেকশনে প্রাপকের নাম, মোবাইল নম্বর ও ঠিকানার ফন্ট সাইজ নিয়ন্ত্রণ করুন।
+                        </p>
+
+                        <div class="row g-2.5">
+                            <div class="col-md-4 col-sm-6">
+                                <label class="form-label small fw-semibold text-dark mb-1">
+                                    প্রাপকের নাম সাইজ (Name)
+                                </label>
+                                <select name="challan_recipient_name_size" class="form-select form-select-sm">
+                                    @php $recNameSize = $settings['challan_recipient_name_size'] ?? '13px'; @endphp
+                                    @foreach(['11px'=>'ছোট (11px)', '12px'=>'স্বাভাবিক (12px)', '13px'=>'মাঝারি (13px)', '14px'=>'বড় (14px)', '15px'=>'অনেক বড় (15px)', '16px'=>'অতিরিক্ত বড় (16px)', '18px'=>'বিশাল (18px)'] as $val => $lbl)
+                                        <option value="{{ $val }}" {{ ($recNameSize === $val) ? 'selected' : '' }}>{{ $lbl }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div class="col-md-4 col-sm-6">
+                                <label class="form-label small fw-semibold text-dark mb-1">
+                                    মোবাইল নম্বর সাইজ (Mobile)
+                                </label>
+                                <select name="challan_recipient_phone_size" class="form-select form-select-sm">
+                                    @php $recPhoneSize = $settings['challan_recipient_phone_size'] ?? '12px'; @endphp
+                                    @foreach(['10.5px'=>'ছোট (10.5px)', '11.5px'=>'স্বাভাবিক (11.5px)', '12px'=>'মাঝারি (12px)', '13px'=>'বড় (13px)', '14px'=>'অনেক বড় (14px)', '15px'=>'অতিরিক্ত বড় (15px)'] as $val => $lbl)
+                                        <option value="{{ $val }}" {{ ($recPhoneSize === $val) ? 'selected' : '' }}>{{ $lbl }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div class="col-md-4 col-sm-6">
+                                <label class="form-label small fw-semibold text-dark mb-1">
+                                    ঠিকানা সাইজ (Address)
+                                </label>
+                                <select name="challan_recipient_address_size" class="form-select form-select-sm">
+                                    @php $recAddrSize = $settings['challan_recipient_address_size'] ?? '11.5px'; @endphp
+                                    @foreach(['10px'=>'ছোট (10px)', '11px'=>'স্বাভাবিক (11px)', '11.5px'=>'মাঝারি (11.5px)', '12px'=>'বড় (12px)', '13px'=>'অনেক বড় (13px)', '14px'=>'অতিরিক্ত বড় (14px)'] as $val => $lbl)
+                                        <option value="{{ $val }}" {{ ($recAddrSize === $val) ? 'selected' : '' }}>{{ $lbl }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div class="col-md-6 col-sm-6">
+                                <label class="form-label small fw-semibold text-dark mb-1">
+                                    পদবি ও প্রতিষ্ঠান সাইজ (Designation/Org)
+                                </label>
+                                <select name="challan_recipient_desig_size" class="form-select form-select-sm">
+                                    @php $recDesigSize = $settings['challan_recipient_desig_size'] ?? '11.5px'; @endphp
+                                    @foreach(['10px'=>'ছোট (10px)', '11px'=>'স্বাভাবিক (11px)', '11.5px'=>'মাঝারি (11.5px)', '12px'=>'বড় (12px)', '13px'=>'অনেক বড় (13px)'] as $val => $lbl)
+                                        <option value="{{ $val }}" {{ ($recDesigSize === $val) ? 'selected' : '' }}>{{ $lbl }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div class="col-md-6 col-sm-12">
+                                <label class="form-label small fw-semibold text-dark mb-1">
+                                    স্বাক্ষরকারীর ডিফল্ট পদবি (Signatory Title)
+                                </label>
+                                <input type="text" name="default_creator_designation" class="form-control form-control-sm" 
+                                       value="{{ $settings['default_creator_designation'] ?? '' }}" placeholder="যেমন: Authorized Signatory / Billing Officer">
                             </div>
                         </div>
                     </div>

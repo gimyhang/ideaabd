@@ -872,15 +872,22 @@ class IdeaAccountingController extends Controller
     public function updateSettings(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'business_name'        => 'required|string|max:255',
-            'tagline'              => 'nullable|string|max:255',
-            'address'              => 'nullable|string|max:255',
-            'phone'                => 'nullable|string|max:100',
-            'email'                => 'nullable|string|max:100',
-            'terms_and_conditions' => 'nullable|string',
-            'logo_base64'          => 'nullable|string',
-            'logo_file'            => 'nullable|image|max:5120',
-            'logo_url'             => 'nullable|string|max:255',
+            'business_name'                  => 'required|string|max:255',
+            'tagline'                        => 'nullable|string|max:255',
+            'address'                        => 'nullable|string|max:255',
+            'phone'                          => 'nullable|string|max:100',
+            'email'                          => 'nullable|string|max:100',
+            'terms_and_conditions'           => 'nullable|string',
+            'challan_recipient_name_size'    => 'nullable|string|max:10',
+            'challan_recipient_phone_size'   => 'nullable|string|max:10',
+            'challan_recipient_address_size' => 'nullable|string|max:10',
+            'challan_recipient_desig_size'   => 'nullable|string|max:10',
+            'challan_recipient_org_size'     => 'nullable|string|max:10',
+            'default_creator_designation'    => 'nullable|string|max:150',
+            'default_creator_name'           => 'nullable|string|max:150',
+            'logo_base64'                    => 'nullable|string',
+            'logo_file'                      => 'nullable|image|max:5120',
+            'logo_url'                       => 'nullable|string|max:255',
         ]);
 
         try {
@@ -891,6 +898,13 @@ class IdeaAccountingController extends Controller
             $settings['phone'] = $validated['phone'] ?? '';
             $settings['email'] = $validated['email'] ?? '';
             $settings['terms_and_conditions'] = $validated['terms_and_conditions'] ?? '';
+            $settings['challan_recipient_name_size'] = $validated['challan_recipient_name_size'] ?? '13px';
+            $settings['challan_recipient_phone_size'] = $validated['challan_recipient_phone_size'] ?? '12px';
+            $settings['challan_recipient_address_size'] = $validated['challan_recipient_address_size'] ?? '11.5px';
+            $settings['challan_recipient_desig_size'] = $validated['challan_recipient_desig_size'] ?? '11.5px';
+            $settings['challan_recipient_org_size'] = $validated['challan_recipient_org_size'] ?? '12px';
+            $settings['default_creator_designation'] = $validated['default_creator_designation'] ?? '';
+            $settings['default_creator_name'] = $validated['default_creator_name'] ?? '';
 
             // Handle 2:1 cropped base64 image
             if (!empty($validated['logo_base64']) && str_starts_with($validated['logo_base64'], 'data:image/')) {
@@ -952,7 +966,7 @@ class IdeaAccountingController extends Controller
 
             \App\Support\SiteSetting::clearCache();
 
-            return back()->with('success', 'বিল ও মেমোর অফিশিয়াল তথ্য এবং শর্তাবলী সফলভাবে আপডেট করা হয়েছে।');
+            return back()->with('success', 'বিল ও চালানের ডিজাইন, ফন্ট সাইজ এবং অফিশিয়াল তথ্য সফলভাবে আপডেট করা হয়েছে।');
         } catch (\Throwable $e) {
             return back()->with('error', 'তথ্য সংরক্ষণে সমস্যা হয়েছে: ' . $e->getMessage());
         }
@@ -964,12 +978,19 @@ class IdeaAccountingController extends Controller
     public static function getInvoiceSettings(): array
     {
         $default = [
-            'business_name' => \App\Support\SiteSetting::name(),
-            'tagline'       => \App\Support\SiteSetting::tagline(),
-            'address'       => 'ঢাকা, বাংলাদেশ',
-            'phone'         => '018XXXXXXXX',
-            'email'         => 'info@ideaabd.com',
-            'logo'          => '/images/logo.png',
+            'business_name'                  => \App\Support\SiteSetting::name(),
+            'tagline'                        => \App\Support\SiteSetting::tagline(),
+            'address'                        => 'ঢাকা, বাংলাদেশ',
+            'phone'                          => '018XXXXXXXX',
+            'email'                          => 'info@ideaabd.com',
+            'logo'                           => '/images/logo.png',
+            'challan_recipient_name_size'    => '13px',
+            'challan_recipient_phone_size'   => '12px',
+            'challan_recipient_address_size' => '11.5px',
+            'challan_recipient_desig_size'   => '11.5px',
+            'challan_recipient_org_size'     => '12px',
+            'default_creator_designation'    => '',
+            'default_creator_name'           => '',
         ];
 
         try {

@@ -8,35 +8,53 @@
 @endsection
 
 @section('actions')
-    <button type="button" class="btn btn-danger btn-sm rounded-pill px-3 shadow-xs" data-bs-toggle="modal" data-bs-target="#newExpenseModal">
-        <i class="fas fa-minus-circle me-1"></i> Record Expense
-    </button>
-    <button type="button" class="btn btn-success btn-sm rounded-pill px-3 shadow-xs" data-bs-toggle="modal" data-bs-target="#newIncomeModal">
-        <i class="fas fa-plus-circle me-1"></i> Record Income
-    </button>
-    <a href="{{ route('admin.accounting.invoices.create') }}" class="btn btn-primary btn-sm rounded-pill px-3 fw-bold shadow-xs">
-        <i class="fas fa-file-invoice me-1"></i> Create Invoice / Challan
-    </a>
+    <div class="d-flex flex-wrap align-items-center gap-2">
+        <div class="dropdown">
+            <button class="btn btn-primary btn-sm rounded-pill px-3.5 shadow-xs fw-semibold dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fas fa-plus-circle me-1"></i> New Transaction
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow rounded-3 border-0 p-2" style="min-width: 200px;">
+                <li>
+                    <button type="button" class="dropdown-item rounded-2 py-2 fw-semibold d-flex align-items-center gap-2 text-success" data-bs-toggle="modal" data-bs-target="#newIncomeModal">
+                        <i class="fas fa-plus-circle text-success"></i> Record Income
+                    </button>
+                </li>
+                <li>
+                    <button type="button" class="dropdown-item rounded-2 py-2 fw-semibold d-flex align-items-center gap-2 text-danger" data-bs-toggle="modal" data-bs-target="#newExpenseModal">
+                        <i class="fas fa-minus-circle text-danger"></i> Record Expense
+                    </button>
+                </li>
+            </ul>
+        </div>
+        <a href="{{ route('admin.accounting.invoices.index') }}" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-xs fw-semibold">
+            <i class="fas fa-file-invoice-dollar me-1"></i> Invoices & Challans
+        </a>
+    </div>
 @endsection
 
 @section('content')
 
 {{-- Idea Accounting Unified Navigation Bar --}}
 <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white">
-    <div class="card-body p-2">
-        <div class="nav nav-pills gap-1.5 flex-wrap">
-            <a href="{{ route('admin.accounting.index') }}" 
-               class="nav-link rounded-pill px-3.5 py-2 fw-semibold active bg-primary text-white shadow-sm">
-                <i class="fas fa-scale-balanced me-1.5"></i> Income & Expense Ledger
-            </a>
-            <a href="{{ route('admin.accounting.invoices.index') }}" 
-               class="nav-link rounded-pill px-3.5 py-2 fw-semibold text-dark hover-bg-light">
-                <i class="fas fa-file-invoice-dollar me-1.5"></i> Invoices, Challans & Quotations
-            </a>
-            <a href="{{ route('admin.accounting.invoices.create') }}" 
-               class="nav-link rounded-pill px-3.5 py-2 fw-semibold text-dark hover-bg-light">
-                <i class="fas fa-file-circle-plus me-1.5"></i> Create New Invoice
-            </a>
+    <div class="card-body p-2 px-3">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+            <div class="btn-group shadow-2xs rounded-pill p-1 bg-light border" role="group">
+                <a href="{{ route('admin.accounting.index') }}" 
+                   class="btn btn-sm rounded-pill px-3.5 py-1.5 fw-semibold btn-white text-primary shadow-xs">
+                    <i class="fas fa-scale-balanced me-1.5"></i> Income & Expenses
+                </a>
+                <a href="{{ route('admin.accounting.invoices.index') }}" 
+                   class="btn btn-sm rounded-pill px-3.5 py-1.5 fw-semibold btn-light text-muted">
+                    <i class="fas fa-file-invoice-dollar me-1.5"></i> Invoices & Challans
+                </a>
+                <a href="{{ route('admin.accounting.reports.index') }}" 
+                   class="btn btn-sm rounded-pill px-3.5 py-1.5 fw-semibold btn-light text-muted">
+                    <i class="fas fa-chart-pie me-1.5"></i> P&L Reports
+                </a>
+            </div>
+            <div class="text-muted small">
+                Net Cash Balance: <strong class="{{ $netBalance >= 0 ? 'text-success' : 'text-danger' }}">৳{{ number_format($netBalance, 2) }}</strong>
+            </div>
         </div>
     </div>
 </div>
@@ -204,7 +222,7 @@
                             </td>
                             <td class="text-muted small">{{ $entry->creator->name ?? 'Admin' }}</td>
                             <td class="text-center pe-3">
-                                <form action="{{ route('admin.accounting.entries.destroy', $entry->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this accounting transaction?')">
+                                <form action="{{ route('admin.accounting.entries.destroy', $entry->id) }}" method="POST" class="d-inline" data-confirm="আপনি কি নিশ্চিত যে এই হিসাব ভাউচারটি ডিলিট করতে চান?" data-confirm-title="ভাউচার ডিলিট">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="btn btn-sm btn-outline-danger p-1 border-0" title="Delete">

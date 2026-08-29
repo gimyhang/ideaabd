@@ -21,6 +21,15 @@
         $totalQuantity += (float)($it['quantity'] ?? 1);
     }
 
+    $creatorName = !empty($settings['default_creator_name']) ? $settings['default_creator_name'] : ($invoice->creator_name ?? 'Idea Publication Authority');
+    $creatorDesignation = !empty($settings['default_creator_designation']) ? $settings['default_creator_designation'] : ($invoice->creator_designation_en ?? 'Authorized Signatory / Billing In-Charge');
+    
+    $recipientNameSize = $settings['challan_recipient_name_size'] ?? '13px';
+    $recipientPhoneSize = $settings['challan_recipient_phone_size'] ?? '12px';
+    $recipientAddressSize = $settings['challan_recipient_address_size'] ?? '11.5px';
+    $recipientDesigSize = $settings['challan_recipient_desig_size'] ?? '11.5px';
+    $recipientOrgSize = $settings['challan_recipient_org_size'] ?? '12px';
+
     // Fetch books map for rich details like author_name, cover price etc.
     $bookIds = collect($invoice->items ?? [])->pluck('book_id')->filter()->unique()->toArray();
     $bookTitles = collect($invoice->items ?? [])->pluck('title')->filter()->unique()->toArray();
@@ -75,7 +84,7 @@
         {{-- Convert to Invoice/Challan if currently Quotation or Tender --}}
         @if(in_array($invoice->type, ['quotation', 'tender']))
             <form action="{{ route('admin.accounting.invoices.convert', $invoice->id) }}" method="POST" class="d-inline"
-                  onsubmit="return confirm('Convert this quotation/tender into a finalized invoice/bill?')">
+                  data-confirm="আপনি কি এই কোটেশন/টেন্ডারটিকে চূড়ান্ত ইনভয়েস/বিল এ রূপান্তর করতে চান?" data-confirm-title="বিল রূপান্তর" data-confirm-icon="question">
                 @csrf
                 <input type="hidden" name="target_type" value="invoice">
                 <button type="submit" class="btn btn-success btn-sm rounded-pill px-3 fw-semibold shadow-sm">
@@ -84,7 +93,7 @@
             </form>
 
             <form action="{{ route('admin.accounting.invoices.convert', $invoice->id) }}" method="POST" class="d-inline"
-                  onsubmit="return confirm('Convert this quotation/tender into a delivery challan?')">
+                  data-confirm="আপনি কি এই কোটেশন/টেন্ডারটিকে ডেলিভারি চালানে রূপান্তর করতে চান?" data-confirm-title="চালান রূপান্তর" data-confirm-icon="question">
                 @csrf
                 <input type="hidden" name="target_type" value="challan">
                 <button type="submit" class="btn btn-info text-white btn-sm rounded-pill px-3 fw-semibold shadow-sm">
@@ -222,47 +231,48 @@
             @endif
 
             {{-- Customer & Billed To Info --}}
-            <div class="row mb-2.5 p-2 bg-light rounded-2 border g-2 align-items-start" style="font-size: 12px;">
-                <div class="col-7">
-                    <div class="fw-bold text-dark mb-1" style="font-size: 12px;"><i class="fas fa-user-tag me-1 text-primary"></i>Client / Customer Information:</div>
-                    <table class="table-borderless p-0 m-0 w-100" style="font-size: 12px; line-height: 1.45;">
-                        @if($invoice->customer_name)
-                            <tr>
-                                <td class="text-muted pe-1 text-nowrap" style="width: 110px; vertical-align: top;">Name:</td>
-                                <td class="fw-bold text-dark">{{ $invoice->customer_name }}</td>
-                            </tr>
-                        @endif
-                        @if(!empty($invoice->customer_designation))
-                            <tr>
-                                <td class="text-muted pe-1 text-nowrap" style="vertical-align: top;">Designation:</td>
-                                <td class="fw-semibold text-dark">{{ $invoice->customer_designation }}</td>
-                            </tr>
-                        @endif
-                        @if($invoice->customer_org)
-                            <tr>
-                                <td class="text-muted pe-1 text-nowrap" style="vertical-align: top;">Organization:</td>
-                                <td class="fw-semibold text-primary">{{ $invoice->customer_org }}</td>
-                            </tr>
-                        @endif
-                        @if($invoice->customer_address)
-                            <tr>
-                                <td class="text-muted pe-1 text-nowrap" style="vertical-align: top;">Address:</td>
-                                <td class="text-dark">{{ $invoice->customer_address }}</td>
-                            </tr>
-                        @endif
-                        @if($invoice->customer_phone)
-                            <tr>
-                                <td class="text-muted pe-1 text-nowrap" style="vertical-align: top;">Phone:</td>
-                                <td class="text-dark fw-bold font-monospace">{{ $invoice->customer_phone }}</td>
-                            </tr>
-                        @endif
-                    </table>
-                </div>
-                <div class="col-5 text-end">
-                    <div class="text-muted text-uppercase fw-semibold mb-1" style="font-size: 11px;">Order & Payment Details:</div>
-                    <div style="font-size: 12px; line-height: 1.5;">
-                        <div>Type: <strong>{{ ucfirst($invoice->type) }}</strong> · Method: <strong>{{ $invoice->payment_method ?? 'Cash / Bank' }}</strong></div>
-                        @if(in_array($invoice->type, ['invoice', 'challan']))
+            <div class="p-2.5 bg-light rounded-2 border mb-2.5 destination-box" style="font-size: 12px; box-sizing: border-box;">
+                <div class="row g-2 align-items-start m-0">
+                    <div class="col-7 p-0 pe-2">
+                        <div class="fw-bold text-dark mb-1" style="font-size: 12px;"><i class="fas fa-user-tag me-1 text-primary"></i>Client / Customer Information:</div>
+                        <table class="table-borderless p-0 m-0 w-100" style="font-size: 12px; line-height: 1.45;">
+                            @if($invoice->customer_name)
+                                <tr>
+                                    <td class="text-muted pe-1 text-nowrap" style="width: 110px; vertical-align: top; font-size: 11px;">Name:</td>
+                                    <td class="fw-bold text-dark" style="font-size: {{ $recipientNameSize }};">{{ $invoice->customer_name }}</td>
+                                </tr>
+                            @endif
+                            @if(!empty($invoice->customer_designation))
+                                <tr>
+                                    <td class="text-muted pe-1 text-nowrap" style="vertical-align: top; font-size: 11px;">Designation:</td>
+                                    <td class="fw-semibold text-dark" style="font-size: {{ $recipientDesigSize }};">{{ $invoice->customer_designation }}</td>
+                                </tr>
+                            @endif
+                            @if($invoice->customer_org)
+                                <tr>
+                                    <td class="text-muted pe-1 text-nowrap" style="vertical-align: top; font-size: 11px;">Organization:</td>
+                                    <td class="fw-semibold text-primary" style="font-size: {{ $recipientOrgSize }};">{{ $invoice->customer_org }}</td>
+                                </tr>
+                            @endif
+                            @if($invoice->customer_address)
+                                <tr>
+                                    <td class="text-muted pe-1 text-nowrap" style="vertical-align: top; font-size: 11px;">Address:</td>
+                                    <td class="text-dark" style="font-size: {{ $recipientAddressSize }}; line-height: 1.35;">{{ $invoice->customer_address }}</td>
+                                </tr>
+                            @endif
+                            @if($invoice->customer_phone)
+                                <tr>
+                                    <td class="text-muted pe-1 text-nowrap" style="vertical-align: top; font-size: 11px;">Phone:</td>
+                                    <td class="text-dark fw-bold font-monospace" style="font-size: {{ $recipientPhoneSize }};">{{ $invoice->customer_phone }}</td>
+                                </tr>
+                            @endif
+                        </table>
+                    </div>
+                    <div class="col-5 p-0 ps-2 text-end">
+                        <div class="text-muted text-uppercase fw-semibold mb-1" style="font-size: 11px;">Order & Payment Details:</div>
+                        <div style="font-size: 12px; line-height: 1.5;">
+                            <div>Type: <strong>{{ ucfirst($invoice->type) }}</strong> · Method: <strong>{{ $invoice->payment_method ?? 'Cash / Bank' }}</strong></div>
+                            @if(in_array($invoice->type, ['invoice', 'challan']))
                             <div>
                                 Status: 
                                 @if($invoice->payment_status === 'paid')
@@ -471,10 +481,16 @@
                         </div>
                     </div>
 
-                    <div class="col-4">
-                        <div class="signature-box" style="margin-top: 36px;">
-                            <div class="border-top border-dark pt-1 fw-semibold text-dark">
-                                Authorized Signature
+                    <div class="col-4 text-center">
+                        <div class="signature-box" style="margin-top: 24px;">
+                            <div class="fw-bold text-dark" style="font-size: 11px; line-height: 1.25;">
+                                {{ $creatorName }}
+                            </div>
+                            <div class="text-muted fw-semibold" style="font-size: 9.5px; line-height: 1.25;">
+                                {{ $creatorDesignation }}
+                            </div>
+                            <div class="border-top border-dark pt-1 mt-1 fw-semibold text-dark" style="font-size: 9.5px;">
+                                Authorized Signature / Bill Creator
                             </div>
                         </div>
                     </div>
@@ -530,48 +546,52 @@
                 </div>
 
                 {{-- Delivery Destination & Client Details --}}
-                <div class="row mb-2.5 p-2 bg-light rounded-2 border g-2 align-items-start" style="font-size: 12px;">
-                    <div class="col-7">
-                        <div class="fw-bold text-dark mb-1" style="font-size: 12px;"><i class="fas fa-truck-ramp-box me-1 text-primary"></i>Delivery Destination & Recipient:</div>
-                        <table class="table-borderless p-0 m-0 w-100" style="font-size: 12px; line-height: 1.45;">
-                            @if($invoice->customer_name)
-                                <tr>
-                                    <td class="text-muted pe-1 text-nowrap" style="width: 110px; vertical-align: top;">Recipient Name:</td>
-                                    <td class="fw-bold text-dark">{{ $invoice->customer_name }}</td>
-                                </tr>
-                            @endif
-                            @if(!empty($invoice->customer_designation))
-                                <tr>
-                                    <td class="text-muted pe-1 text-nowrap" style="vertical-align: top;">Designation:</td>
-                                    <td class="fw-semibold text-dark">{{ $invoice->customer_designation }}</td>
-                                </tr>
-                            @endif
-                            @if($invoice->customer_org)
-                                <tr>
-                                    <td class="text-muted pe-1 text-nowrap" style="vertical-align: top;">Organization:</td>
-                                    <td class="fw-semibold text-primary">{{ $invoice->customer_org }}</td>
-                                </tr>
-                            @endif
-                            @if($invoice->customer_address)
-                                <tr>
-                                    <td class="text-muted pe-1 text-nowrap" style="vertical-align: top;">Address:</td>
-                                    <td class="text-dark">{{ $invoice->customer_address }}</td>
-                                </tr>
-                            @endif
-                            @if($invoice->customer_phone)
-                                <tr>
-                                    <td class="text-muted pe-1 text-nowrap" style="vertical-align: top;">Phone:</td>
-                                    <td class="text-dark fw-bold font-monospace">{{ $invoice->customer_phone }}</td>
-                                </tr>
-                            @endif
-                        </table>
-                    </div>
-                    <div class="col-5 text-end">
-                        <div class="text-muted text-uppercase fw-semibold mb-1" style="font-size: 11px;">Challan Tracking & Dispatch Info:</div>
-                        <div style="font-size: 12px; line-height: 1.5;">
-                            <div>Challan Type: <strong>Goods / Book Delivery</strong></div>
-                            <div>Total Items: <strong>{{ count($invoice->items ?? []) }} items</strong> · Total Qty: <strong class="text-primary">{{ $totalQuantity }} pcs</strong></div>
-                            <div class="text-muted">Dispatcher / Packer: <strong>{{ $invoice->creator->name ?? 'Admin' }}</strong></div>
+                <div class="p-2.5 bg-light rounded-2 border mb-2.5 destination-box" style="font-size: 12px; box-sizing: border-box;">
+                    <div class="row g-2 align-items-start m-0">
+                        <div class="col-7 p-0 pe-2">
+                            <div class="fw-bold text-dark mb-1 d-flex align-items-center justify-content-between" style="font-size: 12px;">
+                                <span><i class="fas fa-truck-ramp-box me-1 text-primary"></i>Delivery Destination & Recipient:</span>
+                            </div>
+                            <table class="table-borderless p-0 m-0 w-100 recipient-info-table" style="line-height: 1.45;">
+                                @if($invoice->customer_name)
+                                    <tr>
+                                        <td class="text-muted pe-1 text-nowrap" style="width: 115px; vertical-align: top; font-size: 11px;">Recipient Name:</td>
+                                        <td class="fw-bold text-dark target-recipient-name" id="challanRecipientName" style="font-size: {{ $recipientNameSize }};">{{ $invoice->customer_name }}</td>
+                                    </tr>
+                                @endif
+                                @if(!empty($invoice->customer_designation))
+                                    <tr>
+                                        <td class="text-muted pe-1 text-nowrap" style="vertical-align: top; font-size: 11px;">Designation:</td>
+                                        <td class="fw-semibold text-dark target-recipient-desig" id="challanRecipientDesig" style="font-size: {{ $recipientDesigSize }};">{{ $invoice->customer_designation }}</td>
+                                    </tr>
+                                @endif
+                                @if($invoice->customer_org)
+                                    <tr>
+                                        <td class="text-muted pe-1 text-nowrap" style="vertical-align: top; font-size: 11px;">Organization:</td>
+                                        <td class="fw-semibold text-primary target-recipient-org" id="challanRecipientOrg" style="font-size: {{ $recipientOrgSize }};">{{ $invoice->customer_org }}</td>
+                                    </tr>
+                                @endif
+                                @if($invoice->customer_address)
+                                    <tr>
+                                        <td class="text-muted pe-1 text-nowrap" style="vertical-align: top; font-size: 11px;">Address:</td>
+                                        <td class="text-dark target-recipient-address" id="challanRecipientAddr" style="font-size: {{ $recipientAddressSize }}; line-height: 1.35;">{{ $invoice->customer_address }}</td>
+                                    </tr>
+                                @endif
+                                @if($invoice->customer_phone)
+                                    <tr>
+                                        <td class="text-muted pe-1 text-nowrap" style="vertical-align: top; font-size: 11px;">Phone / Mobile:</td>
+                                        <td class="text-dark fw-bold font-monospace target-recipient-phone" id="challanRecipientPhone" style="font-size: {{ $recipientPhoneSize }};">{{ $invoice->customer_phone }}</td>
+                                    </tr>
+                                @endif
+                            </table>
+                        </div>
+                        <div class="col-5 p-0 ps-2 text-end">
+                            <div class="text-muted text-uppercase fw-semibold mb-1" style="font-size: 11px;">Challan Tracking & Dispatch Info:</div>
+                            <div style="font-size: 11.5px; line-height: 1.5;">
+                                <div>Challan Type: <strong>Goods / Book Delivery</strong></div>
+                                <div>Total Items: <strong>{{ count($invoice->items ?? []) }} items</strong> · Total Qty: <strong class="text-primary">{{ $totalQuantity }} pcs</strong></div>
+                                <div class="text-muted">Dispatcher / Packer: <strong>{{ $creatorName }}</strong></div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -654,7 +674,7 @@
                 <div class="invoice-footer-compact pt-2 mt-auto border-top">
                     <div class="row g-2 align-items-end text-center" style="font-size: 10px;">
                         <div class="col-4">
-                            <div class="signature-box" style="margin-top: 36px;">
+                            <div class="signature-box" style="margin-top: 24px;">
                                 <div class="border-top border-dark pt-1 fw-semibold text-dark">
                                     Recipient's Signature
                                 </div>
@@ -672,10 +692,16 @@
                             </div>
                         </div>
 
-                        <div class="col-4">
-                            <div class="signature-box" style="margin-top: 36px;">
-                                <div class="border-top border-dark pt-1 fw-semibold text-dark">
-                                    Authorized Signature
+                        <div class="col-4 text-center">
+                            <div class="signature-box" style="margin-top: 24px;">
+                                <div class="fw-bold text-dark" style="font-size: 11px; line-height: 1.25;">
+                                    {{ $creatorName }}
+                                </div>
+                                <div class="text-muted fw-semibold" style="font-size: 9.5px; line-height: 1.25;">
+                                    {{ $creatorDesignation }}
+                                </div>
+                                <div class="border-top border-dark pt-1 mt-1 fw-semibold text-dark" style="font-size: 9.5px;">
+                                    Authorized Signature / Bill Creator
                                 </div>
                             </div>
                         </div>
@@ -822,6 +848,88 @@
                         </div>
                     </div>
 
+                    {{-- Challan Destination & Recipient Typography Controls --}}
+                    <div class="card border border-primary-subtle rounded-3 p-3 mb-3 bg-primary bg-opacity-10">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label class="form-label fw-bold text-primary mb-0">
+                                <i class="fas fa-truck-ramp-box me-1"></i> Delivery Destination & Recipient ফন্ট সাইজ নিয়ন্ত্রণ
+                            </label>
+                            <span class="badge bg-primary text-white">Challan Typography</span>
+                        </div>
+                        <p class="small text-muted mb-3" style="font-size: 11px;">
+                            চালানের <strong>Delivery Destination & Recipient:</strong> সেকশনে প্রাপকের নাম, মোবাইল নম্বর, ঠিকানা ও পদবির ফন্ট সাইজ বড় বা ছোট করুন।
+                        </p>
+
+                        {{-- Recipient Live Preview Box --}}
+                        <div class="p-2.5 bg-white rounded-2 border mb-3 shadow-xs">
+                            <div class="small fw-bold text-muted text-uppercase mb-1" style="font-size: 10px;">
+                                <i class="fas fa-eye me-1 text-primary"></i>Recipient Typography Live Preview:
+                            </div>
+                            <div class="p-2 bg-light rounded border" id="previewRecipientBox">
+                                <div class="fw-bold text-dark mb-1" style="font-size: 11px;"><i class="fas fa-truck me-1 text-primary"></i>Delivery Destination & Recipient:</div>
+                                <div id="previewRecipientName" style="font-size: {{ $recipientNameSize }}; font-weight: bold; color: #0f172a;">মোহাম্মদ আবদুল্লাহ / Rahim Book House</div>
+                                <div id="previewRecipientDesig" class="text-muted" style="font-size: {{ $recipientDesigSize }};">প্রধান শিক্ষক / সত্ত্বাধিকারী</div>
+                                <div id="previewRecipientOrg" class="text-primary fw-semibold" style="font-size: {{ $recipientOrgSize }};">আইডিয়া একাডেমি ও লাইব্রেরি</div>
+                                <div id="previewRecipientAddr" class="text-dark" style="font-size: {{ $recipientAddressSize }};">৩৮ বাংলাবাজার, ঢাকা-১১০০, বাংলাদেশ</div>
+                                <div id="previewRecipientPhone" class="text-dark fw-bold font-monospace" style="font-size: {{ $recipientPhoneSize }};">01812-345678, 01712-345678</div>
+                            </div>
+                        </div>
+
+                        <div class="row g-2.5">
+                            <div class="col-md-4 col-sm-6">
+                                <label class="form-label small fw-semibold text-dark mb-1">
+                                    প্রাপকের নাম সাইজ (Name)
+                                </label>
+                                <select name="challan_recipient_name_size" id="inputNameSize" class="form-select form-select-sm" onchange="updateRecipientPreview()">
+                                    @foreach(['11px'=>'ছোট (11px)', '12px'=>'স্বাভাবিক (12px)', '13px'=>'মাঝারি (13px)', '14px'=>'বড় (14px)', '15px'=>'অনেক বড় (15px)', '16px'=>'অতিরিক্ত বড় (16px)', '18px'=>'বিশাল (18px)'] as $val => $lbl)
+                                        <option value="{{ $val }}" {{ ($recipientNameSize === $val) ? 'selected' : '' }}>{{ $lbl }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div class="col-md-4 col-sm-6">
+                                <label class="form-label small fw-semibold text-dark mb-1">
+                                    মোবাইল নম্বর সাইজ (Mobile)
+                                </label>
+                                <select name="challan_recipient_phone_size" id="inputPhoneSize" class="form-select form-select-sm" onchange="updateRecipientPreview()">
+                                    @foreach(['10.5px'=>'ছোট (10.5px)', '11.5px'=>'স্বাভাবিক (11.5px)', '12px'=>'মাঝারি (12px)', '13px'=>'বড় (13px)', '14px'=>'অনেক বড় (14px)', '15px'=>'অতিরিক্ত বড় (15px)'] as $val => $lbl)
+                                        <option value="{{ $val }}" {{ ($recipientPhoneSize === $val) ? 'selected' : '' }}>{{ $lbl }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div class="col-md-4 col-sm-6">
+                                <label class="form-label small fw-semibold text-dark mb-1">
+                                    ঠিকানা সাইজ (Address)
+                                </label>
+                                <select name="challan_recipient_address_size" id="inputAddressSize" class="form-select form-select-sm" onchange="updateRecipientPreview()">
+                                    @foreach(['10px'=>'ছোট (10px)', '11px'=>'স্বাভাবিক (11px)', '11.5px'=>'মাঝারি (11.5px)', '12px'=>'বড় (12px)', '13px'=>'অনেক বড় (13px)', '14px'=>'অতিরিক্ত বড় (14px)'] as $val => $lbl)
+                                        <option value="{{ $val }}" {{ ($recipientAddressSize === $val) ? 'selected' : '' }}>{{ $lbl }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div class="col-md-6 col-sm-6">
+                                <label class="form-label small fw-semibold text-dark mb-1">
+                                    পদবি ও প্রতিষ্ঠান সাইজ (Designation/Org)
+                                </label>
+                                <select name="challan_recipient_desig_size" id="inputDesigSize" class="form-select form-select-sm" onchange="updateRecipientPreview()">
+                                    @foreach(['10px'=>'ছোট (10px)', '11px'=>'স্বাভাবিক (11px)', '11.5px'=>'মাঝারি (11.5px)', '12px'=>'বড় (12px)', '13px'=>'অনেক বড় (13px)'] as $val => $lbl)
+                                        <option value="{{ $val }}" {{ ($recipientDesigSize === $val) ? 'selected' : '' }}>{{ $lbl }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div class="col-md-6 col-sm-12">
+                                <label class="form-label small fw-semibold text-dark mb-1">
+                                    স্বাক্ষরকারীর ডিফল্ট পদবি (Signatory Title)
+                                </label>
+                                <input type="text" name="default_creator_designation" id="inputDefaultCreatorDesig" class="form-control form-control-sm" 
+                                       value="{{ $settings['default_creator_designation'] ?? '' }}" placeholder="যেমন: Authorized Signatory / Billing Officer">
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Company / Imprint Name (Header Title)</label>
@@ -911,6 +1019,38 @@ function updateLivePreview() {
     if (addrEl) addrEl.textContent = addr;
     if (phoneEl) phoneEl.textContent = ph;
     if (emailEl) emailEl.textContent = em;
+}
+
+function updateRecipientPreview() {
+    const nameSize = document.getElementById('inputNameSize')?.value || '13px';
+    const phoneSize = document.getElementById('inputPhoneSize')?.value || '12px';
+    const addrSize = document.getElementById('inputAddressSize')?.value || '11.5px';
+    const desigSize = document.getElementById('inputDesigSize')?.value || '11.5px';
+
+    const pName = document.getElementById('previewRecipientName');
+    const pPhone = document.getElementById('previewRecipientPhone');
+    const pAddr = document.getElementById('previewRecipientAddr');
+    const pDesig = document.getElementById('previewRecipientDesig');
+    const pOrg = document.getElementById('previewRecipientOrg');
+
+    if (pName) pName.style.fontSize = nameSize;
+    if (pPhone) pPhone.style.fontSize = phoneSize;
+    if (pAddr) pAddr.style.fontSize = addrSize;
+    if (pDesig) pDesig.style.fontSize = desigSize;
+    if (pOrg) pOrg.style.fontSize = desigSize;
+
+    // Also update on-page challan target elements if present
+    const cName = document.getElementById('challanRecipientName');
+    const cPhone = document.getElementById('challanRecipientPhone');
+    const cAddr = document.getElementById('challanRecipientAddr');
+    const cDesig = document.getElementById('challanRecipientDesig');
+    const cOrg = document.getElementById('challanRecipientOrg');
+
+    if (cName) cName.style.fontSize = nameSize;
+    if (cPhone) cPhone.style.fontSize = phoneSize;
+    if (cAddr) cAddr.style.fontSize = addrSize;
+    if (cDesig) cDesig.style.fontSize = desigSize;
+    if (cOrg) cOrg.style.fontSize = desigSize;
 }
 
 function copyCustomerShareLink() {
@@ -1077,8 +1217,9 @@ function resetCrop() {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    padding-left: 0.5in !important;
-    padding-right: 0.5in !important;
+    padding-left: 0.4in !important;
+    padding-right: 0.4in !important;
+    box-sizing: border-box !important;
 }
 
 .invoice-table th,
@@ -1095,15 +1236,24 @@ function resetCrop() {
 }
 
 .signature-box {
-    margin-top: 36px;
+    margin-top: 24px;
+}
+
+.destination-box {
+    box-sizing: border-box !important;
+    width: 100% !important;
 }
 
 @page {
-    size: portrait;
-    margin: 8mm 0.5in 8mm 0.5in;
+    size: A4 portrait;
+    margin: 8mm 8mm 8mm 8mm;
 }
 
 @media print {
+    *, ::before, ::after {
+        box-sizing: border-box !important;
+    }
+
     html, body {
         background: #ffffff !important;
         color: #000000 !important;
@@ -1111,6 +1261,8 @@ function resetCrop() {
         margin: 0 !important;
         padding: 0 !important;
         width: 100% !important;
+        max-width: 100% !important;
+        overflow: visible !important;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
     }
@@ -1135,6 +1287,9 @@ function resetCrop() {
         padding: 0 !important;
         width: 100% !important;
         max-width: 100% !important;
+        border: none !important;
+        box-shadow: none !important;
+        overflow: visible !important;
     }
 
     #invoicePrintWrapper, .col-lg-10 {
@@ -1142,58 +1297,95 @@ function resetCrop() {
         max-width: 100% !important;
         margin: 0 !important;
         padding: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+        float: none !important;
     }
 
-    /* Grid Flex Maintenance in Print */
+    /* Grid Flex Maintenance in Print - no negative margins to avoid right line artifacts */
     .row {
         display: flex !important;
         flex-direction: row !important;
         flex-wrap: wrap !important;
-        margin-right: -0.5rem !important;
-        margin-left: -0.5rem !important;
+        margin-right: 0 !important;
+        margin-left: 0 !important;
+        width: 100% !important;
     }
 
     .row > * {
-        padding-right: 0.5rem !important;
-        padding-left: 0.5rem !important;
+        padding-right: 4px !important;
+        padding-left: 4px !important;
+        box-sizing: border-box !important;
     }
 
     .col-7 {
-        flex: 0 0 auto !important;
-        width: 58.33333333% !important;
-        max-width: 58.33333333% !important;
+        flex: 0 0 58.333333% !important;
+        max-width: 58.333333% !important;
+        width: 58.333333% !important;
     }
 
     .col-5 {
-        flex: 0 0 auto !important;
-        width: 41.66666667% !important;
-        max-width: 41.66666667% !important;
+        flex: 0 0 41.666667% !important;
+        max-width: 41.666667% !important;
+        width: 41.666667% !important;
     }
 
     .col-6 {
-        flex: 0 0 auto !important;
-        width: 50% !important;
+        flex: 0 0 50% !important;
         max-width: 50% !important;
+        width: 50% !important;
     }
 
     .col-4 {
-        flex: 0 0 auto !important;
-        width: 33.33333333% !important;
-        max-width: 33.33333333% !important;
+        flex: 0 0 33.333333% !important;
+        max-width: 33.333333% !important;
+        width: 33.333333% !important;
+    }
+
+    .col-12 {
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
+        width: 100% !important;
     }
 
     .invoice-page-card {
         border: none !important;
         box-shadow: none !important;
         padding: 0 !important;
-        margin: 0 !important;
+        margin: 0 0 10px 0 !important;
         width: 100% !important;
+        max-width: 100% !important;
         background: #ffffff !important;
         min-height: auto !important;
         height: auto !important;
         display: block !important;
         page-break-inside: avoid !important;
         break-inside: avoid !important;
+        overflow: visible !important;
+    }
+
+    .destination-box {
+        width: 100% !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        box-sizing: border-box !important;
+        border-color: #cbd5e1 !important;
+    }
+
+    .table-responsive {
+        overflow: visible !important;
+        display: block !important;
+        width: 100% !important;
+        margin: 0 0 8px 0 !important;
+        padding: 0 !important;
+        border: none !important;
+    }
+
+    .invoice-table {
+        width: 100% !important;
+        max-width: 100% !important;
+        border-collapse: collapse !important;
+        margin: 0 !important;
     }
 
     .invoice-table th,

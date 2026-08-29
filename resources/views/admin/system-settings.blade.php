@@ -77,7 +77,7 @@
                     <i class="fa-solid fa-floppy-disk"></i> Save Changes
                 </button>
                 <!-- Clear Cache Form -->
-                <form action="{{ route('admin.system-settings.clear-cache') }}" method="POST" onsubmit="return confirm('Are you sure you want to clear system cache?');">
+                <form action="{{ route('admin.system-settings.clear-cache') }}" method="POST" data-confirm="আপনি কি নিশ্চিত যে সিস্টেম ক্যাশ পরিষ্কার (Clear Cache) করতে চান?" data-confirm-title="সিস্টেম ক্যাশ">
                     @csrf
                     <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3 py-2 fw-semibold d-inline-flex align-items-center gap-1.5 shadow-xs">
                         <i class="fa-solid fa-broom"></i> Clear Cache
@@ -1963,10 +1963,19 @@
     }
 
     function deleteMenuItem(index) {
-        if (confirm(`আপনি কি "${window.headerMenuItemsData[index]?.label || 'এই'}" আইটেমটি মুছে ফেলতে চান?`)) {
-            window.headerMenuItemsData.splice(index, 1);
-            renderMenuTable();
-        }
+        SwalConfirm({
+            title: 'আইটেম মুছে ফেলুন',
+            text: `আপনি কি "${window.headerMenuItemsData[index]?.label || 'এই'}" আইটেমটি মুছে ফেলতে চান?`,
+            icon: 'warning',
+            confirmButtonText: '<i class="fas fa-trash-can me-1"></i> হ্যাঁ, মুছুন',
+            confirmButtonColor: '#ef4444',
+            cancelButtonText: 'বাতিল'
+        }).then(function(result) {
+            if (result.isConfirmed) {
+                window.headerMenuItemsData.splice(index, 1);
+                renderMenuTable();
+            }
+        });
     }
 
     // Live Logo Dimensions & Simulator Updates
@@ -2065,10 +2074,19 @@
     }
 
     function resetMenuToDefaults() {
-        if (confirm('আপনি কি ডিফল্ট হেডার মেনু তালিকা রিস্টোর করতে চান?')) {
-            window.headerMenuItemsData = JSON.parse(JSON.stringify(defaultMenuItems));
-            renderMenuTable();
-        }
+        SwalConfirm({
+            title: 'ডিফল্ট রিস্টোর',
+            text: 'আপনি কি ডিফল্ট হেডার মেনু তালিকা রিস্টোর করতে চান?',
+            icon: 'question',
+            confirmButtonText: '<i class="fas fa-rotate me-1"></i> হ্যাঁ, রিস্টোর করুন',
+            confirmButtonColor: '#0284c7',
+            cancelButtonText: 'বাতিল'
+        }).then(function(result) {
+            if (result.isConfirmed) {
+                window.headerMenuItemsData = JSON.parse(JSON.stringify(defaultMenuItems));
+                renderMenuTable();
+            }
+        });
     }
 
     function syncMenuJson() {
@@ -2380,13 +2398,22 @@
 
     function deleteHeroSlide(index) {
         if (window.heroSlidesData.length <= 1) {
-            alert('কমপক্ষে একটি স্লাইড থাকা আবশ্যক!');
+            Swal.fire({ title: 'সতর্কতা', text: 'কমপক্ষে একটি স্লাইড থাকা আবশ্যক!', icon: 'warning' });
             return;
         }
-        if (confirm(`আপনি কি "${window.heroSlidesData[index]?.title || 'এই'}" স্লাইডটি মুছে ফেলতে চান?`)) {
-            window.heroSlidesData.splice(index, 1);
-            renderHeroSlides();
-        }
+        SwalConfirm({
+            title: 'স্লাইড মুছে ফেলুন',
+            text: `আপনি কি "${window.heroSlidesData[index]?.title || 'এই'}" স্লাইডটি মুছে ফেলতে চান?`,
+            icon: 'warning',
+            confirmButtonText: '<i class="fas fa-trash-can me-1"></i> হ্যাঁ, মুছুন',
+            confirmButtonColor: '#ef4444',
+            cancelButtonText: 'বাতিল'
+        }).then(function(result) {
+            if (result.isConfirmed) {
+                window.heroSlidesData.splice(index, 1);
+                renderHeroSlides();
+            }
+        });
     }
 
     function addHeroSlidePreset(type) {
@@ -2500,10 +2527,19 @@
     }
 
     function resetHeroSlidesToDefaults() {
-        if (confirm('আপনি কি ডিফল্ট ৬টি হিরো স্লাইডার তালিকা রিস্টোর করতে চান?')) {
-            window.heroSlidesData = JSON.parse(JSON.stringify(defaultHeroSlides));
-            renderHeroSlides();
-        }
+        SwalConfirm({
+            title: 'ডিফল্ট রিস্টোর',
+            text: 'আপনি কি ডিফল্ট ৬টি হিরো স্লাইডার তালিকা রিস্টোর করতে চান?',
+            icon: 'question',
+            confirmButtonText: '<i class="fas fa-rotate me-1"></i> হ্যাঁ, রিস্টোর করুন',
+            confirmButtonColor: '#0284c7',
+            cancelButtonText: 'বাতিল'
+        }).then(function(result) {
+            if (result.isConfirmed) {
+                window.heroSlidesData = JSON.parse(JSON.stringify(defaultHeroSlides));
+                renderHeroSlides();
+            }
+        });
     }
 
     function syncHeroSlidesJson() {

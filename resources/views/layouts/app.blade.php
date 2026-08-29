@@ -78,7 +78,26 @@
     <meta name="revisit-after" content="1 days">
     <meta name="rating" content="general">
     <meta name="distribution" content="global">
+
+    <!-- Geographic & Regional Search Targeting -->
+    <meta name="geo.region" content="BD">
+    <meta name="geo.placename" content="Dhaka, Bangladesh">
+    <meta name="geo.position" content="23.8103;90.4125">
+    <meta name="ICBM" content="23.8103, 90.4125">
+
+    <!-- Dublin Core Metadata for Academic & Universal Search -->
+    <meta name="DC.title" content="{{ $metaPageTitle }}">
+    <meta name="DC.creator" content="{{ $defaultSiteName }}">
+    <meta name="DC.description" content="{{ Str::limit(strip_tags($metaPageDescription), 200) }}">
+    <meta name="DC.publisher" content="{{ $defaultSiteName }}">
+    <meta name="DC.language" content="bn">
+
+    <!-- Canonical & Language Alternates -->
     <link rel="canonical" href="{{ $metaPageUrl }}">
+    <link rel="alternate" hreflang="bn" href="{{ $metaPageUrl }}">
+    <link rel="alternate" hreflang="en" href="{{ $metaPageUrl }}">
+    <link rel="alternate" hreflang="x-default" href="{{ $metaPageUrl }}">
+    <link rel="alternate" type="application/rss+xml" title="{{ $defaultSiteName }} RSS Feed" href="{{ url('/feed') }}">
 
     <!-- Open Graph / Facebook / WhatsApp / LinkedIn -->
     <meta property="og:locale" content="bn_BD">

@@ -275,7 +275,7 @@
                                         <li><hr class="dropdown-divider my-1"></li>
                                         <li>
                                             <form action="{{ route('admin.content.destroy', ['type' => 'authors', 'id' => $author->id]) }}" 
-                                                  method="POST" onsubmit="return confirm('Are you sure you want to delete this author?');">
+                                                  method="POST" data-confirm="আপনি কি নিশ্চিত যে এই লেখক প্রোফাইলটি ডিলিট করতে চান?" data-confirm-title="লেখক ডিলিট">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="dropdown-item text-danger py-1">
@@ -474,7 +474,7 @@
                                                 <i class="fas fa-arrow-up-right-from-square text-muted small"></i>
                                             </a>
                                             <form action="{{ route('admin.content.destroy', ['type' => 'authors', 'id' => $author->id]) }}" 
-                                                  method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this author?');">
+                                                  method="POST" class="d-inline" data-confirm="আপনি কি নিশ্চিত যে এই লেখক প্রোফাইলটি ডিলিট করতে চান?" data-confirm-title="লেখক ডিলিট">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="btn btn-xs btn-outline-danger p-1" title="Delete Author">

@@ -7,6 +7,26 @@
     <li class="breadcrumb-item active" aria-current="page">Registration Requests</li>
 @endsection
 
+@push('styles')
+<style>
+    @keyframes rowApprovedPulse {
+        0% { background-color: rgba(34, 197, 94, 0.28); }
+        50% { background-color: rgba(34, 197, 94, 0.45); }
+        100% { background-color: transparent; }
+    }
+    .row-approved-flash {
+        animation: rowApprovedPulse 2s ease-in-out;
+    }
+    .btn-approve-action {
+        transition: all 0.2s ease-in-out;
+    }
+    .btn-approve-action:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 10px rgba(22, 163, 74, 0.35) !important;
+    }
+</style>
+@endpush
+
 @section('actions')
     <div class="d-flex flex-wrap align-items-center gap-2">
         <button type="button" class="btn btn-outline-success btn-sm rounded-pill px-3 shadow-xs" onclick="exportRegistrationsToCSV()" title="Export to CSV">
@@ -227,7 +247,7 @@
                             <th>Status</th>
                             <th>Account Active</th>
                             <th>Date</th>
-                            <th class="text-end pe-3" style="min-width: 160px;">Actions</th>
+                            <th class="text-end pe-3" style="min-width: 330px;">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -342,39 +362,61 @@
                                 {{-- Creation Date --}}
                                 <td class="text-muted small">{{ $user->created_at->format('d M, Y') }}</td>
 
-                                {{-- Action Buttons --}}
+                                {{-- All 5 Action Buttons (View, Approve, Reject, Edit, Delete) --}}
                                 <td class="text-end pe-3">
-                                    <div class="d-inline-flex gap-1 align-items-center">
-                                        {{-- Quick View Modal --}}
-                                        <button type="button" class="btn btn-sm btn-outline-info rounded-pill px-2 py-1" onclick="openRegDetailsModal({{ $user->id }})" title="View Details">
-                                            <i class="fas fa-eye"></i>
+                                    <div class="d-inline-flex gap-1.5 align-items-center" id="regActions-{{ $user->id }}">
+                                        {{-- 1. View Button --}}
+                                        <button type="button" class="btn btn-sm btn-outline-info rounded-pill px-2.5 py-1 shadow-xs fw-semibold" onclick="openRegDetailsModal({{ $user->id }})" title="View Details">
+                                            <i class="fas fa-eye me-1"></i> View
                                         </button>
 
-                                        {{-- 1-Click Approve via AJAX --}}
-                                        <button type="button" 
-                                                id="btnApprove-{{ $user->id }}"
-                                                class="btn btn-sm {{ $user->reg_status === 'approved' ? 'btn-outline-success disabled' : 'btn-success' }} rounded-pill px-2 py-1" 
-                                                onclick="ajaxApproveUser({{ $user->id }})"
-                                                title="Approve & Activate">
-                                            <i class="fas fa-check"></i>
-                                        </button>
+                                        {{-- 2. Approve Button --}}
+                                        @if($user->reg_status === 'approved')
+                                            <button type="button" 
+                                                    id="btnApprove-{{ $user->id }}"
+                                                    class="btn btn-sm btn-outline-success rounded-pill px-2.5 py-1 shadow-xs fw-semibold" 
+                                                    onclick="ajaxApproveUser({{ $user->id }}, '{{ addslashes($user->name) }}', this)"
+                                                    title="Already Approved (Click to re-activate)">
+                                                <i class="fas fa-check-double me-1"></i> Approved
+                                            </button>
+                                        @else
+                                            <button type="button" 
+                                                    id="btnApprove-{{ $user->id }}"
+                                                    class="btn btn-sm btn-success rounded-pill px-3 py-1 fw-bold shadow-xs btn-approve-action d-inline-flex align-items-center gap-1" 
+                                                    onclick="ajaxApproveUser({{ $user->id }}, '{{ addslashes($user->name) }}', this)"
+                                                    title="Approve & Activate Account">
+                                                <i class="fas fa-circle-check"></i>
+                                                <span>Approve</span>
+                                            </button>
+                                        @endif
 
-                                        {{-- Reject Modal Trigger --}}
-                                        <button type="button" 
-                                                id="btnReject-{{ $user->id }}"
-                                                class="btn btn-sm {{ $user->reg_status === 'rejected' ? 'btn-outline-danger' : 'btn-danger' }} rounded-pill px-2 py-1" 
-                                                onclick="openRejectModal({{ $user->id }}, '{{ addslashes($user->name) }}')"
-                                                title="Decline / Reject">
-                                            <i class="fas fa-times"></i>
-                                        </button>
+                                        {{-- 3. Reject Button --}}
+                                        @if($user->reg_status === 'rejected')
+                                            <button type="button" 
+                                                    id="btnReject-{{ $user->id }}"
+                                                    class="btn btn-sm btn-outline-danger rounded-pill px-2.5 py-1 shadow-xs fw-semibold" 
+                                                    onclick="openRejectModal({{ $user->id }}, '{{ addslashes($user->name) }}')"
+                                                    title="Rejected (Click to edit reason)">
+                                                <i class="fas fa-circle-xmark me-1"></i> Rejected
+                                            </button>
+                                        @else
+                                            <button type="button" 
+                                                    id="btnReject-{{ $user->id }}"
+                                                    class="btn btn-sm btn-outline-danger rounded-pill px-2.5 py-1 fw-semibold d-inline-flex align-items-center gap-1 shadow-xs" 
+                                                    onclick="openRejectModal({{ $user->id }}, '{{ addslashes($user->name) }}')"
+                                                    title="Reject / Decline Application">
+                                                <i class="fas fa-times me-0.5"></i>
+                                                <span>Reject</span>
+                                            </button>
+                                        @endif
 
-                                        {{-- Edit Link --}}
-                                        <a href="{{ route('admin.registrations.edit', $user) }}" class="btn btn-sm btn-light border rounded-pill px-2 py-1" title="Edit Profile">
-                                            <i class="fas fa-pen-to-square text-secondary"></i>
+                                        {{-- 4. Edit Button --}}
+                                        <a href="{{ route('admin.registrations.edit', $user) }}" class="btn btn-sm btn-outline-primary rounded-pill px-2.5 py-1 shadow-xs fw-semibold" title="Edit Profile">
+                                            <i class="fas fa-pen-to-square me-1"></i> Edit
                                         </a>
 
-                                        {{-- Delete Button --}}
-                                        <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-2 py-1" onclick="ajaxDeleteUser({{ $user->id }}, '{{ addslashes($user->name) }}')" title="Delete Account">
+                                        {{-- 5. Delete Button --}}
+                                        <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-2 py-1 shadow-xs" onclick="ajaxDeleteUser({{ $user->id }}, '{{ addslashes($user->name) }}')" title="Delete Account">
                                             <i class="fas fa-trash-can"></i>
                                         </button>
                                     </div>
@@ -523,11 +565,13 @@ function showToast(message, isSuccess = true) {
 }
 
 // 1-Click AJAX Approve User
-function ajaxApproveUser(userId) {
-    const btn = document.getElementById(`btnApprove-${userId}`);
+function ajaxApproveUser(userId, userName = '', triggerBtn = null) {
+    const btn = triggerBtn || document.getElementById(`btnApprove-${userId}`);
+    let origHtml = '';
     if (btn) {
+        origHtml = btn.innerHTML;
         btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Approving...</span>';
     }
 
     fetch(`/admin/registrations/${userId}/approve`, {
@@ -539,49 +583,77 @@ function ajaxApproveUser(userId) {
     })
     .then(res => res.json())
     .then(data => {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = origHtml;
+        }
+
         if (data.success) {
             showToast(data.message, true);
 
-            // Update status badge
+            // 1. Update status badge
             const statusCell = document.getElementById(`statusBadgeCell-${userId}`);
             if (statusCell) {
                 statusCell.innerHTML = `
-                    <span class="badge bg-success text-white px-2.5 py-1 rounded-pill shadow-xs">
+                    <span class="badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1 rounded-pill shadow-xs">
                         <i class="fas fa-circle-check me-1"></i> Approved
                     </span>
                 `;
             }
 
-            // Update active toggle switch
+            // 2. Update active toggle switch
             const switchEl = document.getElementById(`activeSwitch-${userId}`);
             const labelEl = document.getElementById(`activeLabel-${userId}`);
             if (switchEl) switchEl.checked = true;
             if (labelEl) labelEl.textContent = 'Active';
 
-            // Update row styling
+            // 3. Row Flash Animation
             const row = document.getElementById(`regRow-${userId}`);
-            if (row) row.classList.remove('table-warning-subtle');
+            if (row) {
+                row.classList.remove('table-warning-subtle');
+                row.classList.remove('row-approved-flash');
+                void row.offsetWidth; // Force Reflow
+                row.classList.add('row-approved-flash');
+            }
 
-            // Disable approve button
-            if (btn) {
-                btn.className = 'btn btn-sm btn-outline-success disabled rounded-pill px-2 py-1';
-                btn.innerHTML = '<i class="fas fa-check"></i>';
+            // 4. Update Approve & Reject buttons styling (All 5 buttons remain present)
+            const approveBtn = document.getElementById(`btnApprove-${userId}`);
+            if (approveBtn) {
+                approveBtn.className = 'btn btn-sm btn-outline-success rounded-pill px-2.5 py-1 shadow-xs fw-semibold';
+                approveBtn.innerHTML = '<i class="fas fa-check-double me-1"></i> Approved';
+                approveBtn.title = 'Already Approved (Click to re-activate)';
+                approveBtn.disabled = false;
+            }
+            const rejectBtn = document.getElementById(`btnReject-${userId}`);
+            if (rejectBtn) {
+                rejectBtn.className = 'btn btn-sm btn-outline-danger rounded-pill px-2.5 py-1 fw-semibold d-inline-flex align-items-center gap-1 shadow-xs';
+                rejectBtn.innerHTML = '<i class="fas fa-times me-0.5"></i> <span>Reject</span>';
+                rejectBtn.title = 'Reject / Decline Application';
+                rejectBtn.disabled = false;
+            }
+
+            // 5. Update KPI Stat Counters live
+            const pendingStat = document.getElementById('statPendingCount');
+            if (pendingStat) {
+                const cur = parseInt(pendingStat.textContent.replace(/,/g, '')) || 0;
+                if (cur > 0) pendingStat.textContent = (cur - 1).toLocaleString();
+            }
+            const approvedStat = document.getElementById('statApprovedCount');
+            if (approvedStat) {
+                const curApp = parseInt(approvedStat.textContent.replace(/,/g, '')) || 0;
+                approvedStat.textContent = (curApp + 1).toLocaleString();
             }
         } else {
             showToast(data.message || 'Approval failed', false);
-            if (btn) {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-check"></i>';
-            }
         }
     })
     .catch(err => {
         console.error(err);
-        showToast('Server failed to respond.', false);
         if (btn) {
             btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-check"></i>';
+            btn.innerHTML = origHtml;
         }
+        showToast('Server failed to respond.', false);
     });
 }
 
@@ -630,7 +702,7 @@ function submitAjaxReject(event) {
             const statusCell = document.getElementById(`statusBadgeCell-${userId}`);
             if (statusCell) {
                 statusCell.innerHTML = `
-                    <span class="badge bg-danger text-white px-2.5 py-1 rounded-pill shadow-xs" title="${reason}">
+                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2.5 py-1 rounded-pill shadow-xs" title="${reason}">
                         <i class="fas fa-circle-xmark me-1"></i> Rejected
                     </span>
                 `;
@@ -642,11 +714,27 @@ function submitAjaxReject(event) {
             if (switchEl) switchEl.checked = false;
             if (labelEl) labelEl.textContent = 'Inactive';
 
-            // Update approve button so it can be re-approved if needed
+            // Update Approve & Reject button states (All 5 buttons remain present)
             const approveBtn = document.getElementById(`btnApprove-${userId}`);
             if (approveBtn) {
-                approveBtn.className = 'btn btn-sm btn-success rounded-pill px-2 py-1';
+                approveBtn.className = 'btn btn-sm btn-success rounded-pill px-3 py-1 fw-bold shadow-xs btn-approve-action d-inline-flex align-items-center gap-1';
+                approveBtn.innerHTML = '<i class="fas fa-circle-check"></i> <span>Approve</span>';
+                approveBtn.title = 'Approve & Activate Account';
                 approveBtn.disabled = false;
+            }
+            const rejectBtn = document.getElementById(`btnReject-${userId}`);
+            if (rejectBtn) {
+                rejectBtn.className = 'btn btn-sm btn-outline-danger rounded-pill px-2.5 py-1 shadow-xs fw-semibold';
+                rejectBtn.innerHTML = '<i class="fas fa-circle-xmark me-1"></i> Rejected';
+                rejectBtn.title = 'Rejected (Click to edit reason)';
+                rejectBtn.disabled = false;
+            }
+
+            // Update pending counter
+            const pendingStat = document.getElementById('statPendingCount');
+            if (pendingStat) {
+                const cur = parseInt(pendingStat.textContent.replace(/,/g, '')) || 0;
+                if (cur > 0) pendingStat.textContent = (cur - 1).toLocaleString();
             }
         } else {
             showToast(data.message || 'Could not decline application', false);
@@ -698,31 +786,39 @@ function toggleUserActiveStatus(userId, switchEl) {
 
 // AJAX Delete User
 function ajaxDeleteUser(userId, userName) {
-    if (!confirm(`Are you sure you want to permanently delete the registration and account for ${userName}?`)) {
-        return;
-    }
-
-    fetch(`/admin/registrations/${userId}`, {
-        method: 'DELETE',
-        headers: {
-            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-            'Accept': 'application/json'
+    SwalConfirm({
+        title: 'অ্যাকাউন্ট ডিলিট নিশ্চিতকরণ',
+        html: `আপনি কি নিশ্চিত যে <strong>‘${userName}’</strong> এর রেজিস্ট্রেশন ও অ্যাকাউন্ট স্থায়ীভাবে মুছে ফেলতে চান?`,
+        icon: 'warning',
+        confirmButtonText: '<i class="fas fa-trash-can me-1"></i> হ্যাঁ, ডিলিট করুন',
+        confirmButtonColor: '#ef4444',
+        cancelButtonText: 'বাতিল'
+    }).then(function(result) {
+        if (result.isConfirmed) {
+            fetch(`/admin/registrations/${userId}`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    showToast(data.message, true);
+                    const row = document.getElementById(`regRow-${userId}`);
+                    if (row) row.remove();
+                } else {
+                    showToast(data.message || 'ডিলিট করতে সমস্যা হয়েছে।', false);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                showToast('সার্ভার যোগাযোগে ত্রুটি হয়েছে।', false);
+            });
         }
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            showToast(data.message, true);
-            const row = document.getElementById(`regRow-${userId}`);
-            if (row) row.remove();
-        } else {
-            showToast(data.message || 'Failed to delete record', false);
-        }
-    })
-    .catch(err => {
-        console.error(err);
-        showToast('A server error occurred.', false);
     });
+}
 }
 
 // Open Registration Details Modal
@@ -832,8 +928,11 @@ function openRegDetailsModal(userId) {
                     <i class="fas fa-pen-to-square me-1"></i> Edit Profile
                 </a>
                 ${u.reg_status !== 'approved' ? `
-                    <button type="button" class="btn btn-success btn-sm rounded-pill px-3 fw-bold" onclick="ajaxApproveUser(${u.id}); bootstrap.Modal.getInstance(document.getElementById('regDetailsModal')).hide();">
-                        <i class="fas fa-check me-1"></i> Approve
+                    <button type="button" class="btn btn-danger btn-sm rounded-pill px-3 fw-semibold" onclick="bootstrap.Modal.getInstance(document.getElementById('regDetailsModal')).hide(); openRejectModal(${u.id}, '${u.name.replace(/'/g, "\\'")}');">
+                        <i class="fas fa-circle-xmark me-1"></i> Reject
+                    </button>
+                    <button type="button" class="btn btn-success btn-sm rounded-pill px-3 fw-bold" onclick="ajaxApproveUser(${u.id}, '${u.name.replace(/'/g, "\\'")}'); bootstrap.Modal.getInstance(document.getElementById('regDetailsModal')).hide();">
+                        <i class="fas fa-circle-check me-1"></i> Approve & Activate
                     </button>
                 ` : ''}
             `;

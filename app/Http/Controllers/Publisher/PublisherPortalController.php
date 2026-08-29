@@ -387,9 +387,13 @@ class PublisherPortalController extends Controller
             'sample_pdf_path'          => $pdfPath,
             'look_inside_type'         => $validated['look_inside_type'] ?? 'pdf',
             'look_inside_images'       => $lookInsideImagesJson,
-            'is_active'                => true,
+            'is_active'                => false, // Inactive until Admin Approval
+            'mod_status'               => 'pending', // Pending Admin Moderation Queue
             'is_featured'              => false,
             'created_by'               => auth()->id(),
+            'submitted_by'             => auth()->id(),
+            'owner_name'               => $publisher->name,
+            'owner_phone'              => $publisher->phone,
         ]);
 
         // Attach Multiple Authors if provided
@@ -402,7 +406,7 @@ class PublisherPortalController extends Controller
         }
 
         return redirect()->route('publisher.dashboard', ['tab' => 'books'])
-            ->with('success', "Book '{$book->title}' has been successfully added to your catalog!");
+            ->with('success', "‘{$book->title}’ বইটি সফলভাবে যুক্ত হয়েছে! অ্যাডমিনের পর্যালোচনার পর এটি বুক শপে প্রকাশিত হবে।");
     }
 
     /**
@@ -576,6 +580,11 @@ class PublisherPortalController extends Controller
             }
         }
 
+        if (!auth()->user()->isAdmin()) {
+            $updates['mod_status'] = 'pending';
+            $updates['is_active'] = false;
+        }
+
         $book->update($updates);
 
         $allAuthorIds = array_filter((array) ($validated['author_ids'] ?? []));
@@ -586,8 +595,12 @@ class PublisherPortalController extends Controller
             $book->authors()->sync($allAuthorIds);
         }
 
+        $msg = auth()->user()->isAdmin() 
+            ? "‘{$book->title}’ বইটি সফলভাবে আপডেট করা হয়েছে।"
+            : "‘{$book->title}’ বইটি সফলভাবে আপডেট হয়েছে! অ্যাডমিনের পর্যালোচনার পর এটি পুনরায় লাইভ শপে প্রকাশিত হবে।";
+
         return redirect()->route('publisher.dashboard', ['tab' => 'books'])
-            ->with('success', "Book '{$book->title}' has been successfully updated!");
+            ->with('success', $msg);
     }
 
     /**

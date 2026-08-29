@@ -67,6 +67,56 @@
         transform: translateY(-2px);
         box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1) !important;
     }
+    @keyframes rowApprovedPulse {
+        0% { background-color: rgba(34, 197, 94, 0.28); }
+        50% { background-color: rgba(34, 197, 94, 0.45); }
+        100% { background-color: transparent; }
+    }
+    .row-approved-flash {
+        animation: rowApprovedPulse 2s ease-in-out;
+    }
+    .btn-approve-action {
+        transition: all 0.2s ease-in-out;
+    }
+    .btn-approve-action:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 10px rgba(22, 163, 74, 0.35) !important;
+    }
+    .adm-actions-wrap {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: flex-end !important;
+        gap: 5px !important;
+        white-space: nowrap !important;
+        flex-wrap: nowrap !important;
+    }
+    .adm-action-btn {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        white-space: nowrap !important;
+        flex-shrink: 0 !important;
+        font-size: 0.78rem !important;
+        font-weight: 600 !important;
+        line-height: 1 !important;
+        padding: 5px 9px !important;
+        height: 30px !important;
+        text-decoration: none !important;
+        border-radius: 50rem !important;
+        transition: all 0.15s ease-in-out !important;
+    }
+    .adm-action-btn i {
+        font-size: 0.78rem;
+        line-height: 1;
+    }
+    .adm-action-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 3px 8px rgba(0,0,0,0.12) !important;
+    }
+    .adm-action-btn-icon {
+        width: 30px !important;
+        padding: 0 !important;
+    }
 </style>
 @endpush
 
@@ -349,7 +399,7 @@
                             <th>Status</th>
                             <th>Views</th>
                             <th>Date</th>
-                            <th class="text-end pe-3" style="min-width: 170px;">Actions</th>
+                            <th class="text-end pe-3" style="min-width: 340px;">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -452,30 +502,54 @@
                                     {{ $post->published_at ? $post->published_at->format('d M, Y') : ($post->created_at ? $post->created_at->format('d M, Y') : '—') }}
                                 </td>
 
-                                <!-- Actions -->
-                                <td class="text-end pe-3">
-                                    <div class="d-flex align-items-center justify-content-end gap-1.5">
-                                        @if($isPending)
-                                            <button type="button" class="btn btn-sm btn-success px-2 py-1 shadow-xs" 
-                                                    onclick="updatePostStatus({{ $post->id }}, 'published')" title="Approve & Publish">
-                                                <i class="fas fa-check"></i>
+                                <!-- All 5 Action Buttons (View, Approve, Reject, Edit, Delete) -->
+                                <td class="text-end pe-3 text-nowrap">
+                                    <div class="adm-actions-wrap" id="postActions{{ $post->id }}" data-slug="{{ $post->slug }}">
+                                        {{-- 1. View Button --}}
+                                        <a href="{{ route('blog.show', $post->slug) }}" target="_blank" rel="noopener" 
+                                           class="adm-action-btn btn btn-outline-info shadow-xs" id="viewBtn{{ $post->id }}" title="View on Blog / ব্লগে দেখুন">
+                                            <i class="fas fa-eye me-1"></i> View
+                                        </a>
+
+                                        {{-- 2. Approve Button --}}
+                                        @if($isPublished)
+                                            <button type="button" class="adm-action-btn btn btn-outline-success shadow-xs" 
+                                                    id="approveBtn{{ $post->id }}"
+                                                    onclick="updatePostStatus({{ $post->id }}, 'published', this)" title="Published (Click to re-approve)">
+                                                <i class="fas fa-check-double me-1"></i> Approved
+                                            </button>
+                                        @else
+                                            <button type="button" class="adm-action-btn btn btn-success shadow-xs btn-approve-action text-white" 
+                                                    id="approveBtn{{ $post->id }}"
+                                                    onclick="updatePostStatus({{ $post->id }}, 'published', this)" title="Approve & Publish Immediately">
+                                                <i class="fas fa-circle-check me-1"></i> Approve
                                             </button>
                                         @endif
 
-                                        <a href="{{ route('admin.content.edit', ['type' => 'blog', 'id' => $post->id]) }}" 
-                                           class="btn btn-sm btn-outline-primary px-2 py-1 shadow-xs" title="Edit Post">
-                                            <i class="fas fa-pen-to-square"></i>
-                                        </a>
-
-                                        @if($isPublished)
-                                            <a href="{{ route('blog.show', $post->slug) }}" target="_blank" rel="noopener" 
-                                               class="btn btn-sm btn-light border px-2 py-1 shadow-xs text-primary" title="Read on Site">
-                                                <i class="fas fa-arrow-up-right-from-square"></i>
-                                            </a>
+                                        {{-- 3. Reject Button --}}
+                                        @if($isRejected)
+                                            <button type="button" class="adm-action-btn btn btn-outline-danger shadow-xs" 
+                                                    id="rejectBtn{{ $post->id }}"
+                                                    onclick="openBlogRejectModal({{ $post->id }}, '{{ addslashes($post->title) }}')" title="Rejected (Click to edit reason)">
+                                                <i class="fas fa-circle-xmark me-1"></i> Rejected
+                                            </button>
+                                        @else
+                                            <button type="button" class="adm-action-btn btn btn-outline-danger shadow-xs" 
+                                                    id="rejectBtn{{ $post->id }}"
+                                                    onclick="openBlogRejectModal({{ $post->id }}, '{{ addslashes($post->title) }}')" title="Reject / Request Changes">
+                                                <i class="fas fa-times me-1"></i> Reject
+                                            </button>
                                         @endif
 
-                                        <button type="button" class="btn btn-sm btn-outline-danger px-2 py-1 shadow-xs" 
-                                                onclick="deletePost({{ $post->id }}, '{{ addslashes($post->title) }}')" title="Delete">
+                                        {{-- 4. Edit Button --}}
+                                        <a href="{{ route('admin.content.edit', ['type' => 'blog', 'id' => $post->id]) }}" 
+                                           class="adm-action-btn btn btn-outline-primary shadow-xs" title="Edit Post">
+                                            <i class="fas fa-pen-to-square me-1"></i> Edit
+                                        </a>
+
+                                        {{-- 5. Delete Button --}}
+                                        <button type="button" class="adm-action-btn adm-action-btn-icon btn btn-outline-danger shadow-xs" 
+                                                onclick="deletePost({{ $post->id }}, '{{ addslashes($post->title) }}')" title="Delete Post">
                                             <i class="fas fa-trash-can"></i>
                                         </button>
                                     </div>
@@ -935,6 +1009,38 @@
     </div>
 </div>
 
+{{-- ========================================================================= --}}
+{{-- 8. BLOG POST REJECTION MODAL                                              --}}
+{{-- ========================================================================= --}}
+<div class="modal fade" id="rejectBlogModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
+            <div class="modal-header bg-danger text-white py-2.5 px-4">
+                <h5 class="modal-title fs-6 fw-bold">
+                    <i class="fas fa-triangle-exclamation me-1.5"></i> ব্লগ পোস্ট বাতিল / সংশোধন নির্দেশ
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <input type="hidden" id="rejectBlogPostId">
+                <p class="small text-muted mb-2">
+                    পোস্ট: <strong class="text-dark" id="rejectBlogPostTitle"></strong>
+                </p>
+                <div class="mb-3">
+                    <label class="form-label small fw-bold text-dark">বাতিলের কারণ / প্রয়োজনীয় সংশোধন:</label>
+                    <textarea id="rejectBlogPostReason" class="form-control rounded-3" rows="3" placeholder="যেমন: লেখার টাইপোগ্রাফি বা বানান ত্রুটি, ব্লগের নীতিমালার সাথে সামঞ্জস্যপূর্ণ নয়..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer bg-light py-2.5 px-4">
+                <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" id="confirmRejectBlogBtn" class="btn btn-sm btn-danger rounded-pill px-4 fw-bold" onclick="ajaxRejectBlogPostSubmit()">
+                    <i class="fas fa-circle-xmark me-1"></i> নিশ্চিত বাতিল করুন
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @push('scripts')
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
 <script>
@@ -1040,67 +1146,195 @@ function toggleFeatured(postId) {
     });
 }
 
-// AJAX Update Post Status
-function updatePostStatus(postId, newStatus) {
-    const select = document.getElementById('statusSelect' + postId);
-    select.disabled = true;
+// Open Blog Reject Modal
+function openBlogRejectModal(postId, title) {
+    document.getElementById('rejectBlogPostId').value = postId;
+    document.getElementById('rejectBlogPostTitle').textContent = title;
+    document.getElementById('rejectBlogPostReason').value = '';
+    const modalEl = document.getElementById('rejectBlogModal');
+    if (modalEl) {
+        bootstrap.Modal.getOrCreateInstance(modalEl).show();
+    }
+}
 
-    fetch(`/admin/blog/${postId}/toggle-status`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'X-CSRF-TOKEN': csrfToken
-        },
-        body: JSON.stringify({ status: newStatus })
-    })
-    .then(res => res.json())
-    .then(data => {
-        select.disabled = false;
-        if (data.success) {
-            // Update select classes
-            select.className = 'form-select form-select-sm status-select-badge';
-            if (newStatus === 'published') {
-                select.classList.add('bg-success-subtle', 'text-success', 'border-success-subtle');
-            } else if (newStatus === 'pending') {
-                select.classList.add('bg-warning-subtle', 'text-warning', 'border-warning-subtle');
-            } else if (newStatus === 'rejected') {
-                select.classList.add('bg-danger-subtle', 'text-danger', 'border-danger-subtle');
-            } else {
-                select.classList.add('bg-secondary-subtle', 'text-secondary', 'border-secondary-subtle');
-            }
+// Submit Blog Rejection via AJAX
+async function ajaxRejectBlogPostSubmit() {
+    const postId = document.getElementById('rejectBlogPostId').value;
+    const reason = document.getElementById('rejectBlogPostReason').value.trim();
+    if (!reason) {
+        alert('অনুগ্রহ করে বাতিলের সুনির্দিষ্ট কারণ লিখুন।');
+        return;
+    }
+
+    const btn = document.getElementById('confirmRejectBlogBtn');
+    const origHtml = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = `<i class="fas fa-spinner fa-spin me-1"></i> প্রক্রিয়াকরণ হচ্ছে...`;
+
+    try {
+        await updatePostStatus(postId, 'rejected', null, reason);
+        const modalEl = document.getElementById('rejectBlogModal');
+        if (modalEl) {
+            bootstrap.Modal.getInstance(modalEl)?.hide();
         }
-    })
-    .catch(() => {
-        select.disabled = false;
-        alert('Server error occurred.');
-    });
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = origHtml;
+    }
+}
+
+// AJAX Update Post Status with Instant Visual Feedback
+async function updatePostStatus(postId, newStatus, triggerBtn = null, reason = null) {
+    const select = document.getElementById('statusSelect' + postId);
+    if (select) select.disabled = true;
+
+    let originalBtnHtml = '';
+    if (triggerBtn) {
+        originalBtnHtml = triggerBtn.innerHTML;
+        triggerBtn.disabled = true;
+        triggerBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i>`;
+    }
+
+    try {
+        const payload = { status: newStatus };
+        if (reason) {
+            payload.rejection_reason = reason;
+        }
+
+        const res = await fetch(`/admin/blog/${postId}/toggle-status`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': csrfToken
+            },
+            body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+
+        if (select) select.disabled = false;
+        if (triggerBtn) {
+            triggerBtn.disabled = false;
+            triggerBtn.innerHTML = originalBtnHtml;
+        }
+
+        if (data.success) {
+            // 1. Update Select Dropdown Value & Classes
+            if (select) {
+                select.value = newStatus;
+                select.className = 'form-select form-select-sm status-select-badge';
+                if (newStatus === 'published') {
+                    select.classList.add('bg-success-subtle', 'text-success', 'border-success-subtle');
+                } else if (newStatus === 'pending') {
+                    select.classList.add('bg-warning-subtle', 'text-warning', 'border-warning-subtle');
+                } else if (newStatus === 'rejected') {
+                    select.classList.add('bg-danger-subtle', 'text-danger', 'border-danger-subtle');
+                } else {
+                    select.classList.add('bg-secondary-subtle', 'text-secondary', 'border-secondary-subtle');
+                }
+            }
+
+            // 2. Row Green Flash Animation
+            const row = document.getElementById('postRow' + postId);
+            if (row) {
+                row.classList.remove('row-approved-flash');
+                void row.offsetWidth; // Force Reflow
+                row.classList.add('row-approved-flash');
+            }
+
+            // 3. Update Approve & Reject Button States (All 5 buttons remain present)
+            const approveBtn = document.getElementById('approveBtn' + postId);
+            if (approveBtn) {
+                if (newStatus === 'published') {
+                    approveBtn.className = 'adm-action-btn btn btn-outline-success shadow-xs';
+                    approveBtn.innerHTML = '<i class="fas fa-check-double me-1"></i> Approved';
+                    approveBtn.title = 'Published (Click to re-approve)';
+                } else {
+                    approveBtn.className = 'adm-action-btn btn btn-success shadow-xs btn-approve-action text-white';
+                    approveBtn.innerHTML = '<i class="fas fa-circle-check me-1"></i> Approve';
+                    approveBtn.title = 'Approve & Publish Immediately';
+                }
+                approveBtn.disabled = false;
+            }
+
+            const rejectBtn = document.getElementById('rejectBtn' + postId);
+            if (rejectBtn) {
+                if (newStatus === 'rejected') {
+                    rejectBtn.className = 'adm-action-btn btn btn-outline-danger shadow-xs';
+                    rejectBtn.innerHTML = '<i class="fas fa-circle-xmark me-1"></i> Rejected';
+                    rejectBtn.title = 'Rejected (Click to edit reason)';
+                } else {
+                    rejectBtn.className = 'adm-action-btn btn btn-outline-danger shadow-xs';
+                    rejectBtn.innerHTML = '<i class="fas fa-times me-1"></i> Reject';
+                    rejectBtn.title = 'Reject / Request Changes';
+                }
+                rejectBtn.disabled = false;
+            }
+
+            // 4. Floating Toast Alert
+            showBlogToast(newStatus === 'published' ? 'success' : (newStatus === 'rejected' ? 'warning' : 'info'), data.message);
+        } else {
+            showBlogToast('danger', data.message || 'স্ট্যাটাস পরিবর্তন ব্যর্থ হয়েছে।');
+        }
+    } catch (err) {
+        console.error(err);
+        if (select) select.disabled = false;
+        if (triggerBtn) {
+            triggerBtn.disabled = false;
+            triggerBtn.innerHTML = originalBtnHtml;
+        }
+        showBlogToast('danger', 'সার্ভারের সাথে যোগাযোগে ত্রুটি হয়েছে।');
+    }
+}
+
+function showBlogToast(type, msg) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show position-fixed top-0 end-0 m-3 shadow-lg rounded-4`;
+    alertDiv.style.zIndex = '99999';
+    alertDiv.style.maxWidth = '420px';
+    alertDiv.innerHTML = `
+        <div class="d-flex align-items-center gap-2">
+            <i class="fas ${type === 'success' ? 'fa-check-circle text-success' : (type === 'warning' ? 'fa-triangle-exclamation text-warning' : 'fa-circle-xmark text-danger')} fs-5"></i>
+            <div class="small fw-bold text-dark">${msg}</div>
+            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+        </div>
+    `;
+    document.body.appendChild(alertDiv);
+    setTimeout(() => { alertDiv.remove(); }, 4000);
 }
 
 // Delete Post Action
 function deletePost(postId, title) {
-    if (!confirm(`Are you sure you want to delete post "${title}"?`)) {
-        return;
-    }
-    
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = `/admin/blog/${postId}`;
-    
-    const csrfInput = document.createElement('input');
-    csrfInput.type = 'hidden';
-    csrfInput.name = '_token';
-    csrfInput.value = csrfToken;
-    form.appendChild(csrfInput);
+    SwalConfirm({
+        title: 'লেখাটি ডিলিট করতে চান?',
+        html: `আপনি কি নিশ্চিত যে <strong>‘${title}’</strong> পোস্টটি ডিলিট করতে চান?<br><span class="text-danger small">এটি ব্লগ ও রিডিং পেজ থেকে মুছে যাবে।</span>`,
+        icon: 'warning',
+        confirmButtonText: '<i class="fas fa-trash-can me-1"></i> হ্যাঁ, ডিলিট করুন',
+        confirmButtonColor: '#ef4444',
+        cancelButtonText: 'বাতিল'
+    }).then(function(result) {
+        if (result.isConfirmed) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/admin/blog/${postId}`;
+            
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = '_token';
+            csrfInput.value = csrfToken;
+            form.appendChild(csrfInput);
 
-    const methodInput = document.createElement('input');
-    methodInput.type = 'hidden';
-    methodInput.name = '_method';
-    methodInput.value = 'DELETE';
-    form.appendChild(methodInput);
+            const methodInput = document.createElement('input');
+            methodInput.type = 'hidden';
+            methodInput.name = '_method';
+            methodInput.value = 'DELETE';
+            form.appendChild(methodInput);
 
-    document.body.appendChild(form);
-    form.submit();
+            document.body.appendChild(form);
+            form.submit();
+        }
+    });
 }
 
 // Bulk Actions Select All
@@ -1110,18 +1344,28 @@ function toggleSelectAll(masterCheckbox) {
     });
 }
 
-function confirmBulkAction() {
+function handleBulkActionSubmit(e) {
     const action = document.getElementById('bulkActionSelect').value;
     if (!action) {
-        alert('Please choose a bulk action.');
+        Swal.fire({ title: 'অ্যাকশন নির্বাচন করুন', text: 'অনুগ্রহ করে একটি বাল্ক অ্যাকশন বেছে নিন।', icon: 'info' });
         return false;
     }
     const checkedCount = document.querySelectorAll('.row-checkbox:checked').length;
     if (checkedCount === 0) {
-        alert('Please select at least one post.');
+        Swal.fire({ title: 'পোস্ট নির্বাচন করুন', text: 'অনুগ্রহ করে অন্তত একটি পোস্ট সিলেক্ট করুন।', icon: 'warning' });
         return false;
     }
-    return confirm(`Are you sure you want to apply this action on ${checkedCount} selected post(s)?`);
+    e.preventDefault();
+    SwalConfirm({
+        title: 'বাল্ক অ্যাকশন নিশ্চিতকরণ',
+        text: `আপনি কি নিশ্চিত যে নির্বাচিত ${checkedCount}টি পোস্টে এই অ্যাকশন প্রয়োগ করতে চান?`,
+        icon: 'question',
+        confirmButtonText: '<i class="fas fa-check me-1"></i> হ্যাঁ, প্রয়োগ করুন',
+    }).then(function(result) {
+        if (result.isConfirmed) {
+            e.target.submit();
+        }
+    });
 }
 
 // Live Preview Controller for Blog Customizer
@@ -1180,15 +1424,19 @@ function updateLivePreview() {
 }
 
 // Bulk Normalize AJAX Engine
-function runBulkNormalizeTypography() {
+async function runBulkNormalizeTypography() {
     const btn = document.getElementById('startBulkNormalizeBtn');
     const target = document.getElementById('bulkTargetSelect')?.value || 'all';
     const progressBox = document.getElementById('bulkProgressBox');
     const resultAlert = document.getElementById('bulkResultAlert');
 
-    if (!confirm('Are you sure you want to automatically format line spacing and paragraph margins across all articles?')) {
-        return;
-    }
+    const result = await SwalConfirm({
+        title: 'ফরম্যাটিং অটোমেশন',
+        text: 'আপনি কি নিশ্চিত যে সকল আর্টিকেলের লাইন স্পেসিং ও অনুচ্ছেদের মার্জিন অটো-ফরম্যাট করতে চান?',
+        icon: 'question',
+        confirmButtonText: '<i class="fas fa-check me-1"></i> হ্যাঁ, শুরু করুন',
+    });
+    if (!result.isConfirmed) return;
 
     btn.disabled = true;
     progressBox.classList.remove('d-none');
