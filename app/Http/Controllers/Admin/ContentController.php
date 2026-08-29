@@ -935,6 +935,11 @@ class ContentController extends Controller
                 if (!empty($imagePaths)) {
                     $attributes['look_inside_images'] = json_encode($imagePaths);
                 }
+            if ($type === 'books' || $type === 'ebooks') {
+                if (empty($attributes['publisher_id'])) {
+                    $ideaPubId = \Illuminate\Support\Facades\DB::table('publishers')->where('name', 'LIKE', '%আইডিয়া প্রকাশন%')->orWhere('slug', 'ideaprokashon')->value('id') ?: 2;
+                    $attributes['publisher_id'] = $ideaPubId;
+                }
             }
         }
 

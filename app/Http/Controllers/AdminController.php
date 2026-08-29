@@ -1560,10 +1560,8 @@ class AdminController extends Controller
         $stats = [
             'total'               => \Modules\Publisher\Models\Publisher::count(),
             'active'              => \Modules\Publisher\Models\Publisher::where('is_active', true)->count(),
-            'total_books'         => \Modules\Book\Models\Book::whereNotNull('publisher_id')->count(),
-            'total_catalog_sum'   => (float) \Modules\Book\Models\Book::whereNotNull('publisher_id')
-                ->selectRaw('COALESCE(SUM(COALESCE(NULLIF(price, 0), hardcover_price, 0)), 0) as total')
-                ->value('total'),
+            'total_books'         => \Modules\Book\Models\Book::count(),
+            'total_catalog_sum'   => (float) \Modules\Book\Models\Book::selectRaw('COALESCE(SUM(COALESCE(NULLIF(price, 0), hardcover_price, 0)), 0) as total')->value('total'),
             'total_purchase_sum'  => (float) \App\Models\PublisherPurchase::sum('grand_total'),
             'total_due_sum'       => (float) \App\Models\PublisherPurchase::sum('due_amount'),
         ];
@@ -1623,104 +1621,98 @@ class AdminController extends Controller
     {
         $publisher = \Modules\Publisher\Models\Publisher::findOrFail($id);
 
-        $validated = $request->validate([
-            'name'        => 'required|string|max:255',
-            'slug'        => 'nullable|string|max:255|unique:publishers,slug,' . $publisher->id,
-            'phone'       => 'nullable|string|max:50',
-            'email'       => 'nullable|email|max:255',
-            'address'     => 'nullable|string|max:500',
-            'website'     => 'nullable|url|max:255',
-            'description' => 'nullable|string|max:2000',
-            'is_active'   => 'nullable|boolean',
-            'logo_file'   => 'nullable|image|max:3072',
-        ]);
+         $isIdea = (str_contains($publisher->name, 'আইডিয়া') || $publisher->slug === 'ideaprokashon' || $publisher->id === 2);
 
-        $updates = [
-            'name'        => $validated['name'],
-            'phone'       => $validated['phone'] ?? null,
-            'email'       => $validated['email'] ?? null,
-            'address'     => $validated['address'] ?? null,
-            'website'     => $validated['website'] ?? null,
-            'description' => $validated['description'] ?? null,
-        ];
+        $booksQuery = \Modules\Book\Models\Book::query()
+            ->with(['authorLink', 'authors', 'category'])
+            ->where(function ($q) use ($publisher, $isIdea) {
+                $q->where('publisher_id', $publisher->id);
+                if ($isIdea) {
+                    $q->orWhereNull('publisher_id');
+                }
+            })
+            ->when($search, function ($q, $term) {
+                $searchData = $this->parseSearchKeywords($term);
+                $tokens = $searchData['tokens'];
+                if (!empty($tokens)) {
+                    $q->where(function ($master) use ($tokens) {
+                        foreach ($tokens as $token) {
+                            $like = '%' . $token . '%';
+                            $master->where(function ($w) use ($like) {
+                                $w->where('title', 'like', $like)
+                                  ->orWhere('author_name', 'like', $like)
+                                  ->orWhere('isbn', 'like', $like)
+                                  ->orWhere('sku', 'like', $like)
+                                  ->orWhere('edition', 'like', $like);
+                            });
+                        }
+                    });
+                }
+            })
+            ->when($category, fn($q) => $q->where('category_id', $category))
+            ->when($stock, function ($q, $s) {
+                match ($s) {
+                    'in_stock'  => $q->where('stock_quantity', '>', 5),
+                    'low'       => $q->where('stock_quantity', '>', 0)->where('stock_quantity', '<=', 5),
+                    'out'       => $q->where('stock_quantity', '<=', 0),
+                    'pre_order' => $q->where('stock_status', 'pre_order'),
+                    default     => null,
+                };
+            });
 
-        if (!empty($validated['slug'])) {
-            $updates['slug'] = \Illuminate\Support\Str::slug($validated['slug']);
-        }
-        if ($request->has('is_active')) {
-            $updates['is_active'] = $request->boolean('is_active');
-        }
-        if ($request->hasFile('logo_file')) {
-            $updates['logo'] = $request->file('logo_file')->store('publishers/logos', 'public');
-        }
+        match ($sort) {
+            'oldest'      => $booksQuery->oldest('id'),
+            'title_asc'   => $booksQuery->orderBy('title', 'asc'),
+            'title_desc'  => $booksQuery->orderBy('title', 'desc'),
+            'price_low'   => $booksQuery->orderBy('price', 'asc'),
+            'price_high'  => $booksQuery->orderBy('price', 'desc'),
+            'stock_low'   => $booksQuery->orderBy('stock_quantity', 'asc'),
+            'stock_high'  => $booksQuery->orderBy('stock_quantity', 'desc'),
+            'sales_high'  => $booksQuery->orderByDesc('sales_count'),
+            default       => $booksQuery->latest('id'),
+        };
 
-        $publisher->update($updates);
+        $books = $booksQuery->paginate($perPage)->withQueryString();
 
-        $this->accessService->log('publisher_quick_update', "প্রকাশক '{$publisher->name}' তথ্য আপডেট করা হয়েছে");
+        // Invoices / Purchases for this publisher
+        $purchases = \App\Models\PublisherPurchase::where('publisher_id', $publisher->id)
+            ->with(['items', 'payments'])
+            ->latest()
+            ->paginate(15, ['*'], 'purchases_page')
+            ->withQueryString();
 
-        return response()->json([
-            'success'   => true,
-            'message'   => "প্রকাশকের তথ্য সফলভাবে সংরক্ষিত হয়েছে!",
-            'publisher' => $publisher,
-        ]);
-    }
+        // Payments records for this publisher
+        $payments = \App\Models\PublisherPayment::where('publisher_id', $publisher->id)
+            ->with('purchase')
+            ->latest()
+            ->paginate(15, ['*'], 'payments_page')
+            ->withQueryString();
 
-    public function togglePublisherStatus($id): \Illuminate\Http\JsonResponse
-    {
-        $publisher = \Modules\Publisher\Models\Publisher::findOrFail($id);
-        $publisher->is_active = !$publisher->is_active;
-        $publisher->save();
+        // Sales & Top Selling Books
+        $topBooks = \Modules\Book\Models\Book::where(function ($q) use ($publisher, $isIdea) {
+                $q->where('publisher_id', $publisher->id);
+                if ($isIdea) {
+                    $q->orWhereNull('publisher_id');
+                }
+            })
+            ->where('sales_count', '>', 0)
+            ->orderByDesc('sales_count')
+            ->take(10)
+            ->get();
 
-        $statusText = $publisher->is_active ? 'সক্রিয়' : 'নিষ্ক্রিয়';
-        $this->accessService->log('publisher_status_toggle', "প্রকাশক '{$publisher->name}' স্ট্যাটাস পরিবর্তন: {$statusText}");
-
-        return response()->json([
-            'success'   => true,
-            'is_active' => (bool) $publisher->is_active,
-            'message'   => "প্রকাশক এখন {$statusText}",
-        ]);
-    }
-
-    public function quickPublisherPayment(Request $request, $id): \Illuminate\Http\JsonResponse
-    {
-        $publisher = \Modules\Publisher\Models\Publisher::findOrFail($id);
-
-        $validated = $request->validate([
-            'amount'          => 'required|numeric|min:1',
-            'payment_date'    => 'required|date',
-            'payment_method'  => 'required|string|in:cash,bank,bkash,nagad,rocket,cheque,other',
-            'transaction_ref' => 'nullable|string|max:100',
-            'purchase_id'     => 'nullable|integer|exists:publisher_purchases,id',
-            'note'            => 'nullable|string|max:500',
-        ]);
-
-        $paymentNo = 'PAY-' . date('Ymd') . '-' . strtoupper(\Illuminate\Support\Str::random(4));
-
-        $payment = \App\Models\PublisherPayment::create([
-            'payment_no'      => $paymentNo,
-            'publisher_id'    => $publisher->id,
-            'purchase_id'     => $validated['purchase_id'] ?? null,
-            'payment_date'    => $validated['payment_date'],
-            'amount'          => (float) $validated['amount'],
-            'payment_method'  => $validated['payment_method'],
-            'transaction_ref' => $validated['transaction_ref'] ?? null,
-            'note'            => $validated['note'] ?? null,
-            'recorded_by'     => auth()->id(),
-        ]);
-
-        if (!empty($validated['purchase_id'])) {
-            $purchase = \App\Models\PublisherPurchase::find($validated['purchase_id']);
-            if ($purchase) {
-                $newPaid = (float) $purchase->paid_amount + (float) $validated['amount'];
-                $newDue = max(0, (float) $purchase->grand_total - $newPaid);
-                $purchase->paid_amount = $newPaid;
-                $purchase->due_amount = $newDue;
-                $purchase->payment_status = $newDue <= 0 ? 'paid' : ($newPaid > 0 ? 'partial' : 'due');
-                $purchase->save();
-            }
-        }
-
-        $this->accessService->log('publisher_quick_payment', "প্রকাশক '{$publisher->name}' কে ৳{$validated['amount']} পরিশোধ রেকর্ড করা হয়েছে (#{$paymentNo})");
+        // Publisher-specific stats
+        $stats = [
+            'total_books'      => \Modules\Book\Models\Book::where(fn($q) => $isIdea ? $q->where('publisher_id', $publisher->id)->orWhereNull('publisher_id') : $q->where('publisher_id', $publisher->id))->count(),
+            'in_stock'         => \Modules\Book\Models\Book::where(fn($q) => $isIdea ? $q->where('publisher_id', $publisher->id)->orWhereNull('publisher_id') : $q->where('publisher_id', $publisher->id))->where('stock_quantity', '>', 5)->count(),
+            'low_stock'        => \Modules\Book\Models\Book::where(fn($q) => $isIdea ? $q->where('publisher_id', $publisher->id)->orWhereNull('publisher_id') : $q->where('publisher_id', $publisher->id))->where('stock_quantity', '>', 0)->where('stock_quantity', '<=', 5)->count(),
+            'out_stock'        => \Modules\Book\Models\Book::where(fn($q) => $isIdea ? $q->where('publisher_id', $publisher->id)->orWhereNull('publisher_id') : $q->where('publisher_id', $publisher->id))->where('stock_quantity', '<=', 0)->count(),
+            'total_po'         => \App\Models\PublisherPurchase::where('publisher_id', $publisher->id)->count(),
+            'total_po_sum'     => (float) \App\Models\PublisherPurchase::where('publisher_id', $publisher->id)->sum('grand_total'),
+            'total_po_paid'    => (float) \App\Models\PublisherPurchase::where('publisher_id', $publisher->id)->sum('paid_amount'),
+            'total_po_due'     => (float) \App\Models\PublisherPurchase::where('publisher_id', $publisher->id)->sum('due_amount'),
+            'total_sold_copies'=> (int) \Modules\Book\Models\Book::where(fn($q) => $isIdea ? $q->where('publisher_id', $publisher->id)->orWhereNull('publisher_id') : $q->where('publisher_id', $publisher->id))->sum('sales_count'),
+            'total_payments'   => \App\Models\PublisherPayment::where('publisher_id', $publisher->id)->count(),
+        ];is->accessService->log('publisher_quick_payment', "প্রকাশক '{$publisher->name}' কে ৳{$validated['amount']} পরিশোধ রেকর্ড করা হয়েছে (#{$paymentNo})");
 
         return response()->json([
             'success'    => true,

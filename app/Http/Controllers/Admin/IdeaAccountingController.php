@@ -346,6 +346,7 @@ class IdeaAccountingController extends Controller
             'cover_type'      => $coverType,
             'stock_quantity'  => $stock,
             'isbn'            => $validated['isbn'] ?? null,
+            'publisher_id'    => $validated['publisher_id'] ?? (\Modules\Publisher\Models\Publisher::where('name', 'LIKE', '%আইডিয়া%')->orWhere('slug', 'ideaprokashon')->value('id') ?: 2),
             'is_active'       => true,
             'format'          => 'printed',
         ]);
