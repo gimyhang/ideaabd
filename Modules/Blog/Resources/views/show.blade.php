@@ -175,35 +175,31 @@
         font-family: 'Kalpurush', 'Nikosh', Georgia, 'SolaimanLipi', serif;
     }
 
-    /* Content Protection: user-select none strictly for article text */
-    #articleBody, .article-content {
-        font-size: {{ $custFontSize }};
-        line-height: {{ $custLineHeight }};
-        color: #1e293b;
-        letter-spacing: 0.15px;
-        text-align: justify;
-        text-justify: inter-word;
-        font-family: {!! $custFont !!};
-        user-select: none !important;
-        -webkit-user-select: none !important;
-        -moz-user-select: none !important;
-        -ms-user-select: none !important;
-        -webkit-touch-callout: none !important;
-    }
-    /* Whitelist comments, titles, author details, sidebars, links, inputs to remain freely copyable and selectable */
+    /* Whitelist all cards, modals, payment numbers, headings, comments, sidebars, buttons to be freely selectable and copyable */
     body, 
+    .lit-book-sheet,
     .lit-book-sheet header, 
+    .lit-book-sheet header *,
     .lit-title, 
     .post-title, 
-    h1, h2, h3, h4, h5, h6, 
-    #blogCommentsListContainer, 
-    #blogCommentsListContainer *, 
     .card, 
     .card *, 
+    .modal,
+    .modal *,
+    #authorHonorariumModal,
+    #authorHonorariumModal *,
+    .print-footer-identity,
+    .print-footer-identity *,
+    #readerCommentsSection,
+    #readerCommentsSection *,
     .sidebar-recent-item, 
     .sidebar-recent-item *, 
     .allow-copy, 
+    .allow-copy *,
     .allow-normal-copy, 
+    .allow-normal-copy *,
+    .pay-number-selectable,
+    .pay-number-selectable *,
     a, 
     a *, 
     input, 
@@ -217,6 +213,41 @@
         user-select: text !important;
         -webkit-user-select: text !important;
         -moz-user-select: text !important;
+    }
+
+    /* Content Protection: user-select none strictly for the author's article body */
+    #articleBody, 
+    #articleBody *, 
+    .article-content, 
+    .article-content *, 
+    #readingModeOverlay .reading-mode-content,
+    #readingModeOverlay .reading-mode-content * {
+        user-select: none !important;
+        -webkit-user-select: none !important;
+        -moz-user-select: none !important;
+        -ms-user-select: none !important;
+        -webkit-touch-callout: none !important;
+    }
+
+    /* Allow selection for any specific interactive/copyable elements inside articleBody */
+    #articleBody a, 
+    #articleBody a *, 
+    #articleBody input, 
+    #articleBody textarea, 
+    #articleBody button, 
+    #articleBody button *,
+    #articleBody .allow-copy,
+    #articleBody .allow-copy * {
+        user-select: text !important;
+        -webkit-user-select: text !important;
+        -moz-user-select: text !important;
+    }
+
+    .pay-number-selectable {
+        user-select: text !important;
+        -webkit-user-select: text !important;
+        -moz-user-select: text !important;
+        cursor: text !important;
     }
     .article-content p {
         margin-bottom: {{ $custParaMargin }};
@@ -814,13 +845,17 @@
                         </button>
                     </div>
                     
-                    <div class="small text-muted mt-2.5" style="font-size: 12px;">
-                        <i class="fa-solid fa-shield-halved text-success me-1"></i>বিকাশ নম্বর: <strong class="text-danger font-monospace">01833775779</strong> • সম্মানির ৭০% লেখক পাবেন, ৩০% সাইট মেইনটেনেন্স বিল
+                    <div class="small text-muted mt-2.5 allow-copy" style="font-size: 13px; user-select: text !important;">
+                        <i class="fa-solid fa-shield-halved text-success me-1"></i>বিকাশ নম্বর: <strong class="text-danger font-monospace fs-6 px-2 py-0.5 rounded bg-white border border-danger-subtle" style="user-select: all !important; -webkit-user-select: all !important;">{{ $bkashNumber }}</strong> 
+                        <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-2.5 py-0.5 ms-1 fw-semibold" onclick="copyAnyNumber('{{ $bkashNumber }}', this)" title="বিকাশ নম্বর কপি করুন">
+                            <i class="fa-regular fa-copy me-1"></i><span>কপি</span>
+                        </button>
+                        <span class="ms-1.5">• সম্মানির ৭০% লেখক পাবেন, ৩০% সাইট মেইনটেনেন্স</span>
                     </div>
                 </div>
 
                 {{-- Dedicated Honorarium Modal Dialog --}}
-                <div class="modal fade no-print" id="authorHonorariumModal" tabindex="-1" aria-labelledby="authorHonorariumModalLabel" aria-hidden="true">
+                <div class="modal fade no-print allow-copy" id="authorHonorariumModal" tabindex="-1" aria-labelledby="authorHonorariumModalLabel" aria-hidden="true" style="user-select: text !important;">
                     <div class="modal-dialog modal-dialog-centered modal-lg">
                         <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
                             {{-- Modal Header --}}
@@ -849,14 +884,14 @@
                                     <input type="hidden" name="payment_method" value="bkash" id="selectedPaymentMethod">
 
                                     {{-- Step 1: bKash Number & Instruction Highlight Box --}}
-                                    <div class="p-3 bg-white rounded-3 border mb-3 shadow-xs">
+                                    <div class="p-3 bg-white rounded-3 border mb-3 shadow-xs allow-copy" style="user-select: text !important;">
                                         <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2 pb-2 border-bottom">
                                             <span class="small fw-bold text-dark d-flex align-items-center gap-1.5">
                                                 <i class="fa-solid fa-mobile-screen text-danger"></i>
                                                 <span>বিকাশ পার্সোনাল নম্বর (Send Money):</span>
                                             </span>
                                             <div class="d-flex align-items-center gap-2">
-                                                <code class="fs-5 fw-bold text-danger px-2.5 py-1 rounded bg-light border border-danger-subtle font-monospace" id="modalActivePayNumber">{{ $bkashNumber }}</code>
+                                                <code class="fs-5 fw-bold text-danger px-2.5 py-1 rounded bg-light border border-danger-subtle font-monospace" id="modalActivePayNumber" style="user-select: all !important; -webkit-user-select: all !important;">{{ $bkashNumber }}</code>
                                                 <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-3 py-1 fw-semibold" id="modalCopyPayNumberBtn" title="নম্বর কপি করুন">
                                                     <i class="fa-regular fa-copy me-1"></i><span id="modalCopyBtnText">কপি করুন</span>
                                                 </button>
@@ -1142,7 +1177,7 @@
             @endif
 
             <!-- Author Invitation Box (No Print) -->
-            <div class="card p-4 mt-4 border-0 shadow-sm rounded-4 bg-light text-center no-print">
+            <div class="card p-4 mt-4 border-0 shadow-sm rounded-4 bg-light text-center no-print allow-copy" style="user-select: text !important;">
                 <i class="fa-solid fa-feather-pointed fs-2 text-success mb-2"></i>
                 <h5 class="fw-bold text-dark mb-1">আপনিও কি আইডিয়াপত্রে লিখতে চান?</h5>
                 <p class="small text-muted mb-3">আপনার জ্ঞানগর্ভ প্রবন্ধ, কবিতা, বইয়ের পর্যালোচনা ও সাহিত্যকর্ম প্রকাশ করতে আমাদের লেখক পোর্টালে যুক্ত হোন।</p>
@@ -1627,15 +1662,50 @@
         }
     }
 
-    // 10. Copy Protection Toast
-    document.addEventListener('copy', function(e) {
-        const selection = window.getSelection();
-        if (selection && selection.toString().trim().length > 0) {
-            showToast('কপিরাইট সংরক্ষিত: লেখাটি প্রিন্ট/PDF অথবা শেয়ার করতে পারেন।', 'fa-solid fa-shield-halved text-warning');
+    // Generic Quick Copy Function for Mobile Number or Utility Texts
+    function copyAnyNumber(text, btnEl) {
+        if (!text) return;
+        const origHtml = btnEl ? btnEl.innerHTML : '';
+        
+        function setSuccess() {
+            if (btnEl) {
+                btnEl.innerHTML = '<i class="fa-solid fa-check me-1"></i>কপি হয়েছে!';
+                btnEl.classList.add('btn-success');
+                btnEl.classList.remove('btn-outline-danger', 'btn-danger');
+                setTimeout(() => {
+                    btnEl.innerHTML = origHtml;
+                    btnEl.classList.remove('btn-success');
+                    btnEl.classList.add('btn-outline-danger');
+                }, 2500);
+            }
+            showToast('নম্বর কপি হয়েছে: ' + text, 'fa-solid fa-check text-success');
         }
-    });
 
-    // 11. Modal Honorarium Script
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(text).then(setSuccess).catch(() => fallbackQuickCopy(text, setSuccess));
+        } else {
+            fallbackQuickCopy(text, setSuccess);
+        }
+    }
+
+    function fallbackQuickCopy(text, onSuccess) {
+        try {
+            const temp = document.createElement('textarea');
+            temp.value = text;
+            temp.style.position = 'fixed';
+            temp.style.left = '-9999px';
+            document.body.appendChild(temp);
+            temp.focus();
+            temp.select();
+            document.execCommand('copy');
+            document.body.removeChild(temp);
+            if (onSuccess) onSuccess();
+        } catch (e) {
+            prompt('নম্বরটি কপি করুন:', text);
+        }
+    }
+
+    // 10. Modal Honorarium Script
     document.addEventListener('DOMContentLoaded', function() {
         const amountInput = document.getElementById('modalCustomAmountInput');
         const btnAmountPreview = document.getElementById('modalBtnAmountPreview');
@@ -1643,7 +1713,6 @@
         const previewSiteShare = document.getElementById('previewSiteShare');
         const presetBtns = document.querySelectorAll('.modal-tip-btn');
         const copyBtn = document.getElementById('modalCopyPayNumberBtn');
-        const copyBtnText = document.getElementById('modalCopyBtnText');
         const activePayNumber = document.getElementById('modalActivePayNumber');
 
         function updateSplits(amount) {
@@ -1687,18 +1756,10 @@
         });
 
         if (copyBtn && activePayNumber) {
-            copyBtn.addEventListener('click', function() {
-                const num = activePayNumber.textContent.trim();
-                if (navigator.clipboard) {
-                    navigator.clipboard.writeText(num).then(() => {
-                        copyBtnText.textContent = 'কপি হয়েছে!';
-                        copyBtn.classList.replace('btn-outline-danger', 'btn-success');
-                        setTimeout(() => {
-                            copyBtnText.textContent = 'কপি করুন';
-                            copyBtn.classList.replace('btn-success', 'btn-outline-danger');
-                        }, 2000);
-                    });
-                }
+            copyBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                copyAnyNumber(activePayNumber.textContent.trim(), copyBtn);
             });
         }
     });
@@ -1818,26 +1879,41 @@
             // Prevent copying from published article body only
             area.addEventListener('copy', function(e) {
                 const selection = window.getSelection();
-                if (selection && selection.anchorNode) {
-                    const parent = selection.anchorNode.parentElement;
-                    if (parent && (parent.closest('a') || parent.closest('.allow-copy') || parent.closest('input') || parent.closest('textarea') || parent.closest('button'))) {
-                        return; // Allow copying links/buttons inside article
+                if (!selection) return;
+
+                const anchor = selection.anchorNode;
+                const focus = selection.focusNode;
+
+                // If selection anchor/focus is outside this protected area, allow native copy
+                if (anchor && !area.contains(anchor) && focus && !area.contains(focus)) {
+                    return;
+                }
+
+                const target = e.target;
+                if (target && (target.closest('a') || target.closest('button') || target.closest('input') || target.closest('textarea') || target.closest('.allow-copy') || target.closest('.modal') || target.closest('.card') || target.closest('.pay-number-selectable'))) {
+                    return; // Allow copying links/buttons/cards/modals/numbers
+                }
+                
+                if (anchor && anchor.parentElement) {
+                    const parent = anchor.parentElement;
+                    if (parent && (parent.closest('a') || parent.closest('.allow-copy') || parent.closest('input') || parent.closest('textarea') || parent.closest('button') || parent.closest('.modal') || parent.closest('.card') || parent.closest('.pay-number-selectable'))) {
+                        return; // Allow
                     }
                 }
                 e.preventDefault();
-                showToast('কপিরাইট সংরক্ষিত — মূল লেখার টেক্সট কপি সুরক্ষিত। তবে বইয়ের নাম ও লিংক কপি করতে পারেন।', 'fa-solid fa-shield-halved text-warning');
+                showToast('কপিরাইট সংরক্ষিত — মূল লেখকের লেখাটি কপি সুরক্ষিত। তবে বইয়ের নাম, লিংক বা অন্যান্য তথ্য কপি করতে পারেন।', 'fa-solid fa-shield-halved text-warning');
             });
 
             // Prevent cutting inside article body
             area.addEventListener('cut', function(e) {
                 if (e.target.closest('input') || e.target.closest('textarea')) return;
                 e.preventDefault();
-                showToast('কপিরাইট সংরক্ষিত — টেক্সট কাট করা নিষিদ্ধ।', 'fa-solid fa-shield-halved text-warning');
+                showToast('কপিরাইট সংরক্ষিত — টেক্সট কাট করা সুরক্ষিত।', 'fa-solid fa-shield-halved text-warning');
             });
 
             // Prevent right-click context menu on article body
             area.addEventListener('contextmenu', function(e) {
-                if (e.target.closest('a') || e.target.closest('button') || e.target.closest('input') || e.target.closest('textarea') || e.target.closest('.allow-copy')) {
+                if (e.target.closest('a') || e.target.closest('button') || e.target.closest('input') || e.target.closest('textarea') || e.target.closest('.allow-copy') || e.target.closest('.modal') || e.target.closest('.card') || e.target.closest('.pay-number-selectable')) {
                     return; // Allow normal right-click on links/buttons
                 }
                 e.preventDefault();

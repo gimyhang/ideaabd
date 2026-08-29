@@ -386,6 +386,9 @@
                                             </div>
                                         </div>
                                     </div>
+                                </div>
+                            </div>
+
                             <!-- 6. SSLCommerz / Online Gateway (Visa, Master, Amex, MFS) -->
                             <div class="col-12">
                                 <div class="adm-card bg-light rounded-4 border p-3">

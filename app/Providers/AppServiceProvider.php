@@ -41,11 +41,12 @@ class AppServiceProvider extends ServiceProvider
             ));
         });
 
-        // Bengali number/date directives used across the admin panel.
+        // Bengali/English number/date directives used across the admin panel.
         Blade::directive('bn',    fn ($e) => "<?php echo \App\Support\Bn::num($e); ?>");
         Blade::directive('taka',  fn ($e) => "<?php echo \App\Support\Bn::money($e); ?>");
         Blade::directive('takaS', fn ($e) => "<?php echo \App\Support\Bn::moneyShort($e); ?>");
         Blade::directive('takaInWords', fn ($e) => "<?php echo \App\Support\Bn::inWords($e); ?>");
+        Blade::directive('takaInWordsEn', fn ($e) => "<?php echo \App\Support\Bn::inWordsEn($e); ?>");
         Blade::directive('bnDate', fn ($e) => "<?php echo \App\Support\Bn::date($e); ?>");
 
         // Set modern customized pagination across all views

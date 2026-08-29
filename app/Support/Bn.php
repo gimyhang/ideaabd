@@ -132,6 +132,83 @@ class Bn
         return trim($res) . ' মাত্র';
     }
 
+    private const EN_ONES = [
+        0 => '', 1 => 'One', 2 => 'Two', 3 => 'Three', 4 => 'Four', 5 => 'Five',
+        6 => 'Six', 7 => 'Seven', 8 => 'Eight', 9 => 'Nine', 10 => 'Ten',
+        11 => 'Eleven', 12 => 'Twelve', 13 => 'Thirteen', 14 => 'Fourteen', 15 => 'Fifteen',
+        16 => 'Sixteen', 17 => 'Seventeen', 18 => 'Eighteen', 19 => 'Nineteen'
+    ];
+
+    private const EN_TENS = [
+        2 => 'Twenty', 3 => 'Thirty', 4 => 'Forty', 5 => 'Fifty',
+        6 => 'Sixty', 7 => 'Seventy', 8 => 'Eighty', 9 => 'Ninety'
+    ];
+
+    private static function convertChunkEn(int $num): string
+    {
+        $parts = [];
+
+        $crore = intdiv($num, 10000000);
+        $num %= 10000000;
+        if ($crore > 0) {
+            $parts[] = self::convertChunkEn($crore) . ' Crore';
+        }
+
+        $lakh = intdiv($num, 100000);
+        $num %= 100000;
+        if ($lakh > 0) {
+            $parts[] = self::convertChunkEn($lakh) . ' Lakh';
+        }
+
+        $thousand = intdiv($num, 1000);
+        $num %= 1000;
+        if ($thousand > 0) {
+            $parts[] = self::convertChunkEn($thousand) . ' Thousand';
+        }
+
+        $hundred = intdiv($num, 100);
+        $num %= 100;
+        if ($hundred > 0) {
+            $parts[] = self::convertChunkEn($hundred) . ' Hundred';
+        }
+
+        if ($num > 0) {
+            if ($num < 20) {
+                $parts[] = self::EN_ONES[$num];
+            } else {
+                $ten = intdiv($num, 10);
+                $one = $num % 10;
+                $parts[] = self::EN_TENS[$ten] . ($one > 0 ? ' ' . self::EN_ONES[$one] : '');
+            }
+        }
+
+        return trim(implode(' ', $parts));
+    }
+
+    /**
+     * Convert money number to English words, e.g. 12500 -> Twelve Thousand Five Hundred Taka Only
+     */
+    public static function inWordsEn(int|float|string|null $value): string
+    {
+        $num = (float)($value ?? 0);
+        if ($num <= 0) {
+            return 'Zero Taka Only';
+        }
+
+        $taka = (int)floor($num);
+        $paisa = (int)round(($num - $taka) * 100);
+
+        $takaWords = self::convertChunkEn($taka);
+        $res = $takaWords ? ($takaWords . ' Taka') : '';
+
+        if ($paisa > 0) {
+            $paisaWords = ($paisa < 20) ? self::EN_ONES[$paisa] : (self::EN_TENS[intdiv($paisa, 10)] . (($paisa % 10 > 0) ? ' ' . self::EN_ONES[$paisa % 10] : ''));
+            $res = ($res ? $res . ' and ' : '') . $paisaWords . ' Paisa';
+        }
+
+        return trim($res) . ' Only';
+    }
+
     /** Bengali date, e.g. ১১ আগস্ট ২০২৬ */
     public static function date(mixed $date, bool $withTime = false): string
     {

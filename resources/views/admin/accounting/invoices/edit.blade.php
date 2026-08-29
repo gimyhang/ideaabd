@@ -1,37 +1,37 @@
 @extends('layouts.admin')
 
-@section('title', 'Edit Document — #' . $invoice->invoice_no)
-@section('heading', 'Edit ' . ucfirst($invoice->type) . ' #' . $invoice->invoice_no)
+@section('title', 'Edit Document #' . $invoice->invoice_no)
+@section('heading', 'Edit ' . ucfirst($invoice->type))
 @section('breadcrumb')
     <li class="breadcrumb-item"><a href="{{ route('admin.accounting.index') }}">Accounting</a></li>
-    <li class="breadcrumb-item"><a href="{{ route('admin.accounting.invoices.index') }}">Invoices & Challans</a></li>
+    <li class="breadcrumb-item"><a href="{{ route('admin.accounting.invoices.index') }}">Invoices</a></li>
     <li class="breadcrumb-item"><a href="{{ route('admin.accounting.invoices.show', $invoice->id) }}">#{{ $invoice->invoice_no }}</a></li>
     <li class="breadcrumb-item active" aria-current="page">Edit</li>
 @endsection
 
 @section('actions')
     <a href="{{ route('admin.accounting.invoices.show', $invoice->id) }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-xs">
-        <i class="fas fa-arrow-left me-1"></i> Back to Invoice
+        <i class="fas fa-arrow-left me-1"></i> Back
     </a>
 @endsection
 
 @section('content')
 
-{{-- Idea Accounting Unified Navigation Bar --}}
+{{-- Idea Accounting Navigation Bar --}}
 <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white">
     <div class="card-body p-2">
         <div class="nav nav-pills gap-1.5 flex-wrap">
             <a href="{{ route('admin.accounting.index') }}" 
                class="nav-link rounded-pill px-3.5 py-2 fw-semibold text-dark hover-bg-light">
-                <i class="fas fa-scale-balanced me-1.5"></i> Income & Expense Ledger
+                <i class="fas fa-scale-balanced me-1.5"></i> Income & Expense
             </a>
             <a href="{{ route('admin.accounting.invoices.index') }}" 
                class="nav-link rounded-pill px-3.5 py-2 fw-semibold text-dark hover-bg-light">
-                <i class="fas fa-file-invoice-dollar me-1.5"></i> Invoices, Challans & Quotations
+                <i class="fas fa-file-invoice-dollar me-1.5"></i> Invoices & Documents
             </a>
             <a href="{{ route('admin.accounting.invoices.create') }}" 
                class="nav-link rounded-pill px-3.5 py-2 fw-semibold text-dark hover-bg-light">
-                <i class="fas fa-file-circle-plus me-1.5"></i> Create New Invoice
+                <i class="fas fa-file-circle-plus me-1.5"></i> Create New
             </a>
         </div>
     </div>
@@ -42,25 +42,21 @@
     $salesCategory = old('sales_category', $invoice->sales_category ?? 'books');
 @endphp
 
-{{-- Sleek Category Selector for Sales Type (Dropdown) --}}
+{{-- Category Selector (Left-aligned) --}}
 <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white">
-    <div class="card-body p-3">
+    <div class="card-body p-2.5 px-3">
         <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
-            <div class="d-flex align-items-center gap-2">
-                <span class="badge bg-primary-subtle text-primary border rounded-pill px-3 py-2 fw-bold fs-6">
-                    <i class="fa-solid fa-shapes me-1.5"></i> ইনভয়েসের শ্রেণি (Sales Category)
-                </span>
-                <span class="small text-muted" id="categoryHintText">বই বিক্রয়, পাইকারি ও রিটেইল চালান</span>
-            </div>
-            <div class="d-flex align-items-center gap-2" style="min-width: 320px;">
-                <label for="salesCategorySelect" class="form-label small fw-bold text-secondary mb-0 text-nowrap">
-                    <i class="fa-solid fa-filter me-1 text-primary"></i>শ্রেণি নির্বাচন:
+            <div class="d-flex align-items-center gap-2" style="min-width: 320px; max-width: 480px;">
+                <label for="salesCategorySelect" class="form-label small fw-bold text-dark mb-0 text-nowrap d-flex align-items-center">
+                    <span class="badge bg-primary text-white rounded-pill px-3 py-1.5 fw-bold fs-6">
+                        <i class="fa-solid fa-shapes me-1.5"></i> Sales Category:
+                    </span>
                 </label>
                 <select name="sales_category" id="salesCategorySelect" class="form-select form-select-sm rounded-pill fw-bold border-primary shadow-2xs py-2" onchange="toggleSalesCategory(this.value)">
-                    <option value="books" @selected(($salesCategory ?? 'books') === 'books')>📚 ১. বই বিক্রয় ও প্রকাশনা (Books & Publications)</option>
-                    <option value="stationery" @selected(($salesCategory ?? 'books') === 'stationery')>✏️ ২. স্টেশনারী বিক্রয় (Stationery Sales)</option>
-                    <option value="printing_goods" @selected(($salesCategory ?? 'books') === 'printing_goods')>🖨️ ৩. প্রিন্টিং গুডস ও প্রেস সেবা (Printing & Press Work)</option>
-                    <option value="other" @selected(($salesCategory ?? 'books') === 'other')>📦 ৪. অন্যান্য বিক্রয় ও সেবা (Other Sales & Misc)</option>
+                    <option value="books" @selected(($salesCategory ?? 'books') === 'books')>📚 Books & Publication</option>
+                    <option value="stationery" @selected(($salesCategory ?? 'books') === 'stationery')>✏️ Stationery Sales</option>
+                    <option value="printing_goods" @selected(($salesCategory ?? 'books') === 'printing_goods')>🖨️ Printing & Press</option>
+                    <option value="other" @selected(($salesCategory ?? 'books') === 'other')>📦 Other Sales</option>
                 </select>
             </div>
         </div>
@@ -108,32 +104,31 @@
                         </label>
                     </div>
                 </div>
-                
-                <div class="card-body p-3 p-md-4">
+                  <div class="card-body p-3 p-md-4">
                     {{-- Tender & Quotation Dynamic Panel --}}
                     <div id="tenderQuotationPanel" class="p-3.5 rounded-3 border mb-3 {{ in_array($currentType, ['quotation', 'tender']) ? '' : 'd-none' }} {{ $currentType === 'tender' ? 'bg-indigo-subtle border-indigo-subtle' : 'bg-warning-subtle bg-opacity-25 border-warning-subtle' }}">
                         <div class="d-flex align-items-center justify-content-between mb-2.5 pb-2 border-bottom text-dark fw-bold small" id="tenderPanelHeader">
                             <div class="d-flex align-items-center gap-2">
                                 <i class="{{ $currentType === 'tender' ? 'fas fa-landmark text-indigo fs-5' : 'fas fa-file-invoice text-warning-emphasis fs-5' }}" id="tenderPanelIcon"></i> 
-                                <span id="tenderPanelTitle" class="fs-6">{{ $currentType === 'tender' ? '🏛️ টেন্ডার শিডিউল ও দরপত্র প্রস্তাবনা (Tender Proposal & BoQ)' : '📋 কোটেশন ও প্রফরমা তথ্য (Quotation Information)' }}</span>
+                                <span id="tenderPanelTitle" class="fs-6">{{ $currentType === 'tender' ? '🏛️ Tender Proposal & BoQ Schedule' : '📋 Quotation & Proforma Proposal' }}</span>
                             </div>
                             <span class="badge {{ $currentType === 'tender' ? 'bg-indigo text-white' : 'bg-warning text-dark' }} px-3 py-1.5 rounded-pill shadow-xs" id="tenderPanelBadge">
-                                <i class="fa-solid fa-sparkles me-1"></i>{{ $currentType === 'tender' ? 'দরপত্র / টেন্ডার মোড' : 'প্রাইস কোটেশন মোড' }}
+                                <i class="fa-solid fa-sparkles me-1"></i>{{ $currentType === 'tender' ? 'Tender Mode' : 'Quotation Mode' }}
                             </span>
                         </div>
 
                         <div class="row g-2.5">
                             <div class="col-md-8">
                                 <label class="form-label small fw-semibold text-muted mb-1" id="tenderSubjectLabel">
-                                    {{ $currentType === 'tender' ? 'দরপত্রের বিষয় / কাজের নাম (Tender Subject / Work Name)' : 'কোটেশনের বিষয় / Proposal Subject' }} <span class="text-danger">*</span>
+                                    {{ $currentType === 'tender' ? 'Tender Subject / Work Scope' : 'Proposal Subject' }} <span class="text-danger">*</span>
                                 </label>
                                 <input type="text" name="subject" id="f-subject" class="form-control form-control-sm bg-white" 
-                                       placeholder="{{ $currentType === 'tender' ? 'যেমন: শিক্ষা প্রতিষ্ঠান ও পাঠাগারে বই ও মুদ্রণ সামগ্রী সরবরাহ সংক্রান্ত দরপত্র...' : 'যেমন: বই মুদ্রণ ও প্রকাশনা সংক্রান্ত প্রাইজ কোটেশন...' }}" 
-                                       value="{{ old('subject', $invoice->subject ?? 'বই মুদ্রণ ও প্রকাশনা সংক্রান্ত প্রাইজ কোটেশন') }}">
+                                       placeholder="{{ $currentType === 'tender' ? 'e.g. Tender for Supply of Books, Publications & Stationery...' : 'e.g. Price Quotation for Book Printing & Publishing...' }}" 
+                                       value="{{ old('subject', $invoice->subject ?? 'Price Quotation for Book Printing & Publication') }}">
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label small fw-semibold text-muted mb-1" id="tenderRefLabel">
-                                    {{ $currentType === 'tender' ? 'টেন্ডার মেমো / রেফারেন্স নং (Tender Memo / Ref No)' : 'রেফারেন্স / কোটেশন নং (Ref No)' }}
+                                    {{ $currentType === 'tender' ? 'Tender Memo / Ref No' : 'Quotation / Ref No' }}
                                 </label>
                                 <input type="text" name="reference_no" id="f-reference_no" class="form-control form-control-sm bg-white" 
                                        placeholder="{{ $currentType === 'tender' ? 'e.g. MOE/PUB/TND/2026-08' : 'e.g. IP/QUO/2026/01' }}" value="{{ old('reference_no', $invoice->reference_no) }}">
@@ -142,15 +137,15 @@
                             <div class="col-12">
                                 <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 pt-1 border-top border-light">
                                     <div class="d-flex align-items-center gap-2 flex-wrap">
-                                        <span class="small text-muted fw-semibold"><i class="fa-regular fa-clock me-1"></i>মেয়াদকাল দ্রুত সেট করুন:</span>
-                                        <button type="button" class="btn btn-white btn-sm border rounded-pill px-2.5 py-0.5 shadow-2xs text-dark" onclick="setValidityDays(7)">+৭ দিন</button>
-                                        <button type="button" class="btn btn-white btn-sm border rounded-pill px-2.5 py-0.5 shadow-2xs text-dark" onclick="setValidityDays(15)">+১৫ দিন</button>
-                                        <button type="button" class="btn btn-white btn-sm border rounded-pill px-2.5 py-0.5 shadow-2xs text-dark" onclick="setValidityDays(30)">+৩০ দিন (স্ট্যান্ডার্ড)</button>
-                                        <button type="button" class="btn btn-white btn-sm border rounded-pill px-2.5 py-0.5 shadow-2xs text-dark" onclick="setValidityDays(60)">+৬০ দিন</button>
-                                        <button type="button" class="btn btn-white btn-sm border rounded-pill px-2.5 py-0.5 shadow-2xs text-dark" onclick="setValidityDays(90)">+৯০ দিন (টেন্ডার)</button>
+                                        <span class="small text-muted fw-semibold"><i class="fa-regular fa-clock me-1"></i>Quick Validity:</span>
+                                        <button type="button" class="btn btn-white btn-sm border rounded-pill px-2.5 py-0.5 shadow-2xs text-dark" onclick="setValidityDays(7)">+7 Days</button>
+                                        <button type="button" class="btn btn-white btn-sm border rounded-pill px-2.5 py-0.5 shadow-2xs text-dark" onclick="setValidityDays(15)">+15 Days</button>
+                                        <button type="button" class="btn btn-white btn-sm border rounded-pill px-2.5 py-0.5 shadow-2xs text-dark" onclick="setValidityDays(30)">+30 Days (Standard)</button>
+                                        <button type="button" class="btn btn-white btn-sm border rounded-pill px-2.5 py-0.5 shadow-2xs text-dark" onclick="setValidityDays(60)">+60 Days</button>
+                                        <button type="button" class="btn btn-white btn-sm border rounded-pill px-2.5 py-0.5 shadow-2xs text-dark" onclick="setValidityDays(90)">+90 Days (Tender)</button>
                                     </div>
                                     <div class="text-muted small">
-                                        <i class="fa-solid fa-circle-info text-info me-1"></i>টেন্ডার শিডিউলে ভ্যাট-ট্যাক্স সমন্বিত দর প্রযোজ্য
+                                        <i class="fa-solid fa-circle-info text-info me-1"></i>Applicable VAT/AIT integrated as per regulations
                                     </div>
                                 </div>
                             </div>
@@ -159,7 +154,7 @@
 
                     <div class="row g-3">
                         <div class="col-md-4">
-                            <label class="form-label fw-semibold">Customer / Recipient Name <span class="text-danger">*</span></label>
+                            <label class="form-label fw-semibold">Customer / Client Name <span class="text-danger">*</span></label>
                             <input type="text" name="customer_name" class="form-control @error('customer_name') is-invalid @enderror" 
                                    placeholder="Client name..." value="{{ old('customer_name', $invoice->customer_name) }}" required>
                             @error('customer_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
@@ -209,14 +204,13 @@
                         <h5 class="fw-bold mb-0 text-dark" id="itemsSectionTitle">
                             <i class="fas fa-list-check me-2 text-success"></i>Items & Schedule of Rates
                         </h5>
-                        <small class="text-muted" id="itemsSectionSubtitle">বইয়ের তালিকা অথবা প্রিন্টিং ও কাস্টম আইটেম দর নির্ধারণ করুন</small>
                     </div>
                     <div class="d-flex align-items-center gap-2">
-                        <button type="button" class="btn btn-warning rounded-pill px-3 py-1.5 fw-bold shadow-2xs text-dark" onclick="openPrintCostCalculator()" title="বই ও প্রিন্টিং কাজের নিখুঁত খরচ ও কোটেশন হিসাব করুন">
-                            <i class="fa-solid fa-calculator text-dark me-1"></i> 🖨️ প্রিন্টিং কস্ট ক্যালকুলেটর
+                        <button type="button" class="btn btn-warning rounded-pill px-3 py-1.5 fw-bold shadow-2xs text-dark" onclick="openPrintCostCalculator()" title="Calculate accurate book printing and publishing cost">
+                            <i class="fa-solid fa-calculator text-dark me-1"></i> Print Cost Calculator
                         </button>
                         <button type="button" class="btn btn-sm btn-success rounded-pill px-3 py-1.5 fw-semibold shadow-2xs" id="btnAddItemBtn" onclick="addItemRow()">
-                            <i class="fas fa-plus me-1"></i> Add More Items
+                            <i class="fas fa-plus me-1"></i> Add Item
                         </button>
                     </div>
                 </div>
@@ -225,22 +219,50 @@
                     {{-- Dropdown Quick Presets for Stationery --}}
                     <div id="stationeryPresetsWrap" class="mb-3 p-3 bg-light rounded-3 border" style="display: none;">
                         <div class="row align-items-center g-2">
-                            <div class="col-md-5">
+                            <div class="col-md-4">
                                 <span class="small fw-bold text-dark">
-                                    <i class="fa-solid fa-pen-ruler text-info me-1"></i> স্টেশনারী আইটেম দ্রুত যোগ করুন (ড্রপডাউন প্রিসেট):
+                                    <i class="fa-solid fa-pen-ruler text-info me-1"></i> Quick Stationery Presets:
                                 </span>
                             </div>
-                            <div class="col-md-7">
+                            <div class="col-md-8">
                                 <select class="form-select form-select-sm rounded-pill border-info fw-semibold" id="stationeryPresetSelect" onchange="onStationeryPresetSelected(this)">
-                                    <option value="">-- স্টেশনারী আইটেম নির্বাচন করুন (১-ক্লিক যোগ) --</option>
-                                    <option value='{"title":"প্রিমিয়াম হার্ডবাউন্ড ডায়েরি ২০২৬","spec":"আইডিয়া ব্র্যান্ড, গোল্ড ফয়েল","type":"Stationery","unit":"পিস","price":350,"reg":450}'>📓 প্রিমিয়াম হার্ডবাউন্ড ডায়েরি ২০২৬ (৳৩৫০)</option>
-                                    <option value='{"title":"এক্সিকিউটিভ নোটবুক / খাতা","spec":"১২০ পৃষ্ঠা রুল্ড অফসেট","type":"Stationery","unit":"পিস","price":120,"reg":150}'>📒 এক্সিকিউটিভ নোটবুক / খাতা (৳১২০)</option>
-                                    <option value='{"title":"বলপয়েন্ট কলম বক্স (১০ পিস)","spec":"স্মুথ ০.৭মিমি ব্লু/ব্ল্যাক","type":"Stationery","unit":"বক্স","price":100,"reg":120}'>🖊️ বলপয়েন্ট কলম বক্স (১০ পিস) (৳১০০)</option>
-                                    <option value='{"title":"অফিস পেপার ফাইল ও ফোল্ডার","spec":"লেদারটেক্স প্রিমিয়াম কোয়ালিটি","type":"Stationery","unit":"পিস","price":45,"reg":60}'>📁 অফিস পেপার ফাইল ও ফোল্ডার (৳৪৫)</option>
-                                    <option value='{"title":"আর্ট পেপার প্যাড (A4)","spec":"১০০ জিএসএম ৫০ পাতা","type":"Stationery","unit":"প্যাড","price":180,"reg":220}'>📑 আর্ট পেপার প্যাড (A4) (৳১৮০)</option>
-                                    <option value='{"title":"প্রিমিয়াম বুকমার্ক সেট (৫ পিস)","spec":"ল্যামিনেটেড গোল্ডেন ফয়েল","type":"Stationery","unit":"সেট","price":80,"reg":100}'>🔖 প্রিমিয়াম বুকমার্ক সেট (৫ পিস) (৳৮০)</option>
-                                    <option value='{"title":"হোয়াইটবোর্ড মার্কার ও ডাস্টার সেট","spec":"৪ কালার নন-টক্সিক মার্কার","type":"Stationery","unit":"সেট","price":160,"reg":200}'>🖍️ হোয়াইটবোর্ড মার্কার ও ডাস্টার সেট (৳১৬০)</option>
-                                    <option value='{"title":"স্ট্যাপলার ও স্ট্যাপল পিন বক্স","spec":"হেভি ডিউটি অফিস স্ট্যাপলার","type":"Stationery","unit":"সেট","price":140,"reg":180}'>📎 স্ট্যাপলার ও পিন সেট (৳১৪০)</option>
+                                    <option value="">-- Select Stationery Item (1-Click Add) --</option>
+                                    
+                                    <optgroup label="📓 Notebooks, Diaries & Khatas">
+                                        <option value='{"title":"Executive Hardbound Diary 2026","spec":"Idea Brand, Premium Gold Foil","type":"Stationery","unit":"Pcs","price":350,"reg":450}'>📓 Executive Hardbound Diary 2026 (৳350)</option>
+                                        <option value='{"title":"Spiral Executive Notebook (160 Pages)","spec":"80 GSM Premium Ruled Offset Paper","type":"Stationery","unit":"Pcs","price":150,"reg":180}'>📒 Spiral Executive Notebook 160 Pages (৳150)</option>
+                                        <option value='{"title":"Exercise Book / Khata (120 Pages)","spec":"Ruled Offset Paper, Laminated Cover","type":"Stationery","unit":"Pcs","price":65,"reg":80}'>📝 Exercise Book / Khata 120 Pages (৳65)</option>
+                                        <option value='{"title":"Practical Khata / Science Notebook","spec":"100 Pages, One-Side Ruled / Plain","type":"Stationery","unit":"Pcs","price":90,"reg":115}'>🔬 Practical Khata / Science Notebook (৳90)</option>
+                                        <option value='{"title":"Official Ledger / Register Book (200 Pages)","spec":"Hardbound Cloth Binding, Serialized","type":"Stationery","unit":"Pcs","price":240,"reg":290}'>📚 Official Ledger / Register Book 200 Pages (৳240)</option>
+                                        <option value='{"title":"Pocket Memo Notebook (80 Pages)","spec":"Top Spiral Bound, Pocket Friendly","type":"Stationery","unit":"Pcs","price":45,"reg":60}'>🗒️ Pocket Memo Notebook 80 Pages (৳45)</option>
+                                    </optgroup>
+
+                                    <optgroup label="🖊️ Pens, Highlighters & Markers">
+                                        <option value='{"title":"Smooth Ballpoint Pen Box (10 Pcs)","spec":"0.7mm Smooth Flow (Blue/Black)","type":"Stationery","unit":"Box","price":120,"reg":150}'>🖊️ Ballpoint Pen Box (10 Pcs) (৳120)</option>
+                                        <option value='{"title":"Ultra Smooth Gel Pen Set (5 Colors)","spec":"0.5mm Quick-Dry Japanese Ink","type":"Stationery","unit":"Set","price":180,"reg":220}'>✒️ Ultra Smooth Gel Pen Set 5 Pcs (৳180)</option>
+                                        <option value='{"title":"Pastel Chisel Highlighter Set (6 Colors)","spec":"Non-Smudge Pastel Shades","type":"Stationery","unit":"Set","price":240,"reg":290}'>🖍️ Pastel Highlighter Set (6 Colors) (৳240)</option>
+                                        <option value='{"title":"Permanent Marker Pen Set (3 Pcs)","spec":"Black, Blue & Red Waterproof Ink","type":"Stationery","unit":"Set","price":110,"reg":135}'>🖋️ Permanent Marker Set (3 Colors) (৳110)</option>
+                                        <option value='{"title":"Whiteboard Marker & Duster Kit","spec":"4 Non-Toxic Colors + Magnetic Duster","type":"Stationery","unit":"Set","price":175,"reg":215}'>🧽 Whiteboard Marker & Duster Kit (৳175)</option>
+                                    </optgroup>
+
+                                    <optgroup label="📁 Filing, Folders & Office Organization">
+                                        <option value='{"title":"Leatherette Document File Folder (A4)","spec":"Waterproof Executive File Folder","type":"Stationery","unit":"Pcs","price":55,"reg":70}'>📁 Leatherette Document File Folder (৳55)</option>
+                                        <option value='{"title":"Heavy Duty Ring Binder Box File","spec":"Standard Office Box File with Lever Arch","type":"Stationery","unit":"Pcs","price":120,"reg":150}'>🗂️ Heavy Duty Ring Binder Box File (৳120)</option>
+                                        <option value='{"title":"Clear Button Document Pouch (A4)","spec":"Transparent Waterproof Poly Pouch","type":"Stationery","unit":"Pcs","price":35,"reg":45}'>👝 Clear Button Document Pouch (৳35)</option>
+                                        <option value='{"title":"Heavy Duty Desktop Stapler & Pins Pack","spec":"Full Metal Office Stapler + 1000 Pins","type":"Stationery","unit":"Set","price":160,"reg":200}'>📎 Desktop Stapler & Pins Pack (৳160)</option>
+                                        <option value='{"title":"Self-Adhesive Sticky Notes Pad (3×3\")","spec":"100 Neon Sheets Multi-color","type":"Stationery","unit":"Pad","price":60,"reg":80}'>📑 Sticky Notes Pad 100 Sheets (৳60)</option>
+                                        <option value='{"title":"Desktop Organizer Stand (Multi-Compartment)","spec":"Mesh Metal Pen, Card & File Holder","type":"Stationery","unit":"Pcs","price":280,"reg":350}'>🗃️ Desktop Organizer Stand (৳280)</option>
+                                        <option value='{"title":"Heavy Duty 2-Hole Paper Puncher","spec":"Punching Capacity: 30 Sheets","type":"Stationery","unit":"Pcs","price":220,"reg":270}'>🔘 Heavy Duty 2-Hole Paper Puncher (৳220)</option>
+                                        <option value='{"title":"Stainless Steel Office Scissors (8 Inch)","spec":"Ergonomic Comfort Grip","type":"Stationery","unit":"Pcs","price":130,"reg":160}'>✂️ Stainless Steel Office Scissors (৳130)</option>
+                                    </optgroup>
+
+                                    <optgroup label="📄 Paper, Envelopes & Accessories">
+                                        <option value='{"title":"Premium A4 Offset Paper Ream (80 GSM)","spec":"500 Sheets High Brightness White","type":"Stationery","unit":"Ream","price":480,"reg":550}'>📄 Premium A4 Offset Paper Ream 80 GSM (৳480)</option>
+                                        <option value='{"title":"Official Mailing Envelopes (10×4.5\")","spec":"Pack of 50 Pcs, 100 GSM Self-Adhesive","type":"Stationery","unit":"Pack","price":140,"reg":175}'>✉️ Official Mailing Envelopes 50 Pcs (৳140)</option>
+                                        <option value='{"title":"Kraft Document Envelopes (A4 / 9×12\")","spec":"Pack of 25 Pcs Heavy Kraft Board","type":"Stationery","unit":"Pack","price":160,"reg":200}'>📂 Kraft Document Envelopes 25 Pcs (৳160)</option>
+                                        <option value='{"title":"Premium Gold Foil Bookmarks Set (5 Pcs)","spec":"Laminated Literary Art Bookmarks","type":"Stationery","unit":"Set","price":95,"reg":125}'>🔖 Gold Foil Bookmarks Set 5 Pcs (৳95)</option>
+                                        <option value='{"title":"Steel Paper Clips & Binder Clips Box","spec":"Assorted Size Binder Clips (Box)","type":"Stationery","unit":"Box","price":85,"reg":110}'>🧷 Binder & Paper Clips Assorted Box (৳85)</option>
+                                    </optgroup>
                                 </select>
                             </div>
                         </div>
@@ -249,51 +271,49 @@
                     {{-- Dropdown Quick Presets for Printing Goods & Services --}}
                     <div id="printingPresetsWrap" class="mb-3 p-3 bg-light rounded-3 border" style="display: none;">
                         <div class="row align-items-center g-2">
-                            <div class="col-md-5">
+                            <div class="col-md-4">
                                 <span class="small fw-bold text-dark">
-                                    <i class="fa-solid fa-print text-warning me-1"></i> প্রিন্টিং গুডস ও সেবা আইটেম দ্রুত যোগ করুন (ড্রপডাউন প্রিসেট):
+                                    <i class="fa-solid fa-print text-warning me-1"></i> Quick Printing & Press Presets:
                                 </span>
                             </div>
-                            <div class="col-md-7">
+                            <div class="col-md-8">
                                 <select class="form-select form-select-sm rounded-pill border-warning fw-semibold" id="printingPresetSelect" onchange="onPrintingPresetSelected(this)">
-                                    <option value="">-- মুদ্রণ কাজের নাম নির্বাচন করুন (১-ক্লিক যোগ) --</option>
+                                    <option value="">-- Select Printing Job / Service (1-Click Add) --</option>
                                     
-                                    <optgroup label="📚 বই, ম্যাগাজিন ও সাময়িকী মুদ্রণ (Books & Publications)">
-                                        <option value='{"title":"কাস্টম বই মুদ্রণ ও প্রকাশনা অর্ডার","spec":"ডিমাই সাইজ (৫.৫×৮.৫ ইঞ্চি), ৮০ GSM অফসেট, ৪-কালার কভার","type":"Printing & Binding","unit":"কপি","price":140,"reg":160}'>📚 কাস্টম বই মুদ্রণ ও প্রকাশনা অর্ডার (ডিমাই সাইজ ৮০ GSM)</option>
-                                        <option value='{"title":"প্রিমিয়াম হার্ডবাউন্ড বই বাঁধাই ও মুদ্রণ","spec":"রয়েল সাইজ (৬.২৫×৯.৫ ইঞ্চি), ১০০ GSM প্রিমিয়াম, গোল্ড ফয়েল","type":"Printing & Binding","unit":"কপি","price":220,"reg":260}'>📖 প্রিমিয়াম হার্ডবাউন্ড বই বাঁধাই ও মুদ্রণ (রয়েল সাইজ)</option>
-                                        <option value='{"title":"স্মরণিকা / ম্যাগাজিন মুদ্রণ বিল","spec":"A4 সাইজ, ৪-কালার কভার ১২০ GSM আর্ট পেপার, ৮০ GSM বডি","type":"Printing & Binding","unit":"কপি","price":95,"reg":120}'>📕 স্মরণিকা / ম্যাগাজিন মুদ্রণ বিল (A4 সাইজ)</option>
-                                        <option value='{"title":"বার্ষিক প্রতিবেদন / অ্যানুয়াল রিপোর্ট","spec":"A4 সাইজ, ১৫০ GSM আর্ট পেপার, স্পাইরাল বা পারফেক্ট বাঁধাই","type":"Printing & Binding","unit":"কপি","price":160,"reg":190}'>📊 বার্ষিক প্রতিবেদন / অ্যানুয়াল রিপোর্ট (A4 আর্ট পেপার)</option>
-                                        <option value='{"title":"সাহিত্য পত্রিকা / লিটলম্যাগ মুদ্রণ বিল","spec":"ডাবল ডিমাই সাইজ, ৭০ GSM নিউজপ্রিন্ট/অফসেট, ২-কালার কভার","type":"Printing & Binding","unit":"কপি","price":55,"reg":70}'>📰 সাহিত্য পত্রিকা / লিটলম্যাগ মুদ্রণ</option>
+                                    <optgroup label="📚 Books & Publications Printing">
+                                        <option value='{"title":"Custom Book Printing & Binding (Demy 5.5×8.5\")","spec":"Demy Size, 80 GSM Offset, 4-Color Cover, Perfect Bound","type":"Printing & Binding","unit":"Copy","price":140,"reg":160}'>📚 Custom Book Printing & Binding (Demy 80 GSM) (৳140)</option>
+                                        <option value='{"title":"Premium Hardcover Book Printing & Gold Foil","spec":"Royal Size (6.25×9.5\"), 100 GSM, Embossed Gold Foil","type":"Printing & Binding","unit":"Copy","price":240,"reg":280}'>📖 Premium Hardcover Book Printing (Royal Size) (৳240)</option>
+                                        <option value='{"title":"Souvenir / Magazine Printing (A4 Size)","spec":"A4, 4-Color Cover 150 GSM Art Paper, 80 GSM Inner","type":"Printing & Binding","unit":"Copy","price":95,"reg":120}'>📕 Souvenir / Magazine Printing A4 (৳95)</option>
+                                        <option value='{"title":"Annual Report & Corporate Profile (A4)","spec":"A4 Size, 150 GSM Art Paper, Spiral / Perfect Binding","type":"Printing & Binding","unit":"Copy","price":165,"reg":195}'>📊 Annual Report & Corporate Profile (৳165)</option>
+                                        <option value='{"title":"Literary Magazine / Little Mag Printing","spec":"Double Demy, 70 GSM Newsprint/Offset, 2-Color Cover","type":"Printing & Binding","unit":"Copy","price":55,"reg":70}'>📰 Literary Magazine / Little Mag (৳55)</option>
                                     </optgroup>
 
-                                    <optgroup label="🏢 অফিসিয়াল ও বাণিজ্যিক স্টেশনারী মুদ্রণ (Corporate Stationery)">
-                                        <option value='{"title":"ক্যাশ মেমো / মানি রিসিট বই মুদ্রণ","spec":"২-পার্ট / ৩-পার্ট কার্বনলেস NCR পেপার, ১০০ পাতা, ক্রমিক নম্বর","type":"Printing & Binding","unit":"বই","price":120,"reg":150}'>🧾 ক্যাশ মেমো / মানি রিসিট বই মুদ্রণ (NCR পেপার)</option>
-                                        <option value='{"title":"ডেলিভারি চালান বই মুদ্রণ বিল","spec":"৩-পার্ট কার্বনলেস NCR পেপার, শক্ত বোর্ড কভার, ক্রমিক নম্বর","type":"Printing & Binding","unit":"বই","price":135,"reg":165}'>🚚 ডেলিভারি চালান বই মুদ্রণ (৩-পার্ট NCR)</option>
-                                        <option value='{"title":"অফিসিয়াল লেটারহেড / প্যাড মুদ্রণ","spec":"১০০ GSM লেজার পেপার, ৪-কালার অফসেট প্রিন্ট, ৫০ পাতার প্যাড","type":"Printing & Binding","unit":"প্যাড","price":180,"reg":220}'>📑 অফিসিয়াল লেটারহেড / প্যাড মুদ্রণ (১০০ GSM)</option>
-                                        <option value='{"title":"প্রেসক্রিপশন প্যাড মুদ্রণ (ডাক্তারি প্যাড)","spec":"৮০ GSM অফসেট পেপার, ১০০ পাতা প্যাড বাঁধাই","type":"Printing & Binding","unit":"প্যাড","price":110,"reg":130}'>🩺 প্রেসক্রিপশন প্যাড মুদ্রণ (১০০ পাতা)</option>
-                                        <option value='{"title":"অফিস এনভেলপ / খাম মুদ্রণ (১০×৪.৫ ইঞ্চি)","spec":"১০০ GSM অফসেট পেপার, ৪-কালার প্রিন্টিং ও সেলফ-আঠালো","type":"Printing & Binding","unit":"হাজার","price":2200,"reg":2600}'>✉️ অফিস এনভেলপ / খাম মুদ্রণ (১০×৪.৫ ইঞ্চি)</option>
-                                        <option value='{"title":"ডক্যুমেন্ট ফাইল খাম মুদ্রণ (A4 / 9×12)","spec":"১২০ GSM ক্রাফট / আর্ট পেপার, ফ্ল্যাপসহ প্রিমিয়াম প্রিন্ট","type":"Printing & Binding","unit":"হাজার","price":3800,"reg":4500}'>📂 ডক্যুমেন্ট ফাইল খাম মুদ্রণ (A4 সাইজ)</option>
-                                        <option value='{"title":"ভিজিটিং কার্ড / বিজনেস কার্ড মুদ্রণ","spec":"৩০০ GSM আর্ট কার্ড, ডাবল সাইড ৪-কালার, ম্যাট + স্পট UV","type":"Printing & Binding","unit":"বক্স","price":350,"reg":450}'>💳 ভিজিটিং কার্ড / বিজনেস কার্ড (ম্যাট + স্পট UV)</option>
-                                        <option value='{"title":"ডিজিটাল আইডি কার্ড ও প্রিন্টেড রিবন / লেইস","spec":"PVC স্মার্ট কার্ড, মাল্টিকালার থার্মাল প্রিন্ট, ডিজিটাল ফিতা","type":"Printing & Binding","unit":"সেট","price":90,"reg":120}'>🪪 ডিজিটাল আইডি কার্ড ও প্রিন্টেড রিবন ফিতা</option>
-                                        <option value='{"title":"অফিস ফাইল ফোল্ডার / ডক্যুমেন্ট ফোল্ডার","spec":"৩৫০ GSM আর্ট কার্ড, ল্যামিনেশন, পকেটসহ কাস্টম ডাই-কাট","type":"Printing & Binding","unit":"পিস","price":45,"reg":60}'>📁 অফিস ফাইল ফোল্ডার (পকেটসহ ডাই-কাট)</option>
+                                    <optgroup label="🏢 Corporate Stationery & Commercial Printing">
+                                        <option value='{"title":"Cash Memo / Money Receipt Book (100 Sheets)","spec":"2-Part / 3-Part NCR Carbonless Paper, Serial Numbered","type":"Printing & Binding","unit":"Book","price":130,"reg":160}'>🧾 Cash Memo / Receipt Book (NCR Paper) (৳130)</option>
+                                        <option value='{"title":"Delivery Challan Book (3-Part NCR)","spec":"3-Part NCR Carbonless, Hard Board Back, Serialized","type":"Printing & Binding","unit":"Book","price":145,"reg":175}'>🚚 Delivery Challan Book (3-Part NCR) (৳145)</option>
+                                        <option value='{"title":"Official Letterhead Pad (100 GSM Laser)","spec":"100 GSM Executive Paper, 4-Color Print, 50 Sheets Pad","type":"Printing & Binding","unit":"Pad","price":190,"reg":230}'>📑 Official Letterhead Pad (100 GSM) (৳190)</option>
+                                        <option value='{"title":"Doctor / Prescription Pad (100 Sheets)","spec":"80 GSM Offset Paper, 100 Sheets Top Glued","type":"Printing & Binding","unit":"Pad","price":115,"reg":135}'>🩺 Prescription Pad (100 Sheets) (৳115)</option>
+                                        <option value='{"title":"Official Printed Envelopes (10×4.5 Inch)","spec":"100 GSM Offset, 4-Color Print, Self-Adhesive (Per 1,000)","type":"Printing & Binding","unit":"Thousand","price":2400,"reg":2800}'>✉️ Official Printed Envelopes (Per 1,000) (৳2,400)</option>
+                                        <option value='{"title":"Document File Folder Printing (A4)","spec":"350 GSM Art Card, Matt Laminated, Pocket Die-cut","type":"Printing & Binding","unit":"Pcs","price":50,"reg":65}'>📁 Document File Folder (Pocket Die-cut) (৳50)</option>
+                                        <option value='{"title":"Visiting Cards / Business Cards Box (100 Pcs)","spec":"300 GSM Art Card, 2-Sided 4C, Matt Lamination + Spot UV","type":"Printing & Binding","unit":"Box","price":380,"reg":480}'>💳 Business Cards Box (Matt + Spot UV) (৳380)</option>
+                                        <option value='{"title":"Digital PVC ID Card & Printed Ribbon Lanyard","spec":"PVC Smart ID Card, Multicolor Thermal + Custom Lanyard","type":"Printing & Binding","unit":"Set","price":95,"reg":125}'>🪪 Digital PVC ID Card & Ribbon Lanyard (৳95)</option>
                                     </optgroup>
 
-                                    <optgroup label="📢 প্রচারণা, মার্কেটিং ও বিজ্ঞাপন (Marketing & Advertising)">
-                                        <option value='{"title":"প্রচারপত্র / লিফ促进 (A4 / A5 সাইজ)","spec":"১২০ GSM আর্ট পেপার, ২-সাইড ৪-কালার হাই-রেজুলেশন অফসেট","type":"Printing & Binding","unit":"হাজার","price":2800,"reg":3300}'>📜 প্রচারপত্র / লিফলেট মুদ্রণ (১২০ GSM আর্ট পেপার)</option>
-                                        <option value='{"title":"ফোল্ডেড ব্রোশিওর / ক্যাটালগ মুদ্রণ বিল","spec":"৩-ফোল্ড, ১৭০ GSM গ্লসি আর্ট পেপার, ফুল কালার","type":"Printing & Binding","unit":"কপি","price":25,"reg":35}'>📑 ফোল্ডেড ব্রোশিওর / প্রডাক্ট ক্যাটালগ (৩-ফোল্ড)</option>
-                                        <option value='{"title":"দেয়াল ক্যালেন্ডার মুদ্রণ বিল","spec":"৬ পাতা / ১২ পাতা আর্ট পেপার, টিন রিম ও স্পাইরাল হ্যাঙ্গার","type":"Printing & Binding","unit":"পিস","price":85,"reg":110}'>🗓️ দেয়াল ক্যালেন্ডার মুদ্রণ (৬ পাতা / ১২ পাতা)</option>
-                                        <option value='{"title":"এক্সিকিউটিভ ডেস্ক / টেবিল ক্যালেন্ডার","spec":"১২ পাতা ম্যাট ল্যামিনেশন, প্রিমিয়াম হার্ড স্ট্যান্ড বোর্ড","type":"Printing & Binding","unit":"পিস","price":120,"reg":150}'>📅 এক্সিকিউটিভ ডেস্ক / টেবিল ক্যালেন্ডার</option>
-                                        <option value='{"title":"৪-কালার পোস্টার প্রিন্টিং (১৮×২৩ / ১৮×২৮)","spec":"১৫০ GSM আর্ট পেপার, হাই-গ্লস ল্যামিনেশন","type":"Printing & Binding","unit":"হাজার","price":3500,"reg":4000}'>🖼️ ৪-কালার পোস্টার প্রিন্টিং (১৮×২৩ / ১৮×২৮ ইঞ্চি)</option>
-                                        <option value='{"title":"স্টিকার ও প্রডাক্ট লেবেল মুদ্রণ","spec":"গ্লসি পিভিসি সেলফ-আঠালো স্টিকার, ডাই-কাট কাটিং","type":"Printing & Binding","unit":"হাজার","price":1800,"reg":2200}'>🏷️ স্টিকার ও প্রডাক্ট লেবেল মুদ্রণ (ডাই-কাট)</option>
+                                    <optgroup label="📢 Marketing, Brochures & Advertising">
+                                        <option value='{"title":"Promotional Flyers / Leaflets (A4 / A5)","spec":"120 GSM Art Paper, 2-Sided 4-Color Offset (Per 1,000)","type":"Printing & Binding","unit":"Thousand","price":2800,"reg":3300}'>📜 Promotional Flyers / Leaflets (Per 1,000) (৳2,800)</option>
+                                        <option value='{"title":"Folded Product Brochure / Catalog (3-Fold)","spec":"3-Fold, 170 GSM Glossy Art Paper, Full Color","type":"Printing & Binding","unit":"Copy","price":28,"reg":38}'>📑 Folded Product Brochure (3-Fold) (৳28)</option>
+                                        <option value='{"title":"Wall Calendar Printing (6/12 Sheets)","spec":"Art Paper, Tin Rim & Spiral Hanger","type":"Printing & Binding","unit":"Pcs","price":90,"reg":115}'>🗓️ Wall Calendar Printing (6/12 Sheets) (৳90)</option>
+                                        <option value='{"title":"Executive Desk / Table Calendar","spec":"12 Sheets Matt Lamination, Hard Stand Board","type":"Printing & Binding","unit":"Pcs","price":135,"reg":165}'>📅 Executive Desk / Table Calendar (৳135)</option>
+                                        <option value='{"title":"Full Color Poster Printing (18×23 / 18×28\")","spec":"150 GSM Art Paper, High Gloss Finish (Per 1,000)","type":"Printing & Binding","unit":"Thousand","price":3600,"reg":4200}'>🖼️ Full Color Poster (Per 1,000) (৳3,600)</option>
+                                        <option value='{"title":"Die-cut Product Labels & Stickers","spec":"Glossy PVC Self-Adhesive, Die-cut Shape (Per 1,000)","type":"Printing & Binding","unit":"Thousand","price":1800,"reg":2200}'>🏷️ Die-cut Product Labels & Stickers (৳1,800)</option>
                                     </optgroup>
 
-                                    <optgroup label="🎁 ইভেন্ট, প্যাকেজিং ও স্পেশাল প্রিন্টিং (Events & Packaging)">
-                                        <option value='{"title":"সার্টিফিকেট ও প্রিমিয়াম ফোল্ডার মুদ্রণ","spec":"৩০০ GSM টেক্সচারড কার্ড, গোল্ডেন এমবসড ফয়েল","type":"Printing & Binding","unit":"পিস","price":60,"reg":80}'>🎓 সার্টিফিকেট ও প্রিমিয়াম ফোল্ডার মুদ্রণ</option>
-                                        <option value='{"title":"আমন্ত্রণপত্র / ইনভাইটেশন কার্ড মুদ্রণ","spec":"প্রিমিয়াম এমবসড ফয়েল কার্ড, বাটার পেপার ও ম্যাচিং খাম","type":"Printing & Binding","unit":"পিস","price":45,"reg":65}'>💌 আমন্ত্রণপত্র / ইনভাইটেশন কার্ড মুদ্রণ</option>
-                                        <option value='{"title":"কাস্টম পেপার শপিং ব্যাগ মুদ্রণ","spec":"২৫০ GSM আর্ট কার্ড, ম্যাট ল্যামিনেশন, রশি হ্যান্ডেল","type":"Printing & Binding","unit":"পিস","price":35,"reg":50}'>🛍️ কাস্টম পেপার শপিং ব্যাগ মুদ্রণ</option>
-                                        <option value='{"title":"পিভিসি ব্যানার ও ফেস্টুন ডিজিটাল প্রিন্ট","spec":"প্রিমিয়াম ডিজিটাল ইনডোর/আউটডোর পিভিসি","type":"Service","unit":"স্কয়ার ফুট","price":25,"reg":35}'>🚩 পিভিসি ব্যানার ও ফেস্টুন ডিজিটাল প্রিন্ট</option>
-                                        <option value='{"title":"প্রিমিয়াম হার্ডকাভার বাঁধাই ও গোল্ড ফয়েল চার্জ","spec":"লেদারটেক্স / হার্ডবোর্ড বাঁধাই ও গোল্ডেন এমবসিং","type":"Printing & Binding","unit":"কপি","price":65,"reg":80}'>📕 প্রিমিয়াম হার্ডকাভার বাঁধাই ও গোল্ড ফয়েল</option>
-                                        <option value='{"title":"বুকমার্ক ও জ্যাকেট কভার মুদ্রণ বিল","spec":"৩০০ GSM আর্ট কার্ড, ম্যাট ল্যামিনেশন + ফয়েল","type":"Printing & Binding","unit":"পিস","price":12,"reg":18}'>🔖 বুকমার্ক ও জ্যাকেট কভার মুদ্রণ</option>
+                                    <optgroup label="🎁 Specialty, Packaging & Binding">
+                                        <option value='{"title":"Certificate & Premium Folder Printing","spec":"300 GSM Textured Card, Embossed Gold Foil","type":"Printing & Binding","unit":"Pcs","price":65,"reg":85}'>🎓 Certificate & Embossed Folder (৳65)</option>
+                                        <option value='{"title":"Custom Paper Shopping Bag Printing","spec":"250 GSM Art Card, Matt Laminated, Rope Handle","type":"Printing & Binding","unit":"Pcs","price":38,"reg":52}'>🛍️ Custom Paper Shopping Bag (৳38)</option>
+                                        <option value='{"title":"Digital PVC Banner & Festoon Print","spec":"Premium Digital Heavy PVC Flex (Per Sq. Ft.)","type":"Service","unit":"Sq. Ft.","price":28,"reg":38}'>🚩 Digital PVC Banner / Festoon (৳28/sqft)</option>
+                                        <option value='{"title":"Hardcover Binding & Gold Foil Charge","spec":"Leatherette / Hardboard Binding & Gold Emboss","type":"Printing & Binding","unit":"Copy","price":70,"reg":90}'>📕 Hardcover Binding & Gold Foil Charge (৳70)</option>
+                                        <option value='{"title":"Bookmarks & Jacket Cover Printing","spec":"300 GSM Art Card, Matt + Spot Foil","type":"Printing & Binding","unit":"Pcs","price":15,"reg":22}'>🔖 Bookmarks & Jacket Cover (৳15)</option>
                                     </optgroup>
                                 </select>
                             </div>
@@ -359,10 +379,19 @@
                                         $unitVal = $item['unit'] ?? ($salesCategory === 'books' ? 'কপি' : 'পিস');
                                     @endphp
                                     <tr class="item-row" data-row="{{ $i }}">
-                                        <td>
-                                            <textarea name="items[{{ $i }}][title]" class="form-control item-title fw-semibold" rows="2"
-                                                      placeholder="কাজের নাম / বইয়ের নাম / প্রিন্টিং বিবরণ..." required oninput="onTitleInput(this, {{ $i }})" onchange="onTitleInput(this, {{ $i }})" autocomplete="off" style="resize: vertical; min-height: 52px; font-size: 13.5px; line-height: 1.4;">{{ $item['title'] ?? '' }}</textarea>
+                                        <td class="position-relative book-search-container" style="min-width: 380px;">
+                                            <div class="input-group input-group-sm">
+                                                <textarea name="items[{{ $i }}][title]" class="form-control item-title fw-bold" rows="2" 
+                                                          placeholder="Search book title, author, ISBN..." required 
+                                                          oninput="handleLiveBookSearch(this, {{ $i }})" 
+                                                          onfocus="handleLiveBookSearch(this, {{ $i }})" 
+                                                          autocomplete="off" style="font-size: 13.5px; min-height: 52px; line-height: 1.4; resize: vertical;">{{ $item['title'] ?? '' }}</textarea>
+                                                <button type="button" class="btn btn-outline-primary px-2.5 d-flex align-items-center justify-content-center" onclick="openQuickAddBookModal({{ $i }})" title="Add new book to Bookshop" style="min-height: 52px;">
+                                                    <i class="fas fa-plus"></i>
+                                                </button>
+                                            </div>
                                             <input type="hidden" name="items[{{ $i }}][book_id]" class="item-book-id" value="{{ $item['book_id'] ?? ($bookObj ? $bookObj->id : '') }}">
+                                            <div class="book-search-dropdown shadow-lg rounded-3 border bg-white d-none" style="position: absolute; top: 100%; left: 0; right: 0; z-index: 1050; max-height: 280px; overflow-y: auto;"></div>
                                         </td>
                                         <td>
                                             <input type="text" name="items[{{ $i }}][author_name]" class="form-control item-author" 
@@ -432,21 +461,21 @@
                         <div class="col-md-6">
                             <div class="d-flex align-items-center justify-content-between mb-1">
                                 <label class="form-label small fw-semibold text-muted mb-0">
-                                    <i class="fa-solid fa-file-contract me-1 text-primary"></i>কোটেশন / টেন্ডার শর্তাবলী (Terms & Conditions)
+                                    <i class="fa-solid fa-file-contract me-1 text-primary"></i>Terms & Conditions
                                 </label>
                                 <div style="min-width: 220px;">
                                     <select class="form-select form-select-sm rounded-pill border-primary fw-semibold" id="termsPresetSelect" onchange="applyTermsPreset(this.value)">
-                                        <option value="">-- শর্তাবলী টেমপ্লেট নির্বাচন করুন --</option>
-                                        <option value="printing">🖨️ প্রিন্টিং ও প্রেস কাজের শর্তাবলী</option>
-                                        <option value="delivery">🚚 মালামাল সরবরাহ ও ডেলিভারি শর্ত</option>
-                                        <option value="tender">🏛️ সরকারি / প্রাতিষ্ঠানিক টেন্ডার শর্ত</option>
-                                        <option value="books">📚 বই বিক্রয় ও লাইব্রেরি সরবরাহ শর্ত</option>
-                                        <option value="advance">💳 ৫০% অগ্রিম ও পেমেন্ট শর্তাবলী</option>
-                                        <option value="general">🏢 সাধারণ বিক্রয় ও বাণিজ্যিক শর্তাবলী</option>
+                                        <option value="">-- Select Terms Template --</option>
+                                        <option value="printing">🖨️ Printing & Press Terms</option>
+                                        <option value="delivery">🚚 Delivery & Dispatch Terms</option>
+                                        <option value="tender">🏛️ Institutional Tender Terms</option>
+                                        <option value="books">📚 Book Sales & Library Supply Terms</option>
+                                        <option value="advance">💳 50% Advance & Payment Terms</option>
+                                        <option value="general">🏢 General Commercial Terms</option>
                                     </select>
                                 </div>
                             </div>
-                            <textarea name="terms_conditions" id="termsConditionsInput" rows="3" class="form-control rounded-3">{{ old('terms_conditions', $invoice->terms_conditions) }}</textarea>
+                            <textarea name="terms_conditions" id="termsConditionsInput" rows="3" class="form-control rounded-3">{{ old('terms_conditions', $invoice->terms_conditions ?? ($invoiceSettings['terms_and_conditions'] ?? '')) }}</textarea>
                         </div>
                     </div>
                 </div>
@@ -503,6 +532,15 @@
                             <input type="number" step="0.01" name="tax" id="taxInput" class="form-control form-control-sm font-monospace text-end" 
                                    value="{{ old('tax', $invoice->tax ?? 0) }}" min="0" oninput="calcTotals()">
                         </div>
+                    </div>
+
+                    {{-- Auto-post books switch --}}
+                    <div class="form-check form-switch mb-3 p-2.5 bg-light rounded-3 border">
+                        <input class="form-check-input ms-0 me-2" type="checkbox" name="auto_create_books" id="autoCreateBooksSwitch" value="1" checked>
+                        <label class="form-check-label small fw-bold text-dark" for="autoCreateBooksSwitch">
+                            <i class="fa-solid fa-cloud-arrow-up text-primary me-1"></i> Auto-post new books to Bookshop
+                        </label>
+                        <div class="text-muted small ms-4" style="font-size: 11px;">Unlisted books entered here will be auto-saved to Bookshop</div>
                     </div>
 
                     {{-- Payment Fields (Hidden in Tender/Quotation) --}}
@@ -563,8 +601,90 @@
     </div>
 </form>
 
+{{-- Quick Add Book to Bookshop Modal --}}
+<div class="modal fade" id="quickAddBookModal" tabindex="-1" aria-labelledby="quickAddBookModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header bg-primary text-white py-3">
+                <h5 class="modal-title fw-bold text-white mb-0" id="quickAddBookModalLabel">
+                    <i class="fas fa-book-medical me-2"></i>Add New Book to Bookshop
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="quickAddBookForm" onsubmit="handleQuickAddBookSubmit(event)">
+                <div class="modal-body p-4">
+                    <div id="quickBookAlert"></div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-dark mb-1">Book Title <span class="text-danger">*</span></label>
+                        <input type="text" id="qbTitle" class="form-control form-control-sm fw-bold" placeholder="বইয়ের পূর্ণ নাম লিখুন..." required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-dark mb-1">Author Name</label>
+                        <input type="text" id="qbAuthor" class="form-control form-control-sm" placeholder="লেখকের নাম...">
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-dark mb-1">Regular Price (৳) <span class="text-danger">*</span></label>
+                            <input type="number" step="0.01" id="qbPrice" class="form-control form-control-sm font-monospace fw-bold" placeholder="0.00" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-dark mb-1">Discount / Selling Price (৳)</label>
+                            <input type="number" step="0.01" id="qbDiscountPrice" class="form-control form-control-sm font-monospace" placeholder="0.00">
+                        </div>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-dark mb-1">Hardcover Price (৳)</label>
+                            <input type="number" step="0.01" id="qbHardcoverPrice" class="form-control form-control-sm font-monospace" placeholder="0.00">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-dark mb-1">Cover Type</label>
+                            <select id="qbCoverType" class="form-select form-select-sm">
+                                <option value="paperback">Paperback</option>
+                                <option value="hardcover">Hardcover</option>
+                                <option value="both">Both (Paperback & Hardcover)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row g-2 mb-2">
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-dark mb-1">Stock Quantity</label>
+                            <input type="number" id="qbStock" class="form-control form-control-sm font-monospace" value="50" min="0">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-dark mb-1">ISBN (Optional)</label>
+                            <input type="text" id="qbIsbn" class="form-control form-control-sm font-monospace" placeholder="978-...">
+                        </div>
+                    </div>
+                    <div class="alert alert-light border py-2 px-3 small text-muted mb-0 rounded-3">
+                        <i class="fa-solid fa-circle-info text-info me-1"></i> Saving will publish this book to the Bookshop database and link it directly to this invoice.
+                    </div>
+                </div>
+                <div class="modal-footer bg-light py-2.5">
+                    <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" id="qbSubmitBtn" class="btn btn-sm btn-primary rounded-pill px-4 fw-bold shadow-xs">
+                        <i class="fas fa-check-circle me-1"></i> Save & Insert Book
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script>
     let rowCounter = {{ count($items) + 10 }};
+    let currentModalRowIndex = 0;
+    let liveSearchTimer = null;
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
 
     const booksCatalog = {
         @foreach($books as $b)
@@ -601,6 +721,267 @@
             },
         @endforeach
     };
+
+    function handleLiveBookSearch(input, rowIndex) {
+        const query = input.value.trim();
+        const row = document.querySelector(`tr[data-row="${rowIndex}"]`);
+        if (!row) return;
+
+        const dropdown = row.querySelector('.book-search-dropdown');
+        if (!dropdown) return;
+
+        if (!query) {
+            dropdown.classList.add('d-none');
+            dropdown.innerHTML = '';
+            return;
+        }
+
+        const qLower = query.toLowerCase();
+        let localMatches = [];
+        for (const [id, book] of Object.entries(booksCatalog)) {
+            const titleMatch = (book.title || '').toLowerCase().includes(qLower);
+            const authorMatch = (book.author || '').toLowerCase().includes(qLower);
+            if (titleMatch || authorMatch) {
+                localMatches.push(book);
+                if (localMatches.length >= 10) break;
+            }
+        }
+
+        renderSearchDropdown(dropdown, query, localMatches, rowIndex, false);
+
+        clearTimeout(liveSearchTimer);
+        liveSearchTimer = setTimeout(() => {
+            fetch(`{{ route('admin.accounting.invoices.search-books') }}?q=${encodeURIComponent(query)}`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (input.value.trim() !== query) return;
+                if (Array.isArray(data)) {
+                    data.forEach(b => {
+                        if (!booksCatalog[b.id]) {
+                            booksCatalog[b.id] = {
+                                id: b.id,
+                                title: b.title,
+                                author: b.author_name || '',
+                                hasHardcover: b.has_hardcover,
+                                hasPaperback: b.has_paperback,
+                                paperback: {
+                                    regularPrice: b.paperback_price,
+                                    sellingPrice: b.paperback_selling_price,
+                                    discountPercent: b.paperback_discount_pct
+                                },
+                                hardcover: {
+                                    regularPrice: b.hardcover_price,
+                                    sellingPrice: b.hardcover_selling_price,
+                                    discountPercent: b.hardcover_discount_pct
+                                }
+                            };
+                        }
+                    });
+                    renderSearchDropdown(dropdown, query, data, rowIndex, true);
+                }
+            })
+            .catch(err => console.error('Search error:', err));
+        }, 250);
+    }
+
+    function renderSearchDropdown(dropdown, query, results, rowIndex, isRemote) {
+        if (!results || results.length === 0) {
+            dropdown.innerHTML = `
+                <div class="p-3 text-center">
+                    <div class="text-muted small mb-2"><i class="fas fa-search me-1"></i> "${escapeHtml(query)}" বইটি তালিকায় পাওয়া যায়নি</div>
+                    <button type="button" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold" onclick="openQuickAddBookModal(${rowIndex}, '${escapeHtml(query)}')">
+                        <i class="fas fa-plus-circle me-1"></i> + Add to Bookshop
+                    </button>
+                    <div class="text-muted small mt-1" style="font-size: 11px;">বুকশপে নতুন বই হিসেবে যুক্ত হবে</div>
+                </div>
+            `;
+            dropdown.classList.remove('d-none');
+            return;
+        }
+
+        let html = `<div class="list-group list-group-flush p-1">`;
+        results.slice(0, 10).forEach(book => {
+            const title = book.title;
+            const author = book.author || book.author_name || '';
+            const regPrice = book.paperback ? book.paperback.regularPrice : (book.regular_price || 0);
+            const sellPrice = book.paperback ? book.paperback.sellingPrice : (book.selling_price || regPrice);
+            const discPct = book.paperback ? book.paperback.discountPercent : (book.discount_pct || 0);
+            
+            html += `
+                <a href="javascript:void(0)" class="list-group-item list-group-item-action p-2 rounded-2 border-0 d-flex align-items-center justify-content-between gap-2" 
+                   onclick="selectBookForRow(${book.id}, ${rowIndex})">
+                    <div class="d-flex align-items-center gap-2 text-truncate">
+                        <div class="bg-primary-subtle text-primary rounded p-2 text-center" style="width: 32px; height: 32px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
+                            <i class="fa-solid fa-book"></i>
+                        </div>
+                        <div class="text-truncate">
+                            <div class="fw-bold text-dark small text-truncate">${escapeHtml(title)}</div>
+                            <div class="text-muted text-truncate" style="font-size: 11.5px;">
+                                ${author ? `<i class="fa-solid fa-pen-nib me-1"></i>${escapeHtml(author)}` : ''}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-end text-nowrap" style="flex-shrink: 0;">
+                        <div class="fw-bold text-primary font-monospace small">৳${sellPrice}</div>
+                        ${regPrice > sellPrice ? `<del class="text-muted small" style="font-size: 11px;">৳${regPrice}</del> <span class="badge bg-success-subtle text-success py-0 px-1" style="font-size: 10px;">${discPct}%</span>` : ''}
+                    </div>
+                </a>
+            `;
+        });
+
+        html += `
+            <div class="p-2 border-top bg-light text-center">
+                <button type="button" class="btn btn-sm btn-outline-primary rounded-pill w-100 py-1 small fw-bold" onclick="openQuickAddBookModal(${rowIndex}, '${escapeHtml(query)}')">
+                    <i class="fas fa-plus-circle me-1"></i> Not in list? Add "${escapeHtml(query)}" to Bookshop
+                </button>
+            </div>
+        </div>`;
+
+        dropdown.innerHTML = html;
+        dropdown.classList.remove('d-none');
+    }
+
+    function selectBookForRow(bookId, index, edition) {
+        const book = booksCatalog[bookId];
+        const row = document.querySelector(`tr[data-row="${index}"]`);
+        if (!row) return;
+
+        const dropdown = row.querySelector('.book-search-dropdown');
+        if (dropdown) dropdown.classList.add('d-none');
+
+        const titleInput = row.querySelector('.item-title');
+        const hiddenId = row.querySelector('.item-book-id');
+        const authorInput = row.querySelector('.item-author');
+        const typeSelect = row.querySelector('.item-type-select');
+        const regPriceInput = row.querySelector('.item-regular-price');
+        const discPctInput = row.querySelector('.item-discount-percent');
+        const priceInput = row.querySelector('.item-price');
+        const unitInput = row.querySelector('.item-unit');
+
+        if (book) {
+            if (titleInput) titleInput.value = book.title;
+            if (hiddenId) hiddenId.value = book.id;
+            if (authorInput) authorInput.value = book.author || '';
+            if (unitInput && !unitInput.value) unitInput.value = 'কপি';
+
+            let targetEdition = edition || 'paperback';
+            if (book.hasHardcover && !book.hasPaperback) {
+                targetEdition = 'hardcover';
+            }
+
+            const editionData = targetEdition === 'hardcover' ? book.hardcover : book.paperback;
+
+            if (typeSelect) {
+                typeSelect.value = targetEdition === 'hardcover' ? 'Book (Hardcover)' : 'Book (Paperback)';
+            }
+            if (regPriceInput) regPriceInput.value = editionData.regularPrice;
+            if (discPctInput) discPctInput.value = editionData.discountPercent;
+            if (priceInput) priceInput.value = editionData.sellingPrice;
+        }
+
+        calcRow(index, 'book_select');
+    }
+
+    function openQuickAddBookModal(rowIndex, prefilledTitle) {
+        currentModalRowIndex = rowIndex !== undefined ? rowIndex : 0;
+        const row = document.querySelector(`tr[data-row="${currentModalRowIndex}"]`);
+        const titleVal = prefilledTitle || (row ? row.querySelector('.item-title')?.value : '') || '';
+        const authorVal = (row ? row.querySelector('.item-author')?.value : '') || '';
+        const regPriceVal = (row ? row.querySelector('.item-regular-price')?.value : '') || '';
+        const priceVal = (row ? row.querySelector('.item-price')?.value : '') || '';
+
+        document.getElementById('qbTitle').value = titleVal;
+        document.getElementById('qbAuthor').value = authorVal;
+        document.getElementById('qbPrice').value = regPriceVal && parseFloat(regPriceVal) > 0 ? regPriceVal : (priceVal || '');
+        document.getElementById('qbDiscountPrice').value = (priceVal && regPriceVal && parseFloat(priceVal) < parseFloat(regPriceVal)) ? priceVal : '';
+        document.getElementById('quickBookAlert').innerHTML = '';
+
+        document.querySelectorAll('.book-search-dropdown').forEach(d => d.classList.add('d-none'));
+
+        const modalEl = document.getElementById('quickAddBookModal');
+        if (modalEl) {
+            const modal = new bootstrap.Modal(modalEl);
+            modal.show();
+        }
+    }
+
+    function handleQuickAddBookSubmit(e) {
+        e.preventDefault();
+        const btn = document.getElementById('qbSubmitBtn');
+        const alertBox = document.getElementById('quickBookAlert');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Saving...';
+
+        const payload = {
+            title: document.getElementById('qbTitle').value.trim(),
+            author_name: document.getElementById('qbAuthor').value.trim(),
+            price: parseFloat(document.getElementById('qbPrice').value) || 0,
+            discount_price: parseFloat(document.getElementById('qbDiscountPrice').value) || null,
+            hardcover_price: parseFloat(document.getElementById('qbHardcoverPrice').value) || null,
+            cover_type: document.getElementById('qbCoverType').value,
+            stock_quantity: parseInt(document.getElementById('qbStock').value) || 50,
+            isbn: document.getElementById('qbIsbn').value.trim() || null,
+        };
+
+        fetch('{{ route('admin.accounting.invoices.quick-store-book') }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-check-circle me-1"></i> Save & Insert Book';
+            if (data.success && data.book) {
+                const b = data.book;
+                booksCatalog[b.id] = {
+                    id: b.id,
+                    title: b.title,
+                    author: b.author_name || '',
+                    hasHardcover: b.has_hardcover,
+                    hasPaperback: b.has_paperback,
+                    paperback: {
+                        regularPrice: b.regular_price,
+                        sellingPrice: b.selling_price,
+                        discountPercent: b.discount_pct
+                    },
+                    hardcover: {
+                        regularPrice: b.hardcover_price || b.regular_price,
+                        sellingPrice: b.hardcover_price || b.selling_price,
+                        discountPercent: b.discount_pct
+                    }
+                };
+
+                selectBookForRow(b.id, currentModalRowIndex, b.cover_type === 'hardcover' ? 'hardcover' : 'paperback');
+
+                const modalEl = document.getElementById('quickAddBookModal');
+                const modal = bootstrap.Modal.getInstance(modalEl);
+                if (modal) modal.hide();
+            } else {
+                alertBox.innerHTML = `<div class="alert alert-danger py-2 small">${data.message || 'Error saving book.'}</div>`;
+            }
+        })
+        .catch(err => {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-check-circle me-1"></i> Save & Insert Book';
+            alertBox.innerHTML = `<div class="alert alert-danger py-2 small">Error: ${err.message}</div>`;
+        });
+    }
+
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.book-search-container')) {
+            document.querySelectorAll('.book-search-dropdown').forEach(d => d.classList.add('d-none'));
+        }
+    });
 
     function updateDocType() {
         const typeEl = document.querySelector('input[name="type"]:checked');
@@ -703,71 +1084,7 @@
     }
 
     function onTitleInput(input, index) {
-        const rawVal = input.value.trim();
-        if (!rawVal || rawVal.length < 2) return;
-
-        // Check active category (e.g. books, stationery, printing_goods, other)
-        const catSelect = document.getElementById('salesCategorySelect');
-        const activeCategory = catSelect ? catSelect.value : (document.querySelector('input[name="sales_category"]:checked')?.value || 'books');
-
-        const row = document.querySelector(`tr[data-row="${index}"]`);
-        if (!row) return;
-
-        const hiddenId = row.querySelector('.item-book-id');
-        const authorInput = row.querySelector('.item-author');
-        const typeSelect = row.querySelector('.item-type-select');
-        const regPriceInput = row.querySelector('.item-regular-price');
-        const discPctInput = row.querySelector('.item-discount-percent');
-        const priceInput = row.querySelector('.item-price');
-
-        // Only search book catalog if in 'books' category or if exact match
-        const cleanVal = rawVal.replace(/\(paperback\)|\(hardcover\)|\[paperback\]|\[hardcover\]|\(পেপারব্যাক\)|\(হার্ডকভার\)/gi, '').split('—')[0].split('(')[0].trim().toLowerCase();
-
-        let matchedBook = null;
-        let matchedEdition = 'paperback';
-
-        for (const [id, book] of Object.entries(booksCatalog)) {
-            const bTitle = book.title.trim().toLowerCase();
-            if (bTitle === cleanVal || bTitle === rawVal.toLowerCase()) {
-                matchedBook = book;
-                break;
-            }
-        }
-
-        // If not in 'books' category and not exact match, do nothing to allow freeform typing
-        if (!matchedBook) return;
-
-        const isHcSelected = rawVal.toLowerCase().includes('hardcover') || rawVal.includes('হার্ডকভার');
-        const isPbSelected = rawVal.toLowerCase().includes('paperback') || rawVal.includes('পেপারব্যাক');
-
-        if (isHcSelected && matchedBook.hasHardcover) {
-            matchedEdition = 'hardcover';
-        } else if (isPbSelected && matchedBook.hasPaperback) {
-            matchedEdition = 'paperback';
-        } else if (matchedBook.hasHardcover && !matchedBook.hasPaperback) {
-            matchedEdition = 'hardcover';
-        } else {
-            matchedEdition = 'paperback';
-        }
-
-        if (hiddenId) hiddenId.value = matchedBook.id;
-        if (authorInput && matchedBook.author && !authorInput.value) authorInput.value = matchedBook.author;
-
-        const editionData = matchedEdition === 'hardcover' ? matchedBook.hardcover : matchedBook.paperback;
-
-        if (typeSelect) {
-            typeSelect.value = matchedEdition === 'hardcover' ? 'Book (Hardcover)' : 'Book (Paperback)';
-        }
-        if (regPriceInput && (parseFloat(regPriceInput.value) === 0 || !regPriceInput.value)) {
-            regPriceInput.value = editionData.regularPrice;
-        }
-        if (discPctInput && (parseFloat(discPctInput.value) === 0 || !discPctInput.value)) {
-            discPctInput.value = editionData.discountPercent;
-        }
-        if (priceInput && (parseFloat(priceInput.value) === 0 || !priceInput.value)) {
-            priceInput.value = editionData.sellingPrice;
-        }
-        calcRow(index, 'book_select');
+        handleLiveBookSearch(input, index);
     }
 
     function onTypeChange(selectEl, index) {
@@ -863,12 +1180,8 @@
         });
         const amount = parseFloat(document.getElementById('discountInput')?.value) || 0;
         const pctInput = document.getElementById('discountPercentInput');
-        if (pctInput) {
-            if (subtotal > 0 && amount > 0) {
-                pctInput.value = Math.round((amount / subtotal) * 1000) / 10;
-            } else {
-                pctInput.value = 0;
-            }
+        if (pctInput && subtotal > 0) {
+            pctInput.value = Math.round((amount / subtotal) * 100);
         }
         calcTotals();
     }
@@ -988,10 +1301,19 @@
             tr.className = 'item-row';
             tr.setAttribute('data-row', i);
             tr.innerHTML = `
-                <td>
-                    <textarea name="items[${i}][title]" class="form-control item-title fw-semibold" rows="2" 
-                              placeholder="কাজের নাম / বইয়ের নাম / প্রিন্টিং বিবরণ..." required oninput="onTitleInput(this, ${i})" onchange="onTitleInput(this, ${i})" autocomplete="off" style="resize: vertical; min-height: 52px; font-size: 13.5px; line-height: 1.4;">${title}</textarea>
+                <td class="position-relative book-search-container" style="min-width: 380px;">
+                    <div class="input-group input-group-sm">
+                        <textarea name="items[${i}][title]" class="form-control item-title fw-bold" rows="2" 
+                                  placeholder="Search book title, author, ISBN..." required 
+                                  oninput="handleLiveBookSearch(this, ${i})" 
+                                  onfocus="handleLiveBookSearch(this, ${i})" 
+                                  autocomplete="off" style="font-size: 13.5px; min-height: 52px; line-height: 1.4; resize: vertical;">${escapeHtml(title)}</textarea>
+                        <button type="button" class="btn btn-outline-primary px-2.5 d-flex align-items-center justify-content-center" onclick="openQuickAddBookModal(${i})" title="Add new book to Bookshop" style="min-height: 52px;">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
                     <input type="hidden" name="items[${i}][book_id]" class="item-book-id" value="">
+                    <div class="book-search-dropdown shadow-lg rounded-3 border bg-white d-none" style="position: absolute; top: 100%; left: 0; right: 0; z-index: 1050; max-height: 280px; overflow-y: auto;"></div>
                 </td>
                 <td>
                     <input type="text" name="items[${i}][author_name]" class="form-control item-author" 
@@ -1065,11 +1387,9 @@
     }
 
     function toggleSalesCategory(cat) {
-        const hintText = document.getElementById('categoryHintText');
         const stnWrap = document.getElementById('stationeryPresetsWrap');
         const prtWrap = document.getElementById('printingPresetsWrap');
         const itemsSecTitle = document.getElementById('itemsSectionTitle');
-        const itemsSecSub = document.getElementById('itemsSectionSubtitle');
         const addBtn = document.getElementById('btnAddItemBtn');
 
         const thTitle = document.getElementById('thTitleLabel');
@@ -1084,51 +1404,43 @@
         }
 
         if (cat === 'stationery') {
-            if (hintText) hintText.textContent = 'ডায়েরি, নোটবুক, কলম, ফাইল ও স্টেশনারী সামগ্রী বিক্রয় চালান';
             if (stnWrap) stnWrap.style.display = 'block';
             if (prtWrap) prtWrap.style.display = 'none';
-            if (itemsSecTitle) itemsSecTitle.innerHTML = '<i class="fa-solid fa-pen-ruler me-2 text-info"></i>স্টেশনারী পণ্যের তালিকা ও বিক্রয় মূল্য';
-            if (itemsSecSub) itemsSecSub.textContent = 'স্টেশনারী পণ্যের বিবরণ, একক, পরিমাণ ও বিক্রয় মূল্য লিখুন';
-            if (addBtn) addBtn.innerHTML = '<i class="fas fa-plus me-1"></i> + আরও স্টেশনারী যোগ';
+            if (itemsSecTitle) itemsSecTitle.innerHTML = '<i class="fa-solid fa-pen-ruler me-2 text-info"></i>Stationery Items & Rates';
+            if (addBtn) addBtn.innerHTML = '<i class="fas fa-plus me-1"></i> Add Item';
 
-            if (thTitle) thTitle.textContent = 'পণ্যের নাম ও বিবরণ';
-            if (thAuthor) thAuthor.textContent = 'মডেল / স্পেসিফিকেশন';
-            if (thUnit) thUnit.textContent = 'একক (Unit)';
-            if (thReg) thReg.textContent = 'MRP (৳)';
-            if (thNet) thNet.textContent = 'বিক্রয় দর (৳)';
+            if (thTitle) thTitle.textContent = 'Item / Product Title';
+            if (thAuthor) thAuthor.textContent = 'Model / Spec';
+            if (thUnit) thUnit.textContent = 'Unit';
+            if (thReg) thReg.textContent = 'Price (৳)';
+            if (thNet) thNet.textContent = 'Net Price (৳)';
         } else if (cat === 'printing_goods') {
-            if (hintText) hintText.textContent = 'কাস্টম বই প্রিন্ট, ক্যালেন্ডার, পোস্টার, ম্যাগাজিন ও মুদ্রণ সেবা চালান';
             if (stnWrap) stnWrap.style.display = 'none';
             if (prtWrap) prtWrap.style.display = 'block';
-            if (itemsSecTitle) itemsSecTitle.innerHTML = '<i class="fa-solid fa-print me-2 text-warning"></i>প্রিন্টিং গুডস ও মুদ্রণ সেবার বিবরণ ও বিল';
-            if (itemsSecSub) itemsSecSub.textContent = 'মুদ্রণ কাজের বিবরণ, ফর্মা/কপি, একক ও বিল রেট লিখুন';
-            if (addBtn) addBtn.innerHTML = '<i class="fas fa-plus me-1"></i> + আরও প্রিন্টিং আইটেম যোগ';
+            if (itemsSecTitle) itemsSecTitle.innerHTML = '<i class="fa-solid fa-print me-2 text-warning"></i>Printing & Press Services';
+            if (addBtn) addBtn.innerHTML = '<i class="fas fa-plus me-1"></i> Add Item';
 
-            if (thTitle) thTitle.textContent = 'কাজের নাম / প্রিন্টিং বিবরণ';
-            if (thAuthor) thAuthor.textContent = 'সাইজ / ফর্মা স্পেক';
-            if (thUnit) thUnit.textContent = 'একক (Unit)';
-            if (thReg) thReg.textContent = 'রেট (৳)';
-            if (thNet) thNet.textContent = 'নীট দর (৳)';
+            if (thTitle) thTitle.textContent = 'Job Title / Description';
+            if (thAuthor) thAuthor.textContent = 'Size / Spec';
+            if (thUnit) thUnit.textContent = 'Unit';
+            if (thReg) thReg.textContent = 'Price (৳)';
+            if (thNet) thNet.textContent = 'Net Price (৳)';
         } else if (cat === 'other') {
-            if (hintText) hintText.textContent = 'অন্যান্য ও বিবিধ পণ্যের বিক্রয় ইনভয়েস';
             if (stnWrap) stnWrap.style.display = 'none';
             if (prtWrap) prtWrap.style.display = 'none';
-            if (itemsSecTitle) itemsSecTitle.innerHTML = '<i class="fa-solid fa-cart-plus me-2 text-secondary"></i>অন্যান্য পণ্য ও সেবার তালিকা';
-            if (itemsSecSub) itemsSecSub.textContent = 'পণ্য বা সেবার বিবরণ, পরিমাণ ও বিক্রয় মূল্য';
-            if (addBtn) addBtn.innerHTML = '<i class="fas fa-plus me-1"></i> + আরও আইটেম যোগ';
+            if (itemsSecTitle) itemsSecTitle.innerHTML = '<i class="fa-solid fa-cart-plus me-2 text-secondary"></i>Other Items & Services';
+            if (addBtn) addBtn.innerHTML = '<i class="fas fa-plus me-1"></i> Add Item';
 
-            if (thTitle) thTitle.textContent = 'পণ্যের নাম ও বিবরণ';
-            if (thAuthor) thAuthor.textContent = 'বিবরণ / নোট';
-            if (thUnit) thUnit.textContent = 'একক';
-            if (thReg) thReg.textContent = 'দর (৳)';
-            if (thNet) thNet.textContent = 'মোট দর (৳)';
+            if (thTitle) thTitle.textContent = 'Item Description';
+            if (thAuthor) thAuthor.textContent = 'Spec / Notes';
+            if (thUnit) thUnit.textContent = 'Unit';
+            if (thReg) thReg.textContent = 'Price (৳)';
+            if (thNet) thNet.textContent = 'Net Price (৳)';
         } else { // books
-            if (hintText) hintText.textContent = 'বই বিক্রয়, পাইকারি ও রিটেইল চালান';
             if (stnWrap) stnWrap.style.display = 'none';
             if (prtWrap) prtWrap.style.display = 'none';
             if (itemsSecTitle) itemsSecTitle.innerHTML = '<i class="fas fa-list-check me-2 text-success"></i>Items & Schedule of Rates';
-            if (itemsSecSub) itemsSecSub.textContent = 'Selecting books from catalog will automatically populate author, cover price and discount';
-            if (addBtn) addBtn.innerHTML = '<i class="fas fa-plus me-1"></i> Add More Items';
+            if (addBtn) addBtn.innerHTML = '<i class="fas fa-plus me-1"></i> Add Item';
 
             if (thTitle) thTitle.textContent = 'Item / Book Title';
             if (thAuthor) thAuthor.textContent = 'Author / Spec';
@@ -1146,10 +1458,19 @@
         tr.className = 'item-row';
         tr.setAttribute('data-row', i);
         tr.innerHTML = `
-            <td>
-                <textarea name="items[${i}][title]" class="form-control item-title fw-semibold" rows="2" 
-                          placeholder="কাজের নাম / বইয়ের নাম / প্রিন্টিং বিবরণ..." required oninput="onTitleInput(this, ${i})" onchange="onTitleInput(this, ${i})" autocomplete="off" style="resize: vertical; min-height: 52px; font-size: 13.5px; line-height: 1.4;"></textarea>
+            <td class="position-relative book-search-container" style="min-width: 380px;">
+                <div class="input-group input-group-sm">
+                    <textarea name="items[${i}][title]" class="form-control item-title fw-bold" rows="2" 
+                              placeholder="Search book title, author, ISBN..." required 
+                              oninput="handleLiveBookSearch(this, ${i})" 
+                              onfocus="handleLiveBookSearch(this, ${i})" 
+                              autocomplete="off" style="font-size: 13.5px; min-height: 52px; line-height: 1.4; resize: vertical;"></textarea>
+                    <button type="button" class="btn btn-outline-primary px-2.5 d-flex align-items-center justify-content-center" onclick="openQuickAddBookModal(${i})" title="Add new book to Bookshop" style="min-height: 52px;">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
                 <input type="hidden" name="items[${i}][book_id]" class="item-book-id" value="">
+                <div class="book-search-dropdown shadow-lg rounded-3 border bg-white d-none" style="position: absolute; top: 100%; left: 0; right: 0; z-index: 1050; max-height: 280px; overflow-y: auto;"></div>
             </td>
             <td>
                 <input type="text" name="items[${i}][author_name]" class="form-control item-author" 
@@ -1170,7 +1491,7 @@
             </td>
             <td>
                 <input type="text" name="items[${i}][unit]" class="form-control item-unit text-center font-monospace" 
-                       value="কপি" placeholder="একক" autocomplete="off">
+                       value="Pcs" placeholder="Unit" autocomplete="off">
             </td>
             <td>
                 <input type="number" step="0.01" name="items[${i}][quantity]" class="form-control item-qty text-center font-monospace fw-bold" 
@@ -1220,17 +1541,17 @@
 
         let presetText = '';
         if (type === 'printing') {
-            presetText = `১. সকল প্রকার মুদ্রণ, ল্যামিনেশন ও বাঁধাই প্রিমিয়াম কোয়ালিটিতে নির্ধারিত মান বজায় রেখে সম্পন্ন করা হবে।\n২. কাজের চূড়ান্ত প্রুফ, ডামি ও কালার অনুমোদন দেওয়ার পর মূল অফসেট মুদ্রণ শুরু হবে।\n৩. কার্যাদেশ ও ৫০% অগ্রিম প্রাপ্তির ৭-১০ কার্যদিবসের মধ্যে পূর্ণাঙ্গ মালামাল সরবরাহ করা হবে।\n৪. দরপত্রে উল্লেখিত মূল্য সকল প্রকার মুদ্রণ, ল্যামিনেশন, কাটিং ও বাঁধাই অন্তর্ভুক্ত।\n৫. অবশিষ্ট ৫০% মূল্য মালামাল হস্তান্তরের সময় বা চালান স্বাক্ষরের পর প্রদেয়।`;
+            presetText = `1. All printing, lamination, and binding will be produced in accordance with approved specifications.\n2. Mass offset printing will commence after formal client approval of proof and color dummy.\n3. Goods will be ready for dispatch within 7-10 working days following work order and 50% advance.\n4. Quoted rates include all plate charges, paper, printing, lamination, and binding costs.\n5. Remaining 50% balance is payable upon delivery or presentation of signed challan.`;
         } else if (type === 'delivery') {
-            presetText = `১. প্রস্তুতকৃত মালামাল ক্লায়েন্টের নির্দিষ্ট ঠিকানায় অথবা কুরিয়ার সার্ভিসের মাধ্যমে সরবরাহ করা হবে।\n২. পরিবহন ও ডেলিভারি চার্জ সমঝোতা বা চুক্তিপত্রের শর্তানুযায়ী প্রযোজ্য।\n৩. ডেলিভারি চালান যাচাইপূর্বক স্বাক্ষরের মাধ্যমে পণ্য গ্রহণ সম্পন্ন হবে।\n৪. কোনো মুদ্রণ বা বাঁধাই ত্রুটি পরিলক্ষিত হলে ডেলিভারির ২৪ ঘণ্টার মধ্যে অবহিত করতে হবে।`;
+            presetText = `1. Finished goods will be dispatched to client's address or via designated courier service.\n2. Freight, carriage, and handling charges apply as per agreed quotation terms.\n3. Goods are considered accepted upon verification and signing of the delivery challan.\n4. Any manufacturing discrepancy or damaged copies must be notified in writing within 48 hours of receipt.`;
         } else if (type === 'tender') {
-            presetText = `১. এই দরপত্র/কোটেশন পত্র জারির তারিখ থেকে ৩০ দিন পর্যন্ত কার্যকর থাকবে।\n২. সকল মালামাল নির্ধারিত স্পেসিফিকেশন, কাগজের জিএসএম ও সরকারি মানদণ্ড অনুযায়ী সরবরাহ করা হবে।\n৩. সরকারি ভ্যাট/ট্যাক্স ও চালান বিল সমন্বয়ের মাধ্যমে পরিশোধযোগ্য।\n৪. ওয়ার্ক অর্ডার প্রাপ্তির পর নির্ধারিত শিডিউল অনুযায়ী পর্যায়ক্রমে সরবরাহ সম্পন্ন হবে।\n৫. নমুনা প্রুফ অনুমোদনের পর চূড়ান্ত সরবরাহ কার্যকর হবে।`;
+            presetText = `1. This tender schedule / price quotation is valid for 30–60 days from the date of submission.\n2. All items will be supplied strictly in compliance with specified paper GSM and government standards.\n3. Payment is subject to deduction of source VAT (VDS) and AIT per National Board of Revenue (NBR) rules.\n4. Deliveries will be executed in phases following official Work Order / Purchase Order schedule.\n5. Pre-delivery inspection (PDI) and sample approval apply prior to final supply.`;
         } else if (type === 'books') {
-            presetText = `১. অর্ডারকৃত সকল বই প্রকাশনীর অনুমোদিত নতুন ও অবিকৃত কপি সরবরাহ করা হবে।\n২. চুক্তি অনুযায়ী নির্দিষ্ট কমিশন সমন্বয়ের পর নীট প্রদেয় মূল্য নির্ধারণ করা হয়েছে।\n৩. লাইব্রেরি বা পাইকারি ক্রয়ের ক্ষেত্রে চালান স্বাক্ষরের মাধ্যমে হস্তান্তর সম্পন্ন হবে।\n৪. প্যাকিং ও বাঁধাই ত্রুটিযুক্ত বই বিনামূল্যে পরিবর্তনযোগ্য।`;
+            presetText = `1. All supplied books are authentic, brand new, and published under Idea Publication imprint.\n2. Special trade discount / commission has been applied against publisher's list price.\n3. Delivery handover is executed upon recipient's verification and signed challan.\n4. Misbound or transit-damaged copies will be replaced free of cost upon notification.`;
         } else if (type === 'advance') {
-            presetText = `১. কার্যাদেশ চূড়ান্তকরণের সময় মোট মূল্যের ৫০% অগ্রিম প্রদেয়।\n২. কাজের মধ্যবর্তী প্রুফিং পর্যায়ে ২৫% এবং মালামাল ডেলিভারির সময় অবশিষ্ট ২৫% প্রদেয়।\n৩. চেক বা ব্যাংক ট্রান্সফারের ক্ষেত্রে ক্লিয়ারেন্স সাপেক্ষে চালান ইস্যু করা হবে।`;
+            presetText = `1. 50% advance payment is required upon work order confirmation.\n2. 25% payable at intermediate proof stage, and remaining 25% upon final delivery handover.\n3. Invoices against cheque or pay order are subject to bank clearing and realization.`;
         } else if (type === 'general') {
-            presetText = `১. বিল জারির ৭ কার্যদিবসের মধ্যে সম্পূর্ণ অর্থ পরিশোধযোগ্য।\n২. বিশেষ ছাড় বা কমিশন চুক্তি শর্ত অনুযায়ী প্রযোজ্য।\n৩. কোনো অসঙ্গতি থাকলে চালান প্রাপ্তির ৩ কার্যদিবসের মধ্যে যোগাযোগ করার অনুরোধ রইল।`;
+            presetText = `1. Payment is due within 15 days of invoice date via Cash, Bank Transfer, or MFS (bKash/Nagad).\n2. Goods once sold in good condition are non-returnable without prior written approval.\n3. Quotations and price schedules remain valid for 30 days from date of issuance.\n4. All disputes are subject to the exclusive jurisdiction of competent courts in Bangladesh.`;
         }
 
         termsInput.value = presetText;

@@ -397,7 +397,7 @@
                                         <i class="fas fa-coins me-1 text-primary"></i>Total in Words:
                                     </span>
                                     <div class="fw-bold text-dark text-wrap" style="font-size: 11.5px; line-height: 1.45;">
-                                        @takaInWords($invoice->grand_total)
+                                        @takaInWordsEn($invoice->grand_total)
                                     </div>
                                 </div>
                             </td>

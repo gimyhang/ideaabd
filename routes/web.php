@@ -360,6 +360,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::post('/entries', 'storeEntry')->name('entries.store');
         Route::delete('/entries/{entry}', 'destroyEntry')->name('entries.destroy');
         Route::get('/invoices', 'invoices')->name('invoices.index');
+        Route::get('/invoices/search-books', 'searchBooks')->name('invoices.search-books');
+        Route::post('/invoices/quick-store-book', 'quickStoreBook')->name('invoices.quick-store-book');
         Route::get('/invoices/create', 'createInvoice')->name('invoices.create');
         Route::post('/invoices', 'storeInvoice')->name('invoices.store');
         Route::get('/invoices/{invoice}', 'showInvoice')->name('invoices.show');

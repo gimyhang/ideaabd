@@ -501,10 +501,10 @@
                                 <td colspan="6" rowspan="{{ $tfootRows }}" class="py-2 px-2.5 border bg-light bg-opacity-25" style="vertical-align: middle;">
                                     <div class="p-1">
                                         <span class="text-muted fw-bold d-block mb-1" style="font-size: 9.5px;">
-                                            <i class="fas fa-coins me-1 text-primary"></i>টাকা কথায়:
+                                            <i class="fas fa-coins me-1 text-primary"></i>Total in Words:
                                         </span>
                                         <div class="fw-bold text-dark text-wrap" style="font-size: 11.5px; line-height: 1.45;">
-                                            @takaInWords($invoice->grand_total)
+                                            @takaInWordsEn($invoice->grand_total)
                                         </div>
                                     </div>
                                 </td>

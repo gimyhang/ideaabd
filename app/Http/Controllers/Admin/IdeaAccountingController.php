@@ -9,6 +9,7 @@ use App\Models\IdeaInvoice;
 use App\Models\IdeaEmployee;
 use App\Models\IdeaSalaryPayment;
 use App\Models\IdeaEmployeeWorkLog;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -219,6 +220,162 @@ class IdeaAccountingController extends Controller
     }
 
     /**
+     * Live search books for invoice creation.
+     */
+    public function searchBooks(Request $request): JsonResponse
+    {
+        $q = $request->string('q')->trim()->value();
+        if (strlen($q) < 1) {
+            return response()->json([]);
+        }
+
+        $bnDigits = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+        $enDigits = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+        $normalized = str_replace($bnDigits, $enDigits, $q);
+        $words = preg_split('/\s+/', $q, -1, PREG_SPLIT_NO_EMPTY);
+        $tokens = array_values(array_unique(array_filter(array_merge([$q, $normalized], $words))));
+
+        $books = Book::query()
+            ->with(['publisher', 'authorLink', 'authors'])
+            ->where(function ($masterQuery) use ($tokens) {
+                foreach ($tokens as $token) {
+                    $like = '%' . $token . '%';
+                    $masterQuery->where(function ($query) use ($like, $token) {
+                        $query->where('title', 'like', $like)
+                              ->orWhere('subtitle', 'like', $like)
+                              ->orWhere('isbn', 'like', $like)
+                              ->orWhere('sku', 'like', $like)
+                              ->orWhere('author_name', 'like', $like)
+                              ->orWhere('translator_name', 'like', $like)
+                              ->orWhere('editor_name', 'like', $like)
+                              ->orWhereHas('authorLink', fn($a) => $a->where('name', 'like', $like))
+                              ->orWhereHas('authors', fn($a) => $a->where('name', 'like', $like));
+                    });
+                }
+            })
+            ->limit(25)
+            ->get()
+            ->map(function ($book) {
+                $pbReg = (float)($book->price ?: ($book->hardcover_price ?: 0));
+                $pbDisc = (float)($book->discount_price ?: 0);
+                $pbSell = ($pbDisc > 0 && $pbDisc < $pbReg) ? $pbDisc : $pbReg;
+                $pbDiscPct = ($pbReg > 0 && $pbSell < $pbReg) ? round((($pbReg - $pbSell) / $pbReg) * 100, 1) : 0;
+
+                $hcReg = (float)($book->hardcover_price ?: ($book->price ?: 0));
+                $hcDisc = (float)($book->hardcover_discount_price ?: 0);
+                $hcSell = ($hcDisc > 0 && $hcDisc < $hcReg) ? $hcDisc : ($pbSell ?: $hcReg);
+                $hcDiscPct = ($hcReg > 0 && $hcSell < $hcReg) ? round((($hcReg - $hcSell) / $hcReg) * 100, 1) : 0;
+
+                $hasHardcover = ($book->hardcover_price > 0 || in_array($book->cover_type, ['hardcover', 'both']));
+                $hasPaperback = ($book->price > 0 || in_array($book->cover_type, ['paperback', 'both']) || !$hasHardcover);
+
+                return [
+                    'id'                       => $book->id,
+                    'title'                    => $book->title,
+                    'subtitle'                 => $book->subtitle,
+                    'author_name'              => $book->author_name ?? ($book->authorLink->name ?? ''),
+                    'cover_type'               => $book->cover_type ?? 'paperback',
+                    'has_paperback'            => $hasPaperback,
+                    'has_hardcover'            => $hasHardcover,
+                    'paperback_price'          => $pbReg,
+                    'paperback_discount_price' => $pbDisc,
+                    'paperback_selling_price'  => $pbSell,
+                    'paperback_discount_pct'   => $pbDiscPct,
+                    'hardcover_price'          => $hcReg,
+                    'hardcover_discount_price' => $hcDisc,
+                    'hardcover_selling_price'  => $hcSell,
+                    'hardcover_discount_pct'   => $hcDiscPct,
+                    'regular_price'            => $pbReg ?: $hcReg,
+                    'selling_price'            => $pbSell ?: $hcSell,
+                    'discount_pct'             => $pbDiscPct ?: $hcDiscPct,
+                    'stock_quantity'           => (int) ($book->stock_quantity ?? 0),
+                    'isbn'                     => $book->isbn,
+                    'cover_image'              => $book->cover_url ?: ($book->cover_image ? asset('storage/' . ltrim($book->cover_image, '/')) : null),
+                ];
+            });
+
+        return response()->json($books);
+    }
+
+    /**
+     * Quick publish / store new book into Bookshop catalog.
+     */
+    public function quickStoreBook(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'title'          => 'required|string|max:255',
+            'author_name'    => 'nullable|string|max:255',
+            'price'          => 'required|numeric|min:0',
+            'discount_price' => 'nullable|numeric|min:0',
+            'hardcover_price'=> 'nullable|numeric|min:0',
+            'cover_type'     => 'nullable|in:paperback,hardcover,both',
+            'stock_quantity' => 'nullable|integer|min:0',
+            'isbn'           => 'nullable|string|max:50',
+        ]);
+
+        $title = trim($validated['title']);
+        $slugBase = Str::slug($title);
+        $slug = $slugBase ?: ('book-' . time() . '-' . rand(100, 999));
+        $counter = 1;
+        while (Book::where('slug', $slug)->exists()) {
+            $slug = ($slugBase ?: 'book') . '-' . time() . '-' . $counter++;
+        }
+
+        $regPrice = (float) $validated['price'];
+        $discPrice = isset($validated['discount_price']) && is_numeric($validated['discount_price']) && (float)$validated['discount_price'] > 0
+            ? (float) $validated['discount_price']
+            : null;
+        $hcPrice = isset($validated['hardcover_price']) && is_numeric($validated['hardcover_price']) && (float)$validated['hardcover_price'] > 0
+            ? (float) $validated['hardcover_price']
+            : null;
+
+        $coverType = $validated['cover_type'] ?? 'paperback';
+        if ($hcPrice > 0 && $regPrice <= 0) {
+            $coverType = 'hardcover';
+        }
+
+        $stock = isset($validated['stock_quantity']) ? (int)$validated['stock_quantity'] : 50;
+
+        $book = Book::create([
+            'title'           => $title,
+            'slug'            => $slug,
+            'author_name'     => !empty($validated['author_name']) ? trim($validated['author_name']) : null,
+            'price'           => $regPrice,
+            'discount_price'  => $discPrice,
+            'hardcover_price' => $hcPrice,
+            'cover_type'      => $coverType,
+            'stock_quantity'  => $stock,
+            'isbn'            => $validated['isbn'] ?? null,
+            'is_active'       => true,
+            'format'          => 'printed',
+        ]);
+
+        $sellPrice = ($discPrice && $discPrice < $regPrice) ? $discPrice : $regPrice;
+        $discPct = ($regPrice > 0 && $sellPrice < $regPrice) ? round((($regPrice - $sellPrice) / $regPrice) * 100, 1) : 0;
+
+        return response()->json([
+            'success' => true,
+            'message' => "বইটি সফলভাবে বুকশপে যুক্ত করা হয়েছে।",
+            'book'    => [
+                'id'                       => $book->id,
+                'title'                    => $book->title,
+                'author_name'              => $book->author_name,
+                'cover_type'               => $book->cover_type,
+                'regular_price'            => $regPrice,
+                'discount_price'           => $discPrice,
+                'selling_price'            => $sellPrice,
+                'discount_pct'             => $discPct,
+                'hardcover_price'          => $hcPrice,
+                'stock_quantity'           => $stock,
+                'isbn'                     => $book->isbn,
+                'cover_image'              => null,
+                'has_paperback'            => in_array($coverType, ['paperback', 'both']),
+                'has_hardcover'            => in_array($coverType, ['hardcover', 'both']),
+            ],
+        ]);
+    }
+
+    /**
      * Create Bill, Delivery Challan, Quotation or Tender.
      */
     public function createInvoice(Request $request): View
@@ -253,8 +410,9 @@ class IdeaAccountingController extends Controller
         $dateStr = date('Ymd');
         $countToday = IdeaInvoice::whereDate('created_at', today())->count() + 1;
         $suggestedNo = $prefix . $dateStr . '-' . str_pad((string)$countToday, 3, '0', STR_PAD_LEFT);
+        $invoiceSettings = self::getInvoiceSettings();
 
-        return view('admin.accounting.invoices.create', compact('books', 'suggestedNo', 'selectedType', 'salesCategory'));
+        return view('admin.accounting.invoices.create', compact('books', 'suggestedNo', 'selectedType', 'salesCategory', 'invoiceSettings'));
     }
 
     /**
@@ -309,8 +467,11 @@ class IdeaAccountingController extends Controller
             'items.min'              => 'কমপক্ষে একটি আইটেম বা বিবরণ যোগ করুন।',
         ]);
 
+        $salesCategory = $validated['sales_category'] ?? $request->input('sales_category', 'books');
+        $autoCreateBooks = $request->boolean('auto_create_books', true);
+
         try {
-            return DB::transaction(function () use ($validated, $request) {
+            return DB::transaction(function () use ($validated, $salesCategory, $autoCreateBooks, $request) {
                 $subtotal = 0.0;
                 $itemsProcessed = [];
 
@@ -331,12 +492,42 @@ class IdeaAccountingController extends Controller
                     $lineTotal = $qty * $price;
                     $subtotal += $lineTotal;
 
+                    $bookId = !empty($item['book_id']) ? (int)$item['book_id'] : null;
+                    $itemTitle = trim((string)$item['title']);
+
+                    // Auto create book in Bookshop if sales category is books, book_id is missing, and title is provided
+                    if (!$bookId && $salesCategory === 'books' && !empty($itemTitle) && $autoCreateBooks) {
+                        $existingBook = Book::where('title', $itemTitle)->first();
+                        if ($existingBook) {
+                            $bookId = $existingBook->id;
+                        } else {
+                            $slugBase = Str::slug($itemTitle);
+                            $slug = $slugBase ?: ('book-' . time() . '-' . rand(100, 999));
+                            $counter = 1;
+                            while (Book::where('slug', $slug)->exists()) {
+                                $slug = ($slugBase ?: 'book') . '-' . time() . '-' . $counter++;
+                            }
+                            $createdBook = Book::create([
+                                'title'          => $itemTitle,
+                                'slug'           => $slug,
+                                'author_name'    => !empty($item['author_name']) ? trim((string)$item['author_name']) : null,
+                                'cover_type'     => ($item['item_type'] ?? '') === 'Book (Hardcover)' ? 'hardcover' : 'paperback',
+                                'price'          => $regularPrice ?: $price,
+                                'discount_price' => ($discPct > 0 && $price < $regularPrice) ? $price : null,
+                                'stock_quantity' => 50,
+                                'is_active'      => true,
+                                'format'         => 'printed',
+                            ]);
+                            $bookId = $createdBook->id;
+                        }
+                    }
+
                     $itemsProcessed[] = [
                         'title'            => $item['title'],
                         'author_name'      => !empty($item['author_name']) ? trim((string)$item['author_name']) : null,
                         'item_type'        => $item['item_type'] ?? 'বই (Book)',
                         'unit'             => !empty($item['unit']) ? trim((string)$item['unit']) : 'কপি',
-                        'book_id'          => !empty($item['book_id']) ? (int)$item['book_id'] : null,
+                        'book_id'          => $bookId,
                         'quantity'         => $qty,
                         'regular_price'    => $regularPrice,
                         'discount_percent' => $discPct,
@@ -504,6 +695,9 @@ class IdeaAccountingController extends Controller
                 $subtotal = 0.0;
                 $itemsProcessed = [];
 
+                $salesCategory = $request->input('sales_category', $invoice->sales_category ?? 'books');
+                $autoCreateBooks = $request->boolean('auto_create_books', true);
+
                 foreach ($validated['items'] as $item) {
                     $qty = (float) $item['quantity'];
                     $price = (float) $item['price'];
@@ -521,12 +715,42 @@ class IdeaAccountingController extends Controller
                     $lineTotal = $qty * $price;
                     $subtotal += $lineTotal;
 
+                    $bookId = !empty($item['book_id']) ? (int)$item['book_id'] : null;
+                    $itemTitle = trim((string)$item['title']);
+
+                    // Auto create book in Bookshop if sales category is books, book_id is missing, and title is provided
+                    if (!$bookId && $salesCategory === 'books' && !empty($itemTitle) && $autoCreateBooks) {
+                        $existingBook = Book::where('title', $itemTitle)->first();
+                        if ($existingBook) {
+                            $bookId = $existingBook->id;
+                        } else {
+                            $slugBase = Str::slug($itemTitle);
+                            $slug = $slugBase ?: ('book-' . time() . '-' . rand(100, 999));
+                            $counter = 1;
+                            while (Book::where('slug', $slug)->exists()) {
+                                $slug = ($slugBase ?: 'book') . '-' . time() . '-' . $counter++;
+                            }
+                            $createdBook = Book::create([
+                                'title'          => $itemTitle,
+                                'slug'           => $slug,
+                                'author_name'    => !empty($item['author_name']) ? trim((string)$item['author_name']) : null,
+                                'cover_type'     => ($item['item_type'] ?? '') === 'Book (Hardcover)' ? 'hardcover' : 'paperback',
+                                'price'          => $regularPrice ?: $price,
+                                'discount_price' => ($discPct > 0 && $price < $regularPrice) ? $price : null,
+                                'stock_quantity' => 50,
+                                'is_active'      => true,
+                                'format'         => 'printed',
+                            ]);
+                            $bookId = $createdBook->id;
+                        }
+                    }
+
                     $itemsProcessed[] = [
                         'title'            => $item['title'],
                         'author_name'      => !empty($item['author_name']) ? trim((string)$item['author_name']) : null,
                         'item_type'        => $item['item_type'] ?? 'বই (Book)',
                         'unit'             => !empty($item['unit']) ? trim((string)$item['unit']) : 'কপি',
-                        'book_id'          => !empty($item['book_id']) ? (int)$item['book_id'] : null,
+                        'book_id'          => $bookId,
                         'quantity'         => $qty,
                         'regular_price'    => $regularPrice,
                         'discount_percent' => $discPct,
@@ -614,10 +838,10 @@ class IdeaAccountingController extends Controller
                 $typeLabel = $invoice->type_label;
 
                 return redirect()->route('admin.accounting.invoices.show', $invoice->id)
-                    ->with('success', "{$typeLabel} #{$invoice->invoice_no} সফলভাবে আপডেট করা হয়েছে।");
+                    ->with('success', "{$typeLabel} #{$invoice->invoice_no} সফলভাবে আপডেট হয়েছে।");
             });
         } catch (\Throwable $e) {
-            return back()->withInput()->with('error', 'বিল ও চালান আপডেটে সমস্যা হয়েছে: ' . $e->getMessage());
+            return back()->withInput()->with('error', 'ডকুমেন্ট আপডেটে সমস্যা হয়েছে: ' . $e->getMessage());
         }
     }
 
@@ -648,14 +872,15 @@ class IdeaAccountingController extends Controller
     public function updateSettings(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'business_name' => 'required|string|max:255',
-            'tagline'       => 'nullable|string|max:255',
-            'address'       => 'nullable|string|max:255',
-            'phone'         => 'nullable|string|max:100',
-            'email'         => 'nullable|string|max:100',
-            'logo_base64'   => 'nullable|string',
-            'logo_file'     => 'nullable|image|max:5120',
-            'logo_url'      => 'nullable|string|max:255',
+            'business_name'        => 'required|string|max:255',
+            'tagline'              => 'nullable|string|max:255',
+            'address'              => 'nullable|string|max:255',
+            'phone'                => 'nullable|string|max:100',
+            'email'                => 'nullable|string|max:100',
+            'terms_and_conditions' => 'nullable|string',
+            'logo_base64'          => 'nullable|string',
+            'logo_file'            => 'nullable|image|max:5120',
+            'logo_url'             => 'nullable|string|max:255',
         ]);
 
         try {
@@ -665,6 +890,7 @@ class IdeaAccountingController extends Controller
             $settings['address'] = $validated['address'] ?? '';
             $settings['phone'] = $validated['phone'] ?? '';
             $settings['email'] = $validated['email'] ?? '';
+            $settings['terms_and_conditions'] = $validated['terms_and_conditions'] ?? '';
 
             // Handle 2:1 cropped base64 image
             if (!empty($validated['logo_base64']) && str_starts_with($validated['logo_base64'], 'data:image/')) {
@@ -726,7 +952,7 @@ class IdeaAccountingController extends Controller
 
             \App\Support\SiteSetting::clearCache();
 
-            return back()->with('success', 'বিল ও মেমোর অফিশিয়াল তথ্য এবং লোগো সফলভাবে আপডেট করা হয়েছে।');
+            return back()->with('success', 'বিল ও মেমোর অফিশিয়াল তথ্য এবং শর্তাবলী সফলভাবে আপডেট করা হয়েছে।');
         } catch (\Throwable $e) {
             return back()->with('error', 'তথ্য সংরক্ষণে সমস্যা হয়েছে: ' . $e->getMessage());
         }
