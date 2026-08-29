@@ -9,19 +9,22 @@
 @endsection
 
 @section('actions')
-    <div class="d-flex align-items-center gap-2">
+    <div class="d-flex flex-wrap align-items-center gap-2">
         <a href="{{ route('admin.publishers') }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-xs">
             <i class="fas fa-arrow-left me-1"></i> All Publishers
         </a>
         <button type="button" class="btn btn-outline-success btn-sm rounded-pill px-3 shadow-xs" onclick="openMakePaymentModal()">
-            <i class="fas fa-hand-holding-dollar me-1"></i> Make Payment
+            <i class="fas fa-hand-holding-dollar me-1"></i> Record Payment
         </button>
-        <a href="{{ route('admin.content.create', 'books') }}?publisher_id={{ $publisher->id }}" class="btn btn-primary btn-sm rounded-pill px-3 fw-bold shadow-xs">
-            <i class="fas fa-plus-circle me-1"></i> Add New Book
+        <a href="{{ route('admin.content.create', 'books') }}?publisher_id={{ $publisher->id }}" class="btn btn-primary btn-sm rounded-pill px-3 fw-bold shadow-xs d-inline-flex align-items-center gap-1" style="background: linear-gradient(135deg, #2563eb, #1d4ed8); border:none;">
+            <i class="fas fa-plus-circle"></i>
+            <span>Add New Book</span>
         </a>
-        <a href="{{ route('publishers.show', $publisher->slug ?? $publisher->id) }}" target="_blank" rel="noopener" class="btn btn-outline-dark btn-sm rounded-pill px-3 shadow-xs">
-            <i class="fas fa-arrow-up-right-from-square me-1"></i> View in Shop
-        </a>
+        @if($publisher->slug)
+            <a href="{{ route('publishers.show', $publisher->slug) }}" target="_blank" rel="noopener" class="btn btn-outline-dark btn-sm rounded-pill px-3 shadow-xs">
+                <i class="fas fa-arrow-up-right-from-square me-1"></i> View Storefront
+            </a>
+        @endif
     </div>
 @endsection
 
@@ -30,7 +33,7 @@
 
     {{-- Flash Notifications --}}
     @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show d-flex align-items-center mb-0 shadow-xs rounded-3" role="alert">
+        <div class="alert alert-success alert-dismissible fade show d-flex align-items-center mb-0 shadow-xs rounded-4 border-0 bg-success bg-opacity-10 text-success-emphasis" role="alert">
             <i class="fas fa-circle-check fs-5 me-2 text-success"></i>
             <div>{{ session('success') }}</div>
             <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
@@ -38,165 +41,322 @@
     @endif
 
     {{-- ========================================================================= --}}
-    {{-- 1. PUBLISHER PROFILE & FINANCIAL SUMMARY CARD                             --}}
+    {{-- 1. PUBLISHER HERO & FINANCIAL SUMMARY CARD                                --}}
     {{-- ========================================================================= --}}
     @php
-        $logo = $publisher->logo;
-        $logoUrl = $logo 
-            ? (str_starts_with($logo, 'http') ? $logo : (str_starts_with($logo, 'storage/') ? asset($logo) : asset('storage/' . ltrim($logo, '/'))))
-            : 'https://placehold.co/100x100/4f46e5/ffffff?text=' . urlencode(mb_substr($publisher->name, 0, 1));
+        $logoUrl = $publisher->logo_url;
+        $initials = $publisher->initials ?? mb_substr($publisher->name, 0, 1);
+        $bgGradient = $publisher->logo_bg_color ?? 'linear-gradient(135deg, #2563eb, #1d4ed8)';
+        $dueAmount = (float) ($stats['total_po_due'] ?? 0);
+        $paidAmount = (float) ($stats['total_po_paid'] ?? 0);
+        $purchaseTotal = (float) ($stats['total_po_sum'] ?? 0);
     @endphp
 
-    <div class="adm-card p-4 shadow-sm border-0 rounded-4 bg-white">
-        <div class="row align-items-center g-3">
-            <div class="col-12 col-md-auto text-center text-md-start">
-                <img src="{{ $logoUrl }}" alt="{{ $publisher->name }}" 
-                     class="rounded-circle border shadow-sm" style="width: 84px; height: 84px; object-fit: cover;">
-            </div>
-            <div class="col-12 col-md">
-                <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
-                    <h4 class="fw-bold text-dark mb-0">{{ $publisher->name }}</h4>
-                    @if($publisher->is_active)
-                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-0.5">Active Publisher</span>
+    <div class="adm-card shadow-sm border-0 rounded-4 bg-white overflow-hidden">
+        <div class="p-4">
+            <div class="row align-items-center g-3">
+                {{-- Logo / Avatar --}}
+                <div class="col-12 col-md-auto text-center text-md-start">
+                    @if($logoUrl)
+                        <img src="{{ $logoUrl }}" alt="{{ $publisher->name }}" 
+                             class="rounded-4 border shadow-xs" style="width: 88px; height: 88px; object-fit: cover;">
                     @else
-                        <span class="badge bg-secondary-subtle text-secondary border rounded-pill px-2.5 py-0.5">Inactive</span>
+                        <div class="rounded-4 shadow-xs d-inline-flex align-items-center justify-content-center text-white fw-bold fs-3"
+                             style="width: 88px; height: 88px; background: {{ $bgGradient }};">
+                            {{ $initials }}
+                        </div>
                     @endif
                 </div>
-                <div class="d-flex flex-wrap align-items-center gap-3 text-muted small mt-1">
-                    @if($publisher->phone)
-                        <div><i class="fas fa-phone me-1 text-primary"></i>@bn($publisher->phone)</div>
-                    @endif
-                    @if($publisher->email)
-                        <div><i class="fas fa-envelope me-1 text-primary"></i>{{ $publisher->email }}</div>
-                    @endif
-                    @if($publisher->address)
-                        <div><i class="fas fa-location-dot me-1 text-primary"></i>{{ $publisher->address }}</div>
-                    @endif
-                    @if($publisher->website)
-                        <div><a href="{{ $publisher->website }}" target="_blank" class="text-decoration-none text-muted hover-primary"><i class="fas fa-globe me-1 text-primary"></i>{{ $publisher->website }}</a></div>
-                    @endif
-                </div>
-                @if($publisher->description)
-                    <p class="text-muted small mt-2 mb-0" style="max-width: 750px;">{{ $publisher->description }}</p>
-                @endif
-            </div>
-            <div class="col-12 col-md-auto border-start ps-md-4">
-                <div class="d-flex flex-row flex-md-column gap-2 text-start">
-                    <div>
-                        <span class="text-muted small d-block">Total Purchases:</span>
-                        <strong class="text-dark fs-6 font-monospace">৳@bn(number_format($stats['total_po_sum'] ?? 0, 2))</strong>
-                    </div>
-                    <div>
-                        <span class="text-muted small d-block">Paid Amount:</span>
-                        <strong class="text-success fs-6 font-monospace">৳@bn(number_format($stats['total_po_paid'] ?? 0, 2))</strong>
-                    </div>
-                    <div>
-                        <span class="text-muted small d-block">Payable Due:</span>
-                        <strong class="text-danger fs-5 font-monospace">৳@bn(number_format($stats['total_po_due'] ?? 0, 2))</strong>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    {{-- Metric Cards --}}
-    <div class="row g-2">
-        <div class="col-6 col-md-3">
-            <div class="adm-card p-3 d-flex align-items-center justify-content-between h-100 border-primary border-2">
-                <div>
-                    <small class="text-muted d-block font-sans">Total Catalog Books</small>
-                    <h4 class="fw-bold text-dark mb-0">@bn($stats['total_books'] ?? 0) <small class="fs-6 text-muted"></small></h4>
+                {{-- Info & Meta Chips --}}
+                <div class="col-12 col-md">
+                    <div class="d-flex flex-wrap align-items-center gap-2 mb-1.5">
+                        <h3 class="fw-bold text-dark mb-0">{{ $publisher->name }}</h3>
+                        @if($publisher->is_active)
+                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1" style="font-size: 11px;">
+                                <i class="fas fa-check-circle me-1"></i>Active Publisher
+                            </span>
+                        @else
+                            <span class="badge bg-secondary-subtle text-secondary border rounded-pill px-2.5 py-1" style="font-size: 11px;">
+                                <i class="fas fa-pause-circle me-1"></i>Inactive
+                            </span>
+                        @endif
+                        @if($publisher->is_verified)
+                            <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle rounded-pill px-2 py-1" style="font-size: 11px;">
+                                <i class="fas fa-certificate text-info me-1"></i>Verified
+                            </span>
+                        @endif
+                    </div>
+
+                    {{-- Contact chips --}}
+                    <div class="d-flex flex-wrap align-items-center gap-2 mt-2">
+                        @if($publisher->phone)
+                            <a href="tel:{{ $publisher->phone }}" class="badge bg-light text-dark border text-decoration-none rounded-pill px-2.5 py-1.5 fw-normal hover-primary">
+                                <i class="fas fa-phone me-1 text-primary"></i>{{ $publisher->phone }}
+                            </a>
+                            <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $publisher->phone) }}" target="_blank" class="badge bg-success-subtle text-success border border-success-subtle text-decoration-none rounded-pill px-2 py-1.5 hover-success" title="Chat on WhatsApp">
+                                <i class="fab fa-whatsapp"></i>
+                            </a>
+                        @endif
+                        @if($publisher->email)
+                            <a href="mailto:{{ $publisher->email }}" class="badge bg-light text-dark border text-decoration-none rounded-pill px-2.5 py-1.5 fw-normal hover-primary">
+                                <i class="fas fa-envelope me-1 text-primary"></i>{{ $publisher->email }}
+                            </a>
+                        @endif
+                        @if($publisher->address)
+                            <span class="badge bg-light text-muted border rounded-pill px-2.5 py-1.5 fw-normal" title="{{ $publisher->address }}">
+                                <i class="fas fa-location-dot me-1 text-danger"></i>{{ Str::limit($publisher->address, 35) }}
+                            </span>
+                        @endif
+                        @if($publisher->website)
+                            <a href="{{ $publisher->website }}" target="_blank" rel="noopener" class="badge bg-light text-primary border text-decoration-none rounded-pill px-2.5 py-1.5 fw-normal hover-primary">
+                                <i class="fas fa-globe me-1"></i>{{ parse_url($publisher->website, PHP_URL_HOST) ?: $publisher->website }}
+                            </a>
+                        @endif
+                    </div>
+
+                    @if($publisher->description)
+                        <p class="text-muted small mt-2 mb-0" style="max-width: 650px; line-height: 1.4;">{{ $publisher->description }}</p>
+                    @endif
                 </div>
-                <span class="p-2 bg-primary-subtle text-primary rounded-circle fs-5"><i class="fas fa-book"></i></span>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="adm-card p-3 d-flex align-items-center justify-content-between h-100">
-                <div>
-                    <small class="text-muted d-block font-sans">Total Sold Copies</small>
-                    <h4 class="fw-bold text-success mb-0">@bn($stats['total_sold_copies'] ?? 0) <small class="fs-6 text-muted"> copies</small></h4>
+
+                {{-- Financial Balance Card --}}
+                <div class="col-12 col-md-auto">
+                    <div class="p-3 bg-light rounded-4 border d-flex flex-column gap-2" style="min-width: 240px;">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <span class="text-muted small font-sans">Total Purchases:</span>
+                            <span class="fw-bold font-monospace text-dark">৳{{ number_format($purchaseTotal, 0) }}</span>
+                        </div>
+                        <div class="d-flex align-items-center justify-content-between">
+                            <span class="text-muted small font-sans">Paid to Publisher:</span>
+                            <span class="fw-bold font-monospace text-success">৳{{ number_format($paidAmount, 0) }}</span>
+                        </div>
+                        <div class="d-flex align-items-center justify-content-between border-top pt-1.5">
+                            <span class="small font-sans fw-bold {{ $dueAmount > 0 ? 'text-danger' : 'text-success' }}">Payable Due:</span>
+                            <span class="fw-bold font-monospace fs-5 {{ $dueAmount > 0 ? 'text-danger' : 'text-success' }}">
+                                ৳{{ number_format($dueAmount, 0) }}
+                            </span>
+                        </div>
+                        @if($dueAmount > 0)
+                            <button type="button" class="btn btn-sm btn-danger rounded-pill w-100 fw-bold shadow-xs mt-1" onclick="openMakePaymentModal()">
+                                <i class="fas fa-money-bill-wave me-1"></i> Pay Due Settlement
+                            </button>
+                        @endif
+                    </div>
                 </div>
-                <span class="p-2 bg-success-subtle text-success rounded-circle fs-5"><i class="fas fa-cart-shopping"></i></span>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="adm-card p-3 d-flex align-items-center justify-content-between h-100">
-                <div>
-                    <small class="text-muted d-block font-sans">Purchase Invoices</small>
-                    <h4 class="fw-bold text-info mb-0">@bn($stats['total_po'] ?? 0) <small class="fs-6 text-muted"></small></h4>
-                </div>
-                <span class="p-2 bg-info-subtle text-info rounded-circle fs-5"><i class="fas fa-file-invoice"></i></span>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="adm-card p-3 d-flex align-items-center justify-content-between h-100">
-                <div>
-                    <small class="text-muted d-block font-sans">Payment Vouchers</small>
-                    <h4 class="fw-bold text-warning-emphasis mb-0">@bn($stats['total_payments'] ?? 0) <small class="fs-6 text-muted"></small></h4>
-                </div>
-                <span class="p-2 bg-warning-subtle text-warning rounded-circle fs-5"><i class="fas fa-receipt"></i></span>
             </div>
         </div>
     </div>
 
     {{-- ========================================================================= --}}
-    {{-- 2. DYNAMIC 4-TAB NAVIGATION                                               --}}
+    {{-- 2. METRIC HIGHLIGHTS                                                      --}}
+    {{-- ========================================================================= --}}
+    <div class="row g-3">
+        <div class="col-6 col-lg-3">
+            <div class="adm-card p-3 shadow-xs border-0 rounded-4 bg-white d-flex align-items-center justify-content-between h-100">
+                <div>
+                    <span class="text-muted small d-block mb-1">Catalog Books</span>
+                    <h3 class="fw-bold text-dark mb-0 font-monospace">{{ number_format($stats['total_books'] ?? 0) }}</h3>
+                    <small class="text-success" style="font-size: 11px;">🟢 {{ $stats['in_stock'] ?? 0 }} In Stock</small>
+                </div>
+                <div class="p-3 bg-primary-subtle text-primary rounded-4 fs-4">
+                    <i class="fas fa-book-open"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="adm-card p-3 shadow-xs border-0 rounded-4 bg-white d-flex align-items-center justify-content-between h-100">
+                <div>
+                    <span class="text-muted small d-block mb-1">Total Sold Copies</span>
+                    <h3 class="fw-bold text-success mb-0 font-monospace">{{ number_format($stats['total_sold_copies'] ?? 0) }}</h3>
+                    <small class="text-muted" style="font-size: 11px;">Units Delivered</small>
+                </div>
+                <div class="p-3 bg-success-subtle text-success rounded-4 fs-4">
+                    <i class="fas fa-cart-shopping"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="adm-card p-3 shadow-xs border-0 rounded-4 bg-white d-flex align-items-center justify-content-between h-100">
+                <div>
+                    <span class="text-muted small d-block mb-1">Purchase Orders</span>
+                    <h3 class="fw-bold text-info-emphasis mb-0 font-monospace">{{ number_format($stats['total_po'] ?? 0) }}</h3>
+                    <small class="text-muted" style="font-size: 11px;">Stock Invoices</small>
+                </div>
+                <div class="p-3 bg-info-subtle text-info rounded-4 fs-4">
+                    <i class="fas fa-file-invoice-dollar"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="adm-card p-3 shadow-xs border-0 rounded-4 bg-white d-flex align-items-center justify-content-between h-100">
+                <div>
+                    <span class="text-muted small d-block mb-1">Payment Vouchers</span>
+                    <h3 class="fw-bold text-warning-emphasis mb-0 font-monospace">{{ number_format($stats['total_payments'] ?? 0) }}</h3>
+                    <small class="text-muted" style="font-size: 11px;">Receipts Recorded</small>
+                </div>
+                <div class="p-3 bg-warning-subtle text-warning rounded-4 fs-4">
+                    <i class="fas fa-receipt"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- ========================================================================= --}}
+    {{-- 3. INTERACTIVE MODULE VIEW SELECTOR & ACTIONS BAR                         --}}
     {{-- ========================================================================= --}}
     @php
         $activeTab = request('tab', 'books');
+        $tabMeta = [
+            'books' => [
+                'title' => 'Books Catalog & Purchase Orders (PO)',
+                'short' => 'Books Catalog',
+                'icon' => 'fas fa-book',
+                'color' => 'primary',
+                'count' => $stats['total_books'] ?? 0,
+                'desc' => 'Manage inventory books, live prices, commission and send Purchase Orders'
+            ],
+            'purchases' => [
+                'title' => 'Purchase Invoices & History',
+                'short' => 'Purchase Invoices',
+                'icon' => 'fas fa-file-invoice-dollar',
+                'color' => 'success',
+                'count' => $stats['total_po'] ?? 0,
+                'desc' => 'Review stock-in purchase invoices, supplier memos and delivery tracking'
+            ],
+            'payments' => [
+                'title' => 'Payments & Ledger Statement',
+                'short' => 'Payments & Ledger',
+                'icon' => 'fas fa-receipt',
+                'color' => 'warning',
+                'count' => $stats['total_payments'] ?? 0,
+                'desc' => 'Complete debit & credit statement, running balance and payment receipts'
+            ],
+            'analytics' => [
+                'title' => 'Sales & Bestsellers Analytics',
+                'short' => 'Sales Analytics',
+                'icon' => 'fas fa-chart-line',
+                'color' => 'info',
+                'count' => null,
+                'desc' => 'Top performing books, sales velocity and revenue statistics'
+            ],
+        ];
+        $currentTabInfo = $tabMeta[$activeTab] ?? $tabMeta['books'];
     @endphp
 
-    <ul class="nav nav-pills bg-white p-1.5 rounded-4 shadow-sm border" id="publisherTabs" role="tablist">
-        <li class="nav-item flex-fill text-center" role="presentation">
-            <a class="nav-link rounded-pill fw-bold py-2.5 {{ $activeTab === 'books' ? 'active' : 'text-dark' }}" 
-               href="{{ route('admin.publishers.show', array_merge(['id' => $publisher->id], request()->except('tab'), ['tab' => 'books'])) }}">
-                <i class="fas fa-book me-1.5"></i> Books Catalog & Purchase Orders (PO) (@bn($stats['total_books']))
-            </a>
-        </li>
-        <li class="nav-item flex-fill text-center" role="presentation">
-            <a class="nav-link rounded-pill fw-bold py-2.5 {{ $activeTab === 'purchases' ? 'active' : 'text-dark' }}" 
-               href="{{ route('admin.publishers.show', array_merge(['id' => $publisher->id], request()->except('tab'), ['tab' => 'purchases'])) }}">
-                <i class="fas fa-file-invoice-dollar me-1.5"></i> Purchase Invoices & History (@bn($stats['total_po']))
-            </a>
-        </li>
-        <li class="nav-item flex-fill text-center" role="presentation">
-            <a class="nav-link rounded-pill fw-bold py-2.5 {{ $activeTab === 'payments' ? 'active' : 'text-dark' }}" 
-               href="{{ route('admin.publishers.show', array_merge(['id' => $publisher->id], request()->except('tab'), ['tab' => 'payments'])) }}">
-                <i class="fas fa-receipt me-1.5"></i> Payments & Ledger Statement (@bn($stats['total_payments']))
-            </a>
-        </li>
-        <li class="nav-item flex-fill text-center" role="presentation">
-            <a class="nav-link rounded-pill fw-bold py-2.5 {{ $activeTab === 'analytics' ? 'active' : 'text-dark' }}" 
-               href="{{ route('admin.publishers.show', array_merge(['id' => $publisher->id], request()->except('tab'), ['tab' => 'analytics'])) }}">
-                <i class="fas fa-chart-line me-1.5"></i> Sales & Bestsellers
-            </a>
-        </li>
-    </ul>
+    <div class="adm-card p-2.5 shadow-sm border-0 rounded-4 bg-white position-relative" style="z-index: 100;">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+            
+            {{-- Interactive Module Dropdown Menu --}}
+            <div class="position-relative" style="min-width: 280px; max-width: 440px;">
+                <button class="btn btn-outline-dark w-100 d-flex align-items-center justify-content-between rounded-pill py-2 px-3 fw-bold shadow-xs bg-light bg-opacity-50" 
+                        type="button" id="publisherViewDropdownBtn" onclick="togglePublisherViewDropdown(event)">
+                    <div class="d-flex align-items-center gap-2 text-truncate">
+                        <span class="p-1.5 rounded-circle bg-{{ $currentTabInfo['color'] }}-subtle text-{{ $currentTabInfo['color'] }}" style="width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center;">
+                            <i class="{{ $currentTabInfo['icon'] }} fs-6"></i>
+                        </span>
+                        <span class="text-truncate text-dark fw-bold" style="font-size: 13.5px;">{{ $currentTabInfo['title'] }}</span>
+                        @if($currentTabInfo['count'] !== null)
+                            <span class="badge bg-{{ $currentTabInfo['color'] }} text-white rounded-pill px-2 py-0.5" style="font-size: 11px;">
+                                {{ $currentTabInfo['count'] }}
+                            </span>
+                        @endif
+                    </div>
+                    <i class="fas fa-chevron-down text-muted ms-2" id="dropdownChevronIcon" style="font-size: 11px; transition: transform 0.2s;"></i>
+                </button>
+
+                {{-- Dropdown Container --}}
+                <div class="dropdown-menu shadow-lg border-0 rounded-4 p-2 w-100 position-absolute mt-1" 
+                     id="publisherViewDropdownMenu" 
+                     style="display: none; top: 100%; left: 0; min-width: 320px; z-index: 1050;">
+                    <div class="dropdown-header text-uppercase small fw-bold text-muted px-2 py-1">
+                        <i class="fas fa-layer-group me-1"></i> Switch Module View
+                    </div>
+                    @foreach($tabMeta as $tKey => $tVal)
+                        <a class="dropdown-item rounded-3 p-2.5 d-flex align-items-center justify-content-between mb-1 {{ $activeTab === $tKey ? 'bg-primary-subtle text-primary fw-bold' : 'text-dark hover-bg-light' }}" 
+                           href="{{ route('admin.publishers.show', array_merge(['id' => $publisher->id], request()->except('tab'), ['tab' => $tKey])) }}">
+                            <div class="d-flex align-items-center gap-2.5">
+                                <span class="p-2 rounded-circle bg-{{ $tVal['color'] }}-subtle text-{{ $tVal['color'] }}" style="width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center;">
+                                    <i class="{{ $tVal['icon'] }}"></i>
+                                </span>
+                                <div>
+                                    <div class="fw-bold" style="font-size: 13px;">{{ $tVal['title'] }}</div>
+                                    <div class="text-muted small text-truncate" style="font-size: 11px; max-width: 250px;">{{ $tVal['desc'] }}</div>
+                                </div>
+                            </div>
+                            @if($tVal['count'] !== null)
+                                <span class="badge bg-light text-dark border rounded-pill px-2 py-1 ms-2 font-monospace">
+                                    {{ $tVal['count'] }}
+                                </span>
+                            @endif
+                        </a>
+                    @endforeach
+                </div>
+            </div>
+
+            {{-- Segmented Desktop Quick Switcher --}}
+            <div class="d-none d-xl-flex align-items-center gap-1 bg-light p-1 rounded-pill border">
+                @foreach($tabMeta as $tKey => $tVal)
+                    <a href="{{ route('admin.publishers.show', array_merge(['id' => $publisher->id], request()->except('tab'), ['tab' => $tKey])) }}" 
+                       class="btn btn-sm rounded-pill px-3 py-1.5 fw-semibold d-inline-flex align-items-center gap-1.5 {{ $activeTab === $tKey ? 'bg-white shadow-xs fw-bold text-primary border' : 'text-muted border-0 hover-primary' }}" style="font-size: 12px;">
+                        <i class="{{ $tVal['icon'] }} text-{{ $tVal['color'] }}"></i>
+                        <span>{{ $tVal['short'] }}</span>
+                        @if($tVal['count'] !== null)
+                            <span class="badge bg-{{ $activeTab === $tKey ? 'primary' : 'secondary' }}-subtle text-{{ $activeTab === $tKey ? 'primary' : 'secondary' }} rounded-pill px-1.5 py-0.5 font-monospace" style="font-size: 10px;">
+                                {{ $tVal['count'] }}
+                            </span>
+                        @endif
+                    </a>
+                @endforeach
+            </div>
+
+            {{-- Quick Action Buttons --}}
+            <div class="d-flex align-items-center gap-1.5">
+                <a href="{{ route('admin.content.create', 'books') }}?publisher_id={{ $publisher->id }}" class="btn btn-sm btn-primary rounded-pill px-3 py-1.5 fw-bold shadow-xs d-inline-flex align-items-center gap-1" style="background: linear-gradient(135deg, #2563eb, #1d4ed8); border:none; font-size: 12px;">
+                    <i class="fas fa-plus-circle"></i>
+                    <span>Add Book</span>
+                </a>
+                <a href="{{ route('admin.purchases.create') }}?publisher_id={{ $publisher->id }}" class="btn btn-sm btn-outline-success rounded-pill px-3 py-1.5 fw-bold shadow-xs d-inline-flex align-items-center gap-1" style="font-size: 12px;">
+                    <i class="fas fa-cart-plus"></i>
+                    <span>New PO</span>
+                </a>
+                <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5 py-1.5 shadow-xs" onclick="openEditPublisherModal({{ $publisher->id }})" title="Edit Publisher Profile">
+                    <i class="fas fa-pen-to-square"></i>
+                </button>
+            </div>
+
+        </div>
+    </div>
 
     {{-- ========================================================================= --}}
     {{-- TAB 1: BOOKS CATALOG & PURCHASE ORDER (PO) GENERATOR                      --}}
     {{-- ========================================================================= --}}
     @if($activeTab === 'books')
-        <div class="adm-card p-3 shadow-sm border-0">
+        
+        {{-- Filter Row --}}
+        <div class="adm-card p-3 shadow-sm border-0 rounded-4 bg-white">
             <form action="{{ route('admin.publishers.show', $publisher->id) }}" method="GET" id="pubBooksFilterForm" class="row g-2 align-items-center">
                 <input type="hidden" name="tab" value="books">
+                
+                {{-- Search Box --}}
                 <div class="col-12 col-md-4">
                     <div class="input-group input-group-sm">
-                        <span class="input-group-text bg-white border-end-0 text-muted"><i class="fas fa-search"></i></span>
+                        <span class="input-group-text bg-light border-end-0 text-muted"><i class="fas fa-search"></i></span>
                         <input type="text" name="search" id="pubBookSearchInput" value="{{ request('search') }}" 
                                class="form-control border-start-0 border-end-0 ps-0" 
-                               placeholder="Search by book title, author, ISBN, edition..." autocomplete="off">
+                               placeholder="Search title, author, ISBN, SKU..." autocomplete="off">
                         @if(request('search'))
-                            <a href="{{ route('admin.publishers.show', array_merge(['id' => $publisher->id], request()->except('search'))) }}" class="input-group-text bg-white border-start-0 text-muted hover-danger">
+                            <a href="{{ route('admin.publishers.show', array_merge(['id' => $publisher->id], request()->except('search'))) }}" class="input-group-text bg-white border-start-0 text-muted hover-danger" title="Clear search">
                                 <i class="fas fa-times"></i>
                             </a>
                         @endif
-                        <button type="submit" class="btn btn-primary px-3 fw-semibold">Search</button>
+                        <button type="submit" class="btn btn-primary px-3 fw-bold">Search</button>
                     </div>
                 </div>
 
+                {{-- Category Filter --}}
                 <div class="col-6 col-md-3">
-                    <select name="category_id" class="form-select form-select-sm" onchange="this.form.submit()">
+                    <select name="category_id" class="form-select form-select-sm rounded-3" onchange="this.form.submit()">
                         <option value="">— All Categories —</option>
                         @foreach ($categories as $cId => $cName)
                             <option value="{{ $cId }}" @selected(request('category_id') == $cId)>{{ $cName }}</option>
@@ -204,52 +364,58 @@
                     </select>
                 </div>
 
+                {{-- Stock Filter --}}
                 <div class="col-6 col-md-2">
-                    <select name="stock" class="form-select form-select-sm" onchange="this.form.submit()">
-                        <option value="">— All Stock Statuses —</option>
+                    <select name="stock" class="form-select form-select-sm rounded-3" onchange="this.form.submit()">
+                        <option value="">— Stock Status —</option>
                         <option value="in_stock" @selected(request('stock') === 'in_stock')>🟢 In Stock</option>
                         <option value="low" @selected(request('stock') === 'low')>🟡 Low Stock</option>
                         <option value="out" @selected(request('stock') === 'out')>🔴 Out of Stock</option>
                     </select>
                 </div>
 
+                {{-- Sort Filter --}}
                 <div class="col-6 col-md-2">
-                    <select name="sort" class="form-select form-select-sm" onchange="this.form.submit()">
+                    <select name="sort" class="form-select form-select-sm rounded-3" onchange="this.form.submit()">
                         <option value="latest" @selected(request('sort') === 'latest' || !request('sort'))>Newest First</option>
                         <option value="title_asc" @selected(request('sort') === 'title_asc')>Name (A-Z)</option>
                         <option value="sales_high" @selected(request('sort') === 'sales_high')>Top Selling</option>
-                        <option value="stock_low" @selected(request('sort') === 'stock_low')>Stock (Low to High)</option>
-                        <option value="stock_high" @selected(request('sort') === 'stock_high')>Stock (High to Low)</option>
+                        <option value="price_low" @selected(request('sort') === 'price_low')>Price: Low to High</option>
+                        <option value="price_high" @selected(request('sort') === 'price_high')>Price: High to Low</option>
+                        <option value="stock_low" @selected(request('sort') === 'stock_low')>Stock: Low to High</option>
                     </select>
                 </div>
 
+                {{-- Reset Button --}}
                 <div class="col-6 col-md-1 d-flex gap-1">
-                    <a href="{{ route('admin.publishers.show', ['id' => $publisher->id, 'tab' => 'books']) }}" class="btn btn-sm btn-outline-secondary w-100" title="Reset Filters">
+                    <a href="{{ route('admin.publishers.show', ['id' => $publisher->id, 'tab' => 'books']) }}" class="btn btn-sm btn-outline-secondary w-100 rounded-3" title="Reset Filters">
                         <i class="fas fa-rotate-left"></i>
                     </a>
                 </div>
             </form>
         </div>
 
-        {{-- Interactive Catalog Table --}}
+        {{-- Interactive Books Table & PO Order Bar --}}
         <div class="adm-card p-0 overflow-hidden shadow-sm border-0 rounded-4 bg-white position-relative">
+            
+            {{-- Bulk Purchase Order Action Toolbar --}}
             <div class="p-3 bg-light bg-opacity-75 border-bottom d-flex flex-wrap align-items-center justify-content-between gap-2">
                 <div class="d-flex align-items-center gap-3">
                     <div class="form-check mb-0">
                         <input class="form-check-input" type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this)">
-                        <label class="form-check-label fw-bold text-dark small" for="selectAllCheckbox">
-                            Select all books
+                        <label class="form-check-label fw-bold text-dark small cursor-pointer" for="selectAllCheckbox">
+                            Select All Books
                         </label>
                     </div>
-                    <span class="badge bg-primary text-white rounded-pill px-2.5" id="selectedCountBadge" style="display:none;">0 selected</span>
+                    <span class="badge bg-primary text-white rounded-pill px-2.5 py-1" id="selectedCountBadge" style="display:none; font-size: 11px;">0 selected</span>
                 </div>
                 
-                {{-- Bulk Commission Setter --}}
+                {{-- Bulk Commission & PO Send Controls --}}
                 <div class="d-flex align-items-center gap-2">
                     <div class="input-group input-group-sm" style="max-width: 220px;">
-                        <span class="input-group-text bg-white small">Bulk Commission:</span>
+                        <span class="input-group-text bg-white small">Commission:</span>
                         <input type="number" id="bulkCommissionInput" class="form-control text-center" placeholder="40" min="0" max="100" step="0.5">
-                        <button type="button" class="btn btn-outline-primary" onclick="applyBulkCommission()" title="Apply bulk commission to selected books">
+                        <button type="button" class="btn btn-outline-primary" onclick="applyBulkCommission()" title="Apply commission to all selected books">
                             Apply
                         </button>
                     </div>
@@ -269,12 +435,12 @@
                             <th class="ps-3" style="width: 40px;">
                                 <i class="fas fa-check-square text-muted"></i>
                             </th>
-                            <th style="min-width: 230px;">Book Title & Cover</th>
-                            <th style="min-width: 120px;">Edition</th>
+                            <th style="min-width: 250px;">Book Info & Cover</th>
+                            <th style="min-width: 130px;">Edition / Category</th>
                             <th class="text-center" style="min-width: 100px;">Stock</th>
                             <th class="text-center" style="min-width: 140px;">Printed MRP</th>
-                            <th class="text-center" style="min-width: 120px;">Buy Commission & Rate</th>
-                            <th class="text-center" style="min-width: 110px;">Order Qty</th>
+                            <th class="text-center" style="min-width: 130px;">Buy Rate (৳)</th>
+                            <th class="text-center" style="min-width: 100px;">PO Qty</th>
                             <th class="text-end" style="min-width: 120px;">Line Total</th>
                             <th class="text-end pe-3" style="min-width: 110px;">Actions</th>
                         </tr>
@@ -299,178 +465,175 @@
                                 $hasBothPrices = ($paperPrice > 0 && $hardPrice > 0);
                                 $effectivePrice = ($isHardcover && $hardPrice > 0) ? $hardPrice : ($paperPrice > 0 ? $paperPrice : $hardPrice);
                                 $discount = ($isHardcover && $hardDiscount > 0) ? $hardDiscount : $paperDiscount;
-                                
+
                                 $costPrice = (float) ($book->cost_price ?: 0);
-                                $defaultCommission = ($effectivePrice > 0 && $costPrice > 0 && $costPrice < $effectivePrice)
-                                    ? round((($effectivePrice - $costPrice) / $effectivePrice) * 100, 1)
-                                    : 40;
-                                
-                                $costPerUnit = ($costPrice > 0) ? $costPrice : ($effectivePrice * (1 - ($defaultCommission / 100)));
-                                $stock = (int) ($book->stock_quantity ?? 0);
-                                $suggestedOrderQty = ($stock <= 0) ? 10 : (($stock <= 5) ? 5 : 1);
+                                $defaultCommission = 40; // Standard 40% publisher discount
+                                if ($effectivePrice > 0 && $costPrice > 0 && $costPrice < $effectivePrice) {
+                                    $defaultCommission = round((($effectivePrice - $costPrice) / $effectivePrice) * 100, 1);
+                                }
+                                $costPerUnit = $effectivePrice > 0 ? ($effectivePrice * (1 - ($defaultCommission / 100))) : 0;
+                                $suggestedOrderQty = ($book->stock_quantity <= 3) ? 10 : 5;
                                 $initialLineTotal = $costPerUnit * $suggestedOrderQty;
                             @endphp
-                            <tr id="bookRow_{{ $book->id }}" class="book-item-row" data-book-id="{{ $book->id }}">
-                                {{-- Checkbox --}}
+
+                            <tr id="bookRow_{{ $book->id }}" class="hover-bg-light">
+                                
+                                {{-- Row Checkbox for PO --}}
                                 <td class="ps-3">
-                                    <input type="checkbox" class="form-check-input book-select-checkbox" 
-                                           value="{{ $book->id }}" 
-                                           data-id="{{ $book->id }}"
-                                           data-title="{{ $book->title }}"
-                                           data-author="{{ $book->authorLink?->name ?? $book->author_name ?? '' }}"
-                                           data-edition="{{ $book->edition ?? '' }}"
-                                           data-price="{{ $effectivePrice }}"
-                                           onchange="handleBookRowSelect(this)">
+                                    <div class="form-check mb-0">
+                                        <input class="form-check-input book-select-checkbox cursor-pointer" type="checkbox" 
+                                               id="cb_{{ $book->id }}" 
+                                               data-id="{{ $book->id }}"
+                                               data-title="{{ addslashes($book->title) }}"
+                                               data-isbn="{{ $book->isbn }}"
+                                               data-edition="{{ $book->edition }}"
+                                               data-mrp="{{ $effectivePrice }}"
+                                               data-cost="{{ $costPerUnit }}"
+                                               data-commission="{{ $defaultCommission }}"
+                                               data-qty="{{ $suggestedOrderQty }}"
+                                               data-total="{{ $initialLineTotal }}"
+                                               onchange="handleBookRowSelect(this)">
+                                    </div>
                                 </td>
 
-                                {{-- Book Title & Cover --}}
+                                {{-- Cover & Book Title --}}
                                 <td>
                                     <div class="d-flex align-items-center gap-2.5">
-                                        <img src="{{ $coverUrl }}" alt="{{ $book->title }}" id="bookCoverImg_{{ $book->id }}"
-                                             class="rounded border shadow-xs flex-shrink-0" style="width: 40px; height: 55px; object-fit: cover;">
-                                        <div class="text-truncate" style="max-width: 240px;">
-                                            <a href="{{ route('book.show', $book->slug ?? $book->id) }}" target="_blank" 
-                                               class="fw-bold text-dark text-decoration-none hover-primary d-block text-truncate mb-0.5" title="{{ $book->title }}">
+                                        <div class="position-relative flex-shrink-0">
+                                            <img src="{{ $coverUrl }}" alt="{{ $book->title }}" 
+                                                 class="rounded-2 border shadow-xs" 
+                                                 style="width: 44px; height: 60px; object-fit: cover;">
+                                            @if($isHardcover)
+                                                <span class="badge bg-danger position-absolute top-0 start-0 m-0.5 px-1 py-0.5 font-monospace" style="font-size: 8px;">HC</span>
+                                            @elseif($isBoth)
+                                                <span class="badge bg-indigo position-absolute top-0 start-0 m-0.5 px-1 py-0.5 font-monospace" style="font-size: 8px;">2-In-1</span>
+                                            @endif
+                                        </div>
+                                        <div class="overflow-hidden">
+                                            <a href="{{ route('admin.content.edit', ['type' => 'books', 'id' => $book->id]) }}" 
+                                               class="fw-bold text-dark text-decoration-none hover-primary d-block text-truncate mb-0.5" 
+                                               style="max-width: 220px;" title="{{ $book->title }}">
                                                 {{ $book->title }}
                                             </a>
-                                            <div class="small text-muted text-truncate" style="font-size: 11px;">
-                                                <i class="fas fa-user-pen me-1"></i>{{ $book->authorLink?->name ?? $book->author_name ?? '—' }}
+                                            <div class="text-muted small text-truncate" style="font-size: 11.5px; max-width: 220px;">
+                                                <i class="fas fa-pen-nib text-secondary me-1" style="font-size: 10px;"></i>
+                                                {{ $book->author_name ?: 'Unknown Author' }}
                                             </div>
+                                            @if($book->isbn || $book->sku)
+                                                <div class="text-muted font-monospace" style="font-size: 10.5px;">
+                                                    <span class="badge bg-light text-dark border p-0.5 px-1">{{ $book->isbn ?: $book->sku }}</span>
+                                                </div>
+                                            @endif
                                         </div>
                                     </div>
                                 </td>
 
-                                {{-- Edition & Format --}}
+                                {{-- Edition & Category --}}
                                 <td>
-                                    <div class="d-flex flex-column align-items-start gap-1">
-                                        <span class="badge bg-light text-dark border px-2 py-0.5" style="font-size: 11px;">
-                                            {{ $book->edition ?: 'সাধারণ Edition' }}
-                                        </span>
-                                        @if($isHardcover || ($hardPrice > 0 && $paperPrice <= 0))
-                                            <span class="badge bg-warning-subtle text-dark border" style="font-size: 9.5px;">Hardcover</span>
-                                        @elseif($isBoth || $hasBothPrices)
-                                            <span class="badge bg-info-subtle text-dark border" style="font-size: 9.5px;">উভয় Edition</span>
-                                        @else
-                                            <span class="badge bg-light text-muted border" style="font-size: 9.5px;">Paperback</span>
+                                    <div class="text-truncate" style="max-width: 140px;">
+                                        @if($book->category)
+                                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-0.5 mb-1" style="font-size: 10.5px;">
+                                                {{ $book->category->name }}
+                                            </span>
                                         @endif
+                                        <div class="small text-muted font-sans" style="font-size: 11px;">
+                                            {{ $book->edition ?: 'Standard Edition' }}
+                                        </div>
                                     </div>
                                 </td>
 
-                                {{-- Stock --}}
+                                {{-- Stock Status --}}
                                 <td class="text-center">
-                                    @if($stock <= 0)
-                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2 py-0.5">Out of Stock</span>
-                                    @elseif($stock <= 5)
-                                        <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2 py-0.5">@bn($stock) </span>
+                                    @if($book->stock_quantity > 5)
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1 font-monospace fw-bold">
+                                            {{ $book->stock_quantity }}
+                                        </span>
+                                    @elseif($book->stock_quantity > 0)
+                                        <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2.5 py-1 font-monospace fw-bold" title="Low stock warning">
+                                            ⚠️ {{ $book->stock_quantity }}
+                                        </span>
                                     @else
-                                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5">@bn($stock) </span>
+                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-1 font-monospace fw-bold">
+                                            Out (0)
+                                        </span>
                                     @endif
                                 </td>
 
-                                {{-- Printed MRP Price (Editable input & Formatted with Paperback/Hardcover/Both) --}}
+                                {{-- Printed MRP (Editable for PO) --}}
                                 <td class="text-center">
-                                    @if($isBoth || $hasBothPrices)
-                                        {{-- Both Editions: Paperback & Hardcover inputs --}}
-                                        <div class="d-flex flex-column gap-1">
-                                            <div class="input-group input-group-sm" title="Paperback MRP Price">
-                                                <span class="input-group-text bg-light px-1 text-muted" style="font-size: 9px;">Paper</span>
-                                                <input type="number" min="0" step="1" 
-                                                       id="mrpInput_{{ $book->id }}" 
-                                                       value="{{ $paperPrice > 0 ? round($paperPrice) : '' }}" 
-                                                       class="form-control form-control-sm text-center fw-bold row-mrp-input" 
-                                                       placeholder="0"
-                                                       oninput="recalcRowTotal({{ $book->id }})">
-                                            </div>
-                                            <div class="input-group input-group-sm" title="Hardcover MRP Price">
-                                                <span class="input-group-text bg-warning-subtle px-1 text-dark" style="font-size: 9px;">Hard</span>
-                                                <input type="number" min="0" step="1" 
-                                                       id="hardMrpInput_{{ $book->id }}" 
-                                                       value="{{ $hardPrice > 0 ? round($hardPrice) : '' }}" 
-                                                       class="form-control form-control-sm text-center fw-bold" 
-                                                       placeholder="0"
-                                                       oninput="recalcRowTotal({{ $book->id }})">
-                                            </div>
-                                        </div>
-                                    @elseif($isHardcover || ($hardPrice > 0 && $paperPrice <= 0))
-                                        {{-- Hardcover Only --}}
-                                        <div class="input-group input-group-sm d-inline-flex" style="width: 110px;">
-                                            <span class="input-group-text bg-warning-subtle px-1.5 fw-bold text-dark">৳</span>
-                                            <input type="number" min="0" step="1" 
-                                                   id="mrpInput_{{ $book->id }}" 
-                                                   value="{{ $hardPrice > 0 ? round($hardPrice) : '' }}" 
-                                                   class="form-control form-control-sm text-center fw-bold row-mrp-input {{ $hardPrice <= 0 ? 'border-danger bg-danger-subtle' : '' }}" 
-                                                   placeholder="0"
-                                                   oninput="recalcRowTotal({{ $book->id }})"
-                                                   title="Hardcover Printed MRP">
-                                        </div>
-                                    @else
-                                        {{-- Paperback Only --}}
-                                        <div class="input-group input-group-sm d-inline-flex" style="width: 110px;">
-                                            <span class="input-group-text bg-light px-1.5 fw-bold text-muted">৳</span>
-                                            <input type="number" min="0" step="1" 
-                                                   id="mrpInput_{{ $book->id }}" 
-                                                   value="{{ $paperPrice > 0 ? round($paperPrice) : '' }}" 
-                                                   class="form-control form-control-sm text-center fw-bold row-mrp-input {{ $paperPrice <= 0 ? 'border-danger bg-danger-subtle' : '' }}" 
-                                                   placeholder="0"
-                                                   oninput="recalcRowTotal({{ $book->id }})"
-                                                   title="Printed MRP">
-                                        </div>
-                                    @endif
-
+                                    <div class="input-group input-group-sm d-inline-flex" style="width: 110px;">
+                                        <span class="input-group-text bg-light px-1.5 fw-bold text-muted">৳</span>
+                                        <input type="number" min="0" step="1" 
+                                               id="mrpInput_{{ $book->id }}" 
+                                               value="{{ $effectivePrice > 0 ? round($effectivePrice) : '' }}" 
+                                               class="form-control form-control-sm text-center fw-bold row-mrp-input" 
+                                               placeholder="0"
+                                               oninput="recalcRowTotal({{ $book->id }})"
+                                               title="Printed MRP">
+                                    </div>
                                     @if($discount > 0 && $discount < $effectivePrice)
-                                        <div class="small text-muted text-truncate mt-0.5" style="font-size: 10.5px;">
-                                            Sale: <strong class="text-primary font-monospace">৳@bn(number_format($discount, 0))</strong>
+                                        <div class="small text-muted text-truncate mt-0.5" style="font-size: 10px;">
+                                            Sale: <strong class="text-primary font-monospace">৳{{ number_format($discount, 0) }}</strong>
                                         </div>
                                     @endif
                                 </td>
 
-                                {{-- Purchase Commission (%) & Calculated Purchase Rate --}}
+                                {{-- Commission & Wholesale Rate --}}
                                 <td class="text-center">
-                                    <div class="input-group input-group-sm d-inline-flex mb-1" style="width: 95px;">
+                                    <div class="input-group input-group-sm d-inline-flex mb-1" style="width: 90px;">
                                         <input type="number" min="0" max="100" step="0.5" 
                                                id="commissionInput_{{ $book->id }}" 
                                                value="{{ $defaultCommission }}" 
                                                class="form-control form-control-sm text-center fw-semibold row-commission-input" 
                                                oninput="recalcRowTotal({{ $book->id }})">
-                                        <span class="input-group-text bg-light px-1.5">%</span>
+                                        <span class="input-group-text bg-light px-1">%</span>
                                     </div>
                                     <div class="d-block">
                                         <span class="badge bg-light text-dark border font-monospace" id="costRateDisplay_{{ $book->id }}" style="font-size: 10px;">
-                                            Rate: ৳@bn(number_format($costPerUnit, 0))
+                                            ৳{{ number_format($costPerUnit, 0) }}
                                         </span>
                                     </div>
                                 </td>
 
-                                {{-- Order Quantity (Qty) Input --}}
+                                {{-- Order Qty Input --}}
                                 <td class="text-center">
-                                    <div class="input-group input-group-sm d-inline-flex" style="width: 95px;">
-                                        <input type="number" min="1" max="10000" 
-                                               id="qtyInput_{{ $book->id }}" 
-                                               value="{{ $suggestedOrderQty }}" 
-                                               class="form-control form-control-sm text-center fw-bold row-qty-input" 
-                                               oninput="recalcRowTotal({{ $book->id }})">
-                                        <span class="input-group-text bg-light px-1.5"></span>
-                                    </div>
+                                    <input type="number" min="1" max="10000" 
+                                           id="qtyInput_{{ $book->id }}" 
+                                           value="{{ $suggestedOrderQty }}" 
+                                           class="form-control form-control-sm text-center fw-bold row-qty-input mx-auto" 
+                                           style="width: 70px;"
+                                           oninput="recalcRowTotal({{ $book->id }})">
                                 </td>
 
-                                {{-- Calculated Row Total --}}
+                                {{-- Line Total --}}
                                 <td class="text-end">
                                     <span class="fw-bold text-primary font-monospace fs-6" id="lineTotal_{{ $book->id }}">
-                                        ৳@bn(number_format($initialLineTotal, 0))
+                                        ৳{{ number_format($initialLineTotal, 0) }}
                                     </span>
                                 </td>
 
-                                {{-- Actions --}}
+                                {{-- Row Actions --}}
                                 <td class="text-end pe-3">
                                     <div class="d-inline-flex align-items-center gap-1">
-                                        <button type="button" class="btn btn-sm btn-primary rounded-pill px-2 py-0.5 fw-bold shadow-xs" 
-                                                onclick="openQuickBookEditModal({{ $book->id }})" title="কভার, মূল্য, কমিশন ও স্টক Actions এডিট">
-                                            <i class="fas fa-bolt"></i>
+                                        <button type="button" class="btn btn-sm btn-light border text-primary rounded-circle shadow-xs" 
+                                                style="width: 28px; height: 28px; padding: 0; display: inline-flex; align-items: center; justify-content: center;"
+                                                onclick="openQuickBookEditModal({{ $book->id }})" title="Quick Edit Book">
+                                            <i class="fas fa-bolt" style="font-size: 11px;"></i>
                                         </button>
                                         <a href="{{ route('admin.content.edit', ['type' => 'books', 'id' => $book->id]) }}" target="_blank"
-                                           class="btn btn-sm btn-outline-secondary rounded-pill px-2 py-0.5" title="Full Edit">
-                                            <i class="fas fa-pen"></i>
+                                           class="btn btn-sm btn-light border text-secondary rounded-circle shadow-xs" 
+                                           style="width: 28px; height: 28px; padding: 0; display: inline-flex; align-items: center; justify-content: center;"
+                                           title="Full CMS Edit">
+                                            <i class="fas fa-pen" style="font-size: 10px;"></i>
                                         </a>
+                                        @if($book->slug)
+                                            <a href="{{ route('book.show', $book->slug) }}" target="_blank"
+                                               class="btn btn-sm btn-light border text-info rounded-circle shadow-xs" 
+                                               style="width: 28px; height: 28px; padding: 0; display: inline-flex; align-items: center; justify-content: center;"
+                                               title="View in Live Shop">
+                                                <i class="fas fa-eye" style="font-size: 10px;"></i>
+                                            </a>
+                                        @endif
                                     </div>
                                 </td>
 
@@ -480,8 +643,11 @@
                                 <td colspan="9">
                                     <div class="empty-state py-5 text-center">
                                         <i class="fas fa-book-open fs-1 text-muted opacity-50 mb-2"></i>
-                                        <h6 class="fw-bold text-dark mb-1">No books found for this publisher</h6>
-                                        <p class="text-muted small mb-3">Add a new book or reset search filters.</p>
+                                        <h6 class="fw-bold text-dark mb-1">No books found in this publisher catalog</h6>
+                                        <p class="text-muted small mb-3">Add books to this publisher or reset your search filters.</p>
+                                        <a href="{{ route('admin.content.create', 'books') }}?publisher_id={{ $publisher->id }}" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold">
+                                            <i class="fas fa-plus-circle me-1"></i> Add First Book
+                                        </a>
                                     </div>
                                 </td>
                             </tr>
@@ -493,8 +659,8 @@
             {{-- Pagination --}}
             @if ($books->hasPages())
                 <div class="p-3 border-top d-flex flex-column flex-md-row align-items-center justify-content-between gap-2 bg-light bg-opacity-50">
-                    <div class="small text-muted">
-                        মোট @bn($books->total()) র মধ্যে @bn($books->firstItem()) - @bn($books->lastItem()) দেখানো হচ্ছে
+                    <div class="small text-muted font-sans">
+                        Showing {{ $books->firstItem() }} to {{ $books->lastItem() }} of {{ $books->total() }} books
                     </div>
                     <div>{{ $books->links() }}</div>
                 </div>
@@ -520,12 +686,12 @@
                         <tr>
                             <th class="ps-3">Invoice / PO No.</th>
                             <th>Date</th>
-                            <th>Memo No.</th>
+                            <th>Supplier Memo</th>
                             <th class="text-center">Items</th>
                             <th class="text-end">Total Amount</th>
-                            <th class="text-end">Paid</th>
-                            <th class="text-end">Due</th>
-                            <th class="text-center">Status</th>
+                            <th class="text-end">Paid Amount</th>
+                            <th class="text-end">Due Balance</th>
+                            <th class="text-center">Payment Status</th>
                             <th class="text-end pe-3">Action</th>
                         </tr>
                     </thead>
@@ -537,15 +703,15 @@
                                 </td>
                                 <td>{{ $purchase->purchase_date ? $purchase->purchase_date->format('d M, Y') : '—' }}</td>
                                 <td>{{ $purchase->publisher_memo_no ?: '—' }}</td>
-                                <td class="text-center font-monospace">@bn($purchase->items->count()) </td>
-                                <td class="text-end font-monospace fw-bold text-dark">৳@bn(number_format($purchase->grand_total, 2))</td>
-                                <td class="text-end font-monospace text-success">৳@bn(number_format($purchase->paid_amount, 2))</td>
-                                <td class="text-end font-monospace text-danger fw-bold">৳@bn(number_format($purchase->due_amount, 2))</td>
+                                <td class="text-center font-monospace">{{ $purchase->items->count() }}</td>
+                                <td class="text-end font-monospace fw-bold text-dark">৳{{ number_format($purchase->grand_total, 2) }}</td>
+                                <td class="text-end font-monospace text-success">৳{{ number_format($purchase->paid_amount, 2) }}</td>
+                                <td class="text-end font-monospace text-danger fw-bold">৳{{ number_format($purchase->due_amount, 2) }}</td>
                                 <td class="text-center">
                                     @if($purchase->payment_status === 'paid')
                                         <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-0.5">Paid</span>
                                     @elseif($purchase->payment_status === 'partial')
-                                        <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2.5 py-0.5">আংশিক</span>
+                                        <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2.5 py-0.5">Partial</span>
                                     @else
                                         <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-0.5">Due</span>
                                     @endif
@@ -560,7 +726,10 @@
                             <tr>
                                 <td colspan="9" class="text-center py-5 text-muted">
                                     <i class="fas fa-receipt fs-2 opacity-50 mb-2"></i>
-                                    <h6>No purchase invoices found</h6>
+                                    <h6>No purchase invoices recorded yet</h6>
+                                    <a href="{{ route('admin.purchases.create') }}?publisher_id={{ $publisher->id }}" class="btn btn-sm btn-primary rounded-pill px-3 mt-2">
+                                        <i class="fas fa-plus me-1"></i> Create First Invoice
+                                    </a>
                                 </td>
                             </tr>
                         @endforelse
@@ -582,7 +751,7 @@
     @if($activeTab === 'payments')
         <div class="adm-card p-0 overflow-hidden shadow-sm border-0 rounded-4 bg-white">
             <div class="p-3 bg-light bg-opacity-75 border-bottom d-flex align-items-center justify-content-between">
-                <h6 class="fw-bold text-dark mb-0"><i class="fas fa-receipt me-1.5 text-success"></i> Paid পেমেন্ট ভাউচার তালিকা</h6>
+                <h6 class="fw-bold text-dark mb-0"><i class="fas fa-receipt me-1.5 text-success"></i> Payment Receipts & Financial Statement</h6>
                 <button type="button" class="btn btn-sm btn-success rounded-pill px-3 fw-bold" onclick="openMakePaymentModal()">
                     <i class="fas fa-plus me-1"></i> Record New Payment
                 </button>
@@ -593,12 +762,12 @@
                     <thead class="table-light">
                         <tr>
                             <th class="ps-3">Voucher No.</th>
-                            <th>Date</th>
-                            <th>Invoice Ref.</th>
+                            <th>Payment Date</th>
+                            <th>Invoice Reference</th>
                             <th>Payment Method</th>
                             <th>Trx / Cheque No.</th>
-                            <th class="text-end">Paid টাকা</th>
-                            <th>Notes / Memo</th>
+                            <th class="text-end">Paid Amount</th>
+                            <th>Notes</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -619,12 +788,12 @@
                                 </td>
                                 <td>
                                     <span class="badge bg-light text-dark border px-2 py-1">
-                                        {{ \App\Models\PublisherPayment::paymentMethods()[$payment->payment_method] ?? $payment->payment_method }}
+                                        {{ \App\Models\PublisherPayment::paymentMethods()[$payment->payment_method] ?? ucfirst($payment->payment_method) }}
                                     </span>
                                 </td>
                                 <td class="font-monospace text-muted">{{ $payment->transaction_ref ?: '—' }}</td>
                                 <td class="text-end font-monospace fw-bold text-success fs-6">
-                                    ৳@bn(number_format($payment->amount, 2))
+                                    ৳{{ number_format($payment->amount, 2) }}
                                 </td>
                                 <td class="small text-muted">{{ $payment->note ?: '—' }}</td>
                             </tr>
@@ -653,13 +822,13 @@
     {{-- ========================================================================= --}}
     @if($activeTab === 'analytics')
         <div class="adm-card p-4 shadow-sm border-0 rounded-4 bg-white">
-            <h5 class="fw-bold text-dark mb-3"><i class="fas fa-chart-line me-2 text-primary"></i> Top Best Selling Books for this Publisher</h5>
+            <h5 class="fw-bold text-dark mb-3"><i class="fas fa-chart-line me-2 text-primary"></i> Top Performing & Bestselling Books</h5>
             
             <div class="table-responsive">
                 <table class="table adm-table align-middle mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th class="ps-3" style="width: 45px;">Rank</th>
+                            <th class="ps-3" style="width: 50px;">Rank</th>
                             <th>Book Title</th>
                             <th class="text-center">Units Sold</th>
                             <th class="text-end">MRP Price</th>
@@ -687,17 +856,17 @@
                                 </td>
                                 <td class="text-center">
                                     <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1 fw-bold fs-6 font-monospace">
-                                        @bn($b->sales_count)  copies
+                                        {{ number_format($b->sales_count) }} copies
                                     </span>
                                 </td>
-                                <td class="text-end font-monospace">৳@bn(number_format($bPrice, 0))</td>
-                                <td class="text-end pe-3 font-monospace fw-bold text-primary">৳@bn(number_format($salesRev, 0))</td>
+                                <td class="text-end font-monospace">৳{{ number_format($bPrice, 0) }}</td>
+                                <td class="text-end pe-3 font-monospace fw-bold text-primary">৳{{ number_format($salesRev, 0) }}</td>
                             </tr>
                         @empty
                             <tr>
                                 <td colspan="5" class="text-center py-5 text-muted">
                                     <i class="fas fa-chart-pie fs-2 opacity-50 mb-2"></i>
-                                    <h6>No sales data available yet</h6>
+                                    <h6>No sales records accumulated yet for this publisher</h6>
                                 </td>
                             </tr>
                         @endforelse
@@ -710,26 +879,26 @@
 </div>
 
 {{-- ========================================================================= --}}
-{{-- FLOATING BOTTOM ACTION STRIP (Appears when books are selected)             --}}
+{{-- FLOATING BOTTOM ACTION STRIP (When books are selected for PO)              --}}
 {{-- ========================================================================= --}}
 <div id="stickySelectionBar" class="fixed-bottom bg-dark text-white py-3 px-4 shadow-lg border-top border-secondary d-none" style="z-index: 1040;">
     <div class="container-fluid d-flex flex-column flex-md-row align-items-center justify-content-between gap-3">
         <div class="d-flex align-items-center gap-3">
-            <span class="badge bg-primary fs-6 px-3 py-2 rounded-pill" id="floatSelectedBadge">0 books selected</span>
+            <span class="badge bg-primary fs-6 px-3 py-2 rounded-pill font-monospace" id="floatSelectedBadge">0 books selected</span>
             <div class="text-light small">
-                Total Copies: <strong class="text-warning fs-6" id="floatTotalQty">০</strong>  | 
-                আনুমানিক Line Total: <strong class="text-success fs-5 font-monospace" id="floatGrandTotal">৳০</strong>
+                Total Copies: <strong class="text-warning fs-6 font-monospace" id="floatTotalQty">0</strong> | 
+                Estimated PO Total: <strong class="text-success fs-5 font-monospace" id="floatGrandTotal">৳0</strong>
             </div>
         </div>
         <div class="d-flex align-items-center gap-2">
             <button type="button" class="btn btn-outline-light btn-sm rounded-pill px-3" onclick="clearAllSelections()">
-                <i class="fas fa-times me-1"></i> Clear Selection
+                <i class="fas fa-times me-1"></i> Clear
             </button>
             <button type="button" class="btn btn-outline-info btn-sm rounded-pill px-3" onclick="printPurchaseOrderSlip()">
-                <i class="fas fa-print me-1"></i> Print PO Slip স্লিপ
+                <i class="fas fa-print me-1"></i> Print PO Slip
             </button>
             <button type="button" class="btn btn-success rounded-pill px-4 fw-bold shadow" onclick="openPurchaseOrderModal()">
-                <i class="fas fa-paper-plane me-1.5"></i> Send PO via Email পাঠান
+                <i class="fas fa-paper-plane me-1.5"></i> Send PO via Email
             </button>
         </div>
     </div>
@@ -763,65 +932,58 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label small fw-bold text-dark">Email Subject</label>
-                            <input type="text" id="poSubject" name="subject" class="form-control form-control-sm" value="Idea Publication — Purchase Order (PO)">
+                            <input type="text" id="poSubject" name="subject" value="Book Purchase Order (PO) — IDEA Publication" class="form-control form-control-sm" required>
                         </div>
+                    </div>
+
+                    {{-- Delivery & Memo --}}
+                    <div class="row g-3 mb-3">
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold text-dark">প্রত্যাশিত ডেলিভারি Date</label>
+                            <label class="form-label small fw-bold text-dark">Requested Delivery Date</label>
                             <input type="date" id="poDeliveryDate" name="delivery_date" class="form-control form-control-sm" value="{{ date('Y-m-d', strtotime('+3 days')) }}">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold text-dark">Special Notes / Delivery Instructions</label>
-                            <input type="text" id="poNotes" name="notes" class="form-control form-control-sm" placeholder="e.g. Please expedite parcel via courier...">
+                            <label class="form-label small fw-bold text-dark">Special Instructions / Memo Note</label>
+                            <input type="text" id="poNotes" name="notes" placeholder="e.g. Please deliver to Banglabazar distribution hub..." class="form-control form-control-sm">
                         </div>
                     </div>
 
-                    {{-- Selected Books Preview List --}}
-                    <h6 class="fw-bold text-dark mb-2 border-bottom pb-2">
-                        <i class="fas fa-list-check me-1 text-primary"></i> Selected Books & Cost Breakdown (<span id="modalItemCount">০</span> )
-                    </h6>
-                    
-                    <div class="table-responsive border rounded-3 mb-3" style="max-height: 220px; overflow-y: auto;">
-                        <table class="table table-sm table-striped align-middle mb-0 font-sans" style="font-size: 12.5px;">
-                            <thead class="table-light sticky-top">
-                                <tr>
-                                    <th>#</th>
-                                    <th>Book Title</th>
-                                    <th class="text-center"> copies</th>
-                                    <th class="text-end">MRP Price</th>
-                                    <th class="text-center">কমিশন</th>
-                                    <th class="text-end">ক্রয় রেট</th>
-                                    <th class="text-end">মোট টাকা</th>
-                                </tr>
-                            </thead>
-                            <tbody id="modalSelectedItemsBody">
-                                {{-- Dynamically populated via JS --}}
-                            </tbody>
-                        </table>
-                    </div>
-
-                    {{-- Totals Summary in Modal --}}
-                    <div class="p-3 bg-light rounded-3 d-flex align-items-center justify-content-between mb-3">
-                        <div class="small text-muted">
-                            সর্বTotal Copies: <strong class="text-dark" id="modalTotalQty">০</strong> 
+                    {{-- Selected Books Preview --}}
+                    <div class="card rounded-3 border-0 bg-light p-3 mb-3">
+                        <h6 class="fw-bold text-dark mb-2">Order Items Summary (<span id="modalItemCount">0</span> books)</h6>
+                        <div class="table-responsive" style="max-height: 220px; overflow-y: auto;">
+                            <table class="table table-sm table-bordered bg-white align-middle mb-0" style="font-size: 12px;">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Title</th>
+                                        <th class="text-center">Qty</th>
+                                        <th class="text-end">MRP</th>
+                                        <th class="text-center">Comm.</th>
+                                        <th class="text-end">Rate</th>
+                                        <th class="text-end">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="modalSelectedItemsBody"></tbody>
+                            </table>
                         </div>
-                        <div class="text-end">
-                            <span class="small text-muted d-block">Grand Total Payable:</span>
-                            <h4 class="fw-bold text-primary mb-0 font-monospace" id="modalGrandTotal">৳০</h4>
+                        <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
+                            <span class="text-muted small">Total Quantity: <strong id="modalTotalQty" class="text-dark">0</strong> copies</span>
+                            <span class="fw-bold text-dark">Grand Total: <strong id="modalGrandTotal" class="text-primary font-monospace fs-5">৳0</strong></span>
                         </div>
                     </div>
 
-                    {{-- Option to auto-save to Purchases --}}
-                    <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" role="switch" id="createPurchaseInvoiceSwitch" name="create_invoice" value="1" checked>
-                        <label class="form-check-label small fw-semibold text-dark" for="createPurchaseInvoiceSwitch">
-                            <i class="fas fa-receipt text-success me-1"></i> Automatically create a <strong>Purchase Invoice</strong> for this order
+                    <div class="form-check form-switch mb-0">
+                        <input class="form-check-input" type="checkbox" id="createPurchaseInvoiceSwitch" checked>
+                        <label class="form-check-label small fw-bold text-dark" for="createPurchaseInvoiceSwitch">
+                            Automatically record as a Purchase Invoice in the accounting ledger
                         </label>
                     </div>
 
                 </div>
-                <div class="modal-footer bg-light py-2.5">
-                    <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" id="sendPoSubmitBtn" class="btn btn-sm btn-success rounded-pill px-4 fw-bold shadow-xs">
+                <div class="modal-footer bg-light py-2">
+                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success btn-sm rounded-pill px-4 fw-bold" id="sendPoSubmitBtn">
                         <i class="fas fa-paper-plane me-1.5"></i> Send Purchase Order Email
                     </button>
                 </div>
@@ -831,61 +993,64 @@
 </div>
 
 {{-- ========================================================================= --}}
-{{-- MODAL: MAKE PAYMENT TO PUBLISHER                                          --}}
+{{-- MODAL: RECORD PAYMENT VOUCHER                                             --}}
 {{-- ========================================================================= --}}
-<div class="modal fade" id="publisherPaymentModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="makePaymentModal" tabindex="-1" aria-labelledby="makePaymentModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header bg-success text-white py-3">
-                <h5 class="modal-title fw-bold text-white mb-0">
-                    <i class="fas fa-hand-holding-dollar me-1.5"></i> {{ $publisher->name }} — Make Payment
+                <h5 class="modal-title fw-bold text-white mb-0" id="makePaymentModalLabel">
+                    <i class="fas fa-hand-holding-dollar me-2"></i> Record Payment to Publisher
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            
-            <form id="pubDetailPaymentForm" onsubmit="handlePublisherDetailPaymentSubmit(event)">
+            <form id="makePaymentForm" onsubmit="handleMakePaymentSubmit(event)">
                 <div class="modal-body p-4">
-                    <div id="pubDetailPayAlertBox"></div>
+                    <div id="paymentAlertBox"></div>
 
-                    <div class="p-3 bg-light rounded-3 mb-3 border">
-                        <div class="small text-muted">
-                            বর্তমান মোট Due পাওনা: <strong class="text-danger font-monospace fs-6">৳@bn(number_format($stats['total_po_due'] ?? 0, 2))</strong>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-dark">Publisher Name</label>
+                        <input type="text" class="form-control form-control-sm bg-light" value="{{ $publisher->name }}" readonly>
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-dark">Payment Amount (৳) <span class="text-danger">*</span></label>
+                            <input type="number" step="0.01" min="1" id="payAmount" name="amount" value="{{ $dueAmount > 0 ? $dueAmount : '' }}" class="form-control form-control-sm fw-bold font-monospace text-success" required placeholder="0.00">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-dark">Payment Date <span class="text-danger">*</span></label>
+                            <input type="date" id="payDate" name="payment_date" value="{{ date('Y-m-d') }}" class="form-control form-control-sm" required>
                         </div>
                     </div>
 
-                    <div class="row g-2.5">
-                        <div class="col-6">
-                            <label class="form-label small fw-bold text-dark">Payment Amount (৳) <span class="text-danger">*</span></label>
-                            <input type="number" id="detailPayAmountInput" name="amount" min="1" step="1" class="form-control form-control-sm fw-bold text-success font-monospace fs-6" value="{{ $stats['total_po_due'] > 0 ? $stats['total_po_due'] : '' }}" required>
-                        </div>
-                        <div class="col-6">
-                            <label class="form-label small fw-bold text-dark">পরিশোধের Date <span class="text-danger">*</span></label>
-                            <input type="date" name="payment_date" class="form-control form-control-sm" value="{{ date('Y-m-d') }}" required>
-                        </div>
+                    <div class="row g-2 mb-3">
                         <div class="col-6">
                             <label class="form-label small fw-bold text-dark">Payment Method <span class="text-danger">*</span></label>
-                            <select name="payment_method" class="form-select form-select-sm" required>
-                                <option value="cash">Cash</option>
-                                <option value="bank">Bank Wire Transfer</option>
-                                <option value="bkash">bKash</option>
-                                <option value="nagad">Nagad</option>
-                                <option value="cheque">Bank Cheque</option>
+                            <select id="payMethod" name="payment_method" class="form-select form-select-sm" required>
+                                <option value="cash">Cash (নগদ)</option>
+                                <option value="bank">Bank Transfer (ব্যাংক)</option>
+                                <option value="bkash">bKash (বিকাশ)</option>
+                                <option value="nagad">Nagad (নগদ)</option>
+                                <option value="rocket">Rocket (রকেট)</option>
+                                <option value="cheque">Cheque (চেক)</option>
                             </select>
                         </div>
                         <div class="col-6">
-                            <label class="form-label small text-muted">Trx / Cheque No.</label>
-                            <input type="text" name="transaction_ref" class="form-control form-control-sm" placeholder="Trx ID / Cheque #">
-                        </div>
-                        <div class="col-12">
-                            <label class="form-label small text-muted">Notes / Memo</label>
-                            <input type="text" name="note" class="form-control form-control-sm" placeholder="যেমন: কিস্তি পরিশোধ...">
+                            <label class="form-label small fw-bold text-dark">Trx ID / Cheque Ref</label>
+                            <input type="text" id="payTrxRef" name="transaction_ref" placeholder="e.g. TRX10928..." class="form-control form-control-sm">
                         </div>
                     </div>
-                </div>
 
-                <div class="modal-footer bg-light py-2.5">
-                    <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" id="detailPaySubmitBtn" class="btn btn-sm btn-success rounded-pill px-4 fw-bold shadow-xs">
+                    <div class="mb-0">
+                        <label class="form-label small fw-bold text-dark">Notes / Description</label>
+                        <textarea id="payNote" name="note" rows="2" class="form-control form-control-sm" placeholder="e.g. Settled against PO Invoices..."></textarea>
+                    </div>
+
+                </div>
+                <div class="modal-footer bg-light py-2">
+                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success btn-sm rounded-pill px-4 fw-bold" id="savePaymentBtn">
                         <i class="fas fa-check-circle me-1"></i> Save Payment Voucher
                     </button>
                 </div>
@@ -895,161 +1060,64 @@
 </div>
 
 {{-- ========================================================================= --}}
-{{-- MODAL: QUICK BOOK SHORTCUT UPDATE (From Publisher Catalog)                 --}}
+{{-- MODAL: EDIT PUBLISHER PROFILE                                             --}}
 {{-- ========================================================================= --}}
-<div class="modal fade" id="quickBookEditModal" tabindex="-1" aria-labelledby="quickBookEditModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
+<div class="modal fade" id="editPublisherModal" tabindex="-1" aria-labelledby="editPublisherModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header bg-primary text-white py-3">
-                <h5 class="modal-title fw-bold text-white mb-0" id="quickBookEditModalLabel">
-                    <i class="fas fa-bolt me-1.5"></i> বইয়ের দ্রুত Actions এডিটর
+                <h5 class="modal-title fw-bold text-white mb-0" id="editPublisherModalLabel">
+                    <i class="fas fa-pen-to-square me-2"></i> Edit Publisher Information
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            
-            <form id="quickBookEditForm" onsubmit="handleQuickBookEditSubmit(event)" enctype="multipart/form-data">
-                <input type="hidden" id="qeBookId" name="book_id">
-                
+            <form id="editPublisherForm" onsubmit="handleEditPublisherSubmit(event)" enctype="multipart/form-data">
                 <div class="modal-body p-4">
-                    <div id="qeAlertBox"></div>
+                    <div id="editPubAlertBox"></div>
 
-                    <div class="row g-4">
-                        {{-- Left Column: Cover Image & Preview --}}
-                        <div class="col-12 col-md-4 border-end-md text-center">
-                            <label class="form-label small fw-bold text-dark d-block">Cover Photo</label>
-                            <div class="position-relative d-inline-block mb-2.5">
-                                <img src="https://placehold.co/120x170/e2e8f0/475569?text=Cover" 
-                                     id="qeCoverPreview" 
-                                     class="rounded-3 border shadow-sm" 
-                                     style="width: 125px; height: 175px; object-fit: cover;">
-                            </div>
-                            <div>
-                                <label for="qeCoverInput" class="btn btn-sm btn-outline-primary rounded-pill px-3 cursor-pointer">
-                                    <i class="fas fa-upload me-1"></i> Choose New Image
-                                </label>
-                                <input type="file" id="qeCoverInput" name="cover_image_file" accept="image/*" class="d-none" onchange="previewSelectedCover(this)">
-                                <div class="small text-muted mt-1" style="font-size: 11px;">JPG, PNG, WebP (Max 5MB)</div>
-                            </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-dark">Publisher Name <span class="text-danger">*</span></label>
+                        <input type="text" id="editPubName" name="name" value="{{ $publisher->name }}" class="form-control form-control-sm" required>
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-dark">Phone Number</label>
+                            <input type="text" id="editPubPhone" name="phone" value="{{ $publisher->phone }}" class="form-control form-control-sm" placeholder="017xxxxxxxx">
                         </div>
-
-                        {{-- Right Column: Dynamic Price, Commissions, Edition, Stock --}}
-                        <div class="col-12 col-md-8">
-                            
-                            {{-- Title & Edition --}}
-                            <div class="row g-2 mb-3">
-                                <div class="col-8">
-                                    <label class="form-label small fw-bold text-dark">Book Title <span class="text-danger">*</span></label>
-                                    <input type="text" id="qeTitle" name="title" class="form-control form-control-sm fw-bold" required>
-                                </div>
-                                <div class="col-4">
-                                    <label class="form-label small fw-bold text-dark">Edition (Edition)</label>
-                                    <input type="text" id="qeEdition" name="edition" class="form-control form-control-sm" placeholder="যেমন: ১ম প্রকাশ, ২০২৪">
-                                </div>
-                            </div>
-
-                            {{-- Pricing & Commissions Calculator --}}
-                            <div class="p-3 bg-light rounded-3 mb-3 border">
-                                <h6 class="fw-bold text-primary mb-2.5 small text-uppercase">
-                                    <i class="fas fa-calculator me-1"></i> MRP Price, বিক্রয় ছাড় ও ক্রয় কমিশন
-                                </h6>
-                                
-                                <div class="row g-2 mb-2">
-                                    {{-- MRP Price --}}
-                                    <div class="col-4">
-                                        <label class="form-label small fw-bold text-dark">MRP Price (MRP) <span class="text-danger">*</span></label>
-                                        <div class="input-group input-group-sm">
-                                            <span class="input-group-text">৳</span>
-                                            <input type="number" id="qePrice" name="price" min="0" step="1" class="form-control fw-bold" required oninput="recalcPricingFromMrp()">
-                                        </div>
-                                    </div>
-
-                                    {{-- Sale Commission % --}}
-                                    <div class="col-4">
-                                        <label class="form-label small fw-semibold text-dark">Sale Discount</label>
-                                        <div class="input-group input-group-sm">
-                                            <input type="number" id="qeSaleCommission" min="0" max="100" step="0.5" class="form-control text-center text-danger fw-bold" placeholder="0" oninput="recalcSalePriceFromCommission()">
-                                            <span class="input-group-text bg-white">%</span>
-                                        </div>
-                                    </div>
-
-                                    {{-- Sale Price (Discount Price) --}}
-                                    <div class="col-4">
-                                        <label class="form-label small fw-semibold text-dark">Sale Price</label>
-                                        <div class="input-group input-group-sm">
-                                            <span class="input-group-text">৳</span>
-                                            <input type="number" id="qeDiscountPrice" name="discount_price" min="0" step="1" class="form-control text-primary fw-bold" oninput="recalcSaleCommissionFromPrice()">
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="row g-2">
-                                    {{-- Hardcover Price (optional) --}}
-                                    <div class="col-4">
-                                        <label class="form-label small text-muted">Hardcover মুদ্রিত মূল্য</label>
-                                        <div class="input-group input-group-sm">
-                                            <span class="input-group-text">৳</span>
-                                            <input type="number" id="qeHardcoverPrice" name="hardcover_price" min="0" step="1" class="form-control" placeholder="0">
-                                        </div>
-                                    </div>
-
-                                    {{-- Buy Commission % --}}
-                                    <div class="col-4">
-                                        <label class="form-label small fw-semibold text-dark">Buy Commission (%)</label>
-                                        <div class="input-group input-group-sm">
-                                            <input type="number" id="qeBuyCommission" min="0" max="100" step="0.5" class="form-control text-center text-success fw-bold" placeholder="0" oninput="recalcCostPriceFromCommission()">
-                                            <span class="input-group-text bg-white">%</span>
-                                        </div>
-                                    </div>
-
-                                    {{-- Purchase Cost Price --}}
-                                    <div class="col-4">
-                                        <label class="form-label small fw-semibold text-dark">Purchase Cost</label>
-                                        <div class="input-group input-group-sm">
-                                            <span class="input-group-text">৳</span>
-                                            <input type="number" id="qeCostPrice" name="cost_price" min="0" step="1" class="form-control text-success fw-bold" oninput="recalcBuyCommissionFromPrice()">
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {{-- Inventory & Live Status --}}
-                            <div class="row g-2 align-items-center">
-                                <div class="col-4">
-                                    <label class="form-label small fw-bold text-dark">Stock Quantity <span class="text-danger">*</span></label>
-                                    <div class="input-group input-group-sm">
-                                        <input type="number" id="qeStockQuantity" name="stock_quantity" min="0" max="100000" class="form-control fw-bold" required>
-                                        <span class="input-group-text"></span>
-                                    </div>
-                                </div>
-
-                                <div class="col-4">
-                                    <label class="form-label small fw-bold text-dark">স্টক Status</label>
-                                    <select id="qeStockStatus" name="stock_status" class="form-select form-select-sm">
-                                        <option value="in_stock">🟢 In Stock</option>
-                                        <option value="low">🟡 Low Stock</option>
-                                        <option value="out">🔴 Out of Stock</option>
-                                        <option value="pre_order">⏳ প্রি-অর্ডার চলছে</option>
-                                    </select>
-                                </div>
-
-                                <div class="col-4 pt-3">
-                                    <div class="form-check form-switch mb-0">
-                                        <input class="form-check-input" type="checkbox" role="switch" id="qeIsActive" name="is_active" value="1">
-                                        <label class="form-check-label small fw-bold text-dark" for="qeIsActive">
-                                            Live & Active
-                                        </label>
-                                    </div>
-                                </div>
-                            </div>
-
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-dark">Email Address</label>
+                            <input type="email" id="editPubEmail" name="email" value="{{ $publisher->email }}" class="form-control form-control-sm">
                         </div>
                     </div>
-                </div>
 
-                <div class="modal-footer bg-light py-2.5">
-                    <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" id="qeSubmitBtn" class="btn btn-sm btn-primary rounded-pill px-4 fw-bold shadow-xs">
-                        <i class="fas fa-check-circle me-1"></i> Save Changes
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-dark">Office Address</label>
+                        <input type="text" id="editPubAddress" name="address" value="{{ $publisher->address }}" class="form-control form-control-sm" placeholder="e.g. Banglabazar, Dhaka">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-dark">Website URL</label>
+                        <input type="url" id="editPubWebsite" name="website" value="{{ $publisher->website }}" class="form-control form-control-sm" placeholder="https://...">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-dark">Update Logo</label>
+                        <input type="file" name="logo_file" class="form-control form-control-sm" accept="image/*">
+                    </div>
+
+                    <div class="form-check form-switch mb-0">
+                        <input class="form-check-input" type="checkbox" id="editPubActive" name="is_active" value="1" @checked($publisher->is_active)>
+                        <label class="form-check-label small fw-bold text-dark" for="editPubActive">
+                            Publisher is Active in Bookshop
+                        </label>
+                    </div>
+
+                </div>
+                <div class="modal-footer bg-light py-2">
+                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary btn-sm rounded-pill px-4 fw-bold" id="savePublisherBtn">
+                        <i class="fas fa-save me-1"></i> Save Changes
                     </button>
                 </div>
             </form>
@@ -1057,60 +1125,69 @@
     </div>
 </div>
 
+@endsection
+
 @push('scripts')
 <script>
 let selectedBooks = {};
 
-// In-Memory Book Store for Publisher Catalog Quick Editing
-const pubBooksDataMap = {
-    @foreach ($books as $b)
-        {{ $b->id }}: {
-            id: {{ $b->id }},
-            title: "{{ addslashes($b->title) }}",
-            edition: "{{ addslashes($b->edition ?? '') }}",
-            price: {{ (float) ($b->price ?: ($b->hardcover_price ?: ($b->discount_price ?: 0))) }},
-            discount_price: {{ (float) ($b->discount_price ?: 0) }},
-            cost_price: {{ (float) ($b->cost_price ?: 0) }},
-            hardcover_price: {{ (float) ($b->hardcover_price ?: 0) }},
-            hardcover_discount_price: {{ (float) ($b->hardcover_discount_price ?: 0) }},
-            stock_quantity: {{ (int) ($b->stock_quantity ?? 0) }},
-            stock_status: "{{ $b->stock_status ?? 'in_stock' }}",
-            is_active: {{ $b->is_active ? 1 : 0 }},
-            cover_url: "{{ $b->cover_image ? (str_starts_with($b->cover_image, 'http') ? $b->cover_image : asset('storage/' . ltrim($b->cover_image, '/'))) : 'https://placehold.co/100x150/e2e8f0/475569?text=Cover' }}"
-        },
-    @endforeach
-};
+// Rock-solid Vanilla JS Dropdown toggle for Module Switcher
+function togglePublisherViewDropdown(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    const menu = document.getElementById('publisherViewDropdownMenu');
+    const icon = document.getElementById('dropdownChevronIcon');
+    if (!menu) return;
+    
+    const isVisible = menu.style.display === 'block';
+    if (isVisible) {
+        menu.style.display = 'none';
+        if (icon) icon.style.transform = 'rotate(0deg)';
+    } else {
+        menu.style.display = 'block';
+        if (icon) icon.style.transform = 'rotate(180deg)';
+    }
+}
+
+// Click outside handler to close dropdown
+document.addEventListener('click', function(e) {
+    const menu = document.getElementById('publisherViewDropdownMenu');
+    const btn = document.getElementById('publisherViewDropdownBtn');
+    const icon = document.getElementById('dropdownChevronIcon');
+    if (menu && menu.style.display === 'block') {
+        if (!menu.contains(e.target) && !btn.contains(e.target)) {
+            menu.style.display = 'none';
+            if (icon) icon.style.transform = 'rotate(0deg)';
+        }
+    }
+});
 
 function handleBookRowSelect(checkbox) {
     const bookId = checkbox.dataset.id;
     const row = document.getElementById('bookRow_' + bookId);
 
     if (checkbox.checked) {
-        row.classList.add('table-primary');
-        const title = checkbox.dataset.title;
-        const author = checkbox.dataset.author;
-        const edition = checkbox.dataset.edition;
+        if (row) row.classList.add('table-primary');
         const mrpInput = document.getElementById('mrpInput_' + bookId);
-        const price = parseFloat(mrpInput ? mrpInput.value : 0) || 0;
-        const commission = parseFloat(document.getElementById('commissionInput_' + bookId).value) || 0;
-        const qty = parseInt(document.getElementById('qtyInput_' + bookId).value) || 1;
-
+        const price = parseFloat(mrpInput ? mrpInput.value : checkbox.dataset.mrp) || 0;
+        const commission = parseFloat(document.getElementById('commissionInput_' + bookId)?.value || checkbox.dataset.commission) || 40;
+        const qty = parseInt(document.getElementById('qtyInput_' + bookId)?.value || checkbox.dataset.qty) || 1;
         const costRate = price * (1 - (commission / 100));
         const lineTotal = costRate * qty;
 
         selectedBooks[bookId] = {
-            book_id: bookId,
-            title: title,
-            author: author,
-            edition: edition,
+            id: bookId,
+            title: checkbox.dataset.title,
+            edition: checkbox.dataset.edition,
+            isbn: checkbox.dataset.isbn,
             unit_price: price,
             commission_percent: commission,
-            cost_price: costRate,
             quantity: qty,
+            cost_price: costRate,
             total_price: lineTotal
         };
     } else {
-        row.classList.remove('table-primary');
+        if (row) row.classList.remove('table-primary');
         delete selectedBooks[bookId];
     }
 
@@ -1120,14 +1197,16 @@ function handleBookRowSelect(checkbox) {
 function recalcRowTotal(bookId) {
     const mrpInput = document.getElementById('mrpInput_' + bookId);
     const price = parseFloat(mrpInput ? mrpInput.value : 0) || 0;
-    const commission = parseFloat(document.getElementById('commissionInput_' + bookId).value) || 0;
-    const qty = parseInt(document.getElementById('qtyInput_' + bookId).value) || 1;
+    const commInput = document.getElementById('commissionInput_' + bookId);
+    const commission = parseFloat(commInput ? commInput.value : 40) || 0;
+    const qtyInput = document.getElementById('qtyInput_' + bookId);
+    const qty = parseInt(qtyInput ? qtyInput.value : 1) || 1;
 
     const costRate = price * (1 - (commission / 100));
     const lineTotal = costRate * qty;
 
     const costRateEl = document.getElementById('costRateDisplay_' + bookId);
-    if (costRateEl) costRateEl.textContent = 'Rate: ৳' + costRate.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+    if (costRateEl) costRateEl.textContent = '৳' + costRate.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 
     const lineTotalEl = document.getElementById('lineTotal_' + bookId);
     if (lineTotalEl) lineTotalEl.textContent = '৳' + lineTotal.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
@@ -1145,7 +1224,7 @@ function recalcRowTotal(bookId) {
 function applyBulkCommission() {
     const val = parseFloat(document.getElementById('bulkCommissionInput').value);
     if (isNaN(val) || val < 0 || val > 100) {
-        alert('অনুগ্রহ করে সঠিক কমিশন শতাংশ (০ - ১০০) দিন।');
+        alert('Please enter a valid commission percentage (0 - 100%).');
         return;
     }
 
@@ -1204,11 +1283,11 @@ function updateSelectionUI() {
         if (stickyBar) stickyBar.classList.remove('d-none');
         if (badge) {
             badge.style.display = 'inline-block';
-            badge.textContent = count + '  selected';
+            badge.textContent = count + ' selected';
         }
 
         const floatBadge = document.getElementById('floatSelectedBadge');
-        if (floatBadge) floatBadge.textContent = count + '  books selected';
+        if (floatBadge) floatBadge.textContent = count + ' books selected';
         const floatQty = document.getElementById('floatTotalQty');
         if (floatQty) floatQty.textContent = totalQty;
         const floatTotal = document.getElementById('floatGrandTotal');
@@ -1224,7 +1303,7 @@ function updateSelectionUI() {
 function openPurchaseOrderModal() {
     const items = Object.values(selectedBooks);
     if (items.length === 0) {
-        alert('অনুগ্রহ করে অন্তত এক বই নির্বাচন করুন।');
+        alert('Please select at least one book to build a Purchase Order.');
         return;
     }
 
@@ -1259,7 +1338,12 @@ function openPurchaseOrderModal() {
     document.getElementById('modalGrandTotal').textContent = '৳' + grandTotal.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
     document.getElementById('poAlertBox').innerHTML = '';
 
-    new bootstrap.Modal(document.getElementById('purchaseOrderModal')).show();
+    const modalEl = document.getElementById('purchaseOrderModal');
+    if (window.bootstrap) {
+        new bootstrap.Modal(modalEl).show();
+    } else {
+        $(modalEl).modal('show');
+    }
 }
 
 function handleSendPOSubmit(e) {
@@ -1269,12 +1353,12 @@ function handleSendPOSubmit(e) {
     const items = Object.values(selectedBooks);
 
     if (items.length === 0) {
-        alertBox.innerHTML = '<div class="alert alert-danger p-2 small mb-2">কোনো বই নির্বাচন করা হয়নি।</div>';
+        alertBox.innerHTML = '<div class="alert alert-danger p-2 small mb-2">No books selected.</div>';
         return;
     }
 
     btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1.5"></i> ইমেইল পাঠানো হচ্ছে...';
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1.5"></i> Sending Email...';
 
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
     const payload = {
@@ -1305,13 +1389,13 @@ function handleSendPOSubmit(e) {
                 location.reload();
             }, 1800);
         } else {
-            alertBox.innerHTML = `<div class="alert alert-danger p-2 small mb-2">${data.message || 'ত্রু হয়েছে'}</div>`;
+            alertBox.innerHTML = `<div class="alert alert-danger p-2 small mb-2">${data.message || 'Error sending PO email.'}</div>`;
             btn.disabled = false;
             btn.innerHTML = '<i class="fas fa-paper-plane me-1.5"></i> Send Purchase Order Email';
         }
     })
     .catch(err => {
-        alertBox.innerHTML = '<div class="alert alert-danger p-2 small mb-2">সার্ভার এরর হয়েছে।</div>';
+        alertBox.innerHTML = '<div class="alert alert-danger p-2 small mb-2">Server error occurred.</div>';
         btn.disabled = false;
         btn.innerHTML = '<i class="fas fa-paper-plane me-1.5"></i> Send Purchase Order Email';
     });
@@ -1320,30 +1404,26 @@ function handleSendPOSubmit(e) {
 function printPurchaseOrderSlip() {
     const items = Object.values(selectedBooks);
     if (items.length === 0) {
-        alert('অনুগ্রহ করে অন্তত এক বই নির্বাচন করুন।');
+        alert('Please select at least one book to print.');
         return;
     }
 
-    let itemsHtml = '';
+    let rowsHtml = '';
     let totalQty = 0;
     let grandTotal = 0;
 
     items.forEach((item, idx) => {
         totalQty += item.quantity;
         grandTotal += item.total_price;
-        itemsHtml += `
+        rowsHtml += `
             <tr>
-                <td style="border: 1px solid #cbd5e1; padding: 6px 8px; text-align: center;">${idx + 1}</td>
-                <td style="border: 1px solid #cbd5e1; padding: 6px 8px;">
-                    <strong>${item.title}</strong>
-                    ${item.author ? `<br><small style="color: #64748b;">লেখক: ${item.author}</small>` : ''}
-                    ${item.edition ? `<br><small style="color: #4f46e5;">Edition: ${item.edition}</small>` : ''}
-                </td>
-                <td style="border: 1px solid #cbd5e1; padding: 6px 8px; text-align: center; font-weight: bold;">${item.quantity}</td>
-                <td style="border: 1px solid #cbd5e1; padding: 6px 8px; text-align: right;">৳${item.unit_price.toFixed(0)}</td>
-                <td style="border: 1px solid #cbd5e1; padding: 6px 8px; text-align: center;">${item.commission_percent}%</td>
-                <td style="border: 1px solid #cbd5e1; padding: 6px 8px; text-align: right;">৳${item.cost_price.toFixed(0)}</td>
-                <td style="border: 1px solid #cbd5e1; padding: 6px 8px; text-align: right; font-weight: bold;">৳${item.total_price.toFixed(0)}</td>
+                <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">${idx + 1}</td>
+                <td style="padding: 8px; border: 1px solid #ddd;"><strong>${item.title}</strong></td>
+                <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">${item.quantity}</td>
+                <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">৳${item.unit_price.toFixed(0)}</td>
+                <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">${item.commission_percent}%</td>
+                <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">৳${item.cost_price.toFixed(0)}</td>
+                <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">৳${item.total_price.toFixed(0)}</td>
             </tr>
         `;
     });
@@ -1353,65 +1433,37 @@ function printPurchaseOrderSlip() {
         <!DOCTYPE html>
         <html>
         <head>
-            <title>Purchase Order — ${document.title}</title>
-            <meta charset="utf-8">
+            <title>Purchase Order — {{ $publisher->name }}</title>
             <style>
-                body { font-family: 'SolaimanLipi', 'Noto Sans Bengali', sans-serif, system-ui; margin: 20px; color: #1e293b; }
+                body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; color: #333; }
+                h2 { margin-bottom: 5px; color: #1e3a8a; }
                 table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-                @media print {
-                    button { display: none; }
-                }
+                th { background: #f1f5f9; padding: 8px; border: 1px solid #cbd5e1; text-align: left; }
+                .summary { margin-top: 20px; text-align: right; }
             </style>
         </head>
         <body>
-            <div style="border-bottom: 2px solid #4f46e5; padding-bottom: 12px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                    <h2 style="margin: 0; color: #4f46e5;">আইডিয়া প্রকাশন (Idea Prokashon)</h2>
-                    <p style="margin: 3px 0 0; color: #64748b; font-size: 13px;">বই ক্রয় আদেশ (Purchase Order)</p>
-                </div>
-                <div style="text-align: right; font-size: 13px;">
-                    <div><strong>Date:</strong> ${new Date().toLocaleDateString('bn-BD')}</div>
-                    <div><strong>প্রকাশক:</strong> {{ addslashes($publisher->name) }}</div>
-                </div>
-            </div>
-
+            <h2>Purchase Order (PO)</h2>
+            <div><strong>Publisher:</strong> {{ $publisher->name }} | <strong>Date:</strong> ${new Date().toLocaleDateString()}</div>
             <table>
-                <thead style="background: #f1f5f9;">
+                <thead>
                     <tr>
-                        <th style="border: 1px solid #cbd5e1; padding: 8px;">#</th>
-                        <th style="border: 1px solid #cbd5e1; padding: 8px; text-align: left;">বইয়ের বিবরণ</th>
-                        <th style="border: 1px solid #cbd5e1; padding: 8px;">অর্ডার  copies</th>
-                        <th style="border: 1px solid #cbd5e1; padding: 8px; text-align: right;">MRP Price</th>
-                        <th style="border: 1px solid #cbd5e1; padding: 8px;">কমিশন (%)</th>
-                        <th style="border: 1px solid #cbd5e1; padding: 8px; text-align: right;">ক্রয় দর</th>
-                        <th style="border: 1px solid #cbd5e1; padding: 8px; text-align: right;">মোট টাকা</th>
+                        <th style="width: 40px; text-align: center;">#</th>
+                        <th>Book Title</th>
+                        <th style="text-align: center;">Qty</th>
+                        <th style="text-align: right;">MRP</th>
+                        <th style="text-align: center;">Comm.</th>
+                        <th style="text-align: right;">Rate</th>
+                        <th style="text-align: right;">Total</th>
                     </tr>
                 </thead>
-                <tbody>
-                    ${itemsHtml}
-                </tbody>
-                <tfoot style="background: #f8fafc; font-weight: bold;">
-                    <tr>
-                        <td colspan="2" style="border: 1px solid #cbd5e1; padding: 8px; text-align: right;">সর্বমোট:</td>
-                        <td style="border: 1px solid #cbd5e1; padding: 8px; text-align: center;">${totalQty} </td>
-                        <td colspan="3" style="border: 1px solid #cbd5e1;"></td>
-                        <td style="border: 1px solid #cbd5e1; padding: 8px; text-align: right; color: #4f46e5; font-size: 16px;">৳${grandTotal.toFixed(0)}</td>
-                    </tr>
-                </tfoot>
+                <tbody>${rowsHtml}</tbody>
             </table>
-
-            <div style="margin-top: 40px; display: flex; justify-content: space-between;">
-                <div style="text-align: center; border-top: 1px dashed #94a3b8; width: 180px; padding-top: 5px;">
-                    কর্তৃপক্ষের স্বাক্ষর
-                </div>
-                <div style="text-align: center; border-top: 1px dashed #94a3b8; width: 180px; padding-top: 5px;">
-                    প্রকাশকের গ্রহণকারী স্বাক্ষর
-                </div>
+            <div class="summary">
+                <p>Total Copies: <strong>${totalQty}</strong></p>
+                <h3>Grand Total: ৳${grandTotal.toLocaleString()}</h3>
             </div>
-
-            <div style="margin-top: 20px; text-align: center;">
-                <button onclick="window.print()" style="background: #4f46e5; color: white; border: none; padding: 8px 18px; border-radius: 6px; font-weight: bold; cursor: pointer;">🖨️ প্রিন্ট করুন</button>
-            </div>
+            <script>window.print();<\/script>
         </body>
         </html>
     `);
@@ -1419,184 +1471,99 @@ function printPurchaseOrderSlip() {
 }
 
 function openMakePaymentModal() {
-    new bootstrap.Modal(document.getElementById('publisherPaymentModal')).show();
+    const modalEl = document.getElementById('makePaymentModal');
+    if (window.bootstrap) {
+        new bootstrap.Modal(modalEl).show();
+    } else {
+        $(modalEl).modal('show');
+    }
 }
 
-function handlePublisherDetailPaymentSubmit(e) {
+function handleMakePaymentSubmit(e) {
     e.preventDefault();
-    const btn = document.getElementById('detailPaySubmitBtn');
-    const alertBox = document.getElementById('pubDetailPayAlertBox');
-    const form = document.getElementById('pubDetailPaymentForm');
-    const formData = new FormData(form);
+    const btn = document.getElementById('savePaymentBtn');
+    const alertBox = document.getElementById('paymentAlertBox');
 
     btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> পেমেন্ট সংরক্ষণ হচ্ছে...';
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Saving...';
 
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+    const formData = new FormData(document.getElementById('makePaymentForm'));
 
     fetch("{{ route('admin.publishers.quick-payment', $publisher->id) }}", {
         method: 'POST',
         headers: {
-            'Accept': 'application/json',
-            'X-CSRF-TOKEN': csrfToken
+            'X-CSRF-TOKEN': csrfToken,
+            'Accept': 'application/json'
         },
         body: formData
     })
     .then(res => res.json())
     .then(data => {
         if (data.success) {
-            alertBox.innerHTML = `<div class="alert alert-success p-2 small mb-3"><i class="fas fa-check-circle me-1"></i> ${data.message}</div>`;
-            setTimeout(() => {
-                location.reload();
-            }, 1000);
+            alertBox.innerHTML = `<div class="alert alert-success p-2 small mb-2">${data.message}</div>`;
+            setTimeout(() => location.reload(), 1200);
         } else {
-            alertBox.innerHTML = `<div class="alert alert-danger p-2 small mb-3">${data.message || 'ত্রু হয়েছে'}</div>`;
+            alertBox.innerHTML = `<div class="alert alert-danger p-2 small mb-2">${data.message || 'Validation error.'}</div>`;
             btn.disabled = false;
             btn.innerHTML = '<i class="fas fa-check-circle me-1"></i> Save Payment Voucher';
         }
     })
-    .catch(err => {
-        alertBox.innerHTML = `<div class="alert alert-danger p-2 small mb-3">সার্ভার এরর হয়েছে।</div>`;
+    .catch(() => {
+        alertBox.innerHTML = '<div class="alert alert-danger p-2 small mb-2">Server error.</div>';
         btn.disabled = false;
         btn.innerHTML = '<i class="fas fa-check-circle me-1"></i> Save Payment Voucher';
     });
 }
 
-// Quick Book Edit Modal Functions
-function openQuickBookEditModal(bookId) {
-    const book = pubBooksDataMap[bookId];
-    if (!book) return;
-
-    document.getElementById('qeBookId').value = book.id;
-    document.getElementById('qeTitle').value = book.title;
-    document.getElementById('qeEdition').value = book.edition || '';
-    document.getElementById('qePrice').value = book.price > 0 ? book.price : '';
-    document.getElementById('qeDiscountPrice').value = book.discount_price > 0 ? book.discount_price : '';
-    document.getElementById('qeCostPrice').value = book.cost_price > 0 ? book.cost_price : '';
-    document.getElementById('qeHardcoverPrice').value = book.hardcover_price > 0 ? book.hardcover_price : '';
-    document.getElementById('qeStockQuantity').value = book.stock_quantity;
-    document.getElementById('qeStockStatus').value = book.stock_status || (book.stock_quantity <= 0 ? 'out' : 'in_stock');
-    document.getElementById('qeIsActive').checked = (book.is_active === 1);
-    document.getElementById('qeCoverPreview').src = book.cover_url;
-    document.getElementById('qeCoverInput').value = '';
-    document.getElementById('qeAlertBox').innerHTML = '';
-
-    recalcSaleCommissionFromPrice();
-    recalcBuyCommissionFromPrice();
-
-    new bootstrap.Modal(document.getElementById('quickBookEditModal')).show();
-}
-
-function recalcPricingFromMrp() {
-    const mrp = parseFloat(document.getElementById('qePrice').value) || 0;
-    const saleComm = parseFloat(document.getElementById('qeSaleCommission').value) || 0;
-    const buyComm = parseFloat(document.getElementById('qeBuyCommission').value) || 0;
-    const discountPrice = parseFloat(document.getElementById('qeDiscountPrice').value) || 0;
-    const costPrice = parseFloat(document.getElementById('qeCostPrice').value) || 0;
-
-    if (saleComm > 0) {
-        recalcSalePriceFromCommission();
-    } else if (discountPrice > 0 && mrp > 0) {
-        recalcSaleCommissionFromPrice();
-    }
-
-    if (buyComm > 0) {
-        recalcCostPriceFromCommission();
-    } else if (costPrice > 0 && mrp > 0) {
-        recalcBuyCommissionFromPrice();
+function openEditPublisherModal(id) {
+    const modalEl = document.getElementById('editPublisherModal');
+    if (window.bootstrap) {
+        new bootstrap.Modal(modalEl).show();
+    } else {
+        $(modalEl).modal('show');
     }
 }
 
-function recalcSalePriceFromCommission() {
-    const mrp = parseFloat(document.getElementById('qePrice').value) || 0;
-    const comm = parseFloat(document.getElementById('qeSaleCommission').value) || 0;
-    if (mrp > 0 && comm > 0) {
-        const salePrice = mrp * (1 - (comm / 100));
-        document.getElementById('qeDiscountPrice').value = Math.round(salePrice);
-    }
-}
-
-function recalcSaleCommissionFromPrice() {
-    const mrp = parseFloat(document.getElementById('qePrice').value) || 0;
-    const salePrice = parseFloat(document.getElementById('qeDiscountPrice').value) || 0;
-    if (mrp > 0 && salePrice > 0 && salePrice < mrp) {
-        const comm = ((mrp - salePrice) / mrp) * 100;
-        document.getElementById('qeSaleCommission').value = comm.toFixed(1);
-    } else if (salePrice <= 0) {
-        document.getElementById('qeSaleCommission').value = '';
-    }
-}
-
-function recalcCostPriceFromCommission() {
-    const mrp = parseFloat(document.getElementById('qePrice').value) || 0;
-    const comm = parseFloat(document.getElementById('qeBuyCommission').value) || 0;
-    if (mrp > 0 && comm > 0) {
-        const costPrice = mrp * (1 - (comm / 100));
-        document.getElementById('qeCostPrice').value = Math.round(costPrice);
-    }
-}
-
-function recalcBuyCommissionFromPrice() {
-    const mrp = parseFloat(document.getElementById('qePrice').value) || 0;
-    const costPrice = parseFloat(document.getElementById('qeCostPrice').value) || 0;
-    if (mrp > 0 && costPrice > 0 && costPrice < mrp) {
-        const comm = ((mrp - costPrice) / mrp) * 100;
-        document.getElementById('qeBuyCommission').value = comm.toFixed(1);
-    } else if (costPrice <= 0) {
-        document.getElementById('qeBuyCommission').value = '';
-    }
-}
-
-function previewSelectedCover(input) {
-    if (input.files && input.files[0]) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            document.getElementById('qeCoverPreview').src = e.target.result;
-        };
-        reader.readAsDataURL(input.files[0]);
-    }
-}
-
-function handleQuickBookEditSubmit(e) {
+function handleEditPublisherSubmit(e) {
     e.preventDefault();
-    const btn = document.getElementById('qeSubmitBtn');
-    const alertBox = document.getElementById('qeAlertBox');
-    const form = document.getElementById('quickBookEditForm');
-    const formData = new FormData(form);
+    const btn = document.getElementById('savePublisherBtn');
+    const alertBox = document.getElementById('editPubAlertBox');
 
     btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> সংরক্ষণ হচ্ছে...';
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Updating...';
 
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+    const formData = new FormData(document.getElementById('editPublisherForm'));
 
-    fetch("{{ route('admin.books.quick-update') }}", {
+    fetch("{{ route('admin.publishers.quick-update', $publisher->id) }}", {
         method: 'POST',
         headers: {
-            'Accept': 'application/json',
-            'X-CSRF-TOKEN': csrfToken
+            'X-CSRF-TOKEN': csrfToken,
+            'Accept': 'application/json'
         },
         body: formData
     })
     .then(res => res.json())
     .then(data => {
         if (data.success) {
-            alertBox.innerHTML = `<div class="alert alert-success p-2 small mb-3"><i class="fas fa-check-circle me-1"></i> ${data.message}</div>`;
-            setTimeout(() => {
-                location.reload();
-            }, 800);
+            alertBox.innerHTML = `<div class="alert alert-success p-2 small mb-2">${data.message}</div>`;
+            setTimeout(() => location.reload(), 1200);
         } else {
-            alertBox.innerHTML = `<div class="alert alert-danger p-2 small mb-3">${data.message || 'ত্রু হয়েছে'}</div>`;
+            alertBox.innerHTML = `<div class="alert alert-danger p-2 small mb-2">${data.message || 'Update error.'}</div>`;
             btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-check-circle me-1"></i> Save Changes';
+            btn.innerHTML = '<i class="fas fa-save me-1"></i> Save Changes';
         }
     })
-    .catch(err => {
-        alertBox.innerHTML = `<div class="alert alert-danger p-2 small mb-3">সার্ভার এরর হয়েছে।</div>`;
+    .catch(() => {
+        alertBox.innerHTML = '<div class="alert alert-danger p-2 small mb-2">Server error.</div>';
         btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-check-circle me-1"></i> Save Changes';
+        btn.innerHTML = '<i class="fas fa-save me-1"></i> Save Changes';
     });
+}
+
+function openQuickBookEditModal(bookId) {
+    window.open("{{ url('admin/content/books') }}/" + bookId + "/edit", '_blank');
 }
 </script>
 @endpush
-
-@endsection

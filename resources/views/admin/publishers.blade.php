@@ -337,34 +337,59 @@
                                            @checked($publisher->is_active) 
                                            onchange="togglePublisherActive({{ $publisher->id }}, this)">
                                 </div>
-                            </td>
-
-                            {{-- Actions --}}
+                              {{-- Actions --}}
                             <td class="text-end pe-3">
-                                <div class="d-inline-flex align-items-center gap-1">
+                                <div class="d-inline-flex align-items-center gap-1.5">
+                                    {{-- Primary Action: Manage Publisher Dashboard --}}
                                     <a href="{{ route('admin.publishers.show', $publisher->id) }}" 
-                                       class="btn btn-sm btn-primary rounded-pill px-2.5 py-0.5 fw-semibold" title="Books & Purchase Orders">
-                                        <i class="fas fa-file-invoice-dollar me-1"></i> Books & PO
+                                       class="btn btn-sm btn-primary rounded-pill px-3 py-1 fw-bold shadow-xs d-inline-flex align-items-center gap-1.5" 
+                                       style="background: linear-gradient(135deg, #2563eb, #1d4ed8); border: none; font-size: 11.5px;"
+                                       title="Manage Books Catalog, Purchases & Ledger">
+                                        <i class="fas fa-layer-group text-white-50"></i>
+                                        <span>Manage</span>
                                     </a>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-2 py-0.5" 
-                                            onclick="openEditPublisherModal({{ $publisher->id }})" title="Edit Publisher">
-                                        <i class="fas fa-pen-to-square"></i>
+
+                                    {{-- Quick Pay Action (If Due) --}}
+                                    @if($dueSum > 0)
+                                        <button type="button" class="btn btn-sm btn-light border border-success-subtle text-success rounded-circle shadow-xs" 
+                                                style="width: 29px; height: 29px; padding: 0; display: inline-flex; align-items: center; justify-content: center;"
+                                                onclick="openQuickPaymentModal({{ $publisher->id }}, '{{ addslashes($publisher->name) }}', {{ $dueSum }})" 
+                                                title="Record Payment Settlement">
+                                            <i class="fas fa-hand-holding-dollar" style="font-size: 11px;"></i>
+                                        </button>
+                                    @endif
+
+                                    {{-- Edit Publisher Profile --}}
+                                    <button type="button" class="btn btn-sm btn-light border rounded-circle shadow-xs" 
+                                            style="width: 29px; height: 29px; padding: 0; display: inline-flex; align-items: center; justify-content: center;"
+                                            onclick="openEditPublisherModal({{ $publisher->id }})" 
+                                            title="Edit Publisher Profile">
+                                        <i class="fas fa-pen-to-square" style="font-size: 11px;"></i>
                                     </button>
-                                    <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-2 py-0.5" 
-                                            onclick="openQuickPaymentModal({{ $publisher->id }}, '{{ addslashes($publisher->name) }}', {{ $dueSum }})" title="Record Payment">
-                                        <i class="fas fa-hand-holding-dollar"></i>
-                                    </button>
-                                    <a href="{{ route('publishers.show', $publisher->slug ?? $publisher->id) }}" target="_blank" 
-                                       class="btn btn-sm btn-outline-secondary rounded-pill px-2 py-0.5" title="View Storefront">
-                                        <i class="fas fa-eye"></i>
-                                    </a>
+
+                                    {{-- View Storefront Page --}}
+                                    @if($publisher->slug)
+                                        <a href="{{ route('publishers.show', $publisher->slug) }}" target="_blank" rel="noopener" 
+                                           class="btn btn-sm btn-light border text-info rounded-circle shadow-xs" 
+                                           style="width: 29px; height: 29px; padding: 0; display: inline-flex; align-items: center; justify-content: center;" 
+                                           title="View Storefront Page">
+                                            <i class="fas fa-arrow-up-right-from-square" style="font-size: 10px;"></i>
+                                        </a>
+                                    @endif
+
+                                    {{-- Delete Publisher --}}
                                     <form action="{{ route('admin.content.destroy', ['type' => 'publishers', 'id' => $publisher->id]) }}" method="POST" class="d-inline"
-                                          data-confirm="আপনি কি নিশ্চিত যে এই প্রকাশক অ্যাকাউন্টটি মুছে ফেলতে চান?" data-confirm-title="প্রকাশক ডিলিট">
+                                          data-confirm="Are you sure you want to delete this publisher?" data-confirm-title="Delete Publisher">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-2 py-0.5" title="Delete Publisher">
-                                            <i class="fas fa-trash-can"></i>
+                                        <button type="submit" class="btn btn-sm btn-light border text-danger rounded-circle shadow-xs" 
+                                                style="width: 29px; height: 29px; padding: 0; display: inline-flex; align-items: center; justify-content: center;" 
+                                                title="Delete Publisher">
+                                            <i class="fas fa-trash-can" style="font-size: 11px;"></i>
                                         </button>
+                                    </form>
+                                </div>
+                            </td>                           </button>
                                     </form>
                                 </div>
                             </td>
