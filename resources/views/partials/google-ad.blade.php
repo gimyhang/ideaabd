@@ -3,7 +3,7 @@
     $adSettings = \Illuminate\Support\Facades\Schema::hasTable('admin_dashboard_settings')
         ? \App\Models\AdminDashboardSetting::where('key', 'advertisement_settings')->value('value')
         : null;
-    $adClient = $adSettings['google_adsense_client'] ?? config('services.google_adsense.client_id') ?? env('GOOGLE_ADSENSE_CLIENT_ID', 'ca-pub-1234567890123456');
+    $adClient = $adSettings['google_adsense_client'] ?? config('services.google_adsense.client_id') ?? env('GOOGLE_ADSENSE_CLIENT_ID', 'ca-pub-4534355865737776');
     $adSlot = $slot ?? ($adSettings['slot_' . str_replace('-', '_', $type)] ?? env('GOOGLE_ADSENSE_SLOT_' . strtoupper(str_replace('-', '_', $type)), '1234567890'));
 @endphp
 

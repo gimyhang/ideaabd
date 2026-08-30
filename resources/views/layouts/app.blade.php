@@ -179,6 +179,9 @@
     @else
         <link rel="icon" href="{{ asset('favicon.ico') }}">
     @endif
+
+    <!-- Google AdSense Official Script -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4534355865737776" crossorigin="anonymous"></script>
     
     <!-- Fonts: Kalpurush, Nikosh, Hind Siliguri, Noto Sans Bengali & Inter -->
     <link href="https://fonts.maateen.me/kalpurush/font.css" rel="stylesheet">
