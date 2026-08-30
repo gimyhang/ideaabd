@@ -37,9 +37,9 @@ class SecurityHeaders
             $response->headers->set('Pragma', 'no-cache');
         }
 
-        // CSP: allow CDN fonts/icons, Bangla webfonts (fonts.maateen.me), Google Translate, Google AdSense & Ads.
+        // CSP: allow CDN fonts/icons, Bangla webfonts (fonts.maateen.me), Google AMP, Google Translate, Google AdSense & Ads.
         if (app()->environment('production')) {
-            $cdn = 'cdnjs.cloudflare.com cdn.jsdelivr.net fonts.maateen.me';
+            $cdn = 'cdnjs.cloudflare.com cdn.jsdelivr.net fonts.maateen.me cdn.ampproject.org';
             $googleTranslate = 'translate.google.com translate.googleapis.com translate-pa.googleapis.com';
             $googleAds = 'pagead2.googlesyndication.com googleads.g.doubleclick.net tpc.googlesyndication.com adservice.google.com ep2.adtrafficquality.google www.google.com www.googletagservices.com';
             $csp = implode('; ', [

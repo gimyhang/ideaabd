@@ -182,6 +182,11 @@
 
     <!-- Google AdSense Official Script -->
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4534355865737776" crossorigin="anonymous"></script>
+
+    <!-- Google AdSense AMP Auto Ads Script -->
+    <script async custom-element="amp-auto-ads"
+            src="https://cdn.ampproject.org/v0/amp-auto-ads-0.1.js">
+    </script>
     
     <!-- Fonts: Kalpurush, Nikosh, Hind Siliguri, Noto Sans Bengali & Inter -->
     <link href="https://fonts.maateen.me/kalpurush/font.css" rel="stylesheet">
@@ -267,6 +272,11 @@
     @endif
 </head>
 <body style="display: flex; flex-direction: column; min-height: 100vh;">
+    <!-- Google AdSense AMP Auto Ads Unit -->
+    <amp-auto-ads type="adsense"
+            data-ad-client="ca-pub-4534355865737776">
+    </amp-auto-ads>
+
     <!-- Header Navigation -->
     @include('layouts.header')
 
