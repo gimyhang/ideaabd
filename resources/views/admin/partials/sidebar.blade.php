@@ -39,11 +39,12 @@
             ['route' => 'admin.purchases.monthly-report', 'icon' => 'chart-pie',     'label' => 'Monthly Report'],
         ],
         'Idea Accounting' => [
-            ['route' => 'admin.accounting.index',           'icon' => 'scale-balanced',      'label' => 'Income & Expenses'],
-            ['route' => 'admin.accounting.invoices.index',  'icon' => 'file-invoice-dollar', 'label' => 'Invoices & Challans'],
-            ['route' => 'admin.accounting.salary.index',    'icon' => 'money-check-dollar',  'label' => 'Payroll & Salaries'],
-            ['route' => 'admin.accounting.employees.index', 'icon' => 'users-gear',          'label' => 'Employee Profiles'],
-            ['route' => 'admin.accounting.reports.index',   'icon' => 'chart-pie',           'label' => 'P&L Reports'],
+            ['route' => 'admin.accounting.index',                  'icon' => 'scale-balanced',      'label' => 'Income & Expenses'],
+            ['route' => 'admin.accounting.invoices.index',         'icon' => 'file-invoice-dollar', 'label' => 'Invoices & Challans'],
+            ['route' => 'admin.accounting.customer-ledger.index', 'icon' => 'book-bookmark',       'label' => 'Customer Ledgers'],
+            ['route' => 'admin.accounting.salary.index',           'icon' => 'money-check-dollar',  'label' => 'Payroll & Salaries'],
+            ['route' => 'admin.accounting.employees.index',        'icon' => 'users-gear',          'label' => 'Employee Profiles'],
+            ['route' => 'admin.accounting.reports.index',          'icon' => 'chart-pie',           'label' => 'P&L Reports'],
         ],
         'Content' => [
             ['route' => 'admin.blog',                     'icon' => 'newspaper',          'label' => 'Ideapatra / Blog'],

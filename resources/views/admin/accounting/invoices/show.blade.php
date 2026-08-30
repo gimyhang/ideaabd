@@ -50,20 +50,32 @@
 
 @section('actions')
     <div class="d-flex flex-wrap gap-2">
+        {{-- Collect Installment Payment Button --}}
+        @if(in_array($invoice->type, ['invoice', 'challan']) && $invoice->due_amount > 0)
+            <button type="button" class="btn btn-success btn-sm rounded-pill px-3 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#recordInvoicePaymentModal">
+                <i class="fas fa-hand-holding-dollar me-1.5"></i> কিস্তি জমা নিন
+            </button>
+        @endif
+
+        {{-- Customer Ledger Link --}}
+        <a href="{{ route('admin.accounting.customer-ledger.index', ['customer_name' => $invoice->customer_name, 'customer_phone' => $invoice->customer_phone]) }}" class="btn btn-outline-info text-dark btn-sm rounded-pill px-3 fw-semibold shadow-sm" title="গ্রাহকের সম্পূর্ণ খতিয়ান দেখুন">
+            <i class="fas fa-book-bookmark me-1 text-primary"></i> গ্রাহক খতিয়ান
+        </a>
+
         <button type="button" class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm fw-semibold" onclick="window.print()">
             <i class="fas fa-print me-1.5"></i> Print / PDF
         </button>
 
         {{-- Send Invoice Link to Customer Email Button --}}
-        <button type="button" class="btn btn-success btn-sm rounded-pill px-3 fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#sendInvoiceEmailModal" title="Send digital invoice link to customer email">
+        <button type="button" class="btn btn-outline-success btn-sm rounded-pill px-3 fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#sendInvoiceEmailModal" title="Send digital invoice link to customer email">
             <i class="fas fa-paper-plane me-1.5"></i> Send Email
             @if($invoice->emailed_at)
-                <span class="badge bg-white text-success ms-1 px-1.5 py-0.5 rounded-pill" title="Email sent">✓</span>
+                <span class="badge bg-success text-white ms-1 px-1.5 py-0.5 rounded-pill" title="Email sent">✓</span>
             @endif
         </button>
 
         {{-- Copy Customer Public Link --}}
-        <button type="button" class="btn btn-outline-info text-dark btn-sm rounded-pill px-3 fw-semibold shadow-sm" onclick="copyCustomerShareLink()" id="btnAdminCopyLink" title="Copy public share link for customer">
+        <button type="button" class="btn btn-outline-secondary text-dark btn-sm rounded-pill px-3 fw-semibold shadow-sm" onclick="copyCustomerShareLink()" id="btnAdminCopyLink" title="Copy public share link for customer">
             <i class="fas fa-share-nodes me-1 text-primary"></i> Copy Link
         </button>
 
@@ -121,6 +133,10 @@
             <a href="{{ route('admin.accounting.invoices.index') }}" 
                class="nav-link rounded-pill px-3.5 py-2 fw-semibold text-dark hover-bg-light">
                 <i class="fas fa-file-invoice-dollar me-1.5"></i> Invoices, Challans & Quotations
+            </a>
+            <a href="{{ route('admin.accounting.customer-ledger.index') }}" 
+               class="nav-link rounded-pill px-3.5 py-2 fw-semibold text-dark hover-bg-light">
+                <i class="fas fa-book-bookmark me-1.5"></i> Customer Ledgers & Statements
             </a>
             <a href="{{ route('admin.accounting.invoices.create') }}" 
                class="nav-link rounded-pill px-3.5 py-2 fw-semibold text-dark hover-bg-light">
@@ -718,6 +734,270 @@
 
     </div>
 </div>
+
+{{-- ========================================================================= --}}
+{{-- STEP-BY-STEP PAYMENT & INSTALLMENTS TRACKER CARD (ধাপে ধাপে জমা ও কিস্তি হিসাব) --}}
+{{-- ========================================================================= --}}
+@if(in_array($invoice->type, ['invoice', 'challan']))
+<div class="row justify-content-center mt-3 d-print-none">
+    <div class="col-lg-10">
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+            <div class="card-header bg-white py-3 border-bottom d-flex flex-wrap align-items-center justify-content-between gap-2">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-success-subtle text-success p-2 rounded-circle">
+                        <i class="fas fa-hand-holding-dollar fs-6"></i>
+                    </span>
+                    <div>
+                        <h5 class="card-title fw-bold mb-0 text-dark">ধাপে ধাপে কিস্তি ও জমা পরিশোধের হিসাব</h5>
+                        <div class="text-muted small">ইনভয়েস #{{ $invoice->invoice_no }} — {{ $invoice->customer_name }}</div>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <a href="{{ route('admin.accounting.customer-ledger.index', ['customer_name' => $invoice->customer_name, 'customer_phone' => $invoice->customer_phone]) }}" class="btn btn-outline-info text-dark btn-sm rounded-pill px-3 fw-semibold shadow-xs">
+                        <i class="fas fa-book-bookmark me-1 text-primary"></i> সম্পূর্ণ গ্রাহক খতিয়ান
+                    </a>
+                    @if($invoice->due_amount > 0)
+                        <button type="button" class="btn btn-success btn-sm rounded-pill px-3 fw-bold shadow-xs" data-bs-toggle="modal" data-bs-target="#recordInvoicePaymentModal">
+                            <i class="fas fa-plus me-1"></i> নতুন কিস্তি জমা নিন
+                        </button>
+                    @endif
+                </div>
+            </div>
+
+            <div class="card-body p-4">
+                {{-- Payment Progress & Stats Row --}}
+                @php
+                    $pctPaid = ($invoice->grand_total > 0) ? min(100, round(($invoice->paid_amount / $invoice->grand_total) * 100, 1)) : 0;
+                @endphp
+                <div class="row g-3 mb-4">
+                    <div class="col-md-3 col-6">
+                        <div class="p-3 bg-light rounded-3 border text-center">
+                            <div class="text-muted small fw-semibold">মোট বিলের দাবি</div>
+                            <div class="fs-5 fw-bold text-dark font-monospace mt-1">৳{{ number_format($invoice->grand_total, 2) }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="p-3 bg-success-subtle rounded-3 border border-success-subtle text-center">
+                            <div class="text-success small fw-semibold">মোট জমা / পরিশোধ</div>
+                            <div class="fs-5 fw-bold text-success font-monospace mt-1">৳{{ number_format($invoice->paid_amount, 2) }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="p-3 {{ $invoice->due_amount > 0 ? 'bg-danger-subtle border-danger-subtle' : 'bg-light' }} rounded-3 border text-center">
+                            <div class="{{ $invoice->due_amount > 0 ? 'text-danger' : 'text-muted' }} small fw-semibold">বর্তমান বকেয়া জের</div>
+                            <div class="fs-5 fw-bold {{ $invoice->due_amount > 0 ? 'text-danger' : 'text-success' }} font-monospace mt-1">৳{{ number_format($invoice->due_amount, 2) }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="p-3 bg-light rounded-3 border text-center">
+                            <div class="text-muted small fw-semibold">পরিশোধের শেষ তারিখ (ঐচ্ছিক)</div>
+                            <div class="fs-6 fw-bold text-dark font-monospace mt-1">
+                                @if($invoice->due_date && $invoice->due_amount > 0)
+                                    <span class="{{ $invoice->is_overdue ? 'text-danger' : 'text-primary' }}">
+                                        <i class="fas fa-calendar-day me-1"></i>{{ $invoice->due_date->format('d M, Y') }}
+                                        @if($invoice->is_overdue)
+                                            <span class="badge bg-danger text-white ms-1" style="font-size: 9px;">মেয়াদোত্তীর্ণ</span>
+                                        @endif
+                                    </span>
+                                @elseif($invoice->due_amount <= 0)
+                                    <span class="text-success small"><i class="fas fa-check-circle me-1"></i>সম্পূর্ণ পরিশোধিত</span>
+                                @else
+                                    <span class="text-muted small">নির্ধারিত নেই</span>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Visual Progress Bar --}}
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between small text-muted mb-1.5 fw-semibold">
+                        <span>পরিশোধের অগ্রগতি: <strong class="text-dark">{{ $pctPaid }}%</strong></span>
+                        <span>স্থিতি: 
+                            @if($invoice->payment_status === 'paid')
+                                <span class="badge bg-success">পরিশোধিত (Paid)</span>
+                            @elseif($invoice->payment_status === 'partial')
+                                <span class="badge bg-warning text-dark">আংশিক জমা (Partial)</span>
+                            @else
+                                <span class="badge bg-danger">বকেয়া (Unpaid)</span>
+                            @endif
+                        </span>
+                    </div>
+                    <div class="progress" style="height: 10px; border-radius: 999px;">
+                        <div class="progress-bar bg-success progress-bar-striped progress-bar-animated" role="progressbar" style="width: {{ $pctPaid }}%" aria-valuenow="{{ $pctPaid }}" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                </div>
+
+                {{-- Installment Payments History Table --}}
+                <h6 class="fw-bold text-dark mb-2.5">
+                    <i class="fas fa-clock-rotate-left text-primary me-1.5"></i>জমা ও কিস্তির বিবরণী (Payment Logs)
+                </h6>
+
+                <div class="table-responsive">
+                    <table class="table table-hover table-bordered align-middle mb-0" style="font-size: 13px;">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="text-center" style="width: 45px;">#</th>
+                                <th style="width: 130px;">রসিদ নম্বর</th>
+                                <th style="width: 110px;">জমার তারিখ</th>
+                                <th class="text-end" style="width: 120px;">টাকার পরিমাণ</th>
+                                <th style="width: 120px;">পেমেন্ট মাধ্যম</th>
+                                <th>রেফারেন্স / বিবরণ</th>
+                                <th style="width: 130px;">আদায়কারী</th>
+                                <th class="text-center" style="width: 110px;">অ্যাকশন</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($invoice->payments as $pIdx => $pmt)
+                                <tr>
+                                    <td class="text-center text-muted fw-semibold">{{ $pIdx + 1 }}</td>
+                                    <td>
+                                        <span class="font-monospace fw-bold text-dark">#{{ $pmt->payment_no }}</span>
+                                    </td>
+                                    <td class="font-monospace">
+                                        {{ $pmt->payment_date ? $pmt->payment_date->format('d M, Y') : '—' }}
+                                    </td>
+                                    <td class="text-end font-monospace fw-bold text-success">
+                                        ৳{{ number_format($pmt->amount, 2) }}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-light text-dark border px-2 py-1">
+                                            {{ \App\Models\IdeaInvoicePayment::paymentMethods()[$pmt->payment_method] ?? ucfirst($pmt->payment_method) }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="text-dark fw-medium">{{ $pmt->note ?: '—' }}</div>
+                                        @if($pmt->transaction_ref)
+                                            <div class="text-muted font-monospace" style="font-size: 11px;">Trx: {{ $pmt->transaction_ref }}</div>
+                                        @endif
+                                    </td>
+                                    <td class="text-muted small">
+                                        {{ $pmt->recorder?->name ?? 'Admin' }}
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="d-flex align-items-center justify-content-center gap-1">
+                                            <a href="{{ route('admin.accounting.invoices.payments.receipt', $pmt->id) }}" class="btn btn-sm btn-outline-primary rounded-pill px-2 py-0.5" title="টাকা প্রাপ্তি রসিদ প্রিন্ট করুন">
+                                                <i class="fas fa-receipt me-1"></i>রসিদ
+                                            </a>
+
+                                            <form action="{{ route('admin.accounting.invoices.payments.destroy', $pmt->id) }}" method="POST" class="d-inline"
+                                                  data-confirm="আপনি কি নিশ্চিত যে এই পেমেন্ট রেকর্ডটি (#{{ $pmt->payment_no }}) মুছে ফেলতে চান?" data-confirm-title="পেমেন্ট ডিলিট">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-sm btn-outline-danger rounded-circle p-1" style="width: 26px; height: 26px; line-height: 1;" title="মুছে ফেলুন">
+                                                    <i class="fas fa-trash-alt" style="font-size: 10px;"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="8" class="text-center py-4 text-muted">
+                                        <i class="fas fa-receipt fs-3 mb-2 d-block text-secondary"></i>
+                                        এখনও কোনো কিস্তি জমা রেকর্ড করা হয়নি।
+                                        @if($invoice->due_amount > 0)
+                                            <div class="mt-2">
+                                                <button type="button" class="btn btn-success btn-sm rounded-pill px-3 fw-bold" data-bs-toggle="modal" data-bs-target="#recordInvoicePaymentModal">
+                                                    <i class="fas fa-plus me-1"></i> ১ম কিস্তি জমা নিন
+                                                </button>
+                                            </div>
+                                        @endif
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                        @if($invoice->payments->count() > 0)
+                            <tfoot class="table-light fw-bold">
+                                <tr>
+                                    <td colspan="3" class="text-end">সর্বমোট জমা (Total Paid):</td>
+                                    <td class="text-end font-monospace text-success">৳{{ number_format($invoice->paid_amount, 2) }}</td>
+                                    <td colspan="4" class="text-muted small">বকেয়া জের: <span class="font-monospace fw-bold {{ $invoice->due_amount > 0 ? 'text-danger' : 'text-success' }}">৳{{ number_format($invoice->due_amount, 2) }}</span></td>
+                                </tr>
+                            </tfoot>
+                        @endif
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- RECORD INVOICE PAYMENT MODAL --}}
+<div class="modal fade d-print-none" id="recordInvoicePaymentModal" tabindex="-1" aria-labelledby="recordInvoicePaymentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <form action="{{ route('admin.accounting.invoices.payments.store', $invoice->id) }}" method="POST">
+                @csrf
+                <div class="modal-header bg-success text-white py-3">
+                    <h5 class="modal-title fw-bold" id="recordInvoicePaymentModalLabel">
+                        <i class="fas fa-hand-holding-dollar me-2"></i>কিস্তি / বকেয়া টাকা জমা গ্রহণ
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="bg-light p-3 rounded-3 border mb-3">
+                        <div class="d-flex justify-content-between small text-muted mb-1">
+                            <span>ইনভয়েস নম্বর: <strong class="text-dark font-monospace">#{{ $invoice->invoice_no }}</strong></span>
+                            <span>মোট বিল: <strong class="text-dark font-monospace">৳{{ number_format($invoice->grand_total, 2) }}</strong></span>
+                        </div>
+                        <div class="d-flex justify-content-between small text-muted">
+                            <span>গ্রাহক: <strong class="text-dark">{{ $invoice->customer_name }}</strong></span>
+                            <span>বর্তমান বকেয়া: <strong class="text-danger fw-bold font-monospace fs-6">৳{{ number_format($invoice->due_amount, 2) }}</strong></span>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-dark">জমার তারিখ: <span class="text-danger">*</span></label>
+                            <input type="date" name="payment_date" class="form-control" required value="{{ date('Y-m-d') }}">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-dark">জমার পরিমাণ (টাকা): <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text">৳</span>
+                                <input type="number" step="0.01" min="0.01" name="amount" class="form-control fw-bold font-monospace text-success" required placeholder="0.00" value="{{ $invoice->due_amount > 0 ? $invoice->due_amount : '' }}">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-dark">পেমেন্ট মাধ্যম: <span class="text-danger">*</span></label>
+                            <select name="payment_method" class="form-select" required>
+                                @foreach(\App\Models\IdeaInvoicePayment::paymentMethods() as $code => $lbl)
+                                    <option value="{{ $code }}" {{ $code === 'cash' ? 'selected' : '' }}>{{ $lbl }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-dark">Trx / ভাউচার / চেক নং:</label>
+                            <input type="text" name="transaction_ref" class="form-control font-monospace" placeholder="রেফারেন্স নম্বর">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-dark">পরবর্তী কিস্তি / পরিশোধের শেষ তারিখ (ঐচ্ছিক):</label>
+                        <input type="date" name="due_date" class="form-control" value="{{ $invoice->due_date ? $invoice->due_date->format('Y-m-d') : '' }}">
+                        <div class="form-text text-muted" style="font-size: 11px;">যদি বকেয়া থাকে এবং পরবর্তী কিস্তির তারিখ নির্ধারণ করতে চান, তবে দিন। অন্যথায় খালি রাখুন।</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-dark">বিবরণ / নোট (ঐচ্ছিক):</label>
+                        <input type="text" name="note" class="form-control" placeholder="যেমন: ২য় কিস্তি পরিশোধ / বিকাশ ক্যাশ ইন">
+                    </div>
+                </div>
+                <div class="modal-footer bg-light p-3">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">বাতিল</button>
+                    <button type="submit" class="btn btn-success rounded-pill px-4 fw-bold">
+                        <i class="fas fa-check me-1.5"></i> জমা গ্রহণ কনফার্ম করুন
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endif
 
 {{-- Send Invoice Email to Customer Modal --}}
 <div class="modal fade d-print-none" id="sendInvoiceEmailModal" tabindex="-1" aria-labelledby="sendInvoiceEmailModalLabel" aria-hidden="true">

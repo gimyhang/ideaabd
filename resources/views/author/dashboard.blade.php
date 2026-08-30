@@ -380,11 +380,13 @@
                             <td class="text-end">
                                 <div class="btn-group btn-group-sm">
                                     <a href="{{ route('blog.show', $post->slug ?: $post->id) }}" target="_blank" class="btn btn-outline-primary" title="পড়ুন">
-                                        <i class="fas fa-eye"></i>
+                                        <i class="fas fa-eye me-1"></i> পড়ুন
                                     </a>
-                                    <a href="{{ route('author.posts.edit', $post->id) }}" class="btn btn-outline-secondary" title="এডিট">
-                                        <i class="fas fa-pen"></i>
-                                    </a>
+                                    @if($post->status !== 'published' && $post->mod_status !== 'approved' && $post->status !== 'pending')
+                                        <a href="{{ route('author.posts.edit', $post->id) }}" class="btn btn-outline-secondary" title="এডিট">
+                                            <i class="fas fa-pen"></i>
+                                        </a>
+                                    @endif
                                 </div>
                             </td>
                         </tr>

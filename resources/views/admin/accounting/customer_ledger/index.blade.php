@@ -5,44 +5,44 @@
     $bizLogo = $settings['logo'] ?? '/images/logo.png';
     $logoSrc = \App\Support\SiteSetting::resolveImageUrl($bizLogo, 'images/logo.png') ?: asset('images/logo.png');
 
-    $totalPartiesCount = count($allSummaries);
+    $totalCustomersCount = count($allSummaries);
     $totalBilledAll = collect($allSummaries)->sum('total_billed');
     $totalPaidAll = collect($allSummaries)->sum('total_paid');
     $totalDueAll = collect($allSummaries)->sum('current_due');
     $totalOverdueCount = collect($allSummaries)->sum('overdue_count');
 
-    // Accounts Payable Aging sums
+    // Aging sums
     $agingCurrent = collect($allSummaries)->sum(fn($c) => $c['aging']['current'] ?? 0);
     $aging30 = collect($allSummaries)->sum(fn($c) => $c['aging']['days_30'] ?? 0);
     $aging60 = collect($allSummaries)->sum(fn($c) => $c['aging']['days_60'] ?? 0);
     $aging90p = collect($allSummaries)->sum(fn($c) => $c['aging']['days_90p'] ?? 0);
 
-    $pageTitle = $activeParty ? "সরবরাহকারী খতিয়ান — {$activeParty['name']}" : "পাওনাদার ও সরবরাহকারী খতিয়ান (Vendor & Press Ledgers)";
+    $pageTitle = $activeCustomer ? "গ্রাহক খতিয়ান — {$activeCustomer['name']}" : "গ্রাহক খতিয়ান ও রানিং স্টেটমেন্ট (Customer Ledger & Statement)";
 @endphp
 
 @section('title', $pageTitle)
 @section('heading')
     <div class="d-flex align-items-center gap-2 flex-wrap">
-        <span class="fs-5 fw-bold text-dark"><i class="fas fa-truck-ramp-box text-primary me-2"></i>{{ $activeParty ? "সরবরাহকারী খতিয়ান — {$activeParty['name']}" : "পাওনাদার, প্রেস ও সরবরাহকারী খতিয়ান" }}</span>
-        @if($activeParty)
+        <span class="fs-5 fw-bold text-dark"><i class="fas fa-book-bookmark text-primary me-2"></i>{{ $activeCustomer ? "গ্রাহক খতিয়ান — {$activeCustomer['name']}" : "গ্রাহক খতিয়ান ও রানিং স্টেটমেন্ট" }}</span>
+        @if($activeCustomer)
             <span class="badge bg-primary-subtle text-primary border rounded-pill px-3 py-1 font-monospace">
-                {{ $activeParty['type'] === 'publisher' ? 'বই প্রকাশনী' : 'প্রেস ও ম্যাটেরিয়ালস' }}
+                ID: {{ $activeCustomer['phone'] !== '—' ? $activeCustomer['phone'] : 'ACC-' . substr(md5($activeCustomer['name']), 0, 6) }}
             </span>
         @endif
     </div>
 @endsection
 
 @section('breadcrumb')
-    <li class="breadcrumb-item"><a href="{{ route('admin.purchases.index') }}">Purchases</a></li>
-    <li class="breadcrumb-item"><a href="{{ route('admin.purchases.payments') }}">Payments</a></li>
-    <li class="breadcrumb-item active" aria-current="page">Vendor Ledger</li>
+    <li class="breadcrumb-item"><a href="{{ route('admin.accounting.index') }}">Accounting</a></li>
+    <li class="breadcrumb-item"><a href="{{ route('admin.accounting.invoices.index') }}">Invoices & Challans</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Customer Ledgers</li>
 @endsection
 
 @section('actions')
     <div class="d-flex flex-wrap gap-2 align-items-center">
-        {{-- Record Payment Button --}}
-        <button type="button" class="btn btn-success btn-sm rounded-pill px-3 shadow-sm fw-semibold" data-bs-toggle="modal" data-bs-target="#recordVendorPaymentModal">
-            <i class="fas fa-hand-holding-dollar me-1.5"></i> কিস্তি / পরিশোধ করুন
+        {{-- Collect Payment Button --}}
+        <button type="button" class="btn btn-success btn-sm rounded-pill px-3 shadow-sm fw-semibold" data-bs-toggle="modal" data-bs-target="#collectLedgerPaymentModal">
+            <i class="fas fa-hand-holding-dollar me-1.5"></i> কিস্তি / জমা নিন
         </button>
 
         {{-- Export Tools Dropdown --}}
@@ -53,7 +53,7 @@
             <ul class="dropdown-menu dropdown-menu-end shadow rounded-3 border-0 p-2" style="min-width: 220px;">
                 <li><h6 class="dropdown-header small text-uppercase fw-bold text-muted px-2 py-1">এক্সপোর্ট ফরম্যাট:</h6></li>
                 <li>
-                    <button type="button" class="dropdown-item rounded-2 py-2 fw-semibold" onclick="exportTableToCSV('vendor-ledger-data.csv')">
+                    <button type="button" class="dropdown-item rounded-2 py-2 fw-semibold" onclick="exportTableToCSV('customer-ledger-data.csv')">
                         <i class="fas fa-file-csv text-success me-2"></i> CSV / Excel ফাইল ডাউনলোড
                     </button>
                 </li>
@@ -62,7 +62,7 @@
                         <i class="fas fa-copy text-info me-2"></i> ক্লিপবোর্ডে কপি করুন
                     </button>
                 </li>
-                @if($statement && $activeParty)
+                @if($statement && $activeCustomer)
                     <li><hr class="dropdown-divider my-1"></li>
                     <li>
                         <button type="button" class="dropdown-item rounded-2 py-2 fw-semibold text-success" onclick="shareViaWhatsApp()">
@@ -77,13 +77,13 @@
             <button type="button" class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm fw-semibold" onclick="window.print()">
                 <i class="fas fa-print me-1.5"></i> স্টেটমেন্ট প্রিন্ট / PDF
             </button>
-            <a href="{{ route('admin.purchases.ledger') }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-xs">
-                <i class="fas fa-users me-1"></i> সকল পাওনাদার তালিকা
+            <a href="{{ route('admin.accounting.customer-ledger.index') }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-xs">
+                <i class="fas fa-users me-1"></i> সকল গ্রাহক তালিকা
             </a>
         @endif
 
-        <a href="{{ route('admin.purchases.create') }}" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-xs fw-semibold">
-            <i class="fas fa-plus me-1"></i> নতুন ক্রয় বিল
+        <a href="{{ route('admin.accounting.invoices.create') }}" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-xs fw-semibold">
+            <i class="fas fa-plus me-1"></i> নতুন বিল / চালান
         </a>
     </div>
 @endsection
@@ -131,6 +131,22 @@
         border-radius: 999px;
         font-weight: 600;
     }
+    .quick-preset-btn {
+        font-size: 12px;
+        padding: 4px 12px;
+        border-radius: 999px;
+        border: 1px solid #e2e8f0;
+        background: #ffffff;
+        color: #475569;
+        font-weight: 600;
+        transition: all 0.2s;
+        text-decoration: none;
+    }
+    .quick-preset-btn:hover, .quick-preset-btn.active {
+        background: #0ea5e9;
+        border-color: #0ea5e9;
+        color: #ffffff;
+    }
     @media print {
         body {
             background: #ffffff !important;
@@ -151,6 +167,9 @@
             padding: 0 !important;
             width: 100% !important;
         }
+        .print-header {
+            display: block !important;
+        }
     }
 </style>
 
@@ -162,12 +181,12 @@
             <div class="stat-card-clean">
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
-                        <div class="text-muted small fw-semibold">মোট সরবরাহকারী ও প্রেস</div>
-                        <div class="fs-4 fw-bold text-dark font-monospace mt-1">{{ number_format($totalPartiesCount) }} জন</div>
-                        <div class="text-muted small" style="font-size: 11px;">ভেন্ডর ও প্রকাশনী হিসাব</div>
+                        <div class="text-muted small fw-semibold">মোট গ্রাহক সংখ্যা</div>
+                        <div class="fs-4 fw-bold text-dark font-monospace mt-1">{{ number_format($totalCustomersCount) }} জন</div>
+                        <div class="text-muted small" style="font-size: 11px;">সক্রিয় পার্টি ও ক্রেতা</div>
                     </div>
                     <div class="rounded-circle bg-primary-subtle p-3 text-primary">
-                        <i class="fas fa-truck-moving fs-5"></i>
+                        <i class="fas fa-user-group fs-5"></i>
                     </div>
                 </div>
             </div>
@@ -177,12 +196,12 @@
             <div class="stat-card-clean">
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
-                        <div class="text-muted small fw-semibold">মোট ক্রয় দাবি (Purchases)</div>
+                        <div class="text-muted small fw-semibold">মোট বিক্রয় / বিলের দাবি</div>
                         <div class="fs-4 fw-bold text-dark font-monospace mt-1">৳{{ number_format($totalBilledAll, 2) }}</div>
-                        <div class="text-muted small" style="font-size: 11px;">মোট ইনভয়েসকৃত ক্রয় মূল্য</div>
+                        <div class="text-muted small" style="font-size: 11px;">সর্বমোট ইস্যুকৃত বিল</div>
                     </div>
                     <div class="rounded-circle bg-info-subtle p-3 text-info">
-                        <i class="fas fa-cart-flatbed fs-5"></i>
+                        <i class="fas fa-file-invoice-dollar fs-5"></i>
                     </div>
                 </div>
             </div>
@@ -192,9 +211,9 @@
             <div class="stat-card-clean">
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
-                        <div class="text-muted small fw-semibold">মোট পরিশোধিত অর্থ (Paid)</div>
+                        <div class="text-muted small fw-semibold">মোট আদায় / জমা</div>
                         <div class="fs-4 fw-bold text-success font-monospace mt-1">৳{{ number_format($totalPaidAll, 2) }}</div>
-                        <div class="text-success small" style="font-size: 11px;">পরিশোধের হার: {{ $totalBilledAll > 0 ? round(($totalPaidAll / $totalBilledAll) * 100, 1) : 0 }}%</div>
+                        <div class="text-success small" style="font-size: 11px;">আদায় হার: {{ $totalBilledAll > 0 ? round(($totalPaidAll / $totalBilledAll) * 100, 1) : 0 }}%</div>
                     </div>
                     <div class="rounded-circle bg-success-subtle p-3 text-success">
                         <i class="fas fa-hand-holding-dollar fs-5"></i>
@@ -207,7 +226,7 @@
             <div class="stat-card-clean border-danger-subtle bg-danger-subtle bg-opacity-10">
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
-                        <div class="text-danger small fw-semibold">পাওনাদার বকেয়া জের (Payables)</div>
+                        <div class="text-danger small fw-semibold">বর্তমান অনাদায়ী বকেয়া জের</div>
                         <div class="fs-4 fw-bold text-danger font-monospace mt-1">৳{{ number_format($totalDueAll, 2) }}</div>
                         <div class="text-danger small" style="font-size: 11px;">{{ $totalOverdueCount }}টি মেয়াদোত্তীর্ণ বিল সহ</div>
                     </div>
@@ -219,17 +238,17 @@
         </div>
     </div>
 
-    {{-- Accounts Payable Aging Analysis Bar (বয়সভিত্তিক পাওনাদার বকেয়া বিশ্লেষণ) --}}
+    {{-- Worldwide Standard Aging Receivables Breakdown Bar (বয়সভিত্তিক বকেয়া বিশ্লেষণ) --}}
     <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white no-print">
         <div class="card-body p-3.5">
             <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-2.5">
                 <div class="d-flex align-items-center gap-2">
                     <span class="badge bg-secondary-subtle text-dark p-2 rounded-circle">
-                        <i class="fas fa-chart-pie text-primary"></i>
+                        <i class="fas fa-chart-simple text-primary"></i>
                     </span>
                     <div>
-                        <h6 class="fw-bold mb-0 text-dark">বয়সভিত্তিক পাওনাদার প্রদেয় বিশ্লেষণ (Accounts Payable Aging Analysis)</h6>
-                        <span class="text-muted small" style="font-size: 11.5px;">সরবরাহকারী ও প্রেসের পাওনা পরিশোধের সময়কাল ভিত্তিক বিবরণী</span>
+                        <h6 class="fw-bold mb-0 text-dark">বয়সভিত্তিক বকেয়া ও রিস্ক বিশ্লেষণ (Accounts Receivable Aging Analysis)</h6>
+                        <span class="text-muted small" style="font-size: 11.5px;">বকেয়া আদায়ের সময়কাল ও মেয়াদ ভিত্তিক সারসংক্ষেপ</span>
                     </div>
                 </div>
                 <div class="d-flex gap-1.5 flex-wrap">
@@ -264,25 +283,24 @@
         </div>
     </div>
 
-    {{-- Filter, Vendor Selector & Quick Date Dropdown Bar --}}
+    {{-- Filter, Customer Selector & Date Range Presets Bar --}}
     <div class="card border-0 shadow-sm rounded-4 mb-4 filter-box no-print">
         <div class="card-body p-3">
-            <form action="{{ route('admin.purchases.ledger') }}" method="GET" id="ledgerFilterForm" class="row g-2 align-items-center">
-                {{-- Vendor / Publisher Selector --}}
+            <form action="{{ route('admin.accounting.customer-ledger.index') }}" method="GET" id="ledgerFilterForm" class="row g-2 align-items-center">
+                {{-- Quick Customer Selector --}}
                 <div class="col-md-3">
-                    <label class="form-label small text-muted mb-1 fw-semibold">সরবরাহকারী / প্রেস নির্বাচন:</label>
-                    <select name="party" class="form-select form-select-sm" onchange="this.form.submit()">
-                        <option value="">— সকল সরবরাহকারী তালিকা —</option>
-                        <optgroup label="প্রেস, কাগজ ও কাঁচামাল (Press & Materials)">
-                            @foreach($rawVendors as $vnd)
-                                <option value="vendor_{{ $vnd }}" @selected(($vendorName ?? '') === $vnd)>{{ $vnd }}</option>
-                            @endforeach
-                        </optgroup>
-                        <optgroup label="বই প্রকাশনী (Book Publishers)">
-                            @foreach($publishers as $id => $name)
-                                <option value="pub_{{ $id }}" @selected(($publisherId ?? null) == $id)>{{ $name }}</option>
-                            @endforeach
-                        </optgroup>
+                    <label class="form-label small text-muted mb-1 fw-semibold">গ্রাহক নির্বাচন:</label>
+                    <select name="customer" class="form-select form-select-sm" onchange="this.form.submit()">
+                        <option value="">— সকল গ্রাহকের তালিকা দেখুন —</option>
+                        @foreach($allSummaries as $c)
+                            @php
+                                $cKey = $c['key'];
+                                $isSelected = (request('customer') === $cKey || ($customerName === $c['name'] && ($customerPhone === $c['phone'] || $customerPhone === '—')));
+                            @endphp
+                            <option value="{{ $cKey }}" {{ $isSelected ? 'selected' : '' }}>
+                                {{ $c['name'] }} @if($c['phone'] !== '—') ({{ $c['phone'] }}) @endif — বকেয়া: ৳{{ number_format($c['current_due'], 2) }}
+                            </option>
+                        @endforeach
                     </select>
                 </div>
 
@@ -290,7 +308,7 @@
                     <label class="form-label small text-muted mb-1 fw-semibold">অনুসন্ধান (Search):</label>
                     <div class="input-group input-group-sm">
                         <span class="input-group-text bg-light"><i class="fas fa-search"></i></span>
-                        <input type="text" name="search" class="form-control" placeholder="নাম / ফোন / ঠিকানা..." value="{{ request('search') }}">
+                        <input type="text" name="search" class="form-control" placeholder="নাম / ফোন / প্রতিষ্ঠান..." value="{{ $search }}">
                     </div>
                 </div>
 
@@ -325,8 +343,8 @@
                     <button type="submit" class="btn btn-primary btn-sm w-100 fw-semibold" title="ফিল্টার প্রয়োগ">
                         <i class="fas fa-filter"></i>
                     </button>
-                    @if(request()->hasAny(['party', 'search', 'date_from', 'date_to', 'has_due']))
-                        <a href="{{ route('admin.purchases.ledger') }}" class="btn btn-light border btn-sm" title="রিসেট"><i class="fas fa-rotate-left"></i></a>
+                    @if(request()->hasAny(['customer', 'search', 'date_from', 'date_to', 'has_due']))
+                        <a href="{{ route('admin.accounting.customer-ledger.index') }}" class="btn btn-light border btn-sm" title="রিসেট"><i class="fas fa-rotate-left"></i></a>
                     @endif
                 </div>
 
@@ -336,26 +354,26 @@
                         <div class="form-check form-switch mb-0">
                             <input class="form-check-input" type="checkbox" name="has_due" id="hasDueSwitch" value="1" {{ request('has_due') ? 'checked' : '' }} onchange="this.form.submit()">
                             <label class="form-check-label small fw-bold text-dark" for="hasDueSwitch">
-                                <i class="fas fa-clock text-danger me-1"></i>শুধুমাত্র পাওনা বকেয়া রয়েছে (Due Only)
+                                <i class="fas fa-clock text-danger me-1"></i>শুধুমাত্র বকেয়া রয়েছে (Due Only)
                             </label>
                         </div>
                     </div>
 
                     <div class="text-muted small">
-                        <i class="fas fa-info-circle me-1 text-primary"></i>সরবরাহকারীর খতিয়ানে কিস্তি পরিশোধ স্বয়ংক্রিয়ভাবে FIFO সমন্বয়ে আপডেট হয়।
+                        <i class="fas fa-info-circle me-1 text-primary"></i>গ্রাহকের খতিয়ান স্বয়ংক্রিয়ভাবে FIFO সমন্বয়ে আপডেট হয়।
                     </div>
                 </div>
             </form>
         </div>
     </div>
 
-    @if($statement && $activeParty)
+    @if($statement && $activeCustomer)
         {{-- ========================================================================= --}}
-        {{-- INDIVIDUAL VENDOR / PRESS / PUBLISHER DETAILED STATEMENT                  --}}
+        {{-- SINGLE CUSTOMER DETAILED RUNNING STATEMENT VIEW                           --}}
         {{-- ========================================================================= --}}
         
         <div class="statement-printable-sheet p-4 p-md-5 mb-4">
-            {{-- Printable Memo Header --}}
+            {{-- Printable Memo Header (Visible on print & top of statement) --}}
             <div class="row align-items-center pb-4 mb-4 border-bottom">
                 <div class="col-8">
                     <div class="d-flex align-items-center gap-3">
@@ -377,60 +395,61 @@
                 </div>
                 <div class="col-4 text-end">
                     <div class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill fw-bold fs-6 mb-1">
-                        <i class="fas fa-book-bookmark me-1"></i> সরবরাহকারী খতিয়ান বিবরণী
+                        <i class="fas fa-book-bookmark me-1"></i> গ্রাহক খতিয়ান স্টেটমেন্ট
                     </div>
                     <div class="text-muted small">স্টেটমেন্ট ইস্যুর তারিখ: <strong class="text-dark">{{ date('d M, Y') }}</strong></div>
                 </div>
             </div>
 
-            {{-- Vendor Information & Metrics Header --}}
+            {{-- Customer Information & Metrics Header --}}
             <div class="row g-3 mb-4">
                 <div class="col-md-7">
                     <div class="bg-light p-3.5 rounded-3 border h-100 position-relative">
                         <div class="d-flex align-items-center justify-content-between mb-2">
                             <span class="badge bg-primary px-2.5 py-1 rounded-pill text-uppercase" style="font-size: 11px;">
-                                <i class="fas fa-building me-1"></i> সরবরাহকারী / ভেন্ডর প্রোফাইল
+                                <i class="fas fa-user-check me-1"></i> গ্রাহকের প্রোফাইল ও পরিচিতি
                             </span>
-                            @if($statement['net_due_balance'] <= 0)
+                            @if($statement['net_due'] <= 0)
                                 <span class="badge bg-success text-white px-2.5 py-1 rounded-pill">
-                                    <i class="fas fa-check-circle me-1"></i>সম্পূর্ণ পরিশোধিত
+                                    <i class="fas fa-check-circle me-1"></i>নিয়মিত ও পরিশোধিত
                                 </span>
                             @else
                                 <span class="badge bg-danger text-white px-2.5 py-1 rounded-pill">
-                                    <i class="fas fa-clock me-1"></i>পাওনা বকেয়া রয়েছে
+                                    <i class="fas fa-clock me-1"></i>বকেয়া জের রয়েছে
                                 </span>
                             @endif
                         </div>
-                        <h4 class="fw-bold text-dark mb-1">{{ $activeParty['name'] }}</h4>
-                        <div class="text-secondary fw-medium mb-1">
-                            <span class="badge bg-secondary-subtle text-dark border px-2 py-0.5" style="font-size: 11px;">
-                                {{ $activeParty['type'] === 'publisher' ? 'বই প্রকাশনী (Publisher)' : 'প্রেস, বাইন্ডিং ও কাঁচামাল (Vendor)' }}
-                            </span>
-                        </div>
+                        <h4 class="fw-bold text-dark mb-1">{{ $activeCustomer['name'] }}</h4>
+                        @if($activeCustomer['org'] !== '—')
+                            <div class="text-secondary fw-medium mb-1"><i class="fas fa-building me-1.5 text-muted"></i>{{ $activeCustomer['org'] }}</div>
+                        @endif
                         <div class="small text-muted d-flex flex-wrap gap-3 mt-2">
-                            @if($activeParty['phone'] !== '—')
+                            @if($activeCustomer['phone'] !== '—')
                                 <span>
-                                    <a href="tel:{{ $activeParty['phone'] }}" class="text-decoration-none text-dark fw-bold font-monospace">
-                                        <i class="fas fa-phone me-1 text-success"></i>{{ $activeParty['phone'] }}
+                                    <a href="tel:{{ $activeCustomer['phone'] }}" class="text-decoration-none text-dark fw-bold font-monospace">
+                                        <i class="fas fa-phone me-1 text-success"></i>{{ $activeCustomer['phone'] }}
                                     </a>
                                 </span>
                             @endif
-                            @if($activeParty['address'] !== '—')
-                                <span><i class="fas fa-location-dot me-1 text-danger"></i>{{ $activeParty['address'] }}</span>
+                            @if($activeCustomer['email'] !== '—')
+                                <span><i class="fas fa-envelope me-1 text-primary"></i>{{ $activeCustomer['email'] }}</span>
+                            @endif
+                            @if($activeCustomer['address'] !== '—')
+                                <span><i class="fas fa-location-dot me-1 text-danger"></i>{{ $activeCustomer['address'] }}</span>
                             @endif
                         </div>
 
                         {{-- Direct Share Buttons --}}
                         <div class="mt-3 pt-2 border-top d-flex gap-2 no-print">
-                            @if($activeParty['phone'] !== '—')
+                            @if($activeCustomer['phone'] !== '—')
                                 <button type="button" class="btn btn-xs btn-outline-success rounded-pill px-3 py-1 fw-bold" onclick="shareViaWhatsApp()">
-                                    <i class="fab fa-whatsapp me-1"></i> WhatsApp স্টেটমেন্ট
+                                    <i class="fab fa-whatsapp me-1"></i> WhatsApp রিমাইন্ডার
                                 </button>
-                                <a href="tel:{{ $activeParty['phone'] }}" class="btn btn-xs btn-outline-secondary rounded-pill px-3 py-1">
+                                <a href="tel:{{ $activeCustomer['phone'] }}" class="btn btn-xs btn-outline-secondary rounded-pill px-3 py-1">
                                     <i class="fas fa-phone-flip me-1"></i> কল করুন
                                 </a>
                             @endif
-                            <button type="button" class="btn btn-xs btn-outline-primary rounded-pill px-3 py-1 fw-bold" onclick="copyPartyStatementSummary()">
+                            <button type="button" class="btn btn-xs btn-outline-primary rounded-pill px-3 py-1 fw-bold" onclick="copyCustomerStatementSummary()">
                                 <i class="fas fa-copy me-1"></i> সারাংশ কপি
                             </button>
                         </div>
@@ -443,34 +462,34 @@
                             <i class="fas fa-chart-pie me-1"></i> খতিয়ানের সারসংক্ষেপ (Ledger Summary)
                         </div>
                         <div class="d-flex justify-content-between py-1 border-bottom small">
-                            <span class="text-muted">মোট ক্রয় / ইনভয়েস দাবি:</span>
-                            <span class="fw-bold font-monospace text-dark">৳{{ number_format($statement['total_billed'], 2) }}</span>
+                            <span class="text-muted">মোট বিক্রয় / বিলের দাবি:</span>
+                            <span class="fw-bold font-monospace text-dark">৳{{ number_format($statement['total_debit'], 2) }}</span>
                         </div>
                         <div class="d-flex justify-content-between py-1 border-bottom small">
-                            <span class="text-muted">মোট পরিশোধ / জমা:</span>
-                            <span class="fw-bold font-monospace text-success">৳{{ number_format($statement['total_paid'], 2) }}</span>
+                            <span class="text-muted">মোট আদায় / জমা:</span>
+                            <span class="fw-bold font-monospace text-success">৳{{ number_format($statement['total_credit'], 2) }}</span>
                         </div>
-                        <div class="d-flex justify-content-between py-2 fw-bold fs-6 {{ $statement['net_due_balance'] > 0 ? 'text-danger' : 'text-success' }}">
-                            <span>পাওনাদার বকেয়া জের (Net Payable):</span>
-                            <span class="font-monospace">৳{{ number_format($statement['net_due_balance'], 2) }}</span>
+                        <div class="d-flex justify-content-between py-2 fw-bold fs-6 {{ $statement['net_due'] > 0 ? 'text-danger' : 'text-success' }}">
+                            <span>বর্তমান বকেয়া জের (Net Due):</span>
+                            <span class="font-monospace">৳{{ number_format($statement['net_due'], 2) }}</span>
                         </div>
                     </div>
                 </div>
             </div>
 
-            {{-- Due Purchases Quick Settle Bar (If open bills exist) --}}
-            @if(count($statement['due_purchases']) > 0)
+            {{-- Due Invoices Quick Settle Bar (If open bills exist) --}}
+            @if(count($statement['due_invoices']) > 0)
                 <div class="alert alert-warning border-warning-subtle rounded-3 p-3 mb-4 no-print">
                     <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
                         <div>
-                            <strong class="text-dark"><i class="fas fa-exclamation-triangle text-warning me-1.5"></i>এই সরবরাহকারীর মোট {{ count($statement['due_purchases']) }}টি বিলে বকেয়া রয়েছে:</strong>
+                            <strong class="text-dark"><i class="fas fa-exclamation-triangle text-warning me-1.5"></i>এই গ্রাহকের মোট {{ count($statement['due_invoices']) }}টি বিলে বকেয়া রয়েছে:</strong>
                             <div class="small text-muted mt-1 d-flex flex-wrap gap-1.5">
-                                @foreach($statement['due_purchases'] as $dp)
+                                @foreach($statement['due_invoices'] as $di)
                                     <span class="badge bg-white text-dark border p-1.5 font-monospace">
-                                        চালান #{{ $dp->purchase_no }} (বকেয়া: ৳{{ number_format($dp->due_amount, 2) }})
-                                        @if($dp->due_date)
-                                            <span class="{{ $dp->is_overdue ? 'text-danger fw-bold' : 'text-primary' }} ms-1">
-                                                | শেষ তারিখ: {{ $dp->due_date->format('d/m/y') }}
+                                        বিল #{{ $di->invoice_no }} (বকেয়া: ৳{{ number_format($di->due_amount, 2) }})
+                                        @if($di->due_date)
+                                            <span class="{{ $di->is_overdue ? 'text-danger fw-bold' : 'text-primary' }} ms-1">
+                                                | শেষ তারিখ: {{ $di->due_date->format('d/m/y') }}
                                             </span>
                                         @endif
                                     </span>
@@ -479,9 +498,9 @@
                         </div>
                         <div>
                             <button type="button" class="btn btn-warning text-dark btn-sm rounded-pill px-3 fw-bold shadow-xs" 
-                                    data-bs-toggle="modal" data-bs-target="#recordVendorPaymentModal"
-                                    onclick="setPaymentParty('{{ $activeParty['type'] }}', '{{ $activeParty['pub_id'] }}', '{{ addslashes($activeParty['vendor'] ?? $activeParty['name']) }}', '{{ addslashes($activeParty['name']) }}', '{{ $statement['net_due_balance'] }}')">
-                                <i class="fas fa-hand-holding-dollar me-1"></i> কিস্তি পরিশোধ করুন
+                                    data-bs-toggle="modal" data-bs-target="#collectLedgerPaymentModal"
+                                    onclick="setPaymentCustomer('{{ addslashes($activeCustomer['name']) }}', '{{ $activeCustomer['phone'] }}')">
+                                <i class="fas fa-hand-holding-dollar me-1"></i> বকেয়া কিস্তি জমা নিন
                             </button>
                         </div>
                     </div>
@@ -495,16 +514,24 @@
                         <tr>
                             <th class="text-center" style="width: 45px;">#</th>
                             <th style="width: 100px;">তারিখ</th>
-                            <th style="width: 130px;">লেনদেন ধরণ</th>
+                            <th style="width: 120px;">লেনদেন ধরণ</th>
                             <th style="width: 130px;">রেফারেন্স #</th>
-                            <th>বিবরণ ও আইটেমস</th>
+                            <th>বিবরণ ও বিবরণী</th>
                             <th class="text-end" style="width: 120px;">দাবি (Debit +)</th>
-                            <th class="text-end" style="width: 120px;">পরিশোধ (Credit -)</th>
-                            <th class="text-end" style="width: 130px;">পাওনা জের (Balance)</th>
+                            <th class="text-end" style="width: 120px;">জমা (Credit -)</th>
+                            <th class="text-end" style="width: 130px;">বকেয়া জের (Balance)</th>
                             <th class="text-center no-print" style="width: 90px;">অ্যাকশন</th>
                         </tr>
                     </thead>
                     <tbody>
+                        @if($statement['opening_balance'] != 0)
+                            <tr class="table-light">
+                                <td colspan="7" class="text-end fw-bold">প্রারম্ভিক জের (Opening Balance):</td>
+                                <td class="text-end fw-bold font-monospace text-danger">৳{{ number_format($statement['opening_balance'], 2) }}</td>
+                                <td class="no-print"></td>
+                            </tr>
+                        @endif
+
                         @forelse($statement['entries'] as $idx => $entry)
                             <tr>
                                 <td class="text-center small text-muted">{{ $idx + 1 }}</td>
@@ -512,29 +539,23 @@
                                     {{ date('d M, Y', strtotime($entry['date'])) }}
                                 </td>
                                 <td>
-                                    @if($entry['type'] === 'purchase')
+                                    @if($entry['type'] === 'invoice')
                                         <span class="badge badge-debit rounded-pill px-2.5 py-1 small">
-                                            <i class="fas fa-cart-arrow-down me-1"></i>ক্রয় বিল
+                                            <i class="fas fa-file-invoice me-1"></i>বিল / চালান
                                         </span>
                                     @else
                                         <span class="badge badge-credit rounded-pill px-2.5 py-1 small">
-                                            <i class="fas fa-money-bill-transfer me-1"></i>কিস্তি পরিশোধ
+                                            <i class="fas fa-hand-holding-dollar me-1"></i>কিস্তি জমা
                                         </span>
                                     @endif
                                 </td>
                                 <td>
-                                    @if($entry['type'] === 'purchase')
-                                        <a href="{{ route('admin.purchases.show', $entry['purchase_id']) }}" class="text-primary fw-bold font-monospace text-decoration-none">
+                                    @if($entry['type'] === 'invoice')
+                                        <a href="{{ route('admin.accounting.invoices.show', $entry['invoice_id']) }}" class="text-primary fw-bold font-monospace text-decoration-none">
                                             #{{ $entry['ref_no'] }}
                                         </a>
                                     @else
-                                        @if(!empty($entry['payment_id']))
-                                            <a href="{{ route('admin.purchases.payments.voucher', $entry['payment_id']) }}" class="text-success fw-bold font-monospace text-decoration-none">
-                                                #{{ $entry['ref_no'] }}
-                                            </a>
-                                        @else
-                                            <span class="font-monospace fw-semibold text-dark">#{{ $entry['ref_no'] }}</span>
-                                        @endif
+                                        <span class="font-monospace fw-semibold text-dark">#{{ $entry['ref_no'] }}</span>
                                     @endif
                                 </td>
                                 <td>
@@ -558,13 +579,13 @@
                                     ৳{{ number_format($entry['balance'], 2) }}
                                 </td>
                                 <td class="text-center no-print">
-                                    @if($entry['type'] === 'purchase')
-                                        <a href="{{ route('admin.purchases.show', $entry['purchase_id']) }}" class="btn btn-xs btn-outline-primary rounded-pill px-2 py-0.5" title="ক্রয় বিল দেখুন">
+                                    @if($entry['type'] === 'invoice')
+                                        <a href="{{ route('admin.accounting.invoices.show', $entry['invoice_id']) }}" class="btn btn-xs btn-outline-primary rounded-pill px-2 py-0.5" title="বিল দেখুন ও প্রিন্ট করুন">
                                             <i class="fas fa-eye"></i>
                                         </a>
                                     @else
                                         @if(!empty($entry['payment_id']))
-                                            <a href="{{ route('admin.purchases.payments.voucher', $entry['payment_id']) }}" class="btn btn-xs btn-outline-success rounded-pill px-2 py-0.5" title="পেমেন্ট ভাউচার প্রিন্ট করুন">
+                                            <a href="{{ route('admin.accounting.invoices.payments.receipt', $entry['payment_id']) }}" class="btn btn-xs btn-outline-success rounded-pill px-2 py-0.5" title="রসিদ প্রিন্ট করুন">
                                                 <i class="fas fa-receipt"></i>
                                             </a>
                                         @else
@@ -577,7 +598,7 @@
                             <tr>
                                 <td colspan="9" class="text-center py-4 text-muted">
                                     <i class="fas fa-inbox fs-3 mb-2 d-block text-secondary"></i>
-                                    এই সরবরাহকারীর কোনো লেনদেন পাওয়া যায়নি।
+                                    এই গ্রাহকের কোনো লেনদেন পাওয়া যায়নি।
                                 </td>
                             </tr>
                         @endforelse
@@ -585,10 +606,10 @@
                     <tfoot class="table-light">
                         <tr class="fw-bold">
                             <td colspan="5" class="text-end">সর্বমোট (Grand Total):</td>
-                            <td class="text-end font-monospace text-danger">৳{{ number_format($statement['total_billed'], 2) }}</td>
-                            <td class="text-end font-monospace text-success">৳{{ number_format($statement['total_paid'], 2) }}</td>
-                            <td class="text-end font-monospace fs-6 {{ $statement['net_due_balance'] > 0 ? 'text-danger' : 'text-success' }}">
-                                ৳{{ number_format($statement['net_due_balance'], 2) }}
+                            <td class="text-end font-monospace text-danger">৳{{ number_format($statement['total_debit'], 2) }}</td>
+                            <td class="text-end font-monospace text-success">৳{{ number_format($statement['total_credit'], 2) }}</td>
+                            <td class="text-end font-monospace fs-6 {{ $statement['net_due'] > 0 ? 'text-danger' : 'text-success' }}">
+                                ৳{{ number_format($statement['net_due'], 2) }}
                             </td>
                             <td class="no-print"></td>
                         </tr>
@@ -596,25 +617,41 @@
                 </table>
             </div>
 
+            {{-- Settlement & Banking Instructions Box (Worldwide Standard Layout) --}}
+            <div class="p-3 bg-light rounded-3 border mb-4" style="font-size: 11px; line-height: 1.4;">
+                <div class="row g-2">
+                    <div class="col-md-8">
+                        <strong class="text-dark"><i class="fas fa-building-columns text-primary me-1"></i>বিল পরিশোধের নির্দেশনা ও শর্তাবলী:</strong>
+                        <div class="text-muted mt-1">
+                            বকেয়া অর্থ সরাসরি ব্যাংক ট্রান্সফার, বিকাশ/নগদ মার্চেন্ট অথবা সরাসরি অফিসে পরিশোধ করে পাকা মানি রসিদ গ্রহণ করুন। যেকোনো হিসাবগত অসঙ্গতির ক্ষেত্রে বিল ইস্যুর ৭ কার্যদিবসের মধ্যে যোগাযোগ করার অনুরোধ করা হলো।
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-md-end text-muted font-monospace">
+                        <div>{{ $settings['business_name'] ?? 'আইডিয়া প্রকাশন' }}</div>
+                        <div>অফিসিয়াল খতিয়ান স্টেটমেন্ট</div>
+                    </div>
+                </div>
+            </div>
+
             {{-- Signature Block for Print --}}
             <div class="pt-4 mt-3 border-top">
                 <div class="row align-items-end text-center">
                     <div class="col-4">
                         <div class="border-top border-dark pt-1 mx-auto" style="width: 170px;">
-                            <div class="small fw-semibold text-dark">সরবরাহকারী / প্রেস প্রতিনিধি</div>
-                            <div class="text-muted" style="font-size: 11px;">Vendor Signature</div>
+                            <div class="small fw-semibold text-dark">গ্রাহক / প্রতিনিধির স্বাক্ষর</div>
+                            <div class="text-muted" style="font-size: 11px;">Customer Signature</div>
                         </div>
                     </div>
                     <div class="col-4">
                         <div class="text-muted small" style="font-size: 11.5px;">
                             প্রিন্টের সময়: {{ date('d/m/Y h:i A') }}<br>
-                            কম্পিউটার জেনারেটেড সরবরাহকারী খতিয়ান
+                            কম্পিউটার জেনারেটেড খতিয়ান স্টেটমেন্ট
                         </div>
                     </div>
                     <div class="col-4">
                         <div class="border-top border-dark pt-1 mx-auto" style="width: 180px;">
                             <div class="small fw-bold text-dark">{{ $settings['business_name'] ?? 'আইডিয়া প্রকাশন' }}</div>
-                            <div class="text-muted" style="font-size: 11px;">হিসাব ও অর্থ বিভাগ</div>
+                            <div class="text-muted" style="font-size: 11px;">হিসাব বিভাগ / বিলিং শাখা</div>
                         </div>
                     </div>
                 </div>
@@ -623,22 +660,22 @@
 
     @else
         {{-- ========================================================================= --}}
-        {{-- MASTER VENDOR & PRESS DIRECTORY & DUE BALANCES OVERVIEW                   --}}
+        {{-- MASTER CUSTOMER LIST & DUE BALANCES OVERVIEW                              --}}
         {{-- ========================================================================= --}}
         
         <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
             <div class="card-header bg-white py-3 border-bottom d-flex flex-wrap align-items-center justify-content-between gap-2">
                 <div class="d-flex align-items-center gap-2">
                     <h5 class="card-title fw-bold mb-0 text-dark">
-                        <i class="fas fa-boxes-stacked text-primary me-2"></i>সকল সরবরাহকারী ও প্রেসের খাতা ও পাওনা বকেয়া তালিকা
+                        <i class="fas fa-users-viewfinder text-primary me-2"></i>সকল গ্রাহকদের চলতি খাতা ও বকেয়া জের তালিকা
                     </h5>
                     <span class="badge bg-light text-dark border px-3 py-1 rounded-pill font-monospace">
-                        মোট {{ count($allSummaries) }} জন সরবরাহকারী
+                        মোট {{ count($allSummaries) }} জন গ্রাহক
                     </span>
                 </div>
 
                 <div class="d-flex align-items-center gap-2">
-                    <button type="button" class="btn btn-outline-success btn-sm rounded-pill px-3 fw-semibold" onclick="exportTableToCSV('all-vendors-ledger.csv')">
+                    <button type="button" class="btn btn-outline-success btn-sm rounded-pill px-3 fw-semibold" onclick="exportTableToCSV('all-customers-ledger.csv')">
                         <i class="fas fa-file-excel me-1"></i> Excel ডাউনলোড
                     </button>
                     <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 fw-semibold" onclick="copyTableToClipboard()">
@@ -652,14 +689,14 @@
                     <thead class="table-light">
                         <tr>
                             <th class="text-center" style="width: 45px;">#</th>
-                            <th>সরবরাহকারীর নাম ও ধরণ</th>
+                            <th>গ্রাহকের নাম ও বিবরণ</th>
                             <th>মোবাইল নম্বর</th>
-                            <th>ঠিকানা / বিবরণ</th>
+                            <th>প্রতিষ্ঠান / ঠিকানা</th>
                             <th class="text-center">বিল সংখ্যা</th>
-                            <th class="text-end">মোট ক্রয় দাবি (৳)</th>
-                            <th class="text-end">মোট পরিশোধ (৳)</th>
-                            <th class="text-end">পাওনা বকেয়া (৳)</th>
-                            <th class="text-center">পাওনা বয়স / মেয়াদ</th>
+                            <th class="text-end">মোট বিক্রয় (৳)</th>
+                            <th class="text-end">মোট জমা (৳)</th>
+                            <th class="text-end">বর্তমান বকেয়া (৳)</th>
+                            <th class="text-center">বকেয়া বয়স / মেয়াদ</th>
                             <th class="text-center" style="width: 140px;">অ্যাকশন</th>
                         </tr>
                     </thead>
@@ -668,19 +705,14 @@
                             <tr class="{{ $row['current_due'] > 0 ? ($row['overdue_count'] > 0 ? 'table-danger-subtle' : 'table-warning-subtle') : '' }}">
                                 <td class="text-center text-muted small">{{ $index + 1 }}</td>
                                 <td>
-                                    <a href="{{ route('admin.purchases.ledger', ['party' => $row['key']]) }}" class="fw-bold text-dark text-decoration-none hover-primary">
+                                    <a href="{{ route('admin.accounting.customer-ledger.index', ['customer_name' => $row['name'], 'customer_phone' => ($row['phone'] !== '—' ? $row['phone'] : '')]) }}" class="fw-bold text-dark text-decoration-none hover-primary">
                                         {{ $row['name'] }}
                                     </a>
-                                    <div class="small">
-                                        <span class="badge bg-secondary-subtle text-dark border px-2 py-0.5" style="font-size: 10px;">
-                                            {{ $row['party_type'] === 'publisher' ? 'বই প্রকাশনী' : 'প্রেস ও কাঁচামাল' }}
+                                    @if($row['overdue_count'] > 0)
+                                        <span class="badge bg-danger text-white rounded-pill px-2 py-0.5 ms-1" style="font-size: 10px;">
+                                            {{ $row['overdue_count'] }}টি মেয়াদোত্তীর্ণ
                                         </span>
-                                        @if($row['overdue_count'] > 0)
-                                            <span class="badge bg-danger text-white rounded-pill px-2 py-0.5 ms-1" style="font-size: 10px;">
-                                                {{ $row['overdue_count'] }}টি মেয়াদোত্তীর্ণ
-                                            </span>
-                                        @endif
-                                    </div>
+                                    @endif
                                 </td>
                                 <td class="font-monospace small">
                                     @if($row['phone'] !== '—')
@@ -692,7 +724,9 @@
                                     @endif
                                 </td>
                                 <td class="small text-muted">
-                                    @if($row['address'] !== '—')
+                                    @if($row['org'] !== '—')
+                                        <span class="fw-medium text-dark">{{ $row['org'] }}</span>
+                                    @elseif($row['address'] !== '—')
                                         {{ Str::limit($row['address'], 30) }}
                                     @else
                                         <span class="text-muted">—</span>
@@ -718,7 +752,7 @@
                                             <i class="fas fa-check me-1"></i>পরিশোধিত
                                         </span>
                                     @elseif($row['aging']['days_90p'] > 0)
-                                        <span class="badge bg-danger text-white px-2 py-1 font-monospace" title="৯০ দিনের বেশি পুরোনো পাওনা">
+                                        <span class="badge bg-danger text-white px-2 py-1 font-monospace" title="৯০ দিনের বেশি পুরোনো বকেয়া">
                                             <i class="fas fa-triangle-exclamation me-0.5"></i>90+ Days Due
                                         </span>
                                     @elseif($row['aging']['days_60'] > 0)
@@ -733,14 +767,14 @@
                                 </td>
                                 <td class="text-center">
                                     <div class="d-flex align-items-center justify-content-center gap-1">
-                                        <a href="{{ route('admin.purchases.ledger', ['party' => $row['key']]) }}" class="btn btn-outline-primary btn-sm rounded-pill px-2.5 py-1 small fw-semibold" title="খতিয়ান স্টেটমেন্ট দেখুন">
+                                        <a href="{{ route('admin.accounting.customer-ledger.index', ['customer_name' => $row['name'], 'customer_phone' => ($row['phone'] !== '—' ? $row['phone'] : '')]) }}" class="btn btn-outline-primary btn-sm rounded-pill px-2.5 py-1 small fw-semibold" title="খতিয়ান স্টেটমেন্ট দেখুন">
                                             <i class="fas fa-book-bookmark me-1"></i>খতিয়ান
                                         </a>
 
                                         @if($row['current_due'] > 0)
-                                            <button type="button" class="btn btn-outline-success btn-sm rounded-circle p-1.5" title="কিস্তি পরিশোধ"
-                                                    data-bs-toggle="modal" data-bs-target="#recordVendorPaymentModal"
-                                                    onclick="setPaymentParty('{{ $row['party_type'] }}', '{{ $row['publisher_id'] }}', '{{ addslashes($row['vendor_name'] ?? $row['name']) }}', '{{ addslashes($row['name']) }}', '{{ $row['current_due'] }}')">
+                                            <button type="button" class="btn btn-outline-success btn-sm rounded-circle p-1.5" title="কিস্তি জমা গ্রহণ"
+                                                    data-bs-toggle="modal" data-bs-target="#collectLedgerPaymentModal"
+                                                    onclick="setPaymentCustomer('{{ addslashes($row['name']) }}', '{{ $row['phone'] !== '—' ? $row['phone'] : '' }}')">
                                                 <i class="fas fa-hand-holding-dollar"></i>
                                             </button>
                                         @endif
@@ -751,7 +785,7 @@
                             <tr>
                                 <td colspan="10" class="text-center py-5 text-muted">
                                     <i class="fas fa-folder-open fs-2 mb-2 d-block text-secondary"></i>
-                                    কোনো সরবরাহকারীর রেকর্ড পাওয়া যায়নি।
+                                    কোনো গ্রাহকের রেকর্ড পাওয়া যায়নি।
                                 </td>
                             </tr>
                         @endforelse
@@ -763,37 +797,38 @@
 </div>
 
 {{-- ========================================================================= --}}
-{{-- RECORD PAYMENT MODAL (কিস্তি / টাকা পরিশোধ)                                --}}
+{{-- COLLECT PAYMENT MODAL (কিস্তি / টাকা জমা গ্রহণ)                            --}}
 {{-- ========================================================================= --}}
-<div class="modal fade" id="recordVendorPaymentModal" tabindex="-1" aria-labelledby="recordVendorPaymentModalLabel" aria-hidden="true">
+<div class="modal fade" id="collectLedgerPaymentModal" tabindex="-1" aria-labelledby="collectLedgerPaymentModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
-            <form action="{{ route('admin.purchases.payments.store') }}" method="POST">
+            <form action="{{ route('admin.accounting.customer-ledger.payments.store') }}" method="POST">
                 @csrf
                 <div class="modal-header bg-success text-white">
-                    <h5 class="modal-title fw-bold" id="recordVendorPaymentModalLabel">
-                        <i class="fas fa-hand-holding-dollar me-2"></i>সরবরাহকারী / প্রেসের কিস্তি বা বিল পরিশোধ
+                    <h5 class="modal-title fw-bold" id="collectLedgerPaymentModalLabel">
+                        <i class="fas fa-hand-holding-dollar me-2"></i>গ্রাহকের কিস্তি / টাকা জমা গ্রহণ
                     </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body p-4">
-                    {{-- Hidden targets --}}
-                    <input type="hidden" name="publisher_id" id="modalPublisherId" value="{{ $activeParty && $activeParty['pub_id'] ? $activeParty['pub_id'] : '' }}">
-                    <input type="hidden" name="vendor_name" id="modalVendorName" value="{{ $activeParty && $activeParty['vendor'] ? $activeParty['vendor'] : '' }}">
-
                     <div class="mb-3">
-                        <label class="form-label small fw-bold text-dark">সরবরাহকারী / প্রেসের নাম: <span class="text-danger">*</span></label>
-                        <input type="text" id="modalPartyDisplayName" class="form-control bg-light" readonly value="{{ $activeParty ? $activeParty['name'] : '' }}">
+                        <label class="form-label small fw-bold text-dark">গ্রাহকের নাম: <span class="text-danger">*</span></label>
+                        <input type="text" name="customer_name" id="modalCustomerName" class="form-control" required placeholder="গ্রাহকের নাম লিখুন" value="{{ $activeCustomer ? $activeCustomer['name'] : '' }}">
                     </div>
 
-                    @if($statement && count($statement['due_purchases']) > 0)
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-dark">মোবাইল নম্বর (ঐচ্ছিক):</label>
+                        <input type="text" name="customer_phone" id="modalCustomerPhone" class="form-control" placeholder="017XXXXXXXX" value="{{ $activeCustomer && $activeCustomer['phone'] !== '—' ? $activeCustomer['phone'] : '' }}">
+                    </div>
+
+                    @if($statement && count($statement['due_invoices']) > 0)
                         <div class="mb-3">
-                            <label class="form-label small fw-bold text-dark">নির্দিষ্ট ক্রয় বিল নির্বাচন (ঐচ্ছিক):</label>
-                            <select name="purchase_id" class="form-select">
-                                <option value="">— স্বয়ংক্রিয়ভাবে পুরোনো বকেয়া ক্রয় বিলে সমন্বয় (FIFO) —</option>
-                                @foreach($statement['due_purchases'] as $dp)
-                                    <option value="{{ $dp->id }}">
-                                        বিল #{{ $dp->purchase_no }} (বকেয়া: ৳{{ number_format($dp->due_amount, 2) }})
+                            <label class="form-label small fw-bold text-dark">নির্দিষ্ট বিল নির্বাচন (ঐচ্ছিক):</label>
+                            <select name="invoice_id" class="form-select">
+                                <option value="">— স্বয়ংক্রিয়ভাবে পুরোনো বকেয়া বিলে সমন্বয় (FIFO) —</option>
+                                @foreach($statement['due_invoices'] as $di)
+                                    <option value="{{ $di->id }}">
+                                        বিল #{{ $di->invoice_no }} (বকেয়া: ৳{{ number_format($di->due_amount, 2) }})
                                     </option>
                                 @endforeach
                             </select>
@@ -803,14 +838,14 @@
 
                     <div class="row g-3 mb-3">
                         <div class="col-6">
-                            <label class="form-label small fw-bold text-dark">পরিশোধের তারিখ: <span class="text-danger">*</span></label>
+                            <label class="form-label small fw-bold text-dark">জমার তারিখ: <span class="text-danger">*</span></label>
                             <input type="date" name="payment_date" class="form-control" required value="{{ date('Y-m-d') }}">
                         </div>
                         <div class="col-6">
-                            <label class="form-label small fw-bold text-dark">পরিশোধের পরিমাণ (টাকা): <span class="text-danger">*</span></label>
+                            <label class="form-label small fw-bold text-dark">জমার পরিমাণ (টাকা): <span class="text-danger">*</span></label>
                             <div class="input-group">
                                 <span class="input-group-text">৳</span>
-                                <input type="number" step="0.01" min="0.01" name="amount" id="modalPaymentAmount" class="form-control fw-bold font-monospace text-success" required placeholder="0.00" value="{{ $statement && $statement['net_due_balance'] > 0 ? $statement['net_due_balance'] : '' }}">
+                                <input type="number" step="0.01" min="0.01" name="amount" class="form-control fw-bold font-monospace text-success" required placeholder="0.00" value="{{ $statement && $statement['net_due'] > 0 ? $statement['net_due'] : '' }}">
                             </div>
                         </div>
                     </div>
@@ -825,7 +860,7 @@
                             </select>
                         </div>
                         <div class="col-6">
-                            <label class="form-label small fw-bold text-dark">Trx / চেক / ভাউচার নং:</label>
+                            <label class="form-label small fw-bold text-dark">Trx / ভাউচার / চেক নং:</label>
                             <input type="text" name="transaction_ref" class="form-control font-monospace" placeholder="রেফারেন্স নম্বর">
                         </div>
                     </div>
@@ -838,13 +873,13 @@
 
                     <div class="mb-3">
                         <label class="form-label small fw-bold text-dark">বিবরণ / নোট (ঐচ্ছিক):</label>
-                        <input type="text" name="note" class="form-control" placeholder="যেমন: ২য় কিস্তি পরিশোধ / প্রেস বিল চেক">
+                        <input type="text" name="note" class="form-control" placeholder="যেমন: ২য় কিস্তি পরিশোধ / বিকাশ ক্যাশ ইন">
                     </div>
                 </div>
                 <div class="modal-footer bg-light p-3">
                     <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">বাতিল</button>
                     <button type="submit" class="btn btn-success rounded-pill px-4 fw-bold">
-                        <i class="fas fa-check me-1.5"></i> পরিশোধ কনফার্ম করুন
+                        <i class="fas fa-check me-1.5"></i> জমা কনফার্ম করুন
                     </button>
                 </div>
             </form>
@@ -853,18 +888,11 @@
 </div>
 
 <script>
-    function setPaymentParty(partyType, pubId, vendorName, displayName, dueAmount) {
-        const pubIdInput = document.getElementById('modalPublisherId');
-        const vendorInput = document.getElementById('modalVendorName');
-        const nameInput = document.getElementById('modalPartyDisplayName');
-        const amountInput = document.getElementById('modalPaymentAmount');
-
-        if (pubIdInput) pubIdInput.value = (partyType === 'publisher' && pubId) ? pubId : '';
-        if (vendorInput) vendorInput.value = (partyType === 'vendor' && vendorName) ? vendorName : '';
-        if (nameInput) nameInput.value = displayName || '';
-        if (amountInput && dueAmount && parseFloat(dueAmount) > 0) {
-            amountInput.value = parseFloat(dueAmount).toFixed(2);
-        }
+    function setPaymentCustomer(name, phone) {
+        const nameInput = document.getElementById('modalCustomerName');
+        const phoneInput = document.getElementById('modalCustomerPhone');
+        if (nameInput) nameInput.value = name;
+        if (phoneInput) phoneInput.value = phone || '';
     }
 
     // Quick Date Preset Handler
@@ -946,7 +974,7 @@
         const link = document.createElement('a');
         const url = URL.createObjectURL(blob);
         link.setAttribute('href', url);
-        link.setAttribute('download', filename || 'vendor-ledger-export.csv');
+        link.setAttribute('download', filename || 'ledger-export.csv');
         link.style.visibility = 'hidden';
         document.body.appendChild(link);
         link.click();
@@ -978,18 +1006,18 @@
 
     // WhatsApp Statement Share
     function shareViaWhatsApp() {
-        @if($statement && $activeParty)
-            const name = "{{ addslashes($activeParty['name']) }}";
-            const phone = "{{ $activeParty['phone'] !== '—' ? preg_replace('/[^0-9]/', '', $activeParty['phone']) : '' }}";
-            const billed = "৳{{ number_format($statement['total_billed'], 2) }}";
-            const paid = "৳{{ number_format($statement['total_paid'], 2) }}";
-            const due = "৳{{ number_format($statement['net_due_balance'], 2) }}";
+        @if($statement && $activeCustomer)
+            const name = "{{ addslashes($activeCustomer['name']) }}";
+            const phone = "{{ $activeCustomer['phone'] !== '—' ? preg_replace('/[^0-9]/', '', $activeCustomer['phone']) : '' }}";
+            const billed = "৳{{ number_format($statement['total_debit'], 2) }}";
+            const paid = "৳{{ number_format($statement['total_credit'], 2) }}";
+            const due = "৳{{ number_format($statement['net_due'], 2) }}";
             const biz = "{{ addslashes($settings['business_name'] ?? 'আইডিয়া প্রকাশন') }}";
 
-            const msg = `আসসালামু আলাইকুম ${name},\n${biz} থেকে আপনার হালনাগাদ সরবরাহকারী খতিয়ান হিসাব বিবরণী:\n\n` +
-                        `• মোট ক্রয় বিল দাবি: ${billed}\n` +
-                        `• মোট পরিশোধ: ${paid}\n` +
-                        `• বর্তমান পাওনা জের: ${due}\n\n` +
+            const msg = `আসসালামু আলাইকুম ${name},\n${biz} থেকে আপনার হালনাগাদ খতিয়ান হিসাব বিবরণী:\n\n` +
+                        `• মোট বিক্রয়/বিল দাবি: ${billed}\n` +
+                        `• মোট জমা/পরিশোধ: ${paid}\n` +
+                        `• বর্তমান বকেয়া জের: ${due}\n\n` +
                         `ধন্যবাদ,\n${biz}`;
 
             const waPhone = phone.startsWith('88') ? phone : (phone.startsWith('0') ? '88' + phone : phone);
@@ -998,12 +1026,12 @@
         @endif
     }
 
-    // Copy Party Statement Summary
-    function copyPartyStatementSummary() {
-        @if($statement && $activeParty)
-            const text = `সরবরাহকারী: {{ $activeParty['name'] }}\nমোট ক্রয় দাবি: ৳{{ number_format($statement['total_billed'], 2) }}\nমোট পরিশোধ: ৳{{ number_format($statement['total_paid'], 2) }}\nবর্তমান পাওনা বকেয়া জের: ৳{{ number_format($statement['net_due_balance'], 2) }}`;
+    // Copy Customer Statement Summary
+    function copyCustomerStatementSummary() {
+        @if($statement && $activeCustomer)
+            const text = `গ্রাহক: {{ $activeCustomer['name'] }}\nমোট বিল: ৳{{ number_format($statement['total_debit'], 2) }}\nমোট জমা: ৳{{ number_format($statement['total_credit'], 2) }}\nবর্তমান বকেয়া: ৳{{ number_format($statement['net_due'], 2) }}`;
             navigator.clipboard.writeText(text).then(() => {
-                alert('সরবরাহকারীর হিসাবের সারাংশ কপি হয়েছে!');
+                alert('গ্রাহকের হিসাবের সারাংশ কপি হয়েছে!');
             });
         @endif
     }

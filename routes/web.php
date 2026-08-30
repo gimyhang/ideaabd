@@ -352,6 +352,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::post('/', 'store')->name('store');
         Route::get('/payments', 'payments')->name('payments');
         Route::post('/payments', 'storePayment')->name('payments.store');
+        Route::get('/payments/{payment}/voucher', 'paymentVoucher')->name('payments.voucher');
         Route::get('/ledger', 'ledger')->name('ledger');
         Route::get('/search-books', 'searchBooks')->name('search-books');
         Route::get('/monthly-report', 'monthlyReport')->name('monthly-report');
@@ -374,10 +375,17 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::get('/invoices/{invoice}', 'showInvoice')->name('invoices.show');
         Route::get('/invoices/{invoice}/edit', 'editInvoice')->name('invoices.edit');
         Route::put('/invoices/{invoice}', 'updateInvoice')->name('invoices.update');
+        Route::post('/invoices/{invoice}/payments', 'storeInvoicePayment')->name('invoices.payments.store');
+        Route::delete('/invoices/payments/{payment}', 'destroyInvoicePayment')->name('invoices.payments.destroy');
+        Route::get('/invoices/payments/{payment}/receipt', 'invoicePaymentReceipt')->name('invoices.payments.receipt');
         Route::post('/invoices/{invoice}/send-email', 'sendInvoiceEmail')->name('invoices.send-email');
         Route::post('/invoices/{invoice}/convert', 'convertInvoiceType')->name('invoices.convert');
         Route::delete('/invoices/{invoice}', 'destroyInvoice')->name('invoices.destroy');
         Route::post('/settings', 'updateSettings')->name('settings.update');
+
+        // Customer & Party Ledgers (গ্রাহক খতিয়ান ও রানিং স্টেটমেন্ট)
+        Route::get('/customer-ledger', 'customerLedger')->name('customer-ledger.index');
+        Route::post('/customer-ledger/payments', 'storeCustomerLedgerPayment')->name('customer-ledger.payments.store');
 
         // Financial & P&L Reports (Daily, Weekly, Monthly, Yearly)
         Route::get('/reports', 'reports')->name('reports.index');

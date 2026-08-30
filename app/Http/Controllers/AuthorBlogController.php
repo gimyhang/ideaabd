@@ -163,9 +163,9 @@ class AuthorBlogController extends Controller
                 }
             })->firstOrFail();
 
-        if ($post->status === 'published' || $post->mod_status === 'approved') {
+        if ($post->status === 'published' || $post->mod_status === 'approved' || $post->status === 'pending') {
             return redirect()->route('author.posts.index')
-                ->with('warning', 'পোস্টটি ইতোমধ্যে প্রকাশিত হয়েছে। প্রকাশিত লেখা সরাসরি সম্পাদনা করা যায় না।');
+                ->with('warning', 'পোস্টটি অনুমোদনের জন্য অপেক্ষমাণ বা ইতোমধ্যে প্রকাশিত হয়েছে। অনুমোদিত ও প্রকাশিত পোস্ট শুধুমাত্র অ্যাডমিন এডিট করতে পারবেন, লেখক কেবল দেখতে পারবেন।');
         }
 
         $blogCategories = BlogCategory::where('is_active', true)->orderBy('name')->get();
@@ -477,9 +477,9 @@ class AuthorBlogController extends Controller
                 }
             })->firstOrFail();
 
-        if ($post->status === 'published' || $post->mod_status === 'approved') {
+        if ($post->status === 'published' || $post->mod_status === 'approved' || $post->status === 'pending') {
             return redirect()->route('author.posts.index')
-                ->with('error', 'প্রকাশিত লেখা সরাসরি মোছা সম্ভব নয়। অ্যাডমিনের সাথে যোগাযোগ করুন।');
+                ->with('error', 'অনুমোদিত বা প্রকাশিত লেখা লেখক ডিলিট করতে পারবেন না। অনুমোদিত পোস্ট ডিলিট বা পরিবর্তন শুধুমাত্র অ্যাডমিন করতে পারবেন।');
         }
 
         if ($post->featured_image) {

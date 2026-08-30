@@ -20,13 +20,30 @@
         'tender'    => $stats['total_tenders'],
         default     => $stats['total_invoices']
     };
+
+    $currentCategory = request('sales_category');
+    $currentCategoryLabel = match($currentCategory) {
+        'books'          => 'Books (বই)',
+        'stationery'     => 'Stationery (স্টেশনারি)',
+        'printing_goods' => 'Printing (মুদ্রণ)',
+        'other'          => 'Others (অন্যান্য)',
+        default          => 'All Categories'
+    };
+    $currentCategoryCount = match($currentCategory) {
+        'books'          => $stats['books_count'],
+        'stationery'     => $stats['stationery_count'],
+        'printing_goods' => $stats['printing_count'],
+        'other'          => $stats['other_count'],
+        default          => $stats['total_invoices']
+    };
 @endphp
 
 @section('title', 'Invoices & Documents')
 @section('heading')
-    <div class="d-flex align-items-center gap-2">
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+        {{-- Filter Document Type Dropdown --}}
         <div class="dropdown">
-            <button class="btn btn-white border shadow-2xs dropdown-toggle fw-bold text-dark rounded-pill px-3 py-1.5 fs-5 d-inline-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <button class="btn btn-white border shadow-2xs dropdown-toggle fw-bold text-dark rounded-pill px-3 py-1.5 fs-6 d-inline-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                 <i class="fas fa-file-invoice-dollar text-primary"></i>
                 <span>{{ $currentTypeLabel }}</span>
                 <span class="badge bg-primary-subtle text-primary border rounded-pill fs-7 px-2.5 py-0.5">{{ number_format($currentCount) }}</span>
@@ -61,6 +78,48 @@
                     <a class="dropdown-item rounded-3 py-2 fw-semibold d-flex align-items-center justify-content-between {{ $currentType === 'tender' ? 'active bg-primary text-white' : '' }}" href="{{ route('admin.accounting.invoices.index', array_merge(request()->except('type', 'page'), ['type' => 'tender'])) }}">
                         <span><i class="fas fa-landmark me-2 {{ $currentType === 'tender' ? 'text-white' : 'text-purple' }}" style="color: #6f42c1;"></i>Tender Documents</span>
                         <span class="badge {{ $currentType === 'tender' ? 'bg-white text-primary' : 'bg-light text-dark' }} rounded-pill">{{ $stats['total_tenders'] }}</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        {{-- Sales Category Dropdown (বুকস, স্টেশনারি, প্রিন্টিং...) --}}
+        <div class="dropdown">
+            <button class="btn btn-white border shadow-2xs dropdown-toggle fw-bold text-dark rounded-pill px-3 py-1.5 fs-6 d-inline-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fa-solid fa-tags text-info"></i>
+                <span>{{ $currentCategoryLabel }}</span>
+                <span class="badge bg-light text-dark border rounded-pill fs-7 px-2 py-0.5">{{ number_format($currentCategoryCount) }}</span>
+            </button>
+            <ul class="dropdown-menu shadow-lg rounded-4 border-0 p-2" style="min-width: 250px; z-index: 1060;">
+                <li><h6 class="dropdown-header small text-uppercase fw-bold text-muted px-2 py-1">বিক্রয় ক্যাটাগরি:</h6></li>
+                <li>
+                    <a class="dropdown-item rounded-3 py-2 fw-semibold d-flex align-items-center justify-content-between {{ empty($currentCategory) ? 'active bg-primary text-white' : '' }}" href="{{ route('admin.accounting.invoices.index', array_merge(request()->except('sales_category', 'page'))) }}">
+                        <span><i class="fa-solid fa-layer-group me-2 {{ empty($currentCategory) ? 'text-white' : 'text-primary' }}"></i>সকল ক্যাটাগরি (All)</span>
+                        <span class="badge {{ empty($currentCategory) ? 'bg-white text-primary' : 'bg-light text-dark' }} rounded-pill">{{ $stats['total_invoices'] }}</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item rounded-3 py-2 fw-semibold d-flex align-items-center justify-content-between {{ $currentCategory === 'books' ? 'active bg-primary text-white' : '' }}" href="{{ route('admin.accounting.invoices.index', array_merge(request()->except('sales_category', 'page'), ['sales_category' => 'books'])) }}">
+                        <span><i class="fa-solid fa-book me-2 {{ $currentCategory === 'books' ? 'text-white' : 'text-primary' }}"></i>বই ও প্রকাশনা (Books)</span>
+                        <span class="badge {{ $currentCategory === 'books' ? 'bg-white text-primary' : 'bg-light text-dark' }} rounded-pill">{{ $stats['books_count'] }}</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item rounded-3 py-2 fw-semibold d-flex align-items-center justify-content-between {{ $currentCategory === 'stationery' ? 'active bg-primary text-white' : '' }}" href="{{ route('admin.accounting.invoices.index', array_merge(request()->except('sales_category', 'page'), ['sales_category' => 'stationery'])) }}">
+                        <span><i class="fa-solid fa-pen-ruler me-2 {{ $currentCategory === 'stationery' ? 'text-white' : 'text-info' }}"></i>স্টেশনারি (Stationery)</span>
+                        <span class="badge {{ $currentCategory === 'stationery' ? 'bg-white text-primary' : 'bg-light text-dark' }} rounded-pill">{{ $stats['stationery_count'] }}</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item rounded-3 py-2 fw-semibold d-flex align-items-center justify-content-between {{ $currentCategory === 'printing_goods' ? 'active bg-primary text-white' : '' }}" href="{{ route('admin.accounting.invoices.index', array_merge(request()->except('sales_category', 'page'), ['sales_category' => 'printing_goods'])) }}">
+                        <span><i class="fa-solid fa-print me-2 {{ $currentCategory === 'printing_goods' ? 'text-white' : 'text-warning' }}"></i>মুদ্রণ সামগ্রী (Printing)</span>
+                        <span class="badge {{ $currentCategory === 'printing_goods' ? 'bg-white text-primary' : 'bg-light text-dark' }} rounded-pill">{{ $stats['printing_count'] }}</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item rounded-3 py-2 fw-semibold d-flex align-items-center justify-content-between {{ $currentCategory === 'other' ? 'active bg-primary text-white' : '' }}" href="{{ route('admin.accounting.invoices.index', array_merge(request()->except('sales_category', 'page'), ['sales_category' => 'other'])) }}">
+                        <span><i class="fa-solid fa-cart-plus me-2 {{ $currentCategory === 'other' ? 'text-white' : 'text-secondary' }}"></i>অন্যান্য পণ্য (Others)</span>
+                        <span class="badge {{ $currentCategory === 'other' ? 'bg-white text-primary' : 'bg-light text-dark' }} rounded-pill">{{ $stats['other_count'] }}</span>
                     </a>
                 </li>
             </ul>
@@ -102,6 +161,9 @@
                 </li>
             </ul>
         </div>
+        <a href="{{ route('admin.accounting.customer-ledger.index') }}" class="btn btn-outline-info text-dark btn-sm rounded-pill px-3 fw-semibold shadow-xs" title="গ্রাহকদের খতিয়ান ও বকেয়া জের">
+            <i class="fas fa-book-bookmark me-1 text-primary"></i> Customer Ledgers
+        </a>
         <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 fw-semibold shadow-xs" data-bs-toggle="modal" data-bs-target="#invoiceSettingsModal" title="Design & Typography Settings">
             <i class="fas fa-palette me-1 text-primary"></i> Design Settings
         </button>
@@ -112,42 +174,6 @@
 @endsection
 
 @section('content')
-
-{{-- Sales Category Switcher Bar --}}
-<div class="card border-0 shadow-sm rounded-4 mb-4 bg-white">
-    <div class="card-body p-3">
-        <div class="d-flex flex-column flex-lg-row align-items-center justify-content-between gap-3">
-            <div class="btn-group shadow-2xs rounded-pill p-1 bg-light border w-100 w-lg-auto" role="group">
-                <a href="{{ route('admin.accounting.invoices.index', request()->except('sales_category', 'page')) }}" 
-                   class="btn btn-sm rounded-pill px-3 py-1.5 fw-bold {{ empty($salesCategory) ? 'btn-white text-primary shadow-xs' : 'btn-light text-muted' }}">
-                    <i class="fa-solid fa-layer-group me-1"></i> All ({{ $stats['total_invoices'] }})
-                </a>
-                <a href="{{ route('admin.accounting.invoices.index', array_merge(request()->except('sales_category', 'page'), ['sales_category' => 'books'])) }}" 
-                   class="btn btn-sm rounded-pill px-3 py-1.5 fw-bold {{ $salesCategory === 'books' ? 'btn-white text-primary shadow-xs' : 'btn-light text-muted' }}">
-                    <i class="fa-solid fa-book me-1"></i> Books ({{ $stats['books_count'] }})
-                </a>
-                <a href="{{ route('admin.accounting.invoices.index', array_merge(request()->except('sales_category', 'page'), ['sales_category' => 'stationery'])) }}" 
-                   class="btn btn-sm rounded-pill px-3 py-1.5 fw-bold {{ $salesCategory === 'stationery' ? 'btn-white text-info shadow-xs' : 'btn-light text-muted' }}">
-                    <i class="fa-solid fa-pen-ruler me-1"></i> Stationery ({{ $stats['stationery_count'] }})
-                </a>
-                <a href="{{ route('admin.accounting.invoices.index', array_merge(request()->except('sales_category', 'page'), ['sales_category' => 'printing_goods'])) }}" 
-                   class="btn btn-sm rounded-pill px-3 py-1.5 fw-bold {{ $salesCategory === 'printing_goods' ? 'btn-white text-warning shadow-xs' : 'btn-light text-muted' }}">
-                    <i class="fa-solid fa-print me-1"></i> Printing ({{ $stats['printing_count'] }})
-                </a>
-                <a href="{{ route('admin.accounting.invoices.index', array_merge(request()->except('sales_category', 'page'), ['sales_category' => 'other'])) }}" 
-                   class="btn btn-sm rounded-pill px-3 py-1.5 fw-bold {{ $salesCategory === 'other' ? 'btn-white text-secondary shadow-xs' : 'btn-light text-muted' }}">
-                    <i class="fa-solid fa-cart-plus me-1"></i> Others ({{ $stats['other_count'] }})
-                </a>
-            </div>
-
-            <div class="d-flex align-items-center gap-2">
-                <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-semibold" data-bs-toggle="modal" data-bs-target="#invoiceSettingsModal">
-                    <i class="fas fa-sliders me-1 text-primary"></i> Memo Branding
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
 
 {{-- Summary Stat Cards --}}
 <div class="row g-3 mb-4">
@@ -205,19 +231,28 @@
                 </select>
             </div>
             <div class="col-md-2">
-                <select name="payment_status" class="form-select" onchange="this.form.submit()">
-                    <option value="">All Payment Status</option>
-                    <option value="paid" @selected($status === 'paid')>Paid</option>
-                    <option value="partial" @selected($status === 'partial')>Partially Paid</option>
-                    <option value="unpaid" @selected($status === 'unpaid')>Unpaid / Due</option>
+                <select name="sales_category" class="form-select" onchange="this.form.submit()">
+                    <option value="">All Categories (সকল পণ্য)</option>
+                    <option value="books" @selected($salesCategory === 'books')>Books (বই)</option>
+                    <option value="stationery" @selected($salesCategory === 'stationery')>Stationery (স্টেশনারি)</option>
+                    <option value="printing_goods" @selected($salesCategory === 'printing_goods')>Printing (মুদ্রণ)</option>
+                    <option value="other" @selected($salesCategory === 'other')>Others (অন্যান্য)</option>
                 </select>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
+                <select name="payment_status" class="form-select" onchange="this.form.submit()">
+                    <option value="">All Payment Status</option>
+                    <option value="paid" @selected($status === 'paid')>Paid (পরিশোধিত)</option>
+                    <option value="partial" @selected($status === 'partial')>Partially Paid (আংশিক)</option>
+                    <option value="unpaid" @selected($status === 'unpaid')>Unpaid / Due (বকেয়া)</option>
+                </select>
+            </div>
+            <div class="col-md-2">
                 <input type="date" name="date_from" class="form-control" value="{{ $dateFrom }}" title="Date">
             </div>
-            <div class="col-md-2 d-flex gap-2">
-                <button type="submit" class="btn btn-primary w-100"><i class="fas fa-filter me-1"></i> Filter</button>
-                @if(request()->hasAny(['search', 'type', 'payment_status', 'date_from', 'date_to']))
+            <div class="col-md-1 d-flex gap-1">
+                <button type="submit" class="btn btn-primary w-100" title="Filter"><i class="fas fa-filter"></i></button>
+                @if(request()->hasAny(['search', 'type', 'sales_category', 'payment_status', 'date_from', 'date_to']))
                     <a href="{{ route('admin.accounting.invoices.index') }}" class="btn btn-light border" title="Reset"><i class="fas fa-rotate-left"></i></a>
                 @endif
             </div>
@@ -236,23 +271,22 @@
     @else
         <div class="table-responsive rounded-bottom-4">
             <table class="table adm-table align-middle mb-0" style="min-width: 1080px;">
-                <thead class="table-light text-muted small text-uppercase" style="font-size: 11.5px; letter-spacing: 0.3px;">
                     <tr>
                         <th class="ps-3 py-3" style="width: 170px;">Document #</th>
                         <th class="py-3" style="width: 120px;">Type</th>
                         <th class="py-3" style="width: 120px;">Date</th>
-                        <th class="py-3" style="min-width: 220px;">Client & Organization</th>
+                        <th class="py-3" style="min-width: 220px;">Client & Ledger</th>
                         <th class="py-3" style="width: 100px;">Items</th>
                         <th class="py-3 text-end" style="width: 130px;">Grand Total</th>
                         <th class="py-3 text-end" style="width: 120px;">Paid</th>
                         <th class="py-3 text-end" style="width: 120px;">Due</th>
-                        <th class="py-3 text-center" style="width: 110px;">Status</th>
-                        <th class="text-center pe-3 py-3" style="width: 110px;">Actions</th>
+                        <th class="py-3 text-center" style="width: 130px;">Due Date / Status</th>
+                        <th class="text-center pe-3 py-3" style="width: 120px;">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach ($invoices as $inv)
-                        <tr>
+                        <tr class="{{ $inv->is_overdue ? 'table-danger-subtle' : '' }}">
                             <td class="ps-3 fw-bold text-primary font-monospace">
                                 <a href="{{ route('admin.accounting.invoices.show', $inv->id) }}" class="text-decoration-none text-primary">
                                     {{ $inv->invoice_no }}
@@ -289,66 +323,89 @@
                                 @endif
                             </td>
                             <td class="text-muted small">
-                                {{ $inv->invoice_date ? $inv->invoice_date->format('d M, Y') : '—' }}
+                                <div class="fw-medium text-dark">{{ $inv->invoice_date ? $inv->invoice_date->format('d M, Y') : '—' }}</div>
                                 @if($inv->valid_until)
-                                    <div class="text-danger" style="font-size: 10.5px;">Valid until: {{ $inv->valid_until->format('d M, Y') }}</div>
+                                    <div class="text-danger" style="font-size: 10.5px;">Valid: {{ $inv->valid_until->format('d M, Y') }}</div>
                                 @endif
                             </td>
                             <td>
-                                @if($inv->customer_org)
-                                    <div class="fw-bold text-primary">
-                                        <i class="fas fa-building me-1 text-primary opacity-75" style="font-size: 11px;"></i>{{ $inv->customer_org }}
-                                    </div>
-                                    <div class="text-dark small">
-                                        <i class="fas fa-user me-1 text-muted" style="font-size: 10px;"></i>{{ $inv->customer_name }}
-                                    </div>
-                                @else
-                                    <div class="fw-bold text-dark">
-                                        <i class="fas fa-user me-1 text-primary opacity-75" style="font-size: 11px;"></i>{{ $inv->customer_name }}
-                                    </div>
-                                @endif
+                                <div class="d-flex align-items-start justify-content-between">
+                                    <div>
+                                        @if($inv->customer_org)
+                                            <div class="fw-bold text-primary">
+                                                <i class="fas fa-building me-1 text-primary opacity-75" style="font-size: 11px;"></i>{{ $inv->customer_org }}
+                                            </div>
+                                            <div class="text-dark small">
+                                                <i class="fas fa-user me-1 text-muted" style="font-size: 10px;"></i>{{ $inv->customer_name }}
+                                            </div>
+                                        @else
+                                            <div class="fw-bold text-dark">
+                                                <i class="fas fa-user me-1 text-primary opacity-75" style="font-size: 11px;"></i>{{ $inv->customer_name }}
+                                            </div>
+                                        @endif
 
-                                @if($inv->customer_phone)
-                                    <div class="text-muted small" style="font-size: 11px;"><i class="fas fa-phone me-1"></i>{{ $inv->customer_phone }}</div>
-                                @endif
+                                        @if($inv->customer_phone)
+                                            <div class="text-muted small font-monospace" style="font-size: 11px;"><i class="fas fa-phone me-1 text-success"></i>{{ $inv->customer_phone }}</div>
+                                        @endif
+                                    </div>
+                                    <a href="{{ route('admin.accounting.customer-ledger.index', ['customer_name' => $inv->customer_name, 'customer_phone' => $inv->customer_phone]) }}" class="badge bg-light text-primary border text-decoration-none px-2 py-1 ms-1" title="গ্রাহকের সম্পূর্ণ খতিয়ান দেখুন">
+                                        <i class="fas fa-book-bookmark me-0.5"></i>লেজার
+                                    </a>
+                                </div>
                             </td>
                             <td>
                                 <span class="badge bg-light text-dark border">{{ count($inv->items ?? []) }} items</span>
                             </td>
-                            <td class="fw-bold text-dark">৳{{ number_format($inv->grand_total, 2) }}</td>
-                            <td class="fw-bold text-success">
+                            <td class="fw-bold text-dark font-monospace text-end">৳{{ number_format($inv->grand_total, 2) }}</td>
+                            <td class="fw-bold text-success font-monospace text-end">
                                 @if(in_array($inv->type, ['invoice', 'challan']))
                                     ৳{{ number_format($inv->paid_amount, 2) }}
+                                    @if($inv->payments->count() > 1)
+                                        <div class="text-muted" style="font-size: 10px;">({{ $inv->payments->count() }}টি কিস্তিতে)</div>
+                                    @endif
                                 @else
                                     <span class="text-muted small">—</span>
                                 @endif
                             </td>
-                            <td class="fw-bold {{ $inv->due_amount > 0 ? 'text-danger' : 'text-muted' }}">
+                            <td class="fw-bold font-monospace text-end {{ $inv->due_amount > 0 ? 'text-danger' : 'text-muted' }}">
                                 @if(in_array($inv->type, ['invoice', 'challan']))
                                     ৳{{ number_format($inv->due_amount, 2) }}
-                                @else
-                                    <span class="text-muted small">—</span>
-                                @endif
-                            </td>
-                            <td>
-                                @if(in_array($inv->type, ['quotation', 'tender']))
-                                    <span class="badge bg-light text-dark border px-2 py-1 rounded-pill">
-                                        Proposed
-                                    </span>
-                                @elseif($inv->payment_status === 'paid')
-                                    <span class="badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1 rounded-pill">
-                                        Paid
-                                    </span>
-                                @elseif($inv->payment_status === 'partial')
-                                    <span class="badge bg-warning-subtle text-dark border border-warning-subtle px-2.5 py-1 rounded-pill">
-                                        Partial
-                                    </span>
-                                @else
-                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2.5 py-1 rounded-pill">
-                                        Due
-                                    </span>
-                                @endif
-                            </td>
+                                </td>
+                                <td class="text-center">
+                                    @if(in_array($inv->type, ['quotation', 'tender']))
+                                        <span class="badge bg-light text-dark border px-2 py-1 rounded-pill">
+                                            Proposed
+                                        </span>
+                                    @elseif($inv->payment_status === 'paid')
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1 rounded-pill">
+                                            <i class="fas fa-check-circle me-1"></i>Paid
+                                        </span>
+                                    @elseif($inv->payment_status === 'partial')
+                                        <span class="badge bg-warning-subtle text-dark border border-warning-subtle px-2.5 py-1 rounded-pill">
+                                            Partial
+                                        </span>
+                                        @if($inv->due_date)
+                                            <div class="small mt-1 {{ $inv->is_overdue ? 'text-danger fw-bold' : 'text-muted' }}" style="font-size: 10px;">
+                                                <i class="fas fa-calendar-day me-0.5"></i>{{ $inv->due_date->format('d M') }}
+                                                @if($inv->is_overdue)<span class="badge bg-danger text-white px-1 py-0 ms-0.5">Overdue</span>@endif
+                                            </div>
+                                        @endif
+                                    @else
+                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2.5 py-1 rounded-pill">
+                                            Due
+                                        </span>
+                                        @if($inv->due_date)
+                                            <div class="small mt-1 {{ $inv->is_overdue ? 'text-danger fw-bold' : 'text-muted' }}" style="font-size: 10px;">
+                                                <i class="fas fa-calendar-day me-0.5"></i>{{ $inv->due_date->format('d M') }}
+                                                @if($inv->is_overdue)<span class="badge bg-danger text-white px-1 py-0 ms-0.5">Overdue</span>@endif
+                                            </div>
+                                        @endif
+                                    @endif
+                                </td>
+                            @else
+                                <td>—</td>
+                                <td>—</td>
+                            @endif
                             <td class="text-center pe-3">
                                 <div class="btn-group btn-group-sm">
                                     <a href="{{ route('admin.accounting.invoices.show', $inv->id) }}" class="btn btn-outline-primary" title="View & Print">

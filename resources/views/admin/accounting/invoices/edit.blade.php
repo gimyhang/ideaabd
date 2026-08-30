@@ -565,6 +565,12 @@
                         </div>
 
                         <div class="mb-3">
+                            <label class="form-label small fw-semibold text-muted">পরিশোধের শেষ তারিখ / কিস্তির তারিখ (ঐচ্ছিক)</label>
+                            <input type="date" name="due_date" id="dueDateInput" class="form-control form-control-sm" value="{{ old('due_date', $invoice->due_date?->format('Y-m-d')) }}">
+                            <div class="form-text text-muted" style="font-size: 10.5px;">বকেয়া বিল পরিশোধের সম্ভাব্য তারিখ (ঐচ্ছিক)</div>
+                        </div>
+
+                        <div class="mb-3">
                             <label class="form-label small fw-semibold text-muted">Payment Method</label>
                             <select name="payment_method" class="form-select form-select-sm">
                                 <option value="Cash" @selected(old('payment_method', $invoice->payment_method) === 'Cash' || old('payment_method', $invoice->payment_method) === 'ক্যাশ / নগদ (Cash)')>Cash</option>

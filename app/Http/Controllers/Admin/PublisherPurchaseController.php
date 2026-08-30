@@ -869,6 +869,9 @@ class PublisherPurchaseController extends Controller
         $publisherId = $request->input('publisher_id');
         $vendorName = $request->string('vendor_name')->trim()->value();
         $partyKey = $request->input('party'); // e.g. "pub_1" or "vendor_XYZ"
+        $category = $request->input('category');
+        $search = $request->string('search')->trim()->value();
+        $hasDue = $request->boolean('has_due');
         $dateFrom = $request->input('date_from');
         $dateTo = $request->input('date_to');
 
@@ -893,6 +896,7 @@ class PublisherPurchaseController extends Controller
             ->all();
 
         $paymentMethods = PublisherPayment::paymentMethods();
+        $invoiceSettings = IdeaAccountingController::getInvoiceSettings();
 
         // If a specific party is selected, generate their detailed running statement
         $statement = null;
@@ -903,17 +907,33 @@ class PublisherPurchaseController extends Controller
             $activeParty = $statement['party'];
         }
 
-        $allSummaries = $this->buildVendorLedgersSummary();
+        $allSummaries = $this->buildVendorLedgersSummary($search, $category, $hasDue, $dateFrom, $dateTo);
 
         return view('admin.purchases.ledger', compact(
             'publishers', 'rawVendors', 'paymentMethods', 'statement', 'activeParty',
-            'allSummaries', 'publisherId', 'vendorName', 'dateFrom', 'dateTo'
+            'allSummaries', 'publisherId', 'vendorName', 'category', 'search', 'hasDue',
+            'dateFrom', 'dateTo', 'invoiceSettings'
         ));
     }
 
     /**
-     * Record a new payment (either against a specific purchase or direct to supplier ledger with FIFO auto-settlement).
+     * Printable Official Vendor Payment Voucher Slip.
      */
+    public function paymentVoucher(PublisherPayment $payment): View
+    {
+        $payment->load(['purchase.publisher', 'recorder']);
+        $settings = IdeaAccountingController::getInvoiceSettings();
+        
+        $partyName = $payment->party_name;
+        $partyPhone = $payment->purchase ? ($payment->purchase->party_phone ?: ($payment->publisher?->phone ?? '—')) : '—';
+        $partyAddress = $payment->purchase ? ($payment->purchase->party_address ?: ($payment->publisher?->address ?? '—')) : '—';
+        
+        return view('admin.purchases.voucher', compact('payment', 'settings', 'partyName', 'partyPhone', 'partyAddress'));
+    }
+
+    /**
+     * Record a new payment (either against a specific purchase or direct to supplier ledger with FIFO auto-settlement).
+    */
     public function storePayment(Request $request): RedirectResponse
     {
         $validated = $request->validate([
@@ -926,6 +946,7 @@ class PublisherPurchaseController extends Controller
             'payment_method'  => 'required|string|max:50',
             'transaction_ref' => 'nullable|string|max:100',
             'note'            => 'nullable|string|max:500',
+            'due_date'        => 'nullable|date', // Optional next installment deadline
         ], [
             'amount.required' => 'পরিশোধের পরিমাণ টাকা দিন।',
             'amount.min'      => 'পরিশোধের পরিমাণ কমপক্ষে ০.০১ টাকা হতে হবে।',
@@ -936,8 +957,9 @@ class PublisherPurchaseController extends Controller
         $paymentMethod = $validated['payment_method'];
         $trxRef = $validated['transaction_ref'] ?? null;
         $note = $validated['note'] ?? null;
+        $dueDate = $request->filled('due_date') ? $request->input('due_date') : null;
 
-        return DB::transaction(function () use ($validated, $amount, $paymentDate, $paymentMethod, $trxRef, $note) {
+        return DB::transaction(function () use ($validated, $amount, $paymentDate, $paymentMethod, $trxRef, $note, $dueDate) {
             $purchaseId = !empty($validated['purchase_id']) ? (int)$validated['purchase_id'] : null;
 
             // 1. SPECIFIC INVOICE PAYMENT
@@ -958,10 +980,14 @@ class PublisherPurchaseController extends Controller
                     'recorded_by'     => auth()->id(),
                 ]);
 
+                if ($dueDate !== null || request()->has('due_date')) {
+                    $purchase->due_date = $dueDate;
+                }
+
                 $purchase->recalculate();
 
                 $party = $purchase->party_name;
-                return back()->with('success', "ইনভয়েস #{$purchase->purchase_no} ({$party})-এর বিপরীতে ৳" . number_format($amount, 2) . " টাকা সফলভাবে পরিশোধ রেকর্ড করা হয়েছে।");
+                return back()->with('success', "ইনভয়েস #{$purchase->purchase_no} ({$party})-এর বিপরীতে ৳" . number_format($amount, 2) . " টাকা সফলভাবে পরিশোধ রেকর্ড করা হয়েছে (ভাউচার #{$payNo})।");
             }
 
             // 2. SUPPLIER ACCOUNT / RUNNING LEDGER PAYMENT (FIFO Auto-Settlement across due invoices)
@@ -1016,6 +1042,10 @@ class PublisherPurchaseController extends Controller
                     'recorded_by'     => auth()->id(),
                 ]);
 
+                if ($dueDate !== null || request()->has('due_date')) {
+                    $p->due_date = $dueDate;
+                }
+
                 $p->recalculate();
                 $settledInvoices[] = "#{$p->purchase_no} (৳" . number_format($allocatedAmount, 2) . ")";
                 $remainingPayment -= $allocatedAmount;
@@ -1044,14 +1074,20 @@ class PublisherPurchaseController extends Controller
     }
 
     /**
-     * Helper to build master ledger summaries for all active suppliers / vendors / publishers.
+     * Helper to build master ledger summaries for all active suppliers / vendors / publishers with aging.
      */
-    private function buildVendorLedgersSummary(): array
+    public function buildVendorLedgersSummary(?string $search = null, ?string $categoryFilter = null, bool $hasDueOnly = false, ?string $dateFrom = null, ?string $dateTo = null): array
     {
-        $purchases = PublisherPurchase::with('publisher')->get();
+        $purchases = PublisherPurchase::with('publisher')
+            ->when($dateFrom, fn($q) => $q->whereDate('purchase_date', '>=', $dateFrom))
+            ->when($dateTo, fn($q) => $q->whereDate('purchase_date', '<=', $dateTo))
+            ->when($categoryFilter, fn($q) => $q->where('purchase_category', $categoryFilter))
+            ->get();
+
         $standalonePayments = PublisherPayment::whereNull('purchase_id')->get();
 
         $parties = [];
+        $today = \Carbon\Carbon::today();
 
         // 1. Process from purchases
         foreach ($purchases as $p) {
@@ -1076,7 +1112,14 @@ class PublisherPurchaseController extends Controller
                     'total_paid'       => 0.0,
                     'current_due'      => 0.0,
                     'invoice_count'    => 0,
+                    'overdue_count'    => 0,
                     'last_transaction' => null,
+                    'aging'            => [
+                        'current'  => 0.0, // 0-30 days
+                        'days_30'  => 0.0, // 31-60 days
+                        'days_60'  => 0.0, // 61-90 days
+                        'days_90p' => 0.0, // 90+ days
+                    ],
                 ];
             }
 
@@ -1089,11 +1132,32 @@ class PublisherPurchaseController extends Controller
 
             $parties[$key]['total_billed'] += (float)$p->grand_total;
             $parties[$key]['total_paid'] += (float)$p->paid_amount;
-            $parties[$key]['current_due'] += (float)$p->due_amount;
+            $pDue = (float)$p->due_amount;
+            $parties[$key]['current_due'] += $pDue;
             $parties[$key]['invoice_count'] += 1;
+
+            if ($p->is_overdue) {
+                $parties[$key]['overdue_count'] += 1;
+            }
 
             if (!$parties[$key]['last_transaction'] || $p->purchase_date > $parties[$key]['last_transaction']) {
                 $parties[$key]['last_transaction'] = $p->purchase_date;
+            }
+
+            // Calculate Accounts Payable Aging
+            if ($pDue > 0) {
+                $pDate = $p->purchase_date ?: $p->created_at;
+                $days = $pDate ? $today->diffInDays($pDate) : 0;
+
+                if ($days <= 30) {
+                    $parties[$key]['aging']['current'] += $pDue;
+                } elseif ($days <= 60) {
+                    $parties[$key]['aging']['days_30'] += $pDue;
+                } elseif ($days <= 90) {
+                    $parties[$key]['aging']['days_60'] += $pDue;
+                } else {
+                    $parties[$key]['aging']['days_90p'] += $pDue;
+                }
             }
         }
 
@@ -1108,6 +1172,21 @@ class PublisherPurchaseController extends Controller
             }
         }
 
+        // Filter search term
+        if (!empty($search)) {
+            $term = mb_strtolower($search);
+            $parties = array_filter($parties, function ($c) use ($term) {
+                return str_contains(mb_strtolower($c['name']), $term) ||
+                       str_contains(mb_strtolower($c['phone']), $term) ||
+                       str_contains(mb_strtolower($c['address']), $term);
+            });
+        }
+
+        // Filter has_due only
+        if ($hasDueOnly) {
+            $parties = array_filter($parties, fn($c) => $c['current_due'] > 0);
+        }
+
         // Sort parties by highest due balance first
         uasort($parties, fn($a, $b) => $b['current_due'] <=> $a['current_due']);
 
@@ -1117,7 +1196,7 @@ class PublisherPurchaseController extends Controller
     /**
      * Helper to generate full chronological statement for a specific vendor or publisher.
      */
-    private function generatePartyStatement(?int $publisherId, ?string $vendorName, ?string $dateFrom, ?string $dateTo): array
+    public function generatePartyStatement(?int $publisherId, ?string $vendorName, ?string $dateFrom, ?string $dateTo): array
     {
         $purchasesQuery = PublisherPurchase::with(['items', 'payments.recorder'])
             ->when($publisherId, fn($q) => $q->where('publisher_id', $publisherId))
@@ -1141,33 +1220,58 @@ class PublisherPurchaseController extends Controller
             'vendor'   => $vendorName,
         ];
 
+        // Due Purchases for Quick Settlement
+        $duePurchases = $allPurchases->filter(fn($p) => (float)$p->due_amount > 0);
+
         // Combine into unified entries
         $entries = [];
 
         foreach ($allPurchases as $pur) {
             $itemTitles = $pur->items->pluck('item_name')->filter()->take(3)->implode(', ');
-            $desc = "ক্রয় ইনভয়েস #{$pur->purchase_no}";
+            $desc = "ক্রয় চালান/বিল #{$pur->purchase_no}";
             if ($itemTitles) $desc .= " ({$itemTitles})";
 
             $entries[] = [
                 'date'        => $pur->purchase_date ? $pur->purchase_date->format('Y-m-d') : $pur->created_at->format('Y-m-d'),
                 'sort_time'   => $pur->purchase_date ? $pur->purchase_date->timestamp : $pur->created_at->timestamp,
                 'type'        => 'purchase',
-                'type_label'  => 'বাকিতে ক্রয় (Purchase)',
+                'type_label'  => 'বাকিতে ক্রয় দাবি (Purchase)',
                 'ref_no'      => $pur->purchase_no,
                 'purchase_id' => $pur->id,
+                'due_date'    => $pur->due_date ? $pur->due_date->format('d M, Y') : null,
+                'is_overdue'  => $pur->is_overdue,
                 'description' => $desc,
                 'category'    => $pur->purchase_category,
                 'debit'       => (float) $pur->grand_total, // Payable added
                 'credit'      => 0.0,
                 'notes'       => $pur->notes,
             ];
+
+            // If this purchase has legacy paid_amount > 0 and no explicit payments linked
+            $hasLinkedPayments = $allPayments->where('purchase_id', $pur->id)->count() > 0;
+            if (!$hasLinkedPayments && (float)$pur->paid_amount > 0) {
+                $entries[] = [
+                    'date'        => $pur->purchase_date ? $pur->purchase_date->format('Y-m-d') : $pur->created_at->format('Y-m-d'),
+                    'sort_time'   => ($pur->purchase_date ? $pur->purchase_date->timestamp : $pur->created_at->timestamp) + 1,
+                    'type'        => 'payment',
+                    'type_label'  => 'অগ্রিম পরিশোধ (Advance Paid)',
+                    'ref_no'      => $pur->purchase_no . '-ADV',
+                    'purchase_id' => $pur->id,
+                    'payment_id'  => null,
+                    'description' => "ক্রয় চালান #{$pur->purchase_no} এর অগ্রিম পরিশোধ",
+                    'category'    => $pur->purchase_category,
+                    'debit'       => 0.0,
+                    'credit'      => (float) $pur->paid_amount,
+                    'notes'       => 'অগ্রিম পরিশোধ',
+                    'method'      => $pur->payment_method ?: 'cash',
+                ];
+            }
         }
 
         foreach ($allPayments as $pay) {
-            $desc = "পরিশোধ / কিস্তি জমা (#{$pay->payment_no})";
+            $desc = "পরিশোধ / কিস্তি প্রদান (ভাউচার #{$pay->payment_no})";
             if ($pay->purchase) {
-                $desc .= " — ইনভয়েস #{$pay->purchase->purchase_no}";
+                $desc .= " — বিল #{$pay->purchase->purchase_no}";
             }
             if ($pay->transaction_ref) {
                 $desc .= " (Trx: {$pay->transaction_ref})";
@@ -1177,9 +1281,10 @@ class PublisherPurchaseController extends Controller
                 'date'        => $pay->payment_date ? $pay->payment_date->format('Y-m-d') : $pay->created_at->format('Y-m-d'),
                 'sort_time'   => ($pay->payment_date ? $pay->payment_date->timestamp : $pay->created_at->timestamp) + 1, // payments after purchases on same day
                 'type'        => 'payment',
-                'type_label'  => 'জমা / পরিশোধ (Payment)',
+                'type_label'  => 'কিস্তি পরিশোধ (Payment)',
                 'ref_no'      => $pay->payment_no,
                 'purchase_id' => $pay->purchase_id,
+                'payment_id'  => $pay->id,
                 'description' => $desc,
                 'category'    => $pay->purchase?->purchase_category ?? 'payment',
                 'debit'       => 0.0,
@@ -1217,6 +1322,7 @@ class PublisherPurchaseController extends Controller
         return [
             'party'           => $partyInfo,
             'entries'         => array_values($filteredEntries),
+            'due_purchases'   => $duePurchases,
             'total_billed'    => $totalBilled,
             'total_paid'      => $totalPaid,
             'net_due_balance' => max(0, $totalBilled - $totalPaid),

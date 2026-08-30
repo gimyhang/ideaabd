@@ -25,6 +25,7 @@ class IdeaInvoice extends Model
         'customer_phone',
         'customer_address',
         'invoice_date',
+        'due_date',
         'valid_until',
         'items',
         'subtotal',
@@ -34,6 +35,8 @@ class IdeaInvoice extends Model
         'paid_amount',
         'due_amount',
         'payment_method',
+        'installment_count',
+        'installment_notes',
         'payment_status',
         'notes',
         'terms_conditions',
@@ -64,6 +67,7 @@ class IdeaInvoice extends Model
     protected $casts = [
         'items'        => 'array',
         'invoice_date' => 'date',
+        'due_date'     => 'date',
         'valid_until'  => 'date',
         'emailed_at'   => 'datetime',
         'subtotal'     => 'decimal:2',
@@ -89,6 +93,15 @@ class IdeaInvoice extends Model
             if (\Illuminate\Support\Facades\Schema::hasTable('idea_invoices')) {
                 $schema = \Illuminate\Support\Facades\Schema::connection(null);
                 \Illuminate\Support\Facades\Schema::table('idea_invoices', function (\Illuminate\Database\Schema\Blueprint $table) use ($schema) {
+                    if (!$schema->hasColumn('idea_invoices', 'due_date')) {
+                        $table->date('due_date')->nullable();
+                    }
+                    if (!$schema->hasColumn('idea_invoices', 'installment_count')) {
+                        $table->integer('installment_count')->nullable()->default(1);
+                    }
+                    if (!$schema->hasColumn('idea_invoices', 'installment_notes')) {
+                        $table->text('installment_notes')->nullable();
+                    }
                     if (!$schema->hasColumn('idea_invoices', 'customer_email')) {
                         $table->string('customer_email', 255)->nullable();
                     }
@@ -168,8 +181,65 @@ class IdeaInvoice extends Model
         return $this->creator?->designation_en ?? 'Authorized Signatory / Billing Officer';
     }
 
+    public function payments(): HasMany
+    {
+        return $this->hasMany(IdeaInvoicePayment::class, 'invoice_id')->orderBy('payment_date', 'asc')->orderBy('id', 'asc');
+    }
+
     public function accountingEntries(): HasMany
     {
         return $this->hasMany(IdeaAccountingEntry::class, 'invoice_id');
+    }
+
+    /**
+     * Recalculate paid amount, due amount and payment status from payments.
+     */
+    public function recalculatePayments(): void
+    {
+        $hasPaymentRecords = $this->payments()->exists();
+
+        if ($hasPaymentRecords) {
+            $totalPaid = (float) $this->payments()->sum('amount');
+        } else {
+            // Keep existing paid amount or 0
+            $totalPaid = (float) ($this->paid_amount ?? 0);
+        }
+
+        $grandTotal = (float) ($this->grand_total ?? 0);
+        $due = max(0, $grandTotal - $totalPaid);
+
+        $status = 'unpaid';
+        if ($totalPaid >= $grandTotal && $grandTotal > 0) {
+            $status = 'paid';
+        } elseif ($totalPaid > 0 && $due > 0) {
+            $status = 'partial';
+        }
+
+        $this->paid_amount = $totalPaid;
+        $this->due_amount = $due;
+        $this->payment_status = $status;
+        $this->save();
+    }
+
+    /**
+     * Determine if the due date is overdue.
+     */
+    public function getIsOverdueAttribute(): bool
+    {
+        if ($this->due_amount <= 0 || !$this->due_date) {
+            return false;
+        }
+        return $this->due_date->isPast() && !$this->due_date->isToday();
+    }
+
+    /**
+     * Days remaining or overdue.
+     */
+    public function getDueDaysLeftAttribute(): ?int
+    {
+        if (!$this->due_date) {
+            return null;
+        }
+        return (int) now()->startOfDay()->diffInDays($this->due_date->startOfDay(), false);
     }
 }

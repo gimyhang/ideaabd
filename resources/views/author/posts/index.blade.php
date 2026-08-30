@@ -163,13 +163,13 @@
                             </td>
                             <td class="text-end">
                                 <div class="btn-group btn-group-sm shadow-xs">
-                                    @if($post->status === 'published')
+                                    @if($post->status === 'published' || $post->mod_status === 'approved')
                                         <a href="{{ route('blog.show', $post->slug ?: $post->id) }}" target="_blank" class="btn btn-outline-primary" title="ব্লগে পড়ুন">
-                                            <i class="fas fa-arrow-up-right-from-square"></i>
+                                            <i class="fas fa-arrow-up-right-from-square me-1"></i> পড়ুন
                                         </a>
-                                    @elseif($post->status === 'pending')
+                                    @elseif($post->status === 'pending' || $post->mod_status === 'pending')
                                         <a href="{{ route('blog.show', $post->slug ?: $post->id) }}" target="_blank" class="btn btn-outline-secondary" title="প্রিভিউ দেখুন">
-                                            <i class="fas fa-eye"></i>
+                                            <i class="fas fa-eye me-1"></i> প্রিভিউ
                                         </a>
                                     @else
                                         <a href="{{ route('author.posts.edit', $post->id) }}" class="btn btn-outline-warning text-dark fw-bold" title="এডিট করুন">

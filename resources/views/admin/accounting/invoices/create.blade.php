@@ -511,12 +511,18 @@
 
                         <div class="mb-3">
                             <div class="d-flex justify-content-between align-items-center mb-1">
-                                <label class="form-label small fw-semibold text-muted mb-0">Amount Paid (৳)</label>
+                                <label class="form-label small fw-semibold text-muted mb-0">অগ্রিম জমা / Amount Paid (৳)</label>
                                 <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none small" onclick="fillFullPaid()">
                                     Full Paid
                                 </button>
                             </div>
-                            <input type="number" step="0.01" name="paid_amount" id="paidInput" class="form-control form-control-sm font-monospace text-end fw-bold" value="{{ old('paid_amount', 0) }}" min="0" oninput="calcTotals()">
+                            <input type="number" step="0.01" name="paid_amount" id="paidInput" class="form-control form-control-sm font-monospace text-end fw-bold text-success" value="{{ old('paid_amount', 0) }}" min="0" oninput="calcTotals()">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold text-muted">পরিশোধের শেষ তারিখ / কিস্তির তারিখ (ঐচ্ছিক)</label>
+                            <input type="date" name="due_date" id="dueDateInput" class="form-control form-control-sm" value="{{ old('due_date') }}">
+                            <div class="form-text text-muted" style="font-size: 10.5px;">বকেয়া বিল পরিশোধের সম্ভাব্য তারিখ (ঐচ্ছিক)</div>
                         </div>
 
                         <div class="p-2.5 rounded-3 bg-danger-subtle border border-danger-subtle d-flex justify-content-between align-items-center mb-3">

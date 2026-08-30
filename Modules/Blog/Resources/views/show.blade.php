@@ -215,18 +215,17 @@
         -moz-user-select: text !important;
     }
 
-    /* Content Protection: user-select none strictly for the author's article body */
+    /* Allow text selection for the article body */
     #articleBody, 
     #articleBody *, 
     .article-content, 
     .article-content *, 
     #readingModeOverlay .reading-mode-content,
     #readingModeOverlay .reading-mode-content * {
-        user-select: none !important;
-        -webkit-user-select: none !important;
-        -moz-user-select: none !important;
-        -ms-user-select: none !important;
-        -webkit-touch-callout: none !important;
+        user-select: text !important;
+        -webkit-user-select: text !important;
+        -moz-user-select: text !important;
+        -ms-user-select: text !important;
     }
 
     /* Allow selection for any specific interactive/copyable elements inside articleBody */
@@ -1869,57 +1868,5 @@
         }
     }
 
-    // Content Copy, Cut, Select & ContextMenu Restriction Protection Strictly on Article Body Text
-    document.addEventListener('DOMContentLoaded', function() {
-        const articleBody = document.getElementById('articleBody');
-        const readingBody = document.querySelector('#readingModeOverlay .reading-mode-content');
-        const protectedBlocks = [articleBody, readingBody].filter(Boolean);
-
-        protectedBlocks.forEach(area => {
-            // Prevent copying from published article body only
-            area.addEventListener('copy', function(e) {
-                const selection = window.getSelection();
-                if (!selection) return;
-
-                const anchor = selection.anchorNode;
-                const focus = selection.focusNode;
-
-                // If selection anchor/focus is outside this protected area, allow native copy
-                if (anchor && !area.contains(anchor) && focus && !area.contains(focus)) {
-                    return;
-                }
-
-                const target = e.target;
-                if (target && (target.closest('a') || target.closest('button') || target.closest('input') || target.closest('textarea') || target.closest('.allow-copy') || target.closest('.modal') || target.closest('.card') || target.closest('.pay-number-selectable'))) {
-                    return; // Allow copying links/buttons/cards/modals/numbers
-                }
-                
-                if (anchor && anchor.parentElement) {
-                    const parent = anchor.parentElement;
-                    if (parent && (parent.closest('a') || parent.closest('.allow-copy') || parent.closest('input') || parent.closest('textarea') || parent.closest('button') || parent.closest('.modal') || parent.closest('.card') || parent.closest('.pay-number-selectable'))) {
-                        return; // Allow
-                    }
-                }
-                e.preventDefault();
-                showToast('কপিরাইট সংরক্ষিত — মূল লেখকের লেখাটি কপি সুরক্ষিত। তবে বইয়ের নাম, লিংক বা অন্যান্য তথ্য কপি করতে পারেন।', 'fa-solid fa-shield-halved text-warning');
-            });
-
-            // Prevent cutting inside article body
-            area.addEventListener('cut', function(e) {
-                if (e.target.closest('input') || e.target.closest('textarea')) return;
-                e.preventDefault();
-                showToast('কপিরাইট সংরক্ষিত — টেক্সট কাট করা সুরক্ষিত।', 'fa-solid fa-shield-halved text-warning');
-            });
-
-            // Prevent right-click context menu on article body
-            area.addEventListener('contextmenu', function(e) {
-                if (e.target.closest('a') || e.target.closest('button') || e.target.closest('input') || e.target.closest('textarea') || e.target.closest('.allow-copy') || e.target.closest('.modal') || e.target.closest('.card') || e.target.closest('.pay-number-selectable')) {
-                    return; // Allow normal right-click on links/buttons
-                }
-                e.preventDefault();
-                showToast('কপিরাইট সংরক্ষিত — আইডিয়া সাহিত্যপত্র', 'fa-solid fa-shield-halved text-warning');
-            });
-        });
-    });
 </script>
 @endsection
