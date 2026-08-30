@@ -16,6 +16,7 @@ Allow: /images/
 Allow: /storage/
 Allow: /feed
 Allow: /sitemap.xml
+Allow: /ads.txt
 
 # Disallow Private & Admin Areas
 Disallow: /admin/

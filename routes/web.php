@@ -63,6 +63,15 @@ Route::get('/google-merchant-products.tsv', [\App\Http\Controllers\GoogleMerchan
 Route::get('/feeds/google-merchant.xml', [\App\Http\Controllers\GoogleMerchantController::class, 'feedXml'])->name('google.merchant.feed');
 Route::get('/merchant-products.xml', [\App\Http\Controllers\GoogleMerchantController::class, 'feedXml'])->name('google.merchant.alt');
 
+// --- Google AdSense Authorized Seller ads.txt ---
+Route::get('/ads.txt', function () {
+    $content = "google.com, pub-4534355865737776, DIRECT, f08c47fec0942fa0\n";
+    return response($content, 200, [
+        'Content-Type' => 'text/plain; charset=utf-8',
+        'Cache-Control' => 'public, max-age=86400',
+    ]);
+})->name('ads.txt');
+
 // --- Auth routes (login / logout) --------------------------------------------
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login')->middleware('guest');
 Route::post('/login', [LoginController::class, 'login'])->middleware('guest');
