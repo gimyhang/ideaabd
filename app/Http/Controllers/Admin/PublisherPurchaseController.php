@@ -520,8 +520,12 @@ class PublisherPurchaseController extends Controller
 
             $purchase->recalculate();
 
+            $successMsg = $purchaseCategory === 'books'
+                ? "বই ক্রয় ইনভয়েস #{$purchase->purchase_no} সফলভাবে সংরক্ষিত হয়েছে এবং বইসমূহ স্বয়ংক্রিয়ভাবে বুকশপ ইনভেনটরিতে যুক্ত হয়েছে।"
+                : "কাঁচামাল ও প্রেস বিল ইনভয়েস #{$purchase->purchase_no} সফলভাবে সংরক্ষিত হয়েছে।";
+
             return redirect()->route('admin.purchases.show', $purchase->id)
-                ->with('success', "ক্রয় ইনভয়েস #{$purchase->purchase_no} সফলভাবে সংরক্ষিত হয়েছে এবং বইসমূহ স্বয়ংক্রিয়ভাবে বুকশপ ইনভেনটরিতে যুক্ত হয়েছে।");
+                ->with('success', $successMsg);
         });
     }
 

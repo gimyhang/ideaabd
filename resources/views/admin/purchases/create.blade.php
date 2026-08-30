@@ -252,7 +252,7 @@
 
                                 <div class="col-12">
                                     <label class="form-label fw-bold text-dark mb-1">
-                                        <i class="fas fa-receipt text-success me-1"></i> প্রকাশকের মেমো / চালান নম্বর
+                                        <i class="fas fa-receipt text-success me-1"></i> মেমো / চালান নম্বর
                                     </label>
                                     <div class="input-group">
                                         <span class="input-group-text bg-light text-success"><i class="fas fa-file-invoice"></i></span>
@@ -285,11 +285,11 @@
                         <div class="dropdown ms-lg-2" id="rawMaterialsPresetsWrap" style="{{ $isInitRaw ? 'display: inline-block;' : 'display: none;' }}">
                             <button class="btn btn-warning btn-sm rounded-pill px-3 py-1.5 fw-bold dropdown-toggle shadow-sm text-dark d-flex align-items-center gap-1.5" type="button" id="rawPresetsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="fa-solid fa-wand-magic-sparkles text-dark"></i>
-                                <span>কাঁচামাল ও প্রেস বিল প্রিসেট ▾</span>
+                                <span>বিল প্রিসেট ▾</span>
                             </button>
                             <ul class="dropdown-menu shadow-lg border-0 rounded-4 p-2" aria-labelledby="rawPresetsDropdown" style="min-width: 320px; max-height: 420px; overflow-y: auto; z-index: 1060;">
                                 <li class="dropdown-header small text-muted fw-bold text-uppercase pb-1 px-3">
-                                    <i class="fas fa-layer-group me-1 text-primary"></i> দ্রুত যুক্ত করার তালিকা:
+                                    <i class="fas fa-layer-group me-1 text-primary"></i> তালিকা:
                                 </li>
                                 <li>
                                     <a class="dropdown-item rounded-3 py-2 px-3 d-flex align-items-center gap-2.5" href="javascript:void(0)" onclick="applyRawMaterialPreset('অফসেট কাগজ', '২৩x৩৬ ইঞ্চি (ডিমাই)', 'রিম', 3200, '৮০ GSM অফসেট পেপার', '1.67')">

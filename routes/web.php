@@ -37,8 +37,19 @@ Route::get('/lang/{locale}', function (string $locale) {
     return redirect()->back();
 })->name('lang.switch');
 
-// --- XML Sitemap & RSS Feed for Worldwide SEO & Aggregators ---
+// --- XML Sitemaps, Sitemap Index & RSS Feed for Worldwide SEO & Aggregators ---
 Route::get('/sitemap.xml', [\App\Http\Controllers\SitemapController::class, 'index'])->name('sitemap');
+Route::get('/sitemaps/sitemap-index.xml', [\App\Http\Controllers\SitemapController::class, 'sitemapIndex'])->name('sitemap.index');
+Route::get('/sitemaps/pages.xml', [\App\Http\Controllers\SitemapController::class, 'pagesSitemap'])->name('sitemap.pages');
+Route::get('/sitemaps/posts.xml', [\App\Http\Controllers\SitemapController::class, 'postsSitemap'])->name('sitemap.posts');
+Route::get('/sitemaps/books.xml', [\App\Http\Controllers\SitemapController::class, 'booksSitemap'])->name('sitemap.books');
+Route::get('/sitemaps/ebooks.xml', [\App\Http\Controllers\SitemapController::class, 'ebooksSitemap'])->name('sitemap.ebooks');
+Route::get('/sitemaps/magazines.xml', [\App\Http\Controllers\SitemapController::class, 'magazinesSitemap'])->name('sitemap.magazines');
+Route::get('/sitemaps/authors.xml', [\App\Http\Controllers\SitemapController::class, 'authorsSitemap'])->name('sitemap.authors');
+Route::get('/sitemaps/publishers.xml', [\App\Http\Controllers\SitemapController::class, 'publishersSitemap'])->name('sitemap.publishers');
+Route::get('/sitemaps/categories.xml', [\App\Http\Controllers\SitemapController::class, 'categoriesSitemap'])->name('sitemap.categories');
+Route::get('/sitemaps/research.xml', [\App\Http\Controllers\SitemapController::class, 'researchSitemap'])->name('sitemap.research');
+Route::get('/sitemap/ping', [\App\Http\Controllers\SitemapController::class, 'pingSearchEngines'])->name('sitemap.ping');
 Route::get('/feed', [\App\Http\Controllers\SitemapController::class, 'feed'])->name('feed');
 Route::get('/rss.xml', [\App\Http\Controllers\SitemapController::class, 'feed'])->name('rss');
 

@@ -72,4 +72,13 @@ Allow: /
 
 # Canonical XML Sitemaps
 Sitemap: https://www.ideaabd.com/sitemap.xml
+Sitemap: https://www.ideaabd.com/sitemaps/sitemap-index.xml
+Sitemap: https://www.ideaabd.com/sitemaps/posts.xml
+Sitemap: https://www.ideaabd.com/sitemaps/books.xml
+Sitemap: https://www.ideaabd.com/sitemaps/ebooks.xml
+Sitemap: https://www.ideaabd.com/sitemaps/magazines.xml
+Sitemap: https://www.ideaabd.com/sitemaps/authors.xml
+Sitemap: https://www.ideaabd.com/sitemaps/publishers.xml
+Sitemap: https://www.ideaabd.com/sitemaps/categories.xml
+Sitemap: https://www.ideaabd.com/sitemaps/research.xml
 Sitemap: https://www.ideaabd.com/feed

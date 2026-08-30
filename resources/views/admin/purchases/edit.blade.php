@@ -220,12 +220,12 @@
 
                                 <div class="col-12">
                                     <label class="form-label fw-bold text-dark mb-1">
-                                        <i class="fas fa-receipt text-success me-1"></i> Publisher / Press Cash Memo #
+                                        <i class="fas fa-receipt text-success me-1"></i> মেমো / চালান নম্বর
                                     </label>
                                     <div class="input-group">
                                         <span class="input-group-text bg-light text-success"><i class="fas fa-file-invoice"></i></span>
                                         <input type="text" name="publisher_memo_no" class="form-control" 
-                                               placeholder="e.g. Memo # 1289 or Challan 52..." 
+                                               placeholder="যেমন: Memo #1289 অথবা Challan #52" 
                                                value="{{ old('publisher_memo_no', $purchase->publisher_memo_no) }}">
                                     </div>
                                 </div>

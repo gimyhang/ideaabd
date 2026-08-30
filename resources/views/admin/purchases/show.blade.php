@@ -113,33 +113,37 @@
                         <thead class="table-warning text-center small text-dark text-uppercase">
                             <tr>
                                 <th class="ps-3" style="width: 40px;">#</th>
-                                <th class="text-start">Item Description / Press Work</th>
-                                <th>Quality / Grade</th>
-                                <th>Size / Specification</th>
-                                <th>Quantity</th>
-                                <th>Reams (রিম)</th>
-                                <th>Unit Rate (৳)</th>
-                                <th class="text-end pe-3">Total Amount (৳)</th>
+                                <th class="text-start">কাজের বিবরণ / কাঁচামাল (Item Description / Press Work)</th>
+                                <th>কোয়ালিটি / পেপার (Quality / Paper)</th>
+                                <th>সাইজ / ফর্মা (Size / Forma)</th>
+                                <th>পরিমাণ (Quantity)</th>
+                                <th>রিম (Reams)</th>
+                                <th>দর (Unit Rate ৳)</th>
+                                <th class="text-end pe-3">মোট টাকা (Total ৳)</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach($purchase->items as $i => $item)
+                                @php
+                                    $quality = ($item->quality_spec && !in_array(strtolower($item->quality_spec), ['paperback', 'hardcover', 'standard'])) ? $item->quality_spec : ($item->author_name ?: '—');
+                                    $size = $item->size_spec ?: ($item->book_size ?: ($item->category?->name ?? '—'));
+                                @endphp
                                 <tr>
                                     <td class="ps-3 text-muted small text-center">{{ $i + 1 }}</td>
                                     <td>
                                         <div class="fw-bold text-dark">{{ $item->displayName }}</div>
                                         @if($item->item_notes)
-                                            <div class="small text-muted">Note: {{ $item->item_notes }}</div>
+                                            <div class="small text-muted">মন্তব্য: {{ $item->item_notes }}</div>
                                         @endif
                                     </td>
                                     <td class="text-center small">
-                                        {{ $item->quality_spec ?: '—' }}
+                                        {{ $quality }}
                                     </td>
                                     <td class="text-center font-monospace small">
-                                        {{ $item->size_spec ?: ($item->book_size ?: '—') }}
+                                        {{ $size }}
                                     </td>
                                     <td class="text-center fw-bold font-monospace">
-                                        {{ $item->quantity }} {{ $item->unit ?: '' }}
+                                        {{ $item->quantity }} {{ $item->unit ?: 'পিস' }}
                                     </td>
                                     <td class="text-center fw-bold font-monospace text-primary">
                                         {{ $item->reams_quantity ? number_format($item->reams_quantity, 2) . ' Ream' : '—' }}
@@ -157,11 +161,11 @@
                         <thead class="table-info text-center small text-dark text-uppercase">
                             <tr>
                                 <th class="ps-3" style="width: 40px;">#</th>
-                                <th class="text-start">মালের বিবরণ</th>
-                                <th>একক</th>
-                                <th>পরিমাণ</th>
-                                <th>একক দর</th>
-                                <th class="text-end pe-3">মোট টাকা</th>
+                                <th class="text-start">মালের বিবরণ (Item Description)</th>
+                                <th>একক (Unit)</th>
+                                <th>পরিমাণ (Quantity)</th>
+                                <th>একক দর (Unit Rate ৳)</th>
+                                <th class="text-end pe-3">মোট টাকা (Total ৳)</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -185,13 +189,13 @@
                         <thead class="table-light text-center small text-muted text-uppercase">
                             <tr>
                                 <th class="ps-3" style="width: 40px;">#</th>
-                                <th class="text-start">Book Details</th>
-                                <th>Quantity</th>
-                                <th>MRP Price</th>
-                                <th>Commission %</th>
-                                <th>Cost Price</th>
-                                <th>Store Price</th>
-                                <th class="text-end pe-3">Subtotal</th>
+                                <th class="text-start">বইয়ের নাম ও বিবরণ (Book Title & Author)</th>
+                                <th>পরিমাণ (Quantity)</th>
+                                <th>গায়ের মূল্য (MRP ৳)</th>
+                                <th>কমিশন (Comm %)</th>
+                                <th>ক্রয়মূল্য (Cost Price ৳)</th>
+                                <th>বিক্রয়মূল্য (Store Price ৳)</th>
+                                <th class="text-end pe-3">মোট মূল্য (Total ৳)</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -201,7 +205,7 @@
                                     <td>
                                         <div class="fw-bold text-dark">{{ $item->displayName }}</div>
                                         <div class="small text-muted">
-                                            Author: {{ $item->author_name ?? '—' }} | Category: {{ $item->category->name ?? $item->book?->category?->name ?? '—' }}
+                                            লেখক: {{ $item->author_name ?? '—' }} | ক্যাটাগরি: {{ $item->category->name ?? $item->book?->category?->name ?? '—' }}
                                         </div>
                                         @if($item->book)
                                             <a href="{{ route('shop.show', $item->book->slug) }}" target="_blank" class="small text-primary text-decoration-none d-inline-block mt-0.5">
@@ -209,19 +213,19 @@
                                             </a>
                                         @endif
                                     </td>
-                                    <td class="text-center fw-bold">{{ $item->quantity }} pcs</td>
-                                    <td class="text-center">৳{{ number_format($item->mrp_price > 0 ? $item->mrp_price : $item->unit_cost_price, 2) }}</td>
-                                    <td class="text-center text-danger fw-semibold">
+                                    <td class="text-center fw-bold font-monospace">{{ $item->quantity }} কপি</td>
+                                    <td class="text-center font-monospace">৳{{ number_format($item->mrp_price > 0 ? $item->mrp_price : $item->unit_cost_price, 2) }}</td>
+                                    <td class="text-center text-danger fw-semibold font-monospace">
                                         {{ $item->purchase_commission_percent > 0 ? $item->purchase_commission_percent . '%' : '—' }}
                                     </td>
-                                    <td class="text-center fw-bold text-danger">৳{{ number_format($item->unit_cost_price, 2) }}</td>
-                                    <td class="text-center text-success">
+                                    <td class="text-center fw-bold text-danger font-monospace">৳{{ number_format($item->unit_cost_price, 2) }}</td>
+                                    <td class="text-center text-success font-monospace">
                                         <strong>৳{{ number_format($item->unit_sale_price, 2) }}</strong>
                                         @if($item->shop_discount_percent > 0)
                                             <div class="small text-muted">({{ $item->shop_discount_percent }}% off)</div>
                                         @endif
                                     </td>
-                                    <td class="text-end pe-3 fw-bold text-dark">৳{{ number_format($item->subtotal, 2) }}</td>
+                                    <td class="text-end pe-3 fw-bold text-dark font-monospace">৳{{ number_format($item->subtotal, 2) }}</td>
                                 </tr>
                             @endforeach
                         </tbody>
@@ -231,7 +235,7 @@
 
             @if($purchase->notes)
                 <div class="p-3 bg-light rounded-3 text-muted small mb-4">
-                    <strong class="text-dark">Notes / Memo:</strong> {{ $purchase->notes }}
+                    <strong class="text-dark">মন্তব্য / বিশেষ নোট:</strong> {{ $purchase->notes }}
                 </div>
             @endif
         </div>
@@ -239,10 +243,10 @@
         {{-- Repayment Installments History Table --}}
         <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white">
             <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
-                <h5 class="fw-bold mb-0 text-success"><i class="fas fa-clock-rotate-left me-2"></i>Payment History & Installments</h5>
+                <h5 class="fw-bold mb-0 text-success"><i class="fas fa-clock-rotate-left me-2"></i>টাকা পরিশোধ ও কিস্তির খতিয়ান (Payment History)</h5>
                 @if($purchase->due_amount > 0)
                     <button type="button" class="btn btn-sm btn-success rounded-pill px-3 fw-semibold" data-bs-toggle="modal" data-bs-target="#paymentModal">
-                        <i class="fas fa-plus me-1"></i> Record Installment
+                        <i class="fas fa-plus me-1"></i> + টাকা পরিশোধ রেকর্ড করুন
                     </button>
                 @endif
             </div>
@@ -250,33 +254,33 @@
                 @if($purchase->payments->isEmpty())
                     <div class="p-4 text-center text-muted">
                         <i class="fas fa-money-bill-wave fs-2 opacity-50 mb-2"></i>
-                        <p class="mb-0">No payment transactions recorded yet.</p>
+                        <p class="mb-0">এখনও পর্যন্ত কোনো পরিশোধ রেকর্ড করা হয়নি।</p>
                     </div>
                 @else
                     <div class="table-responsive">
                         <table class="table align-middle mb-0">
                             <thead class="table-light">
-                                <tr class="small text-muted text-uppercase">
-                                    <th class="ps-3">Receipt #</th>
-                                    <th>Payment Date</th>
-                                    <th>Amount Paid</th>
-                                    <th>Method</th>
-                                    <th>Reference #</th>
-                                    <th>Recorded By</th>
+                                <tr class="small text-muted text-uppercase" style="font-size: 11px;">
+                                    <th class="ps-3">ভাউচার নং</th>
+                                    <th>পরিশোধের তারিখ</th>
+                                    <th>পরিশোধের পরিমাণ</th>
+                                    <th>পেমেন্ট মাধ্যম</th>
+                                    <th>রেফারেন্স / বিবরণ</th>
+                                    <th>এন্ট্রি করেছেন</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach($purchase->payments as $pay)
                                     <tr>
-                                        <td class="ps-3 fw-semibold text-primary">{{ $pay->payment_no }}</td>
+                                        <td class="ps-3 fw-semibold text-primary font-monospace">{{ $pay->payment_no }}</td>
                                         <td>{{ $pay->payment_date ? $pay->payment_date->format('d M, Y') : '—' }}</td>
-                                        <td class="fw-bold text-success">৳{{ number_format($pay->amount, 2) }}</td>
+                                        <td class="fw-bold text-success font-monospace fs-6">৳{{ number_format($pay->amount, 2) }}</td>
                                         <td>
                                             <span class="badge bg-light text-dark border">
                                                 {{ $paymentMethods[$pay->payment_method] ?? ucfirst($pay->payment_method) }}
                                             </span>
                                         </td>
-                                        <td class="text-muted small">{{ $pay->transaction_ref ?? '—' }}</td>
+                                        <td class="text-muted small">{{ $pay->transaction_ref ?: ($pay->note ?: '—') }}</td>
                                         <td class="text-muted small">{{ $pay->recorder->name ?? 'Admin' }}</td>
                                     </tr>
                                 @endforeach
@@ -291,44 +295,52 @@
     {{-- Right Summary Card --}}
     <div class="col-lg-4">
         <div class="card border-0 shadow-sm rounded-4 p-4 bg-white sticky-top" style="top: 80px;">
-            <h5 class="fw-bold text-dark border-bottom pb-3 mb-3"><i class="fas fa-coins me-2 text-warning"></i>Financial Summary</h5>
+            <h5 class="fw-bold text-dark border-bottom pb-3 mb-3"><i class="fas fa-coins me-2 text-warning"></i>হিসাব বিবরণী (Financial Summary)</h5>
 
             <div class="d-flex justify-content-between align-items-center mb-2">
-                <span class="text-muted">Total Books Cost:</span>
-                <span class="fw-semibold text-dark">৳{{ number_format($purchase->total_amount, 2) }}</span>
+                <span class="text-muted">
+                    @if($purchase->purchase_category === 'raw_materials')
+                        মোট কাঁচামাল ও কাজের বিল:
+                    @elseif($purchase->purchase_category === 'other')
+                        মোট পণ্যের ক্রয়মূল্য:
+                    @else
+                        মোট বইয়ের ক্রয়মূল্য:
+                    @endif
+                </span>
+                <span class="fw-semibold text-dark font-monospace">৳{{ number_format($purchase->total_amount, 2) }}</span>
             </div>
 
             @if($purchase->discount_amount > 0)
                 <div class="d-flex justify-content-between align-items-center mb-2 text-danger">
-                    <span>Discount / Concession:</span>
-                    <span>- ৳{{ number_format($purchase->discount_amount, 2) }}</span>
+                    <span>বিশেষ ছাড় / ডিসকাউন্ট:</span>
+                    <span class="font-monospace">- ৳{{ number_format($purchase->discount_amount, 2) }}</span>
                 </div>
             @endif
 
             <hr>
 
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <span class="fw-bold fs-6">Grand Total:</span>
-                <span class="fw-bold fs-5 text-primary">৳{{ number_format($purchase->grand_total, 2) }}</span>
+                <span class="fw-bold fs-6">সর্বমোট বিল (Grand Total):</span>
+                <span class="fw-bold fs-5 text-primary font-monospace">৳{{ number_format($purchase->grand_total, 2) }}</span>
             </div>
 
             <div class="d-flex justify-content-between align-items-center mb-2 text-success">
-                <span class="fw-semibold">Total Paid:</span>
-                <span class="fw-bold fs-5">৳{{ number_format($purchase->paid_amount, 2) }}</span>
+                <span class="fw-semibold">মোট পরিশোধিত (Total Paid):</span>
+                <span class="fw-bold fs-5 font-monospace">৳{{ number_format($purchase->paid_amount, 2) }}</span>
             </div>
 
             <div class="d-flex justify-content-between align-items-center mb-4 p-3 bg-danger-subtle text-danger rounded-3">
-                <span class="fw-bold">Due Balance:</span>
-                <span class="fw-bold fs-4">৳{{ number_format($purchase->due_amount, 2) }}</span>
+                <span class="fw-bold">অবশিষ্ট বকেয়া (Due Balance):</span>
+                <span class="fw-bold fs-4 font-monospace">৳{{ number_format($purchase->due_amount, 2) }}</span>
             </div>
 
             @if($purchase->due_amount > 0)
                 <button type="button" class="btn btn-success w-100 py-2.5 rounded-pill fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#paymentModal">
-                    <i class="fas fa-hand-holding-dollar me-1.5"></i> Pay Due / Installment
+                    <i class="fas fa-hand-holding-dollar me-1.5"></i> টাকা পরিশোধ / কিস্তি জমা
                 </button>
             @else
                 <div class="alert alert-success text-center mb-0 rounded-pill py-2">
-                    <i class="fas fa-check-circle me-1"></i> Invoice Paid in Full
+                    <i class="fas fa-check-circle me-1"></i> ইনভয়েসের সম্পূর্ণ টাকা পরিশোধিত
                 </div>
             @endif
         </div>
