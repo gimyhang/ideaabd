@@ -530,7 +530,7 @@ class PublisherPurchaseController extends Controller
      */
     public function edit(PublisherPurchase $purchase): View
     {
-        $purchase->load(['publisher', 'items.book', 'payments']);
+        $purchase->load(['publisher', 'items.book.category', 'payments.recorder']);
         $publishers = Publisher::where('is_active', true)->orderBy('name')->get();
         $authors = \Modules\Author\Models\Author::where('is_active', true)->orderBy('name')->get();
         $categories = Category::where('is_active', true)->orderBy('name')->get();
@@ -544,7 +544,50 @@ class PublisherPurchaseController extends Controller
             ->orderBy('vendor_name')
             ->get();
 
-        return view('admin.purchases.edit', compact('purchase', 'publishers', 'authors', 'categories', 'books', 'existingVendors'));
+        // Calculate previous dues for this same publisher / vendor from other invoices
+        $vendorName = $purchase->vendor_name ?: $purchase->supplier_name;
+        $publisherId = $purchase->publisher_id;
+
+        $otherPurchasesQuery = PublisherPurchase::where('id', '!=', $purchase->id)
+            ->whereIn('payment_status', ['due', 'partial']);
+
+        if ($publisherId) {
+            $otherPurchasesQuery->where('publisher_id', $publisherId);
+        } elseif (!empty($vendorName)) {
+            $otherPurchasesQuery->where(function($q) use ($vendorName) {
+                $q->where('vendor_name', $vendorName)->orWhere('supplier_name', $vendorName);
+            });
+        } else {
+            $otherPurchasesQuery->whereRaw('1 = 0');
+        }
+
+        $previousDue = (float) $otherPurchasesQuery->sum('due_amount');
+        $otherPendingInvoices = $otherPurchasesQuery->orderBy('purchase_date')->get();
+
+        // Preload publisher and vendor due maps for instant dynamic recalculation on party change
+        $publisherDueMap = PublisherPurchase::where('id', '!=', $purchase->id)
+            ->whereNotNull('publisher_id')
+            ->whereIn('payment_status', ['due', 'partial'])
+            ->groupBy('publisher_id')
+            ->selectRaw('publisher_id, sum(due_amount) as total_due')
+            ->pluck('total_due', 'publisher_id')
+            ->all();
+
+        $vendorDueMap = PublisherPurchase::where('id', '!=', $purchase->id)
+            ->whereNotNull('vendor_name')
+            ->where('vendor_name', '!=', '')
+            ->whereIn('payment_status', ['due', 'partial'])
+            ->groupBy('vendor_name')
+            ->selectRaw('vendor_name, sum(due_amount) as total_due')
+            ->pluck('total_due', 'vendor_name')
+            ->all();
+
+        $paymentMethods = PublisherPayment::paymentMethods();
+
+        return view('admin.purchases.edit', compact(
+            'purchase', 'publishers', 'authors', 'categories', 'books', 'existingVendors',
+            'previousDue', 'otherPendingInvoices', 'publisherDueMap', 'vendorDueMap', 'paymentMethods'
+        ));
     }
 
     /**
@@ -1122,6 +1165,24 @@ class PublisherPurchaseController extends Controller
             $settledSummary = !empty($settledInvoices) ? ' (' . implode(', ', $settledInvoices) . ')' : '';
             return back()->with('success', "{$partyDisplayName}-এর চলতি খাতায় ৳" . number_format($amount, 2) . " টাকা সফলভাবে জমা ও সমন্বয় করা হয়েছে{$settledSummary}!");
         });
+    }
+
+    /**
+     * Delete an existing repayment and re-sync invoice dues.
+     */
+    public function destroyPayment(PublisherPayment $payment): RedirectResponse
+    {
+        $purchase = $payment->purchase;
+        $amount = (float) $payment->amount;
+        $voucherNo = $payment->payment_no;
+
+        $payment->delete();
+
+        if ($purchase) {
+            $purchase->recalculate();
+        }
+
+        return back()->with('success', "পরিশোধ ভাউচার #{$voucherNo} (৳" . number_format($amount, 2) . ") সফলভাবে মুছে ফেলা হয়েছে এবং বকেয়া পুনঃগণনা করা হয়েছে।");
     }
 
     /**
