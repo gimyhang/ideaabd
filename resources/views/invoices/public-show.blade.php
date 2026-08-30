@@ -1,7 +1,10 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="bn" class="notranslate" translate="no">
 <head>
     <meta charset="UTF-8">
+    <meta name="google" content="notranslate">
+    <meta name="googlebot" content="notranslate">
+    <meta http-equiv="Content-Language" content="bn">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
     <title>{{ $invoice->type_label }} #{{ $invoice->invoice_no }} — {{ $settings['business_name'] ?? 'আইডিয়া প্রকাশন' }}</title>
 
