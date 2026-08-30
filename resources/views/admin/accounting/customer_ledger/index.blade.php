@@ -40,6 +40,11 @@
 
 @section('actions')
     <div class="d-flex flex-wrap gap-2 align-items-center">
+        {{-- Customize Logo & Info Button --}}
+        <button type="button" class="btn btn-outline-dark btn-sm rounded-pill px-3 shadow-2xs fw-semibold" data-bs-toggle="modal" data-bs-target="#ledgerBrandingSettingsModal" title="লেজার ও বিলের লোগো এবং অফিসিয়াল তথ্য কাস্টমাইজ করুন">
+            <i class="fas fa-palette me-1 text-primary"></i> লোগো ও তথ্য পরিবর্তন
+        </button>
+
         {{-- Collect Payment Button --}}
         <button type="button" class="btn btn-success btn-sm rounded-pill px-3 shadow-sm fw-semibold" data-bs-toggle="modal" data-bs-target="#collectLedgerPaymentModal">
             <i class="fas fa-hand-holding-dollar me-1.5"></i> কিস্তি / জমা নিন
@@ -886,6 +891,8 @@
         </div>
     </div>
 </div>
+
+@include('admin.partials.branding-modal')
 
 <script>
     function setPaymentCustomer(name, phone) {
