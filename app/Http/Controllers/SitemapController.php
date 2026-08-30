@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Route;
 use Modules\Blog\Models\BlogPost;
 use Modules\Blog\Models\BlogCategory;
 use Modules\Blog\Models\BlogTag;
@@ -29,6 +29,20 @@ class SitemapController extends Controller
             $baseUrl = 'https://www.ideaabd.com';
         }
         return rtrim($baseUrl, '/');
+    }
+
+    /**
+     * Helper to start XML URLSET with proper Schema namespaces.
+     */
+    protected function startUrlsetXml(): string
+    {
+        $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+        $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" '
+              . 'xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" '
+              . 'xmlns:xhtml="http://www.w3.org/1999/xhtml" '
+              . 'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" '
+              . 'xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">' . "\n";
+        return $xml;
     }
 
     /**
@@ -74,7 +88,7 @@ class SitemapController extends Controller
 
         foreach ($sitemaps as $sm) {
             $xml .= "  <sitemap>\n";
-            $xml .= "    <loc>" . htmlspecialchars($sm) . "</loc>\n";
+            $xml .= "    <loc>" . htmlspecialchars($sm, ENT_XML1, 'UTF-8') . "</loc>\n";
             $xml .= "    <lastmod>{$now}</lastmod>\n";
             $xml .= "  </sitemap>\n";
         }
@@ -88,33 +102,18 @@ class SitemapController extends Controller
     }
 
     /**
-     * Sub-sitemap for Static & Landing Pages
+     * Sub-sitemap for Static & Landing Pages, Navigation Menus, Submenus & Utility Pages
      */
     public function pagesSitemap(): Response
     {
         $baseUrl = $this->getBaseUrl();
         $now = date('Y-m-d');
 
-        $staticRoutes = [
-            ['url' => '/', 'priority' => '1.0', 'freq' => 'always'],
-            ['url' => '/ideapatra', 'priority' => '0.98', 'freq' => 'hourly'],
-            ['url' => '/books', 'priority' => '0.95', 'freq' => 'hourly'],
-            ['url' => '/blog', 'priority' => '0.95', 'freq' => 'hourly'],
-            ['url' => '/ebooks', 'priority' => '0.90', 'freq' => 'daily'],
-            ['url' => '/authors', 'priority' => '0.90', 'freq' => 'daily'],
-            ['url' => '/publishers', 'priority' => '0.85', 'freq' => 'daily'],
-            ['url' => '/webzines', 'priority' => '0.85', 'freq' => 'daily'],
-            ['url' => '/research', 'priority' => '0.85', 'freq' => 'weekly'],
-            ['url' => '/hub', 'priority' => '0.80', 'freq' => 'weekly'],
-            ['url' => '/about', 'priority' => '0.70', 'freq' => 'monthly'],
-            ['url' => '/contact', 'priority' => '0.70', 'freq' => 'monthly'],
-            ['url' => '/register/author', 'priority' => '0.75', 'freq' => 'monthly'],
-            ['url' => '/register/publisher', 'priority' => '0.75', 'freq' => 'monthly'],
-        ];
+        $staticRoutes = $this->getAllStaticAndMenuPages();
 
         $xml = $this->startUrlsetXml();
         foreach ($staticRoutes as $r) {
-            $loc = htmlspecialchars($baseUrl . $r['url']);
+            $loc = htmlspecialchars(str_starts_with($r['url'], 'http') ? $r['url'] : ($baseUrl . '/' . ltrim($r['url'], '/')), ENT_XML1, 'UTF-8');
             $xml .= "  <url>\n";
             $xml .= "    <loc>{$loc}</loc>\n";
             $xml .= "    <lastmod>{$now}</lastmod>\n";
@@ -129,7 +128,7 @@ class SitemapController extends Controller
     }
 
     /**
-     * Sub-sitemap for Ideapatra Articles & Blog Posts
+     * Sub-sitemap for Ideapatra Articles, Literary Works & Blog Posts
      */
     public function postsSitemap(): Response
     {
@@ -137,6 +136,74 @@ class SitemapController extends Controller
         $now = date('Y-m-d');
         $xml = $this->startUrlsetXml();
 
+        // Ideapatra and Blog Main Portal Hubs
+        $hubs = [
+            ['url' => '/ideapatra', 'prio' => '0.98', 'freq' => 'hourly'],
+            ['url' => '/blog', 'prio' => '0.96', 'freq' => 'hourly'],
+            ['url' => '/ideapatra/write', 'prio' => '0.85', 'freq' => 'weekly'],
+        ];
+        foreach ($hubs as $h) {
+            $hLoc = htmlspecialchars($baseUrl . $h['url'], ENT_XML1, 'UTF-8');
+            $xml .= "  <url>\n";
+            $xml .= "    <loc>{$hLoc}</loc>\n";
+            $xml .= "    <lastmod>{$now}</lastmod>\n";
+            $xml .= "    <changefreq>{$h['freq']}</changefreq>\n";
+            $xml .= "    <priority>{$h['prio']}</priority>\n";
+            $xml .= "    <xhtml:link rel=\"alternate\" hreflang=\"bn\" href=\"{$hLoc}\"/>\n";
+            $xml .= "  </url>\n";
+        }
+
+        // All Ideapatra / Blog Categories & Submenus
+        if (Schema::hasTable('blog_categories')) {
+            try {
+                $blogCats = BlogCategory::where('is_active', true)->get();
+                foreach ($blogCats as $bCat) {
+                    $lastMod = $bCat->updated_at ? $bCat->updated_at->format('Y-m-d') : $now;
+                    
+                    $loc1 = htmlspecialchars($baseUrl . '/blog/category/' . $bCat->slug, ENT_XML1, 'UTF-8');
+                    $xml .= "  <url>\n";
+                    $xml .= "    <loc>{$loc1}</loc>\n";
+                    $xml .= "    <lastmod>{$lastMod}</lastmod>\n";
+                    $xml .= "    <changefreq>daily</changefreq>\n";
+                    $xml .= "    <priority>0.86</priority>\n";
+                    $xml .= "  </url>\n";
+
+                    $loc2 = htmlspecialchars($baseUrl . '/ideapatra/category/' . $bCat->slug, ENT_XML1, 'UTF-8');
+                    $xml .= "  <url>\n";
+                    $xml .= "    <loc>{$loc2}</loc>\n";
+                    $xml .= "    <lastmod>{$lastMod}</lastmod>\n";
+                    $xml .= "    <changefreq>daily</changefreq>\n";
+                    $xml .= "    <priority>0.86</priority>\n";
+                    $xml .= "  </url>\n";
+                }
+            } catch (\Throwable $e) {}
+        }
+
+        // All Ideapatra / Blog Tags & Submenus
+        if (Schema::hasTable('blog_tags')) {
+            try {
+                $tags = BlogTag::all();
+                foreach ($tags as $tag) {
+                    $tLoc = htmlspecialchars($baseUrl . '/blog/tag/' . $tag->slug, ENT_XML1, 'UTF-8');
+                    $xml .= "  <url>\n";
+                    $xml .= "    <loc>{$tLoc}</loc>\n";
+                    $xml .= "    <lastmod>{$now}</lastmod>\n";
+                    $xml .= "    <changefreq>weekly</changefreq>\n";
+                    $xml .= "    <priority>0.75</priority>\n";
+                    $xml .= "  </url>\n";
+
+                    $tLoc2 = htmlspecialchars($baseUrl . '/ideapatra/tag/' . $tag->slug, ENT_XML1, 'UTF-8');
+                    $xml .= "  <url>\n";
+                    $xml .= "    <loc>{$tLoc2}</loc>\n";
+                    $xml .= "    <lastmod>{$now}</lastmod>\n";
+                    $xml .= "    <changefreq>weekly</changefreq>\n";
+                    $xml .= "    <priority>0.75</priority>\n";
+                    $xml .= "  </url>\n";
+                }
+            } catch (\Throwable $e) {}
+        }
+
+        // All Published Blog Posts & Ideapatra Articles
         if (Schema::hasTable('blog_posts')) {
             try {
                 $blogPosts = BlogPost::where('status', 'published')
@@ -149,7 +216,7 @@ class SitemapController extends Controller
 
                 foreach ($blogPosts as $post) {
                     $lastMod = $post->published_at ? $post->published_at->format('Y-m-d') : ($post->updated_at ? $post->updated_at->format('Y-m-d') : $now);
-                    $loc = htmlspecialchars($baseUrl . '/blog/' . $post->slug);
+                    $loc = htmlspecialchars($baseUrl . '/blog/' . $post->slug, ENT_XML1, 'UTF-8');
                     $xml .= "  <url>\n";
                     $xml .= "    <loc>{$loc}</loc>\n";
                     $xml .= "    <lastmod>{$lastMod}</lastmod>\n";
@@ -157,15 +224,14 @@ class SitemapController extends Controller
                     $xml .= "    <priority>0.88</priority>\n";
                     $xml .= "    <xhtml:link rel=\"alternate\" hreflang=\"bn\" href=\"{$loc}\"/>\n";
 
-                    // Also add alias for Ideapatra route
-                    $ideapatraLoc = htmlspecialchars($baseUrl . '/ideapatra/' . $post->slug);
+                    $ideapatraLoc = htmlspecialchars($baseUrl . '/ideapatra/' . $post->slug, ENT_XML1, 'UTF-8');
                     $xml .= "    <xhtml:link rel=\"alternate\" hreflang=\"bn-BD\" href=\"{$ideapatraLoc}\"/>\n";
 
                     if (!empty($post->featured_image) || !empty($post->cover_image)) {
                         $img = $post->cover_url ?: (str_starts_with((string)$post->featured_image, 'http') ? $post->featured_image : $baseUrl . '/storage/' . ltrim((string)$post->featured_image, '/'));
                         $xml .= "    <image:image>\n";
-                        $xml .= "      <image:loc>" . htmlspecialchars($img) . "</image:loc>\n";
-                        $xml .= "      <image:title>" . htmlspecialchars($post->title) . "</image:title>\n";
+                        $xml .= "      <image:loc>" . htmlspecialchars($img, ENT_XML1, 'UTF-8') . "</image:loc>\n";
+                        $xml .= "      <image:title>" . htmlspecialchars($post->title, ENT_XML1, 'UTF-8') . "</image:title>\n";
                         $xml .= "    </image:image>\n";
                     }
 
@@ -179,7 +245,7 @@ class SitemapController extends Controller
     }
 
     /**
-     * Sub-sitemap for Books
+     * Sub-sitemap for Books, Bookshop Menus, Submenus, Category Filters & Book Details
      */
     public function booksSitemap(): Response
     {
@@ -187,6 +253,47 @@ class SitemapController extends Controller
         $now = date('Y-m-d');
         $xml = $this->startUrlsetXml();
 
+        // 1. Bookshop Core Menus, Submenus & Filters
+        $bookshopMenus = [
+            ['url' => '/books', 'prio' => '0.98', 'freq' => 'hourly'],
+            ['url' => '/books?sort=bestselling', 'prio' => '0.92', 'freq' => 'daily'],
+            ['url' => '/books?sort=newest', 'prio' => '0.92', 'freq' => 'daily'],
+            ['url' => '/books?sort=popular', 'prio' => '0.90', 'freq' => 'daily'],
+            ['url' => '/books?filter=boimela-2026', 'prio' => '0.95', 'freq' => 'daily'],
+            ['url' => '/books?filter=mega-discount', 'prio' => '0.93', 'freq' => 'daily'],
+            ['url' => '/books?category=pshcimbnger-bi', 'prio' => '0.90', 'freq' => 'daily'],
+        ];
+
+        foreach ($bookshopMenus as $bm) {
+            $bmLoc = htmlspecialchars($baseUrl . $bm['url'], ENT_XML1, 'UTF-8');
+            $xml .= "  <url>\n";
+            $xml .= "    <loc>{$bmLoc}</loc>\n";
+            $xml .= "    <lastmod>{$now}</lastmod>\n";
+            $xml .= "    <changefreq>{$bm['freq']}</changefreq>\n";
+            $xml .= "    <priority>{$bm['prio']}</priority>\n";
+            $xml .= "  </url>\n";
+        }
+
+        // 2. All Book Categories & Subcategories (Submenus)
+        if (Schema::hasTable('categories')) {
+            try {
+                $bookCats = Category::where('is_active', true)->get();
+                foreach ($bookCats as $bCat) {
+                    $lastMod = $bCat->updated_at ? $bCat->updated_at->format('Y-m-d') : $now;
+                    
+                    // Bookshop query filter route
+                    $cLoc1 = htmlspecialchars($baseUrl . '/books?category=' . $bCat->slug, ENT_XML1, 'UTF-8');
+                    $xml .= "  <url>\n";
+                    $xml .= "    <loc>{$cLoc1}</loc>\n";
+                    $xml .= "    <lastmod>{$lastMod}</lastmod>\n";
+                    $xml .= "    <changefreq>daily</changefreq>\n";
+                    $xml .= "    <priority>0.88</priority>\n";
+                    $xml .= "  </url>\n";
+                }
+            } catch (\Throwable $e) {}
+        }
+
+        // 3. All Active Individual Books
         if (Schema::hasTable('books')) {
             try {
                 $books = Book::where('is_active', true)
@@ -200,7 +307,7 @@ class SitemapController extends Controller
                 foreach ($books as $b) {
                     $lastMod = $b->updated_at ? $b->updated_at->format('Y-m-d') : $now;
                     $slug = $b->slug ?: $b->id;
-                    $loc = htmlspecialchars($baseUrl . '/books/' . $slug);
+                    $loc = htmlspecialchars($baseUrl . '/books/' . $slug, ENT_XML1, 'UTF-8');
                     $xml .= "  <url>\n";
                     $xml .= "    <loc>{$loc}</loc>\n";
                     $xml .= "    <lastmod>{$lastMod}</lastmod>\n";
@@ -210,8 +317,8 @@ class SitemapController extends Controller
                     if (!empty($b->cover_image)) {
                         $img = str_starts_with((string)$b->cover_image, 'http') ? $b->cover_image : $baseUrl . '/storage/' . ltrim((string)$b->cover_image, '/');
                         $xml .= "    <image:image>\n";
-                        $xml .= "      <image:loc>" . htmlspecialchars($img) . "</image:loc>\n";
-                        $xml .= "      <image:title>" . htmlspecialchars($b->title . ' — ' . ($b->author_name ?: 'আইডিয়া প্রকাশন')) . "</image:title>\n";
+                        $xml .= "      <image:loc>" . htmlspecialchars($img, ENT_XML1, 'UTF-8') . "</image:loc>\n";
+                        $xml .= "      <image:title>" . htmlspecialchars($b->title . ' — ' . ($b->author_name ?: 'আইডিয়া প্রকাশন'), ENT_XML1, 'UTF-8') . "</image:title>\n";
                         $xml .= "    </image:image>\n";
                     }
 
@@ -225,7 +332,7 @@ class SitemapController extends Controller
     }
 
     /**
-     * Sub-sitemap for E-books
+     * Sub-sitemap for E-books, Ebook Menus & Submenus
      */
     public function ebooksSitemap(): Response
     {
@@ -233,13 +340,31 @@ class SitemapController extends Controller
         $now = date('Y-m-d');
         $xml = $this->startUrlsetXml();
 
+        // E-books Hub & Filter Menus
+        $ebookMenus = [
+            ['url' => '/ebooks', 'prio' => '0.92', 'freq' => 'daily'],
+            ['url' => '/ebooks?filter=free', 'prio' => '0.88', 'freq' => 'weekly'],
+            ['url' => '/ebooks?filter=premium', 'prio' => '0.88', 'freq' => 'weekly'],
+        ];
+
+        foreach ($ebookMenus as $em) {
+            $emLoc = htmlspecialchars($baseUrl . $em['url'], ENT_XML1, 'UTF-8');
+            $xml .= "  <url>\n";
+            $xml .= "    <loc>{$emLoc}</loc>\n";
+            $xml .= "    <lastmod>{$now}</lastmod>\n";
+            $xml .= "    <changefreq>{$em['freq']}</changefreq>\n";
+            $xml .= "    <priority>{$em['prio']}</priority>\n";
+            $xml .= "  </url>\n";
+        }
+
+        // All E-books
         if (Schema::hasTable('ebooks')) {
             try {
                 $ebooks = Ebook::where('is_active', true)->latest('id')->take(2000)->get();
                 foreach ($ebooks as $eb) {
                     $lastMod = $eb->updated_at ? $eb->updated_at->format('Y-m-d') : $now;
                     $slug = $eb->slug ?: $eb->id;
-                    $loc = htmlspecialchars($baseUrl . '/ebooks/' . $slug);
+                    $loc = htmlspecialchars($baseUrl . '/ebooks/' . $slug, ENT_XML1, 'UTF-8');
                     $xml .= "  <url>\n";
                     $xml .= "    <loc>{$loc}</loc>\n";
                     $xml .= "    <lastmod>{$lastMod}</lastmod>\n";
@@ -249,8 +374,8 @@ class SitemapController extends Controller
                     if (!empty($eb->cover_image)) {
                         $img = str_starts_with((string)$eb->cover_image, 'http') ? $eb->cover_image : $baseUrl . '/storage/' . ltrim((string)$eb->cover_image, '/');
                         $xml .= "    <image:image>\n";
-                        $xml .= "      <image:loc>" . htmlspecialchars($img) . "</image:loc>\n";
-                        $xml .= "      <image:title>" . htmlspecialchars($eb->title . ' (ই-বুক)') . "</image:title>\n";
+                        $xml .= "      <image:loc>" . htmlspecialchars($img, ENT_XML1, 'UTF-8') . "</image:loc>\n";
+                        $xml .= "      <image:title>" . htmlspecialchars($eb->title . ' (ই-বুক)', ENT_XML1, 'UTF-8') . "</image:title>\n";
                         $xml .= "    </image:image>\n";
                     }
 
@@ -272,13 +397,22 @@ class SitemapController extends Controller
         $now = date('Y-m-d');
         $xml = $this->startUrlsetXml();
 
+        // Main Webzine Landing Page
+        $mainLoc = htmlspecialchars($baseUrl . '/webzines', ENT_XML1, 'UTF-8');
+        $xml .= "  <url>\n";
+        $xml .= "    <loc>{$mainLoc}</loc>\n";
+        $xml .= "    <lastmod>{$now}</lastmod>\n";
+        $xml .= "    <changefreq>daily</changefreq>\n";
+        $xml .= "    <priority>0.88</priority>\n";
+        $xml .= "  </url>\n";
+
         if (Schema::hasTable('webzines')) {
             try {
                 $webzines = Webzine::where('is_active', true)->latest('id')->take(1000)->get();
                 foreach ($webzines as $wz) {
                     $lastMod = $wz->updated_at ? $wz->updated_at->format('Y-m-d') : $now;
                     $slug = $wz->slug ?: $wz->id;
-                    $loc = htmlspecialchars($baseUrl . '/webzines/' . $slug);
+                    $loc = htmlspecialchars($baseUrl . '/webzines/' . $slug, ENT_XML1, 'UTF-8');
                     $xml .= "  <url>\n";
                     $xml .= "    <loc>{$loc}</loc>\n";
                     $xml .= "    <lastmod>{$lastMod}</lastmod>\n";
@@ -288,8 +422,8 @@ class SitemapController extends Controller
                     if (!empty($wz->cover_image)) {
                         $img = str_starts_with((string)$wz->cover_image, 'http') ? $wz->cover_image : $baseUrl . '/storage/' . ltrim((string)$wz->cover_image, '/');
                         $xml .= "    <image:image>\n";
-                        $xml .= "      <image:loc>" . htmlspecialchars($img) . "</image:loc>\n";
-                        $xml .= "      <image:title>" . htmlspecialchars($wz->title) . "</image:title>\n";
+                        $xml .= "      <image:loc>" . htmlspecialchars($img, ENT_XML1, 'UTF-8') . "</image:loc>\n";
+                        $xml .= "      <image:title>" . htmlspecialchars($wz->title, ENT_XML1, 'UTF-8') . "</image:title>\n";
                         $xml .= "    </image:image>\n";
                     }
 
@@ -311,13 +445,22 @@ class SitemapController extends Controller
         $now = date('Y-m-d');
         $xml = $this->startUrlsetXml();
 
+        // Main Authors Page
+        $mainAuthors = htmlspecialchars($baseUrl . '/authors', ENT_XML1, 'UTF-8');
+        $xml .= "  <url>\n";
+        $xml .= "    <loc>{$mainAuthors}</loc>\n";
+        $xml .= "    <lastmod>{$now}</lastmod>\n";
+        $xml .= "    <changefreq>daily</changefreq>\n";
+        $xml .= "    <priority>0.90</priority>\n";
+        $xml .= "  </url>\n";
+
         if (Schema::hasTable('authors')) {
             try {
                 $authors = Author::where('is_active', true)->latest('id')->take(2000)->get();
                 foreach ($authors as $a) {
                     $lastMod = $a->updated_at ? $a->updated_at->format('Y-m-d') : $now;
                     $slug = $a->slug ?: $a->id;
-                    $loc = htmlspecialchars($baseUrl . '/authors/' . $slug);
+                    $loc = htmlspecialchars($baseUrl . '/authors/' . $slug, ENT_XML1, 'UTF-8');
                     $xml .= "  <url>\n";
                     $xml .= "    <loc>{$loc}</loc>\n";
                     $xml .= "    <lastmod>{$lastMod}</lastmod>\n";
@@ -327,8 +470,8 @@ class SitemapController extends Controller
                     if (!empty($a->avatar) || !empty($a->photo)) {
                         $img = str_starts_with((string)($a->avatar ?: $a->photo), 'http') ? ($a->avatar ?: $a->photo) : $baseUrl . '/storage/' . ltrim((string)($a->avatar ?: $a->photo), '/');
                         $xml .= "    <image:image>\n";
-                        $xml .= "      <image:loc>" . htmlspecialchars($img) . "</image:loc>\n";
-                        $xml .= "      <image:title>" . htmlspecialchars($a->name . ' — লেখক পরিচিতি') . "</image:title>\n";
+                        $xml .= "      <image:loc>" . htmlspecialchars($img, ENT_XML1, 'UTF-8') . "</image:loc>\n";
+                        $xml .= "      <image:title>" . htmlspecialchars($a->name . ' — লেখক পরিচিতি', ENT_XML1, 'UTF-8') . "</image:title>\n";
                         $xml .= "    </image:image>\n";
                     }
 
@@ -350,13 +493,22 @@ class SitemapController extends Controller
         $now = date('Y-m-d');
         $xml = $this->startUrlsetXml();
 
+        // Main Publishers Page
+        $mainPublishers = htmlspecialchars($baseUrl . '/publishers', ENT_XML1, 'UTF-8');
+        $xml .= "  <url>\n";
+        $xml .= "    <loc>{$mainPublishers}</loc>\n";
+        $xml .= "    <lastmod>{$now}</lastmod>\n";
+        $xml .= "    <changefreq>daily</changefreq>\n";
+        $xml .= "    <priority>0.85</priority>\n";
+        $xml .= "  </url>\n";
+
         if (Schema::hasTable('publishers')) {
             try {
                 $publishers = Publisher::where('is_active', true)->latest('id')->take(1000)->get();
                 foreach ($publishers as $p) {
                     $lastMod = $p->updated_at ? $p->updated_at->format('Y-m-d') : $now;
                     $slug = $p->slug ?: $p->id;
-                    $loc = htmlspecialchars($baseUrl . '/publishers/' . $slug);
+                    $loc = htmlspecialchars($baseUrl . '/publishers/' . $slug, ENT_XML1, 'UTF-8');
                     $xml .= "  <url>\n";
                     $xml .= "    <loc>{$loc}</loc>\n";
                     $xml .= "    <lastmod>{$lastMod}</lastmod>\n";
@@ -366,8 +518,8 @@ class SitemapController extends Controller
                     if (!empty($p->logo)) {
                         $img = str_starts_with((string)$p->logo, 'http') ? $p->logo : $baseUrl . '/storage/' . ltrim((string)$p->logo, '/');
                         $xml .= "    <image:image>\n";
-                        $xml .= "      <image:loc>" . htmlspecialchars($img) . "</image:loc>\n";
-                        $xml .= "      <image:title>" . htmlspecialchars($p->name . ' — প্রকাশনী') . "</image:title>\n";
+                        $xml .= "      <image:loc>" . htmlspecialchars($img, ENT_XML1, 'UTF-8') . "</image:loc>\n";
+                        $xml .= "      <image:title>" . htmlspecialchars($p->name . ' — প্রকাশনী', ENT_XML1, 'UTF-8') . "</image:title>\n";
                         $xml .= "    </image:image>\n";
                     }
 
@@ -381,7 +533,7 @@ class SitemapController extends Controller
     }
 
     /**
-     * Sub-sitemap for Categories & Tags
+     * Sub-sitemap for All Categories, Subcategories & Tags
      */
     public function categoriesSitemap(): Response
     {
@@ -389,13 +541,13 @@ class SitemapController extends Controller
         $now = date('Y-m-d');
         $xml = $this->startUrlsetXml();
 
-        // Blog / Ideapatra Categories
+        // 1. Blog / Ideapatra Categories & Submenus
         if (Schema::hasTable('blog_categories')) {
             try {
                 $blogCats = BlogCategory::where('is_active', true)->get();
                 foreach ($blogCats as $bCat) {
                     $lastMod = $bCat->updated_at ? $bCat->updated_at->format('Y-m-d') : $now;
-                    $loc = htmlspecialchars($baseUrl . '/blog/category/' . $bCat->slug);
+                    $loc = htmlspecialchars($baseUrl . '/blog/category/' . $bCat->slug, ENT_XML1, 'UTF-8');
                     $xml .= "  <url>\n";
                     $xml .= "    <loc>{$loc}</loc>\n";
                     $xml .= "    <lastmod>{$lastMod}</lastmod>\n";
@@ -403,8 +555,7 @@ class SitemapController extends Controller
                     $xml .= "    <priority>0.85</priority>\n";
                     $xml .= "  </url>\n";
 
-                    // Ideapatra category alias
-                    $ideaLoc = htmlspecialchars($baseUrl . '/ideapatra/category/' . $bCat->slug);
+                    $ideaLoc = htmlspecialchars($baseUrl . '/ideapatra/category/' . $bCat->slug, ENT_XML1, 'UTF-8');
                     $xml .= "  <url>\n";
                     $xml .= "    <loc>{$ideaLoc}</loc>\n";
                     $xml .= "    <lastmod>{$lastMod}</lastmod>\n";
@@ -415,12 +566,12 @@ class SitemapController extends Controller
             } catch (\Throwable $e) {}
         }
 
-        // Blog / Ideapatra Tags
+        // 2. Blog / Ideapatra Tags
         if (Schema::hasTable('blog_tags')) {
             try {
                 $tags = BlogTag::all();
                 foreach ($tags as $tag) {
-                    $loc = htmlspecialchars($baseUrl . '/blog/tag/' . $tag->slug);
+                    $loc = htmlspecialchars($baseUrl . '/blog/tag/' . $tag->slug, ENT_XML1, 'UTF-8');
                     $xml .= "  <url>\n";
                     $xml .= "    <loc>{$loc}</loc>\n";
                     $xml .= "    <lastmod>{$now}</lastmod>\n";
@@ -431,13 +582,13 @@ class SitemapController extends Controller
             } catch (\Throwable $e) {}
         }
 
-        // Book Categories
+        // 3. Bookshop Categories & Subcategories
         if (Schema::hasTable('categories')) {
             try {
                 $bookCats = Category::where('is_active', true)->get();
                 foreach ($bookCats as $bCat) {
                     $lastMod = $bCat->updated_at ? $bCat->updated_at->format('Y-m-d') : $now;
-                    $loc = htmlspecialchars($baseUrl . '/books?category=' . $bCat->slug);
+                    $loc = htmlspecialchars($baseUrl . '/books?category=' . $bCat->slug, ENT_XML1, 'UTF-8');
                     $xml .= "  <url>\n";
                     $xml .= "    <loc>{$loc}</loc>\n";
                     $xml .= "    <lastmod>{$lastMod}</lastmod>\n";
@@ -461,13 +612,22 @@ class SitemapController extends Controller
         $now = date('Y-m-d');
         $xml = $this->startUrlsetXml();
 
+        // Always include main research landing page
+        $mainLoc = htmlspecialchars($baseUrl . '/research', ENT_XML1, 'UTF-8');
+        $xml .= "  <url>\n";
+        $xml .= "    <loc>{$mainLoc}</loc>\n";
+        $xml .= "    <lastmod>{$now}</lastmod>\n";
+        $xml .= "    <changefreq>weekly</changefreq>\n";
+        $xml .= "    <priority>0.88</priority>\n";
+        $xml .= "  </url>\n";
+
         if (Schema::hasTable('research_papers')) {
             try {
                 $papers = ResearchPaper::published()->latest('id')->take(1000)->get();
                 foreach ($papers as $rp) {
                     $lastMod = $rp->updated_at ? $rp->updated_at->format('Y-m-d') : $now;
                     $slug = $rp->slug ?: $rp->id;
-                    $loc = htmlspecialchars($baseUrl . '/research/' . $slug);
+                    $loc = htmlspecialchars($baseUrl . '/research/' . $slug, ENT_XML1, 'UTF-8');
                     $xml .= "  <url>\n";
                     $xml .= "    <loc>{$loc}</loc>\n";
                     $xml .= "    <lastmod>{$lastMod}</lastmod>\n";
@@ -483,17 +643,116 @@ class SitemapController extends Controller
     }
 
     /**
-     * Helper to start XML URLSET with proper Schema namespaces.
+     * Dynamic fallback sitemap for single custom submitted page (e.g. about.xml, contact.xml, hub.xml).
      */
-    protected function startUrlsetXml(): string
+    public function dynamicPageSitemap(string $slug): Response
     {
-        $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
-        $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" '
-              . 'xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" '
-              . 'xmlns:xhtml="http://www.w3.org/1999/xhtml" '
-              . 'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" '
-              . 'xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">' . "\n";
-        return $xml;
+        $baseUrl = $this->getBaseUrl();
+        $cleanSlug = trim(str_replace('.xml', '', strtolower($slug)), '/');
+
+        // Aliases
+        if (in_array($cleanSlug, ['blog', 'articles', 'ideapatra', 'post', 'posts'])) {
+            return $this->postsSitemap();
+        }
+        if (in_array($cleanSlug, ['book', 'books', 'shop'])) {
+            return $this->booksSitemap();
+        }
+        if (in_array($cleanSlug, ['ebook', 'ebooks'])) {
+            return $this->ebooksSitemap();
+        }
+        if (in_array($cleanSlug, ['magazine', 'magazines', 'webzine', 'webzines'])) {
+            return $this->magazinesSitemap();
+        }
+        if (in_array($cleanSlug, ['author', 'authors', 'writers'])) {
+            return $this->authorsSitemap();
+        }
+        if (in_array($cleanSlug, ['publisher', 'publishers'])) {
+            return $this->publishersSitemap();
+        }
+        if (in_array($cleanSlug, ['category', 'categories', 'tags'])) {
+            return $this->categoriesSitemap();
+        }
+        if (in_array($cleanSlug, ['research', 'papers'])) {
+            return $this->researchSitemap();
+        }
+
+        $now = date('Y-m-d');
+        $loc = htmlspecialchars($baseUrl . '/' . $cleanSlug, ENT_XML1, 'UTF-8');
+
+        $xml = $this->startUrlsetXml();
+        $xml .= "  <url>\n";
+        $xml .= "    <loc>{$loc}</loc>\n";
+        $xml .= "    <lastmod>{$now}</lastmod>\n";
+        $xml .= "    <changefreq>weekly</changefreq>\n";
+        $xml .= "    <priority>0.80</priority>\n";
+        $xml .= "    <xhtml:link rel=\"alternate\" hreflang=\"bn\" href=\"{$loc}\"/>\n";
+        $xml .= "  </url>\n";
+        $xml .= '</urlset>';
+
+        return response($xml, 200, ['Content-Type' => 'application/xml; charset=utf-8']);
+    }
+
+    /**
+     * Master list of all static routes, main menus, submenus, filters, and custom nav items.
+     */
+    protected function getAllStaticAndMenuPages(): array
+    {
+        $pages = [
+            ['url' => '/', 'priority' => '1.0', 'freq' => 'always'],
+            ['url' => '/ideapatra', 'priority' => '0.98', 'freq' => 'hourly'],
+            ['url' => '/books', 'priority' => '0.98', 'freq' => 'hourly'],
+            ['url' => '/blog', 'priority' => '0.96', 'freq' => 'hourly'],
+            ['url' => '/ebooks', 'priority' => '0.92', 'freq' => 'daily'],
+            ['url' => '/authors', 'priority' => '0.92', 'freq' => 'daily'],
+            ['url' => '/publishers', 'priority' => '0.88', 'freq' => 'daily'],
+            ['url' => '/webzines', 'priority' => '0.88', 'freq' => 'daily'],
+            ['url' => '/research', 'priority' => '0.88', 'freq' => 'weekly'],
+            ['url' => '/hub', 'priority' => '0.82', 'freq' => 'weekly'],
+            ['url' => '/about', 'priority' => '0.75', 'freq' => 'monthly'],
+            ['url' => '/contact', 'priority' => '0.75', 'freq' => 'monthly'],
+            ['url' => '/register/author', 'priority' => '0.78', 'freq' => 'monthly'],
+            ['url' => '/register/publisher', 'priority' => '0.78', 'freq' => 'monthly'],
+            ['url' => '/my-account', 'priority' => '0.60', 'freq' => 'monthly'],
+
+            // Bookshop Submenus & Filter Pages
+            ['url' => '/books?sort=bestselling', 'priority' => '0.92', 'freq' => 'daily'],
+            ['url' => '/books?sort=newest', 'priority' => '0.92', 'freq' => 'daily'],
+            ['url' => '/books?sort=popular', 'priority' => '0.90', 'freq' => 'daily'],
+            ['url' => '/books?filter=boimela-2026', 'priority' => '0.95', 'freq' => 'daily'],
+            ['url' => '/books?filter=mega-discount', 'priority' => '0.93', 'freq' => 'daily'],
+            ['url' => '/books?category=pshcimbnger-bi', 'priority' => '0.90', 'freq' => 'daily'],
+
+            // Ebook Submenus
+            ['url' => '/ebooks?filter=free', 'priority' => '0.88', 'freq' => 'weekly'],
+            ['url' => '/ebooks?filter=premium', 'priority' => '0.88', 'freq' => 'weekly'],
+
+            // Ideapatra Submenus
+            ['url' => '/ideapatra/write', 'priority' => '0.85', 'freq' => 'weekly'],
+        ];
+
+        // Include any custom nav items defined in SiteSetting::headerNav()
+        try {
+            $rawNav = \App\Support\SiteSetting::headerNav();
+            foreach ($rawNav as $item) {
+                if (!($item['is_active'] ?? true)) continue;
+                $target = '';
+                $rName = $item['route'] ?? '';
+                if (!empty($rName) && Route::has($rName)) {
+                    $target = route($rName, $item['params'] ?? []);
+                } elseif (!empty($item['url'])) {
+                    $target = $item['url'];
+                }
+                if ($target) {
+                    $pages[] = [
+                        'url' => $target,
+                        'priority' => '0.80',
+                        'freq' => 'weekly',
+                    ];
+                }
+            }
+        } catch (\Throwable $e) {}
+
+        return $pages;
     }
 
     /**
@@ -506,26 +765,10 @@ class SitemapController extends Controller
 
         $xml = $this->startUrlsetXml();
 
-        // 1. Static core landing pages
-        $staticRoutes = [
-            ['url' => '/', 'priority' => '1.0', 'freq' => 'always'],
-            ['url' => '/ideapatra', 'priority' => '0.98', 'freq' => 'hourly'],
-            ['url' => '/books', 'priority' => '0.95', 'freq' => 'hourly'],
-            ['url' => '/blog', 'priority' => '0.95', 'freq' => 'hourly'],
-            ['url' => '/ebooks', 'priority' => '0.90', 'freq' => 'daily'],
-            ['url' => '/authors', 'priority' => '0.90', 'freq' => 'daily'],
-            ['url' => '/publishers', 'priority' => '0.85', 'freq' => 'daily'],
-            ['url' => '/webzines', 'priority' => '0.85', 'freq' => 'daily'],
-            ['url' => '/research', 'priority' => '0.85', 'freq' => 'weekly'],
-            ['url' => '/hub', 'priority' => '0.80', 'freq' => 'weekly'],
-            ['url' => '/about', 'priority' => '0.70', 'freq' => 'monthly'],
-            ['url' => '/contact', 'priority' => '0.70', 'freq' => 'monthly'],
-            ['url' => '/register/author', 'priority' => '0.75', 'freq' => 'monthly'],
-            ['url' => '/register/publisher', 'priority' => '0.75', 'freq' => 'monthly'],
-        ];
-
+        // 1. Static core landing pages & Submenus
+        $staticRoutes = $this->getAllStaticAndMenuPages();
         foreach ($staticRoutes as $r) {
-            $loc = htmlspecialchars($baseUrl . $r['url']);
+            $loc = htmlspecialchars(str_starts_with($r['url'], 'http') ? $r['url'] : ($baseUrl . '/' . ltrim($r['url'], '/')), ENT_XML1, 'UTF-8');
             $xml .= "  <url>\n";
             $xml .= "    <loc>{$loc}</loc>\n";
             $xml .= "    <lastmod>{$now}</lastmod>\n";
@@ -535,13 +778,13 @@ class SitemapController extends Controller
             $xml .= "  </url>\n";
         }
 
-        // 2. Blog & Ideapatra Categories
+        // 2. Blog & Ideapatra Categories & Submenus
         if (Schema::hasTable('blog_categories')) {
             try {
                 $blogCats = BlogCategory::where('is_active', true)->get();
                 foreach ($blogCats as $bCat) {
                     $lastMod = $bCat->updated_at ? $bCat->updated_at->format('Y-m-d') : $now;
-                    $loc = htmlspecialchars($baseUrl . '/blog/category/' . $bCat->slug);
+                    $loc = htmlspecialchars($baseUrl . '/blog/category/' . $bCat->slug, ENT_XML1, 'UTF-8');
                     $xml .= "  <url>\n";
                     $xml .= "    <loc>{$loc}</loc>\n";
                     $xml .= "    <lastmod>{$lastMod}</lastmod>\n";
@@ -549,7 +792,7 @@ class SitemapController extends Controller
                     $xml .= "    <priority>0.85</priority>\n";
                     $xml .= "  </url>\n";
 
-                    $ideaCatLoc = htmlspecialchars($baseUrl . '/ideapatra/category/' . $bCat->slug);
+                    $ideaCatLoc = htmlspecialchars($baseUrl . '/ideapatra/category/' . $bCat->slug, ENT_XML1, 'UTF-8');
                     $xml .= "  <url>\n";
                     $xml .= "    <loc>{$ideaCatLoc}</loc>\n";
                     $xml .= "    <lastmod>{$lastMod}</lastmod>\n";
@@ -560,7 +803,23 @@ class SitemapController extends Controller
             } catch (\Throwable $e) {}
         }
 
-        // 3. Published Blog Posts (Articles & Ideapatra)
+        // 3. Blog & Ideapatra Tags
+        if (Schema::hasTable('blog_tags')) {
+            try {
+                $tags = BlogTag::all();
+                foreach ($tags as $tag) {
+                    $loc = htmlspecialchars($baseUrl . '/blog/tag/' . $tag->slug, ENT_XML1, 'UTF-8');
+                    $xml .= "  <url>\n";
+                    $xml .= "    <loc>{$loc}</loc>\n";
+                    $xml .= "    <lastmod>{$now}</lastmod>\n";
+                    $xml .= "    <changefreq>weekly</changefreq>\n";
+                    $xml .= "    <priority>0.75</priority>\n";
+                    $xml .= "  </url>\n";
+                }
+            } catch (\Throwable $e) {}
+        }
+
+        // 4. Published Blog Posts (Articles & Ideapatra)
         if (Schema::hasTable('blog_posts')) {
             try {
                 $blogPosts = BlogPost::where('status', 'published')
@@ -568,12 +827,12 @@ class SitemapController extends Controller
                         $q->whereNull('mod_status')->orWhere('mod_status', 'approved');
                     })
                     ->latest('published_at')
-                    ->take(3000)
+                    ->take(5000)
                     ->get();
 
                 foreach ($blogPosts as $post) {
                     $lastMod = $post->published_at ? $post->published_at->format('Y-m-d') : ($post->updated_at ? $post->updated_at->format('Y-m-d') : $now);
-                    $loc = htmlspecialchars($baseUrl . '/blog/' . $post->slug);
+                    $loc = htmlspecialchars($baseUrl . '/blog/' . $post->slug, ENT_XML1, 'UTF-8');
                     $xml .= "  <url>\n";
                     $xml .= "    <loc>{$loc}</loc>\n";
                     $xml .= "    <lastmod>{$lastMod}</lastmod>\n";
@@ -584,8 +843,8 @@ class SitemapController extends Controller
                     if (!empty($post->featured_image) || !empty($post->cover_image)) {
                         $img = $post->cover_url ?: (str_starts_with((string)$post->featured_image, 'http') ? $post->featured_image : $baseUrl . '/storage/' . ltrim((string)$post->featured_image, '/'));
                         $xml .= "    <image:image>\n";
-                        $xml .= "      <image:loc>" . htmlspecialchars($img) . "</image:loc>\n";
-                        $xml .= "      <image:title>" . htmlspecialchars($post->title) . "</image:title>\n";
+                        $xml .= "      <image:loc>" . htmlspecialchars($img, ENT_XML1, 'UTF-8') . "</image:loc>\n";
+                        $xml .= "      <image:title>" . htmlspecialchars($post->title, ENT_XML1, 'UTF-8') . "</image:title>\n";
                         $xml .= "    </image:image>\n";
                     }
 
@@ -594,7 +853,24 @@ class SitemapController extends Controller
             } catch (\Throwable $e) {}
         }
 
-        // 4. Active & Approved Books
+        // 5. Book Categories (Submenus)
+        if (Schema::hasTable('categories')) {
+            try {
+                $bookCats = Category::where('is_active', true)->get();
+                foreach ($bookCats as $bCat) {
+                    $lastMod = $bCat->updated_at ? $bCat->updated_at->format('Y-m-d') : $now;
+                    $loc = htmlspecialchars($baseUrl . '/books?category=' . $bCat->slug, ENT_XML1, 'UTF-8');
+                    $xml .= "  <url>\n";
+                    $xml .= "    <loc>{$loc}</loc>\n";
+                    $xml .= "    <lastmod>{$lastMod}</lastmod>\n";
+                    $xml .= "    <changefreq>daily</changefreq>\n";
+                    $xml .= "    <priority>0.88</priority>\n";
+                    $xml .= "  </url>\n";
+                }
+            } catch (\Throwable $e) {}
+        }
+
+        // 6. Active & Approved Books
         if (Schema::hasTable('books')) {
             try {
                 $books = Book::where('is_active', true)
@@ -602,13 +878,13 @@ class SitemapController extends Controller
                         $q->whereNull('mod_status')->orWhere('mod_status', 'approved');
                     })
                     ->latest('id')
-                    ->take(3000)
+                    ->take(5000)
                     ->get();
 
                 foreach ($books as $b) {
                     $lastMod = $b->updated_at ? $b->updated_at->format('Y-m-d') : $now;
                     $slug = $b->slug ?: $b->id;
-                    $loc = htmlspecialchars($baseUrl . '/books/' . $slug);
+                    $loc = htmlspecialchars($baseUrl . '/books/' . $slug, ENT_XML1, 'UTF-8');
                     $xml .= "  <url>\n";
                     $xml .= "    <loc>{$loc}</loc>\n";
                     $xml .= "    <lastmod>{$lastMod}</lastmod>\n";
@@ -618,8 +894,8 @@ class SitemapController extends Controller
                     if (!empty($b->cover_image)) {
                         $img = str_starts_with((string)$b->cover_image, 'http') ? $b->cover_image : $baseUrl . '/storage/' . ltrim((string)$b->cover_image, '/');
                         $xml .= "    <image:image>\n";
-                        $xml .= "      <image:loc>" . htmlspecialchars($img) . "</image:loc>\n";
-                        $xml .= "      <image:title>" . htmlspecialchars($b->title . ' — ' . ($b->author_name ?: 'আইডিয়া প্রকাশন')) . "</image:title>\n";
+                        $xml .= "      <image:loc>" . htmlspecialchars($img, ENT_XML1, 'UTF-8') . "</image:loc>\n";
+                        $xml .= "      <image:title>" . htmlspecialchars($b->title . ' — ' . ($b->author_name ?: 'আইডিয়া প্রকাশন'), ENT_XML1, 'UTF-8') . "</image:title>\n";
                         $xml .= "    </image:image>\n";
                     }
 
@@ -628,14 +904,14 @@ class SitemapController extends Controller
             } catch (\Throwable $e) {}
         }
 
-        // 5. Authors
+        // 7. Authors
         if (Schema::hasTable('authors')) {
             try {
-                $authors = Author::where('is_active', true)->latest('id')->take(1000)->get();
+                $authors = Author::where('is_active', true)->latest('id')->take(2000)->get();
                 foreach ($authors as $a) {
                     $lastMod = $a->updated_at ? $a->updated_at->format('Y-m-d') : $now;
                     $slug = $a->slug ?: $a->id;
-                    $loc = htmlspecialchars($baseUrl . '/authors/' . $slug);
+                    $loc = htmlspecialchars($baseUrl . '/authors/' . $slug, ENT_XML1, 'UTF-8');
                     $xml .= "  <url>\n";
                     $xml .= "    <loc>{$loc}</loc>\n";
                     $xml .= "    <lastmod>{$lastMod}</lastmod>\n";
@@ -645,8 +921,8 @@ class SitemapController extends Controller
                     if (!empty($a->avatar) || !empty($a->photo)) {
                         $img = str_starts_with((string)($a->avatar ?: $a->photo), 'http') ? ($a->avatar ?: $a->photo) : $baseUrl . '/storage/' . ltrim((string)($a->avatar ?: $a->photo), '/');
                         $xml .= "    <image:image>\n";
-                        $xml .= "      <image:loc>" . htmlspecialchars($img) . "</image:loc>\n";
-                        $xml .= "      <image:title>" . htmlspecialchars($a->name) . "</image:title>\n";
+                        $xml .= "      <image:loc>" . htmlspecialchars($img, ENT_XML1, 'UTF-8') . "</image:loc>\n";
+                        $xml .= "      <image:title>" . htmlspecialchars($a->name, ENT_XML1, 'UTF-8') . "</image:title>\n";
                         $xml .= "    </image:image>\n";
                     }
 
@@ -655,14 +931,14 @@ class SitemapController extends Controller
             } catch (\Throwable $e) {}
         }
 
-        // 6. Publishers
+        // 8. Publishers
         if (Schema::hasTable('publishers')) {
             try {
                 $publishers = Publisher::where('is_active', true)->latest('id')->take(1000)->get();
                 foreach ($publishers as $p) {
                     $lastMod = $p->updated_at ? $p->updated_at->format('Y-m-d') : $now;
                     $slug = $p->slug ?: $p->id;
-                    $loc = htmlspecialchars($baseUrl . '/publishers/' . $slug);
+                    $loc = htmlspecialchars($baseUrl . '/publishers/' . $slug, ENT_XML1, 'UTF-8');
                     $xml .= "  <url>\n";
                     $xml .= "    <loc>{$loc}</loc>\n";
                     $xml .= "    <lastmod>{$lastMod}</lastmod>\n";
@@ -672,8 +948,8 @@ class SitemapController extends Controller
                     if (!empty($p->logo)) {
                         $img = str_starts_with((string)$p->logo, 'http') ? $p->logo : $baseUrl . '/storage/' . ltrim((string)$p->logo, '/');
                         $xml .= "    <image:image>\n";
-                        $xml .= "      <image:loc>" . htmlspecialchars($img) . "</image:loc>\n";
-                        $xml .= "      <image:title>" . htmlspecialchars($p->name) . "</image:title>\n";
+                        $xml .= "      <image:loc>" . htmlspecialchars($img, ENT_XML1, 'UTF-8') . "</image:loc>\n";
+                        $xml .= "      <image:title>" . htmlspecialchars($p->name . ' — প্রকাশনী', ENT_XML1, 'UTF-8') . "</image:title>\n";
                         $xml .= "    </image:image>\n";
                     }
 
@@ -682,14 +958,14 @@ class SitemapController extends Controller
             } catch (\Throwable $e) {}
         }
 
-        // 7. Ebooks
+        // 9. Ebooks
         if (Schema::hasTable('ebooks')) {
             try {
                 $ebooks = Ebook::where('is_active', true)->latest('id')->take(1000)->get();
                 foreach ($ebooks as $eb) {
                     $lastMod = $eb->updated_at ? $eb->updated_at->format('Y-m-d') : $now;
                     $slug = $eb->slug ?: $eb->id;
-                    $loc = htmlspecialchars($baseUrl . '/ebooks/' . $slug);
+                    $loc = htmlspecialchars($baseUrl . '/ebooks/' . $slug, ENT_XML1, 'UTF-8');
                     $xml .= "  <url>\n";
                     $xml .= "    <loc>{$loc}</loc>\n";
                     $xml .= "    <lastmod>{$lastMod}</lastmod>\n";
@@ -699,8 +975,8 @@ class SitemapController extends Controller
                     if (!empty($eb->cover_image)) {
                         $img = str_starts_with((string)$eb->cover_image, 'http') ? $eb->cover_image : $baseUrl . '/storage/' . ltrim((string)$eb->cover_image, '/');
                         $xml .= "    <image:image>\n";
-                        $xml .= "      <image:loc>" . htmlspecialchars($img) . "</image:loc>\n";
-                        $xml .= "      <image:title>" . htmlspecialchars($eb->title) . "</image:title>\n";
+                        $xml .= "      <image:loc>" . htmlspecialchars($img, ENT_XML1, 'UTF-8') . "</image:loc>\n";
+                        $xml .= "      <image:title>" . htmlspecialchars($eb->title, ENT_XML1, 'UTF-8') . "</image:title>\n";
                         $xml .= "    </image:image>\n";
                     }
 
@@ -709,14 +985,14 @@ class SitemapController extends Controller
             } catch (\Throwable $e) {}
         }
 
-        // 8. Webzines
+        // 10. Webzines
         if (Schema::hasTable('webzines')) {
             try {
                 $webzines = Webzine::where('is_active', true)->latest('id')->take(1000)->get();
                 foreach ($webzines as $wz) {
                     $lastMod = $wz->updated_at ? $wz->updated_at->format('Y-m-d') : $now;
                     $slug = $wz->slug ?: $wz->id;
-                    $loc = htmlspecialchars($baseUrl . '/webzines/' . $slug);
+                    $loc = htmlspecialchars($baseUrl . '/webzines/' . $slug, ENT_XML1, 'UTF-8');
                     $xml .= "  <url>\n";
                     $xml .= "    <loc>{$loc}</loc>\n";
                     $xml .= "    <lastmod>{$lastMod}</lastmod>\n";
@@ -726,8 +1002,8 @@ class SitemapController extends Controller
                     if (!empty($wz->cover_image)) {
                         $img = str_starts_with((string)$wz->cover_image, 'http') ? $wz->cover_image : $baseUrl . '/storage/' . ltrim((string)$wz->cover_image, '/');
                         $xml .= "    <image:image>\n";
-                        $xml .= "      <image:loc>" . htmlspecialchars($img) . "</image:loc>\n";
-                        $xml .= "      <image:title>" . htmlspecialchars($wz->title) . "</image:title>\n";
+                        $xml .= "      <image:loc>" . htmlspecialchars($img, ENT_XML1, 'UTF-8') . "</image:loc>\n";
+                        $xml .= "      <image:title>" . htmlspecialchars($wz->title, ENT_XML1, 'UTF-8') . "</image:title>\n";
                         $xml .= "    </image:image>\n";
                     }
 
@@ -736,14 +1012,14 @@ class SitemapController extends Controller
             } catch (\Throwable $e) {}
         }
 
-        // 9. Research Papers
+        // 11. Research Papers
         if (Schema::hasTable('research_papers')) {
             try {
                 $papers = ResearchPaper::published()->latest('id')->take(1000)->get();
                 foreach ($papers as $rp) {
                     $lastMod = $rp->updated_at ? $rp->updated_at->format('Y-m-d') : $now;
                     $slug = $rp->slug ?: $rp->id;
-                    $loc = htmlspecialchars($baseUrl . '/research/' . $slug);
+                    $loc = htmlspecialchars($baseUrl . '/research/' . $slug, ENT_XML1, 'UTF-8');
                     $xml .= "  <url>\n";
                     $xml .= "    <loc>{$loc}</loc>\n";
                     $xml .= "    <lastmod>{$lastMod}</lastmod>\n";
@@ -775,9 +1051,9 @@ class SitemapController extends Controller
         $rss = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
         $rss .= '<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/">' . "\n";
         $rss .= "  <channel>\n";
-        $rss .= "    <title>" . htmlspecialchars($siteName) . "</title>\n";
+        $rss .= "    <title>" . htmlspecialchars($siteName, ENT_XML1, 'UTF-8') . "</title>\n";
         $rss .= "    <link>{$baseUrl}</link>\n";
-        $rss .= "    <description>" . htmlspecialchars($siteDesc) . "</description>\n";
+        $rss .= "    <description>" . htmlspecialchars($siteDesc, ENT_XML1, 'UTF-8') . "</description>\n";
         $rss .= "    <language>bn-BD</language>\n";
         $rss .= "    <lastBuildDate>" . date(DATE_RSS) . "</lastBuildDate>\n";
         $rss .= "    <atom:link href=\"{$baseUrl}/feed\" rel=\"self\" type=\"application/rss+xml\" />\n";
@@ -790,10 +1066,10 @@ class SitemapController extends Controller
             $excerpt = mb_substr($excerpt, 0, 300, 'UTF-8');
 
             $rss .= "    <item>\n";
-            $rss .= "      <title>" . htmlspecialchars($post->title) . "</title>\n";
+            $rss .= "      <title>" . htmlspecialchars($post->title, ENT_XML1, 'UTF-8') . "</title>\n";
             $rss .= "      <link>{$postUrl}</link>\n";
             $rss .= "      <guid isPermaLink=\"true\">{$postUrl}</guid>\n";
-            $rss .= "      <dc:creator>" . htmlspecialchars($author) . "</dc:creator>\n";
+            $rss .= "      <dc:creator>" . htmlspecialchars($author, ENT_XML1, 'UTF-8') . "</dc:creator>\n";
             $rss .= "      <pubDate>{$pubDate}</pubDate>\n";
             $rss .= "      <description><![CDATA[{$excerpt}]]></description>\n";
             $rss .= "    </item>\n";
