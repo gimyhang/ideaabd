@@ -37,19 +37,18 @@ class SecurityHeaders
             $response->headers->set('Pragma', 'no-cache');
         }
 
-        // CSP: allow CDN fonts/icons and inline scripts needed by Bootstrap/Blade.
-        // connect-src has to include the CDNs too — Bootstrap and Font Awesome ship
-        // sourcemap references that the browser fetches over XHR, and a bare
-        // 'self' blocks them (visible as CSP errors in the console).
+        // CSP: allow CDN fonts/icons, Bangla webfonts (fonts.maateen.me), Google Translate and inline scripts.
         if (app()->environment('production')) {
-            $cdn = 'cdnjs.cloudflare.com cdn.jsdelivr.net';
+            $cdn = 'cdnjs.cloudflare.com cdn.jsdelivr.net fonts.maateen.me';
+            $googleTranslate = 'translate.google.com translate.googleapis.com translate-pa.googleapis.com';
             $csp = implode('; ', [
                 "default-src 'self'",
-                "script-src 'self' 'unsafe-inline' {$cdn}",
-                "style-src 'self' 'unsafe-inline' fonts.googleapis.com {$cdn}",
-                "img-src 'self' data: blob: https:",
+                "script-src 'self' 'unsafe-inline' 'unsafe-eval' {$cdn} {$googleTranslate}",
+                "style-src 'self' 'unsafe-inline' fonts.googleapis.com {$cdn} {$googleTranslate}",
+                "img-src 'self' data: blob: https: {$googleTranslate}",
                 "font-src 'self' data: fonts.gstatic.com {$cdn}",
-                "connect-src 'self' fonts.googleapis.com fonts.gstatic.com {$cdn}",
+                "connect-src 'self' fonts.googleapis.com fonts.gstatic.com {$cdn} {$googleTranslate}",
+                "frame-src 'self' {$googleTranslate}",
                 "frame-ancestors 'self'",
                 "form-action 'self'",
                 "base-uri 'self'",

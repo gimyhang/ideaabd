@@ -57,6 +57,12 @@ Route::get('/sitemap/ping', [\App\Http\Controllers\SitemapController::class, 'pi
 Route::get('/feed', [\App\Http\Controllers\SitemapController::class, 'feed'])->name('feed');
 Route::get('/rss.xml', [\App\Http\Controllers\SitemapController::class, 'feed'])->name('rss');
 
+// --- Google Merchant Center Product Feed (Google Shopping) ---
+Route::get('/google-merchant-feed.xml', [\App\Http\Controllers\GoogleMerchantController::class, 'feedXml'])->name('google.merchant.xml');
+Route::get('/google-merchant-products.tsv', [\App\Http\Controllers\GoogleMerchantController::class, 'feedTsv'])->name('google.merchant.tsv');
+Route::get('/feeds/google-merchant.xml', [\App\Http\Controllers\GoogleMerchantController::class, 'feedXml'])->name('google.merchant.feed');
+Route::get('/merchant-products.xml', [\App\Http\Controllers\GoogleMerchantController::class, 'feedXml'])->name('google.merchant.alt');
+
 // --- Auth routes (login / logout) --------------------------------------------
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login')->middleware('guest');
 Route::post('/login', [LoginController::class, 'login'])->middleware('guest');
