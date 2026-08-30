@@ -270,6 +270,40 @@
         .cat-card:hover { transform: translateY(-4px); box-shadow: 0 8px 20px rgba(0,0,0,.1); }
         .author-card { transition: background .2s; }
         .author-card:hover { background: #ede8f5 !important; }
+
+        /* ══════════════════════════════════════════════════════════════════
+           PREVENT GOOGLE TRANSLATE BANNER FROM BREAKING TOPBAR / BODY
+           ══════════════════════════════════════════════════════════════════ */
+        .goog-te-banner-frame.skiptranslate,
+        .goog-te-banner-frame,
+        iframe.goog-te-banner-frame,
+        .goog-te-gadget-simple,
+        #goog-gt-tt,
+        .goog-te-balloon-frame {
+            display: none !important;
+            visibility: hidden !important;
+            height: 0 !important;
+            width: 0 !important;
+            opacity: 0 !important;
+        }
+        body {
+            top: 0px !important;
+            position: static !important;
+        }
+        .goog-te-gadget {
+            display: none !important;
+        }
+        body > .skiptranslate {
+            display: none !important;
+        }
+        .goog-tooltip {
+            display: none !important;
+        }
+        .goog-text-highlight {
+            background-color: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+        }
     </style>
     
     {{-- public/build is gitignored, so a git-only deploy may not have a manifest.
@@ -351,12 +385,28 @@
     <script>
         // Google Translate Element Initialization
         function googleTranslateElementInit() {
-            new google.translate.TranslateElement({
-                pageLanguage: 'bn',
-                includedLanguages: 'bn,en,ar,hi,ur,es,fr,de,zh-CN,ja,tr,ru,pt,it,ko,ms,fa',
-                autoDisplay: false
-            }, 'google_translate_element');
+            try {
+                new google.translate.TranslateElement({
+                    pageLanguage: 'bn',
+                    includedLanguages: 'bn,en,ar,hi,ur,es,fr,de,zh-CN,ja,tr,ru,pt,it,ko,ms,fa',
+                    autoDisplay: false,
+                    multilanguagePage: true
+                }, 'google_translate_element');
+            } catch(e) {}
         }
+
+        // Prevent Google Translate top frame from pushing down or duplicating topbar
+        (function() {
+            var resetBodyTop = function() {
+                if (document.body && document.body.style.top !== '0px') {
+                    document.body.style.top = '0px';
+                }
+                var banner = document.querySelector('.goog-te-banner-frame');
+                if (banner) banner.style.display = 'none';
+            };
+            window.addEventListener('load', resetBodyTop);
+            setInterval(resetBodyTop, 400);
+        })();
 
         // Global Site Language Switcher
         window.switchSiteLanguage = function(langCode, langName) {

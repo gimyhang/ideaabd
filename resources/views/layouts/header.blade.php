@@ -96,20 +96,20 @@
                             title="ভাষা পরিবর্তন / Switch Language"
                             style="background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.35); font-size: 11px; backdrop-filter: blur(4px);">
                         <i class="fas fa-globe text-warning" style="font-size: 11px;"></i>
-                        <span class="current-lang-display fw-bold text-white">English</span>
+                        <span class="current-lang-display fw-bold text-white">বাংলা</span>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end language-menu rounded-4 py-2 mt-1 shadow-2xl border-0" aria-labelledby="topLangDropdownBtn" style="min-width: 210px; max-height: 380px; overflow-y: auto; z-index: 1100;">
                         <li class="dropdown-header text-uppercase fw-bold text-muted px-3 py-1" style="font-size: 10px; letter-spacing: 0.5px;">
                             <i class="fas fa-language me-1 text-primary"></i> প্রধান ভাষা / Primary
                         </li>
                         <li>
-                            <a class="dropdown-item d-flex align-items-center justify-content-between py-2 px-3 lang-item-btn" href="javascript:void(0)" onclick="switchSiteLanguage('bn', 'বাংলা')">
+                            <a class="dropdown-item d-flex align-items-center justify-content-between py-2 px-3 lang-item-btn active" href="javascript:void(0)" onclick="switchSiteLanguage('bn', 'বাংলা')">
                                 <span><span class="me-2">🇧🇩</span><strong>বাংলা</strong> (Bangla)</span>
                                 <i class="fas fa-check text-success lang-check-icon" data-lang="bn"></i>
                             </a>
                         </li>
                         <li>
-                            <a class="dropdown-item d-flex align-items-center justify-content-between py-2 px-3 lang-item-btn active" href="javascript:void(0)" onclick="switchSiteLanguage('en', 'English')">
+                            <a class="dropdown-item d-flex align-items-center justify-content-between py-2 px-3 lang-item-btn" href="javascript:void(0)" onclick="switchSiteLanguage('en', 'English')">
                                 <span><span class="me-2">🇬🇧</span><strong>English</strong></span>
                                 <i class="fas fa-check text-success lang-check-icon d-none" data-lang="en"></i>
                             </a>
