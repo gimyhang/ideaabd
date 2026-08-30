@@ -805,7 +805,8 @@
             </div>
             @endif
 
-            <!-- Sidebar Google Ad Unit -->
+            <!-- Verified Google Video Shorts & Responsive Ad Units -->
+            @include('partials.google-ad', ['type' => 'video-shorts'])
             @include('partials.google-ad', ['type' => 'sidebar'])
         </aside>
     </div>

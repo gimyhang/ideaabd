@@ -1230,7 +1230,8 @@
                     </div>
                 </div>
 
-                {{-- Compact Verified Sidebar Google Ad Slot --}}
+                {{-- Verified Google Video Shorts & Responsive Ad Units --}}
+                @include('partials.google-ad', ['type' => 'video-shorts'])
                 @include('partials.google-ad', ['type' => 'sidebar'])
 
                 {{-- Trending / Popular Posts in Sidebar --}}

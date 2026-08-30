@@ -37,18 +37,19 @@ class SecurityHeaders
             $response->headers->set('Pragma', 'no-cache');
         }
 
-        // CSP: allow CDN fonts/icons, Bangla webfonts (fonts.maateen.me), Google Translate and inline scripts.
+        // CSP: allow CDN fonts/icons, Bangla webfonts (fonts.maateen.me), Google Translate, Google AdSense & Ads.
         if (app()->environment('production')) {
             $cdn = 'cdnjs.cloudflare.com cdn.jsdelivr.net fonts.maateen.me';
             $googleTranslate = 'translate.google.com translate.googleapis.com translate-pa.googleapis.com';
+            $googleAds = 'pagead2.googlesyndication.com googleads.g.doubleclick.net tpc.googlesyndication.com adservice.google.com ep2.adtrafficquality.google www.google.com www.googletagservices.com';
             $csp = implode('; ', [
                 "default-src 'self'",
-                "script-src 'self' 'unsafe-inline' 'unsafe-eval' {$cdn} {$googleTranslate}",
-                "style-src 'self' 'unsafe-inline' fonts.googleapis.com {$cdn} {$googleTranslate}",
-                "img-src 'self' data: blob: https: {$googleTranslate}",
+                "script-src 'self' 'unsafe-inline' 'unsafe-eval' {$cdn} {$googleTranslate} {$googleAds}",
+                "style-src 'self' 'unsafe-inline' fonts.googleapis.com {$cdn} {$googleTranslate} {$googleAds}",
+                "img-src 'self' data: blob: https: {$googleTranslate} {$googleAds}",
                 "font-src 'self' data: fonts.gstatic.com {$cdn}",
-                "connect-src 'self' fonts.googleapis.com fonts.gstatic.com {$cdn} {$googleTranslate}",
-                "frame-src 'self' {$googleTranslate}",
+                "connect-src 'self' fonts.googleapis.com fonts.gstatic.com {$cdn} {$googleTranslate} {$googleAds}",
+                "frame-src 'self' {$googleTranslate} {$googleAds}",
                 "frame-ancestors 'self'",
                 "form-action 'self'",
                 "base-uri 'self'",
