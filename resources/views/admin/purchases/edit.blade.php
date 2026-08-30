@@ -20,89 +20,154 @@
     @csrf
     @method('PUT')
 
+    @php
+        $isRawCategory = ($purchase->purchase_category ?? 'books') !== 'books';
+        $currentVendor = old('vendor_name', $purchase->vendor_name ?: $purchase->supplier_name);
+    @endphp
+
     <div class="row g-4">
         {{-- Top Card: Publisher & Invoice Information --}}
         <div class="col-12">
             <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
                 <div class="card-header bg-white py-3 px-4 border-bottom d-flex flex-wrap justify-content-between align-items-center gap-2">
                     <div class="d-flex align-items-center gap-2">
-                        <span class="badge bg-warning-subtle text-dark p-2 rounded-3">
-                            <i class="fas fa-file-pen fs-5"></i>
+                        <span class="badge {{ $isRawCategory ? 'bg-warning-subtle text-warning-emphasis' : 'bg-primary-subtle text-primary' }} p-2 rounded-3">
+                            <i class="{{ $isRawCategory ? 'fas fa-industry' : 'fas fa-file-pen' }} fs-5"></i>
                         </span>
                         <div>
-                            <h5 class="fw-bold mb-0 text-dark">Edit Invoice & Publisher Details</h5>
+                            <h5 class="fw-bold mb-0 text-dark">
+                                {{ $isRawCategory ? 'কাঁচামাল ও প্রেস ইনভয়েস তথ্য (Raw Materials & Invoice Details)' : 'Edit Invoice & Publisher Details' }}
+                            </h5>
                             <small class="text-muted">Invoice #{{ $purchase->purchase_no }} — Modify supplier info, quantities and pricing</small>
                         </div>
                     </div>
 
                     {{-- Publisher Mode Toggle --}}
-                    <div class="btn-group p-1 bg-light rounded-pill border" role="group">
-                        <button type="button" class="btn btn-sm rounded-pill fw-semibold px-3 active" id="btnExistingPub" onclick="setPublisherMode(false)">
-                            <i class="fas fa-list-check me-1"></i> Select from Directory
-                        </button>
-                        <button type="button" class="btn btn-sm rounded-pill fw-semibold px-3 text-muted" id="btnNewPub" onclick="setPublisherMode(true)">
-                            <i class="fas fa-plus-circle me-1"></i> + New Publisher
-                        </button>
-                    </div>
+                    @if(!$isRawCategory)
+                        <div class="btn-group p-1 bg-light rounded-pill border" role="group">
+                            <button type="button" class="btn btn-sm rounded-pill fw-semibold px-3 active" id="btnExistingPub" onclick="setPublisherMode(false)">
+                                <i class="fas fa-list-check me-1"></i> Select from Directory
+                            </button>
+                            <button type="button" class="btn btn-sm rounded-pill fw-semibold px-3 text-muted" id="btnNewPub" onclick="setPublisherMode(true)">
+                                <i class="fas fa-plus-circle me-1"></i> + New Publisher
+                            </button>
+                        </div>
+                    @endif
                 </div>
 
                 <div class="card-body p-4 bg-white">
                     <div class="row g-4 align-items-start">
-                        {{-- Left Side: Publisher Select / Input --}}
+                        {{-- Left Side: Publisher Select / Vendor Input --}}
                         <div class="col-12 col-lg-6 border-end-lg pe-lg-4">
-                            <div class="d-flex align-items-center justify-content-between mb-2">
-                                <label class="form-label fw-bold text-dark mb-0">
-                                    <i class="fas fa-store text-primary me-1"></i> Publisher / Supplier <span class="text-danger">*</span>
-                                </label>
-                            </div>
+                            @if($isRawCategory)
+                                <input type="hidden" name="purchase_category" value="{{ $purchase->purchase_category ?: 'raw_materials' }}">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-dark mb-1">
+                                        <i class="fas fa-store text-warning me-1"></i> সরবরাহকারী ভেন্ডর / প্রেসের নাম <span class="text-danger">*</span>
+                                    </label>
 
-                            {{-- Existing Publisher Select --}}
-                            <div id="existingPublisherWrapper">
-                                <div class="input-group">
-                                    <span class="input-group-text bg-light text-muted"><i class="fas fa-magnifying-glass"></i></span>
-                                    <select name="publisher_id" id="publisherSelect" class="form-select form-select-lg fs-6 @error('publisher_id') is-invalid @enderror">
-                                        <option value="">-- Select Publisher --</option>
-                                        @foreach($publishers as $pub)
-                                            <option value="{{ $pub->id }}" @selected(old('publisher_id', $purchase->publisher_id) == $pub->id)>
-                                                {{ $pub->name }} @if($pub->phone) (📞 {{ $pub->phone }}) @endif
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                <div class="form-text text-muted mt-1">
-                                    <i class="fas fa-info-circle me-1 text-primary"></i> Select current or updated publisher.
-                                </div>
-                            </div>
+                                    {{-- Existing Vendor Directory Selector --}}
+                                    @if(isset($existingVendors) && $existingVendors->isNotEmpty())
+                                        <div class="mb-2">
+                                            <select id="existingVendorSelect" class="form-select form-select-lg fs-6" onchange="onVendorSelected(this)">
+                                                <option value="">-- তালিকা থেকে ভেন্ডর / প্রেস নির্বাচন করুন --</option>
+                                                @foreach($existingVendors as $vnd)
+                                                    <option value="{{ $vnd->vendor_name }}" 
+                                                            data-phone="{{ $vnd->vendor_phone }}" 
+                                                            data-address="{{ $vnd->vendor_address }}"
+                                                            @selected($currentVendor == $vnd->vendor_name)>
+                                                        {{ $vnd->vendor_name }} @if($vnd->vendor_phone) (📞 {{ $vnd->vendor_phone }}) @endif
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                    @endif
 
-                            {{-- New Publisher Input Box --}}
-                            <div id="newPublisherWrapper" style="display: none;">
-                                <div class="p-3 bg-light rounded-3 border">
-                                    <div class="mb-2">
-                                        <label class="form-label small fw-semibold text-dark">New Publisher Name <span class="text-danger">*</span></label>
-                                        <div class="input-group">
-                                            <span class="input-group-text bg-white"><i class="fas fa-pen-nib text-primary"></i></span>
-                                            <input type="text" name="publisher_name" id="newPublisherName" class="form-control" placeholder="Type publisher name...">
-                                        </div>
-                                    </div>
-                                    <div class="row g-2">
-                                        <div class="col-md-6">
-                                            <label class="form-label small fw-semibold text-muted">Phone Number</label>
-                                            <div class="input-group input-group-sm">
-                                                <span class="input-group-text bg-white"><i class="fas fa-phone"></i></span>
-                                                <input type="text" name="publisher_phone" class="form-control" placeholder="01710...">
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label class="form-label small fw-semibold text-muted">Address</label>
-                                            <div class="input-group input-group-sm">
-                                                <span class="input-group-text bg-white"><i class="fas fa-location-dot"></i></span>
-                                                <input type="text" name="publisher_address" class="form-control" placeholder="Address...">
-                                            </div>
-                                        </div>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-white"><i class="fas fa-pen-nib text-warning"></i></span>
+                                        <input type="text" name="vendor_name" id="vendorNameInput" class="form-control form-control-lg fs-6 fw-bold" 
+                                               value="{{ $currentVendor }}" placeholder="e.g. Karnafuli Paper Mills / আল-মদিনা প্রেস..." required>
                                     </div>
                                 </div>
-                            </div>
-                            @error('publisher_id')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
+
+                                <div class="row g-2">
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold text-dark mb-1">
+                                            <i class="fas fa-phone-alt text-success me-1"></i> মোবাইল নম্বর:
+                                        </label>
+                                        <div class="input-group input-group-sm">
+                                            <span class="input-group-text bg-white"><i class="fas fa-phone"></i></span>
+                                            <input type="text" name="vendor_phone" id="vendorPhoneInput" class="form-control" 
+                                                   value="{{ old('vendor_phone', $purchase->vendor_phone ?: ($purchase->publisher?->phone ?? '')) }}" placeholder="e.g. 017XXXXXXXX">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold text-dark mb-1">
+                                            <i class="fas fa-location-dot text-danger me-1"></i> ঠিকানা:
+                                        </label>
+                                        <div class="input-group input-group-sm">
+                                            <span class="input-group-text bg-white"><i class="fas fa-location-dot"></i></span>
+                                            <input type="text" name="vendor_address" id="vendorAddressInput" class="form-control" 
+                                                   value="{{ old('vendor_address', $purchase->vendor_address ?: ($purchase->publisher?->address ?? '')) }}" placeholder="e.g. আরামবাগ / বাংলাবাজার">
+                                        </div>
+                                    </div>
+                                </div>
+                            @else
+                                <input type="hidden" name="purchase_category" value="books">
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <label class="form-label fw-bold text-dark mb-0">
+                                        <i class="fas fa-store text-primary me-1"></i> Publisher / Supplier <span class="text-danger">*</span>
+                                    </label>
+                                </div>
+
+                                {{-- Existing Publisher Select --}}
+                                <div id="existingPublisherWrapper">
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light text-muted"><i class="fas fa-magnifying-glass"></i></span>
+                                        <select name="publisher_id" id="publisherSelect" class="form-select form-select-lg fs-6 @error('publisher_id') is-invalid @enderror">
+                                            <option value="">-- Select Publisher --</option>
+                                            @foreach($publishers as $pub)
+                                                <option value="{{ $pub->id }}" @selected(old('publisher_id', $purchase->publisher_id) == $pub->id)>
+                                                    {{ $pub->name }} @if($pub->phone) (📞 {{ $pub->phone }}) @endif
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="form-text text-muted mt-1">
+                                        <i class="fas fa-info-circle me-1 text-primary"></i> Select current or updated publisher.
+                                    </div>
+                                </div>
+
+                                {{-- New Publisher Input Box --}}
+                                <div id="newPublisherWrapper" style="display: none;">
+                                    <div class="p-3 bg-light rounded-3 border">
+                                        <div class="mb-2">
+                                            <label class="form-label small fw-semibold text-dark">New Publisher Name <span class="text-danger">*</span></label>
+                                            <div class="input-group">
+                                                <span class="input-group-text bg-white"><i class="fas fa-pen-nib text-primary"></i></span>
+                                                <input type="text" name="publisher_name" id="newPublisherName" class="form-control" placeholder="Type publisher name...">
+                                            </div>
+                                        </div>
+                                        <div class="row g-2">
+                                            <div class="col-md-6">
+                                                <label class="form-label small fw-semibold text-muted">Phone Number</label>
+                                                <div class="input-group input-group-sm">
+                                                    <span class="input-group-text bg-white"><i class="fas fa-phone"></i></span>
+                                                    <input type="text" name="publisher_phone" class="form-control" placeholder="01710...">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label small fw-semibold text-muted">Address</label>
+                                                <div class="input-group input-group-sm">
+                                                    <span class="input-group-text bg-white"><i class="fas fa-location-dot"></i></span>
+                                                    <input type="text" name="publisher_address" class="form-control" placeholder="Address...">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                @error('publisher_id')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
+                            @endif
                         </div>
 
                         {{-- Right Side: Invoice No, Memo No, Purchase Date --}}
@@ -517,11 +582,18 @@
             {{-- Notes Card --}}
             <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white">
                 <div class="card-header bg-white py-3 px-4 border-bottom">
-                    <h6 class="fw-bold mb-0 text-dark"><i class="fas fa-note-sticky text-warning me-2"></i>Invoice Notes & Remarks (Optional)</h6>
+                    <h6 class="fw-bold mb-0 text-dark">
+                        <i class="fas fa-note-sticky text-warning me-2"></i>ইনভয়েস নোট ও বিশেষ বিবরণ (Invoice Notes & Remarks)
+                    </h6>
                 </div>
                 <div class="card-body p-4">
-                    <textarea name="notes" rows="4" class="form-control rounded-3" 
-                              placeholder="Any special terms, shipping notes, or purchase details...">{{ old('notes', $purchase->notes) }}</textarea>
+                    <div>
+                        <label class="form-label small fw-bold text-dark mb-1">
+                            <i class="fas fa-pen text-primary me-1"></i> ইনভয়েস মন্তব্য বা শর্তাবলী (Optional):
+                        </label>
+                        <textarea name="notes" rows="4" class="form-control rounded-3" 
+                                  placeholder="Any special terms, shipping notes, or purchase details...">{{ old('notes', $purchase->notes) }}</textarea>
+                    </div>
                 </div>
             </div>
 

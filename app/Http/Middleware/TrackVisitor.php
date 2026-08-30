@@ -23,37 +23,98 @@ class TrackVisitor
                 if (Schema::hasTable('visitor_logs')) {
                     $userAgent = (string) ($request->userAgent() ?? '');
                     
-                    // Device parsing
+                    // 1. Device Type & Exact Hardware/Brand Model parsing
                     $device = 'desktop';
-                    if (preg_match('/(tablet|ipad|playbook)|(android(?!.*(mobi|opera mini)))/i', $userAgent)) {
+                    $deviceName = 'Desktop PC';
+
+                    if (preg_match('/(ipad|playbook|tablet)/i', $userAgent)) {
                         $device = 'tablet';
-                    } elseif (preg_match('/(up.browser|up.link|mmp|symbian|smartphone|midp|wap|phone|android|iemobile|iphone|ipod)/i', $userAgent)) {
+                        $deviceName = 'Tablet';
+                        if (str_contains($userAgent, 'iPad')) {
+                            $deviceName = 'Apple iPad';
+                        }
+                    } elseif (preg_match('/(iphone|ipod|mobile|android|phone|smartphone|iemobile|opera mini|blackberry|up.browser)/i', $userAgent)) {
                         $device = 'mobile';
+                        $deviceName = 'Mobile Device';
+                        
+                        if (str_contains($userAgent, 'iPhone')) {
+                            $deviceName = 'Apple iPhone';
+                        } elseif (preg_match('/SM-[A-Z0-9]+/i', $userAgent) || str_contains($userAgent, 'Samsung') || str_contains($userAgent, 'Galaxy')) {
+                            $deviceName = 'Samsung Galaxy';
+                        } elseif (preg_match('/(Redmi|Mi [A-Z0-9]+|POCO|Xiaomi)/i', $userAgent, $m)) {
+                            $deviceName = 'Xiaomi ' . ($m[1] ?? 'Redmi');
+                        } elseif (preg_match('/(CPH\d+|OPPO)/i', $userAgent)) {
+                            $deviceName = 'Oppo Device';
+                        } elseif (preg_match('/(V\d+|vivo)/i', $userAgent)) {
+                            $deviceName = 'Vivo Smartphone';
+                        } elseif (str_contains($userAgent, 'Realme') || preg_match('/RMX\d+/i', $userAgent)) {
+                            $deviceName = 'Realme Smartphone';
+                        } elseif (str_contains($userAgent, 'OnePlus') || preg_match('/ONEPLUS/i', $userAgent)) {
+                            $deviceName = 'OnePlus';
+                        } elseif (str_contains($userAgent, 'Pixel')) {
+                            $deviceName = 'Google Pixel';
+                        } elseif (str_contains($userAgent, 'Huawei') || str_contains($userAgent, 'HONOR')) {
+                            $deviceName = 'Huawei / Honor';
+                        } elseif (str_contains($userAgent, 'Android')) {
+                            $deviceName = 'Android Device';
+                        }
+                    } else {
+                        if (str_contains($userAgent, 'Macintosh') || str_contains($userAgent, 'Mac OS')) {
+                            $deviceName = 'Apple Mac';
+                        } elseif (str_contains($userAgent, 'Windows')) {
+                            $deviceName = 'Windows PC';
+                        } elseif (str_contains($userAgent, 'Linux')) {
+                            $deviceName = 'Linux PC';
+                        } elseif (str_contains($userAgent, 'CrOS')) {
+                            $deviceName = 'Chromebook';
+                        }
                     }
 
-                    // Browser parsing
+                    // 2. Browser parsing
                     $browser = 'Chrome';
-                    if (str_contains($userAgent, 'Edg/') || str_contains($userAgent, 'Edge/')) $browser = 'Edge';
+                    if (str_contains($userAgent, 'Edg/') || str_contains($userAgent, 'Edge/')) $browser = 'Microsoft Edge';
                     elseif (str_contains($userAgent, 'OPR/') || str_contains($userAgent, 'Opera')) $browser = 'Opera';
-                    elseif (str_contains($userAgent, 'Firefox/')) $browser = 'Firefox';
-                    elseif (str_contains($userAgent, 'Safari/') && !str_contains($userAgent, 'Chrome/')) $browser = 'Safari';
-                    elseif (str_contains($userAgent, 'Chrome/')) $browser = 'Chrome';
+                    elseif (str_contains($userAgent, 'Firefox/')) $browser = 'Mozilla Firefox';
+                    elseif (str_contains($userAgent, 'SamsungBrowser/')) $browser = 'Samsung Internet';
+                    elseif (str_contains($userAgent, 'UCBrowser/')) $browser = 'UC Browser';
+                    elseif (str_contains($userAgent, 'Safari/') && !str_contains($userAgent, 'Chrome/')) $browser = 'Apple Safari';
+                    elseif (str_contains($userAgent, 'Chrome/')) $browser = 'Google Chrome';
                     elseif (str_contains($userAgent, 'MSIE') || str_contains($userAgent, 'Trident/')) $browser = 'Internet Explorer';
-                    else $browser = 'Browser';
+                    else $browser = 'Web Browser';
 
-                    // OS parsing
+                    // 3. Operating System parsing
                     $os = 'Windows';
-                    if (str_contains($userAgent, 'Windows')) $os = 'Windows';
-                    elseif (str_contains($userAgent, 'Android')) $os = 'Android';
-                    elseif (str_contains($userAgent, 'iPhone') || str_contains($userAgent, 'iPad') || str_contains($userAgent, 'iPod')) $os = 'iOS';
+                    if (str_contains($userAgent, 'Windows NT 10.0')) $os = 'Windows 10/11';
+                    elseif (str_contains($userAgent, 'Windows NT 6.3')) $os = 'Windows 8.1';
+                    elseif (str_contains($userAgent, 'Windows NT 6.1')) $os = 'Windows 7';
+                    elseif (str_contains($userAgent, 'Windows')) $os = 'Windows';
+                    elseif (str_contains($userAgent, 'Android')) {
+                        if (preg_match('/Android (\d+(\.\d+)?)/i', $userAgent, $matches)) {
+                            $os = 'Android ' . $matches[1];
+                        } else {
+                            $os = 'Android';
+                        }
+                    }
+                    elseif (str_contains($userAgent, 'iPhone') || str_contains($userAgent, 'iPad') || str_contains($userAgent, 'iPod')) {
+                        if (preg_match('/OS (\d+[_.]\d+)/i', $userAgent, $matches)) {
+                            $os = 'iOS ' . str_replace('_', '.', $matches[1]);
+                        } else {
+                            $os = 'iOS';
+                        }
+                    }
                     elseif (str_contains($userAgent, 'Macintosh') || str_contains($userAgent, 'Mac OS')) $os = 'macOS';
                     elseif (str_contains($userAgent, 'Linux')) $os = 'Linux';
-                    else $os = 'Other';
+                    elseif (str_contains($userAgent, 'CrOS')) $os = 'ChromeOS';
+                    else $os = 'Other OS';
 
-                    // Country & Geo Location parsing
+                    // 4. Country & Geo Location parsing
                     $countryCode = strtoupper((string) ($request->header('cf-ipcountry') 
                         ?: ($request->header('x-country-code') 
                         ?: ($request->header('cloudfront-viewer-country') ?: ''))));
+
+                    $city = $request->header('cf-ipcity') 
+                        ?: ($request->header('x-city') 
+                        ?: ($request->header('x-real-city') ?: null));
 
                     $ip = (string) $request->ip();
 
@@ -82,10 +143,13 @@ class TrackVisitor
                         'OM' => 'Oman',
                         'SE' => 'Sweden',
                         'NL' => 'Netherlands',
+                        'PK' => 'Pakistan',
+                        'TR' => 'Turkey',
+                        'TH' => 'Thailand',
                     ];
                     $countryName = $countryNames[$countryCode] ?? ($countryCode ?: 'Bangladesh');
 
-                    // Traffic Acquisition Channel & Referer parsing
+                    // 5. Traffic Acquisition Channel & Referer parsing
                     $rawReferer = (string) $request->header('referer');
                     $trafficSource = 'Direct / Organic';
 
@@ -96,14 +160,15 @@ class TrackVisitor
                         elseif (str_contains($refHost, 'yahoo.')) $trafficSource = 'Yahoo Search';
                         elseif (str_contains($refHost, 'duckduckgo.')) $trafficSource = 'DuckDuckGo';
                         elseif (str_contains($refHost, 'yandex.')) $trafficSource = 'Yandex Search';
-                        elseif (str_contains($refHost, 'facebook.') || str_contains($refHost, 'fb.')) $trafficSource = 'Facebook';
+                        elseif (str_contains($refHost, 'facebook.') || str_contains($refHost, 'fb.') || str_contains($refHost, 'fb.me') || str_contains($refHost, 'm.me')) $trafficSource = 'Facebook';
                         elseif (str_contains($refHost, 'instagram.')) $trafficSource = 'Instagram';
                         elseif (str_contains($refHost, 'whatsapp.') || str_contains($refHost, 'wa.me')) $trafficSource = 'WhatsApp';
-                        elseif (str_contains($refHost, 'youtube.')) $trafficSource = 'YouTube';
+                        elseif (str_contains($refHost, 'youtube.') || str_contains($refHost, 'youtu.be')) $trafficSource = 'YouTube';
                         elseif (str_contains($refHost, 'twitter.') || str_contains($refHost, 't.co') || str_contains($refHost, 'x.com')) $trafficSource = 'Twitter / X';
                         elseif (str_contains($refHost, 'linkedin.')) $trafficSource = 'LinkedIn';
                         elseif (str_contains($refHost, 'pinterest.')) $trafficSource = 'Pinterest';
                         elseif (str_contains($refHost, 'tiktok.')) $trafficSource = 'TikTok';
+                        elseif (str_contains($refHost, 'telegram.') || str_contains($refHost, 't.me')) $trafficSource = 'Telegram';
                         elseif (!empty($refHost) && !str_contains($refHost, 'ideaabd.com') && !str_contains($refHost, '127.0.0.1') && !str_contains($refHost, 'localhost')) {
                             $trafficSource = 'Referral (' . $refHost . ')';
                         }
@@ -112,7 +177,11 @@ class TrackVisitor
                     $utmSource = $request->string('utm_source')->trim()->value() 
                         ?: ($request->string('ref')->trim()->value() ?: null);
 
-                    // Descriptive Human Page Title
+                    if ($utmSource) {
+                        $trafficSource = 'Campaign (' . $utmSource . ')';
+                    }
+
+                    // 6. Descriptive Human Page Title
                     $path = trim($request->path(), '/');
                     $pageTitle = 'Homepage';
                     if ($path === '' || $path === '/') {
@@ -152,12 +221,14 @@ class TrackVisitor
                         'url'            => substr($request->fullUrl(), 0, 1000),
                         'page_title'     => substr($pageTitle, 0, 255),
                         'route_name'     => $request->route()?->getName(),
+                        'user_agent'     => substr($userAgent, 0, 1000) ?: null,
                         'device'         => $device,
+                        'device_name'    => $deviceName,
                         'browser'        => $browser,
                         'os'             => $os,
                         'country'        => $countryName,
                         'country_code'   => $countryCode,
-                        'city'           => null,
+                        'city'           => $city ? substr($city, 0, 100) : null,
                         'referer'        => substr($rawReferer, 0, 1000) ?: null,
                         'traffic_source' => $trafficSource,
                         'utm_source'     => $utmSource ? substr($utmSource, 0, 100) : null,

@@ -383,8 +383,10 @@ class IdeaAccountingController extends Controller
     public function createInvoice(Request $request): View
     {
         $books = Book::where('is_active', true)
-            ->select('id', 'title', 'subtitle', 'author_name', 'cover_type', 'format', 'price', 'discount_price', 'hardcover_price', 'hardcover_discount_price', 'stock_quantity')
+            ->with(['publisher:id,name', 'category:id,name'])
+            ->select('id', 'title', 'subtitle', 'author_name', 'cover_type', 'format', 'price', 'discount_price', 'hardcover_price', 'hardcover_discount_price', 'stock_quantity', 'isbn', 'publisher_id', 'category_id')
             ->orderBy('title')
+            ->limit(1000)
             ->get();
         
         $selectedType = $request->query('type', 'invoice');
@@ -654,8 +656,10 @@ class IdeaAccountingController extends Controller
     public function editInvoice(IdeaInvoice $invoice): View
     {
         $books = Book::where('is_active', true)
-            ->select('id', 'title', 'subtitle', 'author_name', 'cover_type', 'format', 'price', 'discount_price', 'hardcover_price', 'hardcover_discount_price', 'stock_quantity')
+            ->with(['publisher:id,name', 'category:id,name'])
+            ->select('id', 'title', 'subtitle', 'author_name', 'cover_type', 'format', 'price', 'discount_price', 'hardcover_price', 'hardcover_discount_price', 'stock_quantity', 'isbn', 'publisher_id', 'category_id')
             ->orderBy('title')
+            ->limit(1000)
             ->get();
         return view('admin.accounting.invoices.edit', compact('invoice', 'books'));
     }

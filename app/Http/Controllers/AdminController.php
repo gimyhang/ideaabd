@@ -2181,11 +2181,19 @@ class AdminController extends Controller
             ->limit(8)
             ->get();
 
-        // Device Breakdown
+        // Device Type Breakdown
         $devices = \App\Models\VisitorLog::select('device', DB::raw('count(*) as total'))
             ->groupBy('device')
             ->pluck('total', 'device')
             ->toArray();
+
+        // Top Device Models / Hardware Brands (e.g. iPhone, Samsung, Xiaomi, Windows PC, Mac)
+        $deviceModels = \App\Models\VisitorLog::whereNotNull('device_name')
+            ->select('device_name', DB::raw('count(*) as total'))
+            ->groupBy('device_name')
+            ->orderByDesc('total')
+            ->limit(8)
+            ->get();
 
         // Browser Breakdown
         $browsers = \App\Models\VisitorLog::select('browser', DB::raw('count(*) as total'))
@@ -2227,6 +2235,9 @@ class AdminController extends Controller
                     ->orWhere('ip_address', 'like', $term)
                     ->orWhere('page_title', 'like', $term)
                     ->orWhere('country', 'like', $term)
+                    ->orWhere('city', 'like', $term)
+                    ->orWhere('device_name', 'like', $term)
+                    ->orWhere('traffic_source', 'like', $term)
                     ->orWhere('browser', 'like', $term));
             })
             ->latest('visited_at')
@@ -2234,30 +2245,33 @@ class AdminController extends Controller
             ->withQueryString();
 
         return view('admin.analytics', [
-            'stats'      => $stats,
-            'trendDays'  => $trendDays,
-            'countries'  => $countries,
-            'channels'   => $channels,
-            'devices'    => $devices,
-            'browsers'   => $browsers,
-            'osList'     => $osList,
-            'topPages'   => $topPages,
-            'topBooks'   => $topBooks,
-            'logs'       => $logs,
+            'stats'        => $stats,
+            'trendDays'    => $trendDays,
+            'countries'    => $countries,
+            'channels'     => $channels,
+            'devices'      => $devices,
+            'deviceModels' => $deviceModels,
+            'browsers'     => $browsers,
+            'osList'       => $osList,
+            'topPages'     => $topPages,
+            'topBooks'     => $topBooks,
+            'logs'         => $logs,
         ]);
     }
 
     // ─── Customer Directory & Bulk Broadcast ────────────────────────────
 
-    public function customers(Request $request): View
+    public function customers(Request $request): View|\Symfony\Component\HttpFoundation\StreamedResponse
     {
         $search = $request->string('search')->trim()->value();
         $district = $request->string('district')->trim()->value();
+        $filter = $request->string('filter', 'all')->trim()->value();
 
         $query = User::query()
             ->whereIn('role', ['buyer', 'customer'])
             ->withCount('orders')
             ->withSum('orders as total_spent', 'total_amount')
+            ->with(['orders' => fn($q) => $q->latest()->limit(5)->select('id', 'user_id', 'order_number', 'total_amount', 'status', 'payment_status', 'created_at')])
             ->when($search, function ($q, $term) {
                 $like = '%' . $term . '%';
                 $q->where(function ($w) use ($like) {
@@ -2273,7 +2287,36 @@ class AdminController extends Controller
                     $q->whereHas('orders', fn ($oq) => $oq->where('district', $d));
                 }
             })
+            ->when($filter === 'with_orders', fn($q) => $q->has('orders'))
+            ->when($filter === 'zero_orders', fn($q) => $q->doesntHave('orders'))
+            ->when($filter === 'high_value', fn($q) => $q->has('orders')->having('total_spent', '>=', 2000))
             ->latest();
+
+        // CSV Export Support
+        if ($request->query('export') === 'csv') {
+            $exportCustomers = (clone $query)->get();
+            return response()->streamDownload(function() use ($exportCustomers) {
+                $handle = fopen('php://output', 'w');
+                // UTF-8 BOM
+                fputs($handle, "\xEF\xBB\xBF");
+                fputcsv($handle, ['ID', 'Customer Name', 'Phone', 'Email', 'District', 'Total Orders', 'Total Spent (BDT)', 'Date Joined']);
+                foreach ($exportCustomers as $c) {
+                    fputcsv($handle, [
+                        $c->id,
+                        $c->name,
+                        $c->phone ?: 'N/A',
+                        $c->email ?: 'N/A',
+                        $c->district ?: 'N/A',
+                        $c->orders_count,
+                        number_format($c->total_spent ?? 0, 2, '.', ''),
+                        $c->created_at ? $c->created_at->format('Y-m-d H:i') : '',
+                    ]);
+                }
+                fclose($handle);
+            }, 'idea-customers-' . date('Ymd-His') . '.csv', [
+                'Content-Type' => 'text/csv; charset=UTF-8',
+            ]);
+        }
 
         $customers = $query->paginate(20)->withQueryString();
 
@@ -2282,6 +2325,7 @@ class AdminController extends Controller
         $summary = [
             'total_customers' => User::whereIn('role', ['buyer', 'customer'])->count(),
             'active_buyers'   => User::whereIn('role', ['buyer', 'customer'])->has('orders')->count(),
+            'zero_orders'     => User::whereIn('role', ['buyer', 'customer'])->doesntHave('orders')->count(),
             'total_spent_sum' => \App\Models\Order::sum('total_amount'),
             'loyalty_points'  => $hasLoyaltyPoints ? User::whereIn('role', ['buyer', 'customer'])->sum('loyalty_points') : 0,
         ];
@@ -2289,6 +2333,7 @@ class AdminController extends Controller
         return view('admin.customers.index', [
             'customers' => $customers,
             'summary'   => $summary,
+            'filter'    => $filter,
         ]);
     }
 
@@ -2296,13 +2341,15 @@ class AdminController extends Controller
     {
         $validated = $request->validate([
             'target_group' => 'required|string|in:all,with_orders,high_value',
-            'channel'      => 'required|string|in:sms,notice,email',
+            'channel'      => 'required|string|in:sms,notice,email,whatsapp',
             'title'        => 'nullable|string|max:255',
             'message_body' => 'required|string|max:1000',
         ]);
 
         $query = User::whereIn('role', ['buyer', 'customer']);
         if ($validated['target_group'] === 'with_orders') {
+            $query->has('orders');
+        } elseif ($validated['target_group'] === 'high_value') {
             $query->has('orders');
         }
 
@@ -2326,6 +2373,6 @@ class AdminController extends Controller
 
         $this->accessService->log('broadcast_message', "{$recipientCount} জন গ্রাহককে সফলভাবে মেসেজ/নোটিফিকেশন পাঠানো হয়েছে ({$validated['channel']})");
 
-        return back()->with('success', "{$recipientCount} জন গ্রাহকের কাছে সফলভাবে ব্রডকাস্ট মেসেজ পাঠানো হয়েছে!");
+        return back()->with('success', "{$recipientCount} জন গ্রাহকের কাছে সফলভাবে ব্রডকাস্ট মেসেজ প্রস্তুত ও পাঠানো হয়েছে!");
     }
 }

@@ -341,13 +341,14 @@
                                                       placeholder="Search book title, author, ISBN..." required 
                                                       oninput="handleLiveBookSearch(this, 0)" 
                                                       onfocus="handleLiveBookSearch(this, 0)" 
+                                                      onkeydown="handleBookSearchKeydown(event, 0)"
                                                       autocomplete="off" style="font-size: 13.5px; min-height: 52px; line-height: 1.4; resize: vertical;"></textarea>
                                             <button type="button" class="btn btn-outline-primary px-2.5 d-flex align-items-center justify-content-center" onclick="openQuickAddBookModal(0)" title="Add new book to Bookshop" style="min-height: 52px;">
                                                 <i class="fas fa-plus"></i>
                                             </button>
                                         </div>
                                         <input type="hidden" name="items[0][book_id]" class="item-book-id" value="">
-                                        <div class="book-search-dropdown shadow-lg rounded-3 border bg-white d-none" style="position: absolute; top: 100%; left: 0; right: 0; z-index: 1050; max-height: 280px; overflow-y: auto;"></div>
+                                        <div class="book-search-dropdown shadow-lg rounded-3 border bg-white d-none" style="position: absolute; top: calc(100% + 4px); left: 0; min-width: 420px; width: 100%; z-index: 1090; max-height: 320px; overflow-y: auto;"></div>
                                     </td>
                                     <td>
                                         <input type="text" name="items[0][author_name]" class="form-control item-author" 
@@ -623,9 +624,11 @@
 
 <script>
     let rowCounter = 1;
+    let activeHighlightIndex = -1;
+    let liveSearchTimer = null;
 
-    // Full catalog of bookshop books with exact paperback & hardcover pricing
-    const booksCatalog = {
+    // Full catalog list of bookshop books with exact paperback & hardcover pricing
+    const preloadedBooksList = [
         @foreach($books as $b)
             @php
                 $pbReg = (float)($b->price ?: ($b->hardcover_price ?: 0));
@@ -641,12 +644,20 @@
                 $hasHardcover = ($b->hardcover_price > 0 || in_array($b->cover_type, ['hardcover', 'both']));
                 $hasPaperback = ($b->price > 0 || in_array($b->cover_type, ['paperback', 'both']) || !$hasHardcover);
             @endphp
-            "{{ $b->id }}": {
+            {
                 id: {{ $b->id }},
                 title: @json($b->title),
+                subtitle: @json($b->subtitle ?? ''),
                 author: @json($b->author_name ?? ''),
+                author_name: @json($b->author_name ?? ''),
+                isbn: @json($b->isbn ?? ''),
+                publisher_name: @json($b->publisher->name ?? ''),
+                stock_quantity: {{ (int)($b->stock_quantity ?? 0) }},
                 hasHardcover: @json($hasHardcover),
                 hasPaperback: @json($hasPaperback),
+                regular_price: {{ $pbReg ?: $hcReg }},
+                selling_price: {{ $pbSell ?: $hcSell }},
+                discount_pct: {{ $pbDiscPct ?: $hcDiscPct }},
                 paperback: {
                     regularPrice: {{ $pbReg }},
                     sellingPrice: {{ $pbSell }},
@@ -659,7 +670,12 @@
                 }
             },
         @endforeach
-    };
+    ];
+
+    const booksCatalog = {};
+    preloadedBooksList.forEach(b => {
+        booksCatalog[b.id] = b;
+    });
 
     function updateDocType() {
         const typeEl = document.querySelector('input[name="type"]:checked');
@@ -780,7 +796,6 @@
     }
 
     let currentModalRowIndex = 0;
-    let liveSearchTimer = null;
 
     function escapeHtml(str) {
         if (!str) return '';
@@ -792,6 +807,16 @@
             .replace(/'/g, '&#039;');
     }
 
+    function highlightMatch(text, query) {
+        if (!text) return '';
+        if (!query || query.trim() === '') return escapeHtml(text);
+        const escaped = escapeHtml(text);
+        const qEscaped = escapeHtml(query.trim());
+        const regex = new RegExp(`(${qEscaped.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+        return escaped.replace(regex, '<mark class="bg-warning-subtle text-dark fw-bold px-0.5 rounded">$1</mark>');
+    }
+
+    // Modern Live Book Autocomplete Search
     function handleLiveBookSearch(input, rowIndex) {
         const query = input.value.trim();
         const row = document.querySelector(`tr[data-row="${rowIndex}"]`);
@@ -800,27 +825,35 @@
         const dropdown = row.querySelector('.book-search-dropdown');
         if (!dropdown) return;
 
-        if (!query) {
-            dropdown.classList.add('d-none');
-            dropdown.innerHTML = '';
+        activeHighlightIndex = -1;
+
+        // If field is empty on focus/click, show top 10 catalog books immediately
+        if (!query || query.length < 1) {
+            const topBooks = preloadedBooksList.slice(0, 10);
+            if (topBooks.length > 0) {
+                renderSearchDropdown(dropdown, '', topBooks, rowIndex, false, true);
+            } else {
+                dropdown.classList.add('d-none');
+            }
             return;
         }
 
-        // 1. Immediate local search in booksCatalog (< 5ms)
+        // 1. Instant 0ms local search in preloadedBooksList
         const qLower = query.toLowerCase();
-        let localMatches = [];
-        for (const [id, book] of Object.entries(booksCatalog)) {
-            const titleMatch = (book.title || '').toLowerCase().includes(qLower);
-            const authorMatch = (book.author || '').toLowerCase().includes(qLower);
-            if (titleMatch || authorMatch) {
-                localMatches.push(book);
-                if (localMatches.length >= 10) break;
-            }
+        const localMatches = preloadedBooksList.filter(b => {
+            const t = (b.title || '').toLowerCase();
+            const sub = (b.subtitle || '').toLowerCase();
+            const a = (b.author || b.author_name || '').toLowerCase();
+            const isbn = (b.isbn || '').toLowerCase();
+            const pub = (b.publisher_name || '').toLowerCase();
+            return t.includes(qLower) || sub.includes(qLower) || a.includes(qLower) || isbn.includes(qLower) || pub.includes(qLower);
+        }).slice(0, 15);
+
+        if (localMatches.length > 0) {
+            renderSearchDropdown(dropdown, query, localMatches, rowIndex, false, false);
         }
 
-        renderSearchDropdown(dropdown, query, localMatches, rowIndex, false);
-
-        // 2. Debounced AJAX search for wider catalog
+        // 2. Debounced AJAX search for full database
         clearTimeout(liveSearchTimer);
         liveSearchTimer = setTimeout(() => {
             fetch(`{{ route('admin.accounting.invoices.search-books') }}?q=${encodeURIComponent(query)}`, {
@@ -832,15 +865,20 @@
             .then(res => res.json())
             .then(data => {
                 if (input.value.trim() !== query) return;
-                if (Array.isArray(data)) {
+                if (Array.isArray(data) && data.length > 0) {
                     data.forEach(b => {
                         if (!booksCatalog[b.id]) {
                             booksCatalog[b.id] = {
                                 id: b.id,
                                 title: b.title,
                                 author: b.author_name || '',
+                                author_name: b.author_name || '',
                                 hasHardcover: b.has_hardcover,
                                 hasPaperback: b.has_paperback,
+                                regular_price: b.regular_price,
+                                selling_price: b.selling_price,
+                                discount_pct: b.discount_pct,
+                                stock_quantity: b.stock_quantity,
                                 paperback: {
                                     regularPrice: b.paperback_price,
                                     sellingPrice: b.paperback_selling_price,
@@ -854,55 +892,68 @@
                             };
                         }
                     });
-                    renderSearchDropdown(dropdown, query, data, rowIndex, true);
+                    renderSearchDropdown(dropdown, query, data, rowIndex, true, false);
+                } else if (localMatches.length === 0) {
+                    renderSearchDropdown(dropdown, query, [], rowIndex, true, false);
                 }
             })
             .catch(err => console.error('Search error:', err));
-        }, 250);
+        }, 120);
     }
 
-    function renderSearchDropdown(dropdown, query, results, rowIndex, isRemote) {
+    function renderSearchDropdown(dropdown, query, results, rowIndex, isRemote, isDefaultList = false) {
         if (!results || results.length === 0) {
             dropdown.innerHTML = `
                 <div class="p-3 text-center">
                     <div class="text-muted small mb-2"><i class="fas fa-search me-1"></i> "${escapeHtml(query)}" বইটি তালিকায় পাওয়া যায়নি</div>
-                    <button type="button" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold" onclick="openQuickAddBookModal(${rowIndex}, '${escapeHtml(query)}')">
-                        <i class="fas fa-plus-circle me-1"></i> + Add to Bookshop
+                    <button type="button" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold shadow-2xs" onclick="openQuickAddBookModal(${rowIndex}, '${escapeHtml(query)}')">
+                        <i class="fas fa-plus-circle me-1"></i> + Add "${escapeHtml(query)}" to Bookshop
                     </button>
-                    <div class="text-muted small mt-1" style="font-size: 11px;">বুকশপে নতুন বই হিসেবে যুক্ত হবে</div>
+                    <div class="text-muted small mt-1" style="font-size: 11px;">কাস্টম আইটেম হিসেবে সরাসরি ইনভয়েসে ব্যবহার করা যাবে</div>
                 </div>
             `;
             dropdown.classList.remove('d-none');
             return;
         }
 
-        let html = `<div class="list-group list-group-flush p-1">`;
-        results.slice(0, 10).forEach(book => {
+        let html = `
+            <div class="px-3 py-1.5 bg-light border-bottom small fw-bold text-muted d-flex justify-content-between align-items-center">
+                <span><i class="fas fa-book-open text-primary me-1.5"></i> ${isDefaultList ? 'ক্যাটালগের বইসমূহ' : 'পাওয়া গেছে'} (${results.length}টি):</span>
+                <span class="badge bg-white text-muted border font-monospace" style="font-size: 10px;">↑ ↓ Enter</span>
+            </div>
+            <div class="list-group list-group-flush p-1">
+        `;
+
+        results.slice(0, 12).forEach((book, itemIdx) => {
             const title = book.title;
             const author = book.author || book.author_name || '';
+            const pubName = book.publisher?.name || book.publisher_name || '';
             const regPrice = book.paperback ? book.paperback.regularPrice : (book.regular_price || 0);
             const sellPrice = book.paperback ? book.paperback.sellingPrice : (book.selling_price || regPrice);
             const discPct = book.paperback ? book.paperback.discountPercent : (book.discount_pct || 0);
-            const stock = book.stock_quantity !== undefined ? book.stock_quantity : null;
+            const stock = book.stock_quantity !== undefined ? parseInt(book.stock_quantity) : null;
+            const titleHtml = highlightMatch(title, query);
 
             html += `
-                <a href="javascript:void(0)" class="list-group-item list-group-item-action p-2 rounded-2 border-0 d-flex align-items-center justify-content-between gap-2" 
+                <a href="javascript:void(0)" class="list-group-item list-group-item-action p-2.5 px-3 rounded-2 border-0 d-flex align-items-center justify-content-between gap-2 book-suggestion-item text-decoration-none" 
+                   data-item-index="${itemIdx}"
                    onclick="selectBookForRow(${book.id}, ${rowIndex})">
                     <div class="d-flex align-items-center gap-2 text-truncate">
-                        <div class="bg-primary-subtle text-primary rounded p-2 text-center" style="width: 32px; height: 32px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
+                        <div class="bg-primary-subtle text-primary rounded p-2 text-center" style="width: 34px; height: 34px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
                             <i class="fa-solid fa-book"></i>
                         </div>
                         <div class="text-truncate">
-                            <div class="fw-bold text-dark small text-truncate">${escapeHtml(title)}</div>
-                            <div class="text-muted text-truncate" style="font-size: 11.5px;">
-                                ${author ? `<i class="fa-solid fa-pen-nib me-1"></i>${escapeHtml(author)}` : ''}
-                                ${stock !== null ? ` <span class="badge bg-light text-secondary border ms-1">Stock: ${stock}</span>` : ''}
+                            <div class="fw-bold text-dark fs-6 text-truncate">${titleHtml}</div>
+                            <div class="text-muted text-truncate mt-0.5" style="font-size: 11.5px;">
+                                ${author ? `<i class="fa-solid fa-pen-nib me-1 text-primary"></i>${escapeHtml(author)}` : ''}
+                                ${pubName ? `· <span class="badge bg-light text-secondary border px-1.5 py-0.5 rounded-pill">${escapeHtml(pubName)}</span>` : ''}
+                                ${stock !== null ? `<span class="badge ${stock > 0 ? 'bg-success-subtle text-success border-success-subtle' : 'bg-danger-subtle text-danger border-danger-subtle'} border px-1.5 py-0.5 rounded-pill ms-1">Stock: ${stock}</span>` : ''}
                             </div>
                         </div>
                     </div>
-                    <div class="text-end text-nowrap" style="flex-shrink: 0;">
-                        <div class="fw-bold text-primary font-monospace small">৳${sellPrice}</div>
-                        ${regPrice > sellPrice ? `<del class="text-muted small" style="font-size: 11px;">৳${regPrice}</del> <span class="badge bg-success-subtle text-success py-0 px-1" style="font-size: 10px;">${discPct}%</span>` : ''}
+                    <div class="text-end text-nowrap ps-2" style="flex-shrink: 0;">
+                        <div class="fw-bold text-primary font-monospace fs-6">৳${parseFloat(sellPrice).toFixed(2)}</div>
+                        ${regPrice > sellPrice ? `<del class="text-muted small" style="font-size: 11px;">৳${parseFloat(regPrice).toFixed(2)}</del> <span class="badge bg-success-subtle text-success py-0 px-1 rounded-pill" style="font-size: 10px;">${discPct}% off</span>` : ''}
                     </div>
                 </a>
             `;
@@ -911,13 +962,55 @@
         html += `
             <div class="p-2 border-top bg-light text-center">
                 <button type="button" class="btn btn-sm btn-outline-primary rounded-pill w-100 py-1 small fw-bold" onclick="openQuickAddBookModal(${rowIndex}, '${escapeHtml(query)}')">
-                    <i class="fas fa-plus-circle me-1"></i> Not in list? Add "${escapeHtml(query)}" to Bookshop
+                    <i class="fas fa-plus-circle me-1"></i> তালিকাভুক্ত নয়? "${escapeHtml(query || 'নতুন বই')}" বুকশপে যুক্ত করুন
                 </button>
             </div>
         </div>`;
 
         dropdown.innerHTML = html;
         dropdown.classList.remove('d-none');
+    }
+
+    // Keyboard navigation in search list (Arrow Up, Arrow Down, Enter, Escape)
+    function handleBookSearchKeydown(e, rowIndex) {
+        const row = document.querySelector(`tr[data-row="${rowIndex}"]`);
+        if (!row) return;
+
+        const dropdown = row.querySelector('.book-search-dropdown');
+        if (!dropdown || dropdown.classList.contains('d-none')) return;
+
+        const items = dropdown.querySelectorAll('.book-suggestion-item');
+        if (!items || items.length === 0) return;
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            activeHighlightIndex = (activeHighlightIndex + 1) % items.length;
+            updateHighlightedSuggestion(items);
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            activeHighlightIndex = (activeHighlightIndex - 1 + items.length) % items.length;
+            updateHighlightedSuggestion(items);
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            if (activeHighlightIndex >= 0 && activeHighlightIndex < items.length) {
+                items[activeHighlightIndex].click();
+            } else if (items.length > 0) {
+                items[0].click();
+            }
+        } else if (e.key === 'Escape') {
+            dropdown.classList.add('d-none');
+        }
+    }
+
+    function updateHighlightedSuggestion(items) {
+        items.forEach((item, idx) => {
+            if (idx === activeHighlightIndex) {
+                item.classList.add('active', 'bg-primary-subtle', 'text-primary');
+                item.scrollIntoView({ block: 'nearest' });
+            } else {
+                item.classList.remove('active', 'bg-primary-subtle', 'text-primary');
+            }
+        });
     }
 
     function selectBookForRow(bookId, index, edition) {
@@ -940,7 +1033,7 @@
         if (book) {
             if (titleInput) titleInput.value = book.title;
             if (hiddenId) hiddenId.value = book.id;
-            if (authorInput) authorInput.value = book.author || '';
+            if (authorInput) authorInput.value = book.author || book.author_name || '';
             if (unitInput && !unitInput.value) unitInput.value = 'কপি';
 
             let targetEdition = edition || 'paperback';
@@ -953,12 +1046,25 @@
             if (typeSelect) {
                 typeSelect.value = targetEdition === 'hardcover' ? 'Book (Hardcover)' : 'Book (Paperback)';
             }
-            if (regPriceInput) regPriceInput.value = editionData.regularPrice;
-            if (discPctInput) discPctInput.value = editionData.discountPercent;
-            if (priceInput) priceInput.value = editionData.sellingPrice;
+            if (regPriceInput) regPriceInput.value = (editionData.regularPrice || 0).toFixed(2);
+            if (discPctInput) discPctInput.value = editionData.discountPercent || 0;
+            if (priceInput) priceInput.value = (editionData.sellingPrice || 0).toFixed(2);
         }
 
         calcRow(index, 'book_select');
+
+        // Automatically move focus to quantity input
+        const qtyInput = row.querySelector('.item-qty');
+        if (qtyInput) {
+            setTimeout(() => {
+                qtyInput.focus();
+                qtyInput.select();
+            }, 50);
+        }
+    }
+
+    function addItemRow() {
+        addPresetItem('', '', 'Book (Paperback)', 'কপি', 0, 0, 1);
     }
 
     function openQuickAddBookModal(rowIndex, prefilledTitle) {
@@ -1281,13 +1387,14 @@
                                   placeholder="Search book title, author, ISBN..." required 
                                   oninput="handleLiveBookSearch(this, ${i})" 
                                   onfocus="handleLiveBookSearch(this, ${i})" 
+                                  onkeydown="handleBookSearchKeydown(event, ${i})" 
                                   autocomplete="off" style="font-size: 13.5px; min-height: 52px; line-height: 1.4; resize: vertical;">${escapeHtml(title)}</textarea>
                         <button type="button" class="btn btn-outline-primary px-2.5 d-flex align-items-center justify-content-center" onclick="openQuickAddBookModal(${i})" title="Add new book to Bookshop" style="min-height: 52px;">
                             <i class="fas fa-plus"></i>
                         </button>
                     </div>
                     <input type="hidden" name="items[${i}][book_id]" class="item-book-id" value="">
-                    <div class="book-search-dropdown shadow-lg rounded-3 border bg-white d-none" style="position: absolute; top: 100%; left: 0; right: 0; z-index: 1050; max-height: 280px; overflow-y: auto;"></div>
+                    <div class="book-search-dropdown shadow-lg rounded-3 border bg-white d-none" style="position: absolute; top: calc(100% + 4px); left: 0; min-width: 420px; width: 100%; z-index: 1090; max-height: 320px; overflow-y: auto;"></div>
                 </td>
                 <td>
                     <input type="text" name="items[${i}][author_name]" class="form-control item-author" 
@@ -3625,9 +3732,19 @@
         border-color: #2563eb !important;
         box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.3) !important;
     }
-    .calc-check:focus {
-        outline: none !important;
-        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.35) !important;
+    .table-responsive {
+        overflow: visible !important;
+    }
+    .book-search-dropdown {
+        box-shadow: 0 14px 30px rgba(0, 0, 0, 0.16), 0 4px 10px rgba(0, 0, 0, 0.08) !important;
+        border: 1px solid #cbd5e1 !important;
+    }
+    .book-suggestion-item {
+        transition: background-color 0.15s ease;
+    }
+    .book-suggestion-item:hover,
+    .book-suggestion-item.active {
+        background-color: #f0fdf4 !important;
     }
 </style>
 

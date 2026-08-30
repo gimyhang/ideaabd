@@ -365,7 +365,9 @@
                 <div class="col-8">
                     <div class="d-flex align-items-center gap-3">
                         @if(!empty($logoSrc))
-                            <img src="{{ $logoSrc }}" alt="Logo" style="height: 52px; max-width: 160px; object-fit: contain;">
+                            <div class="logo-box d-flex align-items-center justify-content-center bg-white rounded p-1 border shadow-xs" style="width: 140px; height: 56px; max-width: 140px; flex-shrink: 0; overflow: hidden;">
+                                <img src="{{ $logoSrc }}" alt="Logo" style="max-height: 100%; max-width: 100%; width: auto; height: auto; object-fit: contain; display: block;">
+                            </div>
                         @endif
                         <div>
                             <h4 class="fw-bold mb-0 text-dark">{{ $settings['business_name'] ?? 'আইডিয়া প্রকাশন' }}</h4>

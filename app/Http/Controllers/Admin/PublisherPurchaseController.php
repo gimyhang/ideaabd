@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\JsonResponse;
 
 class PublisherPurchaseController extends Controller
 {
@@ -93,9 +94,35 @@ class PublisherPurchaseController extends Controller
             ->get();
         $authors = \Modules\Author\Models\Author::where('is_active', true)->orderBy('name')->get();
         $categories = Category::where('is_active', true)->orderBy('name')->get();
-        $books = Book::select('id', 'title', 'subtitle', 'slug', 'price', 'discount_price', 'cost_price', 'stock_quantity', 'publisher_id', 'category_id', 'author_name', 'isbn', 'edition', 'paper_type', 'book_size', 'page_count', 'cover_type', 'cover_image')
+        $books = Book::with(['publisher:id,name', 'category:id,name'])
+            ->select('id', 'title', 'subtitle', 'slug', 'price', 'discount_price', 'cost_price', 'stock_quantity', 'publisher_id', 'category_id', 'author_name', 'isbn', 'edition', 'paper_type', 'book_size', 'page_count', 'cover_type', 'cover_image')
             ->orderBy('title')
-            ->get();
+            ->limit(1000)
+            ->get()
+            ->map(function ($b) {
+                return [
+                    'id'            => $b->id,
+                    'title'         => $b->title,
+                    'subtitle'      => $b->subtitle ?? '',
+                    'author'        => $b->author_name ?? '',
+                    'category_id'   => $b->category_id,
+                    'category_name' => $b->category?->name ?? '',
+                    'publisher_id'  => $b->publisher_id,
+                    'publisher_name'=> $b->publisher?->name ?? '',
+                    'price'         => (float)($b->price ?: 0),
+                    'mrp_price'     => (float)($b->price ?: 0),
+                    'discount_price'=> (float)($b->discount_price ?: 0),
+                    'sale_price'    => (float)($b->discount_price > 0 ? $b->discount_price : $b->price),
+                    'cost_price'    => (float)($b->cost_price ?: 0),
+                    'stock'         => (int)$b->stock_quantity,
+                    'isbn'          => $b->isbn ?? '',
+                    'edition'       => $b->edition ?? '',
+                    'cover_type'    => $b->cover_type ?? 'paperback',
+                    'page_count'    => $b->page_count ?? '',
+                    'book_size'     => $b->book_size ?? '',
+                    'paper_type'    => $b->paper_type ?? '',
+                ];
+            });
 
         // Auto generate next purchase invoice number based on class
         $dateStr = date('Ymd');
@@ -103,7 +130,15 @@ class PublisherPurchaseController extends Controller
         $countToday = PublisherPurchase::whereDate('created_at', today())->count() + 1;
         $suggestedInvoiceNo = $prefix . $dateStr . '-' . str_pad((string)$countToday, 3, '0', STR_PAD_LEFT);
 
-        return view('admin.purchases.create', compact('publishers', 'authors', 'categories', 'books', 'suggestedInvoiceNo', 'currentType'));
+        // Fetch distinct registered vendors for raw materials / production
+        $existingVendors = PublisherPurchase::whereNotNull('vendor_name')
+            ->where('vendor_name', '!=', '')
+            ->select('vendor_name', 'vendor_phone', 'vendor_address')
+            ->distinct()
+            ->orderBy('vendor_name')
+            ->get();
+
+        return view('admin.purchases.create', compact('publishers', 'authors', 'categories', 'books', 'suggestedInvoiceNo', 'currentType', 'existingVendors'));
     }
 
     /**
@@ -282,6 +317,7 @@ class PublisherPurchaseController extends Controller
             $purchase->publisher_id = $publisherId;
             $purchase->supplier_name = $vendorName;
             $purchase->vendor_name = $vendorName;
+            $publisher = $publisherId ? Publisher::find($publisherId) : null;
             $purchase->vendor_phone = $request->input('vendor_phone') ?: ($publisher ? $publisher->phone : null);
             $purchase->vendor_address = $request->input('vendor_address') ?: ($publisher ? $publisher->address : null);
             $purchase->purchase_date = $validated['purchase_date'];
@@ -500,7 +536,15 @@ class PublisherPurchaseController extends Controller
         $categories = Category::where('is_active', true)->orderBy('name')->get();
         $books = Book::select('id', 'title', 'price', 'stock_quantity', 'publisher_id', 'category_id', 'author_name')->orderBy('title')->get();
 
-        return view('admin.purchases.edit', compact('purchase', 'publishers', 'authors', 'categories', 'books'));
+        // Distinct existing vendors for raw materials & other purchases
+        $existingVendors = PublisherPurchase::whereNotNull('vendor_name')
+            ->where('vendor_name', '!=', '')
+            ->select('vendor_name', 'vendor_phone', 'vendor_address')
+            ->distinct()
+            ->orderBy('vendor_name')
+            ->get();
+
+        return view('admin.purchases.edit', compact('purchase', 'publishers', 'authors', 'categories', 'books', 'existingVendors'));
     }
 
     /**
@@ -565,6 +609,7 @@ class PublisherPurchaseController extends Controller
 
             // Auto resolve or create Publisher
             $publisherId = null;
+            $publisher = null;
             if ($purchaseCategory === 'books') {
                 $publisherId = !empty($validated['publisher_id']) ? (int)$validated['publisher_id'] : null;
                 $publisherName = $vendorName;
@@ -588,10 +633,14 @@ class PublisherPurchaseController extends Controller
                             ]);
                         }
                         $publisherId = $pub->id;
+                        $publisher = $pub;
                     } else {
                         $pub = Publisher::first();
                         $publisherId = $pub ? $pub->id : null;
+                        $publisher = $pub;
                     }
+                } else {
+                    $publisher = Publisher::find($publisherId);
                 }
             }
 
@@ -603,8 +652,10 @@ class PublisherPurchaseController extends Controller
             $purchase->purchase_category = $purchaseCategory;
             $purchase->publisher_memo_no = $validated['publisher_memo_no'] ?? null;
             $purchase->publisher_id = $publisherId;
-            $purchase->supplier_name = $vendorName ?: ($purchaseCategory === 'books' ? 'বই প্রকাশনী' : 'ভেন্ডর');
-            $purchase->vendor_name = $vendorName ?: ($purchaseCategory === 'books' ? 'বই প্রকাশনী' : 'ভেন্ডর');
+            $purchase->supplier_name = $vendorName ?: ($purchaseCategory === 'books' ? ($publisher?->name ?? 'বই প্রকাশনী') : 'ভেন্ডর');
+            $purchase->vendor_name = $vendorName ?: ($purchaseCategory === 'books' ? ($publisher?->name ?? 'বই প্রকাশনী') : 'ভেন্ডর');
+            $purchase->vendor_phone = $request->input('vendor_phone') ?: ($publisher ? $publisher->phone : null);
+            $purchase->vendor_address = $request->input('vendor_address') ?: ($publisher ? $publisher->address : null);
             $purchase->purchase_date = $validated['purchase_date'];
             $purchase->due_date = $validated['due_date'] ?? null;
             $purchase->payment_type = $validated['payment_type'];
