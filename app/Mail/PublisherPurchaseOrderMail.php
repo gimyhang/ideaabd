@@ -4,6 +4,7 @@ namespace App\Mail;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Address;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
@@ -23,7 +24,7 @@ class PublisherPurchaseOrderMail extends Mailable
             'business_name' => 'আইডিয়া প্রকাশন (Idea Prakashon)',
             'address'       => 'সেন্ট্রাল রোড, রংপুর ৫৪০০, বাংলাদেশ',
             'phone'         => '01558712870',
-            'email'         => config('mail.from.address', 'ideapbd@gmail.com'),
+            'email'         => config('mail.from.address', 'info@ideaabd.com'),
         ];
     }
 
@@ -35,11 +36,14 @@ class PublisherPurchaseOrderMail extends Mailable
             ? $this->orderData['subject'] 
             : "{$bizName} — ক্রয় আদেশ (Purchase Order) #{$poNumber}";
 
-        $replyEmail = $this->senderSettings['email'] ?? config('mail.from.address', 'ideapbd@gmail.com');
+        $fromEmail = config('mail.from.address') ?: 'ad@ideaabd.com';
+        $fromName = config('mail.from.name') ?: 'Idea Prokashon';
+        $replyEmail = $this->senderSettings['email'] ?? $fromEmail;
 
         return new Envelope(
+            from: new Address($fromEmail, $fromName),
             subject: $subject,
-            replyTo: filter_var($replyEmail, FILTER_VALIDATE_EMAIL) ? [$replyEmail] : [],
+            replyTo: filter_var($replyEmail, FILTER_VALIDATE_EMAIL) ? [new Address($replyEmail, $bizName)] : [],
         );
     }
 

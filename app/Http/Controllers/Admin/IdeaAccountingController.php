@@ -1817,7 +1817,7 @@ class IdeaAccountingController extends Controller
             $invoice->emailed_at = now();
 
             $customMsg = $request->input('custom_message') ? trim($request->input('custom_message')) : null;
-            $senderEmail = config('mail.from.address') ?: 'info@ideaabd.com';
+            $senderEmail = config('mail.from.address') ?: 'ad@ideaabd.com';
             $sentLogs = $invoice->email_logs ?? [];
             if (!is_array($sentLogs)) {
                 $sentLogs = [];

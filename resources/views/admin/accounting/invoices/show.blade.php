@@ -999,7 +999,7 @@
                                         </td>
                                         <td>
                                             <span class="text-secondary font-monospace small">
-                                                {{ $log['sender'] ?? (config('mail.from.address') ?: 'info@ideaabd.com') }}
+                                                {{ $log['sender'] ?? (config('mail.from.address') ?: 'ad@ideaabd.com') }}
                                             </span>
                                         </td>
                                         <td>
@@ -1176,7 +1176,7 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold text-muted small mb-1">Sender Email (প্রেরক)</label>
-                            <input type="text" class="form-control bg-light font-monospace" value="{{ config('mail.from.address') ?: 'info@ideaabd.com' }} ({{ config('mail.from.name') ?: 'Idea Prokashon' }})" readonly>
+                            <input type="text" class="form-control bg-light font-monospace" value="{{ config('mail.from.address') ?: 'ad@ideaabd.com' }} ({{ config('mail.from.name') ?: 'Idea Prokashon' }})" readonly>
                         </div>
                     </div>
 

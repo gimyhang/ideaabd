@@ -37,14 +37,14 @@ class CustomerInvoiceMail extends Mailable
         $bizName = $settings['business_name'] ?? 'আইডিয়া প্রকাশন';
         $typeLabel = $this->invoice->type_label ?? 'ইনভয়েস';
         $invNo = $this->invoice->invoice_no ?? '';
-        $fromEmail = config('mail.from.address') ?: 'info@ideaabd.com';
+        $fromEmail = config('mail.from.address') ?: 'ad@ideaabd.com';
         $fromName = config('mail.from.name') ?: 'Idea Prokashon';
-        $replyToEmail = $settings['email'] ?? $fromEmail;
+        $replyToEmail = !empty($settings['email']) ? $settings['email'] : config('mail.reply_to.address', 'ideapbd@gmail.com');
 
         return new Envelope(
             from: new Address($fromEmail, $fromName),
             subject: "{$bizName} — {$typeLabel} #{$invNo}",
-            replyTo: filter_var($replyToEmail, FILTER_VALIDATE_EMAIL) ? [new Address($replyToEmail, $bizName)] : [new Address($fromEmail, $bizName)],
+            replyTo: filter_var($replyToEmail, FILTER_VALIDATE_EMAIL) ? [new Address($replyToEmail, $bizName)] : [new Address('ideapbd@gmail.com', $bizName)],
         );
     }
 
