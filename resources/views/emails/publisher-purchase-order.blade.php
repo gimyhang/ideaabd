@@ -291,13 +291,17 @@
         <p style="font-size: 13.5px; color: #475569; margin-top: 15px;">
             চালান ও পার্সেল প্রস্তুত হলে আমাদের উল্লিখিত ঠিকানায় প্রেরণ করার অনুরোধ করা হলো। কোনো বিষয়ে আলোচনার প্রয়োজন হলে সরাসরি আমাদের সাথে ফোনে বা ইমেইলে যোগাযোগ করুন।
         </p>
+
+        <div style="background-color: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 12px 16px; margin-top: 18px; text-align: center; font-size: 12px; color: #64748b; line-height: 1.5;">
+            🔔 <strong>বিশেষ বিজ্ঞপ্তি:</strong> এটি আইডিয়া প্রকাশনের একটি স্বয়ংক্রিয় অফিসিয়াল বার্তা, এতে রিপ্লাই (Reply) করার প্রয়োজন নেই। যেকোনো তথ্য বা জরুরি প্রয়োজনে আমাদের হেল্পলাইনে <strong>০১৭২৬-৯৭৬৯৮২ / ০১৫৫৮-৭১২৮১০</strong> নম্বরে কল করুন অথবা ভিজিট করুন <a href="https://www.ideaabd.com" style="color: #1e3a8a; text-decoration: none; font-weight: bold;">www.ideaabd.com</a>।
+        </div>
     </div>
 
     {{-- Footer --}}
     <div class="footer">
         <p><strong>{{ $senderSettings['business_name'] ?? 'আইডিয়া প্রকাশন' }}</strong></p>
-        <p>{{ $senderSettings['address'] ?? 'সেন্ট্রাল রোড, রংপুর ৫৪০০' }} | ইমেইল: {{ $senderSettings['email'] ?? 'ideapbd@gmail.com' }}</p>
-        <p style="font-size: 11px; margin-top: 8px; color: #94a3b8;">এই ইমেইলটি আইডিয়া প্রকাশন এডমিন প্যানেল থেকে স্বয়ংক্রিয়ভাবে জেনারেট করা হয়েছে।</p>
+        <p>{{ $senderSettings['address'] ?? 'সেন্ট্রাল রোড, রংপুর ৫৪০০' }} | হেল্পলাইন: {{ $senderSettings['phone'] ?? '০১৭২৬-৯৭৬৯৮২, ০১৫৫৮-৭১২৮১০' }} | ইমেইল: ad@ideaabd.com</p>
+        <p style="font-size: 11px; margin-top: 8px; color: #94a3b8;">© {{ date('Y') }} আইডিয়া প্রকাশন (ideaabd.com)। সর্বস্বত্ব সংরক্ষিত।</p>
     </div>
 </div>
 

@@ -97,15 +97,19 @@
                 </a>
             </div>
 
-            <p style="font-size: 12px; color: #94a3b8; text-align: center; word-break: break-all;">
+            <p style="font-size: 12px; color: #94a3b8; text-align: center; word-break: break-all; margin-bottom: 20px;">
                 বাটন কাজ না করলে এই লিংকে ক্লিক করুন:<br>
                 <a href="{{ $invoice->public_url }}" style="color: #0d6efd;">{{ $invoice->public_url }}</a>
             </p>
+
+            <div style="background-color: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 12px 16px; margin-top: 15px; text-align: center; font-size: 12px; color: #64748b; line-height: 1.5;">
+                🔔 <strong>বিশেষ বিজ্ঞপ্তি:</strong> এটি আইডিয়া প্রকাশনের একটি স্বয়ংক্রিয় অফিসিয়াল বার্তা, এতে রিপ্লাই (Reply) করার প্রয়োজন নেই। যেকোনো তথ্য বা জরুরি প্রয়োজনে অনুগ্রহ করে আমাদের হেল্পলাইনে <strong>০১৭২৬-৯৭৬৯৮২ / ০১৫৫৮-৭১২৮১০</strong> নম্বরে কল করুন অথবা ভিজিট করুন <a href="https://www.ideaabd.com" style="color: #0d6efd; text-decoration: none; font-weight: bold;">www.ideaabd.com</a>।
+            </div>
         </div>
         <div class="footer">
             <p style="margin: 0 0 5px 0; font-weight: 600; color: #475569;">{{ $settings['business_name'] ?? 'আইডিয়া প্রকাশন' }}</p>
-            <p style="margin: 0 0 5px 0;">{{ $settings['address'] ?? 'ঢাকা, বাংলাদেশ' }} · ফোন: {{ $settings['phone'] ?? '' }}</p>
-            <p style="margin: 0;">ইমেইল: {{ $settings['email'] ?? 'ideapbd@gmail.com' }}</p>
+            <p style="margin: 0 0 5px 0;">{{ $settings['address'] ?? 'ঢাকা, বাংলাদেশ' }} · হেল্পলাইন: {{ $settings['phone'] ?? '০১৭২৬-৯৭৬৯৮২, ০১৫৫৮-৭১২৮১০' }}</p>
+            <p style="margin: 0;">ইমেইল: {{ $settings['email'] ?? 'ad@ideaabd.com' }}</p>
         </div>
     </div>
 </body>

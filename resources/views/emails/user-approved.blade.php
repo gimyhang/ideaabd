@@ -56,13 +56,13 @@
                 <a href="{{ url('/login') }}" class="btn">লগইন করুন</a>
             </div>
 
-            <p style="font-size: 13px; color: #64748b; margin-top: 25px;">
-                * পাসওয়ার্ড ভুলে গেলে ওয়েবসাইট থেকে সরাসরি মোবাইল নম্বরে ভেরিফিকেশন কোড পাঠিয়ে পাসওয়ার্ড রিসেট করতে পারবেন।
-            </p>
+            <div style="background-color: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 12px 16px; margin-top: 20px; text-align: center; font-size: 12px; color: #64748b; line-height: 1.5;">
+                🔔 <strong>বিশেষ বিজ্ঞপ্তি:</strong> এটি আইডিয়া প্রকাশনের একটি স্বয়ংক্রিয় অফিসিয়াল বার্তা, এতে রিপ্লাই (Reply) করার প্রয়োজন নেই। যেকোনো তথ্য বা জরুরি প্রয়োজনে অনুগ্রহ করে আমাদের হেল্পলাইনে <strong>০১৭২৬-৯৭৬৯৮২ / ০১৫৫৮-৭১২৮১০</strong> নম্বরে কল করুন অথবা ভিজিট করুন <a href="https://www.ideaabd.com" style="color: #0066cc; text-decoration: none; font-weight: bold;">www.ideaabd.com</a>।
+            </div>
         </div>
         <div class="footer">
-            <p>© {{ date('Y') }} আইডিয়া প্রকাশন (ideaabd.com)। সর্বস্বত্ব সংরক্ষিত।</p>
-            <p>যেকোনো প্রয়োজনে যোগাযোগ করুন: support@ideaabd.com</p>
+            <p style="margin: 0 0 4px 0; font-weight: 600; color: #475569;">© {{ date('Y') }} আইডিয়া প্রকাশন (ideaabd.com)। সর্বস্বত্ব সংরক্ষিত।</p>
+            <p style="margin: 0;">হেল্পলাইন: ০১৭২৬-৯৭৬৯৮২, ০১৫৫৮-৭১২৮১০ • ইমেইল: ad@ideaabd.com</p>
         </div>
     </div>
 </body>

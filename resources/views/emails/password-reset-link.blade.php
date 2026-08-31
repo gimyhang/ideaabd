@@ -49,12 +49,16 @@
             </div>
 
             <div class="whatsapp-box">
-                💬 <strong>হোয়াটসঅ্যাপ সাপোর্ট:</strong> কোনো সমস্যা হলে সরাসরি আমাদের অফিশিয়াল হোয়াটসঅ্যাপ নম্বরে যোগাযোগ করুন: <strong>+8801558712810</strong>
+                💬 <strong>জরুরি সহায়তা / হোয়াটসঅ্যাপ:</strong> যেকোনো প্রয়োজনে সরাসরি আমাদের অফিশিয়াল হেল্পলাইনে যোগাযোগ করুন: <strong>০১৭২৬-৯৭৬৯৮২ / ০১৫৫৮-৭১২৮১০</strong>
+            </div>
+
+            <div style="background-color: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 12px 16px; margin-top: 22px; text-align: center; font-size: 12px; color: #64748b; line-height: 1.5;">
+                🔔 <strong>বিশেষ বিজ্ঞপ্তি:</strong> এটি আইডিয়া প্রকাশনের একটি স্বয়ংক্রিয় অফিসিয়াল বার্তা, এতে রিপ্লাই (Reply) করার প্রয়োজন নেই। যেকোনো তথ্য বা প্রয়োজনে আমাদের হেল্পলাইনে কল করুন অথবা ভিজিট করুন <a href="https://www.ideaabd.com" style="color: #0066cc; text-decoration: none; font-weight: bold;">www.ideaabd.com</a>।
             </div>
         </div>
         <div class="footer">
-            <p style="margin: 0 0 4px 0;">© {{ date('Y') }} আইডিয়া প্রকাশন (ideaabd.com)। সর্বস্বত্ব সংরক্ষিত।</p>
-            <p style="margin: 0;">যেকোনো সহায়তায় যোগাযোগ করুন: +8801558712810 • support@ideaabd.com</p>
+            <p style="margin: 0 0 4px 0; font-weight: 600; color: #475569;">© {{ date('Y') }} আইডিয়া প্রকাশন (ideaabd.com)। সর্বস্বত্ব সংরক্ষিত।</p>
+            <p style="margin: 0;">হেল্পলাইন: ০১৭২৬-৯৭৬৯৮২, ০১৫৫৮-৭১২৮১০ • ইমেইল: ad@ideaabd.com</p>
         </div>
     </div>
 </body>
