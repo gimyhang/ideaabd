@@ -1770,36 +1770,67 @@ class IdeaAccountingController extends Controller
     }
 
     /**
-     * Send Invoice & Delivery Challan to Customer Email.
+     * Send Invoice & Delivery Challan to Customer Email (Single or Multiple Recipients).
      */
     public function sendInvoiceEmail(Request $request, IdeaInvoice $invoice): RedirectResponse
     {
-        $validated = $request->validate([
-            'email'          => 'required|email|max:255',
-            'custom_message' => 'nullable|string|max:1000',
-        ], [
-            'email.required' => 'গ্রাহকের ইমেইল ঠিকানা প্রদান করুন।',
-            'email.email'    => 'সঠিক ইমেইল ঠিকানা লিখুন।',
-        ]);
+        $rawEmails = $request->input('email') ?? $request->input('emails');
+        
+        $emailList = [];
+        if (is_array($rawEmails)) {
+            $emailList = $rawEmails;
+        } elseif (is_string($rawEmails)) {
+            $emailList = preg_split('/[\s,;]+/', trim($rawEmails), -1, PREG_SPLIT_NO_EMPTY);
+        }
+
+        $validEmails = [];
+        $invalidEmails = [];
+        foreach ($emailList as $em) {
+            $emClean = trim($em);
+            if (filter_var($emClean, FILTER_VALIDATE_EMAIL)) {
+                $validEmails[] = strtolower($emClean);
+            } elseif (!empty($emClean)) {
+                $invalidEmails[] = $emClean;
+            }
+        }
+        $validEmails = array_values(array_unique($validEmails));
+
+        if (empty($validEmails)) {
+            return back()->with('error', 'অনুগ্রহ করে অন্তত একটি সঠিক ইমেইল ঠিকানা লিখুন।')->withInput();
+        }
+
+        if (!empty($invalidEmails)) {
+            return back()->with('error', 'নিচের ইমেইল ঠিকানাগুলো সঠিক ফরম্যাটে নেই: ' . implode(', ', $invalidEmails))->withInput();
+        }
 
         try {
             IdeaInvoice::ensureColumnsExist();
 
-            $invoice->customer_email = $validated['email'];
+            if (empty($invoice->customer_email) || $invoice->customer_email === 'customer@example.com') {
+                $invoice->customer_email = $validEmails[0];
+            }
             if (empty($invoice->access_token)) {
                 $invoice->access_token = Str::random(32);
             }
             $invoice->emailed_at = now();
             $invoice->save();
 
-            Mail::to($validated['email'])
-                ->send(new CustomerInvoiceMail(
-                    $invoice,
-                    $validated['custom_message'] ?? null,
-                    self::getInvoiceSettings()
-                ));
+            $mailable = new CustomerInvoiceMail(
+                $invoice,
+                $request->input('custom_message') ?? null,
+                self::getInvoiceSettings()
+            );
 
-            return back()->with('success', "গ্রাহকের ইমেইল ({$validated['email']}) এ সফলভাবে বিল ও চালানের লিংক পাঠানো হয়েছে।");
+            // Send to all recipient emails
+            Mail::to($validEmails)->send($mailable);
+
+            $count = count($validEmails);
+            $recipientsList = implode(', ', $validEmails);
+            $successMsg = ($count > 1)
+                ? "মোট {$count}টি ইমেইল ঠিকানায় ({$recipientsList}) সফলভাবে বিল ও চালানের ডিজিটাল লিংক পাঠানো হয়েছে।"
+                : "গ্রাহকের ইমেইল ({$validEmails[0]}) এ সফলভাবে বিল ও চালানের ডিজিটাল লিংক পাঠানো হয়েছে।";
+
+            return back()->with('success', $successMsg);
         } catch (\Throwable $e) {
             Log::error("Invoice email failed for #{$invoice->invoice_no}: " . $e->getMessage());
             return back()->with('error', 'ইমেইল পাঠাতে সমস্যা হয়েছে: ' . $e->getMessage());

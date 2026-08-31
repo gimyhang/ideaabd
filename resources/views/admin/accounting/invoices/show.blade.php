@@ -999,11 +999,11 @@
 </div>
 @endif
 
-{{-- Send Invoice Email to Customer Modal --}}
+{{-- Send Invoice Email to Customer Modal (Multiple Recipients Support) --}}
 <div class="modal fade d-print-none" id="sendInvoiceEmailModal" tabindex="-1" aria-labelledby="sendInvoiceEmailModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
-            <form action="{{ route('admin.accounting.invoices.send-email', $invoice->id) }}" method="POST">
+            <form action="{{ route('admin.accounting.invoices.send-email', $invoice->id) }}" method="POST" id="sendInvoiceEmailForm">
                 @csrf
                 <div class="modal-header bg-success text-white py-3">
                     <h5 class="modal-title fw-bold" id="sendInvoiceEmailModalLabel">
@@ -1012,47 +1012,102 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body p-4">
-                    <div class="alert alert-info py-2 px-3 small d-flex align-items-center mb-3">
-                        <i class="fas fa-circle-info me-2 fs-5"></i>
-                        <div>
-                            The customer will receive an email with a direct link to view their digital invoice and download a PDF copy.
+                    <div class="alert alert-info py-2 px-3 small d-flex align-items-center mb-3 rounded-3 border-info-subtle">
+                        <i class="fas fa-circle-info me-2 fs-5 text-info"></i>
+                        <div style="font-size: 12.5px;">
+                            গ্রাহক বা প্রতিষ্ঠানের ঠিকানায় সরাসরি ডিজিটাল ইনভয়েস দেখা এবং পিডিএফ (PDF) ডাউনলোড করার লিংক পাঠানো হবে।
                         </div>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Customer Name</label>
-                        <input type="text" class="form-control bg-light" value="{{ $invoice->customer_name ?? '—' }}" readonly>
+                        <label class="form-label fw-semibold text-muted small mb-1">Customer / Organization Name</label>
+                        <input type="text" class="form-control bg-light fw-bold" value="{{ $invoice->customer_name ?? '—' }} {{ $invoice->customer_org ? '(' . $invoice->customer_org . ')' : '' }}" readonly>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Customer Email Address <span class="text-danger">*</span></label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="fas fa-envelope text-muted"></i></span>
-                            <input type="email" name="email" class="form-control" value="{{ $invoice->customer_email }}" placeholder="customer@example.com" required>
+                        <div class="d-flex align-items-center justify-content-between mb-1">
+                            <label class="form-label fw-semibold mb-0">
+                                Recipient Email Address(es) <span class="text-danger">*</span>
+                            </label>
+                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5" id="recipientCountBadge" style="font-size: 11px;">
+                                1 Recipient
+                            </span>
                         </div>
+                        <textarea name="email" id="invoiceRecipientEmails" class="form-control font-monospace" rows="2" 
+                                  placeholder="client@example.com, manager@domain.com, accounts@company.com" 
+                                  required oninput="updateRecipientCount(this)">{{ $invoice->customer_email }}</textarea>
+                        <div class="d-flex align-items-center justify-content-between mt-1">
+                            <div class="text-muted" style="font-size: 11.5px;">
+                                <i class="fa-solid fa-circle-nodes text-primary me-1"></i>একাধিক ইমেইল দিতে কমা (<code>,</code>), সেমিকোলন (<code>;</code>) বা স্পেস দিয়ে লিখুন।
+                            </div>
+                        </div>
+                        <div id="emailPillsContainer" class="d-flex flex-wrap gap-1 mt-2"></div>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Custom Message (Optional)</label>
-                        <textarea name="custom_message" class="form-control" rows="3" placeholder="e.g. Your ordered books have been dispatched via courier..."></textarea>
+                        <label class="form-label fw-semibold mb-1">Custom Message / Note (Optional)</label>
+                        <textarea name="custom_message" class="form-control rounded-3" rows="3" placeholder="e.g. আপনার ক্রয়কৃত বইসমূহ কুরিয়ারে বুকিং দেওয়া হয়েছে। ট্র্যাকিং নং..."></textarea>
                     </div>
 
                     @if($invoice->emailed_at)
-                        <div class="text-muted small">
-                            <i class="fas fa-history me-1 text-success"></i>Last email sent: <strong>{{ $invoice->emailed_at->format('d M, Y h:i A') }}</strong> ({{ $invoice->emailed_at->diffForHumans() }})
+                        <div class="text-muted small p-2 bg-light rounded-3 border">
+                            <i class="fas fa-history me-1 text-success"></i>Last email dispatched: <strong>{{ $invoice->emailed_at->format('d M, Y h:i A') }}</strong> ({{ $invoice->emailed_at->diffForHumans() }})
                         </div>
                     @endif
                 </div>
-                <div class="modal-footer border-top py-2.5">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-success fw-semibold px-4 shadow-sm">
-                        <i class="fas fa-paper-plane me-1.5"></i> Send Email
+                <div class="modal-footer border-top py-2.5 bg-light">
+                    <button type="button" class="btn btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success rounded-pill fw-semibold px-4 shadow-sm" id="btnSendInvoiceEmail">
+                        <i class="fas fa-paper-plane me-1.5"></i> Send Email Now
                     </button>
                 </div>
             </form>
         </div>
     </div>
 </div>
+
+<script>
+    function updateRecipientCount(textarea) {
+        if (!textarea) return;
+        const val = textarea.value.trim();
+        const badge = document.getElementById('recipientCountBadge');
+        const container = document.getElementById('emailPillsContainer');
+        
+        if (!val) {
+            if (badge) badge.textContent = '0 Recipients';
+            if (container) container.innerHTML = '';
+            return;
+        }
+
+        const emails = val.split(/[\s,;]+/).filter(e => e.trim().length > 0);
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        let validCount = 0;
+        let pillsHtml = '';
+
+        emails.forEach(em => {
+            const isValid = emailRegex.test(em);
+            if (isValid) validCount++;
+            pillsHtml += `<span class="badge ${isValid ? 'bg-primary-subtle text-primary border-primary-subtle' : 'bg-danger-subtle text-danger border-danger-subtle'} border rounded-pill px-2 py-0.5" style="font-size: 10.5px;">
+                <i class="fa-solid ${isValid ? 'fa-envelope' : 'fa-triangle-exclamation'} me-1"></i>${em}
+            </span>`;
+        });
+
+        if (badge) {
+            badge.textContent = `${validCount} ${validCount === 1 ? 'Recipient' : 'Recipients'}`;
+            badge.className = `badge ${validCount > 0 ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-secondary-subtle text-secondary'} rounded-pill px-2 py-0.5`;
+        }
+        if (container) {
+            container.innerHTML = pillsHtml;
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const emailTextarea = document.getElementById('invoiceRecipientEmails');
+        if (emailTextarea && emailTextarea.value) {
+            updateRecipientCount(emailTextarea);
+        }
+    });
+</script>
 
 {{-- Invoice & Memo Header Settings / Design Modal with 2:1 Cropper --}}
 <div class="modal fade d-print-none" id="invoiceSettingsModal" tabindex="-1" aria-labelledby="invoiceSettingsModalLabel" aria-hidden="true">
