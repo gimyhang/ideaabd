@@ -41,8 +41,8 @@
 @section('actions')
     <div class="d-flex flex-wrap gap-2 align-items-center">
         {{-- Customize Logo & Info Button --}}
-        <button type="button" class="btn btn-outline-dark btn-sm rounded-pill px-3 shadow-2xs fw-semibold" data-bs-toggle="modal" data-bs-target="#ledgerBrandingSettingsModal" title="লেজার ও বিলের লোগো এবং অফিসিয়াল তথ্য কাস্টমাইজ করুন">
-            <i class="fas fa-palette me-1 text-primary"></i> লোগো ও তথ্য পরিবর্তন
+        <button type="button" class="btn btn-outline-dark btn-sm rounded-pill px-3 shadow-2xs fw-semibold" data-bs-toggle="modal" data-bs-target="#invoiceSettingsModal" title="লেজার ও বিলের লোগো এবং অফিসিয়াল তথ্য কাস্টমাইজ করুন">
+            <i class="fas fa-palette me-1 text-primary"></i> Memo Settings
         </button>
 
         {{-- Record Payment Button --}}
@@ -1017,4 +1017,8 @@
         @endif
     }
 </script>
+
+{{-- Unified Purchases Branding & Memo Settings Modal Partial --}}
+@include('admin.purchases.partials.branding-modal')
+
 @endsection

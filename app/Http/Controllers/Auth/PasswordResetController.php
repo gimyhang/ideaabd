@@ -404,4 +404,42 @@ class PasswordResetController extends Controller
 
         return $maskedName . '@' . $domain;
     }
+
+    /**
+     * Submit user password reset help request to admin dashboard.
+     */
+    public function submitHelpRequest(Request $request)
+    {
+        $request->validate([
+            'identity'     => ['required', 'string', 'max:255'],
+            'user_name'    => ['nullable', 'string', 'max:255'],
+            'reason_notes' => ['nullable', 'string', 'max:1000'],
+        ], [
+            'identity.required' => 'আপনার নিবন্ধিত ইমেইল বা মোবাইল নম্বর দিন।',
+        ]);
+
+        $identity = trim((string)$request->input('identity'));
+        $cleanPhone = preg_replace('/[^0-9]/', '', $identity);
+
+        $user = User::where('email', $identity)
+            ->orWhere('phone', $identity)
+            ->orWhere(function ($q) use ($cleanPhone) {
+                if (!empty($cleanPhone) && strlen($cleanPhone) >= 10) {
+                    $q->where('phone', $cleanPhone);
+                }
+            })
+            ->orWhere('name', $identity)
+            ->first();
+
+        \App\Models\PasswordResetRequest::create([
+            'user_id'      => $user?->id,
+            'identity'     => $identity,
+            'user_name'    => $request->input('user_name') ?: ($user?->name ?? 'গ্রাহক'),
+            'user_ip'      => $request->ip(),
+            'reason_notes' => $request->input('reason_notes', 'লিংক বা ওটিপিতে পাসওয়ার্ড রিসেট করতে ব্যর্থ হওয়ায় অ্যাডমিন সহায়তার আবেদন।'),
+            'status'       => 'pending',
+        ]);
+
+        return back()->with('status', 'আপনার পাসওয়ার্ড সহায়তার আবেদন সফলভাবে অ্যাডমিন প্যানেলে পাঠানো হয়েছে! অ্যাডমিন কর্তৃপক্ষ তথ্য যাচাই করে একটি ওয়ানটাইম পাসওয়ার্ড (OTP) ইস্যু করবেন।');
+    }
 }

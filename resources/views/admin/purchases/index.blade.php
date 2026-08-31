@@ -31,6 +31,9 @@
                 </li>
             </ul>
         </div>
+        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-xs" data-bs-toggle="modal" data-bs-target="#invoiceSettingsModal" title="Customize invoice branding header">
+            <i class="fas fa-palette me-1 text-primary"></i> Memo Settings
+        </button>
         <a href="{{ route('admin.purchases.payments') }}" class="btn btn-outline-success btn-sm rounded-pill px-3 shadow-xs fw-semibold">
             <i class="fas fa-hand-holding-dollar me-1"></i> Payments & Ledgers
         </a>
@@ -316,5 +319,8 @@
         @endif
     @endif
 </div>
+
+{{-- Unified Purchases Branding & Memo Settings Modal Partial --}}
+@include('admin.purchases.partials.branding-modal')
 
 @endsection

@@ -84,12 +84,93 @@
                     </div>
                 </div>
 
-                {{-- Human Bot Math Security Challenge --}}
+                {{-- Interactive Visual Sign & Image Challenge (Triggered for 3+ Failed Attempts / Security Issues) --}}
+                @php
+                    $isVisualChallengeActive = !empty($requiresVisualChallenge) || (isset($ipStatus['requires_visual_challenge']) && $ipStatus['requires_visual_challenge']) || $errors->has('visual_challenge');
+                @endphp
+
+                <div id="visualChallengeContainer" class="{{ $isVisualChallengeActive ? '' : 'd-none' }} mb-4">
+                    <div class="card border-0 rounded-4 shadow-sm overflow-hidden" style="background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%); border: 1.5px solid #cbd5e1 !important;">
+                        <div class="card-header border-0 py-3 px-3.5 bg-white d-flex align-items-center justify-content-between border-bottom">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-danger rounded-pill px-2.5 py-1 text-white shadow-2xs">
+                                    <i class="fa-solid fa-shield-halved me-1"></i> সিকিউরিটি ভেরিফিকেশন
+                                </span>
+                                <span class="fw-bold text-dark" style="font-size: 13.5px;">মানুষ প্রমাণ (Human Check)</span>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-2 py-0.5" 
+                                    id="refreshVisualChallengeBtn" onclick="fetchNewVisualChallenge(this)" title="নতুন ছবি লোড করুন" style="font-size: 11.5px;">
+                                <i class="fa-solid fa-rotate me-1" id="refreshVisualIcon"></i> রিলোড
+                            </button>
+                        </div>
+
+                        <div class="card-body p-3.5">
+                            {{-- Instruction Banner --}}
+                            <div class="p-2.5 rounded-3 mb-3 text-center d-flex align-items-center justify-content-center gap-2" 
+                                 id="visualChallengeHeaderBadge"
+                                 style="background: {{ $visualChallenge['target_color'] ?? '#0284c7' }}15; border: 1.5px dashed {{ $visualChallenge['target_color'] ?? '#0284c7' }};">
+                                <i class="fa-solid {{ $visualChallenge['target_icon'] ?? 'fa-eye' }} fs-5" 
+                                   id="visualTargetIcon" 
+                                   style="color: {{ $visualChallenge['target_color'] ?? '#0284c7' }};"></i>
+                                <div class="text-start">
+                                    <div class="fw-bold text-dark" style="font-size: 13.5px;" id="visualInstructionText">
+                                        নিচের ছবিগুলো থেকে সব <strong>{{ $visualChallenge['target_title'] ?? 'নির্দিষ্ট সাইন' }}</strong> চিহ্নিত করুন:
+                                    </div>
+                                    <small class="text-muted" style="font-size: 11.5px;" id="visualInstructionSub">
+                                        {{ $visualChallenge['target_desc'] ?? 'সঠিক ৩টি ছবিতে ক্লিক করে মানুষ প্রমাণ করুন' }}
+                                    </small>
+                                </div>
+                            </div>
+
+                            {{-- 3x3 Visual Tiles Grid --}}
+                            <div class="row g-2 text-center" id="visualTilesGrid">
+                                @if(!empty($visualChallenge['tiles']))
+                                    @foreach($visualChallenge['tiles'] as $tile)
+                                        <div class="col-4">
+                                            <div class="visual-tile position-relative p-2.5 rounded-3 bg-white border cursor-pointer transition-all shadow-2xs h-100 d-flex flex-column align-items-center justify-content-center"
+                                                 data-index="{{ $tile['index'] }}"
+                                                 onclick="toggleVisualTile(this)"
+                                                 style="min-height: 84px; border-color: #cbd5e1; user-select: none;">
+                                                <div class="tile-check-badge position-absolute top-0 end-0 m-1 rounded-circle bg-success text-white d-none align-items-center justify-content-center shadow-2xs" 
+                                                     style="width: 20px; height: 20px; font-size: 11px;">
+                                                    <i class="fa-solid fa-check"></i>
+                                                </div>
+                                                <div class="tile-icon text-secondary mb-1" style="font-size: 26px;">
+                                                    <i class="fa-solid {{ $tile['icon'] }}"></i>
+                                                </div>
+                                                <div class="tile-label fw-semibold text-dark text-truncate w-100" style="font-size: 11px;">
+                                                    {{ $tile['label'] }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                @endif
+                            </div>
+
+                            {{-- Challenge Feedback Status --}}
+                            <div id="visualChallengeFeedback" class="mt-2.5 text-center small fw-semibold d-none"></div>
+
+                            {{-- Hidden JSON array of selected indices --}}
+                            <input type="hidden" name="visual_selected_indices" id="visualSelectedIndicesInput" value="[]">
+
+                            <div class="d-flex align-items-center justify-content-between gap-2 mt-3 pt-2 border-top">
+                                <span class="text-muted" style="font-size: 11.5px;">
+                                    <i class="fa-solid fa-circle-info text-primary me-0.5"></i> ৩টি সঠিক ছবি নির্বাচন করুন
+                                </span>
+                                <button type="button" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold" id="verifyVisualBtn" onclick="verifyVisualSelection(this)">
+                                    <i class="fa-solid fa-shield-check me-1"></i> যাচাই করুন
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Human Bot Math Security Challenge (Fallback for Standard Login) --}}
                 @php
                     $b1 = $botNum1 ?? random_int(3, 8);
                     $b2 = $botNum2 ?? random_int(1, 6);
                 @endphp
-                <div class="rounded-4 border mb-4 shadow-2xs p-3 p-sm-3.5" id="botChallengeBox" 
+                <div class="rounded-4 border mb-4 shadow-2xs p-3 p-sm-3.5 {{ $isVisualChallengeActive ? 'd-none' : '' }}" id="botChallengeBox" 
                      style="background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%); border-color: #cbd5e1 !important;">
                     <div class="d-flex align-items-center justify-content-between gap-2 gap-sm-3 flex-wrap flex-sm-nowrap">
                         {{-- Left Column: Row 1 = Equation, Row 2 = যোগফল লিখুন --}}
@@ -108,7 +189,7 @@
                             <input type="number" name="bot_answer" id="botAnswerInput" 
                                    class="form-control form-control-lg text-center fw-bold font-monospace bg-white border shadow-2xs px-1 px-sm-2" 
                                    style="width: 110px; min-width: 90px; max-width: 130px; font-size: clamp(16px, 4vw, 19px); height: 46px; border-radius: 10px;" 
-                                   placeholder="যোগফল" required min="0" max="40" autocomplete="off">
+                                   placeholder="যোগফল" {{ $isVisualChallengeActive ? '' : 'required' }} min="0" max="40" autocomplete="off">
                             <button type="button" class="btn btn-outline-primary rounded-circle d-flex align-items-center justify-content-center shadow-2xs flex-shrink-0" 
                                     id="refreshBotBtn" onclick="refreshBotChallenge(this)" title="নতুন সংখ্যা পেতে ক্লিক করুন" 
                                     style="width: 40px; height: 40px;">
@@ -182,7 +263,39 @@
     </div>
 </div>
 
+<style>
+.visual-tile {
+    cursor: pointer;
+    border-radius: 12px !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.visual-tile:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+    border-color: #94a3b8 !important;
+}
+.visual-tile.selected {
+    background: #eff6ff !important;
+    border-color: #0284c7 !important;
+    border-width: 2px !important;
+    box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.25) !important;
+}
+.visual-tile.selected .tile-icon {
+    color: #0284c7 !important;
+}
+.visual-tile.selected .tile-check-badge {
+    display: flex !important;
+}
+.visual-tile.verified-success {
+    background: #f0fdf4 !important;
+    border-color: #16a34a !important;
+}
+</style>
+
 <script>
+let selectedVisualIndices = [];
+let isVisualVerified = false;
+
 function togglePasswordVisibility(inputId, btn) {
     const input = document.getElementById(inputId);
     const icon = btn.querySelector('i');
@@ -198,6 +311,195 @@ function togglePasswordVisibility(inputId, btn) {
             icon.classList.remove('fa-eye-slash');
             icon.classList.add('fa-eye');
         }
+    }
+}
+
+function toggleVisualTile(tileEl) {
+    const index = parseInt(tileEl.getAttribute('data-index'), 10);
+    const hiddenInput = document.getElementById('visualSelectedIndicesInput');
+    const feedback = document.getElementById('visualChallengeFeedback');
+
+    if (tileEl.classList.contains('selected')) {
+        tileEl.classList.remove('selected');
+        selectedVisualIndices = selectedVisualIndices.filter(i => i !== index);
+    } else {
+        tileEl.classList.add('selected');
+        if (!selectedVisualIndices.includes(index)) {
+            selectedVisualIndices.push(index);
+        }
+    }
+
+    if (hiddenInput) {
+        hiddenInput.value = JSON.stringify(selectedVisualIndices);
+    }
+    if (feedback) {
+        feedback.classList.add('d-none');
+    }
+}
+
+async function verifyVisualSelection(btn) {
+    const hiddenInput = document.getElementById('visualSelectedIndicesInput');
+    const feedback = document.getElementById('visualChallengeFeedback');
+    const verifyBtn = btn || document.getElementById('verifyVisualBtn');
+
+    if (selectedVisualIndices.length === 0) {
+        if (feedback) {
+            feedback.className = 'mt-2.5 text-center small fw-semibold text-danger';
+            feedback.textContent = 'অনুগ্রহ করে অন্তত ৩টি সঠিক ছবিতে ক্লিক করুন।';
+            feedback.classList.remove('d-none');
+        }
+        return;
+    }
+
+    if (verifyBtn) {
+        verifyBtn.disabled = true;
+        verifyBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span> যাচাই হচ্ছে...';
+    }
+
+    try {
+        const res = await fetch('{{ route("login.verify-visual-challenge") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({
+                selected: selectedVisualIndices
+            })
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+            isVisualVerified = true;
+            if (feedback) {
+                feedback.className = 'mt-2.5 text-center small fw-bold text-success';
+                feedback.innerHTML = '<i class="fa-solid fa-circle-check me-1"></i> ' + data.message;
+                feedback.classList.remove('d-none');
+            }
+            if (verifyBtn) {
+                verifyBtn.className = 'btn btn-sm btn-success rounded-pill px-3 fw-bold';
+                verifyBtn.innerHTML = '<i class="fa-solid fa-check-double me-1"></i> মানুষ যাচাই সম্পন্ন';
+            }
+            // Highlight selected tiles with green
+            document.querySelectorAll('.visual-tile.selected').forEach(t => t.classList.add('verified-success'));
+        } else {
+            isVisualVerified = false;
+            if (feedback) {
+                feedback.className = 'mt-2.5 text-center small fw-semibold text-danger';
+                feedback.innerHTML = '<i class="fa-solid fa-triangle-exclamation me-1"></i> ' + (data.message || 'যাচাইকরণ সঠিক হয়নি।');
+                feedback.classList.remove('d-none');
+            }
+            if (data.new_challenge) {
+                renderVisualChallenge(data.new_challenge);
+            }
+            if (verifyBtn) {
+                verifyBtn.disabled = false;
+                verifyBtn.innerHTML = '<i class="fa-solid fa-shield-check me-1"></i> পুনরায় যাচাই করুন';
+            }
+        }
+    } catch (e) {
+        console.error('Visual verification error', e);
+        if (feedback) {
+            feedback.className = 'mt-2.5 text-center small fw-semibold text-danger';
+            feedback.textContent = 'সার্ভার সমস্যা হয়েছে। আবার চেষ্টা করুন।';
+            feedback.classList.remove('d-none');
+        }
+        if (verifyBtn) {
+            verifyBtn.disabled = false;
+            verifyBtn.innerHTML = '<i class="fa-solid fa-shield-check me-1"></i> যাচাই করুন';
+        }
+    }
+}
+
+async function fetchNewVisualChallenge(btn) {
+    const icon = document.getElementById('refreshVisualIcon');
+    if (icon) icon.classList.add('fa-spin');
+    if (btn) btn.disabled = true;
+
+    try {
+        const res = await fetch('{{ route("login.visual-challenge") }}', {
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+        const data = await res.json();
+        if (data && data.success && data.challenge) {
+            renderVisualChallenge(data.challenge);
+        }
+    } catch (e) {
+        console.error('Failed to load visual challenge', e);
+    } finally {
+        if (icon) icon.classList.remove('fa-spin');
+        if (btn) btn.disabled = false;
+    }
+}
+
+function renderVisualChallenge(c) {
+    selectedVisualIndices = [];
+    isVisualVerified = false;
+    const hiddenInput = document.getElementById('visualSelectedIndicesInput');
+    if (hiddenInput) hiddenInput.value = '[]';
+
+    const headerBadge = document.getElementById('visualChallengeHeaderBadge');
+    const targetIcon = document.getElementById('visualTargetIcon');
+    const instructionText = document.getElementById('visualInstructionText');
+    const instructionSub = document.getElementById('visualInstructionSub');
+    const grid = document.getElementById('visualTilesGrid');
+    const feedback = document.getElementById('visualChallengeFeedback');
+    const verifyBtn = document.getElementById('verifyVisualBtn');
+
+    if (headerBadge) {
+        headerBadge.style.background = (c.target_color || '#0284c7') + '15';
+        headerBadge.style.borderColor = (c.target_color || '#0284c7');
+    }
+    if (targetIcon) {
+        targetIcon.className = 'fa-solid ' + (c.target_icon || 'fa-eye') + ' fs-5';
+        targetIcon.style.color = (c.target_color || '#0284c7');
+    }
+    if (instructionText) {
+        instructionText.innerHTML = 'নিচের ছবিগুলো থেকে সব <strong>' + c.target_title + '</strong> চিহ্নিত করুন:';
+    }
+    if (instructionSub) {
+        instructionSub.textContent = c.target_desc || 'সঠিক ৩টি ছবিতে ক্লিক করে মানুষ প্রমাণ করুন';
+    }
+    if (feedback) {
+        feedback.classList.add('d-none');
+        feedback.textContent = '';
+    }
+    if (verifyBtn) {
+        verifyBtn.disabled = false;
+        verifyBtn.className = 'btn btn-sm btn-primary rounded-pill px-3 fw-bold';
+        verifyBtn.innerHTML = '<i class="fa-solid fa-shield-check me-1"></i> যাচাই করুন';
+    }
+
+    if (grid && c.tiles) {
+        grid.innerHTML = '';
+        c.tiles.forEach(tile => {
+            const col = document.createElement('div');
+            col.className = 'col-4';
+            col.innerHTML = `
+                <div class="visual-tile position-relative p-2.5 rounded-3 bg-white border cursor-pointer transition-all shadow-2xs h-100 d-flex flex-column align-items-center justify-content-center"
+                     data-index="${tile.index}"
+                     onclick="toggleVisualTile(this)"
+                     style="min-height: 84px; border-color: #cbd5e1; user-select: none;">
+                    <div class="tile-check-badge position-absolute top-0 end-0 m-1 rounded-circle bg-success text-white d-none align-items-center justify-content-center shadow-2xs" 
+                         style="width: 20px; height: 20px; font-size: 11px;">
+                        <i class="fa-solid fa-check"></i>
+                    </div>
+                    <div class="tile-icon text-secondary mb-1" style="font-size: 26px;">
+                        <i class="fa-solid ${tile.icon}"></i>
+                    </div>
+                    <div class="tile-label fw-semibold text-dark text-truncate w-100" style="font-size: 11px;">
+                        ${tile.label}
+                    </div>
+                </div>
+            `;
+            grid.appendChild(col);
+        });
     }
 }
 
@@ -241,7 +543,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('loginForm');
     const btn = document.getElementById('loginSubmitBtn');
     if (form && btn) {
-        form.addEventListener('submit', function() {
+        form.addEventListener('submit', function(e) {
+            const visualContainer = document.getElementById('visualChallengeContainer');
+            if (visualContainer && !visualContainer.classList.contains('d-none')) {
+                const hiddenInput = document.getElementById('visualSelectedIndicesInput');
+                if (hiddenInput) {
+                    hiddenInput.value = JSON.stringify(selectedVisualIndices);
+                }
+            }
             btn.disabled = true;
             btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1.5" role="status"></span> Checking & Logging in...';
         });

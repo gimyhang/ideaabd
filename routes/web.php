@@ -76,12 +76,15 @@ Route::get('/ads.txt', function () {
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login')->middleware('guest');
 Route::post('/login', [LoginController::class, 'login'])->middleware('guest');
 Route::get('/login/refresh-bot-challenge', [LoginController::class, 'refreshBotChallenge'])->name('login.refresh-bot');
+Route::get('/login/visual-challenge', [LoginController::class, 'getVisualChallenge'])->name('login.visual-challenge');
+Route::post('/login/verify-visual-challenge', [LoginController::class, 'verifyVisualChallenge'])->name('login.verify-visual-challenge');
 Route::match(['get', 'post'], '/logout', [LoginController::class, 'logout'])->name('logout');
 
 // --- Password Reset via Email / WhatsApp (+8801558712810) ---
 Route::get('/forgot-password', [\App\Http\Controllers\Auth\PasswordResetController::class, 'showRequestForm'])->name('password.request')->middleware('guest');
 Route::post('/forgot-password', [\App\Http\Controllers\Auth\PasswordResetController::class, 'sendResetLink'])->name('password.email')->middleware('guest');
 Route::post('/forgot-password/send', [\App\Http\Controllers\Auth\PasswordResetController::class, 'sendResetLink'])->name('password.send-otp')->middleware('guest');
+Route::post('/forgot-password/help-request', [\App\Http\Controllers\Auth\PasswordResetController::class, 'submitHelpRequest'])->name('password.help-request')->middleware('guest');
 Route::get('/reset-password-otp', [\App\Http\Controllers\Auth\PasswordResetController::class, 'showOtpResetForm'])->name('password.reset-otp')->middleware('guest');
 Route::post('/reset-password-otp', [\App\Http\Controllers\Auth\PasswordResetController::class, 'resetPasswordWithOtp'])->name('password.update-otp')->middleware('guest');
 Route::get('/reset-password/{token}', [\App\Http\Controllers\Auth\PasswordResetController::class, 'showResetForm'])->name('password.reset')->middleware('guest');
@@ -503,7 +506,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
 
     // Payment management & gateways
     Route::get('/payments', [PaymentAdminController::class, 'index'])->name('payments.index');
-    Route::post('/payments', [PaymentAdminController::class, 'updateGateways'])->name('payments.update');
+    Route::match(['post', 'put', 'patch'], '/payments', [PaymentAdminController::class, 'updateGateways'])->name('payments.update');
     Route::patch('/payments/{order}/status', [PaymentAdminController::class, 'updateStatus'])->name('payments.status');
 
     // Quick AJAX resource creators for books/ebooks/blog forms
@@ -516,9 +519,46 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::get('/roles-permissions', [AdminAccessController::class, 'rolesPermissions'])->name('roles.index');
     Route::post('/roles-permissions', [AdminAccessController::class, 'updatePermissions'])->name('roles.update');
     Route::get('/activity-logs', [AdminAccessController::class, 'activityLogs'])->name('activity-logs');
+    Route::get('/audit-logs', [AdminAccessController::class, 'activityLogs'])->name('audit-logs.index');
     Route::get('/system-settings', [AdminAccessController::class, 'systemSettings'])->name('system-settings');
     Route::post('/system-settings', [AdminAccessController::class, 'updateSystemSettings'])->name('system-settings.update');
     Route::post('/system-settings/clear-cache', [AdminAccessController::class, 'clearCache'])->name('system-settings.clear-cache');
+
+    // Cache management & optimizations
+    Route::prefix('cache')->name('cache.')->controller(\App\Http\Controllers\Admin\AdminCacheController::class)->group(function () {
+        Route::get('/manage', 'index')->name('manage');
+        Route::post('/clear-all', 'clearAll')->name('clear-all');
+        Route::post('/clear-views', 'clearViews')->name('clear-views');
+        Route::post('/clear-app', 'clearApp')->name('clear-app');
+        Route::post('/clear-config', 'clearConfig')->name('clear-config');
+        Route::post('/clear-routes', 'clearRoutes')->name('clear-routes');
+        Route::post('/optimize', 'optimize')->name('optimize');
+    });
+
+    // Database Backup & Recovery
+    Route::prefix('backup')->name('backup.')->controller(\App\Http\Controllers\Admin\AdminBackupController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::post('/create', 'create')->name('create');
+        Route::get('/download/{filename}', 'download')->name('download');
+        Route::delete('/{filename}', 'destroy')->name('destroy');
+    });
+
+    // Media & Library
+    Route::prefix('media')->name('media.')->controller(\App\Http\Controllers\Admin\AdminMediaController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::post('/upload', 'upload')->name('upload');
+        Route::delete('/', 'destroy')->name('destroy');
+    });
+
+    // User Management Security, One-Time Password (OTP) & IP Block Cleaner
+    Route::prefix('users/security')->name('users.security.')->controller(\App\Http\Controllers\Admin\UserSecurityAdminController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::post('/generate-otp', 'generateOtp')->name('generate-otp');
+        Route::post('/auto-generate-password', 'autoGeneratePassword')->name('auto-generate-password');
+        Route::post('/unblock-ip', 'unblockIp')->name('unblock-ip');
+        Route::post('/block-ip', 'blockIp')->name('block-ip');
+        Route::post('/clean-expired', 'cleanExpired')->name('clean-expired');
+    });
 });
 
 // --- Sub-admin / Seller panel ---------------------------------------------

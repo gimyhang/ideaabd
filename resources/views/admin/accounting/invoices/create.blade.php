@@ -64,389 +64,400 @@
 <form action="{{ route('admin.accounting.invoices.store') }}" method="POST" id="invoiceForm">
     @csrf
 
-    <div class="row g-4">
-        {{-- Left Form --}}
-        <div class="col-12 col-xl-8">
-            {{-- Document & Customer Details --}}
-            <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white">
-                <div class="card-header bg-white py-3 border-bottom d-flex flex-wrap justify-content-between align-items-center gap-2">
-                    <h5 class="fw-bold mb-0 text-primary">
-                        <i class="fas fa-file-invoice me-2"></i>Document & Client Information
-                    </h5>
-                    
-                    {{-- 4 Document Types Switcher --}}
-                    <div class="btn-group btn-group-sm flex-wrap" role="group">
-                        <input type="radio" class="btn-check" name="type" id="typeInvoice" value="invoice" 
-                                @checked($currentType === 'invoice') onchange="updateDocType()">
-                        <label class="btn btn-outline-primary fw-semibold" for="typeInvoice">
-                            <i class="fas fa-receipt me-1"></i>Bill / Invoice
-                        </label>
+    {{-- Document & Customer Details (Full Width) --}}
+    <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white">
+        <div class="card-header bg-white py-3 border-bottom d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <h5 class="fw-bold mb-0 text-primary">
+                <i class="fas fa-file-invoice me-2"></i>Document & Client Information
+            </h5>
+            
+            {{-- 4 Document Types Switcher --}}
+            <div class="btn-group btn-group-sm flex-wrap" role="group">
+                <input type="radio" class="btn-check" name="type" id="typeInvoice" value="invoice" 
+                        @checked($currentType === 'invoice') onchange="updateDocType()">
+                <label class="btn btn-outline-primary fw-semibold" for="typeInvoice">
+                    <i class="fas fa-receipt me-1"></i>Bill / Invoice
+                </label>
 
-                        <input type="radio" class="btn-check" name="type" id="typeChallan" value="challan" 
-                                @checked($currentType === 'challan') onchange="updateDocType()">
-                        <label class="btn btn-outline-primary fw-semibold" for="typeChallan">
-                            <i class="fas fa-truck me-1"></i>Delivery Challan
-                        </label>
+                <input type="radio" class="btn-check" name="type" id="typeChallan" value="challan" 
+                        @checked($currentType === 'challan') onchange="updateDocType()">
+                <label class="btn btn-outline-primary fw-semibold" for="typeChallan">
+                    <i class="fas fa-truck me-1"></i>Delivery Challan
+                </label>
 
-                        <input type="radio" class="btn-check" name="type" id="typeQuotation" value="quotation" 
-                                @checked($currentType === 'quotation') onchange="updateDocType()">
-                        <label class="btn btn-outline-primary fw-semibold" for="typeQuotation">
-                            <i class="fas fa-file-lines me-1"></i>Quotation / Proforma
-                        </label>
+                <input type="radio" class="btn-check" name="type" id="typeQuotation" value="quotation" 
+                        @checked($currentType === 'quotation') onchange="updateDocType()">
+                <label class="btn btn-outline-primary fw-semibold" for="typeQuotation">
+                    <i class="fas fa-file-lines me-1"></i>Quotation / Proforma
+                </label>
 
-                        <input type="radio" class="btn-check" name="type" id="typeTender" value="tender" 
-                                @checked($currentType === 'tender') onchange="updateDocType()">
-                        <label class="btn btn-outline-primary fw-semibold" for="typeTender">
-                            <i class="fas fa-landmark me-1"></i>Tender Document
-                        </label>
-                    </div>
-                </div>
-                  <div class="card-body p-3 p-md-4">
-                    {{-- Tender & Quotation Dynamic Panel --}}
-                    <div id="tenderQuotationPanel" class="p-3.5 rounded-3 border mb-3 {{ in_array($currentType, ['quotation', 'tender']) ? '' : 'd-none' }} {{ $currentType === 'tender' ? 'bg-indigo-subtle border-indigo-subtle' : 'bg-warning-subtle bg-opacity-25 border-warning-subtle' }}">
-                        <div class="d-flex align-items-center justify-content-between mb-2.5 pb-2 border-bottom text-dark fw-bold small" id="tenderPanelHeader">
-                            <div class="d-flex align-items-center gap-2">
-                                <i class="{{ $currentType === 'tender' ? 'fas fa-landmark text-indigo fs-5' : 'fas fa-file-invoice text-warning-emphasis fs-5' }}" id="tenderPanelIcon"></i> 
-                                <span id="tenderPanelTitle" class="fs-6">{{ $currentType === 'tender' ? '🏛️ Tender Proposal & BoQ Schedule' : '📋 Quotation & Proforma Proposal' }}</span>
-                            </div>
-                            <span class="badge {{ $currentType === 'tender' ? 'bg-indigo text-white' : 'bg-warning text-dark' }} px-3 py-1.5 rounded-pill shadow-xs" id="tenderPanelBadge">
-                                <i class="fa-solid fa-sparkles me-1"></i>{{ $currentType === 'tender' ? 'Tender Mode' : 'Quotation Mode' }}
-                            </span>
-                        </div>
-
-                        <div class="row g-2.5">
-                            <div class="col-md-8">
-                                <label class="form-label small fw-semibold text-muted mb-1" id="tenderSubjectLabel">
-                                    {{ $currentType === 'tender' ? 'Tender Subject / Work Scope' : 'Proposal Subject' }} <span class="text-danger">*</span>
-                                </label>
-                                <input type="text" name="subject" id="f-subject" class="form-control form-control-sm bg-white" 
-                                       placeholder="{{ $currentType === 'tender' ? 'e.g. Tender for Supply of Books, Publications & Stationery...' : 'e.g. Price Quotation for Book Printing & Publishing...' }}" 
-                                       value="{{ old('subject', $currentType === 'tender' ? 'Tender for Supply of Books, Publications & Stationery' : 'Price Quotation for Book Printing & Publication') }}">
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label small fw-semibold text-muted mb-1" id="tenderRefLabel">
-                                    {{ $currentType === 'tender' ? 'Tender Memo / Ref No' : 'Quotation / Ref No' }}
-                                </label>
-                                <input type="text" name="reference_no" id="f-reference_no" class="form-control form-control-sm bg-white" 
-                                       placeholder="{{ $currentType === 'tender' ? 'e.g. MOE/PUB/TND/2026-08' : 'e.g. IP/QUO/2026/01' }}" value="{{ old('reference_no') }}">
-                            </div>
-
-                            <div class="col-12">
-                                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 pt-1 border-top border-light">
-                                    <div class="d-flex align-items-center gap-2 flex-wrap">
-                                        <span class="small text-muted fw-semibold"><i class="fa-regular fa-clock me-1"></i>Quick Validity:</span>
-                                        <button type="button" class="btn btn-white btn-sm border rounded-pill px-2.5 py-0.5 shadow-2xs text-dark" onclick="setValidityDays(7)">+7 Days</button>
-                                        <button type="button" class="btn btn-white btn-sm border rounded-pill px-2.5 py-0.5 shadow-2xs text-dark" onclick="setValidityDays(15)">+15 Days</button>
-                                        <button type="button" class="btn btn-white btn-sm border rounded-pill px-2.5 py-0.5 shadow-2xs text-dark" onclick="setValidityDays(30)">+30 Days (Standard)</button>
-                                        <button type="button" class="btn btn-white btn-sm border rounded-pill px-2.5 py-0.5 shadow-2xs text-dark" onclick="setValidityDays(60)">+60 Days</button>
-                                        <button type="button" class="btn btn-white btn-sm border rounded-pill px-2.5 py-0.5 shadow-2xs text-dark" onclick="setValidityDays(90)">+90 Days (Tender)</button>
-                                    </div>
-                                    <div class="text-muted small">
-                                        <i class="fa-solid fa-circle-info text-info me-1"></i>Applicable VAT/AIT integrated as per regulations
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="row g-3">
-                        <div class="col-md-4">
-                            <label class="form-label fw-semibold">Customer / Client Name <span class="text-danger">*</span></label>
-                            <input type="text" name="customer_name" class="form-control @error('customer_name') is-invalid @enderror" 
-                                   placeholder="Client / Contact person name..." value="{{ old('customer_name') }}" required>
-                            @error('customer_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label fw-semibold">Designation</label>
-                            <input type="text" name="customer_designation" class="form-control" 
-                                   placeholder="e.g. Executive Director, Headmaster..." value="{{ old('customer_designation') }}">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label fw-semibold">Organization / Institution</label>
-                            <input type="text" name="customer_org" class="form-control" 
-                                   placeholder="Library, Bookshop or Company name..." value="{{ old('customer_org') }}">
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label fw-semibold">Phone Number</label>
-                            <input type="text" name="customer_phone" class="form-control" placeholder="017XXXXXXXX" value="{{ old('customer_phone') }}">
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label fw-semibold">Email Address</label>
-                            <input type="email" name="customer_email" class="form-control" placeholder="customer@example.com" value="{{ old('customer_email') }}">
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label fw-semibold">Date <span class="text-danger">*</span></label>
-                            <input type="date" name="invoice_date" id="invoiceDateInput" class="form-control" value="{{ old('invoice_date', date('Y-m-d')) }}" required>
-                        </div>
-                        <div class="col-md-3" id="validUntilCol">
-                            <label class="form-label fw-semibold">Validity / Expiry Date</label>
-                            <input type="date" name="valid_until" id="validUntilInput" class="form-control" value="{{ old('valid_until') }}" title="Validity date for quotation or tender">
-                        </div>
-                        <div class="col-md-8">
-                            <label class="form-label small fw-semibold text-muted">Full Address / Shipping Destination</label>
-                            <input type="text" name="customer_address" class="form-control form-control-sm" placeholder="Full address..." value="{{ old('customer_address') }}">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label small fw-semibold text-muted">Document / Invoice Number <span class="text-danger">*</span></label>
-                            <input type="text" name="invoice_no" id="invoiceNoInput" class="form-control form-control-sm font-monospace fw-bold" value="{{ old('invoice_no', $suggestedNo) }}" required>
-                        </div>
-                    </div>
-                </div>
+                <input type="radio" class="btn-check" name="type" id="typeTender" value="tender" 
+                        @checked($currentType === 'tender') onchange="updateDocType()">
+                <label class="btn btn-outline-primary fw-semibold" for="typeTender">
+                    <i class="fas fa-landmark me-1"></i>Tender Document
+                </label>
             </div>
-
-            {{-- Bill / Challan / Quotation / Tender Items Table --}}
-            <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white">
-                <div class="card-header bg-white py-3 border-bottom d-flex flex-wrap align-items-center justify-content-between gap-2">
-                    <div>
-                        <h5 class="fw-bold mb-0 text-dark" id="itemsSectionTitle">
-                            <i class="fas fa-list-check me-2 text-success"></i>Items & Schedule of Rates
-                        </h5>
-                    </div>
+        </div>
+        <div class="card-body p-3 p-md-4">
+            {{-- Tender & Quotation Dynamic Panel --}}
+            <div id="tenderQuotationPanel" class="p-3.5 rounded-3 border mb-3 {{ in_array($currentType, ['quotation', 'tender']) ? '' : 'd-none' }} {{ $currentType === 'tender' ? 'bg-indigo-subtle border-indigo-subtle' : 'bg-warning-subtle bg-opacity-25 border-warning-subtle' }}">
+                <div class="d-flex align-items-center justify-content-between mb-2.5 pb-2 border-bottom text-dark fw-bold small" id="tenderPanelHeader">
                     <div class="d-flex align-items-center gap-2">
-                        <button type="button" class="btn btn-warning rounded-pill px-3 py-1.5 fw-bold shadow-2xs text-dark" onclick="openPrintCostCalculator()" title="Calculate accurate book printing and publishing cost">
-                            <i class="fa-solid fa-calculator text-dark me-1"></i> Print Cost Calculator
-                        </button>
-                        <button type="button" class="btn btn-sm btn-success rounded-pill px-3 py-1.5 fw-semibold shadow-2xs" id="btnAddItemBtn" onclick="addItemRow()">
-                            <i class="fas fa-plus me-1"></i> Add Item
-                        </button>
+                        <i class="{{ $currentType === 'tender' ? 'fas fa-landmark text-indigo fs-5' : 'fas fa-file-invoice text-warning-emphasis fs-5' }}" id="tenderPanelIcon"></i> 
+                        <span id="tenderPanelTitle" class="fs-6">{{ $currentType === 'tender' ? '🏛️ Tender Proposal & BoQ Schedule' : '📋 Quotation & Proforma Proposal' }}</span>
                     </div>
+                    <span class="badge {{ $currentType === 'tender' ? 'bg-indigo text-white' : 'bg-warning text-dark' }} px-3 py-1.5 rounded-pill shadow-xs" id="tenderPanelBadge">
+                        <i class="fa-solid fa-sparkles me-1"></i>{{ $currentType === 'tender' ? 'Tender Mode' : 'Quotation Mode' }}
+                    </span>
                 </div>
-                <div class="card-body p-3">
-                    
-                    {{-- Dropdown Quick Presets for Stationery --}}
-                    <div id="stationeryPresetsWrap" class="mb-3 p-3 bg-light rounded-3 border" style="display: none;">
-                        <div class="row align-items-center g-2">
-                            <div class="col-md-4">
-                                <span class="small fw-bold text-dark">
-                                    <i class="fa-solid fa-pen-ruler text-info me-1"></i> Quick Stationery Presets:
-                                </span>
+
+                <div class="row g-2.5">
+                    <div class="col-md-8">
+                        <label class="form-label small fw-semibold text-muted mb-1" id="tenderSubjectLabel">
+                            {{ $currentType === 'tender' ? 'Tender Subject / Work Scope' : 'Proposal Subject' }} <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" name="subject" id="f-subject" class="form-control form-control-sm bg-white" 
+                               placeholder="{{ $currentType === 'tender' ? 'e.g. Tender for Supply of Books, Publications & Stationery...' : 'e.g. Price Quotation for Book Printing & Publishing...' }}" 
+                               value="{{ old('subject', $currentType === 'tender' ? 'Tender for Supply of Books, Publications & Stationery' : 'Price Quotation for Book Printing & Publication') }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-semibold text-muted mb-1" id="tenderRefLabel">
+                            {{ $currentType === 'tender' ? 'Tender Memo / Ref No' : 'Quotation / Ref No' }}
+                        </label>
+                        <input type="text" name="reference_no" id="f-reference_no" class="form-control form-control-sm bg-white" 
+                               placeholder="{{ $currentType === 'tender' ? 'e.g. MOE/PUB/TND/2026-08' : 'e.g. IP/QUO/2026/01' }}" value="{{ old('reference_no') }}">
+                    </div>
+
+                    <div class="col-12">
+                        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 pt-1 border-top border-light">
+                            <div class="d-flex align-items-center gap-2 flex-wrap">
+                                <span class="small text-muted fw-semibold"><i class="fa-regular fa-clock me-1"></i>Quick Validity:</span>
+                                <button type="button" class="btn btn-white btn-sm border rounded-pill px-2.5 py-0.5 shadow-2xs text-dark" onclick="setValidityDays(7)">+7 Days</button>
+                                <button type="button" class="btn btn-white btn-sm border rounded-pill px-2.5 py-0.5 shadow-2xs text-dark" onclick="setValidityDays(15)">+15 Days</button>
+                                <button type="button" class="btn btn-white btn-sm border rounded-pill px-2.5 py-0.5 shadow-2xs text-dark" onclick="setValidityDays(30)">+30 Days (Standard)</button>
+                                <button type="button" class="btn btn-white btn-sm border rounded-pill px-2.5 py-0.5 shadow-2xs text-dark" onclick="setValidityDays(60)">+60 Days</button>
+                                <button type="button" class="btn btn-white btn-sm border rounded-pill px-2.5 py-0.5 shadow-2xs text-dark" onclick="setValidityDays(90)">+90 Days (Tender)</button>
                             </div>
-                            <div class="col-md-8">
-                                <select class="form-select form-select-sm rounded-pill border-info fw-semibold" id="stationeryPresetSelect" onchange="onStationeryPresetSelected(this)">
-                                    <option value="">-- Select Stationery Item (1-Click Add) --</option>
-                                    
-                                    <optgroup label="📓 Notebooks, Diaries & Khatas">
-                                        <option value='{"title":"Executive Hardbound Diary 2026","spec":"Idea Brand, Premium Gold Foil","type":"Stationery","unit":"Pcs","price":350,"reg":450}'>📓 Executive Hardbound Diary 2026 (৳350)</option>
-                                        <option value='{"title":"Spiral Executive Notebook (160 Pages)","spec":"80 GSM Premium Ruled Offset Paper","type":"Stationery","unit":"Pcs","price":150,"reg":180}'>📒 Spiral Executive Notebook 160 Pages (৳150)</option>
-                                        <option value='{"title":"Exercise Book / Khata (120 Pages)","spec":"Ruled Offset Paper, Laminated Cover","type":"Stationery","unit":"Pcs","price":65,"reg":80}'>📝 Exercise Book / Khata 120 Pages (৳65)</option>
-                                        <option value='{"title":"Practical Khata / Science Notebook","spec":"100 Pages, One-Side Ruled / Plain","type":"Stationery","unit":"Pcs","price":90,"reg":115}'>🔬 Practical Khata / Science Notebook (৳90)</option>
-                                        <option value='{"title":"Official Ledger / Register Book (200 Pages)","spec":"Hardbound Cloth Binding, Serialized","type":"Stationery","unit":"Pcs","price":240,"reg":290}'>📚 Official Ledger / Register Book 200 Pages (৳240)</option>
-                                        <option value='{"title":"Pocket Memo Notebook (80 Pages)","spec":"Top Spiral Bound, Pocket Friendly","type":"Stationery","unit":"Pcs","price":45,"reg":60}'>🗒️ Pocket Memo Notebook 80 Pages (৳45)</option>
-                                    </optgroup>
-
-                                    <optgroup label="🖊️ Pens, Highlighters & Markers">
-                                        <option value='{"title":"Smooth Ballpoint Pen Box (10 Pcs)","spec":"0.7mm Smooth Flow (Blue/Black)","type":"Stationery","unit":"Box","price":120,"reg":150}'>🖊️ Ballpoint Pen Box (10 Pcs) (৳120)</option>
-                                        <option value='{"title":"Ultra Smooth Gel Pen Set (5 Colors)","spec":"0.5mm Quick-Dry Japanese Ink","type":"Stationery","unit":"Set","price":180,"reg":220}'>✒️ Ultra Smooth Gel Pen Set 5 Pcs (৳180)</option>
-                                        <option value='{"title":"Pastel Chisel Highlighter Set (6 Colors)","spec":"Non-Smudge Pastel Shades","type":"Stationery","unit":"Set","price":240,"reg":290}'>🖍️ Pastel Highlighter Set (6 Colors) (৳240)</option>
-                                        <option value='{"title":"Permanent Marker Pen Set (3 Pcs)","spec":"Black, Blue & Red Waterproof Ink","type":"Stationery","unit":"Set","price":110,"reg":135}'>🖋️ Permanent Marker Set (3 Colors) (৳110)</option>
-                                        <option value='{"title":"Whiteboard Marker & Duster Kit","spec":"4 Non-Toxic Colors + Magnetic Duster","type":"Stationery","unit":"Set","price":175,"reg":215}'>🧽 Whiteboard Marker & Duster Kit (৳175)</option>
-                                    </optgroup>
-
-                                    <optgroup label="📁 Filing, Folders & Office Organization">
-                                        <option value='{"title":"Leatherette Document File Folder (A4)","spec":"Waterproof Executive File Folder","type":"Stationery","unit":"Pcs","price":55,"reg":70}'>📁 Leatherette Document File Folder (৳55)</option>
-                                        <option value='{"title":"Heavy Duty Ring Binder Box File","spec":"Standard Office Box File with Lever Arch","type":"Stationery","unit":"Pcs","price":120,"reg":150}'>🗂️ Heavy Duty Ring Binder Box File (৳120)</option>
-                                        <option value='{"title":"Clear Button Document Pouch (A4)","spec":"Transparent Waterproof Poly Pouch","type":"Stationery","unit":"Pcs","price":35,"reg":45}'>👝 Clear Button Document Pouch (৳35)</option>
-                                        <option value='{"title":"Heavy Duty Desktop Stapler & Pins Pack","spec":"Full Metal Office Stapler + 1000 Pins","type":"Stationery","unit":"Set","price":160,"reg":200}'>📎 Desktop Stapler & Pins Pack (৳160)</option>
-                                        <option value='{"title":"Self-Adhesive Sticky Notes Pad (3×3\")","spec":"100 Neon Sheets Multi-color","type":"Stationery","unit":"Pad","price":60,"reg":80}'>📑 Sticky Notes Pad 100 Sheets (৳60)</option>
-                                        <option value='{"title":"Desktop Organizer Stand (Multi-Compartment)","spec":"Mesh Metal Pen, Card & File Holder","type":"Stationery","unit":"Pcs","price":280,"reg":350}'>🗃️ Desktop Organizer Stand (৳280)</option>
-                                        <option value='{"title":"Heavy Duty 2-Hole Paper Puncher","spec":"Punching Capacity: 30 Sheets","type":"Stationery","unit":"Pcs","price":220,"reg":270}'>🔘 Heavy Duty 2-Hole Paper Puncher (৳220)</option>
-                                        <option value='{"title":"Stainless Steel Office Scissors (8 Inch)","spec":"Ergonomic Comfort Grip","type":"Stationery","unit":"Pcs","price":130,"reg":160}'>✂️ Stainless Steel Office Scissors (৳130)</option>
-                                    </optgroup>
-
-                                    <optgroup label="📄 Paper, Envelopes & Accessories">
-                                        <option value='{"title":"Premium A4 Offset Paper Ream (80 GSM)","spec":"500 Sheets High Brightness White","type":"Stationery","unit":"Ream","price":480,"reg":550}'>📄 Premium A4 Offset Paper Ream 80 GSM (৳480)</option>
-                                        <option value='{"title":"Official Mailing Envelopes (10×4.5\")","spec":"Pack of 50 Pcs, 100 GSM Self-Adhesive","type":"Stationery","unit":"Pack","price":140,"reg":175}'>✉️ Official Mailing Envelopes 50 Pcs (৳140)</option>
-                                        <option value='{"title":"Kraft Document Envelopes (A4 / 9×12\")","spec":"Pack of 25 Pcs Heavy Kraft Board","type":"Stationery","unit":"Pack","price":160,"reg":200}'>📂 Kraft Document Envelopes 25 Pcs (৳160)</option>
-                                        <option value='{"title":"Premium Gold Foil Bookmarks Set (5 Pcs)","spec":"Laminated Literary Art Bookmarks","type":"Stationery","unit":"Set","price":95,"reg":125}'>🔖 Gold Foil Bookmarks Set 5 Pcs (৳95)</option>
-                                        <option value='{"title":"Steel Paper Clips & Binder Clips Box","spec":"Assorted Size Binder Clips (Box)","type":"Stationery","unit":"Box","price":85,"reg":110}'>🧷 Binder & Paper Clips Assorted Box (৳85)</option>
-                                    </optgroup>
-                                </select>
+                            <div class="text-muted small">
+                                <i class="fa-solid fa-circle-info text-info me-1"></i>Applicable VAT/AIT integrated as per regulations
                             </div>
                         </div>
-                    </div>
-
-                    {{-- Dropdown Quick Presets for Printing Goods & Services --}}
-                    <div id="printingPresetsWrap" class="mb-3 p-3 bg-light rounded-3 border" style="display: none;">
-                        <div class="row align-items-center g-2">
-                            <div class="col-md-4">
-                                <span class="small fw-bold text-dark">
-                                    <i class="fa-solid fa-print text-warning me-1"></i> Quick Printing & Press Presets:
-                                </span>
-                            </div>
-                            <div class="col-md-8">
-                                <select class="form-select form-select-sm rounded-pill border-warning fw-semibold" id="printingPresetSelect" onchange="onPrintingPresetSelected(this)">
-                                    <option value="">-- Select Printing Job / Service (1-Click Add) --</option>
-                                    
-                                    <optgroup label="📚 Books & Publications Printing">
-                                        <option value='{"title":"Custom Book Printing & Binding (Demy 5.5×8.5\")","spec":"Demy Size, 80 GSM Offset, 4-Color Cover, Perfect Bound","type":"Printing & Binding","unit":"Copy","price":140,"reg":160}'>📚 Custom Book Printing & Binding (Demy 80 GSM) (৳140)</option>
-                                        <option value='{"title":"Premium Hardcover Book Printing & Gold Foil","spec":"Royal Size (6.25×9.5\"), 100 GSM, Embossed Gold Foil","type":"Printing & Binding","unit":"Copy","price":240,"reg":280}'>📖 Premium Hardcover Book Printing (Royal Size) (৳240)</option>
-                                        <option value='{"title":"Souvenir / Magazine Printing (A4 Size)","spec":"A4, 4-Color Cover 150 GSM Art Paper, 80 GSM Inner","type":"Printing & Binding","unit":"Copy","price":95,"reg":120}'>📕 Souvenir / Magazine Printing A4 (৳95)</option>
-                                        <option value='{"title":"Annual Report & Corporate Profile (A4)","spec":"A4 Size, 150 GSM Art Paper, Spiral / Perfect Binding","type":"Printing & Binding","unit":"Copy","price":165,"reg":195}'>📊 Annual Report & Corporate Profile (৳165)</option>
-                                        <option value='{"title":"Literary Magazine / Little Mag Printing","spec":"Double Demy, 70 GSM Newsprint/Offset, 2-Color Cover","type":"Printing & Binding","unit":"Copy","price":55,"reg":70}'>📰 Literary Magazine / Little Mag (৳55)</option>
-                                    </optgroup>
-
-                                    <optgroup label="🏢 Corporate Stationery & Commercial Printing">
-                                        <option value='{"title":"Cash Memo / Money Receipt Book (100 Sheets)","spec":"2-Part / 3-Part NCR Carbonless Paper, Serial Numbered","type":"Printing & Binding","unit":"Book","price":130,"reg":160}'>🧾 Cash Memo / Receipt Book (NCR Paper) (৳130)</option>
-                                        <option value='{"title":"Delivery Challan Book (3-Part NCR)","spec":"3-Part NCR Carbonless, Hard Board Back, Serialized","type":"Printing & Binding","unit":"Book","price":145,"reg":175}'>🚚 Delivery Challan Book (3-Part NCR) (৳145)</option>
-                                        <option value='{"title":"Official Letterhead Pad (100 GSM Laser)","spec":"100 GSM Executive Paper, 4-Color Print, 50 Sheets Pad","type":"Printing & Binding","unit":"Pad","price":190,"reg":230}'>📑 Official Letterhead Pad (100 GSM) (৳190)</option>
-                                        <option value='{"title":"Doctor / Prescription Pad (100 Sheets)","spec":"80 GSM Offset Paper, 100 Sheets Top Glued","type":"Printing & Binding","unit":"Pad","price":115,"reg":135}'>🩺 Prescription Pad (100 Sheets) (৳115)</option>
-                                        <option value='{"title":"Official Printed Envelopes (10×4.5 Inch)","spec":"100 GSM Offset, 4-Color Print, Self-Adhesive (Per 1,000)","type":"Printing & Binding","unit":"Thousand","price":2400,"reg":2800}'>✉️ Official Printed Envelopes (Per 1,000) (৳2,400)</option>
-                                        <option value='{"title":"Document File Folder Printing (A4)","spec":"350 GSM Art Card, Matt Laminated, Pocket Die-cut","type":"Printing & Binding","unit":"Pcs","price":50,"reg":65}'>📁 Document File Folder (Pocket Die-cut) (৳50)</option>
-                                        <option value='{"title":"Visiting Cards / Business Cards Box (100 Pcs)","spec":"300 GSM Art Card, 2-Sided 4C, Matt Lamination + Spot UV","type":"Printing & Binding","unit":"Box","price":380,"reg":480}'>💳 Business Cards Box (Matt + Spot UV) (৳380)</option>
-                                        <option value='{"title":"Digital PVC ID Card & Printed Ribbon Lanyard","spec":"PVC Smart ID Card, Multicolor Thermal + Custom Lanyard","type":"Printing & Binding","unit":"Set","price":95,"reg":125}'>🪪 Digital PVC ID Card & Ribbon Lanyard (৳95)</option>
-                                    </optgroup>
-
-                                    <optgroup label="📢 Marketing, Brochures & Advertising">
-                                        <option value='{"title":"Promotional Flyers / Leaflets (A4 / A5)","spec":"120 GSM Art Paper, 2-Sided 4-Color Offset (Per 1,000)","type":"Printing & Binding","unit":"Thousand","price":2800,"reg":3300}'>📜 Promotional Flyers / Leaflets (Per 1,000) (৳2,800)</option>
-                                        <option value='{"title":"Folded Product Brochure / Catalog (3-Fold)","spec":"3-Fold, 170 GSM Glossy Art Paper, Full Color","type":"Printing & Binding","unit":"Copy","price":28,"reg":38}'>📑 Folded Product Brochure (3-Fold) (৳28)</option>
-                                        <option value='{"title":"Wall Calendar Printing (6/12 Sheets)","spec":"Art Paper, Tin Rim & Spiral Hanger","type":"Printing & Binding","unit":"Pcs","price":90,"reg":115}'>🗓️ Wall Calendar Printing (6/12 Sheets) (৳90)</option>
-                                        <option value='{"title":"Executive Desk / Table Calendar","spec":"12 Sheets Matt Lamination, Hard Stand Board","type":"Printing & Binding","unit":"Pcs","price":135,"reg":165}'>📅 Executive Desk / Table Calendar (৳135)</option>
-                                        <option value='{"title":"Full Color Poster Printing (18×23 / 18×28\")","spec":"150 GSM Art Paper, High Gloss Finish (Per 1,000)","type":"Printing & Binding","unit":"Thousand","price":3600,"reg":4200}'>🖼️ Full Color Poster (Per 1,000) (৳3,600)</option>
-                                        <option value='{"title":"Die-cut Product Labels & Stickers","spec":"Glossy PVC Self-Adhesive, Die-cut Shape (Per 1,000)","type":"Printing & Binding","unit":"Thousand","price":1800,"reg":2200}'>🏷️ Die-cut Product Labels & Stickers (৳1,800)</option>
-                                    </optgroup>
-
-                                    <optgroup label="🎁 Specialty, Packaging & Binding">
-                                        <option value='{"title":"Certificate & Premium Folder Printing","spec":"300 GSM Textured Card, Embossed Gold Foil","type":"Printing & Binding","unit":"Pcs","price":65,"reg":85}'>🎓 Certificate & Embossed Folder (৳65)</option>
-                                        <option value='{"title":"Custom Paper Shopping Bag Printing","spec":"250 GSM Art Card, Matt Laminated, Rope Handle","type":"Printing & Binding","unit":"Pcs","price":38,"reg":52}'>🛍️ Custom Paper Shopping Bag (৳38)</option>
-                                        <option value='{"title":"Digital PVC Banner & Festoon Print","spec":"Premium Digital Heavy PVC Flex (Per Sq. Ft.)","type":"Service","unit":"Sq. Ft.","price":28,"reg":38}'>🚩 Digital PVC Banner / Festoon (৳28/sqft)</option>
-                                        <option value='{"title":"Hardcover Binding & Gold Foil Charge","spec":"Leatherette / Hardboard Binding & Gold Emboss","type":"Printing & Binding","unit":"Copy","price":70,"reg":90}'>📕 Hardcover Binding & Gold Foil Charge (৳70)</option>
-                                        <option value='{"title":"Bookmarks & Jacket Cover Printing","spec":"300 GSM Art Card, Matt + Spot Foil","type":"Printing & Binding","unit":"Pcs","price":15,"reg":22}'>🔖 Bookmarks & Jacket Cover (৳15)</option>
-                                    </optgroup>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="table-responsive rounded-3 border shadow-2xs">
-                        <table class="table table-bordered align-middle mb-0" id="itemsTable" style="min-width: 1420px;">
-                            <thead class="table-light">
-                                <tr class="small text-muted text-uppercase" style="font-size: 11.5px; letter-spacing: 0.4px;">
-                                    <th style="min-width: 380px; width: 400px;" id="thTitleCol"><span id="thTitleLabel">Item / Book Title</span> <span class="text-danger">*</span></th>
-                                    <th style="min-width: 250px; width: 260px;" id="thAuthorCol"><span id="thAuthorLabel">Author / Spec</span></th>
-                                    <th style="min-width: 180px; width: 190px;" id="thTypeCol"><span id="thTypeLabel">Type / Edition</span></th>
-                                    <th style="min-width: 100px; width: 105px;" class="text-center" id="thUnitCol"><span id="thUnitLabel">Unit</span></th>
-                                    <th style="min-width: 100px; width: 105px;" class="text-center" id="thQtyCol"><span id="thQtyLabel">Qty</span> <span class="text-danger">*</span></th>
-                                    <th style="min-width: 130px; width: 135px;" class="text-end" id="thRegPriceCol"><span id="thRegPriceLabel">Price (৳)</span></th>
-                                    <th style="min-width: 105px; width: 110px;" class="text-center" id="thDiscCol">Disc (%)</th>
-                                    <th style="min-width: 140px; width: 145px;" class="text-end" id="thUnitPriceCol"><span id="thUnitPriceLabel">Net Price (৳)</span> <span class="text-danger">*</span></th>
-                                    <th style="min-width: 140px; width: 145px;" class="text-end" id="thTotalCol">Total (৳)</th>
-                                    <th style="min-width: 50px; width: 50px;" class="text-center"></th>
-                                </tr>
-                            </thead>
-                            <tbody id="itemsBody">
-                                <tr class="item-row" data-row="0">
-                                    <td class="position-relative book-search-container" style="min-width: 380px;">
-                                        <div class="input-group input-group-sm">
-                                            <textarea name="items[0][title]" class="form-control item-title fw-bold" rows="2" 
-                                                      placeholder="Search book title, author, ISBN..." required 
-                                                      oninput="handleLiveBookSearch(this, 0)" 
-                                                      onfocus="handleLiveBookSearch(this, 0)" 
-                                                      onkeydown="handleBookSearchKeydown(event, 0)"
-                                                      autocomplete="off" style="font-size: 13.5px; min-height: 52px; line-height: 1.4; resize: vertical;"></textarea>
-                                            <button type="button" class="btn btn-outline-primary px-2.5 d-flex align-items-center justify-content-center" onclick="openQuickAddBookModal(0)" title="Add new book to Bookshop" style="min-height: 52px;">
-                                                <i class="fas fa-plus"></i>
-                                            </button>
-                                        </div>
-                                        <input type="hidden" name="items[0][book_id]" class="item-book-id" value="">
-                                        <div class="book-search-dropdown shadow-lg rounded-3 border bg-white d-none" style="position: absolute; top: calc(100% + 4px); left: 0; min-width: 420px; width: 100%; z-index: 1090; max-height: 320px; overflow-y: auto;"></div>
-                                    </td>
-                                    <td>
-                                        <input type="text" name="items[0][author_name]" class="form-control item-author" 
-                                               placeholder="Author / Spec" autocomplete="off">
-                                    </td>
-                                    <td>
-                                        <select name="items[0][item_type]" class="form-select item-type-select" onchange="onTypeChange(this, 0)">
-                                            <option value="Book (Paperback)">Book (Paperback)</option>
-                                            <option value="Book (Hardcover)">Book (Hardcover)</option>
-                                            <option value="Book (Standard)">Book (Standard)</option>
-                                            <option value="Stationery">Stationery</option>
-                                            <option value="Product">Product</option>
-                                            <option value="Paper / Raw Materials">Paper / Raw Materials</option>
-                                            <option value="Printing & Binding">Printing & Binding</option>
-                                            <option value="Service">Service</option>
-                                            <option value="Other">Other</option>
-                                        </select>
-                                    </td>
-                                    <td>
-                                        <input type="text" name="items[0][unit]" class="form-control item-unit text-center font-monospace" 
-                                               value="কপি" placeholder="একক" autocomplete="off">
-                                    </td>
-                                    <td>
-                                        <input type="number" step="0.01" name="items[0][quantity]" class="form-control item-qty text-center font-monospace fw-bold" 
-                                               value="1" min="0.01" required oninput="calcRow(0, 'qty')">
-                                    </td>
-                                    <td>
-                                        <input type="number" step="0.01" name="items[0][regular_price]" class="form-control item-regular-price text-end font-monospace" 
-                                               value="0" min="0" placeholder="0.00" oninput="calcRow(0, 'regular_price')">
-                                    </td>
-                                    <td>
-                                        <input type="number" step="0.01" name="items[0][discount_percent]" class="form-control item-discount-percent text-center font-monospace fw-bold text-success" 
-                                               value="0" min="0" max="100" placeholder="0" oninput="calcRow(0, 'discount_percent')">
-                                    </td>
-                                    <td>
-                                        <input type="number" step="0.01" name="items[0][price]" class="form-control item-price text-end font-monospace fw-bold text-primary" 
-                                               value="0" min="0" required oninput="calcRow(0, 'unit_price')">
-                                    </td>
-                                    <td class="text-end fw-bold text-dark item-subtotal font-monospace fs-6">৳0.00</td>
-                                    <td class="text-center">
-                                        <button type="button" class="btn btn-sm btn-outline-danger p-1.5 rounded-circle border-0" onclick="removeRow(this)" title="Remove">
-                                            <i class="fas fa-trash-can"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <div class="mt-2.5">
-                        <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-semibold" onclick="addItemRow()">
-                            <i class="fas fa-plus me-1"></i> Add More Items
-                        </button>
                     </div>
                 </div>
             </div>
 
-            {{-- Notes & Terms / Conditions --}}
-            <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white">
-                <div class="card-body p-3">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label small fw-semibold text-muted">Special Notes / Remarks (Will print on document)</label>
-                            <textarea name="notes" rows="3" class="form-control rounded-3" placeholder="e.g. Dispatched via courier or delivery terms..."></textarea>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="d-flex align-items-center justify-content-between mb-1">
-                                <label class="form-label small fw-semibold text-muted mb-0">
-                                    <i class="fa-solid fa-file-contract me-1 text-primary"></i>Terms & Conditions
-                                </label>
-                                <div style="min-width: 220px;">
-                                    <select class="form-select form-select-sm rounded-pill border-primary fw-semibold" id="termsPresetSelect" onchange="applyTermsPreset(this.value)">
-                                        <option value="">-- Select Terms Template --</option>
-                                        <option value="printing">🖨️ Printing & Press Terms</option>
-                                        <option value="delivery">🚚 Delivery & Dispatch Terms</option>
-                                        <option value="tender">🏛️ Institutional Tender Terms</option>
-                                        <option value="books">📚 Book Sales & Library Supply Terms</option>
-                                        <option value="advance">💳 50% Advance & Payment Terms</option>
-                                        <option value="general">🏢 General Commercial Terms</option>
-                                    </select>
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Customer / Client Name <span class="text-danger">*</span></label>
+                    <input type="text" name="customer_name" class="form-control @error('customer_name') is-invalid @enderror" 
+                           placeholder="Client / Contact person name..." value="{{ old('customer_name') }}" required>
+                    @error('customer_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Designation</label>
+                    <input type="text" name="customer_designation" class="form-control" 
+                           placeholder="e.g. Executive Director, Headmaster..." value="{{ old('customer_designation') }}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Organization / Institution</label>
+                    <input type="text" name="customer_org" class="form-control" 
+                           placeholder="Library, Bookshop or Company name..." value="{{ old('customer_org') }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Phone Number</label>
+                    <input type="text" name="customer_phone" class="form-control" placeholder="017XXXXXXXX" value="{{ old('customer_phone') }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Email Address</label>
+                    <input type="email" name="customer_email" class="form-control" placeholder="customer@example.com" value="{{ old('customer_email') }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Date <span class="text-danger">*</span></label>
+                    <input type="date" name="invoice_date" id="invoiceDateInput" class="form-control" value="{{ old('invoice_date', date('Y-m-d')) }}" required>
+                </div>
+                <div class="col-md-3" id="validUntilCol">
+                    <label class="form-label fw-semibold">Validity / Expiry Date</label>
+                    <input type="date" name="valid_until" id="validUntilInput" class="form-control" value="{{ old('valid_until') }}" title="Validity date for quotation or tender">
+                </div>
+                <div class="col-md-8">
+                    <label class="form-label small fw-semibold text-muted">Full Address / Shipping Destination</label>
+                    <input type="text" name="customer_address" class="form-control form-control-sm" placeholder="Full address..." value="{{ old('customer_address') }}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-semibold text-muted">Document / Invoice Number <span class="text-danger">*</span></label>
+                    <input type="text" name="invoice_no" id="invoiceNoInput" class="form-control form-control-sm font-monospace fw-bold" value="{{ old('invoice_no', $suggestedNo) }}" required>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Bill / Challan / Quotation / Tender Items Table (Full Width 12-Column Grid) --}}
+    <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white">
+        <div class="card-header bg-white py-3 border-bottom d-flex flex-wrap align-items-center justify-content-between gap-2">
+            <div>
+                <h5 class="fw-bold mb-0 text-dark" id="itemsSectionTitle">
+                    <i class="fas fa-list-check me-2 text-success"></i>Items & Schedule of Rates
+                </h5>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <button type="button" class="btn btn-warning rounded-pill px-3 py-1.5 fw-bold shadow-2xs text-dark" onclick="openPrintCostCalculator()" title="Calculate accurate book printing and publishing cost">
+                    <i class="fa-solid fa-calculator text-dark me-1"></i> Print Cost Calculator
+                </button>
+                <button type="button" class="btn btn-sm btn-success rounded-pill px-3 py-1.5 fw-semibold shadow-2xs" id="btnAddItemBtn" onclick="addItemRow()">
+                    <i class="fas fa-plus me-1"></i> Add Item
+                </button>
+            </div>
+        </div>
+        <div class="card-body p-3 p-md-4">
+            
+            {{-- Dropdown Quick Presets for Stationery --}}
+            <div id="stationeryPresetsWrap" class="mb-3 p-3 bg-light rounded-3 border" style="display: none;">
+                <div class="row align-items-center g-2">
+                    <div class="col-md-4">
+                        <span class="small fw-bold text-dark">
+                            <i class="fa-solid fa-pen-ruler text-info me-1"></i> Quick Stationery Presets:
+                        </span>
+                    </div>
+                    <div class="col-md-8">
+                        <select class="form-select form-select-sm rounded-pill border-info fw-semibold" id="stationeryPresetSelect" onchange="onStationeryPresetSelected(this)">
+                            <option value="">-- Select Stationery Item (1-Click Add) --</option>
+                            
+                            <optgroup label="📓 Notebooks, Diaries & Khatas">
+                                <option value='{"title":"Executive Hardbound Diary 2026","spec":"Idea Brand, Premium Gold Foil","type":"Stationery","unit":"Pcs","price":350,"reg":450}'>📓 Executive Hardbound Diary 2026 (৳350)</option>
+                                <option value='{"title":"Spiral Executive Notebook (160 Pages)","spec":"80 GSM Premium Ruled Offset Paper","type":"Stationery","unit":"Pcs","price":150,"reg":180}'>📒 Spiral Executive Notebook 160 Pages (৳150)</option>
+                                <option value='{"title":"Exercise Book / Khata (120 Pages)","spec":"Ruled Offset Paper, Laminated Cover","type":"Stationery","unit":"Pcs","price":65,"reg":80}'>📝 Exercise Book / Khata 120 Pages (৳65)</option>
+                                <option value='{"title":"Practical Khata / Science Notebook","spec":"100 Pages, One-Side Ruled / Plain","type":"Stationery","unit":"Pcs","price":90,"reg":115}'>🔬 Practical Khata / Science Notebook (৳90)</option>
+                                <option value='{"title":"Official Ledger / Register Book (200 Pages)","spec":"Hardbound Cloth Binding, Serialized","type":"Stationery","unit":"Pcs","price":240,"reg":290}'>📚 Official Ledger / Register Book 200 Pages (৳240)</option>
+                                <option value='{"title":"Pocket Memo Notebook (80 Pages)","spec":"Top Spiral Bound, Pocket Friendly","type":"Stationery","unit":"Pcs","price":45,"reg":60}'>🗒️ Pocket Memo Notebook 80 Pages (৳45)</option>
+                            </optgroup>
+
+                            <optgroup label="🖊️ Pens, Highlighters & Markers">
+                                <option value='{"title":"Smooth Ballpoint Pen Box (10 Pcs)","spec":"0.7mm Smooth Flow (Blue/Black)","type":"Stationery","unit":"Box","price":120,"reg":150}'>🖊️ Ballpoint Pen Box (10 Pcs) (৳120)</option>
+                                <option value='{"title":"Ultra Smooth Gel Pen Set (5 Colors)","spec":"0.5mm Quick-Dry Japanese Ink","type":"Stationery","unit":"Set","price":180,"reg":220}'>✒️ Ultra Smooth Gel Pen Set 5 Pcs (৳180)</option>
+                                <option value='{"title":"Pastel Chisel Highlighter Set (6 Colors)","spec":"Non-Smudge Pastel Shades","type":"Stationery","unit":"Set","price":240,"reg":290}'>🖍️ Pastel Highlighter Set (6 Colors) (৳240)</option>
+                                <option value='{"title":"Permanent Marker Pen Set (3 Pcs)","spec":"Black, Blue & Red Waterproof Ink","type":"Stationery","unit":"Set","price":110,"reg":135}'>🖋️ Permanent Marker Set (3 Colors) (৳110)</option>
+                                <option value='{"title":"Whiteboard Marker & Duster Kit","spec":"4 Non-Toxic Colors + Magnetic Duster","type":"Stationery","unit":"Set","price":175,"reg":215}'>🧽 Whiteboard Marker & Duster Kit (৳175)</option>
+                            </optgroup>
+
+                            <optgroup label="📁 Filing, Folders & Office Organization">
+                                <option value='{"title":"Leatherette Document File Folder (A4)","spec":"Waterproof Executive File Folder","type":"Stationery","unit":"Pcs","price":55,"reg":70}'>📁 Leatherette Document File Folder (৳55)</option>
+                                <option value='{"title":"Heavy Duty Ring Binder Box File","spec":"Standard Office Box File with Lever Arch","type":"Stationery","unit":"Pcs","price":120,"reg":150}'>🗂️ Heavy Duty Ring Binder Box File (৳120)</option>
+                                <option value='{"title":"Clear Button Document Pouch (A4)","spec":"Transparent Waterproof Poly Pouch","type":"Stationery","unit":"Pcs","price":35,"reg":45}'>👝 Clear Button Document Pouch (৳35)</option>
+                                <option value='{"title":"Heavy Duty Desktop Stapler & Pins Pack","spec":"Full Metal Office Stapler + 1000 Pins","type":"Stationery","unit":"Set","price":160,"reg":200}'>📎 Desktop Stapler & Pins Pack (৳160)</option>
+                                <option value='{"title":"Self-Adhesive Sticky Notes Pad (3×3\")","spec":"100 Neon Sheets Multi-color","type":"Stationery","unit":"Pad","price":60,"reg":80}'>📑 Sticky Notes Pad 100 Sheets (৳60)</option>
+                                <option value='{"title":"Desktop Organizer Stand (Multi-Compartment)","spec":"Mesh Metal Pen, Card & File Holder","type":"Stationery","unit":"Pcs","price":280,"reg":350}'>🗃️ Desktop Organizer Stand (৳280)</option>
+                                <option value='{"title":"Heavy Duty 2-Hole Paper Puncher","spec":"Punching Capacity: 30 Sheets","type":"Stationery","unit":"Pcs","price":220,"reg":270}'>🔘 Heavy Duty 2-Hole Paper Puncher (৳220)</option>
+                                <option value='{"title":"Stainless Steel Office Scissors (8 Inch)","spec":"Ergonomic Comfort Grip","type":"Stationery","unit":"Pcs","price":130,"reg":160}'>✂️ Stainless Steel Office Scissors (৳130)</option>
+                            </optgroup>
+
+                            <optgroup label="📄 Paper, Envelopes & Accessories">
+                                <option value='{"title":"Premium A4 Offset Paper Ream (80 GSM)","spec":"500 Sheets High Brightness White","type":"Stationery","unit":"Ream","price":480,"reg":550}'>📄 Premium A4 Offset Paper Ream 80 GSM (৳480)</option>
+                                <option value='{"title":"Official Mailing Envelopes (10×4.5\")","spec":"Pack of 50 Pcs, 100 GSM Self-Adhesive","type":"Stationery","unit":"Pack","price":140,"reg":175}'>✉️ Official Mailing Envelopes 50 Pcs (৳140)</option>
+                                <option value='{"title":"Kraft Document Envelopes (A4 / 9×12\")","spec":"Pack of 25 Pcs Heavy Kraft Board","type":"Stationery","unit":"Pack","price":160,"reg":200}'>📂 Kraft Document Envelopes 25 Pcs (৳160)</option>
+                                <option value='{"title":"Premium Gold Foil Bookmarks Set (5 Pcs)","spec":"Laminated Literary Art Bookmarks","type":"Stationery","unit":"Set","price":95,"reg":125}'>🔖 Gold Foil Bookmarks Set 5 Pcs (৳95)</option>
+                                <option value='{"title":"Steel Paper Clips & Binder Clips Box","spec":"Assorted Size Binder Clips (Box)","type":"Stationery","unit":"Box","price":85,"reg":110}'>🧷 Binder & Paper Clips Assorted Box (৳85)</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Dropdown Quick Presets for Printing Goods & Services --}}
+            <div id="printingPresetsWrap" class="mb-3 p-3 bg-light rounded-3 border" style="display: none;">
+                <div class="row align-items-center g-2">
+                    <div class="col-md-4">
+                        <span class="small fw-bold text-dark">
+                            <i class="fa-solid fa-print text-warning me-1"></i> Quick Printing & Press Presets:
+                        </span>
+                    </div>
+                    <div class="col-md-8">
+                        <select class="form-select form-select-sm rounded-pill border-warning fw-semibold" id="printingPresetSelect" onchange="onPrintingPresetSelected(this)">
+                            <option value="">-- Select Printing Job / Service (1-Click Add) --</option>
+                            
+                            <optgroup label="📚 Books & Publications Printing">
+                                <option value='{"title":"Custom Book Printing & Binding (Demy 5.5×8.5\")","spec":"Demy Size, 80 GSM Offset, 4-Color Cover, Perfect Bound","type":"Printing & Binding","unit":"Copy","price":140,"reg":160}'>📚 Custom Book Printing & Binding (Demy 80 GSM) (৳140)</option>
+                                <option value='{"title":"Premium Hardcover Book Printing & Gold Foil","spec":"Royal Size (6.25×9.5\"), 100 GSM, Embossed Gold Foil","type":"Printing & Binding","unit":"Copy","price":240,"reg":280}'>📖 Premium Hardcover Book Printing (Royal Size) (৳240)</option>
+                                <option value='{"title":"Souvenir / Magazine Printing (A4 Size)","spec":"A4, 4-Color Cover 150 GSM Art Paper, 80 GSM Inner","type":"Printing & Binding","unit":"Copy","price":95,"reg":120}'>📕 Souvenir / Magazine Printing A4 (৳95)</option>
+                                <option value='{"title":"Annual Report & Corporate Profile (A4)","spec":"A4 Size, 150 GSM Art Paper, Spiral / Perfect Binding","type":"Printing & Binding","unit":"Copy","price":165,"reg":195}'>📊 Annual Report & Corporate Profile (৳165)</option>
+                                <option value='{"title":"Literary Magazine / Little Mag Printing","spec":"Double Demy, 70 GSM Newsprint/Offset, 2-Color Cover","type":"Printing & Binding","unit":"Copy","price":55,"reg":70}'>📰 Literary Magazine / Little Mag (৳55)</option>
+                            </optgroup>
+
+                            <optgroup label="🏢 Corporate Stationery & Commercial Printing">
+                                <option value='{"title":"Cash Memo / Money Receipt Book (100 Sheets)","spec":"2-Part / 3-Part NCR Carbonless Paper, Serial Numbered","type":"Printing & Binding","unit":"Book","price":130,"reg":160}'>🧾 Cash Memo / Receipt Book (NCR Paper) (৳130)</option>
+                                <option value='{"title":"Delivery Challan Book (3-Part NCR)","spec":"3-Part NCR Carbonless, Hard Board Back, Serialized","type":"Printing & Binding","unit":"Book","price":145,"reg":175}'>🚚 Delivery Challan Book (3-Part NCR) (৳145)</option>
+                                <option value='{"title":"Official Letterhead Pad (100 GSM Laser)","spec":"100 GSM Executive Paper, 4-Color Print, 50 Sheets Pad","type":"Printing & Binding","unit":"Pad","price":190,"reg":230}'>📑 Official Letterhead Pad (100 GSM) (৳190)</option>
+                                <option value='{"title":"Doctor / Prescription Pad (100 Sheets)","spec":"80 GSM Offset Paper, 100 Sheets Top Glued","type":"Printing & Binding","unit":"Pad","price":115,"reg":135}'>🩺 Prescription Pad (100 Sheets) (৳115)</option>
+                                <option value='{"title":"Official Printed Envelopes (10×4.5 Inch)","spec":"100 GSM Offset, 4-Color Print, Self-Adhesive (Per 1,000)","type":"Printing & Binding","unit":"Thousand","price":2400,"reg":2800}'>✉️ Official Printed Envelopes (Per 1,000) (৳2,400)</option>
+                                <option value='{"title":"Document File Folder Printing (A4)","spec":"350 GSM Art Card, Matt Laminated, Pocket Die-cut","type":"Printing & Binding","unit":"Pcs","price":50,"reg":65}'>📁 Document File Folder (Pocket Die-cut) (৳50)</option>
+                                <option value='{"title":"Visiting Cards / Business Cards Box (100 Pcs)","spec":"300 GSM Art Card, 2-Sided 4C, Matt Lamination + Spot UV","type":"Printing & Binding","unit":"Box","price":380,"reg":480}'>💳 Business Cards Box (Matt + Spot UV) (৳380)</option>
+                                <option value='{"title":"Digital PVC ID Card & Printed Ribbon Lanyard","spec":"PVC Smart ID Card, Multicolor Thermal + Custom Lanyard","type":"Printing & Binding","unit":"Set","price":95,"reg":125}'>🪪 Digital PVC ID Card & Ribbon Lanyard (৳95)</option>
+                            </optgroup>
+
+                            <optgroup label="📢 Marketing, Brochures & Advertising">
+                                <option value='{"title":"Promotional Flyers / Leaflets (A4 / A5)","spec":"120 GSM Art Paper, 2-Sided 4-Color Offset (Per 1,000)","type":"Printing & Binding","unit":"Thousand","price":2800,"reg":3300}'>📜 Promotional Flyers / Leaflets (Per 1,000) (৳2,800)</option>
+                                <option value='{"title":"Folded Product Brochure / Catalog (3-Fold)","spec":"3-Fold, 170 GSM Glossy Art Paper, Full Color","type":"Printing & Binding","unit":"Copy","price":28,"reg":38}'>📑 Folded Product Brochure (3-Fold) (৳28)</option>
+                                <option value='{"title":"Wall Calendar Printing (6/12 Sheets)","spec":"Art Paper, Tin Rim & Spiral Hanger","type":"Printing & Binding","unit":"Pcs","price":90,"reg":115}'>🗓️ Wall Calendar Printing (6/12 Sheets) (৳90)</option>
+                                <option value='{"title":"Executive Desk / Table Calendar","spec":"12 Sheets Matt Lamination, Hard Stand Board","type":"Printing & Binding","unit":"Pcs","price":135,"reg":165}'>📅 Executive Desk / Table Calendar (৳135)</option>
+                                <option value='{"title":"Full Color Poster Printing (18×23 / 18×28\")","spec":"150 GSM Art Paper, High Gloss Finish (Per 1,000)","type":"Printing & Binding","unit":"Thousand","price":3600,"reg":4200}'>🖼️ Full Color Poster (Per 1,000) (৳3,600)</option>
+                                <option value='{"title":"Die-cut Product Labels & Stickers","spec":"Glossy PVC Self-Adhesive, Die-cut Shape (Per 1,000)","type":"Printing & Binding","unit":"Thousand","price":1800,"reg":2200}'>🏷️ Die-cut Product Labels & Stickers (৳1,800)</option>
+                            </optgroup>
+
+                            <optgroup label="🎁 Specialty, Packaging & Binding">
+                                <option value='{"title":"Certificate & Premium Folder Printing","spec":"300 GSM Textured Card, Embossed Gold Foil","type":"Printing & Binding","unit":"Pcs","price":65,"reg":85}'>🎓 Certificate & Embossed Folder (৳65)</option>
+                                <option value='{"title":"Custom Paper Shopping Bag Printing","spec":"250 GSM Art Card, Matt Laminated, Rope Handle","type":"Printing & Binding","unit":"Pcs","price":38,"reg":52}'>🛍️ Custom Paper Shopping Bag (৳38)</option>
+                                <option value='{"title":"Digital PVC Banner & Festoon Print","spec":"Premium Digital Heavy PVC Flex (Per Sq. Ft.)","type":"Service","unit":"Sq. Ft.","price":28,"reg":38}'>🚩 Digital PVC Banner / Festoon (৳28/sqft)</option>
+                                <option value='{"title":"Hardcover Binding & Gold Foil Charge","spec":"Leatherette / Hardboard Binding & Gold Emboss","type":"Printing & Binding","unit":"Copy","price":70,"reg":90}'>📕 Hardcover Binding & Gold Foil Charge (৳70)</option>
+                                <option value='{"title":"Bookmarks & Jacket Cover Printing","spec":"300 GSM Art Card, Matt + Spot Foil","type":"Printing & Binding","unit":"Pcs","price":15,"reg":22}'>🔖 Bookmarks & Jacket Cover (৳15)</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-responsive rounded-3 border shadow-2xs">
+                <table class="table table-bordered align-middle mb-0" id="itemsTable" style="min-width: 1100px;">
+                    <thead class="table-light">
+                        <tr class="small text-muted text-uppercase" style="font-size: 11.5px; letter-spacing: 0.4px;">
+                            <th style="min-width: 340px;" id="thTitleCol"><span id="thTitleLabel">Item / Book Title</span> <span class="text-danger">*</span></th>
+                            <th style="min-width: 200px;" id="thAuthorCol"><span id="thAuthorLabel">Author / Spec</span></th>
+                            <th style="min-width: 170px;" id="thTypeCol"><span id="thTypeLabel">Type / Edition</span></th>
+                            <th style="min-width: 85px;" class="text-center" id="thUnitCol"><span id="thUnitLabel">Unit</span></th>
+                            <th style="min-width: 90px;" class="text-center" id="thQtyCol"><span id="thQtyLabel">Qty</span> <span class="text-danger">*</span></th>
+                            <th style="min-width: 120px;" class="text-end" id="thRegPriceCol"><span id="thRegPriceLabel">Price (৳)</span></th>
+                            <th style="min-width: 95px;" class="text-center" id="thDiscCol">Disc (%)</th>
+                            <th style="min-width: 125px;" class="text-end" id="thUnitPriceCol"><span id="thUnitPriceLabel">Net Price (৳)</span> <span class="text-danger">*</span></th>
+                            <th style="min-width: 130px;" class="text-end" id="thTotalCol">Total (৳)</th>
+                            <th style="min-width: 45px; width: 45px;" class="text-center"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="itemsBody">
+                        <tr class="item-row" data-row="0">
+                            <td class="position-relative book-search-container" style="min-width: 340px;">
+                                <div class="input-group input-group-sm">
+                                    <textarea name="items[0][title]" class="form-control item-title fw-bold" rows="2" 
+                                              placeholder="Search book title, author, ISBN..." required 
+                                              oninput="handleLiveBookSearch(this, 0)" 
+                                              onfocus="handleLiveBookSearch(this, 0)" 
+                                              onkeydown="handleBookSearchKeydown(event, 0)"
+                                              autocomplete="off" style="font-size: 13.5px; min-height: 52px; line-height: 1.4; resize: vertical;"></textarea>
+                                    <button type="button" class="btn btn-outline-primary px-2.5 d-flex align-items-center justify-content-center" onclick="openQuickAddBookModal(0)" title="Add new book to Bookshop" style="min-height: 52px;">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
                                 </div>
+                                <input type="hidden" name="items[0][book_id]" class="item-book-id" value="">
+                                <div class="book-search-dropdown shadow-lg rounded-3 border bg-white d-none" style="position: absolute; top: calc(100% + 4px); left: 0; min-width: 420px; width: 100%; z-index: 1090; max-height: 320px; overflow-y: auto;"></div>
+                            </td>
+                            <td>
+                                <input type="text" name="items[0][author_name]" class="form-control item-author" 
+                                       placeholder="Author / Spec" autocomplete="off">
+                            </td>
+                            <td>
+                                <select name="items[0][item_type]" class="form-select item-type-select" onchange="onTypeChange(this, 0)">
+                                    <option value="Book (Hardcover)" selected>Book (Hardcover)</option>
+                                    <option value="Book (Paperback)">Book (Paperback)</option>
+                                    <option value="Book (Standard)">Book (Standard)</option>
+                                    <option value="Stationery">Stationery</option>
+                                    <option value="Product">Product</option>
+                                    <option value="Paper / Raw Materials">Paper / Raw Materials</option>
+                                    <option value="Printing & Binding">Printing & Binding</option>
+                                    <option value="Service">Service</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </td>
+                            <td>
+                                <input type="text" name="items[0][unit]" class="form-control item-unit text-center font-monospace" 
+                                       value="কপি" placeholder="একক" autocomplete="off">
+                            </td>
+                            <td>
+                                <input type="number" step="0.01" name="items[0][quantity]" class="form-control item-qty text-center font-monospace fw-bold" 
+                                       value="1" min="0.01" required oninput="calcRow(0, 'qty')">
+                            </td>
+                            <td>
+                                <input type="number" step="0.01" name="items[0][regular_price]" class="form-control item-regular-price text-end font-monospace" 
+                                       value="0" min="0" placeholder="0.00" oninput="calcRow(0, 'regular_price')">
+                            </td>
+                            <td>
+                                <input type="number" step="0.01" name="items[0][discount_percent]" class="form-control item-discount-percent text-center font-monospace fw-bold text-success" 
+                                       value="0" min="0" max="100" placeholder="0" oninput="calcRow(0, 'discount_percent')">
+                            </td>
+                            <td>
+                                <input type="number" step="0.01" name="items[0][price]" class="form-control item-price text-end font-monospace fw-bold text-primary" 
+                                       value="0" min="0" required oninput="calcRow(0, 'unit_price')">
+                            </td>
+                            <td class="text-end fw-bold text-dark item-subtotal font-monospace fs-6">৳0.00</td>
+                            <td class="text-center">
+                                <button type="button" class="btn btn-sm btn-outline-danger p-1.5 rounded-circle border-0" onclick="removeRow(this)" title="Remove">
+                                    <i class="fas fa-trash-can"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="mt-2.5">
+                <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-semibold" onclick="addItemRow()">
+                    <i class="fas fa-plus me-1"></i> Add More Items
+                </button>
+            </div>
+        </div>
+    </div>
+
+    {{-- Bottom Grid: Left = Notes & Terms / Settings, Right = Pricing & Financials + Settlement --}}
+    <div class="row g-4 mb-4">
+        {{-- Left: Notes, Terms & Conditions, Auto-publish --}}
+        <div class="col-12 col-lg-7">
+            <div class="card border-0 shadow-sm rounded-4 h-100 bg-white">
+                <div class="card-header bg-white py-3 border-bottom d-flex flex-wrap align-items-center justify-content-between gap-2">
+                    <h6 class="fw-bold mb-0 text-dark">
+                        <i class="fa-solid fa-file-contract me-2 text-primary"></i>Terms, Conditions & Notes
+                    </h6>
+                    <div class="form-check form-switch mb-0">
+                        <input class="form-check-input ms-0 me-1.5" type="checkbox" name="auto_create_books" id="autoCreateBooksSwitch" value="1" checked>
+                        <label class="form-check-label small fw-bold text-dark" for="autoCreateBooksSwitch" style="font-size: 12px;">
+                            <i class="fa-solid fa-cloud-arrow-up text-primary me-1"></i> Auto-post new books to Bookshop
+                        </label>
+                    </div>
+                </div>
+                <div class="card-body p-3.5">
+                    <div class="mb-3">
+                        <div class="d-flex align-items-center justify-content-between mb-1.5">
+                            <label class="form-label small fw-bold text-muted mb-0">
+                                <i class="fa-solid fa-file-invoice me-1 text-primary"></i>Terms & Conditions Template:
+                            </label>
+                            <div style="min-width: 220px;">
+                                <select class="form-select form-select-sm rounded-pill border-primary fw-semibold" id="termsPresetSelect" onchange="applyTermsPreset(this.value)">
+                                    <option value="">-- Select Terms Template --</option>
+                                    <option value="printing">🖨️ Printing & Press Terms</option>
+                                    <option value="delivery">🚚 Delivery & Dispatch Terms</option>
+                                    <option value="tender">🏛️ Institutional Tender Terms</option>
+                                    <option value="books">📚 Book Sales & Library Supply Terms</option>
+                                    <option value="advance">💳 50% Advance & Payment Terms</option>
+                                    <option value="general">🏢 General Commercial Terms</option>
+                                </select>
                             </div>
-                            <textarea name="terms_conditions" id="termsConditionsInput" rows="3" class="form-control rounded-3" placeholder="Enter terms & conditions or select from preset template above...">{{ old('terms_conditions', $invoiceSettings['terms_and_conditions'] ?? '') }}</textarea>
                         </div>
+                        <textarea name="terms_conditions" id="termsConditionsInput" rows="4" class="form-control rounded-3 font-monospace small" placeholder="Enter terms & conditions or select from preset template above...">{{ old('terms_conditions', $invoiceSettings['terms_and_conditions'] ?? '') }}</textarea>
+                    </div>
+                    <div>
+                        <label class="form-label small fw-bold text-muted mb-1">
+                            <i class="fa-solid fa-comment-dots me-1 text-warning"></i>Special Notes / Remarks (Will print on document)
+                        </label>
+                        <textarea name="notes" rows="3" class="form-control rounded-3 small" placeholder="e.g. Dispatched via courier or delivery terms...">{{ old('notes') }}</textarea>
                     </div>
                 </div>
             </div>
         </div>
 
-        {{-- Right Calculation & Payment Card --}}
-        <div class="col-12 col-xl-4">
-            <div class="card border-0 shadow-sm rounded-4 sticky-top bg-white" style="top: 80px;">
+        {{-- Right: Calculation, Payment & Actions --}}
+        <div class="col-12 col-lg-5">
+            <div class="card border-0 shadow-sm rounded-4 bg-white">
                 <div class="card-header bg-primary text-white py-3 rounded-top-4" id="rightCardHeader">
                     <h5 class="fw-bold mb-0"><i class="fas fa-calculator me-2"></i>Pricing & Financials</h5>
                 </div>
-                <div class="card-body p-4">
+                <div class="card-body p-3.5 p-md-4">
                     {{-- Summary Box --}}
-                    <div class="bg-light p-3 rounded-3 mb-3">
+                    <div class="bg-light p-3 rounded-3 mb-3 border">
                         <div class="d-flex justify-content-between mb-2 small text-muted">
                             <span>Total Item Value (Subtotal):</span>
                             <strong class="text-dark font-monospace" id="displaySubtotal">৳0.00</strong>
@@ -482,15 +493,6 @@
                         </div>
                     </div>
 
-                    {{-- Auto-post books switch --}}
-                    <div class="form-check form-switch mb-3 p-2.5 bg-light rounded-3 border">
-                        <input class="form-check-input ms-0 me-2" type="checkbox" name="auto_create_books" id="autoCreateBooksSwitch" value="1" checked>
-                        <label class="form-check-label small fw-bold text-dark" for="autoCreateBooksSwitch">
-                            <i class="fa-solid fa-cloud-arrow-up text-primary me-1"></i> Auto-post new books to Bookshop
-                        </label>
-                        <div class="text-muted small ms-4" style="font-size: 11px;">Unlisted books entered here will be auto-saved to Bookshop</div>
-                    </div>
-
                     {{-- Payment Fields (Hidden for Quotation / Tender) --}}
                     <div id="paymentFieldsSection">
                         <hr class="my-3">
@@ -513,7 +515,7 @@
                         <div class="mb-3">
                             <div class="d-flex justify-content-between align-items-center mb-1">
                                 <label class="form-label small fw-semibold text-muted mb-0">অগ্রিম জমা / Amount Paid (৳)</label>
-                                <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none small" onclick="fillFullPaid()">
+                                <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none small fw-bold" onclick="fillFullPaid()">
                                     Full Paid
                                 </button>
                             </div>
@@ -591,8 +593,8 @@
                         <div class="col-6">
                             <label class="form-label small fw-bold text-dark mb-1">Cover Type</label>
                             <select id="qbCoverType" class="form-select form-select-sm">
+                                <option value="hardcover" selected>Hardcover</option>
                                 <option value="paperback">Paperback</option>
-                                <option value="hardcover">Hardcover</option>
                                 <option value="both">Both (Paperback & Hardcover)</option>
                             </select>
                         </div>
@@ -928,16 +930,21 @@
             const title = book.title;
             const author = book.author || book.author_name || '';
             const pubName = book.publisher?.name || book.publisher_name || '';
-            const regPrice = book.paperback ? book.paperback.regularPrice : (book.regular_price || 0);
-            const sellPrice = book.paperback ? book.paperback.sellingPrice : (book.selling_price || regPrice);
-            const discPct = book.paperback ? book.paperback.discountPercent : (book.discount_pct || 0);
+            let regPrice = book.hardcover ? book.hardcover.regularPrice : 0;
+            let sellPrice = book.hardcover ? book.hardcover.sellingPrice : 0;
+            let discPct = book.hardcover ? book.hardcover.discountPercent : 0;
+            if (!regPrice && !sellPrice) {
+                regPrice = book.paperback ? book.paperback.regularPrice : (book.regular_price || 0);
+                sellPrice = book.paperback ? book.paperback.sellingPrice : (book.selling_price || regPrice);
+                discPct = book.paperback ? book.paperback.discountPercent : (book.discount_pct || 0);
+            }
             const stock = book.stock_quantity !== undefined ? parseInt(book.stock_quantity) : null;
             const titleHtml = highlightMatch(title, query);
 
             html += `
                 <a href="javascript:void(0)" class="list-group-item list-group-item-action p-2.5 px-3 rounded-2 border-0 d-flex align-items-center justify-content-between gap-2 book-suggestion-item text-decoration-none" 
                    data-item-index="${itemIdx}"
-                   onclick="selectBookForRow(${book.id}, ${rowIndex})">
+                   onclick="selectBookForRow(${book.id}, ${rowIndex}, 'hardcover')">
                     <div class="d-flex align-items-center gap-2 text-truncate">
                         <div class="bg-primary-subtle text-primary rounded p-2 text-center" style="width: 34px; height: 34px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
                             <i class="fa-solid fa-book"></i>
@@ -947,6 +954,7 @@
                             <div class="text-muted text-truncate mt-0.5" style="font-size: 11.5px;">
                                 ${author ? `<i class="fa-solid fa-pen-nib me-1 text-primary"></i>${escapeHtml(author)}` : ''}
                                 ${pubName ? `· <span class="badge bg-light text-secondary border px-1.5 py-0.5 rounded-pill">${escapeHtml(pubName)}</span>` : ''}
+                                <span class="badge bg-primary-subtle text-primary border px-1.5 py-0.5 rounded-pill ms-1">Hardcover</span>
                                 ${stock !== null ? `<span class="badge ${stock > 0 ? 'bg-success-subtle text-success border-success-subtle' : 'bg-danger-subtle text-danger border-danger-subtle'} border px-1.5 py-0.5 rounded-pill ms-1">Stock: ${stock}</span>` : ''}
                             </div>
                         </div>
@@ -1036,19 +1044,23 @@
             if (authorInput) authorInput.value = book.author || book.author_name || '';
             if (unitInput && !unitInput.value) unitInput.value = 'কপি';
 
-            let targetEdition = edition || 'paperback';
-            if (book.hasHardcover && !book.hasPaperback) {
-                targetEdition = 'hardcover';
+            // User requirement: Type / Edition should always default to Hardcover
+            let targetEdition = edition || 'hardcover';
+            let editionData = book.hardcover;
+            if (!editionData || (!editionData.regularPrice && !editionData.sellingPrice)) {
+                editionData = book.paperback || {
+                    regularPrice: book.regular_price || 0,
+                    sellingPrice: book.selling_price || 0,
+                    discountPercent: book.discount_pct || 0
+                };
             }
-
-            const editionData = targetEdition === 'hardcover' ? book.hardcover : book.paperback;
 
             if (typeSelect) {
-                typeSelect.value = targetEdition === 'hardcover' ? 'Book (Hardcover)' : 'Book (Paperback)';
+                typeSelect.value = 'Book (Hardcover)';
             }
-            if (regPriceInput) regPriceInput.value = (editionData.regularPrice || 0).toFixed(2);
-            if (discPctInput) discPctInput.value = editionData.discountPercent || 0;
-            if (priceInput) priceInput.value = (editionData.sellingPrice || 0).toFixed(2);
+            if (regPriceInput) regPriceInput.value = (editionData.regularPrice || book.regular_price || 0).toFixed(2);
+            if (discPctInput) discPctInput.value = editionData.discountPercent || book.discount_pct || 0;
+            if (priceInput) priceInput.value = (editionData.sellingPrice || book.selling_price || 0).toFixed(2);
         }
 
         calcRow(index, 'book_select');
@@ -1064,7 +1076,80 @@
     }
 
     function addItemRow() {
-        addPresetItem('', '', 'Book (Paperback)', 'কপি', 0, 0, 1);
+        const tbody = document.getElementById('itemsBody');
+        if (!tbody) return;
+
+        const i = rowCounter++;
+        const tr = document.createElement('tr');
+        tr.className = 'item-row';
+        tr.setAttribute('data-row', i);
+        tr.innerHTML = `
+            <td class="position-relative book-search-container" style="min-width: 340px;">
+                <div class="input-group input-group-sm">
+                    <textarea name="items[${i}][title]" class="form-control item-title fw-bold" rows="2" 
+                              placeholder="Search book title, author, ISBN..." required 
+                              oninput="handleLiveBookSearch(this, ${i})" 
+                              onfocus="handleLiveBookSearch(this, ${i})" 
+                              onkeydown="handleBookSearchKeydown(event, ${i})" 
+                              autocomplete="off" style="font-size: 13.5px; min-height: 52px; line-height: 1.4; resize: vertical;"></textarea>
+                    <button type="button" class="btn btn-outline-primary px-2.5 d-flex align-items-center justify-content-center" onclick="openQuickAddBookModal(${i})" title="Add new book to Bookshop" style="min-height: 52px;">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+                <input type="hidden" name="items[${i}][book_id]" class="item-book-id" value="">
+                <div class="book-search-dropdown shadow-lg rounded-3 border bg-white d-none" style="position: absolute; top: calc(100% + 4px); left: 0; min-width: 420px; width: 100%; z-index: 1090; max-height: 320px; overflow-y: auto;"></div>
+            </td>
+            <td>
+                <input type="text" name="items[${i}][author_name]" class="form-control item-author" 
+                       placeholder="Author / Spec" autocomplete="off">
+            </td>
+            <td>
+                <select name="items[${i}][item_type]" class="form-select item-type-select" onchange="onTypeChange(this, ${i})">
+                    <option value="Book (Hardcover)" selected>Book (Hardcover)</option>
+                    <option value="Book (Paperback)">Book (Paperback)</option>
+                    <option value="Book (Standard)">Book (Standard)</option>
+                    <option value="Stationery">Stationery</option>
+                    <option value="Product">Product</option>
+                    <option value="Paper / Raw Materials">Paper / Raw Materials</option>
+                    <option value="Printing & Binding">Printing & Binding</option>
+                    <option value="Service">Service</option>
+                    <option value="Other">Other</option>
+                </select>
+            </td>
+            <td>
+                <input type="text" name="items[${i}][unit]" class="form-control item-unit text-center font-monospace" 
+                       value="কপি" placeholder="একক" autocomplete="off">
+            </td>
+            <td>
+                <input type="number" step="0.01" name="items[${i}][quantity]" class="form-control item-qty text-center font-monospace fw-bold" 
+                       value="1" min="0.01" required oninput="calcRow(${i}, 'qty')">
+            </td>
+            <td>
+                <input type="number" step="0.01" name="items[${i}][regular_price]" class="form-control item-regular-price text-end font-monospace" 
+                       value="0" min="0" placeholder="0.00" oninput="calcRow(${i}, 'regular_price')">
+            </td>
+            <td>
+                <input type="number" step="0.01" name="items[${i}][discount_percent]" class="form-control item-discount-percent text-center font-monospace fw-bold text-success" 
+                       value="0" min="0" max="100" placeholder="0" oninput="calcRow(${i}, 'discount_percent')">
+            </td>
+            <td>
+                <input type="number" step="0.01" name="items[${i}][price]" class="form-control item-price text-end font-monospace fw-bold text-primary" 
+                       value="0" min="0" required oninput="calcRow(${i}, 'unit_price')">
+            </td>
+            <td class="text-end fw-bold text-dark item-subtotal font-monospace fs-6">৳0.00</td>
+            <td class="text-center">
+                <button type="button" class="btn btn-sm btn-outline-danger p-1.5 rounded-circle border-0" onclick="removeRow(this)" title="Remove">
+                    <i class="fas fa-trash-can"></i>
+                </button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+        calcTotals();
+
+        const newTitle = tr.querySelector('.item-title');
+        if (newTitle) {
+            newTitle.focus();
+        }
     }
 
     function openQuickAddBookModal(rowIndex, prefilledTitle) {
@@ -1345,6 +1430,7 @@
         const firstRow = tbody.querySelector('.item-row:first-child');
         const firstTitle = firstRow ? (firstRow.querySelector('.item-title')?.value || '').trim() : 'has_data';
         
+        const defType = itemType || 'Book (Hardcover)';
         const qtyVal = parseFloat(quantity) > 0 ? parseFloat(quantity) : 1;
         let defPrice = parseFloat(defaultPrice) || 0;
         let regularPrice = (parseFloat(regPrice) > 0) ? parseFloat(regPrice) : defPrice;
@@ -1362,9 +1448,9 @@
             const authorInput = firstRow.querySelector('.item-author');
             if (authorInput) authorInput.value = authorSpec || '';
             const typeSelect = firstRow.querySelector('.item-type-select');
-            if (typeSelect) typeSelect.value = itemType || 'Printing & Binding';
+            if (typeSelect) typeSelect.value = defType;
             const unitInput = firstRow.querySelector('.item-unit');
-            if (unitInput) unitInput.value = unit || 'পিস';
+            if (unitInput) unitInput.value = unit || 'কপি';
             const qtyInput = firstRow.querySelector('.item-qty');
             if (qtyInput) qtyInput.value = qtyVal;
             const regInput = firstRow.querySelector('.item-regular-price');
@@ -1381,7 +1467,7 @@
             tr.className = 'item-row';
             tr.setAttribute('data-row', i);
             tr.innerHTML = `
-                <td class="position-relative book-search-container" style="min-width: 380px;">
+                <td class="position-relative book-search-container" style="min-width: 340px;">
                     <div class="input-group input-group-sm">
                         <textarea name="items[${i}][title]" class="form-control item-title fw-bold" rows="2" 
                                   placeholder="Search book title, author, ISBN..." required 
@@ -1402,20 +1488,20 @@
                 </td>
                 <td>
                     <select name="items[${i}][item_type]" class="form-select item-type-select" onchange="onTypeChange(this, ${i})">
-                        <option value="Book (Paperback)" ${itemType === 'Book (Paperback)' ? 'selected' : ''}>Book (Paperback)</option>
-                        <option value="Book (Hardcover)" ${itemType === 'Book (Hardcover)' ? 'selected' : ''}>Book (Hardcover)</option>
-                        <option value="Book (Standard)" ${itemType === 'Book (Standard)' ? 'selected' : ''}>Book (Standard)</option>
-                        <option value="Stationery" ${itemType === 'Stationery' ? 'selected' : ''}>Stationery</option>
-                        <option value="Product" ${itemType === 'Product' ? 'selected' : ''}>Product</option>
-                        <option value="Paper / Raw Materials" ${itemType === 'Paper / Raw Materials' ? 'selected' : ''}>Paper / Raw Materials</option>
-                        <option value="Printing & Binding" ${itemType === 'Printing & Binding' ? 'selected' : ''}>Printing & Binding</option>
-                        <option value="Service" ${itemType === 'Service' ? 'selected' : ''}>Service</option>
-                        <option value="Other" ${itemType === 'Other' ? 'selected' : ''}>Other</option>
+                        <option value="Book (Hardcover)" ${defType === 'Book (Hardcover)' ? 'selected' : ''}>Book (Hardcover)</option>
+                        <option value="Book (Paperback)" ${defType === 'Book (Paperback)' ? 'selected' : ''}>Book (Paperback)</option>
+                        <option value="Book (Standard)" ${defType === 'Book (Standard)' ? 'selected' : ''}>Book (Standard)</option>
+                        <option value="Stationery" ${defType === 'Stationery' ? 'selected' : ''}>Stationery</option>
+                        <option value="Product" ${defType === 'Product' ? 'selected' : ''}>Product</option>
+                        <option value="Paper / Raw Materials" ${defType === 'Paper / Raw Materials' ? 'selected' : ''}>Paper / Raw Materials</option>
+                        <option value="Printing & Binding" ${defType === 'Printing & Binding' ? 'selected' : ''}>Printing & Binding</option>
+                        <option value="Service" ${defType === 'Service' ? 'selected' : ''}>Service</option>
+                        <option value="Other" ${defType === 'Other' ? 'selected' : ''}>Other</option>
                     </select>
                 </td>
                 <td>
                     <input type="text" name="items[${i}][unit]" class="form-control item-unit text-center font-monospace" 
-                           value="${unit || 'পিস'}" placeholder="একক" autocomplete="off">
+                           value="${unit || 'কপি'}" placeholder="একক" autocomplete="off">
                 </td>
                 <td>
                     <input type="number" step="0.01" name="items[${i}][quantity]" class="form-control item-qty text-center font-monospace fw-bold" 
@@ -1529,76 +1615,6 @@
             if (thReg) thReg.textContent = 'Price (৳)';
             if (thNet) thNet.textContent = 'Net Price (৳)';
         }
-    }
-
-    function addItemRow() {
-        const tbody = document.getElementById('itemsBody');
-        const i = rowCounter++;
-
-        const tr = document.createElement('tr');
-        tr.className = 'item-row';
-        tr.setAttribute('data-row', i);
-        tr.innerHTML = `
-            <td class="position-relative book-search-container" style="min-width: 380px;">
-                <div class="input-group input-group-sm">
-                    <textarea name="items[${i}][title]" class="form-control item-title fw-bold" rows="2" 
-                              placeholder="Search book title, author, ISBN..." required 
-                              oninput="handleLiveBookSearch(this, ${i})" 
-                              onfocus="handleLiveBookSearch(this, ${i})" 
-                              autocomplete="off" style="font-size: 13.5px; min-height: 52px; line-height: 1.4; resize: vertical;"></textarea>
-                    <button type="button" class="btn btn-outline-primary px-2.5 d-flex align-items-center justify-content-center" onclick="openQuickAddBookModal(${i})" title="Add new book to Bookshop" style="min-height: 52px;">
-                        <i class="fas fa-plus"></i>
-                    </button>
-                </div>
-                <input type="hidden" name="items[${i}][book_id]" class="item-book-id" value="">
-                <div class="book-search-dropdown shadow-lg rounded-3 border bg-white d-none" style="position: absolute; top: 100%; left: 0; right: 0; z-index: 1050; max-height: 280px; overflow-y: auto;"></div>
-            </td>
-            <td>
-                <input type="text" name="items[${i}][author_name]" class="form-control item-author" 
-                       placeholder="Author / Spec" autocomplete="off">
-            </td>
-            <td>
-                <select name="items[${i}][item_type]" class="form-select item-type-select" onchange="onTypeChange(this, ${i})">
-                    <option value="Book (Paperback)">Book (Paperback)</option>
-                    <option value="Book (Hardcover)">Book (Hardcover)</option>
-                    <option value="Book (Standard)">Book (Standard)</option>
-                    <option value="Stationery">Stationery</option>
-                    <option value="Product">Product</option>
-                    <option value="Paper / Raw Materials">Paper / Raw Materials</option>
-                    <option value="Printing & Binding">Printing & Binding</option>
-                    <option value="Service">Service</option>
-                    <option value="Other">Other</option>
-                </select>
-            </td>
-            <td>
-                <input type="text" name="items[${i}][unit]" class="form-control item-unit text-center font-monospace" 
-                       value="Pcs" placeholder="Unit" autocomplete="off">
-            </td>
-            <td>
-                <input type="number" step="0.01" name="items[${i}][quantity]" class="form-control item-qty text-center font-monospace fw-bold" 
-                       value="1" min="0.01" required oninput="calcRow(${i}, 'qty')">
-            </td>
-            <td>
-                <input type="number" step="0.01" name="items[${i}][regular_price]" class="form-control item-regular-price text-end font-monospace" 
-                       value="0" min="0" placeholder="0.00" oninput="calcRow(${i}, 'regular_price')">
-            </td>
-            <td>
-                <input type="number" step="0.01" name="items[${i}][discount_percent]" class="form-control item-discount-percent text-center font-monospace fw-bold text-success" 
-                       value="0" min="0" max="100" placeholder="0" oninput="calcRow(${i}, 'discount_percent')">
-            </td>
-            <td>
-                <input type="number" step="0.01" name="items[${i}][price]" class="form-control item-price text-end font-monospace fw-bold text-primary" 
-                       value="0" min="0" required oninput="calcRow(${i}, 'unit_price')">
-            </td>
-            <td class="text-end fw-bold text-dark item-subtotal font-monospace fs-6">৳0.00</td>
-            <td class="text-center">
-                <button type="button" class="btn btn-sm btn-outline-danger p-1.5 rounded-circle border-0" onclick="removeRow(this)" title="Remove">
-                    <i class="fas fa-trash-can"></i>
-                </button>
-            </td>
-        `;
-        tbody.appendChild(tr);
-        calcTotals();
     }
 
     function setValidityDays(days) {

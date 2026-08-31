@@ -12,6 +12,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 
 class PaymentAdminController extends Controller
 {
@@ -36,50 +37,123 @@ class PaymentAdminController extends Controller
             'rocket_number' => '01558712810',
         ];
 
-        $paymentGateways = $settings['payment_gateways'] ?? [
+        $savedGateways = $settings['payment_gateways'] ?? [];
+
+        // Comprehensive defaults with full 3-mode and multi-gateway support
+        $paymentGateways = array_replace_recursive([
             'bkash' => [
                 'enabled'      => true,
                 'name'         => 'বিকাশ (bKash)',
+                'mode'         => 'manual', // manual, automated, custom_code
                 'number'       => $ecomSetting['bkash_number'] ?? '01558712810',
-                'type'         => 'personal',
+                'type'         => 'personal', // personal, merchant, agent
+                'fee_percent'  => 0,
                 'instructions' => 'বিকাশ অ্যাপ থেকে Send Money অপশনে গিয়ে উল্লেখিত নম্বরে বিল পাঠিয়ে TrxID ও নম্বর দিন।',
+                'qr_code'      => null,
+                'app_key'      => '',
+                'app_secret'   => '',
+                'username'     => '',
+                'password'     => '',
+                'sandbox'      => '0',
+                'custom_code'  => '',
             ],
             'nagad' => [
-                'enabled'      => true,
-                'name'         => 'নগদ (Nagad)',
-                'number'       => $ecomSetting['nagad_number'] ?? '01558712810',
-                'type'         => 'personal',
-                'instructions' => 'নগদ অ্যাপ থেকে Send Money অপশনে গিয়ে উল্লেখিত নম্বরে বিল পাঠিয়ে TrxID ও নম্বর দিন।',
+                'enabled'         => true,
+                'name'            => 'নগদ (Nagad)',
+                'mode'            => 'manual',
+                'number'          => $ecomSetting['nagad_number'] ?? '01558712810',
+                'type'            => 'personal',
+                'fee_percent'     => 0,
+                'instructions'    => 'নগদ অ্যাপ থেকে Send Money অপশনে গিয়ে উল্লেখিত নম্বরে বিল পাঠিয়ে TrxID ও নম্বর দিন।',
+                'qr_code'         => null,
+                'merchant_id'     => '',
+                'merchant_number' => '',
+                'public_key'      => '',
+                'private_key'     => '',
+                'sandbox'         => '0',
+                'custom_code'     => '',
             ],
             'rocket' => [
                 'enabled'      => false,
-                'name'         => 'রকেট (Rocket)',
+                'name'         => 'রকেট (Rocket - DBBL)',
+                'mode'         => 'manual',
                 'number'       => $ecomSetting['rocket_number'] ?? '01558712810',
                 'type'         => 'personal',
-                'instructions' => 'রকেট একাউন্ট থেকে সেন্ড মানি করে ট্রানজাকশন আইডি দিন।',
+                'fee_percent'  => 0,
+                'instructions' => 'রকেট একাউন্ট থেকে সেন্ড মানি করে ট্রানজাকশন আইডি (TrxID) দিন।',
+                'qr_code'      => null,
+                'custom_code'  => '',
             ],
             'upay' => [
                 'enabled'      => false,
-                'name'         => 'উপায় (Upay)',
+                'name'         => 'উপায় (Upay - UCB)',
+                'mode'         => 'manual',
                 'number'       => '01558712810',
                 'type'         => 'personal',
-                'instructions' => 'উপায় একাউন্ট থেকে সেন্ড মানি করুন।',
+                'fee_percent'  => 0,
+                'instructions' => 'উপায় একাউন্ট থেকে সেন্ড মানি করে ট্রানজাকশন আইডি দিন।',
+                'qr_code'      => null,
+                'custom_code'  => '',
             ],
-            'cod' => [
-                'enabled'      => true,
-                'name'         => 'ক্যাশ অন ডেলিভারি (COD)',
-                'instructions' => 'বই হাতে পেয়ে মূল্য পরিশোধ করার সুবিধা।',
+            'cellfin' => [
+                'enabled'      => false,
+                'name'         => 'সেলফিন ও ব্যাংক (Cellfin / IBBL)',
+                'mode'         => 'manual',
+                'number'       => '01726976982',
+                'instructions' => 'সেলফিন অ্যাপের Fund Transfer বা সেন্ড মানি করে ট্রানজাকশন রেফারেন্স দিন।',
+                'qr_code'      => null,
+                'custom_code'  => '',
+            ],
+            'sslcommerz' => [
+                'enabled'      => false,
+                'name'         => 'SSLCommerz (কার্ড ও নেট ব্যাংকিং)',
+                'store_id'     => '',
+                'store_passwd' => '',
+                'sandbox'      => '0',
+                'instructions' => 'ভিসা, মাস্টারকার্ড, অ্যামেক্স অথবা অনলাইন ব্যাংকিং-এর মাধ্যমে নিরাপদে পেমেন্ট সম্পন্ন করুন।',
+            ],
+            'shurjopay' => [
+                'enabled'           => false,
+                'name'              => 'সূর্যপে (ShurjoPay Gateway)',
+                'merchant_username' => '',
+                'merchant_password' => '',
+                'prefix'            => 'IDEA',
+                'sandbox'           => '0',
+                'instructions'      => 'Shurjopay-এর মাধ্যমে ডেবিট/ক্রেডিট কার্ড ও ইন্টারনেট ব্যাংকিং দিয়ে বিল পরিশোধ করুন।',
+            ],
+            'aamarpay' => [
+                'enabled'       => false,
+                'name'          => 'আমারপে (AamarPay Gateway)',
+                'store_id'      => '',
+                'signature_key' => '',
+                'sandbox'       => '0',
+                'instructions'  => 'AamarPay সিকিউর গেটওয়ের মাধ্যমে তাৎক্ষণিক লেনদেন সম্পন্ন করুন।',
             ],
             'bank' => [
                 'enabled'      => false,
+                'name'         => 'ব্যাংক ওয়্যার ট্রান্সফার (Bank Deposit)',
                 'bank_name'    => 'Islami Bank Bangladesh Ltd',
                 'account_name' => 'Idea Prokashon',
                 'account_no'   => '2050XXXXXXXXX',
                 'branch'       => 'Rangpur Branch',
                 'routing'      => '125XXXXXXXX',
+                'swift_code'   => '',
                 'instructions' => 'ব্যাংক অ্যাকাউন্টে টাকা পাঠিয়ে ডিপোজিট স্লিপ বা রেফারেন্স নম্বর দিন।',
+                'qr_code'      => null,
             ],
-        ];
+            'cod' => [
+                'enabled'                 => true,
+                'name'                    => 'ক্যাশ অন ডেলিভারি (COD)',
+                'advance_charge_required' => false,
+                'advance_charge_amount'   => 0,
+                'instructions'            => 'বই হাতে পেয়ে ডেলিভারি ম্যানের কাছে মূল্য পরিশোধ করুন।',
+            ],
+            'global_scripts' => [
+                'header_script'   => '',
+                'footer_script'   => '',
+                'checkout_notice' => 'নিরাপদ লেনদেনের জন্য কোনো সমস্যা হলে আমাদের হেল্পলাইনে (01726-976982) কল করুন।',
+            ],
+        ], $savedGateways);
 
         // 2. Fetch Payment Transactions / Orders with filters
         $ordersQuery = Order::query()->with('book');
@@ -132,45 +206,106 @@ class PaymentAdminController extends Controller
     }
 
     /**
-     * Update Payment Gateways configuration.
+     * Update Payment Gateways configuration & QR codes.
      */
     public function updateGateways(Request $request): RedirectResponse
     {
         $validated = $request->validate([
             'payment_gateways' => 'required|array',
+            'qr_codes'         => 'nullable|array',
         ]);
+
+        $gateways = $validated['payment_gateways'];
+
+        // Handle QR Code image uploads / base64 for each gateway
+        $qrCodes = $request->file('qr_codes', []);
+        $existingGateways = [];
+        if (Schema::hasTable('admin_dashboard_settings')) {
+            $row = AdminDashboardSetting::where('key', 'payment_gateways')->first();
+            $existingGateways = $row?->value ?? [];
+        }
+
+        foreach (['bkash', 'nagad', 'rocket', 'upay', 'cellfin', 'bank'] as $gw) {
+            // Check if a new file was uploaded
+            if (isset($qrCodes[$gw]) && $qrCodes[$gw]->isValid()) {
+                $path = $qrCodes[$gw]->store('settings/qrcodes', 'public');
+                $gateways[$gw]['qr_code'] = 'storage/' . $path;
+            } elseif ($request->filled("qr_base64.{$gw}")) {
+                // Base64 cropped image
+                $base64 = $request->input("qr_base64.{$gw}");
+                $saved = $this->saveBase64Image($base64, 'settings/qrcodes');
+                if ($saved) {
+                    $gateways[$gw]['qr_code'] = $saved;
+                }
+            } elseif (!empty($existingGateways[$gw]['qr_code'])) {
+                // Preserve existing QR code if not cleared
+                if ($request->boolean("remove_qr.{$gw}")) {
+                    $gateways[$gw]['qr_code'] = null;
+                } else {
+                    $gateways[$gw]['qr_code'] = $existingGateways[$gw]['qr_code'];
+                }
+            }
+        }
 
         if (Schema::hasTable('admin_dashboard_settings')) {
             AdminDashboardSetting::updateOrCreate(
                 ['key' => 'payment_gateways'],
-                ['value' => $validated['payment_gateways']]
+                ['value' => $gateways, 'updated_by' => auth()->id()]
             );
 
             // Sync phone numbers with ecommerce_settings if relevant
             $ecomRow = AdminDashboardSetting::where('key', 'ecommerce_settings')->first();
             $ecomData = $ecomRow?->value ?? [];
-            
-            if (isset($validated['payment_gateways']['bkash']['number'])) {
-                $ecomData['bkash_number'] = $validated['payment_gateways']['bkash']['number'];
+
+            if (isset($gateways['bkash']['number'])) {
+                $ecomData['bkash_number'] = $gateways['bkash']['number'];
             }
-            if (isset($validated['payment_gateways']['nagad']['number'])) {
-                $ecomData['nagad_number'] = $validated['payment_gateways']['nagad']['number'];
+            if (isset($gateways['nagad']['number'])) {
+                $ecomData['nagad_number'] = $gateways['nagad']['number'];
             }
-            if (isset($validated['payment_gateways']['rocket']['number'])) {
-                $ecomData['rocket_number'] = $validated['payment_gateways']['rocket']['number'];
+            if (isset($gateways['rocket']['number'])) {
+                $ecomData['rocket_number'] = $gateways['rocket']['number'];
             }
 
             AdminDashboardSetting::updateOrCreate(
                 ['key' => 'ecommerce_settings'],
-                ['value' => $ecomData]
+                ['value' => $ecomData, 'updated_by' => auth()->id()]
             );
+
+            \App\Support\SiteSetting::clearCache();
         }
 
         if ($this->accessService) {
-            $this->accessService->log('update_payment_gateways', 'পেমেন্ট গেটওয়ে সেটিংস আপডেট করা হয়েছে');
+            $this->accessService->log('update_payment_gateways', 'পেমেন্ট গেটওয়ে, লাইভ এপিআই ও কাস্টম কোড সেটিংস আপডেট করা হয়েছে');
         }
 
-        return back()->with('success', 'পেমেন্ট গেটওয়ে সেটিংস সফলভাবে সংরক্ষণ করা হয়েছে!');
+        return back()->with('success', 'পেমেন্ট গেটওয়ে, লাইভ এপিআই ও কাস্টম কোড সেটিংস সফলভাবে সংরক্ষণ করা হয়েছে!');
+    }
+
+    /**
+     * Save base64 data to storage.
+     */
+    private function saveBase64Image(?string $base64Data, string $folder): ?string
+    {
+        if (!$base64Data || !str_starts_with($base64Data, 'data:image/')) {
+            return null;
+        }
+
+        @list($type, $data) = explode(';', $base64Data);
+        @list(, $data) = explode(',', $data);
+        $decoded = base64_decode($data);
+        if ($decoded === false) {
+            return null;
+        }
+
+        $ext = 'png';
+        if (str_contains($type, 'jpeg') || str_contains($type, 'jpg')) $ext = 'jpg';
+        elseif (str_contains($type, 'webp')) $ext = 'webp';
+
+        $filename = $folder . '/' . uniqid('qr_', true) . '.' . $ext;
+        Storage::disk('public')->put($filename, $decoded);
+
+        return 'storage/' . $filename;
     }
 
     /**

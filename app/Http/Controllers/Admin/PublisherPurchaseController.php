@@ -74,7 +74,9 @@ class PublisherPurchaseController extends Controller
             'other_total'    => (float) PublisherPurchase::where('purchase_category', 'other')->sum('grand_total'),
         ];
 
-        return view('admin.purchases.index', compact('purchases', 'publishers', 'stats', 'search', 'publisherId', 'paymentStatus', 'dateFrom', 'dateTo', 'category'));
+        $settings = IdeaAccountingController::getInvoiceSettings();
+
+        return view('admin.purchases.index', compact('purchases', 'publishers', 'stats', 'search', 'publisherId', 'paymentStatus', 'dateFrom', 'dateTo', 'category', 'settings'));
     }
 
     /**
@@ -138,7 +140,9 @@ class PublisherPurchaseController extends Controller
             ->orderBy('vendor_name')
             ->get();
 
-        return view('admin.purchases.create', compact('publishers', 'authors', 'categories', 'books', 'suggestedInvoiceNo', 'currentType', 'existingVendors'));
+        $settings = IdeaAccountingController::getInvoiceSettings();
+
+        return view('admin.purchases.create', compact('publishers', 'authors', 'categories', 'books', 'suggestedInvoiceNo', 'currentType', 'existingVendors', 'settings'));
     }
 
     /**
@@ -243,7 +247,8 @@ class PublisherPurchaseController extends Controller
             'items.*.author'              => 'nullable|string|max:255',
             'items.*.category_id'         => 'nullable|integer',
             'items.*.category_name'       => 'nullable|string|max:100',
-            'items.*.quantity'            => 'required|integer|min:1',
+            'items.*.quantity'            => 'nullable|numeric|min:0',
+            'items.*.reams_quantity'      => 'nullable|numeric|min:0',
             'items.*.mrp_price'           => 'nullable|numeric|min:0',
             'items.*.purchase_commission_percent' => 'nullable|numeric|min:0|max:100',
             'items.*.cost_price'          => 'required|numeric|min:0',
@@ -332,7 +337,9 @@ class PublisherPurchaseController extends Controller
 
             // Process purchase items & sync with Bookshop (only for books class)
             foreach ($validated['items'] as $itemData) {
-                $qty = (int) $itemData['quantity'];
+                $reamsQty = isset($itemData['reams_quantity']) && $itemData['reams_quantity'] !== '' ? (float)$itemData['reams_quantity'] : null;
+                $rawQty = isset($itemData['quantity']) && $itemData['quantity'] !== '' ? (float)$itemData['quantity'] : 0.0;
+                $qty = ($rawQty > 0) ? $rawQty : ($reamsQty ?: 1.0);
                 $mrp = (float) ($itemData['mrp_price'] ?? 0);
                 $commPercent = (float) ($itemData['purchase_commission_percent'] ?? 0);
                 $cost = (float) $itemData['cost_price'];
@@ -587,10 +594,11 @@ class PublisherPurchaseController extends Controller
             ->all();
 
         $paymentMethods = PublisherPayment::paymentMethods();
+        $settings = IdeaAccountingController::getInvoiceSettings();
 
         return view('admin.purchases.edit', compact(
             'purchase', 'publishers', 'authors', 'categories', 'books', 'existingVendors',
-            'previousDue', 'otherPendingInvoices', 'publisherDueMap', 'vendorDueMap', 'paymentMethods'
+            'previousDue', 'otherPendingInvoices', 'publisherDueMap', 'vendorDueMap', 'paymentMethods', 'settings'
         ));
     }
 
@@ -622,7 +630,8 @@ class PublisherPurchaseController extends Controller
             'items.*.author'              => 'nullable|string|max:255',
             'items.*.category_id'         => 'nullable|integer',
             'items.*.category_name'       => 'nullable|string|max:100',
-            'items.*.quantity'            => 'required|integer|min:1',
+            'items.*.quantity'            => 'nullable|numeric|min:0',
+            'items.*.reams_quantity'      => 'nullable|numeric|min:0',
             'items.*.mrp_price'           => 'nullable|numeric|min:0',
             'items.*.purchase_commission_percent' => 'nullable|numeric|min:0|max:100',
             'items.*.cost_price'          => 'required|numeric|min:0',
@@ -713,7 +722,9 @@ class PublisherPurchaseController extends Controller
 
             // Process purchase items & sync with Bookshop
             foreach ($validated['items'] as $itemData) {
-                $qty = (int) $itemData['quantity'];
+                $reamsQty = isset($itemData['reams_quantity']) && $itemData['reams_quantity'] !== '' ? (float)$itemData['reams_quantity'] : null;
+                $rawQty = isset($itemData['quantity']) && $itemData['quantity'] !== '' ? (float)$itemData['quantity'] : 0.0;
+                $qty = ($rawQty > 0) ? $rawQty : ($reamsQty ?: 1.0);
                 $mrp = (float) ($itemData['mrp_price'] ?? 0);
                 $commPercent = (float) ($itemData['purchase_commission_percent'] ?? 0);
                 $cost = (float) $itemData['cost_price'];
@@ -872,8 +883,9 @@ class PublisherPurchaseController extends Controller
     {
         $purchase->load(['publisher', 'items.book.category', 'payments.recorder', 'creator']);
         $paymentMethods = PublisherPayment::paymentMethods();
+        $settings = IdeaAccountingController::getInvoiceSettings();
 
-        return view('admin.purchases.show', compact('purchase', 'paymentMethods'));
+        return view('admin.purchases.show', compact('purchase', 'paymentMethods', 'settings'));
     }
 
     /**
@@ -951,11 +963,12 @@ class PublisherPurchaseController extends Controller
 
         // Build summary cards for vendor ledger
         $vendorLedgers = $this->buildVendorLedgersSummary();
+        $settings = IdeaAccountingController::getInvoiceSettings();
 
         return view('admin.purchases.payments', compact(
             'payments', 'publishers', 'rawVendors', 'paymentMethods', 'pendingPurchases',
             'totalPaidSum', 'totalDueSum', 'totalPurchaseSum', 'pendingCount',
-            'vendorLedgers', 'publisherId', 'vendorName', 'method', 'category', 'dateFrom', 'dateTo', 'search'
+            'vendorLedgers', 'publisherId', 'vendorName', 'method', 'category', 'dateFrom', 'dateTo', 'search', 'settings'
         ));
     }
 
@@ -1546,6 +1559,7 @@ class PublisherPurchaseController extends Controller
         $otherPurchaseTotal = (float) $otherPurchases->sum('grand_total');
 
         $netBalance = $totalSalesAmount - $totalPurchaseAmount;
+        $settings = IdeaAccountingController::getInvoiceSettings();
 
         return view('admin.purchases.monthly-report', compact(
             'month', 'year', 'startDate', 'endDate',
@@ -1553,7 +1567,7 @@ class PublisherPurchaseController extends Controller
             'totalPurchaseAmount', 'totalPurchasePaid', 'totalPurchaseDue',
             'booksPurchaseTotal', 'rawPurchaseTotal', 'otherPurchaseTotal',
             'paperTotal', 'printTotal', 'bindingTotal', 'plateTotal', 'otherRawTotal',
-            'orders', 'totalSalesAmount', 'totalOrdersCount', 'deliveredSalesAmount', 'netBalance'
+            'orders', 'totalSalesAmount', 'totalOrdersCount', 'deliveredSalesAmount', 'netBalance', 'settings'
         ));
     }
 

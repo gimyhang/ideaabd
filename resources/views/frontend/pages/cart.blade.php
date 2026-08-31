@@ -277,31 +277,61 @@
                             <i class="fa-solid fa-credit-card text-primary me-1"></i> পেমেন্ট মেথড বেছে নিন
                         </label>
                         <div class="d-flex flex-column gap-2 mb-2">
+                            @if(!empty($paymentGateways['cod']['enabled'] ?? true))
                             <label class="form-check p-2.5 border rounded-3 bg-light d-flex align-items-center gap-2 cursor-pointer mb-0">
                                 <input class="form-check-input ms-0 me-2" type="radio" name="payment_method" value="cod" checked onchange="toggleFullCartTrxInput('cod')">
-                                <span class="small fw-semibold text-dark flex-grow-1">ক্যাশ অন ডেলিভারি (বই পেয়ে টাকা পরিশোধ)</span>
+                                <span class="small fw-semibold text-dark flex-grow-1">{{ $paymentGateways['cod']['name'] ?? 'ক্যাশ অন ডেলিভারি (বই পেয়ে টাকা পরিশোধ)' }}</span>
                                 <i class="fa-solid fa-hand-holding-dollar text-success fs-5"></i>
                             </label>
+                            @endif
 
+                            @if(!empty($paymentGateways['bkash']['enabled'] ?? true))
                             <label class="form-check p-2.5 border rounded-3 bg-light d-flex align-items-center gap-2 cursor-pointer mb-0">
                                 <input class="form-check-input ms-0 me-2" type="radio" name="payment_method" value="bkash" onchange="toggleFullCartTrxInput('bkash')">
-                                <span class="small fw-semibold text-dark flex-grow-1">বিকাশ (bKash Send Money)</span>
+                                <span class="small fw-semibold text-dark flex-grow-1">বিকাশ (bKash {{ ucfirst($paymentGateways['bkash']['type'] ?? 'Personal') }})</span>
                                 <span class="badge text-white rounded-pill px-2.5 py-1 fw-bold" style="background:#d82a6f;">bKash</span>
                             </label>
+                            @endif
 
+                            @if(!empty($paymentGateways['nagad']['enabled'] ?? true))
                             <label class="form-check p-2.5 border rounded-3 bg-light d-flex align-items-center gap-2 cursor-pointer mb-0">
                                 <input class="form-check-input ms-0 me-2" type="radio" name="payment_method" value="nagad" onchange="toggleFullCartTrxInput('nagad')">
-                                <span class="small fw-semibold text-dark flex-grow-1">নগদ (Nagad Send Money)</span>
+                                <span class="small fw-semibold text-dark flex-grow-1">নগদ (Nagad {{ ucfirst($paymentGateways['nagad']['type'] ?? 'Personal') }})</span>
                                 <span class="badge text-white rounded-pill px-2.5 py-1 fw-bold" style="background:#e8590c;">Nagad</span>
                             </label>
+                            @endif
+
+                            @if(!empty($paymentGateways['rocket']['enabled']))
+                            <label class="form-check p-2.5 border rounded-3 bg-light d-flex align-items-center gap-2 cursor-pointer mb-0">
+                                <input class="form-check-input ms-0 me-2" type="radio" name="payment_method" value="rocket" onchange="toggleFullCartTrxInput('rocket')">
+                                <span class="small fw-semibold text-dark flex-grow-1">রকেট (Rocket DBBL)</span>
+                                <span class="badge text-white rounded-pill px-2.5 py-1 fw-bold" style="background:#8b5cf6;">Rocket</span>
+                            </label>
+                            @endif
+
+                            @if(!empty($paymentGateways['cellfin']['enabled']))
+                            <label class="form-check p-2.5 border rounded-3 bg-light d-flex align-items-center gap-2 cursor-pointer mb-0">
+                                <input class="form-check-input ms-0 me-2" type="radio" name="payment_method" value="cellfin" onchange="toggleFullCartTrxInput('cellfin')">
+                                <span class="small fw-semibold text-dark flex-grow-1">সেলফিন (Cellfin / IBBL)</span>
+                                <span class="badge text-white rounded-pill px-2.5 py-1 fw-bold" style="background:#059669;">Cellfin</span>
+                            </label>
+                            @endif
+
+                            @if(!empty($paymentGateways['upay']['enabled']))
+                            <label class="form-check p-2.5 border rounded-3 bg-light d-flex align-items-center gap-2 cursor-pointer mb-0">
+                                <input class="form-check-input ms-0 me-2" type="radio" name="payment_method" value="upay" onchange="toggleFullCartTrxInput('upay')">
+                                <span class="small fw-semibold text-dark flex-grow-1">উপায় (Upay UCB)</span>
+                                <span class="badge text-white rounded-pill px-2.5 py-1 fw-bold" style="background:#0284c7;">Upay</span>
+                            </label>
+                            @endif
                         </div>
 
-                        <!-- TrxID Input Box for MFS -->
+                        <!-- TrxID Input Box for MFS & Online -->
                         <div id="fullCartTrxBox" class="d-none p-3 bg-light-subtle rounded-3 border mt-2">
                             <div class="d-flex align-items-center justify-content-between mb-2">
                                 <span class="small fw-bold text-dark" id="fullCartMfsTitle">পেমেন্ট নম্বর:</span>
                                 <div class="d-flex align-items-center gap-1 bg-white px-2 py-0.5 rounded border">
-                                    <span class="font-monospace fw-bold text-danger small" id="fullCartMfsNumber">{{ $ecomSetting['bkash_number'] ?? '01558712810' }}</span>
+                                    <span class="font-monospace fw-bold text-danger small" id="fullCartMfsNumber">{{ $paymentGateways['bkash']['number'] ?? $ecomSetting['bkash_number'] ?? '01558712810' }}</span>
                                     <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-1 border-0" onclick="copyMfsNumber()" title="কপি করুন">
                                         <i class="fa-regular fa-copy"></i>
                                     </button>
@@ -840,26 +870,34 @@
             showToast('কুপন বাতিল হয়েছে', 'প্রযুক্ত কুপনটি সরিয়ে নেওয়া হয়েছে।');
         };
 
-        // Payment Method Switching for MFS
+        // Payment Method Switching for MFS & Gateways
         window.toggleFullCartTrxInput = function(method) {
             const trxBox = document.getElementById('fullCartTrxBox');
             const mfsDisplay = document.getElementById('fullCartMfsNumber');
             const mfsTitle = document.getElementById('fullCartMfsTitle');
             const trxInput = document.getElementById('fullCartTrxId');
 
-            const bkashNum = '{{ $ecomSetting['bkash_number'] ?? '01558712810' }}';
-            const nagadNum = '{{ $ecomSetting['nagad_number'] ?? '01558712810' }}';
+            const numbers = {
+                bkash: '{{ $paymentGateways['bkash']['number'] ?? $ecomSetting['bkash_number'] ?? '01558712810' }}',
+                nagad: '{{ $paymentGateways['nagad']['number'] ?? $ecomSetting['nagad_number'] ?? '01558712810' }}',
+                rocket: '{{ $paymentGateways['rocket']['number'] ?? $ecomSetting['rocket_number'] ?? '01558712810' }}',
+                upay: '{{ $paymentGateways['upay']['number'] ?? '01558712810' }}',
+                cellfin: '{{ $paymentGateways['cellfin']['number'] ?? '01726976982' }}'
+            };
+
+            const titles = {
+                bkash: 'বিকাশ পেমেন্ট নম্বর:',
+                nagad: 'নগদ পেমেন্ট নম্বর:',
+                rocket: 'রকেট পেমেন্ট নম্বর:',
+                upay: 'উপায় পেমেন্ট নম্বর:',
+                cellfin: 'সেলফিন নম্বর / রেফারেন্স:'
+            };
 
             if (trxBox) {
-                if (method === 'bkash') {
+                if (numbers[method]) {
                     trxBox.classList.remove('d-none');
-                    if (mfsTitle) mfsTitle.textContent = 'বিকাশ পেমেন্ট নম্বর:';
-                    if (mfsDisplay) mfsDisplay.textContent = bkashNum;
-                    if (trxInput) trxInput.setAttribute('required', 'required');
-                } else if (method === 'nagad') {
-                    trxBox.classList.remove('d-none');
-                    if (mfsTitle) mfsTitle.textContent = 'নগদ পেমেন্ট নম্বর:';
-                    if (mfsDisplay) mfsDisplay.textContent = nagadNum;
+                    if (mfsTitle) mfsTitle.textContent = titles[method] || 'পেমেন্ট নম্বর:';
+                    if (mfsDisplay) mfsDisplay.textContent = numbers[method];
                     if (trxInput) trxInput.setAttribute('required', 'required');
                 } else {
                     trxBox.classList.add('d-none');

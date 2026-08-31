@@ -15,23 +15,50 @@ class PaymentController extends Controller
      | ========================================================================= */
 
     /**
+     * Get bKash configuration from DB settings or config
+     */
+    private function getBkashConfig(): array
+    {
+        $settings = [];
+        if (\Illuminate\Support\Facades\Schema::hasTable('admin_dashboard_settings')) {
+            $row = \App\Models\AdminDashboardSetting::where('key', 'payment_gateways')->first();
+            $settings = $row?->value['bkash'] ?? [];
+        }
+
+        $isSandbox = ($settings['sandbox'] ?? env('BKASH_SANDBOX', true)) == '1' || ($settings['sandbox'] ?? env('BKASH_SANDBOX', true)) === true;
+
+        return [
+            'app_key'    => $settings['app_key'] ?? config('services.bkash.app_key', env('BKASH_APP_KEY', '')),
+            'app_secret' => $settings['app_secret'] ?? config('services.bkash.app_secret', env('BKASH_APP_SECRET', '')),
+            'username'   => $settings['username'] ?? config('services.bkash.username', env('BKASH_USERNAME', '')),
+            'password'   => $settings['password'] ?? config('services.bkash.password', env('BKASH_PASSWORD', '')),
+            'sandbox'    => $isSandbox,
+            'base_url'   => $isSandbox
+                ? 'https://tokenized.sandbox.bka.sh/v1.2.0-beta'
+                : 'https://tokenized.pay.bka.sh/v1.2.0-beta',
+        ];
+    }
+
+    /**
      * বিকাশের অ্যাথেন্টিকেশন টোকেন জেনারেট করে
      */
     private function getBkashToken()
     {
+        $config = $this->getBkashConfig();
+
         $response = Http::withHeaders([
-            'username' => config('services.bkash.username'),
-            'password' => config('services.bkash.password'),
-        ])->post(config('services.bkash.base_url') . '/checkout/token/grant', [
-            'app_key'    => config('services.bkash.app_key'),
-            'app_secret' => config('services.bkash.app_secret'),
+            'username' => $config['username'],
+            'password' => $config['password'],
+        ])->post($config['base_url'] . '/checkout/token/grant', [
+            'app_key'    => $config['app_key'],
+            'app_secret' => $config['app_secret'],
         ]);
 
         if ($response->successful() && isset($response->json()['id_token'])) {
             return $response->json()['id_token'];
         }
 
-        Log::channel('json')->error('bKash Token Generation Failed', $response->json());
+        Log::channel('json')->error('bKash Token Generation Failed', (array) $response->json());
         throw new Exception('bKash authentication failed.');
     }
 
@@ -45,14 +72,15 @@ class PaymentController extends Controller
         ]);
 
         $order = Order::findOrFail($request->order_id);
+        $config = $this->getBkashConfig();
 
         try {
             $token = $this->getBkashToken();
 
             $response = Http::withHeaders([
                 'Authorization' => $token,
-                'X-APP-Key'     => config('services.bkash.app_key'),
-            ])->post(config('services.bkash.base_url') . '/checkout/create', [
+                'X-APP-Key'     => $config['app_key'],
+            ])->post($config['base_url'] . '/checkout/create', [
                 'mode'                  => '0011',
                 'payerReference'        => $order->phone ?? '01700000000',
                 'callbackURL'           => route('bkash.callback'),
@@ -89,6 +117,7 @@ class PaymentController extends Controller
     {
         $paymentID = $request->input('paymentID');
         $status    = $request->input('status');
+        $config    = $this->getBkashConfig();
 
         if ($status === 'success') {
             try {
@@ -96,8 +125,8 @@ class PaymentController extends Controller
 
                 $response = Http::withHeaders([
                     'Authorization' => $token,
-                    'X-APP-Key'     => config('services.bkash.app_key'),
-                ])->post(config('services.bkash.base_url') . '/checkout/execute', [
+                    'X-APP-Key'     => $config['app_key'],
+                ])->post($config['base_url'] . '/checkout/execute', [
                     'paymentID' => $paymentID,
                 ]);
 
@@ -136,6 +165,31 @@ class PaymentController extends Controller
      | ========================================================================= */
 
     /**
+     * Get Nagad configuration from DB settings or config
+     */
+    private function getNagadConfig(): array
+    {
+        $settings = [];
+        if (\Illuminate\Support\Facades\Schema::hasTable('admin_dashboard_settings')) {
+            $row = \App\Models\AdminDashboardSetting::where('key', 'payment_gateways')->first();
+            $settings = $row?->value['nagad'] ?? [];
+        }
+
+        $isSandbox = ($settings['sandbox'] ?? env('NAGAD_SANDBOX', true)) == '1' || ($settings['sandbox'] ?? env('NAGAD_SANDBOX', true)) === true;
+
+        return [
+            'merchant_id'     => $settings['merchant_id'] ?? config('services.nagad.merchant_id', env('NAGAD_MERCHANT_ID', '')),
+            'merchant_number' => $settings['merchant_number'] ?? config('services.nagad.merchant_number', env('NAGAD_MERCHANT_NUMBER', '')),
+            'public_key'      => $settings['public_key'] ?? config('services.nagad.public_key', env('NAGAD_PUBLIC_KEY', '')),
+            'private_key'     => $settings['private_key'] ?? config('services.nagad.private_key', env('NAGAD_PRIVATE_KEY', '')),
+            'sandbox'         => $isSandbox,
+            'base_url'        => $isSandbox
+                ? 'http://sandbox.mynagad.com:10080/remote-payment-gateway-1.0/api/dfs'
+                : 'https://api.mynagad.com/api/dfs',
+        ];
+    }
+
+    /**
      * নগদ পেমেন্ট ইনিশিয়েট করার প্রক্রিয়া
      */
     public function createNagadPayment(Request $request)
@@ -145,7 +199,8 @@ class PaymentController extends Controller
         ]);
 
         $order      = Order::findOrFail($request->order_id);
-        $merchantID = config('services.nagad.merchant_id');
+        $config     = $this->getNagadConfig();
+        $merchantID = $config['merchant_id'] ?: '683002007104225';
         $dateTime   = now()->format('YmdHis');
         $orderId    = 'ORD' . $order->id . '-' . rand(100, 999);
 
@@ -153,25 +208,21 @@ class PaymentController extends Controller
             'merchantId' => $merchantID,
             'datetime'   => $dateTime,
             'orderId'    => $orderId,
-            'challenge'  => Str::random(40),
+            'challenge'  => \Illuminate\Support\Str::random(40),
         ];
 
-        // নগদ পেমেন্টের জন্য রিকোয়েস্ট প্লেসহোল্ডার (নগদের দেওয়া স্যান্ডবক্স/লাইভ এন্ডপয়েন্টে পাঠানো হয়)
         try {
-            // ডাটাবেজে অর্ডারের রেফারেন্স আপডেট
             $order->update([
                 'payment_id'     => $orderId,
                 'payment_method' => 'Nagad',
             ]);
 
-            // অডিট লগে এন্ট্রি
             Log::channel('audit')->info('Nagad Payment Initiated', ['order_id' => $order->id, 'nagad_order_id' => $orderId]);
 
             return response()->json([
-                'status'  => 'success',
-                'message' => 'Nagad Payment Gateway URL ready.',
-                // নগদের এপিআই থেকে প্রাপ্ত রিডাইরেক্ট ইউআরএল
-                'redirect_url' => config('services.nagad.base_url') . '/check-out/' . $orderId,
+                'status'       => 'success',
+                'message'      => 'Nagad Payment Gateway URL ready.',
+                'redirect_url' => $config['base_url'] . '/check-out/' . $orderId,
             ]);
 
         } catch (Exception $e) {

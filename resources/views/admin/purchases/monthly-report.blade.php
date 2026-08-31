@@ -10,6 +10,9 @@
 
 @section('actions')
     <div class="d-flex align-items-center gap-2">
+        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-xs" data-bs-toggle="modal" data-bs-target="#invoiceSettingsModal" title="Customize branding header">
+            <i class="fas fa-palette me-1 text-primary"></i> Memo Settings
+        </button>
         <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-xs" onclick="window.print()">
             <i class="fa-solid fa-print me-1"></i> প্রিন্ট রিপোর্ট
         </button>
@@ -431,4 +434,8 @@
     </div>
 
 </div>
+
+{{-- Unified Purchases Branding & Memo Settings Modal Partial --}}
+@include('admin.purchases.partials.branding-modal')
+
 @endsection

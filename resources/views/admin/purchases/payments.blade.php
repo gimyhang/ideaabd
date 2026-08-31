@@ -15,6 +15,9 @@
         <a href="{{ route('admin.purchases.ledger') }}" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-xs fw-semibold">
             <i class="fas fa-book-bookmark me-1"></i> Detailed Statements
         </a>
+        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-xs" data-bs-toggle="modal" data-bs-target="#invoiceSettingsModal" title="Customize invoice branding header">
+            <i class="fas fa-palette me-1 text-primary"></i> Memo Settings
+        </button>
         <a href="{{ route('admin.purchases.index') }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-xs">
             <i class="fas fa-arrow-left me-1"></i> Purchases List
         </a>
@@ -509,5 +512,8 @@
         modal.show();
     }
 </script>
+
+{{-- Unified Purchases Branding & Memo Settings Modal Partial --}}
+@include('admin.purchases.partials.branding-modal')
 
 @endsection

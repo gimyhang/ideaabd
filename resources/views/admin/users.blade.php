@@ -7,9 +7,14 @@
 @endsection
 
 @section('actions')
-    <a href="{{ route('admin.sub-admins.create') }}" class="btn btn-primary rounded-pill px-3 shadow-xs">
-        <i class="fas fa-user-plus me-1.5"></i> Add Staff / Sub-Admin
-    </a>
+    <div class="d-flex gap-2">
+        <a href="{{ route('admin.users.security.index') }}" class="btn btn-outline-danger rounded-pill px-3 shadow-xs">
+            <i class="fas fa-shield-halved me-1.5"></i> Login Security & OTP
+        </a>
+        <a href="{{ route('admin.sub-admins.create') }}" class="btn btn-primary rounded-pill px-3 shadow-xs">
+            <i class="fas fa-user-plus me-1.5"></i> Add Staff / Sub-Admin
+        </a>
+    </div>
 @endsection
 
 @section('content')
@@ -246,17 +251,31 @@
 
                         <!-- Action Buttons -->
                         <td class="text-center">
-                            @if(in_array($user->role, ['sub_admin', 'admin']))
-                                <a href="{{ route('admin.sub-admins.show', $user->id) }}" class="btn btn-sm btn-outline-primary rounded-pill px-2.5 py-1" style="font-size: 11.5px;">
-                                    <i class="fa-solid fa-sliders me-1"></i> Permissions
-                                </a>
-                            @elseif($user->reg_status === 'pending')
-                                <a href="{{ route('admin.registrations.show', $user->id) }}" class="btn btn-sm btn-warning rounded-pill px-2.5 py-1 fw-bold" style="font-size: 11.5px;">
-                                    <i class="fa-solid fa-user-check me-1"></i> Review
-                                </a>
-                            @else
-                                <span class="text-muted small">Active</span>
-                            @endif
+                            <div class="d-flex align-items-center justify-content-center gap-1.5 flex-wrap">
+                                @if(in_array($user->role, ['sub_admin', 'admin']))
+                                    <a href="{{ route('admin.sub-admins.show', $user->id) }}" class="btn btn-sm btn-outline-primary rounded-pill px-2.5 py-1" style="font-size: 11.5px;">
+                                        <i class="fa-solid fa-sliders me-1"></i> Permissions
+                                    </a>
+                                @elseif($user->reg_status === 'pending')
+                                    <a href="{{ route('admin.registrations.show', $user->id) }}" class="btn btn-sm btn-warning rounded-pill px-2.5 py-1 fw-bold" style="font-size: 11.5px;">
+                                        <i class="fa-solid fa-user-check me-1"></i> Review
+                                    </a>
+                                @endif
+
+                                <button type="button" class="btn btn-sm btn-primary rounded-pill px-2.5 py-1 fw-semibold" style="font-size: 11px;" 
+                                        onclick="openAutoPasswordModal('{{ $user->id }}', '{{ $user->name }}', '{{ $user->email ?: $user->phone }}')" 
+                                        title="অটো-পাসওয়ার্ড তৈরি করুন">
+                                    <i class="fa-solid fa-key me-1"></i> পাসওয়ার্ড
+                                </button>
+
+                                <form action="{{ route('admin.users.security.generate-otp') }}" method="POST" class="d-inline" onsubmit="return confirm('আপনি কি এই ইউজারের জন্য একটি নতুন ওয়ানটাইম পাসওয়ার্ড (OTP) তৈরি করতে চান?');">
+                                    @csrf
+                                    <input type="hidden" name="user_id" value="{{ $user->id }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-warning rounded-pill px-2 py-1 text-dark fw-semibold" style="font-size: 11px;" title="ওয়ানটাইম ওটিপি (OTP) তৈরি করুন">
+                                        OTP
+                                    </button>
+                                </form>
+                            </div>
                         </td>
                     </tr>
                     @empty
@@ -286,5 +305,99 @@
     </div>
     @endif
 </div>
+
+<!-- Auto-Generate Strong Password Modal -->
+<div class="modal fade" id="autoPasswordModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow-lg">
+            <div class="modal-header border-bottom py-3 px-4 bg-dark text-white rounded-top-4">
+                <h6 class="modal-title fw-bold text-white d-flex align-items-center gap-2">
+                    <i class="fas fa-key text-warning"></i>
+                    <span>পাসওয়ার্ড অটো-জেনারেটর ও অ্যাকাউন্ট রিকভারি</span>
+                </h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ route('admin.users.security.auto-generate-password') }}" method="POST">
+                @csrf
+                <input type="hidden" name="user_id" id="modalAutoPassUserId" value="">
+                
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-dark">ইউজারের পরিচয় (ইমেইল / মোবাইল / ইউজারনেম)</label>
+                        <input type="text" name="identity" id="modalAutoPassIdentity" class="form-control rounded-3 font-monospace" 
+                               placeholder="e.g. user@gmail.com বা 01XXXXXXXXX" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <label class="form-label small fw-bold text-dark mb-0">অটো-জেনারেটেড স্ট্রং পাসওয়ার্ড</label>
+                            <button type="button" class="btn btn-link btn-sm text-primary p-0 text-decoration-none fw-semibold" onclick="generateRandomPassString()">
+                                <i class="fas fa-rotate me-1"></i> নতুন তৈরি করুন
+                            </button>
+                        </div>
+                        <div class="input-group">
+                            <input type="text" name="custom_password" id="modalAutoPassString" class="form-control font-monospace fw-bold text-primary bg-light" 
+                                   value="" placeholder="Click to generate...">
+                            <button type="button" class="btn btn-outline-secondary" onclick="copyPassText(document.getElementById('modalAutoPassString').value)" title="কপি করুন">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                        <small class="text-muted" style="font-size: 11px;">আন্তর্জাতিক মানের ক্রিপ্টোগ্রাফিক ১২-ডিজিটের স্ট্রং পাসওয়ার্ড</small>
+                    </div>
+
+                    <div class="mb-3 p-3 bg-light rounded-3 border">
+                        <div class="form-check form-switch mb-0">
+                            <input class="form-check-input" type="checkbox" name="force_change" value="1" id="forceChangeToggle" checked>
+                            <label class="form-check-label small fw-semibold text-dark" for="forceChangeToggle">
+                                প্রথম লগইনে পাসওয়ার্ড পরিবর্তন বাধ্যতামূলক করুন (Recommended)
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top py-2.5 px-4 bg-light rounded-bottom-4">
+                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">বাতিল</button>
+                    <button type="submit" class="btn btn-sm btn-primary rounded-pill px-4 fw-bold">
+                        <i class="fas fa-check me-1"></i> পাসওয়ার্ড সেট করুন
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function copyPassText(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        alert('পাসওয়ার্ড কপি হয়েছে!\n' + text);
+    });
+}
+
+function generateRandomPassString() {
+    const chars = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789!@#$%&*';
+    let pass = 'Idea#';
+    for (let i = 0; i < 7; i++) {
+        pass += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    const input = document.getElementById('modalAutoPassString');
+    if (input) input.value = pass;
+    return pass;
+}
+
+function openAutoPasswordModal(userId = '', userName = '', identity = '') {
+    const userField = document.getElementById('modalAutoPassUserId');
+    const identityField = document.getElementById('modalAutoPassIdentity');
+    
+    if (userField) userField.value = userId;
+    if (identityField) identityField.value = identity;
+
+    generateRandomPassString();
+
+    const modalEl = document.getElementById('autoPasswordModal');
+    if (modalEl) {
+        const modal = new bootstrap.Modal(modalEl);
+        modal.show();
+    }
+}
+</script>
 
 @endsection

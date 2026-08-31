@@ -8,6 +8,9 @@
 @endsection
 
 @section('actions')
+    <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-xs" data-bs-toggle="modal" data-bs-target="#invoiceSettingsModal" title="Customize invoice branding header">
+        <i class="fas fa-palette me-1 text-primary"></i> Memo Settings
+    </button>
     <a href="{{ route('admin.purchases.index') }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-xs">
         <i class="fas fa-arrow-left me-1"></i> Back to List
     </a>
@@ -478,12 +481,12 @@
                                         <input type="hidden" name="items[0][category_id]" class="item-category-id" value="">
                                     </td>
                                     <td>
-                                        <input type="number" name="items[0][quantity]" class="form-control item-qty text-center fw-bold" 
-                                               value="1" min="1" required oninput="onQtyChange(0)">
+                                        <input type="number" step="any" min="0" name="items[0][quantity]" class="form-control item-qty text-center fw-bold" 
+                                               value="1" required oninput="onQtyChange(0)">
                                     </td>
                                     <td class="col-reams" style="{{ $isInitRaw ? '' : 'display: none;' }}">
-                                        <input type="text" name="items[0][reams_quantity]" class="form-control item-reams text-center font-monospace" 
-                                               placeholder="1.67">
+                                        <input type="number" step="any" min="0" name="items[0][reams_quantity]" class="form-control item-reams text-center font-monospace" 
+                                               placeholder="1.55" oninput="onReamsChange(0)">
                                     </td>
                                     <td class="bg-light-subtle col-mrp" style="{{ $isInitRaw ? 'display: none;' : '' }}">
                                         <input type="number" step="0.01" name="items[0][mrp_price]" class="form-control item-mrp text-end fw-semibold" 
@@ -1350,17 +1353,56 @@
     }
 
     function onQtyChange(index) {
-        calcRow(index);
+        calcRow(index, 'qty');
     }
 
-    function calcRow(index) {
+    function onReamsChange(index) {
+        calcRow(index, 'reams');
+    }
+
+    function calcRow(index, source = null) {
         const row = document.querySelector(`tr.item-row[data-row="${index}"]`);
         if (!row) return;
 
-        const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
-        const cost = parseFloat(row.querySelector('.item-cost').value) || 0;
-        const subtotal = qty * cost;
+        const qtyInput = row.querySelector('.item-qty');
+        const reamsInput = row.querySelector('.item-reams');
+        const costInput = row.querySelector('.item-cost');
 
+        let qty = parseFloat(qtyInput ? qtyInput.value : 0);
+        if (isNaN(qty)) qty = 0;
+
+        let reams = parseFloat(reamsInput ? reamsInput.value : 0);
+        if (isNaN(reams)) reams = 0;
+
+        const cost = parseFloat(costInput ? costInput.value : 0) || 0;
+
+        let count = 0;
+        if (source === 'reams') {
+            if (reams > 0) {
+                count = reams;
+                if (qtyInput && (qty <= 0 || qty === 1)) {
+                    qtyInput.value = reams;
+                }
+            } else {
+                count = qty;
+            }
+        } else if (source === 'qty') {
+            if (qty > 0) {
+                count = qty;
+            } else if (reams > 0) {
+                count = reams;
+            }
+        } else {
+            if (reams > 0 && (qty <= 0 || qty === 1 && reams !== 1)) {
+                count = reams;
+            } else if (qty > 0) {
+                count = qty;
+            } else if (reams > 0) {
+                count = reams;
+            }
+        }
+
+        const subtotal = count * cost;
         row.querySelector('.item-subtotal').textContent = '৳' + subtotal.toFixed(2);
         calcTotals();
     }
@@ -1368,9 +1410,28 @@
     function calcTotals() {
         let total = 0;
         document.querySelectorAll('.item-row').forEach(row => {
-            const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
-            const cost = parseFloat(row.querySelector('.item-cost').value) || 0;
-            total += (qty * cost);
+            const qtyInput = row.querySelector('.item-qty');
+            const reamsInput = row.querySelector('.item-reams');
+            const costInput = row.querySelector('.item-cost');
+
+            let qty = parseFloat(qtyInput ? qtyInput.value : 0);
+            if (isNaN(qty)) qty = 0;
+
+            let reams = parseFloat(reamsInput ? reamsInput.value : 0);
+            if (isNaN(reams)) reams = 0;
+
+            const cost = parseFloat(costInput ? costInput.value : 0) || 0;
+
+            let count = 0;
+            if (reams > 0 && (qty <= 0 || qty === 1 && reams !== 1)) {
+                count = reams;
+            } else if (qty > 0) {
+                count = qty;
+            } else if (reams > 0) {
+                count = reams;
+            }
+
+            total += (count * cost);
         });
 
         const discount = parseFloat(document.getElementById('discountInput').value) || 0;
@@ -1519,12 +1580,12 @@
                 <input type="hidden" name="items[${i}][category_id]" class="item-category-id" value="">
             </td>
             <td>
-                <input type="number" name="items[${i}][quantity]" class="form-control item-qty text-center fw-bold" 
-                       value="1" min="1" required oninput="onQtyChange(${i})">
+                <input type="number" step="any" min="0" name="items[${i}][quantity]" class="form-control item-qty text-center fw-bold" 
+                       value="1" required oninput="onQtyChange(${i})">
             </td>
             <td class="col-reams" style="${isRaw ? '' : 'display: none;'}">
-                <input type="text" name="items[${i}][reams_quantity]" class="form-control item-reams text-center font-monospace" 
-                       placeholder="1.67">
+                <input type="number" step="any" min="0" name="items[${i}][reams_quantity]" class="form-control item-reams text-center font-monospace" 
+                       placeholder="1.55" oninput="onReamsChange(${i})">
             </td>
             <td class="bg-light-subtle col-mrp" style="${isRaw ? 'display: none;' : ''}">
                 <input type="number" step="0.01" name="items[${i}][mrp_price]" class="form-control item-mrp text-end fw-semibold" 
@@ -1687,12 +1748,12 @@
                 <input type="hidden" name="items[${i}][category_id]" class="item-category-id" value="">
             </td>
             <td>
-                <input type="number" name="items[${i}][quantity]" class="form-control item-qty text-center fw-bold" 
-                       value="1" min="1" required oninput="onQtyChange(${i})">
+                <input type="number" step="any" min="0" name="items[${i}][quantity]" class="form-control item-qty text-center fw-bold" 
+                       value="1" required oninput="onQtyChange(${i})">
             </td>
             <td class="col-reams">
-                <input type="text" name="items[${i}][reams_quantity]" class="form-control item-reams text-center font-monospace" 
-                       value="${reams || ''}" placeholder="1.67">
+                <input type="number" step="any" min="0" name="items[${i}][reams_quantity]" class="form-control item-reams text-center font-monospace" 
+                       value="${reams || ''}" placeholder="1.55" oninput="onReamsChange(${i})">
             </td>
             <td class="col-mrp" style="display: none;">
                 <input type="number" step="0.01" name="items[${i}][mrp_price]" class="form-control item-mrp" value="0">
@@ -1841,5 +1902,8 @@
         background: #94a3b8;
     }
 </style>
+
+{{-- Unified Purchases Branding & Memo Settings Modal Partial --}}
+@include('admin.purchases.partials.branding-modal')
 
 @endsection

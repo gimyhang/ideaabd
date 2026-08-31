@@ -13,6 +13,9 @@
     $pendingHonorariums = \Illuminate\Support\Facades\Schema::hasTable('author_honorariums')
         ? \App\Models\AuthorHonorarium::where('payment_status', 'pending')->count()
         : 0;
+    $pendingPasswordRequests = \Illuminate\Support\Facades\Schema::hasTable('password_reset_requests')
+        ? \App\Models\PasswordResetRequest::where('status', 'pending')->count()
+        : 0;
 
     $menu = [
         null => [
@@ -61,10 +64,12 @@
             ['route' => 'admin.book-requests.index', 'icon' => 'code-pull-request', 'label' => 'Book Requests'],
         ],
         'User Management' => [
-            ['route' => 'admin.users',               'icon' => 'users',      'label' => 'All Users'],
-            ['route' => 'admin.registrations.index', 'icon' => 'user-check', 'label' => 'Registration Approvals',
+            ['route' => 'admin.users',                 'icon' => 'users',         'label' => 'All Users'],
+            ['route' => 'admin.users.security.index',  'icon' => 'shield-halved', 'label' => 'Login Security & OTP',
+             'badge' => $pendingPasswordRequests > 0 ? $pendingPasswordRequests : null, 'badgeClass' => 'bg-danger text-white'],
+            ['route' => 'admin.registrations.index',   'icon' => 'user-check',    'label' => 'Registration Approvals',
              'badge' => $pending, 'badgeClass' => 'bg-warning text-dark'],
-            ['route' => 'admin.sub-admins.index',    'icon' => 'user-shield', 'label' => 'Sub-Admins'],
+            ['route' => 'admin.sub-admins.index',      'icon' => 'user-shield',   'label' => 'Sub-Admins'],
         ],
         'Administration' => [
             ['route' => 'admin.roles.index',       'icon' => 'key',             'label' => 'Roles & Permissions'],
