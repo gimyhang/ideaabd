@@ -41,6 +41,7 @@ class IdeaInvoice extends Model
         'notes',
         'terms_conditions',
         'emailed_at',
+        'email_logs',
         'created_by',
     ];
 
@@ -66,6 +67,7 @@ class IdeaInvoice extends Model
 
     protected $casts = [
         'items'        => 'array',
+        'email_logs'   => 'array',
         'invoice_date' => 'date',
         'due_date'     => 'date',
         'valid_until'  => 'date',
@@ -128,6 +130,9 @@ class IdeaInvoice extends Model
                     }
                     if (!$schema->hasColumn('idea_invoices', 'terms_conditions')) {
                         $table->text('terms_conditions')->nullable();
+                    }
+                    if (!$schema->hasColumn('idea_invoices', 'email_logs')) {
+                        $table->json('email_logs')->nullable();
                     }
                 });
             }

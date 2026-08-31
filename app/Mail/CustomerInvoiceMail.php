@@ -5,6 +5,7 @@ namespace App\Mail;
 use App\Models\IdeaInvoice;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Address;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
@@ -26,11 +27,14 @@ class CustomerInvoiceMail extends Mailable
         $bizName = $this->invoiceSettings['business_name'] ?? 'আইডিয়া প্রকাশন';
         $typeLabel = $this->invoice->type_label;
         $invNo = $this->invoice->invoice_no;
-        $bizEmail = $this->invoiceSettings['email'] ?? config('mail.from.address', 'info@ideaabd.com');
+        $fromEmail = config('mail.from.address', 'ideapbd@gmail.com');
+        $fromName = config('mail.from.name', 'Idea Prokashon');
+        $replyToEmail = $this->invoiceSettings['email'] ?? $fromEmail;
 
         return new Envelope(
+            from: new Address($fromEmail, $fromName),
             subject: "{$bizName} — {$typeLabel} #{$invNo}",
-            replyTo: filter_var($bizEmail, FILTER_VALIDATE_EMAIL) ? [$bizEmail] : [],
+            replyTo: filter_var($replyToEmail, FILTER_VALIDATE_EMAIL) ? [new Address($replyToEmail, $bizName)] : [],
         );
     }
 

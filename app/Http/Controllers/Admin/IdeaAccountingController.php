@@ -1813,22 +1813,63 @@ class IdeaAccountingController extends Controller
                 $invoice->access_token = Str::random(32);
             }
             $invoice->emailed_at = now();
+
+            $customMsg = $request->input('custom_message') ? trim($request->input('custom_message')) : null;
+            $senderEmail = config('mail.from.address', 'ideapbd@gmail.com');
+            $sentLogs = $invoice->email_logs ?? [];
+            if (!is_array($sentLogs)) {
+                $sentLogs = [];
+            }
+
+            $successRecipients = [];
+            $failedRecipients = [];
+
+            // Send individual direct emails to all valid recipients
+            foreach ($validEmails as $singleRecipient) {
+                try {
+                    Mail::to($singleRecipient)->send(new CustomerInvoiceMail(
+                        $invoice,
+                        $customMsg,
+                        self::getInvoiceSettings()
+                    ));
+                    $successRecipients[] = $singleRecipient;
+                } catch (\Throwable $sendEx) {
+                    Log::error("Failed sending invoice email to {$singleRecipient}: " . $sendEx->getMessage());
+                    $failedRecipients[] = $singleRecipient . " (" . $sendEx->getMessage() . ")";
+                }
+            }
+
+            // Append to Email Logs
+            $newLogEntry = [
+                'id'             => Str::uuid()->toString(),
+                'sent_at'        => now()->toDateTimeString(),
+                'sender'         => $senderEmail,
+                'recipients'     => $successRecipients,
+                'failed'         => $failedRecipients,
+                'total_sent'     => count($successRecipients),
+                'custom_message' => $customMsg,
+                'sent_by'        => auth()->user()?->name ?? 'Admin',
+                'status'         => empty($failedRecipients) ? 'success' : (empty($successRecipients) ? 'failed' : 'partial'),
+            ];
+
+            array_unshift($sentLogs, $newLogEntry);
+            $invoice->email_logs = array_slice($sentLogs, 0, 50); // Keep latest 50 logs
             $invoice->save();
 
-            $mailable = new CustomerInvoiceMail(
-                $invoice,
-                $request->input('custom_message') ?? null,
-                self::getInvoiceSettings()
-            );
+            if (empty($successRecipients)) {
+                $errDetail = implode(', ', $failedRecipients);
+                return back()->with('error', "ইমেইল পাঠাতে ব্যর্থ হয়েছে: {$errDetail}");
+            }
 
-            // Send to all recipient emails
-            Mail::to($validEmails)->send($mailable);
-
-            $count = count($validEmails);
-            $recipientsList = implode(', ', $validEmails);
+            $count = count($successRecipients);
+            $recipientsList = implode(', ', $successRecipients);
             $successMsg = ($count > 1)
-                ? "মোট {$count}টি ইমেইল ঠিকানায় ({$recipientsList}) সফলভাবে বিল ও চালানের ডিজিটাল লিংক পাঠানো হয়েছে।"
-                : "গ্রাহকের ইমেইল ({$validEmails[0]}) এ সফলভাবে বিল ও চালানের ডিজিটাল লিংক পাঠানো হয়েছে।";
+                ? "📧 মেইল সেন্ড রিপোর্ট: মোট {$count}টি ঠিকানায় ({$recipientsList}) সফলভাবে বিল ও চালানের ডিজিটাল লিংক পাঠানো হয়েছে।"
+                : "📧 মেইল সেন্ড রিপোর্ট: গ্রাহকের ইমেইল ({$successRecipients[0]}) এ সফলভাবে বিল ও চালানের ডিজিটাল লিংক পাঠানো হয়েছে।";
+
+            if (!empty($failedRecipients)) {
+                $successMsg .= " [ব্যর্থ: " . implode(', ', $failedRecipients) . "]";
+            }
 
             return back()->with('success', $successMsg);
         } catch (\Throwable $e) {
