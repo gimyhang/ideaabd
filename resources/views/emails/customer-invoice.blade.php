@@ -1,9 +1,16 @@
+@php
+    $settings = is_array($invoiceSettings ?? null) && !empty($invoiceSettings) 
+        ? $invoiceSettings 
+        : \App\Http\Controllers\Admin\IdeaAccountingController::getInvoiceSettings();
+    $invDate = $invoice->invoice_date;
+    $invDateStr = is_object($invDate) ? $invDate->format('d/m/Y') : ($invDate ? date('d/m/Y', strtotime($invDate)) : date('d/m/Y'));
+@endphp
 <!DOCTYPE html>
 <html lang="bn">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $invoice->type_label }} #{{ $invoice->invoice_no }}</title>
+    <title>{{ $invoice->type_label ?? 'ইনভয়েস' }} #{{ $invoice->invoice_no }}</title>
     <style>
         body { font-family: 'Segoe UI', 'Nikosh', 'Kalpurush', Roboto, Helvetica, Arial, sans-serif; background-color: #f1f5f9; color: #1e293b; margin: 0; padding: 20px; line-height: 1.6; }
         .email-container { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.06); border: 1px solid #e2e8f0; }
@@ -24,19 +31,19 @@
 <body>
     <div class="email-container">
         <div class="header">
-            <h1>{{ $invoiceSettings['business_name'] ?? 'আইডিয়া প্রকাশন' }}</h1>
-            <p>{{ $invoiceSettings['tagline'] ?? 'বই প্রকাশনা, মুদ্রণ ও পরিবেশনা' }}</p>
+            <h1>{{ $settings['business_name'] ?? 'আইডিয়া প্রকাশন' }}</h1>
+            <p>{{ $settings['tagline'] ?? 'বই প্রকাশনা, মুদ্রণ ও পরিবেশনা' }}</p>
         </div>
         <div class="content">
             <div style="text-align: center;">
-                <span class="badge-type">{{ $invoice->type_label }} #{{ $invoice->invoice_no }}</span>
+                <span class="badge-type">{{ $invoice->type_label ?? 'ইনভয়েস' }} #{{ $invoice->invoice_no }}</span>
             </div>
             
             <h2 style="font-size: 18px; color: #0f172a; margin-top: 0;">
                 সম্মানিত গ্রাহক {{ $invoice->customer_name ? $invoice->customer_name : '' }},
             </h2>
             <p style="font-size: 14px; color: #334155; margin-bottom: 10px;">
-                {{ $invoiceSettings['business_name'] ?? 'আইডিয়া প্রকাশন' }} থেকে আপনার অর্ডারের <strong>{{ $invoice->type_label }}</strong> প্রস্তুত করা হয়েছে। নিচে সংক্ষিপ্ত বিবরণ দেওয়া হলো:
+                {{ $settings['business_name'] ?? 'আইডিয়া প্রকাশন' }} থেকে আপনার অর্ডারের <strong>{{ $invoice->type_label ?? 'ইনভয়েস' }}</strong> প্রস্তুত করা হয়েছে। নিচে সংক্ষিপ্ত বিবরণ দেওয়া হলো:
             </p>
 
             @if(!empty($customMessage))
@@ -53,7 +60,7 @@
                     </tr>
                     <tr>
                         <td style="color: #64748b;">তারিখ:</td>
-                        <td><strong>{{ $invoice->invoice_date?->format('d/m/Y') }}</strong></td>
+                        <td><strong>{{ $invDateStr }}</strong></td>
                     </tr>
                     @if($invoice->customer_org)
                     <tr>
@@ -96,9 +103,9 @@
             </p>
         </div>
         <div class="footer">
-            <p style="margin: 0 0 5px 0; font-weight: 600; color: #475569;">{{ $invoiceSettings['business_name'] ?? 'আইডিয়া প্রকাশন' }}</p>
-            <p style="margin: 0 0 5px 0;">{{ $invoiceSettings['address'] ?? 'ঢাকা, বাংলাদেশ' }} · ফোন: {{ $invoiceSettings['phone'] ?? '' }}</p>
-            <p style="margin: 0;">ইমেইল: {{ $invoiceSettings['email'] ?? 'info@ideaabd.com' }}</p>
+            <p style="margin: 0 0 5px 0; font-weight: 600; color: #475569;">{{ $settings['business_name'] ?? 'আইডিয়া প্রকাশন' }}</p>
+            <p style="margin: 0 0 5px 0;">{{ $settings['address'] ?? 'ঢাকা, বাংলাদেশ' }} · ফোন: {{ $settings['phone'] ?? '' }}</p>
+            <p style="margin: 0;">ইমেইল: {{ $settings['email'] ?? 'ideapbd@gmail.com' }}</p>
         </div>
     </div>
 </body>

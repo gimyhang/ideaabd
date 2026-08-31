@@ -645,6 +645,7 @@ class IdeaAccountingController extends Controller
      */
     public function showInvoice(IdeaInvoice $invoice): View
     {
+        IdeaInvoice::ensureColumnsExist();
         $invoice->load(['payments.recorder', 'creator']);
         $invoiceSettings = self::getInvoiceSettings();
         return view('admin.accounting.invoices.show', compact('invoice', 'invoiceSettings'));
@@ -655,6 +656,7 @@ class IdeaAccountingController extends Controller
      */
     public function editInvoice(IdeaInvoice $invoice): View
     {
+        IdeaInvoice::ensureColumnsExist();
         $books = Book::where('is_active', true)
             ->with(['publisher:id,name', 'category:id,name'])
             ->select('id', 'title', 'subtitle', 'author_name', 'cover_type', 'format', 'price', 'discount_price', 'hardcover_price', 'hardcover_discount_price', 'stock_quantity', 'isbn', 'publisher_id', 'category_id')
@@ -1815,7 +1817,7 @@ class IdeaAccountingController extends Controller
             $invoice->emailed_at = now();
 
             $customMsg = $request->input('custom_message') ? trim($request->input('custom_message')) : null;
-            $senderEmail = config('mail.from.address', 'ideapbd@gmail.com');
+            $senderEmail = config('mail.from.address') ?: 'info@ideaabd.com';
             $sentLogs = $invoice->email_logs ?? [];
             if (!is_array($sentLogs)) {
                 $sentLogs = [];
