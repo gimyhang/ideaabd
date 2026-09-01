@@ -532,6 +532,11 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::post('/clear-app', 'clearApp')->name('clear-app');
         Route::post('/clear-config', 'clearConfig')->name('clear-config');
         Route::post('/clear-routes', 'clearRoutes')->name('clear-routes');
+        Route::post('/clear-opcache', 'clearOpcache')->name('clear-opcache');
+        Route::post('/clear-images', 'clearImages')->name('clear-images');
+        Route::post('/warmup', 'warmup')->name('warmup');
+        Route::post('/delete-key', 'deleteKey')->name('delete-key');
+        Route::get('/stats-json', 'statsJson')->name('stats-json');
         Route::post('/optimize', 'optimize')->name('optimize');
     });
 
