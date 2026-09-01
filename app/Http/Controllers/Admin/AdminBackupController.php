@@ -49,7 +49,99 @@ class AdminBackupController extends Controller
         $dbName = config('database.connections.' . config('database.default') . '.database');
         $dbDriver = config('database.default');
 
-        return view('admin.backup', compact('backups', 'dbName', 'dbDriver'));
+        // Database Tables Statistics
+        $tables = [];
+        $totalDbSizeBytes = 0;
+        $totalRowsCount = 0;
+
+        try {
+            $tableStatus = DB::select('SHOW TABLE STATUS');
+            foreach ($tableStatus as $tbl) {
+                $tblName = $tbl->Name ?? $tbl->name ?? '';
+                $rows = (int) ($tbl->Rows ?? $tbl->rows ?? 0);
+                $dataLength = (int) ($tbl->Data_length ?? $tbl->data_length ?? 0);
+                $indexLength = (int) ($tbl->Index_length ?? $tbl->index_length ?? 0);
+                $tableSize = $dataLength + $indexLength;
+
+                $totalDbSizeBytes += $tableSize;
+                $totalRowsCount += $rows;
+
+                $tables[] = [
+                    'name' => $tblName,
+                    'rows' => $rows,
+                    'size' => $this->formatBytes($tableSize),
+                ];
+            }
+        } catch (\Throwable) {
+            // fallback for non-mysql drivers
+        }
+
+        $formattedDbSize = $this->formatBytes($totalDbSizeBytes);
+
+        return view('admin.backup', compact(
+            'backups',
+            'dbName',
+            'dbDriver',
+            'tables',
+            'formattedDbSize',
+            'totalRowsCount'
+        ));
+    }
+
+    /**
+     * Upload an existing backup SQL file to storage.
+     */
+    public function upload(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'backup_file' => 'required|file|max:102400', // max 100MB
+        ]);
+
+        try {
+            $file = $request->file('backup_file');
+            $ext = strtolower($file->getClientOriginalExtension());
+
+            if (!in_array($ext, ['sql', 'txt', 'gz'])) {
+                return back()->with('error', 'শুধুমাত্র .sql, .txt বা .gz ফরম্যাটের ফাইল আপলোড করা যাবে।');
+            }
+
+            $cleanName = 'uploaded_backup_' . date('Y-m-d_H-i-s') . '_' . preg_replace('/[^a-zA-Z0-9_\-\.]/', '', $file->getClientOriginalName());
+            $file->move($this->backupDir, $cleanName);
+
+            if ($this->accessService) {
+                $this->accessService->log('upload_backup', "ডাটাবেজ ব্যাকআপ ফাইল '{$cleanName}' আপলোড করা হয়েছে");
+            }
+
+            return back()->with('success', "ব্যাকআপ ফাইল '{$cleanName}' সফলভাবে আপলোড হয়েছে!");
+        } catch (\Throwable $e) {
+            return back()->with('error', 'ব্যাকআপ ফাইল আপলোডে ত্রুটি: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Restore database from a backup SQL file.
+     */
+    public function restore(Request $request, string $filename): RedirectResponse
+    {
+        $filename = basename($filename);
+        $filePath = $this->backupDir . '/' . $filename;
+
+        if (!File::exists($filePath)) {
+            return back()->with('error', 'ব্যাকআপ ফাইলটি পাওয়া যায়নি।');
+        }
+
+        try {
+            $sqlContent = File::get($filePath);
+            DB::unprepared($sqlContent);
+
+            if ($this->accessService) {
+                $this->accessService->log('restore_backup', "ডাটাবেজ '{$filename}' ফাইল থেকে রিস্টোর করা হয়েছে");
+            }
+
+            return back()->with('success', "অভিনন্দন! ডাটাবেজ ব্যাকআপ '{$filename}' থেকে সফলভাবে রিস্টোর করা হয়েছে!");
+        } catch (\Throwable $e) {
+            return back()->with('error', 'ডাটাবেজ রিস্টোরে ত্রুটি: ' . $e->getMessage());
+        }
     }
 
     /**

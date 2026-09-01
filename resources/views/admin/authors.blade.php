@@ -25,6 +25,59 @@
 @endsection
 
 @section('content')
+<style>
+/* ── Classic Editorial Author Directory Styling ── */
+.author-classic-card {
+    background: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.08) !important;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.author-classic-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 16px 32px rgba(0, 51, 102, 0.1) !important;
+    border-color: rgba(0, 102, 204, 0.35) !important;
+}
+
+.author-portrait-wrap {
+    width: 84px;
+    height: 84px;
+    margin-bottom: 0.5rem;
+}
+
+.author-avatar-frame {
+    width: 80px;
+    height: 80px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+    border: 3px solid #ffffff !important;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.author-classic-card:hover .author-avatar-frame {
+    transform: scale(1.05);
+    box-shadow: 0 8px 24px rgba(0, 102, 204, 0.25);
+    border-color: #e0f2fe !important;
+}
+
+.author-avatar-img {
+    transition: transform 0.3s ease;
+}
+
+.author-classic-card:hover .author-avatar-img {
+    transform: scale(1.08);
+}
+
+.author-zoom-icon {
+    opacity: 0;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    transform: scale(0.8);
+}
+
+.author-portrait-wrap:hover .author-zoom-icon {
+    opacity: 1;
+    transform: scale(1);
+}
+</style>
 <div class="d-flex flex-column gap-3 mb-4">
 
     {{-- Flash Notifications --}}
@@ -212,64 +265,68 @@
         </div>
     @else
 
-        {{-- 3A. COMPACT 7-COLUMN GRID VIEW --}}
+        {{-- 3A. REFINED CLASSIC AUTHORS GRID VIEW --}}
         <div id="authorsGridView" class="view-container">
-            <div class="authors-7col-grid">
+            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-3">
                 @foreach ($authors as $author)
                     @php
                         $avatarUrl = $author->avatar_url;
                         $initials = $author->initials;
-                        $bgColor = $author->avatar_bg_color;
                         $booksCount = $author->books_count ?? 0;
                     @endphp
-                    <div class="author-grid-item" id="authorCard-{{ $author->id }}">
-                        <div class="card h-100 border-0 shadow-xs rounded-3 overflow-hidden author-compact-card position-relative bg-white transition-all">
+                    <div class="col" id="authorCard-{{ $author->id }}">
+                        <div class="card h-100 border-0 rounded-4 overflow-hidden author-classic-card position-relative bg-white shadow-sm transition-all">
                             
-                            {{-- Micro Top Banner Stripe --}}
-                            <div class="author-card-banner position-relative d-flex align-items-center justify-content-between px-2" style="height: 28px; background: {{ $bgColor }};">
-                                {{-- Status & Verified Micro Dots --}}
-                                <div class="d-flex gap-1 align-items-center">
+                            {{-- Sophisticated Top Header Bar --}}
+                            <div class="author-card-header p-3 pb-0 d-flex align-items-center justify-content-between position-relative">
+                                <div class="d-flex align-items-center gap-1.5">
                                     <button type="button" 
-                                            class="badge rounded-circle border-0 p-0 d-inline-flex align-items-center justify-content-center cursor-pointer {{ $author->is_active ? 'bg-success' : 'bg-secondary' }}"
-                                            style="width: 14px; height: 14px; font-size: 7px;"
+                                            class="badge rounded-pill border-0 px-2 py-1 d-inline-flex align-items-center gap-1 cursor-pointer {{ $author->is_active ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-secondary-subtle text-secondary border' }}"
+                                            style="font-size: 0.70rem;"
                                             onclick="toggleAuthorStatus({{ $author->id }}, this)"
                                             title="{{ $author->is_active ? 'Active (Click to disable)' : 'Inactive (Click to enable)' }}">
-                                        <i class="fas fa-power-off text-white"></i>
+                                        <i class="fas fa-circle-dot" style="font-size: 6px;"></i>
+                                        <span>{{ $author->is_active ? 'Active' : 'Inactive' }}</span>
                                     </button>
 
                                     @if($author->is_verified)
-                                        <span class="badge bg-white text-info rounded-circle p-0 d-inline-flex align-items-center justify-content-center shadow-xs" 
-                                              style="width: 14px; height: 14px; font-size: 8px;" title="Verified Author">
-                                            <i class="fas fa-check"></i>
+                                        <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill px-2 py-1 d-inline-flex align-items-center gap-1 shadow-xs" 
+                                              style="font-size: 0.70rem;" title="Verified Author">
+                                            <i class="fas fa-certificate text-info"></i> Verified
                                         </span>
                                     @endif
                                 </div>
 
                                 {{-- Dropdown Action Menu --}}
                                 <div class="dropdown">
-                                    <button class="btn btn-xs text-white bg-dark bg-opacity-25 border-0 rounded-circle p-0 d-flex align-items-center justify-content-center" 
-                                            style="width: 18px; height: 18px; font-size: 10px;" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                        <i class="fas fa-ellipsis-v"></i>
+                                    <button class="btn btn-sm btn-light border-0 rounded-circle text-muted p-0 d-flex align-items-center justify-content-center" 
+                                            style="width: 26px; height: 26px;" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="fas fa-ellipsis-vertical"></i>
                                     </button>
-                                    <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3 text-small" style="font-size: 0.8rem;">
+                                    <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-3 text-small" style="font-size: 0.82rem; min-width: 170px;">
                                         <li>
-                                            <button class="dropdown-item py-1" type="button" onclick="openAuthorDetailsModal({{ $author->id }})">
-                                                <i class="fas fa-id-card text-info me-1.5"></i>Profile
+                                            <button class="dropdown-item py-1.5" type="button" onclick="openAuthorDetailsModal({{ $author->id }})">
+                                                <i class="fas fa-id-card text-info me-2"></i>View Full Profile
                                             </button>
                                         </li>
                                         <li>
-                                            <button class="dropdown-item py-1" type="button" onclick="openEditAuthorModal({{ $author->id }})">
-                                                <i class="fas fa-pen text-primary me-1.5"></i>Quick Edit
+                                            <button class="dropdown-item py-1.5" type="button" onclick="openEditAuthorModal({{ $author->id }})">
+                                                <i class="fas fa-pen text-primary me-2"></i>Quick Edit
                                             </button>
                                         </li>
                                         <li>
-                                            <a class="dropdown-item py-1" href="{{ route('admin.content.edit', ['type' => 'authors', 'id' => $author->id]) }}">
-                                                <i class="fas fa-sliders text-secondary me-1.5"></i>Full Edit
+                                            <button class="dropdown-item py-1.5" type="button" onclick="openAuthorPasswordResetModal({{ $author->id }}, '{{ addslashes($author->name) }}', '{{ addslashes($author->email ?: ($author->phone ?: '')) }}')">
+                                                <i class="fas fa-key text-warning me-2"></i>Reset Password
+                                            </button>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item py-1.5" href="{{ route('admin.content.edit', ['type' => 'authors', 'id' => $author->id]) }}">
+                                                <i class="fas fa-sliders text-secondary me-2"></i>Full Editor
                                             </a>
                                         </li>
                                         <li>
-                                            <a class="dropdown-item py-1" href="{{ route('authors.show', $author->slug ?: $author->id) }}" target="_blank" rel="noopener">
-                                                <i class="fas fa-arrow-up-right-from-square text-muted me-1.5"></i>View on Site
+                                            <a class="dropdown-item py-1.5" href="{{ route('authors.show', $author->slug ?: $author->id) }}" target="_blank" rel="noopener">
+                                                <i class="fas fa-arrow-up-right-from-square text-muted me-2"></i>View on Store
                                             </a>
                                         </li>
                                         <li><hr class="dropdown-divider my-1"></li>
@@ -278,8 +335,8 @@
                                                   method="POST" data-confirm="আপনি কি নিশ্চিত যে এই লেখক প্রোফাইলটি ডিলিট করতে চান?" data-confirm-title="লেখক ডিলিট">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" class="dropdown-item text-danger py-1">
-                                                    <i class="fas fa-trash-can me-1.5"></i>Delete
+                                                <button type="submit" class="dropdown-item text-danger py-1.5">
+                                                    <i class="fas fa-trash-can me-2"></i>Delete Profile
                                                 </button>
                                             </form>
                                         </li>
@@ -287,67 +344,79 @@
                                 </div>
                             </div>
 
-                            {{-- Avatar (Compact Overlap) --}}
-                            <div class="text-center position-relative px-2" style="margin-top: -22px;">
-                                <div class="rounded-circle overflow-hidden shadow-xs bg-white border border-2 border-white mx-auto position-relative"
-                                     style="width: 44px; height: 44px; min-width: 44px; min-height: 44px; aspect-ratio: 1 / 1; cursor: pointer;"
-                                     onclick="previewAuthorAvatar('{{ $avatarUrl }}', '{{ addslashes($author->name) }}')">
-                                    @if($avatarUrl)
-                                        <img src="{{ $avatarUrl }}" alt="{{ $author->name }}" 
-                                             class="w-100 h-100 object-fit-cover position-absolute top-0 start-0"
-                                             onerror="this.style.display='none'; this.parentElement.querySelector('.avatar-fallback').style.display='flex';">
-                                        <div class="avatar-fallback w-100 h-100 align-items-center justify-content-center text-white fw-bold position-absolute top-0 start-0"
-                                             style="display: none; background: {{ $bgColor }}; font-size: 0.95rem;">
-                                            {{ $initials }}
-                                        </div>
-                                    @else
-                                        <div class="w-100 h-100 d-flex align-items-center justify-content-center text-white fw-bold position-absolute top-0 start-0"
-                                             style="background: {{ $bgColor }}; font-size: 0.95rem;">
-                                            {{ $initials }}
-                                        </div>
-                                    @endif
+                            {{-- High-End Classic Portrait Thumbnail --}}
+                            <div class="text-center pt-2 px-3">
+                                <div class="author-portrait-wrap mx-auto position-relative cursor-pointer mb-2"
+                                     onclick="previewAuthorAvatar('{{ $avatarUrl }}', '{{ addslashes($author->name) }}')"
+                                     title="Click to view full photo">
+                                    <div class="author-avatar-frame rounded-circle overflow-hidden shadow-sm bg-white border border-3 border-white mx-auto position-relative">
+                                        @if($avatarUrl)
+                                            <img src="{{ $avatarUrl }}" alt="{{ $author->name }}" 
+                                                 class="author-avatar-img w-100 h-100 object-fit-cover position-absolute top-0 start-0"
+                                                 onerror="this.style.display='none'; this.parentElement.querySelector('.avatar-fallback').style.display='flex';">
+                                            <div class="avatar-fallback w-100 h-100 align-items-center justify-content-center text-white fw-bold position-absolute top-0 start-0"
+                                                 style="display: none; background: linear-gradient(135deg, #1e293b, #0f172a); font-size: 1.3rem;">
+                                                {{ $initials }}
+                                            </div>
+                                        @else
+                                            <div class="w-100 h-100 d-flex align-items-center justify-content-center text-white fw-bold position-absolute top-0 start-0"
+                                                 style="background: linear-gradient(135deg, #1e293b, #0f172a); font-size: 1.3rem;">
+                                                {{ $initials }}
+                                            </div>
+                                        @endif
+                                    </div>
+                                    <span class="author-zoom-icon position-absolute bottom-0 end-0 bg-primary text-white rounded-circle shadow-sm d-flex align-items-center justify-content-center" 
+                                          style="width: 22px; height: 22px; font-size: 9px;">
+                                        <i class="fas fa-magnifying-glass-plus"></i>
+                                    </span>
                                 </div>
 
                                 {{-- Name & Slug --}}
-                                <div class="mt-1">
-                                    <div class="fw-bold text-dark text-truncate" style="font-size: 0.8rem;" title="{{ $author->name }}">
+                                <div class="author-info">
+                                    <h6 class="fw-bold text-dark mb-0.5 text-truncate" title="{{ $author->name }}">
                                         <a href="javascript:void(0)" onclick="openAuthorDetailsModal({{ $author->id }})" class="text-decoration-none text-dark hover-primary">
                                             {{ $author->name }}
                                         </a>
-                                    </div>
-                                    <div class="text-muted text-truncate font-monospace" style="font-size: 0.65rem;" title="{{ $author->slug }}">
-                                        {{ $author->slug }}
+                                    </h6>
+                                    <div class="d-inline-flex align-items-center gap-1 bg-light px-2 py-0.5 rounded-pill text-muted font-monospace mb-2" style="font-size: 0.68rem;" title="{{ $author->slug }}">
+                                        <span>@ {{ Str::limit($author->slug, 18) }}</span>
+                                        <i class="fas fa-copy cursor-pointer text-muted hover-primary" onclick="copyToClipboard('{{ $author->slug }}', 'Slug copied!')" title="Copy Slug"></i>
                                     </div>
                                 </div>
                             </div>
 
-                            {{-- Compact Card Body --}}
-                            <div class="card-body p-2 pt-1 text-center d-flex flex-column justify-content-between flex-grow-1">
-                                {{-- Book Count Badge --}}
-                                <div class="mb-1">
-                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-0.5" style="font-size: 0.68rem;">
-                                        <i class="fas fa-book-bookmark me-1"></i>{{ $booksCount }} books
+                            {{-- Clean Card Footer & Meta Badges --}}
+                            <div class="card-body p-3 pt-0 text-center d-flex flex-column justify-content-between flex-grow-1">
+                                {{-- Book Count & Ebook Badges --}}
+                                <div class="d-flex justify-content-center align-items-center gap-1.5 mb-3">
+                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1" style="font-size: 0.72rem;">
+                                        <i class="fas fa-book-bookmark me-1"></i>{{ $booksCount }} টি বই
                                     </span>
+                                    @if($author->email)
+                                        <span class="badge bg-light text-muted border rounded-pill px-2 py-1" style="font-size: 0.70rem;" title="{{ $author->email }}">
+                                            <i class="fas fa-envelope"></i>
+                                        </span>
+                                    @endif
                                 </div>
 
-                                {{-- Action Micro Buttons --}}
-                                <div class="d-flex align-items-center justify-content-center gap-1 pt-1.5 border-top">
-                                    <button type="button" class="btn btn-xs btn-outline-info rounded-circle p-0 d-flex align-items-center justify-content-center" 
-                                            style="width: 22px; height: 22px; font-size: 9px;" onclick="openAuthorDetailsModal({{ $author->id }})" title="View Details">
-                                        <i class="fas fa-eye"></i>
+                                {{-- Classic Unobtrusive Action Toolbar --}}
+                                <div class="d-flex align-items-center justify-content-center gap-1.5 pt-2 border-top">
+                                    <button type="button" class="btn btn-sm btn-outline-info rounded-pill px-2.5 py-1 d-inline-flex align-items-center gap-1" 
+                                            style="font-size: 0.75rem;" onclick="openAuthorDetailsModal({{ $author->id }})" title="View Details">
+                                        <i class="fas fa-id-card"></i> <span>প্রোফাইল</span>
                                     </button>
-                                    <button type="button" class="btn btn-xs btn-outline-primary rounded-circle p-0 d-flex align-items-center justify-content-center" 
-                                            style="width: 22px; height: 22px; font-size: 9px;" onclick="openEditAuthorModal({{ $author->id }})" title="Quick Edit">
-                                        <i class="fas fa-pen"></i>
+                                    <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-2.5 py-1 d-inline-flex align-items-center gap-1" 
+                                            style="font-size: 0.75rem;" onclick="openEditAuthorModal({{ $author->id }})" title="Quick Edit">
+                                        <i class="fas fa-pen-to-square"></i> <span>এডিট</span>
                                     </button>
-                                    <button type="button" class="btn btn-xs btn-outline-warning rounded-circle p-0 d-flex align-items-center justify-content-center" 
-                                            style="width: 22px; height: 22px; font-size: 9px;" onclick="openAuthorPasswordResetModal({{ $author->id }}, '{{ addslashes($author->name) }}', '{{ addslashes($author->email ?: ($author->phone ?: '')) }}')" title="পাসওয়ার্ড রিসেট (Reset Password)">
+                                    <button type="button" class="btn btn-sm btn-outline-warning rounded-circle p-0 d-flex align-items-center justify-content-center" 
+                                            style="width: 28px; height: 28px; font-size: 11px;" onclick="openAuthorPasswordResetModal({{ $author->id }}, '{{ addslashes($author->name) }}', '{{ addslashes($author->email ?: ($author->phone ?: '')) }}')" title="পাসওয়ার্ড রিসেট">
                                         <i class="fas fa-key"></i>
                                     </button>
                                     <a href="{{ route('authors.show', $author->slug ?: $author->id) }}" target="_blank" rel="noopener" 
-                                       class="btn btn-xs btn-light border rounded-circle p-0 d-flex align-items-center justify-content-center" 
-                                       style="width: 22px; height: 22px; font-size: 9px;" title="View on Site">
-                                        <i class="fas fa-external-link-alt text-muted"></i>
+                                       class="btn btn-sm btn-light border rounded-circle p-0 d-flex align-items-center justify-content-center text-muted" 
+                                       style="width: 28px; height: 28px; font-size: 11px;" title="View on Public Website">
+                                        <i class="fas fa-arrow-up-right-from-square"></i>
                                     </a>
                                 </div>
                             </div>

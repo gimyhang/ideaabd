@@ -174,10 +174,14 @@
             <i class="fas fa-globe"></i>
         </a>
 
-        {{-- Profile --}}
+        {{-- Profile Dropdown --}}
         <div class="dropdown">
             <button class="btn d-flex align-items-center gap-2 px-2" data-bs-toggle="dropdown" aria-expanded="false">
-                <span class="adm-avatar">{{ $initial }}</span>
+                @if($me && $me->avatar && \Illuminate\Support\Facades\Storage::disk('public')->exists($me->avatar))
+                    <img src="{{ asset('storage/' . $me->avatar) }}" alt="{{ $me->name }}" class="rounded-circle object-fit-cover shadow-xs border border-2 border-primary" style="width: 34px; height: 34px;">
+                @else
+                    <span class="adm-avatar shadow-xs">{{ $initial }}</span>
+                @endif
                 <span class="text-start d-none d-lg-block lh-sm">
                     <span class="d-block fw-semibold small">{{ $me->name ?? 'Admin' }}</span>
                     <span class="d-block text-muted" style="font-size:.72rem">
@@ -186,24 +190,47 @@
                 </span>
                 <i class="fas fa-chevron-down text-muted small"></i>
             </button>
-            <ul class="dropdown-menu dropdown-menu-end shadow-sm">
-                <li class="px-3 py-2 border-bottom">
-                    <div class="fw-semibold small">{{ $me->name ?? 'Admin' }}</div>
-                    <div class="text-muted" style="font-size:.75rem">{{ $me->email ?? 'admin@ideaabd.com' }}</div>
+            <ul class="dropdown-menu dropdown-menu-end shadow-lg rounded-3 border-0 py-2" style="min-width: 230px;">
+                <li class="px-3 py-2 border-bottom mb-1 bg-light rounded-top-3">
+                    <div class="fw-bold small text-dark">{{ $me->name ?? 'Admin' }}</div>
+                    <div class="text-muted text-truncate font-monospace" style="font-size:.72rem">{{ $me->email ?? 'admin@ideaabd.com' }}</div>
+                    @if(!empty($me->reg_data['designation']))
+                        <div class="badge bg-primary-subtle text-primary mt-1" style="font-size:.65rem">{{ $me->reg_data['designation'] }}</div>
+                    @endif
                 </li>
+                
+                @if (Route::has('admin.profile'))
+                    <li>
+                        <a class="dropdown-item py-1.5" href="{{ route('admin.profile') }}">
+                            <i class="fas fa-user-gear me-2 text-primary"></i>এডমিন প্রোফাইল সেটিংস
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item py-1.5" href="{{ route('admin.profile') }}#security">
+                            <i class="fas fa-key me-2 text-danger"></i>পাসওয়ার্ড ও সিকিউরিটি
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item py-1.5" href="{{ route('admin.profile') }}#preferences">
+                            <i class="fas fa-sliders me-2 text-success"></i>ড্যাশবোর্ড প্রেফারেন্স
+                        </a>
+                    </li>
+                    <li><hr class="dropdown-divider my-1"></li>
+                @endif
+
                 @if (Route::has('admin.roles.index'))
-                    <li><a class="dropdown-item" href="{{ route('admin.roles.index') }}"><i class="fas fa-user-shield me-2 text-primary"></i>Roles & Permissions</a></li>
+                    <li><a class="dropdown-item py-1.5" href="{{ route('admin.roles.index') }}"><i class="fas fa-shield-halved me-2 text-info"></i>Roles & Permissions</a></li>
                 @endif
                 @if (Route::has('admin.users'))
-                    <li><a class="dropdown-item" href="{{ route('admin.users') }}"><i class="fas fa-users me-2 text-muted"></i>Users</a></li>
+                    <li><a class="dropdown-item py-1.5" href="{{ route('admin.users') }}"><i class="fas fa-users me-2 text-secondary"></i>Users Management</a></li>
                 @endif
-                <li><a class="dropdown-item" href="{{ route('home') }}" target="_blank" rel="noopener"><i class="fas fa-globe me-2 text-muted"></i>View Website</a></li>
-                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item py-1.5" href="{{ route('home') }}" target="_blank" rel="noopener"><i class="fas fa-globe me-2 text-muted"></i>View Website</a></li>
+                <li><hr class="dropdown-divider my-1"></li>
                 <li>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
-                        <button type="submit" class="dropdown-item text-danger">
-                            <i class="fas fa-arrow-right-from-bracket me-2"></i>Log Out
+                        <button type="submit" class="dropdown-item py-1.5 text-danger fw-semibold">
+                            <i class="fas fa-arrow-right-from-bracket me-2"></i>লগআউট (Log Out)
                         </button>
                     </form>
                 </li>

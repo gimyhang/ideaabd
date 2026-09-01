@@ -97,25 +97,167 @@ img, svg, video, iframe {
 .adm-nav::-webkit-scrollbar { width: 6px; }
 .adm-nav::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, .18); border-radius: 3px; }
 
-.adm-nav__label {
-    font-size: .68rem;
-    letter-spacing: .09em;
-    text-transform: uppercase;
+/* Sidebar Spotlight Search & Quick Favorites */
+.adm-side__search-wrap {
+    padding: .65rem .75rem .4rem;
+    position: relative;
+}
+
+.adm-side__search-box {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.adm-side__search-icon {
+    position: absolute;
+    left: .65rem;
     color: rgba(207, 224, 242, .45);
-    padding: 1rem .75rem .35rem;
-    font-weight: 600;
+    font-size: .8rem;
+    pointer-events: none;
+}
+
+.adm-side__search-input {
+    width: 100%;
+    background: rgba(255, 255, 255, .07);
+    border: 1px solid rgba(255, 255, 255, .12);
+    color: #fff;
+    font-size: .82rem;
+    padding: .42rem 2rem .42rem 2rem;
+    border-radius: 8px;
+    outline: none;
+    transition: all .2s ease;
+}
+
+.adm-side__search-input:focus {
+    background: rgba(255, 255, 255, .14);
+    border-color: var(--brand-2);
+    box-shadow: 0 0 0 3px rgba(0, 153, 255, .25);
+}
+
+.adm-side__search-input::placeholder {
+    color: rgba(207, 224, 242, .4);
+}
+
+.adm-side__search-shortcut {
+    position: absolute;
+    right: .5rem;
+    font-size: .65rem;
+    background: rgba(255, 255, 255, .1);
+    color: rgba(207, 224, 242, .6);
+    padding: .1rem .35rem;
+    border-radius: 4px;
+    pointer-events: none;
+    font-family: monospace;
+}
+
+.adm-side__search-clear {
+    position: absolute;
+    right: .5rem;
+    background: transparent;
+    border: 0;
+    color: rgba(255, 255, 255, .6);
+    font-size: .8rem;
+    cursor: pointer;
+    display: none;
+}
+
+/* Quick Favorites Bar */
+.adm-side__favorites {
+    display: flex;
+    align-items: center;
+    gap: .35rem;
+    padding: 0 .75rem .5rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.adm-side__favorites::-webkit-scrollbar { display: none; }
+
+.adm-side__fav-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+    padding: .25rem .55rem;
+    background: rgba(255, 255, 255, .05);
+    border: 1px solid rgba(255, 255, 255, .08);
+    border-radius: 6px;
+    color: rgba(207, 224, 242, .75);
+    font-size: .73rem;
+    font-weight: 500;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: all .15s ease;
+}
+
+.adm-side__fav-chip:hover {
+    background: rgba(255, 255, 255, .15);
+    color: #fff;
+    border-color: var(--brand-2);
+}
+
+.adm-side__fav-chip.is-active {
+    background: var(--brand);
+    color: #fff;
+    border-color: var(--brand-2);
+}
+
+/* Collapsible Accordion Menu Groups */
+.adm-nav__group {
+    margin-bottom: .25rem;
+}
+
+.adm-nav__group-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: .7rem;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: rgba(207, 224, 242, .5);
+    padding: .65rem .75rem .35rem;
+    font-weight: 700;
+    cursor: pointer;
+    user-select: none;
+    transition: color .15s ease;
+    border-radius: 6px;
+}
+
+.adm-nav__group-header:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, .04);
+}
+
+.adm-nav__group-chevron {
+    font-size: .65rem;
+    transition: transform .2s ease;
+    opacity: .6;
+}
+
+.adm-nav__group.is-collapsed .adm-nav__group-chevron {
+    transform: rotate(-90deg);
+}
+
+.adm-nav__group-items {
+    display: flex;
+    flex-direction: column;
+    transition: all .2s ease;
+}
+
+.adm-nav__group.is-collapsed .adm-nav__group-items {
+    display: none;
 }
 
 .adm-nav__link {
     display: flex;
     align-items: center;
     gap: .7rem;
-    padding: .58rem .75rem;
+    padding: .52rem .75rem;
     margin-bottom: 2px;
     border-radius: 9px;
     color: #cfe0f2;
     text-decoration: none;
-    font-size: .93rem;
+    font-size: .9rem;
     white-space: nowrap;
     transition: background .15s, color .15s;
 }
@@ -123,7 +265,7 @@ img, svg, video, iframe {
 .adm-nav__link i:first-child {
     width: 20px;
     text-align: center;
-    font-size: .95rem;
+    font-size: .92rem;
     opacity: .85;
     flex: 0 0 auto;
 }
@@ -138,6 +280,13 @@ img, svg, video, iframe {
 
 .adm-nav__link.is-active i { opacity: 1; }
 .adm-nav__link .badge { margin-left: auto; font-size: .68rem; }
+
+.adm-nav__link mark {
+    background: #fef08a;
+    color: #0f172a;
+    padding: 0 2px;
+    border-radius: 2px;
+}
 
 .adm-side__foot {
     padding: .8rem 1.15rem;

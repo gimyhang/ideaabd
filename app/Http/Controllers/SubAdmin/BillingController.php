@@ -17,6 +17,10 @@ class BillingController extends Controller
         $isAdmin = auth()->user()->isAdmin();
         $sellerId = $request->input('seller_id');
         $status = $request->input('payment_status');
+        $method = $request->input('payment_method');
+        $datePreset = $request->input('date_preset');
+        $fromDate = $request->input('from_date');
+        $toDate = $request->input('to_date');
         $search = $request->string('search')->trim()->value();
 
         $query = Bill::query()
@@ -24,6 +28,20 @@ class BillingController extends Controller
             ->when(! $isAdmin, fn ($q) => $q->where('seller_id', auth()->id()))
             ->when($isAdmin && $sellerId, fn ($q) => $q->where('seller_id', $sellerId))
             ->when($status, fn ($q) => $q->where('payment_status', $status))
+            ->when($method, fn ($q) => $q->where('payment_method', $method))
+            ->when($datePreset, function ($q, $preset) {
+                if ($preset === 'today') {
+                    $q->whereDate('created_at', today());
+                } elseif ($preset === 'yesterday') {
+                    $q->whereDate('created_at', today()->subDay());
+                } elseif ($preset === 'this_week') {
+                    $q->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()]);
+                } elseif ($preset === 'this_month') {
+                    $q->whereBetween('created_at', [now()->startOfMonth(), now()->endOfMonth()]);
+                }
+            })
+            ->when($fromDate, fn ($q) => $q->whereDate('created_at', '>=', $fromDate))
+            ->when($toDate, fn ($q) => $q->whereDate('created_at', '<=', $toDate))
             ->when($search, function ($q, $term) {
                 $like = '%' . $term . '%';
                 $q->where(function ($w) use ($like) {
@@ -38,18 +56,154 @@ class BillingController extends Controller
         $bills = $query->paginate(20)->withQueryString();
 
         $baseStatQuery = Bill::query()
-            ->when(! $isAdmin, fn ($q) => $q->where('seller_id', auth()->id()));
+            ->when(! $isAdmin, fn ($q) => $q->where('seller_id', auth()->id()))
+            ->when($isAdmin && $sellerId, fn ($q) => $q->where('seller_id', $sellerId));
 
         $stats = [
-            'total'   => (clone $baseStatQuery)->count(),
-            'paid'    => (clone $baseStatQuery)->where('payment_status', 'paid')->count(),
-            'unpaid'  => (clone $baseStatQuery)->where('payment_status', 'unpaid')->count(),
-            'revenue' => (float) (clone $baseStatQuery)->where('payment_status', 'paid')->sum('total'),
+            'total'     => (clone $baseStatQuery)->count(),
+            'paid'      => (clone $baseStatQuery)->where('payment_status', 'paid')->count(),
+            'unpaid'    => (clone $baseStatQuery)->where('payment_status', 'unpaid')->count(),
+            'partial'   => (clone $baseStatQuery)->where('payment_status', 'partial')->count(),
+            'revenue'   => (float) (clone $baseStatQuery)->where('payment_status', 'paid')->sum('total'),
+            'due'       => (float) (clone $baseStatQuery)->where('payment_status', '!=', 'paid')->sum('total'),
         ];
 
         $sellers = $isAdmin ? User::whereIn('role', [User::ROLE_ADMIN, User::ROLE_SUB_ADMIN, User::ROLE_SELLER])->orderBy('name')->pluck('name', 'id')->all() : [];
 
         return view('subadmin.billing.index', compact('bills', 'stats', 'sellers', 'isAdmin'));
+    }
+
+    /**
+     * One-click instant payment mark for unpaid/partial bills.
+     */
+    public function quickPay(Bill $bill)
+    {
+        if (! auth()->user()->isAdmin()) {
+            abort_unless($bill->seller_id === auth()->id(), 403);
+        }
+
+        $bill->update([
+            'payment_status' => 'paid',
+        ]);
+
+        return back()->with('success', "বিল #{$bill->bill_no} পরিশোধিত (Paid) হিসেবে চিহ্নিত করা হয়েছে।");
+    }
+
+    /**
+     * Thermal Receipt Printer View (58mm / 80mm).
+     */
+    public function receipt(Bill $bill)
+    {
+        if (! auth()->user()->isAdmin()) {
+            abort_unless($bill->seller_id === auth()->id(), 403);
+        }
+
+        return view('subadmin.billing.receipt', compact('bill'));
+    }
+
+    /**
+     * Export filtered bills to CSV.
+     */
+    public function exportCsv(Request $request)
+    {
+        $isAdmin = auth()->user()->isAdmin();
+        $sellerId = $request->input('seller_id');
+        $status = $request->input('payment_status');
+        $method = $request->input('payment_method');
+        $datePreset = $request->input('date_preset');
+        $fromDate = $request->input('from_date');
+        $toDate = $request->input('to_date');
+        $search = $request->string('search')->trim()->value();
+
+        $bills = Bill::query()
+            ->with('seller')
+            ->when(! $isAdmin, fn ($q) => $q->where('seller_id', auth()->id()))
+            ->when($isAdmin && $sellerId, fn ($q) => $q->where('seller_id', $sellerId))
+            ->when($status, fn ($q) => $q->where('payment_status', $status))
+            ->when($method, fn ($q) => $q->where('payment_method', $method))
+            ->when($datePreset, function ($q, $preset) {
+                if ($preset === 'today') {
+                    $q->whereDate('created_at', today());
+                } elseif ($preset === 'yesterday') {
+                    $q->whereDate('created_at', today()->subDay());
+                } elseif ($preset === 'this_week') {
+                    $q->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()]);
+                } elseif ($preset === 'this_month') {
+                    $q->whereBetween('created_at', [now()->startOfMonth(), now()->endOfMonth()]);
+                }
+            })
+            ->when($fromDate, fn ($q) => $q->whereDate('created_at', '>=', $fromDate))
+            ->when($toDate, fn ($q) => $q->whereDate('created_at', '<=', $toDate))
+            ->when($search, function ($q, $term) {
+                $like = '%' . $term . '%';
+                $q->where(function ($w) use ($like) {
+                    $w->where('bill_no', 'like', $like)
+                      ->orWhere('customer_name', 'like', $like)
+                      ->orWhere('customer_phone', 'like', $like)
+                      ->orWhere('customer_email', 'like', $like);
+                });
+            })
+            ->orderByDesc('created_at')
+            ->get();
+
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="seller_bills_' . date('Y-m-d_His') . '.csv"',
+        ];
+
+        $callback = function () use ($bills) {
+            $file = fopen('php://output', 'w');
+            // Write UTF-8 BOM for Bengali support in Excel
+            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
+
+            fputcsv($file, ['Bill No', 'Date', 'Customer Name', 'Phone', 'Seller', 'Items Count', 'Subtotal', 'Discount', 'Total Amount', 'Payment Method', 'Payment Status']);
+
+            foreach ($bills as $b) {
+                fputcsv($file, [
+                    $b->bill_no,
+                    $b->created_at->format('Y-m-d H:i:s'),
+                    $b->customer_name,
+                    $b->customer_phone,
+                    $b->seller->name ?? 'N/A',
+                    count($b->items ?? []),
+                    $b->subtotal,
+                    $b->discount,
+                    $b->total,
+                    strtoupper($b->payment_method ?? 'CASH'),
+                    strtoupper($b->payment_status ?? 'PAID'),
+                ]);
+            }
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    /**
+     * Bulk Action on Bills (Mark as Paid, Delete).
+     */
+    public function bulkAction(Request $request)
+    {
+        $action = $request->input('bulk_action');
+        $billIds = (array) $request->input('bill_ids', []);
+
+        if (empty($billIds)) {
+            return back()->with('error', 'কোনো বিল নির্বাচন করা হয়নি।');
+        }
+
+        $isAdmin = auth()->user()->isAdmin();
+        $query = Bill::whereIn('id', $billIds)
+            ->when(! $isAdmin, fn ($q) => $q->where('seller_id', auth()->id()));
+
+        if ($action === 'mark_paid') {
+            $count = $query->update(['payment_status' => 'paid']);
+            return back()->with('success', "{$count} টি বিলকে সফলভাবে পরিশোধিত (Paid) হিসেবে চিহ্নিত করা হয়েছে।");
+        } elseif ($action === 'delete') {
+            $count = $query->delete();
+            return back()->with('success', "{$count} টি বিল মুছে ফেলা হয়েছে।");
+        }
+
+        return back();
     }
 
     public function create()
@@ -184,16 +338,6 @@ class BillingController extends Controller
         return response()->json($books);
     }
 
-    public function sellerAccounts()
-    {
-        $sellers = User::whereIn('role', [User::ROLE_SELLER, User::ROLE_SUB_ADMIN])
-            ->withCount('bills')
-            ->with(['bills' => fn($q) => $q->select('seller_id', DB::raw('SUM(total) as revenue'))->groupBy('seller_id')])
-            ->paginate(20);
-
-        return view('subadmin.seller-accounts', compact('sellers'));
-    }
-
     private function validateBill(Request $request): array
     {
         return $request->validate([
@@ -274,5 +418,50 @@ class BillingController extends Controller
             'payment_status'         => $data['payment_status'],
             'notes'                  => $data['notes'] ?? null,
         ];
+    }
+
+    /**
+     * Seller Account Statement & Cash in Hand Ledger.
+     */
+    public function sellerAccounts(Request $request)
+    {
+        $isAdmin = auth()->user()->isAdmin();
+        $targetSellerId = $isAdmin && $request->filled('seller_id') ? (int) $request->seller_id : auth()->id();
+
+        $seller = User::find($targetSellerId) ?? auth()->user();
+
+        $billsQuery = Bill::where('seller_id', $targetSellerId);
+
+        if ($request->filled('start_date') && $request->filled('end_date')) {
+            $billsQuery->whereBetween('created_at', [$request->start_date . ' 00:00:00', $request->end_date . ' 23:59:59']);
+        }
+
+        $totalSales = (float) (clone $billsQuery)->sum('total');
+        $paidSales = (float) (clone $billsQuery)->where('payment_status', 'paid')->sum('total');
+        $unpaidDue = (float) (clone $billsQuery)->where('payment_status', 'unpaid')->sum('total');
+
+        $cashCollection = (float) (clone $billsQuery)->where('payment_status', 'paid')->where('payment_method', 'cash')->sum('total');
+        $bkashCollection = (float) (clone $billsQuery)->where('payment_status', 'paid')->where('payment_method', 'bkash')->sum('total');
+        $nagadCollection = (float) (clone $billsQuery)->where('payment_status', 'paid')->where('payment_method', 'nagad')->sum('total');
+        $cardCollection = (float) (clone $billsQuery)->where('payment_status', 'paid')->where('payment_method', 'card')->sum('total');
+
+        $recentBills = $billsQuery->latest()->take(25)->get();
+
+        $allSellers = $isAdmin ? User::whereIn('role', [User::ROLE_ADMIN, User::ROLE_SUB_ADMIN, User::ROLE_SELLER])->get() : collect([$seller]);
+
+        return view('subadmin.billing.accounts', compact(
+            'seller',
+            'totalSales',
+            'paidSales',
+            'unpaidDue',
+            'cashCollection',
+            'bkashCollection',
+            'nagadCollection',
+            'cardCollection',
+            'recentBills',
+            'allSellers',
+            'isAdmin',
+            'targetSellerId'
+        ));
     }
 }

@@ -539,6 +539,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::prefix('backup')->name('backup.')->controller(\App\Http\Controllers\Admin\AdminBackupController::class)->group(function () {
         Route::get('/', 'index')->name('index');
         Route::post('/create', 'create')->name('create');
+        Route::post('/upload', 'upload')->name('upload');
+        Route::post('/restore/{filename}', 'restore')->name('restore');
         Route::get('/download/{filename}', 'download')->name('download');
         Route::delete('/{filename}', 'destroy')->name('destroy');
     });
@@ -559,14 +561,90 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::post('/block-ip', 'blockIp')->name('block-ip');
         Route::post('/clean-expired', 'cleanExpired')->name('clean-expired');
     });
+
+    // Multi-Currency & Global FX Exchange Rates
+    Route::prefix('currencies')->name('currencies.')->controller(\App\Http\Controllers\Admin\AdminCurrencyController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::post('/', 'store')->name('store');
+        Route::put('/{currency}', 'update')->name('update');
+        Route::post('/sync', 'syncRates')->name('sync');
+    });
+
+    // Subscriptions & Kindle Unlimited Reading Club
+    Route::prefix('subscriptions')->name('subscriptions.')->controller(\App\Http\Controllers\Admin\SubscriptionAdminController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::post('/plans', 'storePlan')->name('plans.store');
+        Route::post('/grant', 'grantSubscription')->name('grant');
+    });
+
+    // Amar Ekushey Boi Mela Stall POS
+    Route::prefix('pos')->name('pos.')->controller(\App\Http\Controllers\Admin\PosAdminController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/search', 'searchBooks')->name('search');
+        Route::post('/checkout', 'checkout')->name('checkout');
+        Route::get('/receipt/{id}', 'receipt')->name('receipt');
+    });
+
+    // Affiliate Marketing & Influencers Network
+    Route::prefix('affiliates')->name('affiliates.')->controller(\App\Http\Controllers\Admin\AffiliateAdminController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::post('/', 'store')->name('store');
+        Route::post('/{affiliate}/payout', 'recordPayout')->name('payout');
+    });
+
+    // Combos, Book Bundles & Pre-Orders
+    Route::prefix('bundles')->name('bundles.')->controller(\App\Http\Controllers\Admin\BundleAdminController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::post('/', 'storeBundle')->name('store');
+        Route::patch('/pre-orders/{preOrder}/status', 'updatePreOrderStatus')->name('pre-orders.status');
+    });
+
+    // Helpdesk & Customer 360 Support Tickets
+    Route::prefix('tickets')->name('tickets.')->controller(\App\Http\Controllers\Admin\SupportTicketAdminController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/{ticket}', 'show')->name('show');
+        Route::post('/{ticket}/reply', 'reply')->name('reply');
+        Route::patch('/{ticket}/status', 'updateStatus')->name('status');
+    });
+
+    // Multi-Language Localization & i18n Translation Manager
+    Route::prefix('translations')->name('translations.')->controller(\App\Http\Controllers\Admin\TranslationAdminController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::post('/', 'store')->name('store');
+        Route::put('/{translation}', 'update')->name('update');
+        Route::post('/auto-translate', 'autoTranslate')->name('auto-translate');
+    });
+
+    // Global Communication Hub, Transactional Email & WhatsApp Cloud API
+    Route::prefix('communication')->name('communication.')->controller(\App\Http\Controllers\Admin\CommunicationAdminController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::put('/templates/{template}', 'updateTemplate')->name('templates.update');
+        Route::post('/test-send', 'sendTest')->name('test-send');
+    });
+
+    // Admin Profile & Multi-Dimensional Customization Hub
+    Route::prefix('profile')->name('profile')->controller(\App\Http\Controllers\Admin\AdminProfileController::class)->group(function () {
+        Route::get('/', 'index');
+        Route::post('/update', 'updateProfile')->name('.update');
+        Route::post('/password', 'updatePassword')->name('.password');
+        Route::post('/preferences', 'updatePreferences')->name('.preferences');
+        Route::post('/signature', 'updateSignature')->name('.signature');
+        Route::delete('/signature', 'removeSignature')->name('.signature.remove');
+        Route::delete('/avatar', 'removeAvatar')->name('.avatar.remove');
+        Route::post('/logout-others', 'logoutOtherDevices')->name('.logout-others');
+    });
 });
 
 // --- Sub-admin / Seller panel ---------------------------------------------
 Route::prefix('seller')->name('subadmin.')->middleware(['auth', 'role:sub_admin,seller,admin'])->group(function () {
     Route::get('/bills', [BillingController::class, 'index'])->name('bills.index');
+    Route::get('/bills/export', [BillingController::class, 'exportCsv'])->name('bills.export');
+    Route::post('/bills/bulk-action', [BillingController::class, 'bulkAction'])->name('bills.bulk-action');
     Route::get('/bills/create', [BillingController::class, 'create'])->name('bills.create');
     Route::post('/bills', [BillingController::class, 'store'])->name('bills.store');
     Route::get('/bills/{bill}', [BillingController::class, 'show'])->name('bills.show');
+    Route::get('/bills/{bill}/receipt', [BillingController::class, 'receipt'])->name('bills.receipt');
+    Route::post('/bills/{bill}/quick-pay', [BillingController::class, 'quickPay'])->name('bills.quick-pay');
     Route::get('/bills/{bill}/edit', [BillingController::class, 'edit'])->name('bills.edit');
     Route::put('/bills/{bill}', [BillingController::class, 'update'])->name('bills.update');
     Route::delete('/bills/{bill}', [BillingController::class, 'destroy'])->name('bills.destroy');

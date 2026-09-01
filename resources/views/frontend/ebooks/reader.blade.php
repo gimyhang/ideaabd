@@ -226,6 +226,13 @@
                     <div class="watermark-item">{{ $watermarkText }}</div>
                 @endfor
             </div>
+            
+            {{-- Digital Rights Reader License Stamp --}}
+            @if(!empty($readerStamp))
+                <div class="position-absolute bottom-0 end-0 p-2 m-2 bg-dark bg-opacity-75 text-white rounded-pill small font-monospace" style="font-size: 9px; z-index: 60; pointer-events: none;">
+                    <i class="fas fa-shield-halved text-info me-1"></i> {{ $readerStamp }}
+                </div>
+            @endif
         </div>
     </main>
 

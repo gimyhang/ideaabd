@@ -560,10 +560,17 @@
                                     <span class="text-muted font-monospace small d-block" title="{{ $log->visited_at?->format('Y-m-d H:i:s') }}">
                                         {{ $log->visited_at ? $log->visited_at->diffForHumans() : 'Just now' }}
                                     </span>
-                                    <button type="button" class="btn btn-link btn-xs p-0 text-decoration-none text-primary fw-semibold" 
-                                            onclick='openSessionDetailModal(@json($log))'>
-                                        <i class="fas fa-circle-info me-0.5"></i> Inspect
-                                    </button>
+                                    <div class="d-flex align-items-center justify-content-end gap-2 mt-1">
+                                        <button type="button" class="btn btn-link btn-xs p-0 text-decoration-none text-primary fw-semibold" 
+                                                onclick='openSessionDetailModal(@json($log))'>
+                                            <i class="fas fa-circle-info me-0.5"></i> Inspect
+                                        </button>
+                                        <span class="text-muted">|</span>
+                                        <button type="button" class="btn btn-link btn-xs p-0 text-decoration-none text-danger fw-semibold" 
+                                                onclick="quickBlockVisitorIp('{{ $log->ip_address }}')">
+                                            <i class="fas fa-shield-halved me-0.5"></i> Block IP
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         @empty
@@ -804,6 +811,32 @@ function exportAnalyticsCSV() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+}
+
+function quickBlockVisitorIp(ip) {
+    if (!ip) return;
+    if (confirm(`নিরাপত্তা সতর্কতা! আপনি কি নিশ্চিত আইপি '${ip}' চিরতরে ব্লক করতে চান?`)) {
+        const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        fetch("{{ route('admin.users.security.block-ip') }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': csrf
+            },
+            body: JSON.stringify({ ip_address: ip, reason: 'Suspicious Bot/Traffic Activity' })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                alert(`আইপি ${ip} সফলভাবে ব্লক তালিকায় যুক্ত হয়েছে!`);
+                location.reload();
+            } else {
+                alert(data.message || 'আইপি ব্লক করতে সমস্যা হয়েছে।');
+            }
+        })
+        .catch(() => alert('সার্ভার রিকোয়েস্টে ত্রুটি হয়েছে।'));
+    }
 }
 </script>
 @endpush

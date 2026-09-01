@@ -22,8 +22,9 @@ class EbookReaderController extends Controller
             ->firstOrFail();
 
         $user = auth()->user();
+        $drmService = app(\App\Services\DrmProtectionService::class);
 
-        // Check if user has access to full e-book
+        // Check if user has access to full e-book (Purchase OR Active Subscription OR Role)
         $hasAccess = false;
         $libraryEntry = null;
 
@@ -31,6 +32,8 @@ class EbookReaderController extends Controller
             if ($user->isAdmin() || $user->isSubAdmin()) {
                 $hasAccess = true;
             } elseif ($ebook->author_user_id === $user->id) {
+                $hasAccess = true;
+            } elseif ($drmService->hasActiveSubscription($user)) {
                 $hasAccess = true;
             } else {
                 $libraryEntry = UserEbookLibrary::where('user_id', $user->id)
@@ -52,18 +55,19 @@ class EbookReaderController extends Controller
 
         if (!$hasAccess) {
             return redirect()->route('ebook.preview', $ebook->slug ?: $ebook->id)
-                ->with('info', 'সম্পূর্ণ বইটি পড়ার জন্য অনুগ্রহ করে প্রথমে বইটি ক্রয় করুন অথবা ফ্রি প্রিভিউ পড়ুন।');
+                ->with('info', 'সম্পূর্ণ বইটি পড়ার জন্য অনুগ্রহ করে বইটি ক্রয় করুন বা আইডিয়া আনলিমিটেড মেম্বারশিপ নিন।');
         }
 
-        // Increment read count
+        // Increment read count and log session
         $ebook->increment('read_count');
+        $drmService->logReadingSession($user?->id, $ebook->id, 1, 30);
 
-        // Dynamic anti-piracy watermark text
-        $watermarkText = ($user ? ($user->name . ' (' . ($user->phone ?: $user->email) . ')') : 'আইডিয়া প্রকাশন') 
-            . ' • ' . ($libraryEntry ? ('Order #' . $libraryEntry->order_id) : 'Licensed Reader') 
-            . ' • ' . date('d-m-Y');
+        // Dynamic multi-layer anti-piracy watermark text
+        $watermarkData = $drmService->generateWatermark($user, $ebook, $libraryEntry?->order_id);
+        $watermarkText = $watermarkData['visible_text'];
+        $readerStamp = $watermarkData['reader_stamp'];
 
-        return view('frontend.ebooks.reader', compact('ebook', 'libraryEntry', 'watermarkText'));
+        return view('frontend.ebooks.reader', compact('ebook', 'libraryEntry', 'watermarkText', 'readerStamp'));
     }
 
     /**

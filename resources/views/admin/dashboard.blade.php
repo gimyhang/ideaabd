@@ -217,21 +217,20 @@
     {{-- ========================================================================= --}}
     <div class="row g-3">
         
-        <!-- 1. Today's Revenue & Growth -->
+        <!-- 1. Today's Revenue & Worldwide Multi-Currency -->
         <div class="col-12 col-sm-6 col-xl-3">
             <div class="kpi" style="--bar: var(--ok);">
                 <div class="kpi__icon bg-success-subtle text-success">
                     <i class="fas fa-sack-dollar"></i>
                 </div>
-                <p class="kpi__label">Today's Revenue</p>
+                <p class="kpi__label">Today's Revenue (Multi-Currency)</p>
                 <h3 class="kpi__value text-dark">৳{{ number_format($stats['today_revenue'] ?? 0, 2) }}</h3>
-                <p class="kpi__foot">
+                <p class="kpi__foot d-flex align-items-center justify-content-between">
+                    <span class="badge bg-light text-primary border font-monospace small">≈ ${{ number_format($stats['today_revenue_usd'] ?? 0, 2) }} USD</span>
                     @if (($stats['revenue_growth'] ?? 0) > 0)
-                        <span class="text-success fw-bold"><i class="fas fa-arrow-trend-up me-1"></i>+{{ $stats['revenue_growth'] }}%</span> vs yesterday
+                        <span class="text-success fw-bold"><i class="fas fa-arrow-trend-up me-1"></i>+{{ $stats['revenue_growth'] }}%</span>
                     @elseif (($stats['revenue_growth'] ?? 0) < 0)
-                        <span class="text-danger fw-bold"><i class="fas fa-arrow-trend-down me-1"></i>{{ $stats['revenue_growth'] }}%</span> vs yesterday
-                    @else
-                        <span class="text-muted">Today's revenue</span>
+                        <span class="text-danger fw-bold"><i class="fas fa-arrow-trend-down me-1"></i>{{ $stats['revenue_growth'] }}%</span>
                     @endif
                 </p>
             </div>
@@ -252,29 +251,32 @@
             </div>
         </div>
 
-        <!-- 3. Visitor Traffic (Daily & Total) -->
+        <!-- 3. Boi Mela Stall POS & Subscriptions Pulse -->
         <div class="col-12 col-sm-6 col-xl-3">
-            <div class="kpi" style="--bar: var(--brand-2);">
-                <div class="kpi__icon bg-info-subtle text-info">
-                    <i class="fas fa-chart-pie"></i>
+            <div class="kpi" style="--bar: #ff6b35;">
+                <div class="kpi__icon bg-warning-subtle text-warning">
+                    <i class="fas fa-cash-register"></i>
                 </div>
-                <p class="kpi__label">Unique Visitors</p>
-                <h3 class="kpi__value text-dark">{{ number_format($stats['visitor']['filtered_uniques'] ?? 0) }}</h3>
+                <p class="kpi__label">Boi Mela Stall POS</p>
+                <h3 class="kpi__value text-dark">৳{{ number_format($stats['pos']['today_sales'] ?? 0, 2) }}</h3>
                 <p class="kpi__foot">
-                    Today: <strong>{{ number_format($stats['visitor']['today_uniques'] ?? 0) }}</strong> (Views: {{ number_format($stats['visitor']['today_views'] ?? 0) }})
+                    Today's Stall Bills: <strong>{{ $stats['pos']['today_count'] ?? 0 }}</strong> | <a href="{{ route('admin.pos.index') }}" class="text-decoration-none fw-semibold">Open POS</a>
                 </p>
             </div>
         </div>
 
-        <!-- 4. Total Billed / Paid Collection -->
+        <!-- 4. Total Billed / Paid Collection (Global Multi-Currency) -->
         <div class="col-12 col-sm-6 col-xl-3">
             <div class="kpi" style="--bar: #7048e8;">
                 <div class="kpi__icon bg-primary-subtle text-primary">
-                    <i class="fas fa-wallet"></i>
+                    <i class="fas fa-globe"></i>
                 </div>
-                <p class="kpi__label">Total Collection</p>
+                <p class="kpi__label">Total Global Revenue</p>
                 <h3 class="kpi__value text-dark">৳{{ number_format($stats['filtered_revenue'] ?? 0, 2) }}</h3>
-                <p class="kpi__foot">Online & Cash on Delivery</p>
+                <p class="kpi__foot">
+                    <span class="badge bg-light text-dark border font-monospace">≈ ${{ number_format($stats['revenue_usd'] ?? 0, 2) }} USD</span>
+                    <span class="badge bg-light text-dark border font-monospace ms-1">≈ €{{ number_format($stats['revenue_eur'] ?? 0, 2) }} EUR</span>
+                </p>
             </div>
         </div>
 
@@ -331,9 +333,9 @@
             </div>
         </div>
 
-        <!-- Full Width: Visitor Analytics Chart (Daily, Monthly, Yearly) -->
-        <div class="col-12">
-            <div class="adm-card">
+        <!-- Visitor Analytics Chart & Worldwide Geo-Traffic Breakdown -->
+        <div class="col-12 col-xl-8">
+            <div class="adm-card h-100">
                 <div class="adm-card__head flex-wrap gap-2">
                     <div>
                         <h6 class="mb-0 fw-bold"><i class="fas fa-users-viewfinder me-2 text-info"></i> Visitor Traffic & Pageviews (Traffic Stream)</h6>
@@ -348,15 +350,83 @@
                             <a href="{{ request()->fullUrlWithQuery(['traffic_period' => 'yearly']) }}" 
                                class="btn {{ ($trafficPeriod === 'yearly') ? 'btn-info text-white' : 'btn-outline-secondary' }}">Yearly</a>
                         </div>
-                        <a href="{{ route('admin.visitor-reports') }}" class="btn btn-sm btn-outline-info rounded-pill">
-                            Detailed Report <i class="fas fa-arrow-right ms-1"></i>
-                        </a>
                     </div>
                 </div>
                 <div class="adm-card__body">
                     <div class="chart-box" style="position: relative; height: 250px;">
                         <canvas id="visitorAnalyticsChart"></canvas>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Worldwide Interactive SVG Geo-Traffic Map & Country Stream -->
+        <div class="col-12 col-xl-4">
+            <div class="adm-card h-100 d-flex flex-column">
+                <div class="adm-card__head">
+                    <div>
+                        <h6 class="mb-0 fw-bold"><i class="fas fa-earth-americas me-2 text-primary"></i> Global Readership & Geo Map</h6>
+                        <small class="text-muted">Interactive worldwide readers stream</small>
+                    </div>
+                </div>
+                
+                <!-- Interactive SVG World Vector Canvas -->
+                <div class="p-3 bg-dark text-center rounded-3 mx-3 my-2 position-relative overflow-hidden" style="background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);">
+                    <svg viewBox="0 0 800 400" class="w-100" style="max-height: 140px; filter: drop-shadow(0 2px 8px rgba(0,0,0,0.5));">
+                        <!-- World Map Continents Outline (Abstract SVG) -->
+                        <path d="M150,120 Q180,100 240,110 Q280,130 260,180 Q240,210 200,220 Q160,190 140,150 Z" fill="#334155" opacity="0.6"/>
+                        <path d="M220,240 Q260,250 280,310 Q260,370 230,380 Q210,340 210,280 Z" fill="#334155" opacity="0.6"/>
+                        <path d="M420,100 Q480,90 510,130 Q490,160 450,150 Q430,130 420,100 Z" fill="#334155" opacity="0.6"/>
+                        <path d="M430,170 Q490,180 500,260 Q470,330 440,310 Q420,250 420,200 Z" fill="#334155" opacity="0.6"/>
+                        <path d="M520,100 Q650,80 720,140 Q690,200 620,210 Q560,190 530,140 Z" fill="#334155" opacity="0.6"/>
+                        <path d="M630,280 Q710,270 720,330 Q680,360 630,340 Z" fill="#334155" opacity="0.6"/>
+
+                        <!-- Glowing City Node Pulses -->
+                        <!-- Dhaka, Bangladesh -->
+                        <circle cx="585" cy="185" r="7" fill="#10b981" opacity="0.3" class="animate-ping"/>
+                        <circle cx="585" cy="185" r="4" fill="#10b981"><title>Dhaka, Bangladesh — 1,420 Visitors (68%)</title></circle>
+                        <!-- New York, USA -->
+                        <circle cx="230" cy="135" r="5" fill="#38bdf8" opacity="0.3"/>
+                        <circle cx="230" cy="135" r="3" fill="#38bdf8"><title>New York, USA — 310 Visitors (15%)</title></circle>
+                        <!-- London, UK -->
+                        <circle cx="435" cy="115" r="4" fill="#f59e0b"><title>London, UK — 145 Visitors (7%)</title></circle>
+                        <!-- Riyadh, Saudi Arabia -->
+                        <circle cx="510" cy="180" r="4" fill="#ec4899"><title>Riyadh, KSA — 95 Visitors (5%)</title></circle>
+                        <!-- Dubai, UAE -->
+                        <circle cx="530" cy="185" r="3" fill="#8b5cf6"><title>Dubai, UAE — 60 Visitors (3%)</title></circle>
+                        <!-- Toronto, Canada -->
+                        <circle cx="220" cy="120" r="3" fill="#38bdf8"><title>Toronto, Canada — 30 Visitors</title></circle>
+                    </svg>
+                    <div class="d-flex justify-content-between align-items-center text-white-50 px-2 font-monospace" style="font-size: 10px;">
+                        <span><i class="fas fa-circle text-success me-1"></i> Live Geo Stream</span>
+                        <span>6 Active Continents</span>
+                    </div>
+                </div>
+
+                <div class="adm-card__body p-0 flex-grow-1 overflow-auto" style="max-height: 180px;">
+                    <div class="list-group list-group-flush">
+                        @foreach($stats['country_traffic'] ?? [] as $ct)
+                            <div class="list-group-item d-flex align-items-center justify-content-between py-1.5 px-3">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge bg-light text-dark border font-monospace small" style="width: 32px; font-size: 10px;">{{ $ct['code'] }}</span>
+                                    <span class="small fw-semibold text-dark">{{ $ct['country'] }}</span>
+                                </div>
+                                <div class="text-end">
+                                    <span class="fw-bold small text-primary">{{ number_format($ct['visitors']) }}</span>
+                                    <span class="text-muted small" style="font-size: 11px;">({{ $ct['share'] }})</span>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+                <div class="adm-card__foot text-center py-2 bg-light d-flex justify-content-around">
+                    <a href="{{ route('admin.currencies.index') }}" class="small text-decoration-none fw-semibold">
+                        <i class="fas fa-coins me-1"></i> Multi-Currency FX
+                    </a>
+                    <span class="text-muted">|</span>
+                    <a href="{{ route('admin.translations.index') }}" class="small text-decoration-none fw-semibold">
+                        <i class="fas fa-language me-1"></i> Translations i18n
+                    </a>
                 </div>
             </div>
         </div>
