@@ -540,6 +540,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::get('/', 'index')->name('index');
         Route::post('/create', 'create')->name('create');
         Route::post('/upload', 'upload')->name('upload');
+        Route::post('/optimize', 'optimize')->name('optimize');
         Route::post('/restore/{filename}', 'restore')->name('restore');
         Route::get('/download/{filename}', 'download')->name('download');
         Route::delete('/{filename}', 'destroy')->name('destroy');
