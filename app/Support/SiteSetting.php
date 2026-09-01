@@ -43,6 +43,11 @@ class SiteSetting
         });
     }
 
+    public static function getAll(): array
+    {
+        return self::all();
+    }
+
     public static function get(string $key, mixed $default = null): mixed
     {
         $all = self::all();

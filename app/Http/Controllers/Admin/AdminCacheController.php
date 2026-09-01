@@ -260,32 +260,39 @@ class AdminCacheController extends Controller
         try {
             // 1. Warm Site Settings
             SiteSetting::clearCache();
-            SiteSetting::getAll();
+            SiteSetting::all();
 
-            // 2. Warm Critical Database Queries
-            Cache::remember('warm_bestseller_books', 3600, function () {
-                return \Modules\Book\Models\Book::where('is_active', true)
-                    ->orderByDesc('sales_count')
-                    ->limit(12)
-                    ->get(['id', 'title', 'slug', 'price', 'discount_price', 'cover_image']);
-            });
-
-            Cache::remember('warm_featured_authors', 3600, function () {
-                return \Modules\Author\Models\Author::where('is_active', true)
-                    ->withCount('books')
-                    ->orderByDesc('books_count')
-                    ->limit(10)
-                    ->get(['id', 'name', 'slug', 'avatar']);
-            });
-
-            // 3. Compile Views safely
+            // 2. Warm Critical Database Queries safely
             try {
-                Artisan::call('view:cache');
-            } catch (\Throwable) {
-                // non-blocking
-            }
+                Cache::remember('warm_bestseller_books', 3600, function () {
+                    return \Modules\Book\Models\Book::where('is_active', true)
+                        ->orderByDesc('sales_count')
+                        ->limit(12)
+                        ->get(['id', 'title', 'slug', 'price', 'discount_price', 'cover_image']);
+                });
+            } catch (\Throwable) {}
 
-            $msg = 'ক্যাশ ওয়ার্ম-আপ সফল! হোমপেজ, বেস্টসেলার এবং সাইট সেটিংস প্রি-লোড করা হয়েছে (Instant 10ms loading enabled)!';
+            try {
+                Cache::remember('warm_featured_authors', 3600, function () {
+                    return \Modules\Author\Models\Author::where('is_active', true)
+                        ->withCount('books')
+                        ->orderByDesc('books_count')
+                        ->limit(10)
+                        ->get(['id', 'name', 'slug', 'avatar']);
+                });
+            } catch (\Throwable) {}
+
+            // 3. Warm Category Tree
+            try {
+                Cache::remember('categories_nav_tree', 3600, function () {
+                    return \App\Models\Category::where('is_active', true)
+                        ->orderBy('name')
+                        ->limit(25)
+                        ->get(['id', 'name', 'slug']);
+                });
+            } catch (\Throwable) {}
+
+            $msg = 'ক্যাশ ওয়ার্ম-আপ সফল! হোমপেজ, বেস্টসেলার, ক্যাটাগরি ও সাইট সেটিংস মেমোরিতে প্রি-লোড করা হয়েছে (Instant 10ms response enabled)!';
             $this->logAction('cache_warmup', $msg);
 
             if ($request->wantsJson() || $request->ajax()) {
