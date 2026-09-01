@@ -535,12 +535,17 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::post('/optimize', 'optimize')->name('optimize');
     });
 
-    // Database Backup & Recovery
+    // Enterprise Disaster Recovery & Master ZIP Backup Hub
     Route::prefix('backup')->name('backup.')->controller(\App\Http\Controllers\Admin\AdminBackupController::class)->group(function () {
         Route::get('/', 'index')->name('index');
         Route::post('/create', 'create')->name('create');
         Route::post('/upload', 'upload')->name('upload');
         Route::post('/optimize', 'optimize')->name('optimize');
+        Route::post('/integrity-check', 'integrityCheck')->name('integrity');
+        Route::post('/settings', 'updateSettings')->name('settings');
+        Route::post('/bulk-delete', 'bulkDelete')->name('bulk-delete');
+        Route::get('/inspect/{filename}', 'inspect')->name('inspect');
+        Route::post('/email/{filename}', 'sendEmail')->name('email');
         Route::post('/restore/{filename}', 'restore')->name('restore');
         Route::get('/download/{filename}', 'download')->name('download');
         Route::delete('/{filename}', 'destroy')->name('destroy');
