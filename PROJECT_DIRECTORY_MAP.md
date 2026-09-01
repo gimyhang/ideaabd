@@ -486,7 +486,7 @@
 | `public/sitemap.xml` | সিস্টেম ফাইল: sitemap.xml |
 | `public/storage` | সিস্টেম ফাইল: storage |
 
-### 📁 Core Root Configuration & Environment (278 files)
+### 📁 Core Root Configuration & Environment (279 files)
 
 | ফাইল পাথ | কী কী কাজ করছে (কাজের সুনির্দিষ্ট শিরোনাম ও দায়িত্ব) |
 | :--- | :--- |
@@ -696,6 +696,7 @@
 | `storage/app/public/.gitignore` | গিট রিপোজিটরির অপ্রয়োজনীয় ফাইল ইগনোর রুলস |
 | `storage/app/public/authors/5dZR9ZBQYQRNClXmzrXuQjeK1MlGCqgY0f6v72Bn.jpg` | স্টোরেজে সংরক্ষিত ইউজার আপলোড মিডিয়া ও ফাইল |
 | `storage/app/public/authors/CRQ0KP0eI7L9dZNcCUMJMD2nMBzY62cf2cJMX3kJ.jpg` | স্টোরেজে সংরক্ষিত ইউজার আপলোড মিডিয়া ও ফাইল |
+| `storage/app/public/avatars/Dd4GRg6owSUVngdLbR0ecRPb6vWfmdTru1jsej7V.jpg` | স্টোরেজে সংরক্ষিত ইউজার আপলোড মিডিয়া ও ফাইল |
 | `storage/app/public/blog/photocard_1787042106_8R0KcNmS.jpeg` | স্টোরেজে সংরক্ষিত ইউজার আপলোড মিডিয়া ও ফাইল |
 | `storage/app/public/blog/photocard_1787055124_jHrlMZYk.jpeg` | স্টোরেজে সংরক্ষিত ইউজার আপলোড মিডিয়া ও ফাইল |
 | `storage/app/public/blog/photocard_1787460412_KAtQZ8jq.svg` | স্টোরেজে সংরক্ষিত ইউজার আপলোড মিডিয়া ও ফাইল |
@@ -771,7 +772,7 @@
 
 ---
 
-## 🌐 ৩. সম্পূর্ণ সিস্টেম রাউট ও অ্যাকশন ম্যাপিং (Registered System Routes — 407 Routes)
+## 🌐 ৩. সম্পূর্ণ সিস্টেম রাউট ও অ্যাকশন ম্যাপিং (Registered System Routes — 409 Routes)
 
 | মেথড | URL পাথ | রাউট নাম (Route Name) | কন্ট্রোলার / হ্যান্ডলার অ্যাকশন |
 | :--- | :--- | :--- | :--- |
@@ -917,6 +918,8 @@
 | `POST` | `/admin/profile/logout-others` | `admin.profile.logout-others` | `App\Http\Controllers\Admin\AdminProfileController@logoutOtherDevices` |
 | `POST` | `/admin/profile/password` | `admin.profile.password` | `App\Http\Controllers\Admin\AdminProfileController@updatePassword` |
 | `POST` | `/admin/profile/preferences` | `admin.profile.preferences` | `App\Http\Controllers\Admin\AdminProfileController@updatePreferences` |
+| `POST` | `/admin/profile/signature` | `admin.profile.signature` | `App\Http\Controllers\Admin\AdminProfileController@updateSignature` |
+| `DELETE` | `/admin/profile/signature` | `admin.profile.signature.remove` | `App\Http\Controllers\Admin\AdminProfileController@removeSignature` |
 | `POST` | `/admin/profile/update` | `admin.profile.update` | `App\Http\Controllers\Admin\AdminProfileController@updateProfile` |
 | `GET` | `/admin/publishers` | `admin.publishers` | `App\Http\Controllers\AdminController@publishers` |
 | `POST` | `/admin/publishers/quick-store` | `admin.publishers.quick-store` | `App\Http\Controllers\AdminController@quickStorePublisher` |

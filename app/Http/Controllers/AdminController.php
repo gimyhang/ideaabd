@@ -1253,6 +1253,11 @@ class AdminController extends Controller
 
         $query = \Modules\Author\Models\Author::query()
             ->withCount('books')
+            ->with(['books' => function ($q) {
+                $q->select(['books.id', 'books.title', 'books.slug', 'books.cover_image', 'books.price', 'books.sales_count'])
+                  ->orderByDesc('sales_count')
+                  ->limit(1);
+            }])
             ->when($search, function ($q, $term) {
                 $searchData = $this->parseSearchKeywords($term);
                 $tokens = $searchData['tokens'];

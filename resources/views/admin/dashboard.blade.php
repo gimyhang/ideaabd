@@ -150,6 +150,33 @@
     @endif
 
     {{-- ========================================================================= --}}
+    {{-- 0. QUICK COMMAND & SHORTCUT LAUNCHER STRIP                                --}}
+    {{-- ========================================================================= --}}
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 p-2.5 bg-white border-0 shadow-xs rounded-4">
+        <div class="d-flex align-items-center gap-2 small fw-bold text-dark ps-2">
+            <span class="badge bg-primary text-white rounded-circle p-1.5"><i class="fas fa-bolt"></i></span>
+            <span>কুইক অ্যাকশন হাব:</span>
+        </div>
+        <div class="d-flex flex-wrap align-items-center gap-1.5">
+            <a href="{{ route('admin.pos.index') }}" class="btn btn-sm btn-outline-warning rounded-pill px-3 fw-semibold">
+                <i class="fas fa-cash-register me-1"></i>বইমেলা POS
+            </a>
+            <a href="{{ route('admin.content.create', 'books') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold">
+                <i class="fas fa-plus-circle me-1"></i>নতুন বই যুক্ত করুন
+            </a>
+            <a href="{{ route('admin.accounting.index') }}" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-semibold">
+                <i class="fas fa-calculator me-1"></i>অ্যাকাউন্টিং
+            </a>
+            <a href="{{ route('admin.backup.index') }}" class="btn btn-sm btn-outline-info rounded-pill px-3 fw-semibold">
+                <i class="fas fa-database me-1"></i>ডাটাবেজ ব্যাকআপ
+            </a>
+            <a href="{{ route('admin.cache.manage') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-semibold">
+                <i class="fas fa-broom me-1"></i>ক্যাশ ক্লিয়ার
+            </a>
+        </div>
+    </div>
+
+    {{-- ========================================================================= --}}
     {{-- 1. DATE RANGE & PERIOD FILTER BAR                                         --}}
     {{-- ========================================================================= --}}
     <div class="adm-card p-3 bg-white">
@@ -280,6 +307,126 @@
             </div>
         </div>
 
+    </div>
+
+    {{-- ========================================================================= --}}
+    {{-- 2.5 LIVE SALES STREAM & TARGET PROGRESS STRIP                             --}}
+    {{-- ========================================================================= --}}
+    <div class="row g-3">
+        {{-- Left: Live Sales & Pulse Activity Feed --}}
+        <div class="col-12 col-xl-7">
+            <div class="adm-card h-100 bg-white">
+                <div class="adm-card__head d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="position-relative d-inline-flex" style="width: 10px; height: 10px;">
+                            <span class="position-absolute w-100 h-100 rounded-circle bg-success opacity-75 animate-ping" style="animation: pulse 1.5s cubic-bezier(0,0,.2,1) infinite;"></span>
+                            <span class="position-relative w-100 h-100 rounded-circle bg-success"></span>
+                        </span>
+                        <h6 class="mb-0 fw-bold text-dark"><i class="fas fa-tower-broadcast me-1.5 text-success"></i>লাইভ রিয়েল-টাইম সেলস ফিড (Live Stream)</h6>
+                    </div>
+                    <span class="badge bg-light text-muted border small">স্বয়ংক্রিয় আপডেট</span>
+                </div>
+                <div class="adm-card__body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0 small">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>চ্যানেল</th>
+                                    <th>ক্রেতা / ক্লায়েন্ট</th>
+                                    <th>টাকার পরিমাণ</th>
+                                    <th>স্ট্যাটাস</th>
+                                    <th class="text-end pe-3">সময়কাল</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($stats['live_feed'] ?? [] as $tx)
+                                    <tr>
+                                        <td>
+                                            <span class="badge {{ $tx['badge_bg'] }} rounded-pill px-2.5 py-1">
+                                                <i class="fas {{ $tx['channel_icon'] }} me-1"></i>{{ $tx['channel'] }}
+                                            </span>
+                                        </td>
+                                        <td class="fw-semibold text-dark">{{ $tx['customer'] }}</td>
+                                        <td class="fw-bold text-dark font-monospace">৳{{ number_format($tx['amount'], 2) }}</td>
+                                        <td>
+                                            <span class="badge bg-light text-dark border">{{ $tx['status_label'] }}</span>
+                                        </td>
+                                        <td class="text-end pe-3 text-muted">{{ $tx['time_ago'] }}</td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="5" class="text-center py-3 text-muted">আজকে এখনো কোনো নতুন ট্রানজেকশন হয়নি।</td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Right: Daily Target & Multi-Channel Split --}}
+        <div class="col-12 col-xl-5">
+            <div class="adm-card h-100 bg-white">
+                <div class="adm-card__head">
+                    <h6 class="mb-0 fw-bold text-dark"><i class="fas fa-bullseye me-2 text-danger"></i>দৈনিক বিক্রয় লক্ষ্যমাত্রা ও চ্যানেল ব্রেকডাউন</h6>
+                </div>
+                <div class="adm-card__body p-3">
+                    @php
+                        $target = $stats['target_progress'] ?? ['daily_target' => 50000, 'achievement_percent' => 0, 'remaining' => 50000];
+                        $channels = $stats['channel_split'] ?? [];
+                    @endphp
+                    
+                    {{-- Target Progress --}}
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="small fw-semibold text-muted">আজকের টার্গেট প্রগ্রেস:</span>
+                        <span class="fw-bold text-primary font-monospace">{{ $target['achievement_percent'] }}% অর্জিত</span>
+                    </div>
+                    <div class="progress mb-3" style="height: 10px; border-radius: 6px;">
+                        <div class="progress-bar bg-gradient bg-primary" role="progressbar" style="width: {{ $target['achievement_percent'] }}%;" aria-valuenow="{{ $target['achievement_percent'] }}" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                    <div class="d-flex justify-content-between text-muted small mb-3">
+                        <span>অর্জিত: <strong>৳{{ number_format($stats['today_revenue'] ?? 0, 2) }}</strong></span>
+                        <span>টার্গেট: <strong>৳{{ number_format($target['daily_target'] ?? 50000, 2) }}</strong></span>
+                    </div>
+
+                    <hr class="my-2.5">
+
+                    {{-- Channel Split Progress Bars --}}
+                    <div class="small fw-bold text-dark mb-2">মাল্টি-চ্যানেল রেভিনিউ শেয়ার:</div>
+                    <div class="d-flex flex-column gap-2 small">
+                        <div>
+                            <div class="d-flex justify-content-between mb-0.5">
+                                <span><i class="fas fa-cart-shopping text-primary me-1"></i>ই-কমার্স বুক স্টোর</span>
+                                <span class="fw-bold font-monospace">{{ $channels['ecom']['share'] ?? 0 }}%</span>
+                            </div>
+                            <div class="progress" style="height: 5px;">
+                                <div class="progress-bar bg-primary" style="width: {{ $channels['ecom']['share'] ?? 0 }}%;"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="d-flex justify-content-between mb-0.5">
+                                <span><i class="fas fa-cash-register text-success me-1"></i>বইমেলা ও শোরুম POS</span>
+                                <span class="fw-bold font-monospace">{{ $channels['pos']['share'] ?? 0 }}%</span>
+                            </div>
+                            <div class="progress" style="height: 5px;">
+                                <div class="progress-bar bg-success" style="width: {{ $channels['pos']['share'] ?? 0 }}%;"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="d-flex justify-content-between mb-0.5">
+                                <span><i class="fas fa-tablet-screen-button text-info me-1"></i>ডিজিটাল ই-বুক সাবস্ক্রিপশন</span>
+                                <span class="fw-bold font-monospace">{{ $channels['ebook']['share'] ?? 0 }}%</span>
+                            </div>
+                            <div class="progress" style="height: 5px;">
+                                <div class="progress-bar bg-info" style="width: {{ $channels['ebook']['share'] ?? 0 }}%;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
     </div>
 
     {{-- ========================================================================= --}}
@@ -629,6 +776,89 @@
             </div>
         </div>
 
+    </div>
+
+    {{-- ========================================================================= --}}
+    {{-- 7. SYSTEM HEALTH & AUTHOR ROYALTIES FINANCIAL PIPELINE                     --}}
+    {{-- ========================================================================= --}}
+    <div class="row g-3">
+        {{-- Server & Cloud Infrastructure Health --}}
+        <div class="col-12 col-md-6">
+            <div class="adm-card h-100 bg-white">
+                <div class="adm-card__head d-flex align-items-center justify-content-between">
+                    <h6 class="mb-0 fw-bold text-dark"><i class="fas fa-server me-2 text-primary"></i>সার্ভার ও সিস্টেম হেলথ (Infrastructure)</h6>
+                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill">
+                        <i class="fas fa-circle-check me-1"></i>{{ $stats['system_health']['status'] ?? 'Optimal' }}
+                    </span>
+                </div>
+                <div class="adm-card__body p-3">
+                    @php $health = $stats['system_health'] ?? []; @endphp
+                    <div class="d-flex justify-content-between align-items-center mb-1 small">
+                        <span class="text-muted"><i class="fas fa-hard-drive me-1 text-secondary"></i>ডিস্ক স্টোরেজ ব্যবহার:</span>
+                        <span class="fw-bold text-dark font-monospace">{{ $health['disk_used_gb'] ?? 0 }} GB / {{ $health['disk_total_gb'] ?? 0 }} GB ({{ $health['disk_used_percent'] ?? 0 }}%)</span>
+                    </div>
+                    <div class="progress mb-3" style="height: 7px;">
+                        <div class="progress-bar {{ ($health['disk_used_percent'] ?? 0) > 85 ? 'bg-danger' : 'bg-info' }}" style="width: {{ $health['disk_used_percent'] ?? 30 }}%;"></div>
+                    </div>
+
+                    <div class="row g-2 small border-top pt-2">
+                        <div class="col-6">
+                            <span class="text-muted d-block">PHP Version:</span>
+                            <span class="fw-semibold text-dark font-monospace">{{ $health['php_version'] ?? PHP_VERSION }}</span>
+                        </div>
+                        <div class="col-6">
+                            <span class="text-muted d-block">Database Engine:</span>
+                            <span class="fw-semibold text-dark font-monospace">{{ $health['db_version'] ?? 'MySQL 8.0' }}</span>
+                        </div>
+                        <div class="col-6">
+                            <span class="text-muted d-block">Cache Driver:</span>
+                            <span class="badge bg-light text-primary border font-monospace">{{ $health['cache_driver'] ?? 'file' }}</span>
+                        </div>
+                        <div class="col-6">
+                            <span class="text-muted d-block">Queue System:</span>
+                            <span class="badge bg-light text-success border font-monospace">{{ $health['queue_connection'] ?? 'sync' }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Author Royalties Pipeline --}}
+        <div class="col-12 col-md-6">
+            <div class="adm-card h-100 bg-white">
+                <div class="adm-card__head d-flex align-items-center justify-content-between">
+                    <h6 class="mb-0 fw-bold text-dark"><i class="fas fa-pen-nib me-2 text-warning"></i>লেখক রয়্যালটি ও সম্মানী পাইপলাইন</h6>
+                    <a href="{{ route('admin.authors') }}" class="btn btn-sm btn-outline-warning rounded-pill py-0 px-2 small">লেখক তালিকা</a>
+                </div>
+                <div class="adm-card__body p-3">
+                    @php $royalty = $stats['royalties_pipeline'] ?? []; @endphp
+                    <div class="row g-2 text-center mb-3">
+                        <div class="col-4">
+                            <div class="p-2 bg-light rounded-3 border">
+                                <small class="text-muted d-block" style="font-size: 0.72rem;">মোট এক্রুয়েড পুল</small>
+                                <div class="fw-bold text-dark font-monospace small">৳{{ number_format($royalty['accrued_pool'] ?? 0, 2) }}</div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="p-2 bg-warning-subtle rounded-3 border border-warning-subtle">
+                                <small class="text-warning-emphasis d-block" style="font-size: 0.72rem;">পেন্ডিং পে-আউট</small>
+                                <div class="fw-bold text-warning font-monospace small">৳{{ number_format($royalty['pending_payouts'] ?? 0, 2) }}</div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="p-2 bg-success-subtle rounded-3 border border-success-subtle">
+                                <small class="text-success-emphasis d-block" style="font-size: 0.72rem;">চলতি মাসে পরিশোধ</small>
+                                <div class="fw-bold text-success font-monospace small">৳{{ number_format($royalty['paid_this_month'] ?? 0, 2) }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-2.5 bg-light rounded-3 border d-flex align-items-center justify-content-between small">
+                        <span class="text-muted"><i class="fas fa-money-bill-transfer text-primary me-1"></i>সর্বমোট লেখক ও গবেষক:</span>
+                        <span class="fw-bold text-dark">{{ $stats['total_authors'] ?? 0 }} জন</span>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
 </div>
