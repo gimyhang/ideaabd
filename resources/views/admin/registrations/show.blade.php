@@ -24,9 +24,19 @@
         {{-- Profile card --}}
         <div class="col-md-4">
             <div class="card border-0 shadow-sm text-center p-4 rounded-4 bg-white">
-                <div class="rounded-circle bg-light d-inline-flex align-items-center justify-content-center mx-auto mb-3" style="width:80px;height:80px">
-                    <i class="fas fa-user fa-2x text-muted"></i>
-                </div>
+                @php
+                    $userAvatar = $user->avatar ?: ($user->reg_data['avatar'] ?? null);
+                    $avatarUrl = $userAvatar ? (str_starts_with($userAvatar, 'http') ? $userAvatar : asset('storage/' . ltrim($userAvatar, '/'))) : null;
+                @endphp
+                @if($avatarUrl)
+                    <div class="rounded-circle overflow-hidden shadow-sm border border-3 border-white mx-auto mb-3" style="width:88px;height:88px;">
+                        <img src="{{ $avatarUrl }}" alt="{{ $user->name }}" class="w-100 h-100 object-fit-cover">
+                    </div>
+                @else
+                    <div class="rounded-circle bg-light d-inline-flex align-items-center justify-content-center mx-auto mb-3" style="width:88px;height:88px">
+                        <i class="fas fa-user fa-2x text-muted"></i>
+                    </div>
+                @endif
                 <h5 class="fw-bold mb-1 text-dark">{{ $user->name }}</h5>
                 <p class="text-muted small mb-2"><i class="fa-regular fa-envelope me-1"></i>{{ $user->email }}</p>
                 <p class="text-muted small mb-3 font-monospace"><i class="fa-solid fa-phone me-1"></i>{{ $user->phone }}</p>
@@ -68,18 +78,38 @@
                                 <td class="fw-semibold text-muted">Email Address</td>
                                 <td>{{ $user->email }}</td>
                             </tr>
-                            @if($user->reg_data)
+                            @if(is_array($user->reg_data))
                                 @foreach($user->reg_data as $key => $value)
-                                @if(!in_array($key, ['otp_code']))
+                                @if(!in_array($key, ['otp_code', 'avatar_cropped', 'password', '_token', '_method']))
                                 <tr>
-                                    <td class="fw-semibold text-muted">{{ str_replace('_', ' ', ucwords($key, '_')) }}</td>
+                                    <td class="fw-semibold text-muted" style="width:35%">{{ str_replace('_', ' ', ucwords($key, '_')) }}</td>
                                     <td>
                                         @if($key === 'bio' && !empty($value))
                                             <div class="p-2.5 bg-light rounded-3 border border-light-subtle small mt-1" style="line-height: 1.6; white-space: pre-line;">
-                                                {{ $value }}
+                                                {{ is_array($value) ? implode(', ', $value) : $value }}
                                             </div>
+                                        @elseif($key === 'avatar' && !empty($value))
+                                            <div class="d-flex align-items-center gap-2 mt-1">
+                                                <img src="{{ str_starts_with($value, 'http') ? $value : asset('storage/' . ltrim($value, '/')) }}" 
+                                                     alt="Avatar" class="rounded-circle object-fit-cover border shadow-xs" style="width: 44px; height: 44px;">
+                                                <span class="text-muted small font-monospace">{{ basename($value) }}</span>
+                                            </div>
+                                        @elseif(is_array($value))
+                                            @if(empty($value))
+                                                <span class="text-muted">—</span>
+                                            @else
+                                                <div class="d-flex flex-wrap gap-1">
+                                                    @foreach($value as $vItem)
+                                                        @if(is_scalar($vItem))
+                                                            <span class="badge bg-light text-dark border rounded-pill px-2 py-1 small">{{ $vItem }}</span>
+                                                        @endif
+                                                    @endforeach
+                                                </div>
+                                            @endif
+                                        @elseif(is_bool($value))
+                                            <span class="badge {{ $value ? 'bg-success' : 'bg-secondary' }} rounded-pill px-2 py-1">{{ $value ? 'Yes' : 'No' }}</span>
                                         @else
-                                            {{ $value ?: '—' }}
+                                            {{ (string) $value !== '' ? $value : '—' }}
                                         @endif
                                     </td>
                                 </tr>

@@ -72,6 +72,18 @@ class BlogPost extends Model
                 } catch (\Throwable $e) {}
             }
         });
+
+        static::saved(function () {
+            try {
+                \App\Http\Controllers\SitemapController::regenerateStaticSitemap();
+            } catch (\Throwable $e) {}
+        });
+
+        static::deleted(function () {
+            try {
+                \App\Http\Controllers\SitemapController::regenerateStaticSitemap();
+            } catch (\Throwable $e) {}
+        });
     }
 
     public function category()

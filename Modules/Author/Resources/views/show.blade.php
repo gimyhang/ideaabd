@@ -12,12 +12,6 @@
                     <h1 class="text-4xl font-bold mb-2">{{ $author->name }}</h1>
                     <p class="text-lg mb-4">{{ $author->bio }}</p>
                     <div class="flex gap-4 flex-wrap">
-                        @if($author->email)
-                            <span class="text-sm">📧 {{ $author->email }}</span>
-                        @endif
-                        @if($author->website)
-                            <a href="{{ $author->website }}" target="_blank" class="text-sm hover:underline">🌐 ওয়েবসাইট</a>
-                        @endif
                         @if($author->is_verified)
                             <span class="text-sm bg-green-600 px-3 py-1 rounded">✓ যাচাইকৃত লেখক</span>
                         @endif

@@ -231,10 +231,18 @@
         </nav>
 
         {{-- Footer User Profile --}}
+        @php
+            $authorAvatar = auth()->user()->avatar ?: (auth()->user()->reg_data['avatar'] ?? ($authRecord?->avatar ?? null));
+            $authorAvatarUrl = $authorAvatar ? (str_starts_with($authorAvatar, 'http') ? $authorAvatar : asset('storage/' . ltrim($authorAvatar, '/'))) : null;
+        @endphp
         <div class="pt-3 border-top border-secondary border-opacity-25 d-flex align-items-center justify-content-between">
             <div class="d-flex align-items-center gap-2 text-white text-truncate">
-                <div class="rounded-circle bg-primary text-white fw-bold d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px;">
-                    {{ mb_substr(auth()->user()->name, 0, 1) }}
+                <div class="rounded-circle overflow-hidden bg-primary text-white fw-bold d-flex align-items-center justify-content-center flex-shrink-0 border border-white border-opacity-25" style="width: 38px; height: 38px; min-width: 38px; aspect-ratio: 1/1;">
+                    @if($authorAvatarUrl)
+                        <img src="{{ $authorAvatarUrl }}" alt="{{ auth()->user()->name }}" class="w-100 h-100 object-fit-cover header-author-avatar-img">
+                    @else
+                        <span>{{ mb_substr(auth()->user()->name, 0, 1) }}</span>
+                    @endif
                 </div>
                 <div class="overflow-hidden">
                     <div class="small fw-bold text-truncate text-white">{{ auth()->user()->name }}</div>

@@ -513,24 +513,30 @@
                     </thead>
                     <tbody>
                         @forelse($statement['entries'] as $idx => $entry)
-                            <tr>
+                            <tr class="{{ ($entry['type'] ?? '') === 'opening' ? 'table-warning bg-opacity-25 fw-semibold' : '' }}">
                                 <td class="text-center small text-muted">{{ $idx + 1 }}</td>
                                 <td class="font-monospace small text-dark fw-medium">
                                     {{ date('d M, Y', strtotime($entry['date'])) }}
                                 </td>
                                 <td>
-                                    @if($entry['type'] === 'purchase')
+                                    @if(($entry['type'] ?? '') === 'opening')
+                                        <span class="badge bg-warning-subtle text-dark border border-warning-subtle rounded-pill px-2.5 py-1 small">
+                                            <i class="fas fa-clock-rotate-left me-1 text-warning"></i>প্রারম্ভিক জের
+                                        </span>
+                                    @elseif($entry['type'] === 'purchase')
                                         <span class="badge badge-debit rounded-pill px-2.5 py-1 small">
                                             <i class="fas fa-cart-arrow-down me-1"></i>ক্রয় বিল
                                         </span>
                                     @else
                                         <span class="badge badge-credit rounded-pill px-2.5 py-1 small">
-                                            <i class="fas fa-money-bill-transfer me-1"></i>কিস্তি পরিশোধ
+                                            <i class="fas fa-money-bill-transfer me-1"></i>পরিশোধ
                                         </span>
                                     @endif
                                 </td>
                                 <td>
-                                    @if($entry['type'] === 'purchase')
+                                    @if(($entry['type'] ?? '') === 'opening')
+                                        <span class="badge bg-light text-dark border font-monospace">B/F</span>
+                                    @elseif($entry['type'] === 'purchase')
                                         <a href="{{ route('admin.purchases.show', $entry['purchase_id']) }}" class="text-primary fw-bold font-monospace text-decoration-none">
                                             #{{ $entry['ref_no'] }}
                                         </a>

@@ -29,28 +29,20 @@
 <form action="{{ route('admin.purchases.store') }}" method="POST" id="purchaseForm" onsubmit="return handleFormSubmit(event)">
     @csrf
 
-    {{-- 1. TOP SEGMENTED CONTROL: PURCHASE CLASS SELECTOR --}}
+    {{-- 1. TOP CONTROL: PURCHASE CLASS SELECTOR (DROPDOWN) --}}
     <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white">
-        <div class="card-body p-2 p-md-3">
+        <div class="card-body p-3">
             <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
                 <div class="d-flex align-items-center gap-2">
-                    <span class="badge bg-primary-subtle text-primary border rounded-pill px-3 py-2 fw-bold fs-7">
-                        <i class="fa-solid fa-shapes me-1"></i> ক্রয়ের ধরন (Purchase Class)
-                    </span>
-                    <input type="hidden" name="purchase_category" id="purchaseCategoryInput" value="{{ $initType }}">
-                </div>
-
-                {{-- Modern Segmented Pills --}}
-                <div class="purchase-type-nav bg-light p-1 rounded-pill border d-inline-flex align-items-center">
-                    <button type="button" class="btn btn-sm rounded-pill px-3.5 py-1.5 fw-bold type-tab-btn {{ $initType === 'books' ? 'active btn-primary shadow-xs' : 'text-secondary' }}" data-type="books" onclick="setPurchaseClass('books')">
-                        <i class="fa-solid fa-book-open me-1.5"></i> বই ক্রয় (Books)
-                    </button>
-                    <button type="button" class="btn btn-sm rounded-pill px-3.5 py-1.5 fw-bold type-tab-btn {{ $initType === 'raw_materials' ? 'active btn-warning text-dark shadow-xs' : 'text-secondary' }}" data-type="raw_materials" onclick="setPurchaseClass('raw_materials')">
-                        <i class="fa-solid fa-boxes-stacked me-1.5"></i> কাঁচামাল ও প্রেস (Raw Materials)
-                    </button>
-                    <button type="button" class="btn btn-sm rounded-pill px-3.5 py-1.5 fw-bold type-tab-btn {{ $initType === 'other' ? 'active btn-info text-dark shadow-xs' : 'text-secondary' }}" data-type="other" onclick="setPurchaseClass('other')">
-                        <i class="fa-solid fa-cart-shopping me-1.5"></i> অন্যান্য খরচ (Other Expenses)
-                    </button>
+                    <label for="purchaseCategorySelect" class="form-label fw-bold mb-0 text-dark">
+                        <i class="fa-solid fa-shapes text-primary me-1.5"></i> Purchase Class:
+                    </label>
+                    <select name="purchase_category" id="purchaseCategorySelect" class="form-select form-select-md fw-bold rounded-pill px-3 shadow-2xs border-primary-subtle" style="min-width: 200px;" onchange="setPurchaseClass(this.value)">
+                        <option value="books" @selected($initType === 'books')>Books</option>
+                        <option value="raw_materials" @selected($initType === 'raw_materials')>Raw Materials</option>
+                        <option value="other" @selected($initType === 'other')>Others</option>
+                    </select>
+                    <input type="hidden" id="purchaseCategoryInput" value="{{ $initType }}">
                 </div>
             </div>
         </div>
@@ -69,19 +61,10 @@
                             <i class="fas fa-building fs-5"></i>
                         </span>
                         <div>
-                            <h5 class="fw-bold mb-0 text-dark" id="supplierCardTitle">সরবরাহকারী ও ইনভয়েস বিবরণ</h5>
+                            <h5 class="fw-bold mb-0 text-dark" id="supplierCardTitle">Vendor & Invoice Information</h5>
                         </div>
                     </div>
 
-                    {{-- Publisher Mode Toggle for Books (Select Existing vs New Publisher) --}}
-                    <div class="btn-group p-1 bg-light rounded-pill border" role="group" id="pubModeToggleWrap" style="{{ $isInitRaw ? 'display: none;' : 'display: inline-flex;' }}">
-                        <button type="button" class="btn btn-sm rounded-pill fw-semibold px-3 active" id="btnExistingPub" onclick="setPublisherMode(false)">
-                            <i class="fas fa-list-check me-1"></i> তালিকা থেকে নির্বাচন
-                        </button>
-                        <button type="button" class="btn btn-sm rounded-pill fw-semibold px-3 text-muted" id="btnNewPub" onclick="setPublisherMode(true)">
-                            <i class="fas fa-plus-circle me-1"></i> + নতুন প্রকাশনী
-                        </button>
-                    </div>
                 </div>
 
                 <div class="card-body p-4">
@@ -94,14 +77,14 @@
                             <div id="topVendorWrapper" style="{{ $isInitRaw ? 'display: block;' : 'display: none;' }}">
                                 <div class="mb-3">
                                     <label class="form-label fw-bold text-dark mb-1">
-                                        <i class="fas fa-store text-warning me-1"></i> <span id="vendorFieldLabel">ভেন্ডর / প্রেস / সরবরাহকারীর নাম</span> <span class="text-danger">*</span>
+                                        <i class="fas fa-store text-warning me-1"></i> <span id="vendorFieldLabel">Vendor</span> <span class="text-danger">*</span>
                                     </label>
                                     
                                     {{-- Existing Vendor Directory Selector --}}
                                     @if(isset($existingVendors) && $existingVendors->isNotEmpty())
                                         <div class="mb-2">
                                             <select id="createExistingVendorSelect" class="form-select" onchange="onCreateVendorSelected(this)">
-                                                <option value="">-- পূর্বের ভেন্ডর / প্রেস তালিকা থেকে নির্বাচন করুন --</option>
+                                                <option value="">-- Select Vendor from Directory --</option>
                                                 @foreach($existingVendors as $vnd)
                                                     <option value="{{ $vnd->vendor_name }}" 
                                                             data-phone="{{ $vnd->vendor_phone }}" 
@@ -116,113 +99,77 @@
                                     <div class="input-group">
                                         <span class="input-group-text bg-light"><i class="fas fa-pen-nib text-secondary"></i></span>
                                         <input type="text" name="vendor_name" id="customVendorInput" class="form-control fw-bold" 
-                                               placeholder="e.g. কর্ণফুলী পেপার মিলস / আল-মদিনা প্রেস / ঢাকা বাইন্ডিং..." value="{{ old('vendor_name') }}">
+                                               placeholder="e.g. Karnafuli Paper Mills / Al-Madina Press..." value="{{ old('vendor_name') }}" oninput="checkVendorPreviousDue(this.value)">
                                     </div>
                                 </div>
 
                                 <div class="row g-2">
                                     <div class="col-md-6">
                                         <label class="form-label small fw-bold text-dark mb-1">
-                                            <i class="fas fa-phone-alt text-success me-1"></i> মোবাইল নম্বর
+                                            <i class="fas fa-phone-alt text-success me-1"></i> Phone
                                         </label>
                                         <input type="text" name="vendor_phone" id="createVendorPhone" class="form-control form-control-sm" placeholder="017XXXXXXXX" value="{{ old('vendor_phone') }}">
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label small fw-bold text-dark mb-1">
-                                            <i class="fas fa-location-dot text-danger me-1"></i> ঠিকানা / লোকেশন
+                                            <i class="fas fa-location-dot text-danger me-1"></i> Address
                                         </label>
-                                        <input type="text" name="vendor_address" id="createVendorAddress" class="form-control form-control-sm" placeholder="বাংলাবাজার / আরামবাগ, ঢাকা" value="{{ old('vendor_address') }}">
+                                        <input type="text" name="vendor_address" id="createVendorAddress" class="form-control form-control-sm" placeholder="Banglabazar / Arambagh, Dhaka" value="{{ old('vendor_address') }}">
                                     </div>
                                 </div>
                             </div>
 
-                            {{-- Book Publisher Wrapper --}}
+                            {{-- Book Publisher Wrapper (Identical to Raw Materials Vendor Flow) --}}
                             <div id="bookPublisherWrapper" style="{{ $isInitRaw ? 'display: none;' : 'display: block;' }}">
-                                
-                                {{-- Existing Publisher Select --}}
-                                <div id="existingPublisherWrapper">
+                                <div class="mb-3">
                                     <label class="form-label fw-bold text-dark mb-1">
-                                        <i class="fas fa-store text-primary me-1"></i> প্রকাশনী / সরবরাহকারী <span class="text-danger">*</span>
+                                        <i class="fas fa-store text-primary me-1"></i> Publisher <span class="text-danger">*</span>
                                     </label>
-                                    <div class="input-group">
-                                        <span class="input-group-text bg-light text-muted"><i class="fas fa-magnifying-glass"></i></span>
-                                        <select name="publisher_id" id="publisherSelect" class="form-select @error('publisher_id') is-invalid @enderror" onchange="onPublisherSelected(this)">
-                                            <option value="">-- প্রকাশনী নির্বাচন করুন --</option>
-                                            @foreach($publishers as $pub)
-                                                <option value="{{ $pub->id }}" 
-                                                        data-name="{{ $pub->name }}"
-                                                        data-phone="{{ $pub->phone }}"
-                                                        data-email="{{ $pub->email }}"
-                                                        data-address="{{ $pub->address }}"
-                                                        data-books-count="{{ $pub->books_count ?? 0 }}"
-                                                        data-due="{{ (float) ($pub->total_due ?? 0) }}"
-                                                        @selected(old('publisher_id') == $pub->id)>
-                                                    {{ $pub->name }} @if($pub->phone) (📞 {{ $pub->phone }}) @endif
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                    </div>
                                     
-                                    {{-- Selected Publisher Snapshot Card --}}
-                                    <div id="publisherSnapshotCard" class="mt-3 p-3 bg-light rounded-3 border" style="display: none;">
-                                        <div class="d-flex align-items-start justify-content-between">
-                                            <div class="d-flex align-items-center gap-2.5">
-                                                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold shadow-xs" style="width: 38px; height: 38px; font-size: 14px;" id="snapPubInitial">
-                                                    P
-                                                </div>
-                                                <div>
-                                                    <h6 class="fw-bold text-dark mb-0" id="snapPubName">Publisher Name</h6>
-                                                    <small class="text-muted" id="snapPubAddress"><i class="fas fa-location-dot me-1"></i>Banglabazar, Dhaka</small>
-                                                </div>
-                                            </div>
-                                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-1 fw-bold" id="snapPubDue">
-                                                পূর্বের বকেয়া: ৳0.00
-                                            </span>
+                                    {{-- Existing Publisher Directory Selector --}}
+                                    @if(isset($publishers) && $publishers->isNotEmpty())
+                                        <div class="mb-2">
+                                            <select id="createExistingPublisherSelect" class="form-select" onchange="onCreatePublisherSelected(this)">
+                                                <option value="">-- Select Publisher from Directory --</option>
+                                                @foreach($publishers as $pub)
+                                                    <option value="{{ $pub->id }}" 
+                                                            data-name="{{ $pub->name }}"
+                                                            data-phone="{{ $pub->phone }}"
+                                                            data-email="{{ $pub->email }}"
+                                                            data-address="{{ $pub->address }}"
+                                                            data-books-count="{{ $pub->books_count ?? 0 }}"
+                                                            data-due="{{ (float) ($pub->total_due ?? 0) }}"
+                                                            @selected(old('publisher_id') == $pub->id)>
+                                                        {{ $pub->name }} @if($pub->phone) (📞 {{ $pub->phone }}) @endif
+                                                    </option>
+                                                @endforeach
+                                            </select>
                                         </div>
-                                        <div class="row g-2 pt-2 mt-1 border-top small text-muted">
-                                            <div class="col-sm-6" id="snapPubPhoneWrap">
-                                                <i class="fas fa-phone text-primary me-1"></i><span id="snapPubPhone">-</span>
-                                            </div>
-                                            <div class="col-sm-6" id="snapPubEmailWrap">
-                                                <i class="fas fa-envelope text-info me-1"></i><span id="snapPubEmail">-</span>
-                                            </div>
-                                            <div class="col-12 text-end">
-                                                <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2 py-0.5" id="snapPubBooks">
-                                                    0 books in catalog
-                                                </span>
-                                            </div>
-                                        </div>
+                                    @endif
+
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light"><i class="fas fa-book-open-reader text-primary"></i></span>
+                                        <input type="text" name="publisher_name" id="customPublisherInput" class="form-control fw-bold" 
+                                               placeholder="e.g. Prothoma / Batighar / Any Publisher Name..." value="{{ old('publisher_name') }}" oninput="checkPublisherInput(this.value)">
+                                        <input type="hidden" name="publisher_id" id="selectedPublisherId" value="{{ old('publisher_id') }}">
                                     </div>
+                                    @error('publisher_id')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
                                 </div>
 
-                                {{-- New Publisher Input Box --}}
-                                <div id="newPublisherWrapper" style="display: none;">
-                                    <div class="p-3 bg-light rounded-4 border">
-                                        <div class="d-flex align-items-center justify-content-between mb-2.5">
-                                            <h6 class="fw-bold text-dark mb-0"><i class="fas fa-plus-circle text-success me-1"></i> নতুন প্রকাশনী এন্ট্রি</h6>
-                                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5 small">Auto-registered</span>
-                                        </div>
-                                        <div class="mb-2">
-                                            <label class="form-label small fw-bold text-dark mb-1">প্রকাশনীর নাম <span class="text-danger">*</span></label>
-                                            <input type="text" name="publisher_name" id="newPublisherName" class="form-control form-control-sm" placeholder="e.g. বাতিঘর / প্রথমা প্রকাশন...">
-                                        </div>
-                                        <div class="row g-2 mb-2">
-                                            <div class="col-md-6">
-                                                <label class="form-label small text-muted mb-1">মোবাইল নম্বর</label>
-                                                <input type="text" name="publisher_phone" class="form-control form-control-sm" placeholder="017XXXXXXXX">
-                                            </div>
-                                            <div class="col-md-6">
-                                                <label class="form-label small text-muted mb-1">ইমেইল</label>
-                                                <input type="email" name="publisher_email" class="form-control form-control-sm" placeholder="info@publisher.com">
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <label class="form-label small text-muted mb-1">ঠিকানা / লোকেশন</label>
-                                            <input type="text" name="publisher_address" class="form-control form-control-sm" placeholder="৩৮ বাংলাবাজার, ঢাকা">
-                                        </div>
+                                <div class="row g-2">
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold text-dark mb-1">
+                                            <i class="fas fa-phone-alt text-success me-1"></i> Phone
+                                        </label>
+                                        <input type="text" name="publisher_phone" id="createPublisherPhone" class="form-control form-control-sm" placeholder="017XXXXXXXX" value="{{ old('publisher_phone') }}">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold text-dark mb-1">
+                                            <i class="fas fa-location-dot text-danger me-1"></i> Address
+                                        </label>
+                                        <input type="text" name="publisher_address" id="createPublisherAddress" class="form-control form-control-sm" placeholder="Banglabazar, Dhaka" value="{{ old('publisher_address') }}">
                                     </div>
                                 </div>
-                                @error('publisher_id')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
                             </div>
                         </div>
 
@@ -231,7 +178,7 @@
                             <div class="row g-3">
                                 <div class="col-sm-6">
                                     <label class="form-label fw-bold text-dark mb-1">
-                                        <i class="fas fa-hashtag text-primary me-1"></i> ইনভয়েস নম্বর <span class="text-danger">*</span>
+                                        <i class="fas fa-hashtag text-primary me-1"></i> Invoice No <span class="text-danger">*</span>
                                     </label>
                                     <div class="input-group">
                                         <span class="input-group-text bg-light fw-bold text-primary font-monospace" id="invoicePrefixBadge">
@@ -245,7 +192,7 @@
 
                                 <div class="col-sm-6">
                                     <label class="form-label fw-bold text-dark mb-1">
-                                        <i class="fas fa-calendar-day text-primary me-1"></i> ক্রয়ের তারিখ <span class="text-danger">*</span>
+                                        <i class="fas fa-calendar-day text-primary me-1"></i> Purchase Date <span class="text-danger">*</span>
                                     </label>
                                     <div class="input-group">
                                         <span class="input-group-text bg-light"><i class="fas fa-calendar-alt text-muted"></i></span>
@@ -255,12 +202,12 @@
 
                                 <div class="col-12">
                                     <label class="form-label fw-bold text-dark mb-1">
-                                        <i class="fas fa-receipt text-success me-1"></i> মেমো / চালান নম্বর
+                                        <i class="fas fa-receipt text-success me-1"></i> Challan / Memo No
                                     </label>
                                     <div class="input-group">
                                         <span class="input-group-text bg-light text-success"><i class="fas fa-file-invoice"></i></span>
                                         <input type="text" name="publisher_memo_no" class="form-control" 
-                                               placeholder="যেমন: Memo #1289 অথবা Challan #52" value="{{ old('publisher_memo_no') }}">
+                                               placeholder="e.g. Memo #1289 or Challan #52" value="{{ old('publisher_memo_no') }}">
                                     </div>
                                 </div>
                             </div>
@@ -281,99 +228,99 @@
                             <i class="fas fa-book-bookmark fs-5"></i>
                         </span>
                         <div>
-                            <h5 class="fw-bold mb-0 text-dark" id="itemCardHeading">ক্রয়কৃত আইটেম তালিকা</h5>
+                            <h5 class="fw-bold mb-0 text-dark" id="itemCardHeading">Bill Items</h5>
                         </div>
 
-                        {{-- Quick 1-Click Presets Dropdown for Raw Materials --}}
+                        {{-- Quick 1-Click Presets Dropdown for Raw Materials & Press --}}
                         <div class="dropdown ms-lg-2" id="rawMaterialsPresetsWrap" style="{{ $isInitRaw ? 'display: inline-block;' : 'display: none;' }}">
                             <button class="btn btn-warning btn-sm rounded-pill px-3 py-1.5 fw-bold dropdown-toggle shadow-sm text-dark d-flex align-items-center gap-1.5" type="button" id="rawPresetsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="fa-solid fa-wand-magic-sparkles text-dark"></i>
-                                <span>বিল প্রিসেট ▾</span>
+                                <span>Presets ▾</span>
                             </button>
                             <ul class="dropdown-menu shadow-lg border-0 rounded-4 p-2" aria-labelledby="rawPresetsDropdown" style="min-width: 320px; max-height: 420px; overflow-y: auto; z-index: 1060;">
                                 <li class="dropdown-header small text-muted fw-bold text-uppercase pb-1 px-3">
-                                    <i class="fas fa-layer-group me-1 text-primary"></i> তালিকা:
+                                    <i class="fas fa-layer-group me-1 text-primary"></i> Quick Presets:
                                 </li>
                                 <li>
-                                    <a class="dropdown-item rounded-3 py-2 px-3 d-flex align-items-center gap-2.5" href="javascript:void(0)" onclick="applyRawMaterialPreset('অফসেট কাগজ', '২৩x৩৬ ইঞ্চি (ডিমাই)', 'রিম', 3200, '৮০ GSM অফসেট পেপার', '1.67')">
+                                    <a class="dropdown-item rounded-3 py-2 px-3 d-flex align-items-center gap-2.5" href="javascript:void(0)" onclick="applyRawMaterialPreset('Offset Paper', '23x36 Demy', 'Ream', 3200, '80 GSM Offset Paper', '1.67')">
                                         <span class="fs-5">📄</span>
                                         <div>
-                                            <div class="fw-bold text-dark">১. অফসেট কাগজ</div>
-                                            <small class="text-muted">৮০ GSM ডিমাই (২৩x৩৬) — ১.৬৭ রিম</small>
+                                            <div class="fw-bold text-dark">1. Offset Paper</div>
+                                            <small class="text-muted">80 GSM Demy (23x36) — 1.67 Reams</small>
                                         </div>
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item rounded-3 py-2 px-3 d-flex align-items-center gap-2.5" href="javascript:void(0)" onclick="applyRawMaterialPreset('গ্লোসি পেপার', '২৩x৩৬ ইঞ্চি (ডিমাই)', 'রিম', 4500, '১০০ GSM আর্ট পেপার', '1.00')">
+                                    <a class="dropdown-item rounded-3 py-2 px-3 d-flex align-items-center gap-2.5" href="javascript:void(0)" onclick="applyRawMaterialPreset('Glossy Art Paper', '23x36 Demy', 'Ream', 4500, '100 GSM Art Paper', '1.00')">
                                         <span class="fs-5">📑</span>
                                         <div>
-                                            <div class="fw-bold text-dark">২. গ্লোসি পেপার</div>
-                                            <small class="text-muted">১০০ GSM আর্ট পেপার</small>
+                                            <div class="fw-bold text-dark">2. Glossy Art Paper</div>
+                                            <small class="text-muted">100 GSM Art Paper</small>
                                         </div>
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item rounded-3 py-2 px-3 d-flex align-items-center gap-2.5" href="javascript:void(0)" onclick="applyRawMaterialPreset('আর্ট কার্ড / কভার বোর্ড', '২২x২৮ ইঞ্চি (Art Card)', 'রিম', 5200, '৩০০ GSM আর্ট কার্ড', '1.00')">
+                                    <a class="dropdown-item rounded-3 py-2 px-3 d-flex align-items-center gap-2.5" href="javascript:void(0)" onclick="applyRawMaterialPreset('Cover Card Board', '22x28 Art Card', 'Ream', 5200, '300 GSM Cover Card', '1.00')">
                                         <span class="fs-5">📦</span>
                                         <div>
-                                            <div class="fw-bold text-dark">৩. আর্ট কার্ড / বোর্ড</div>
-                                            <small class="text-muted">৩০০ GSM কভার কার্ড</small>
+                                            <div class="fw-bold text-dark">3. Cover Card Board</div>
+                                            <small class="text-muted">300 GSM Art Card Board</small>
                                         </div>
                                     </a>
                                 </li>
                                 <li><hr class="dropdown-divider my-1"></li>
                                 <li>
-                                    <a class="dropdown-item rounded-3 py-2 px-3 d-flex align-items-center gap-2.5" href="javascript:void(0)" onclick="applyRawMaterialPreset('প্রিন্টিং বিল (৪-কালার ফর্মা)', '১৬ পৃষ্ঠা ফর্মা', 'ফর্মা', 850, '৪ কালার নিখুঁত প্রিন্ট')">
+                                    <a class="dropdown-item rounded-3 py-2 px-3 d-flex align-items-center gap-2.5" href="javascript:void(0)" onclick="applyRawMaterialPreset('Printing Bill (Forma)', '16-Page Forma', 'Forma', 850, '4-Color Process Print')">
                                         <span class="fs-5">🖨️</span>
                                         <div>
-                                            <div class="fw-bold text-dark">৪. প্রিন্টিং বিল (ফর্মা)</div>
-                                            <small class="text-muted">৪-কালার প্রসেস প্রিন্ট</small>
+                                            <div class="fw-bold text-dark">4. Printing Bill (Forma)</div>
+                                            <small class="text-muted">4-Color Process Printing</small>
                                         </div>
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item rounded-3 py-2 px-3 d-flex align-items-center gap-2.5" href="javascript:void(0)" onclick="applyRawMaterialPreset('সিটিপি প্লেট', 'ডাবল ক্রাউন প্লেট', 'প্লেট', 250, 'থার্মাল সিটিপি প্লেট')">
+                                    <a class="dropdown-item rounded-3 py-2 px-3 d-flex align-items-center gap-2.5" href="javascript:void(0)" onclick="applyRawMaterialPreset('CTP Plate', 'Double Crown', 'Plate', 250, 'Thermal CTP Plate')">
                                         <span class="fs-5">⚙️</span>
                                         <div>
-                                            <div class="fw-bold text-dark">৫. সিটিপি (CTP Plate)</div>
-                                            <small class="text-muted">থার্মাল সিটিপি প্লেট</small>
+                                            <div class="fw-bold text-dark">5. CTP Thermal Plate</div>
+                                            <small class="text-muted">Double Crown CTP Plate</small>
                                         </div>
                                     </a>
                                 </li>
                                 <li><hr class="dropdown-divider my-1"></li>
                                 <li>
-                                    <a class="dropdown-item rounded-3 py-2 px-3 d-flex align-items-center gap-2.5" href="javascript:void(0)" onclick="applyRawMaterialPreset('থার্মাল ম্যাট লেমিনেশন', 'কভার সাইজ', 'পিস', 5, 'ম্যাট ফিল্ম')">
+                                    <a class="dropdown-item rounded-3 py-2 px-3 d-flex align-items-center gap-2.5" href="javascript:void(0)" onclick="applyRawMaterialPreset('Thermal Matte Lamination', 'Cover Size', 'Pcs', 5, 'Matte Film Coating')">
                                         <span class="fs-5">✨</span>
                                         <div>
-                                            <div class="fw-bold text-dark">৬. লেমিনেশন</div>
-                                            <small class="text-muted">থার্মাল ম্যাট / গ্লসি</small>
+                                            <div class="fw-bold text-dark">6. Matte Lamination</div>
+                                            <small class="text-muted">Thermal Matte / Glossy Film</small>
                                         </div>
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item rounded-3 py-2 px-3 d-flex align-items-center gap-2.5" href="javascript:void(0)" onclick="applyRawMaterialPreset('স্পট ইউভি লেমিনেশন', 'কভার সাইজ', 'পিস', 8, 'স্পট ইউভি কোটিং')">
+                                    <a class="dropdown-item rounded-3 py-2 px-3 d-flex align-items-center gap-2.5" href="javascript:void(0)" onclick="applyRawMaterialPreset('Spot UV Lamination', 'Cover Size', 'Pcs', 8, 'Spot UV Coating')">
                                         <span class="fs-5">💎</span>
                                         <div>
-                                            <div class="fw-bold text-dark">৭. স্পট লেমিনেশন</div>
-                                            <small class="text-muted">স্পট ইউভি কোটিং</small>
+                                            <div class="fw-bold text-dark">7. Spot UV Coating</div>
+                                            <small class="text-muted">Spot UV Lamination</small>
                                         </div>
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item rounded-3 py-2 px-3 d-flex align-items-center gap-2.5" href="javascript:void(0)" onclick="applyRawMaterialPreset('ফয়েল এম্বুসিং', 'টাইটেল / লোগো', 'কপি', 12, 'গোল্ডেন ফয়েল')">
+                                    <a class="dropdown-item rounded-3 py-2 px-3 d-flex align-items-center gap-2.5" href="javascript:void(0)" onclick="applyRawMaterialPreset('Foil Embossing', 'Title / Logo', 'Copy', 12, 'Golden Foil Stamping')">
                                         <span class="fs-5">🏷️</span>
                                         <div>
-                                            <div class="fw-bold text-dark">৮. এম্বুস / ফয়েল</div>
-                                            <small class="text-muted">ডাই এম্বুসিং ও গোল্ডেন ফয়েল</small>
+                                            <div class="fw-bold text-dark">8. Foil Stamping & Embossing</div>
+                                            <small class="text-muted">Golden / Silver Foil Stamping</small>
                                         </div>
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item rounded-3 py-2 px-3 d-flex align-items-center gap-2.5" href="javascript:void(0)" onclick="applyRawMaterialPreset('বই বাইন্ডিং ও পেস্টিং', 'ডিমাই / রয়েল সাইজ বই', 'কপি', 18, 'সেলাই ও পারফেক্ট গ্লু')">
+                                    <a class="dropdown-item rounded-3 py-2 px-3 d-flex align-items-center gap-2.5" href="javascript:void(0)" onclick="applyRawMaterialPreset('Book Binding & Pasting', 'Demy / Royal Book', 'Copy', 18, 'Stitched & Perfect Hot Glue')">
                                         <span class="fs-5">📚</span>
                                         <div>
-                                            <div class="fw-bold text-dark">৯. বাইন্ডিং বিল / পেস্টিং</div>
-                                            <small class="text-muted">সেলাই ও পারফেক্ট হট গ্লু</small>
+                                            <div class="fw-bold text-dark">9. Book Binding & Pasting</div>
+                                            <small class="text-muted">Thread Stitched & Perfect Hot Glue</small>
                                         </div>
                                     </a>
                                 </li>
@@ -385,7 +332,7 @@
                     <div class="d-flex flex-wrap align-items-center gap-2">
                         <div class="d-flex flex-wrap align-items-center gap-2" id="booksBatchToolsWrap" style="{{ $initType === 'books' ? '' : 'display: none;' }}">
                             <div class="input-group input-group-sm" style="max-width: 175px;">
-                                <span class="input-group-text bg-light text-primary fw-semibold" style="font-size: 0.75rem;">কমিশন %</span>
+                                <span class="input-group-text bg-light text-primary fw-semibold" style="font-size: 0.75rem;">Comm %</span>
                                 <input type="number" step="0.5" id="batchCommInput" class="form-control text-center" placeholder="40" min="0" max="100">
                                 <button type="button" class="btn btn-outline-primary" onclick="applyBatchCommission()" title="Apply commission to all items">
                                     <i class="fas fa-bolt"></i>
@@ -393,7 +340,7 @@
                             </div>
 
                             <div class="input-group input-group-sm" style="max-width: 175px;">
-                                <span class="input-group-text bg-light text-success fw-semibold" style="font-size: 0.75rem;">বিক্রয় ছাড় %</span>
+                                <span class="input-group-text bg-light text-success fw-semibold" style="font-size: 0.75rem;">Shop Disc %</span>
                                 <input type="number" step="0.5" id="batchSaleDiscInput" class="form-control text-center" placeholder="25" min="0" max="100">
                                 <button type="button" class="btn btn-outline-success" onclick="applyBatchShopDiscount()" title="Apply store discount to all items">
                                     <i class="fas fa-bolt"></i>
@@ -402,7 +349,7 @@
                         </div>
 
                         <button type="button" class="btn btn-success btn-sm rounded-pill px-3.5 fw-bold shadow-sm" id="btnAddMoreItems" onclick="addItemRow()">
-                            <i class="fas fa-plus me-1"></i> <span id="btnAddMoreText">{{ $initType === 'raw_materials' ? 'কাঁচামাল যোগ করুন' : ($initType === 'other' ? 'খরচের এন্ট্রি যোগ করুন' : 'নতুন বই যোগ করুন') }}</span>
+                            <i class="fas fa-plus me-1"></i> <span id="btnAddMoreText">{{ $initType === 'raw_materials' ? '+ Add Item' : ($initType === 'other' ? '+ Add Expense' : '+ Add Book') }}</span>
                         </button>
                     </div>
                 </div>
@@ -413,37 +360,37 @@
                             <thead>
                                 <tr class="table-light text-center small text-muted text-uppercase align-middle" style="font-size: 11.5px; letter-spacing: 0.4px;">
                                     <th style="min-width: 250px; width: 280px;" class="text-start ps-3 py-2.5">
-                                        <span id="thTitleLabel">বইয়ের নাম (Title)</span> <span class="text-danger">*</span>
+                                        <span id="thTitleLabel">Item / Book Title</span> <span class="text-danger">*</span>
                                     </th>
                                     <th style="min-width: 160px; width: 180px;" class="text-start py-2.5" id="thAuthorCol">
-                                        <span id="thAuthorLabel">লেখক / মান</span>
+                                        <span id="thAuthorLabel">Author / Quality</span>
                                     </th>
                                     <th style="min-width: 160px; width: 180px;" class="text-start py-2.5" id="thCategoryCol">
-                                        <span id="thCategoryLabel">ক্যাটাগরি / সাইজ</span>
+                                        <span id="thCategoryLabel">Category / Spec</span>
                                     </th>
                                     <th style="min-width: 80px; width: 85px;" class="py-2.5" id="thQtyCol">
-                                        <span id="thQtyLabel">পরিমাণ</span>
+                                        <span id="thQtyLabel">Qty</span>
                                     </th>
                                     <th style="min-width: 95px; width: 100px; {{ $isInitRaw ? '' : 'display: none;' }}" class="py-2.5 col-reams" id="thReamsCol">
-                                        <span id="thReamsLabel">রিম (Reams)</span>
+                                        <span id="thReamsLabel">Reams</span>
                                     </th>
                                     <th style="min-width: 100px; width: 105px; {{ $isInitRaw ? 'display: none;' : '' }}" class="py-2.5 bg-light-subtle col-mrp" id="thMrpCol">
                                         <span id="thMrpLabel">MRP (৳)</span>
                                     </th>
                                     <th style="min-width: 85px; width: 90px; {{ $isInitRaw ? 'display: none;' : '' }}" class="py-2.5 bg-primary-subtle text-primary col-comm" id="thCommCol">
-                                        কমিশন %
+                                        Comm %
                                     </th>
                                     <th style="min-width: 110px; width: 115px;" class="py-2.5 bg-primary-subtle text-primary" id="thCostCol">
-                                        <span id="thCostLabel">ক্রয়মূল্য / দর (৳)</span>
+                                        <span id="thCostLabel">Cost / Rate (৳)</span>
                                     </th>
                                     <th style="min-width: 85px; width: 90px; {{ $isInitRaw ? 'display: none;' : '' }}" class="py-2.5 bg-success-subtle text-success col-shop-disc" id="thShopDiscCol">
-                                        ছাড় %
+                                        Disc %
                                     </th>
                                     <th style="min-width: 110px; width: 115px; {{ $isInitRaw ? 'display: none;' : '' }}" class="py-2.5 bg-success-subtle text-success col-sale-price" id="thSalePriceCol">
-                                        <span id="thSaleLabel">বিক্রয়মূল্য (৳)</span>
+                                        <span id="thSaleLabel">Sale (৳)</span>
                                     </th>
                                     <th style="min-width: 115px; width: 120px;" class="text-end pe-3 py-2.5">
-                                        <span id="thTotalLabel">মোট (৳)</span>
+                                        <span id="thTotalLabel">Total (৳)</span>
                                     </th>
                                     <th style="min-width: 65px; width: 70px;" class="py-2.5"></th>
                                 </tr>
@@ -454,7 +401,7 @@
                                     <td class="ps-3 position-relative" style="overflow: visible;">
                                         <div class="position-relative">
                                             <input type="text" name="items[0][title]" class="form-control item-title fw-semibold" 
-                                                   placeholder="বইয়ের নাম বা অক্ষর লিখুন..." required 
+                                                   placeholder="Search book title or enter item..." required 
                                                    oninput="handleLiveBookSearch(this, 0)" 
                                                    onfocus="handleLiveBookSearch(this, 0)" 
                                                    onkeydown="handleBookSearchKeydown(event, 0)"
@@ -469,15 +416,15 @@
                                         {{-- Linked Book Mini Badge --}}
                                         <div class="item-book-badge mt-1 small" style="display: none;">
                                             <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5" style="font-size: 0.7rem;">
-                                                <i class="fas fa-check-circle me-1"></i>ক্যাটালগ লিংকড (বর্তমান স্টক: <span class="badge-stock">0</span>)
+                                                <i class="fas fa-check-circle me-1"></i>Catalog Linked (Stock: <span class="badge-stock">0</span>)
                                             </span>
                                         </div>
                                     </td>
                                     <td>
-                                        <input type="text" name="items[0][author]" class="form-control item-author" list="authorsList" placeholder="লেখক...">
+                                        <input type="text" name="items[0][author]" class="form-control item-author" list="authorsList" placeholder="Author...">
                                     </td>
                                     <td>
-                                        <input type="text" name="items[0][category_name]" class="form-control item-category" list="categoriesList" placeholder="ক্যাটাগরি...">
+                                        <input type="text" name="items[0][category_name]" class="form-control item-category" list="categoriesList" placeholder="Category...">
                                         <input type="hidden" name="items[0][category_id]" class="item-category-id" value="">
                                     </td>
                                     <td>
@@ -489,32 +436,32 @@
                                                placeholder="1.55" oninput="onReamsChange(0)">
                                     </td>
                                     <td class="bg-light-subtle col-mrp" style="{{ $isInitRaw ? 'display: none;' : '' }}">
-                                        <input type="number" step="0.01" name="items[0][mrp_price]" class="form-control item-mrp text-end fw-semibold" 
+                                        <input type="number" step="0.01" name="items[0][mrp_price]" class="form-control item-mrp text-end fw-semibold font-monospace" 
                                                value="0" min="0" placeholder="MRP" oninput="onMrpChange(0)">
                                     </td>
                                     <td class="bg-primary-subtle bg-opacity-25 col-comm" style="{{ $isInitRaw ? 'display: none;' : '' }}">
-                                        <input type="number" step="0.01" name="items[0][purchase_commission_percent]" class="form-control item-comm text-center text-primary fw-bold" 
+                                        <input type="number" step="0.01" name="items[0][purchase_commission_percent]" class="form-control item-comm text-center text-primary fw-bold font-monospace" 
                                                value="0" min="0" max="100" placeholder="%" oninput="onCommChange(0)">
                                     </td>
                                     <td class="bg-primary-subtle bg-opacity-25">
-                                        <input type="number" step="0.01" name="items[0][cost_price]" class="form-control item-cost text-end fw-bold text-danger" 
+                                        <input type="number" step="0.01" name="items[0][cost_price]" class="form-control item-cost text-end fw-bold text-danger font-monospace" 
                                                value="0" min="0" required oninput="onCostChange(0)">
                                     </td>
                                     <td class="bg-success-subtle bg-opacity-25 col-shop-disc" style="{{ $isInitRaw ? 'display: none;' : '' }}">
-                                        <input type="number" step="0.01" name="items[0][shop_discount_percent]" class="form-control item-shop-disc text-center text-success fw-bold" 
+                                        <input type="number" step="0.01" name="items[0][shop_discount_percent]" class="form-control item-shop-disc text-center text-success fw-bold font-monospace" 
                                                value="0" min="0" max="100" placeholder="%" oninput="onShopDiscChange(0)">
                                     </td>
                                     <td class="bg-success-subtle bg-opacity-25 col-sale-price" style="{{ $isInitRaw ? 'display: none;' : '' }}">
-                                        <input type="number" step="0.01" name="items[0][sale_price]" class="form-control item-sale text-end fw-bold text-success" 
+                                        <input type="number" step="0.01" name="items[0][sale_price]" class="form-control item-sale text-end fw-bold text-success font-monospace" 
                                                value="0" min="0" oninput="onSaleChange(0)">
                                     </td>
-                                    <td class="text-end pe-3 fw-bold text-dark item-subtotal fs-6">৳0.00</td>
+                                    <td class="text-end pe-3 fw-bold text-dark item-subtotal fs-6 font-monospace">৳0.00</td>
                                     <td class="text-center">
                                         <div class="d-flex align-items-center justify-content-center gap-1">
-                                            <button type="button" class="btn btn-sm btn-outline-secondary p-1.5 rounded-circle border-0" onclick="toggleExtraDetails(0)" title="অতিরিক্ত বিবরণ">
+                                            <button type="button" class="btn btn-sm btn-outline-secondary p-1.5 rounded-circle border-0" onclick="toggleExtraDetails(0)" title="Extra Details">
                                                 <i class="fas fa-sliders text-secondary"></i>
                                             </button>
-                                            <button type="button" class="btn btn-sm btn-outline-danger p-1.5 rounded-circle border-0" onclick="removeRow(this)" title="মুছে ফেলুন">
+                                            <button type="button" class="btn btn-sm btn-outline-danger p-1.5 rounded-circle border-0" onclick="removeRow(this)" title="Remove Row">
                                                 <i class="fas fa-trash-can"></i>
                                             </button>
                                         </div>
@@ -527,7 +474,7 @@
                                         <div class="p-2.5 bg-white rounded-3 border">
                                             <div class="small fw-bold text-muted mb-2 d-flex align-items-center gap-1.5">
                                                 <i class="fas fa-info-circle text-primary"></i>
-                                                <span>অতিরিক্ত তথ্য ও বিবরণ (ঐচ্ছিক):</span>
+                                                <span>Extra Catalog Specifications (Optional):</span>
                                             </div>
                                             <div class="row g-2">
                                                 <div class="col-md-2">
@@ -535,27 +482,27 @@
                                                     <input type="text" name="items[0][isbn]" class="form-control form-control-sm item-isbn font-monospace" placeholder="978-...">
                                                 </div>
                                                 <div class="col-md-2">
-                                                    <label class="form-label text-muted small mb-0.5">সংস্করণ / সাল</label>
-                                                    <input type="text" name="items[0][edition]" class="form-control form-control-sm item-edition" placeholder="যেমন: ১ম সংস্করণ ২০২৬">
+                                                    <label class="form-label text-muted small mb-0.5">Edition / Year</label>
+                                                    <input type="text" name="items[0][edition]" class="form-control form-control-sm item-edition" placeholder="e.g. 1st Edition 2026">
                                                 </div>
                                                 <div class="col-md-2">
-                                                    <label class="form-label text-muted small mb-0.5">কভার টাইপ</label>
+                                                    <label class="form-label text-muted small mb-0.5">Cover Type</label>
                                                     <select name="items[0][cover_type]" class="form-select form-select-sm item-cover-type">
                                                         <option value="paperback">Paperback</option>
                                                         <option value="hardcover">Hardcover</option>
                                                     </select>
                                                 </div>
                                                 <div class="col-md-2">
-                                                    <label class="form-label text-muted small mb-0.5">পৃষ্ঠা সংখ্যা</label>
-                                                    <input type="number" name="items[0][page_count]" class="form-control form-control-sm item-page-count" placeholder="যেমন: ১২০">
+                                                    <label class="form-label text-muted small mb-0.5">Pages</label>
+                                                    <input type="number" name="items[0][page_count]" class="form-control form-control-sm item-page-count" placeholder="e.g. 120">
                                                 </div>
                                                 <div class="col-md-2">
-                                                    <label class="form-label text-muted small mb-0.5">সাইজ</label>
-                                                    <input type="text" name="items[0][book_size]" class="form-control form-control-sm item-book-size" placeholder="যেমন: ডিমাই / রয়েল">
+                                                    <label class="form-label text-muted small mb-0.5">Size</label>
+                                                    <input type="text" name="items[0][book_size]" class="form-control form-control-sm item-book-size" placeholder="e.g. Demy / Royal">
                                                 </div>
                                                 <div class="col-md-2">
-                                                    <label class="form-label text-muted small mb-0.5">কাগজের ধরন</label>
-                                                    <input type="text" name="items[0][paper_type]" class="form-control form-control-sm item-paper-type" placeholder="যেমন: ৮০ GSM অফসেট">
+                                                    <label class="form-label text-muted small mb-0.5">Paper Type</label>
+                                                    <input type="text" name="items[0][paper_type]" class="form-control form-control-sm item-paper-type" placeholder="e.g. 80 GSM Offset">
                                                 </div>
                                             </div>
                                         </div>
@@ -567,8 +514,8 @@
 
                     {{-- Add Row Trigger Button at Bottom of Table --}}
                     <div class="mt-3 d-flex justify-content-start align-items-center">
-                        <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-semibold shadow-xs" onclick="addItemRow()">
-                            <i class="fas fa-plus-circle me-1"></i> আরো সারি যোগ করুন
+                        <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3.5 py-1.5 fw-semibold shadow-xs" onclick="addItemRow()">
+                            <i class="fas fa-plus-circle me-1"></i> + Add Another Item
                         </button>
                     </div>
 
@@ -618,12 +565,12 @@
             <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white">
                 <div class="card-header bg-white py-3 px-4 border-bottom">
                     <h6 class="fw-bold mb-0 text-dark">
-                        <i class="fas fa-note-sticky text-warning me-2"></i>ইনভয়েস মন্তব্য ও নোট
+                        <i class="fas fa-note-sticky text-warning me-2"></i>Notes
                     </h6>
                 </div>
                 <div class="card-body p-4">
                     <textarea name="notes" rows="3" class="form-control rounded-3" 
-                              placeholder="ক্রয় সম্পর্কিত বিশেষ শর্ত, ডেলিভারি বা পরিবহন তথ্য..."></textarea>
+                              placeholder="Special terms, shipping notes, transport info..."></textarea>
                 </div>
             </div>
 
@@ -632,8 +579,8 @@
                 <div class="d-flex align-items-center gap-3">
                     <div class="fs-3 text-primary"><i class="fas fa-boxes-stacked"></i></div>
                     <div>
-                        <h6 class="fw-bold text-primary mb-1">স্বয়ংক্রিয় স্টক ও লেজার আপডেট</h6>
-                        <div class="small text-dark">ইনভয়েস সেভ হওয়ার সাথে সাথে ক্যাটালগে স্টক যুক্ত হবে এবং সরবরাহকারীর লেজারে বকেয়া ও পরিশোধ স্বয়ংক্রিয়ভাবে রেকর্ড হবে।</div>
+                        <h6 class="fw-bold text-primary mb-1">Automatic Inventory & Ledger Sync</h6>
+                        <div class="small text-dark">Stock will be updated instantly and dues / repayments will be tracked seamlessly in vendor ledger.</div>
                     </div>
                 </div>
             </div>
@@ -643,42 +590,69 @@
         <div class="col-12 col-lg-5">
             <div class="card border-0 shadow-sm rounded-4 sticky-top bg-white" style="top: 80px;">
                 <div class="card-header bg-dark text-white py-3 px-4 rounded-top-4 d-flex align-items-center justify-content-between">
-                    <h5 class="fw-bold mb-0"><i class="fas fa-calculator text-warning me-2"></i>হিসাব ও পেমেন্ট</h5>
-                    <span class="badge bg-light text-dark px-2.5 py-1 rounded-pill small">Invoice Summary</span>
+                    <h5 class="fw-bold mb-0"><i class="fas fa-calculator text-warning me-2"></i>Invoice Summary & Payment</h5>
+                    <span class="badge bg-light text-dark px-2.5 py-1 rounded-pill small font-monospace">Summary</span>
                 </div>
 
                 <div class="card-body p-4">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <span class="text-muted fw-semibold">আইটেম সাবটোটাল:</span>
-                        <span class="fw-bold fs-5 text-dark" id="displayTotal">৳0.00</span>
+                    {{-- Subtotal --}}
+                    <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                        <span class="text-muted fw-semibold">Subtotal:</span>
+                        <span class="fw-bold fs-6 text-dark font-monospace" id="displayTotal">৳0.00</span>
                     </div>
 
-                    <div class="mb-3 p-3 bg-light rounded-3 border">
-                        <label class="form-label small fw-bold text-muted mb-1">
-                            <i class="fas fa-tag text-danger me-1"></i> ইনভয়েস বিশেষ ছাড় (৳):
-                        </label>
-                        <div class="input-group">
+                    {{-- Special Discount --}}
+                    <div class="my-2.5 p-2.5 bg-light rounded-3 border">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <label class="form-label small fw-bold text-muted mb-0">
+                                <i class="fas fa-tag text-danger me-1"></i> Special Discount (৳):
+                            </label>
+                        </div>
+                        <div class="input-group input-group-sm">
                             <span class="input-group-text bg-white fw-bold">৳</span>
-                            <input type="number" step="0.01" name="discount_amount" id="discountInput" class="form-control form-control-lg text-end fw-bold text-danger" value="0" min="0" oninput="calcTotals()">
+                            <input type="number" step="0.01" name="discount_amount" id="discountInput" class="form-control text-end fw-bold text-danger font-monospace" value="0" min="0" oninput="calcTotals()">
                         </div>
                     </div>
 
+                    {{-- Current Bill --}}
+                    <div class="d-flex justify-content-between align-items-center py-2 border-bottom bg-light bg-opacity-50 px-2 rounded-2 mb-2">
+                        <span class="fw-bold text-dark">Current Bill:</span>
+                        <span class="fw-bold fs-6 text-dark font-monospace" id="displayCurrentBill">৳0.00</span>
+                    </div>
+
+                    {{-- Previous Dues & Memos Breakdown --}}
+                    <div id="previousDueRowWrap" class="mb-3 p-3 bg-warning-subtle bg-opacity-25 rounded-3 border border-warning-subtle" style="display: none;">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="fw-bold text-danger small">
+                                <i class="fas fa-clock-rotate-left me-1"></i> Previous Due:
+                            </span>
+                            <span class="fw-bold fs-6 text-danger font-monospace" id="displayPreviousDue">৳0.00</span>
+                        </div>
+                        <div id="previousInvoicesListWrap" class="mt-2 pt-2 border-top border-warning-subtle" style="display: none;">
+                            <div class="text-muted fw-semibold mb-1.5" style="font-size: 11px;">Pending Memos & Dates:</div>
+                            <div class="d-flex flex-wrap gap-1.5" id="previousInvoicesList"></div>
+                        </div>
+                    </div>
+
+                    {{-- Total Payable --}}
                     <div class="d-flex justify-content-between align-items-center p-3 bg-primary-subtle rounded-3 mb-3 border border-primary-subtle">
                         <div>
-                            <span class="fw-bold text-dark d-block">সর্বমোট প্রদেয় (Grand Total):</span>
+                            <span class="fw-bold text-dark d-block">Total Payable:</span>
+                            <small class="text-muted" style="font-size: 10.5px;">Current Bill + Previous Due</small>
                         </div>
-                        <span class="fw-bolder fs-3 text-primary" id="displayGrandTotal">৳0.00</span>
+                        <span class="fw-bolder fs-3 text-primary font-monospace" id="displayGrandTotal">৳0.00</span>
                     </div>
 
+                    {{-- Payment Terms --}}
                     <div class="mb-3">
                         <label class="form-label fw-bold text-dark mb-1">
-                            <i class="fas fa-hand-holding-dollar text-primary me-1"></i> পরিশোধের শর্ত <span class="text-danger">*</span>
+                            <i class="fas fa-hand-holding-dollar text-primary me-1"></i> Payment Terms <span class="text-danger">*</span>
                         </label>
-                        <select name="payment_type" id="paymentType" class="form-select form-select-lg fs-6 fw-semibold" required onchange="onPaymentTypeChange()">
-                            <option value="cash">💵 ১. নগদ সম্পূর্ণ পরিশোধ (Full Paid)</option>
-                            <option value="credit">⏳ ২. সম্পূর্ণ বাকি (Full Due)</option>
-                            <option value="partial">⚖️ ৩. আংশিক পরিশোধ ও বাকি (Partial Payment)</option>
-                            <option value="installment">📅 ৪. কিস্তিতে পরিশোধ (Installment)</option>
+                        <select name="payment_type" id="paymentType" class="form-select form-select-md fw-semibold" required onchange="onPaymentTypeChange()">
+                            <option value="cash">💵 Cash (Full Paid)</option>
+                            <option value="credit">⏳ Credit (Full Due)</option>
+                            <option value="partial">⚖️ Partial Payment</option>
+                            <option value="installment">📅 Installments</option>
                         </select>
                     </div>
 
@@ -686,29 +660,44 @@
                     <div id="paidSectionWrapper">
                         <div class="mb-3" id="paidAmountGroup">
                             <label class="form-label fw-bold text-dark mb-1" id="paidAmountLabel">
-                                <i class="fas fa-money-bill-wave text-success me-1"></i> তাৎক্ষণিক পরিশোধ (৳):
+                                <i class="fas fa-money-bill-wave text-success me-1"></i> Paid (৳):
                             </label>
                             <div class="input-group">
                                 <span class="input-group-text bg-light fw-bold text-success">৳</span>
-                                <input type="number" step="0.01" name="paid_amount" id="paidAmountInput" class="form-control form-control-lg text-end fw-bold text-success" value="0" min="0" oninput="calcTotals()">
+                                <input type="number" step="0.01" name="paid_amount" id="paidAmountInput" class="form-control form-control-lg text-end fw-bold text-success font-monospace" value="0" min="0" oninput="calcTotals()">
                             </div>
                         </div>
 
-                        <div class="row g-2 mb-3" id="paymentDetailsGroup">
+                        <div class="row g-2 mb-2" id="paymentDetailsGroup">
                             <div class="col-sm-6" id="paymentMethodGroup">
-                                <label class="form-label small fw-semibold text-muted mb-1">পরিশোধের মাধ্যম:</label>
-                                <select name="payment_method" class="form-select">
-                                    <option value="cash">নগদ (Cash)</option>
-                                    <option value="bank">ব্যাংক ট্রান্সফার (Bank)</option>
-                                    <option value="bkash">বিকাশ (bKash)</option>
-                                    <option value="nagad">নগদ (Nagad)</option>
-                                    <option value="rocket">রকেট (Rocket)</option>
-                                    <option value="cheque">চেক (Cheque)</option>
+                                <label class="form-label small fw-semibold text-muted mb-1">Payment Method:</label>
+                                <select name="payment_method" id="paymentMethodSelect" class="form-select" onchange="onPaymentMethodChange(this.value)">
+                                    <option value="cash">Cash</option>
+                                    <option value="bank">Bank Transfer</option>
+                                    <option value="cheque">Cheque</option>
+                                    <option value="bkash">bKash</option>
+                                    <option value="nagad">Nagad</option>
+                                    <option value="rocket">Rocket</option>
                                 </select>
                             </div>
                             <div class="col-sm-6" id="trxRefGroup">
-                                <label class="form-label small fw-semibold text-muted mb-1">চেক নং / Trx ID:</label>
-                                <input type="text" name="transaction_ref" class="form-control" placeholder="Trx ID / Ref...">
+                                <label class="form-label small fw-semibold text-muted mb-1" id="trxRefLabel">Check / Trx Ref:</label>
+                                <input type="text" name="transaction_ref" id="trxRefInput" class="form-control" placeholder="Trx ID / Ref...">
+                            </div>
+                        </div>
+
+                        {{-- Dynamic Bank Details (shown when Bank or Cheque is selected) --}}
+                        <div id="bankDetailsRow" class="card border border-info-subtle bg-info-subtle bg-opacity-25 rounded-3 p-2.5 mb-3" style="display: none;">
+                            <div class="small fw-bold text-primary mb-1.5"><i class="fas fa-building-columns me-1"></i> Bank Account Information:</div>
+                            <div class="row g-2">
+                                <div class="col-sm-6">
+                                    <label class="form-label small text-muted mb-0.5">Bank Name:</label>
+                                    <input type="text" name="bank_name" id="bankNameInput" class="form-control form-control-sm" placeholder="e.g. Dutch-Bangla / Islami Bank">
+                                </div>
+                                <div class="col-sm-6">
+                                    <label class="form-label small text-muted mb-0.5">Branch Name:</label>
+                                    <input type="text" name="branch_name" id="branchNameInput" class="form-control form-control-sm" placeholder="e.g. Banglabazar / Motijheel">
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -717,39 +706,39 @@
                     <div id="installmentSectionWrapper" class="card border border-warning-subtle bg-warning-subtle bg-opacity-25 rounded-3 p-3 mb-3" style="display: none;">
                         <div class="d-flex align-items-center justify-content-between mb-2">
                             <span class="small fw-bold text-dark">
-                                <i class="fas fa-calendar-days text-warning me-1"></i> কিস্তি পরিকল্পনা:
+                                <i class="fas fa-calendar-days text-warning me-1"></i> Installment Plan:
                             </span>
-                            <span id="perInstallmentAmount" class="badge bg-warning text-dark fw-bold px-2.5 py-1">৳0.00 / কিস্তি</span>
+                            <span id="perInstallmentAmount" class="badge bg-warning text-dark fw-bold px-2.5 py-1 font-monospace">৳0.00 / inst</span>
                         </div>
                         <div class="row g-2 mb-2">
                             <div class="col-sm-6">
-                                <label class="form-label small text-muted mb-1">কিস্তির সংখ্যা:</label>
+                                <label class="form-label small text-muted mb-1">Installments Count:</label>
                                 <div class="input-group input-group-sm">
                                     <input type="number" name="installment_count" id="installmentCountInput" class="form-control text-center fw-bold" value="2" min="1" max="36" oninput="calcInstallmentBreakdown()">
-                                    <span class="input-group-text bg-white">টি কিস্তি</span>
+                                    <span class="input-group-text bg-white">inst</span>
                                 </div>
                             </div>
                             <div class="col-sm-6">
-                                <label class="form-label small text-muted mb-1">পরবর্তী কিস্তির তারিখ:</label>
+                                <label class="form-label small text-muted mb-1">Due Date:</label>
                                 <input type="date" name="due_date" id="dueDateInput" class="form-control form-control-sm" value="{{ date('Y-m-d', strtotime('+30 days')) }}">
                             </div>
                         </div>
                         <div>
-                            <input type="text" name="installment_notes" id="installmentNotesInput" class="form-control form-control-sm" placeholder="কিস্তির শর্তাবলি (যেমন: প্রতি মাসের ১০ তারিখে)...">
+                            <input type="text" name="installment_notes" id="installmentNotesInput" class="form-control form-control-sm" placeholder="Installment remarks / schedule...">
                         </div>
                     </div>
 
                     <div class="alert alert-success p-3 rounded-3 mb-4 d-flex justify-content-between align-items-center border-0 bg-success-subtle text-success" id="dueAlert">
                         <div class="d-flex align-items-center gap-2">
                             <i class="fas fa-circle-check fs-5" id="dueIcon"></i>
-                            <span class="fw-bold" id="dueLabel">অবশিষ্ট বকেয়া (Due):</span>
+                            <span class="fw-bold" id="dueLabel">Net Due:</span>
                         </div>
-                        <span class="fw-bolder fs-4" id="displayDue">৳0.00</span>
+                        <span class="fw-bolder fs-4 font-monospace" id="displayDue">৳0.00</span>
                     </div>
 
                     <button type="submit" id="btnSubmitPurchase" class="btn btn-success btn-lg w-100 py-3 rounded-pill fw-bold shadow-lg d-flex align-items-center justify-content-center gap-2">
                         <i class="fas fa-check-circle fs-5"></i>
-                        <span>ক্রয় ইনভয়েস সংরক্ষণ করুন</span>
+                        <span>Save Purchase Order</span>
                     </button>
                 </div>
             </div>
@@ -760,10 +749,18 @@
 <script>
     let rowCounter = 1;
 
-    // Preloaded books list for instant sub-millisecond local autocomplete
+    // Preloaded books list for instant local autocomplete
     const preloadedBooks = @json($books);
     let searchDebounceTimer = null;
     let activeHighlightIndex = -1;
+
+    // Preloaded party dues & pending invoices maps
+    const preloadedPublisherDues = @json($publisherDueMap ?? []);
+    const preloadedPublisherInvoices = @json($publisherInvoicesMap ?? []);
+    const preloadedVendorDues = @json($vendorDueMap ?? []);
+    const preloadedVendorInvoices = @json($vendorInvoicesMap ?? []);
+    let currentPartyPreviousDue = 0;
+    let currentPartyPendingInvoices = [];
 
     function handleFormSubmit(e) {
         const btn = document.getElementById('btnSubmitPurchase');
@@ -774,21 +771,60 @@
         return true;
     }
 
-    function setPurchaseClass(cls) {
-        document.getElementById('purchaseCategoryInput').value = cls;
+    function updatePartyPreviousDue(due, pendingInvoices) {
+        currentPartyPreviousDue = parseFloat(due) || 0;
+        currentPartyPendingInvoices = Array.isArray(pendingInvoices) ? pendingInvoices : [];
 
-        // Update nav pill styles
-        document.querySelectorAll('.type-tab-btn').forEach(btn => {
-            btn.classList.remove('active', 'btn-primary', 'btn-warning', 'btn-info', 'text-dark');
-            btn.classList.add('text-secondary');
-            if (btn.getAttribute('data-type') === cls) {
-                btn.classList.remove('text-secondary');
-                btn.classList.add('active');
-                if (cls === 'books') btn.classList.add('btn-primary');
-                else if (cls === 'raw_materials') btn.classList.add('btn-warning', 'text-dark');
-                else btn.classList.add('btn-info', 'text-dark');
+        const wrap = document.getElementById('previousDueRowWrap');
+        const dispPrev = document.getElementById('displayPreviousDue');
+        const listWrap = document.getElementById('previousInvoicesListWrap');
+        const list = document.getElementById('previousInvoicesList');
+
+        if (currentPartyPreviousDue > 0) {
+            if (wrap) wrap.style.display = 'block';
+            if (dispPrev) dispPrev.textContent = '৳' + currentPartyPreviousDue.toFixed(2);
+
+            if (currentPartyPendingInvoices.length > 0 && listWrap && list) {
+                listWrap.style.display = 'block';
+                list.innerHTML = currentPartyPendingInvoices.map(inv => `
+                    <span class="badge bg-white text-dark border px-1.5 py-1 font-monospace" style="font-size: 9px;">
+                        #${escapeHtml(inv.purchase_no)} (${escapeHtml(inv.purchase_date)}): <strong class="text-danger">৳${parseFloat(inv.due_amount).toFixed(2)}</strong>
+                    </span>
+                `).join('');
+            } else if (listWrap) {
+                listWrap.style.display = 'none';
+                if (list) list.innerHTML = '';
             }
-        });
+        } else {
+            if (wrap) wrap.style.display = 'none';
+            if (dispPrev) dispPrev.textContent = '৳0.00';
+            if (listWrap) listWrap.style.display = 'none';
+            if (list) list.innerHTML = '';
+        }
+
+        calcTotals();
+    }
+
+    function onPaymentMethodChange(val) {
+        const bankRow = document.getElementById('bankDetailsRow');
+        const trxRefLabel = document.getElementById('trxRefLabel');
+        const trxRefInput = document.getElementById('trxRefInput');
+        if (val === 'bank' || val === 'cheque') {
+            if (bankRow) bankRow.style.display = 'block';
+            if (trxRefLabel) trxRefLabel.textContent = val === 'cheque' ? 'Cheque No / Ref:' : 'Trx ID / Ref:';
+            if (trxRefInput) trxRefInput.placeholder = val === 'cheque' ? 'Cheque No...' : 'Trx ID / Ref...';
+        } else {
+            if (bankRow) bankRow.style.display = 'none';
+            if (trxRefLabel) trxRefLabel.textContent = (val === 'bkash' || val === 'nagad' || val === 'rocket') ? 'Sender / Trx ID:' : 'Trx Ref / Note:';
+            if (trxRefInput) trxRefInput.placeholder = (val === 'bkash' || val === 'nagad' || val === 'rocket') ? 'e.g. 017XXXXXXXX / TrxID' : 'Ref / Memo note...';
+        }
+    }
+
+    function setPurchaseClass(cls) {
+        const catSelect = document.getElementById('purchaseCategorySelect');
+        const catInput = document.getElementById('purchaseCategoryInput');
+        if (catSelect) catSelect.value = cls;
+        if (catInput) catInput.value = cls;
 
         const iconBadge = document.getElementById('supplierIconBadge');
         const itemIconBadge = document.getElementById('itemSectionIconBadge');
@@ -832,8 +868,8 @@
 
         if (cls === 'raw_materials') {
             if (invoicePrefixBadge) invoicePrefixBadge.textContent = 'RM';
-            if (vendorFieldLabel) vendorFieldLabel.textContent = 'ভেন্ডর / প্রেস / সরবরাহকারীর নাম';
-            if (vendorInput) vendorInput.placeholder = 'e.g. কর্ণফুলী পেপার হাউস / জনতা প্রেস / বাঁধাই ঘর...';
+            if (vendorFieldLabel) vendorFieldLabel.textContent = 'Vendor';
+            if (vendorInput) vendorInput.placeholder = 'e.g. Karnafuli Paper Mills / Al-Madina Press...';
             if (iconBadge) {
                 iconBadge.className = 'badge bg-warning-subtle text-warning-emphasis p-2 rounded-3';
                 iconBadge.innerHTML = '<i class="fas fa-boxes-stacked fs-5"></i>';
@@ -842,34 +878,38 @@
                 itemIconBadge.className = 'badge bg-warning-subtle text-warning-emphasis p-2 rounded-3';
                 itemIconBadge.innerHTML = '<i class="fas fa-boxes-stacked fs-5"></i>';
             }
-            if (itemCardHeading) itemCardHeading.textContent = 'কাঁচামাল ও প্রেস বিল আইটেম';
+            if (itemCardHeading) itemCardHeading.textContent = 'Bill Items';
             if (pubModeToggle) pubModeToggle.style.display = 'none';
             if (customVendorWrap) customVendorWrap.style.display = 'block';
             if (bookPublisherWrap) bookPublisherWrap.style.display = 'none';
             if (rawPresetsWrap) rawPresetsWrap.style.display = 'inline-block';
             if (batchToolsWrap) batchToolsWrap.style.display = 'none';
-            if (btnAddMoreText) btnAddMoreText.textContent = 'কাঁচামাল যোগ করুন';
+            if (btnAddMoreText) btnAddMoreText.textContent = '+ Add Item';
 
-            if (thTitle) thTitle.textContent = 'আইটেম / বিবরণ';
-            if (thAuthor) thAuthor.textContent = 'মান / কোয়ালিটি';
-            if (thCategory) thCategory.textContent = 'সাইজ / স্পেসিফিকেশন';
-            if (thQty) thQty.textContent = 'পরিমাণ';
-            if (thCost) thCost.textContent = 'দর (৳)';
-            if (thTotal) thTotal.textContent = 'মোট (৳)';
+            if (thTitle) thTitle.textContent = 'Item / Title';
+            if (thAuthor) thAuthor.textContent = 'Quality / Spec';
+            if (thCategory) thCategory.textContent = 'Size / Specs';
+            if (thQty) thQty.textContent = 'Qty';
+            if (thCost) thCost.textContent = 'Rate (৳)';
+            if (thTotal) thTotal.textContent = 'Total (৳)';
 
             document.querySelectorAll('.item-title').forEach(el => {
-                if (!el.value) el.placeholder = 'আইটেম / বিবরণ লিখুন...';
+                if (!el.value) el.placeholder = 'Item title / description...';
             });
             document.querySelectorAll('.item-author').forEach(el => {
-                if (!el.value) { el.placeholder = 'মান...'; el.setAttribute('list', 'rawQualityList'); }
+                if (!el.value) { el.placeholder = 'Quality...'; el.setAttribute('list', 'rawQualityList'); }
             });
             document.querySelectorAll('.item-category').forEach(el => {
-                if (!el.value) { el.placeholder = 'সাইজ...'; el.setAttribute('list', 'rawSizeList'); }
+                if (!el.value) { el.placeholder = 'Size...'; el.setAttribute('list', 'rawSizeList'); }
             });
+
+            // Recheck vendor due
+            const vName = document.getElementById('customVendorInput')?.value || '';
+            checkVendorPreviousDue(vName);
         } else if (cls === 'other') {
             if (invoicePrefixBadge) invoicePrefixBadge.textContent = 'OTH';
-            if (vendorFieldLabel) vendorFieldLabel.textContent = 'দোকান / সরবরাহকারী / ভেন্ডরের নাম';
-            if (vendorInput) vendorInput.placeholder = 'e.g. সিটি স্টেশনারি / মতি এন্টারপ্রাইজ...';
+            if (vendorFieldLabel) vendorFieldLabel.textContent = 'Vendor';
+            if (vendorInput) vendorInput.placeholder = 'e.g. City Stationery / Vendor Name...';
             if (iconBadge) {
                 iconBadge.className = 'badge bg-info-subtle text-info-emphasis p-2 rounded-3';
                 iconBadge.innerHTML = '<i class="fas fa-cart-shopping fs-5"></i>';
@@ -878,30 +918,34 @@
                 itemIconBadge.className = 'badge bg-info-subtle text-info-emphasis p-2 rounded-3';
                 itemIconBadge.innerHTML = '<i class="fas fa-cart-shopping fs-5"></i>';
             }
-            if (itemCardHeading) itemCardHeading.textContent = 'অন্যান্য খরচ ও সরবরাহ এন্ট্রি';
+            if (itemCardHeading) itemCardHeading.textContent = 'Bill Items';
             if (pubModeToggle) pubModeToggle.style.display = 'none';
             if (customVendorWrap) customVendorWrap.style.display = 'block';
             if (bookPublisherWrap) bookPublisherWrap.style.display = 'none';
             if (rawPresetsWrap) rawPresetsWrap.style.display = 'none';
             if (batchToolsWrap) batchToolsWrap.style.display = 'none';
-            if (btnAddMoreText) btnAddMoreText.textContent = 'খরচের এন্ট্রি যোগ করুন';
+            if (btnAddMoreText) btnAddMoreText.textContent = '+ Add Expense';
 
-            if (thTitle) thTitle.textContent = 'খরচের বিবরণ';
-            if (thAuthor) thAuthor.textContent = 'একক / ধরন';
-            if (thCategory) thCategory.textContent = 'মন্তব্য / স্পেসিফিকেশন';
-            if (thQty) thQty.textContent = 'পরিমাণ';
-            if (thCost) thCost.textContent = 'দর (৳)';
-            if (thTotal) thTotal.textContent = 'মোট (৳)';
+            if (thTitle) thTitle.textContent = 'Expense Item';
+            if (thAuthor) thAuthor.textContent = 'Unit / Type';
+            if (thCategory) thCategory.textContent = 'Notes / Specs';
+            if (thQty) thQty.textContent = 'Qty';
+            if (thCost) thCost.textContent = 'Rate (৳)';
+            if (thTotal) thTotal.textContent = 'Total (৳)';
 
             document.querySelectorAll('.item-title').forEach(el => {
-                if (!el.value) el.placeholder = 'খরচের বিবরণ...';
+                if (!el.value) el.placeholder = 'Expense item description...';
             });
             document.querySelectorAll('.item-author').forEach(el => {
-                if (!el.value) { el.placeholder = 'একক...'; el.removeAttribute('list'); }
+                if (!el.value) { el.placeholder = 'Unit...'; el.removeAttribute('list'); }
             });
             document.querySelectorAll('.item-category').forEach(el => {
-                if (!el.value) { el.placeholder = 'মন্তব্য...'; el.removeAttribute('list'); }
+                if (!el.value) { el.placeholder = 'Notes...'; el.removeAttribute('list'); }
             });
+
+            // Recheck vendor due
+            const vName = document.getElementById('customVendorInput')?.value || '';
+            checkVendorPreviousDue(vName);
         } else { // books
             if (invoicePrefixBadge) invoicePrefixBadge.textContent = 'PUR';
             if (iconBadge) {
@@ -912,98 +956,167 @@
                 itemIconBadge.className = 'badge bg-success-subtle text-success p-2 rounded-3';
                 itemIconBadge.innerHTML = '<i class="fas fa-book-bookmark fs-5"></i>';
             }
-            if (itemCardHeading) itemCardHeading.textContent = 'ক্রয়কৃত বইয়ের তালিকা ও স্টক';
+            if (itemCardHeading) itemCardHeading.textContent = 'Bill Items';
             if (pubModeToggle) pubModeToggle.style.display = 'inline-flex';
             if (customVendorWrap) customVendorWrap.style.display = 'none';
             if (bookPublisherWrap) bookPublisherWrap.style.display = 'block';
             if (rawPresetsWrap) rawPresetsWrap.style.display = 'none';
             if (batchToolsWrap) batchToolsWrap.style.display = 'flex';
-            if (btnAddMoreText) btnAddMoreText.textContent = 'নতুন বই যোগ করুন';
+            if (btnAddMoreText) btnAddMoreText.textContent = '+ Add Book';
 
-            if (thTitle) thTitle.textContent = 'বইয়ের নাম (Title)';
-            if (thAuthor) thAuthor.textContent = 'লেখক';
-            if (thCategory) thCategory.textContent = 'ক্যাটাগরি';
-            if (thQty) thQty.textContent = 'পরিমাণ';
-            if (thCost) thCost.textContent = 'ক্রয়মূল্য (৳)';
-            if (thTotal) thTotal.textContent = 'মোট (৳)';
+            if (thTitle) thTitle.textContent = 'Book Title';
+            if (thAuthor) thAuthor.textContent = 'Author';
+            if (thCategory) thCategory.textContent = 'Category';
+            if (thQty) thQty.textContent = 'Qty';
+            if (thCost) thCost.textContent = 'Cost (৳)';
+            if (thTotal) thTotal.textContent = 'Total (৳)';
 
             document.querySelectorAll('.item-title').forEach(el => {
-                if (!el.value) el.placeholder = 'বইয়ের নাম বা অক্ষর লিখুন...';
+                if (!el.value) el.placeholder = 'Search book title or author...';
             });
             document.querySelectorAll('.item-author').forEach(el => {
-                if (!el.value) { el.placeholder = 'লেখক...'; el.setAttribute('list', 'authorsList'); }
+                if (!el.value) { el.placeholder = 'Author...'; el.setAttribute('list', 'authorsList'); }
             });
             document.querySelectorAll('.item-category').forEach(el => {
-                if (!el.value) { el.placeholder = 'ক্যাটাগরি...'; el.setAttribute('list', 'categoriesList'); }
+                if (!el.value) { el.placeholder = 'Category...'; el.setAttribute('list', 'categoriesList'); }
             });
+
+            // Recheck publisher
+            const pVal = document.getElementById('customPublisherInput')?.value || '';
+            checkPublisherInput(pVal);
         }
     }
 
-    function onPublisherSelected(select) {
+    function onCreatePublisherSelected(select) {
         const selectedOpt = select.options[select.selectedIndex];
-        const card = document.getElementById('publisherSnapshotCard');
+        const pubIdInput = document.getElementById('selectedPublisherId');
+        const pubNameInput = document.getElementById('customPublisherInput');
+        const pubPhoneInput = document.getElementById('createPublisherPhone');
+        const pubAddressInput = document.getElementById('createPublisherAddress');
+
         if (!selectedOpt || !selectedOpt.value) {
-            card.style.display = 'none';
+            if (pubIdInput) pubIdInput.value = '';
+            if (pubNameInput) pubNameInput.value = '';
+            if (pubPhoneInput) pubPhoneInput.value = '';
+            if (pubAddressInput) pubAddressInput.value = '';
+            updatePartyPreviousDue(0, []);
             return;
         }
 
-        const name = selectedOpt.getAttribute('data-name') || '';
+        const pubId = parseInt(selectedOpt.value);
+        const name = selectedOpt.getAttribute('data-name') || selectedOpt.text;
         const phone = selectedOpt.getAttribute('data-phone') || '';
-        const email = selectedOpt.getAttribute('data-email') || '';
-        const address = selectedOpt.getAttribute('data-address') || 'ঠিকানা দেওয়া নেই';
-        const booksCount = selectedOpt.getAttribute('data-books-count') || 0;
-        const due = parseFloat(selectedOpt.getAttribute('data-due') || 0);
+        const address = selectedOpt.getAttribute('data-address') || '';
 
-        document.getElementById('snapPubInitial').textContent = name ? name.substring(0, 1) : 'P';
-        document.getElementById('snapPubName').textContent = name;
-        document.getElementById('snapPubAddress').textContent = address;
-        document.getElementById('snapPubPhone').textContent = phone || '-';
-        document.getElementById('snapPubEmail').textContent = email || '-';
-        document.getElementById('snapPubBooks').textContent = booksCount + ' books in catalog';
-        document.getElementById('snapPubDue').textContent = 'পূর্বের বকেয়া: ৳' + due.toFixed(2);
+        if (pubIdInput) pubIdInput.value = pubId;
+        if (pubNameInput) pubNameInput.value = name;
+        if (pubPhoneInput) pubPhoneInput.value = phone;
+        if (pubAddressInput) pubAddressInput.value = address;
 
-        card.style.display = 'block';
+        const due = preloadedPublisherDues[pubId] !== undefined ? preloadedPublisherDues[pubId] : (parseFloat(selectedOpt.getAttribute('data-due')) || 0);
+        const invoices = preloadedPublisherInvoices[pubId] || [];
+
+        updatePartyPreviousDue(due, invoices);
+    }
+
+    let pubDueTimer = null;
+    function checkPublisherInput(val) {
+        const trimmed = (val || '').trim();
+        const pubIdInput = document.getElementById('selectedPublisherId');
+        const select = document.getElementById('createExistingPublisherSelect');
+
+        if (!trimmed) {
+            if (pubIdInput) pubIdInput.value = '';
+            if (select) select.value = '';
+            updatePartyPreviousDue(0, []);
+            return;
+        }
+
+        // Check if matching option exists in preloaded dropdown
+        let foundId = null;
+        if (select) {
+            for (let i = 0; i < select.options.length; i++) {
+                const opt = select.options[i];
+                const optName = (opt.getAttribute('data-name') || opt.text || '').trim().toLowerCase();
+                if (opt.value && (optName === trimmed.toLowerCase() || opt.text.toLowerCase().includes(trimmed.toLowerCase()))) {
+                    foundId = parseInt(opt.value);
+                    select.value = opt.value;
+                    const phone = opt.getAttribute('data-phone') || '';
+                    const addr = opt.getAttribute('data-address') || '';
+                    const pInput = document.getElementById('createPublisherPhone');
+                    const aInput = document.getElementById('createPublisherAddress');
+                    if (pInput && !pInput.value) pInput.value = phone;
+                    if (aInput && !aInput.value) aInput.value = addr;
+                    break;
+                }
+            }
+        }
+
+        if (foundId) {
+            if (pubIdInput) pubIdInput.value = foundId;
+            const due = preloadedPublisherDues[foundId] !== undefined ? preloadedPublisherDues[foundId] : 0;
+            const invoices = preloadedPublisherInvoices[foundId] || [];
+            updatePartyPreviousDue(due, invoices);
+        } else {
+            if (pubIdInput) pubIdInput.value = '';
+            if (select) select.value = '';
+            
+            // Check if vendor due exists or fallback
+            clearTimeout(pubDueTimer);
+            pubDueTimer = setTimeout(() => {
+                fetch(`{{ route('admin.purchases.party-due') }}?vendor_name=${encodeURIComponent(trimmed)}`)
+                    .then(r => r.json())
+                    .then(data => {
+                        updatePartyPreviousDue(data.previous_due || 0, data.pending_invoices || []);
+                    })
+                    .catch(() => {
+                        updatePartyPreviousDue(0, []);
+                    });
+            }, 250);
+        }
     }
 
     function onCreateVendorSelected(select) {
         const selectedOpt = select.options[select.selectedIndex];
-        if (!selectedOpt || !selectedOpt.value) return;
+        if (!selectedOpt || !selectedOpt.value) {
+            updatePartyPreviousDue(0, []);
+            return;
+        }
 
+        const vName = selectedOpt.value.trim();
         const vendorInput = document.getElementById('customVendorInput');
         const phoneInput = document.getElementById('createVendorPhone');
         const addressInput = document.getElementById('createVendorAddress');
 
-        if (vendorInput) vendorInput.value = selectedOpt.value;
+        if (vendorInput) vendorInput.value = vName;
         if (phoneInput) phoneInput.value = selectedOpt.getAttribute('data-phone') || '';
         if (addressInput) addressInput.value = selectedOpt.getAttribute('data-address') || '';
+
+        checkVendorPreviousDue(vName);
     }
 
-    function setPublisherMode(isNew) {
-        const existWrap = document.getElementById('existingPublisherWrapper');
-        const newWrap = document.getElementById('newPublisherWrapper');
-        const btnExisting = document.getElementById('btnExistingPub');
-        const btnNew = document.getElementById('btnNewPub');
-        const select = document.getElementById('publisherSelect');
-        const newNameInput = document.getElementById('newPublisherName');
-
-        if (isNew) {
-            existWrap.style.display = 'none';
-            newWrap.style.display = 'block';
-            select.value = '';
-            btnExisting.classList.remove('active');
-            btnExisting.classList.add('text-muted');
-            btnNew.classList.add('active');
-            btnNew.classList.remove('text-muted');
-            setTimeout(() => newNameInput.focus(), 100);
-        } else {
-            existWrap.style.display = 'block';
-            newWrap.style.display = 'none';
-            newNameInput.value = '';
-            btnNew.classList.remove('active');
-            btnNew.classList.add('text-muted');
-            btnExisting.classList.add('active');
-            btnExisting.classList.remove('text-muted');
+    let vendorDueTimer = null;
+    function checkVendorPreviousDue(vName) {
+        vName = (vName || '').trim();
+        if (!vName) {
+            updatePartyPreviousDue(0, []);
+            return;
         }
+
+        if (preloadedVendorDues[vName] !== undefined) {
+            updatePartyPreviousDue(preloadedVendorDues[vName], preloadedVendorInvoices[vName] || []);
+            return;
+        }
+
+        clearTimeout(vendorDueTimer);
+        vendorDueTimer = setTimeout(() => {
+            fetch(`{{ route('admin.purchases.party-due') }}?vendor_name=${encodeURIComponent(vName)}`)
+                .then(r => r.json())
+                .then(data => {
+                    updatePartyPreviousDue(data.previous_due || 0, data.pending_invoices || []);
+                })
+                .catch(() => {});
+        }, 200);
     }
 
     function toggleExtraDetails(index) {
@@ -1435,37 +1548,45 @@
         });
 
         const discount = parseFloat(document.getElementById('discountInput').value) || 0;
-        const grandTotal = Math.max(0, total - discount);
+        const currentBill = Math.max(0, total - discount);
+        const totalPayable = currentBill + (currentPartyPreviousDue || 0);
 
-        document.getElementById('displayTotal').textContent = '৳' + total.toFixed(2);
-        document.getElementById('displayGrandTotal').textContent = '৳' + grandTotal.toFixed(2);
+        const dispTotal = document.getElementById('displayTotal');
+        const dispCurrentBill = document.getElementById('displayCurrentBill');
+        const dispGrandTotal = document.getElementById('displayGrandTotal');
+
+        if (dispTotal) dispTotal.textContent = '৳' + total.toFixed(2);
+        if (dispCurrentBill) dispCurrentBill.textContent = '৳' + currentBill.toFixed(2);
+        if (dispGrandTotal) dispGrandTotal.textContent = '৳' + totalPayable.toFixed(2);
 
         const type = document.getElementById('paymentType').value;
         const paidInput = document.getElementById('paidAmountInput');
 
         if (type === 'cash') {
-            paidInput.value = grandTotal.toFixed(2);
+            paidInput.value = currentBill.toFixed(2);
         } else if (type === 'credit') {
             paidInput.value = 0;
         }
 
         const paid = parseFloat(paidInput.value) || 0;
-        const due = Math.max(0, grandTotal - paid);
+        const currentBillDue = Math.max(0, currentBill - paid);
+        const netTotalDue = Math.max(0, totalPayable - paid);
 
-        document.getElementById('displayDue').textContent = '৳' + due.toFixed(2);
+        const dispDue = document.getElementById('displayDue');
+        if (dispDue) dispDue.textContent = '৳' + netTotalDue.toFixed(2);
 
         const dueAlert = document.getElementById('dueAlert');
         const dueIcon = document.getElementById('dueIcon');
         const dueLabel = document.getElementById('dueLabel');
 
-        if (due <= 0) {
-            dueAlert.className = 'alert alert-success p-3 rounded-3 mb-4 d-flex justify-content-between align-items-center border-0 bg-success-subtle text-success';
+        if (netTotalDue <= 0) {
+            if (dueAlert) dueAlert.className = 'alert alert-success p-3 rounded-3 mb-4 d-flex justify-content-between align-items-center border-0 bg-success-subtle text-success';
             if (dueIcon) dueIcon.className = 'fas fa-circle-check fs-5';
-            if (dueLabel) dueLabel.textContent = 'পরিশোধিত (Paid in Full):';
+            if (dueLabel) dueLabel.textContent = 'Paid in Full (All Clear):';
         } else {
-            dueAlert.className = 'alert alert-danger p-3 rounded-3 mb-4 d-flex justify-content-between align-items-center border-0 bg-danger-subtle text-danger';
+            if (dueAlert) dueAlert.className = 'alert alert-danger p-3 rounded-3 mb-4 d-flex justify-content-between align-items-center border-0 bg-danger-subtle text-danger';
             if (dueIcon) dueIcon.className = 'fas fa-circle-exclamation fs-5';
-            if (dueLabel) dueLabel.textContent = 'অবশিষ্ট বকেয়া (Due):';
+            if (dueLabel) dueLabel.textContent = currentPartyPreviousDue > 0 ? 'Total Due Balance:' : 'Due Bill:';
         }
 
         calcInstallmentBreakdown();
@@ -1484,14 +1605,14 @@
 
         const badge = document.getElementById('perInstallmentAmount');
         if (badge) {
-            badge.textContent = `৳${perInst.toFixed(2)} / কিস্তি (${count}টি)`;
+            badge.textContent = `৳${perInst.toFixed(2)} / inst (${count})`;
         }
     }
 
     function applyBatchCommission() {
         const comm = parseFloat(document.getElementById('batchCommInput').value);
         if (isNaN(comm) || comm < 0 || comm > 100) {
-            alert('সঠিক কমিশন শতকরা (%) লিখুন (০ থেকে ১০০)।');
+            alert('Enter valid commission % (0 to 100).');
             return;
         }
         document.querySelectorAll('.item-row').forEach(row => {
@@ -1504,7 +1625,7 @@
     function applyBatchShopDiscount() {
         const disc = parseFloat(document.getElementById('batchSaleDiscInput').value);
         if (isNaN(disc) || disc < 0 || disc > 100) {
-            alert('সঠিক ছাড় শতকরা (%) লিখুন (০ থেকে ১০০)।');
+            alert('Enter valid discount % (0 to 100).');
             return;
         }
         document.querySelectorAll('.item-row').forEach(row => {
@@ -1528,18 +1649,18 @@
         } else if (type === 'installment') {
             paidSection.style.display = 'block';
             if (installmentSection) installmentSection.style.display = 'block';
-            if (paidLabel) paidLabel.innerHTML = '<i class="fas fa-money-bill-wave text-success me-1"></i> ডাউনপেমেন্ট / প্রাথমিক নগদ পরিশোধ (৳):';
+            if (paidLabel) paidLabel.innerHTML = '<i class="fas fa-money-bill-wave text-success me-1"></i> Down Payment / Initial Paid (৳):';
             if (parseFloat(paidInput.value) >= parseFloat(document.getElementById('displayGrandTotal').textContent.replace(/[^\d.]/g, '') || 0)) {
                 paidInput.value = 0;
             }
         } else if (type === 'partial') {
             paidSection.style.display = 'block';
             if (installmentSection) installmentSection.style.display = 'none';
-            if (paidLabel) paidLabel.innerHTML = '<i class="fas fa-money-bill-wave text-success me-1"></i> তাৎক্ষণিক নগদ পরিশোধ (৳):';
+            if (paidLabel) paidLabel.innerHTML = '<i class="fas fa-money-bill-wave text-success me-1"></i> Paid (৳):';
         } else { // cash
             paidSection.style.display = 'block';
             if (installmentSection) installmentSection.style.display = 'none';
-            if (paidLabel) paidLabel.innerHTML = '<i class="fas fa-money-bill-wave text-success me-1"></i> তাৎক্ষণিক সম্পূর্ণ নগদ পরিশোধ (৳):';
+            if (paidLabel) paidLabel.innerHTML = '<i class="fas fa-money-bill-wave text-success me-1"></i> Paid (৳):';
         }
         calcTotals();
     }
@@ -1557,10 +1678,10 @@
             <td class="ps-3 position-relative" style="overflow: visible;">
                 <div class="position-relative">
                     <input type="text" name="items[${i}][title]" class="form-control item-title fw-semibold" 
-                           placeholder="${isRaw ? 'আইটেম / বিবরণ লিখুন...' : 'বইয়ের নাম বা অক্ষর লিখুন...'}" required 
+                           placeholder="${isRaw ? 'Item title / description...' : 'Search book title or enter item...'}" required 
                            oninput="handleLiveBookSearch(this, ${i})" 
                            onfocus="handleLiveBookSearch(this, ${i})" 
-                           onkeydown="handleBookSearchKeydown(event, ${i})"
+                           onkeydown="handleBookSearchKeydown(event, ${i})" 
                            autocomplete="off">
                 </div>
                 <input type="hidden" name="items[${i}][book_id]" class="item-book-id" value="">
@@ -1568,15 +1689,15 @@
                 </div>
                 <div class="item-book-badge mt-1 small" style="display: none;">
                     <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5" style="font-size: 0.7rem;">
-                        <i class="fas fa-check-circle me-1"></i>ক্যাটালগ লিংকড (বর্তমান স্টক: <span class="badge-stock">0</span>)
+                        <i class="fas fa-check-circle me-1"></i>Catalog Linked (Stock: <span class="badge-stock">0</span>)
                     </span>
                 </div>
             </td>
             <td>
-                <input type="text" name="items[${i}][author]" class="form-control item-author" list="${isRaw ? 'rawQualityList' : 'authorsList'}" placeholder="${isRaw ? 'মান...' : 'লেখক...'}">
+                <input type="text" name="items[${i}][author]" class="form-control item-author" list="${isRaw ? 'rawQualityList' : 'authorsList'}" placeholder="${isRaw ? 'Quality...' : 'Author...'}">
             </td>
             <td>
-                <input type="text" name="items[${i}][category_name]" class="form-control item-category" list="${isRaw ? 'rawSizeList' : 'categoriesList'}" placeholder="${isRaw ? 'সাইজ...' : 'ক্যাটাগরি...'}">
+                <input type="text" name="items[${i}][category_name]" class="form-control item-category" list="${isRaw ? 'rawSizeList' : 'categoriesList'}" placeholder="${isRaw ? 'Size...' : 'Category...'}">
                 <input type="hidden" name="items[${i}][category_id]" class="item-category-id" value="">
             </td>
             <td>
@@ -1588,32 +1709,32 @@
                        placeholder="1.55" oninput="onReamsChange(${i})">
             </td>
             <td class="bg-light-subtle col-mrp" style="${isRaw ? 'display: none;' : ''}">
-                <input type="number" step="0.01" name="items[${i}][mrp_price]" class="form-control item-mrp text-end fw-semibold" 
+                <input type="number" step="0.01" name="items[${i}][mrp_price]" class="form-control item-mrp text-end fw-semibold font-monospace" 
                        value="0" min="0" placeholder="MRP" oninput="onMrpChange(${i})">
             </td>
             <td class="bg-primary-subtle bg-opacity-25 col-comm" style="${isRaw ? 'display: none;' : ''}">
-                <input type="number" step="0.01" name="items[${i}][purchase_commission_percent]" class="form-control item-comm text-center text-primary fw-bold" 
+                <input type="number" step="0.01" name="items[${i}][purchase_commission_percent]" class="form-control item-comm text-center text-primary fw-bold font-monospace" 
                        value="0" min="0" max="100" placeholder="%" oninput="onCommChange(${i})">
             </td>
             <td class="bg-primary-subtle bg-opacity-25">
-                <input type="number" step="0.01" name="items[${i}][cost_price]" class="form-control item-cost text-end fw-bold text-danger" 
+                <input type="number" step="0.01" name="items[${i}][cost_price]" class="form-control item-cost text-end fw-bold text-danger font-monospace" 
                        value="0" min="0" required oninput="onCostChange(${i})">
             </td>
             <td class="bg-success-subtle bg-opacity-25 col-shop-disc" style="${isRaw ? 'display: none;' : ''}">
-                <input type="number" step="0.01" name="items[${i}][shop_discount_percent]" class="form-control item-shop-disc text-center text-success fw-bold" 
+                <input type="number" step="0.01" name="items[${i}][shop_discount_percent]" class="form-control item-shop-disc text-center text-success fw-bold font-monospace" 
                        value="0" min="0" max="100" placeholder="%" oninput="onShopDiscChange(${i})">
             </td>
             <td class="bg-success-subtle bg-opacity-25 col-sale-price" style="${isRaw ? 'display: none;' : ''}">
-                <input type="number" step="0.01" name="items[${i}][sale_price]" class="form-control item-sale text-end fw-bold text-success" 
+                <input type="number" step="0.01" name="items[${i}][sale_price]" class="form-control item-sale text-end fw-bold text-success font-monospace" 
                        value="0" min="0" oninput="onSaleChange(${i})">
             </td>
-            <td class="text-end pe-3 fw-bold text-dark item-subtotal fs-6">৳0.00</td>
+            <td class="text-end pe-3 fw-bold text-dark item-subtotal fs-6 font-monospace">৳0.00</td>
             <td class="text-center">
                 <div class="d-flex align-items-center justify-content-center gap-1">
-                    <button type="button" class="btn btn-sm btn-outline-secondary p-1.5 rounded-circle border-0" onclick="toggleExtraDetails(${i})" title="অতিরিক্ত বিবরণ">
+                    <button type="button" class="btn btn-sm btn-outline-secondary p-1.5 rounded-circle border-0" onclick="toggleExtraDetails(${i})" title="Extra Details">
                         <i class="fas fa-sliders text-secondary"></i>
                     </button>
-                    <button type="button" class="btn btn-sm btn-outline-danger p-1.5 rounded-circle border-0" onclick="removeRow(this)" title="মুছে ফেলুন">
+                    <button type="button" class="btn btn-sm btn-outline-danger p-1.5 rounded-circle border-0" onclick="removeRow(this)" title="Remove Row">
                         <i class="fas fa-trash-can"></i>
                     </button>
                 </div>
@@ -1629,7 +1750,7 @@
                 <div class="p-2.5 bg-white rounded-3 border">
                     <div class="small fw-bold text-muted mb-2 d-flex align-items-center gap-1.5">
                         <i class="fas fa-info-circle text-primary"></i>
-                        <span>অতিরিক্ত তথ্য ও বিবরণ (ঐচ্ছিক):</span>
+                        <span>Extra Catalog Specifications (Optional):</span>
                     </div>
                     <div class="row g-2">
                         <div class="col-md-2">
@@ -1637,27 +1758,27 @@
                             <input type="text" name="items[${i}][isbn]" class="form-control form-control-sm item-isbn font-monospace" placeholder="978-...">
                         </div>
                         <div class="col-md-2">
-                            <label class="form-label text-muted small mb-0.5">সংস্করণ / সাল</label>
-                            <input type="text" name="items[${i}][edition]" class="form-control form-control-sm item-edition" placeholder="যেমন: ১ম সংস্করণ ২০২৬">
+                            <label class="form-label text-muted small mb-0.5">Edition / Year</label>
+                            <input type="text" name="items[${i}][edition]" class="form-control form-control-sm item-edition" placeholder="e.g. 1st Edition 2026">
                         </div>
                         <div class="col-md-2">
-                            <label class="form-label text-muted small mb-0.5">কভার টাইপ</label>
+                            <label class="form-label text-muted small mb-0.5">Cover Type</label>
                             <select name="items[${i}][cover_type]" class="form-select form-select-sm item-cover-type">
                                 <option value="paperback">Paperback</option>
                                 <option value="hardcover">Hardcover</option>
                             </select>
                         </div>
                         <div class="col-md-2">
-                            <label class="form-label text-muted small mb-0.5">পৃষ্ঠা সংখ্যা</label>
-                            <input type="number" name="items[${i}][page_count]" class="form-control form-control-sm item-page-count" placeholder="যেমন: ১২০">
+                            <label class="form-label text-muted small mb-0.5">Pages</label>
+                            <input type="number" name="items[${i}][page_count]" class="form-control form-control-sm item-page-count" placeholder="e.g. 120">
                         </div>
                         <div class="col-md-2">
-                            <label class="form-label text-muted small mb-0.5">সাইজ</label>
-                            <input type="text" name="items[${i}][book_size]" class="form-control form-control-sm item-book-size" placeholder="যেমন: ডিমাই / রয়েল">
+                            <label class="form-label text-muted small mb-0.5">Size</label>
+                            <input type="text" name="items[${i}][book_size]" class="form-control form-control-sm item-book-size" placeholder="e.g. Demy / Royal">
                         </div>
                         <div class="col-md-2">
-                            <label class="form-label text-muted small mb-0.5">কাগজের ধরন</label>
-                            <input type="text" name="items[${i}][paper_type]" class="form-control form-control-sm item-paper-type" placeholder="যেমন: ৮০ GSM অফসেট">
+                            <label class="form-label text-muted small mb-0.5">Paper Type</label>
+                            <input type="text" name="items[${i}][paper_type]" class="form-control form-control-sm item-paper-type" placeholder="e.g. 80 GSM Offset">
                         </div>
                     </div>
                 </div>
@@ -1671,7 +1792,7 @@
     function removeRow(btn) {
         const rows = document.querySelectorAll('.item-row');
         if (rows.length <= 1) {
-            alert('কমপক্ষে একটি আইটেম ইনভয়েসে থাকতে হবে।');
+            alert('At least one item must remain in invoice.');
             return;
         }
         const tr = btn.closest('tr');

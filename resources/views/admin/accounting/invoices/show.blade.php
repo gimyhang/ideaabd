@@ -13,8 +13,14 @@
     $bizLogo = $settings['logo'] ?? '/images/logo.png';
     $logoSrc = \App\Support\SiteSetting::resolveImageUrl($bizLogo, 'images/logo.png') ?: asset('images/logo.png');
 
-    $invoiceUrl = route('admin.accounting.invoices.show', $invoice->id);
-    $qrCodeUrl = "https://api.qrserver.com/v1/create-qr-code/?size=130x130&margin=4&data=" . urlencode($invoiceUrl);
+    $invoiceUrl = $invoice->public_url;
+    $qrCodeUrl = "https://api.qrserver.com/v1/create-qr-code/?size=160x160&margin=4&data=" . urlencode($invoiceUrl);
+    $mfsQrSrc = !empty($settings['mfs_qr_image']) 
+        ? \App\Support\SiteSetting::resolveImageUrl($settings['mfs_qr_image']) 
+        : (!empty($settings['payment_qr_image']) ? \App\Support\SiteSetting::resolveImageUrl($settings['payment_qr_image']) : $qrCodeUrl);
+    $bankQrSrc = !empty($settings['bank_qr_image']) 
+        ? \App\Support\SiteSetting::resolveImageUrl($settings['bank_qr_image']) 
+        : (!empty($settings['payment_qr_image']) ? \App\Support\SiteSetting::resolveImageUrl($settings['payment_qr_image']) : $qrCodeUrl);
 
     $totalQuantity = 0;
     foreach($invoice->items ?? [] as $it) {
@@ -481,42 +487,109 @@
                 @endif
             </div>
 
-            {{-- Signature & QR Code Footer (Positioned at A4/Letter page bottom) --}}
+            {{-- Signature, QR Code & Banking Footer (Positioned at A4/Letter page bottom) --}}
             <div class="invoice-footer-compact pt-2 mt-auto border-top">
-                <div class="row g-2 align-items-end text-center" style="font-size: 10px;">
-                    <div class="col-4">
-                        <div class="signature-box" style="margin-top: 36px;">
-                            <div class="border-top border-dark pt-1 fw-semibold text-dark">
-                                Customer's Signature
+                @if($invoice->type === 'invoice')
+                    {{-- 5 Columns Layout: Customer Sig | Scan to Verify | bKash/Nagad/Rocket QR | Bank Payment QR | Authorized Sig --}}
+                    <div class="row g-2 align-items-end text-center" style="font-size: 10px;">
+                        {{-- 1. Customer Signature --}}
+                        <div class="col-3 text-center">
+                            <div class="signature-box" style="margin-top: 36px;">
+                                <div class="border-top border-dark pt-1 fw-semibold text-dark" style="font-size: 9px;">
+                                    Customer's Signature
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    {{-- QR Code & Verification Box --}}
-                    <div class="col-4">
-                        <div class="d-inline-flex align-items-center gap-1.5 px-2 py-1 rounded border bg-white shadow-xs">
-                            <img src="{{ $qrCodeUrl }}" alt="QR" style="width: 34px; height: 34px; object-fit: contain;">
-                            <div class="text-start" style="line-height: 1.15;">
-                                <span class="text-muted fw-semibold d-block" style="font-size: 8px;"><i class="fas fa-qrcode me-0.5"></i>Scan to Verify</span>
-                                <span class="font-monospace text-dark fw-bold" style="font-size: 9px;">#{{ $invoice->invoice_no }}</span>
-                            </div>
+                        {{-- 2. Scan to Verify QR --}}
+                        <div class="col-2 text-center">
+                            <a href="{{ $invoiceUrl }}" target="_blank" class="text-decoration-none d-inline-flex flex-column align-items-center">
+                                <div class="p-1 rounded border bg-white shadow-2xs d-inline-block">
+                                    <img src="{{ $qrCodeUrl }}" alt="Verify QR" style="width: 38px; height: 38px; object-fit: contain; display: block;">
+                                </div>
+                                <div class="text-primary fw-bold text-nowrap mt-1" style="font-size: 7.5px; line-height: 1.1;">
+                                    Scan to Verify: #{{ $invoice->invoice_no }}
+                                </div>
+                            </a>
                         </div>
-                    </div>
 
-                    <div class="col-4 text-center">
-                        <div class="signature-box" style="margin-top: 24px;">
-                            <div class="fw-bold text-dark" style="font-size: 11px; line-height: 1.25;">
-                                {{ $creatorName }}
+                        {{-- 3. bKash / Nagad / Rocket QR --}}
+                        <div class="col-2 text-center">
+                            <div class="d-inline-flex flex-column align-items-center">
+                                <div class="p-1 rounded border bg-white shadow-2xs d-inline-block">
+                                    <img src="{{ $mfsQrSrc }}" alt="MFS QR" style="width: 38px; height: 38px; object-fit: contain; display: block;">
+                                </div>
+                                <div class="text-dark fw-bold text-nowrap mt-1 font-monospace" style="font-size: 7.5px; line-height: 1.1;">
+                                    {{ $settings['mfs_qr_note'] ?? 'bkash/nagad/roket' }}
+                                </div>
                             </div>
-                            <div class="text-muted fw-semibold" style="font-size: 9.5px; line-height: 1.25;">
-                                {{ $creatorDesignation }}
+                        </div>
+
+                        {{-- 4. Bank Payment QR --}}
+                        <div class="col-2 text-center">
+                            <div class="d-inline-flex flex-column align-items-center">
+                                <div class="p-1 rounded border bg-white shadow-2xs d-inline-block">
+                                    <img src="{{ $bankQrSrc }}" alt="Bank QR" style="width: 38px; height: 38px; object-fit: contain; display: block;">
+                                </div>
+                                <div class="text-dark fw-bold text-nowrap mt-1 font-monospace" style="font-size: 7.5px; line-height: 1.1;">
+                                    {{ $settings['bank_qr_note'] ?? 'bank payment' }}
+                                </div>
                             </div>
-                            <div class="border-top border-dark pt-1 mt-1 fw-semibold text-dark" style="font-size: 9.5px;">
-                                Authorized Signature / Bill Creator
+                        </div>
+
+                        {{-- 5. Authorized Signature --}}
+                        <div class="col-3 text-center">
+                            <div class="signature-box" style="margin-top: 18px;">
+                                <div class="fw-bold text-dark text-truncate" style="font-size: 10.5px; line-height: 1.2;">
+                                    {{ $creatorName }}
+                                </div>
+                                <div class="text-muted fw-semibold text-truncate" style="font-size: 9px; line-height: 1.2;">
+                                    {{ $creatorDesignation }}
+                                </div>
+                                <div class="border-top border-dark pt-1 mt-1 fw-semibold text-dark" style="font-size: 9px;">
+                                    Authorized Signature
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                @else
+                    {{-- 3 Columns Layout for Delivery Challan / Quotation / Tender --}}
+                    <div class="row g-2 align-items-end text-center" style="font-size: 10px;">
+                        <div class="col-4">
+                            <div class="signature-box" style="margin-top: 36px;">
+                                <div class="border-top border-dark pt-1 fw-semibold text-dark">
+                                    Customer's Signature
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- QR Code & Verification Box --}}
+                        <div class="col-4 text-center">
+                            <a href="{{ $invoiceUrl }}" target="_blank" class="text-decoration-none d-inline-flex flex-column align-items-center">
+                                <div class="p-1 rounded border bg-white shadow-2xs d-inline-block">
+                                    <img src="{{ $qrCodeUrl }}" alt="QR" style="width: 38px; height: 38px; object-fit: contain; display: block;">
+                                </div>
+                                <div class="text-primary fw-bold text-nowrap mt-1" style="font-size: 8px; line-height: 1.1;">
+                                    Scan to Verify: #{{ $invoice->invoice_no }}
+                                </div>
+                            </a>
+                        </div>
+
+                        <div class="col-4 text-center">
+                            <div class="signature-box" style="margin-top: 24px;">
+                                <div class="fw-bold text-dark" style="font-size: 11px; line-height: 1.25;">
+                                    {{ $creatorName }}
+                                </div>
+                                <div class="text-muted fw-semibold" style="font-size: 9.5px; line-height: 1.25;">
+                                    {{ $creatorDesignation }}
+                                </div>
+                                <div class="border-top border-dark pt-1 mt-1 fw-semibold text-dark" style="font-size: 9.5px;">
+                                    Authorized Signature
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endif
 
                 <div class="text-center text-muted mt-2 d-flex justify-content-between align-items-center" style="font-size: 8.5px; line-height: 1;">
                     <span>Page 1 / {{ $invoice->type === 'invoice' ? '2 (Invoice Copy)' : '1' }}</span>
@@ -2025,6 +2098,95 @@ function openResendModal(emails, customMsg) {
                                         <img id="cropperPreviewThumb" src="{{ $logoSrc }}" alt="Live Crop Thumb" style="height: 50px; width: 100px; object-fit: contain;">
                                     </div>
                                     <div class="small text-success fw-semibold"><i class="fas fa-circle-check me-1"></i>Logo ready to save</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                                        {{-- Dual Payment QR Codes (MFS & Bank Payment QR) --}}
+                    <div class="card border border-success-subtle rounded-3 p-3 mb-3 bg-success-subtle bg-opacity-10">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label class="form-label fw-bold text-success mb-0">
+                                <i class="fa-solid fa-qrcode me-1"></i> পেমেন্ট কিউআর কোডসমূহ (MFS & Bank Payment QR)
+                            </label>
+                            <span class="badge bg-success text-white">শুধুমাত্র বিলে থাকবে</span>
+                        </div>
+                        <p class="small text-muted mb-3" style="font-size: 11px;">
+                            বিলের ফুটার কলামে প্রদর্শনের জন্য বিকাশ/নগদ/রকেট কিউআর এবং ব্যাংক পেমেন্ট কিউআর ছবি ও বিবরণ যুক্ত করুন:
+                        </p>
+                        
+                        <div class="row g-3">
+                            {{-- 1. MFS (bKash / Nagad / Rocket) QR --}}
+                            <div class="col-md-6 border-end">
+                                <div class="p-2.5 bg-white rounded-3 border h-100 d-flex flex-column justify-content-between">
+                                    <div>
+                                        <div class="d-flex align-items-center justify-content-between mb-2">
+                                            <span class="small fw-bold text-dark"><i class="fas fa-mobile-screen-button text-primary me-1"></i>১. bKash / Nagad / Rocket কিউআর</span>
+                                        </div>
+                                        <input type="file" name="mfs_qr_file" id="mfsQrFileInput" class="form-control form-control-sm mb-2" accept="image/*" onchange="previewQr(this, 'mfsQrPreviewImg', 'mfsQrStatusText')">
+                                        <div class="mb-2">
+                                            <label class="form-label small fw-semibold text-muted mb-0.5" style="font-size: 10.5px;">কিউআর এর নিচের লেখা (এক লাইনে):</label>
+                                            <input type="text" name="mfs_qr_note" class="form-control form-control-sm font-monospace" 
+                                                   value="{{ $settings['mfs_qr_note'] ?? 'bkash/nagad/roket' }}" 
+                                                   placeholder="bkash/nagad/roket">
+                                        </div>
+                                        @if(!empty($settings['mfs_qr_image']))
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input" type="checkbox" name="remove_mfs_qr" value="1" id="removeMfsQrCheck">
+                                                <label class="form-check-label small text-danger" for="removeMfsQrCheck" style="font-size: 11px;">
+                                                    বর্তমান MFS কিউআর মুছুন
+                                                </label>
+                                            </div>
+                                        @endif
+                                    </div>
+                                    <div class="text-center pt-2 border-top">
+                                        <div class="p-1 border rounded bg-light d-inline-block shadow-2xs">
+                                            <img id="mfsQrPreviewImg" 
+                                                 src="{{ !empty($settings['mfs_qr_image']) ? \App\Support\SiteSetting::resolveImageUrl($settings['mfs_qr_image']) : asset('images/logo.png') }}" 
+                                                 alt="MFS QR Preview" 
+                                                 style="width: 55px; height: 55px; object-fit: contain; {{ empty($settings['mfs_qr_image']) ? 'opacity: 0.35; filter: grayscale(1);' : '' }}">
+                                        </div>
+                                        <div class="small text-muted mt-0.5" id="mfsQrStatusText" style="font-size: 10px;">
+                                            {{ !empty($settings['mfs_qr_image']) ? 'MFS কিউআর সক্রিয়' : 'ছবি আপলোড করুন' }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- 2. Bank Payment QR --}}
+                            <div class="col-md-6">
+                                <div class="p-2.5 bg-white rounded-3 border h-100 d-flex flex-column justify-content-between">
+                                    <div>
+                                        <div class="d-flex align-items-center justify-content-between mb-2">
+                                            <span class="small fw-bold text-dark"><i class="fa-solid fa-building-columns text-success me-1"></i>২. Bank Payment কিউআর</span>
+                                        </div>
+                                        <input type="file" name="bank_qr_file" id="bankQrFileInput" class="form-control form-control-sm mb-2" accept="image/*" onchange="previewQr(this, 'bankQrPreviewImg', 'bankQrStatusText')">
+                                        <div class="mb-2">
+                                            <label class="form-label small fw-semibold text-muted mb-0.5" style="font-size: 10.5px;">কিউআর এর নিচের লেখা (এক লাইনে):</label>
+                                            <input type="text" name="bank_qr_note" class="form-control form-control-sm font-monospace" 
+                                                   value="{{ $settings['bank_qr_note'] ?? 'bank payment' }}" 
+                                                   placeholder="bank payment">
+                                        </div>
+                                        @if(!empty($settings['bank_qr_image']))
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input" type="checkbox" name="remove_bank_qr" value="1" id="removeBankQrCheck">
+                                                <label class="form-check-label small text-danger" for="removeBankQrCheck" style="font-size: 11px;">
+                                                    বর্তমান ব্যাংক কিউআর মুছুন
+                                                </label>
+                                            </div>
+                                        @endif
+                                    </div>
+                                    <div class="text-center pt-2 border-top">
+                                        <div class="p-1 border rounded bg-light d-inline-block shadow-2xs">
+                                            <img id="bankQrPreviewImg" 
+                                                 src="{{ !empty($settings['bank_qr_image']) ? \App\Support\SiteSetting::resolveImageUrl($settings['bank_qr_image']) : asset('images/logo.png') }}" 
+                                                 alt="Bank QR Preview" 
+                                                 style="width: 55px; height: 55px; object-fit: contain; {{ empty($settings['bank_qr_image']) ? 'opacity: 0.35; filter: grayscale(1);' : '' }}">
+                                        </div>
+                                        <div class="small text-muted mt-0.5" id="bankQrStatusText" style="font-size: 10px;">
+                                            {{ !empty($settings['bank_qr_image']) ? 'ব্যাংক কিউআর সক্রিয়' : 'ছবি আপলোড করুন' }}
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>

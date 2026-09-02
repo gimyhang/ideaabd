@@ -140,9 +140,165 @@ class PublisherPurchaseController extends Controller
             ->orderBy('vendor_name')
             ->get();
 
+        // Preload publisher dues and pending invoices maps
+        $publisherDueMap = [];
+        $publisherInvoicesMap = [];
+        $publisherPurchases = PublisherPurchase::whereNotNull('publisher_id')
+            ->whereIn('payment_status', ['due', 'partial'])
+            ->orderBy('purchase_date', 'asc')
+            ->orderBy('id', 'asc')
+            ->get();
+
+        foreach ($publisherPurchases as $p) {
+            $pid = (int)$p->publisher_id;
+            if (!isset($publisherDueMap[$pid])) {
+                $publisherDueMap[$pid] = 0.0;
+                $publisherInvoicesMap[$pid] = [];
+            }
+            $publisherDueMap[$pid] += (float)$p->due_amount;
+            $publisherInvoicesMap[$pid][] = [
+                'id'                => $p->id,
+                'purchase_no'       => $p->purchase_no,
+                'publisher_memo_no' => $p->publisher_memo_no,
+                'purchase_date'     => $p->purchase_date ? $p->purchase_date->format('d/m/Y') : $p->created_at->format('d/m/Y'),
+                'grand_total'       => (float) $p->grand_total,
+                'paid_amount'       => (float) $p->paid_amount,
+                'due_amount'        => (float) $p->due_amount,
+                'is_overdue'        => (bool) $p->is_overdue,
+            ];
+        }
+
+        // Preload vendor dues and pending invoices maps
+        $vendorDueMap = [];
+        $vendorInvoicesMap = [];
+        $vendorPurchases = PublisherPurchase::whereNull('publisher_id')
+            ->where(function($q) {
+                $q->whereNotNull('vendor_name')->where('vendor_name', '!=', '')
+                  ->orWhere(fn($s) => $s->whereNotNull('supplier_name')->where('supplier_name', '!=', ''));
+            })
+            ->whereIn('payment_status', ['due', 'partial'])
+            ->orderBy('purchase_date', 'asc')
+            ->orderBy('id', 'asc')
+            ->get();
+
+        foreach ($vendorPurchases as $p) {
+            $vname = trim((string)($p->vendor_name ?: $p->supplier_name));
+            if (empty($vname)) continue;
+            if (!isset($vendorDueMap[$vname])) {
+                $vendorDueMap[$vname] = 0.0;
+                $vendorInvoicesMap[$vname] = [];
+            }
+            $vendorDueMap[$vname] += (float)$p->due_amount;
+            $vendorInvoicesMap[$vname][] = [
+                'id'                => $p->id,
+                'purchase_no'       => $p->purchase_no,
+                'publisher_memo_no' => $p->publisher_memo_no,
+                'purchase_date'     => $p->purchase_date ? $p->purchase_date->format('d/m/Y') : $p->created_at->format('d/m/Y'),
+                'grand_total'       => (float) $p->grand_total,
+                'paid_amount'       => (float) $p->paid_amount,
+                'due_amount'        => (float) $p->due_amount,
+                'is_overdue'        => (bool) $p->is_overdue,
+            ];
+        }
+
         $settings = IdeaAccountingController::getInvoiceSettings();
 
-        return view('admin.purchases.create', compact('publishers', 'authors', 'categories', 'books', 'suggestedInvoiceNo', 'currentType', 'existingVendors', 'settings'));
+        return view('admin.purchases.create', compact(
+            'publishers', 'authors', 'categories', 'books', 'suggestedInvoiceNo',
+            'currentType', 'existingVendors', 'publisherDueMap', 'publisherInvoicesMap', 'vendorDueMap', 'vendorInvoicesMap', 'settings'
+        ));
+    }
+
+    /**
+     * AJAX Endpoint to get real-time party dues, previous pending invoices (memo # and date), and total running balance.
+     */
+    public function ajaxPartyDue(Request $request): JsonResponse
+    {
+        $publisherId = $request->input('publisher_id') ? (int)$request->input('publisher_id') : null;
+        $vendorName = $request->string('vendor_name')->trim()->value() ?: null;
+        $excludeId = $request->input('exclude_id') ? (int)$request->input('exclude_id') : null;
+
+        $data = $this->getPartyFinancialSummary($publisherId, $vendorName, $excludeId);
+        return response()->json($data);
+    }
+
+    /**
+     * Helper to compute detailed financial summary and pending invoices for any publisher or vendor.
+     */
+    public function getPartyFinancialSummary(?int $publisherId, ?string $vendorName, ?int $excludePurchaseId = null, ?string $beforeDate = null): array
+    {
+        $vendorName = trim((string)$vendorName);
+        if (!$publisherId && empty($vendorName)) {
+            return [
+                'previous_due'      => 0.0,
+                'pending_invoices'  => [],
+                'total_billed'      => 0.0,
+                'total_paid'        => 0.0,
+                'net_due'           => 0.0,
+                'party_name'        => '',
+                'party_phone'       => '',
+                'party_address'     => '',
+            ];
+        }
+
+        $purchasesQuery = PublisherPurchase::query()
+            ->when($publisherId, fn($q) => $q->where('publisher_id', $publisherId))
+            ->when(!$publisherId && !empty($vendorName), fn($q) => $q->where(fn($sub) => $sub->where('vendor_name', $vendorName)->orWhere('supplier_name', $vendorName)))
+            ->when($excludePurchaseId, fn($q) => $q->where('id', '!=', $excludePurchaseId))
+            ->when($beforeDate, fn($q) => $q->whereDate('purchase_date', '<=', $beforeDate))
+            ->orderBy('purchase_date', 'asc')
+            ->orderBy('id', 'asc');
+
+        $allPurchases = $purchasesQuery->get();
+
+        $pendingInvoices = [];
+        $previousDue = 0.0;
+        $totalBilled = 0.0;
+        $totalPaid = 0.0;
+
+        foreach ($allPurchases as $p) {
+            $totalBilled += (float) $p->grand_total;
+            $totalPaid += (float) $p->paid_amount;
+            $due = (float) $p->due_amount;
+
+            if ($due > 0) {
+                $previousDue += $due;
+                $pendingInvoices[] = [
+                    'id'                => $p->id,
+                    'purchase_no'       => $p->purchase_no,
+                    'publisher_memo_no' => $p->publisher_memo_no,
+                    'purchase_date'     => $p->purchase_date ? $p->purchase_date->format('d/m/Y') : $p->created_at->format('d/m/Y'),
+                    'grand_total'       => (float) $p->grand_total,
+                    'paid_amount'       => (float) $p->paid_amount,
+                    'due_amount'        => $due,
+                    'is_overdue'        => (bool) $p->is_overdue,
+                ];
+            }
+        }
+
+        // Deduct standalone payments if any
+        $standalonePayments = PublisherPayment::whereNull('purchase_id')
+            ->when($publisherId, fn($q) => $q->where('publisher_id', $publisherId))
+            ->when(!$publisherId && !empty($vendorName), fn($q) => $q->where('vendor_name', $vendorName))
+            ->sum('amount');
+
+        $totalPaid += (float) $standalonePayments;
+        $netDue = max(0, $previousDue - (float)$standalonePayments);
+
+        $latest = $allPurchases->last();
+        $pub = $publisherId ? Publisher::find($publisherId) : null;
+
+        return [
+            'previous_due'     => (float) $netDue,
+            'raw_previous_due' => (float) $previousDue,
+            'pending_invoices' => $pendingInvoices,
+            'total_billed'     => (float) $totalBilled,
+            'total_paid'       => (float) $totalPaid,
+            'net_due'          => (float) $netDue,
+            'party_name'       => $pub ? $pub->name : ($vendorName ?: ($latest?->party_name ?? '')),
+            'party_phone'      => $pub ? ($pub->phone ?? '') : ($latest?->party_phone ?? ''),
+            'party_address'    => $pub ? ($pub->address ?? '') : ($latest?->party_address ?? ''),
+        ];
     }
 
     /**
@@ -240,6 +396,8 @@ class PublisherPurchaseController extends Controller
             'paid_amount'                 => 'nullable|numeric|min:0',
             'payment_method'              => 'nullable|string|max:50',
             'transaction_ref'             => 'nullable|string|max:100',
+            'bank_name'                   => 'nullable|string|max:255',
+            'branch_name'                 => 'nullable|string|max:255',
             'notes'                       => 'nullable|string|max:1000',
             'items'                       => 'required|array|min:1',
             'items.*.title'               => 'required|string|max:255',
@@ -512,15 +670,27 @@ class PublisherPurchaseController extends Controller
             // If initial payment was made
             if ($initialPaid > 0) {
                 $payNo = 'PAY-' . date('Ymd') . '-' . rand(1000, 9999);
+                $trxRef = $request->input('transaction_ref');
+                $bankName = $request->input('bank_name');
+                $branchName = $request->input('branch_name');
+                
+                $refParts = array_filter([
+                    $bankName ? "Bank: {$bankName}" : null,
+                    $branchName ? "Branch: {$branchName}" : null,
+                    $trxRef ? "Ref: {$trxRef}" : null,
+                ]);
+                $finalTrxRef = !empty($refParts) ? implode(' | ', $refParts) : $trxRef;
+
                 PublisherPayment::create([
                     'purchase_id'     => $purchase->id,
                     'publisher_id'    => $purchase->publisher_id,
+                    'vendor_name'     => $purchase->vendor_name ?: $purchase->supplier_name,
                     'payment_no'      => $payNo,
                     'payment_date'    => $purchase->purchase_date,
                     'amount'          => $initialPaid,
                     'payment_method'  => $request->input('payment_method', 'cash'),
-                    'transaction_ref' => $request->input('transaction_ref'),
-                    'note'            => 'ক্রয়ের প্রাথমিক পরিশোধ',
+                    'transaction_ref' => $finalTrxRef,
+                    'note'            => 'Initial payment for purchase #' . $purchase->purchase_no,
                     'recorded_by'     => auth()->id(),
                 ]);
             }
@@ -575,7 +745,6 @@ class PublisherPurchaseController extends Controller
         $previousDue = (float) $otherPurchasesQuery->sum('due_amount');
         $otherPendingInvoices = $otherPurchasesQuery->orderBy('purchase_date')->get();
 
-        // Preload publisher and vendor due maps for instant dynamic recalculation on party change
         $publisherDueMap = PublisherPurchase::where('id', '!=', $purchase->id)
             ->whereNotNull('publisher_id')
             ->whereIn('payment_status', ['due', 'partial'])
@@ -593,12 +762,37 @@ class PublisherPurchaseController extends Controller
             ->pluck('total_due', 'vendor_name')
             ->all();
 
+        $publisherInvoicesMap = [];
+        $vendorInvoicesMap = [];
+
+        $allOtherDues = PublisherPurchase::where('id', '!=', $purchase->id)
+            ->whereIn('payment_status', ['due', 'partial'])
+            ->orderBy('purchase_date', 'asc')
+            ->get(['id', 'purchase_no', 'publisher_id', 'vendor_name', 'supplier_name', 'purchase_date', 'due_amount', 'grand_total']);
+
+        foreach ($allOtherDues as $od) {
+            $formattedInv = [
+                'id'            => $od->id,
+                'purchase_no'   => $od->purchase_no,
+                'purchase_date' => $od->purchase_date ? $od->purchase_date->format('d/m/Y') : '',
+                'due_amount'    => (float) $od->due_amount,
+            ];
+            if ($od->publisher_id) {
+                $publisherInvoicesMap[$od->publisher_id][] = $formattedInv;
+            }
+            $vKey = $od->vendor_name ?: $od->supplier_name;
+            if ($vKey) {
+                $vendorInvoicesMap[$vKey][] = $formattedInv;
+            }
+        }
+
         $paymentMethods = PublisherPayment::paymentMethods();
         $settings = IdeaAccountingController::getInvoiceSettings();
 
         return view('admin.purchases.edit', compact(
             'purchase', 'publishers', 'authors', 'categories', 'books', 'existingVendors',
-            'previousDue', 'otherPendingInvoices', 'publisherDueMap', 'vendorDueMap', 'paymentMethods', 'settings'
+            'previousDue', 'otherPendingInvoices', 'publisherDueMap', 'vendorDueMap', 
+            'publisherInvoicesMap', 'vendorInvoicesMap', 'paymentMethods', 'settings'
         ));
     }
 
@@ -885,7 +1079,22 @@ class PublisherPurchaseController extends Controller
         $paymentMethods = PublisherPayment::paymentMethods();
         $settings = IdeaAccountingController::getInvoiceSettings();
 
-        return view('admin.purchases.show', compact('purchase', 'paymentMethods', 'settings'));
+        // Calculate previous dues and pending memo breakdown for this publisher or vendor
+        $publisherId = $purchase->publisher_id;
+        $vendorName = $purchase->vendor_name ?: $purchase->supplier_name;
+
+        $partySummary = $this->getPartyFinancialSummary($publisherId, $vendorName, $purchase->id);
+        $previousDue = (float) ($partySummary['previous_due'] ?? 0);
+        $previousInvoices = $partySummary['pending_invoices'] ?? [];
+        $totalPayable = (float) $purchase->grand_total + $previousDue;
+        $currentPaid = (float) $purchase->paid_amount;
+        $currentDue = (float) $purchase->due_amount;
+        $netTotalDue = max(0, $previousDue + $currentDue);
+
+        return view('admin.purchases.show', compact(
+            'purchase', 'paymentMethods', 'settings',
+            'previousDue', 'previousInvoices', 'totalPayable', 'currentPaid', 'currentDue', 'netTotalDue', 'partySummary'
+        ));
     }
 
     /**
@@ -1426,26 +1635,55 @@ class PublisherPurchaseController extends Controller
         // Sort chronologically
         usort($entries, fn($a, $b) => $a['sort_time'] <=> $b['sort_time']);
 
-        // Calculate running balance
-        $runningBalance = 0.0;
+        // Calculate opening balance before $dateFrom if filter is active
+        $openingBalance = 0.0;
         $totalBilled = 0.0;
         $totalPaid = 0.0;
+        $filteredEntries = [];
 
-        foreach ($entries as &$entry) {
-            $runningBalance += ($entry['debit'] - $entry['credit']);
-            $entry['balance'] = $runningBalance;
-            $totalBilled += $entry['debit'];
-            $totalPaid += $entry['credit'];
-        }
-        unset($entry);
-
-        // Filter by date range if provided
-        $filteredEntries = $entries;
         if ($dateFrom) {
-            $filteredEntries = array_filter($filteredEntries, fn($e) => $e['date'] >= $dateFrom);
+            foreach ($entries as $e) {
+                if ($e['date'] < $dateFrom) {
+                    $openingBalance += ($e['debit'] - $e['credit']);
+                    $totalBilled += $e['debit'];
+                    $totalPaid += $e['credit'];
+                }
+            }
+            if ($openingBalance != 0) {
+                $filteredEntries[] = [
+                    'date'        => $dateFrom,
+                    'sort_time'   => strtotime($dateFrom) - 1,
+                    'type'        => 'opening',
+                    'type_label'  => 'প্রারম্ভিক জের (Opening Balance)',
+                    'ref_no'      => 'B/F',
+                    'purchase_id' => null,
+                    'payment_id'  => null,
+                    'description' => "বিগত হিসাব হতে প্রারম্ভিক জের (Opening Balance brought forward)",
+                    'category'    => 'opening',
+                    'debit'       => $openingBalance > 0 ? $openingBalance : 0.0,
+                    'credit'      => $openingBalance < 0 ? abs($openingBalance) : 0.0,
+                    'notes'       => 'পূর্বের জের',
+                    'method'      => null,
+                    'balance'     => $openingBalance,
+                ];
+            }
         }
-        if ($dateTo) {
-            $filteredEntries = array_filter($filteredEntries, fn($e) => $e['date'] <= $dateTo);
+
+        $runningBalance = $openingBalance;
+
+        foreach ($entries as $e) {
+            if ($dateFrom && $e['date'] < $dateFrom) {
+                continue;
+            }
+            if ($dateTo && $e['date'] > $dateTo) {
+                continue;
+            }
+
+            $runningBalance += ($e['debit'] - $e['credit']);
+            $e['balance'] = $runningBalance;
+            $totalBilled += $e['debit'];
+            $totalPaid += $e['credit'];
+            $filteredEntries[] = $e;
         }
 
         return [

@@ -688,13 +688,13 @@
 
                 <div class="card-body p-4 bg-white">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <span class="text-muted fw-semibold">মোট পণ্যের মূল্য (Total Cost):</span>
+                        <span class="text-muted fw-semibold">Subtotal:</span>
                         <span class="fw-bold fs-5 text-dark font-monospace" id="displayTotal">৳{{ number_format($purchase->total_amount, 2) }}</span>
                     </div>
 
                     <div class="mb-3 p-3 bg-light rounded-3 border">
                         <label class="form-label small fw-bold text-muted mb-1">
-                            <i class="fas fa-tag text-danger me-1"></i> বিশেষ ছাড় / ডিসকাউন্ট (Discount ৳):
+                            <i class="fas fa-tag text-danger me-1"></i> Special Discount (৳):
                         </label>
                         <div class="input-group">
                             <span class="input-group-text bg-white fw-bold">৳</span>
@@ -705,24 +705,39 @@
 
                     <div class="d-flex justify-content-between align-items-center p-3 bg-primary-subtle rounded-3 mb-3 border border-primary-subtle">
                         <div>
-                            <span class="fw-bold text-dark d-block">বর্তমান নিট ইনভয়েস বিল:</span>
-                            <small class="text-muted">Current Invoice Grand Total</small>
+                            <span class="fw-bold text-dark d-block">Current Bill:</span>
+                            <small class="text-muted">Invoice Grand Total</small>
                         </div>
                         <span class="fw-bolder fs-3 text-primary font-monospace" id="displayGrandTotal">৳{{ number_format($purchase->grand_total, 2) }}</span>
                     </div>
 
                     {{-- Cumulative Ledger Box with Previous Due --}}
                     <div class="card border border-warning-subtle bg-warning-subtle bg-opacity-25 rounded-3 p-3 mb-3">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span class="text-muted small fw-bold">পূর্বের বকেয়া / জের (Previous Due):</span>
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="text-danger small fw-bold"><i class="fas fa-clock-rotate-left me-1"></i> Previous Due:</span>
                             <span class="fw-bold text-danger font-monospace fs-6" id="displayPrevDue">৳{{ number_format($prevDueVal, 2) }}</span>
                         </div>
-                        <div class="d-flex justify-content-between align-items-center mb-2 pt-2 border-top border-warning-subtle">
-                            <span class="text-dark fw-bold small">মোট প্রদেয় বকেয়া (Cumulative Total):</span>
+
+                        {{-- Previous Memos and Dates Container --}}
+                        <div id="editPrevInvoicesWrap" class="my-2 pt-1 border-top border-warning-subtle" style="{{ !empty($otherPendingInvoices) && count($otherPendingInvoices) > 0 ? '' : 'display: none;' }}">
+                            <div class="text-muted fw-semibold mb-1" style="font-size: 10px;">Pending Memos & Dates:</div>
+                            <div class="d-flex flex-wrap gap-1" id="editPrevInvoicesList">
+                                @if(!empty($otherPendingInvoices))
+                                    @foreach($otherPendingInvoices as $opi)
+                                        <span class="badge bg-white text-dark border px-1.5 py-0.5 font-monospace" style="font-size: 8.5px;">
+                                            #{{ $opi->purchase_no }} ({{ $opi->purchase_date ? $opi->purchase_date->format('d/m/Y') : '—' }}): <strong class="text-danger">৳{{ number_format($opi->due_amount, 2) }}</strong>
+                                        </span>
+                                    @endforeach
+                                @endif
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center mb-1 pt-1.5 border-top border-warning-subtle">
+                            <span class="text-dark fw-bold small">Total Payable:</span>
                             <span class="fw-bolder text-dark font-monospace fs-5" id="displayCumulativePayable">৳{{ number_format($cumTotalPayable, 2) }}</span>
                         </div>
-                        <div class="d-flex justify-content-between align-items-center pt-2 border-top border-warning-subtle">
-                            <span class="text-success fw-bold small">পূর্বে পরিশোধিত (Total Paid):</span>
+                        <div class="d-flex justify-content-between align-items-center pt-1.5 border-top border-warning-subtle">
+                            <span class="text-success fw-bold small">Paid Amount:</span>
                             <span class="fw-bold text-success font-monospace fs-6" id="displayPaid">৳{{ number_format($currPaidTotal, 2) }}</span>
                         </div>
                     </div>
@@ -730,17 +745,14 @@
                     {{-- Payment Terms Selector --}}
                     <div class="mb-3">
                         <label class="form-label fw-bold text-dark">
-                            <i class="fas fa-hand-holding-dollar text-primary me-1"></i> বাকি পরিশোধের শর্তাবলী (Payment Terms) <span class="text-danger">*</span>
+                            <i class="fas fa-hand-holding-dollar text-primary me-1"></i> Payment Terms <span class="text-danger">*</span>
                         </label>
-                        <select name="payment_type" id="paymentType" class="form-select form-select-lg fs-6 fw-semibold" required onchange="onPaymentTypeChangeEdit()">
-                            <option value="credit" @selected(old('payment_type', $purchase->payment_type) == 'credit')>⏳ ১. সুবিধামতো সময়ে পরিশোধ / চলতি খাতা বাকি (Flexible Due)</option>
-                            <option value="cash" @selected(old('payment_type', $purchase->payment_type) == 'cash')>💵 ২. নগদ সম্পূর্ণ পরিশোধ (Cash - Full Paid)</option>
-                            <option value="partial" @selected(old('payment_type', $purchase->payment_type) == 'partial')>⚖️ ৩. আংশিক পরিশোধ ও বাকি (Partial Payment)</option>
-                            <option value="installment" @selected(old('payment_type', $purchase->payment_type) == 'installment')>📅 ৪. নির্ধারিত কিস্তিতে পরিশোধ (Scheduled Installment)</option>
+                        <select name="payment_type" id="paymentType" class="form-select form-select-md fw-semibold" required onchange="onPaymentTypeChangeEdit()">
+                            <option value="cash" @selected(old('payment_type', $purchase->payment_type) == 'cash')>💵 Cash (Full Paid)</option>
+                            <option value="credit" @selected(old('payment_type', $purchase->payment_type) == 'credit')>⏳ Credit (Full Due)</option>
+                            <option value="partial" @selected(old('payment_type', $purchase->payment_type) == 'partial')>⚖️ Partial Payment</option>
+                            <option value="installment" @selected(old('payment_type', $purchase->payment_type) == 'installment')>📅 Installments</option>
                         </select>
-                        <div class="form-text text-muted small mt-1">
-                            <i class="fa-solid fa-circle-info text-info me-1"></i> সুবিধামতো সময়ে আংশিক বা সম্পূর্ণ টাকা পরিশোধের জন্য 'চলতি খাতা বাকি' নির্বাচন করুন।
-                        </div>
                     </div>
 
                     {{-- Installment / Due Schedule Section (Optional) --}}
@@ -869,9 +881,11 @@
     const totalRecordedPaid = {{ (float) $purchase->paid_amount }};
     let currentPreviousDue = {{ $prevDueVal }};
 
-    // Preloaded Party Dues Maps
+    // Preloaded Party Dues & Invoices Maps
     const publisherDueMap = @json($publisherDueMap ?? []);
+    const publisherInvoicesMap = @json($publisherInvoicesMap ?? []);
     const vendorDueMap = @json($vendorDueMap ?? []);
+    const vendorInvoicesMap = @json($vendorInvoicesMap ?? []);
 
     // Full catalog list of bookshop books with exact pricing
     const preloadedBooksList = [
@@ -1117,23 +1131,26 @@
         }
     }
 
-    // Party Change Event -> Recalculate Previous Dues
+    // Party Change Event -> Recalculate Previous Dues & Pending Memos
     function onPartyChange() {
         const isRaw = {{ $isRawCategory ? 'true' : 'false' }};
         let prevDue = 0;
+        let pendingInvoices = [];
         let partyName = '';
 
         if (isRaw) {
             const vendorInput = document.getElementById('vendorNameInput');
             partyName = vendorInput ? vendorInput.value.trim() : '';
-            if (partyName && vendorDueMap[partyName]) {
+            if (partyName && vendorDueMap[partyName] !== undefined) {
                 prevDue = parseFloat(vendorDueMap[partyName]) || 0;
+                pendingInvoices = vendorInvoicesMap[partyName] || [];
             }
         } else {
             const pubSelect = document.getElementById('publisherSelect');
             const pubId = pubSelect ? pubSelect.value : '';
-            if (pubId && publisherDueMap[pubId]) {
+            if (pubId && publisherDueMap[pubId] !== undefined) {
                 prevDue = parseFloat(publisherDueMap[pubId]) || 0;
+                pendingInvoices = publisherInvoicesMap[pubId] || [];
             }
             partyName = pubSelect && pubSelect.selectedIndex > 0 ? pubSelect.options[pubSelect.selectedIndex].text.split('(')[0].trim() : 'Publisher';
         }
@@ -1141,6 +1158,22 @@
         currentPreviousDue = prevDue;
         const nameEl = document.getElementById('partyLedgerDisplayName');
         if (nameEl && partyName) nameEl.textContent = partyName;
+
+        const invWrap = document.getElementById('editPrevInvoicesWrap');
+        const invList = document.getElementById('editPrevInvoicesList');
+        if (invWrap && invList) {
+            if (pendingInvoices && pendingInvoices.length > 0) {
+                invWrap.style.display = 'block';
+                invList.innerHTML = pendingInvoices.map(inv => `
+                    <span class="badge bg-white text-dark border px-1.5 py-0.5 font-monospace" style="font-size: 8.5px;">
+                        #${escapeHtml(inv.purchase_no)} (${escapeHtml(inv.purchase_date)}): <strong class="text-danger">৳${parseFloat(inv.due_amount).toFixed(2)}</strong>
+                    </span>
+                `).join('');
+            } else {
+                invWrap.style.display = 'none';
+                invList.innerHTML = '';
+            }
+        }
 
         calcTotals();
     }

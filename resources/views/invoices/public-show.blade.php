@@ -256,7 +256,13 @@
     $recipientOrgSize = $settings['challan_recipient_org_size'] ?? '12px';
 
     $invoiceUrl = $invoice->public_url;
-    $qrCodeUrl = "https://api.qrserver.com/v1/create-qr-code/?size=130x130&margin=4&data=" . urlencode($invoiceUrl);
+    $qrCodeUrl = "https://api.qrserver.com/v1/create-qr-code/?size=160x160&margin=4&data=" . urlencode($invoiceUrl);
+    $mfsQrSrc = !empty($settings['mfs_qr_image']) 
+        ? \App\Support\SiteSetting::resolveImageUrl($settings['mfs_qr_image']) 
+        : (!empty($settings['payment_qr_image']) ? \App\Support\SiteSetting::resolveImageUrl($settings['payment_qr_image']) : $qrCodeUrl);
+    $bankQrSrc = !empty($settings['bank_qr_image']) 
+        ? \App\Support\SiteSetting::resolveImageUrl($settings['bank_qr_image']) 
+        : (!empty($settings['payment_qr_image']) ? \App\Support\SiteSetting::resolveImageUrl($settings['payment_qr_image']) : $qrCodeUrl);
 
     $totalQuantity = 0;
     foreach($invoice->items ?? [] as $it) {
@@ -619,6 +625,71 @@
 
                 {{-- Signature & QR Code Footer --}}
                 <div class="invoice-footer-compact pt-2 mt-auto border-top">
+                @if($invoice->type === 'invoice')
+                    {{-- 5 Columns Layout: Customer Sig | Scan to Verify | bKash/Nagad/Rocket QR | Bank Payment QR | Authorized Sig --}}
+                    <div class="row g-2 align-items-end text-center" style="font-size: 10px;">
+                        {{-- 1. Customer Signature --}}
+                        <div class="col-3 text-center">
+                            <div class="signature-box" style="margin-top: 36px;">
+                                <div class="border-top border-dark pt-1 fw-semibold text-dark" style="font-size: 9px;">
+                                    গ্রাহকের স্বাক্ষর
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- 2. Scan to Verify QR --}}
+                        <div class="col-2 text-center">
+                            <a href="{{ $invoiceUrl }}" target="_blank" class="text-decoration-none d-inline-flex flex-column align-items-center">
+                                <div class="p-1 rounded border bg-white shadow-2xs d-inline-block">
+                                    <img src="{{ $qrCodeUrl }}" alt="Verify QR" style="width: 38px; height: 38px; object-fit: contain; display: block;">
+                                </div>
+                                <div class="text-primary fw-bold text-nowrap mt-1" style="font-size: 7.5px; line-height: 1.1;">
+                                    Scan to Verify: #{{ $invoice->invoice_no }}
+                                </div>
+                            </a>
+                        </div>
+
+                        {{-- 3. bKash / Nagad / Rocket QR --}}
+                        <div class="col-2 text-center">
+                            <div class="d-inline-flex flex-column align-items-center">
+                                <div class="p-1 rounded border bg-white shadow-2xs d-inline-block">
+                                    <img src="{{ $mfsQrSrc }}" alt="MFS QR" style="width: 38px; height: 38px; object-fit: contain; display: block;">
+                                </div>
+                                <div class="text-dark fw-bold text-nowrap mt-1 font-monospace" style="font-size: 7.5px; line-height: 1.1;">
+                                    {{ $settings['mfs_qr_note'] ?? 'bkash/nagad/roket' }}
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- 4. Bank Payment QR --}}
+                        <div class="col-2 text-center">
+                            <div class="d-inline-flex flex-column align-items-center">
+                                <div class="p-1 rounded border bg-white shadow-2xs d-inline-block">
+                                    <img src="{{ $bankQrSrc }}" alt="Bank QR" style="width: 38px; height: 38px; object-fit: contain; display: block;">
+                                </div>
+                                <div class="text-dark fw-bold text-nowrap mt-1 font-monospace" style="font-size: 7.5px; line-height: 1.1;">
+                                    {{ $settings['bank_qr_note'] ?? 'bank payment' }}
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- 5. Authorized Signature --}}
+                        <div class="col-3 text-center">
+                            <div class="signature-box" style="margin-top: 18px;">
+                                <div class="fw-bold text-dark text-truncate" style="font-size: 10.5px; line-height: 1.2;">
+                                    {{ $creatorName }}
+                                </div>
+                                <div class="text-muted fw-semibold text-truncate" style="font-size: 9px; line-height: 1.2;">
+                                    {{ $creatorDesignation }}
+                                </div>
+                                <div class="border-top border-dark pt-1 mt-1 fw-semibold text-dark" style="font-size: 9px;">
+                                    অনুমোদিত স্বাক্ষরকারী
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @else
+                    {{-- 3 Columns Layout for Delivery Challan / Quotation / Tender --}}
                     <div class="row g-2 align-items-end text-center" style="font-size: 10px;">
                         <div class="col-4">
                             <div class="signature-box" style="margin-top: 36px;">
@@ -629,14 +700,15 @@
                         </div>
 
                         {{-- QR Code & Verification Box --}}
-                        <div class="col-4">
-                            <div class="d-inline-flex align-items-center gap-1.5 px-2 py-1 rounded border bg-white shadow-xs">
-                                <img src="{{ $qrCodeUrl }}" alt="QR" style="width: 34px; height: 34px; object-fit: contain;">
-                                <div class="text-start" style="line-height: 1.15;">
-                                    <span class="text-muted fw-semibold d-block" style="font-size: 8px;"><i class="fas fa-qrcode me-0.5"></i>স্ক্যান করে যাচাই</span>
-                                    <span class="font-monospace text-dark fw-bold" style="font-size: 9px;">#{{ $invoice->invoice_no }}</span>
+                        <div class="col-4 text-center">
+                            <a href="{{ $invoiceUrl }}" target="_blank" class="text-decoration-none d-inline-flex flex-column align-items-center">
+                                <div class="p-1 rounded border bg-white shadow-2xs d-inline-block">
+                                    <img src="{{ $qrCodeUrl }}" alt="QR" style="width: 38px; height: 38px; object-fit: contain; display: block;">
                                 </div>
-                            </div>
+                                <div class="text-primary fw-bold text-nowrap mt-1" style="font-size: 8px; line-height: 1.1;">
+                                    Scan to Verify: #{{ $invoice->invoice_no }}
+                                </div>
+                            </a>
                         </div>
 
                         <div class="col-4 text-center">
@@ -648,21 +720,22 @@
                                     {{ $creatorDesignation }}
                                 </div>
                                 <div class="border-top border-dark pt-1 mt-1 fw-semibold text-dark" style="font-size: 9.5px;">
-                                    অনুমোদিত স্বাক্ষরকারী / বিল প্রস্তুতকারক
+                                    অনুমোদিত স্বাক্ষরকারী
                                 </div>
                             </div>
                         </div>
                     </div>
+                @endif
 
-                    <div class="text-center text-muted mt-2 d-flex justify-content-between align-items-center" style="font-size: 8.5px; line-height: 1;">
-                        <span>পৃষ্ঠা ১ / {{ $invoice->type === 'invoice' ? '২ (ক্যাশ মেমো কপি)' : '১' }}</span>
-                        <span>{{ $settings['business_name'] ?? 'আইডিয়া প্রকাশন' }} · কম্পিউটার জেনারেটেড বিল</span>
-                        <span>আইডি: {{ $invoice->invoice_no }}</span>
-                    </div>
+                <div class="text-center text-muted mt-2 d-flex justify-content-between align-items-center" style="font-size: 8.5px; line-height: 1;">
+                    <span>পৃষ্ঠা ১ / {{ $invoice->type === 'invoice' ? '২ (ক্যাশ মেমো কপি)' : '১' }}</span>
+                    <span>{{ $settings['business_name'] ?? 'আইডিয়া প্রকাশন' }} · কম্পিউটার জেনারেটেড বিল</span>
+                    <span>আইডি: {{ $invoice->invoice_no }}</span>
                 </div>
             </div>
+        </div>
 
-            {{-- ========================================================================= --}}
+        {{-- ========================================================================= --}}
             {{-- PAGE 2: DELIVERY CHALLAN (স্বয়ংক্রিয় ২য় পেজ চালান - বিলের জন্য)              --}}
             {{-- ========================================================================= --}}
             @if($invoice->type === 'invoice')

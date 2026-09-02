@@ -235,4 +235,116 @@ class AuthorDashboardController extends Controller
             'authorPosts'
         ));
     }
+
+    /**
+     * Dynamically update author profile avatar (supports cropped base64 & standard file upload).
+     */
+    public function updateAvatar(Request $request)
+    {
+        $request->validate([
+            'avatar'         => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:10240'],
+            'avatar_cropped' => ['nullable', 'string'],
+        ]);
+
+        $user = auth()->user();
+        $author = $user->getAuthorRecord();
+        $avatarPath = null;
+
+        // 1. Check if Base64 cropped photo sent from mobile studio
+        if ($request->filled('avatar_cropped') && str_starts_with($request->input('avatar_cropped'), 'data:image')) {
+            try {
+                $croppedData = $request->input('avatar_cropped');
+                @list($typeInfo, $data) = explode(';', $croppedData);
+                @list(, $data)          = explode(',', $data);
+                $decodedData = base64_decode($data);
+                if ($decodedData !== false) {
+                    $filename = 'avatars/author_' . $user->id . '_' . time() . '_' . uniqid() . '.jpg';
+                    \Illuminate\Support\Facades\Storage::disk('public')->put($filename, $decodedData);
+                    $avatarPath = $filename;
+                }
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning("Could not process dynamic cropped author avatar: " . $e->getMessage());
+            }
+        }
+
+        // 2. Fallback to direct file upload
+        if (!$avatarPath && $request->hasFile('avatar')) {
+            $avatarPath = $request->file('avatar')->store('avatars', 'public');
+        }
+
+        if (!$avatarPath) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'কোনো ছবি পাওয়া যায়নি। অনুগ্রহ করে একটি ছবি নির্বাচন করুন।'], 422);
+            }
+            return back()->with('error', 'কোনো ছবি পাওয়া যায়নি।');
+        }
+
+        // Update User
+        $user->avatar = $avatarPath;
+        $regData = is_array($user->reg_data) ? $user->reg_data : [];
+        $regData['avatar'] = $avatarPath;
+        $user->reg_data = $regData;
+        $user->save();
+
+        // Update Author Directory Record
+        if ($author) {
+            $author->avatar = $avatarPath;
+            $author->author_image = $avatarPath;
+            $author->save();
+        }
+
+        $fullUrl = asset('storage/' . ltrim($avatarPath, '/'));
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success'    => true,
+                'message'    => 'প্রোফাইল ছবি সফলভাবে আপডেট ও সেভ হয়েছে!',
+                'avatar_url' => $fullUrl,
+                'avatar_path'=> $avatarPath,
+            ]);
+        }
+
+        return back()->with('success', 'প্রোফাইল ছবি সফলভাবে আপডেট হয়েছে!');
+    }
+
+    /**
+     * Update Author Literary Profile & Bio
+     */
+    public function updateProfile(Request $request)
+    {
+        $request->validate([
+            'name'     => ['required', 'string', 'max:255'],
+            'pen_name' => ['nullable', 'string', 'max:255'],
+            'bio'      => ['nullable', 'string', 'max:5000'],
+        ]);
+
+        $user = auth()->user();
+        $author = $user->getAuthorRecord();
+
+        $user->name = $request->input('name');
+        $regData = is_array($user->reg_data) ? $user->reg_data : [];
+        if ($request->filled('pen_name')) {
+            $regData['pen_name'] = $request->input('pen_name');
+        }
+        if ($request->has('bio')) {
+            $regData['bio'] = $request->input('bio');
+        }
+        $user->reg_data = $regData;
+        $user->save();
+
+        if ($author) {
+            $author->name = $request->filled('pen_name') ? $request->input('pen_name') : $request->input('name');
+            $author->bio = $request->input('bio');
+            $author->save();
+        }
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'লেখক পরিচিতি ও তথ্য সফলভাবে আপডেট হয়েছে!',
+            ]);
+        }
+
+        return back()->with('success', 'লেখক পরিচিতি ও তথ্য সফলভাবে আপডেট হয়েছে!');
+    }
 }

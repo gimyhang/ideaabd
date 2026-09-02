@@ -124,13 +124,14 @@ class BlogController extends Controller
         }
 
         if (!$post) {
-            return redirect()->route('blog.index')->with('info', 'অনুরোধকৃত লেখাটি পাওয়া যায়নি বা সরানো হয়েছে। আইডিয়া সাহিত্যপত্রের সাম্প্রতিক লেখাগুলো নিচে দেখতে পারেন।');
+            abort(404, 'অনুরোধকৃত রচনা বা পোস্টটি পাওয়া যায়নি।');
         }
 
         // If post is not published yet, allow preview only for the author or admin
-        if ($post->status !== 'published') {
+        $isPublished = ($post->status === 'published' || $post->status === 'approved' || $post->mod_status === 'approved');
+        if (!$isPublished) {
             if (!auth()->check() || (auth()->id() !== $post->author_id && !auth()->user()->isAdmin())) {
-                return redirect()->route('blog.index')->with('warning', 'এই লেখাটি এখনো পর্যালোচনার অপেক্ষায় রয়েছে এবং প্রকাশিত হয়নি।');
+                abort(404, 'এই লেখাটি এখনো পর্যালোচনার অপেক্ষায় রয়েছে এবং প্রকাশিত হয়নি।');
             }
         }
 

@@ -294,6 +294,8 @@ Route::get('/blog/write', [\App\Http\Controllers\AuthorBlogController::class, 'w
 Route::prefix('author')->name('author.')->middleware(['auth'])->group(function () {
     // KDP Dashboard & Sales Analytics
     Route::get('/dashboard', [\App\Http\Controllers\Author\AuthorDashboardController::class, 'dashboard'])->name('dashboard');
+    Route::post('/profile/avatar', [\App\Http\Controllers\Author\AuthorDashboardController::class, 'updateAvatar'])->name('profile.avatar');
+    Route::post('/profile/update', [\App\Http\Controllers\Author\AuthorDashboardController::class, 'updateProfile'])->name('profile.update');
     Route::get('/royalties', [\App\Http\Controllers\Author\AuthorDashboardController::class, 'royalties'])->name('royalties');
 
     // Self-Publishing E-Books CRUD
@@ -388,6 +390,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::get('/payments/{payment}/voucher', 'paymentVoucher')->name('payments.voucher');
         Route::delete('/payments/{payment}', 'destroyPayment')->name('payments.destroy');
         Route::get('/ledger', 'ledger')->name('ledger');
+        Route::get('/party-due', 'ajaxPartyDue')->name('party-due');
         Route::get('/search-books', 'searchBooks')->name('search-books');
         Route::get('/monthly-report', 'monthlyReport')->name('monthly-report');
         Route::get('/{purchase}', 'show')->name('show');

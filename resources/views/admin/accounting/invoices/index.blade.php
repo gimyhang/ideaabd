@@ -516,6 +516,95 @@
                         </div>
                     </div>
 
+                                        {{-- Dual Payment QR Codes (MFS & Bank Payment QR) --}}
+                    <div class="card border border-success-subtle rounded-3 p-3 mb-3 bg-success-subtle bg-opacity-10">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label class="form-label fw-bold text-success mb-0">
+                                <i class="fa-solid fa-qrcode me-1"></i> পেমেন্ট কিউআর কোডসমূহ (MFS & Bank Payment QR)
+                            </label>
+                            <span class="badge bg-success text-white">শুধুমাত্র বিলে থাকবে</span>
+                        </div>
+                        <p class="small text-muted mb-3" style="font-size: 11px;">
+                            বিলের ফুটার কলামে প্রদর্শনের জন্য বিকাশ/নগদ/রকেট কিউআর এবং ব্যাংক পেমেন্ট কিউআর ছবি ও বিবরণ যুক্ত করুন:
+                        </p>
+                        
+                        <div class="row g-3">
+                            {{-- 1. MFS (bKash / Nagad / Rocket) QR --}}
+                            <div class="col-md-6 border-end">
+                                <div class="p-2.5 bg-white rounded-3 border h-100 d-flex flex-column justify-content-between">
+                                    <div>
+                                        <div class="d-flex align-items-center justify-content-between mb-2">
+                                            <span class="small fw-bold text-dark"><i class="fas fa-mobile-screen-button text-primary me-1"></i>১. bKash / Nagad / Rocket কিউআর</span>
+                                        </div>
+                                        <input type="file" name="mfs_qr_file" id="mfsQrFileInput" class="form-control form-control-sm mb-2" accept="image/*" onchange="previewQr(this, 'mfsQrPreviewImg', 'mfsQrStatusText')">
+                                        <div class="mb-2">
+                                            <label class="form-label small fw-semibold text-muted mb-0.5" style="font-size: 10.5px;">কিউআর এর নিচের লেখা (এক লাইনে):</label>
+                                            <input type="text" name="mfs_qr_note" class="form-control form-control-sm font-monospace" 
+                                                   value="{{ $settings['mfs_qr_note'] ?? 'bkash/nagad/roket' }}" 
+                                                   placeholder="bkash/nagad/roket">
+                                        </div>
+                                        @if(!empty($settings['mfs_qr_image']))
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input" type="checkbox" name="remove_mfs_qr" value="1" id="removeMfsQrCheck">
+                                                <label class="form-check-label small text-danger" for="removeMfsQrCheck" style="font-size: 11px;">
+                                                    বর্তমান MFS কিউআর মুছুন
+                                                </label>
+                                            </div>
+                                        @endif
+                                    </div>
+                                    <div class="text-center pt-2 border-top">
+                                        <div class="p-1 border rounded bg-light d-inline-block shadow-2xs">
+                                            <img id="mfsQrPreviewImg" 
+                                                 src="{{ !empty($settings['mfs_qr_image']) ? \App\Support\SiteSetting::resolveImageUrl($settings['mfs_qr_image']) : asset('images/logo.png') }}" 
+                                                 alt="MFS QR Preview" 
+                                                 style="width: 55px; height: 55px; object-fit: contain; {{ empty($settings['mfs_qr_image']) ? 'opacity: 0.35; filter: grayscale(1);' : '' }}">
+                                        </div>
+                                        <div class="small text-muted mt-0.5" id="mfsQrStatusText" style="font-size: 10px;">
+                                            {{ !empty($settings['mfs_qr_image']) ? 'MFS কিউআর সক্রিয়' : 'ছবি আপলোড করুন' }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- 2. Bank Payment QR --}}
+                            <div class="col-md-6">
+                                <div class="p-2.5 bg-white rounded-3 border h-100 d-flex flex-column justify-content-between">
+                                    <div>
+                                        <div class="d-flex align-items-center justify-content-between mb-2">
+                                            <span class="small fw-bold text-dark"><i class="fa-solid fa-building-columns text-success me-1"></i>২. Bank Payment কিউআর</span>
+                                        </div>
+                                        <input type="file" name="bank_qr_file" id="bankQrFileInput" class="form-control form-control-sm mb-2" accept="image/*" onchange="previewQr(this, 'bankQrPreviewImg', 'bankQrStatusText')">
+                                        <div class="mb-2">
+                                            <label class="form-label small fw-semibold text-muted mb-0.5" style="font-size: 10.5px;">কিউআর এর নিচের লেখা (এক লাইনে):</label>
+                                            <input type="text" name="bank_qr_note" class="form-control form-control-sm font-monospace" 
+                                                   value="{{ $settings['bank_qr_note'] ?? 'bank payment' }}" 
+                                                   placeholder="bank payment">
+                                        </div>
+                                        @if(!empty($settings['bank_qr_image']))
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input" type="checkbox" name="remove_bank_qr" value="1" id="removeBankQrCheck">
+                                                <label class="form-check-label small text-danger" for="removeBankQrCheck" style="font-size: 11px;">
+                                                    বর্তমান ব্যাংক কিউআর মুছুন
+                                                </label>
+                                            </div>
+                                        @endif
+                                    </div>
+                                    <div class="text-center pt-2 border-top">
+                                        <div class="p-1 border rounded bg-light d-inline-block shadow-2xs">
+                                            <img id="bankQrPreviewImg" 
+                                                 src="{{ !empty($settings['bank_qr_image']) ? \App\Support\SiteSetting::resolveImageUrl($settings['bank_qr_image']) : asset('images/logo.png') }}" 
+                                                 alt="Bank QR Preview" 
+                                                 style="width: 55px; height: 55px; object-fit: contain; {{ empty($settings['bank_qr_image']) ? 'opacity: 0.35; filter: grayscale(1);' : '' }}">
+                                        </div>
+                                        <div class="small text-muted mt-0.5" id="bankQrStatusText" style="font-size: 10px;">
+                                            {{ !empty($settings['bank_qr_image']) ? 'ব্যাংক কিউআর সক্রিয়' : 'ছবি আপলোড করুন' }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     {{-- Challan Destination & Recipient Typography Controls --}}
                     <div class="card border border-primary-subtle rounded-3 p-3 mb-3 bg-primary bg-opacity-10">
                         <div class="d-flex justify-content-between align-items-center mb-2">

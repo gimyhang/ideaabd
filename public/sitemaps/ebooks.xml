@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+  <url>
+    <loc>https://www.ideaabd.com/ebooks</loc>
+    <lastmod>2026-09-02</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.92</priority>
+  </url>
+  <url>
+    <loc>https://www.ideaabd.com/ebooks?filter=free</loc>
+    <lastmod>2026-09-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.88</priority>
+  </url>
+  <url>
+    <loc>https://www.ideaabd.com/ebooks?filter=premium</loc>
+    <lastmod>2026-09-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.88</priority>
+  </url>
+  <url>
+    <loc>https://www.ideaabd.com/ebooks/বকষ-যখন-কথ-বল</loc>
+    <lastmod>2026-08-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+    <image:image>
+      <image:loc>https://www.ideaabd.com/storage/ebooks/vWA2SqGTk9WOciQJw5n45cs8QkqcJ9mAnDiSnM9n.jpg</image:loc>
+      <image:title>বৃক্ষ যখন কথা বলে (ই-বুক)</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://www.ideaabd.com/ebooks/টসট-ই-বক-949</loc>
+    <lastmod>2026-08-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+</urlset>

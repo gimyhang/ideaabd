@@ -205,6 +205,25 @@
         @endif
     </table>
 
+        @if($invoice->type === 'invoice')
+    <table style="width: 100%; margin-top: 15px; border-top: 1px solid #cbd5e1; padding-top: 8px;">
+        <tr>
+            <td style="width: 50%; vertical-align: top; padding-right: 10px;">
+                <div style="font-size: 9px; font-weight: bold; color: #0284c7; text-transform: uppercase; margin-bottom: 2px;">Bank Payment Details:</div>
+                <div style="font-size: 9.5px; font-weight: bold; color: #0f172a;">Bank: {{ $settings['bank_name'] ?? 'Islami Bank Bangladesh Ltd' }}</div>
+                <div style="font-size: 9px; color: #334155;">A/C Name: {{ $settings['bank_account_name'] ?? ($settings['business_name'] ?? 'Idea Publication') }}</div>
+                <div style="font-size: 9px; color: #334155;">A/C No: <strong>{{ $settings['bank_account_no'] ?? '2050XXXXXXXXXXXXX' }}</strong></div>
+                @if(!empty($settings['bank_branch']))<div style="font-size: 8.5px; color: #64748b;">Branch: {{ $settings['bank_branch'] }} @if(!empty($settings['bank_routing_no']))| Routing: {{ $settings['bank_routing_no'] }}@endif</div>@endif
+            </td>
+            <td style="width: 50%; vertical-align: top; text-align: right;">
+                <div style="font-size: 9px; font-weight: bold; color: #16a34a; text-transform: uppercase; margin-bottom: 2px;">MFS & Bangla QR:</div>
+                <div style="font-size: 9px; color: #334155;">Payment: <strong>{{ $settings['payment_qr_note'] ?? 'bKash / Nagad / Rocket' }}</strong></div>
+                <div style="font-size: 8.5px; color: #64748b;">Scan QR on digital invoice to pay instantly.</div>
+            </td>
+        </tr>
+    </table>
+    @endif
+
     <div class="footer-note">
         This is an official computer-generated document from {{ $bizName }}. View digital copy at: {{ $invoice->public_url }}
     </div>

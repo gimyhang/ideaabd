@@ -96,16 +96,6 @@
                                 <i class="fa-solid fa-tablet-screen-button me-1"></i> @bn($ebooksCount)টি ই-বুক
                             </span>
                         @endif
-
-                        @if(!empty($author->email))
-                            <span class="ms-md-2 text-white-50"><i class="fa-solid fa-envelope me-1"></i> {{ $author->email }}</span>
-                        @endif
-
-                        @if(!empty($author->website))
-                            <a href="{{ $author->website }}" target="_blank" rel="noopener" class="text-info text-decoration-none ms-md-2">
-                                <i class="fa-solid fa-globe me-1"></i> ওয়েবসাইট
-                            </a>
-                        @endif
                     </div>
 
                     {{-- Short Bio Preview --}}

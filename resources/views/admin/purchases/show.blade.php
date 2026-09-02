@@ -347,10 +347,11 @@
                     @endif
 
                     @php
-                        $tfootRows = 3;
+                        $tfootRows = 2; // Subtotal, Current Bill
                         if ($purchase->discount_amount > 0) $tfootRows++;
+                        if ($previousDue > 0) $tfootRows += 2; // Previous Due, Total Payable
                         if ($purchase->paid_amount > 0) $tfootRows++;
-                        if ($purchase->due_amount > 0) $tfootRows++;
+                        if ($netTotalDue > 0 || $purchase->due_amount > 0) $tfootRows++;
                     @endphp
                     <tfoot>
                         <tr>
@@ -358,36 +359,64 @@
                                 rowspan="{{ $tfootRows }}" class="py-2 px-2.5 border bg-light bg-opacity-25" style="vertical-align: middle;">
                                 <div class="p-1">
                                     <span class="text-muted fw-bold d-block mb-1" style="font-size: 9.5px;">
-                                        <i class="fas fa-coins me-1 text-primary"></i>Total in Words (টাকা কথায়):
+                                        <i class="fas fa-coins me-1 text-primary"></i>টাকা কথায় (In Words):
                                     </span>
                                     <div class="fw-bold text-dark text-wrap" style="font-size: 11.5px; line-height: 1.45;">
-                                        @takaInWordsEn($purchase->grand_total)
+                                        @takaInWordsEn($totalPayable > 0 ? $totalPayable : $purchase->grand_total)
                                     </div>
+                                    @if($previousDue > 0 && !empty($previousInvoices))
+                                        <div class="mt-2 pt-1.5 border-top border-secondary-subtle">
+                                            <span class="text-muted fw-bold d-block mb-1" style="font-size: 9px;">
+                                                <i class="fas fa-clock-rotate-left me-1 text-danger"></i>পূর্বের বকেয়া মেমো ও তারিখ:
+                                            </span>
+                                            <div class="d-flex flex-wrap gap-1">
+                                                @foreach($previousInvoices as $pi)
+                                                    <span class="badge bg-white text-dark border px-1.5 py-0.5 font-monospace" style="font-size: 8.5px;">
+                                                        #{{ $pi['purchase_no'] }} ({{ $pi['purchase_date'] }}): ৳{{ number_format($pi['due_amount'], 2) }}
+                                                    </span>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    @endif
                                 </div>
                             </td>
-                            <td class="text-end py-0.5 px-1.5 fw-semibold">Subtotal:</td>
+                            <td class="text-end py-0.5 px-1.5 fw-semibold">উপমোট:</td>
                             <td class="text-end py-0.5 pe-1.5 fw-semibold font-monospace">৳{{ number_format($purchase->total_amount, 2) }}</td>
                         </tr>
                         @if($purchase->discount_amount > 0)
                             <tr>
-                                <td class="text-end py-0.5 px-1.5 text-danger fw-semibold">Special Discount:</td>
+                                <td class="text-end py-0.5 px-1.5 text-danger fw-semibold">ছাড়:</td>
                                 <td class="text-end py-0.5 pe-1.5 text-danger fw-semibold font-monospace">- ৳{{ number_format($purchase->discount_amount, 2) }}</td>
                             </tr>
                         @endif
                         <tr class="table-light">
-                            <td class="text-end py-1 px-1.5 fw-bold text-dark">Grand Total:</td>
-                            <td class="text-end py-1 pe-1.5 fw-bold text-primary font-monospace" style="font-size: 11.5px;">৳{{ number_format($purchase->grand_total, 2) }}</td>
+                            <td class="text-end py-0.5 px-1.5 fw-bold text-dark">চলতি ক্রয় বিল:</td>
+                            <td class="text-end py-0.5 pe-1.5 fw-bold text-dark font-monospace">৳{{ number_format($purchase->grand_total, 2) }}</td>
                         </tr>
+                        @if($previousDue > 0)
+                            <tr class="table-warning bg-opacity-25">
+                                <td class="text-end py-0.5 px-1.5 text-danger fw-bold">
+                                    পূর্বের বকেয়া জের:
+                                </td>
+                                <td class="text-end py-0.5 pe-1.5 text-danger fw-bold font-monospace">+ ৳{{ number_format($previousDue, 2) }}</td>
+                            </tr>
+                            <tr class="table-light border-top border-dark">
+                                <td class="text-end py-1 px-1.5 fw-bold text-dark">সর্বমোট প্রদেয়:</td>
+                                <td class="text-end py-1 pe-1.5 fw-bold text-primary font-monospace" style="font-size: 11.5px;">৳{{ number_format($totalPayable, 2) }}</td>
+                            </tr>
+                        @endif
                         @if($purchase->paid_amount > 0)
                             <tr>
-                                <td class="text-end py-0.5 px-1.5 text-success fw-bold">Amount Paid:</td>
+                                <td class="text-end py-0.5 px-1.5 text-success fw-bold">চলতি পরিশোধ:</td>
                                 <td class="text-end py-0.5 pe-1.5 text-success fw-bold font-monospace">৳{{ number_format($purchase->paid_amount, 2) }}</td>
                             </tr>
                         @endif
-                        @if($purchase->due_amount > 0)
+                        @if($netTotalDue > 0)
                             <tr class="table-danger">
-                                <td class="text-end py-0.5 px-1.5 text-danger fw-bold">Due Balance:</td>
-                                <td class="text-end py-0.5 pe-1.5 text-danger fw-bold font-monospace">৳{{ number_format($purchase->due_amount, 2) }}</td>
+                                <td class="text-end py-0.5 px-1.5 text-danger fw-bold">
+                                    {{ $previousDue > 0 ? 'সর্বমোট বকেয়া জের:' : 'বকেয়া বিল:' }}
+                                </td>
+                                <td class="text-end py-0.5 pe-1.5 text-danger fw-bold font-monospace">৳{{ number_format($netTotalDue, 2) }}</td>
                             </tr>
                         @endif
                     </tfoot>

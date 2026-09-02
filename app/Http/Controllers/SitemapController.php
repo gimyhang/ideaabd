@@ -32,6 +32,29 @@ class SitemapController extends Controller
     }
 
     /**
+     * Normalize image URL so local development hosts or raw paths never leak into production XML sitemaps.
+     */
+    protected function normalizeImageUrl(?string $img): ?string
+    {
+        if (empty($img)) return null;
+        $img = trim($img);
+        $baseUrl = $this->getBaseUrl();
+        
+        if (str_starts_with($img, 'data:')) return null; // No raw base64 data in XML sitemaps
+        
+        if (str_starts_with($img, 'http://') || str_starts_with($img, 'https://')) {
+            $parsed = parse_url($img);
+            $path = $parsed['path'] ?? '';
+            if (isset($parsed['host']) && (str_contains($parsed['host'], 'localhost') || str_contains($parsed['host'], '127.0.0.1'))) {
+                return $baseUrl . $path;
+            }
+            return $img;
+        }
+        
+        return $baseUrl . '/storage/' . ltrim(str_replace(['public/', 'storage/'], '', $img), '/');
+    }
+
+    /**
      * Helper to start XML URLSET with proper Schema namespaces.
      */
     protected function startUrlsetXml(): string
@@ -61,6 +84,35 @@ class SitemapController extends Controller
             'Content-Type' => 'application/xml; charset=utf-8',
             'X-Robots-Tag' => 'noindex, follow',
         ]);
+    }
+
+    /**
+     * Auto-regenerate and save static XML sitemaps to public directory.
+     * Called automatically when any post, book, author, etc. is created or modified.
+     */
+    public static function regenerateStaticSitemap(): void
+    {
+        try {
+            $controller = new self();
+            $masterXml = $controller->generateMasterSitemapXml();
+            @file_put_contents(public_path('sitemap.xml'), $masterXml);
+            
+            $sitemapsDir = public_path('sitemaps');
+            if (!is_dir($sitemapsDir)) {
+                @mkdir($sitemapsDir, 0755, true);
+            }
+            
+            @file_put_contents(public_path('sitemaps/posts.xml'), $controller->postsSitemap()->getContent());
+            @file_put_contents(public_path('sitemaps/books.xml'), $controller->booksSitemap()->getContent());
+            @file_put_contents(public_path('sitemaps/ebooks.xml'), $controller->ebooksSitemap()->getContent());
+            @file_put_contents(public_path('sitemaps/authors.xml'), $controller->authorsSitemap()->getContent());
+            @file_put_contents(public_path('sitemaps/publishers.xml'), $controller->publishersSitemap()->getContent());
+            @file_put_contents(public_path('sitemaps/categories.xml'), $controller->categoriesSitemap()->getContent());
+            @file_put_contents(public_path('sitemaps/pages.xml'), $controller->pagesSitemap()->getContent());
+            @file_put_contents(public_path('sitemaps/sitemap-index.xml'), $controller->sitemapIndex()->getContent());
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning("Could not auto regenerate sitemap: " . $e->getMessage());
+        }
     }
 
     /**
@@ -206,31 +258,29 @@ class SitemapController extends Controller
         // All Published Blog Posts & Ideapatra Articles
         if (Schema::hasTable('blog_posts')) {
             try {
-                $blogPosts = BlogPost::where('status', 'published')
-                    ->where(function($q) {
-                        $q->whereNull('mod_status')->orWhere('mod_status', 'approved');
-                    })
-                    ->latest('published_at')
-                    ->take(5000)
+                $blogPosts = BlogPost::published()
+                    ->latest('id')
                     ->get();
 
                 foreach ($blogPosts as $post) {
+                    $slug = trim((string) $post->slug) ?: $post->id;
                     $lastMod = $post->published_at ? $post->published_at->format('Y-m-d') : ($post->updated_at ? $post->updated_at->format('Y-m-d') : $now);
-                    $loc = htmlspecialchars($baseUrl . '/blog/' . $post->slug, ENT_XML1, 'UTF-8');
+                    $loc = htmlspecialchars($baseUrl . '/blog/' . $slug, ENT_XML1, 'UTF-8');
                     $xml .= "  <url>\n";
                     $xml .= "    <loc>{$loc}</loc>\n";
                     $xml .= "    <lastmod>{$lastMod}</lastmod>\n";
                     $xml .= "    <changefreq>weekly</changefreq>\n";
-                    $xml .= "    <priority>0.88</priority>\n";
+                    $xml .= "    <priority>0.90</priority>\n";
                     $xml .= "    <xhtml:link rel=\"alternate\" hreflang=\"bn\" href=\"{$loc}\"/>\n";
 
-                    $ideapatraLoc = htmlspecialchars($baseUrl . '/ideapatra/' . $post->slug, ENT_XML1, 'UTF-8');
+                    $ideapatraLoc = htmlspecialchars($baseUrl . '/ideapatra/' . $slug, ENT_XML1, 'UTF-8');
                     $xml .= "    <xhtml:link rel=\"alternate\" hreflang=\"bn-BD\" href=\"{$ideapatraLoc}\"/>\n";
 
-                    if (!empty($post->featured_image) || !empty($post->cover_image)) {
-                        $img = $post->cover_url ?: (str_starts_with((string)$post->featured_image, 'http') ? $post->featured_image : $baseUrl . '/storage/' . ltrim((string)$post->featured_image, '/'));
+                    $rawImg = $post->cover_url ?: $post->featured_image;
+                    $normalizedImg = $this->normalizeImageUrl($rawImg);
+                    if (!empty($normalizedImg)) {
                         $xml .= "    <image:image>\n";
-                        $xml .= "      <image:loc>" . htmlspecialchars($img, ENT_XML1, 'UTF-8') . "</image:loc>\n";
+                        $xml .= "      <image:loc>" . htmlspecialchars($normalizedImg, ENT_XML1, 'UTF-8') . "</image:loc>\n";
                         $xml .= "      <image:title>" . htmlspecialchars($post->title, ENT_XML1, 'UTF-8') . "</image:title>\n";
                         $xml .= "    </image:image>\n";
                     }
@@ -315,11 +365,13 @@ class SitemapController extends Controller
                     $xml .= "    <priority>0.92</priority>\n";
 
                     if (!empty($b->cover_image)) {
-                        $img = str_starts_with((string)$b->cover_image, 'http') ? $b->cover_image : $baseUrl . '/storage/' . ltrim((string)$b->cover_image, '/');
-                        $xml .= "    <image:image>\n";
-                        $xml .= "      <image:loc>" . htmlspecialchars($img, ENT_XML1, 'UTF-8') . "</image:loc>\n";
-                        $xml .= "      <image:title>" . htmlspecialchars($b->title . ' — ' . ($b->author_name ?: 'আইডিয়া প্রকাশন'), ENT_XML1, 'UTF-8') . "</image:title>\n";
-                        $xml .= "    </image:image>\n";
+                        $img = $this->normalizeImageUrl($b->cover_image);
+                        if (!empty($img)) {
+                            $xml .= "    <image:image>\n";
+                            $xml .= "      <image:loc>" . htmlspecialchars($img, ENT_XML1, 'UTF-8') . "</image:loc>\n";
+                            $xml .= "      <image:title>" . htmlspecialchars($b->title . ' — ' . ($b->author_name ?: 'আইডিয়া প্রকাশন'), ENT_XML1, 'UTF-8') . "</image:title>\n";
+                            $xml .= "    </image:image>\n";
+                        }
                     }
 
                     $xml .= "  </url>\n";
@@ -372,11 +424,13 @@ class SitemapController extends Controller
                     $xml .= "    <priority>0.85</priority>\n";
 
                     if (!empty($eb->cover_image)) {
-                        $img = str_starts_with((string)$eb->cover_image, 'http') ? $eb->cover_image : $baseUrl . '/storage/' . ltrim((string)$eb->cover_image, '/');
-                        $xml .= "    <image:image>\n";
-                        $xml .= "      <image:loc>" . htmlspecialchars($img, ENT_XML1, 'UTF-8') . "</image:loc>\n";
-                        $xml .= "      <image:title>" . htmlspecialchars($eb->title . ' (ই-বুক)', ENT_XML1, 'UTF-8') . "</image:title>\n";
-                        $xml .= "    </image:image>\n";
+                        $img = $this->normalizeImageUrl($eb->cover_image);
+                        if (!empty($img)) {
+                            $xml .= "    <image:image>\n";
+                            $xml .= "      <image:loc>" . htmlspecialchars($img, ENT_XML1, 'UTF-8') . "</image:loc>\n";
+                            $xml .= "      <image:title>" . htmlspecialchars($eb->title . ' (ই-বুক)', ENT_XML1, 'UTF-8') . "</image:title>\n";
+                            $xml .= "    </image:image>\n";
+                        }
                     }
 
                     $xml .= "  </url>\n";
@@ -420,11 +474,13 @@ class SitemapController extends Controller
                     $xml .= "    <priority>0.82</priority>\n";
 
                     if (!empty($wz->cover_image)) {
-                        $img = str_starts_with((string)$wz->cover_image, 'http') ? $wz->cover_image : $baseUrl . '/storage/' . ltrim((string)$wz->cover_image, '/');
-                        $xml .= "    <image:image>\n";
-                        $xml .= "      <image:loc>" . htmlspecialchars($img, ENT_XML1, 'UTF-8') . "</image:loc>\n";
-                        $xml .= "      <image:title>" . htmlspecialchars($wz->title, ENT_XML1, 'UTF-8') . "</image:title>\n";
-                        $xml .= "    </image:image>\n";
+                        $img = $this->normalizeImageUrl($wz->cover_image);
+                        if (!empty($img)) {
+                            $xml .= "    <image:image>\n";
+                            $xml .= "      <image:loc>" . htmlspecialchars($img, ENT_XML1, 'UTF-8') . "</image:loc>\n";
+                            $xml .= "      <image:title>" . htmlspecialchars($wz->title, ENT_XML1, 'UTF-8') . "</image:title>\n";
+                            $xml .= "    </image:image>\n";
+                        }
                     }
 
                     $xml .= "  </url>\n";
@@ -467,12 +523,15 @@ class SitemapController extends Controller
                     $xml .= "    <changefreq>weekly</changefreq>\n";
                     $xml .= "    <priority>0.82</priority>\n";
 
-                    if (!empty($a->avatar) || !empty($a->photo)) {
-                        $img = str_starts_with((string)($a->avatar ?: $a->photo), 'http') ? ($a->avatar ?: $a->photo) : $baseUrl . '/storage/' . ltrim((string)($a->avatar ?: $a->photo), '/');
-                        $xml .= "    <image:image>\n";
-                        $xml .= "      <image:loc>" . htmlspecialchars($img, ENT_XML1, 'UTF-8') . "</image:loc>\n";
-                        $xml .= "      <image:title>" . htmlspecialchars($a->name . ' — লেখক পরিচিতি', ENT_XML1, 'UTF-8') . "</image:title>\n";
-                        $xml .= "    </image:image>\n";
+                    $authorPhoto = $a->avatar ?: $a->photo;
+                    if (!empty($authorPhoto)) {
+                        $img = $this->normalizeImageUrl($authorPhoto);
+                        if (!empty($img)) {
+                            $xml .= "    <image:image>\n";
+                            $xml .= "      <image:loc>" . htmlspecialchars($img, ENT_XML1, 'UTF-8') . "</image:loc>\n";
+                            $xml .= "      <image:title>" . htmlspecialchars($a->name . ' — লেখক পরিচিতি', ENT_XML1, 'UTF-8') . "</image:title>\n";
+                            $xml .= "    </image:image>\n";
+                        }
                     }
 
                     $xml .= "  </url>\n";
@@ -516,11 +575,13 @@ class SitemapController extends Controller
                     $xml .= "    <priority>0.80</priority>\n";
 
                     if (!empty($p->logo)) {
-                        $img = str_starts_with((string)$p->logo, 'http') ? $p->logo : $baseUrl . '/storage/' . ltrim((string)$p->logo, '/');
-                        $xml .= "    <image:image>\n";
-                        $xml .= "      <image:loc>" . htmlspecialchars($img, ENT_XML1, 'UTF-8') . "</image:loc>\n";
-                        $xml .= "      <image:title>" . htmlspecialchars($p->name . ' — প্রকাশনী', ENT_XML1, 'UTF-8') . "</image:title>\n";
-                        $xml .= "    </image:image>\n";
+                        $img = $this->normalizeImageUrl($p->logo);
+                        if (!empty($img)) {
+                            $xml .= "    <image:image>\n";
+                            $xml .= "      <image:loc>" . htmlspecialchars($img, ENT_XML1, 'UTF-8') . "</image:loc>\n";
+                            $xml .= "      <image:title>" . htmlspecialchars($p->name . ' — প্রকাশনী', ENT_XML1, 'UTF-8') . "</image:title>\n";
+                            $xml .= "    </image:image>\n";
+                        }
                     }
 
                     $xml .= "  </url>\n";
@@ -822,28 +883,26 @@ class SitemapController extends Controller
         // 4. Published Blog Posts (Articles & Ideapatra)
         if (Schema::hasTable('blog_posts')) {
             try {
-                $blogPosts = BlogPost::where('status', 'published')
-                    ->where(function($q) {
-                        $q->whereNull('mod_status')->orWhere('mod_status', 'approved');
-                    })
-                    ->latest('published_at')
-                    ->take(5000)
+                $blogPosts = BlogPost::published()
+                    ->latest('id')
                     ->get();
 
                 foreach ($blogPosts as $post) {
+                    $slug = trim((string) $post->slug) ?: $post->id;
                     $lastMod = $post->published_at ? $post->published_at->format('Y-m-d') : ($post->updated_at ? $post->updated_at->format('Y-m-d') : $now);
-                    $loc = htmlspecialchars($baseUrl . '/blog/' . $post->slug, ENT_XML1, 'UTF-8');
+                    $loc = htmlspecialchars($baseUrl . '/blog/' . $slug, ENT_XML1, 'UTF-8');
                     $xml .= "  <url>\n";
                     $xml .= "    <loc>{$loc}</loc>\n";
                     $xml .= "    <lastmod>{$lastMod}</lastmod>\n";
                     $xml .= "    <changefreq>weekly</changefreq>\n";
-                    $xml .= "    <priority>0.88</priority>\n";
+                    $xml .= "    <priority>0.90</priority>\n";
                     $xml .= "    <xhtml:link rel=\"alternate\" hreflang=\"bn\" href=\"{$loc}\"/>\n";
 
-                    if (!empty($post->featured_image) || !empty($post->cover_image)) {
-                        $img = $post->cover_url ?: (str_starts_with((string)$post->featured_image, 'http') ? $post->featured_image : $baseUrl . '/storage/' . ltrim((string)$post->featured_image, '/'));
+                    $rawImg = $post->cover_url ?: $post->featured_image;
+                    $normalizedImg = $this->normalizeImageUrl($rawImg);
+                    if (!empty($normalizedImg)) {
                         $xml .= "    <image:image>\n";
-                        $xml .= "      <image:loc>" . htmlspecialchars($img, ENT_XML1, 'UTF-8') . "</image:loc>\n";
+                        $xml .= "      <image:loc>" . htmlspecialchars($normalizedImg, ENT_XML1, 'UTF-8') . "</image:loc>\n";
                         $xml .= "      <image:title>" . htmlspecialchars($post->title, ENT_XML1, 'UTF-8') . "</image:title>\n";
                         $xml .= "    </image:image>\n";
                     }
@@ -892,11 +951,13 @@ class SitemapController extends Controller
                     $xml .= "    <priority>0.92</priority>\n";
 
                     if (!empty($b->cover_image)) {
-                        $img = str_starts_with((string)$b->cover_image, 'http') ? $b->cover_image : $baseUrl . '/storage/' . ltrim((string)$b->cover_image, '/');
-                        $xml .= "    <image:image>\n";
-                        $xml .= "      <image:loc>" . htmlspecialchars($img, ENT_XML1, 'UTF-8') . "</image:loc>\n";
-                        $xml .= "      <image:title>" . htmlspecialchars($b->title . ' — ' . ($b->author_name ?: 'আইডিয়া প্রকাশন'), ENT_XML1, 'UTF-8') . "</image:title>\n";
-                        $xml .= "    </image:image>\n";
+                        $img = $this->normalizeImageUrl($b->cover_image);
+                        if (!empty($img)) {
+                            $xml .= "    <image:image>\n";
+                            $xml .= "      <image:loc>" . htmlspecialchars($img, ENT_XML1, 'UTF-8') . "</image:loc>\n";
+                            $xml .= "      <image:title>" . htmlspecialchars($b->title . ' — ' . ($b->author_name ?: 'আইডিয়া প্রকাশন'), ENT_XML1, 'UTF-8') . "</image:title>\n";
+                            $xml .= "    </image:image>\n";
+                        }
                     }
 
                     $xml .= "  </url>\n";
@@ -918,12 +979,15 @@ class SitemapController extends Controller
                     $xml .= "    <changefreq>weekly</changefreq>\n";
                     $xml .= "    <priority>0.82</priority>\n";
 
-                    if (!empty($a->avatar) || !empty($a->photo)) {
-                        $img = str_starts_with((string)($a->avatar ?: $a->photo), 'http') ? ($a->avatar ?: $a->photo) : $baseUrl . '/storage/' . ltrim((string)($a->avatar ?: $a->photo), '/');
-                        $xml .= "    <image:image>\n";
-                        $xml .= "      <image:loc>" . htmlspecialchars($img, ENT_XML1, 'UTF-8') . "</image:loc>\n";
-                        $xml .= "      <image:title>" . htmlspecialchars($a->name, ENT_XML1, 'UTF-8') . "</image:title>\n";
-                        $xml .= "    </image:image>\n";
+                    $authorPhoto = $a->avatar ?: $a->photo;
+                    if (!empty($authorPhoto)) {
+                        $img = $this->normalizeImageUrl($authorPhoto);
+                        if (!empty($img)) {
+                            $xml .= "    <image:image>\n";
+                            $xml .= "      <image:loc>" . htmlspecialchars($img, ENT_XML1, 'UTF-8') . "</image:loc>\n";
+                            $xml .= "      <image:title>" . htmlspecialchars($a->name, ENT_XML1, 'UTF-8') . "</image:title>\n";
+                            $xml .= "    </image:image>\n";
+                        }
                     }
 
                     $xml .= "  </url>\n";
@@ -946,11 +1010,13 @@ class SitemapController extends Controller
                     $xml .= "    <priority>0.80</priority>\n";
 
                     if (!empty($p->logo)) {
-                        $img = str_starts_with((string)$p->logo, 'http') ? $p->logo : $baseUrl . '/storage/' . ltrim((string)$p->logo, '/');
-                        $xml .= "    <image:image>\n";
-                        $xml .= "      <image:loc>" . htmlspecialchars($img, ENT_XML1, 'UTF-8') . "</image:loc>\n";
-                        $xml .= "      <image:title>" . htmlspecialchars($p->name . ' — প্রকাশনী', ENT_XML1, 'UTF-8') . "</image:title>\n";
-                        $xml .= "    </image:image>\n";
+                        $img = $this->normalizeImageUrl($p->logo);
+                        if (!empty($img)) {
+                            $xml .= "    <image:image>\n";
+                            $xml .= "      <image:loc>" . htmlspecialchars($img, ENT_XML1, 'UTF-8') . "</image:loc>\n";
+                            $xml .= "      <image:title>" . htmlspecialchars($p->name . ' — প্রকাশনী', ENT_XML1, 'UTF-8') . "</image:title>\n";
+                            $xml .= "    </image:image>\n";
+                        }
                     }
 
                     $xml .= "  </url>\n";
@@ -973,11 +1039,13 @@ class SitemapController extends Controller
                     $xml .= "    <priority>0.85</priority>\n";
 
                     if (!empty($eb->cover_image)) {
-                        $img = str_starts_with((string)$eb->cover_image, 'http') ? $eb->cover_image : $baseUrl . '/storage/' . ltrim((string)$eb->cover_image, '/');
-                        $xml .= "    <image:image>\n";
-                        $xml .= "      <image:loc>" . htmlspecialchars($img, ENT_XML1, 'UTF-8') . "</image:loc>\n";
-                        $xml .= "      <image:title>" . htmlspecialchars($eb->title, ENT_XML1, 'UTF-8') . "</image:title>\n";
-                        $xml .= "    </image:image>\n";
+                        $img = $this->normalizeImageUrl($eb->cover_image);
+                        if (!empty($img)) {
+                            $xml .= "    <image:image>\n";
+                            $xml .= "      <image:loc>" . htmlspecialchars($img, ENT_XML1, 'UTF-8') . "</image:loc>\n";
+                            $xml .= "      <image:title>" . htmlspecialchars($eb->title, ENT_XML1, 'UTF-8') . "</image:title>\n";
+                            $xml .= "    </image:image>\n";
+                        }
                     }
 
                     $xml .= "  </url>\n";

@@ -554,7 +554,86 @@ class IdeaAccountingController extends Controller
                     $paymentStatus = 'partial';
                 }
 
-                $userId = auth()->id() ?: null;
+                                        // Handle Banking Details
+            $settings['bank_name'] = $request->input('bank_name') ?? ($settings['bank_name'] ?? '');
+            $settings['bank_account_name'] = $request->input('bank_account_name') ?? ($settings['bank_account_name'] ?? '');
+            $settings['bank_account_no'] = $request->input('bank_account_no') ?? ($settings['bank_account_no'] ?? '');
+            $settings['bank_branch'] = $request->input('bank_branch') ?? ($settings['bank_branch'] ?? '');
+            $settings['bank_routing_no'] = $request->input('bank_routing_no') ?? ($settings['bank_routing_no'] ?? '');
+
+                        // Handle MFS QR (bKash / Nagad / Rocket)
+            if ($request->has('mfs_qr_note')) {
+                $settings['mfs_qr_note'] = $request->input('mfs_qr_note') ?: 'bKash / Nagad / Rocket';
+            }
+            if ($request->filled('remove_mfs_qr') && $request->input('remove_mfs_qr') == '1') {
+                unset($settings['mfs_qr_image']);
+            } elseif ($request->hasFile('mfs_qr_file')) {
+                $file = $request->file('mfs_qr_file');
+                $ext = $file->getClientOriginalExtension() ?: 'png';
+                $filename = 'mfs_qr_' . time() . '.' . $ext;
+                $targetDir = public_path('images/settings');
+                if (!is_dir($targetDir)) { @mkdir($targetDir, 0777, true); }
+                $file->move($targetDir, $filename);
+                $settings['mfs_qr_image'] = 'images/settings/' . $filename;
+            }
+
+            // Handle Bank QR (Bank Payment)
+            if ($request->has('bank_qr_note')) {
+                $settings['bank_qr_note'] = $request->input('bank_qr_note') ?: 'Bank Payment';
+            }
+            if ($request->filled('remove_bank_qr') && $request->input('remove_bank_qr') == '1') {
+                unset($settings['bank_qr_image']);
+            } elseif ($request->hasFile('bank_qr_file')) {
+                $file = $request->file('bank_qr_file');
+                $ext = $file->getClientOriginalExtension() ?: 'png';
+                $filename = 'bank_qr_' . time() . '.' . $ext;
+                $targetDir = public_path('images/settings');
+                if (!is_dir($targetDir)) { @mkdir($targetDir, 0777, true); }
+                $file->move($targetDir, $filename);
+                $settings['bank_qr_image'] = 'images/settings/' . $filename;
+            }
+
+            // Handle Payment QR (Bangla QR / bKash / Nagad / Bank)
+            if ($request->has('payment_qr_note')) {
+                $settings['payment_qr_note'] = $request->input('payment_qr_note') ?: 'বিকাশ / নগদ / রকেট';
+            }
+
+            if ($request->filled('remove_payment_qr') && $request->input('remove_payment_qr') == '1') {
+                unset($settings['payment_qr_image']);
+            } elseif ($request->hasFile('payment_qr_file')) {
+                $file = $request->file('payment_qr_file');
+                $ext = $file->getClientOriginalExtension() ?: 'png';
+                $filename = 'payment_qr_' . time() . '.' . $ext;
+
+                $targetDir = public_path('images/settings');
+                if (!is_dir($targetDir)) {
+                    @mkdir($targetDir, 0777, true);
+                }
+                $file->move($targetDir, $filename);
+                $settings['payment_qr_image'] = 'images/settings/' . $filename;
+            } elseif (!empty($request->input('payment_qr_base64')) && str_starts_with($request->input('payment_qr_base64'), 'data:image/')) {
+                $base64 = $request->input('payment_qr_base64');
+                if (preg_match('/^data:image\/(\w+);base64,/', $base64, $type)) {
+                    $base64Data = substr($base64, strpos($base64, ',') + 1);
+                    $decoded = base64_decode($base64Data);
+                    if ($decoded !== false) {
+                        $ext = strtolower($type[1] ?? 'png');
+                        if ($ext === 'jpeg') $ext = 'jpg';
+                        $filename = 'payment_qr_' . time() . '.' . $ext;
+
+                        $targetDir = public_path('images/settings');
+                        if (!is_dir($targetDir)) {
+                            @mkdir($targetDir, 0777, true);
+                        }
+                        @file_put_contents($targetDir . '/' . $filename, $decoded);
+                        $settings['payment_qr_image'] = 'images/settings/' . $filename;
+                    }
+                }
+            } elseif (!empty($request->input('payment_qr_url'))) {
+                $settings['payment_qr_image'] = $request->input('payment_qr_url');
+            }
+
+            $userId = auth()->id() ?: null;
                 if ($userId && !\Illuminate\Support\Facades\DB::table('users')->where('id', $userId)->exists()) {
                     $userId = null;
                 }
@@ -850,7 +929,86 @@ class IdeaAccountingController extends Controller
                 }
 
                 // Sync accounting entry if exists
-                $userId = auth()->id() ?: null;
+                                        // Handle Banking Details
+            $settings['bank_name'] = $request->input('bank_name') ?? ($settings['bank_name'] ?? '');
+            $settings['bank_account_name'] = $request->input('bank_account_name') ?? ($settings['bank_account_name'] ?? '');
+            $settings['bank_account_no'] = $request->input('bank_account_no') ?? ($settings['bank_account_no'] ?? '');
+            $settings['bank_branch'] = $request->input('bank_branch') ?? ($settings['bank_branch'] ?? '');
+            $settings['bank_routing_no'] = $request->input('bank_routing_no') ?? ($settings['bank_routing_no'] ?? '');
+
+                        // Handle MFS QR (bKash / Nagad / Rocket)
+            if ($request->has('mfs_qr_note')) {
+                $settings['mfs_qr_note'] = $request->input('mfs_qr_note') ?: 'bKash / Nagad / Rocket';
+            }
+            if ($request->filled('remove_mfs_qr') && $request->input('remove_mfs_qr') == '1') {
+                unset($settings['mfs_qr_image']);
+            } elseif ($request->hasFile('mfs_qr_file')) {
+                $file = $request->file('mfs_qr_file');
+                $ext = $file->getClientOriginalExtension() ?: 'png';
+                $filename = 'mfs_qr_' . time() . '.' . $ext;
+                $targetDir = public_path('images/settings');
+                if (!is_dir($targetDir)) { @mkdir($targetDir, 0777, true); }
+                $file->move($targetDir, $filename);
+                $settings['mfs_qr_image'] = 'images/settings/' . $filename;
+            }
+
+            // Handle Bank QR (Bank Payment)
+            if ($request->has('bank_qr_note')) {
+                $settings['bank_qr_note'] = $request->input('bank_qr_note') ?: 'Bank Payment';
+            }
+            if ($request->filled('remove_bank_qr') && $request->input('remove_bank_qr') == '1') {
+                unset($settings['bank_qr_image']);
+            } elseif ($request->hasFile('bank_qr_file')) {
+                $file = $request->file('bank_qr_file');
+                $ext = $file->getClientOriginalExtension() ?: 'png';
+                $filename = 'bank_qr_' . time() . '.' . $ext;
+                $targetDir = public_path('images/settings');
+                if (!is_dir($targetDir)) { @mkdir($targetDir, 0777, true); }
+                $file->move($targetDir, $filename);
+                $settings['bank_qr_image'] = 'images/settings/' . $filename;
+            }
+
+            // Handle Payment QR (Bangla QR / bKash / Nagad / Bank)
+            if ($request->has('payment_qr_note')) {
+                $settings['payment_qr_note'] = $request->input('payment_qr_note') ?: 'বিকাশ / নগদ / রকেট';
+            }
+
+            if ($request->filled('remove_payment_qr') && $request->input('remove_payment_qr') == '1') {
+                unset($settings['payment_qr_image']);
+            } elseif ($request->hasFile('payment_qr_file')) {
+                $file = $request->file('payment_qr_file');
+                $ext = $file->getClientOriginalExtension() ?: 'png';
+                $filename = 'payment_qr_' . time() . '.' . $ext;
+
+                $targetDir = public_path('images/settings');
+                if (!is_dir($targetDir)) {
+                    @mkdir($targetDir, 0777, true);
+                }
+                $file->move($targetDir, $filename);
+                $settings['payment_qr_image'] = 'images/settings/' . $filename;
+            } elseif (!empty($request->input('payment_qr_base64')) && str_starts_with($request->input('payment_qr_base64'), 'data:image/')) {
+                $base64 = $request->input('payment_qr_base64');
+                if (preg_match('/^data:image\/(\w+);base64,/', $base64, $type)) {
+                    $base64Data = substr($base64, strpos($base64, ',') + 1);
+                    $decoded = base64_decode($base64Data);
+                    if ($decoded !== false) {
+                        $ext = strtolower($type[1] ?? 'png');
+                        if ($ext === 'jpeg') $ext = 'jpg';
+                        $filename = 'payment_qr_' . time() . '.' . $ext;
+
+                        $targetDir = public_path('images/settings');
+                        if (!is_dir($targetDir)) {
+                            @mkdir($targetDir, 0777, true);
+                        }
+                        @file_put_contents($targetDir . '/' . $filename, $decoded);
+                        $settings['payment_qr_image'] = 'images/settings/' . $filename;
+                    }
+                }
+            } elseif (!empty($request->input('payment_qr_url'))) {
+                $settings['payment_qr_image'] = $request->input('payment_qr_url');
+            }
+
+            $userId = auth()->id() ?: null;
                 if ($userId && !\Illuminate\Support\Facades\DB::table('users')->where('id', $userId)->exists()) {
                     $userId = null;
                 }
@@ -987,7 +1145,86 @@ class IdeaAccountingController extends Controller
                     default          => ($invoice->type === 'challan' ? 'পাইকারি বিক্রয় ও চালান (Wholesale Sales)' : 'বই বিক্রয় (Book Sales)')
                 };
 
-                $userId = auth()->id() ?: null;
+                                        // Handle Banking Details
+            $settings['bank_name'] = $request->input('bank_name') ?? ($settings['bank_name'] ?? '');
+            $settings['bank_account_name'] = $request->input('bank_account_name') ?? ($settings['bank_account_name'] ?? '');
+            $settings['bank_account_no'] = $request->input('bank_account_no') ?? ($settings['bank_account_no'] ?? '');
+            $settings['bank_branch'] = $request->input('bank_branch') ?? ($settings['bank_branch'] ?? '');
+            $settings['bank_routing_no'] = $request->input('bank_routing_no') ?? ($settings['bank_routing_no'] ?? '');
+
+                        // Handle MFS QR (bKash / Nagad / Rocket)
+            if ($request->has('mfs_qr_note')) {
+                $settings['mfs_qr_note'] = $request->input('mfs_qr_note') ?: 'bKash / Nagad / Rocket';
+            }
+            if ($request->filled('remove_mfs_qr') && $request->input('remove_mfs_qr') == '1') {
+                unset($settings['mfs_qr_image']);
+            } elseif ($request->hasFile('mfs_qr_file')) {
+                $file = $request->file('mfs_qr_file');
+                $ext = $file->getClientOriginalExtension() ?: 'png';
+                $filename = 'mfs_qr_' . time() . '.' . $ext;
+                $targetDir = public_path('images/settings');
+                if (!is_dir($targetDir)) { @mkdir($targetDir, 0777, true); }
+                $file->move($targetDir, $filename);
+                $settings['mfs_qr_image'] = 'images/settings/' . $filename;
+            }
+
+            // Handle Bank QR (Bank Payment)
+            if ($request->has('bank_qr_note')) {
+                $settings['bank_qr_note'] = $request->input('bank_qr_note') ?: 'Bank Payment';
+            }
+            if ($request->filled('remove_bank_qr') && $request->input('remove_bank_qr') == '1') {
+                unset($settings['bank_qr_image']);
+            } elseif ($request->hasFile('bank_qr_file')) {
+                $file = $request->file('bank_qr_file');
+                $ext = $file->getClientOriginalExtension() ?: 'png';
+                $filename = 'bank_qr_' . time() . '.' . $ext;
+                $targetDir = public_path('images/settings');
+                if (!is_dir($targetDir)) { @mkdir($targetDir, 0777, true); }
+                $file->move($targetDir, $filename);
+                $settings['bank_qr_image'] = 'images/settings/' . $filename;
+            }
+
+            // Handle Payment QR (Bangla QR / bKash / Nagad / Bank)
+            if ($request->has('payment_qr_note')) {
+                $settings['payment_qr_note'] = $request->input('payment_qr_note') ?: 'বিকাশ / নগদ / রকেট';
+            }
+
+            if ($request->filled('remove_payment_qr') && $request->input('remove_payment_qr') == '1') {
+                unset($settings['payment_qr_image']);
+            } elseif ($request->hasFile('payment_qr_file')) {
+                $file = $request->file('payment_qr_file');
+                $ext = $file->getClientOriginalExtension() ?: 'png';
+                $filename = 'payment_qr_' . time() . '.' . $ext;
+
+                $targetDir = public_path('images/settings');
+                if (!is_dir($targetDir)) {
+                    @mkdir($targetDir, 0777, true);
+                }
+                $file->move($targetDir, $filename);
+                $settings['payment_qr_image'] = 'images/settings/' . $filename;
+            } elseif (!empty($request->input('payment_qr_base64')) && str_starts_with($request->input('payment_qr_base64'), 'data:image/')) {
+                $base64 = $request->input('payment_qr_base64');
+                if (preg_match('/^data:image\/(\w+);base64,/', $base64, $type)) {
+                    $base64Data = substr($base64, strpos($base64, ',') + 1);
+                    $decoded = base64_decode($base64Data);
+                    if ($decoded !== false) {
+                        $ext = strtolower($type[1] ?? 'png');
+                        if ($ext === 'jpeg') $ext = 'jpg';
+                        $filename = 'payment_qr_' . time() . '.' . $ext;
+
+                        $targetDir = public_path('images/settings');
+                        if (!is_dir($targetDir)) {
+                            @mkdir($targetDir, 0777, true);
+                        }
+                        @file_put_contents($targetDir . '/' . $filename, $decoded);
+                        $settings['payment_qr_image'] = 'images/settings/' . $filename;
+                    }
+                }
+            } elseif (!empty($request->input('payment_qr_url'))) {
+                $settings['payment_qr_image'] = $request->input('payment_qr_url');
+            }
+
+            $userId = auth()->id() ?: null;
                 if ($userId && !\Illuminate\Support\Facades\DB::table('users')->where('id', $userId)->exists()) {
                     $userId = null;
                 }
@@ -1123,7 +1360,86 @@ class IdeaAccountingController extends Controller
 
         try {
             return DB::transaction(function () use ($specificInvoiceId, $customerName, $customerPhone, $amount, $paymentDate, $paymentMethod, $trxRef, $note, $request) {
-                $userId = auth()->id() ?: null;
+                                        // Handle Banking Details
+            $settings['bank_name'] = $request->input('bank_name') ?? ($settings['bank_name'] ?? '');
+            $settings['bank_account_name'] = $request->input('bank_account_name') ?? ($settings['bank_account_name'] ?? '');
+            $settings['bank_account_no'] = $request->input('bank_account_no') ?? ($settings['bank_account_no'] ?? '');
+            $settings['bank_branch'] = $request->input('bank_branch') ?? ($settings['bank_branch'] ?? '');
+            $settings['bank_routing_no'] = $request->input('bank_routing_no') ?? ($settings['bank_routing_no'] ?? '');
+
+                        // Handle MFS QR (bKash / Nagad / Rocket)
+            if ($request->has('mfs_qr_note')) {
+                $settings['mfs_qr_note'] = $request->input('mfs_qr_note') ?: 'bKash / Nagad / Rocket';
+            }
+            if ($request->filled('remove_mfs_qr') && $request->input('remove_mfs_qr') == '1') {
+                unset($settings['mfs_qr_image']);
+            } elseif ($request->hasFile('mfs_qr_file')) {
+                $file = $request->file('mfs_qr_file');
+                $ext = $file->getClientOriginalExtension() ?: 'png';
+                $filename = 'mfs_qr_' . time() . '.' . $ext;
+                $targetDir = public_path('images/settings');
+                if (!is_dir($targetDir)) { @mkdir($targetDir, 0777, true); }
+                $file->move($targetDir, $filename);
+                $settings['mfs_qr_image'] = 'images/settings/' . $filename;
+            }
+
+            // Handle Bank QR (Bank Payment)
+            if ($request->has('bank_qr_note')) {
+                $settings['bank_qr_note'] = $request->input('bank_qr_note') ?: 'Bank Payment';
+            }
+            if ($request->filled('remove_bank_qr') && $request->input('remove_bank_qr') == '1') {
+                unset($settings['bank_qr_image']);
+            } elseif ($request->hasFile('bank_qr_file')) {
+                $file = $request->file('bank_qr_file');
+                $ext = $file->getClientOriginalExtension() ?: 'png';
+                $filename = 'bank_qr_' . time() . '.' . $ext;
+                $targetDir = public_path('images/settings');
+                if (!is_dir($targetDir)) { @mkdir($targetDir, 0777, true); }
+                $file->move($targetDir, $filename);
+                $settings['bank_qr_image'] = 'images/settings/' . $filename;
+            }
+
+            // Handle Payment QR (Bangla QR / bKash / Nagad / Bank)
+            if ($request->has('payment_qr_note')) {
+                $settings['payment_qr_note'] = $request->input('payment_qr_note') ?: 'বিকাশ / নগদ / রকেট';
+            }
+
+            if ($request->filled('remove_payment_qr') && $request->input('remove_payment_qr') == '1') {
+                unset($settings['payment_qr_image']);
+            } elseif ($request->hasFile('payment_qr_file')) {
+                $file = $request->file('payment_qr_file');
+                $ext = $file->getClientOriginalExtension() ?: 'png';
+                $filename = 'payment_qr_' . time() . '.' . $ext;
+
+                $targetDir = public_path('images/settings');
+                if (!is_dir($targetDir)) {
+                    @mkdir($targetDir, 0777, true);
+                }
+                $file->move($targetDir, $filename);
+                $settings['payment_qr_image'] = 'images/settings/' . $filename;
+            } elseif (!empty($request->input('payment_qr_base64')) && str_starts_with($request->input('payment_qr_base64'), 'data:image/')) {
+                $base64 = $request->input('payment_qr_base64');
+                if (preg_match('/^data:image\/(\w+);base64,/', $base64, $type)) {
+                    $base64Data = substr($base64, strpos($base64, ',') + 1);
+                    $decoded = base64_decode($base64Data);
+                    if ($decoded !== false) {
+                        $ext = strtolower($type[1] ?? 'png');
+                        if ($ext === 'jpeg') $ext = 'jpg';
+                        $filename = 'payment_qr_' . time() . '.' . $ext;
+
+                        $targetDir = public_path('images/settings');
+                        if (!is_dir($targetDir)) {
+                            @mkdir($targetDir, 0777, true);
+                        }
+                        @file_put_contents($targetDir . '/' . $filename, $decoded);
+                        $settings['payment_qr_image'] = 'images/settings/' . $filename;
+                    }
+                }
+            } elseif (!empty($request->input('payment_qr_url'))) {
+                $settings['payment_qr_image'] = $request->input('payment_qr_url');
+            }
+
+            $userId = auth()->id() ?: null;
                 if ($userId && !\Illuminate\Support\Facades\DB::table('users')->where('id', $userId)->exists()) {
                     $userId = null;
                 }
@@ -1630,6 +1946,22 @@ class IdeaAccountingController extends Controller
             'logo_base64'                    => 'nullable|string',
             'logo_file'                      => 'nullable|image|max:5120',
             'logo_url'                       => 'nullable|string|max:255',
+            'payment_qr_file'                => 'nullable|image|max:5120',
+            'mfs_qr_file'                    => 'nullable|image|max:5120',
+            'bank_qr_file'                   => 'nullable|image|max:5120',
+            'mfs_qr_note'                    => 'nullable|string|max:100',
+            'bank_qr_note'                   => 'nullable|string|max:100',
+            'remove_mfs_qr'                  => 'nullable',
+            'remove_bank_qr'                 => 'nullable',
+            'payment_qr_base64'              => 'nullable|string',
+            'payment_qr_url'                 => 'nullable|string|max:255',
+            'payment_qr_note'                => 'nullable|string|max:100',
+            'bank_name'                      => 'nullable|string|max:150',
+            'bank_account_name'              => 'nullable|string|max:150',
+            'bank_account_no'                => 'nullable|string|max:100',
+            'bank_branch'                    => 'nullable|string|max:150',
+            'bank_routing_no'                => 'nullable|string|max:50',
+            'remove_payment_qr'              => 'nullable',
         ]);
 
         try {
@@ -1692,6 +2024,85 @@ class IdeaAccountingController extends Controller
                 $settings['logo'] = 'images/settings/' . $filename;
             } elseif (!empty($validated['logo_url'])) {
                 $settings['logo'] = $validated['logo_url'];
+            }
+
+                                    // Handle Banking Details
+            $settings['bank_name'] = $request->input('bank_name') ?? ($settings['bank_name'] ?? '');
+            $settings['bank_account_name'] = $request->input('bank_account_name') ?? ($settings['bank_account_name'] ?? '');
+            $settings['bank_account_no'] = $request->input('bank_account_no') ?? ($settings['bank_account_no'] ?? '');
+            $settings['bank_branch'] = $request->input('bank_branch') ?? ($settings['bank_branch'] ?? '');
+            $settings['bank_routing_no'] = $request->input('bank_routing_no') ?? ($settings['bank_routing_no'] ?? '');
+
+                        // Handle MFS QR (bKash / Nagad / Rocket)
+            if ($request->has('mfs_qr_note')) {
+                $settings['mfs_qr_note'] = $request->input('mfs_qr_note') ?: 'bKash / Nagad / Rocket';
+            }
+            if ($request->filled('remove_mfs_qr') && $request->input('remove_mfs_qr') == '1') {
+                unset($settings['mfs_qr_image']);
+            } elseif ($request->hasFile('mfs_qr_file')) {
+                $file = $request->file('mfs_qr_file');
+                $ext = $file->getClientOriginalExtension() ?: 'png';
+                $filename = 'mfs_qr_' . time() . '.' . $ext;
+                $targetDir = public_path('images/settings');
+                if (!is_dir($targetDir)) { @mkdir($targetDir, 0777, true); }
+                $file->move($targetDir, $filename);
+                $settings['mfs_qr_image'] = 'images/settings/' . $filename;
+            }
+
+            // Handle Bank QR (Bank Payment)
+            if ($request->has('bank_qr_note')) {
+                $settings['bank_qr_note'] = $request->input('bank_qr_note') ?: 'Bank Payment';
+            }
+            if ($request->filled('remove_bank_qr') && $request->input('remove_bank_qr') == '1') {
+                unset($settings['bank_qr_image']);
+            } elseif ($request->hasFile('bank_qr_file')) {
+                $file = $request->file('bank_qr_file');
+                $ext = $file->getClientOriginalExtension() ?: 'png';
+                $filename = 'bank_qr_' . time() . '.' . $ext;
+                $targetDir = public_path('images/settings');
+                if (!is_dir($targetDir)) { @mkdir($targetDir, 0777, true); }
+                $file->move($targetDir, $filename);
+                $settings['bank_qr_image'] = 'images/settings/' . $filename;
+            }
+
+            // Handle Payment QR (Bangla QR / bKash / Nagad / Bank)
+            if ($request->has('payment_qr_note')) {
+                $settings['payment_qr_note'] = $request->input('payment_qr_note') ?: 'বিকাশ / নগদ / রকেট';
+            }
+
+            if ($request->filled('remove_payment_qr') && $request->input('remove_payment_qr') == '1') {
+                unset($settings['payment_qr_image']);
+            } elseif ($request->hasFile('payment_qr_file')) {
+                $file = $request->file('payment_qr_file');
+                $ext = $file->getClientOriginalExtension() ?: 'png';
+                $filename = 'payment_qr_' . time() . '.' . $ext;
+
+                $targetDir = public_path('images/settings');
+                if (!is_dir($targetDir)) {
+                    @mkdir($targetDir, 0777, true);
+                }
+                $file->move($targetDir, $filename);
+                $settings['payment_qr_image'] = 'images/settings/' . $filename;
+            } elseif (!empty($request->input('payment_qr_base64')) && str_starts_with($request->input('payment_qr_base64'), 'data:image/')) {
+                $base64 = $request->input('payment_qr_base64');
+                if (preg_match('/^data:image\/(\w+);base64,/', $base64, $type)) {
+                    $base64Data = substr($base64, strpos($base64, ',') + 1);
+                    $decoded = base64_decode($base64Data);
+                    if ($decoded !== false) {
+                        $ext = strtolower($type[1] ?? 'png');
+                        if ($ext === 'jpeg') $ext = 'jpg';
+                        $filename = 'payment_qr_' . time() . '.' . $ext;
+
+                        $targetDir = public_path('images/settings');
+                        if (!is_dir($targetDir)) {
+                            @mkdir($targetDir, 0777, true);
+                        }
+                        @file_put_contents($targetDir . '/' . $filename, $decoded);
+                        $settings['payment_qr_image'] = 'images/settings/' . $filename;
+                    }
+                }
+            } elseif (!empty($request->input('payment_qr_url'))) {
+                $settings['payment_qr_image'] = $request->input('payment_qr_url');
             }
 
             $userId = auth()->id() ?: null;

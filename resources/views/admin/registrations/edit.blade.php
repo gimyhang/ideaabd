@@ -41,7 +41,7 @@
         </div>
 
         <div class="card-body p-4">
-            @if($errors->any())
+            @if(isset($errors) && $errors->any())
                 <div class="alert alert-danger rounded-4 mb-4 border-0 shadow-xs">
                     <div class="fw-bold mb-1 d-flex align-items-center gap-1.5">
                         <i class="fas fa-circle-exclamation text-danger"></i>
@@ -175,7 +175,7 @@
                 {{-- ========================================================= --}}
                 {{-- 3. AUTHOR DEDICATED FIELDS (Author Details)               --}}
                 {{-- ========================================================= --}}
-                <div id="authorDetailsCard" class="mb-4">
+                <div id="authorDetailsCard" class="mb-4" style="{{ old('role', $user->role) === 'author' ? '' : 'display:none;' }}">
                     <h6 class="fw-bold text-dark mb-3 pb-2 border-bottom d-flex align-items-center gap-2">
                         <i class="fas fa-feather-pointed text-success"></i>
                         <span>Author & Literary Specialty Information</span>
@@ -209,7 +209,7 @@
                                 <span class="text-muted small" style="font-size: 11px;">(কথাসাহিত্য, কবিতা, ছড়া ইত্যাদি)</span>
                             </label>
                             <input type="text" name="genre" id="adminRegGenreInput" class="form-control rounded-3 mb-1.5" 
-                                   value="{{ old('genre', $regData['genre'] ?? '') }}" 
+                                   value="{{ old('genre', is_array($regData['genre'] ?? null) ? implode(', ', $regData['genre']) : ($regData['genre'] ?? '')) }}" 
                                    placeholder="e.g. কথাসাহিত্য, কবিতা, প্রবন্ধ, গবেষণা...">
                             <div class="d-flex flex-wrap gap-1 mt-1">
                                 @foreach(['কথাসাহিত্য', 'কবিতা', 'ছড়া', 'প্রবন্ধ', 'গবেষণা', 'ভ্রমণগদ্য', 'অনুবাদ', 'সায়েন্সফিকশন', 'অন্যান্য'] as $g)
@@ -241,7 +241,7 @@
                             </div>
                             <textarea name="bio" id="authorBioInput" rows="4" class="form-control rounded-3" 
                                       placeholder="Author biography, literary achievements, published works..." 
-                                      oninput="updateCharCount(this, 'bioCounter')">{{ old('bio', $regData['bio'] ?? '') }}</textarea>
+                                      oninput="updateCharCount(this, 'bioCounter')">{{ old('bio', is_array($regData['bio'] ?? null) ? implode("\n", $regData['bio']) : ($regData['bio'] ?? '')) }}</textarea>
                         </div>
                     </div>
                 </div>
@@ -295,16 +295,16 @@
                 </div>
 
                 {{-- ========================================================= --}}
-                {{-- 5. SELLER & PUBLISHER SPECIFIC DETAILS                    --}}
+                {{-- 5. SELLER & PUBLISHER SPECIFIC DETAILS (Hidden for Author)--}}
                 {{-- ========================================================= --}}
-                <div id="businessDetailsCard" class="mb-4">
+                <div id="businessDetailsCard" class="mb-4" style="{{ in_array(old('role', $user->role), ['seller', 'publisher']) ? '' : 'display:none;' }}">
                     <h6 class="fw-bold text-dark mb-3 pb-2 border-bottom d-flex align-items-center gap-2">
                         <i class="fas fa-shop text-warning"></i>
                         <span>Store, Business & Trade Details (Sellers & Publishers)</span>
                     </h6>
 
                     <div class="row g-3">
-                        <div class="col-md-6">
+                        <div class="col-md-6" id="shopNameWrap">
                             <label class="form-label small fw-bold text-dark">
                                 Shop / Bookstore Name (Sellers)
                             </label>
@@ -313,7 +313,7 @@
                                    placeholder="Bookstore Name">
                         </div>
 
-                        <div class="col-md-6">
+                        <div class="col-md-6" id="zoneWrap">
                             <label class="form-label small fw-bold text-dark">
                                 Zone / Area (Sellers)
                             </label>
@@ -322,7 +322,7 @@
                                    placeholder="e.g. Dhaka Zone, Chittagong Zone...">
                         </div>
 
-                        <div class="col-md-6">
+                        <div class="col-md-6" id="publisherNameWrap">
                             <label class="form-label small fw-bold text-dark">
                                 Publishing House Name (Publishers)
                             </label>
@@ -399,11 +399,48 @@ function toggleAdminGenre(genreName) {
     input.value = items.join(', ');
 }
 
-// Initial bio counter count
+// Role selector change handler
+function syncRoleForms() {
+    const roleSelector = document.getElementById('roleSelector');
+    if (!roleSelector) return;
+    const role = roleSelector.value;
+    const authorCard = document.getElementById('authorDetailsCard');
+    const businessCard = document.getElementById('businessDetailsCard');
+    const shopWrap = document.getElementById('shopNameWrap');
+    const zoneWrap = document.getElementById('zoneWrap');
+    const pubWrap = document.getElementById('publisherNameWrap');
+
+    if (role === 'author') {
+        if (authorCard) authorCard.style.display = 'block';
+        if (businessCard) businessCard.style.display = 'none';
+    } else if (role === 'publisher') {
+        if (authorCard) authorCard.style.display = 'none';
+        if (businessCard) businessCard.style.display = 'block';
+        if (pubWrap) pubWrap.style.display = 'block';
+        if (shopWrap) shopWrap.style.display = 'none';
+        if (zoneWrap) zoneWrap.style.display = 'none';
+    } else if (role === 'seller') {
+        if (authorCard) authorCard.style.display = 'none';
+        if (businessCard) businessCard.style.display = 'block';
+        if (shopWrap) shopWrap.style.display = 'block';
+        if (zoneWrap) zoneWrap.style.display = 'block';
+        if (pubWrap) pubWrap.style.display = 'none';
+    } else {
+        if (authorCard) authorCard.style.display = 'none';
+        if (businessCard) businessCard.style.display = 'none';
+    }
+}
+
+// Initial bio counter count & role sync
 document.addEventListener('DOMContentLoaded', function() {
     const bio = document.getElementById('authorBioInput');
     if (bio) {
         updateCharCount(bio, 'bioCounter');
+    }
+    const roleSelector = document.getElementById('roleSelector');
+    if (roleSelector) {
+        roleSelector.addEventListener('change', syncRoleForms);
+        syncRoleForms();
     }
 });
 </script>

@@ -43,7 +43,7 @@
                                 <div class="col-12 col-md-5 text-center">
                                     {{-- Interactive Crop Canvas Container --}}
                                     <div class="position-relative mx-auto rounded-4 overflow-hidden border border-2 border-success-subtle shadow-xs bg-white" 
-                                         style="width: 200px; height: 200px; cursor: grab;" id="canvasWrapper">
+                                         style="width: 200px; height: 200px; cursor: grab; touch-action: none;" id="canvasWrapper">
                                         <canvas id="cropCanvas" width="200" height="200" style="display:block; width:100%; height:100%;"></canvas>
                                         
                                         {{-- Circular Overlay Mask Guide --}}
@@ -406,7 +406,7 @@ function startDrag(e) {
 
 function onDrag(e) {
     if (!isDragging || !currentImg) return;
-    e.preventDefault();
+    if (e.cancelable) e.preventDefault();
     const pos = getEventPos(e);
     imgX = pos.x - startX;
     imgY = pos.y - startY;
