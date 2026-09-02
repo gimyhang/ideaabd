@@ -1608,7 +1608,7 @@ class IdeaAccountingController extends Controller
     /**
      * Update Memo / Invoice Header Business Settings.
      */
-    public function updateSettings(Request $request): RedirectResponse
+    public function updateSettings(Request $request): RedirectResponse|JsonResponse
     {
         $validated = $request->validate([
             'business_name'                  => 'required|string|max:255',
@@ -1711,8 +1711,22 @@ class IdeaAccountingController extends Controller
 
             \App\Support\SiteSetting::clearCache();
 
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'কাস্টমার বার্তা ও সেটিংস সফলভাবে সংরক্ষিত ও কার্যকর করা হয়েছে!',
+                    'settings' => $settings,
+                ]);
+            }
+
             return back()->with('success', 'বিল ও চালানের ডিজাইন, ফন্ট সাইজ এবং অফিশিয়াল তথ্য সফলভাবে আপডেট করা হয়েছে।');
         } catch (\Throwable $e) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'তথ্য সংরক্ষণে সমস্যা হয়েছে: ' . $e->getMessage()
+                ], 500);
+            }
             return back()->with('error', 'তথ্য সংরক্ষণে সমস্যা হয়েছে: ' . $e->getMessage());
         }
     }
@@ -1892,6 +1906,44 @@ class IdeaAccountingController extends Controller
     /**
      * Delete Bill / Challan / Quotation / Tender.
      */
+        /**
+     * Delete an Email Dispatch Log entry.
+     */
+    public function deleteEmailLog(Request $request, IdeaInvoice $invoice, string $logId): RedirectResponse|JsonResponse
+    {
+        try {
+            $logs = $invoice->email_logs ?? [];
+            if (!is_array($logs)) {
+                $logs = [];
+            }
+
+            $filteredLogs = array_values(array_filter($logs, function ($entry) use ($logId) {
+                return ($entry['id'] ?? '') !== $logId;
+            }));
+
+            $invoice->email_logs = $filteredLogs;
+            $invoice->save();
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'ইমেইল লগ সফলভাবে মুছে ফেলা হয়েছে।'
+                ]);
+            }
+
+            return back()->with('success', 'ইমেইল লগ সফলভাবে মুছে ফেলা হয়েছে।');
+        } catch (\Throwable $e) {
+            Log::error("Failed deleting email log {$logId} for invoice #{$invoice->id}: " . $e->getMessage());
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'লগ মুছতে সমস্যা হয়েছে: ' . $e->getMessage()
+                ], 500);
+            }
+            return back()->with('error', 'লগ মুছতে সমস্যা হয়েছে: ' . $e->getMessage());
+        }
+    }
+
     public function destroyInvoice(IdeaInvoice $invoice): RedirectResponse
     {
         $invoice->delete();

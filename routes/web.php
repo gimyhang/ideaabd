@@ -413,6 +413,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::delete('/invoices/payments/{payment}', 'destroyInvoicePayment')->name('invoices.payments.destroy');
         Route::get('/invoices/payments/{payment}/receipt', 'invoicePaymentReceipt')->name('invoices.payments.receipt');
         Route::post('/invoices/{invoice}/send-email', 'sendInvoiceEmail')->name('invoices.send-email');
+        Route::delete('/invoices/{invoice}/email-logs/{logId}', 'deleteEmailLog')->name('invoices.email-logs.destroy');
         Route::post('/invoices/{invoice}/convert', 'convertInvoiceType')->name('invoices.convert');
         Route::delete('/invoices/{invoice}', 'destroyInvoice')->name('invoices.destroy');
         Route::post('/settings', 'updateSettings')->name('settings.update');

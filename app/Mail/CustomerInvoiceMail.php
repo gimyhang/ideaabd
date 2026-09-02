@@ -3,7 +3,9 @@
 namespace App\Mail;
 
 use App\Models\IdeaInvoice;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Bus\Queueable;
+use Illuminate\Mail\Attachment;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Address;
 use Illuminate\Mail\Mailables\Content;
@@ -34,7 +36,7 @@ class CustomerInvoiceMail extends Mailable
             ? $this->invoiceSettings
             : \App\Http\Controllers\Admin\IdeaAccountingController::getInvoiceSettings();
 
-        $bizName = $settings['business_name'] ?? 'আইডিয়া প্রকাশন';
+        $bizName = $settings['business_name'] ?? 'আইডিয়া প্রকাশন';
         $typeLabel = $this->invoice->type_label ?? 'ইনভয়েস';
         $invNo = $this->invoice->invoice_no ?? '';
         $fromEmail = config('mail.from.address') ?: 'ad@ideaabd.com';
@@ -66,6 +68,25 @@ class CustomerInvoiceMail extends Mailable
 
     public function attachments(): array
     {
-        return [];
+        try {
+            $settings = (is_array($this->invoiceSettings) && !empty($this->invoiceSettings))
+                ? $this->invoiceSettings
+                : \App\Http\Controllers\Admin\IdeaAccountingController::getInvoiceSettings();
+
+            $pdf = Pdf::loadView('emails.invoice-pdf', [
+                'invoice' => $this->invoice,
+                'invoiceSettings' => $settings,
+            ])->setPaper('a4', 'portrait');
+
+            $filename = ($this->invoice->type ?: 'invoice') . '-' . ($this->invoice->invoice_no ?: time()) . '.pdf';
+
+            return [
+                Attachment::fromData(fn () => $pdf->output(), $filename)
+                    ->withMime('application/pdf'),
+            ];
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning("Could not attach invoice PDF: " . $e->getMessage());
+            return [];
+        }
     }
 }

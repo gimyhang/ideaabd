@@ -995,7 +995,7 @@
                             $waTemplate
                         );
                     @endphp
-                    <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $invoice->customer_phone ?? '') }}?text={{ urlencode($waMsg) }}" target="_blank" 
+                    <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $invoice->customer_phone ?? '') }}?text={{ urlencode($waMsg) }}" target="_blank" id="headerWhatsAppShareBtn" 
                        class="btn btn-sm btn-outline-success rounded-pill px-3 py-1.5 fw-semibold shadow-2xs" title="হোয়াটসঅ্যাপে গ্রাহককে ইনভয়েস লিংক পাঠান">
                         <i class="fab fa-whatsapp me-1 text-success"></i> WhatsApp
                     </a>
@@ -1231,14 +1231,24 @@
                                             @endif
                                         </td>
 
-                                        {{-- Action: Resend Button --}}
+                                                                                {{-- Action: Resend & Delete Buttons --}}
                                         <td class="text-center text-nowrap">
-                                            <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-2.5 py-0.5 shadow-2xs fw-semibold" 
-                                                    style="font-size: 11px;" 
-                                                    onclick="openResendModal('{{ implode(', ', $allRecipientEmails) }}', '{{ addslashes($log['custom_message'] ?? '') }}')" 
-                                                    title="এই ঠিকানায় পুনরায় ইনভয়েস মেইল পাঠান">
-                                                <i class="fas fa-rotate-right me-0.5"></i> Resend
-                                            </button>
+                                            <div class="d-inline-flex align-items-center gap-1">
+                                                <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-2.5 py-0.5 shadow-2xs fw-semibold" 
+                                                        style="font-size: 11px;" 
+                                                        onclick="openResendModal('{{ implode(', ', $allRecipientEmails) }}', '{{ addslashes($log['custom_message'] ?? '') }}')" 
+                                                        title="এই ঠিকানায় পুনরায় ইনভয়েস মেইল পাঠান">
+                                                    <i class="fas fa-rotate-right me-0.5"></i> Resend
+                                                </button>
+                                                @if(!empty($log['id']))
+                                                    <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-2 py-0.5 shadow-2xs" 
+                                                            style="font-size: 11px;" 
+                                                            onclick="deleteEmailLogEntry('{{ $invoice->id }}', '{{ $log['id'] }}', this)" 
+                                                            title="এই লগটি মুছে ফেলুন">
+                                                        <i class="fas fa-trash-alt"></i>
+                                                    </button>
+                                                @endif
+                                            </div>
                                         </td>
                                     </tr>
                                 @endforeach
@@ -1281,72 +1291,142 @@
                 {{-- TAB PANEL 2: CUSTOMER MESSAGE & GREETING CUSTOMIZATION    --}}
                 {{-- ======================================================== --}}
                 <div id="dispatchPanelMsg" style="display: none;">
-                    <form action="{{ route('admin.accounting.settings.update') }}" method="POST" class="p-3 bg-light rounded-3 border">
+                    @php
+                        $autoFilledWaMsg = str_replace(
+                            ['{customer_name}', '{business_name}', '{doc_type}', '{invoice_no}', '{invoice_url}'],
+                            [$invoice->customer_name ?? '', $settings['business_name'] ?? 'আইডিয়া প্রকাশন', $docTypeBn, $invoice->invoice_no, $invoice->public_url],
+                            !empty($settings['whatsapp_message_template']) 
+                                ? $settings['whatsapp_message_template'] 
+                                : "{business_name} থেকে আপনার {doc_type} (#{invoice_no}) প্রস্তুত করা হয়েছে। সরাসরি দেখতে ভিজিট করুন: {invoice_url}"
+                        );
+
+                        $autoFilledEmailIntro = str_replace(
+                            ['{customer_name}', '{business_name}', '{doc_type}', '{invoice_no}', '{invoice_url}'],
+                            [$invoice->customer_name ?? '', $settings['business_name'] ?? 'আইডিয়া প্রকাশন', $docTypeBn, $invoice->invoice_no, $invoice->public_url],
+                            !empty($settings['email_intro_text']) 
+                                ? $settings['email_intro_text'] 
+                                : "{business_name} থেকে আপনার অর্ডারের {doc_type} প্রস্তুত করা হয়েছে।"
+                        );
+
+                        $autoFilledGreeting = !empty($settings['email_greeting_salutation']) 
+                            ? $settings['email_greeting_salutation'] 
+                            : 'সম্মানিত গ্রাহক';
+                    @endphp
+
+                    <form action="{{ route('admin.accounting.settings.update') }}" method="POST" id="customMessageSettingsForm" onsubmit="handleCustomMessageSubmit(event)" class="p-3.5 bg-light rounded-4 border">
                         @csrf
                         {{-- Preserved Settings Fields --}}
-                        <input type="hidden" name="business_name" value="{{ $settings['business_name'] ?? 'Idea Publication' }}">
+                        <input type="hidden" name="business_name" id="msgHiddenBizName" value="{{ $settings['business_name'] ?? 'Idea Publication' }}">
                         <input type="hidden" name="tagline" value="{{ $settings['tagline'] ?? '' }}">
                         <input type="hidden" name="address" value="{{ $settings['address'] ?? '' }}">
                         <input type="hidden" name="phone" value="{{ $settings['phone'] ?? '' }}">
                         <input type="hidden" name="email" value="{{ $settings['email'] ?? '' }}">
                         <input type="hidden" name="terms_and_conditions" value="{{ $settings['terms_and_conditions'] ?? '' }}">
 
-                        <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
-                            <div>
-                                <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
-                                    <i class="fa-solid fa-comments text-success"></i>
-                                    <span>কাস্টমার মেসেজ ও অভিবাদন বার্তা কাস্টমাইজেশন</span>
-                                </h6>
-                                <small class="text-muted">হোয়াটসঅ্যাপ বা ইমেইলে বিল/চালান শেয়ার করার সময় যে বার্তা যাবে তা নিজের পছন্দমতো নির্ধারণ করুন।</small>
-                            </div>
-                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1 font-monospace">Live Template</span>
-                        </div>
+                        {{-- Alert feedback container --}}
+                        <div id="customMsgAlertContainer" class="mb-3" style="display: none;"></div>
 
-                        {{-- WhatsApp Share Message Template --}}
-                        <div class="mb-3">
-                            <label class="form-label small fw-bold text-dark mb-1">
-                                <i class="fab fa-whatsapp text-success me-1"></i>WhatsApp / Social Share বার্তা টেমপ্লেট:
-                            </label>
-                            <textarea name="whatsapp_message_template" class="form-control rounded-3" rows="3" 
-                                      placeholder="{business_name} থেকে আপনার {doc_type} (#{invoice_no}) প্রস্তুত করা হয়েছে। সরাসরি দেখতে ভিজিট করুন: {invoice_url}">{{ $settings['whatsapp_message_template'] ?? '' }}</textarea>
-                            <div class="form-text text-muted mt-1" style="font-size: 11.5px;">
-                                <i class="fa-solid fa-code text-primary me-1"></i>ব্যবহারযোগ্য শর্টকোড: 
-                                <span class="badge bg-white text-dark border font-monospace me-1">{customer_name}</span>
-                                <span class="badge bg-white text-dark border font-monospace me-1">{business_name}</span>
-                                <span class="badge bg-white text-dark border font-monospace me-1">{doc_type}</span>
-                                <span class="badge bg-white text-dark border font-monospace me-1">{invoice_no}</span>
-                                <span class="badge bg-white text-dark border font-monospace">{invoice_url}</span>
-                            </div>
-                        </div>
+                        <div class="row g-3.5 align-items-stretch">
+                            {{-- LEFT COLUMN: Settings Form --}}
+                            <div class="col-lg-7 d-flex flex-column justify-content-between">
+                                <div class="bg-white p-3.5 rounded-3 border h-100 d-flex flex-column justify-content-between">
+                                    <div>
+                                        {{-- WhatsApp Template Section --}}
+                                        <div class="mb-3">
+                                            <div class="d-flex align-items-center justify-content-between mb-1.5 flex-wrap gap-1">
+                                                <label class="form-label small fw-bold text-dark mb-0">
+                                                    <i class="fab fa-whatsapp text-success me-1"></i>WhatsApp / Social Share বার্তা (অটোফিল):
+                                                </label>
+                                                {{-- Inline Auto-fill Value Insertion Chips --}}
+                                                <div class="d-flex align-items-center gap-1 flex-wrap">
+                                                    <button type="button" class="btn btn-xs btn-outline-primary py-0 px-1.5 rounded-pill" style="font-size: 10px;" onclick="insertAutoFillValue('whatsappMsgTemplateInput', 'customer_name')" title="গ্রাহকের নাম বসান">{{ $invoice->customer_name ?: '{customer_name}' }}</button>
+                                                    <button type="button" class="btn btn-xs btn-outline-success py-0 px-1.5 rounded-pill" style="font-size: 10px;" onclick="insertAutoFillValue('whatsappMsgTemplateInput', 'business_name')" title="প্রতিষ্ঠানের নাম বসান">{{ $settings['business_name'] ?? 'Idea Publication' }}</button>
+                                                    <button type="button" class="btn btn-xs btn-outline-info py-0 px-1.5 rounded-pill" style="font-size: 10px;" onclick="insertAutoFillValue('whatsappMsgTemplateInput', 'doc_type')" title="ডকুমেন্টের ধরন বসান">{{ $docTypeBn }}</button>
+                                                    <button type="button" class="btn btn-xs btn-outline-warning text-dark py-0 px-1.5 rounded-pill" style="font-size: 10px;" onclick="insertAutoFillValue('whatsappMsgTemplateInput', 'invoice_no')" title="ইনভয়েস নম্বর বসান">#{{ $invoice->invoice_no }}</button>
+                                                    <button type="button" class="btn btn-xs btn-outline-danger py-0 px-1.5 rounded-pill" style="font-size: 10px;" onclick="insertAutoFillValue('whatsappMsgTemplateInput', 'invoice_url')" title="অনলাইন লিংক বসান">🔗 Link</button>
+                                                </div>
+                                            </div>
+                                            <textarea name="whatsapp_message_template" id="whatsappMsgTemplateInput" class="form-control rounded-2 font-sans" rows="3" 
+                                                      oninput="handleMessageInput()"
+                                                      placeholder="{{ $autoFilledWaMsg }}">{{ $autoFilledWaMsg }}</textarea>
+                                        </div>
 
-                        {{-- Email Greeting & Intro --}}
-                        <div class="row g-3 mb-3">
-                            <div class="col-md-5">
-                                <label class="form-label small fw-bold text-dark mb-1">
-                                    <i class="fa-solid fa-envelope text-primary me-1"></i>ইমেইল সম্ভাষণ (Greeting/Salutation):
-                                </label>
-                                <input type="text" name="email_greeting_salutation" class="form-control" 
-                                       value="{{ $settings['email_greeting_salutation'] ?? 'সম্মানিত গ্রাহক' }}" 
-                                       placeholder="যেমন: সম্মানিত গ্রাহক / Dear Customer">
-                                <div class="form-text text-muted" style="font-size: 11px;">ইমেইল লেখার শুরুতে যে সম্ভাষণ দিয়ে শুরু হবে।</div>
-                            </div>
-                            <div class="col-md-7">
-                                <label class="form-label small fw-bold text-dark mb-1">
-                                    <i class="fa-solid fa-file-lines text-info me-1"></i>ইমেইল ভূমিকা বার্তা (Intro Text):
-                                </label>
-                                <input type="text" name="email_intro_text" class="form-control" 
-                                       value="{{ $settings['email_intro_text'] ?? '' }}" 
-                                       placeholder="{business_name} থেকে আপনার অর্ডারের {doc_type} প্রস্তুত করা হয়েছে।">
-                                <div class="form-text text-muted" style="font-size: 11px;">শর্টকোড <code>{business_name}</code>, <code>{doc_type}</code>, <code>{invoice_no}</code> দিতে পারেন।</div>
-                            </div>
-                        </div>
+                                        {{-- Email Section: Greeting & Intro --}}
+                                        <div class="row g-2.5">
+                                            <div class="col-md-5">
+                                                <label class="form-label small fw-bold text-dark mb-1">
+                                                    <i class="fa-solid fa-envelope text-primary me-1"></i>ইমেইল সম্ভাষণ:
+                                                </label>
+                                                <input type="text" name="email_greeting_salutation" id="emailGreetingInput" class="form-control form-control-sm rounded-2" 
+                                                       value="{{ $autoFilledGreeting }}" 
+                                                       oninput="handleMessageInput()"
+                                                       placeholder="সম্মানিত গ্রাহক">
+                                            </div>
+                                            <div class="col-md-7">
+                                                <div class="d-flex align-items-center justify-content-between mb-1">
+                                                    <label class="form-label small fw-bold text-dark mb-0">
+                                                        <i class="fa-solid fa-file-lines text-info me-1"></i>ইমেইল ভূমিকা বার্তা:
+                                                    </label>
+                                                    <div class="d-flex gap-1">
+                                                        <button type="button" class="btn btn-xs btn-outline-success py-0 px-1 rounded-pill" style="font-size: 9.5px;" onclick="insertAutoFillValue('emailIntroInput', 'business_name')">{{ $settings['business_name'] ?? 'Idea Publication' }}</button>
+                                                        <button type="button" class="btn btn-xs btn-outline-info py-0 px-1 rounded-pill" style="font-size: 9.5px;" onclick="insertAutoFillValue('emailIntroInput', 'doc_type')">{{ $docTypeBn }}</button>
+                                                    </div>
+                                                </div>
+                                                <input type="text" name="email_intro_text" id="emailIntroInput" class="form-control form-control-sm rounded-2" 
+                                                       value="{{ $autoFilledEmailIntro }}" 
+                                                       oninput="handleMessageInput()"
+                                                       placeholder="{{ $autoFilledEmailIntro }}">
+                                            </div>
+                                        </div>
+                                    </div>
 
-                        {{-- Save Changes Button --}}
-                        <div class="d-flex align-items-center justify-content-between pt-2 border-top">
-                            <small class="text-muted"><i class="fa-solid fa-circle-check text-success me-1"></i>সংরক্ষণ করলে তাৎক্ষণিকভাবে কার্যকর হবে</small>
-                            <button type="submit" class="btn btn-success rounded-pill px-4 fw-semibold shadow-xs">
-                                <i class="fas fa-save me-1.5"></i> বার্তা সংরক্ষণ করুন (Save Messages)
-                            </button>
+                                    {{-- Save and Reset Toolbar --}}
+                                    <div class="d-flex align-items-center justify-content-between pt-3 mt-3 border-top">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1" style="font-size: 12px;" onclick="resetToAutoFilledMessages()">
+                                            <i class="fas fa-rotate-left me-1"></i>অটোফিল রিস্টোর
+                                        </button>
+                                        <button type="submit" class="btn btn-sm btn-success rounded-pill px-4 py-1.5 fw-bold shadow-xs" id="btnSaveCustomMsg">
+                                            <i class="fas fa-save me-1.5" id="btnSaveCustomMsgIcon"></i>
+                                            <span id="btnSaveCustomMsgText">বার্তা সংরক্ষণ করুন</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- RIGHT COLUMN: Live Previews --}}
+                            <div class="col-lg-5 d-flex flex-column justify-content-between">
+                                <div class="bg-white p-3.5 rounded-3 border h-100 d-flex flex-column justify-content-between gap-2.5">
+                                    {{-- WhatsApp Preview --}}
+                                    <div>
+                                        <div class="d-flex align-items-center justify-content-between mb-1.5">
+                                            <span class="small fw-bold text-success">
+                                                <i class="fab fa-whatsapp me-1"></i>WhatsApp প্রিভিউ
+                                            </span>
+                                            <a href="#" id="previewWaActionBtn" target="_blank" class="btn btn-xs btn-outline-success rounded-pill px-2 py-0.5" style="font-size: 11px;">
+                                                <i class="fab fa-whatsapp me-1"></i>টেস্ট লিংক
+                                            </a>
+                                        </div>
+                                        <div class="p-2.5 rounded-3 border" style="background-color: #e7f7e4;">
+                                            <div class="small text-dark font-sans" id="liveWaPreviewText" style="white-space: pre-wrap; font-size: 12px; line-height: 1.45;"></div>
+                                            <div class="d-flex align-items-center justify-content-end gap-1 mt-1 text-muted" style="font-size: 9.5px;">
+                                                <span>{{ date('h:i A') }}</span>
+                                                <i class="fa-solid fa-check-double text-primary"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {{-- Email Preview --}}
+                                    <div class="border-top pt-2">
+                                        <span class="small fw-bold text-primary d-block mb-1">
+                                            <i class="fa-solid fa-envelope me-1"></i>ইমেইল বার্তা প্রিভিউ
+                                        </span>
+                                        <div class="p-2 rounded-2 bg-light border small text-dark" style="font-size: 11.5px; line-height: 1.4;">
+                                            <div class="fw-bold text-dark" id="liveEmailGreetingText"></div>
+                                            <div class="text-secondary mt-0.5" id="liveEmailIntroText"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </form>
                 </div>
@@ -1356,98 +1436,313 @@
 </div>
 
 <script>
-function switchDispatchTab(tab) {
-    const logsBtn = document.getElementById('dispatchNavLogsBtn');
-    const msgBtn = document.getElementById('dispatchNavMsgBtn');
-    const logsPanel = document.getElementById('dispatchPanelLogs');
-    const msgPanel = document.getElementById('dispatchPanelMsg');
+// Global Dynamic Variables (Auto-filled from settings and invoice)
+const invoiceDynamicVars = {
+    customer_name: @json($invoice->customer_name ?: 'সম্মানিত গ্রাহক'),
+    business_name: @json($settings['business_name'] ?? 'আইডিয়া প্রকাশন'),
+    doc_type: @json($docTypeBn),
+    invoice_no: @json($invoice->invoice_no),
+    invoice_url: @json($invoice->public_url),
+    customer_phone: @json(preg_replace('/[^0-9]/', '', $invoice->customer_phone ?? ''))
+};
 
-    if (tab === 'message') {
+const defaultAutoFilledWaMsg = @json($autoFilledWaMsg);
+const defaultAutoFilledIntro = @json($autoFilledEmailIntro);
+const defaultAutoFilledGreeting = @json($autoFilledGreeting);
+
+// Replace any remaining placeholders in string with actual real values
+function parseDynamicText(tpl) {
+    if (!tpl) return "";
+    let str = tpl;
+    for (const [key, val] of Object.entries(invoiceDynamicVars)) {
+        const regex = new RegExp("{" + key + "}", "g");
+        str = str.replace(regex, val || "");
+    }
+    return str;
+}
+
+// Update Live Previews in Real-Time
+function handleMessageInput() {
+    const waInput = document.getElementById("whatsappMsgTemplateInput");
+    const greetingInput = document.getElementById("emailGreetingInput");
+    const emailIntroInput = document.getElementById("emailIntroInput");
+
+    const waRaw = waInput ? waInput.value.trim() : "";
+    const greetingRaw = greetingInput ? greetingInput.value.trim() : defaultAutoFilledGreeting;
+    const emailIntroRaw = emailIntroInput ? emailIntroInput.value.trim() : "";
+
+    // 1. Parse dynamic WhatsApp message
+    const parsedWaMsg = parseDynamicText(waRaw || defaultAutoFilledWaMsg);
+    const liveWaPreviewText = document.getElementById("liveWaPreviewText");
+    if (liveWaPreviewText) {
+        liveWaPreviewText.textContent = parsedWaMsg;
+    }
+
+    // 2. Update WhatsApp links (Top Header Button & Preview Test Button)
+    const phone = invoiceDynamicVars.customer_phone || "";
+    const waUrl = "https://wa.me/" + phone + "?text=" + encodeURIComponent(parsedWaMsg);
+    
+    const headerWaBtn = document.getElementById("headerWhatsAppShareBtn");
+    if (headerWaBtn) {
+        headerWaBtn.href = waUrl;
+    }
+    const previewWaBtn = document.getElementById("previewWaActionBtn");
+    if (previewWaBtn) {
+        previewWaBtn.href = waUrl;
+    }
+
+    // 3. Update Email Live Preview
+    const parsedGreeting = parseDynamicText(greetingRaw || defaultAutoFilledGreeting);
+    const liveGreetingEl = document.getElementById("liveEmailGreetingText");
+    if (liveGreetingEl) {
+        liveGreetingEl.textContent = parsedGreeting + (parsedGreeting.includes(invoiceDynamicVars.customer_name) ? "," : " " + (invoiceDynamicVars.customer_name || "") + ",");
+    }
+
+    const liveEmailIntroEl = document.getElementById("liveEmailIntroText");
+    if (liveEmailIntroEl) {
+        liveEmailIntroEl.textContent = emailIntroRaw ? parseDynamicText(emailIntroRaw) : defaultAutoFilledIntro;
+    }
+}
+
+// Insert auto-filled value directly into target input at caret position
+function insertAutoFillValue(targetId, key) {
+    const el = document.getElementById(targetId);
+    if (!el) return;
+
+    const valueToInsert = invoiceDynamicVars[key] || "{" + key + "}";
+    el.focus();
+    if (document.selection) {
+        const sel = document.selection.createRange();
+        sel.text = valueToInsert;
+    } else if (el.selectionStart || el.selectionStart === 0) {
+        const startPos = el.selectionStart;
+        const endPos = el.selectionEnd;
+        el.value = el.value.substring(0, startPos) + valueToInsert + el.value.substring(endPos, el.value.length);
+        el.selectionStart = startPos + valueToInsert.length;
+        el.selectionEnd = startPos + valueToInsert.length;
+    } else {
+        el.value += valueToInsert;
+    }
+    handleMessageInput();
+}
+
+// Reset to Auto-filled Defaults
+function resetToAutoFilledMessages() {
+    const waInput = document.getElementById("whatsappMsgTemplateInput");
+    const greetingInput = document.getElementById("emailGreetingInput");
+    const emailIntroInput = document.getElementById("emailIntroInput");
+
+    if (waInput) waInput.value = defaultAutoFilledWaMsg;
+    if (greetingInput) greetingInput.value = defaultAutoFilledGreeting;
+    if (emailIntroInput) emailIntroInput.value = defaultAutoFilledIntro;
+
+    handleMessageInput();
+}
+
+// Submit Custom Message Form via AJAX
+function handleCustomMessageSubmit(e) {
+    e.preventDefault();
+    const form = e.target;
+    const btn = document.getElementById("btnSaveCustomMsg");
+    const btnText = document.getElementById("btnSaveCustomMsgText");
+    const btnIcon = document.getElementById("btnSaveCustomMsgIcon");
+    const alertBox = document.getElementById("customMsgAlertContainer");
+
+    if (btn) btn.disabled = true;
+    if (btnIcon) {
+        btnIcon.className = "fas fa-spinner fa-spin me-1.5";
+    }
+    if (btnText) btnText.textContent = "সংরক্ষণ হচ্ছে...";
+
+    const formData = new FormData(form);
+
+    fetch(form.action, {
+        method: "POST",
+        headers: {
+            "X-Requested-With": "XMLHttpRequest",
+            "Accept": "application/json"
+        },
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (alertBox) {
+            alertBox.style.display = "block";
+            if (data.success) {
+                alertBox.className = "alert alert-success border-success-subtle rounded-3 py-2 px-3 d-flex align-items-center justify-content-between mb-3 shadow-2xs";
+                alertBox.innerHTML = `<div><i class="fa-solid fa-circle-check text-success me-2"></i><strong>সফল:</strong> ${data.message || "বার্তা সফলভাবে সংরক্ষিত হয়েছে!"}</div><button type="button" class="btn-close btn-sm" onclick="this.parentElement.style.display='none'"></button>`;
+                setTimeout(() => {
+                    if (alertBox) alertBox.style.display = "none";
+                }, 5000);
+            } else {
+                alertBox.className = "alert alert-danger border-danger-subtle rounded-3 py-2 px-3 d-flex align-items-center justify-content-between mb-3 shadow-2xs";
+                alertBox.innerHTML = `<div><i class="fa-solid fa-circle-exmark text-danger me-2"></i><strong>ত্রুটি:</strong> ${data.message || "সংরক্ষণে সমস্যা হয়েছে।"}</div><button type="button" class="btn-close btn-sm" onclick="this.parentElement.style.display='none'"></button>`;
+            }
+        }
+        handleMessageInput();
+    })
+    .catch(err => {
+        if (alertBox) {
+            alertBox.style.display = "block";
+            alertBox.className = "alert alert-danger border-danger-subtle rounded-3 py-2 px-3 d-flex align-items-center justify-content-between mb-3 shadow-2xs";
+            alertBox.innerHTML = `<div><i class="fa-solid fa-circle-exmark text-danger me-2"></i><strong>ত্রুটি:</strong> সংরক্ষণে সমস্যা হয়েছে (${err.message})</div><button type="button" class="btn-close btn-sm" onclick="this.parentElement.style.display='none'"></button>`;
+        }
+    })
+    .finally(() => {
+        if (btn) btn.disabled = false;
+        if (btnIcon) {
+            btnIcon.className = "fas fa-save me-1.5";
+        }
+        if (btnText) btnText.textContent = "বার্তা সংরক্ষণ করুন";
+    });
+}
+
+// Initialize live preview on page load
+document.addEventListener("DOMContentLoaded", function() {
+    handleMessageInput();
+});
+
+// Tab Switcher Function
+function switchDispatchTab(tab) {
+    const logsBtn = document.getElementById("dispatchNavLogsBtn");
+    const msgBtn = document.getElementById("dispatchNavMsgBtn");
+    const logsPanel = document.getElementById("dispatchPanelLogs");
+    const msgPanel = document.getElementById("dispatchPanelMsg");
+
+    if (tab === "message") {
         if (msgBtn) {
-            msgBtn.classList.remove('btn-light', 'text-dark');
-            msgBtn.classList.add('btn-primary', 'text-white', 'shadow-2xs');
+            msgBtn.classList.remove("btn-light", "text-dark");
+            msgBtn.classList.add("btn-primary", "text-white", "shadow-2xs");
         }
         if (logsBtn) {
-            logsBtn.classList.remove('btn-primary', 'text-white', 'shadow-2xs');
-            logsBtn.classList.add('btn-light', 'text-dark');
+            logsBtn.classList.remove("btn-primary", "text-white", "shadow-2xs");
+            logsBtn.classList.add("btn-light", "text-dark");
         }
-        if (logsPanel) logsPanel.style.display = 'none';
-        if (msgPanel) msgPanel.style.display = 'block';
+        if (logsPanel) logsPanel.style.display = "none";
+        if (msgPanel) {
+            msgPanel.style.display = "block";
+            handleMessageInput();
+        }
     } else {
         if (logsBtn) {
-            logsBtn.classList.remove('btn-light', 'text-dark');
-            logsBtn.classList.add('btn-primary', 'text-white', 'shadow-2xs');
+            logsBtn.classList.remove("btn-light", "text-dark");
+            logsBtn.classList.add("btn-primary", "text-white", "shadow-2xs");
         }
         if (msgBtn) {
-            msgBtn.classList.remove('btn-primary', 'text-white', 'shadow-2xs');
-            msgBtn.classList.add('btn-light', 'text-dark');
+            msgBtn.classList.remove("btn-primary", "text-white", "shadow-2xs");
+            msgBtn.classList.add("btn-light", "text-dark");
         }
-        if (logsPanel) logsPanel.style.display = 'block';
-        if (msgPanel) msgPanel.style.display = 'none';
+        if (logsPanel) logsPanel.style.display = "block";
+        if (msgPanel) msgPanel.style.display = "none";
     }
 }
 
 function filterEmailLogs(status, btn) {
     // Update active button styling
-    document.querySelectorAll('#filterAllBtn, #filterDeliveredBtn, #filterFailedBtn').forEach(b => {
-        b.classList.remove('bg-primary', 'text-white', 'fw-bold', 'bg-success', 'bg-danger');
-        b.classList.add('bg-white');
+    document.querySelectorAll("#filterAllBtn, #filterDeliveredBtn, #filterFailedBtn").forEach(b => {
+        b.classList.remove("bg-primary", "text-white", "fw-bold", "bg-success", "bg-danger");
+        b.classList.add("bg-white");
     });
-    if (status === 'all') {
-        btn.classList.add('bg-primary', 'text-white', 'fw-bold');
-        btn.classList.remove('bg-white', 'text-dark');
-    } else if (status === 'success') {
-        btn.classList.add('bg-success', 'text-white', 'fw-bold');
-        btn.classList.remove('bg-white', 'text-success');
-    } else if (status === 'failed') {
-        btn.classList.add('bg-danger', 'text-white', 'fw-bold');
-        btn.classList.remove('bg-white', 'text-danger');
+    if (status === "all") {
+        btn.classList.add("bg-primary", "text-white", "fw-bold");
+        btn.classList.remove("bg-white", "text-dark");
+    } else if (status === "success") {
+        btn.classList.add("bg-success", "text-white", "fw-bold");
+        btn.classList.remove("bg-white", "text-success");
+    } else if (status === "failed") {
+        btn.classList.add("bg-danger", "text-white", "fw-bold");
+        btn.classList.remove("bg-white", "text-danger");
     }
 
-    const rows = document.querySelectorAll('.email-log-row');
+    const rows = document.querySelectorAll(".email-log-row");
     rows.forEach(row => {
-        const rowStatus = row.getAttribute('data-status');
-        if (status === 'all' || rowStatus === status || (status === 'success' && rowStatus === 'partial')) {
-            row.style.display = '';
+        const rowStatus = row.getAttribute("data-status");
+        if (status === "all" || rowStatus === status || (status === "success" && rowStatus === "partial")) {
+            row.style.display = "";
         } else {
-            row.style.display = 'none';
+            row.style.display = "none";
         }
     });
 }
 
 function searchEmailLogs(query) {
     const q = query.toLowerCase().trim();
-    const rows = document.querySelectorAll('.email-log-row');
+    const rows = document.querySelectorAll(".email-log-row");
     rows.forEach(row => {
-        const searchContent = row.getAttribute('data-search') || '';
+        const searchContent = row.getAttribute("data-search") || "";
         if (!q || searchContent.includes(q)) {
-            row.style.display = '';
+            row.style.display = "";
         } else {
-            row.style.display = 'none';
+            row.style.display = "none";
         }
     });
 }
 
+function deleteEmailLogEntry(invoiceId, logId, btn) {
+    if (!confirm('আপনি কি নিশ্চিত যে এই ইমেইল লগটি তালিকা থেকে মুছে ফেলতে চান?')) {
+        return;
+    }
+
+    const row = btn.closest('tr');
+    const originalContent = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+    fetch(`/admin/accounting/invoices/${invoiceId}/email-logs/${logId}`, {
+        method: 'DELETE',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}',
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            if (row) {
+                row.style.transition = 'all 0.3s ease';
+                row.style.opacity = '0';
+                row.style.transform = 'translateX(20px)';
+                setTimeout(() => {
+                    row.remove();
+                    const remainingRows = document.querySelectorAll('.email-log-row');
+                    if (remainingRows.length === 0) {
+                        window.location.reload();
+                    }
+                }, 300);
+            }
+        } else {
+            alert('লগ মুছতে সমস্যা হয়েছে: ' + (data.message || 'অজানা ত্রুটি'));
+            btn.disabled = false;
+            btn.innerHTML = originalContent;
+        }
+    })
+    .catch(err => {
+        alert('ত্রুটি: ' + err.message);
+        btn.disabled = false;
+        btn.innerHTML = originalContent;
+    });
+}
+
 function openResendModal(emails, customMsg) {
-    const emailTextarea = document.getElementById('invoiceRecipientEmails');
+    const emailTextarea = document.getElementById("invoiceRecipientEmails");
     const msgTextarea = document.querySelector('#sendInvoiceEmailForm textarea[name="custom_message"]');
     if (emailTextarea) {
         emailTextarea.value = emails;
-        if (typeof updateRecipientCount === 'function') {
+        if (typeof updateRecipientCount === "function") {
             updateRecipientCount(emailTextarea);
         }
     }
     if (msgTextarea && customMsg) {
         msgTextarea.value = customMsg;
     }
-    const modalEl = document.getElementById('sendInvoiceEmailModal');
+    const modalEl = document.getElementById("sendInvoiceEmailModal");
     if (modalEl) {
         const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
         modal.show();
     }
 }
 </script>
-
 {{-- RECORD INVOICE PAYMENT MODAL --}}
 @if(in_array($invoice->type, ['invoice', 'challan']))
 <div class="modal fade d-print-none" id="recordInvoicePaymentModal" tabindex="-1" aria-labelledby="recordInvoicePaymentModalLabel" aria-hidden="true">
