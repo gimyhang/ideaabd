@@ -99,47 +99,58 @@
             </div>
         </div>
         <div class="card-body p-3 p-md-4">
-            {{-- Tender & Quotation Dynamic Panel --}}
-            <div id="tenderQuotationPanel" class="p-3.5 rounded-3 border mb-3 {{ in_array($currentType, ['quotation', 'tender']) ? '' : 'd-none' }} {{ $currentType === 'tender' ? 'bg-indigo-subtle border-indigo-subtle' : 'bg-warning-subtle bg-opacity-25 border-warning-subtle' }}">
-                <div class="d-flex align-items-center justify-content-between mb-2.5 pb-2 border-bottom text-dark fw-bold small" id="tenderPanelHeader">
+            {{-- Document Subject & Work Scope Panel --}}
+            <div id="tenderQuotationPanel" class="p-3 rounded-3 border mb-3 {{ $currentType === 'tender' ? 'bg-indigo-subtle border-indigo-subtle' : ($currentType === 'quotation' ? 'bg-warning-subtle bg-opacity-25 border-warning-subtle' : ($currentType === 'challan' ? 'bg-info-subtle bg-opacity-25 border-info-subtle' : 'bg-light border-primary-subtle')) }}">
+                <div class="d-flex align-items-center justify-content-between mb-2 pb-2 border-bottom text-dark fw-bold small" id="tenderPanelHeader">
                     <div class="d-flex align-items-center gap-2">
-                        <i class="{{ $currentType === 'tender' ? 'fas fa-landmark text-indigo fs-5' : 'fas fa-file-invoice text-warning-emphasis fs-5' }}" id="tenderPanelIcon"></i> 
-                        <span id="tenderPanelTitle" class="fs-6">{{ $currentType === 'tender' ? '🏛️ Tender Proposal & BoQ Schedule' : '📋 Quotation & Proforma Proposal' }}</span>
+                        <i class="{{ $currentType === 'tender' ? 'fas fa-landmark text-indigo fs-5' : ($currentType === 'quotation' ? 'fas fa-file-invoice text-warning-emphasis fs-5' : ($currentType === 'challan' ? 'fas fa-truck text-info fs-5' : 'fas fa-receipt text-primary fs-5')) }}" id="tenderPanelIcon"></i> 
+                        <span id="tenderPanelTitle" class="fs-6 fw-bold">
+                            @if($currentType === 'tender') Tender Subject
+                            @elseif($currentType === 'quotation') Quotation Subject
+                            @elseif($currentType === 'challan') Challan Subject
+                            @else Invoice Subject @endif
+                        </span>
                     </div>
-                    <span class="badge {{ $currentType === 'tender' ? 'bg-indigo text-white' : 'bg-warning text-dark' }} px-3 py-1.5 rounded-pill shadow-xs" id="tenderPanelBadge">
-                        <i class="fa-solid fa-sparkles me-1"></i>{{ $currentType === 'tender' ? 'Tender Mode' : 'Quotation Mode' }}
+                    <span class="badge {{ $currentType === 'tender' ? 'bg-indigo text-white' : ($currentType === 'quotation' ? 'bg-warning text-dark' : ($currentType === 'challan' ? 'bg-info text-white' : 'bg-primary text-white')) }} px-2.5 py-1 rounded-pill shadow-xs" id="tenderPanelBadge">
+                        @if($currentType === 'tender') Tender Mode
+                        @elseif($currentType === 'quotation') Quotation Mode
+                        @elseif($currentType === 'challan') Challan Mode
+                        @else Invoice Mode @endif
                     </span>
                 </div>
 
                 <div class="row g-2.5">
                     <div class="col-md-8">
                         <label class="form-label small fw-semibold text-muted mb-1" id="tenderSubjectLabel">
-                            {{ $currentType === 'tender' ? 'Tender Subject / Work Scope' : 'Proposal Subject' }} <span class="text-danger">*</span>
+                            Subject <span class="text-danger">*</span>
                         </label>
-                        <input type="text" name="subject" id="f-subject" class="form-control form-control-sm bg-white" 
-                               placeholder="{{ $currentType === 'tender' ? 'e.g. Tender for Supply of Books, Publications & Stationery...' : 'e.g. Price Quotation for Book Printing & Publishing...' }}" 
-                               value="{{ old('subject', $currentType === 'tender' ? 'Tender for Supply of Books, Publications & Stationery' : 'Price Quotation for Book Printing & Publication') }}">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text bg-white border-end-0 text-muted"><i class="fas fa-heading"></i></span>
+                            <input type="text" name="subject" id="f-subject" class="form-control form-control-sm bg-white border-start-0" 
+                                   placeholder="e.g. Book Sales / Printing & Publishing Services..." 
+                                   value="{{ old('subject', $currentType === 'tender' ? 'Tender for Supply of Books, Publications & Stationery' : ($currentType === 'quotation' ? 'Price Quotation for Book Printing & Publication' : '')) }}">
+                        </div>
                     </div>
                     <div class="col-md-4">
                         <label class="form-label small fw-semibold text-muted mb-1" id="tenderRefLabel">
-                            {{ $currentType === 'tender' ? 'Tender Memo / Ref No' : 'Quotation / Ref No' }}
+                            Ref / Memo No
                         </label>
-                        <input type="text" name="reference_no" id="f-reference_no" class="form-control form-control-sm bg-white" 
-                               placeholder="{{ $currentType === 'tender' ? 'e.g. MOE/PUB/TND/2026-08' : 'e.g. IP/QUO/2026/01' }}" value="{{ old('reference_no') }}">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text bg-white border-end-0 text-muted"><i class="fas fa-hashtag"></i></span>
+                            <input type="text" name="reference_no" id="f-reference_no" class="form-control form-control-sm bg-white border-start-0" 
+                                   placeholder="e.g. PO/2026/089" value="{{ old('reference_no') }}">
+                        </div>
                     </div>
 
-                    <div class="col-12">
+                    <div class="col-12" id="validityPresetRow" style="{{ in_array($currentType, ['quotation', 'tender']) ? '' : 'display:none;' }}">
                         <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 pt-1 border-top border-light">
                             <div class="d-flex align-items-center gap-2 flex-wrap">
-                                <span class="small text-muted fw-semibold"><i class="fa-regular fa-clock me-1"></i>Quick Validity:</span>
-                                <button type="button" class="btn btn-white btn-sm border rounded-pill px-2.5 py-0.5 shadow-2xs text-dark" onclick="setValidityDays(7)">+7 Days</button>
-                                <button type="button" class="btn btn-white btn-sm border rounded-pill px-2.5 py-0.5 shadow-2xs text-dark" onclick="setValidityDays(15)">+15 Days</button>
-                                <button type="button" class="btn btn-white btn-sm border rounded-pill px-2.5 py-0.5 shadow-2xs text-dark" onclick="setValidityDays(30)">+30 Days (Standard)</button>
-                                <button type="button" class="btn btn-white btn-sm border rounded-pill px-2.5 py-0.5 shadow-2xs text-dark" onclick="setValidityDays(60)">+60 Days</button>
-                                <button type="button" class="btn btn-white btn-sm border rounded-pill px-2.5 py-0.5 shadow-2xs text-dark" onclick="setValidityDays(90)">+90 Days (Tender)</button>
-                            </div>
-                            <div class="text-muted small">
-                                <i class="fa-solid fa-circle-info text-info me-1"></i>Applicable VAT/AIT integrated as per regulations
+                                <span class="small text-muted fw-semibold"><i class="fa-regular fa-clock me-1"></i>Validity:</span>
+                                <button type="button" class="btn btn-white btn-sm border rounded-pill px-2 py-0.5 shadow-2xs text-dark" onclick="setValidityDays(7)">+7 Days</button>
+                                <button type="button" class="btn btn-white btn-sm border rounded-pill px-2 py-0.5 shadow-2xs text-dark" onclick="setValidityDays(15)">+15 Days</button>
+                                <button type="button" class="btn btn-white btn-sm border rounded-pill px-2 py-0.5 shadow-2xs text-dark" onclick="setValidityDays(30)">+30 Days</button>
+                                <button type="button" class="btn btn-white btn-sm border rounded-pill px-2 py-0.5 shadow-2xs text-dark" onclick="setValidityDays(60)">+60 Days</button>
+                                <button type="button" class="btn btn-white btn-sm border rounded-pill px-2 py-0.5 shadow-2xs text-dark" onclick="setValidityDays(90)">+90 Days</button>
                             </div>
                         </div>
                     </div>
@@ -698,88 +709,124 @@
         const submitBtn = document.getElementById('submitBtn');
         const rightHeader = document.getElementById('rightCardHeader');
 
-        // Reset Classes
-        tenderPanel.className = 'p-3.5 rounded-3 border mb-3';
+        // Update Document Details & Subject Panel according to docType
+        const validityPresetRow = document.getElementById('validityPresetRow');
+        const dynamicPresets = document.getElementById('dynamicSubjectPresets');
 
-        // Toggle Tender / Quotation Panel
-        if (docType === 'quotation' || docType === 'tender') {
-            tenderPanel.classList.remove('d-none');
+        if (docType === 'tender') {
+            tenderPanel.className = 'p-3 rounded-3 border mb-3 bg-indigo-subtle border-indigo-subtle';
+            if (tenderPanelIcon) tenderPanelIcon.className = 'fas fa-landmark text-indigo fs-5';
+            if (tenderPanelTitle) tenderPanelTitle.textContent = 'Tender Subject';
+            if (tenderPanelBadge) {
+                tenderPanelBadge.className = 'badge bg-indigo text-white px-2.5 py-1 rounded-pill shadow-xs';
+                tenderPanelBadge.innerHTML = 'Tender Mode';
+            }
+            if (tenderSubjectLabel) tenderSubjectLabel.innerHTML = 'Subject <span class="text-danger">*</span>';
+            if (tenderRefLabel) tenderRefLabel.textContent = 'Ref / Memo No';
+            if (subjectInput) subjectInput.placeholder = 'e.g. Tender for Supply of Books, Publications & Stationery...';
+            if (validityPresetRow) validityPresetRow.style.display = '';
             paymentSection.classList.add('d-none');
             quotationNotice.classList.remove('d-none');
 
-            if (docType === 'tender') {
-                tenderPanel.classList.add('bg-indigo-subtle', 'border-indigo-subtle');
-                if (tenderPanelIcon) tenderPanelIcon.className = 'fas fa-landmark text-indigo fs-5';
-                if (tenderPanelTitle) tenderPanelTitle.textContent = '🏛️ টেন্ডার শিডিউল ও দরপত্র প্রস্তাবনা (Tender Proposal & BoQ)';
-                if (tenderPanelBadge) {
-                    tenderPanelBadge.className = 'badge bg-indigo text-white px-3 py-1.5 rounded-pill shadow-xs';
-                    tenderPanelBadge.innerHTML = '<i class="fa-solid fa-sparkles me-1"></i>দরপত্র / টেন্ডার মোড';
-                }
-                if (tenderSubjectLabel) tenderSubjectLabel.innerHTML = 'দরপত্রের বিষয় / কাজের নাম (Tender Subject / Work Name) <span class="text-danger">*</span>';
-                if (tenderRefLabel) tenderRefLabel.textContent = 'টেন্ডার মেমো / রেফারেন্স নং (Tender Memo / Ref No)';
-                if (itemsSectionTitle) itemsSectionTitle.innerHTML = '<i class="fas fa-list-check me-2 text-indigo"></i>Schedule of Requirements & BoQ (দরপত্র শিডিউল ও আইটেম তালিকা)';
-                if (itemsSectionSubtitle) itemsSectionSubtitle.textContent = 'টেন্ডারের স্পেসিফিকেশন, ফর্মা, সাইজ, কাগজ ও প্রাক্কলিত দর নির্ধারণ করুন';
-
-                submitBtn.innerHTML = '<i class="fas fa-landmark me-1.5"></i> Save Tender Proposal & Schedule';
-                submitBtn.className = 'btn btn-purple w-100 py-3 rounded-pill fw-bold shadow-sm text-white';
-                submitBtn.style.backgroundColor = '#582be8';
-                submitBtn.style.borderColor = '#582be8';
-
-                rightHeader.className = 'card-header text-white py-3 rounded-top-4';
-                rightHeader.style.backgroundColor = '#582be8';
-                rightHeader.innerHTML = '<h5 class="fw-bold mb-0"><i class="fas fa-landmark me-2"></i>Tender Evaluation & BoQ Financials</h5>';
-            } else {
-                tenderPanel.classList.add('bg-warning-subtle', 'bg-opacity-25', 'border-warning-subtle');
-                if (tenderPanelIcon) tenderPanelIcon.className = 'fas fa-file-invoice text-warning-emphasis fs-5';
-                if (tenderPanelTitle) tenderPanelTitle.textContent = '📋 কোটেশন ও প্রফরমা তথ্য (Quotation Information)';
-                if (tenderPanelBadge) {
-                    tenderPanelBadge.className = 'badge bg-warning text-dark px-3 py-1.5 rounded-pill shadow-xs';
-                    tenderPanelBadge.innerHTML = '<i class="fa-solid fa-sparkles me-1"></i>প্রাইস কোটেশন মোড';
-                }
-                if (tenderSubjectLabel) tenderSubjectLabel.innerHTML = 'কোটেশনের বিষয় / Proposal Subject <span class="text-danger">*</span>';
-                if (tenderRefLabel) tenderRefLabel.textContent = 'রেফারেন্স / কোটেশন নং (Ref No)';
-                if (itemsSectionTitle) itemsSectionTitle.innerHTML = '<i class="fas fa-list-check me-2 text-warning-emphasis"></i>Quotation Items & Rates (কোটেশন আইটেম ও দর)';
-                if (itemsSectionSubtitle) itemsSectionSubtitle.textContent = 'বইয়ের তালিকা অথবা কাস্টম মুদ্রণ কাজের কোটেশন শিডিউল তৈরি করুন';
-
-                submitBtn.innerHTML = '<i class="fas fa-file-lines me-1.5"></i> Save & Generate Price Quotation';
-                submitBtn.className = 'btn btn-warning w-100 py-3 rounded-pill fw-bold shadow-sm text-dark';
-                submitBtn.style.backgroundColor = '#eab308';
-                submitBtn.style.borderColor = '#ca8a04';
-
-                rightHeader.className = 'card-header bg-warning text-dark py-3 rounded-top-4';
-                rightHeader.style.backgroundColor = '#eab308';
-                rightHeader.innerHTML = '<h5 class="fw-bold mb-0"><i class="fas fa-calculator me-2"></i>Quotation Financial Summary</h5>';
+            if (dynamicPresets) {
+                dynamicPresets.innerHTML = `
+                    <button type="button" class="btn btn-white btn-sm border rounded-pill px-2 py-0.5 shadow-2xs text-dark small" onclick="setPresetSubject('বই সরবরাহ সংক্রান্ত চালান')">🏛️ Book Supply Tender</button>
+                    <button type="button" class="btn btn-white btn-sm border rounded-pill px-2 py-0.5 shadow-2xs text-dark small" onclick="setPresetSubject('সরকারি প্রকাশনা মুদ্রণ ও বাঁধাই দরপত্র')">📑 Printing & Binding</button>
+                    <button type="button" class="btn btn-white btn-sm border rounded-pill px-2 py-0.5 shadow-2xs text-dark small" onclick="setPresetSubject('শিক্ষা প্রতিষ্ঠানের বই ও স্টেশনারি দরপত্র')">🏫 Institution Tender</button>
+                `;
             }
-        } else {
-            tenderPanel.classList.add('d-none');
+
+            if (itemsSectionTitle) itemsSectionTitle.innerHTML = '<i class="fas fa-list-check me-2 text-indigo"></i>Schedule of Requirements & BoQ';
+            if (itemsSectionTitle) itemsSectionTitle.innerHTML = '<i class="fas fa-list-check me-2 text-indigo"></i>Schedule of Requirements & BoQ';
+            if (itemsSectionSubtitle) itemsSectionSubtitle.textContent = 'Specify items, paper size, quantity, and estimated pricing';
+
+            submitBtn.innerHTML = '<i class="fas fa-landmark me-1.5"></i> Save Tender Proposal & Schedule';
+            submitBtn.className = 'btn btn-purple w-100 py-3 rounded-pill fw-bold shadow-sm text-white';
+            submitBtn.style.backgroundColor = '#582be8';
+            submitBtn.style.borderColor = '#582be8';
+
+            rightHeader.className = 'card-header text-white py-3 rounded-top-4';
+            rightHeader.style.backgroundColor = '#582be8';
+            rightHeader.innerHTML = '<h5 class="fw-bold mb-0"><i class="fas fa-landmark me-2"></i>Tender Evaluation & BoQ Financials</h5>';
+        } else if (docType === 'quotation') {
+            tenderPanel.className = 'p-3 rounded-3 border mb-3 bg-warning-subtle bg-opacity-25 border-warning-subtle';
+            if (tenderPanelIcon) tenderPanelIcon.className = 'fas fa-file-invoice text-warning-emphasis fs-5';
+            if (tenderPanelTitle) tenderPanelTitle.textContent = 'Quotation Subject';
+            if (tenderPanelBadge) {
+                tenderPanelBadge.className = 'badge bg-warning text-dark px-2.5 py-1 rounded-pill shadow-xs';
+                tenderPanelBadge.innerHTML = 'Quotation Mode';
+            }
+            if (tenderSubjectLabel) tenderSubjectLabel.innerHTML = 'Subject <span class="text-danger">*</span>';
+            if (tenderRefLabel) tenderRefLabel.textContent = 'Ref / Quotation No';
+            if (subjectInput) subjectInput.placeholder = 'e.g. Price Quotation for Book Printing & Publication...';
+            if (validityPresetRow) validityPresetRow.style.display = '';
+            paymentSection.classList.add('d-none');
+            quotationNotice.classList.remove('d-none');
+
+            if (itemsSectionTitle) itemsSectionTitle.innerHTML = '<i class="fas fa-list-check me-2 text-warning-emphasis"></i>Quotation Items & Rates';
+            if (itemsSectionSubtitle) itemsSectionSubtitle.textContent = 'List books or custom printing service line items';
+
+            submitBtn.innerHTML = '<i class="fas fa-file-lines me-1.5"></i> Save & Generate Price Quotation';
+            submitBtn.className = 'btn btn-warning w-100 py-3 rounded-pill fw-bold shadow-sm text-dark';
+            submitBtn.style.backgroundColor = '#eab308';
+            submitBtn.style.borderColor = '#ca8a04';
+
+            rightHeader.className = 'card-header bg-warning text-dark py-3 rounded-top-4';
+            rightHeader.style.backgroundColor = '#eab308';
+            rightHeader.innerHTML = '<h5 class="fw-bold mb-0"><i class="fas fa-calculator me-2"></i>Quotation Financial Summary</h5>';
+        } else if (docType === 'challan') {
+            tenderPanel.className = 'p-3 rounded-3 border mb-3 bg-info-subtle bg-opacity-25 border-info-subtle';
+            if (tenderPanelIcon) tenderPanelIcon.className = 'fas fa-truck text-info fs-5';
+            if (tenderPanelTitle) tenderPanelTitle.textContent = 'Challan Subject';
+            if (tenderPanelBadge) {
+                tenderPanelBadge.className = 'badge bg-info text-white px-2.5 py-1 rounded-pill shadow-xs';
+                tenderPanelBadge.innerHTML = 'Challan Mode';
+            }
+            if (tenderSubjectLabel) tenderSubjectLabel.innerHTML = 'Subject';
+            if (tenderRefLabel) tenderRefLabel.textContent = 'Challan Ref No';
+            if (subjectInput) subjectInput.placeholder = 'e.g. Delivery of Printed Books & Materials...';
+            if (validityPresetRow) validityPresetRow.style.display = 'none';
             paymentSection.classList.remove('d-none');
             quotationNotice.classList.add('d-none');
 
-            if (docType === 'challan') {
-                if (itemsSectionTitle) itemsSectionTitle.innerHTML = '<i class="fas fa-truck me-2 text-info"></i>Delivery Items (চালান মালামালের বিবরণ)';
-                if (itemsSectionSubtitle) itemsSectionSubtitle.textContent = 'সরবরাহকৃত বই ও মালামালের সংখ্যা ও প্যাকেজিং বিবরণ';
+            if (itemsSectionTitle) itemsSectionTitle.innerHTML = '<i class="fas fa-truck me-2 text-info"></i>Delivery Items';
+            if (itemsSectionSubtitle) itemsSectionSubtitle.textContent = 'Quantities, packaging, and dispatch item list';
 
-                submitBtn.innerHTML = '<i class="fas fa-truck me-1.5"></i> Save & Issue Delivery Challan';
-                submitBtn.className = 'btn btn-info w-100 py-3 rounded-pill fw-bold shadow-sm text-white';
-                submitBtn.style.backgroundColor = '#0891b2';
-                submitBtn.style.borderColor = '#0891b2';
+            submitBtn.innerHTML = '<i class="fas fa-truck me-1.5"></i> Save & Issue Delivery Challan';
+            submitBtn.className = 'btn btn-info w-100 py-3 rounded-pill fw-bold shadow-sm text-white';
+            submitBtn.style.backgroundColor = '#0891b2';
+            submitBtn.style.borderColor = '#0891b2';
 
-                rightHeader.className = 'card-header text-white py-3 rounded-top-4';
-                rightHeader.style.backgroundColor = '#0891b2';
-                rightHeader.innerHTML = '<h5 class="fw-bold mb-0"><i class="fas fa-truck-ramp-box me-2"></i>Challan Dispatch Summary</h5>';
-            } else {
-                if (itemsSectionTitle) itemsSectionTitle.innerHTML = '<i class="fas fa-list-check me-2 text-success"></i>Bill / Invoice Items (পণ্য ও সেবার বিবরণ)';
-                if (itemsSectionSubtitle) itemsSectionSubtitle.textContent = 'বইয়ের ক্যাটালগ অথবা কাস্টম বিক্রয় পণ্য নির্বাচন করুন';
-
-                submitBtn.innerHTML = '<i class="fas fa-receipt me-1.5"></i> Save & Issue Bill / Invoice';
-                submitBtn.className = 'btn btn-success w-100 py-3 rounded-pill fw-bold shadow-sm';
-                submitBtn.style.backgroundColor = '';
-                submitBtn.style.borderColor = '';
-
-                rightHeader.className = 'card-header bg-primary text-white py-3 rounded-top-4';
-                rightHeader.style.backgroundColor = '';
-                rightHeader.innerHTML = '<h5 class="fw-bold mb-0"><i class="fas fa-receipt me-2"></i>Pricing & Financials</h5>';
+            rightHeader.className = 'card-header text-white py-3 rounded-top-4';
+            rightHeader.style.backgroundColor = '#0891b2';
+            rightHeader.innerHTML = '<h5 class="fw-bold mb-0"><i class="fas fa-truck-ramp-box me-2"></i>Challan Dispatch Summary</h5>';
+        } else {
+            // Bill / Invoice Mode
+            tenderPanel.className = 'p-3 rounded-3 border mb-3 bg-light border-primary-subtle';
+            if (tenderPanelIcon) tenderPanelIcon.className = 'fas fa-receipt text-primary fs-5';
+            if (tenderPanelTitle) tenderPanelTitle.textContent = 'Invoice Subject';
+            if (tenderPanelBadge) {
+                tenderPanelBadge.className = 'badge bg-primary text-white px-2.5 py-1 rounded-pill shadow-xs';
+                tenderPanelBadge.innerHTML = 'Invoice Mode';
             }
+            if (tenderSubjectLabel) tenderSubjectLabel.innerHTML = 'Subject';
+            if (tenderRefLabel) tenderRefLabel.textContent = 'Ref / PO No';
+            if (subjectInput) subjectInput.placeholder = 'e.g. Book Sales / Printing & Publishing Services...';
+            if (validityPresetRow) validityPresetRow.style.display = 'none';
+            paymentSection.classList.remove('d-none');
+            quotationNotice.classList.add('d-none');
+
+            if (itemsSectionTitle) itemsSectionTitle.innerHTML = '<i class="fas fa-list-check me-2 text-success"></i>Bill / Invoice Items';
+            if (itemsSectionSubtitle) itemsSectionSubtitle.textContent = 'Select catalog books or custom billing line items';
+
+            submitBtn.innerHTML = '<i class="fas fa-receipt me-1.5"></i> Save & Issue Bill / Invoice';
+            submitBtn.className = 'btn btn-success w-100 py-3 rounded-pill fw-bold shadow-sm';
+            submitBtn.style.backgroundColor = '';
+            submitBtn.style.borderColor = '';
+
+            rightHeader.className = 'card-header bg-primary text-white py-3 rounded-top-4';
+            rightHeader.style.backgroundColor = '';
+            rightHeader.innerHTML = '<h5 class="fw-bold mb-0"><i class="fas fa-receipt me-2"></i>Pricing & Financials</h5>';
         }
 
         // Update Document Number Prefix
@@ -794,6 +841,29 @@
 
         if (parts.length >= 3) {
             invInput.value = newPrefix + dateSeq;
+        }
+    }
+
+    function setPresetSubject(val) {
+        const subInput = document.getElementById('f-subject');
+        if (subInput) {
+            subInput.value = val;
+            subInput.focus();
+            subInput.classList.add('bg-primary-subtle');
+            setTimeout(() => subInput.classList.remove('bg-primary-subtle'), 400);
+        }
+    }
+
+    function setValidityDays(days) {
+        const validDateInput = document.querySelector('input[name="valid_until"]');
+        if (validDateInput) {
+            const now = new Date();
+            now.setDate(now.getDate() + parseInt(days));
+            const yyyy = now.getFullYear();
+            const mm = String(now.getMonth() + 1).padStart(2, '0');
+            const dd = String(now.getDate()).padStart(2, '0');
+            validDateInput.value = `${yyyy}-${mm}-${dd}`;
+            validDateInput.focus();
         }
     }
 

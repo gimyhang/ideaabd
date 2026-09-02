@@ -9,12 +9,13 @@
         <i class="fas fa-bars"></i>
     </button>
 
-    {{-- Global catalog search --}}
-    <form class="adm-search d-none d-md-block" action="{{ Route::has('admin.books') ? route('admin.books') : url('/admin') }}" method="GET" role="search">
-        <div class="input-group">
-            <span class="input-group-text border-end-0"><i class="fas fa-magnifying-glass text-muted"></i></span>
-            <input type="search" name="search" class="form-control border-start-0 ps-0"
-                   placeholder="Search books, authors, or users..." value="{{ request('search') }}" aria-label="Search">
+    {{-- Global catalog search with dynamic spotlight style --}}
+    <form class="adm-search d-none d-md-block" action="{{ Route::has('admin.books') ? route('admin.books') : url('/admin') }}" method="GET" role="search" id="admGlobalSearchForm">
+        <div class="adm-search__inner position-relative">
+            <i class="fas fa-magnifying-glass adm-search__icon"></i>
+            <input type="search" name="search" class="adm-search__input"
+                   placeholder="Search catalog, authors, orders or users... (Ctrl+K)" value="{{ request('search') }}" aria-label="Search" autocomplete="off">
+            <span class="adm-search__kbd"><kbd>⌘K</kbd></span>
         </div>
     </form>
 

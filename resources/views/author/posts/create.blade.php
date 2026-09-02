@@ -472,9 +472,22 @@ function generateAutoTitleCard() {
     document.getElementById('featuredImageInput').value = '';
 }
 
-// Initial sync on page load
+// Initial sync on page load & form submit safety
 document.addEventListener('DOMContentLoaded', function() {
     syncEditorContent();
+    const form = document.getElementById('authorPostForm');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            syncEditorContent();
+            const contentVal = (document.getElementById('hiddenContent').value || '').trim();
+            if (!contentVal || contentVal === '<p><br></p>' || contentVal === '<br>') {
+                e.preventDefault();
+                alert('অনুগ্রহ করে ব্লগের মূল বিষয়বস্তু বা রচনা লিখুন।');
+                document.getElementById('authorContentEditable').focus();
+                return false;
+            }
+        });
+    }
 });
 </script>
 @endsection

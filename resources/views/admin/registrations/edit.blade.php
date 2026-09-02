@@ -204,12 +204,21 @@
 
                         {{-- Genre --}}
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold text-dark">
-                                Genre / Writing Topics
+                            <label class="form-label small fw-bold text-dark d-flex align-items-center justify-content-between">
+                                <span>Genre / Writing Topics</span>
+                                <span class="text-muted small" style="font-size: 11px;">(কথাসাহিত্য, কবিতা, ছড়া ইত্যাদি)</span>
                             </label>
-                            <input type="text" name="genre" class="form-control rounded-3" 
+                            <input type="text" name="genre" id="adminRegGenreInput" class="form-control rounded-3 mb-1.5" 
                                    value="{{ old('genre', $regData['genre'] ?? '') }}" 
-                                   placeholder="e.g. Fiction, Poetry, Research, Essays...">
+                                   placeholder="e.g. কথাসাহিত্য, কবিতা, প্রবন্ধ, গবেষণা...">
+                            <div class="d-flex flex-wrap gap-1 mt-1">
+                                @foreach(['কথাসাহিত্য', 'কবিতা', 'ছড়া', 'প্রবন্ধ', 'গবেষণা', 'ভ্রমণগদ্য', 'অনুবাদ', 'সায়েন্সফিকশন', 'অন্যান্য'] as $g)
+                                    <button type="button" class="btn btn-sm btn-white border rounded-pill px-2 py-0.5 shadow-2xs text-secondary small" 
+                                            style="font-size: 11px;" onclick="toggleAdminGenre('{{ $g }}')">
+                                        <i class="fa-solid fa-check me-0.5 text-success"></i> {{ $g }}
+                                    </button>
+                                @endforeach
+                            </div>
                         </div>
 
                         {{-- NID --}}
@@ -376,6 +385,18 @@ function updateCharCount(el, counterId) {
     if (counter) {
         counter.textContent = el.value.length + ' characters';
     }
+}
+
+function toggleAdminGenre(genreName) {
+    const input = document.getElementById('adminRegGenreInput');
+    if (!input) return;
+    let items = input.value.split(',').map(s => s.trim()).filter(Boolean);
+    if (items.includes(genreName)) {
+        items = items.filter(s => s !== genreName);
+    } else {
+        items.push(genreName);
+    }
+    input.value = items.join(', ');
 }
 
 // Initial bio counter count

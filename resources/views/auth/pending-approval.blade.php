@@ -10,13 +10,13 @@
                     <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-3 shadow-sm" style="width:84px;height:84px;background:#e8f5e9;border:3px solid #81c784">
                         <i class="fas fa-check-circle fa-3x text-success"></i>
                     </div>
-                    <h3 class="fw-bold text-success mb-2">আপনার সাইনআপ সফল হয়েছে!</h3>
-                    <div class="badge bg-warning bg-opacity-15 text-dark border border-warning px-3 py-2 rounded-pill fs-6 fw-bold mb-2">
+                    <h3 class="fw-bold text-success mb-2">আপনার রেজিস্ট্রেশন সফল হয়েছে!</h3>
+                    <div class="badge bg-warning bg-opacity-15 text-dark border border-warning px-3 py-2 rounded-pill fs-6 fw-bold mb-3">
                         <i class="fa-solid fa-clock-rotate-left text-warning me-1.5"></i> ২৪ ঘণ্টার মধ্যে অ্যাকাউন্ট অ্যাক্টিভেশন
                     </div>
-                    <p class="text-secondary fs-6 mb-0 mt-2">
-                        ২৪ ঘণ্টার মধ্যে আপনার অ্যাকাউন্ট অ্যাক্টিভ হলে আপনি সরাসরি ব্লগে লেখা পোস্ট করতে পারবেন।
-                    </p>
+                    <div class="p-3 bg-light border border-success-subtle rounded-3 text-dark fw-semibold mb-2" style="font-size: 15px;">
+                        <i class="fas fa-circle-check text-success me-1.5"></i> আপনার রেজিস্ট্রেশন সফল হয়েছে। ২৪ ঘণ্টার মধ্যে একটিভ না হলে সাপোর্ট টিমকে অবগত করুন।
+                    </div>
                 </div>
 
                 <div class="alert alert-light text-start rounded-4 border p-3.5 mb-4 shadow-2xs">

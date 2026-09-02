@@ -104,11 +104,14 @@ class RegistrationController extends Controller
                 'trade_license'  => ['nullable', 'string'],
             ]),
             'author' => $request->validate([
-                'pen_name' => ['nullable', 'string', 'max:255'],
-                'bio'      => ['nullable', 'string'],
-                'genre'    => ['nullable', 'string'],
-                'nid'      => ['nullable', 'string'],
-                'avatar'   => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:4096'],
+                'pen_name'       => ['nullable', 'string', 'max:255'],
+                'bio'            => ['nullable', 'string'],
+                'genre'          => ['nullable'],
+                'genres'         => ['nullable', 'array'],
+                'genres.*'       => ['nullable', 'string'],
+                'nid'            => ['nullable', 'string'],
+                'avatar'         => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:10240'],
+                'avatar_cropped' => ['nullable', 'string'],
             ]),
             'buyer' => $request->validate([
                 'address'      => ['nullable', 'string'],
@@ -116,9 +119,36 @@ class RegistrationController extends Controller
             ]),
         };
 
-        // Handle avatar photo upload if provided
+        // Format genre list if provided as array or string
+        if ($type === 'author') {
+            $selectedGenres = (array) $request->input('genres', []);
+            if ($request->filled('genre') && !in_array($request->input('genre'), $selectedGenres)) {
+                $selectedGenres[] = $request->input('genre');
+            }
+            $genreString = implode(', ', array_unique(array_filter(array_map('trim', $selectedGenres))));
+            $extra['genre'] = $genreString;
+            $extra['genres'] = array_values(array_unique(array_filter(array_map('trim', $selectedGenres))));
+        }
+
+        // Handle avatar photo upload (Cropped Base64 or standard file upload)
         $avatarPath = null;
-        if ($request->hasFile('avatar')) {
+        if ($request->filled('avatar_cropped') && str_starts_with($request->input('avatar_cropped'), 'data:image')) {
+            try {
+                $croppedData = $request->input('avatar_cropped');
+                @list($typeInfo, $data) = explode(';', $croppedData);
+                @list(, $data)          = explode(',', $data);
+                $decodedData = base64_decode($data);
+                if ($decodedData !== false) {
+                    $filename = 'avatars/author_' . time() . '_' . uniqid() . '.jpg';
+                    \Illuminate\Support\Facades\Storage::disk('public')->put($filename, $decodedData);
+                    $avatarPath = $filename;
+                }
+            } catch (\Throwable $e) {
+                Log::warning("Could not process cropped avatar: " . $e->getMessage());
+            }
+        }
+        
+        if (!$avatarPath && $request->hasFile('avatar')) {
             $avatarPath = $request->file('avatar')->store('avatars', 'public');
         }
 
@@ -172,7 +202,7 @@ class RegistrationController extends Controller
 
         // For author, seller, publisher: Do NOT login automatically. Redirect to pending approval notice.
         return redirect()->route('pending.approval')
-            ->with('success', 'আপনার সাইনআপ সফল হয়েছে। ২৪ ঘণ্টার মধ্যে অ্যাকাউন্ট একটিভ হলে লেখা পোস্ট করতে পারবেন।');
+            ->with('success', 'আপনার রেজিস্ট্রেশন সফল হয়েছে। ২৪ ঘণ্টার মধ্যে একটিভ না হলে সাপোর্ট টিমকে অবগত করুন।');
     }
 
     public function pendingApproval()

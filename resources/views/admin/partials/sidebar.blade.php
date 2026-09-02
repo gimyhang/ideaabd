@@ -114,7 +114,8 @@
         <div class="adm-side__search-box">
             <i class="fas fa-search adm-side__search-icon"></i>
             <input type="text" id="admSidebarSearch" class="adm-side__search-input" placeholder="Search menu... (Ctrl+K)" autocomplete="off">
-            <span class="adm-side__search-shortcut">⌘K</span>
+            <span id="admSidebarMatchCounter" class="adm-side__match-badge d-none">0</span>
+            <span class="adm-side__search-shortcut" id="admSidebarShortcut">⌘K</span>
             <button type="button" id="admSidebarSearchClear" class="adm-side__search-clear" title="Clear filter">
                 <i class="fas fa-times"></i>
             </button>
@@ -124,19 +125,24 @@
     <!-- 2. Quick Access / Favorites Chip Bar -->
     <div class="adm-side__favorites">
         <a href="{{ route('admin.pos.index') }}" class="adm-side__fav-chip {{ request()->routeIs('admin.pos.*') ? 'is-active' : '' }}" title="Boi Mela Stall POS">
-            <i class="fas fa-cash-register text-warning"></i> POS
+            <i class="fas fa-cash-register text-warning"></i>
+            <span>POS</span>
         </a>
         <a href="{{ route('admin.ecommerce-orders') }}" class="adm-side__fav-chip {{ request()->routeIs('admin.ecommerce-orders*') ? 'is-active' : '' }}" title="Book Orders">
-            <i class="fas fa-cart-shopping text-info"></i> Orders
+            <i class="fas fa-cart-shopping text-info"></i>
+            <span>Orders</span>
         </a>
         <a href="{{ route('admin.books') }}" class="adm-side__fav-chip {{ request()->routeIs('admin.books*') ? 'is-active' : '' }}" title="Books Catalog">
-            <i class="fas fa-book text-success"></i> Books
+            <i class="fas fa-book text-success"></i>
+            <span>Books</span>
         </a>
         <a href="{{ route('admin.currencies.index') }}" class="adm-side__fav-chip {{ request()->routeIs('admin.currencies.*') ? 'is-active' : '' }}" title="Multi-Currency FX">
-            <i class="fas fa-coins text-warning"></i> FX
+            <i class="fas fa-coins text-warning"></i>
+            <span>FX</span>
         </a>
         <a href="{{ route('admin.tickets.index') }}" class="adm-side__fav-chip {{ request()->routeIs('admin.tickets.*') ? 'is-active' : '' }}" title="Support Tickets">
-            <i class="fas fa-ticket text-danger"></i> Tickets
+            <i class="fas fa-ticket text-danger"></i>
+            <span>Tickets</span>
         </a>
     </div>
 
@@ -275,6 +281,8 @@
     // 2. Real-Time Spotlight Search Filter
     const searchInput = document.getElementById('admSidebarSearch');
     const clearBtn = document.getElementById('admSidebarSearchClear');
+    const shortcutBadge = document.getElementById('admSidebarShortcut');
+    const matchBadge = document.getElementById('admSidebarMatchCounter');
     const navLinks = document.querySelectorAll('.adm-nav__link');
     const navGroups = document.querySelectorAll('.adm-nav__group');
 
@@ -282,7 +290,10 @@
         searchInput.addEventListener('input', function() {
             const term = this.value.trim().toLowerCase();
             if (term.length > 0) {
-                clearBtn.style.display = 'block';
+                if (clearBtn) clearBtn.style.display = 'block';
+                if (shortcutBadge) shortcutBadge.style.display = 'none';
+
+                let totalMatches = 0;
 
                 navGroups.forEach(g => {
                     let groupHasMatch = false;
@@ -291,14 +302,17 @@
                     items.forEach(link => {
                         const text = link.getAttribute('data-label') || '';
                         const textSpan = link.querySelector('.adm-nav__text');
-                        const originalText = textSpan.innerText;
+                        const originalText = textSpan ? textSpan.innerText : '';
 
                         if (text.includes(term)) {
                             link.style.display = 'flex';
                             groupHasMatch = true;
+                            totalMatches++;
                             // Highlight text
-                            const regex = new RegExp(`(${term})`, 'gi');
-                            textSpan.innerHTML = originalText.replace(regex, '<mark>$1</mark>');
+                            if (textSpan) {
+                                const regex = new RegExp(`(${term})`, 'gi');
+                                textSpan.innerHTML = originalText.replace(regex, '<mark>$1</mark>');
+                            }
                         } else {
                             link.style.display = 'none';
                         }
@@ -311,20 +325,29 @@
                         g.style.display = 'none';
                     }
                 });
+
+                if (matchBadge) {
+                    matchBadge.textContent = `${totalMatches}`;
+                    matchBadge.classList.remove('d-none');
+                }
             } else {
                 clearSearchFilter();
             }
         });
 
-        clearBtn.addEventListener('click', function() {
-            searchInput.value = '';
-            clearSearchFilter();
-            searchInput.focus();
-        });
+        if (clearBtn) {
+            clearBtn.addEventListener('click', function() {
+                searchInput.value = '';
+                clearSearchFilter();
+                searchInput.focus();
+            });
+        }
     }
 
     function clearSearchFilter() {
         if (clearBtn) clearBtn.style.display = 'none';
+        if (shortcutBadge) shortcutBadge.style.display = '';
+        if (matchBadge) matchBadge.classList.add('d-none');
         navLinks.forEach(link => {
             link.style.display = 'flex';
             const textSpan = link.querySelector('.adm-nav__text');

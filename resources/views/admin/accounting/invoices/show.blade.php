@@ -230,12 +230,18 @@
                 </div>
             </div>
 
-            {{-- Subject and Tender Reference (for Tender & Quotation) --}}
+            {{-- Subject and Reference (for Bill, Challan, Tender & Quotation) --}}
             @if($invoice->subject || $invoice->reference_no)
                 <div class="p-1.5 bg-light rounded-2 border mb-2" style="font-size: 10px;">
                     @if($invoice->reference_no)
                         <div class="text-muted mb-0.5">
-                            <strong class="text-dark">Tender / Ref No:</strong> <span class="font-monospace fw-bold text-dark">{{ $invoice->reference_no }}</span>
+                            <strong class="text-dark">
+                                @if($invoice->type === 'tender') Tender Ref:
+                                @elseif($invoice->type === 'quotation') Quotation Ref:
+                                @elseif($invoice->type === 'challan') Challan Ref:
+                                @else Ref / PO No: @endif
+                            </strong> 
+                            <span class="font-monospace fw-bold text-dark">{{ $invoice->reference_no }}</span>
                         </div>
                     @endif
                     @if($invoice->subject)
@@ -560,6 +566,23 @@
                         <div class="text-muted" style="font-size: 9px;">Linked Bill #: <strong>#{{ $invoice->invoice_no }}</strong></div>
                     </div>
                 </div>
+
+                {{-- Challan Subject and Reference --}}
+                @if($invoice->subject || $invoice->reference_no)
+                    <div class="p-1.5 bg-light rounded-2 border mb-2" style="font-size: 10px;">
+                        @if($invoice->reference_no)
+                            <div class="text-muted mb-0.5">
+                                <strong class="text-dark">Challan Ref:</strong> 
+                                <span class="font-monospace fw-bold text-dark">{{ $invoice->reference_no }}</span>
+                            </div>
+                        @endif
+                        @if($invoice->subject)
+                            <div>
+                                <strong class="text-dark">Subject:</strong> <span class="fw-bold text-primary">{{ $invoice->subject }}</span>
+                            </div>
+                        @endif
+                    </div>
+                @endif
 
                 {{-- Delivery Destination & Client Details --}}
                 <div class="p-2.5 bg-light rounded-2 border mb-2.5 destination-box" style="font-size: 12px; box-sizing: border-box;">

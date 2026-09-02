@@ -347,6 +347,13 @@
                                         @if($inv->customer_phone)
                                             <div class="text-muted small font-monospace" style="font-size: 11px;"><i class="fas fa-phone me-1 text-success"></i>{{ $inv->customer_phone }}</div>
                                         @endif
+
+                                        @if($inv->subject)
+                                            <div class="text-primary-emphasis fw-medium mt-1 d-flex align-items-center gap-1.5" style="font-size: 11px; max-width: 280px;" title="বিষয়: {{ $inv->subject }}">
+                                                <i class="fas fa-heading text-primary opacity-75" style="font-size: 10px;"></i>
+                                                <span class="text-truncate">{{ $inv->subject }}</span>
+                                            </div>
+                                        @endif
                                     </div>
                                     <a href="{{ route('admin.accounting.customer-ledger.index', ['customer_name' => $inv->customer_name, 'customer_phone' => $inv->customer_phone]) }}" class="badge bg-light text-primary border text-decoration-none px-2 py-1 ms-1" title="গ্রাহকের সম্পূর্ণ খতিয়ান দেখুন">
                                         <i class="fas fa-book-bookmark me-0.5"></i>লেজার
