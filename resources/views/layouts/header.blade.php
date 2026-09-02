@@ -46,6 +46,8 @@
             }
         }
     } catch (\Throwable $e) {}
+
+    $moreCats = $moreCats ?? collect();
 @endphp
 
 <header class="site-head" id="siteHead">
@@ -548,7 +550,7 @@
             </div>
 
             {{-- 7. [আরও বিষয় ▾] Dropdown (Standalone Right Side - Positioned Directly Underneath) --}}
-            @if ($moreCats->isNotEmpty())
+            @if (isset($moreCats) && $moreCats->isNotEmpty())
                 <span class="site-cat-divider me-1.5 flex-shrink-0"></span>
                 <div class="dropdown site-categorybar__more flex-shrink-0 position-relative">
                     <button class="btn btn-outline-secondary btn-sm rounded-pill text-dark fw-bold py-1.5 px-3 d-inline-flex align-items-center gap-1.5 dropdown-toggle shadow-2xs hover-primary hover-shadow" 

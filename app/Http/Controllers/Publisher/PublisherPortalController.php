@@ -120,7 +120,7 @@ class PublisherPortalController extends Controller
 
         $allPurchases = (clone $purchasesQuery)->latest('purchase_date')->paginate(15, ['*'], 'purchase_page');
 
-        // Today's Purchase Orders (Rokomari Company Panel Style)
+        // Today's Purchase Orders (Company Panel Style)
         $todayDate = now()->toDateString();
         $todayPurchasesQuery = PublisherPurchase::where('publisher_id', $publisher->id)
             ->with(['items.book', 'payments'])

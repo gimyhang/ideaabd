@@ -278,7 +278,7 @@ Route::prefix('publisher')->name('publisher.')->middleware(['auth'])->group(func
     Route::get('/purchases/{id}/challan', [\App\Http\Controllers\Publisher\PublisherPortalController::class, 'printChallan'])->name('purchases.challan');
 });
 
-// Company Panel route alias (Rokomari style seller/company-panel redirect)
+// Company Panel route alias (Publisher/seller company-panel redirect)
 Route::middleware(['auth'])->group(function () {
     Route::get('/company-panel', fn() => redirect()->route('publisher.dashboard', ['tab' => 'overview']))->name('company-panel');
     Route::get('/company-panel/today-purchase-list', fn() => redirect()->route('publisher.dashboard', ['tab' => 'today-purchases', 'date_filter' => 'today']))->name('company-panel.today-purchases');

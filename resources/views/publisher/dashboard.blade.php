@@ -329,7 +329,7 @@
         </div>
 
         {{-- ───────────────────────────────────────────────────────────────── --}}
-        {{-- TAB 1: TODAY'S PURCHASE LIST (ROKOMARI COMPANY PANEL STYLE)       --}}
+        {{-- TAB 1: TODAY'S PURCHASE LIST (COMPANY PANEL STYLE)                --}}
         {{-- ───────────────────────────────────────────────────────────────── --}}
         <div class="tab-pane fade {{ request('tab') === 'today-purchases' ? 'show active' : '' }}" id="tab-today-purchases" role="tabpanel">
             
@@ -666,7 +666,7 @@
         </div>
 
         {{-- ───────────────────────────────────────────────────────────────── --}}
-        {{-- TAB 3: ROKOMARI STYLE DYNAMIC PRODUCT & BOOK ENTRY FORM           --}}
+        {{-- TAB 3: DYNAMIC PRODUCT & BOOK ENTRY FORM                          --}}
         {{-- ───────────────────────────────────────────────────────────────── --}}
         <div class="tab-pane fade {{ request('tab') === 'add-book' || $editBook ? 'show active' : '' }}" id="tab-add-book" role="tabpanel">
             
@@ -700,7 +700,7 @@
                                         <i class="fas {{ $editBook ? 'fa-pen-to-square' : 'fa-box-open' }} fs-5"></i>
                                     </div>
                                     <div>
-                                        <h5 class="fw-bold mb-0 text-dark">{{ $editBook ? "Edit Product — {$editBook->title}" : "Product Entry — Rokomari Seller Format" }}</h5>
+                                        <h5 class="fw-bold mb-0 text-dark">{{ $editBook ? "Edit Product — {$editBook->title}" : "Product Entry — Standard Publisher Format" }}</h5>
                                         <span class="small text-muted" style="font-size: 0.8rem;">Clean specifications, multiple authors, dynamic pricing & compact dropdowns</span>
                                     </div>
                                 </div>

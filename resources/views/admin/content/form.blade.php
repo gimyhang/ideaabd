@@ -1675,7 +1675,7 @@
 
 @push('scripts')
 <script>
-// Pricing Engine Interactive Calculations (Rokomari-style)
+// Pricing Engine Interactive Calculations
 function onMainPriceChange() {
     const mrp = parseFloat(document.getElementById('f-price')?.value) || 0;
     const purchDiscPct = parseFloat(document.getElementById('f-purchase_discount_percent')?.value) || 0;
@@ -2486,7 +2486,7 @@ function onMainPriceChange() { onPaperbackPriceChange(); }
 function onPurchaseDiscountPercentChange() { onPaperbackPurchaseDiscountChange(); }
 function onCostPriceChange() { onPaperbackCostChange(); }
 function onSoldPercentChange() { onPaperbackSoldPercentChange(); }
-function updateRokomariCalculations() { updatePaperbackCalculations(); }
+function updateStandardCalculations() { updatePaperbackCalculations(); }
 
 // Toggle format for look inside
 function toggleLookInsideFormat(type) {

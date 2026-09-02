@@ -4,127 +4,139 @@
 
 @section('content')
 
-{{-- ══ HERO CAROUSEL ═══════════════════════════════════════════════════════════ --}}
+{{-- ══ 1. QUICK CATEGORY SUBNAV PILLS ═══════════════════════════════════════════ --}}
+<section class="py-2 mb-3 border-bottom bg-white shadow-2xs">
+    <div class="container">
+        <div class="d-flex align-items-center gap-2 overflow-x-auto text-nowrap scrollbar-none py-1">
+            <a href="{{ route('book.index') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1.5 fw-bold d-inline-flex align-items-center gap-1.5 shadow-2xs">
+                <i class="fa-solid fa-book-open text-primary"></i>
+                <span>সকল বই</span>
+            </a>
+            <a href="{{ route('book.index', ['filter' => 'flash_sale']) }}" class="btn btn-sm btn-light border rounded-pill px-3 py-1.5 fw-bold text-danger d-inline-flex align-items-center gap-1.5 shadow-2xs hover-lift">
+                <i class="fa-solid fa-bolt text-warning"></i>
+                <span>ফ্ল্যাশ সেল</span>
+            </a>
+            <a href="{{ route('book.index', ['sort' => 'bestselling']) }}" class="btn btn-sm btn-light border rounded-pill px-3 py-1.5 fw-bold text-dark d-inline-flex align-items-center gap-1.5 shadow-2xs hover-lift">
+                <i class="fa-solid fa-fire text-danger"></i>
+                <span>বেস্টসেলার</span>
+            </a>
+            <a href="{{ route('book.index', ['sort' => 'latest']) }}" class="btn btn-sm btn-light border rounded-pill px-3 py-1.5 fw-bold text-dark d-inline-flex align-items-center gap-1.5 shadow-2xs hover-lift">
+                <i class="fa-solid fa-sparkles text-success"></i>
+                <span>নতুন বই</span>
+            </a>
+            <a href="{{ route('ebook.index') }}" class="btn btn-sm btn-light border rounded-pill px-3 py-1.5 fw-bold text-dark d-inline-flex align-items-center gap-1.5 shadow-2xs hover-lift">
+                <i class="fa-solid fa-tablet-screen-button text-info"></i>
+                <span>ই-বুক</span>
+            </a>
+            <a href="{{ route('authors.index') }}" class="btn btn-sm btn-light border rounded-pill px-3 py-1.5 fw-bold text-dark d-inline-flex align-items-center gap-1.5 shadow-2xs hover-lift">
+                <i class="fa-solid fa-feather text-primary"></i>
+                <span>লেখক</span>
+            </a>
+            <a href="{{ route('publishers.index') }}" class="btn btn-sm btn-light border rounded-pill px-3 py-1.5 fw-bold text-dark d-inline-flex align-items-center gap-1.5 shadow-2xs hover-lift">
+                <i class="fa-solid fa-building text-secondary"></i>
+                <span>প্রকাশক</span>
+            </a>
+            <a href="{{ route('book.index', ['filter' => 'discounted']) }}" class="btn btn-sm btn-light border rounded-pill px-3 py-1.5 fw-bold text-dark d-inline-flex align-items-center gap-1.5 shadow-2xs hover-lift">
+                <i class="fa-solid fa-percent text-danger"></i>
+                <span>স্পেশাল অফার</span>
+            </a>
+            <a href="{{ route('blog.index') }}" class="btn btn-sm btn-primary rounded-pill px-3 py-1.5 fw-bold text-white d-inline-flex align-items-center gap-1.5 shadow-2xs">
+                <i class="fa-solid fa-feather-pointed"></i>
+                <span>আইডিয়াপত্র</span>
+            </a>
+        </div>
+    </div>
+</section>
+
+{{-- ══ 2. HERO CAROUSEL & TOP SELLER SPOTLIGHT ═══════════════════════════════════ --}}
 @php
     $heroSlides = \App\Support\SiteSetting::heroSlides();
 @endphp
-@if(!empty($heroSlides))
 <section class="mb-4">
     <div class="container">
-        <div id="homeHeroCarousel" class="carousel slide carousel-fade shadow-sm rounded-4 overflow-hidden" data-bs-ride="carousel" data-bs-interval="4500">
-            @if(count($heroSlides) > 1)
-                <div class="carousel-indicators">
-                    @foreach($heroSlides as $idx => $slide)
-                        <button type="button" data-bs-target="#homeHeroCarousel" data-bs-slide-to="{{ $idx }}" class="{{ $loop->first ? 'active' : '' }}" aria-current="{{ $loop->first ? 'true' : 'false' }}" aria-label="Slide {{ $idx + 1 }}"></button>
-                    @endforeach
-                </div>
-            @endif
-            <div class="carousel-inner" style="min-height: 260px;">
-                @foreach($heroSlides as $idx => $slide)
-                    @php
-                        $slideBg = $slide['bg_gradient'] ?? 'linear-gradient(135deg, #003366 0%, #0066cc 100%)';
-                        $slideBadge = $slide['badge'] ?? 'বিশেষ অফার';
-                        $slideBadgeColor = $slide['badge_color'] ?? 'bg-warning text-dark';
-                        $slideTitle = $slide['title'] ?? '';
-                        $slideSubtitle = $slide['subtitle'] ?? '';
-                        $slideBtnText = $slide['btn_text'] ?? 'দেখুন';
-                        $slideBtnUrl = $slide['btn_url'] ?? route('book.index');
-                        $slideBtnIcon = $slide['btn_icon'] ?? 'fa-solid fa-arrow-right';
-                        $slideBtnClass = $slide['btn_class'] ?? 'btn-light text-primary';
-                        $slideIcon = $slide['icon'] ?? 'fa-solid fa-book-open-reader';
-                    @endphp
-                    <div class="carousel-item {{ $loop->first ? 'active' : '' }}" style="background: {{ $slideBg }};">
-                        <div class="row align-items-center py-4 py-md-5 text-white position-relative" style="padding-left: clamp(2.75rem, 7vw, 4.5rem) !important; padding-right: clamp(2.75rem, 7vw, 4.5rem) !important; z-index: 2;">
-                            <div class="col-md-7 py-2 py-md-3">
-                                @if($slideBadge)
-                                    <span class="badge {{ $slideBadgeColor }} fw-bold px-3 py-1 mb-2.5 rounded-pill shadow-sm" style="font-size: 0.85rem; letter-spacing: 0.3px;">
-                                        <i class="fa-solid fa-sparkles me-1 small"></i>{{ $slideBadge }}
-                                    </span>
-                                @endif
-                                <h1 class="fw-bold mb-2 text-white" style="font-size: clamp(1.25rem, 4.5vw, 2.25rem); line-height: 1.35; text-shadow: 0 2px 10px rgba(0,0,0,0.25);">
-                                    {{ $slideTitle }}
-                                </h1>
-                                @if($slideSubtitle)
-                                    <p class="fs-6 opacity-90 mb-3 mb-md-4" style="font-size: clamp(0.85rem, 2.5vw, 1rem) !important; line-height: 1.5; max-width: 540px;">
-                                        {{ $slideSubtitle }}
-                                    </p>
-                                @endif
-                                @if($slideBtnText)
-                                    <a href="{{ url($slideBtnUrl) }}" class="btn {{ $slideBtnClass }} fw-bold rounded-pill px-4 py-2 shadow-sm d-inline-flex align-items-center gap-1.5 hover-shadow hover-lift" style="font-size: 0.92rem;">
-                                        @if($slideBtnIcon)
-                                            <i class="{{ $slideBtnIcon }}"></i>
-                                        @endif
-                                        <span>{{ $slideBtnText }}</span>
-                                    </a>
-                                @endif
+        <div class="row g-3 align-items-stretch">
+            
+            {{-- Main Hero Slider --}}
+            <div class="{{ isset($topSeller) && $topSeller ? 'col-lg-9 col-12' : 'col-12' }}">
+                @if(!empty($heroSlides))
+                    <div id="homeHeroCarousel" class="carousel slide carousel-fade shadow-sm rounded-4 overflow-hidden h-100 position-relative" data-bs-ride="carousel" data-bs-interval="4500" style="min-height: 280px; background: #003366;">
+                        @if(count($heroSlides) > 1)
+                            <div class="carousel-indicators">
+                                @foreach($heroSlides as $idx => $slide)
+                                    <button type="button" data-bs-target="#homeHeroCarousel" data-bs-slide-to="{{ $idx }}" class="{{ $loop->first ? 'active' : '' }}" aria-current="{{ $loop->first ? 'true' : 'false' }}" aria-label="Slide {{ $idx + 1 }}"></button>
+                                @endforeach
                             </div>
-                            
-                            {{-- Exclusive Modern 3D & Glass Graphic Presentation --}}
-                            <div class="col-md-5 d-none d-md-flex align-items-center justify-content-center">
-                                <div class="position-relative d-inline-flex align-items-center justify-content-center p-4">
-                                    <!-- Ambient Glow Ring -->
-                                    <div class="position-absolute rounded-circle" style="width: 220px; height: 220px; background: radial-gradient(circle, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0) 70%); filter: blur(10px); z-index: 1;"></div>
-                                    
-                                    <!-- Glassmorphic Icon Container -->
-                                    <div class="rounded-circle d-flex align-items-center justify-content-center shadow-2xl position-relative hover-lift transition-all" 
-                                         style="width: 170px; height: 170px; background: rgba(255, 255, 255, 0.12); border: 2px solid rgba(255, 255, 255, 0.35); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); z-index: 2;">
-                                        @if(!empty($slide['image_url']))
-                                            <img src="{{ asset($slide['image_url']) }}" alt="{{ $slideTitle }}" class="img-fluid p-3" style="max-height: 125px; filter: drop-shadow(0 8px 24px rgba(0,0,0,0.35));">
-                                        @else
-                                            <i class="{{ $slideIcon }} text-white" style="font-size: 5.5rem; filter: drop-shadow(0 8px 24px rgba(0,0,0,0.35)); opacity: 0.95;"></i>
-                                        @endif
-                                    </div>
-                                    
-                                    <!-- Decorative Orbiting Floating Badges -->
-                                    <div class="position-absolute top-0 end-0 bg-warning text-dark px-2.5 py-1 rounded-pill shadow-sm small fw-bold" style="z-index: 3; font-size: 11px; transform: rotate(6deg);">
-                                        <i class="fa-solid fa-star me-1"></i>আইডিয়া
-                                    </div>
-                                    <div class="position-absolute bottom-0 start-0 bg-white text-primary px-2.5 py-1 rounded-pill shadow-sm small fw-bold" style="z-index: 3; font-size: 11px; transform: rotate(-6deg);">
-                                        <i class="fa-solid fa-check-double me-1"></i>প্রিমিয়াম
+                        @endif
+                        <div class="carousel-inner h-100">
+                            @foreach($heroSlides as $idx => $slide)
+                                @php
+                                    $slideBg = $slide['bg_gradient'] ?? 'linear-gradient(135deg, #003366 0%, #0066cc 100%)';
+                                    $slideBadge = $slide['badge'] ?? 'বিশেষ অফার';
+                                    $slideBadgeColor = $slide['badge_color'] ?? 'bg-warning text-dark';
+                                    $slideTitle = $slide['title'] ?? '';
+                                    $slideSubtitle = $slide['subtitle'] ?? '';
+                                    $slideBtnText = $slide['btn_text'] ?? 'বইগুলো দেখুন';
+                                    $slideBtnUrl = $slide['btn_url'] ?? route('book.index');
+                                    $slideBtnIcon = $slide['btn_icon'] ?? 'fa-solid fa-arrow-right';
+                                    $slideBtnClass = $slide['btn_class'] ?? 'btn-light text-primary';
+                                    $slideIcon = $slide['icon'] ?? 'fa-solid fa-book-open-reader';
+                                @endphp
+                                <div class="carousel-item {{ $loop->first ? 'active' : '' }} h-100" style="background: {{ $slideBg }};">
+                                    <div class="row align-items-center h-100 py-4 py-md-5 text-white position-relative" style="padding-left: clamp(1.5rem, 5vw, 3.5rem) !important; padding-right: clamp(1.5rem, 5vw, 3.5rem) !important; z-index: 2;">
+                                        <div class="col-md-7 py-2">
+                                            @if($slideBadge)
+                                                <span class="badge {{ $slideBadgeColor }} fw-bold px-3 py-1 mb-2 rounded-pill shadow-xs" style="font-size: 0.82rem;">
+                                                    <i class="fa-solid fa-sparkles me-1 small"></i>{{ $slideBadge }}
+                                                </span>
+                                            @endif
+                                            <h1 class="fw-bold mb-2 text-white" style="font-size: clamp(1.2rem, 3.8vw, 2.1rem); line-height: 1.35; text-shadow: 0 2px 8px rgba(0,0,0,0.25);">
+                                                {{ $slideTitle }}
+                                            </h1>
+                                            @if($slideSubtitle)
+                                                <p class="opacity-90 mb-3" style="font-size: clamp(0.85rem, 2vw, 0.98rem); line-height: 1.5; max-width: 500px;">
+                                                    {{ $slideSubtitle }}
+                                                </p>
+                                            @endif
+                                            @if($slideBtnText)
+                                                <a href="{{ url($slideBtnUrl) }}" class="btn {{ $slideBtnClass }} fw-bold rounded-pill px-4 py-2 shadow-sm d-inline-flex align-items-center gap-1.5 hover-lift" style="font-size: 0.90rem;">
+                                                    <span>{{ $slideBtnText }}</span>
+                                                    @if($slideBtnIcon)
+                                                        <i class="{{ $slideBtnIcon }}"></i>
+                                                    @endif
+                                                </a>
+                                            @endif
+                                        </div>
+                                        
+                                        <div class="col-md-5 d-none d-md-flex align-items-center justify-content-center">
+                                            <div class="position-relative d-inline-flex align-items-center justify-content-center p-3">
+                                                <div class="position-absolute rounded-circle" style="width: 180px; height: 180px; background: radial-gradient(circle, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0) 70%); filter: blur(8px); z-index: 1;"></div>
+                                                <div class="rounded-circle d-flex align-items-center justify-content-center shadow-lg position-relative hover-lift" 
+                                                     style="width: 140px; height: 140px; background: rgba(255, 255, 255, 0.14); border: 2px solid rgba(255, 255, 255, 0.35); backdrop-filter: blur(10px); z-index: 2;">
+                                                    @if(!empty($slide['image_url']))
+                                                        <img src="{{ asset($slide['image_url']) }}" alt="{{ $slideTitle }}" class="img-fluid p-2" style="max-height: 105px; filter: drop-shadow(0 6px 16px rgba(0,0,0,0.3));">
+                                                    @else
+                                                        <i class="{{ $slideIcon }} text-white" style="font-size: 4.5rem; filter: drop-shadow(0 6px 16px rgba(0,0,0,0.3)); opacity: 0.95;"></i>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
+                            @endforeach
                         </div>
+                        @if(count($heroSlides) > 1)
+                            <button class="carousel-control-prev" type="button" data-bs-target="#homeHeroCarousel" data-bs-slide="prev" aria-label="পূর্ববর্তী">
+                                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                            </button>
+                            <button class="carousel-control-next" type="button" data-bs-target="#homeHeroCarousel" data-bs-slide="next" aria-label="পরবর্তী">
+                                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                            </button>
+                        @endif
                     </div>
-                @endforeach
+                @endif
             </div>
-            @if(count($heroSlides) > 1)
-                <button class="carousel-control-prev" type="button" data-bs-target="#homeHeroCarousel" data-bs-slide="prev" aria-label="পূর্ববর্তী">
-                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                </button>
-                <button class="carousel-control-next" type="button" data-bs-target="#homeHeroCarousel" data-bs-slide="next" aria-label="পরবর্তী">
-                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                </button>
-            @endif
-        </div>
-    </div>
-</section>
-@endif
 
-{{-- ══ FEATURES STRIP ════════════════════════════════════════════════════════ --}}
-<section class="mb-4">
-    <div class="container">
-        <div class="row g-3 text-center">
-            @foreach([['fa-truck','দ্রুত ডেলিভারি','সারাদেশে ৩–৫ দিনে','#e8f4f8'],['fa-shield-halved','নিরাপদ পেমেন্ট','বিকাশ, নগদ, কার্ড','#fff5e6'],['fa-rotate-left','সহজ রিটার্ন','৭ দিনের নিশ্চয়তা','#e8f8ee'],['fa-headset','২৪/৭ সাপোর্ট','সর্বদা আপনার পাশে','#f5e8f8']] as $f)
-            <div class="col-6 col-md-3">
-                <div class="rounded-4 p-3 h-100 d-flex flex-column justify-content-center border border-slate-100 shadow-sm" style="background:{{ $f[3] }};">
-                    <i class="fa-solid {{ $f[0] }} fs-3 mb-2" style="color:#0066cc;"></i>
-                    <div class="fw-bold text-slate-800" style="font-size:.95rem;">{{ $f[1] }}</div>
-                    <div class="text-slate-500" style="font-size:.78rem;">{{ $f[2] }}</div>
-                </div>
-            </div>
-            @endforeach
-        </div>
-    </div>
-</section>
-
-{{-- ══ MAIN CONTENT & SIDEBAR ═════════════════════════════════════════════════ --}}
-<div class="container mb-0 pb-0">
-    <div class="row g-4">
-        <!-- Sidebar Column (Top Seller & Modern Bookshop Widgets) -->
-        <aside class="col-lg-3 col-md-4 col-12">
-            
-            {{-- 1. Full-Bleed Dynamic Cover Top Seller Card --}}
+            {{-- Right Spotlight: Top Seller Book --}}
             @if(isset($topSeller) && $topSeller)
                 @php
                     $tsCover = $topSeller->cover_image;
@@ -136,297 +148,662 @@
                         ? round((($topSeller->price - $topSeller->discount_price) / $topSeller->price) * 100) 
                         : null;
                 @endphp
-                <div class="card mb-4 border-0 shadow-lg rounded-4 overflow-hidden position-relative hover-lift text-white" 
-                     style="min-height: 400px; background: #0f172a;">
-                    
-                    <!-- Dynamic Full-Bleed Background Book Cover Image -->
-                    <div class="position-absolute top-0 start-0 w-100 h-100" style="z-index: 1;">
-                        @if($tsCoverUrl)
-                            <img src="{{ $tsCoverUrl }}" 
-                                 class="w-100 h-100 object-fit-cover opacity-75 transition-all" 
-                                 alt="{{ $topSeller->title }}"
-                                 style="transform: scale(1.04); filter: blur(2px) brightness(0.6);">
-                        @else
-                            <div class="w-100 h-100" style="background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #0f172a 100%);"></div>
-                        @endif
-                        <!-- Multi-stop Dark Gradient Overlay for Maximum Text Readability -->
-                        <div class="position-absolute top-0 start-0 w-100 h-100" 
-                             style="background: linear-gradient(180deg, rgba(15, 23, 42, 0.4) 0%, rgba(15, 23, 42, 0.7) 45%, rgba(15, 23, 42, 0.96) 100%);"></div>
-                    </div>
-
-                    <!-- Card Content Layer (Floats over Cover Image) -->
-                    <div class="card-body p-3.5 d-flex flex-column justify-content-between position-relative text-center" style="z-index: 2;">
+                <div class="col-lg-3 col-12 d-flex">
+                    <div class="card w-100 border-0 shadow-sm rounded-4 overflow-hidden position-relative hover-lift bg-white d-flex flex-column justify-content-between p-3" style="border: 1px solid #eef2f6 !important;">
                         
-                        <!-- Top Header Row -->
-                        <div class="d-flex justify-content-between align-items-center w-100 mb-2">
-                            <span class="badge bg-warning text-dark fw-bold px-2.5 py-1.5 rounded-pill shadow-sm d-flex align-items-center gap-1.5" style="font-size: 0.75rem; letter-spacing: 0.3px;">
-                                <i class="fa-solid fa-crown text-dark"></i> টপ সেল বুক
+                        <div class="d-flex justify-content-between align-items-center mb-2.5">
+                            <span class="badge bg-danger text-white fw-bold px-2.5 py-1 rounded-pill shadow-xs" style="font-size: 0.75rem;">
+                                <i class="fa-solid fa-crown text-warning me-1"></i>সেরা বিক্রিত বই
                             </span>
                             @if($tsDiscountPercent)
-                                <span class="badge bg-danger text-white fw-bold px-2.5 py-1.5 rounded-pill shadow-sm" style="font-size: 0.75rem;">
+                                <span class="badge bg-warning text-dark fw-bold px-2.5 py-1 rounded-pill shadow-xs" style="font-size: 0.75rem;">
                                     -{{ $tsDiscountPercent }}% ছাড়
                                 </span>
                             @endif
                         </div>
 
-                        <!-- Center: 3D Book Spine Image Showcase (Larger Width & Height) -->
-                        <a href="{{ route('book.show', $topSeller->slug) }}" class="my-2 d-inline-block text-decoration-none mx-auto transition-transform">
-                            <div class="rounded-3 overflow-hidden shadow-2xl mx-auto position-relative" 
-                                 style="width: 170px; aspect-ratio: 1 / 1.48; box-shadow: 0 16px 36px rgba(0,0,0,0.65), 0 4px 10px rgba(0,0,0,0.4); border: 2.5px solid rgba(255,255,255,0.25); transform: perspective(800px) rotateY(-4deg);">
-                                @if($tsCoverUrl)
-                                    <img src="{{ $tsCoverUrl }}" class="w-100 h-100 object-fit-cover" alt="{{ $topSeller->title }}">
-                                @else
-                                    <div class="w-100 h-100 bg-dark d-flex align-items-center justify-content-center text-white" style="font-size: 3rem;">📘</div>
-                                @endif
-                            </div>
-                        </a>
-
-                        <!-- Bottom Information & CTA Button -->
-                        <div class="mt-auto pt-2">
-                            <a href="{{ route('book.show', $topSeller->slug) }}" class="text-decoration-none text-white d-block">
-                                <h6 class="fw-bold text-white text-truncate mb-1" style="font-size: 1.1rem; text-shadow: 0 2px 5px rgba(0,0,0,0.9);" title="{{ $topSeller->title }}">
-                                    {{ $topSeller->title }}
-                                </h6>
-                                <p class="text-light opacity-85 small text-truncate mb-2" style="font-size: 0.82rem;">
-                                    <i class="fa-solid fa-pen-nib me-1 opacity-75"></i>
-                                    {{ $topSeller->authors->isNotEmpty() ? $topSeller->authors->pluck('name')->join(', ') : ($topSeller->author_name ?: 'আইডিয়া প্রকাশন') }}
-                                </p>
-                                
-                                <div class="d-flex align-items-center justify-content-center gap-2 mb-3">
-                                    @if($topSeller->discount_price && $topSeller->discount_price < $topSeller->price)
-                                        <span class="text-light opacity-60 text-decoration-line-through small">৳{{ round($topSeller->price) }}</span>
-                                        <span class="text-warning fw-bold fs-5">৳{{ round($topSeller->discount_price) }}</span>
+                        <div class="text-center my-auto w-100 py-1">
+                            <a href="{{ route('book.show', $topSeller->slug) }}" class="d-block w-100 text-decoration-none">
+                                <div class="rounded-3 overflow-hidden shadow-sm mx-auto position-relative w-100 book-cover-frame" 
+                                     style="aspect-ratio: 7 / 10; max-height: 240px; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border: 1px solid #e2e8f0;">
+                                    @if($tsCoverUrl)
+                                        <img src="{{ $tsCoverUrl }}" class="w-100 h-100 object-fit-cover transition-transform" alt="{{ $topSeller->title }}">
                                     @else
-                                        <span class="text-warning fw-bold fs-5">৳{{ round($topSeller->price) }}</span>
+                                        <div class="w-100 h-100 bg-dark d-flex align-items-center justify-content-center text-white" style="font-size: 3rem;">📘</div>
                                     @endif
                                 </div>
                             </a>
-
-                            <a href="{{ route('book.show', $topSeller->slug) }}" class="btn btn-warning text-dark fw-bold rounded-pill w-100 shadow-sm py-2 d-flex align-items-center justify-content-center gap-2 transition-all">
-                                <i class="fa-solid fa-cart-shopping"></i> সরাসরি অর্ডার করুন
-                            </a>
+                            <h6 class="fw-bold text-dark text-truncate mt-2.5 mb-1" style="font-size: 1rem;">
+                                <a href="{{ route('book.show', $topSeller->slug) }}" class="text-dark text-decoration-none hover-primary" title="{{ $topSeller->title }}">
+                                    {{ $topSeller->title }}
+                                </a>
+                            </h6>
+                            <p class="text-muted small text-truncate mb-1.5" style="font-size: 0.82rem;">
+                                {{ $topSeller->authors->isNotEmpty() ? $topSeller->authors->pluck('name')->join(', ') : ($topSeller->author_name ?: 'আইডিয়া প্রকাশন') }}
+                            </p>
+                            <div class="d-flex align-items-center justify-content-center gap-2 mb-2">
+                                @if($topSeller->discount_price && $topSeller->discount_price < $topSeller->price)
+                                    <span class="text-muted text-decoration-line-through small" style="font-size: 0.84rem;">৳@bn(round($topSeller->price))</span>
+                                    <span class="text-danger fw-bold fs-5">৳@bn(round($topSeller->discount_price))</span>
+                                @else
+                                    <span class="text-dark fw-bold fs-5">৳@bn(round($topSeller->price))</span>
+                                @endif
+                            </div>
                         </div>
+
+                        <a href="{{ route('book.show', $topSeller->slug) }}" class="btn btn-primary btn-sm rounded-pill w-100 fw-bold py-2 shadow-xs d-flex align-items-center justify-content-center gap-1.5 mt-1" style="font-size: 0.88rem;">
+                            <i class="fa-solid fa-cart-shopping"></i> সরাসরি অর্ডার করুন
+                        </a>
 
                     </div>
                 </div>
             @endif
 
-            {{-- 2. Popular Categories Sidebar Widget (14 Categories) --}}
-            @if(isset($dynamicCategories) && $dynamicCategories->isNotEmpty())
-            <div class="card p-3 mb-3.5 border-0 shadow-sm rounded-4 bg-white">
-                <div class="d-flex align-items-center justify-content-between mb-2 pb-1.5 border-bottom">
-                    <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-1.5" style="font-size: 1.02rem;">
-                        <i class="fa-solid fa-layer-group text-primary"></i> জনপ্রিয় বিষয় ও ক্যাটাগরি
-                    </h6>
-                    <a href="{{ route('book.index') }}" class="text-primary text-decoration-none small fw-bold" style="font-size: 0.82rem;">সব দেখুন →</a>
-                </div>
-                <div class="d-flex flex-column">
-                    @foreach($dynamicCategories->take(14) as $cat)
-                        <a href="{{ route('book.index', ['category' => $cat->slug]) }}" 
-                           class="d-flex align-items-center justify-content-between py-1.5 px-2 rounded-2 text-decoration-none text-secondary hover-bg-light transition-all"
-                           style="line-height: 1.25;">
-                            <span class="d-flex align-items-center gap-1.5 text-truncate" style="max-width: 170px;">
-                                <i class="fa-regular fa-bookmark text-primary" style="font-size: 0.78rem;"></i>
-                                <span class="fw-bold text-dark text-truncate" style="font-size: 0.94rem;">{{ $cat->name }}</span>
-                            </span>
-                            <span class="badge bg-light text-muted border rounded-pill fw-semibold" style="font-size: 0.76rem;">{{ $cat->books_count }}টি</span>
-                        </a>
-                    @endforeach
+        </div>
+    </div>
+</section>
+
+{{-- ══ 3. TRUST & FEATURES STRIP ═════════════════════════════════════════════════ --}}
+<section class="mb-4">
+    <div class="container">
+        <div class="row g-2.5 g-md-3 text-center">
+            @php
+                $features = [
+                    ['fa-truck-fast', 'সারাদেশে দ্রুত ডেলিভারি', '৩–৫ দিনে হোম ডেলিভারি', '#0284c7', 'bg-info bg-opacity-10'],
+                    ['fa-hand-holding-dollar', 'ক্যাশ অন ডেলিভারি', 'বই হাতে পেয়ে মূল্য পরিশোধ', '#16a34a', 'bg-success bg-opacity-10'],
+                    ['fa-rotate-left', '৭ দিনের হ্যাপি রিটার্ন', '১০০% অরিজিনাল বই ও সুরক্ষা', '#d97706', 'bg-warning bg-opacity-10'],
+                    ['fa-headset', '২৪/৭ সাপোর্ট ও ফোন অর্ডার', '+৮৮ ০১৭২৬৯৭৬৯৮২', '#9333ea', 'bg-purple bg-opacity-10']
+                ];
+            @endphp
+            @foreach($features as $f)
+            <div class="col-6 col-lg-3">
+                <div class="card p-2.5 p-md-3 h-100 border-0 shadow-2xs rounded-4 bg-white d-flex flex-row align-items-center gap-2.5 text-start hover-lift" style="border: 1px solid #f1f5f9 !important;">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 {{ $f[4] }}" style="width: 44px; height: 44px;">
+                        <i class="fa-solid {{ $f[0] }} fs-5" style="color: {{ $f[3] }};"></i>
+                    </div>
+                    <div class="overflow-hidden min-w-0">
+                        <div class="fw-bold text-dark text-truncate" style="font-size: 0.88rem; line-height: 1.3;">{{ $f[1] }}</div>
+                        <div class="text-muted text-truncate" style="font-size: 0.75rem;">{{ $f[2] }}</div>
+                    </div>
                 </div>
             </div>
-            @endif
+            @endforeach
+        </div>
+    </div>
+</section>
 
-            {{-- 3. Featured Authors of the Month (13 Authors) --}}
-            @if(isset($sidebarAuthors) && $sidebarAuthors->isNotEmpty())
-            <div class="card p-3 mb-3.5 border-0 shadow-sm rounded-4 bg-white">
-                <div class="d-flex align-items-center justify-content-between mb-2 pb-1.5 border-bottom">
-                    <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-1.5" style="font-size: 1.02rem;">
-                        <i class="fa-solid fa-feather text-warning"></i> জনপ্রিয় লেখকগণ
-                    </h6>
-                    <a href="{{ route('authors.index') }}" class="text-primary text-decoration-none small fw-bold" style="font-size: 0.82rem;">সকল লেখক →</a>
+{{-- ══ 4. SECTION: ফ্ল্যাশ সেল ও বিশেষ অফার (FLASH SALES SLIDER) ═════════════════ --}}
+@if(isset($flashSales) && $flashSales->isNotEmpty())
+<section class="mb-4">
+    <div class="container">
+        <div class="card p-3 p-md-4 border-0 shadow-sm rounded-4 bg-white position-relative" style="border: 1px solid #f1f5f9 !important;">
+            
+            {{-- Section Header --}}
+            <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="rounded-circle bg-warning bg-opacity-20 text-warning d-flex align-items-center justify-content-center shadow-2xs" style="width: 32px; height: 32px;">
+                        <i class="fa-solid fa-bolt text-warning fs-6"></i>
+                    </span>
+                    <div>
+                        <h4 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2" style="font-size: clamp(1.05rem, 2.5vw, 1.35rem);">
+                            <span>ফ্ল্যাশ সেল ও বিশেষ অফার</span>
+                            <span class="badge bg-danger text-white rounded-pill px-2 py-0.5 small fw-bold" style="font-size: 0.68rem;">সীমিত অফার</span>
+                        </h4>
+                        <span class="text-muted small" style="font-size: 0.78rem;">সর্বোচ্চ ছাড়ে আপনার পছন্দের বইগুলো এখনই সংগ্রহ করুন</span>
+                    </div>
                 </div>
-                <div class="d-flex flex-column gap-1">
-                    @foreach($sidebarAuthors->take(13) as $author)
-                        <a href="{{ route('authors.show', $author->slug ?? $author->id) }}" 
-                           class="d-flex align-items-center gap-2 py-1.5 px-2 rounded-2 text-decoration-none hover-bg-light transition-all border border-transparent hover-border">
-                            <div class="rounded-circle overflow-hidden shadow-2xs flex-shrink-0 position-relative border" 
-                                 style="width: 32px; height: 32px; min-width: 32px; aspect-ratio: 1/1; background: {{ $author->avatar_bg_color ?? 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)' }};">
-                                @if($author->avatar_url)
-                                    <img src="{{ $author->avatar_url }}" alt="{{ $author->name }}" class="w-100 h-100 object-fit-cover">
+                <div class="d-flex align-items-center gap-2">
+                    <button type="button" class="btn btn-sm btn-light rounded-circle shadow-2xs border d-none d-md-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" onclick="scrollIdeaSlider('flashSaleSlider', -1)" title="পূর্ববর্তী">
+                        <i class="fa-solid fa-chevron-left text-secondary" style="font-size: 11px;"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-light rounded-circle shadow-2xs border d-none d-md-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" onclick="scrollIdeaSlider('flashSaleSlider', 1)" title="পরবর্তী">
+                        <i class="fa-solid fa-chevron-right text-secondary" style="font-size: 11px;"></i>
+                    </button>
+                    <a href="{{ route('book.index', ['filter' => 'flash_sale']) }}" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-bold ms-1" style="font-size: 0.80rem;">
+                        সব দেখুন <i class="fa-solid fa-arrow-right ms-0.5"></i>
+                    </a>
+                </div>
+            </div>
+
+            {{-- Slider Track with Floating Nav Buttons --}}
+            <div class="idea-slider-wrapper position-relative">
+                <button type="button" class="idea-slider-nav-btn prev-btn shadow-md d-none d-lg-flex" onclick="scrollIdeaSlider('flashSaleSlider', -1)" aria-label="পূর্ববর্তী">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </button>
+                <div class="idea-book-slider" id="flashSaleSlider">
+                    @foreach($flashSales as $b)
+                        <div class="idea-slider-item">
+                            @include('book::frontend.partials.book-card', ['book' => $b])
+                        </div>
+                    @endforeach
+                </div>
+                <button type="button" class="idea-slider-nav-btn next-btn shadow-md d-none d-lg-flex" onclick="scrollIdeaSlider('flashSaleSlider', 1)" aria-label="পরবর্তী">
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+            </div>
+
+        </div>
+    </div>
+</section>
+@endif
+
+{{-- ══ 5. SECTION: সর্বাধিক বিক্রিত বই (BESTSELLERS SLIDER) ═══════════════════════ --}}
+@if(isset($recentlySold) && $recentlySold->isNotEmpty())
+<section class="mb-4">
+    <div class="container">
+        <div class="card p-3 p-md-4 border-0 shadow-sm rounded-4 bg-white position-relative" style="border: 1px solid #f1f5f9 !important;">
+            
+            {{-- Section Header --}}
+            <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="rounded-circle bg-danger bg-opacity-10 text-danger d-flex align-items-center justify-content-center shadow-2xs" style="width: 32px; height: 32px;">
+                        <i class="fa-solid fa-fire text-danger fs-6"></i>
+                    </span>
+                    <div>
+                        <h4 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2" style="font-size: clamp(1.05rem, 2.5vw, 1.35rem);">
+                            <span>সর্বাধিক বিক্রিত বই</span>
+                            <span class="badge bg-danger text-white rounded-pill px-2 py-0.5 small fw-bold" style="font-size: 0.68rem;">শীর্ষ চার্ট</span>
+                        </h4>
+                        <span class="text-muted small" style="font-size: 0.78rem;">পাঠকদের সবচেয়ে পছন্দের ও সেরা বিক্রিত বইসমূহ</span>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <button type="button" class="btn btn-sm btn-light rounded-circle shadow-2xs border d-none d-md-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" onclick="scrollIdeaSlider('bestsellerSlider', -1)" title="পূর্ববর্তী">
+                        <i class="fa-solid fa-chevron-left text-secondary" style="font-size: 11px;"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-light rounded-circle shadow-2xs border d-none d-md-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" onclick="scrollIdeaSlider('bestsellerSlider', 1)" title="পরবর্তী">
+                        <i class="fa-solid fa-chevron-right text-secondary" style="font-size: 11px;"></i>
+                    </button>
+                    <a href="{{ route('book.index', ['sort' => 'bestselling']) }}" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-bold ms-1" style="font-size: 0.80rem;">
+                        সব দেখুন <i class="fa-solid fa-arrow-right ms-0.5"></i>
+                    </a>
+                </div>
+            </div>
+
+            {{-- Slider Track with Floating Nav Buttons --}}
+            <div class="idea-slider-wrapper position-relative">
+                <button type="button" class="idea-slider-nav-btn prev-btn shadow-md d-none d-lg-flex" onclick="scrollIdeaSlider('bestsellerSlider', -1)" aria-label="পূর্ববর্তী">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </button>
+                <div class="idea-book-slider" id="bestsellerSlider">
+                    @foreach($recentlySold as $b)
+                        <div class="idea-slider-item">
+                            @include('book::frontend.partials.book-card', ['book' => $b])
+                        </div>
+                    @endforeach
+                </div>
+                <button type="button" class="idea-slider-nav-btn next-btn shadow-md d-none d-lg-flex" onclick="scrollIdeaSlider('bestsellerSlider', 1)" aria-label="পরবর্তী">
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+            </div>
+
+        </div>
+    </div>
+</section>
+@endif
+
+{{-- ══ 6. SECTION: জনপ্রিয় লেখকগণ (POPULAR AUTHORS CIRCLE AVATARS) ═══════════════ --}}
+@if(isset($sidebarAuthors) && $sidebarAuthors->isNotEmpty())
+<section class="mb-4">
+    <div class="container">
+        <div class="card p-3 p-md-4 border-0 shadow-sm rounded-4 bg-white position-relative" style="border: 1px solid #f1f5f9 !important;">
+            
+            {{-- Section Header --}}
+            <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center shadow-2xs" style="width: 32px; height: 32px;">
+                        <i class="fa-solid fa-feather-pointed text-primary fs-6"></i>
+                    </span>
+                    <div>
+                        <h4 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2" style="font-size: clamp(1.05rem, 2.5vw, 1.35rem);">
+                            <span>জনপ্রিয় লেখকগণ</span>
+                        </h4>
+                        <span class="text-muted small" style="font-size: 0.78rem;">সমকালীন ও খ্যাতনামা লেখকদের বই সরাসরি লেখকের পাতা থেকে পড়ুন</span>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <button type="button" class="btn btn-sm btn-light rounded-circle shadow-2xs border d-none d-md-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" onclick="scrollIdeaSlider('authorSlider', -1)" title="পূর্ববর্তী">
+                        <i class="fa-solid fa-chevron-left text-secondary" style="font-size: 11px;"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-light rounded-circle shadow-2xs border d-none d-md-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" onclick="scrollIdeaSlider('authorSlider', 1)" title="পরবর্তী">
+                        <i class="fa-solid fa-chevron-right text-secondary" style="font-size: 11px;"></i>
+                    </button>
+                    <a href="{{ route('authors.index') }}" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-bold ms-1" style="font-size: 0.80rem;">
+                        সকল লেখক <i class="fa-solid fa-arrow-right ms-0.5"></i>
+                    </a>
+                </div>
+            </div>
+
+            {{-- Authors Circle Avatar Slider --}}
+            <div class="idea-slider-wrapper position-relative">
+                <button type="button" class="idea-slider-nav-btn prev-btn shadow-md d-none d-lg-flex" onclick="scrollIdeaSlider('authorSlider', -1)" aria-label="পূর্ববর্তী">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </button>
+                <div class="idea-author-slider d-flex gap-3 overflow-x-auto text-nowrap scrollbar-none py-1" id="authorSlider">
+                    @foreach($sidebarAuthors->take(16) as $author)
+                        @php
+                            $aImg = $author->avatar_url ?? $author->photo ?? null;
+                        @endphp
+                        <a href="{{ route('authors.show', $author->slug ?? $author->id) }}" class="text-decoration-none text-center flex-shrink-0 d-flex flex-column align-items-center p-2 rounded-3 hover-bg-light transition-all" style="width: 108px;">
+                            <div class="rounded-circle overflow-hidden shadow-xs mb-2 position-relative border" 
+                                 style="width: 72px; height: 72px; aspect-ratio: 1/1; background: {{ $author->avatar_bg_color ?? 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)' }};">
+                                @if($aImg)
+                                    <img src="{{ $aImg }}" alt="{{ $author->name }}" class="w-100 h-100 object-fit-cover">
                                 @else
-                                    <div class="w-100 h-100 d-flex align-items-center justify-content-center text-white fw-bold" style="font-size: 0.78rem;">
+                                    <div class="w-100 h-100 d-flex align-items-center justify-content-center text-white fw-bold fs-4">
                                         {{ $author->initials ?? mb_substr($author->name, 0, 1) }}
                                     </div>
                                 @endif
                             </div>
-                            <div class="flex-grow-1 overflow-hidden min-w-0">
-                                <div class="fw-bold text-dark text-truncate" style="font-size: 0.94rem; line-height: 1.25;">{{ $author->name }}</div>
-                            </div>
-                            <i class="fa-solid fa-chevron-right text-muted opacity-40" style="font-size: 0.68rem;"></i>
+                            <div class="fw-bold text-dark text-truncate w-100" style="font-size: 0.84rem; line-height: 1.3;">{{ $author->name }}</div>
+                            <span class="badge bg-light text-muted border rounded-pill mt-1" style="font-size: 0.70rem;">{{ $author->books_count }}টি বই</span>
                         </a>
                     @endforeach
                 </div>
+                <button type="button" class="idea-slider-nav-btn next-btn shadow-md d-none d-lg-flex" onclick="scrollIdeaSlider('authorSlider', 1)" aria-label="পরবর্তী">
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
             </div>
-            @endif
 
-            {{-- 4. Promo Sidebar Banners (Fixed 3:1 Admin Banners) --}}
-            @php
-                $banner1 = class_exists(\App\Models\AdminDashboardSetting::class) ? \App\Models\AdminDashboardSetting::where('key', 'home_banner_1')->value('value') : null;
-                $banner2 = class_exists(\App\Models\AdminDashboardSetting::class) ? \App\Models\AdminDashboardSetting::where('key', 'home_banner_2')->value('value') : null;
-            @endphp
+        </div>
+    </div>
+</section>
+@endif
 
-            @if($banner1)
-                @php
-                    $b1Url = str_starts_with($banner1, 'http') ? $banner1 : (str_starts_with($banner1, 'storage/') || str_starts_with($banner1, 'images/') ? asset($banner1) : asset('storage/' . ltrim($banner1, '/')));
-                @endphp
-                <a href="{{ route('book.index') }}" class="promo-banner-card rounded-4 mb-4 d-block overflow-hidden shadow-sm hover-lift">
-                    <img src="{{ $b1Url }}" alt="Special Offer" class="w-100 h-auto object-fit-cover">
-                </a>
-            @endif
+{{-- ══ 7. SECTION: সদ্য প্রকাশিত ও নতুন বই (NEW ARRIVALS SLIDER) ════════════════ --}}
+@if(isset($books) && $books->isNotEmpty())
+<section class="mb-4">
+    <div class="container">
+        <div class="card p-3 p-md-4 border-0 shadow-sm rounded-4 bg-white position-relative" style="border: 1px solid #f1f5f9 !important;">
             
-            @if($banner2)
-                @php
-                    $b2Url = str_starts_with($banner2, 'http') ? $banner2 : (str_starts_with($banner2, 'storage/') || str_starts_with($banner2, 'images/') ? asset($banner2) : asset('storage/' . ltrim($banner2, '/')));
-                @endphp
-                <a href="{{ route('ebook.index') }}" class="promo-banner-card rounded-4 mb-4 d-block overflow-hidden shadow-sm hover-lift">
-                    <img src="{{ $b2Url }}" alt="Digital Books" class="w-100 h-auto object-fit-cover">
-                </a>
-            @endif
-
-            {{-- 5. Daily Deal & Discount Coupon Box --}}
-            <div class="card p-3 mb-4 border-0 shadow-sm rounded-4 text-white position-relative overflow-hidden hover-lift" 
-                 style="background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);">
-                <div class="d-flex align-items-center gap-2 mb-1.5">
-                    <i class="fa-solid fa-ticket text-warning fs-5"></i>
-                    <h6 class="fw-bold mb-0 text-white" style="font-size: 0.92rem;">স্পেশাল ডিসকাউন্ট কুপন</h6>
+            {{-- Section Header --}}
+            <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="rounded-circle bg-success bg-opacity-10 text-success d-flex align-items-center justify-content-center shadow-2xs" style="width: 32px; height: 32px;">
+                        <i class="fa-solid fa-sparkles text-success fs-6"></i>
+                    </span>
+                    <div>
+                        <h4 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2" style="font-size: clamp(1.05rem, 2.5vw, 1.35rem);">
+                            <span>সদ্য প্রকাশিত ও নতুন বই</span>
+                            <span class="badge bg-success text-white rounded-pill px-2 py-0.5 small fw-bold" style="font-size: 0.68rem;">নতুন প্রকাশনা</span>
+                        </h4>
+                        <span class="text-muted small" style="font-size: 0.78rem;">আইডিয়া প্রকাশনে যুক্ত হওয়া সর্বশেষ বইসমূহ</span>
+                    </div>
                 </div>
-                <p class="small text-light opacity-90 mb-2.5" style="font-size: 0.78rem;">
-                    যেকোনো অর্ডারে অতিরিক্ত ১০% ছাড় পেতে কুপন কোড ব্যবহার করুন:
-                </p>
-                <div class="d-flex align-items-center justify-content-between p-2 bg-white bg-opacity-20 rounded-3 border border-white border-opacity-25 mb-2">
-                    <span class="font-monospace fw-bold text-warning letter-spacing-1" id="couponCode">IDEA2026</span>
-                    <button type="button" class="btn btn-sm btn-light rounded-pill px-2.5 py-1 fw-bold text-primary" style="font-size: 0.72rem;" onclick="copyCouponCode()">
-                        <i class="fa-regular fa-copy me-1"></i> কপি করুন
+                <div class="d-flex align-items-center gap-2">
+                    <button type="button" class="btn btn-sm btn-light rounded-circle shadow-2xs border d-none d-md-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" onclick="scrollIdeaSlider('newArrivalsSlider', -1)" title="পূর্ববর্তী">
+                        <i class="fa-solid fa-chevron-left text-secondary" style="font-size: 11px;"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-light rounded-circle shadow-2xs border d-none d-md-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" onclick="scrollIdeaSlider('newArrivalsSlider', 1)" title="পরবর্তী">
+                        <i class="fa-solid fa-chevron-right text-secondary" style="font-size: 11px;"></i>
+                    </button>
+                    <a href="{{ route('book.index', ['sort' => 'latest']) }}" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-bold ms-1" style="font-size: 0.80rem;">
+                        সব দেখুন <i class="fa-solid fa-arrow-right ms-0.5"></i>
+                    </a>
+                </div>
+            </div>
+
+            {{-- Slider Track with Floating Nav Buttons --}}
+            <div class="idea-slider-wrapper position-relative">
+                <button type="button" class="idea-slider-nav-btn prev-btn shadow-md d-none d-lg-flex" onclick="scrollIdeaSlider('newArrivalsSlider', -1)" aria-label="পূর্ববর্তী">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </button>
+                <div class="idea-book-slider" id="newArrivalsSlider">
+                    @foreach($books as $b)
+                        <div class="idea-slider-item">
+                            @include('book::frontend.partials.book-card', ['book' => $b])
+                        </div>
+                    @endforeach
+                </div>
+                <button type="button" class="idea-slider-nav-btn next-btn shadow-md d-none d-lg-flex" onclick="scrollIdeaSlider('newArrivalsSlider', 1)" aria-label="পরবর্তী">
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+            </div>
+
+        </div>
+    </div>
+</section>
+@endif
+
+{{-- ══ 8. PROMO BANNER & DISCOUNT COUPON STRIP ══════════════════════════════════ --}}
+<section class="mb-4">
+    <div class="container">
+        <div class="rounded-4 p-3 p-md-4 text-white position-relative overflow-hidden shadow-sm" 
+             style="background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #0284c7 100%);">
+            <div class="row align-items-center g-3 position-relative z-1">
+                <div class="col-lg-7 col-md-6">
+                    <span class="badge bg-warning text-dark fw-bold px-3 py-1 rounded-pill mb-2 shadow-2xs" style="font-size: 0.78rem;">
+                        <i class="fa-solid fa-tag me-1"></i>সীমিত সময়ের স্পেশাল অফার
+                    </span>
+                    <h3 class="fw-bold mb-1 text-white" style="font-size: clamp(1.15rem, 3vw, 1.65rem);">
+                        যেকোনো অর্ডারে অতিরিক্ত ছাড় উপভোগ করুন!
+                    </h3>
+                    <p class="small text-light opacity-90 mb-0" style="font-size: 0.85rem;">
+                        চেকআউটে কুপন কোড ব্যবহার করে অতিরিক্ত ১০% ছাড় পান এবং ৫০০+ টাকার অর্ডারে সারাদেশে ফ্রি ডেলিভারি উপভোগ করুন।
+                    </p>
+                </div>
+                <div class="col-lg-5 col-md-6 text-md-end">
+                    <div class="d-inline-flex flex-column flex-sm-row align-items-center gap-2 p-2 bg-white bg-opacity-15 rounded-4 border border-white border-opacity-25">
+                        <div class="d-flex align-items-center gap-2 px-3 py-1">
+                            <span class="text-white-50 small">কুপন কোড:</span>
+                            <span class="font-monospace fw-bold text-warning fs-5" id="couponCode">IDEA2026</span>
+                        </div>
+                        <button type="button" class="btn btn-warning text-dark fw-bold rounded-pill px-3 py-2 shadow-xs" onclick="copyCouponCode()" style="font-size: 0.84rem;">
+                            <i class="fa-regular fa-copy me-1"></i> কুপন কপি করুন
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{{-- ══ 9. SECTION: ডিজিটাল ই-বুক কালেকশন (E-BOOKS SLIDER) ═══════════════════════ --}}
+@if(isset($bestSellerEbooks) && $bestSellerEbooks->isNotEmpty())
+<section class="mb-4">
+    <div class="container">
+        <div class="card p-3 p-md-4 border-0 shadow-sm rounded-4 bg-white position-relative" style="border: 1px solid #f1f5f9 !important;">
+            
+            {{-- Section Header --}}
+            <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="rounded-circle bg-info bg-opacity-10 text-info d-flex align-items-center justify-content-center shadow-2xs" style="width: 32px; height: 32px;">
+                        <i class="fa-solid fa-tablet-screen-button text-info fs-6"></i>
+                    </span>
+                    <div>
+                        <h4 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2" style="font-size: clamp(1.05rem, 2.5vw, 1.35rem);">
+                            <span>ডিজিটাল ই-বুক কালেকশন</span>
+                            <span class="badge bg-info text-dark rounded-pill px-2 py-0.5 small fw-bold" style="font-size: 0.68rem;">তাৎক্ষণিক পাঠ</span>
+                        </h4>
+                        <span class="text-muted small" style="font-size: 0.78rem;">মোবাইল বা কম্পিউটারে যেকোনো সময় সহজে ই-বুক পড়ুন</span>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <button type="button" class="btn btn-sm btn-light rounded-circle shadow-2xs border d-none d-md-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" onclick="scrollIdeaSlider('ebookSlider', -1)" title="পূর্ববর্তী">
+                        <i class="fa-solid fa-chevron-left text-secondary" style="font-size: 11px;"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-light rounded-circle shadow-2xs border d-none d-md-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" onclick="scrollIdeaSlider('ebookSlider', 1)" title="পরবর্তী">
+                        <i class="fa-solid fa-chevron-right text-secondary" style="font-size: 11px;"></i>
+                    </button>
+                    <a href="{{ route('ebook.index') }}" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-bold ms-1" style="font-size: 0.80rem;">
+                        সকল ই-বুক <i class="fa-solid fa-arrow-right ms-0.5"></i>
+                    </a>
+                </div>
+            </div>
+
+            {{-- Slider Track with Floating Nav Buttons --}}
+            <div class="idea-slider-wrapper position-relative">
+                <button type="button" class="idea-slider-nav-btn prev-btn shadow-md d-none d-lg-flex" onclick="scrollIdeaSlider('ebookSlider', -1)" aria-label="পূর্ববর্তী">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </button>
+                <div class="idea-book-slider" id="ebookSlider">
+                    @foreach($bestSellerEbooks as $b)
+                        <div class="idea-slider-item">
+                            @include('book::frontend.partials.book-card', ['book' => $b])
+                        </div>
+                    @endforeach
+                </div>
+                <button type="button" class="idea-slider-nav-btn next-btn shadow-md d-none d-lg-flex" onclick="scrollIdeaSlider('ebookSlider', 1)" aria-label="পরবর্তী">
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+            </div>
+
+        </div>
+    </div>
+</section>
+@endif
+
+{{-- ══ 10. SECTION: বিষয় ও ক্যাটাগরি অনুসারে বই (BROWSE BY CATEGORIES) ═══════════ --}}
+@if(isset($dynamicCategories) && $dynamicCategories->isNotEmpty())
+<section class="mb-4">
+    <div class="container">
+        <div class="card p-3 p-md-4 border-0 shadow-sm rounded-4 bg-white position-relative" style="border: 1px solid #f1f5f9 !important;">
+            
+            {{-- Section Header --}}
+            <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center shadow-2xs" style="width: 32px; height: 32px;">
+                        <i class="fa-solid fa-layer-group text-primary fs-6"></i>
+                    </span>
+                    <div>
+                        <h4 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2" style="font-size: clamp(1.05rem, 2.5vw, 1.35rem);">
+                            <span>জনপ্রিয় বিষয় ও ক্যাটাগরি</span>
+                        </h4>
+                        <span class="text-muted small" style="font-size: 0.78rem;">পছন্দের বিষয় অনুযায়ী বই খুঁজে নিন</span>
+                    </div>
+                </div>
+                <a href="{{ route('book.index') }}" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-bold" style="font-size: 0.80rem;">
+                    সকল বিষয় <i class="fa-solid fa-arrow-right ms-0.5"></i>
+                </a>
+            </div>
+
+            {{-- Category Grid --}}
+            <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-6 g-2.5">
+                @foreach($dynamicCategories->take(12) as $cat)
+                    <div class="col">
+                        <a href="{{ route('book.index', ['category' => $cat->slug]) }}" 
+                           class="card h-100 p-2.5 border-0 shadow-2xs rounded-3 text-decoration-none text-center bg-light hover-bg-primary hover-white transition-all hover-lift">
+                            <div class="fw-bold text-dark text-truncate mb-1" style="font-size: 0.88rem;">{{ $cat->name }}</div>
+                            <span class="badge bg-white text-muted border rounded-pill small" style="font-size: 0.70rem;">{{ $cat->books_count }}টি বই</span>
+                        </a>
+                    </div>
+                @endforeach
+            </div>
+
+        </div>
+    </div>
+</section>
+@endif
+
+{{-- ══ 11. SECTION: আইডিয়া প্রকাশন স্পেশাল কালেকশন (IDEA SPECIAL BOOKS) ══════════ --}}
+@if(isset($ideaSpecialBooks) && $ideaSpecialBooks->isNotEmpty())
+<section class="mb-4">
+    <div class="container">
+        <div class="card p-3 p-md-4 border-0 shadow-sm rounded-4 bg-white position-relative" style="border: 1px solid #f1f5f9 !important;">
+            
+            {{-- Section Header --}}
+            <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center shadow-2xs" style="width: 32px; height: 32px;">
+                        <i class="fa-solid fa-feather-pointed text-primary fs-6"></i>
+                    </span>
+                    <div>
+                        <h4 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2" style="font-size: clamp(1.05rem, 2.5vw, 1.35rem);">
+                            <span>আইডিয়া প্রকাশন স্পেশাল কালেকশন</span>
+                            <span class="badge bg-primary text-white rounded-pill px-2 py-0.5 small fw-bold" style="font-size: 0.68rem;">অরিজিনাল</span>
+                        </h4>
+                        <span class="text-muted small" style="font-size: 0.78rem;">আইডিয়া প্রকাশনীর নিজস্ব প্রকাশনা ও মানসম্মত বইসমূহ</span>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <button type="button" class="btn btn-sm btn-light rounded-circle shadow-2xs border d-none d-md-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" onclick="scrollIdeaSlider('ideaSpecialSlider', -1)" title="পূর্ববর্তী">
+                        <i class="fa-solid fa-chevron-left text-secondary" style="font-size: 11px;"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-light rounded-circle shadow-2xs border d-none d-md-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" onclick="scrollIdeaSlider('ideaSpecialSlider', 1)" title="পরবর্তী">
+                        <i class="fa-solid fa-chevron-right text-secondary" style="font-size: 11px;"></i>
+                    </button>
+                    <a href="{{ route('book.index') }}" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-bold ms-1" style="font-size: 0.80rem;">
+                        সব দেখুন <i class="fa-solid fa-arrow-right ms-0.5"></i>
+                    </a>
+                </div>
+            </div>
+
+            {{-- Slider Track with Floating Nav Buttons --}}
+            <div class="idea-slider-wrapper position-relative">
+                <button type="button" class="idea-slider-nav-btn prev-btn shadow-md d-none d-lg-flex" onclick="scrollIdeaSlider('ideaSpecialSlider', -1)" aria-label="পূর্ববর্তী">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </button>
+                <div class="idea-book-slider" id="ideaSpecialSlider">
+                    @foreach($ideaSpecialBooks as $b)
+                        <div class="idea-slider-item">
+                            @include('book::frontend.partials.book-card', ['book' => $b])
+                        </div>
+                    @endforeach
+                </div>
+                <button type="button" class="idea-slider-nav-btn next-btn shadow-md d-none d-lg-flex" onclick="scrollIdeaSlider('ideaSpecialSlider', 1)" aria-label="পরবর্তী">
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+            </div>
+
+        </div>
+    </div>
+</section>
+@endif
+
+{{-- ══ 12. SECTION: প্রি-অর্ডার বইসমূহ (PRE-ORDER BOOKS - IF AVAILABLE) ═══════════ --}}
+@if(isset($preOrderBooks) && $preOrderBooks->isNotEmpty())
+<section class="mb-4">
+    <div class="container">
+        <div class="card p-3 p-md-4 border-0 shadow-sm rounded-4 bg-white position-relative" style="border: 1px solid #f1f5f9 !important;">
+            
+            {{-- Section Header --}}
+            <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="rounded-circle bg-warning bg-opacity-20 text-warning d-flex align-items-center justify-content-center shadow-2xs" style="width: 32px; height: 32px;">
+                        <i class="fa-solid fa-clock-rotate-left text-warning fs-6"></i>
+                    </span>
+                    <div>
+                        <h4 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2" style="font-size: clamp(1.05rem, 2.5vw, 1.35rem);">
+                            <span>প্রি-অর্ডার বইসমূহ</span>
+                            <span class="badge bg-warning text-dark rounded-pill px-2 py-0.5 small fw-bold" style="font-size: 0.68rem;">আসন্ন বই</span>
+                        </h4>
+                        <span class="text-muted small" style="font-size: 0.78rem;">প্রকাশের আগেই বিশেষ সুবিধায় অগ্রিম অর্ডার করুন</span>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <button type="button" class="btn btn-sm btn-light rounded-circle shadow-2xs border d-none d-md-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" onclick="scrollIdeaSlider('preOrderSlider', -1)" title="পূর্ববর্তী">
+                        <i class="fa-solid fa-chevron-left text-secondary" style="font-size: 11px;"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-light rounded-circle shadow-2xs border d-none d-md-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" onclick="scrollIdeaSlider('preOrderSlider', 1)" title="পরবর্তী">
+                        <i class="fa-solid fa-chevron-right text-secondary" style="font-size: 11px;"></i>
+                    </button>
+                    <a href="{{ route('book.index', ['stock_status' => 'pre_order']) }}" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-bold ms-1" style="font-size: 0.80rem;">
+                        সব দেখুন <i class="fa-solid fa-arrow-right ms-0.5"></i>
+                    </a>
+                </div>
+            </div>
+
+            {{-- Slider Track with Floating Nav Buttons --}}
+            <div class="idea-slider-wrapper position-relative">
+                <button type="button" class="idea-slider-nav-btn prev-btn shadow-md d-none d-lg-flex" onclick="scrollIdeaSlider('preOrderSlider', -1)" aria-label="পূর্ববর্তী">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </button>
+                <div class="idea-book-slider" id="preOrderSlider">
+                    @foreach($preOrderBooks as $b)
+                        <div class="idea-slider-item">
+                            @include('book::frontend.partials.book-card', ['book' => $b])
+                        </div>
+                    @endforeach
+                </div>
+                <button type="button" class="idea-slider-nav-btn next-btn shadow-md d-none d-lg-flex" onclick="scrollIdeaSlider('preOrderSlider', 1)" aria-label="পরবর্তী">
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+            </div>
+
+        </div>
+    </div>
+</section>
+@endif
+
+{{-- ══ 13. SECTION: ইতিমধ্যে দেখা বইসমূহ (RECENTLY VIEWED - WHEN IN SESSION) ═════ --}}
+@if(isset($recentlyViewedBooks) && $recentlyViewedBooks->isNotEmpty())
+<section class="mb-4">
+    <div class="container">
+        <div class="card p-3 p-md-4 border-0 shadow-sm rounded-4 bg-white position-relative" style="border: 1px solid #f1f5f9 !important;">
+            
+            {{-- Section Header --}}
+            <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="rounded-circle bg-secondary bg-opacity-10 text-secondary d-flex align-items-center justify-content-center shadow-2xs" style="width: 32px; height: 32px;">
+                        <i class="fa-solid fa-clock-rotate-left text-secondary fs-6"></i>
+                    </span>
+                    <div>
+                        <h4 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2" style="font-size: clamp(1.05rem, 2.5vw, 1.35rem);">
+                            <span>ইতিমধ্যে আপনি দেখেছেন</span>
+                        </h4>
+                        <span class="text-muted small" style="font-size: 0.78rem;">আপনার সাম্প্রতিক ব্রাউজ করা বইসমূহ</span>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <button type="button" class="btn btn-sm btn-light rounded-circle shadow-2xs border d-none d-md-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" onclick="scrollIdeaSlider('recentlyViewedSlider', -1)" title="পূর্ববর্তী">
+                        <i class="fa-solid fa-chevron-left text-secondary" style="font-size: 11px;"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-light rounded-circle shadow-2xs border d-none d-md-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" onclick="scrollIdeaSlider('recentlyViewedSlider', 1)" title="পরবর্তী">
+                        <i class="fa-solid fa-chevron-right text-secondary" style="font-size: 11px;"></i>
                     </button>
                 </div>
-                <div class="small text-light opacity-75" style="font-size: 0.72rem;">* সীমিত সময়ের জন্য প্রযোজ্য</div>
             </div>
 
-            {{-- 6. Direct Helpline & Trust Guarantee Card --}}
-            <div class="card p-3 border-0 shadow-sm rounded-4 text-white" 
-                 style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);">
-                <div class="d-flex align-items-center gap-2 mb-2">
-                    <div class="rounded-circle bg-warning bg-opacity-20 p-2 d-flex align-items-center justify-content-center text-warning" style="width: 36px; height: 36px;">
-                        <i class="fa-solid fa-phone-volume"></i>
-                    </div>
-                    <div>
-                        <h6 class="fw-bold mb-0 text-white small">ফোনে বা হোয়াটসঅ্যাপে অর্ডার</h6>
-                        <span class="small text-success fw-semibold" style="font-size: 0.72rem;">● প্রতিদিন সকাল ৯টা - রাত ১০টা</span>
-                    </div>
-                </div>
-                <p class="small text-light opacity-75 mb-2.5" style="font-size: 0.78rem;">
-                    ওয়েবসাইটে অর্ডারে কোনো সমস্যা হলে সরাসরি কল করুন অথবা হোয়াটসঅ্যাপে বইয়ের নাম পাঠান।
-                </p>
-                <div class="d-grid gap-2">
-                    <a href="tel:01726976982" class="btn btn-outline-light btn-sm rounded-pill fw-bold d-flex align-items-center justify-content-center gap-2">
-                        <i class="fa-solid fa-phone"></i> ০১৭২৬-৯৭৬৯৮২
-                    </a>
-                    <a href="https://wa.me/8801726976982" target="_blank" class="btn btn-success btn-sm rounded-pill fw-bold d-flex align-items-center justify-content-center gap-2">
-                        <i class="fa-brands fa-whatsapp fs-6"></i> হোয়াটসঅ্যাপ চ্যাট
-                    </a>
-                </div>
-
-                <div class="border-top border-secondary border-opacity-25 mt-3 pt-2.5 d-flex justify-content-around text-center small text-light opacity-80" style="font-size: 0.72rem;">
-                    <div><i class="fa-solid fa-truck text-primary d-block mb-1"></i>ক্যাশ অন ডেলিভারি</div>
-                    <div><i class="fa-solid fa-shield-halved text-success d-block mb-1"></i>১০০% অরিজিনাল</div>
-                    <div><i class="fa-solid fa-rotate-left text-warning d-block mb-1"></i>সহজ রিটার্ন</div>
-                </div>
-            </div>
-
-        </aside>
-
-        <!-- Main Content Column -->
-        <main class="col-lg-9 col-md-8 col-12">
-            
-            <!-- 3-Column Category & Curated Showcase Grid (Row 1: Flash Sales 2 books, New Arrivals 2 books, Bestsellers 2 books | Rows 2 & 3: Other Categories) -->
-            @if(isset($categoryGridCards) && $categoryGridCards->isNotEmpty())
-            <div id="categoryShowcaseSection" class="w-100 mb-4">
-                <div class="row g-2.5 g-md-3" id="mainCategoryCardsGrid">
-                    @foreach($categoryGridCards as $index => $catCard)
-                        <div class="col-lg-4 col-md-6 col-12 {{ $index >= 15 ? 'extra-category-block d-none' : '' }}">
-                            <div class="card h-100 p-2.5 p-sm-3 border-0 shadow-sm rounded-4 bg-white d-flex flex-column hover-lift transition-all" 
-                                 style="border: 1px solid #eef2f6 !important; background: #ffffff;">
-                                
-                                {{-- Category Box Header --}}
-                                <div class="d-flex align-items-center justify-content-between mb-2 pb-2 border-bottom">
-                                    <div class="d-flex align-items-center gap-1.5 overflow-hidden">
-                                        <i class="{{ $catCard->icon }}" style="font-size: 13px;"></i>
-                                        <h6 class="fw-bold text-dark mb-0 text-truncate" style="font-size: 0.88rem;" title="{{ $catCard->title }}">
-                                            {{ $catCard->title }}
-                                        </h6>
-                                    </div>
-                                    <a href="{{ $catCard->url }}" 
-                                       class="text-primary text-decoration-none small fw-semibold flex-shrink-0 ms-1 d-inline-flex align-items-center gap-0.5" 
-                                       style="font-size: 0.72rem;">
-                                        <span>সব দেখুন</span>
-                                        <i class="fa-solid fa-angle-right" style="font-size: 9px;"></i>
-                                    </a>
-                                </div>
-
-                                {{-- 2 Books per Category Box Grid --}}
-                                <div class="row row-cols-2 g-2 flex-grow-1 align-items-stretch">
-                                    @foreach($catCard->books->take(2) as $book)
-                                        <div class="col d-flex">
-                                            @include('book::frontend.partials.book-card', ['book' => $book])
-                                        </div>
-                                    @endforeach
-                                </div>
-                            </div>
+            {{-- Slider Track with Floating Nav Buttons --}}
+            <div class="idea-slider-wrapper position-relative">
+                <button type="button" class="idea-slider-nav-btn prev-btn shadow-md d-none d-lg-flex" onclick="scrollIdeaSlider('recentlyViewedSlider', -1)" aria-label="পূর্ববর্তী">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </button>
+                <div class="idea-book-slider" id="recentlyViewedSlider">
+                    @foreach($recentlyViewedBooks as $b)
+                        <div class="idea-slider-item">
+                            @include('book::frontend.partials.book-card', ['book' => $b])
                         </div>
                     @endforeach
+                </div>
+                <button type="button" class="idea-slider-nav-btn next-btn shadow-md d-none d-lg-flex" onclick="scrollIdeaSlider('recentlyViewedSlider', 1)" aria-label="পরবর্তী">
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+            </div>
 
-                    {{-- Category Pagination & Toggle Control Bar --}}
-                    @if(count($categoryGridCards) > 15)
-                    <div class="col-12 mt-2.5 pt-1 text-center">
-                        <div class="card p-3 border-0 shadow-sm rounded-4 bg-white d-flex flex-column flex-sm-row align-items-center justify-content-center gap-2.5">
-                            <button type="button" 
-                                    id="toggleMoreCategoriesBtn" 
-                                    class="btn btn-outline-primary rounded-pill px-4 py-2 fw-bold shadow-xs d-inline-flex align-items-center gap-2"
-                                    onclick="toggleMoreCategories()">
-                                <i class="fa-solid fa-layer-group"></i>
-                                <span id="toggleCategoriesBtnText">আরও ক্যাটাগরি দেখুন (+{{ count($categoryGridCards) - 15 }}টি)</span>
-                                <i class="fa-solid fa-chevron-down" id="toggleCategoriesBtnIcon"></i>
-                            </button>
-                            <a href="{{ route('book.index') }}" class="btn btn-primary rounded-pill px-4 py-2 fw-bold shadow-xs d-inline-flex align-items-center gap-2">
-                                <i class="fa-solid fa-store"></i>
-                                <span>সকল ক্যাটাগরি ও শপ পেজ দেখুন</span>
-                                <i class="fa-solid fa-arrow-right"></i>
-                            </a>
-                        </div>
+        </div>
+    </div>
+</section>
+@endif
+
+{{-- ══ 14. SECTION: জনপ্রিয় প্রকাশনীসমূহ (POPULAR PUBLISHERS) ═════════════════════ --}}
+@if(isset($sidebarPublishers) && $sidebarPublishers->isNotEmpty())
+<section class="mb-4">
+    <div class="container">
+        <div class="card p-3 p-md-4 border-0 shadow-sm rounded-4 bg-white position-relative" style="border: 1px solid #f1f5f9 !important;">
+            
+            {{-- Section Header --}}
+            <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="rounded-circle bg-secondary bg-opacity-10 text-secondary d-flex align-items-center justify-content-center shadow-2xs" style="width: 32px; height: 32px;">
+                        <i class="fa-solid fa-building text-secondary fs-6"></i>
+                    </span>
+                    <div>
+                        <h4 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2" style="font-size: clamp(1.05rem, 2.5vw, 1.35rem);">
+                            <span>জনপ্রিয় প্রকাশনীসমূহ</span>
+                        </h4>
+                        <span class="text-muted small" style="font-size: 0.78rem;">দেশের স্বনামধন্য প্রকাশনা সংস্থার বইসমূহ</span>
                     </div>
-                    @else
-                    <div class="col-12 mt-1.5 text-center">
-                        <a href="{{ route('book.index') }}" class="btn btn-primary rounded-pill px-4 py-2 fw-bold shadow-xs d-inline-flex align-items-center gap-2">
-                            <i class="fa-solid fa-store"></i>
-                            <span>শপ পেজে সকল ক্যাটাগরি দেখুন</span>
-                            <i class="fa-solid fa-arrow-right"></i>
+                </div>
+                <a href="{{ route('publishers.index') }}" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-bold" style="font-size: 0.80rem;">
+                    সকল প্রকাশক <i class="fa-solid fa-arrow-right ms-0.5"></i>
+                </a>
+            </div>
+
+            {{-- Publishers Grid --}}
+            <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-6 g-2.5">
+                @foreach($sidebarPublishers->take(12) as $pub)
+                    <div class="col">
+                        <a href="{{ route('publishers.show', $pub->slug ?? $pub->id) }}" 
+                           class="card h-100 p-2.5 border-0 shadow-2xs rounded-3 text-decoration-none text-center bg-light hover-bg-primary hover-white transition-all hover-lift">
+                            <div class="fw-bold text-dark text-truncate mb-1" style="font-size: 0.88rem;">{{ $pub->name }}</div>
+                            <span class="badge bg-white text-muted border rounded-pill small" style="font-size: 0.70rem;">{{ $pub->books_count }}টি বই</span>
                         </a>
                     </div>
-                    @endif
-                </div>
+                @endforeach
             </div>
-            @endif
 
-        </main>
+        </div>
     </div>
-</div>
+</section>
+@endif
 
-{{-- ══ EXACT 40px GAP FROM SHOP BUTTON TO SLEEK THIN BORDER ════════════════════ --}}
-<div class="container my-0" style="padding-top: 40px; padding-bottom: 25px;">
+{{-- ══ EXACT 40px GAP FROM SHOP TO SLEEK THIN BORDER ═════════════════════════════ --}}
+<div class="container my-0" style="padding-top: 30px; padding-bottom: 25px;">
     <div class="w-100" style="height: 1px; background: linear-gradient(90deg, rgba(226,232,240,0) 0%, rgba(203,213,225,0.85) 15%, rgba(203,213,225,0.85) 85%, rgba(226,232,240,0) 100%);"></div>
 </div>
 
-{{-- ══ IDEAPATRA / LITERARY BLOG POSTS (FLUSH TOP PADDING FOR 50px GAP) ═════════ --}}
+{{-- ══ 15. IDEAPATRA / LITERARY BLOG POSTS (EXACTLY AS CURRENTLY MAINTAINED) ═════ --}}
 <section class="pt-0 pb-5 mb-5 position-relative overflow-hidden" style="background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 50%, #ffffff 100%);">
     <div class="container position-relative" style="z-index: 2;">
         
@@ -825,7 +1202,149 @@
     </div>
 </section>
 
+{{-- ══ 16. DIRECT ORDER HELPLINE & CUSTOMER SUPPORT BAR ═════════════════════════ --}}
+<section class="mb-5">
+    <div class="container">
+        <div class="card p-3 p-md-4 border-0 shadow-sm rounded-4 text-white" 
+             style="background: linear-gradient(135deg, #07192f 0%, #0d2847 50%, #0f3057 100%);">
+            <div class="row align-items-center g-3">
+                <div class="col-lg-6 col-md-12">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="rounded-circle bg-warning bg-opacity-20 p-2.5 d-flex align-items-center justify-content-center text-warning flex-shrink-0" style="width: 48px; height: 48px;">
+                            <i class="fa-solid fa-phone-volume fs-4"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold mb-0.5 text-white" style="font-size: 1.15rem;">ফোনে বা হোয়াটসঅ্যাপে সরাসরি অর্ডার</h5>
+                            <p class="text-light opacity-80 small mb-0" style="font-size: 0.80rem;">
+                                ওয়েবসাইটে অর্ডারে কোনো সমস্যা হলে সরাসরি কল করুন অথবা হোয়াটসঅ্যাপে বইয়ের নাম পাঠান।
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6 col-md-12 text-lg-end">
+                    <div class="d-inline-flex flex-wrap align-items-center gap-2">
+                        <a href="tel:01726976982" class="btn btn-outline-light rounded-pill px-3 py-2 fw-bold d-inline-flex align-items-center gap-2 shadow-xs" style="font-size: 0.86rem;">
+                            <i class="fa-solid fa-phone"></i> ০১৭২৬-৯৭৬৯৮২
+                        </a>
+                        <a href="https://wa.me/8801726976982" target="_blank" class="btn btn-success rounded-pill px-3 py-2 fw-bold d-inline-flex align-items-center gap-2 shadow-xs" style="font-size: 0.86rem;">
+                            <i class="fa-brands fa-whatsapp fs-6"></i> হোয়াটসঅ্যাপে মেসেজ
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{{-- ══ IDEA SLIDER STYLES & INTERACTIVE UI ═══════════════════════════════════════ --}}
 <style>
+/* Smooth Book Slider Wrapper */
+.idea-slider-wrapper {
+    position: relative;
+    width: 100%;
+}
+.idea-book-slider {
+    display: flex;
+    gap: 14px;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding: 6px 2px;
+    cursor: grab;
+    user-select: none;
+    -webkit-user-select: none;
+}
+.idea-book-slider:active {
+    cursor: grabbing;
+}
+.idea-book-slider::-webkit-scrollbar {
+    display: none;
+}
+.idea-slider-item {
+    flex: 0 0 calc(16.666% - 12px);
+    min-width: 175px;
+    max-width: 210px;
+    display: flex;
+}
+@media (max-width: 1200px) {
+    .idea-slider-item {
+        flex: 0 0 calc(20% - 12px);
+        min-width: 165px;
+    }
+}
+@media (max-width: 992px) {
+    .idea-slider-item {
+        flex: 0 0 calc(25% - 12px);
+        min-width: 155px;
+    }
+}
+@media (max-width: 768px) {
+    .idea-slider-item {
+        flex: 0 0 calc(33.333% - 10px);
+        min-width: 145px;
+    }
+}
+@media (max-width: 576px) {
+    .idea-slider-item {
+        flex: 0 0 calc(50% - 8px);
+        min-width: 140px;
+    }
+}
+
+/* Floating Navigation Arrows */
+.idea-slider-nav-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(8px);
+    border: 1px solid #e2e8f0;
+    color: #1e293b;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    opacity: 0;
+    visibility: hidden;
+}
+.idea-slider-wrapper:hover .idea-slider-nav-btn {
+    opacity: 1;
+    visibility: visible;
+}
+.idea-slider-nav-btn.prev-btn {
+    left: -14px;
+}
+.idea-slider-nav-btn.next-btn {
+    right: -14px;
+}
+.idea-slider-nav-btn:hover {
+    background: #0066cc;
+    color: #ffffff;
+    border-color: #0066cc;
+    transform: translateY(-50%) scale(1.12);
+    box-shadow: 0 6px 16px rgba(0, 102, 204, 0.35);
+}
+.idea-slider-nav-btn:disabled,
+.idea-slider-nav-btn.disabled {
+    opacity: 0.35 !important;
+    pointer-events: none;
+}
+
+/* Category Subnav Scrollbar Hide */
+.scrollbar-none::-webkit-scrollbar {
+    display: none;
+}
+.scrollbar-none {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+/* Ideapatra Animations */
 @keyframes hotPulse {
     0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
     70% { transform: scale(1.08); box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
@@ -848,51 +1367,98 @@
 }
 </style>
 
-{{-- ══ AUTHORS STRIP ═══════════════════════════════════════════════════════════ --}}
-@if(isset($authors) && $authors->isNotEmpty())
-<section class="py-5 bg-white border-top border-bottom mb-5">
-    <div class="container">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h4 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
-                <i class="fa-solid fa-pen-fancy text-primary"></i>
-                জনপ্রিয় লেখকগণ
-            </h4>
-            <a href="{{ route('authors.index') }}" class="btn btn-outline-primary btn-sm rounded-pill px-3">সকল লেখক</a>
-        </div>
-        <div class="row row-cols-2 row-cols-sm-3 row-cols-md-6 g-3">
-            @foreach($authors->take(6) as $author)
-            <div class="col">
-                <a href="{{ route('authors.show', $author->id ?? $author->slug) }}" class="card text-center p-3 h-100 border-0 shadow-sm rounded-4 text-decoration-none hover-lift">
-                    <div class="rounded-circle overflow-hidden shadow-sm mx-auto mb-2" style="width: 70px; height: 70px; background: #e2e8f0;">
-                        @php
-                            $aImg = $author->avatar ?? $author->photo ?? null;
-                            $aUrl = null;
-                            if ($aImg) {
-                                $aUrl = str_starts_with($aImg, 'http') ? $aImg : (str_starts_with($aImg, 'storage/') ? asset($aImg) : asset('storage/' . $aImg));
-                            }
-                        @endphp
-                        @if($aUrl)
-                            <img src="{{ $aUrl }}" 
-                                 alt="{{ $author->name }}" 
-                                 class="w-100 h-100 object-fit-cover"
-                                 onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'w-100 h-100 d-flex align-items-center justify-content-center text-primary fw-bold fs-4\'>{{ mb_substr($author->name, 0, 1) }}</div>';">
-                        @else
-                            <div class="w-100 h-100 d-flex align-items-center justify-content-center text-primary fw-bold fs-4">
-                                {{ mb_substr($author->name, 0, 1) }}
-                            </div>
-                        @endif
-                    </div>
-                    <div class="fw-bold text-dark text-truncate small">{{ $author->name }}</div>
-                </a>
-            </div>
-            @endforeach
-        </div>
-    </div>
-</section>
-@endif
-
 @push('scripts')
 <script>
+    // Smooth Slider Navigation Scroll Function
+    function scrollIdeaSlider(sliderId, direction) {
+        const slider = document.getElementById(sliderId);
+        if (!slider) return;
+        const scrollDistance = (slider.clientWidth * 0.75) * direction;
+        slider.scrollBy({
+            left: scrollDistance,
+            behavior: 'smooth'
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // 1. Force Start & Auto-Cycle Hero Carousel
+        const heroEl = document.getElementById('homeHeroCarousel');
+        if (heroEl) {
+            if (window.bootstrap && bootstrap.Carousel) {
+                const heroCarousel = bootstrap.Carousel.getOrCreateInstance(heroEl, {
+                    interval: 3800,
+                    ride: 'carousel',
+                    pause: 'hover',
+                    wrap: true
+                });
+                heroCarousel.cycle();
+            } else {
+                setInterval(() => {
+                    const nextBtn = heroEl.querySelector('.carousel-control-next');
+                    if (nextBtn) nextBtn.click();
+                }, 3800);
+            }
+        }
+
+        // 2. Continuous Gentle Auto-Move for all Book & Author Sliders
+        const autoScrollSliders = document.querySelectorAll('.idea-book-slider, .idea-author-slider');
+        autoScrollSliders.forEach((slider, idx) => {
+            let isHovered = false;
+            let isTouching = false;
+            let isDown = false;
+            let startX;
+            let scrollLeft;
+
+            // Pause auto-sliding on user hover or touch interaction
+            slider.addEventListener('mouseenter', () => isHovered = true);
+            slider.addEventListener('mouseleave', () => {
+                isHovered = false;
+                isDown = false;
+                slider.classList.remove('active');
+            });
+            slider.addEventListener('touchstart', () => isTouching = true, { passive: true });
+            slider.addEventListener('touchend', () => isTouching = false, { passive: true });
+
+            // Interactive Mouse Drag-to-Scroll
+            slider.addEventListener('mousedown', (e) => {
+                isDown = true;
+                slider.classList.add('active');
+                startX = e.pageX - slider.offsetLeft;
+                scrollLeft = slider.scrollLeft;
+            });
+
+            slider.addEventListener('mouseup', () => {
+                isDown = false;
+                slider.classList.remove('active');
+            });
+
+            slider.addEventListener('mousemove', (e) => {
+                if (!isDown) return;
+                e.preventDefault();
+                const x = e.pageX - slider.offsetLeft;
+                const walk = (x - startX) * 1.5;
+                slider.scrollLeft = scrollLeft - walk;
+            });
+
+            // Auto-advance slider smoothly every 4.2 seconds
+            setInterval(() => {
+                if (isHovered || isTouching || isDown || slider.classList.contains('active')) return;
+                
+                const maxScroll = slider.scrollWidth - slider.clientWidth;
+                if (maxScroll <= 20) return;
+
+                const scrollStep = Math.max(180, slider.clientWidth * 0.45);
+                
+                if (slider.scrollLeft >= maxScroll - 15) {
+                    slider.scrollTo({ left: 0, behavior: 'smooth' });
+                } else {
+                    slider.scrollBy({ left: scrollStep, behavior: 'smooth' });
+                }
+            }, 4200 + (idx * 400));
+        });
+    });
+
+    // Copy Coupon Code Function
     function copyCouponCode() {
         const code = document.getElementById('couponCode').textContent;
         navigator.clipboard.writeText(code).then(() => {
@@ -902,68 +1468,7 @@
         });
     }
 
-    // Flash countdown timer
-    (function() {
-        let totalSeconds = 3 * 3600 + 45 * 60 + 12;
-        const hEl = document.getElementById('cd-h');
-        const mEl = document.getElementById('cd-m');
-        const sEl = document.getElementById('cd-s');
-
-        if (hEl && mEl && sEl) {
-            setInterval(() => {
-                if (totalSeconds <= 0) return;
-                totalSeconds--;
-                const h = Math.floor(totalSeconds / 3600);
-                const m = Math.floor((totalSeconds % 3600) / 60);
-                const s = totalSeconds % 60;
-                hEl.textContent = String(h).padStart(2, '0');
-                mEl.textContent = String(m).padStart(2, '0');
-                sEl.textContent = String(s).padStart(2, '0');
-            }, 1000);
-        }
-    })();
-
-    // Dynamic Category Expansion Toggle
-    function toggleMoreCategories() {
-        const extraBlocks = document.querySelectorAll('.extra-category-block');
-        const btnText = document.getElementById('toggleCategoriesBtnText');
-        const btnIcon = document.getElementById('toggleCategoriesBtnIcon');
-        if (!extraBlocks || extraBlocks.length === 0) return;
-
-        const isCurrentlyHidden = extraBlocks[0].classList.contains('d-none');
-        extraBlocks.forEach(block => {
-            if (isCurrentlyHidden) {
-                block.classList.remove('d-none');
-                block.style.opacity = '0';
-                block.style.transform = 'translateY(12px)';
-                setTimeout(() => {
-                    block.style.opacity = '1';
-                    block.style.transform = 'translateY(0)';
-                }, 30);
-            } else {
-                block.classList.add('d-none');
-            }
-        });
-
-        if (isCurrentlyHidden) {
-            if (btnText) btnText.textContent = 'কম ক্যাটাগরি দেখুন';
-            if (btnIcon) {
-                btnIcon.classList.remove('fa-chevron-down');
-                btnIcon.classList.add('fa-chevron-up');
-            }
-        } else {
-            const countHidden = extraBlocks.length;
-            if (btnText) btnText.textContent = 'আরও ক্যাটাগরি দেখুন (+' + countHidden + 'টি)';
-            if (btnIcon) {
-                btnIcon.classList.remove('fa-chevron-up');
-                btnIcon.classList.add('fa-chevron-down');
-            }
-            const sec = document.getElementById('categoryShowcaseSection');
-            if (sec) sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-    }
-
-    // Interactive Column 2 Tab Switcher (Honorarium vs Most Read)
+    // Interactive Column 2 Tab Switcher in Ideapatra (Honorarium vs Most Read)
     function switchCol2Tab(tab) {
         const hSec = document.getElementById('col2HonorariumSection');
         const mSec = document.getElementById('col2MostReadSection');
@@ -976,20 +1481,20 @@
             hSec.style.setProperty('display', 'flex', 'important');
             mSec.style.setProperty('display', 'none', 'important');
 
-            btnH.classList.add('active', 'btn-primary');
-            btnH.classList.remove('text-muted', 'btn-light');
+            btnH.classList.add('active', 'btn-warning', 'text-dark');
+            btnH.classList.remove('text-white');
 
-            btnM.classList.remove('active', 'btn-primary');
-            btnM.classList.add('text-muted');
+            btnM.classList.remove('active', 'btn-warning', 'text-dark');
+            btnM.classList.add('text-white');
         } else {
             hSec.style.setProperty('display', 'none', 'important');
             mSec.style.setProperty('display', 'flex', 'important');
 
-            btnM.classList.add('active', 'btn-primary');
-            btnM.classList.remove('text-muted', 'btn-light');
+            btnM.classList.add('active', 'btn-warning', 'text-dark');
+            btnM.classList.remove('text-white');
 
-            btnH.classList.remove('active', 'btn-primary');
-            btnH.classList.add('text-muted');
+            btnH.classList.remove('active', 'btn-warning', 'text-dark');
+            btnH.classList.add('text-white');
         }
     }
 </script>
