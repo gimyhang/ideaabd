@@ -100,13 +100,16 @@ class Author extends Model
             if (empty($author->phone) && $phone) {
                 $updates['phone'] = $phone;
             }
-            if (empty($author->bio) && !empty($data['bio'])) {
+            if (!empty($data['user_id']) && $author->user_id !== $data['user_id']) {
+                $updates['user_id'] = $data['user_id'];
+            }
+            if (!empty($data['bio'])) {
                 $updates['bio'] = $data['bio'];
             }
-            if (empty($author->avatar) && !empty($avatar)) {
+            if (!empty($avatar)) {
                 $updates['avatar'] = $avatar;
             }
-            if (empty($author->website) && !empty($data['website'])) {
+            if (!empty($data['website'])) {
                 $updates['website'] = $data['website'];
             }
             if (!empty($data['is_verified']) && !$author->is_verified) {
@@ -136,20 +139,80 @@ class Author extends Model
             'bio'         => $data['bio'] ?? null,
             'avatar'      => $avatar,
             'website'     => $data['website'] ?? null,
+            'user_id'     => $data['user_id'] ?? null,
             'is_verified' => !empty($data['is_verified']),
             'is_active'   => $data['is_active'] ?? true,
         ]);
     }
 
+    protected static function booted()
+    {
+        static::saving(function (self $author) {
+            if (empty($author->slug) || preg_match('/[^\x20-\x7e]/', (string) $author->slug)) {
+                $author->slug = self::generateUniqueSlug($author->name ?: 'author', $author->id);
+            }
+        });
+    }
+
     /**
-     * Generate a unique slug for author (Bengali -> Phonetic English conversion)
+     * Generate a unique clean English slug for author (Bengali -> Phonetic English conversion)
      */
     public static function generateUniqueSlug(string $name, ?int $ignoreId = null): string
     {
-        $bengali = ['অ','আ','ই','ঈ','উ','ঊ','ঋ','এ','ঐ','ও','ঔ','ক','খ','গ','ঘ','ঙ','চ','ছ','জ','ঝ','ঞ','ট','ঠ','ড','ঢ','ণ','ত','থ','দ','ধ','ন','প','ফ','ব','ভ','ম','য','র','ল','শ','ষ','স','হ','ড়','ঢ়','য়','ৎ','ং','ঃ','ঁ','া','ি','ী','ু','ূ','ৃ','ে','ৈ','ো','ৌ','্'];
-        $english = ['a','a','i','i','u','u','ri','e','oi','o','ou','k','kh','g','gh','ng','ch','ch','j','jh','n','t','th','d','dh','n','t','th','d','dh','n','p','f','b','bh','m','z','r','l','sh','sh','s','h','r','rh','y','t','ng','h','n','a','i','i','u','u','ri','e','oi','o','ou',''];
+        $text = trim($name);
         
-        $converted = str_replace($bengali, $english, $name);
+        // Direct known word / name dictionary for highly natural English transliterations
+        $knownWords = [
+            'হুমায়ূন' => 'humayun',
+            'হুমায়ূন' => 'humayun',
+            'আহমেদ' => 'ahmed',
+            'মুহম্মদ' => 'muhammad',
+            'জাফর' => 'jafor',
+            'ইকবাল' => 'iqbal',
+            'কাজী' => 'kazi',
+            'নজরুল' => 'nazrul',
+            'ইসলাম' => 'islam',
+            'রবীন্দ্রনাথ' => 'rabindranath',
+            'ঠাকুর' => 'tagore',
+            'শরৎচন্দ্র' => 'sharat-chandra',
+            'চট্টোপাধ্যায়' => 'chattopadhyay',
+            'সাকিল' => 'sakil',
+            'মাসুদ' => 'masud',
+            'মনির' => 'monir',
+            'হোসেন' => 'hossain',
+            'আব্দুর' => 'abdur',
+            'রাজ্জাক' => 'rajjak',
+            'আল-আমিন' => 'al-amin',
+            'জাকির' => 'jakir',
+            'সোহান' => 'sohan',
+            'সিগমুন্ড' => 'sigmund',
+            'ফ্রয়েড' => 'freud',
+            'লেখক' => 'author',
+            'পরীক্ষামূলক' => 'test',
+            'নতুন' => 'new',
+            'দ্বিতীয়' => 'second',
+            'এক' => 'one',
+            'দুই' => 'two',
+        ];
+
+        foreach ($knownWords as $bn => $en) {
+            $text = preg_replace('/\b' . preg_quote($bn, '/') . '\b/u', $en, $text);
+        }
+
+        $bengali = [
+            'ক্ষ','জ্ঞ','ঞ্চ','ঞ্জ','ঙ্ক','ঙ্গ','চ্ছ','জ্জ','ত্ত','দ্দ','ন্ত','ন্দ','ম্প','ম্ব','ম্ভ','শ্র','ত্র','গ্র','প্র','ব্র','দ্র','ক্র','ট্র','ড্র','ফ্র',
+            'অ','আ','ই','ঈ','উ','ঊ','ঋ','এ','ঐ','ও','ঔ',
+            'ক','খ','গ','ঘ','ঙ','চ','ছ','জ','ঝ','ঞ','ট','ঠ','ড','ঢ','ণ','ত','থ','দ','ধ','ন','প','ফ','ব','ভ','ম','য','র','ল','শ','ষ','স','হ','ড়','ঢ়','য়','ৎ','ং','ঃ','ঁ',
+            'া','ি','ী','ু','ূ','ৃ','ে','ৈ','ো','ৌ','্','্য','্র','্ব'
+        ];
+        $english = [
+            'kkh','gya','nch','nj','nk','ng','cch','jj','tt','dd','nt','nd','mp','mb','mbh','shr','tr','gr','pr','br','dr','kr','tr','dr','fr',
+            'a','a','i','i','u','u','ri','e','oi','o','ou',
+            'k','kh','g','gh','ng','ch','chh','j','jh','n','t','th','d','dh','n','t','th','d','dh','n','p','f','b','bh','m','z','r','l','sh','sh','s','h','r','rh','y','t','ng','h','',
+            'a','i','ee','u','oo','ri','e','oi','o','ou','','y','r','b'
+        ];
+        
+        $converted = str_replace($bengali, $english, $text);
         $base = Str::slug($converted) ?: Str::slug(Str::random(8));
         $slug = $base;
         $count = 1;
@@ -381,5 +444,23 @@ class Author extends Model
     public function honorariums()
     {
         return $this->hasMany(\App\Models\AuthorHonorarium::class, 'author_id');
+    }
+
+    public function getPenNameAttribute(): ?string
+    {
+        return $this->user?->reg_data['pen_name'] ?? null;
+    }
+
+    public function getNameEnAttribute(): ?string
+    {
+        return $this->user?->reg_data['name_en'] ?? ($this->user?->reg_data['name_english'] ?? null);
+    }
+
+    public function getGenresListAttribute(): array
+    {
+        $raw = $this->user?->reg_data['genres'] ?? ($this->user?->reg_data['genre'] ?? null);
+        if (is_array($raw)) return array_filter($raw);
+        if (is_string($raw)) return array_filter(array_map('trim', explode(',', $raw)));
+        return [];
     }
 }

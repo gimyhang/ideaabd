@@ -596,46 +596,50 @@
                 }
             }, true);
 
-            // 3. Smart Copy Attribution & Copyright Claim Appender
+            // 3. Smart Protected Literary Content Copy Protection (Applies ONLY to eBooks, Webzine, Author Bio & Blog Bodies)
             document.addEventListener('copy', function(e) {
                 var selObj = window.getSelection();
-                var selection = selObj ? selObj.toString() : '';
+                var selection = selObj ? selObj.toString().trim() : '';
+                if (!selection || selection.length < 5) return;
+
+                // Check if the copied text originates from a PROTECTED literary content container:
+                var targetNode = selObj.anchorNode ? (selObj.anchorNode.nodeType === 1 ? selObj.anchorNode : selObj.anchorNode.parentElement) : e.target;
                 
-                // Do not intercept if copying from inputs, textareas, comments, or interactive widgets
-                if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable || e.target.closest('#blogCommentsListContainer') || e.target.closest('.blog-comments-card') || e.target.closest('.allow-normal-copy'))) {
-                    return; // Normal clean copy without attribution
+                var isProtectedArea = targetNode && targetNode.closest(
+                    '.ebook-content-protected, .ebook-reader-body, .webzine-article-content, .webzine-reader-body, ' +
+                    '.author-bio-protected, .author-bio-body, #bioTabPane, ' +
+                    '.blog-article-content, .ideapatra-post-body, .blog-post-content, #blogContentWrap, #mainArticleContent'
+                );
+
+                // If NOT from a protected literary body (e.g. book title, author name, category, prices, header/footer, links)
+                // Allow 100% clean, normal copy without interception or attached notices!
+                if (!isProtectedArea) {
+                    return; // Normal unrestricted copy
                 }
 
-                if (selObj && selObj.anchorNode && selObj.anchorNode.parentElement) {
-                    if (selObj.anchorNode.parentElement.closest('#blogCommentsListContainer') || selObj.anchorNode.parentElement.closest('.blog-comments-card')) {
-                        return; // Normal clean copy for comments
-                    }
+                // If copied from protected literary writing/ebook/bio, attach attribution notice
+                var pageTitle = document.title || 'আইডিয়া প্রকাশন';
+                var pageUrl = window.location.href;
+                var claimNotice = '\n\n' +
+                    '----------------------------------------------------------------------\n' +
+                    '© আইডিয়া প্রকাশন (Idea Prokashon) | সর্বস্বত্ব সংরক্ষিত\n' +
+                    'শিরোনাম: ' + pageTitle + '\n' +
+                    'মূল উৎস লিংক: ' + pageUrl + '\n' +
+                    'আইডিয়া প্রকাশনের অনুমতি ব্যতীত এই লেখার অননুমোদিত বাণিজ্যিক বা অবাণিজ্যিক পুনঃপ্রকাশ কপিরাইট আইনে শাস্তিযোগ্য অপরাধ।\n' +
+                    'ওয়েবসাইট: https://www.ideaabd.com\n' +
+                    '----------------------------------------------------------------------';
+
+                var copyWithClaim = selection + claimNotice;
+
+                if (e.clipboardData) {
+                    e.clipboardData.setData('text/plain', copyWithClaim);
+                    e.preventDefault();
+                } else if (window.clipboardData) {
+                    window.clipboardData.setData('Text', copyWithClaim);
+                    e.preventDefault();
                 }
 
-                if (selection && selection.length > 5) {
-                    var pageTitle = document.title || 'আইডিয়া প্রকাশন';
-                    var pageUrl = window.location.href;
-                    var claimNotice = '\n\n' +
-                        '----------------------------------------------------------------------\n' +
-                        '© আইডিয়া প্রকাশন (Idea Prokashon) | সর্বস্বত্ব সংরক্ষিত\n' +
-                        'শিরোনাম: ' + pageTitle + '\n' +
-                        'মূল উৎস লিংক: ' + pageUrl + '\n' +
-                        'আইডিয়া প্রকাশনের অনুমতি ব্যতীত এই লেখার অননুমোদিত বাণিজ্যিক বা অবাণিজ্যিক পুনঃপ্রকাশ কপিরাইট আইনে শাস্তিযোগ্য অপরাধ।\n' +
-                        'ওয়েবসাইট: https://www.ideaabd.com\n' +
-                        '----------------------------------------------------------------------';
-
-                    var copyWithClaim = selection + claimNotice;
-
-                    if (e.clipboardData) {
-                        e.clipboardData.setData('text/plain', copyWithClaim);
-                        e.preventDefault();
-                    } else if (window.clipboardData) {
-                        window.clipboardData.setData('Text', copyWithClaim);
-                        e.preventDefault();
-                    }
-
-                    showCopyToast();
-                }
+                showCopyToast();
             });
 
             // 4. Developer Console Warning & Obfuscated Security Stream

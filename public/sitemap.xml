@@ -426,6 +426,39 @@
     <priority>0.85</priority>
   </url>
   <url>
+    <loc>https://www.ideaabd.com/blog/test-article-1788362300</loc>
+    <lastmod>2026-09-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.90</priority>
+    <xhtml:link rel="alternate" hreflang="bn" href="https://www.ideaabd.com/blog/test-article-1788362300"/>
+    <image:image>
+      <image:loc>https://www.ideaabd.com/storage/blog/default.jpg</image:loc>
+      <image:title>মুক্তচিন্তা ও আধুনিক সাহিত্যের নবদিগন্ত — টেস্ট আর্টিকেল 2026-09-02 21:18</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://www.ideaabd.com/blog/test-article-1788362241</loc>
+    <lastmod>2026-09-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.90</priority>
+    <xhtml:link rel="alternate" hreflang="bn" href="https://www.ideaabd.com/blog/test-article-1788362241"/>
+    <image:image>
+      <image:loc>https://www.ideaabd.com/storage/blog/default.jpg</image:loc>
+      <image:title>মুক্তচিন্তা ও আধুনিক সাহিত্যের নবদিগন্ত — টেস্ট আর্টিকেল 2026-09-02 21:17</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://www.ideaabd.com/blog/test-article-1788362189</loc>
+    <lastmod>2026-09-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.90</priority>
+    <xhtml:link rel="alternate" hreflang="bn" href="https://www.ideaabd.com/blog/test-article-1788362189"/>
+    <image:image>
+      <image:loc>https://www.ideaabd.com/storage/blog/default.jpg</image:loc>
+      <image:title>মুক্তচিন্তা ও আধুনিক সাহিত্যের নবদিগন্ত — টেস্ট আর্টিকেল 2026-09-02 21:16</image:title>
+    </image:image>
+  </url>
+  <url>
     <loc>https://www.ideaabd.com/blog/art-of-novel-psychological-conflict-and-social-reality</loc>
     <lastmod>2026-08-09</lastmod>
     <changefreq>weekly</changefreq>
@@ -1215,6 +1248,12 @@
     <priority>0.92</priority>
   </url>
   <url>
+    <loc>https://www.ideaabd.com/authors/mnir-hosen</loc>
+    <lastmod>2026-09-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.82</priority>
+  </url>
+  <url>
     <loc>https://www.ideaabd.com/authors/dbitiy-lekhk</loc>
     <lastmod>2026-08-31</lastmod>
     <changefreq>weekly</changefreq>
@@ -1317,8 +1356,8 @@
     <priority>0.82</priority>
   </url>
   <url>
-    <loc>https://www.ideaabd.com/authors/সকল-মসদ</loc>
-    <lastmod>2026-08-25</lastmod>
+    <loc>https://www.ideaabd.com/authors/sakil-masud</loc>
+    <lastmod>2026-09-02</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.82</priority>
     <image:image>

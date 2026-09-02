@@ -65,7 +65,7 @@
                 @endphp
 
                 {{-- ========================================================= --}}
-                {{-- 1. DYNAMIC AVATAR / PHOTO UPLOAD (1:1 FIXED CIRCLE)       --}}
+                {{-- 1. PHOTO / AVATAR                                         --}}
                 {{-- ========================================================= --}}
                 <div class="p-3.5 bg-light rounded-4 border mb-4">
                     <div class="d-flex flex-column flex-sm-row align-items-center gap-3.5">
@@ -73,7 +73,7 @@
                         {{-- Avatar Live Preview Frame --}}
                         <div class="position-relative flex-shrink-0">
                             <div class="rounded-circle overflow-hidden shadow-sm border border-3 border-white position-relative bg-white" 
-                                 style="width: 88px; height: 88px; min-width: 88px; min-height: 88px; aspect-ratio: 1 / 1;" id="avatarPreviewBox">
+                                 style="width: 96px; height: 96px; min-width: 96px; min-height: 96px; aspect-ratio: 1 / 1;" id="avatarPreviewBox">
                                 @if($currAvatar)
                                     <img src="{{ $currAvatar }}" alt="{{ $user->name }}" class="w-100 h-100 object-fit-cover">
                                 @else
@@ -88,50 +88,49 @@
                         <div class="flex-grow-1 w-100">
                             <label class="form-label fw-bold text-dark mb-1 d-flex align-items-center gap-1.5">
                                 <i class="fas fa-camera text-primary"></i>
-                                <span>Author / Applicant Profile Photo</span>
+                                <span>Photo</span>
                             </label>
                             <input type="file" name="avatar" id="avatarInput" 
                                    class="form-control form-control-sm rounded-3 mb-1" 
                                    accept="image/jpeg,image/png,image/jpg,image/webp" 
                                    onchange="previewAvatar(this, 'avatarPreviewBox')">
                             <div class="text-muted small" style="font-size: 0.76rem;">
-                                <i class="fas fa-circle-info me-1 text-primary"></i> JPG, PNG or WebP format. Uploaded image will be centered in a 1:1 circle preview.
+                                JPG, PNG or WebP format (1:1 aspect ratio).
                             </div>
                         </div>
                     </div>
                 </div>
 
                 {{-- ========================================================= --}}
-                {{-- 2. BASIC IDENTITY & ACCOUNT CREDENTIALS                   --}}
+                {{-- 2. ACCOUNT & CREDENTIALS                                  --}}
                 {{-- ========================================================= --}}
                 <div class="mb-4">
                     <h6 class="fw-bold text-dark mb-3 pb-2 border-bottom d-flex align-items-center gap-2">
                         <i class="fas fa-id-card-clip text-primary"></i>
-                        <span>Basic Account & Identity Credentials</span>
+                        <span>Account</span>
                     </h6>
 
                     <div class="row g-3">
-                        {{-- Display Name --}}
+                        {{-- Name --}}
                         <div class="col-md-6">
                             <label class="form-label small fw-bold text-dark">
-                                Author / Display Name <span class="text-danger">*</span>
+                                Name <span class="text-danger">*</span>
                             </label>
-                            <input type="text" name="name" class="form-control rounded-3" value="{{ old('name', $user->name) }}" placeholder="e.g. Humayun Ahmed" required>
-                            <div class="text-muted" style="font-size: 0.72rem;">This name will appear on published books, articles and author directory.</div>
+                            <input type="text" name="name" class="form-control rounded-3" value="{{ old('name', $user->name) }}" placeholder="Display Name" required>
                         </div>
 
-                        {{-- Email Address --}}
+                        {{-- Email --}}
                         <div class="col-md-6">
                             <label class="form-label small fw-bold text-dark">
-                                Email Address <span class="text-danger">*</span>
+                                Email <span class="text-danger">*</span>
                             </label>
                             <input type="email" name="email" class="form-control rounded-3" value="{{ old('email', $user->email) }}" required>
                         </div>
 
-                        {{-- Phone Number --}}
+                        {{-- Phone --}}
                         <div class="col-md-6">
                             <label class="form-label small fw-bold text-dark">
-                                Phone Number (Login Username) <span class="text-danger">*</span>
+                                Phone <span class="text-danger">*</span>
                             </label>
                             <input type="text" name="phone" class="form-control rounded-3 font-monospace" value="{{ old('phone', $user->phone) }}" required>
                         </div>
@@ -139,7 +138,7 @@
                         {{-- Role --}}
                         <div class="col-md-3">
                             <label class="form-label small fw-bold text-dark">
-                                Account Role <span class="text-danger">*</span>
+                                Role <span class="text-danger">*</span>
                             </label>
                             <select name="role" class="form-select rounded-3" id="roleSelector">
                                 <option value="author" @selected(old('role', $user->role) === 'author')>Author</option>
@@ -151,12 +150,12 @@
                         {{-- Status --}}
                         <div class="col-md-3">
                             <label class="form-label small fw-bold text-dark">
-                                Verification Status <span class="text-danger">*</span>
+                                Status <span class="text-danger">*</span>
                             </label>
                             <select name="reg_status" class="form-select rounded-3">
-                                <option value="pending" @selected(old('reg_status', $user->reg_status) === 'pending')>⏳ Pending</option>
-                                <option value="approved" @selected(old('reg_status', $user->reg_status) === 'approved')>✅ Approved</option>
-                                <option value="rejected" @selected(old('reg_status', $user->reg_status) === 'rejected')>❌ Rejected</option>
+                                <option value="pending" @selected(old('reg_status', $user->reg_status) === 'pending')>Pending</option>
+                                <option value="approved" @selected(old('reg_status', $user->reg_status) === 'approved')>Approved</option>
+                                <option value="rejected" @selected(old('reg_status', $user->reg_status) === 'rejected')>Rejected</option>
                             </select>
                         </div>
 
@@ -165,7 +164,7 @@
                             <div class="form-check form-switch p-2 bg-light rounded-3 border ps-5">
                                 <input class="form-check-input ms-n4" type="checkbox" name="is_active" id="isActiveSwitch" value="1" @checked(old('is_active', $user->is_active))>
                                 <label class="form-check-label small fw-semibold text-dark" for="isActiveSwitch">
-                                    Keep Account Active (Active & approved users can log in and manage content)
+                                    Active (Account can sign in and manage profile)
                                 </label>
                             </div>
                         </div>
@@ -173,49 +172,68 @@
                 </div>
 
                 {{-- ========================================================= --}}
-                {{-- 3. AUTHOR DEDICATED FIELDS (Author Details)               --}}
+                {{-- 3. PROFILE DETAILS                                        --}}
                 {{-- ========================================================= --}}
                 <div id="authorDetailsCard" class="mb-4" style="{{ old('role', $user->role) === 'author' ? '' : 'display:none;' }}">
                     <h6 class="fw-bold text-dark mb-3 pb-2 border-bottom d-flex align-items-center gap-2">
                         <i class="fas fa-feather-pointed text-success"></i>
-                        <span>Author & Literary Specialty Information</span>
+                        <span>Profile</span>
                     </h6>
 
                     <div class="row g-3">
-                        {{-- Full Legal Name --}}
+                        {{-- BanglaName --}}
                         <div class="col-md-6">
                             <label class="form-label small fw-bold text-dark">
-                                Full Legal Name
+                                BanglaName
+                            </label>
+                            <input type="text" name="name_bn" class="form-control rounded-3" 
+                                   value="{{ old('name_bn', $regData['name_bn'] ?? ($regData['name_bangla'] ?? $user->name)) }}" 
+                                   placeholder="Bangla Name">
+                        </div>
+
+                        {{-- EnglishName --}}
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-dark">
+                                EnglishName
+                            </label>
+                            <input type="text" name="name_en" class="form-control rounded-3" 
+                                   value="{{ old('name_en', $regData['name_en'] ?? ($regData['name_english'] ?? '')) }}" 
+                                   placeholder="English Name">
+                        </div>
+
+                        {{-- LegalName --}}
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-dark">
+                                LegalName
                             </label>
                             <input type="text" name="full_name" class="form-control rounded-3" 
                                    value="{{ old('full_name', $regData['full_name'] ?? '') }}" 
-                                   placeholder="Full legal name as on National ID">
+                                   placeholder="Legal name on Official Document">
                         </div>
 
-                        {{-- Pen Name --}}
+                        {{-- PenName --}}
                         <div class="col-md-6">
                             <label class="form-label small fw-bold text-dark">
-                                Pen Name / Pseudonym
+                                PenName
                             </label>
                             <input type="text" name="pen_name" class="form-control rounded-3" 
                                    value="{{ old('pen_name', $regData['pen_name'] ?? '') }}" 
-                                   placeholder="If author uses a pen name">
+                                   placeholder="Pseudonym / Literary Alias">
                         </div>
 
-                        {{-- Genre --}}
+                        {{-- Genres --}}
                         <div class="col-md-6">
                             <label class="form-label small fw-bold text-dark d-flex align-items-center justify-content-between">
-                                <span>Genre / Writing Topics</span>
-                                <span class="text-muted small" style="font-size: 11px;">(কথাসাহিত্য, কবিতা, ছড়া ইত্যাদি)</span>
+                                <span>Genres</span>
                             </label>
                             <input type="text" name="genre" id="adminRegGenreInput" class="form-control rounded-3 mb-1.5" 
-                                   value="{{ old('genre', is_array($regData['genre'] ?? null) ? implode(', ', $regData['genre']) : ($regData['genre'] ?? '')) }}" 
-                                   placeholder="e.g. কথাসাহিত্য, কবিতা, প্রবন্ধ, গবেষণা...">
+                                   value="{{ old('genre', is_array($regData['genre'] ?? null) ? implode(', ', $regData['genre']) : ($regData['genre'] ?? (is_array($regData['genres'] ?? null) ? implode(', ', $regData['genres']) : ''))) }}" 
+                                   placeholder="Fiction, Poetry, Essays, Science...">
                             <div class="d-flex flex-wrap gap-1 mt-1">
-                                @foreach(['কথাসাহিত্য', 'কবিতা', 'ছড়া', 'প্রবন্ধ', 'গবেষণা', 'ভ্রমণগদ্য', 'অনুবাদ', 'সায়েন্সফিকশন', 'অন্যান্য'] as $g)
+                                @foreach(['Fiction', 'Poetry', 'Essays', 'Research', 'Novel', 'Non-Fiction', 'Translation', 'Sci-Fi'] as $g)
                                     <button type="button" class="btn btn-sm btn-white border rounded-pill px-2 py-0.5 shadow-2xs text-secondary small" 
                                             style="font-size: 11px;" onclick="toggleAdminGenre('{{ $g }}')">
-                                        <i class="fa-solid fa-check me-0.5 text-success"></i> {{ $g }}
+                                        <i class="fa-solid fa-plus me-0.5 text-success"></i> {{ $g }}
                                     </button>
                                 @endforeach
                             </div>
@@ -224,59 +242,109 @@
                         {{-- NID --}}
                         <div class="col-md-6">
                             <label class="form-label small fw-bold text-dark">
-                                National ID (NID)
+                                NID
                             </label>
                             <input type="text" name="nid" class="form-control rounded-3 font-monospace" 
                                    value="{{ old('nid', $regData['nid'] ?? '') }}" 
-                                   placeholder="NID number">
+                                   placeholder="National ID / Passport Number">
+                        </div>
+
+                        {{-- Profession --}}
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold text-dark">
+                                Profession
+                            </label>
+                            <input type="text" name="profession" class="form-control rounded-3" 
+                                   value="{{ old('profession', $regData['profession'] ?? ($regData['designation'] ?? '')) }}" 
+                                   placeholder="Profession / Designation">
+                        </div>
+
+                        {{-- DOB --}}
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold text-dark">
+                                DOB
+                            </label>
+                            <input type="date" name="dob" class="form-control rounded-3" 
+                                   value="{{ old('dob', $regData['dob'] ?? ($regData['birth_date'] ?? '')) }}">
+                        </div>
+
+                        {{-- Payout --}}
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold text-dark">
+                                Payout
+                            </label>
+                            <input type="text" name="payout_number" class="form-control rounded-3 font-monospace" 
+                                   value="{{ old('payout_number', $regData['payout_number'] ?? ($regData['bkash_number'] ?? ($regData['payment_number'] ?? ''))) }}" 
+                                   placeholder="Bkash / Nagad Number">
+                        </div>
+
+                        {{-- Address --}}
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-dark">
+                                Address
+                            </label>
+                            <input type="text" name="present_address" class="form-control rounded-3" 
+                                   value="{{ old('present_address', $regData['present_address'] ?? ($regData['address'] ?? '')) }}" 
+                                   placeholder="Present Address">
+                        </div>
+
+                        {{-- PermanentAddress --}}
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-dark">
+                                PermanentAddress
+                            </label>
+                            <input type="text" name="permanent_address" class="form-control rounded-3" 
+                                   value="{{ old('permanent_address', $regData['permanent_address'] ?? '') }}" 
+                                   placeholder="Permanent Address">
                         </div>
 
                         {{-- Bio --}}
                         <div class="col-12">
-                            <div class="d-flex justify-content-between align-items-center mb-1">
+                            <div class="d-flex justify-content-between align-items-center mb-1.5">
                                 <label class="form-label small fw-bold text-dark mb-0">
-                                    Author Bio & Literary Background
+                                    Bio
                                 </label>
-                                <span class="text-muted small" id="bioCounter" style="font-size: 0.72rem;">0 characters</span>
+                                <span class="text-muted small fw-semibold" id="bioCounter" style="font-size: 0.75rem;">0 Words • 0 Characters</span>
                             </div>
-                            <textarea name="bio" id="authorBioInput" rows="4" class="form-control rounded-3" 
-                                      placeholder="Author biography, literary achievements, published works..." 
+                            <textarea name="bio" id="authorBioInput" rows="14" class="form-control rounded-3 p-3 font-sans" 
+                                      style="min-height: 320px; font-size: 0.95rem; line-height: 1.75;"
+                                      placeholder="Author biography, literary achievements, publications, awards and background..." 
                                       oninput="updateCharCount(this, 'bioCounter')">{{ old('bio', is_array($regData['bio'] ?? null) ? implode("\n", $regData['bio']) : ($regData['bio'] ?? '')) }}</textarea>
                         </div>
                     </div>
                 </div>
 
                 {{-- ========================================================= --}}
-                {{-- 4. SOCIAL MEDIA & WEB LINKS                               --}}
+                {{-- 4. SOCIAL MEDIA & LINKS                                   --}}
                 {{-- ========================================================= --}}
                 <div class="mb-4">
                     <h6 class="fw-bold text-dark mb-3 pb-2 border-bottom d-flex align-items-center gap-2">
                         <i class="fas fa-share-nodes text-info"></i>
-                        <span>Social Media & Web Links</span>
+                        <span>Social</span>
                     </h6>
 
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label small fw-bold text-dark">
-                                <i class="fab fa-facebook text-primary me-1"></i> Facebook Profile / Page URL
+                                <i class="fab fa-facebook text-primary me-1"></i> Facebook
                             </label>
                             <input type="text" name="facebook" class="form-control rounded-3" 
                                    value="{{ old('facebook', $regData['facebook'] ?? '') }}" 
-                                   placeholder="https://facebook.com/your-page">
+                                   placeholder="https://facebook.com/username">
                         </div>
 
                         <div class="col-md-6">
                             <label class="form-label small fw-bold text-dark">
-                                <i class="fas fa-globe text-success me-1"></i> Personal Website / Portfolio
+                                <i class="fas fa-globe text-success me-1"></i> Website
                             </label>
                             <input type="text" name="website" class="form-control rounded-3" 
                                    value="{{ old('website', $regData['website'] ?? '') }}" 
-                                   placeholder="https://yourwebsite.com">
+                                   placeholder="https://example.com">
                         </div>
 
                         <div class="col-md-6">
                             <label class="form-label small fw-bold text-dark">
-                                <i class="fab fa-x-twitter text-dark me-1"></i> Twitter / X Profile URL
+                                <i class="fab fa-x-twitter text-dark me-1"></i> Twitter
                             </label>
                             <input type="text" name="twitter" class="form-control rounded-3" 
                                    value="{{ old('twitter', $regData['twitter'] ?? '') }}" 
@@ -285,7 +353,7 @@
 
                         <div class="col-md-6">
                             <label class="form-label small fw-bold text-dark">
-                                <i class="fab fa-youtube text-danger me-1"></i> YouTube Channel URL
+                                <i class="fab fa-youtube text-danger me-1"></i> YouTube
                             </label>
                             <input type="text" name="youtube" class="form-control rounded-3" 
                                    value="{{ old('youtube', $regData['youtube'] ?? '') }}" 
@@ -295,18 +363,18 @@
                 </div>
 
                 {{-- ========================================================= --}}
-                {{-- 5. SELLER & PUBLISHER SPECIFIC DETAILS (Hidden for Author)--}}
+                {{-- 5. BUSINESS DETAILS                                       --}}
                 {{-- ========================================================= --}}
                 <div id="businessDetailsCard" class="mb-4" style="{{ in_array(old('role', $user->role), ['seller', 'publisher']) ? '' : 'display:none;' }}">
                     <h6 class="fw-bold text-dark mb-3 pb-2 border-bottom d-flex align-items-center gap-2">
                         <i class="fas fa-shop text-warning"></i>
-                        <span>Store, Business & Trade Details (Sellers & Publishers)</span>
+                        <span>Business</span>
                     </h6>
 
                     <div class="row g-3">
                         <div class="col-md-6" id="shopNameWrap">
                             <label class="form-label small fw-bold text-dark">
-                                Shop / Bookstore Name (Sellers)
+                                Shop
                             </label>
                             <input type="text" name="shop_name" class="form-control rounded-3" 
                                    value="{{ old('shop_name', $regData['shop_name'] ?? '') }}" 
@@ -383,7 +451,10 @@ function previewAvatar(input, previewBoxId) {
 function updateCharCount(el, counterId) {
     const counter = document.getElementById(counterId);
     if (counter) {
-        counter.textContent = el.value.length + ' characters';
+        const text = el.value.trim();
+        const words = text ? text.split(/\s+/).length : 0;
+        const chars = el.value.length;
+        counter.textContent = `${words} Words • ${chars} Characters`;
     }
 }
 

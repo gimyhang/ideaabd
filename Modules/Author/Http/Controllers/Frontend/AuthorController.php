@@ -9,15 +9,12 @@ class AuthorController extends Controller
 {
     public function index()
     {
-        $authors = Author::where('is_active', true)->where('is_verified', true)->paginate(12);
-        return view('author::index', compact('authors'));
+        return app(\App\Http\Controllers\AuthorController::class)->index(request());
     }
 
     public function show($slug)
     {
-        $author = Author::where('slug', $slug)->where('is_active', true)->firstOrFail();
-        $posts = $author->blogPosts()->published()->paginate(9);
-        return view('author::show', compact('author', 'posts'));
+        return app(\App\Http\Controllers\AuthorController::class)->show($slug);
     }
 
     public function register()

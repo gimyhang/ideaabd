@@ -152,17 +152,31 @@ class RegistrationApprovalController extends Controller
             $regData['avatar'] = $avatarPath;
         }
 
-        // Update extra reg_data fields
-        foreach (['full_name', 'pen_name', 'genre', 'bio', 'nid', 'shop_name', 'zone', 'publisher_name', 'address', 'trade_license', 'website', 'facebook', 'twitter', 'youtube'] as $field) {
+        // Update extra reg_data fields (Author Bengali/English names, pen name, genres, bio, nid, addresses, etc.)
+        $extraFields = [
+            'full_name', 'name_bn', 'name_en', 'name_bangla', 'name_english',
+            'pen_name', 'genre', 'genres', 'bio', 'nid', 'dob', 'profession',
+            'payout_number', 'present_address', 'permanent_address', 'father_name', 'mother_name',
+            'shop_name', 'zone', 'publisher_name', 'address', 'trade_license',
+            'website', 'facebook', 'twitter', 'youtube'
+        ];
+
+        foreach ($extraFields as $field) {
             if ($request->has($field)) {
-                $regData[$field] = $request->input($field);
+                $val = $request->input($field);
+                if ($field === 'genre' && is_string($val)) {
+                    $regData['genre'] = $val;
+                    $regData['genres'] = array_filter(array_map('trim', explode(',', $val)));
+                } else {
+                    $regData[$field] = $val;
+                }
             }
         }
 
         $wasPending = ($user->reg_status === 'pending');
         $isNowApproved = ($validated['reg_status'] === 'approved');
 
-        $user->name = $validated['name'];
+        $user->name = $request->input('name_bn') ?: $validated['name'];
         $user->email = $validated['email'];
         $user->phone = $validated['phone'];
         $user->role = $validated['role'];
@@ -199,6 +213,7 @@ class RegistrationApprovalController extends Controller
                     'avatar'       => $user->avatar ?: ($regData['avatar'] ?? null),
                     'website'      => $regData['website'] ?? null,
                     'social_links' => $socialLinks,
+                    'user_id'      => $user->id,
                     'is_active'    => $user->is_active,
                     'is_verified'  => ($user->reg_status === 'approved'),
                 ]);

@@ -366,7 +366,7 @@ class HomeController extends Controller
                 ->whereHas('books', fn($q) => $q->where('is_active', true))
                 ->withCount(['books' => fn($q) => $q->where('is_active', true)])
                 ->orderByDesc('books_count')
-                ->take(12)
+                ->take(16)
                 ->get();
 
             foreach ($dynamicCategories as $dCat) {
@@ -394,7 +394,7 @@ class HomeController extends Controller
             $sidebarAuthors = \Modules\Author\Models\Author::query()
                 ->withCount('books')
                 ->orderByDesc('books_count')
-                ->take(10)
+                ->take(16)
                 ->get();
 
             $sidebarPublishers = \Modules\Publisher\Models\Publisher::query()

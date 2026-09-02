@@ -131,13 +131,60 @@ class AuthorController extends Controller
      */
     public function show($author)
     {
-        // Support either slug string or numeric ID or Model
+        // 1. Resolve author model or resolve smartly from string/ID
         if ($author instanceof Author) {
             $authorRecord = $author;
         } else {
-            $authorRecord = is_numeric($author)
-                ? Author::where('id', $author)->where('is_active', true)->firstOrFail()
-                : Author::where('slug', $author)->where('is_active', true)->firstOrFail();
+            $raw = trim((string) $author);
+            $decoded = trim(urldecode($raw));
+
+            // Layer A: Direct match on Slug, ID, or exact Name
+            $authorRecord = Author::where('is_active', true)
+                ->where(function ($q) use ($raw, $decoded) {
+                    if (is_numeric($raw)) {
+                        $q->where('id', (int) $raw);
+                    }
+                    $q->orWhere('slug', $raw)
+                      ->orWhere('slug', $decoded)
+                      ->orWhere('name', $raw)
+                      ->orWhere('name', $decoded);
+                })
+                ->first();
+
+            // Layer B: Transliterated English slug match
+            if (!$authorRecord) {
+                $transliterated = Author::generateUniqueSlug($decoded);
+                $authorRecord = Author::where('is_active', true)
+                    ->where('slug', $transliterated)
+                    ->first();
+            }
+
+            // Layer C: Consonant Skeleton Match (Stripping Bengali vowel diacritics)
+            if (!$authorRecord) {
+                $vowels = ['া', 'ি', 'ী', 'ু', 'ূ', 'ৃ', 'ে', 'ৈ', 'ো', 'ৌ', '্', 'ঁ', 'ং', 'ঃ', '্', '়'];
+                $cleanDecoded = str_replace($vowels, '', preg_replace('/[-_\s]+/u', '', $decoded));
+                
+                if (!empty($cleanDecoded)) {
+                    $allAuthors = Author::where('is_active', true)->get();
+                    foreach ($allAuthors as $candidate) {
+                        $authorSkeleton = str_replace($vowels, '', preg_replace('/[-_\s]+/u', '', $candidate->name));
+                        if ($authorSkeleton === $cleanDecoded || str_contains($authorSkeleton, $cleanDecoded) || str_contains($cleanDecoded, $authorSkeleton)) {
+                            $authorRecord = $candidate;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            // Final fallback or 404
+            if (!$authorRecord) {
+                abort(404, 'লেখক প্রোফাইল খুঁজে পাওয়া যায়নি।');
+            }
+
+            // Canonical 301 Redirect: If visited via legacy Bengali URL, decoded string, or numeric ID, redirect to clean English slug
+            if ($raw !== $authorRecord->slug && $decoded !== $authorRecord->slug) {
+                return redirect()->route('authors.show', $authorRecord->slug, 301);
+            }
         }
 
         // Paginate author books
@@ -160,6 +207,20 @@ class AuthorController extends Controller
             \Illuminate\Support\Facades\Log::warning("Could not load author blog posts: " . $e->getMessage());
         }
 
+        // Load author Webzine / Webmag articles
+        $webzineArticles = collect();
+        if (class_exists(\Modules\Webzine\Models\WebzineArticle::class)) {
+            try {
+                $webzineArticles = \Modules\Webzine\Models\WebzineArticle::with('webzine')
+                    ->where('author_id', $authorRecord->id)
+                    ->latest()
+                    ->take(8)
+                    ->get();
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning("Could not load author webzine articles: " . $e->getMessage());
+            }
+        }
+
         // Related Authors (Other authors in similar genres or top authors)
         $relatedAuthors = Author::withCount('books')
             ->where('is_active', true)
@@ -169,12 +230,13 @@ class AuthorController extends Controller
             ->get();
 
         return view('authors.show', [
-            'author'         => $authorRecord,
-            'books'          => $books,
-            'ebooks'         => $ebooks,
-            'blogPosts'      => $blogPosts,
-            'relatedAuthors' => $relatedAuthors,
-            'editorsPicks'   => [],
+            'author'          => $authorRecord,
+            'books'           => $books,
+            'ebooks'          => $ebooks,
+            'blogPosts'       => $blogPosts,
+            'webzineArticles' => $webzineArticles,
+            'relatedAuthors'  => $relatedAuthors,
+            'editorsPicks'    => [],
         ]);
     }
 }
