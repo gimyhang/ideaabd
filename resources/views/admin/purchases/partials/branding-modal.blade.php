@@ -165,6 +165,49 @@
                         </div>
                     </div>
 
+                    {{-- Customer Communication & Custom Message Settings --}}
+                    <div class="card border border-success-subtle rounded-3 p-3 mb-3 bg-success bg-opacity-10">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label class="form-label fw-bold text-success mb-0">
+                                <i class="fa-solid fa-comments me-1"></i> কাস্টমার মেসেজ ও অভিবাদন বার্তা কাস্টমাইজেশন
+                            </label>
+                            <span class="badge bg-success text-white">Custom Greetings</span>
+                        </div>
+                        <p class="small text-muted mb-3" style="font-size: 11px;">
+                            গ্রাহককে হোয়াটসঅ্যাপ বা ইমেইলে বিল/চালান শেয়ার করার সময় যে বার্তা যাবে তা নিজের পছন্দ অনুযায়ী নির্ধারণ বা এডিট করুন (সালাম/আদাব/অন্যান্য সম্ভাষণ আপনার ইচ্ছামতো রাখতে বা বর্জন করতে পারবেন)।
+                        </p>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold text-dark mb-1">
+                                <i class="fab fa-whatsapp text-success me-1"></i>WhatsApp / Social Share মেসেজ টেমপ্লেট:
+                            </label>
+                            <textarea name="whatsapp_message_template" class="form-control form-control-sm" rows="2" 
+                                      placeholder="{business_name} থেকে আপনার {doc_type} (#{invoice_no}) প্রস্তুত করা হয়েছে। সরাসরি দেখতে ভিজিট করুন: {invoice_url}">{{ $modalSettings['whatsapp_message_template'] ?? '' }}</textarea>
+                            <div class="form-text text-muted" style="font-size: 10.5px;">
+                                শর্টকোডসমূহ: <code>{customer_name}</code>, <code>{business_name}</code>, <code>{doc_type}</code>, <code>{invoice_no}</code>, <code>{invoice_url}</code>
+                            </div>
+                        </div>
+
+                        <div class="row g-2.5">
+                            <div class="col-md-5">
+                                <label class="form-label small fw-semibold text-dark mb-1">
+                                    <i class="fa-solid fa-envelope text-primary me-1"></i>ইমেইল সম্ভাষণ (Greeting):
+                                </label>
+                                <input type="text" name="email_greeting_salutation" class="form-control form-control-sm" 
+                                       value="{{ $modalSettings['email_greeting_salutation'] ?? 'সম্মানিত গ্রাহক' }}" 
+                                       placeholder="যেমন: সম্মানিত গ্রাহক / Dear Customer">
+                            </div>
+                            <div class="col-md-7">
+                                <label class="form-label small fw-semibold text-dark mb-1">
+                                    <i class="fa-solid fa-file-lines text-info me-1"></i>ইমেইল ভূমিকা বার্তা:
+                                </label>
+                                <input type="text" name="email_intro_text" class="form-control form-control-sm" 
+                                       value="{{ $modalSettings['email_intro_text'] ?? '' }}" 
+                                       placeholder="{business_name} থেকে আপনার অর্ডারের {doc_type} প্রস্তুত করা হয়েছে।">
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Company / Imprint Name (Header Title)</label>

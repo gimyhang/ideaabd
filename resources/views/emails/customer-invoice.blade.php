@@ -40,10 +40,14 @@
             </div>
             
             <h2 style="font-size: 18px; color: #0f172a; margin-top: 0;">
-                সম্মানিত গ্রাহক {{ $invoice->customer_name ? $invoice->customer_name : '' }},
+                {{ $settings['email_greeting_salutation'] ?? 'সম্মানিত গ্রাহক' }} {{ $invoice->customer_name ? $invoice->customer_name : '' }},
             </h2>
             <p style="font-size: 14px; color: #334155; margin-bottom: 10px;">
-                {{ $settings['business_name'] ?? 'আইডিয়া প্রকাশন' }} থেকে আপনার অর্ডারের <strong>{{ $invoice->type_label ?? 'ইনভয়েস' }}</strong> প্রস্তুত করা হয়েছে। নিচে সংক্ষিপ্ত বিবরণ দেওয়া হলো:
+                @if(!empty($settings['email_intro_text']))
+                    {{ str_replace(['{customer_name}', '{business_name}', '{doc_type}', '{invoice_no}'], [$invoice->customer_name ?? '', $settings['business_name'] ?? 'আইডিয়া প্রকাশন', $invoice->type_label ?? 'ইনভয়েস', $invoice->invoice_no], $settings['email_intro_text']) }}
+                @else
+                    {{ $settings['business_name'] ?? 'আইডিয়া প্রকাশন' }} থেকে আপনার অর্ডারের <strong>{{ $invoice->type_label ?? 'ইনভয়েস' }}</strong> প্রস্তুত করা হয়েছে। নিচে সংক্ষিপ্ত বিবরণ দেওয়া হলো:
+                @endif
             </p>
 
             @if(!empty($customMessage))

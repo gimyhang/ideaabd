@@ -1624,6 +1624,9 @@ class IdeaAccountingController extends Controller
             'challan_recipient_org_size'     => 'nullable|string|max:10',
             'default_creator_designation'    => 'nullable|string|max:150',
             'default_creator_name'           => 'nullable|string|max:150',
+            'whatsapp_message_template'      => 'nullable|string|max:1000',
+            'email_greeting_salutation'      => 'nullable|string|max:150',
+            'email_intro_text'               => 'nullable|string|max:500',
             'logo_base64'                    => 'nullable|string',
             'logo_file'                      => 'nullable|image|max:5120',
             'logo_url'                       => 'nullable|string|max:255',
@@ -1644,6 +1647,9 @@ class IdeaAccountingController extends Controller
             $settings['challan_recipient_org_size'] = $validated['challan_recipient_org_size'] ?? '12px';
             $settings['default_creator_designation'] = $validated['default_creator_designation'] ?? '';
             $settings['default_creator_name'] = $validated['default_creator_name'] ?? '';
+            $settings['whatsapp_message_template'] = $validated['whatsapp_message_template'] ?? '';
+            $settings['email_greeting_salutation'] = $validated['email_greeting_salutation'] ?? 'সম্মানিত গ্রাহক';
+            $settings['email_intro_text'] = $validated['email_intro_text'] ?? '';
 
             // Handle 2:1 cropped base64 image
             if (!empty($validated['logo_base64']) && str_starts_with($validated['logo_base64'], 'data:image/')) {
@@ -1730,6 +1736,9 @@ class IdeaAccountingController extends Controller
             'challan_recipient_org_size'     => '12px',
             'default_creator_designation'    => '',
             'default_creator_name'           => '',
+            'whatsapp_message_template'      => '{business_name} থেকে আপনার {doc_type} (#{invoice_no}) প্রস্তুত করা হয়েছে। সরাসরি দেখতে ভিজিট করুন: {invoice_url}',
+            'email_greeting_salutation'      => 'সম্মানিত গ্রাহক',
+            'email_intro_text'               => '',
         ];
 
         try {
