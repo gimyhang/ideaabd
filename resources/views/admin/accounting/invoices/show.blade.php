@@ -948,22 +948,41 @@
 @endif
 
 {{-- 📧 EMAIL DISPATCH & DELIVERY REPORT SECTION (D-PRINT-NONE) --}}
-<div class="row g-4 mt-1 mb-4 d-print-none">
-    <div class="col-12">
+<div class="row justify-content-center mt-3 mb-4 d-print-none">
+    <div class="col-lg-10">
         <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
+            {{-- Header --}}
             <div class="card-header bg-white py-3 px-4 border-bottom d-flex flex-wrap align-items-center justify-content-between gap-3">
                 <div class="d-flex align-items-center gap-3">
-                    <div class="p-2.5 bg-success-subtle text-success rounded-3 fs-5">
+                    <div class="p-2.5 bg-success-subtle text-success rounded-circle fs-5 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
                         <i class="fa-solid fa-envelope-circle-check"></i>
                     </div>
                     <div>
-                        <h6 class="fw-bold mb-0 text-dark">
-                            ইমেইল প্রেরণ ও ডেলিভারি রিপোর্ট (Email Dispatch & Delivery Report)
+                        <h6 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                            <span>ইমেইল প্রেরণ ও ডেলিভারি রিপোর্ট</span>
+                            <span class="text-muted small fw-normal">(Email Dispatch & Delivery Report)</span>
                         </h6>
                         <small class="text-muted">গ্রাহক ও সংশ্লিষ্ট প্রাপকদের কাছে ডিজিটাল বিল ও চালান প্রেরণের পূর্ণাঙ্গ লগ</small>
                     </div>
                 </div>
-                <div class="d-flex align-items-center gap-2">
+                
+                {{-- Quick Action Buttons --}}
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    {{-- Copy Link --}}
+                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1.5 fw-semibold shadow-2xs text-dark" onclick="copyCustomerShareLink()" title="গ্রাহকের জন্য সরাসরি পাবলিক লিংক কপি করুন">
+                        <i class="fas fa-copy me-1 text-primary"></i> Copy Link
+                    </button>
+                    
+                    {{-- WhatsApp Share --}}
+                    @php
+                        $waMsg = "আসসালামু আলাইকুম, আইডিয়া প্রকাশন থেকে আপনার " . ($invoice->type === 'challan' ? 'ডেলিভারি চালান' : ($invoice->type === 'quotation' ? 'মূল্য কোটেশন' : 'বিল / ইনভয়েস')) . " (#" . $invoice->invoice_no . ") প্রস্তুত করা হয়েছে। সরাসরি দেখতে ভিজিট করুন: " . $invoice->public_url;
+                    @endphp
+                    <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $invoice->customer_phone ?? '') }}?text={{ urlencode($waMsg) }}" target="_blank" 
+                       class="btn btn-sm btn-outline-success rounded-pill px-3 py-1.5 fw-semibold shadow-2xs" title="হোয়াটসঅ্যাপে গ্রাহককে ইনভয়েস লিংক পাঠান">
+                        <i class="fab fa-whatsapp me-1 text-success"></i> WhatsApp
+                    </a>
+
+                    {{-- Send Email Modal Trigger --}}
                     <button type="button" class="btn btn-sm btn-success rounded-pill px-3.5 py-1.5 fw-semibold shadow-xs" data-bs-toggle="modal" data-bs-target="#sendInvoiceEmailModal">
                         <i class="fas fa-paper-plane me-1"></i> মেইল পাঠান (Send Email)
                     </button>
@@ -973,41 +992,118 @@
             <div class="card-body p-4">
                 @php
                     $emailLogs = $invoice->email_logs ?? [];
+                    $totalDispatches = count($emailLogs);
+                    $latestLog = !empty($emailLogs) ? end($emailLogs) : null;
+                    $latestSentAt = $invoice->emailed_at ?: (!empty($latestLog['sent_at']) ? \Carbon\Carbon::parse($latestLog['sent_at']) : null);
                 @endphp
 
+                {{-- World-Class KPI Stats Row --}}
+                <div class="row g-3 mb-4">
+                    {{-- Customer Email --}}
+                    <div class="col-6 col-md-3">
+                        <div class="p-3 bg-light rounded-3 border h-100 d-flex flex-column justify-content-between">
+                            <span class="text-muted small fw-semibold d-block mb-1">
+                                <i class="fa-solid fa-user text-primary me-1"></i>গ্রাহকের ইমেইল
+                            </span>
+                            <div class="font-monospace fw-bold text-dark text-truncate" title="{{ $invoice->customer_email ?: 'নির্ধারিত নেই' }}" style="font-size: 13px;">
+                                {{ $invoice->customer_email ?: '—' }}
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Total Dispatches --}}
+                    <div class="col-6 col-md-3">
+                        <div class="p-3 bg-light rounded-3 border h-100 d-flex flex-column justify-content-between">
+                            <span class="text-muted small fw-semibold d-block mb-1">
+                                <i class="fa-solid fa-paper-plane text-info me-1"></i>মোট প্রেরণ সংখ্যা
+                            </span>
+                            <div class="fs-5 fw-bold text-dark font-monospace">
+                                {{ $totalDispatches }} <span class="fs-6 fw-normal text-muted">বার</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Latest Sent Date --}}
+                    <div class="col-6 col-md-3">
+                        <div class="p-3 bg-light rounded-3 border h-100 d-flex flex-column justify-content-between">
+                            <span class="text-muted small fw-semibold d-block mb-1">
+                                <i class="fa-solid fa-clock text-warning me-1"></i>সর্বশেষ প্রেরণ
+                            </span>
+                            <div class="text-dark fw-bold" style="font-size: 12.5px;">
+                                @if($latestSentAt)
+                                    <div>{{ $latestSentAt->format('d M, Y') }}</div>
+                                    <small class="text-muted fw-normal">{{ $latestSentAt->format('h:i A') }} ({{ $latestSentAt->diffForHumans() }})</small>
+                                @else
+                                    <span class="text-muted">— এখনও পাঠানো হয়নি —</span>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Delivery Health Status --}}
+                    <div class="col-6 col-md-3">
+                        <div class="p-3 {{ $totalDispatches > 0 ? 'bg-success-subtle border-success-subtle' : 'bg-light' }} rounded-3 border h-100 d-flex flex-column justify-content-between">
+                            <span class="text-muted small fw-semibold d-block mb-1">
+                                <i class="fa-solid fa-shield-check text-success me-1"></i>ডেলিভারি স্ট্যাটাস
+                            </span>
+                            <div>
+                                @if($totalDispatches > 0)
+                                    <span class="badge bg-success text-white px-2.5 py-1 rounded-pill shadow-2xs">
+                                        <i class="fa-solid fa-circle-check me-1"></i> ডেলিভার্ড (Active)
+                                    </span>
+                                @else
+                                    <span class="badge bg-secondary-subtle text-secondary px-2.5 py-1 rounded-pill">
+                                        <i class="fa-regular fa-clock me-1"></i> অপেক্ষমান
+                                    </span>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Logs Table --}}
                 @if(!empty($emailLogs) && count($emailLogs) > 0)
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0" style="font-size: 13.5px;">
-                            <thead class="table-light">
+                    <div class="d-flex align-items-center justify-content-between mb-2.5">
+                        <h6 class="fw-bold text-dark mb-0 font-monospace" style="font-size: 13.5px;">
+                            <i class="fa-solid fa-list-check text-success me-1.5"></i>ইমেইল প্রেরণের পূর্ণাঙ্গ লগ তালিকা (Dispatch Logs):
+                        </h6>
+                        <span class="badge bg-light text-secondary border font-monospace" style="font-size: 11px;">
+                            Total: {{ count($emailLogs) }} Entries
+                        </span>
+                    </div>
+
+                    <div class="table-responsive rounded-3 border">
+                        <table class="table table-hover align-middle mb-0" style="font-size: 13px;">
+                            <thead class="table-light text-muted">
                                 <tr>
-                                    <th style="width: 60px;" class="text-center">#</th>
-                                    <th>তারিখ ও সময় (Date & Time)</th>
+                                    <th style="width: 45px;" class="text-center">#</th>
+                                    <th style="width: 170px;">তারিখ ও সময়</th>
                                     <th>প্রাপক তালিকা (Recipients)</th>
-                                    <th>প্রেরক (Sender)</th>
-                                    <th>কাস্টম বার্তা (Message)</th>
-                                    <th>প্রেরণকারী (Sent By)</th>
-                                    <th class="text-center">স্ট্যাটাস (Status)</th>
+                                    <th style="width: 150px;">প্রেরক (Sender)</th>
+                                    <th>বার্তা / বিবরণ</th>
+                                    <th style="width: 120px;">প্রেরণকারী</th>
+                                    <th class="text-center" style="width: 130px;">স্ট্যাটাস</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach($emailLogs as $idx => $log)
+                                @foreach(array_reverse($emailLogs, true) as $idx => $log)
                                     @php
                                         $sentAt = !empty($log['sent_at']) ? \Carbon\Carbon::parse($log['sent_at']) : null;
                                         $recipients = $log['recipients'] ?? [];
                                         $status = $log['status'] ?? 'success';
                                     @endphp
                                     <tr>
-                                        <td class="text-center text-muted fw-bold">{{ $idx + 1 }}</td>
+                                        <td class="text-center text-muted fw-semibold">{{ $idx + 1 }}</td>
                                         <td>
-                                            <div class="fw-bold text-dark font-monospace">
+                                            <div class="fw-bold text-dark font-monospace" style="font-size: 12px;">
                                                 {{ $sentAt ? $sentAt->format('d M, Y h:i A') : '—' }}
                                             </div>
-                                            <small class="text-muted">{{ $sentAt ? $sentAt->diffForHumans() : '' }}</small>
+                                            <small class="text-muted" style="font-size: 11px;">{{ $sentAt ? $sentAt->diffForHumans() : '' }}</small>
                                         </td>
                                         <td>
                                             <div class="d-flex flex-wrap gap-1">
                                                 @foreach($recipients as $recEmail)
-                                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1 font-monospace" style="font-size: 11.5px;">
+                                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1 font-monospace" style="font-size: 11px;">
                                                         <i class="fa-solid fa-envelope me-1"></i>{{ $recEmail }}
                                                     </span>
                                                 @endforeach
@@ -1021,34 +1117,34 @@
                                             </div>
                                         </td>
                                         <td>
-                                            <span class="text-secondary font-monospace small">
+                                            <span class="text-secondary font-monospace small" style="font-size: 11px;">
                                                 {{ $log['sender'] ?? (config('mail.from.address') ?: 'ad@ideaabd.com') }}
                                             </span>
                                         </td>
                                         <td>
                                             @if(!empty($log['custom_message']))
-                                                <span class="text-dark bg-light px-2 py-1 rounded border d-inline-block text-truncate" style="max-width: 250px;" title="{{ $log['custom_message'] }}">
+                                                <span class="text-dark bg-light px-2 py-1 rounded border d-inline-block text-truncate" style="max-width: 220px;" title="{{ $log['custom_message'] }}">
                                                     {{ $log['custom_message'] }}
                                                 </span>
                                             @else
-                                                <span class="text-muted small">— ডিফল্ট নোটিফিকেশন —</span>
+                                                <span class="text-muted small">— ডিজিটাল ইনভয়েস লিংক —</span>
                                             @endif
                                         </td>
                                         <td>
-                                            <span class="small fw-semibold text-dark">{{ $log['sent_by'] ?? 'Admin' }}</span>
+                                            <span class="small fw-semibold text-dark"><i class="fa-solid fa-user-tie text-secondary me-1"></i>{{ $log['sent_by'] ?? 'Admin' }}</span>
                                         </td>
                                         <td class="text-center">
                                             @if($status === 'success')
-                                                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1 fw-bold">
-                                                    <i class="fa-solid fa-circle-check me-1"></i> ডেলিভার্ড (Delivered)
+                                                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1 fw-bold" style="font-size: 11px;">
+                                                    <i class="fa-solid fa-circle-check me-1"></i> ডেলিভার্ড
                                                 </span>
                                             @elseif($status === 'partial')
-                                                <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-3 py-1 fw-bold">
-                                                    <i class="fa-solid fa-triangle-exclamation me-1"></i> আংশিক সফল
+                                                <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2.5 py-1 fw-bold" style="font-size: 11px;">
+                                                    <i class="fa-solid fa-triangle-exclamation me-1"></i> আংশিক
                                                 </span>
                                             @else
-                                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-3 py-1 fw-bold">
-                                                    <i class="fa-solid fa-circle-xmark me-1"></i> ব্যর্থ (Failed)
+                                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-1 fw-bold" style="font-size: 11px;">
+                                                    <i class="fa-solid fa-circle-xmark me-1"></i> ব্যর্থ
                                                 </span>
                                             @endif
                                         </td>
@@ -1058,7 +1154,7 @@
                         </table>
                     </div>
                 @elseif($invoice->emailed_at)
-                    <div class="alert alert-success-subtle border border-success-subtle rounded-3 p-3 d-flex align-items-center justify-content-between">
+                    <div class="alert alert-success-subtle border border-success-subtle rounded-3 p-3 d-flex flex-wrap align-items-center justify-content-between gap-2">
                         <div class="d-flex align-items-center gap-3">
                             <i class="fa-solid fa-circle-check fs-3 text-success"></i>
                             <div>
@@ -1073,14 +1169,17 @@
                         </button>
                     </div>
                 @else
+                    {{-- World-Class Empty State Banner --}}
                     <div class="text-center py-4 px-3 bg-light rounded-4 border border-dashed">
-                        <div class="text-muted mb-2">
-                            <i class="fa-regular fa-paper-plane fs-1 text-secondary opacity-50"></i>
+                        <div class="rounded-circle bg-white shadow-2xs d-inline-flex align-items-center justify-content-center p-3 mb-2">
+                            <i class="fa-solid fa-paper-plane fs-2 text-success"></i>
                         </div>
-                        <h6 class="fw-bold text-dark mb-1">এখনো কোনো ইমেইল পাঠানো হয়নি</h6>
-                        <p class="text-muted small mb-3">গ্রাহককে এক ক্লিকে ডিজিটাল বিল ও ডেলিভারি চালানের সরাসরি লিংক এবং পিডিএফ কপি পাঠাতে নিচের বাটনে ক্লিক করুন।</p>
+                        <h6 class="fw-bold text-dark mb-1">এখনো কোনো ইমেইল প্রেরণ করা হয়নি</h6>
+                        <p class="text-muted small mb-3 mx-auto" style="max-width: 500px;">
+                            গ্রাহক বা প্রতিষ্ঠানের ঠিকানায় এক ক্লিকে ডিজিটাল বিল ও ডেলিভারি চালানের সরাসরি লিংক এবং পিডিএফ কপি পাঠাতে নিচের বাটনে ক্লিক করুন।
+                        </p>
                         <button type="button" class="btn btn-success btn-sm rounded-pill px-4 py-2 fw-semibold shadow-xs" data-bs-toggle="modal" data-bs-target="#sendInvoiceEmailModal">
-                            <i class="fas fa-paper-plane me-1.5"></i> এখনই গ্রাহককে মেইল পাঠান
+                            <i class="fas fa-paper-plane me-1.5"></i> এখনই গ্রাহককে ইমেইল পাঠান
                         </button>
                     </div>
                 @endif
