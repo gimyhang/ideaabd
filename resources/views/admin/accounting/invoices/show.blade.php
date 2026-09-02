@@ -915,10 +915,23 @@
                                     </td>
                                 </tr>
                             @empty
-                                <tr>
+                                                                <tr>
                                     <td colspan="8" class="text-center py-4 text-muted">
                                         <i class="fas fa-receipt fs-3 mb-2 d-block text-secondary"></i>
-                                        এখনও কোনো কিস্তি জমা রে�{{-- 📧 EMAIL DISPATCH & DELIVERY REPORT SECTION (D-PRINT-NONE) --}}
+                                        এখনও কোনো কিস্তি জমা রেকর্ড করা হয়নি।
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endif
+
+{{-- 📧 EMAIL DISPATCH & DELIVERY REPORT SECTION (D-PRINT-NONE) --}}
 <div class="row justify-content-center mt-3 mb-4 d-print-none">
     <div class="col-lg-10">
         <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
@@ -1372,50 +1385,8 @@ function switchDispatchTab(tab) {
         if (logsPanel) logsPanel.style.display = 'block';
         if (msgPanel) msgPanel.style.display = 'none';
     }
-}        <i class="fas fa-rotate-right me-0.5"></i> Resend
-                                            </button>
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                @elseif($invoice->emailed_at)
-                    <div class="alert alert-success-subtle border border-success-subtle rounded-3 p-3 d-flex flex-wrap align-items-center justify-content-between gap-2">
-                        <div class="d-flex align-items-center gap-3">
-                            <i class="fa-solid fa-circle-check fs-3 text-success"></i>
-                            <div>
-                                <h6 class="fw-bold mb-0 text-success">ইমেইল সফলভাবে পাঠানো হয়েছিল</h6>
-                                <small class="text-muted">
-                                    সর্বশেষ মেইল পাঠানো হয়েছে: <strong>{{ $invoice->emailed_at->format('d M, Y h:i A') }}</strong> ({{ $invoice->emailed_at->diffForHumans() }}) — প্রাপক: <strong class="font-monospace text-dark">{{ $invoice->customer_email ?: 'গ্রাহকের ইমেইল' }}</strong>
-                                </small>
-                            </div>
-                        </div>
-                        <button type="button" class="btn btn-outline-success btn-sm rounded-pill px-3 fw-semibold" data-bs-toggle="modal" data-bs-target="#sendInvoiceEmailModal">
-                            পুনরায় পাঠান
-                        </button>
-                    </div>
-                @else
-                    {{-- World-Class Empty State Banner --}}
-                    <div class="text-center py-4 px-3 bg-light rounded-4 border border-dashed">
-                        <div class="rounded-circle bg-white shadow-2xs d-inline-flex align-items-center justify-content-center p-3 mb-2">
-                            <i class="fa-solid fa-paper-plane fs-2 text-success"></i>
-                        </div>
-                        <h6 class="fw-bold text-dark mb-1">এখনো কোনো ইমেইল প্রেরণ করা হয়নি</h6>
-                        <p class="text-muted small mb-3 mx-auto" style="max-width: 500px;">
-                            গ্রাহক বা প্রতিষ্ঠানের ঠিকানায় এক ক্লিকে ডিজিটাল বিল ও ডেলিভারি চালানের সরাসরি লিংক এবং পিডিএফ কপি পাঠাতে নিচের বাটনে ক্লিক করুন।
-                        </p>
-                        <button type="button" class="btn btn-success btn-sm rounded-pill px-4 py-2 fw-semibold shadow-xs" data-bs-toggle="modal" data-bs-target="#sendInvoiceEmailModal">
-                            <i class="fas fa-paper-plane me-1.5"></i> এখনই গ্রাহককে ইমেইল পাঠান
-                        </button>
-                    </div>
-                @endif
-            </div>
-        </div>
-    </div>
-</div>
+}
 
-<script>
 function filterEmailLogs(status, btn) {
     // Update active button styling
     document.querySelectorAll('#filterAllBtn, #filterDeliveredBtn, #filterFailedBtn').forEach(b => {
@@ -1842,49 +1813,6 @@ function openResendModal(emails, customMsg) {
                                 </label>
                                 <input type="text" name="default_creator_designation" id="inputDefaultCreatorDesig" class="form-control form-control-sm" 
                                        value="{{ $settings['default_creator_designation'] ?? '' }}" placeholder="যেমন: Authorized Signatory / Billing Officer">
-                            </div>
-                        </div>
-                    </div>
-
-                    {{-- Customer Communication & Custom Message Settings --}}
-                    <div class="card border border-success-subtle rounded-3 p-3 mb-3 bg-success bg-opacity-10">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <label class="form-label fw-bold text-success mb-0">
-                                <i class="fa-solid fa-comments me-1"></i> কাস্টমার মেসেজ ও অভিবাদন বার্তা কাস্টমাইজেশন
-                            </label>
-                            <span class="badge bg-success text-white">Custom Greetings</span>
-                        </div>
-                        <p class="small text-muted mb-3" style="font-size: 11px;">
-                            গ্রাহককে হোয়াটসঅ্যাপ বা ইমেইলে বিল/চালান শেয়ার করার সময় যে বার্তা যাবে তা নিজের পছন্দ অনুযায়ী নির্ধারণ বা এডিট করুন (সালাম/আদাব/অন্যান্য সম্ভাষণ আপনার ইচ্ছামতো রাখতে বা বর্জন করতে পারবেন)।
-                        </p>
-
-                        <div class="mb-3">
-                            <label class="form-label small fw-semibold text-dark mb-1">
-                                <i class="fab fa-whatsapp text-success me-1"></i>WhatsApp / Social Share মেসেজ টেমপ্লেট:
-                            </label>
-                            <textarea name="whatsapp_message_template" class="form-control form-control-sm" rows="2" 
-                                      placeholder="{business_name} থেকে আপনার {doc_type} (#{invoice_no}) প্রস্তুত করা হয়েছে। সরাসরি দেখতে ভিজিট করুন: {invoice_url}">{{ $settings['whatsapp_message_template'] ?? '' }}</textarea>
-                            <div class="form-text text-muted" style="font-size: 10.5px;">
-                                শর্টকোডসমূহ: <code>{customer_name}</code>, <code>{business_name}</code>, <code>{doc_type}</code>, <code>{invoice_no}</code>, <code>{invoice_url}</code>
-                            </div>
-                        </div>
-
-                        <div class="row g-2.5">
-                            <div class="col-md-5">
-                                <label class="form-label small fw-semibold text-dark mb-1">
-                                    <i class="fa-solid fa-envelope text-primary me-1"></i>ইমেইল সম্ভাষণ (Greeting):
-                                </label>
-                                <input type="text" name="email_greeting_salutation" class="form-control form-control-sm" 
-                                       value="{{ $settings['email_greeting_salutation'] ?? 'সম্মানিত গ্রাহক' }}" 
-                                       placeholder="যেমন: সম্মানিত গ্রাহক / Dear Customer">
-                            </div>
-                            <div class="col-md-7">
-                                <label class="form-label small fw-semibold text-dark mb-1">
-                                    <i class="fa-solid fa-file-lines text-info me-1"></i>ইমেইল ভূমিকা বার্তা:
-                                </label>
-                                <input type="text" name="email_intro_text" class="form-control form-control-sm" 
-                                       value="{{ $settings['email_intro_text'] ?? '' }}" 
-                                       placeholder="{business_name} থেকে আপনার অর্ডারের {doc_type} প্রস্তুত করা হয়েছে।">
                             </div>
                         </div>
                     </div>
