@@ -68,7 +68,7 @@
     <!-- Copyright Strip -->
     <div class="border-t border-slate-800 bg-slate-900/80 py-6 text-center text-[11px] text-slate-400">
         <div class="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-4 sm:flex-row">
-            <p>© {{ date('Y') }} IdeaABD (আইডিয়া প্রকাশন)। সর্বস্বত্ব সংরক্ষিত।</p>
+            <p>© {{ date('Y') }} IdeaABD (আইডিয়া প্রকাশন)। সর্বস্বত্ব সংরক্ষিত। <span class="text-slate-500">| ডিজাইনার: <a href="{{ route('authors.show', 'sakil-masud') }}" class="text-cyan-400 hover:underline">মাসুদ রানা সাকিল</a></span></p>
             <div class="flex items-center gap-4 text-slate-500 text-[11px]">
                 <a href="/privacy" class="hover:text-slate-800">গোপনীয়তা নীতি</a>
                 <span>•</span>

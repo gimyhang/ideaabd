@@ -57,7 +57,7 @@
         <div class="row g-4 justify-content-between">
 
             {{-- Column 1: Brand & About --}}
-            <div class="col-lg-4 col-md-6">
+            <div class="col-lg-3 col-md-6">
                 <div class="d-flex align-items-center gap-2.5 mb-3">
                     @if($footerLogo)
                         <img src="{{ $footerLogo }}" alt="{{ $footerName }}" style="max-height: 42px; width: auto; object-fit: contain; filter: brightness(1.1);">
@@ -71,7 +71,7 @@
                 <p class="text-slate-300 small mb-3" style="color: #cbd5e1; line-height: 1.8; font-size: 13.5px;">
                     {{ $footerTagline ?: 'বাংলাদেশের বিশ্বস্ত অনলাইন বই, ই-বুক ও সৃজনশীল প্রকাশনা প্ল্যাটফর্ম। লেখক, প্রকাশক ও পাঠকদের মুক্ত চিন্তার মিলনমেলা।' }}
                 </p>
-                <div class="d-flex align-items-center gap-2 pt-1 mb-3">
+                <div class="d-flex align-items-center gap-2 pt-1">
                     <a href="https://facebook.com" target="_blank" rel="noopener" class="footer-social-btn" title="Facebook">
                         <i class="fab fa-facebook-f"></i>
                     </a>
@@ -84,23 +84,6 @@
                     <a href="https://instagram.com" target="_blank" rel="noopener" class="footer-social-btn instagram" title="Instagram">
                         <i class="fab fa-instagram"></i>
                     </a>
-                </div>
-
-                {{-- Editorial & Publishing Board --}}
-                <div class="p-2.5 rounded-3 border" style="background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.08) !important;">
-                    <div class="small fw-bold text-info mb-1.5 d-flex align-items-center gap-1.5">
-                        <i class="fa-solid fa-feather-pointed"></i>
-                        <span>আইডিয়াপত্র ও সম্পাদকমণ্ডলী:</span>
-                    </div>
-                    <div class="small text-slate-300" style="font-size: 12px; line-height: 1.7; color: #cbd5e1;">
-                        <div><span class="text-white-50">প্রকাশক:</span> <strong class="text-white">{{ \App\Support\SiteSetting::publisherName() }}</strong></div>
-                        <div><span class="text-white-50">সম্পাদক:</span> <strong class="text-white">{{ \App\Support\SiteSetting::editorName() }}</strong></div>
-                        @foreach(\App\Support\SiteSetting::editorialBoard() as $boardMember)
-                            @if(!empty($boardMember['role']) && !empty($boardMember['name']))
-                                <div><span class="text-white-50">{{ $boardMember['role'] }}:</span> <strong class="text-white">{{ $boardMember['name'] }}</strong></div>
-                            @endif
-                        @endforeach
-                    </div>
                 </div>
             </div>
 
@@ -133,7 +116,34 @@
                 </ul>
             </div>
 
-            {{-- Column 4: Contact Info & Newsletter --}}
+            {{-- Column 4: Editorial & Publishing Board (৫ম কলাম / সম্পাদকমণ্ডলী) --}}
+            <div class="col-lg-2 col-md-6 col-6">
+                <h6 class="footer-heading text-white fw-bold mb-3 position-relative pb-2">
+                    <span>আইডিয়াপত্র ও সম্পাদনা</span>
+                </h6>
+                <div class="small text-slate-300" style="font-size: 13px; line-height: 1.8; color: #cbd5e1;">
+                    <div class="mb-1.5">
+                        <span class="text-white-50 d-block" style="font-size: 11px;">প্রকাশক:</span>
+                        <strong class="text-white">{{ \App\Support\SiteSetting::publisherName() ?: 'আইডিয়া প্রকাশন' }}</strong>
+                    </div>
+                    <div class="mb-1.5">
+                        <span class="text-white-50 d-block" style="font-size: 11px;">সম্পাদক:</span>
+                        <a href="{{ route('authors.show', 'sakil-masud') }}" class="text-info text-decoration-none fw-semibold" style="transition: color 0.2s ease;" onmouseover="this.style.color='#38bdf8'; this.style.textDecoration='underline';" onmouseout="this.style.color=''; this.style.textDecoration='none';" title="সাকিল মাসুদ — প্রোফাইল দেখুন">
+                            {{ \App\Support\SiteSetting::editorName() ?: 'সাকিল মাসুদ' }}
+                        </a>
+                    </div>
+                    @foreach(\App\Support\SiteSetting::editorialBoard() as $boardMember)
+                        @if(!empty($boardMember['role']) && !empty($boardMember['name']))
+                            <div class="mb-1.5">
+                                <span class="text-white-50 d-block" style="font-size: 11px;">{{ $boardMember['role'] }}:</span>
+                                <strong class="text-white">{{ $boardMember['name'] }}</strong>
+                            </div>
+                        @endif
+                    @endforeach
+                </div>
+            </div>
+
+            {{-- Column 5: Contact Info & Newsletter --}}
             <div class="col-lg-3 col-md-6">
                 <h6 class="footer-heading text-white fw-bold mb-3 position-relative pb-2">
                     <span>যোগাযোগ ও বার্তা</span>
@@ -227,7 +237,10 @@
             <div class="row align-items-center g-2 text-center text-md-start">
                 <div class="col-md-7">
                     <p class="mb-0 small" style="color: #94a3b8; font-size: 12.5px;">
-                        &copy; {{ date('Y') }} <strong class="text-white">{{ $footerName }}</strong> (ideaabd.com) &mdash; সর্বস্বত্ব সংরক্ষিত।
+                        &copy; {{ date('Y') }} <strong class="text-white">{{ $footerName }}</strong> (ideaabd.com) &mdash; সর্বস্বত্ব সংরক্ষিত। 
+                        <span class="d-inline-block ms-1" style="color: #64748b;">| ডিজাইনার: 
+                            <a href="{{ route('authors.show', 'sakil-masud') }}" class="text-info text-decoration-none fw-semibold" style="transition: color 0.2s ease;" onmouseover="this.style.color='#38bdf8'; this.style.textDecoration='underline';" onmouseout="this.style.color=''; this.style.textDecoration='none';" title="মাসুদ রানা সাকিল — প্রোফাইল দেখুন">মাসুদ রানা সাকিল</a>
+                        </span>
                     </p>
                 </div>
                 <div class="col-md-5 text-md-end">
