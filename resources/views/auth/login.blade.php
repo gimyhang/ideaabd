@@ -7,7 +7,7 @@
         <div class="card-header border-0 py-4 text-center text-white position-relative" 
              style="background: linear-gradient(135deg, #0c4a6e 0%, #0369a1 50%, #0284c7 100%);">
             <div class="bg-white rounded-circle p-2 d-inline-flex shadow-sm mb-2" style="width: 68px; height: 68px;">
-                <img src="{{ \App\Support\SiteSetting::loginLogoUrl() }}" class="w-100 h-100 object-fit-contain" alt="{{ \App\Support\SiteSetting::siteName() }}">
+                <img src="{{ \App\Support\SiteSetting::loginLogoUrl() }}" class="w-100 h-100 object-fit-contain" alt="{{ \App\Support\SiteSetting::name() }}">
             </div>
             <h3 class="fw-bold mb-1 text-white">আপনার অ্যাকাউন্টে লগইন করুন</h3>
             <small class="text-white-50" style="font-size: 0.85rem;">আইডিয়া প্রকাশন ডিজিটাল প্ল্যাটফর্ম</small>

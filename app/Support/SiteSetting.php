@@ -64,9 +64,19 @@ class SiteSetting
         return (string) (self::get('site_name') ?: config('brand.name', 'আইডিয়া প্রকাশন'));
     }
 
+    public static function siteName(): string
+    {
+        return self::name();
+    }
+
     public static function tagline(): string
     {
         return (string) (self::get('site_tagline') ?: config('brand.tagline', 'বই ও মুক্তচিন্তার ডিজিটাল প্রকাশনা'));
+    }
+
+    public static function siteTagline(): string
+    {
+        return self::tagline();
     }
 
     public static function logoUrl(): ?string
