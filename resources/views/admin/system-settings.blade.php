@@ -230,6 +230,38 @@
                                         </div>
                                     </div>
                                 </div>
+
+                                <!-- Login Page Dedicated Logo Box -->
+                                @php
+                                    $loginLogoUrl = \App\Support\SiteSetting::loginLogoUrl();
+                                    $customLoginLogo = \App\Support\SiteSetting::get('site_login_logo');
+                                @endphp
+                                <div class="p-3 bg-light rounded-4 border mb-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <div>
+                                            <label class="form-label small fw-bold text-dark mb-0">
+                                                <i class="fa-solid fa-right-to-bracket text-primary me-1"></i> লগইন পেজ লোগো (Login Page Logo)
+                                            </label>
+                                        </div>
+                                        <span class="badge bg-white text-muted border rounded-pill px-2.5 py-0.5 small">1:1 / 4:3</span>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="fixed-preview-container shadow-xs bg-white rounded-circle p-1.5 d-flex align-items-center justify-content-center" 
+                                             style="width: 54px; height: 54px; border: 1px solid #e2e8f0;" id="siteLoginLogoContainer">
+                                            <img src="{{ $loginLogoUrl }}" alt="Login Logo" class="w-100 h-100 object-fit-contain" id="site_login_logoPreviewImg">
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <input type="file" id="siteLoginLogoInput" name="site_login_logo" class="form-control form-control-sm rounded-3 mb-1" accept="image/*" onchange="initCropper(this, 'site_login_logo', 1)">
+                                            <div class="form-text small text-muted" style="font-size: 11px;">লগইন পেজের হেডার কার্ডে প্রদর্শিত হবে। খালি থাকলে সাইটের মূল লোগো ব্যবহৃত হবে।</div>
+                                            @if($customLoginLogo)
+                                                <div class="form-check mt-1">
+                                                    <input class="form-check-input" type="checkbox" name="remove_site_login_logo" value="1" id="rmLoginLogo">
+                                                    <label class="form-check-label small text-danger fw-semibold" for="rmLoginLogo">লগইন লোগো মুছুন</label>
+                                                </div>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
                             <!-- Right: Modern World-Class Logo Sizing, Navbar Simulator & Cropper -->

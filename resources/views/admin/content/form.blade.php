@@ -1577,13 +1577,20 @@
             <form id="quickAuthorForm" onsubmit="handleQuickAuthorSubmit(event)">
                 <div class="modal-body p-3">
                     <div id="quickAuthAlert"></div>
-                    <div class="mb-3">
-                        <label class="form-label small fw-semibold">Author Full Name <span class="text-danger">*</span></label>
-                        <input type="text" id="quick_auth_name" name="name" class="form-control form-control-sm" 
-                               placeholder="e.g. Humayun Ahmed / Muhammad Zafar Iqbal" required>
+                    <div class="row g-2 mb-3">
+                        <div class="col-12 col-md-6">
+                            <label class="form-label small fw-semibold">Author Name (বাংলা নাম) <span class="text-danger">*</span></label>
+                            <input type="text" id="quick_auth_name" name="name" class="form-control form-control-sm" 
+                                   placeholder="যেমন: হুমায়ূন আহমেদ" required>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label small fw-semibold">Author Name (ইংরেজি নাম — ঐচ্ছিক)</label>
+                            <input type="text" id="quick_auth_name_en" name="name_en" class="form-control form-control-sm" 
+                                   placeholder="e.g. Humayun Ahmed">
+                        </div>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label small fw-semibold">Phone Number</label>
+                        <label class="form-label small fw-semibold">Phone Number (ফোন নম্বর)</label>
                         <input type="text" id="quick_auth_phone" name="phone" class="form-control form-control-sm" placeholder="01XXXXXXXXX">
                     </div>
                     <div>
@@ -1672,6 +1679,7 @@
         </div>
     </div>
 </div>
+@endsection
 
 @push('scripts')
 <script>
@@ -3414,6 +3422,7 @@ function handleQuickAuthorSubmit(e) {
     const btn = document.getElementById('quickAuthBtn');
     const alertBox = document.getElementById('quickAuthAlert');
     const nameInput = document.getElementById('quick_auth_name');
+    const nameEnInput = document.getElementById('quick_auth_name_en');
     const phoneInput = document.getElementById('quick_auth_phone');
     const bioInput = document.getElementById('quick_auth_bio');
 
@@ -3432,6 +3441,7 @@ function handleQuickAuthorSubmit(e) {
         },
         body: JSON.stringify({
             name: nameInput.value,
+            name_en: nameEnInput ? nameEnInput.value || null : null,
             phone: phoneInput.value || null,
             bio: bioInput.value || null
         })
@@ -3439,35 +3449,39 @@ function handleQuickAuthorSubmit(e) {
     .then(res => res.json())
     .then(data => {
         if (data.success && data.item) {
+            const displayName = data.item.display_name || data.item.name;
+
+            // Update all author dropdowns in books form
+            document.querySelectorAll('select[name="author_ids[]"]').forEach(sel => {
+                const opt = new Option(displayName, data.item.id, true, true);
+                sel.add(opt);
+                sel.value = data.item.id;
+                sel.dispatchEvent(new Event('change'));
+            });
+
             const blogAuthSelect = document.getElementById('f-author_id');
             if (blogAuthSelect) {
-                const opt = new Option(data.item.name, data.item.id, true, true);
+                const opt = new Option(displayName, data.item.id, true, true);
                 blogAuthSelect.add(opt);
                 blogAuthSelect.value = data.item.id;
             }
 
             const mainAuthSelect = document.getElementById('f-author_link_id');
             if (mainAuthSelect) {
-                const opt = new Option(data.item.name, data.item.id, true, true);
+                const opt = new Option(displayName, data.item.id, true, true);
                 mainAuthSelect.add(opt);
                 mainAuthSelect.value = data.item.id;
-            }
-
-            // Also switch to directory mode
-            const dirRadio = document.getElementById('author-mode-directory');
-            if (dirRadio) {
-                dirRadio.checked = true;
-                dirRadio.dispatchEvent(new Event('change'));
             }
 
             const modalEl = document.getElementById('quickAddAuthorModal');
             bootstrap.Modal.getInstance(modalEl)?.hide();
             nameInput.value = '';
+            if (nameEnInput) nameEnInput.value = '';
             phoneInput.value = '';
             bioInput.value = '';
 
             updateLiveMockupCard();
-            alert('Author added and selected successfully!');
+            alert("লেখক '" + data.item.name + "' সফলভাবে যুক্ত ও সিলেক্ট করা হয়েছে!");
         } else {
             alertBox.innerHTML = `<div class="alert alert-danger p-2 small mb-2">${data.message || 'An error occurred'}</div>`;
         }
@@ -3724,6 +3738,220 @@ function showValidationToast(msg) {
         toast.style.transform = 'translateY(20px)';
     }, 4500);
 }
+// Client-Side Real-Time Auto Book Cover Generator
+function generateAutoBookCoverLive() {
+    const titleInput = document.getElementById('f-title');
+    const title = (titleInput && titleInput.value.trim()) ? titleInput.value.trim() : 'বইয়ের নাম';
+
+    let authorName = '';
+    const authorInputs = document.querySelectorAll('.author-name-input');
+    authorInputs.forEach(inp => {
+        if (inp.value.trim()) {
+            authorName = (authorName ? authorName + ', ' : '') + inp.value.trim();
+        }
+    });
+    if (!authorName) {
+        const firstAuthSel = document.querySelector('select[name="author_ids[]"]');
+        if (firstAuthSel && firstAuthSel.selectedOptions[0] && firstAuthSel.value) {
+            authorName = firstAuthSel.selectedOptions[0].text;
+        }
+    }
+    if (!authorName) authorName = 'আইডিয়া প্রকাশন';
+
+function toggleAutoCoverOptions() {
+    const opts = document.getElementById('autoCoverCustomOptions');
+    const txt = document.getElementById('autoCoverToggleText');
+    if (opts) {
+        if (opts.classList.contains('d-none')) {
+            opts.classList.remove('d-none');
+            if (txt) txt.textContent = 'হাইড করুন';
+        } else {
+            opts.classList.add('d-none');
+            if (txt) txt.textContent = 'অপশন দেখুন';
+        }
+    }
+}
+
+function applyAutoCoverTheme(key) {
+    const presets = {
+        royal_blue: { bg: '#0f172a', title: '#ffffff', author: '#fde047' },
+        deep_emerald: { bg: '#064e3b', title: '#ffffff', author: '#fef08a' },
+        crimson_ruby: { bg: '#450a0a', title: '#ffffff', author: '#fed7aa' },
+        regal_purple: { bg: '#2e1065', title: '#ffffff', author: '#fef08a' },
+        midnight_slate: { bg: '#18181b', title: '#ffffff', author: '#e2e8f0' },
+        warm_brown: { bg: '#3b1d11', title: '#ffffff', author: '#fde047' },
+        dark_teal: { bg: '#042f2e', title: '#ffffff', author: '#a7f3d0' }
+    };
+    if (presets[key]) {
+        const bgInp = document.getElementById('autoCoverBgColor');
+        const titleInp = document.getElementById('autoCoverTitleColor');
+        const authorInp = document.getElementById('autoCoverAuthorColor');
+        if (bgInp) bgInp.value = presets[key].bg;
+        if (titleInp) titleInp.value = presets[key].title;
+        if (authorInp) authorInp.value = presets[key].author;
+    }
+    generateAutoBookCoverLive();
+}
+
+// Magic One-Click Designer Auto-Generator (Random harmonious designer palette & font)
+function magicAutoGenerateCover() {
+    const designerPalettes = [
+        { key: 'royal_blue', bg: '#0f172a', title: '#ffffff', author: '#fde047', font: 'Hind Siliguri' },
+        { key: 'deep_emerald', bg: '#064e3b', title: '#ffffff', author: '#fef08a', font: 'SolaimanLipi' },
+        { key: 'crimson_ruby', bg: '#450a0a', title: '#ffffff', author: '#fed7aa', font: 'Noto Serif Bengali' },
+        { key: 'regal_purple', bg: '#2e1065', title: '#ffffff', author: '#fef08a', font: 'Kalpurush' },
+        { key: 'midnight_slate', bg: '#18181b', title: '#ffffff', author: '#e2e8f0', font: 'Hind Siliguri' },
+        { key: 'warm_brown', bg: '#3b1d11', title: '#ffffff', author: '#fde047', font: 'Tiro Bangla' },
+        { key: 'dark_teal', bg: '#042f2e', title: '#ffffff', author: '#a7f3d0', font: 'SolaimanLipi' },
+        { key: 'deep_indigo', bg: '#1e1b4b', title: '#ffffff', author: '#fecdd3', font: 'Noto Serif Bengali' },
+        { key: 'terracotta', bg: '#431407', title: '#ffffff', author: '#fed7aa', font: 'Hind Siliguri' },
+        { key: 'obsidian_gold', bg: '#09090b', title: '#ffffff', author: '#f59e0b', font: 'SolaimanLipi' }
+    ];
+
+    const pick = designerPalettes[Math.floor(Math.random() * designerPalettes.length)];
+
+    const bgInp = document.getElementById('autoCoverBgColor');
+    const titleInp = document.getElementById('autoCoverTitleColor');
+    const authorInp = document.getElementById('autoCoverAuthorColor');
+    const fontInp = document.getElementById('autoCoverFontSelect');
+    const themeSelect = document.getElementById('autoCoverThemeSelect');
+
+    if (bgInp) bgInp.value = pick.bg;
+    if (titleInp) titleInp.value = pick.title;
+    if (authorInp) authorInp.value = pick.author;
+    if (fontInp) fontInp.value = pick.font;
+    if (themeSelect) themeSelect.value = pick.key || 'custom';
+
+    generateAutoBookCoverLive();
+}
+
+// Client-Side Real-Time Auto Book Cover Generator with Range Bars
+function generateAutoBookCoverLive() {
+    const titleInput = document.getElementById('f-title');
+    const title = (titleInput && titleInput.value.trim()) ? titleInput.value.trim() : 'বইয়ের নাম';
+
+    let authorName = '';
+    const authorInputs = document.querySelectorAll('.author-name-input');
+    authorInputs.forEach(inp => {
+        if (inp.value.trim()) {
+            authorName = (authorName ? authorName + ', ' : '') + inp.value.trim();
+        }
+    });
+    if (!authorName) {
+        const firstAuthSel = document.querySelector('select[name="author_ids[]"]');
+        if (firstAuthSel && firstAuthSel.selectedOptions[0] && firstAuthSel.value) {
+            authorName = firstAuthSel.selectedOptions[0].text;
+        }
+    }
+    if (!authorName) authorName = 'আইডিয়া প্রকাশন';
+
+    // Get customized colors & range values
+    const bgInp = document.getElementById('autoCoverBgColor');
+    const titleColorInp = document.getElementById('autoCoverTitleColor');
+    const authorColorInp = document.getElementById('autoCoverAuthorColor');
+    const fontInp = document.getElementById('autoCoverFontSelect');
+    const titleRange = document.getElementById('autoCoverTitleRange');
+    const authorRange = document.getElementById('autoCoverAuthorRange');
+    const posRange = document.getElementById('autoCoverPosRange');
+
+    const bgColor = bgInp ? bgInp.value : '#0f172a';
+    const titleColor = titleColorInp ? titleColorInp.value : '#ffffff';
+    const authorColor = authorColorInp ? authorColorInp.value : '#fde047';
+    const selectedFont = fontInp ? fontInp.value : 'Hind Siliguri';
+    const titleFontSize = titleRange ? parseInt(titleRange.value, 10) : 70;
+    const authorFontSize = authorRange ? parseInt(authorRange.value, 10) : 30;
+    const titleStartY = posRange ? parseInt(posRange.value, 10) : 240;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = 600;
+    canvas.height = 900;
+    const ctx = canvas.getContext('2d');
+
+    // Plain Solid Color Background (No Borders, No Gradients)
+    ctx.fillStyle = bgColor;
+    ctx.fillRect(0, 0, 600, 900);
+
+    // Book Title in Upper Section
+    ctx.fillStyle = titleColor;
+    ctx.textAlign = 'center';
+
+    const words = title.split(' ');
+    let lines = [];
+    let currentLine = '';
+    const maxCharsPerLine = titleFontSize > 80 ? 9 : (titleFontSize > 60 ? 11 : 14);
+    words.forEach(word => {
+        const testLine = currentLine ? currentLine + ' ' + word : word;
+        if (testLine.length > maxCharsPerLine) {
+            if (currentLine) lines.push(currentLine);
+            currentLine = word;
+        } else {
+            currentLine = testLine;
+        }
+    });
+    if (currentLine) lines.push(currentLine);
+
+    ctx.font = '800 ' + titleFontSize + 'px "' + selectedFont + '", "SolaimanLipi", "Kalpurush", "Noto Serif Bengali", serif';
+
+    const lineHeight = titleFontSize * 1.25;
+    const titleBlockHeight = lines.length * lineHeight;
+
+    lines.forEach((line, idx) => {
+        ctx.fillText(line, 300, titleStartY + (idx * lineHeight));
+    });
+
+    // Author Name Directly Below Title (Clean text, No box, No lines)
+    const authorY = titleStartY + titleBlockHeight + 40;
+
+    ctx.fillStyle = authorColor;
+    ctx.font = '600 ' + authorFontSize + 'px "' + selectedFont + '", "SolaimanLipi", "Noto Serif Bengali", serif';
+    ctx.fillText(authorName, 300, authorY);
+
+    // Minimal Bottom Imprint
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+    ctx.font = '500 13px "' + selectedFont + '", "SolaimanLipi", sans-serif';
+    ctx.fillText('আইডিয়া প্রকাশন', 300, 840);
+
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
+
+    const mockupImg = document.getElementById('mockupCoverImg');
+    if (mockupImg) {
+        mockupImg.src = dataUrl;
+    }
+
+    const genInput = document.getElementById('f-generated_cover_data');
+    if (genInput) {
+        genInput.value = dataUrl;
+    }
+
+// Expose to window for inline onclick / oninput
+window.toggleAutoCoverOptions = toggleAutoCoverOptions;
+window.applyAutoCoverTheme = applyAutoCoverTheme;
+window.magicAutoGenerateCover = magicAutoGenerateCover;
+window.generateAutoBookCoverLive = generateAutoBookCoverLive;
+
+// Auto-trigger live cover rendering on page load & when typing title or author
+document.addEventListener('DOMContentLoaded', function() {
+    const titleEl = document.getElementById('f-title');
+    if (titleEl) {
+        titleEl.addEventListener('input', function() {
+            generateAutoBookCoverLive();
+        });
+    }
+
+    document.querySelectorAll('.author-name-input').forEach(el => {
+        el.addEventListener('input', function() {
+            generateAutoBookCoverLive();
+        });
+    });
+
+    // Run automatically on load if mockup exists and no uploaded file preview
+    setTimeout(function() {
+        const previewCont = document.getElementById('preview-container-cover_image');
+        if (!previewCont || previewCont.classList.contains('d-none')) {
+            generateAutoBookCoverLive();
+        }
+    }, 150);
+});
 </script>
 
 <style>
@@ -3737,7 +3965,4 @@ function showValidationToast(msg) {
     border-color: #dc2626 !important;
 }
 </style>
-<script src="{{ asset('js/spellchecker.js') }}"></script>
 @endpush
-
-@endsection

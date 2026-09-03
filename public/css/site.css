@@ -92,12 +92,22 @@ img, svg, video, canvas, audio, iframe {
 
 .site-head.is-stuck { box-shadow: 0 6px 24px rgba(18, 40, 61, .09); }
 
-.site-head__main {
+.site-head__main,
+.site-mainbar {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 1.5rem;
-    padding: .75rem 0;
+    padding-top: 25px !important;
+    padding-bottom: 25px !important;
+}
+
+@media (max-width: 768px) {
+    .site-head__main,
+    .site-mainbar {
+        padding-top: 18px !important;
+        padding-bottom: 18px !important;
+    }
 }
 
 /* ── Brand & Fixed Logo Box ──────────────────────────────────── */
@@ -332,19 +342,31 @@ img, svg, video, canvas, audio, iframe {
 .site-user__role { font-size: .68rem; color: var(--sh-muted); }
 
 /* ── Nav row & Dropdowns ────────────────────────────────────── */
-.site-nav {
-    background: #f8fafc;
+.site-nav,
+.site-navbar {
+    background: #ffffff;
     border-top: 1px solid var(--sh-line);
+    width: 100%;
+}
+
+.site-navbar .container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
 }
 
 .site-nav__list {
     display: flex;
     align-items: center;
+    justify-content: center !important;
     gap: .25rem;
     list-style: none;
-    margin: 0;
+    margin: 0 auto !important;
     padding: .35rem 0;
     flex-wrap: wrap;
+    width: 100%;
+    text-align: center;
 }
 
 .site-nav__item {
@@ -355,17 +377,30 @@ img, svg, video, canvas, audio, iframe {
     display: inline-flex;
     align-items: center;
     gap: .35rem;
-    padding: .42rem .72rem;
-    font-size: .88rem;
+    padding: .44rem .78rem;
+    font-size: .875rem;
     font-weight: 600;
     color: #334155;
     text-decoration: none;
-    border-radius: 9px;
+    border-radius: 999px;
     white-space: nowrap;
     position: relative;
     background: transparent;
     border: 0;
+    line-height: 1.25;
     transition: all .2s cubic-bezier(.16, 1, .3, 1);
+}
+
+.site-nav__link .nav-arrow {
+    font-size: 9.5px;
+    opacity: .65;
+    margin-left: 1px;
+    transition: transform .2s ease;
+}
+
+.dropdown.site-nav__item:hover .nav-arrow,
+.dropdown.site-nav__item.show .nav-arrow {
+    transform: rotate(180deg);
 }
 
 .site-nav__link:hover { 
@@ -376,23 +411,22 @@ img, svg, video, canvas, audio, iframe {
 .site-nav__link.is-active {
     color: var(--sh-brand);
     font-weight: 700;
-    background: #fff;
-    box-shadow: 0 2px 8px rgba(0, 102, 204, .12);
+    background: rgba(0, 102, 204, .1);
 }
 
 /* "All categories" trigger */
 .site-nav__all {
-    background: linear-gradient(135deg, var(--sh-brand-2), var(--sh-brand));
+    background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%) !important;
     color: #fff !important;
     font-weight: 700;
-    margin-right: .3rem;
-    box-shadow: 0 2px 8px rgba(0, 102, 204, .2);
+    box-shadow: 0 2px 8px rgba(2, 132, 199, .25);
 }
 
 .site-nav__all:hover { 
     color: #fff !important; 
     filter: brightness(1.08); 
-    background: linear-gradient(135deg, var(--sh-brand-2), var(--sh-brand)); 
+    background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%) !important;
+    box-shadow: 0 4px 14px rgba(2, 132, 199, .35); 
 }
 
 /* ── Desktop Hover Dropdowns with Fade-in Micro Animation ──── */
@@ -416,14 +450,38 @@ img, svg, video, canvas, audio, iframe {
     }
 
     .site-nav__item.has-mega > .dropdown-menu.site-mega {
-        left: 50% !important;
+        left: 0 !important;
         right: auto !important;
-        transform: translateX(-50%) translateY(10px);
+        transform: translateY(8px);
     }
 
     .site-nav__item.has-mega:hover > .dropdown-menu.site-mega,
-    .site-nav__item.has-mega > .dropdown-menu.site-mega:hover {
-        transform: translateX(-50%) translateY(0) !important;
+    .site-nav__item.has-mega > .dropdown-menu.site-mega:hover,
+    .site-nav__item.has-mega > .dropdown-toggle[aria-expanded="true"] + .dropdown-menu.site-mega {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0) !important;
+        pointer-events: auto;
+    }
+
+    /* Quick Subnav Pill Dropdowns Hover & Animation */
+    .quick-pill-dropdown .dropdown-menu {
+        display: block;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(8px);
+        pointer-events: none;
+        transition: opacity .2s cubic-bezier(.16, 1, .3, 1), transform .2s cubic-bezier(.16, 1, .3, 1), visibility .2s;
+    }
+
+    .quick-pill-dropdown:hover > .dropdown-menu,
+    .quick-pill-dropdown > .dropdown-menu:hover,
+    .quick-pill-dropdown > .dropdown-toggle[aria-expanded="true"] + .dropdown-menu,
+    .quick-pill-dropdown .dropdown-menu.show {
+        opacity: 1 !important;
+        visibility: visible !important;
+        transform: translateY(0) !important;
+        pointer-events: auto !important;
     }
 }
 

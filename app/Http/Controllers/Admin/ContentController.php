@@ -127,10 +127,6 @@ class ContentController extends Controller
         );
 
         $credit = $this->creditAttributes($request, $spec, isNew: true, record: null);
-        foreach ($credit as $k => $v) {
-            $attributes[$k] = $v;
-        }
-
         if ($type === 'blog') {
             if (empty($attributes['author_id']) || !is_numeric($attributes['author_id'])) {
                 $attributes['author_id'] = (int) (auth()->id() ?: 1);
@@ -139,6 +135,52 @@ class ContentController extends Controller
             }
             if (($attributes['status'] ?? null) === 'published' && empty($attributes['published_at'])) {
                 $attributes['published_at'] = now();
+            }
+        }
+
+        if (in_array($type, ['books', 'ebooks'], true) && empty($attributes['cover_image'])) {
+            if ($request->filled('generated_cover_data') && str_starts_with((string)$request->input('generated_cover_data'), 'data:image')) {
+                $savedData = $this->saveImageOrBase64(null, $request->input('generated_cover_data'), 'books/covers');
+                if ($savedData) {
+                    $attributes['cover_image'] = $savedData;
+                }
+            }
+
+            if (empty($attributes['cover_image'])) {
+                $authorName = null;
+                if ($request->has('author_names')) {
+                    $rawNames = array_filter(array_map('trim', (array) $request->input('author_names')));
+                    $authorName = implode(', ', $rawNames);
+                }
+                if (empty($authorName)) {
+                    $authorName = (string) $request->input('author_name', '');
+                }
+                if (empty($authorName) && !empty($request->input('author_ids'))) {
+                    $firstAuthorId = (int) current(array_filter((array) $request->input('author_ids')));
+                    if ($firstAuthorId) {
+                        $authorName = DB::table('authors')->where('id', $firstAuthorId)->value('name');
+                    }
+                }
+                $catName = null;
+                if (!empty($attributes['category_id'])) {
+                    $catName = DB::table('categories')->where('id', $attributes['category_id'])->value('name');
+                }
+                $customCoverOpts = [
+                    'bg_color'     => $request->input('auto_cover_bg'),
+                    'title_color'  => $request->input('auto_cover_title_color'),
+                    'author_color' => $request->input('auto_cover_author_color'),
+                    'font_family'  => $request->input('auto_cover_font'),
+                    'title_size'   => $request->input('auto_cover_title_size'),
+                    'author_size'  => $request->input('auto_cover_author_size'),
+                ];
+                $attributes['cover_image'] = \App\Support\BookCoverGenerator::generate(
+                    title: (string) ($attributes['title'] ?? 'বই'),
+                    authorName: $authorName ?: 'আইডিয়া প্রকাশন',
+                    subtitle: isset($attributes['subtitle']) ? (string) $attributes['subtitle'] : null,
+                    categoryName: $catName ?: 'আইডিয়া প্রকাশন',
+                    themeKey: $request->input('auto_cover_theme'),
+                    customOptions: array_filter($customCoverOpts)
+                );
             }
         }
 
@@ -257,6 +299,52 @@ class ContentController extends Controller
             }
             if (($attributes['status'] ?? null) === 'published' && empty($record->published_at)) {
                 $attributes['published_at'] = now();
+            }
+        }
+
+        if (in_array($type, ['books', 'ebooks'], true) && empty($attributes['cover_image']) && empty($record->cover_image)) {
+            if ($request->filled('generated_cover_data') && str_starts_with((string)$request->input('generated_cover_data'), 'data:image')) {
+                $savedData = $this->saveImageOrBase64(null, $request->input('generated_cover_data'), 'books/covers');
+                if ($savedData) {
+                    $attributes['cover_image'] = $savedData;
+                }
+            }
+
+            if (empty($attributes['cover_image'])) {
+                $authorName = null;
+                if ($request->has('author_names')) {
+                    $rawNames = array_filter(array_map('trim', (array) $request->input('author_names')));
+                    $authorName = implode(', ', $rawNames);
+                }
+                if (empty($authorName)) {
+                    $authorName = (string) $request->input('author_name', '');
+                }
+                if (empty($authorName) && !empty($request->input('author_ids'))) {
+                    $firstAuthorId = (int) current(array_filter((array) $request->input('author_ids')));
+                    if ($firstAuthorId) {
+                        $authorName = DB::table('authors')->where('id', $firstAuthorId)->value('name');
+                    }
+                }
+                $catName = null;
+                if (!empty($attributes['category_id'])) {
+                    $catName = DB::table('categories')->where('id', $attributes['category_id'])->value('name');
+                }
+                $customCoverOpts = [
+                    'bg_color'     => $request->input('auto_cover_bg'),
+                    'title_color'  => $request->input('auto_cover_title_color'),
+                    'author_color' => $request->input('auto_cover_author_color'),
+                    'font_family'  => $request->input('auto_cover_font'),
+                    'title_size'   => $request->input('auto_cover_title_size'),
+                    'author_size'  => $request->input('auto_cover_author_size'),
+                ];
+                $attributes['cover_image'] = \App\Support\BookCoverGenerator::generate(
+                    title: (string) ($attributes['title'] ?? $record->title ?? 'বই'),
+                    authorName: $authorName ?: ($record->author_name ?: 'আইডিয়া প্রকাশন'),
+                    subtitle: isset($attributes['subtitle']) ? (string) $attributes['subtitle'] : null,
+                    categoryName: $catName ?: 'আইডিয়া প্রকাশন',
+                    themeKey: $request->input('auto_cover_theme'),
+                    customOptions: array_filter($customCoverOpts)
+                );
             }
         }
 
@@ -973,6 +1061,35 @@ class ContentController extends Controller
         $this->deleteStoredFile($record->{$name} ?? null);
 
         return $path;
+    }
+
+    /**
+     * Save an uploaded file or decode a Base64 dataURL to storage.
+     */
+    private function saveImageOrBase64(?UploadedFile $file, ?string $base64Data, string $folder): ?string
+    {
+        if ($base64Data && str_starts_with($base64Data, 'data:image/')) {
+            @list($type, $data) = explode(';', $base64Data);
+            @list(, $data) = explode(',', $data);
+            $decoded = base64_decode($data);
+            if ($decoded !== false) {
+                $ext = 'jpg';
+                if (str_contains($type, 'png')) $ext = 'png';
+                elseif (str_contains($type, 'webp')) $ext = 'webp';
+                elseif (str_contains($type, 'svg')) $ext = 'svg';
+
+                $filename = $folder . '/cover_' . uniqid('', true) . '.' . $ext;
+                Storage::disk(self::UPLOAD_DISK)->put($filename, $decoded);
+
+                return $filename;
+            }
+        }
+
+        if ($file && $file->isValid()) {
+            return $file->store($folder, self::UPLOAD_DISK);
+        }
+
+        return null;
     }
 
     /**

@@ -63,26 +63,40 @@ class QuickResourceController extends Controller
     {
         $validated = $request->validate([
             'name'    => 'required|string|max:255',
+            'name_en' => 'nullable|string|max:255',
             'phone'   => 'nullable|string|max:30',
             'email'   => 'nullable|email|max:255',
             'bio'     => 'nullable|string|max:2000',
         ]);
 
+        $authorName = trim($validated['name']);
+        $authorNameEn = !empty($validated['name_en']) ? trim($validated['name_en']) : null;
+
         $author = Author::findOrCreateUnified([
-            'name'      => $validated['name'],
+            'name'      => $authorName,
+            'name_bn'   => $authorName,
+            'name_en'   => $authorNameEn,
             'phone'     => $validated['phone'] ?? null,
             'email'     => $validated['email'] ?? null,
             'bio'       => $validated['bio'] ?? null,
             'is_active' => true,
         ]);
 
+        if ($authorNameEn && empty($author->name_en)) {
+            $author->update(['name_en' => $authorNameEn]);
+        }
+
+        $displayLabel = $author->name . ($author->name_en ? " ({$author->name_en})" : '');
+
         return response()->json([
             'success' => true,
             'message' => "লেখক '{$author->name}' সফলভাবে সংরক্ষিত ও সিঙ্ক হয়েছে।",
             'item'    => [
-                'id'   => $author->id,
-                'name' => $author->name,
-                'slug' => $author->slug,
+                'id'           => $author->id,
+                'name'         => $author->name,
+                'name_en'      => $author->name_en,
+                'display_name' => $displayLabel,
+                'slug'         => $author->slug,
             ],
         ]);
     }

@@ -139,10 +139,11 @@ final class ContentTypes
                 'slugFrom'  => 'name',
                 'icon'      => 'pen-fancy',
                 'fields'    => [
-                    'name'        => ['label' => 'Author Name', 'type' => 'text', 'rules' => 'required|string|max:255', 'col' => 8],
+                    'name'        => ['label' => 'Author Name in Bengali (লেখকের বাংলা নাম)', 'type' => 'text', 'rules' => 'required|string|max:255', 'col' => 6],
+                    'name_en'     => ['label' => 'Author Name in English (ইংরেজি নাম — ঐচ্ছিক)', 'type' => 'text', 'rules' => 'nullable|string|max:255', 'col' => 6],
                     'email'       => ['label' => 'Email', 'type' => 'text', 'rules' => 'nullable|email|max:255', 'col' => 4],
                     'phone'       => ['label' => 'Phone', 'type' => 'text', 'rules' => 'nullable|string|max:30', 'col' => 4],
-                    'website'     => ['label' => 'Website', 'type' => 'text', 'rules' => 'nullable|url|max:255', 'col' => 8],
+                    'website'     => ['label' => 'Website', 'type' => 'text', 'rules' => 'nullable|url|max:255', 'col' => 4],
                     'bio'         => ['label' => 'Biography', 'type' => 'editor', 'rules' => 'nullable|string|max:20000', 'col' => 12],
                     'avatar'      => ['label' => 'Photo', 'type' => 'file', 'accept' => 'image/*', 'disk' => 'authors', 'rules' => 'nullable|image|max:4096', 'col' => 6],
                     'is_verified' => ['label' => 'Verified Badge', 'type' => 'checkbox', 'rules' => 'nullable|boolean', 'col' => 6],

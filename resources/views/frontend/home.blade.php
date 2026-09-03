@@ -4,11 +4,12 @@
 
 @section('content')
 
-{{-- ══ 1. QUICK CATEGORY SUBNAV PILLS ═══════════════════════════════════════════ --}}
-<section class="py-2 mb-3 border-bottom bg-white shadow-2xs">
-    <div class="container">
-        <div class="d-flex align-items-center gap-2 overflow-x-auto text-nowrap scrollbar-none py-1">
-            <a href="{{ route('book.index') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1.5 fw-bold d-inline-flex align-items-center gap-1.5 shadow-2xs">
+{{-- ══ 1. QUICK CATEGORY SUBNAV PILLS (CENTERED & CLEAN) ════════════════════════ --}}
+<section class="py-2 mb-3 border-bottom bg-white shadow-2xs position-relative" style="z-index: 1020;">
+    <div class="container text-center">
+        <div class="d-flex align-items-center justify-content-start justify-content-md-center gap-2 overflow-x-auto overflow-x-lg-visible text-nowrap scrollbar-none py-1 w-100 mx-auto">
+            {{-- 1. সকল বই --}}
+            <a href="{{ route('book.index') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1.5 fw-bold d-inline-flex align-items-center gap-1.5 shadow-2xs hover-lift">
                 <i class="fa-solid fa-book-open text-primary"></i>
                 <span>সকল বই</span>
             </a>
@@ -28,10 +29,50 @@
                 <i class="fa-solid fa-tablet-screen-button text-info"></i>
                 <span>ই-বুক</span>
             </a>
-            <a href="{{ route('authors.index') }}" class="btn btn-sm btn-light border rounded-pill px-3 py-1.5 fw-bold text-dark d-inline-flex align-items-center gap-1.5 shadow-2xs hover-lift">
-                <i class="fa-solid fa-feather text-primary"></i>
-                <span>লেখক</span>
-            </a>
+
+            {{-- Quick Pill: লেখক ▾ Dynamic Dropdown --}}
+            <div class="dropdown quick-pill-dropdown d-inline-block position-relative">
+                <button type="button" 
+                        class="btn btn-sm btn-light border rounded-pill px-3 py-1.5 fw-bold text-dark d-inline-flex align-items-center gap-1.5 shadow-2xs hover-lift dropdown-toggle" 
+                        id="quickAuthorsDropdown" 
+                        data-bs-toggle="dropdown" 
+                        data-bs-display="static" 
+                        aria-expanded="false">
+                    <i class="fa-solid fa-feather text-primary"></i>
+                    <span>লেখক</span>
+                </button>
+                <div class="dropdown-menu border-0 shadow-2xl p-3 rounded-4" aria-labelledby="quickAuthorsDropdown" style="min-width: 360px; max-width: 420px; z-index: 1080; margin-top: 6px;">
+                    <div class="d-flex align-items-center justify-content-between mb-2 pb-1.5 border-bottom">
+                        <span class="fw-bold text-dark small" style="font-size: 12px;"><i class="fa-solid fa-feather-pointed text-primary me-1"></i>জনপ্রিয় লেখকবৃন্দ</span>
+                        <a href="{{ route('authors.index') }}" class="small text-primary text-decoration-none fw-semibold" style="font-size: 12px;">সকল লেখক →</a>
+                    </div>
+                    <div class="row row-cols-2 g-1.5">
+                        @if(isset($sidebarAuthors) && $sidebarAuthors->isNotEmpty())
+                            @foreach($sidebarAuthors->take(8) as $sa)
+                                <div class="col">
+                                    <a href="{{ route('authors.show', $sa->slug ?? $sa->id) }}" class="d-flex align-items-center gap-2 p-1.5 rounded-2 text-decoration-none text-secondary hover-bg-light hover-primary transition-all text-start">
+                                        <div class="rounded-circle overflow-hidden flex-shrink-0 d-flex align-items-center justify-content-center text-white fw-bold shadow-2xs" 
+                                             style="width: 26px; height: 26px; font-size: 10px; background: {{ $sa->avatar_bg_color ?? 'linear-gradient(135deg, #0284c7, #0369a1)' }};">
+                                            @if(!empty($sa->avatar_url) || !empty($sa->photo))
+                                                <img src="{{ $sa->avatar_url ?? $sa->photo }}" alt="{{ $sa->name }}" class="w-100 h-100 object-fit-cover">
+                                            @else
+                                                {{ mb_substr($sa->name, 0, 1) }}
+                                            @endif
+                                        </div>
+                                        <div class="overflow-hidden min-w-0">
+                                            <div class="fw-bold text-dark text-truncate" style="font-size: 12px;">{{ $sa->name }}</div>
+                                            <span class="text-muted small" style="font-size: 9.5px;">{{ $sa->books_count ?? 0 }}টি বই</span>
+                                        </div>
+                                    </a>
+                                </div>
+                            @endforeach
+                        @else
+                            <div class="col-12 text-center py-2 text-muted small">কোনো লেখক তালিকা নেই</div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
             <a href="{{ route('publishers.index') }}" class="btn btn-sm btn-light border rounded-pill px-3 py-1.5 fw-bold text-dark d-inline-flex align-items-center gap-1.5 shadow-2xs hover-lift">
                 <i class="fa-solid fa-building text-secondary"></i>
                 <span>প্রকাশক</span>
@@ -40,13 +81,105 @@
                 <i class="fa-solid fa-percent text-danger"></i>
                 <span>স্পেশাল অফার</span>
             </a>
-            <a href="{{ route('blog.index') }}" class="btn btn-sm btn-primary rounded-pill px-3 py-1.5 fw-bold text-white d-inline-flex align-items-center gap-1.5 shadow-2xs">
-                <i class="fa-solid fa-feather-pointed"></i>
-                <span>আইডিয়াপত্র</span>
-            </a>
+
+            {{-- Quick Pill: আইডিয়াপত্র ▾ Dynamic Dropdown --}}
+            <div class="dropdown quick-pill-dropdown d-inline-block position-relative">
+                <button type="button" 
+                        class="btn btn-sm btn-primary rounded-pill px-3 py-1.5 fw-bold text-white d-inline-flex align-items-center gap-1.5 shadow-2xs hover-lift dropdown-toggle" 
+                        id="quickBlogDropdown" 
+                        data-bs-toggle="dropdown" 
+                        data-bs-display="static" 
+                        aria-expanded="false">
+                    <i class="fa-solid fa-newspaper"></i>
+                    <span>আইডিয়াপত্র</span>
+                </button>
+                <div class="dropdown-menu dropdown-menu-end border-0 shadow-2xl p-3 rounded-4" aria-labelledby="quickBlogDropdown" style="min-width: 340px; z-index: 1080; margin-top: 6px;">
+                    <div class="d-flex align-items-center justify-content-between mb-2 pb-1.5 border-bottom">
+                        <span class="fw-bold text-dark small" style="font-size: 12px;"><i class="fa-solid fa-newspaper text-primary me-1"></i>আইডিয়াপত্র সাময়িকী</span>
+                        <a href="{{ route('blog.index') }}" class="small text-primary text-decoration-none fw-semibold" style="font-size: 12px;">সব দেখুন →</a>
+                    </div>
+                    <div class="d-flex flex-column gap-1 text-start">
+                        <a href="{{ route('blog.index') }}" class="d-flex align-items-center justify-content-between py-1.5 px-2 rounded-2 text-decoration-none text-dark hover-bg-light hover-primary transition-all" style="font-size: 12.5px;">
+                            <span class="d-flex align-items-center gap-2">
+                                <i class="fa-solid fa-book-open text-primary" style="font-size: 11px;"></i>
+                                <span>সর্বশেষ প্রকাশিত লেখা ও প্রবন্ধ</span>
+                            </span>
+                            <i class="fa-solid fa-chevron-right small text-muted" style="font-size: 9px;"></i>
+                        </a>
+                        <a href="{{ route('blog.index') }}#col2HonorariumSection" class="d-flex align-items-center justify-content-between py-1.5 px-2 rounded-2 text-decoration-none text-dark hover-bg-light hover-primary transition-all" style="font-size: 12.5px;">
+                            <span class="d-flex align-items-center gap-2">
+                                <i class="fa-solid fa-award text-warning" style="font-size: 11px;"></i>
+                                <span>সম্মানী ও লেখক নীতিমালা</span>
+                            </span>
+                            <i class="fa-solid fa-chevron-right small text-muted" style="font-size: 9px;"></i>
+                        </a>
+                        <a href="{{ route('blog.write') }}" class="d-flex align-items-center justify-content-between py-1.5 px-2 rounded-2 text-decoration-none text-dark hover-bg-light hover-primary transition-all" style="font-size: 12.5px;">
+                            <span class="d-flex align-items-center gap-2">
+                                <i class="fa-solid fa-pen-nib text-success" style="font-size: 11px;"></i>
+                                <span>নিজের লেখা পোস্ট করুন</span>
+                            </span>
+                            <i class="fa-solid fa-chevron-right small text-muted" style="font-size: 9px;"></i>
+                        </a>
+                    </div>
+                    @if(isset($blogCategories) && $blogCategories->isNotEmpty())
+                        <div class="pt-2 mt-2 border-top text-start">
+                            <div class="d-flex flex-wrap gap-1">
+                                @foreach($blogCategories->take(6) as $bCat)
+                                    <a href="{{ route('blog.index', ['category' => $bCat->slug]) }}" class="badge bg-light text-secondary border-0 text-decoration-none hover-primary px-2 py-1" style="font-size: 10.5px;">
+                                        {{ $bCat->name }}
+                                    </a>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+                </div>
+            </div>
         </div>
     </div>
 </section>
+
+{{-- Device-friendly Direct Dropdown Toggle Handler --}}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Ensure all quick-pill dropdowns toggle seamlessly across any mobile or desktop browser
+    document.querySelectorAll('.quick-pill-dropdown .dropdown-toggle').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            var parent = this.closest('.dropdown');
+            var menu = parent.querySelector('.dropdown-menu');
+            var isShown = menu.classList.contains('show');
+            
+            // Close other pill dropdowns
+            document.querySelectorAll('.quick-pill-dropdown .dropdown-menu.show').forEach(function(m) {
+                if (m !== menu) m.classList.remove('show');
+            });
+            document.querySelectorAll('.quick-pill-dropdown .dropdown-toggle[aria-expanded="true"]').forEach(function(b) {
+                if (b !== btn) b.setAttribute('aria-expanded', 'false');
+            });
+            
+            if (isShown) {
+                menu.classList.remove('show');
+                this.setAttribute('aria-expanded', 'false');
+            } else {
+                menu.classList.add('show');
+                this.setAttribute('aria-expanded', 'true');
+            }
+        });
+    });
+
+    // Close on clicking outside
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.quick-pill-dropdown')) {
+            document.querySelectorAll('.quick-pill-dropdown .dropdown-menu.show').forEach(function(m) {
+                m.classList.remove('show');
+            });
+            document.querySelectorAll('.quick-pill-dropdown .dropdown-toggle[aria-expanded="true"]').forEach(function(b) {
+                b.setAttribute('aria-expanded', 'false');
+            });
+        }
+    });
+});
+</script>
 
 {{-- ══ 2. HERO CAROUSEL & TOP SELLER SPOTLIGHT ═══════════════════════════════════ --}}
 @php
@@ -273,7 +406,7 @@
                 <div class="idea-book-slider" id="flashSaleSlider">
                     @foreach($flashSales as $b)
                         <div class="idea-slider-item">
-                            @include('book::frontend.partials.book-card', ['book' => $b])
+                            @include('book::frontend.partials.book-card', ['book' => $b, 'hideTitleAuthor' => true])
                         </div>
                     @endforeach
                 </div>
@@ -328,7 +461,7 @@
                 <div class="idea-book-slider" id="bestsellerSlider">
                     @foreach($recentlySold as $b)
                         <div class="idea-slider-item">
-                            @include('book::frontend.partials.book-card', ['book' => $b])
+                            @include('book::frontend.partials.book-card', ['book' => $b, 'hideTitleAuthor' => true])
                         </div>
                     @endforeach
                 </div>
@@ -451,7 +584,7 @@
                 <div class="idea-book-slider" id="newArrivalsSlider">
                     @foreach($books as $b)
                         <div class="idea-slider-item">
-                            @include('book::frontend.partials.book-card', ['book' => $b])
+                            @include('book::frontend.partials.book-card', ['book' => $b, 'hideTitleAuthor' => true])
                         </div>
                     @endforeach
                 </div>
@@ -539,7 +672,7 @@
                 <div class="idea-book-slider" id="ebookSlider">
                     @foreach($bestSellerEbooks as $b)
                         <div class="idea-slider-item">
-                            @include('book::frontend.partials.book-card', ['book' => $b])
+                            @include('book::frontend.partials.book-card', ['book' => $b, 'hideTitleAuthor' => true])
                         </div>
                     @endforeach
                 </div>
@@ -636,7 +769,7 @@
                 <div class="idea-book-slider" id="ideaSpecialSlider">
                     @foreach($ideaSpecialBooks as $b)
                         <div class="idea-slider-item">
-                            @include('book::frontend.partials.book-card', ['book' => $b])
+                            @include('book::frontend.partials.book-card', ['book' => $b, 'hideTitleAuthor' => true])
                         </div>
                     @endforeach
                 </div>
@@ -691,7 +824,7 @@
                 <div class="idea-book-slider" id="preOrderSlider">
                     @foreach($preOrderBooks as $b)
                         <div class="idea-slider-item">
-                            @include('book::frontend.partials.book-card', ['book' => $b])
+                            @include('book::frontend.partials.book-card', ['book' => $b, 'hideTitleAuthor' => true])
                         </div>
                     @endforeach
                 </div>
@@ -742,7 +875,7 @@
                 <div class="idea-book-slider" id="recentlyViewedSlider">
                     @foreach($recentlyViewedBooks as $b)
                         <div class="idea-slider-item">
-                            @include('book::frontend.partials.book-card', ['book' => $b])
+                            @include('book::frontend.partials.book-card', ['book' => $b, 'hideTitleAuthor' => true])
                         </div>
                     @endforeach
                 </div>
@@ -1262,14 +1395,14 @@
     display: none;
 }
 .idea-slider-item {
-    flex: 0 0 calc(16.666% - 12px);
-    min-width: 175px;
-    max-width: 210px;
+    flex: 0 0 calc(16.666% - 13.5px);
+    min-width: 180px;
+    max-width: 220px;
     display: flex;
 }
 @media (max-width: 1200px) {
     .idea-slider-item {
-        flex: 0 0 calc(20% - 12px);
+        flex: 0 0 calc(20% - 13px);
         min-width: 165px;
     }
 }

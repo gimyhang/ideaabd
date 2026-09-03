@@ -133,7 +133,7 @@
         <nav aria-label="breadcrumb" class="mb-4">
             <ol class="breadcrumb bg-white px-3 py-2 rounded-pill shadow-xs border small mb-0 d-inline-flex align-items-center">
                 <li class="breadcrumb-item"><a href="{{ route('home') }}" class="text-decoration-none text-muted"><i class="fa-solid fa-house me-1"></i>হোম</a></li>
-                <li class="breadcrumb-item"><a href="{{ route('book.index') }}" class="text-decoration-none text-muted">বইসমূহ</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('book.index') }}" class="text-decoration-none text-muted">সকল বিষয়</a></li>
                 @if($book->category)
                 <li class="breadcrumb-item"><a href="{{ route('book.index', ['category' => $book->category->slug]) }}" class="text-decoration-none text-muted">{{ $book->category->name }}</a></li>
                 @endif

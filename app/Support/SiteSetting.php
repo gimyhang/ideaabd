@@ -75,6 +75,12 @@ class SiteSetting
         return self::resolveImageUrl($logo, 'images/logo.svg');
     }
 
+    public static function loginLogoUrl(): ?string
+    {
+        $loginLogo = self::get('site_login_logo') ?: self::get('site_logo') ?: config('brand.logo');
+        return self::resolveImageUrl($loginLogo, 'images/logo.svg');
+    }
+
     public static function logoHeight(): int
     {
         return (int) (self::get('site_logo_height') ?: 52);

@@ -340,6 +340,19 @@ class AdminAccessController extends Controller
                 }
             }
 
+            // 2.1 Handle Login Page Dedicated Logo
+            if ($request->boolean('remove_site_login_logo')) {
+                AdminDashboardSetting::where('key', 'site_login_logo')->delete();
+            } else {
+                $savedLoginLogo = $this->saveImageOrBase64($request->file('site_login_logo'), $request->input('site_login_logo_cropped'), 'images/brand');
+                if ($savedLoginLogo) {
+                    AdminDashboardSetting::updateOrCreate(
+                        ['key' => 'site_login_logo'],
+                        ['value' => $savedLoginLogo, 'updated_by' => auth()->id()]
+                    );
+                }
+            }
+
             // 3. Handle favicon
             if ($request->boolean('remove_site_favicon')) {
                 AdminDashboardSetting::where('key', 'site_favicon')->delete();

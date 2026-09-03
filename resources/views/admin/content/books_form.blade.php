@@ -806,6 +806,139 @@
                 <div class="fw-bold text-dark small">Upload Cover Image</div>
                 <div class="text-muted small" style="font-size: 11px;">JPG, PNG, WebP (Max. 10MB)</div>
             </div>
+
+            {{-- Auto Generate Cover & Rich Customizer Panel --}}
+            <div class="p-2.5 bg-light rounded-3 border mt-2">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="small fw-bold text-dark" style="font-size: 11.5px;">
+                        <i class="fa-solid fa-wand-magic-sparkles text-primary me-1"></i> প্রচ্ছদ কালার ও ফন্ট কাস্টমাইজ
+                    </span>
+                    <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none text-primary fw-semibold" 
+                            style="font-size: 11px;" onclick="toggleAutoCoverOptions()">
+                        <i class="fa-solid fa-sliders me-0.5"></i><span id="autoCoverToggleText">অপশন দেখুন</span>
+                    </button>
+                </div>
+
+                <!-- Theme Presets Selection & Magic Auto-Generate Button -->
+                <div class="mb-2">
+                    <div class="d-flex align-items-center justify-content-between mb-1">
+                        <label class="form-label small fw-semibold text-muted mb-0" style="font-size: 10.5px;">কালার থিম প্রিসেট</label>
+                        <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2 rounded-pill fw-bold" 
+                                onclick="magicAutoGenerateCover()" style="font-size: 10.5px;" title="র্যান্ডম আকর্ষণীয় ডিজাইন তৈরি করুন">
+                            <i class="fa-solid fa-dice me-1"></i>অটোজেনারেট
+                        </button>
+                    </div>
+                    <select id="autoCoverThemeSelect" name="auto_cover_theme" class="form-select form-select-sm" style="font-size: 11.5px;" onchange="applyAutoCoverTheme(this.value)">
+                        <option value="royal_blue">রয়্যাল নেভি (#0f172a)</option>
+                        <option value="deep_emerald">ডিপ ফরেস্ট গ্রিন (#064e3b)</option>
+                        <option value="crimson_ruby">ডিপ মেরুন (#450a0a)</option>
+                        <option value="regal_purple">রয়্যাল প্লাম (#2e1065)</option>
+                        <option value="midnight_slate">মিডনাইট চারকোল (#18181b)</option>
+                        <option value="warm_brown">চকলেট ব্রাউন (#3b1d11)</option>
+                        <option value="dark_teal">ডার্ক টিল (#042f2e)</option>
+                        <option value="custom">কাস্টম কালার...</option>
+                    </select>
+                </div>
+
+                <!-- Detailed Customizer (Collapsible) -->
+                <div id="autoCoverCustomOptions" class="vstack gap-2 p-2 bg-white rounded-2 border mb-2" style="font-size: 11px;">
+                    <!-- 1. Font Family -->
+                    <div>
+                        <label class="form-label fw-semibold text-dark mb-1" style="font-size: 10.5px;">
+                            <i class="fa-solid fa-font text-primary me-0.5"></i> ফন্ট স্টাইল (Font Style)
+                        </label>
+                        <select id="autoCoverFontSelect" name="auto_cover_font" class="form-select form-select-sm" style="font-size: 11px;" onchange="generateAutoBookCoverLive()">
+                            <option value="Hind Siliguri">Hind Siliguri (আধুনিক বোল্ড)</option>
+                            <option value="SolaimanLipi">SolaimanLipi (ক্ল্যাসিক সাহিত্যিক)</option>
+                            <option value="Noto Serif Bengali">Noto Serif Bengali (প্রিমিয়াম সেরিক)</option>
+                            <option value="Kalpurush">Kalpurush (ক্লিন ও স্পষ্ট)</option>
+                            <option value="Tiro Bangla">Tiro Bangla (ঐতিহ্যবাহী)</option>
+                        </select>
+                    </div>
+
+                    <!-- 2. Color Controls (Background, Title, Author) -->
+                    <div class="row g-1.5">
+                        <div class="col-4">
+                            <label class="form-label fw-semibold text-dark mb-0.5" style="font-size: 10px;">কভার রঙ</label>
+                            <div class="d-flex align-items-center gap-1">
+                                <input type="color" id="autoCoverBgColor" name="auto_cover_bg" value="#0f172a" 
+                                       class="form-control form-control-color w-100 p-0.5 rounded" style="height: 28px;"
+                                       oninput="generateAutoBookCoverLive()">
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <label class="form-label fw-semibold text-dark mb-0.5" style="font-size: 10px;">বইয়ের নাম</label>
+                            <div class="d-flex align-items-center gap-1">
+                                <input type="color" id="autoCoverTitleColor" name="auto_cover_title_color" value="#ffffff" 
+                                       class="form-control form-control-color w-100 p-0.5 rounded" style="height: 28px;"
+                                       oninput="generateAutoBookCoverLive()">
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <label class="form-label fw-semibold text-dark mb-0.5" style="font-size: 10px;">লেখক নাম</label>
+                            <div class="d-flex align-items-center gap-1">
+                                <input type="color" id="autoCoverAuthorColor" name="auto_cover_author_color" value="#fde047" 
+                                       class="form-control form-control-color w-100 p-0.5 rounded" style="height: 28px;"
+                                       oninput="generateAutoBookCoverLive()">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3. Font Size Range Sliders (বইয়ের নাম ও লেখক ফন্ট সাইজ বার) -->
+                    <div>
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <label class="form-label fw-semibold text-dark mb-0" style="font-size: 10.5px;">
+                                <i class="fa-solid fa-text-height text-primary me-0.5"></i> বইয়ের নামের ফন্ট সাইজ বার
+                            </label>
+                            <span class="badge bg-light text-primary border py-0 px-1.5 fw-bold" id="lblTitleSize" style="font-size: 10px;">70px</span>
+                        </div>
+                        <input type="range" class="form-range" id="autoCoverTitleRange" name="auto_cover_title_size_px" 
+                               min="36" max="110" value="70" step="2"
+                               oninput="document.getElementById('lblTitleSize').textContent = this.value + 'px'; generateAutoBookCoverLive();">
+                    </div>
+
+                    <div>
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <label class="form-label fw-semibold text-dark mb-0" style="font-size: 10.5px;">
+                                <i class="fa-solid fa-text-width text-success me-0.5"></i> লেখকের নামের ফন্ট সাইজ বার
+                            </label>
+                            <span class="badge bg-light text-success border py-0 px-1.5 fw-bold" id="lblAuthorSize" style="font-size: 10px;">30px</span>
+                        </div>
+                        <input type="range" class="form-range" id="autoCoverAuthorRange" name="auto_cover_author_size_px" 
+                               min="16" max="56" value="30" step="2"
+                               oninput="document.getElementById('lblAuthorSize').textContent = this.value + 'px'; generateAutoBookCoverLive();">
+                    </div>
+
+                    <div>
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <label class="form-label fw-semibold text-dark mb-0" style="font-size: 10.5px;">
+                                <i class="fa-solid fa-arrows-up-down text-secondary me-0.5"></i> উপর-নিচ পজিশন বার
+                            </label>
+                            <span class="badge bg-light text-muted border py-0 px-1.5 fw-bold" id="lblPosSize" style="font-size: 10px;">240px</span>
+                        </div>
+                        <input type="range" class="form-range" id="autoCoverPosRange" 
+                               min="120" max="380" value="240" step="5"
+                               oninput="document.getElementById('lblPosSize').textContent = this.value + 'px'; generateAutoBookCoverLive();">
+                    </div>
+                </div>
+
+                <div class="d-flex gap-1.5">
+                    <button type="button" class="btn btn-outline-primary btn-sm flex-fill rounded-pill fw-bold py-1.5 d-flex align-items-center justify-content-center gap-1 shadow-2xs" 
+                            onclick="magicAutoGenerateCover()" style="font-size: 11.5px;">
+                        <i class="fa-solid fa-wand-magic-sparkles text-primary"></i>
+                        <span>অটোজেনারেট</span>
+                    </button>
+                    <button type="button" class="btn btn-primary btn-sm flex-fill rounded-pill fw-bold py-1.5 d-flex align-items-center justify-content-center gap-1 shadow-xs" 
+                            onclick="generateAutoBookCoverLive()" style="font-size: 11.5px;">
+                        <i class="fa-solid fa-rotate"></i>
+                        <span>প্রিভিউ রিফ্রেশ</span>
+                    </button>
+                </div>
+                <div class="text-muted small mt-1 text-center" style="font-size: 10px; line-height: 1.3;">
+                    * টাইপ করার সাথে সাথে বা সাইজ বার সরালে প্রচ্ছদ স্বয়ংক্রিয়ভাবে আপডেট হয়।
+                </div>
+                <input type="hidden" name="generated_cover_data" id="f-generated_cover_data">
+            </div>
             
             {{-- Cover Upload Status --}}
             <div id="preview-container-cover_image" class="mt-2 p-2 bg-light rounded-3 border d-none">
@@ -932,3 +1065,183 @@
 
     </div>
 </div>
+
+<script>
+(function() {
+    function toggleAutoCoverOptions() {
+        const opts = document.getElementById('autoCoverCustomOptions');
+        const txt = document.getElementById('autoCoverToggleText');
+        if (opts) {
+            if (opts.classList.contains('d-none')) {
+                opts.classList.remove('d-none');
+                if (txt) txt.textContent = 'হাইড করুন';
+            } else {
+                opts.classList.add('d-none');
+                if (txt) txt.textContent = 'অপশন দেখুন';
+            }
+        }
+    }
+
+    function applyAutoCoverTheme(key) {
+        const presets = {
+            royal_blue: { bg: '#0f172a', title: '#ffffff', author: '#fde047' },
+            deep_emerald: { bg: '#064e3b', title: '#ffffff', author: '#fef08a' },
+            crimson_ruby: { bg: '#450a0a', title: '#ffffff', author: '#fed7aa' },
+            regal_purple: { bg: '#2e1065', title: '#ffffff', author: '#fef08a' },
+            midnight_slate: { bg: '#18181b', title: '#ffffff', author: '#e2e8f0' },
+            warm_brown: { bg: '#3b1d11', title: '#ffffff', author: '#fde047' },
+            dark_teal: { bg: '#042f2e', title: '#ffffff', author: '#a7f3d0' }
+        };
+        if (presets[key]) {
+            const bgInp = document.getElementById('autoCoverBgColor');
+            const titleInp = document.getElementById('autoCoverTitleColor');
+            const authorInp = document.getElementById('autoCoverAuthorColor');
+            if (bgInp) bgInp.value = presets[key].bg;
+            if (titleInp) titleInp.value = presets[key].title;
+            if (authorInp) authorInp.value = presets[key].author;
+        }
+        generateAutoBookCoverLive();
+    }
+
+    function magicAutoGenerateCover() {
+        const designerPalettes = [
+            { key: 'royal_blue', bg: '#0f172a', title: '#ffffff', author: '#fde047', font: 'Hind Siliguri' },
+            { key: 'deep_emerald', bg: '#064e3b', title: '#ffffff', author: '#fef08a', font: 'SolaimanLipi' },
+            { key: 'crimson_ruby', bg: '#450a0a', title: '#ffffff', author: '#fed7aa', font: 'Noto Serif Bengali' },
+            { key: 'regal_purple', bg: '#2e1065', title: '#ffffff', author: '#fef08a', font: 'Kalpurush' },
+            { key: 'midnight_slate', bg: '#18181b', title: '#ffffff', author: '#e2e8f0', font: 'Hind Siliguri' },
+            { key: 'warm_brown', bg: '#3b1d11', title: '#ffffff', author: '#fde047', font: 'Tiro Bangla' },
+            { key: 'dark_teal', bg: '#042f2e', title: '#ffffff', author: '#a7f3d0', font: 'SolaimanLipi' },
+            { key: 'deep_indigo', bg: '#1e1b4b', title: '#ffffff', author: '#fecdd3', font: 'Noto Serif Bengali' },
+            { key: 'terracotta', bg: '#431407', title: '#ffffff', author: '#fed7aa', font: 'Hind Siliguri' },
+            { key: 'obsidian_gold', bg: '#09090b', title: '#ffffff', author: '#f59e0b', font: 'SolaimanLipi' }
+        ];
+
+        const pick = designerPalettes[Math.floor(Math.random() * designerPalettes.length)];
+
+        const bgInp = document.getElementById('autoCoverBgColor');
+        const titleInp = document.getElementById('autoCoverTitleColor');
+        const authorInp = document.getElementById('autoCoverAuthorColor');
+        const fontInp = document.getElementById('autoCoverFontSelect');
+        const themeSelect = document.getElementById('autoCoverThemeSelect');
+
+        if (bgInp) bgInp.value = pick.bg;
+        if (titleInp) titleInp.value = pick.title;
+        if (authorInp) authorInp.value = pick.author;
+        if (fontInp) fontInp.value = pick.font;
+        if (themeSelect) themeSelect.value = pick.key || 'custom';
+
+        generateAutoBookCoverLive();
+    }
+
+    function generateAutoBookCoverLive() {
+        const titleInput = document.getElementById('f-title');
+        const title = (titleInput && titleInput.value.trim()) ? titleInput.value.trim() : 'বইয়ের নাম';
+
+        let authorName = '';
+        const authorInputs = document.querySelectorAll('.author-name-input');
+        authorInputs.forEach(inp => {
+            if (inp.value.trim()) {
+                authorName = (authorName ? authorName + ', ' : '') + inp.value.trim();
+            }
+        });
+        if (!authorName) {
+            const firstAuthSel = document.querySelector('select[name="author_ids[]"]');
+            if (firstAuthSel && firstAuthSel.selectedOptions[0] && firstAuthSel.value) {
+                authorName = firstAuthSel.selectedOptions[0].text;
+            }
+        }
+        if (!authorName) authorName = 'আইডিয়া প্রকাশন';
+
+        const bgInp = document.getElementById('autoCoverBgColor');
+        const titleColorInp = document.getElementById('autoCoverTitleColor');
+        const authorColorInp = document.getElementById('autoCoverAuthorColor');
+        const fontInp = document.getElementById('autoCoverFontSelect');
+        const titleRange = document.getElementById('autoCoverTitleRange');
+        const authorRange = document.getElementById('autoCoverAuthorRange');
+        const posRange = document.getElementById('autoCoverPosRange');
+
+        const bgColor = bgInp ? bgInp.value : '#0f172a';
+        const titleColor = titleColorInp ? titleColorInp.value : '#ffffff';
+        const authorColor = authorColorInp ? authorColorInp.value : '#fde047';
+        const selectedFont = fontInp ? fontInp.value : 'Hind Siliguri';
+        const titleFontSize = titleRange ? parseInt(titleRange.value, 10) : 70;
+        const authorFontSize = authorRange ? parseInt(authorRange.value, 10) : 30;
+        const titleStartY = posRange ? parseInt(posRange.value, 10) : 240;
+
+        const canvas = document.createElement('canvas');
+        canvas.width = 600;
+        canvas.height = 900;
+        const ctx = canvas.getContext('2d');
+
+        ctx.fillStyle = bgColor;
+        ctx.fillRect(0, 0, 600, 900);
+
+        ctx.fillStyle = titleColor;
+        ctx.textAlign = 'center';
+
+        const words = title.split(' ');
+        let lines = [];
+        let currentLine = '';
+        const maxCharsPerLine = titleFontSize > 80 ? 9 : (titleFontSize > 60 ? 11 : 14);
+        words.forEach(word => {
+            const testLine = currentLine ? currentLine + ' ' + word : word;
+            if (testLine.length > maxCharsPerLine) {
+                if (currentLine) lines.push(currentLine);
+                currentLine = word;
+            } else {
+                currentLine = testLine;
+            }
+        });
+        if (currentLine) lines.push(currentLine);
+
+        ctx.font = '800 ' + titleFontSize + 'px "' + selectedFont + '", "SolaimanLipi", "Kalpurush", "Noto Serif Bengali", serif';
+
+        const lineHeight = titleFontSize * 1.25;
+        const titleBlockHeight = lines.length * lineHeight;
+
+        lines.forEach((line, idx) => {
+            ctx.fillText(line, 300, titleStartY + (idx * lineHeight));
+        });
+
+        const authorY = titleStartY + titleBlockHeight + 40;
+
+        ctx.fillStyle = authorColor;
+        ctx.font = '600 ' + authorFontSize + 'px "' + selectedFont + '", "SolaimanLipi", "Noto Serif Bengali", serif';
+        ctx.fillText(authorName, 300, authorY);
+
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+        ctx.font = '500 13px "' + selectedFont + '", "SolaimanLipi", sans-serif';
+        ctx.fillText('আইডিয়া প্রকাশন', 300, 840);
+
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
+
+        const mockupImg = document.getElementById('mockupCoverImg');
+        if (mockupImg) {
+            mockupImg.src = dataUrl;
+        }
+
+        const genInput = document.getElementById('f-generated_cover_data');
+        if (genInput) {
+            genInput.value = dataUrl;
+        }
+
+        if (typeof updateLiveMockupCard === 'function') {
+            updateLiveMockupCard();
+        }
+    }
+
+    window.toggleAutoCoverOptions = toggleAutoCoverOptions;
+    window.applyAutoCoverTheme = applyAutoCoverTheme;
+    window.magicAutoGenerateCover = magicAutoGenerateCover;
+    window.generateAutoBookCoverLive = generateAutoBookCoverLive;
+
+    // Run automatically after load
+    setTimeout(function() {
+        const previewCont = document.getElementById('preview-container-cover_image');
+        if (!previewCont || previewCont.classList.contains('d-none')) {
+            generateAutoBookCoverLive();
+        }
+    }, 100);
+})();
+</script>

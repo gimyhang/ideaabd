@@ -21,6 +21,8 @@ class HomeController extends Controller
         $recentlySold = collect();
         $bestSellerEbooks = collect();
         $flashSales = collect();
+        $ideaSpecialBooks = collect();
+        $preOrderBooks = collect();
         $recentlyViewedBooks = collect();
         $dynamicCategories = collect();
         $sidebarAuthors = collect();
@@ -109,124 +111,126 @@ class HomeController extends Controller
         } catch (\Throwable $e) {}
 
         if ($canUseBooks) {
-            $books = \Modules\Book\Models\Book::query()
-                ->with(['category', 'authors', 'publisher'])
-                ->withAvg('reviews', 'rating')
-                ->withCount('reviews')
-                ->where('is_active', true)
-                ->latest('id')
-                ->take(12)
-                ->get();
-
-            $recentlySold = \Modules\Book\Models\Book::query()
-                ->with(['category', 'authors', 'publisher'])
-                ->withAvg('reviews', 'rating')
-                ->withCount('reviews')
-                ->where('is_active', true)
-                ->orderByDesc('sales_count')
-                ->latest('id')
-                ->take(12)
-                ->get();
-            if ($recentlySold->isEmpty()) {
-                $recentlySold = $books;
-            }
-
-            $bestSellerEbooks = \Modules\Book\Models\Book::query()
-                ->with(['category', 'authors', 'publisher'])
-                ->withAvg('reviews', 'rating')
-                ->withCount('reviews')
-                ->where('is_active', true)
-                ->where('format', 'ebook')
-                ->orderByDesc('sales_count')
-                ->latest('id')
-                ->take(12)
-                ->get();
-
-            $flashSales = \Modules\Book\Models\Book::query()
-                ->with(['category', 'authors', 'publisher'])
-                ->withAvg('reviews', 'rating')
-                ->withCount('reviews')
-                ->where('is_active', true)
-                ->whereNotNull('discount_price')
-                ->where('discount_price', '>', 0)
-                ->whereColumn('discount_price', '<', 'price')
-                ->latest('id')
-                ->take(12)
-                ->get();
-            if ($flashSales->isEmpty()) {
-                $flashSales = $books->slice(0, 8);
-            }
-
-            $ideaSpecialBooks = \Modules\Book\Models\Book::query()
-                ->with(['category', 'authors', 'publisher'])
-                ->withAvg('reviews', 'rating')
-                ->withCount('reviews')
-                ->where('is_active', true)
-                ->where(function($q) {
-                    $q->whereHas('publisher', fn($pq) => $pq->where('name', 'LIKE', '%আইডিয়া%')->orWhere('name', 'LIKE', '%Idea%'))
-                      ->orWhere('author_name', 'LIKE', '%আইডিয়া%');
-                })
-                ->latest('id')
-                ->take(12)
-                ->get();
-            if ($ideaSpecialBooks->isEmpty()) {
-                $ideaSpecialBooks = $books->slice(2, 8);
-            }
-
-            $recentlyViewedIds = session()->get('recently_viewed_books', []);
-            if (!empty($recentlyViewedIds)) {
-                $recentlyViewedBooks = \Modules\Book\Models\Book::query()
+            try {
+                $books = \Modules\Book\Models\Book::query()
                     ->with(['category', 'authors', 'publisher'])
                     ->withAvg('reviews', 'rating')
                     ->withCount('reviews')
-                    ->whereIn('id', $recentlyViewedIds)
                     ->where('is_active', true)
-                    ->get()
-                    ->sortBy(function($b) use ($recentlyViewedIds) {
-                        return array_search($b->id, $recentlyViewedIds);
-                    });
-            }
+                    ->latest('id')
+                    ->take(12)
+                    ->get();
 
-            $categoryGridCards = collect();
+                $recentlySold = \Modules\Book\Models\Book::query()
+                    ->with(['category', 'authors', 'publisher'])
+                    ->withAvg('reviews', 'rating')
+                    ->withCount('reviews')
+                    ->where('is_active', true)
+                    ->orderByDesc('sales_count')
+                    ->latest('id')
+                    ->take(12)
+                    ->get();
+                if ($recentlySold->isEmpty()) {
+                    $recentlySold = $books;
+                }
 
-            // বিষয়ভিত্তিক ডায়নামিক ক্যাটাগরিগুলো (উপন্যাস, ইসলামি বই, শিশু-কিশোর ইত্যাদি)
-            $dynamicCategories = \Modules\Book\Models\Category::query()
-                ->where('is_active', true)
-                ->whereHas('books', fn($q) => $q->where('is_active', true))
-                ->withCount(['books' => fn($q) => $q->where('is_active', true)])
-                ->orderByDesc('books_count')
-                ->take(16)
-                ->get();
+                $bestSellerEbooks = \Modules\Book\Models\Book::query()
+                    ->with(['category', 'authors', 'publisher'])
+                    ->withAvg('reviews', 'rating')
+                    ->withCount('reviews')
+                    ->where('is_active', true)
+                    ->where('format', 'ebook')
+                    ->orderByDesc('sales_count')
+                    ->latest('id')
+                    ->take(12)
+                    ->get();
 
-            $sidebarAuthors = \Modules\Author\Models\Author::query()
-                ->withCount('books')
-                ->orderByDesc('books_count')
-                ->take(16)
-                ->get();
+                $flashSales = \Modules\Book\Models\Book::query()
+                    ->with(['category', 'authors', 'publisher'])
+                    ->withAvg('reviews', 'rating')
+                    ->withCount('reviews')
+                    ->where('is_active', true)
+                    ->whereNotNull('discount_price')
+                    ->where('discount_price', '>', 0)
+                    ->whereColumn('discount_price', '<', 'price')
+                    ->latest('id')
+                    ->take(12)
+                    ->get();
+                if ($flashSales->isEmpty()) {
+                    $flashSales = $books->slice(0, 8);
+                }
 
-            $sidebarPublishers = \Modules\Publisher\Models\Publisher::query()
-                ->withCount('books')
-                ->orderByDesc('books_count')
-                ->take(12)
-                ->get();
+                $ideaSpecialBooks = \Modules\Book\Models\Book::query()
+                    ->with(['category', 'authors', 'publisher'])
+                    ->withAvg('reviews', 'rating')
+                    ->withCount('reviews')
+                    ->where('is_active', true)
+                    ->where(function($q) {
+                        $q->whereHas('publisher', fn($pq) => $pq->where('name', 'LIKE', '%আইডিয়া%')->orWhere('name', 'LIKE', '%Idea%'))
+                          ->orWhere('author_name', 'LIKE', '%আইডিয়া%');
+                    })
+                    ->latest('id')
+                    ->take(12)
+                    ->get();
+                if ($ideaSpecialBooks->isEmpty()) {
+                    $ideaSpecialBooks = $books->slice(2, 8);
+                }
 
-            $preOrderBooks = \Modules\Book\Models\Book::query()
-                ->with(['category', 'authors', 'publisher'])
-                ->withAvg('reviews', 'rating')
-                ->withCount('reviews')
-                ->where('is_active', true)
-                ->where('stock_status', 'pre_order')
-                ->latest('id')
-                ->take(12)
-                ->get();
+                $recentlyViewedIds = session()->get('recently_viewed_books', []);
+                if (!empty($recentlyViewedIds)) {
+                    $recentlyViewedBooks = \Modules\Book\Models\Book::query()
+                        ->with(['category', 'authors', 'publisher'])
+                        ->withAvg('reviews', 'rating')
+                        ->withCount('reviews')
+                        ->whereIn('id', $recentlyViewedIds)
+                        ->where('is_active', true)
+                        ->get()
+                        ->sortBy(function($b) use ($recentlyViewedIds) {
+                            return array_search($b->id, $recentlyViewedIds);
+                        });
+                }
 
-            $topSeller = \Modules\Book\Models\Book::query()
-                ->with(['authors', 'category'])
-                ->withAvg('reviews', 'rating')
-                ->withCount('reviews')
-                ->where('is_active', true)
-                ->orderByDesc('sales_count')
-                ->first() ?? $books->first();
+                $categoryGridCards = collect();
+
+                // বিষয়ভিত্তিক ডায়নামিক ক্যাটাগরিগুলো (উপন্যাস, ইসলামি বই, শিশু-কিশোর ইত্যাদি)
+                $dynamicCategories = \Modules\Book\Models\Category::query()
+                    ->where('is_active', true)
+                    ->whereHas('books', fn($q) => $q->where('is_active', true))
+                    ->withCount(['books' => fn($q) => $q->where('is_active', true)])
+                    ->orderByDesc('books_count')
+                    ->take(16)
+                    ->get();
+
+                $sidebarAuthors = \Modules\Author\Models\Author::query()
+                    ->withCount('books')
+                    ->orderByDesc('books_count')
+                    ->take(16)
+                    ->get();
+
+                $sidebarPublishers = \Modules\Publisher\Models\Publisher::query()
+                    ->withCount('books')
+                    ->orderByDesc('books_count')
+                    ->take(12)
+                    ->get();
+
+                $preOrderBooks = \Modules\Book\Models\Book::query()
+                    ->with(['category', 'authors', 'publisher'])
+                    ->withAvg('reviews', 'rating')
+                    ->withCount('reviews')
+                    ->where('is_active', true)
+                    ->where('stock_status', 'pre_order')
+                    ->latest('id')
+                    ->take(12)
+                    ->get();
+
+                $topSeller = \Modules\Book\Models\Book::query()
+                    ->with(['authors', 'category'])
+                    ->withAvg('reviews', 'rating')
+                    ->withCount('reviews')
+                    ->where('is_active', true)
+                    ->orderByDesc('sales_count')
+                    ->first() ?? $books->first();
+            } catch (\Throwable $e) {}
         }
 
         return view('frontend.home', compact(

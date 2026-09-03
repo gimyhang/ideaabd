@@ -228,7 +228,7 @@ class BookController extends Controller
                     ->where('is_active', true)
                     ->orderByDesc('sales_count')
                     ->latest('id')
-                    ->take(10)
+                    ->take(15)
                     ->get();
 
                 $bestSellerEbooks = Book::query()
@@ -237,7 +237,7 @@ class BookController extends Controller
                     ->where('format', 'ebook')
                     ->orderByDesc('sales_count')
                     ->latest('id')
-                    ->take(10)
+                    ->take(15)
                     ->get();
 
                 $flashSales = Book::query()
@@ -247,14 +247,14 @@ class BookController extends Controller
                     ->where('discount_price', '>', 0)
                     ->whereColumn('discount_price', '<', 'price')
                     ->latest('id')
-                    ->take(10)
+                    ->take(15)
                     ->get();
 
                 $newArrivals = Book::query()
                     ->with(['authors', 'category'])
                     ->where('is_active', true)
                     ->latest('id')
-                    ->take(10)
+                    ->take(15)
                     ->get();
 
                 $recentlyViewedIds = session()->get('recently_viewed_books', []);
