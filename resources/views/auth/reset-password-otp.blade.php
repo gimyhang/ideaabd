@@ -12,23 +12,13 @@
                         <i class="fa-solid fa-lock-open text-white fs-4"></i>
                     </div>
                     <h4 class="fw-bold text-white mb-1">নতুন পাসওয়ার্ড সেট করুন</h4>
-                    <p class="text-white text-opacity-75 small mb-0">ইমেইল বা WhatsApp (<strong class="text-white">+8801558712810</strong>)-এ প্রাপ্ত কোড দিন</p>
+                    <p class="text-white text-opacity-75 small mb-0">মোবাইল SMS, WhatsApp বা ইমেইলে প্রাপ্ত ৬ ডিজিটের কোড দিন</p>
                 </div>
                 
                 <div class="card-body p-4 p-md-4.5">
                     @if(session('status') || session('success'))
                         <div class="alert alert-success rounded-3 small mb-3 p-3 border-0 bg-success bg-opacity-10 text-success fw-medium">
                             <i class="fa-solid fa-circle-check me-1"></i> {{ session('status') ?: session('success') }}
-                        </div>
-                    @endif
-
-                    @if(session('user_whatsapp_url'))
-                        <div class="p-3 bg-light border border-success-subtle rounded-3 mb-3 text-center">
-                            <div class="small text-muted mb-2">আপনার হোয়াটসঅ্যাপে কোড দেখতে ক্লিক করুন:</div>
-                            <a href="{{ session('user_whatsapp_url') }}" target="_blank" class="btn btn-success btn-sm rounded-pill px-3 py-1.5 fw-bold d-inline-flex align-items-center gap-1.5 shadow-xs">
-                                <i class="fa-brands fa-whatsapp fs-6"></i>
-                                <span>WhatsApp মেসেজে কোড দেখুন</span>
-                            </a>
                         </div>
                     @endif
 

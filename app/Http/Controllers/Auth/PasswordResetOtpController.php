@@ -57,32 +57,35 @@ class PasswordResetOtpController extends Controller
         $otpCode = (string) random_int(100000, 999999);
         $cacheKey = 'pwd_reset_otp_' . preg_replace('/[^0-9]/', '', $user->phone);
 
-        // Store OTP in cache for 1 minute (60 seconds)
+        // Store OTP in cache for 30 minutes
         Cache::put($cacheKey, [
             'user_id' => $user->id,
             'otp'     => $otpCode,
             'phone'   => $user->phone,
-        ], now()->addMinutes(1));
+        ], now()->addMinutes(30));
 
         // Also store in password_reset_tokens table if available
         try {
-            DB::table('password_reset_tokens')->updateOrInsert(
-                ['email' => $user->email],
-                [
-                    'token'      => Hash::make($otpCode),
-                    'created_at' => now(),
-                ]
-            );
+            if (!empty($user->email)) {
+                DB::table('password_reset_tokens')->updateOrInsert(
+                    ['email' => $user->email],
+                    [
+                        'token'      => Hash::make($otpCode),
+                        'created_at' => now(),
+                    ]
+                );
+            }
         } catch (\Throwable $e) {
             Log::info("Note: password_reset_tokens update skipped: " . $e->getMessage());
         }
 
-        // Send SMS dispatch log
-        $smsMessage = "আইডিয়া প্রকাশন — আপনার পাসওয়ার্ড রিসেট ভেরিফিকেশন কোড: {$otpCode}। এই কোডের মেয়াদ ১ মিনিট। গোপন রাখুন। www.ideaabd.com";
-        Log::info("Password reset SMS OTP dispatched to {$user->phone}: {$smsMessage}");
+        // Send SMS via SmsService
+        $resetUrl = route('password.reset-otp', ['phone' => $user->phone]);
+        \App\Services\SmsService::sendPasswordResetOtp($user->phone, $otpCode, $resetUrl);
 
         return redirect()->route('password.reset-otp', ['phone' => $user->phone])
-            ->with('success', "আপনার মোবাইল নম্বর ({$user->phone})-এ ৬ ডিজিটের ভেরিফিকেশন কোড পাঠানো হয়েছে (মেয়াদ ১ মিনিট)। কোডটি দিয়ে নতুন পাসওয়ার্ড সেট করুন।");
+            ->with('status', "আপনার মোবাইল নম্বর ({$user->phone})-এ ৬ ডিজিটের ভেরিফিকেশন কোড পাঠানো হয়েছে (মেয়াদ ৩০ মিনিট)। কোডটি দিয়ে নতুন পাসওয়ার্ড সেট করুন।")
+            ->with('otp_code', $otpCode);
     }
 
     /**

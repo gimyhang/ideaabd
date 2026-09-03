@@ -23,12 +23,12 @@ class PasswordResetLinkMail extends Mailable
 
     public function envelope(): Envelope
     {
-        $fromEmail = config('mail.from.address') ?: 'ad@ideaabd.com';
+        $fromEmail = config('mail.from.address') ?: 'ideapbd@gmail.com';
         $fromName = config('mail.from.name') ?: 'Idea Prokashon';
 
         return new Envelope(
             from: new Address($fromEmail, $fromName),
-            subject: 'আইডিয়া প্রকাশন — পাসওয়ার্ড রিসেট কোড ও ওয়ান-টাইম লিংক (মেয়াদ ' . $this->expireMinutes . ' মিনিট)',
+            subject: 'আইডিয়া প্রকাশন — আপনার পাসওয়ার্ড রিসেট ওটিপি কোড: ' . ($this->otpCode ?: 'ভেরিফিকেশন'),
         );
     }
 

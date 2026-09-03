@@ -30,31 +30,49 @@ class PasswordResetController extends Controller
     }
 
     /**
-     * Send password reset code (6-digit OTP & 30-minute link) via Email or WhatsApp (+8801558712810)
+     * Send password reset code (6-digit OTP & 30-minute link) via Mobile SMS, Email or WhatsApp
      */
     public function sendResetLink(Request $request)
     {
         $request->validate([
             'identity'        => ['required', 'string', 'max:150'],
-            'delivery_method' => ['nullable', 'string', 'in:email,whatsapp,auto'],
+            'delivery_method' => ['nullable', 'string', 'in:email,whatsapp,sms,auto'],
         ], [
             'identity.required' => 'আপনার নিবন্ধিত ইমেইল অ্যাড্রেস অথবা মোবাইল নম্বর প্রদান করুন।',
         ]);
 
-        $input = trim((string) $request->input('identity'));
+        $bn = ['০','১','২','৩','৪','৫','৬','৭','৮','৯'];
+        $en = ['0','1','2','3','4','5','6','7','8','9'];
+        $input = trim(str_replace($bn, $en, (string) $request->input('identity')));
         $cleanPhone = preg_replace('/[^0-9]/', '', $input);
         $deliveryMethod = $request->input('delivery_method', 'auto');
 
-        // Find user by email, phone, clean phone, or name
+        // Find user by email, phone, clean phone, or name/username
         $user = User::where('email', $input)
             ->orWhere('phone', $input)
+            ->orWhereRaw('LOWER(email) = ?', [strtolower($input)])
             ->orWhere(function ($query) use ($cleanPhone) {
-                if (!empty($cleanPhone) && strlen($cleanPhone) >= 10) {
-                    $query->where('phone', $cleanPhone);
+                if (!empty($cleanPhone) && strlen($cleanPhone) >= 8) {
+                    $last10 = substr($cleanPhone, -10);
+                    $query->where('phone', 'LIKE', '%' . $last10)
+                          ->orWhere('phone', '0' . $last10)
+                          ->orWhere('phone', '+880' . $last10);
                 }
             })
             ->orWhere('name', $input)
+            ->orWhereRaw('LOWER(name) = ?', [strtolower($input)])
             ->first();
+
+        // Fallback matching with .env admin credentials (ADMIN_PHONE, ADMIN_EMAIL, ADMIN_USERNAME, or 'admin')
+        if (!$user) {
+            $adminPhone = preg_replace('/[^0-9]/', '', (string)env('ADMIN_PHONE', '01726976982'));
+            $adminEmail = strtolower((string)env('ADMIN_EMAIL', 'adideabd@gmail.com'));
+            $adminUser  = strtolower((string)env('ADMIN_USERNAME', 'admin'));
+
+            if ($cleanPhone === $adminPhone || strtolower($input) === $adminEmail || strtolower($input) === $adminUser || strtolower($input) === 'admin') {
+                $user = User::where('role', User::ROLE_ADMIN)->orWhere('email', $adminEmail)->first();
+            }
+        }
 
         if (!$user) {
             return back()->withInput()->withErrors([
@@ -62,9 +80,19 @@ class PasswordResetController extends Controller
             ]);
         }
 
-        // Determine effective delivery method
+        // If user didn't have phone saved but provided a valid mobile number, sync it
+        if (empty($user->phone) && !empty($cleanPhone) && strlen($cleanPhone) >= 10) {
+            $user->phone = $cleanPhone;
+            $user->save();
+        }
+
+        // Determine effective delivery method if set to auto
         if ($deliveryMethod === 'auto') {
-            $deliveryMethod = (!empty($user->email) && str_contains($input, '@')) ? 'email' : 'whatsapp';
+            if (str_contains($input, '@') || empty($user->phone)) {
+                $deliveryMethod = 'email';
+            } else {
+                $deliveryMethod = 'sms';
+            }
         }
 
         // Generate 64-character token AND 6-digit numeric OTP code
@@ -90,6 +118,8 @@ class PasswordResetController extends Controller
         if (!empty($user->phone)) {
             $cleanUserPhone = preg_replace('/[^0-9]/', '', $user->phone);
             Cache::put('pwd_reset_otp_' . $cleanUserPhone, $payload, $expireAt);
+            $last10User = substr($cleanUserPhone, -10);
+            Cache::put('pwd_reset_otp_' . $last10User, $payload, $expireAt);
         }
         if (!empty($user->email)) {
             Cache::put('pwd_reset_otp_' . strtolower(trim($user->email)), $payload, $expireAt);
@@ -119,8 +149,8 @@ class PasswordResetController extends Controller
             'phone' => $user->phone ?: $user->email,
         ]);
 
-        // WhatsApp Message Format (from/to official WhatsApp +8801558712810)
-        $whatsappMessage = "আইডিয়া প্রকাশন — আপনার পাসওয়ার্ড রিসেট ভেরিফিকেশন কোড: {$otpCode} (মেয়াদ ৩০ মিনিট)।\n\nসরাসরি রিসেট লিংক: {$resetUrl}\n\nঅফিসিয়াল হেল্পলাইন: " . self::SUPPORT_WHATSAPP_NUMBER;
+        // WhatsApp Message Format (from/to official WhatsApp +8801558712810 / user phone)
+        $whatsappMessage = "আইডিয়া প্রকাশন — আপনার পাসওয়ার্ড রিসেট ভেরিফিকেশন কোড: {$otpCode} (মেয়াদ ৩০ মিনিট)।\n\nসরাসরি রিসেট লিংক: {$resetUrl}\n\nহেল্পলাইন: " . self::SUPPORT_WHATSAPP_NUMBER;
         
         $userPhoneClean = preg_replace('/[^0-9]/', '', (string)$user->phone);
         if (!empty($userPhoneClean) && !str_starts_with($userPhoneClean, '88')) {
@@ -128,21 +158,52 @@ class PasswordResetController extends Controller
         }
 
         $userWhatsappUrl = !empty($userPhoneClean)
-            ? 'https://wa.me/' . $userPhoneClean . '?text=' . urlencode($whatsappMessage)
-            : null;
+            ? 'https://api.whatsapp.com/send?phone=' . $userPhoneClean . '&text=' . urlencode($whatsappMessage)
+            : 'https://api.whatsapp.com/send?phone=' . self::CLEAN_WHATSAPP_NUMBER . '&text=' . urlencode($whatsappMessage);
 
-        $supportWhatsappUrl = 'https://wa.me/' . self::CLEAN_WHATSAPP_NUMBER . '?text=' . urlencode("আমি পাসওয়ার্ড রিসেটের কোড পেতে চাই। আমার আইডি: " . ($user->email ?: $user->phone));
+        $supportWhatsappUrl = 'https://api.whatsapp.com/send?phone=' . self::CLEAN_WHATSAPP_NUMBER . '&text=' . urlencode("আমি পাসওয়ার্ড রিসেটের কোড পেতে চাই। আমার আইডি: " . ($user->phone ?: $user->email) . " (OTP: {$otpCode})");
 
-        // 1. DELIVERY VIA EMAIL
-        if ($deliveryMethod === 'email' && !empty($user->email)) {
+        // 1. DELIVERY VIA MOBILE SMS
+        if ($deliveryMethod === 'sms') {
+            if (empty($user->phone)) {
+                return back()->withInput()->withErrors([
+                    'identity' => 'এই অ্যাকাউন্টে কোনো মোবাইল নম্বর যুক্ত নেই। অনুগ্রহ করে ইমেইল নির্বাচন করুন।',
+                ]);
+            }
+
+            $smsResult = \App\Services\SmsService::sendPasswordResetOtp($user->phone, $otpCode, $resetUrl);
+            $maskedPhone = substr($user->phone, 0, 3) . '****' . substr($user->phone, -4);
+
+            // If SMS gateway is in simulation mode (no actual API key), also send to user email as reliable backup
+            if (!empty($smsResult['simulated']) && !empty($user->email)) {
+                try {
+                    Mail::to($user->email)->send(new PasswordResetLinkMail($user, $resetUrl, $expireMinutes, $otpCode));
+                } catch (\Throwable $e) {}
+                
+                $maskedEmail = $this->maskEmail($user->email);
+                return redirect()->route('password.reset-otp', ['phone' => $user->phone])
+                    ->with('status', "আপনার মোবাইল নম্বর ({$maskedPhone}) এবং নিবন্ধিত ইমেইল ({$maskedEmail})-এ ৬ ডিজিটের ওটিপি পাঠানো হয়েছে (মেয়াদ ৩০ মিনিট)।");
+            }
+
+            return redirect()->route('password.reset-otp', ['phone' => $user->phone])
+                ->with('status', "আপনার মোবাইল নম্বর ({$maskedPhone})-এ ৬ ডিজিটের ওটিপি এসএমএস পাঠানো হয়েছে (মেয়াদ ৩০ মিনিট)।");
+        }
+
+        // 2. DELIVERY VIA EMAIL
+        if ($deliveryMethod === 'email' || $deliveryMethod === 'auto' || $deliveryMethod === 'whatsapp') {
+            if (empty($user->email)) {
+                return back()->withInput()->withErrors([
+                    'identity' => 'এই অ্যাকাউন্টে কোনো ইমেইল ঠিকানা যুক্ত নেই। অনুগ্রহ করে মোবাইল এসএমএস নির্বাচন করুন।',
+                ]);
+            }
+
             $mailSent = false;
             try {
                 Mail::to($user->email)->send(new PasswordResetLinkMail($user, $resetUrl, $expireMinutes, $otpCode));
                 $mailSent = true;
-                Log::info("Password reset email sent to {$user->email} with OTP: {$otpCode}");
+                Log::info("Password reset email sent to {$user->email}");
             } catch (\Throwable $e) {
-                Log::error("Failed to send password reset email via Mail facade: " . $e->getMessage());
-                // Fallback native mail
+                Log::error("Failed to send password reset email: " . $e->getMessage());
                 try {
                     $subject = "=?UTF-8?B?" . base64_encode("আইডিয়া প্রকাশন — পাসওয়ার্ড রিসেট কোড ও লিংক ({$otpCode})") . "?=";
                     $htmlBody = view('emails.password-reset-link', [
@@ -152,7 +213,7 @@ class PasswordResetController extends Controller
                         'otpCode'       => $otpCode,
                     ])->render();
 
-                    $fromAddress = config('mail.from.address') ?: 'noreply@ideaabd.com';
+                    $fromAddress = config('mail.from.address') ?: 'ideapbd@gmail.com';
                     $fromName    = config('mail.from.name') ?: 'আইডিয়া প্রকাশন';
                     $headers = "MIME-Version: 1.0\r\nContent-type: text/html; charset=UTF-8\r\nFrom: =?UTF-8?B?" . base64_encode($fromName) . "?= <{$fromAddress}>\r\nReply-To: {$fromAddress}\r\nX-Mailer: PHP/" . phpversion();
                     $mailSent = @mail($user->email, $subject, $htmlBody, $headers);
@@ -160,22 +221,9 @@ class PasswordResetController extends Controller
             }
 
             $maskedEmail = $this->maskEmail($user->email);
-            return back()
-                ->with('status', "আপনার নিবন্ধিত ইমেইল ({$maskedEmail})-এ ৬ ডিজিটের কোড ও রিসেট লিংক পাঠানো হয়েছে (মেয়াদ ৩০ মিনিট)।")
-                ->with('otp_code', $otpCode)
-                ->with('support_whatsapp_url', $supportWhatsappUrl)
-                ->with('user_whatsapp_url', $userWhatsappUrl);
+            return redirect()->route('password.reset-otp', ['phone' => $user->email])
+                ->with('status', "আপনার নিবন্ধিত ইমেইল ({$maskedEmail})-এ ৬ ডিজিটের ভেরিফিকেশন কোড ও রিসেট লিংক পাঠানো হয়েছে (মেয়াদ ৩০ মিনিট)।");
         }
-
-        // 2. DELIVERY VIA WHATSAPP (+8801558712810)
-        Log::info("Password reset WhatsApp OTP generated for {$user->name} ({$user->phone}/{$user->email}): {$otpCode}");
-
-        return redirect()->route('password.reset-otp', ['phone' => $user->phone ?: $user->email])
-            ->with('status', "আপনার পাসওয়ার্ড রিসেট কোড প্রস্তুত করা হয়েছে। হোয়াটসঅ্যাপ অথবা ইমেইলে কোড দিয়ে নতুন পাসওয়ার্ড সেট করুন।")
-            ->with('otp_code', $otpCode)
-            ->with('whatsapp_message', $whatsappMessage)
-            ->with('user_whatsapp_url', $userWhatsappUrl)
-            ->with('support_whatsapp_url', $supportWhatsappUrl);
     }
 
     /**
