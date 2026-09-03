@@ -160,8 +160,8 @@
                 </div>
             </div>
 
-            {{-- Authors Grid (Spacious 2-column layout on standard desktop, 3 on ultra-wide) --}}
-            <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-2 row-cols-xxl-3 g-3 g-lg-4 mb-4">
+            {{-- Authors Grid (Compact 3-column layout) --}}
+            <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-2.5 g-md-3 mb-4">
                 @forelse($authors as $author)
                     <div class="col">
                         @include('components.author-card', ['author' => $author])

@@ -17,9 +17,10 @@ class AuthorController extends Controller
         $query = Author::query()
             ->withCount('books')
             ->with(['books' => function ($q) {
-                $q->select('books.id', 'books.title', 'books.slug', 'books.cover_image', 'books.price')
+                $q->select('books.id', 'books.title', 'books.slug', 'books.cover_image', 'books.price', 'books.sales_count')
                   ->where('books.is_active', true)
-                  ->orderByDesc('books.id')
+                  ->orderByDesc('books.sales_count')
+                  ->latest('books.id')
                   ->take(3);
             }])
             ->where('is_active', true);

@@ -475,6 +475,60 @@ document.addEventListener('DOMContentLoaded', function() {
 </section>
 @endif
 
+{{-- ══ 5.2. SECTION: আইডিয়া প্রকাশনের বই (IDEA PROKASHON BOOKS SLIDER) ═════════════ --}}
+@if(isset($ideaSpecialBooks) && $ideaSpecialBooks->isNotEmpty())
+<section class="mb-4">
+    <div class="container">
+        <div class="card p-3 p-md-4 border-0 shadow-sm rounded-4 bg-white position-relative" style="border: 1px solid #f1f5f9 !important;">
+            
+            {{-- Section Header --}}
+            <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center shadow-2xs" style="width: 32px; height: 32px;">
+                        <i class="fa-solid fa-book-bookmark text-primary fs-6"></i>
+                    </span>
+                    <div>
+                        <h4 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2" style="font-size: clamp(1.05rem, 2.5vw, 1.35rem);">
+                            <span>আইডিয়া প্রকাশনের বই</span>
+                        </h4>
+                        <span class="text-muted small" style="font-size: 0.78rem;">আইডিয়া প্রকাশন কর্তৃক প্রকাশিত মৌলিক সাহিত্য, গবেষণা ও চিন্তাশীল বইসমূহ</span>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <button type="button" class="btn btn-sm btn-light rounded-circle shadow-2xs border d-none d-md-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" onclick="scrollIdeaSlider('ideaBooksSlider', -1)" title="পূর্ববর্তী">
+                        <i class="fa-solid fa-chevron-left text-secondary" style="font-size: 11px;"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-light rounded-circle shadow-2xs border d-none d-md-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" onclick="scrollIdeaSlider('ideaBooksSlider', 1)" title="পরবর্তী">
+                        <i class="fa-solid fa-chevron-right text-secondary" style="font-size: 11px;"></i>
+                    </button>
+                    <a href="{{ route('book.index', ['publisher' => 'ideaprokashon']) }}" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-bold ms-1" style="font-size: 0.80rem;">
+                        সব দেখুন <i class="fa-solid fa-arrow-right ms-0.5"></i>
+                    </a>
+                </div>
+            </div>
+
+            {{-- Slider Track with Floating Nav Buttons --}}
+            <div class="idea-slider-wrapper position-relative">
+                <button type="button" class="idea-slider-nav-btn prev-btn shadow-md d-none d-lg-flex" onclick="scrollIdeaSlider('ideaBooksSlider', -1)" aria-label="পূর্ববর্তী">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </button>
+                <div class="idea-book-slider" id="ideaBooksSlider">
+                    @foreach($ideaSpecialBooks as $b)
+                        <div class="idea-slider-item">
+                            @include('book::frontend.partials.book-card', ['book' => $b, 'hideTitleAuthor' => true])
+                        </div>
+                    @endforeach
+                </div>
+                <button type="button" class="idea-slider-nav-btn next-btn shadow-md d-none d-lg-flex" onclick="scrollIdeaSlider('ideaBooksSlider', 1)" aria-label="পরবর্তী">
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+            </div>
+
+        </div>
+    </div>
+</section>
+@endif
+
 {{-- ══ 6. SECTION: জনপ্রিয় লেখকগণ (POPULAR AUTHORS CIRCLE AVATARS) ═══════════════ --}}
 @if(isset($sidebarAuthors) && $sidebarAuthors->isNotEmpty())
 <section class="mb-4">
