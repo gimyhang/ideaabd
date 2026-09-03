@@ -415,14 +415,44 @@ class LoginController extends Controller
         }
 
         try {
-            // Find user candidates matching email, name/username, or phone
-            $candidates = \App\Models\User::where('email', $loginInput)
-                ->orWhere('name', $loginInput)
-                ->orWhere('phone', $loginInput)
-                ->orWhereRaw('LOWER(name) = ?', [strtolower($loginInput)])
-                ->orWhereRaw('LOWER(email) = ?', [strtolower($loginInput)])
-                ->orWhereRaw('email LIKE ?', [$loginInput . '@%'])
-                ->get();
+            // Multi-format normalization (Bangla to English digits, lowercase, trimmed)
+            $bnDigits = ['০','১','২','৩','৪','৫','৬','৭','৮','৯'];
+            $enDigits = ['0','1','2','3','4','5','6','7','8','9'];
+            $normalizedInput = str_replace($bnDigits, $enDigits, $loginInput);
+            $cleanLower = strtolower($normalizedInput);
+            $rawDigitsOnly = preg_replace('/[^\d]/', '', $normalizedInput);
+
+            // Find user candidates matching email, phone (flexible formats), name, or admin role
+            $candidates = \App\Models\User::where(function ($query) use ($loginInput, $normalizedInput, $cleanLower, $rawDigitsOnly) {
+                // 1. Email matching (exact, normalized, lowercase)
+                $query->where('email', $loginInput)
+                    ->orWhere('email', $normalizedInput)
+                    ->orWhereRaw('LOWER(email) = ?', [$cleanLower])
+                    ->orWhereRaw('email LIKE ?', [$loginInput . '@%']);
+
+                // 2. Full Name / Display Name matching
+                $query->orWhere('name', $loginInput)
+                    ->orWhere('name', $normalizedInput)
+                    ->orWhereRaw('LOWER(name) = ?', [strtolower($loginInput)]);
+
+                // 3. Mobile Phone matching (Bangla/English, with or without +88 / 880 / 0 prefix)
+                $query->orWhere('phone', $loginInput)
+                    ->orWhere('phone', $normalizedInput);
+
+                if (!empty($rawDigitsOnly) && strlen($rawDigitsOnly) >= 8) {
+                    $last10 = substr($rawDigitsOnly, -10);
+                    $query->orWhere('phone', 'LIKE', '%' . $last10)
+                        ->orWhere('phone', '0' . $last10)
+                        ->orWhere('phone', '+880' . $last10)
+                        ->orWhere('phone', '880' . $last10);
+                }
+
+                // 4. Admin identifier fallback: allow logging in with 'admin' or ADMIN_USERNAME even if real name is set
+                $adminUsername = strtolower(env('ADMIN_USERNAME', 'admin'));
+                if ($cleanLower === 'admin' || $cleanLower === $adminUsername) {
+                    $query->orWhere('role', \App\Models\User::ROLE_ADMIN);
+                }
+            })->get();
 
             $matchedUser = null;
             foreach ($candidates as $candidate) {

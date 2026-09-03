@@ -136,20 +136,24 @@
                             @csrf
                             <div class="row g-3">
                                 <div class="col-12 col-md-6">
-                                    <label class="form-label fw-bold small text-dark">পুরো নাম (Full Name) <span class="text-danger">*</span></label>
-                                    <input type="text" name="name" class="form-control" value="{{ old('name', $user->name) }}" required>
+                                    <label class="form-label fw-bold small text-dark">পুরো নাম (ডিসপ্লে নাম হিসেবে প্রদর্শিত হবে) <span class="text-danger">*</span></label>
+                                    <input type="text" name="name" class="form-control" value="{{ old('name', $user->name) }}" required placeholder="যেমন: আপনার আসল নাম বা প্রতিষ্ঠানের নাম">
+                                    <small class="text-muted d-block mt-1"><i class="fas fa-circle-info text-primary me-1"></i>এটি সাইট ও ড্যাশবোর্ডে আপনার প্রোফাইল নাম হিসেবে প্রদর্শিত হবে।</small>
                                 </div>
                                 <div class="col-12 col-md-6">
                                     <label class="form-label fw-bold small text-dark">অফিসিয়াল ইমেইল (Email) <span class="text-danger">*</span></label>
-                                    <input type="email" name="email" class="form-control font-monospace" value="{{ old('email', $user->email) }}" required>
+                                    <input type="email" name="email" class="form-control font-monospace" value="{{ old('email', $user->email) }}" required placeholder="adideabd@gmail.com">
+                                    <small class="text-muted d-block mt-1"><i class="fas fa-shield-check text-success me-1"></i>লগইনের প্রধান আইডি হিসেবে ব্যবহৃত হবে।</small>
                                 </div>
                                 <div class="col-12 col-md-6">
                                     <label class="form-label fw-bold small text-dark">মোবাইল নম্বর (Phone)</label>
                                     <input type="text" name="phone" class="form-control" value="{{ old('phone', $user->phone) }}" placeholder="017XXXXXXXX">
+                                    <small class="text-muted d-block mt-1"><i class="fas fa-mobile-screen text-info me-1"></i>লগইন করার সময় এই মোবাইল নম্বরটিও ব্যবহার করতে পারবেন।</small>
                                 </div>
                                 <div class="col-12 col-md-6">
                                     <label class="form-label fw-bold small text-dark">পদবী / ডেসিগনেশন (Designation)</label>
                                     <input type="text" name="designation" class="form-control" value="{{ old('designation', $user->reg_data['designation'] ?? '') }}" placeholder="যেমন: প্রকাশক ও প্রধান নির্বাহী / সিস্টেম এডমিন">
+                                    <small class="text-muted d-block mt-1">প্রোফাইলে পদবী হিসেবে প্রদর্শিত হবে।</small>
                                 </div>
                                 <div class="col-12">
                                     <label class="form-label fw-bold small text-dark">প্রোফাইল ছবি পরিবর্তন (Upload New Avatar)</label>

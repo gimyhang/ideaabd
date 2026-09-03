@@ -54,6 +54,14 @@ class AdminProfileController extends Controller
     {
         $user = auth()->user();
 
+        // Convert Bengali digits (০-৯) to English (0-9) in phone number
+        if ($request->filled('phone')) {
+            $bnDigits = ['০','১','২','৩','৪','৫','৬','৭','৮','৯'];
+            $enDigits = ['0','1','2','3','4','5','6','7','8','9'];
+            $cleanPhone = trim(str_replace($bnDigits, $enDigits, (string)$request->input('phone')));
+            $request->merge(['phone' => $cleanPhone]);
+        }
+
         $validated = $request->validate([
             'name'        => ['required', 'string', 'max:255'],
             'email'       => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id],

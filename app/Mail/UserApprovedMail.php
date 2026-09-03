@@ -25,6 +25,7 @@ class UserApprovedMail extends Mailable
 
         return new Envelope(
             from: new Address($fromEmail, $fromName),
+            replyTo: [new Address($fromEmail, $fromName)],
             subject: 'আইডিয়া প্রকাশন — আপনার অ্যাকাউন্ট সফলভাবে অনুমোদিত হয়েছে',
         );
     }

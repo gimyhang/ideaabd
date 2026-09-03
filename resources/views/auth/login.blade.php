@@ -50,12 +50,12 @@
                 {{-- Identity / Username / Email / Phone --}}
                 <div class="mb-3">
                     <label class="form-label fw-bold text-dark mb-1" style="font-size: 15px;">
-                        <i class="fa-solid fa-user text-primary me-1"></i> Email, Phone or Username <span class="text-danger">*</span>
+                        <i class="fa-solid fa-user text-primary me-1"></i> ইমেইল, মোবাইল নম্বর বা ইউজারনেম <span class="text-danger">*</span>
                     </label>
                     <div class="input-group">
                         <span class="input-group-text bg-light border-end-0 fs-5"><i class="fa-solid fa-user-shield text-muted"></i></span>
                         <input type="text" name="email" id="loginEmailInput" class="form-control form-control-lg rounded-end-3" 
-                               value="{{ old('email') }}" placeholder="Enter email, phone or username..." 
+                               value="{{ old('email') }}" placeholder="ইমেইল, মোবাইল নম্বর (017...) অথবা admin..." 
                                required autofocus autocomplete="username" 
                                style="font-size: 15px; height: 48px;"
                                autocorrect="off" autocapitalize="none" spellcheck="false">
