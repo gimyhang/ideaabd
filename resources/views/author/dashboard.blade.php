@@ -778,7 +778,7 @@
 {{-- 8. AUTHOR LITERARY PROFILE & BIO EDIT MODAL                                --}}
 {{-- ═════════════════════════════════════════════════════════════════════════ --}}
 <div class="modal fade" id="authorBioEditModal" tabindex="-1" aria-labelledby="authorBioEditModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
             <div class="modal-header border-0 pb-0 pt-3.5 px-4 bg-light">
                 <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2" id="authorBioEditModalLabel">
@@ -790,32 +790,47 @@
             
             <form id="authorBioEditForm" onsubmit="submitAuthorBio(event)">
                 <div class="modal-body p-4">
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold text-dark">লেখকের নাম <span class="text-danger">*</span></label>
-                        <input type="text" id="editAuthorNameInput" class="form-control rounded-3" value="{{ auth()->user()->name }}" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold text-dark">ছদ্মনাম / কলমনাম <span class="text-muted small">(যদি থাকে)</span></label>
-                        <input type="text" id="editAuthorPenNameInput" class="form-control rounded-3" value="{{ $authorPenName }}" placeholder="ঐচ্ছিক">
-                    </div>
-
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <label class="form-label small fw-bold text-dark mb-0">লেখক পরিচিতি ও সাহিত্য জীবনবৃত্তান্ত (Bio)</label>
-                            <span class="text-muted small" id="editBioCounter" style="font-size: 11px;">0 অক্ষর</span>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-dark">লেখকের নাম <span class="text-danger">*</span></label>
+                            <input type="text" id="editAuthorNameInput" class="form-control rounded-3" value="{{ auth()->user()->name }}" required>
                         </div>
-                        <textarea id="editAuthorBioInput" rows="4" class="form-control rounded-3 small" placeholder="আপনার সাহিত্যকর্ম, অর্জন ও সংক্ষিপ্ত পরিচিতি লিখুন..." oninput="document.getElementById('editBioCounter').textContent = this.value.length + ' অক্ষর'">{{ $authorBioText }}</textarea>
+
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-dark">ছদ্মনাম / কলমনাম <span class="text-muted small">(যদি থাকে)</span></label>
+                            <input type="text" id="editAuthorPenNameInput" class="form-control rounded-3" value="{{ $authorPenName }}" placeholder="ঐচ্ছিক কলমনাম">
+                        </div>
+
+                        <div class="col-12">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <label class="form-label small fw-bold text-dark mb-0">লেখক পরিচিতি ও সাহিত্য জীবনবৃত্তান্ত (Author Bio) <span class="text-danger">*</span></label>
+                                <span class="text-muted small" id="editBioCounter" style="font-size: 11px;">0 অক্ষর</span>
+                            </div>
+                            <textarea id="editAuthorBioInput" rows="5" class="form-control rounded-3 small" placeholder="আপনার সাহিত্যকর্ম, অর্জন, প্রকাশনা ও সংক্ষিপ্ত জীবনবৃত্তান্ত বিস্তারিত লিখুন যাতে পাঠকরা আপনার সম্পর্কে জানতে পারে..." oninput="document.getElementById('editBioCounter').textContent = this.value.length + ' অক্ষর'">{{ $authorBioText }}</textarea>
+                            <div class="form-text text-muted" style="font-size: 11px;">
+                                <i class="fas fa-info-circle text-primary me-1"></i> এই পরিচিতি আপনার পাবলিক লেখক পেজে ও ব্লগে প্রদর্শিত হবে।
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-dark">লেখার বিষয় / সাহিত্য ধারা (Genre)</label>
+                            <input type="text" id="editAuthorGenreInput" class="form-control rounded-3" value="{{ $author?->genre ?? ($userRegData['genre'] ?? '') }}" placeholder="যেমন: কবিতা, কথাসাহিত্য, গবেষণা, প্রবন্ধ">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-dark">ওয়েবসাইট / ফেসবুক পেজ লিংক</label>
+                            <input type="url" id="editAuthorWebsiteInput" class="form-control rounded-3" value="{{ $author?->website ?? ($userRegData['website'] ?? '') }}" placeholder="https://facebook.com/yourpage">
+                        </div>
                     </div>
 
-                    <div id="editBioAlert" class="alert d-none small py-2 px-3 rounded-3 mb-0"></div>
+                    <div id="editBioAlert" class="alert d-none small py-2 px-3 rounded-3 mt-3 mb-0"></div>
                 </div>
 
                 <div class="modal-footer border-0 pt-0 px-4 pb-3.5 d-flex justify-content-between">
                     <button type="button" class="btn btn-light rounded-pill px-3.5" data-bs-dismiss="modal">বাতিল</button>
                     <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm" id="saveBioSubmitBtn">
                         <span class="spinner-border spinner-border-sm d-none me-1" id="saveBioSpinner"></span>
-                        <i class="fas fa-save me-1" id="saveBioIcon"></i> আপডেট করুন
+                        <i class="fas fa-save me-1" id="saveBioIcon"></i> বায়ো আপডেট ও সেভ করুন
                     </button>
                 </div>
             </form>
@@ -1216,6 +1231,8 @@ function submitAuthorBio(e) {
     const name = document.getElementById('editAuthorNameInput').value.trim();
     const penName = document.getElementById('editAuthorPenNameInput').value.trim();
     const bio = document.getElementById('editAuthorBioInput').value.trim();
+    const genre = document.getElementById('editAuthorGenreInput')?.value.trim() || '';
+    const website = document.getElementById('editAuthorWebsiteInput')?.value.trim() || '';
     
     const saveBtn = document.getElementById('saveBioSubmitBtn');
     const spinner = document.getElementById('saveBioSpinner');
@@ -1230,7 +1247,9 @@ function submitAuthorBio(e) {
     const payload = {
         name: name,
         pen_name: penName,
-        bio: bio
+        bio: bio,
+        genre: genre,
+        website: website
     };
     
     fetch('{{ route("author.profile.update") }}', {

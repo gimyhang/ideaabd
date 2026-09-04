@@ -312,6 +312,8 @@ Route::prefix('author')->name('author.')->middleware(['auth'])->group(function (
     Route::get('/posts/create', [\App\Http\Controllers\AuthorBlogController::class, 'createPost'])->name('posts.create');
     Route::post('/posts', [\App\Http\Controllers\AuthorBlogController::class, 'store'])->name('posts.store');
     Route::get('/posts/{id}/edit', [\App\Http\Controllers\AuthorBlogController::class, 'editPost'])->name('posts.edit');
+    Route::get('/posts/{id}/edit-request', [\App\Http\Controllers\AuthorBlogController::class, 'editRequestForm'])->name('posts.edit-request');
+    Route::post('/posts/{id}/edit-request', [\App\Http\Controllers\AuthorBlogController::class, 'submitEditRequest'])->name('posts.submit-edit-request');
     Route::put('/posts/{id}', [\App\Http\Controllers\AuthorBlogController::class, 'update'])->name('posts.update');
     Route::delete('/posts/{id}', [\App\Http\Controllers\AuthorBlogController::class, 'destroy'])->name('posts.destroy');
     Route::prefix('blog')->name('blog.')->group(function () {
@@ -358,6 +360,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::post('/blog/bulk-action', [AdminController::class, 'bulkBlogAction'])->name('blog.bulk-action');
     Route::post('/blog/{id}/toggle-status', [AdminController::class, 'togglePostStatus'])->name('blog.toggle-status');
     Route::post('/blog/{id}/toggle-featured', [AdminController::class, 'togglePostFeatured'])->name('blog.toggle-featured');
+    Route::post('/blog/{id}/approve-edit-request', [AdminController::class, 'approveBlogEditRequest'])->name('blog.approve-edit-request');
+    Route::post('/blog/{id}/reject-edit-request', [AdminController::class, 'rejectBlogEditRequest'])->name('blog.reject-edit-request');
     Route::delete('/blog/{id}', [AdminController::class, 'destroyPost'])->name('blog.destroy');
     Route::get('/ebooks', [AdminController::class, 'ebooks'])->name('ebooks');
     Route::post('/ebooks/settings', [AdminController::class, 'updateEbookSettings'])->name('ebooks.settings');

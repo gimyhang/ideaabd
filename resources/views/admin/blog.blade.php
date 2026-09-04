@@ -444,10 +444,18 @@
                                             </div>
                                         @endif
                                         <div>
-                                            <a href="{{ route('admin.content.edit', ['type' => 'blog', 'id' => $post->id]) }}" 
-                                               class="fw-bold text-dark text-decoration-none hover-primary d-block line-clamp-1" title="{{ $post->title }}">
-                                                {{ $post->title }}
-                                            </a>
+                                            <div class="d-flex align-items-center gap-1.5 flex-wrap">
+                                                <a href="{{ route('admin.content.edit', ['type' => 'blog', 'id' => $post->id]) }}" 
+                                                   class="fw-bold text-dark text-decoration-none hover-primary d-block line-clamp-1" title="{{ $post->title }}">
+                                                    {{ $post->title }}
+                                                </a>
+                                                @if($post->hasPendingEditRequest())
+                                                    <span class="badge bg-warning text-dark rounded-pill px-2 py-0.5 small cursor-pointer shadow-xs animate-pulse" 
+                                                          onclick="openBlogEditRequestModal({{ $post->id }})" title="লেখকের সংশোধনী আবেদন দেখতে ক্লিক করুন">
+                                                        <i class="fas fa-code-compare me-1"></i>কারেকশন রিকোয়েস্ট
+                                                    </span>
+                                                @endif
+                                            </div>
                                             <div class="text-muted small" style="font-size: 0.78rem;">
                                                 <span class="font-monospace text-muted">{{ $post->slug }}</span>
                                             </div>
@@ -458,6 +466,24 @@
                                             @endif
                                         </div>
                                     </div>
+
+                                    @if($post->hasPendingEditRequest())
+                                        <script id="editReqData{{ $post->id }}" type="application/json">
+                                        {!! json_encode([
+                                            'id' => $post->id,
+                                            'title' => $post->title,
+                                            'subtitle' => $post->subtitle,
+                                            'category' => $post->category?->name ?? 'General',
+                                            'excerpt' => $post->excerpt,
+                                            'content' => $post->content,
+                                            'cover_url' => $coverImg,
+                                            'edit_requested_at' => $post->edit_requested_at ? $post->edit_requested_at->format('d M Y, h:i A') : null,
+                                            'edit_request_notes' => $post->edit_request_notes,
+                                            'req_data' => $post->edit_request_data,
+                                            'author_name' => $post->author?->name ?? $post->submitter?->name ?? $post->author_name ?? '—'
+                                        ]) !!}
+                                        </script>
+                                    @endif
                                 </td>
 
                                 <!-- Author / Submitter -->
@@ -493,8 +519,10 @@
                                 </td>
 
                                 <!-- Views -->
-                                <td class="text-muted small">
-                                    <i class="fas fa-eye text-primary me-1"></i>{{ number_format($post->views_count ?? $post->view_count ?? 0) }}
+                                <td>
+                                    <span class="badge bg-light text-muted border rounded-pill px-2 py-1 font-monospace">
+                                        <i class="fas fa-eye text-primary me-1"></i>{{ number_format($post->views_count ?? $post->view_count ?? 0) }}
+                                    </span>
                                 </td>
 
                                 <!-- Date -->
@@ -502,16 +530,25 @@
                                     {{ $post->published_at ? $post->published_at->format('d M, Y') : ($post->created_at ? $post->created_at->format('d M, Y') : '—') }}
                                 </td>
 
-                                <!-- All 5 Action Buttons (View, Approve, Reject, Edit, Delete) -->
+                                <!-- All Action Buttons (View, Edit Request, Approve, Reject, Edit, Delete) -->
                                 <td class="text-end pe-3 text-nowrap">
                                     <div class="adm-actions-wrap" id="postActions{{ $post->id }}" data-slug="{{ $post->slug }}">
-                                        {{-- 1. View Button --}}
-                                        <a href="{{ route('blog.show', $post->slug) }}" target="_blank" rel="noopener" 
-                                           class="adm-action-btn btn btn-outline-info shadow-xs" id="viewBtn{{ $post->id }}" title="View on Blog / ব্লগে দেখুন">
+                                        {{-- 1. View / Review Form Button --}}
+                                        <a href="{{ route('admin.content.edit', ['type' => 'blog', 'id' => $post->id]) }}" 
+                                           class="adm-action-btn btn btn-outline-info shadow-xs" id="viewBtn{{ $post->id }}" title="View & Edit / লেখা পর্যালোচনা ও এডিট করুন">
                                             <i class="fas fa-eye me-1"></i> View
                                         </a>
 
-                                        {{-- 2. Approve Button --}}
+                                        {{-- 2. Pending Edit Request Review Button --}}
+                                        @if($post->hasPendingEditRequest())
+                                            <button type="button" class="adm-action-btn btn btn-warning text-dark fw-bold shadow-xs d-inline-flex align-items-center gap-1" 
+                                                    onclick="openBlogEditRequestModal({{ $post->id }})" title="Review Correction / কারেকশন রিভিউ ও রিপ্লেস করুন">
+                                                <i class="fas fa-code-compare"></i>
+                                                <span>কারেকশন</span>
+                                            </button>
+                                        @endif
+
+                                        {{-- 3. Approve Button --}}
                                         @if($isPublished)
                                             <button type="button" class="adm-action-btn btn btn-outline-success shadow-xs" 
                                                     id="approveBtn{{ $post->id }}"
@@ -526,7 +563,7 @@
                                             </button>
                                         @endif
 
-                                        {{-- 3. Reject Button --}}
+                                        {{-- 4. Reject Button --}}
                                         @if($isRejected)
                                             <button type="button" class="adm-action-btn btn btn-outline-danger shadow-xs" 
                                                     id="rejectBtn{{ $post->id }}"
@@ -541,13 +578,21 @@
                                             </button>
                                         @endif
 
-                                        {{-- 4. Edit Button --}}
+                                        {{-- 5. Edit Button --}}
                                         <a href="{{ route('admin.content.edit', ['type' => 'blog', 'id' => $post->id]) }}" 
                                            class="adm-action-btn btn btn-outline-primary shadow-xs" title="Edit Post">
                                             <i class="fas fa-pen-to-square me-1"></i> Edit
                                         </a>
 
-                                        {{-- 5. Delete Button --}}
+                                        {{-- 6. Live Blog Link (if published) --}}
+                                        @if($isPublished)
+                                            <a href="{{ route('blog.show', $post->slug) }}" target="_blank" rel="noopener" 
+                                               class="adm-action-btn btn btn-light border shadow-xs" title="View live on website">
+                                                <i class="fas fa-arrow-up-right-from-square text-muted"></i>
+                                            </a>
+                                        @endif
+
+                                        {{-- 7. Delete Button --}}
                                         <button type="button" class="adm-action-btn adm-action-btn-icon btn btn-outline-danger shadow-xs" 
                                                 onclick="deletePost({{ $post->id }}, '{{ addslashes($post->title) }}')" title="Delete Post">
                                             <i class="fas fa-trash-can"></i>
@@ -1478,6 +1523,263 @@ async function runBulkNormalizeTypography() {
             <div class="alert alert-danger p-3 small mb-3 rounded-3">
                 <i class="fas fa-triangle-exclamation me-1"></i> Server error occurred. Please try again.
             </div>`;
+    });
+}
+{{-- ═════════════════════════════════════════════════════════════════════════ --}}
+{{-- 5. MODALS (EDIT REQUEST REVIEW & REJECT REASON)                             --}}
+{{-- ═════════════════════════════════════════════════════════════════════════ --}}
+
+{{-- Modal: Author Edit Request Review & Replace --}}
+<div class="modal fade" id="blogEditRequestModal" tabindex="-1" aria-labelledby="blogEditRequestModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header bg-dark text-white border-0 py-3 px-4">
+                <div class="d-flex align-items-center gap-2.5">
+                    <div class="p-2 bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                        <i class="fas fa-code-compare fs-6"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title fw-bold mb-0 text-white" id="blogEditRequestModalLabel">
+                            লেখকের কারেকশন রিকোয়েস্ট পর্যালোচনা ও রিপ্লেস
+                        </h5>
+                        <div class="small opacity-75" id="editReqMetaHeader">পোস্ট আইডি ও লেখকের তথ্য লোড হচ্ছে...</div>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body p-4 bg-light">
+                {{-- Correction Note & Author Message Alert --}}
+                <div class="alert alert-warning border-0 rounded-4 shadow-xs mb-3 p-3">
+                    <div class="d-flex align-items-start gap-2">
+                        <i class="fas fa-comment-dots text-warning-emphasis fs-5 mt-0.5"></i>
+                        <div class="w-100">
+                            <strong class="text-dark d-block">লেখকের সংশোধনী নোট / কারেকশন বার্তা:</strong>
+                            <p class="mb-0 text-dark small mt-0.5" id="editReqNotesDisplay">কোনো নোট প্রদান করা হয়নি।</p>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Comparison Container --}}
+                <div class="row g-3">
+                    {{-- 1. Original / Currently Live Post --}}
+                    <div class="col-12 col-lg-6">
+                        <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden bg-white">
+                            <div class="card-header bg-secondary bg-opacity-10 border-bottom py-2.5 px-3.5 d-flex align-items-center justify-content-between">
+                                <span class="fw-bold text-secondary small">
+                                    <i class="fas fa-globe me-1"></i> বর্তমানে লাইভ থাকা মূল পোস্ট (Original)
+                                </span>
+                                <span class="badge bg-secondary rounded-pill small">Current Live</span>
+                            </div>
+                            <div class="card-body p-3.5">
+                                <div class="mb-2">
+                                    <small class="text-muted d-block fw-semibold" style="font-size: 11px;">মূল শিরোনাম</small>
+                                    <h6 class="fw-bold text-dark mb-0" id="origTitleDisplay">—</h6>
+                                </div>
+                                <div class="mb-2" id="origSubtitleWrap">
+                                    <small class="text-muted d-block fw-semibold" style="font-size: 11px;">সাবটাইটেল</small>
+                                    <div class="text-muted small" id="origSubtitleDisplay">—</div>
+                                </div>
+                                <div class="mb-2">
+                                    <small class="text-muted d-block fw-semibold" style="font-size: 11px;">ক্যাটাগরি</small>
+                                    <span class="badge bg-light text-dark border" id="origCategoryDisplay">—</span>
+                                </div>
+                                <div class="mb-2" id="origExcerptWrap">
+                                    <small class="text-muted d-block fw-semibold" style="font-size: 11px;">সারসংক্ষেপ (Excerpt)</small>
+                                    <div class="p-2 bg-light rounded-3 small text-dark" style="max-height: 80px; overflow-y: auto;" id="origExcerptDisplay">—</div>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block fw-semibold mb-1" style="font-size: 11px;">মূল লেখার কনটেন্ট</small>
+                                    <div class="p-3 bg-light rounded-3 border small overflow-auto text-dark" style="max-height: 280px; line-height: 1.6;" id="origContentDisplay">
+                                        —
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- 2. Author's Revised / Corrected Post --}}
+                    <div class="col-12 col-lg-6">
+                        <div class="card h-100 border-2 border-warning shadow-sm rounded-4 overflow-hidden bg-white">
+                            <div class="card-header bg-warning bg-opacity-25 border-bottom py-2.5 px-3.5 d-flex align-items-center justify-content-between">
+                                <span class="fw-bold text-dark small">
+                                    <i class="fas fa-feather-pointed me-1 text-warning-emphasis"></i> লেখকের প্রস্তাবিত সংশোধিত রূপ (Revised)
+                                </span>
+                                <span class="badge bg-warning text-dark rounded-pill small">Proposed Changes</span>
+                            </div>
+                            <div class="card-body p-3.5">
+                                <div class="mb-2">
+                                    <small class="text-warning-emphasis d-block fw-semibold" style="font-size: 11px;">সংশোধিত শিরোনাম</small>
+                                    <h6 class="fw-bold text-success mb-0" id="revTitleDisplay">—</h6>
+                                </div>
+                                <div class="mb-2" id="revSubtitleWrap">
+                                    <small class="text-warning-emphasis d-block fw-semibold" style="font-size: 11px;">সংশোধিত সাবটাইটেল</small>
+                                    <div class="text-dark small" id="revSubtitleDisplay">—</div>
+                                </div>
+                                <div class="mb-2">
+                                    <small class="text-warning-emphasis d-block fw-semibold" style="font-size: 11px;">ক্যাটাগরি</small>
+                                    <span class="badge bg-warning-subtle text-dark border border-warning-subtle" id="revCategoryDisplay">—</span>
+                                </div>
+                                <div class="mb-2" id="revExcerptWrap">
+                                    <small class="text-warning-emphasis d-block fw-semibold" style="font-size: 11px;">সংশোধিত সারসংক্ষেপ</small>
+                                    <div class="p-2 bg-warning-subtle rounded-3 small text-dark" style="max-height: 80px; overflow-y: auto;" id="revExcerptDisplay">—</div>
+                                </div>
+                                <div>
+                                    <small class="text-warning-emphasis d-block fw-semibold mb-1" style="font-size: 11px;">সংশোধিত লেখার কনটেন্ট</small>
+                                    <div class="p-3 bg-white rounded-3 border border-warning-subtle small overflow-auto text-dark" style="max-height: 280px; line-height: 1.6;" id="revContentDisplay">
+                                        —
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer bg-white border-0 py-3 px-4 d-flex flex-wrap justify-content-between gap-2">
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-3.5 fw-semibold" id="btnModalRejectEditReq" onclick="triggerRejectEditRequest()">
+                        <i class="fas fa-times me-1"></i> কারেকশন বাতিল করুন
+                    </button>
+                    <a href="#" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-3.5" id="btnModalEditManual">
+                        <i class="fas fa-pen-to-square me-1"></i> নিজে এডিট করতে ওপেন করুন
+                    </a>
+                </div>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-light btn-sm rounded-pill px-3.5" data-bs-dismiss="modal">বন্ধ করুন</button>
+                    <button type="button" class="btn btn-success btn-sm rounded-pill px-4 fw-bold shadow-sm" id="btnModalApproveEditReq" onclick="triggerApproveEditRequest()">
+                        <i class="fas fa-circle-check me-1"></i> কারেকশন অনুমোদন ও রিপ্লেস করুন
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentEditReqPostId = null;
+
+function openBlogEditRequestModal(postId) {
+    const dataEl = document.getElementById(`editReqData${postId}`);
+    if (!dataEl) return;
+
+    try {
+        const item = JSON.parse(dataEl.textContent);
+        currentEditReqPostId = postId;
+        const req = item.req_data || {};
+
+        document.getElementById('editReqMetaHeader').textContent = `পোস্ট আইডি: #${item.id} | লেখক: ${item.author_name} | জমার সময়: ${item.edit_requested_at || 'সাম্প্রতিক'}`;
+        document.getElementById('editReqNotesDisplay').textContent = item.edit_request_notes || 'কোনো আলাদা নোট দেওয়া হয়নি।';
+
+        // Original info
+        document.getElementById('origTitleDisplay').textContent = item.title;
+        document.getElementById('origSubtitleDisplay').textContent = item.subtitle || '—';
+        document.getElementById('origCategoryDisplay').textContent = item.category || 'General';
+        document.getElementById('origExcerptDisplay').textContent = item.excerpt || '—';
+        document.getElementById('origContentDisplay').innerHTML = item.content || '<em class="text-muted">খালি</em>';
+
+        // Revised info
+        document.getElementById('revTitleDisplay').textContent = req.title || item.title;
+        document.getElementById('revSubtitleDisplay').textContent = req.subtitle || '—';
+        document.getElementById('revCategoryDisplay').textContent = req.category_name || item.category || 'General';
+        document.getElementById('revExcerptDisplay').textContent = req.excerpt || '—';
+        document.getElementById('revContentDisplay').innerHTML = req.content || '<em class="text-muted">খালি</em>';
+
+        document.getElementById('btnModalEditManual').href = `/admin/content/blog/${postId}/edit`;
+
+        const modal = new bootstrap.Modal(document.getElementById('blogEditRequestModal'));
+        modal.show();
+    } catch (e) {
+        console.error("Could not parse edit request payload:", e);
+    }
+}
+
+function triggerApproveEditRequest() {
+    if (!currentEditReqPostId) return;
+
+    SwalConfirm({
+        title: 'কারেকশন অনুমোদন নিশ্চিতকরণ',
+        html: `আপনি কি নিশ্চিত যে সংশোধিত লেখাটি লাইভ পোস্টের সাথে রিপ্লেস করতে চান?<br><span class="text-success small">এটি লাইভ আর্টিকেলে অবিলম্বে সক্রিয় হয়ে যাবে।</span>`,
+        icon: 'question',
+        confirmButtonText: '<i class="fas fa-circle-check me-1"></i> হ্যাঁ, অনুমোদন ও রিপ্লেস করুন',
+        confirmButtonColor: '#16a34a'
+    }).then(function(result) {
+        if (result.isConfirmed) {
+            const btn = document.getElementById('btnModalApproveEditReq');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> প্রসেসিং...';
+            }
+
+            fetch(`/admin/blog/${currentEditReqPostId}/approve-edit-request`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    showSuccessToast(data.message);
+                    setTimeout(() => { location.reload(); }, 1000);
+                } else {
+                    Swal.fire({ title: 'ত্রুটি', text: data.message || 'সমস্যা হয়েছে।', icon: 'error' });
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fas fa-circle-check me-1"></i> কারেকশন অনুমোদন ও রিপ্লেস করুন';
+                    }
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                Swal.fire({ title: 'সার্ভার ত্রুটি', text: 'অনুরোধ সম্পন্ন করতে ব্যর্থ হয়েছে।', icon: 'error' });
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-circle-check me-1"></i> কারেকশন অনুমোদন ও রিপ্লেস করুন';
+                }
+            });
+        }
+    });
+}
+
+function triggerRejectEditRequest() {
+    if (!currentEditReqPostId) return;
+
+    Swal.fire({
+        title: 'কারেকশন বাতিল করুন',
+        input: 'textarea',
+        inputLabel: 'বাতিল করার কারণ (ঐচ্ছিক)',
+        inputPlaceholder: 'লেখকের সংশোধনী কেন গ্রহণ করা গেল না তা লিখুন...',
+        showCancelButton: true,
+        confirmButtonText: '<i class="fas fa-ban me-1"></i> বাতিল নিশ্চিত করুন',
+        confirmButtonColor: '#ef4444',
+        cancelButtonText: 'ফিরে যান'
+    }).then(function(result) {
+        if (result.isConfirmed) {
+            fetch(`/admin/blog/${currentEditReqPostId}/reject-edit-request`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken
+                },
+                body: JSON.stringify({ reason: result.value || '' })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    showSuccessToast(data.message);
+                    setTimeout(() => { location.reload(); }, 1000);
+                } else {
+                    Swal.fire({ title: 'ত্রুটি', text: data.message || 'সমস্যা হয়েছে।', icon: 'error' });
+                }
+            })
+            .catch(() => {
+                Swal.fire({ title: 'সার্ভার ত্রুটি', text: 'অনুরোধ সম্পন্ন করতে ব্যর্থ হয়েছে।', icon: 'error' });
+            });
+        }
     });
 }
 </script>

@@ -36,7 +36,14 @@
 
 @section('actions')
     <div class="d-flex flex-wrap align-items-center gap-2">
-        @if (!in_array($spec['key'], ['books', 'ebooks'], true))
+        @if ($spec['key'] === 'blog')
+            <button type="submit" form="contentMainForm" name="save_and_approve" value="1" class="btn btn-success btn-sm rounded-pill px-3.5 fw-bold shadow-xs">
+                <i class="fas fa-circle-check me-1"></i> এপ্রুভ ও পাবলিশ
+            </button>
+            <button type="submit" form="contentMainForm" class="btn btn-primary btn-sm rounded-pill px-3.5 fw-bold shadow-xs">
+                <i class="fas fa-save me-1"></i> সেভ করুন
+            </button>
+        @elseif (!in_array($spec['key'], ['books', 'ebooks'], true))
             <button type="submit" form="contentMainForm" class="btn btn-success btn-sm rounded-pill px-3.5 fw-bold shadow-xs">
                 <i class="fas fa-circle-check me-1"></i> {{ $editing ? 'Save Changes' : 'Publish & Save' }}
             </button>
@@ -1425,6 +1432,11 @@
         @endif
 
         <div class="d-grid gap-2">
+            @if ($spec['key'] === 'blog')
+                <button type="submit" name="save_and_approve" value="1" class="btn btn-success rounded-pill py-2.5 fw-bold shadow-xs">
+                    <i class="fas fa-circle-check me-1.5"></i> এপ্রুভ ও পাবলিশ করুন
+                </button>
+            @endif
             <button type="submit" class="btn btn-primary rounded-pill py-2.5 fw-bold shadow-xs">
                 <i class="fas fa-floppy-disk me-1.5"></i> {{ $editing ? 'Save Changes' : 'Publish & Save' }}
             </button>

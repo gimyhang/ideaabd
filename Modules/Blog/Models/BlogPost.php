@@ -35,13 +35,75 @@ class BlogPost extends Model
         'reviewed_by',
         'reviewed_at',
         'rejection_reason',
+        'edit_request_status',
+        'edit_request_data',
+        'edit_requested_at',
+        'edit_request_notes',
+        'edit_request_reviewed_at',
+        'edit_request_rejection_reason',
     ];
 
     protected $casts = [
-        'published_at' => 'datetime',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
+        'published_at'              => 'datetime',
+        'created_at'                => 'datetime',
+        'updated_at'                => 'datetime',
+        'edit_requested_at'         => 'datetime',
+        'edit_request_reviewed_at'  => 'datetime',
+        'edit_request_data'         => 'array',
     ];
+
+    /**
+     * Check if the post has a pending edit/correction request.
+     */
+    public function hasPendingEditRequest(): bool
+    {
+        return $this->edit_request_status === 'pending' && !empty($this->edit_request_data);
+    }
+
+    /**
+     * Apply and replace the post content with the approved edit request data.
+     */
+    public function applyEditRequest(?int $reviewerId = null): void
+    {
+        if (empty($this->edit_request_data) || !is_array($this->edit_request_data)) {
+            return;
+        }
+
+        $data = $this->edit_request_data;
+
+        $fields = ['title', 'subtitle', 'content', 'excerpt', 'category_id', 'featured_image'];
+        foreach ($fields as $field) {
+            if (array_key_exists($field, $data) && $data[$field] !== null) {
+                $this->{$field} = $data[$field];
+            }
+        }
+
+        if (!empty($data['slug'])) {
+            $this->slug = $data['slug'];
+        }
+
+        $this->edit_request_status = 'approved';
+        $this->edit_request_reviewed_at = now();
+        $this->edit_request_rejection_reason = null;
+        if ($reviewerId) {
+            $this->reviewed_by = $reviewerId;
+        }
+        $this->save();
+    }
+
+    /**
+     * Reject the pending edit request with an optional reason.
+     */
+    public function rejectEditRequest(?string $reason = null, ?int $reviewerId = null): void
+    {
+        $this->edit_request_status = 'rejected';
+        $this->edit_request_rejection_reason = $reason;
+        $this->edit_request_reviewed_at = now();
+        if ($reviewerId) {
+            $this->reviewed_by = $reviewerId;
+        }
+        $this->save();
+    }
 
     /**
      * The "booted" method of the model.

@@ -1160,6 +1160,61 @@ class AdminController extends Controller
         return back()->with('error', 'সঠিক অ্যাকশন নির্বাচন করুন।');
     }
 
+    /**
+     * Approve and replace published post content with author's edit request.
+     */
+    public function approveBlogEditRequest(Request $request, $id): \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
+    {
+        $post = \Modules\Blog\Models\BlogPost::findOrFail($id);
+
+        if (!$post->hasPendingEditRequest()) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => 'এই পোস্টের জন্য কোনো পেন্ডিং কারেকশন রিকোয়েস্ট নেই।'], 422);
+            }
+            return back()->with('error', 'এই পোস্টের জন্য কোনো পেন্ডিং কারেকশন রিকোয়েস্ট নেই।');
+        }
+
+        $post->applyEditRequest(auth()->id());
+
+        try {
+            \Illuminate\Support\Facades\Cache::flush();
+        } catch (\Throwable $e) {}
+
+        $this->accessService->log('blog_edit_request_approved', "ব্লগ পোস্ট '{$post->title}' এর লেখক কারেকশন রিকোয়েস্ট অনুমোদন ও রিপ্লেস করা হয়েছে");
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'লেখকের কারেকশন রিকোয়েস্ট সফলভাবে অনুমোদন করা হয়েছে এবং পোস্টের মূল কনটেন্টের সাথে রিপ্লেস হয়েছে!',
+                'post'    => $post,
+            ]);
+        }
+
+        return redirect()->route('admin.blog')->with('success', "‘{$post->title}’ পোস্টটির কারেকশন অনুমোদন করা হয়েছে এবং তথ্য স্বয়ংক্রিয়ভাবে রিপ্লেস হয়েছে!");
+    }
+
+    /**
+     * Reject author's pending edit request.
+     */
+    public function rejectBlogEditRequest(Request $request, $id): \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
+    {
+        $post = \Modules\Blog\Models\BlogPost::findOrFail($id);
+        $reason = $request->input('reason', 'প্রস্তাবিত কারেকশন সম্পাদকীয় নীতিমালার সাথে সামঞ্জস্যপূর্ণ নয়।');
+
+        $post->rejectEditRequest($reason, auth()->id());
+
+        $this->accessService->log('blog_edit_request_rejected', "ব্লগ পোস্ট '{$post->title}' এর লেখক কারেকশন রিকোয়েস্ট বাতিল করা হয়েছে");
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'লেখকের কারেকশন রিকোয়েস্ট বাতিল করা হয়েছে।',
+            ]);
+        }
+
+        return redirect()->route('admin.blog')->with('info', "‘{$post->title}’ পোস্টটির কারেকশন আবেদন বাতিল করা হয়েছে।");
+    }
+
     public function bulkNormalizeBlogTypography(Request $request): \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
     {
         $target = $request->input('target', 'all');

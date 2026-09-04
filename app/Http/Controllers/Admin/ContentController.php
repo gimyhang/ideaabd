@@ -297,8 +297,15 @@ class ContentController extends Controller
             } else {
                 $attributes['author_id'] = (int) $attributes['author_id'];
             }
-            if (($attributes['status'] ?? null) === 'published' && empty($record->published_at)) {
-                $attributes['published_at'] = now();
+            if ($request->has('save_and_approve') || $request->input('action_type') === 'approve' || ($attributes['status'] ?? null) === 'published') {
+                $attributes['status'] = 'published';
+                $attributes['mod_status'] = 'approved';
+                $attributes['rejection_reason'] = null;
+                $attributes['reviewed_by'] = auth()->id();
+                $attributes['reviewed_at'] = now();
+                if (empty($record->published_at)) {
+                    $attributes['published_at'] = now();
+                }
             }
         }
 
@@ -419,8 +426,16 @@ class ContentController extends Controller
         // Approving is also what puts the entry live on the site.
         $this->setVisibility($record, true);
 
-        // If it's a blog post, dispatch approval email to author
+        // If it's a blog post, ensure status is published and dispatch approval email to author
         if ($type === 'blog' && $record instanceof \Modules\Blog\Models\BlogPost) {
+            $record->status = 'published';
+            $record->mod_status = 'approved';
+            $record->rejection_reason = null;
+            if (empty($record->published_at)) {
+                $record->published_at = now();
+            }
+            $record->save();
+
             if ($record->author_id) {
                 $author = \App\Models\User::find($record->author_id);
                 if ($author && $author->email && !str_ends_with($author->email, '@buyer.ideaabd.com')) {
@@ -433,7 +448,12 @@ class ContentController extends Controller
             }
         }
 
-        return back()->with('success', "{$spec['label']} অনুমোদন করা হয়েছে এবং সংশ্লিষ্ট লেখককে ইমেইল পাঠানো হয়েছে।");
+        try {
+            \Illuminate\Support\Facades\Cache::flush();
+        } catch (\Throwable $e) {}
+
+        return redirect()->route($spec['listRoute'])
+            ->with('success', "{$spec['label']} অনুমোদন ও প্রকাশ করা হয়েছে এবং সংশ্লিষ্ট লেখককে ইমেইল পাঠানো হয়েছে।");
     }
 
     public function reject(Request $request, string $type, int $id): RedirectResponse

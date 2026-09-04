@@ -313,9 +313,14 @@ class AuthorDashboardController extends Controller
     public function updateProfile(Request $request)
     {
         $request->validate([
-            'name'     => ['required', 'string', 'max:255'],
-            'pen_name' => ['nullable', 'string', 'max:255'],
-            'bio'      => ['nullable', 'string', 'max:5000'],
+            'name'      => ['required', 'string', 'max:255'],
+            'pen_name'  => ['nullable', 'string', 'max:255'],
+            'bio'       => ['nullable', 'string', 'max:5000'],
+            'genre'     => ['nullable', 'string', 'max:255'],
+            'website'   => ['nullable', 'string', 'max:255'],
+            'facebook'  => ['nullable', 'string', 'max:255'],
+            'twitter'   => ['nullable', 'string', 'max:255'],
+            'youtube'   => ['nullable', 'string', 'max:255'],
         ]);
 
         $user = auth()->user();
@@ -323,28 +328,62 @@ class AuthorDashboardController extends Controller
 
         $user->name = $request->input('name');
         $regData = is_array($user->reg_data) ? $user->reg_data : [];
+
         if ($request->filled('pen_name')) {
-            $regData['pen_name'] = $request->input('pen_name');
+            $regData['pen_name'] = trim($request->input('pen_name'));
         }
-        if ($request->has('bio')) {
-            $regData['bio'] = $request->input('bio');
+        $regData['bio'] = $request->input('bio') ?? '';
+
+        if ($request->filled('genre')) {
+            $regData['genre'] = trim($request->input('genre'));
         }
+        if ($request->has('website')) {
+            $regData['website'] = $request->input('website');
+        }
+        if ($request->has('facebook')) {
+            $regData['facebook'] = $request->input('facebook');
+        }
+        if ($request->has('twitter')) {
+            $regData['twitter'] = $request->input('twitter');
+        }
+        if ($request->has('youtube')) {
+            $regData['youtube'] = $request->input('youtube');
+        }
+
         $user->reg_data = $regData;
         $user->save();
 
         if ($author) {
-            $author->name = $request->filled('pen_name') ? $request->input('pen_name') : $request->input('name');
+            $authorName = $request->filled('pen_name') ? $request->input('pen_name') : $request->input('name');
+            $author->name = $authorName;
             $author->bio = $request->input('bio');
+            if ($request->filled('genre')) {
+                $author->genre = $request->input('genre');
+            }
+            if ($request->filled('website')) {
+                $author->website = $request->input('website');
+            }
+            $socialLinks = array_filter([
+                'facebook' => $request->input('facebook') ?: ($regData['facebook'] ?? null),
+                'twitter'  => $request->input('twitter') ?: ($regData['twitter'] ?? null),
+                'youtube'  => $request->input('youtube') ?: ($regData['youtube'] ?? null),
+            ]);
+            if (!empty($socialLinks)) {
+                $author->social_links = $socialLinks;
+            }
             $author->save();
         }
 
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json([
-                'success' => true,
-                'message' => 'লেখক পরিচিতি ও তথ্য সফলভাবে আপডেট হয়েছে!',
+                'success'  => true,
+                'message'  => 'লেখক পরিচিতি ও বায়ো সফলভাবে আপডেট হয়েছে!',
+                'name'     => $user->name,
+                'pen_name' => $regData['pen_name'] ?? '',
+                'bio'      => $regData['bio'] ?? '',
             ]);
         }
 
-        return back()->with('success', 'লেখক পরিচিতি ও তথ্য সফলভাবে আপডেট হয়েছে!');
+        return back()->with('success', 'লেখক পরিচিতি ও বায়ো সফলভাবে আপডেট হয়েছে!');
     }
 }

@@ -366,9 +366,9 @@
                                 <td class="text-end pe-3">
                                     <div class="d-inline-flex gap-1.5 align-items-center" id="regActions-{{ $user->id }}">
                                         {{-- 1. View Button --}}
-                                        <button type="button" class="btn btn-sm btn-outline-info rounded-pill px-2.5 py-1 shadow-xs fw-semibold" onclick="openRegDetailsModal({{ $user->id }})" title="View Details">
+                                        <a href="{{ route('admin.registrations.show', $user) }}" class="btn btn-sm btn-outline-info rounded-pill px-2.5 py-1 shadow-xs fw-semibold" title="View Details">
                                             <i class="fas fa-eye me-1"></i> View
-                                        </button>
+                                        </a>
 
                                         {{-- 2. Approve Button --}}
                                         @if($user->reg_status === 'approved')

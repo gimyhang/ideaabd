@@ -308,7 +308,8 @@ class RegistrationApprovalController extends Controller
             ]);
         }
 
-        return back()->with('success', "{$user->name} এর রেজিস্ট্রেশন অনুমোদন করা হয়েছে এবং ইমেইলে নোটিফিকেশন পাঠানো হয়েছে।");
+        return redirect()->route('admin.registrations.index')
+            ->with('success', "{$user->name} এর রেজিস্ট্রেশন অনুমোদন করা হয়েছে এবং অ্যাকাউন্টটি সক্রিয় করা হয়েছে।");
     }
 
     // Reject Registration
@@ -349,7 +350,8 @@ class RegistrationApprovalController extends Controller
             ]);
         }
 
-        return back()->with('success', "{$user->name} এর রেজিস্ট্রেশন বাতিল করা হয়েছে।");
+        return redirect()->route('admin.registrations.index')
+            ->with('success', "{$user->name} এর রেজিস্ট্রেশন বাতিল করা হয়েছে।");
     }
 
     // Toggle Active/Inactive Status

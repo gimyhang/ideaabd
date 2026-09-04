@@ -163,14 +163,117 @@ class AuthorBlogController extends Controller
                 }
             })->firstOrFail();
 
-        if ($post->status === 'published' || $post->mod_status === 'approved' || $post->status === 'pending') {
+        // If post is published or approved, open the dedicated edit request / correction form
+        if ($post->status === 'published' || $post->mod_status === 'approved') {
+            return redirect()->route('author.posts.edit-request', $id);
+        }
+
+        if ($post->status === 'pending') {
             return redirect()->route('author.posts.index')
-                ->with('warning', 'পোস্টটি অনুমোদনের জন্য অপেক্ষমাণ বা ইতোমধ্যে প্রকাশিত হয়েছে। অনুমোদিত ও প্রকাশিত পোস্ট শুধুমাত্র অ্যাডমিন এডিট করতে পারবেন, লেখক কেবল দেখতে পারবেন।');
+                ->with('warning', 'পোস্টটি অ্যাডমিন অনুমোদনের জন্য অপেক্ষমাণ রয়েছে।');
         }
 
         $blogCategories = BlogCategory::where('is_active', true)->orderBy('name')->get();
 
         return view('author.posts.edit', compact('user', 'author', 'post', 'blogCategories'));
+    }
+
+    /**
+     * Dedicated Author Ideapatra Edit Request View for published posts.
+     */
+    public function editRequestForm(int $id): View|RedirectResponse
+    {
+        $user = auth()->user();
+
+        if (!$user->isAdmin() && (!$user->isAuthor() || $user->reg_status !== 'approved' || !$user->is_active)) {
+            return redirect()->route('pending.approval')->with('warning', 'আপনার লেখক অ্যাকাউন্টটি এখনও অ্যাডমিন কর্তৃক অনুমোদিত হয়নি।');
+        }
+
+        $author = $user->getAuthorRecord();
+        $post = BlogPost::where('id', $id)
+            ->where(function ($q) use ($user, $author) {
+                $q->where('submitted_by', $user->id)
+                  ->orWhere('author_id', $user->id);
+                if ($author) {
+                    $q->orWhere('author_id', $author->id);
+                }
+            })->firstOrFail();
+
+        $blogCategories = BlogCategory::where('is_active', true)->orderBy('name')->get();
+
+        return view('author.posts.edit_request', compact('user', 'author', 'post', 'blogCategories'));
+    }
+
+    /**
+     * Submit an edit request / correction for a published post.
+     */
+    public function submitEditRequest(Request $request, int $id): RedirectResponse
+    {
+        $user = auth()->user();
+
+        if (!$user->isAdmin() && (!$user->isAuthor() || $user->reg_status !== 'approved' || !$user->is_active)) {
+            return redirect()->route('pending.approval')->with('warning', 'আপনার লেখক অ্যাকাউন্টটি এখনও অ্যাডমিন কর্তৃক অনুমোদিত হয়নি।');
+        }
+
+        $author = $user->getAuthorRecord();
+        $post = BlogPost::where('id', $id)
+            ->where(function ($q) use ($user, $author) {
+                $q->where('submitted_by', $user->id)
+                  ->orWhere('author_id', $user->id);
+                if ($author) {
+                    $q->orWhere('author_id', $author->id);
+                }
+            })->firstOrFail();
+
+        $rules = [
+            'title'          => 'required|string|max:255',
+            'subtitle'       => 'nullable|string|max:500',
+            'category_id'    => 'nullable|integer',
+            'excerpt'        => 'nullable|string|max:1000',
+            'content'        => 'required|string',
+            'featured_image' => 'nullable|image|max:8192',
+            'notes'          => 'nullable|string|max:1000',
+        ];
+
+        $validated = $request->validate($rules, [
+            'title.required'   => 'ব্লগ পোস্টের শিরোনাম দিন।',
+            'content.required' => 'ব্লগের মূল বিষয়বস্তু বা রচনা লিখুন।',
+            'featured_image.image' => 'ছবি ফাইলটি একটি বৈধ ইমেজ হতে হবে।',
+        ]);
+
+        $categoryId = $request->input('category_id') ?: $post->category_id;
+        $categoryName = BlogCategory::where('id', $categoryId)->value('name') ?? ($post->category?->name ?? 'General');
+
+        $imagePath = $post->featured_image;
+        if ($request->hasFile('featured_image')) {
+            try {
+                $imagePath = $request->file('featured_image')->store('blog', 'public');
+            } catch (\Throwable $e) {}
+        } elseif ($request->filled('ai_photocard_data')) {
+            try {
+                $imagePath = $this->saveBase64Image($request->input('ai_photocard_data'), 'blog');
+            } catch (\Throwable $e) {}
+        }
+
+        $editData = [
+            'title'          => trim($validated['title']),
+            'subtitle'       => $validated['subtitle'] ? trim($validated['subtitle']) : null,
+            'category_id'    => $categoryId,
+            'category_name'  => $categoryName,
+            'excerpt'        => $validated['excerpt'] ? trim($validated['excerpt']) : Str::limit(strip_tags($validated['content']), 200),
+            'content'        => $validated['content'],
+            'featured_image' => $imagePath,
+        ];
+
+        $post->edit_request_status = 'pending';
+        $post->edit_request_data = $editData;
+        $post->edit_requested_at = now();
+        $post->edit_request_notes = $request->input('notes') ?: 'বানান ও তথ্য সংশোধন';
+        $post->edit_request_rejection_reason = null;
+        $post->save();
+
+        return redirect()->route('author.posts.index')
+            ->with('success', "‘{$post->title}’ পোস্টটির সংশোধনী আবেদন সফলভাবে জমা হয়েছে। অ্যাডমিন পর্যালোচনা করে অনুমোদন দিলে সংশোধিত লেখাটি মূল লেখার সাথে স্বয়ংক্রিয়ভাবে রিপ্লেস হয়ে যাবে।");
     }
 
     /**

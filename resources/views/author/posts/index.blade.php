@@ -147,6 +147,13 @@
                                     <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1">
                                         <i class="fas fa-check-circle me-1"></i> প্রকাশিত
                                     </span>
+                                    @if(method_exists($post, 'hasPendingEditRequest') && $post->hasPendingEditRequest())
+                                        <div class="mt-1">
+                                            <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2 py-0.5" style="font-size: 10px;" title="সংশোধন রিকোয়েস্ট পর্যালোচনায় আছে">
+                                                <i class="fas fa-clock-rotate-left me-1"></i> কারেকশন পেন্ডিং
+                                            </span>
+                                        </div>
+                                    @endif
                                 @elseif($post->status === 'pending')
                                     <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2.5 py-1">
                                         <i class="fas fa-hourglass-half me-1"></i> পর্যালোচনায়
@@ -166,6 +173,9 @@
                                     @if($post->status === 'published' || $post->mod_status === 'approved')
                                         <a href="{{ route('blog.show', $post->slug ?: $post->id) }}" target="_blank" class="btn btn-outline-primary" title="ব্লগে পড়ুন">
                                             <i class="fas fa-arrow-up-right-from-square me-1"></i> পড়ুন
+                                        </a>
+                                        <a href="{{ route('author.posts.edit-request', $post->id) }}" class="btn btn-outline-warning text-dark fw-semibold" title="লেখাটিতে কোনো ভুল থাকলে কারেকশন বা সম্পাদনা রিকোয়েস্ট পাঠান">
+                                            <i class="fas fa-file-pen me-1"></i> কারেকশন
                                         </a>
                                     @elseif($post->status === 'pending' || $post->mod_status === 'pending')
                                         <a href="{{ route('blog.show', $post->slug ?: $post->id) }}" target="_blank" class="btn btn-outline-secondary" title="প্রিভিউ দেখুন">
