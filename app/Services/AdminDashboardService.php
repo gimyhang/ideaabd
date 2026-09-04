@@ -601,6 +601,56 @@ class AdminDashboardService
     }
 
     /**
+     * Comprehensive seller accounting & revenue breakdown for Admin Dashboard.
+     */
+    public function sellersSummary(int $limit = 6): array
+    {
+        return $this->safe(function () use ($limit) {
+            $totalSellers = User::whereIn('role', [User::ROLE_SELLER, User::ROLE_SUB_ADMIN])->count();
+            $totalBills = Bill::count();
+            $totalSales = (float) Bill::sum('total');
+            $totalPaid = (float) Bill::where('payment_status', 'paid')->sum('total');
+            $totalDue = (float) Bill::where('payment_status', '!=', 'paid')->sum('total');
+            $todaySales = (float) Bill::whereDate('created_at', today())->sum('total');
+            $thisMonthSales = (float) Bill::whereBetween('created_at', [now()->startOfMonth(), now()->endOfMonth()])->sum('total');
+
+            $sellersBreakdown = Bill::select(
+                    'seller_id',
+                    DB::raw('COUNT(*) as total_bills'),
+                    DB::raw('SUM(total) as total_sales'),
+                    DB::raw('SUM(CASE WHEN payment_status = "paid" THEN total ELSE 0 END) as paid_amount'),
+                    DB::raw('SUM(CASE WHEN payment_status != "paid" THEN total ELSE 0 END) as due_amount'),
+                    DB::raw('MAX(created_at) as last_sale_at')
+                )
+                ->groupBy('seller_id')
+                ->orderByDesc('total_sales')
+                ->with('seller')
+                ->limit($limit)
+                ->get();
+
+            return [
+                'total_sellers'     => $totalSellers,
+                'total_bills'       => $totalBills,
+                'total_sales'       => $totalSales,
+                'total_paid'        => $totalPaid,
+                'total_due'         => $totalDue,
+                'today_sales'       => $todaySales,
+                'this_month_sales'  => $thisMonthSales,
+                'sellers_breakdown' => $sellersBreakdown,
+            ];
+        }, [
+            'total_sellers'     => 0,
+            'total_bills'       => 0,
+            'total_sales'       => 0.0,
+            'total_paid'        => 0.0,
+            'total_due'         => 0.0,
+            'today_sales'       => 0.0,
+            'this_month_sales'  => 0.0,
+            'sellers_breakdown' => collect(),
+        ]);
+    }
+
+    /**
      * Resolve filter dates into Carbon instances.
      */
     private function resolveDateRange(?string $from, ?string $to, string $period): array

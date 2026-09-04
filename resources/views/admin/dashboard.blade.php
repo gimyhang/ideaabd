@@ -779,6 +779,148 @@
     </div>
 
     {{-- ========================================================================= --}}
+    {{-- 6. ALL SELLERS & DEALERS ACCOUNTING & REVENUE HUB (অল সেলার বিক্রয় হিসাব)   --}}
+    {{-- ========================================================================= --}}
+    @php
+        $sSummary = $sellersSummary ?? [];
+        $sBreakdown = $sSummary['sellers_breakdown'] ?? collect();
+    @endphp
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
+        <div class="card-header bg-white py-3 px-4 border-bottom d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <div>
+                <h5 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                    <span class="badge bg-success-subtle text-success p-2 rounded-circle"><i class="fas fa-store"></i></span>
+                    <span>অল সেলার ও ডিলার বিক্রয় হিসাব (All Sellers Accounting Hub)</span>
+                </h5>
+                <small class="text-muted">সকল অনুমোদিত বিক্রেতা, পয়েন্ট অব সেল (POS) ও আউটলেটের সামগ্রিক বিক্রয় ও বকেয়া রিপোর্ট</small>
+            </div>
+            <div class="d-flex flex-wrap align-items-center gap-2">
+                <a href="{{ route('subadmin.dashboard') }}" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold">
+                    <i class="fas fa-gauge-high me-1"></i> সেলার সেন্ট্রাল ড্যাশবোর্ড
+                </a>
+                <a href="{{ route('subadmin.bills.index') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-semibold">
+                    <i class="fas fa-file-invoice-dollar me-1"></i> সকল বিল (@bn($sSummary['total_bills'] ?? 0))
+                </a>
+                <a href="{{ route('subadmin.accounts') }}" class="btn btn-sm btn-outline-info rounded-pill px-3 fw-semibold">
+                    <i class="fas fa-wallet me-1"></i> হিসাব বিবরণী
+                </a>
+            </div>
+        </div>
+
+        <div class="card-body p-3 p-md-4">
+            {{-- Quick Financial Summary Row --}}
+            <div class="row g-2.5 mb-4">
+                <div class="col-6 col-md-3">
+                    <div class="p-3 bg-light rounded-3 border h-100 border-start border-4 border-primary">
+                        <small class="text-muted d-block fw-semibold" style="font-size: 0.8rem;">সর্বমোট সেলার বিক্রয়</small>
+                        <div class="fs-5 fw-bold text-primary font-monospace mt-1">৳{{ number_format($sSummary['total_sales'] ?? 0, 2) }}</div>
+                        <small class="text-muted" style="font-size: 0.75rem;">ইস্যুকৃত মোট বিল: @bn($sSummary['total_bills'] ?? 0)টি</small>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="p-3 bg-success-subtle bg-opacity-40 rounded-3 border border-success-subtle h-100 border-start border-4 border-success">
+                        <small class="text-success-emphasis d-block fw-semibold" style="font-size: 0.8rem;">পরিশোধিত মোট ক্যাশ</small>
+                        <div class="fs-5 fw-bold text-success font-monospace mt-1">৳{{ number_format($sSummary['total_paid'] ?? 0, 2) }}</div>
+                        <small class="text-success-emphasis" style="font-size: 0.75rem;">সংগৃহীত বিক্রয় মূল্য</small>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="p-3 bg-danger-subtle bg-opacity-40 rounded-3 border border-danger-subtle h-100 border-start border-4 border-danger">
+                        <small class="text-danger-emphasis d-block fw-semibold" style="font-size: 0.8rem;">সর্বমোট বকেয়া ব্যালেন্স</small>
+                        <div class="fs-5 fw-bold text-danger font-monospace mt-1">৳{{ number_format($sSummary['total_due'] ?? 0, 2) }}</div>
+                        <small class="text-danger-emphasis" style="font-size: 0.75rem;">সকল সেলারের বাকি পাওনা</small>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="p-3 bg-warning-subtle bg-opacity-40 rounded-3 border border-warning-subtle h-100 border-start border-4 border-warning">
+                        <small class="text-warning-emphasis d-block fw-semibold" style="font-size: 0.8rem;">চলতি মাসের বিক্রয়</small>
+                        <div class="fs-5 fw-bold text-warning-emphasis font-monospace mt-1">৳{{ number_format($sSummary['this_month_sales'] ?? 0, 2) }}</div>
+                        <small class="text-muted" style="font-size: 0.75rem;">আজকের সেল: ৳{{ number_format($sSummary['today_sales'] ?? 0, 0) }}</small>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Sellers Performance Table --}}
+            <div class="table-responsive border rounded-3 overflow-hidden">
+                <table class="table table-hover align-middle mb-0 small">
+                    <thead class="table-light text-secondary">
+                        <tr>
+                            <th class="ps-3">সেলার ও শপ নাম</th>
+                            <th>মোবাইল / যোগাযোগ</th>
+                            <th>মোট বিল</th>
+                            <th>মোট বিক্রয়</th>
+                            <th>পরিশোধিত ক্যাশ</th>
+                            <th>বকেয়া ব্যালেন্স</th>
+                            <th class="text-end pe-3">অ্যাকশন</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($sBreakdown as $sb)
+                            @php
+                                $sUser = $sb->seller;
+                                $sName = $sUser ? ($sUser->reg_data['shop_name'] ?? $sUser->name) : 'অজানা বিক্রেতা';
+                            @endphp
+                            <tr>
+                                <td class="ps-3">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="rounded-circle bg-primary-subtle text-primary p-2 d-flex align-items-center justify-content-center fw-bold" style="width: 34px; height: 34px; font-size: 13px;">
+                                            <i class="fas fa-store"></i>
+                                        </div>
+                                        <div>
+                                            <a href="{{ route('subadmin.dashboard', ['seller_id' => $sb->seller_id]) }}" class="fw-bold text-dark text-decoration-none">
+                                                {{ $sName }}
+                                            </a>
+                                            @if($sUser && $sUser->name !== $sName)
+                                                <small class="text-muted d-block" style="font-size: 11px;">প্রোপাইটার: {{ $sUser->name }}</small>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="font-monospace text-muted">{{ $sUser->phone ?? '—' }}</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-dark border font-monospace px-2.5 py-1">@bn($sb->total_bills)টি</span>
+                                </td>
+                                <td>
+                                    <span class="fw-bold text-dark font-monospace">৳{{ number_format($sb->total_sales, 2) }}</span>
+                                </td>
+                                <td>
+                                    <span class="fw-bold text-success font-monospace">৳{{ number_format($sb->paid_amount, 2) }}</span>
+                                </td>
+                                <td>
+                                    @if($sb->due_amount > 0)
+                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle font-monospace px-2.5 py-1">৳{{ number_format($sb->due_amount, 2) }}</span>
+                                    @else
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-0.5"><i class="fas fa-check"></i> পরিশোধিত</span>
+                                    @endif
+                                </td>
+                                <td class="text-end pe-3">
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{{ route('subadmin.dashboard', ['seller_id' => $sb->seller_id]) }}" class="btn btn-outline-primary" title="এই সেলারের স্বতন্ত্র ড্যাশবোর্ড দেখুন">
+                                            <i class="fas fa-gauge-high me-1"></i> ড্যাশবোর্ড
+                                        </a>
+                                        <a href="{{ route('subadmin.bills.index', ['seller_id' => $sb->seller_id]) }}" class="btn btn-outline-secondary" title="বিল তালিকা">
+                                            <i class="fas fa-file-invoice"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="7" class="text-center py-4 text-muted">
+                                    <i class="fas fa-store-slash text-muted fs-3 mb-2 d-block"></i>
+                                    কোনো সেলারের বিলের রেকর্ড এখনো পাওয়া যায়নি।
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    {{-- ========================================================================= --}}
     {{-- 7. SYSTEM HEALTH & AUTHOR ROYALTIES FINANCIAL PIPELINE                     --}}
     {{-- ========================================================================= --}}
     <div class="row g-3">

@@ -502,13 +502,13 @@ class LoginController extends Controller
                 if ($matchedUser->isAdmin()) {
                     return redirect()->intended(route('admin.dashboard'));
                 }
-                if ($matchedUser->isSeller() || $matchedUser->isSubAdmin()) {
-                    return redirect()->intended(route('subadmin.bills.index'));
+                if ($matchedUser->isSeller() || $matchedUser->isSubAdmin() || $matchedUser->reg_type === 'seller') {
+                    return redirect()->intended(route('subadmin.dashboard'));
                 }
-                if ($matchedUser->isPublisher()) {
+                if ($matchedUser->isPublisher() || $matchedUser->reg_type === 'publisher') {
                     return redirect()->intended(route('publisher.dashboard'));
                 }
-                if ($matchedUser->isAuthor()) {
+                if ($matchedUser->isAuthor() || $matchedUser->reg_type === 'author') {
                     return redirect()->intended(route('author.dashboard'));
                 }
                 if ($matchedUser->isBuyer()) {

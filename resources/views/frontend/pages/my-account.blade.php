@@ -43,7 +43,17 @@
                     <div class="d-flex align-items-center gap-2">
                         <h4 class="fw-bold mb-0 text-white">{{ $user->name }}</h4>
                         <span class="badge bg-warning text-dark rounded-pill small px-2.5 py-0.5 fw-bold">
-                            {{ $user->role === 'author' ? 'লেখক সদস্য' : ($user->role === 'publisher' ? 'প্রকাশক সদস্য' : 'সম্মানিত পাঠক') }}
+                            @if($user->isAdmin())
+                                👑 অ্যাডমিন
+                            @elseif($user->isSeller() || $user->isSubAdmin() || $user->reg_type === 'seller')
+                                💼 সেলার সদস্য
+                            @elseif($user->role === 'publisher' || $user->reg_type === 'publisher')
+                                🏢 প্রকাশক সদস্য
+                            @elseif($user->role === 'author' || $user->reg_type === 'author')
+                                ✍️ লেখক সদস্য
+                            @else
+                                👤 সম্মানিত পাঠক
+                            @endif
                         </span>
                     </div>
                     <div class="small opacity-90 text-light mt-1 d-flex flex-wrap align-items-center gap-3">
@@ -56,7 +66,27 @@
             </div>
 
             <div class="d-flex flex-wrap align-items-center gap-2">
-                <a href="{{ route('book.index') }}" class="btn btn-warning text-dark rounded-pill px-4 py-2 fw-bold shadow-sm">
+                @if($user->isAdmin() && Route::has('admin.dashboard'))
+                    <a href="{{ route('admin.dashboard') }}" class="btn btn-warning text-dark rounded-pill px-3.5 py-2 fw-bold shadow-sm">
+                        <i class="fas fa-gauge-high me-1.5"></i> অ্যাডমিন প্যানেল
+                    </a>
+                @endif
+                @if(($user->isSeller() || $user->isSubAdmin() || $user->reg_type === 'seller') && Route::has('subadmin.dashboard'))
+                    <a href="{{ route('subadmin.dashboard') }}" class="btn btn-warning text-dark rounded-pill px-3.5 py-2 fw-bold shadow-sm">
+                        <i class="fas fa-store me-1.5"></i> সেলার ড্যাশবোর্ড
+                    </a>
+                @endif
+                @if(($user->isPublisher() || $user->reg_type === 'publisher') && Route::has('publisher.dashboard'))
+                    <a href="{{ route('publisher.dashboard') }}" class="btn btn-success text-white rounded-pill px-3.5 py-2 fw-bold shadow-sm">
+                        <i class="fas fa-building me-1.5"></i> পাবলিশার ড্যাশবোর্ড
+                    </a>
+                @endif
+                @if(($user->isAuthor() || $user->reg_type === 'author') && Route::has('author.dashboard'))
+                    <a href="{{ route('author.dashboard') }}" class="btn btn-info text-dark rounded-pill px-3.5 py-2 fw-bold shadow-sm">
+                        <i class="fas fa-feather-pointed me-1.5"></i> লেখক ড্যাশবোর্ড
+                    </a>
+                @endif
+                <a href="{{ route('book.index') }}" class="btn btn-light text-dark rounded-pill px-3.5 py-2 fw-bold shadow-sm">
                     <i class="fas fa-bag-shopping me-1.5"></i> বই কিনুন (Shop)
                 </a>
             </div>

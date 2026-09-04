@@ -328,7 +328,7 @@
                                         {{ $books->links() }}
                                     </div>
                                 @endif
-                                <a href="{{ route('books.index', ['author_id' => $author->id]) }}" class="btn btn-outline-primary btn-sm rounded-pill px-4 py-1.5 fw-bold shadow-2xs">
+                                <a href="{{ route('book.index', ['author_id' => $author->id]) }}" class="btn btn-outline-primary btn-sm rounded-pill px-4 py-1.5 fw-bold shadow-2xs">
                                     <i class="fa-solid fa-book-open me-1"></i> লেখকের প্রকাশিত সকল বই দেখুন (@bn($booksCount)টি) →
                                 </a>
                             </div>

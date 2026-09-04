@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\SubAdmin;
 
+use App\Http\Controllers\Admin\IdeaAccountingController;
 use App\Http\Controllers\Controller;
 use App\Models\Bill;
 use App\Models\User;
@@ -16,6 +17,7 @@ class BillingController extends Controller
     {
         $isAdmin = auth()->user()->isAdmin();
         $sellerId = $request->input('seller_id');
+        $type = $request->input('type');
         $status = $request->input('payment_status');
         $method = $request->input('payment_method');
         $datePreset = $request->input('date_preset');
@@ -27,6 +29,7 @@ class BillingController extends Controller
             ->with('seller')
             ->when(! $isAdmin, fn ($q) => $q->where('seller_id', auth()->id()))
             ->when($isAdmin && $sellerId, fn ($q) => $q->where('seller_id', $sellerId))
+            ->when($type, fn ($q) => $q->where('type', $type))
             ->when($status, fn ($q) => $q->where('payment_status', $status))
             ->when($method, fn ($q) => $q->where('payment_method', $method))
             ->when($datePreset, function ($q, $preset) {
@@ -47,8 +50,11 @@ class BillingController extends Controller
                 $q->where(function ($w) use ($like) {
                     $w->where('bill_no', 'like', $like)
                       ->orWhere('customer_name', 'like', $like)
+                      ->orWhere('customer_org', 'like', $like)
                       ->orWhere('customer_phone', 'like', $like)
-                      ->orWhere('customer_email', 'like', $like);
+                      ->orWhere('customer_email', 'like', $like)
+                      ->orWhere('reference_no', 'like', $like)
+                      ->orWhere('subject', 'like', $like);
                 });
             })
             ->orderByDesc('created_at');
@@ -61,16 +67,20 @@ class BillingController extends Controller
 
         $stats = [
             'total'     => (clone $baseStatQuery)->count(),
+            'invoices'  => (clone $baseStatQuery)->where(fn($q) => $q->where('type', 'invoice')->orWhereNull('type'))->count(),
+            'challans'  => (clone $baseStatQuery)->where('type', 'challan')->count(),
             'paid'      => (clone $baseStatQuery)->where('payment_status', 'paid')->count(),
             'unpaid'    => (clone $baseStatQuery)->where('payment_status', 'unpaid')->count(),
             'partial'   => (clone $baseStatQuery)->where('payment_status', 'partial')->count(),
-            'revenue'   => (float) (clone $baseStatQuery)->where('payment_status', 'paid')->sum('total'),
-            'due'       => (float) (clone $baseStatQuery)->where('payment_status', '!=', 'paid')->sum('total'),
+            'revenue'   => (float) (clone $baseStatQuery)->sum('paid_amount'),
+            'due'       => (float) (clone $baseStatQuery)->sum('due_amount'),
+            'grand_total' => (float) (clone $baseStatQuery)->sum('total'),
         ];
 
         $sellers = $isAdmin ? User::whereIn('role', [User::ROLE_ADMIN, User::ROLE_SUB_ADMIN, User::ROLE_SELLER])->orderBy('name')->pluck('name', 'id')->all() : [];
+        $invoiceSettings = IdeaAccountingController::getInvoiceSettings();
 
-        return view('subadmin.billing.index', compact('bills', 'stats', 'sellers', 'isAdmin'));
+        return view('subadmin.billing.index', compact('bills', 'stats', 'sellers', 'isAdmin', 'type', 'invoiceSettings'));
     }
 
     /**
@@ -84,6 +94,8 @@ class BillingController extends Controller
 
         $bill->update([
             'payment_status' => 'paid',
+            'paid_amount'    => $bill->total,
+            'due_amount'     => 0,
         ]);
 
         return back()->with('success', "বিল #{$bill->bill_no} পরিশোধিত (Paid) হিসেবে চিহ্নিত করা হয়েছে।");
@@ -98,16 +110,18 @@ class BillingController extends Controller
             abort_unless($bill->seller_id === auth()->id(), 403);
         }
 
-        return view('subadmin.billing.receipt', compact('bill'));
+        $invoiceSettings = IdeaAccountingController::getInvoiceSettings();
+        return view('subadmin.billing.receipt', compact('bill', 'invoiceSettings'));
     }
 
     /**
-     * Export filtered bills to CSV.
+     * Export bills to CSV with Bengali UTF-8 encoding.
      */
     public function exportCsv(Request $request)
     {
         $isAdmin = auth()->user()->isAdmin();
         $sellerId = $request->input('seller_id');
+        $type = $request->input('type');
         $status = $request->input('payment_status');
         $method = $request->input('payment_method');
         $datePreset = $request->input('date_preset');
@@ -119,6 +133,7 @@ class BillingController extends Controller
             ->with('seller')
             ->when(! $isAdmin, fn ($q) => $q->where('seller_id', auth()->id()))
             ->when($isAdmin && $sellerId, fn ($q) => $q->where('seller_id', $sellerId))
+            ->when($type, fn ($q) => $q->where('type', $type))
             ->when($status, fn ($q) => $q->where('payment_status', $status))
             ->when($method, fn ($q) => $q->where('payment_method', $method))
             ->when($datePreset, function ($q, $preset) {
@@ -139,6 +154,7 @@ class BillingController extends Controller
                 $q->where(function ($w) use ($like) {
                     $w->where('bill_no', 'like', $like)
                       ->orWhere('customer_name', 'like', $like)
+                      ->orWhere('customer_org', 'like', $like)
                       ->orWhere('customer_phone', 'like', $like)
                       ->orWhere('customer_email', 'like', $like);
                 });
@@ -153,22 +169,25 @@ class BillingController extends Controller
 
         $callback = function () use ($bills) {
             $file = fopen('php://output', 'w');
-            // Write UTF-8 BOM for Bengali support in Excel
             fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
 
-            fputcsv($file, ['Bill No', 'Date', 'Customer Name', 'Phone', 'Seller', 'Items Count', 'Subtotal', 'Discount', 'Total Amount', 'Payment Method', 'Payment Status']);
+            fputcsv($file, ['Document No', 'Type', 'Date', 'Customer Name', 'Organization', 'Phone', 'Seller', 'Items Count', 'Subtotal', 'Discount', 'Total Amount', 'Paid Amount', 'Due Amount', 'Payment Method', 'Payment Status']);
 
             foreach ($bills as $b) {
                 fputcsv($file, [
                     $b->bill_no,
-                    $b->created_at->format('Y-m-d H:i:s'),
+                    strtoupper($b->type ?? 'INVOICE'),
+                    ($b->bill_date ?? $b->created_at)->format('Y-m-d'),
                     $b->customer_name,
-                    $b->customer_phone,
+                    $b->customer_org ?? '',
+                    $b->customer_phone ?? '',
                     $b->seller->name ?? 'N/A',
                     count($b->items ?? []),
                     $b->subtotal,
                     $b->discount,
                     $b->total,
+                    $b->paid_amount,
+                    $b->due_amount,
                     strtoupper($b->payment_method ?? 'CASH'),
                     strtoupper($b->payment_status ?? 'PAID'),
                 ]);
@@ -196,7 +215,11 @@ class BillingController extends Controller
             ->when(! $isAdmin, fn ($q) => $q->where('seller_id', auth()->id()));
 
         if ($action === 'mark_paid') {
-            $count = $query->update(['payment_status' => 'paid']);
+            $count = $query->update([
+                'payment_status' => 'paid',
+                'due_amount'     => 0,
+                'paid_amount'    => DB::raw('total'),
+            ]);
             return back()->with('success', "{$count} টি বিলকে সফলভাবে পরিশোধিত (Paid) হিসেবে চিহ্নিত করা হয়েছে।");
         } elseif ($action === 'delete') {
             $count = $query->delete();
@@ -206,22 +229,34 @@ class BillingController extends Controller
         return back();
     }
 
-    public function create()
+    public function create(Request $request)
     {
-        return view('subadmin.billing.create');
+        $selectedType = $request->query('type', 'invoice');
+        $invoiceSettings = IdeaAccountingController::getInvoiceSettings();
+        
+        $suggestedNo = match($selectedType) {
+            'challan'   => 'CH-' . date('Ymd') . '-' . strtoupper(substr(uniqid(), -4)),
+            'quotation' => 'QUO-' . date('Ymd') . '-' . strtoupper(substr(uniqid(), -4)),
+            default     => 'BILL-' . date('Ymd') . '-' . strtoupper(substr(uniqid(), -4)),
+        };
+
+        return view('subadmin.billing.create', compact('selectedType', 'invoiceSettings', 'suggestedNo'));
     }
 
     public function store(Request $request)
     {
         $data = $this->validateBill($request);
-
         $billData = $this->calculateBillTotals($data);
         $billData['seller_id'] = auth()->id();
+
+        if (!empty($request->bill_no)) {
+            $billData['bill_no'] = $request->bill_no;
+        }
 
         $bill = Bill::create($billData);
 
         return redirect()->route('subadmin.bills.show', $bill)
-            ->with('success', "বিল #{$bill->bill_no} সফলভাবে তৈরি হয়েছে।");
+            ->with('success', "{$bill->type_label} #{$bill->bill_no} সফলভাবে তৈরি হয়েছে।");
     }
 
     public function show(Bill $bill)
@@ -230,7 +265,8 @@ class BillingController extends Controller
             abort_unless($bill->seller_id === auth()->id(), 403);
         }
 
-        return view('subadmin.billing.show', compact('bill'));
+        $invoiceSettings = IdeaAccountingController::getInvoiceSettings();
+        return view('subadmin.billing.show', compact('bill', 'invoiceSettings'));
     }
 
     public function edit(Bill $bill)
@@ -239,7 +275,8 @@ class BillingController extends Controller
             abort_unless($bill->seller_id === auth()->id(), 403);
         }
 
-        return view('subadmin.billing.edit', compact('bill'));
+        $invoiceSettings = IdeaAccountingController::getInvoiceSettings();
+        return view('subadmin.billing.edit', compact('bill', 'invoiceSettings'));
     }
 
     public function update(Request $request, Bill $bill)
@@ -254,7 +291,7 @@ class BillingController extends Controller
         $bill->update($billData);
 
         return redirect()->route('subadmin.bills.show', $bill)
-            ->with('success', "বিল #{$bill->bill_no} সফলভাবে আপডেট করা হয়েছে।");
+            ->with('success', "{$bill->type_label} #{$bill->bill_no} সফলভাবে আপডেট করা হয়েছে।");
     }
 
     public function destroy(Bill $bill)
@@ -309,7 +346,7 @@ class BillingController extends Controller
                 }
             })
             ->limit(20)
-            ->get(['id', 'title', 'price', 'discount_price', 'stock_quantity', 'cover_type', 'isbn', 'cover_image'])
+            ->get(['id', 'title', 'author_name', 'price', 'discount_price', 'stock_quantity', 'cover_type', 'isbn', 'cover_image'])
             ->map(function ($book) {
                 $regularPrice = (float) ($book->price ?? 0);
                 $discountPrice = $book->discount_price !== null && (float) $book->discount_price > 0
@@ -324,6 +361,7 @@ class BillingController extends Controller
                 return [
                     'id'             => $book->id,
                     'title'          => $book->title,
+                    'author_name'    => $book->author_name ?? $book->authors->pluck('name')->first() ?? '',
                     'regular_price'  => $regularPrice,
                     'discount_price' => $discountPrice,
                     'selling_price'  => $effectivePrice,
@@ -341,21 +379,32 @@ class BillingController extends Controller
     private function validateBill(Request $request): array
     {
         return $request->validate([
+            'type'                   => 'nullable|string|in:invoice,challan,quotation',
+            'subject'                => 'nullable|string|max:255',
+            'reference_no'           => 'nullable|string|max:100',
+            'bill_date'              => 'nullable|date',
             'customer_name'          => 'required|string|max:255',
+            'customer_org'           => 'nullable|string|max:255',
+            'customer_designation'   => 'nullable|string|max:150',
             'customer_phone'         => 'nullable|string|max:20',
             'customer_email'         => 'nullable|email|max:255',
+            'customer_address'       => 'nullable|string|max:500',
             'items'                  => 'required|array|min:1',
             'items.*.book_id'        => 'nullable|integer',
             'items.*.title'          => 'required|string|max:500',
+            'items.*.author'         => 'nullable|string|max:255',
             'items.*.qty'            => 'required|integer|min:1',
             'items.*.price'          => 'required|numeric|min:0',
             'items.*.discount_pct'   => 'nullable|numeric|min:0|max:100',
             'special_discount_type'  => 'nullable|in:percent,fixed',
             'special_discount_value' => 'nullable|numeric|min:0',
             'discount'               => 'nullable|numeric|min:0',
+            'tax'                    => 'nullable|numeric|min:0',
+            'paid_amount'            => 'nullable|numeric|min:0',
             'payment_method'         => 'required|in:cash,bkash,nagad,card',
             'payment_status'         => 'required|in:unpaid,paid,partial',
             'notes'                  => 'nullable|string|max:2000',
+            'terms_conditions'       => 'nullable|string|max:2000',
         ]);
     }
 
@@ -382,6 +431,7 @@ class BillingController extends Controller
             $processedItems[] = [
                 'book_id'          => !empty($item['book_id']) ? (int)$item['book_id'] : null,
                 'title'            => $item['title'],
+                'author'           => $item['author'] ?? null,
                 'qty'              => $qty,
                 'price'            => $unitPrice,
                 'discount_pct'     => $itemDiscountPct,
@@ -403,20 +453,56 @@ class BillingController extends Controller
         }
 
         $totalDiscount = $itemsDiscountTotal + $specialDiscountAmount;
-        $grandTotal = max(0, $rawSubtotal - $totalDiscount);
+        $tax = max(0, (float) ($data['tax'] ?? 0));
+        $grandTotal = max(0, ($rawSubtotal - $totalDiscount) + $tax);
+
+        $paidAmount = isset($data['paid_amount']) ? max(0, (float) $data['paid_amount']) : null;
+        $paymentStatus = $data['payment_status'] ?? 'paid';
+
+        if ($paidAmount === null) {
+            if ($paymentStatus === 'paid') {
+                $paidAmount = $grandTotal;
+                $dueAmount = 0.0;
+            } elseif ($paymentStatus === 'unpaid') {
+                $paidAmount = 0.0;
+                $dueAmount = $grandTotal;
+            } else {
+                $paidAmount = 0.0;
+                $dueAmount = $grandTotal;
+            }
+        } else {
+            $dueAmount = max(0, $grandTotal - $paidAmount);
+            if ($paidAmount >= $grandTotal && $grandTotal > 0) {
+                $paymentStatus = 'paid';
+            } elseif ($paidAmount > 0 && $dueAmount > 0) {
+                $paymentStatus = 'partial';
+            } elseif ($paidAmount == 0) {
+                $paymentStatus = 'unpaid';
+            }
+        }
 
         return [
+            'type'                   => $data['type'] ?? 'invoice',
+            'subject'                => $data['subject'] ?? null,
+            'reference_no'           => $data['reference_no'] ?? null,
+            'bill_date'              => !empty($data['bill_date']) ? $data['bill_date'] : now()->toDateString(),
             'customer_name'          => $data['customer_name'],
+            'customer_org'           => $data['customer_org'] ?? null,
+            'customer_designation'   => $data['customer_designation'] ?? null,
             'customer_phone'         => $data['customer_phone'] ?? null,
             'customer_email'         => $data['customer_email'] ?? null,
+            'customer_address'       => $data['customer_address'] ?? null,
             'items'                  => $processedItems,
             'subtotal'               => $rawSubtotal,
             'discount'               => $totalDiscount,
-            'tax'                    => 0,
+            'tax'                    => $tax,
             'total'                  => $grandTotal,
+            'paid_amount'            => $paidAmount,
+            'due_amount'             => $dueAmount,
             'payment_method'         => $data['payment_method'],
-            'payment_status'         => $data['payment_status'],
+            'payment_status'         => $paymentStatus,
             'notes'                  => $data['notes'] ?? null,
+            'terms_conditions'       => $data['terms_conditions'] ?? null,
         ];
     }
 
@@ -437,17 +523,18 @@ class BillingController extends Controller
         }
 
         $totalSales = (float) (clone $billsQuery)->sum('total');
-        $paidSales = (float) (clone $billsQuery)->where('payment_status', 'paid')->sum('total');
-        $unpaidDue = (float) (clone $billsQuery)->where('payment_status', 'unpaid')->sum('total');
+        $paidSales = (float) (clone $billsQuery)->sum('paid_amount');
+        $unpaidDue = (float) (clone $billsQuery)->sum('due_amount');
 
-        $cashCollection = (float) (clone $billsQuery)->where('payment_status', 'paid')->where('payment_method', 'cash')->sum('total');
-        $bkashCollection = (float) (clone $billsQuery)->where('payment_status', 'paid')->where('payment_method', 'bkash')->sum('total');
-        $nagadCollection = (float) (clone $billsQuery)->where('payment_status', 'paid')->where('payment_method', 'nagad')->sum('total');
-        $cardCollection = (float) (clone $billsQuery)->where('payment_status', 'paid')->where('payment_method', 'card')->sum('total');
+        $cashCollection = (float) (clone $billsQuery)->where('payment_method', 'cash')->sum('paid_amount');
+        $bkashCollection = (float) (clone $billsQuery)->where('payment_method', 'bkash')->sum('paid_amount');
+        $nagadCollection = (float) (clone $billsQuery)->where('payment_method', 'nagad')->sum('paid_amount');
+        $cardCollection = (float) (clone $billsQuery)->where('payment_method', 'card')->sum('paid_amount');
 
         $recentBills = $billsQuery->latest()->take(25)->get();
 
         $allSellers = $isAdmin ? User::whereIn('role', [User::ROLE_ADMIN, User::ROLE_SUB_ADMIN, User::ROLE_SELLER])->get() : collect([$seller]);
+        $invoiceSettings = IdeaAccountingController::getInvoiceSettings();
 
         return view('subadmin.billing.accounts', compact(
             'seller',
@@ -461,7 +548,7 @@ class BillingController extends Controller
             'recentBills',
             'allSellers',
             'isAdmin',
-            'targetSellerId'
+            'invoiceSettings'
         ));
     }
 }

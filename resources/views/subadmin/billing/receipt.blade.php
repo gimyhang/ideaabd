@@ -2,7 +2,7 @@
 <html lang="bn">
 <head>
     <meta charset="utf-8">
-    <title>Receipt #{{ $bill->bill_no }} — {{ config('brand.name', 'আইডিয়া প্রকাশন') }}</title>
+    <title>Receipt #{{ $bill->bill_no }} — {{ $invoiceSettings['company_name'] ?? config('brand.name', 'আইডিয়া প্রকাশন') }}</title>
     <style>
         body {
             font-family: monospace, 'Hind Siliguri', sans-serif;
@@ -37,16 +37,18 @@
     </div>
 
     <div class="text-center">
-        <h3 style="margin:0 0 2px 0;">{{ config('brand.name', 'আইডিয়া প্রকাশন') }}</h3>
-        <div style="font-size: 11px;">{{ config('brand.tagline', 'বই হোক মননশীল জীবনের অংশ') }}</div>
-        <div style="font-size: 10px;">{{ config('brand.phone', '01712-345678') }} | www.ideaabd.com</div>
+        <h3 style="margin:0 0 2px 0;">{{ $invoiceSettings['company_name'] ?? config('brand.name', 'আইডিয়া প্রকাশন') }}</h3>
+        <div style="font-size: 11px;">{{ $invoiceSettings['company_tagline'] ?? config('brand.tagline', 'বই হোক মননশীল জীবনের অংশ') }}</div>
+        <div style="font-size: 10px;">{{ $invoiceSettings['office_phone'] ?? '01712-345678' }} | www.ideaabd.com</div>
         <div class="border-top my-1"></div>
-        <div><strong>CASH RECEIPT / ইনভয়েস</strong></div>
-        <div>Bill: #{{ $bill->bill_no }}</div>
-        <div>Date: {{ $bill->created_at->format('d/m/Y h:i A') }}</div>
+        <div><strong>{{ strtoupper($bill->type_label) }}</strong></div>
+        <div>Memo: #{{ $bill->bill_no }}</div>
+        <div>Date: {{ ($bill->bill_date ?? $bill->created_at)->format('d/m/Y h:i A') }}</div>
         <div>Seller: {{ $bill->seller->name ?? 'সেলার' }}</div>
         @if($bill->customer_name)
-            <div>Customer: {{ $bill->customer_name }} ({{ $bill->customer_phone ?: '—' }})</div>
+            <div>Customer: {{ $bill->customer_name }}</div>
+            @if($bill->customer_org) <div>Org: {{ $bill->customer_org }}</div> @endif
+            @if($bill->customer_phone) <div>Phone: {{ $bill->customer_phone }}</div> @endif
         @endif
         <div class="border-bottom my-1"></div>
     </div>
@@ -99,6 +101,16 @@
             <td align="right" style="padding-top: 4px;">৳{{ number_format($bill->total, 2) }}</td>
         </tr>
         <tr>
+            <td>পরিশোধিত (Paid):</td>
+            <td align="right">৳{{ number_format($bill->paid_amount ?? $bill->total, 2) }}</td>
+        </tr>
+        @if($bill->due_amount > 0)
+        <tr style="color: #c00; font-weight: bold;">
+            <td>বকেয়া (Due):</td>
+            <td align="right">৳{{ number_format($bill->due_amount, 2) }}</td>
+        </tr>
+        @endif
+        <tr>
             <td>পেমেন্ট মেথড:</td>
             <td align="right">{{ strtoupper($bill->payment_method ?? 'CASH') }}</td>
         </tr>
@@ -119,7 +131,7 @@
     <div class="border-top my-1"></div>
     <div class="text-center" style="font-size: 10px; margin-top: 8px;">
         *** ধন্যবাদ, আবার আসবেন ***<br>
-        আইডিয়া প্রকাশন — জ্ঞান ও চিন্তার মেলবন্ধন
+        {{ $invoiceSettings['company_name'] ?? 'আইডিয়া প্রকাশন' }} — জ্ঞান ও চিন্তার মেলবন্ধন
     </div>
 </body>
 </html>

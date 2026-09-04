@@ -195,18 +195,73 @@ class RegistrationController extends Controller
             }
         }
 
+        // Format type label
+        $typeLabels = [
+            'buyer'     => 'সাধারণ পাঠক / ক্রেতা',
+            'author'    => 'লেখক ও গবেষক',
+            'seller'    => 'সেলার / বই বিক্রেতা ও ডিলার',
+            'publisher' => 'প্রকাশনী ও কোম্পানি',
+        ];
+        $typeLabel = $typeLabels[$type] ?? ucfirst($type);
+
+        $registrationSummary = [
+            'user_id'        => $user->id,
+            'name'           => $user->name,
+            'email'          => $user->email,
+            'phone'          => $user->phone,
+            'type'           => $type,
+            'type_label'     => $typeLabel,
+            'is_active'      => $isActive,
+            'reg_status'     => $regStatus,
+            'created_at'     => now()->format('d M, Y - h:i A'),
+            'shop_name'      => $extra['shop_name'] ?? null,
+            'publisher_name' => $extra['publisher_name'] ?? null,
+            'pen_name'       => $extra['pen_name'] ?? null,
+        ];
+
+        session(['registration_summary' => $registrationSummary]);
+
         if ($type === 'buyer') {
             auth()->login($user);
-            return redirect('/')->with('success', "আপনার রেজিস্ট্রেশন সফল হয়েছে! স্বাগতম {$user->name}। আপনার অ্যাকাউন্টটি সক্রিয় রয়েছে।");
         }
 
-        // For author, seller, publisher: Do NOT login automatically. Redirect to pending approval notice.
-        return redirect()->route('pending.approval')
-            ->with('success', 'আপনার রেজিস্ট্রেশন সফল হয়েছে। ২৪ ঘণ্টার মধ্যে একটিভ না হলে সাপোর্ট টিমকে অবগত করুন।');
+        return redirect()->route('register.success')
+            ->with('success', 'আপনার রেজিস্ট্রেশন ও আবেদন সফলভাবে গৃহীত হয়েছে!');
     }
 
-    public function pendingApproval()
+    /**
+     * Display dedicated Registration Success & Submitted confirmation page.
+     */
+    public function registrationSuccess(Request $request)
     {
-        return view('auth.pending-approval');
+        $summary = session('registration_summary');
+        $user = auth()->user();
+
+        if (!$summary && $user) {
+            $typeLabels = [
+                'buyer'     => 'সাধারণ পাঠক / ক্রেতা',
+                'author'    => 'লেখক ও গবেষক',
+                'seller'    => 'সেলার / বই বিক্রেতা ও ডিলার',
+                'publisher' => 'প্রকাশনী ও কোম্পানি',
+            ];
+            $summary = [
+                'user_id'    => $user->id,
+                'name'       => $user->name,
+                'email'      => $user->email,
+                'phone'      => $user->phone,
+                'type'       => $user->reg_type ?: ($user->role ?: 'buyer'),
+                'type_label' => $typeLabels[$user->reg_type ?: $user->role] ?? 'ব্যবহারকারী অ্যাকাউন্ট',
+                'is_active'  => (bool) $user->is_active,
+                'reg_status' => $user->reg_status,
+                'created_at' => $user->created_at ? $user->created_at->format('d M, Y - h:i A') : now()->format('d M, Y - h:i A'),
+            ];
+        }
+
+        return view('auth.registration-success', compact('summary'));
+    }
+
+    public function pendingApproval(Request $request)
+    {
+        return $this->registrationSuccess($request);
     }
 }

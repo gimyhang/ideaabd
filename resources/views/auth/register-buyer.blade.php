@@ -94,11 +94,13 @@
                             <span>রেজিস্ট্রেশন সম্পন্ন হলেই সরাসরি ক্যাশ অন ডেলিভারিতে বই কিনতে পারবেন।</span>
                         </div>
 
-                        <button type="submit" class="btn w-100 py-2.5 fw-bold text-white rounded-pill shadow-sm" style="background:#fd7e14">
-                            <i class="fa-solid fa-user-plus me-1.5"></i> অ্যাকাউন্ট তৈরি করুন
+                        <button type="submit" class="btn w-100 py-3 fw-bold text-white rounded-pill shadow-xs d-flex align-items-center justify-content-center gap-2" id="buyerSubmitBtn" style="background:#fd7e14; font-size: 15.5px;">
+                            <span class="spinner-border spinner-border-sm d-none" id="buyerSubmitSpinner" role="status"></span>
+                            <i class="fa-solid fa-user-plus" id="buyerSubmitIcon"></i>
+                            <span id="buyerSubmitText">অ্যাকাউন্ট তৈরি সম্পন্ন করুন</span>
                         </button>
                         
-                        <p class="text-center mt-3 mb-0">
+                        <p class="text-center mt-3.5 mb-0">
                             <a href="{{ route('register.choose') }}" class="text-muted small text-decoration-none">
                                 <i class="fa-solid fa-arrow-left me-1"></i> অন্য ধরনের অ্যাকাউন্ট (লেখক / প্রকাশক / সেলার)
                             </a>

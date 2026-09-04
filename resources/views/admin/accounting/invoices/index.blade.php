@@ -167,6 +167,9 @@
         <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 fw-semibold shadow-xs" data-bs-toggle="modal" data-bs-target="#invoiceSettingsModal" title="Design & Typography Settings">
             <i class="fas fa-palette me-1 text-primary"></i> Design Settings
         </button>
+        <a href="{{ route('subadmin.bills.index') }}" class="btn btn-outline-success btn-sm rounded-pill px-3 fw-semibold shadow-xs" title="সেলারদের সকল বিক্রয় ও ডেলিভারি চালান চেক করুন">
+            <i class="fas fa-store me-1"></i> Seller Bills & Challans
+        </a>
         <a href="{{ route('admin.accounting.index') }}" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-semibold shadow-xs">
             <i class="fas fa-scale-balanced me-1"></i> Cashbook
         </a>

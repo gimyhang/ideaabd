@@ -285,6 +285,14 @@
 
                             @if ($me->isAdmin() && Route::has('admin.dashboard'))
                                 <li><a class="dropdown-item py-2" href="{{ route('admin.dashboard') }}"><i class="fas fa-gauge-high text-primary me-2"></i>অ্যাডমিন প্যানেল</a></li>
+                            @endif
+
+                            @if (($me->isSeller() || $me->isSubAdmin() || $me->isAdmin() || $me->reg_type === 'seller') && Route::has('subadmin.dashboard'))
+                                <li>
+                                    <a class="dropdown-item py-2 fw-semibold text-primary" href="{{ route('subadmin.dashboard') }}">
+                                        <i class="fas fa-store me-2 text-primary"></i>সেলার ড্যাশবোর্ড
+                                    </a>
+                                </li>
                             @elseif ($me->isSeller() && Route::has('subadmin.bills.index'))
                                 <li><a class="dropdown-item py-2" href="{{ route('subadmin.bills.index') }}"><i class="fas fa-file-invoice-dollar text-success me-2"></i>সেলার প্যানেল</a></li>
                             @endif
@@ -634,11 +642,22 @@
                     <a href="{{ route('admin.dashboard') }}" class="btn btn-warning btn-sm rounded-pill fw-bold text-dark w-100 mt-2 py-1 shadow-xs">
                         <i class="fa-solid fa-gauge-high me-1"></i> অ্যাডমিন প্যানেল প্রবেশ করুন
                     </a>
-                @elseif ($me->isPublisher() && Route::has('publisher.dashboard'))
+                @endif
+                @if (($me->isSeller() || $me->isSubAdmin() || $me->isAdmin() || $me->reg_type === 'seller') && Route::has('subadmin.dashboard'))
+                    <a href="{{ route('subadmin.dashboard') }}" class="btn btn-primary btn-sm rounded-pill fw-bold text-white w-100 mt-2 py-1 shadow-xs">
+                        <i class="fa-solid fa-store me-1"></i> সেলার ড্যাশবোর্ড
+                    </a>
+                @elseif ($me->isSeller() && Route::has('subadmin.bills.index'))
+                    <a href="{{ route('subadmin.bills.index') }}" class="btn btn-primary btn-sm rounded-pill fw-bold text-white w-100 mt-2 py-1 shadow-xs">
+                        <i class="fa-solid fa-file-invoice-dollar me-1"></i> সেলার প্যানেল
+                    </a>
+                @endif
+                @if (($me->isPublisher() || $me->isAdmin() || $me->reg_type === 'publisher') && Route::has('publisher.dashboard'))
                     <a href="{{ route('publisher.dashboard') }}" class="btn btn-success btn-sm rounded-pill fw-bold text-white w-100 mt-2 py-1 shadow-xs">
                         <i class="fa-solid fa-building me-1"></i> পাবলিশার ড্যাশবোর্ড
                     </a>
-                @elseif ($me->isAuthor() && Route::has('author.dashboard'))
+                @endif
+                @if (($me->isAuthor() || $me->isAdmin() || $me->reg_type === 'author') && Route::has('author.dashboard'))
                     <a href="{{ route('author.dashboard') }}" class="btn btn-success btn-sm rounded-pill fw-bold text-white w-100 mt-2 py-1 shadow-xs">
                         <i class="fa-solid fa-feather-pointed me-1"></i> লেখক ড্যাশবোর্ড
                     </a>

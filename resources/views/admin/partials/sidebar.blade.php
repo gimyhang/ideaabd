@@ -86,8 +86,10 @@
             ['route' => 'admin.audit-logs.index',    'icon' => 'shield-halved',   'label' => 'Audit & Logs'],
         ],
         'Seller Panel' => [
-            ['route' => 'subadmin.bills.index', 'icon' => 'file-invoice-dollar', 'label' => 'Bills List'],
-            ['route' => 'subadmin.accounts',    'icon' => 'wallet',             'label' => 'Seller Accounts'],
+            ['route' => 'subadmin.dashboard',    'icon' => 'gauge-high',         'label' => 'Seller Dashboard'],
+            ['route' => 'subadmin.bills.create', 'icon' => 'plus-circle',        'label' => 'New POS Bill'],
+            ['route' => 'subadmin.bills.index',  'icon' => 'file-invoice-dollar', 'label' => 'Bills List'],
+            ['route' => 'subadmin.accounts',     'icon' => 'wallet',             'label' => 'Seller Accounts'],
         ],
         'Public Site' => [
             ['route' => 'home', 'icon' => 'arrow-up-right-from-square', 'label' => 'View Website', 'target' => '_blank'],

@@ -231,10 +231,10 @@ Route::view('/contact', 'frontend.pages.contact')->name('contact');
 
 // --- Registration routes --------------------------------------------------
 Route::get('/register', [RegistrationController::class, 'choose'])->name('register.choose');
+Route::get('/register-success', [RegistrationController::class, 'registrationSuccess'])->name('register.success');
 Route::get('/register/{type}', [RegistrationController::class, 'showForm'])->name('register.form');
 Route::post('/register/{type}', [RegistrationController::class, 'register'])->name('register.submit');
-Route::get('/pending-approval', [RegistrationController::class, 'pendingApproval'])
-    ->middleware('auth')->name('pending.approval');
+Route::get('/pending-approval', [RegistrationController::class, 'pendingApproval'])->name('pending.approval');
 
 // --- User Account & Portal (Buyer / Customer) --------------------------------
 Route::prefix('my-account')->middleware('auth')->group(function () {
@@ -255,7 +255,7 @@ Route::get('/user', function () {
         return redirect()->route('admin.dashboard');
     }
     if ($user->isSeller() || $user->isSubAdmin()) {
-        return redirect()->route('subadmin.bills.index');
+        return redirect()->route('subadmin.dashboard');
     }
     if ($user->isPublisher()) {
         return redirect()->route('publisher.dashboard');
@@ -652,6 +652,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
 
 // --- Sub-admin / Seller panel ---------------------------------------------
 Route::prefix('seller')->name('subadmin.')->middleware(['auth', 'role:sub_admin,seller,admin'])->group(function () {
+    Route::get('/dashboard', [\App\Http\Controllers\Seller\SellerDashboardController::class, 'dashboard'])->name('dashboard');
     Route::get('/bills', [BillingController::class, 'index'])->name('bills.index');
     Route::get('/bills/export', [BillingController::class, 'exportCsv'])->name('bills.export');
     Route::post('/bills/bulk-action', [BillingController::class, 'bulkAction'])->name('bills.bulk-action');

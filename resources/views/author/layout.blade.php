@@ -67,7 +67,7 @@
             .author-main {
                 margin-left: 0 !important;
                 width: 100% !important;
-                padding-bottom: 70px; /* Space for bottom mobile nav */
+                padding-bottom: 95px !important; /* Proper clearance for fixed bottom mobile nav & FAB */
             }
         }
 
@@ -111,14 +111,15 @@
             bottom: 0;
             left: 0;
             right: 0;
-            height: 60px;
+            height: 64px;
             background: #0f172a;
             z-index: 1030;
             display: flex;
             align-items: center;
             justify-content: space-around;
             border-top: 1px solid rgba(255,255,255,0.12);
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.15);
+            box-shadow: 0 -4px 16px rgba(0,0,0,0.22);
+            padding-bottom: env(safe-area-inset-bottom, 0);
         }
         .bottom-nav-item {
             color: #94a3b8;
@@ -126,19 +127,39 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            font-size: 0.68rem;
+            min-height: 48px;
+            min-width: 48px;
+            font-size: 0.72rem;
             font-weight: 600;
             text-decoration: none;
             gap: 2px;
             flex: 1;
-            padding: 6px 0;
-            transition: color 0.15s;
+            padding: 6px 2px;
+            transition: color 0.15s, transform 0.15s;
+            position: relative;
         }
         .bottom-nav-item i {
-            font-size: 1.1rem;
+            font-size: 1.2rem;
         }
-        .bottom-nav-item.active, .bottom-nav-item:hover {
+        .bottom-nav-item.active {
             color: #38bdf8;
+        }
+        .bottom-nav-item.active::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 28px;
+            height: 3px;
+            background: #38bdf8;
+            border-radius: 0 0 3px 3px;
+        }
+        .bottom-nav-item:hover {
+            color: #e2e8f0;
+        }
+        .bottom-nav-item:active {
+            transform: scale(0.94);
         }
 
         /* Offcanvas Mobile Drawer Styling */
