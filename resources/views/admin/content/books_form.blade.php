@@ -105,38 +105,56 @@
                 <div id="authorsRepeaterContainer" class="vstack gap-1.5">
                     @php
                         $existingAuthors = old('author_names');
+                        $existingAuthorsEn = old('author_names_en', []);
                         $existingAuthorIds = old('author_ids', []);
                         if (!is_array($existingAuthors) || empty(array_filter($existingAuthors))) {
                             $existingAuthors = [];
+                            $existingAuthorsEn = [];
                             $existingAuthorIds = [];
                             if (isset($record) && $record && method_exists($record, 'authors') && $record->authors && $record->authors->isNotEmpty()) {
                                 foreach ($record->authors as $ra) {
-                                    $existingAuthors[] = $ra->name;
+                                    $existingAuthors[] = $ra->name_bn ?: $ra->name;
+                                    $existingAuthorsEn[] = $ra->name_en ?: '';
                                     $existingAuthorIds[] = $ra->id;
                                 }
                             } elseif ($val('author_name')) {
                                 $existingAuthors = array_map('trim', explode(',', (string)$val('author_name')));
                                 $existingAuthorIds = [(string)($record->author_link_id ?? '')];
+                                if (!empty($record->author_link_id)) {
+                                    $aRec = DB::table('authors')->where('id', $record->author_link_id)->first();
+                                    $existingAuthorsEn = [$aRec->name_en ?? ''];
+                                } else {
+                                    $existingAuthorsEn = [''];
+                                }
                             }
                         }
                         if (empty($existingAuthors)) {
                             $existingAuthors = [''];
+                            $existingAuthorsEn = [''];
                             $existingAuthorIds = [''];
                         }
                     @endphp
                     @foreach($existingAuthors as $aIdx => $aName)
-                        @php $aIdVal = $existingAuthorIds[$aIdx] ?? ''; @endphp
-                        <div class="input-group input-group-sm author-field-row">
-                            <select name="author_ids[]" class="form-select form-select-sm" style="max-width: 135px;" onchange="onAuthorSelectRowChange(this)">
+                        @php 
+                            $aIdVal = $existingAuthorIds[$aIdx] ?? ''; 
+                            $aNameEn = $existingAuthorsEn[$aIdx] ?? '';
+                        @endphp
+                        <div class="input-group input-group-sm author-field-row mb-1">
+                            <select name="author_ids[]" class="form-select form-select-sm author-directory-select" style="max-width: 125px;" onchange="onAuthorSelectRowChange(this)">
                                 <option value="">— Directory —</option>
-                                @foreach (($lookups['authors'] ?? []) as $aId => $aLookupName)
-                                    <option value="{{ $aId }}" @selected((string)$aIdVal === (string)$aId || ((string)old('author_link_id', $record->author_link_id ?? '') === (string)$aId && $aIdx === 0) || $aName === $aLookupName)>
-                                        {{ $aLookupName }}
+                                @foreach (($lookups['authors_details'] ?? []) as $aId => $aDet)
+                                    <option value="{{ $aId }}" 
+                                            data-name-bn="{{ $aDet['name_bn'] }}" 
+                                            data-name-en="{{ $aDet['name_en'] }}"
+                                            @selected((string)$aIdVal === (string)$aId || ((string)old('author_link_id', $record->author_link_id ?? '') === (string)$aId && $aIdx === 0))>
+                                        {{ $aDet['name'] }}
                                     </option>
                                 @endforeach
                             </select>
                             <input type="text" name="author_names[]" class="form-control form-control-sm author-name-input @error('author_names') is-invalid @enderror" 
-                                   value="{{ $aName }}" placeholder="Author name..." oninput="updateLiveMockupCard()">
+                                   value="{{ $aName }}" placeholder="লেখক নাম (বাংলা)..." oninput="onAuthorNameTyped(this)">
+                            <input type="text" name="author_names_en[]" class="form-control form-control-sm author-name-en-input" 
+                                   value="{{ $aNameEn }}" placeholder="Author name (English)..." oninput="onAuthorNameTyped(this)">
                             @if($aIdx === 0)
                                 <button type="button" class="btn btn-outline-secondary" onclick="addAuthorField()"><i class="fas fa-plus text-success"></i></button>
                             @else
@@ -146,6 +164,7 @@
                     @endforeach
                 </div>
                 @error('author_names')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                @error('author_names_en')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                 @error('author_link_id')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
             </div>
 

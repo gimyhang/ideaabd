@@ -205,18 +205,10 @@ class ContentController extends Controller
         try {
             $record->forceFill($attributes)->save();
             if ($type === 'books') {
-                $authorIds = array_filter((array) $request->input('author_ids', []));
+                $resolved = $this->resolveBookAuthors($request);
+                $authorIds = $resolved['ids'];
                 if (!empty($record->author_link_id) && !in_array($record->author_link_id, $authorIds)) {
                     $authorIds[] = (int) $record->author_link_id;
-                }
-                if ($request->has('author_names')) {
-                    $rawNames = array_filter(array_map('trim', (array) $request->input('author_names')));
-                    foreach ($rawNames as $rName) {
-                        $authId = DB::table('authors')->where('name', $rName)->value('id');
-                        if ($authId && !in_array($authId, $authorIds)) {
-                            $authorIds[] = (int) $authId;
-                        }
-                    }
                 }
                 if (!empty($authorIds)) {
                     $record->authors()->sync(array_values(array_unique($authorIds)));
@@ -383,18 +375,10 @@ class ContentController extends Controller
         try {
             $record->forceFill($attributes)->save();
             if ($type === 'books') {
-                $authorIds = array_filter((array) $request->input('author_ids', []));
+                $resolved = $this->resolveBookAuthors($request);
+                $authorIds = $resolved['ids'];
                 if (!empty($record->author_link_id) && !in_array($record->author_link_id, $authorIds)) {
                     $authorIds[] = (int) $record->author_link_id;
-                }
-                if ($request->has('author_names')) {
-                    $rawNames = array_filter(array_map('trim', (array) $request->input('author_names')));
-                    foreach ($rawNames as $rName) {
-                        $authId = DB::table('authors')->where('name', $rName)->value('id');
-                        if ($authId && !in_array($authId, $authorIds)) {
-                            $authorIds[] = (int) $authId;
-                        }
-                    }
                 }
                 if (!empty($authorIds)) {
                     $record->authors()->sync(array_values(array_unique($authorIds)));
@@ -593,6 +577,8 @@ class ContentController extends Controller
             // Allow multiple contributors arrays
             $rules['author_names'] = ['nullable', 'array'];
             $rules['author_names.*'] = ['nullable', 'string', 'max:255'];
+            $rules['author_names_en'] = ['nullable', 'array'];
+            $rules['author_names_en.*'] = ['nullable', 'string', 'max:255'];
             $rules['author_ids'] = ['nullable', 'array'];
             $rules['translator_names'] = ['nullable', 'array'];
             $rules['translator_names.*'] = ['nullable', 'string', 'max:255'];
@@ -936,59 +922,9 @@ class ContentController extends Controller
             }
 
             // Handle Multiple Authors & Unified Author Directory Sync
-            $allAuthorNames = [];
-            $allAuthorIds = [];
-
-            // 1. Collect from author_names and author_ids array inputs
-            $rawNames = (array) $request->input('author_names', []);
-            $rawIds = (array) $request->input('author_ids', []);
-            $maxCount = max(count($rawNames), count($rawIds));
-
-            for ($i = 0; $i < $maxCount; $i++) {
-                $name = isset($rawNames[$i]) ? trim((string)$rawNames[$i]) : '';
-                $id = isset($rawIds[$i]) && is_numeric($rawIds[$i]) ? (int)$rawIds[$i] : null;
-
-                if ($id) {
-                    $authorRecord = DB::table('authors')->where('id', $id)->first();
-                    if ($authorRecord) {
-                        $allAuthorIds[] = $authorRecord->id;
-                        $allAuthorNames[] = $name !== '' ? $name : $authorRecord->name;
-                        continue;
-                    }
-                }
-
-                if ($name !== '') {
-                    $author = \Modules\Author\Models\Author::findOrCreateUnified([
-                        'name'      => $name,
-                        'is_active' => true,
-                    ]);
-                    $allAuthorIds[] = $author->id;
-                    $allAuthorNames[] = $author->name;
-                }
-            }
-
-            // Fallback to single author_name / author_link_id if arrays were empty
-            if (empty($allAuthorNames)) {
-                $singleName = trim((string)$request->input('author_name', ''));
-                $singleId = $request->integer('author_link_id');
-                if ($singleId) {
-                    $authorRecord = DB::table('authors')->where('id', $singleId)->first();
-                    if ($authorRecord) {
-                        $allAuthorIds[] = $authorRecord->id;
-                        $allAuthorNames[] = $singleName !== '' ? $singleName : $authorRecord->name;
-                    }
-                } elseif ($singleName !== '') {
-                    $author = \Modules\Author\Models\Author::findOrCreateUnified([
-                        'name'      => $singleName,
-                        'is_active' => true,
-                    ]);
-                    $allAuthorIds[] = $author->id;
-                    $allAuthorNames[] = $author->name;
-                }
-            }
-
-            $allAuthorIds = array_values(array_unique(array_filter($allAuthorIds)));
-            $allAuthorNames = array_values(array_unique(array_filter($allAuthorNames)));
+            $resolvedAuthors = $this->resolveBookAuthors($request);
+            $allAuthorIds = $resolvedAuthors['ids'];
+            $allAuthorNames = $resolvedAuthors['names'];
 
             if (!empty($allAuthorNames)) {
                 $attributes['author_name'] = implode(', ', $allAuthorNames);
@@ -1432,16 +1368,38 @@ class ContentController extends Controller
 
             $lookups['authors'] = $authorOptions;
         } elseif (in_array($spec['key'] ?? '', ['books', 'ebooks', 'webzines'], true) && Schema::hasTable('authors')) {
-            $authorList = DB::table('authors')->whereNull('deleted_at')->orderBy('name')->pluck('name', 'id')->all();
+            $authorsQuery = DB::table('authors')
+                ->whereNull('deleted_at')
+                ->orderBy('name')
+                ->select('id', 'name', 'name_bn', 'name_en')
+                ->get();
+            $authorList = [];
+            $authorDetails = [];
+            foreach ($authorsQuery as $a) {
+                $authorList[$a->id] = $a->name;
+                $authorDetails[$a->id] = [
+                    'id'      => $a->id,
+                    'name'    => $a->name,
+                    'name_bn' => $a->name_bn ?: $a->name,
+                    'name_en' => $a->name_en ?: '',
+                ];
+            }
             if ($spec['table'] === 'webzines' && Schema::hasTable('users')) {
                 $userList = DB::table('users')->orderBy('name')->pluck('name', 'id')->all();
                 foreach ($userList as $uId => $uName) {
                     if (!in_array($uName, $authorList, true)) {
                         $authorList[$uId] = $uName;
+                        $authorDetails[$uId] = [
+                            'id'      => $uId,
+                            'name'    => $uName,
+                            'name_bn' => $uName,
+                            'name_en' => '',
+                        ];
                     }
                 }
             }
             $lookups['authors'] = $authorList;
+            $lookups['authors_details'] = $authorDetails;
         }
 
         return $lookups;
@@ -1582,5 +1540,78 @@ class ContentController extends Controller
         if (Schema::hasColumn($record->getTable(), 'status')) {
             $record->forceFill(['status' => $visible ? 'published' : 'draft'])->save();
         }
+    }
+
+    /**
+     * Resolve and sync multiple book authors (Bengali & English) with Directory.
+     *
+     * @return array{ids: array<int>, names: array<string>}
+     */
+    private function resolveBookAuthors(Request $request): array
+    {
+        $allAuthorNames = [];
+        $allAuthorIds = [];
+
+        $rawNames = (array) $request->input('author_names', []);
+        $rawNamesEn = (array) $request->input('author_names_en', []);
+        $rawIds = (array) $request->input('author_ids', []);
+        $maxCount = max(count($rawNames), count($rawNamesEn), count($rawIds));
+
+        for ($i = 0; $i < $maxCount; $i++) {
+            $name = isset($rawNames[$i]) ? trim((string)$rawNames[$i]) : '';
+            $nameEn = isset($rawNamesEn[$i]) ? trim((string)$rawNamesEn[$i]) : '';
+            $id = isset($rawIds[$i]) && is_numeric($rawIds[$i]) ? (int)$rawIds[$i] : null;
+
+            if ($id) {
+                $authorRecord = DB::table('authors')->where('id', $id)->first();
+                if ($authorRecord) {
+                    // If user didn't type a completely different name, keep directory author
+                    if ($name === '' || $name === $authorRecord->name || $name === ($authorRecord->name_bn ?? '')) {
+                        $allAuthorIds[] = $authorRecord->id;
+                        $allAuthorNames[] = $name !== '' ? $name : $authorRecord->name;
+                        if ($nameEn !== '' && empty($authorRecord->name_en)) {
+                            DB::table('authors')->where('id', $authorRecord->id)->update(['name_en' => $nameEn]);
+                        }
+                        continue;
+                    }
+                }
+            }
+
+            if ($name !== '' || $nameEn !== '') {
+                $author = \Modules\Author\Models\Author::findOrCreateUnified([
+                    'name'      => $name ?: $nameEn,
+                    'name_bn'   => $name ?: null,
+                    'name_en'   => $nameEn ?: null,
+                    'is_active' => true,
+                ]);
+                $allAuthorIds[] = $author->id;
+                $allAuthorNames[] = $author->name;
+            }
+        }
+
+        // Fallback to single author_name / author_link_id if arrays were empty
+        if (empty($allAuthorNames)) {
+            $singleName = trim((string)$request->input('author_name', ''));
+            $singleId = $request->integer('author_link_id');
+            if ($singleId) {
+                $authorRecord = DB::table('authors')->where('id', $singleId)->first();
+                if ($authorRecord) {
+                    $allAuthorIds[] = $authorRecord->id;
+                    $allAuthorNames[] = $singleName !== '' ? $singleName : $authorRecord->name;
+                }
+            } elseif ($singleName !== '') {
+                $author = \Modules\Author\Models\Author::findOrCreateUnified([
+                    'name'      => $singleName,
+                    'is_active' => true,
+                ]);
+                $allAuthorIds[] = $author->id;
+                $allAuthorNames[] = $author->name;
+            }
+        }
+
+        return [
+            'ids'   => array_values(array_unique(array_filter($allAuthorIds))),
+            'names' => array_values(array_unique(array_filter($allAuthorNames))),
+        ];
     }
 }

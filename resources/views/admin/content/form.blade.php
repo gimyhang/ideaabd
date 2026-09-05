@@ -2146,19 +2146,21 @@ function calculateLiveHardcoverDiscount() {
 function addAuthorField() {
     const container = document.getElementById('authorsRepeaterContainer');
     if (!container) return;
-    const authorLookups = @json($lookups['authors'] ?? []);
+    const authorDetails = @json($lookups['authors_details'] ?? []);
     let optionsHtml = '<option value="">— Directory —</option>';
-    for (const [aId, aName] of Object.entries(authorLookups)) {
-        optionsHtml += `<option value="${aId}">${aName}</option>`;
+    for (const [aId, aDet] of Object.entries(authorDetails)) {
+        optionsHtml += `<option value="${aId}" data-name-bn="${aDet.name_bn || aDet.name}" data-name-en="${aDet.name_en || ''}">${aDet.name}</option>`;
     }
     const div = document.createElement('div');
-    div.className = 'input-group input-group-sm author-field-row';
+    div.className = 'input-group input-group-sm author-field-row mb-1';
     div.innerHTML = `
-        <select name="author_ids[]" class="form-select form-select-sm" style="max-width: 140px;" onchange="onAuthorSelectRowChange(this)">
+        <select name="author_ids[]" class="form-select form-select-sm author-directory-select" style="max-width: 125px;" onchange="onAuthorSelectRowChange(this)">
             ${optionsHtml}
         </select>
         <input type="text" name="author_names[]" class="form-control form-control-sm author-name-input" 
-               placeholder="লেখকের নাম লিখুন..." oninput="updateLiveMockupCard()">
+               placeholder="লেখক নাম (বাংলা)..." oninput="onAuthorNameTyped(this)">
+        <input type="text" name="author_names_en[]" class="form-control form-control-sm author-name-en-input" 
+               placeholder="Author name (English)..." oninput="onAuthorNameTyped(this)">
         <button type="button" class="btn btn-outline-danger" onclick="removeRepeaterRow(this); updateLiveMockupCard();">
             <i class="fas fa-times"></i>
         </button>
@@ -2169,11 +2171,36 @@ function addAuthorField() {
 function onAuthorSelectRowChange(select) {
     const row = select.closest('.author-field-row');
     if (!row) return;
-    const input = row.querySelector('.author-name-input');
-    if (input && select.selectedIndex > 0) {
-        input.value = select.options[select.selectedIndex].text.trim();
-        updateLiveMockupCard();
+    const nameInp = row.querySelector('.author-name-input');
+    const nameEnInp = row.querySelector('.author-name-en-input');
+    if (select.selectedIndex > 0) {
+        const opt = select.options[select.selectedIndex];
+        if (nameInp) {
+            nameInp.value = opt.dataset.nameBn || opt.text.trim();
+        }
+        if (nameEnInp) {
+            nameEnInp.value = opt.dataset.nameEn || '';
+        }
     }
+    updateLiveMockupCard();
+}
+
+function onAuthorNameTyped(input) {
+    const row = input.closest('.author-field-row');
+    if (row) {
+        const select = row.querySelector('.author-directory-select');
+        if (select && select.selectedIndex > 0) {
+            const opt = select.options[select.selectedIndex];
+            const typedBn = (row.querySelector('.author-name-input')?.value || '').trim();
+            const typedEn = (row.querySelector('.author-name-en-input')?.value || '').trim();
+            const optBn = (opt.dataset.nameBn || opt.text || '').trim();
+            const optEn = (opt.dataset.nameEn || '').trim();
+            if (typedBn !== optBn && typedEn !== optEn) {
+                select.value = '';
+            }
+        }
+    }
+    updateLiveMockupCard();
 }
 
 function addTranslatorField() {

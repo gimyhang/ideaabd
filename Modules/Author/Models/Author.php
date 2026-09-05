@@ -64,18 +64,32 @@ class Author extends Model
     public static function findOrCreateUnified(array $data): self
     {
         $name = trim($data['name'] ?? '');
+        $nameBn = !empty($data['name_bn']) ? trim((string) $data['name_bn']) : null;
+        $nameEn = !empty($data['name_en']) ? trim((string) $data['name_en']) : null;
         $email = !empty($data['email']) ? trim(strtolower((string) $data['email'])) : null;
         $phone = !empty($data['phone']) ? trim((string) $data['phone']) : null;
         $slug = !empty($data['slug']) ? trim(Str::slug((string) $data['slug'])) : null;
         $avatar = $data['avatar'] ?? $data['author_image'] ?? null;
 
+        if (empty($name) && !empty($nameBn)) {
+            $name = $nameBn;
+        } elseif (empty($name) && !empty($nameEn)) {
+            $name = $nameEn;
+        }
+
         $author = null;
 
-        // 1. Search by exact or normalized Name
+        // 1. Search by exact or normalized Name, Name Bn, or Name En
         if (!empty($name)) {
             $author = self::where('name', $name)
                 ->orWhere(DB::raw('TRIM(name)'), $name)
+                ->when($nameBn, fn($q) => $q->orWhere('name_bn', $nameBn))
+                ->when($nameEn, fn($q) => $q->orWhere('name_en', $nameEn))
                 ->first();
+        } elseif (!empty($nameBn)) {
+            $author = self::where('name_bn', $nameBn)->orWhere('name', $nameBn)->first();
+        } elseif (!empty($nameEn)) {
+            $author = self::where('name_en', $nameEn)->orWhere('name', $nameEn)->first();
         }
 
         // 2. Search by Phone (if provided and valid)
@@ -96,6 +110,12 @@ class Author extends Model
         // If author already exists, enrich empty fields without overwriting valid data
         if ($author) {
             $updates = [];
+            if (empty($author->name_bn) && $nameBn) {
+                $updates['name_bn'] = $nameBn;
+            }
+            if (empty($author->name_en) && $nameEn) {
+                $updates['name_en'] = $nameEn;
+            }
             if (empty($author->email) && $email) {
                 $updates['email'] = $email;
             }
@@ -130,11 +150,13 @@ class Author extends Model
 
         // If author does NOT exist, generate unique slug and create cleanly
         if (empty($slug)) {
-            $slug = self::generateUniqueSlug($name);
+            $slug = self::generateUniqueSlug($nameEn ?: $name);
         }
 
         return self::create([
             'name'        => $name,
+            'name_bn'     => $nameBn ?: $name,
+            'name_en'     => $nameEn,
             'slug'        => $slug,
             'email'       => $email,
             'phone'       => $phone,
