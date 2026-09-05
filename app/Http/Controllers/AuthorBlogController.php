@@ -247,11 +247,11 @@ class AuthorBlogController extends Controller
         $imagePath = $post->featured_image;
         if ($request->hasFile('featured_image')) {
             try {
-                $imagePath = $request->file('featured_image')->store('blog', 'public');
+                $imagePath = \App\Services\ImageOptimizerService::convertAndStore($request->file('featured_image'), 'blog', 'public');
             } catch (\Throwable $e) {}
         } elseif ($request->filled('ai_photocard_data')) {
             try {
-                $imagePath = $this->saveBase64Image($request->input('ai_photocard_data'), 'blog');
+                $imagePath = \App\Services\ImageOptimizerService::convertBase64AndStore($request->input('ai_photocard_data'), 'blog', 'public');
             } catch (\Throwable $e) {}
         }
 
@@ -332,9 +332,9 @@ class AuthorBlogController extends Controller
         $imagePath = null;
         try {
             if ($hasUpload) {
-                $imagePath = $request->file('featured_image')->store('blog', 'public');
+                $imagePath = \App\Services\ImageOptimizerService::convertAndStore($request->file('featured_image'), 'blog', 'public');
             } elseif ($hasAiImage) {
-                $imagePath = $this->saveBase64Image($request->input('ai_photocard_data'), 'blog');
+                $imagePath = \App\Services\ImageOptimizerService::convertBase64AndStore($request->input('ai_photocard_data'), 'blog', 'public');
             } else {
                 $imagePath = $this->generateDefaultPhotocard($validated['title'], $user->name);
             }
@@ -467,12 +467,12 @@ class AuthorBlogController extends Controller
                 if ($post->featured_image) {
                     Storage::disk('public')->delete($post->featured_image);
                 }
-                $post->featured_image = $request->file('featured_image')->store('blog', 'public');
+                $post->featured_image = \App\Services\ImageOptimizerService::convertAndStore($request->file('featured_image'), 'blog', 'public');
             } elseif ($hasAiImage) {
                 if ($post->featured_image) {
                     Storage::disk('public')->delete($post->featured_image);
                 }
-                $post->featured_image = $this->saveBase64Image($request->input('ai_photocard_data'), 'blog');
+                $post->featured_image = \App\Services\ImageOptimizerService::convertBase64AndStore($request->input('ai_photocard_data'), 'blog', 'public');
             }
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::error("Featured image update error: " . $e->getMessage());
@@ -635,66 +635,10 @@ class AuthorBlogController extends Controller
     }
 
     /**
-     * Generate a classic center-aligned luxury SVG photocard when author doesn't attach an image.
+     * Generate an aesthetic luxury photocard (.avif) when author doesn't attach an image.
      */
     protected function generateDefaultPhotocard(string $title, string $authorName): string
     {
-        $safeTitle = htmlspecialchars(Str::limit($title, 70), ENT_QUOTES, 'UTF-8');
-        $safeAuthor = htmlspecialchars($authorName, ENT_QUOTES, 'UTF-8');
-
-        $svg = <<<SVG
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" width="1200" height="675">
-  <defs>
-    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#022c22" />
-      <stop offset="50%" stop-color="#064e3b" />
-      <stop offset="100%" stop-color="#022019" />
-    </linearGradient>
-    <radialGradient id="glow" cx="50%" cy="45%" r="65%">
-      <stop offset="0%" stop-color="#fbbf24" stop-opacity="0.18" />
-      <stop offset="100%" stop-color="#000000" stop-opacity="0" />
-    </radialGradient>
-    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#eab308" />
-      <stop offset="50%" stop-color="#fef08a" />
-      <stop offset="100%" stop-color="#eab308" />
-    </linearGradient>
-  </defs>
-  <!-- Background -->
-  <rect width="1200" height="675" fill="url(#bg)" />
-  <rect width="1200" height="675" fill="url(#glow)" />
-  
-  <!-- Outer Classic Double Border -->
-  <rect x="30" y="30" width="1140" height="615" fill="none" stroke="#fbbf24" stroke-width="1.5" opacity="0.4" rx="10" />
-  <rect x="42" y="42" width="1116" height="591" fill="none" stroke="#fbbf24" stroke-width="3" opacity="0.85" rx="6" />
-  
-  <!-- Classic Corner Filigrees -->
-  <path d="M 42 75 L 75 42 M 42 90 L 90 42" stroke="#fbbf24" stroke-width="2" opacity="0.6" />
-  <path d="M 1158 75 L 1125 42 M 1158 90 L 1110 42" stroke="#fbbf24" stroke-width="2" opacity="0.6" />
-  <path d="M 42 600 L 75 633 M 42 585 L 90 633" stroke="#fbbf24" stroke-width="2" opacity="0.6" />
-  <path d="M 1158 600 L 1125 633 M 1158 585 L 1110 633" stroke="#fbbf24" stroke-width="2" opacity="0.6" />
-
-  <!-- Center Header Crest & Badge -->
-  <rect x="475" y="68" width="250" height="42" rx="21" fill="rgba(255,255,255,0.12)" stroke="#fbbf24" stroke-width="1.5" />
-  <text x="600" y="96" fill="#fbbf24" font-family="'Hind Siliguri', 'Kalpurush', sans-serif" font-size="19" font-weight="bold" text-anchor="middle">✦ সাহিত্যপত্র ও প্রবন্ধ ✦</text>
-
-  <!-- Center Main Title -->
-  <text x="600" y="305" fill="#ffffff" font-family="'Hind Siliguri', 'Kalpurush', sans-serif" font-size="46" font-weight="bold" text-anchor="middle">{$safeTitle}</text>
-  
-  <!-- Classic Center Ornamental Divider -->
-  <line x1="320" y1="410" x2="520" y2="410" stroke="url(#gold)" stroke-width="2" opacity="0.85" />
-  <text x="600" y="416" fill="#fef08a" font-size="20" text-anchor="middle">❖ ─── ✦ ─── ❖</text>
-  <line x1="680" y1="410" x2="880" y2="410" stroke="url(#gold)" stroke-width="2" opacity="0.85" />
-
-  <!-- Footer Balanced Attribution -->
-  <line x1="80" y1="565" x2="1120" y2="565" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" />
-  <text x="85" y="605" fill="#ffffff" font-family="'Hind Siliguri', 'Kalpurush', sans-serif" font-size="22" font-weight="bold">✍️ রচনা: {$safeAuthor}</text>
-  <text x="1115" y="605" fill="#fbbf24" font-family="'Hind Siliguri', 'Kalpurush', sans-serif" font-size="20" font-weight="bold" text-anchor="end">আইডিয়া প্রকাশন | www.ideaabd.com</text>
-</svg>
-SVG;
-
-        $fileName = 'photocard_' . time() . '_' . Str::random(8) . '.svg';
-        \Illuminate\Support\Facades\Storage::disk('public')->put('blog/' . $fileName, $svg);
-        return 'blog/' . $fileName;
+        return \App\Services\ImageOptimizerService::generatePhotocardAndStore($title, $authorName, 'blog', 'public');
     }
 }

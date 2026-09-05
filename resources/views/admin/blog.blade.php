@@ -533,11 +533,14 @@
                                 <!-- All Action Buttons (View, Edit Request, Approve, Reject, Edit, Delete) -->
                                 <td class="text-end pe-3 text-nowrap">
                                     <div class="adm-actions-wrap" id="postActions{{ $post->id }}" data-slug="{{ $post->slug }}">
-                                        {{-- 1. View / Review Form Button --}}
-                                        <a href="{{ route('admin.content.edit', ['type' => 'blog', 'id' => $post->id]) }}" 
-                                           class="adm-action-btn btn btn-outline-info shadow-xs" id="viewBtn{{ $post->id }}" title="View & Edit / লেখা পর্যালোচনা ও এডিট করুন">
+                                        {{-- 1. View / Preview Post Modal Trigger --}}
+                                        <button type="button" 
+                                                class="adm-action-btn btn btn-outline-info shadow-xs" 
+                                                id="viewBtn{{ $post->id }}" 
+                                                onclick="openBlogPostPreviewModal({{ $post->id }})" 
+                                                title="View & Preview Article / বিস্তারিত প্রিভিউ দেখুন">
                                             <i class="fas fa-eye me-1"></i> View
-                                        </a>
+                                        </button>
 
                                         {{-- 2. Pending Edit Request Review Button --}}
                                         @if($post->hasPendingEditRequest())
@@ -1086,6 +1089,174 @@
     </div>
 </div>
 
+{{-- ========================================================================= --}}
+{{-- 9. BLOG POST DETAILS & PREVIEW MODAL                                      --}}
+{{-- ========================================================================= --}}
+<div class="modal fade" id="blogPostPreviewModal" tabindex="-1" aria-labelledby="blogPostPreviewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
+            <div class="modal-header bg-dark text-white py-3 px-4 border-0 d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <span class="badge bg-primary bg-opacity-25 text-white border border-primary border-opacity-25 rounded-pill px-2.5 py-1 fw-bold" id="previewModalCategory">
+                        General
+                    </span>
+                    <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-2.5 py-1 fw-bold" id="previewModalStatus">
+                        Pending
+                    </span>
+                    <span class="badge bg-white bg-opacity-10 text-white-50 rounded-pill px-2 py-1 font-monospace" id="previewModalId">
+                        ID: #0
+                    </span>
+                    <span class="badge bg-white bg-opacity-10 text-white rounded-pill px-2 py-1" id="previewModalReadTime">
+                        <i class="fas fa-book-open me-1 text-warning"></i> 2 মিনিট পাঠ
+                    </span>
+                </div>
+                <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            
+            <div class="modal-body p-0 bg-light" id="previewModalBody" style="min-height: 400px;">
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <div class="small text-muted mt-2">লেখা ও প্রিভিউ লোড হচ্ছে...</div>
+                </div>
+            </div>
+
+            <div class="modal-footer bg-white border-top py-3 px-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div id="previewModalLeftActions" class="d-flex gap-2 align-items-center flex-wrap"></div>
+                <div id="previewModalRightActions" class="d-flex gap-2 align-items-center flex-wrap"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- ========================================================================= --}}
+{{-- 10. AUTHOR EDIT REQUEST REVIEW & REPLACE MODAL                            --}}
+{{-- ========================================================================= --}}
+<div class="modal fade" id="blogEditRequestModal" tabindex="-1" aria-labelledby="blogEditRequestModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header bg-dark text-white border-0 py-3 px-4">
+                <div class="d-flex align-items-center gap-2.5">
+                    <div class="p-2 bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                        <i class="fas fa-code-compare fs-6"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title fw-bold mb-0 text-white" id="blogEditRequestModalLabel">
+                            লেখকের কারেকশন রিকোয়েস্ট পর্যালোচনা ও রিপ্লেস
+                        </h5>
+                        <div class="small opacity-75" id="editReqMetaHeader">পোস্ট আইডি ও লেখকের তথ্য লোড হচ্ছে...</div>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body p-4 bg-light">
+                {{-- Correction Note & Author Message Alert --}}
+                <div class="alert alert-warning border-0 rounded-4 shadow-xs mb-3 p-3">
+                    <div class="d-flex align-items-start gap-2">
+                        <i class="fas fa-comment-dots text-warning-emphasis fs-5 mt-0.5"></i>
+                        <div class="w-100">
+                            <strong class="text-dark d-block">লেখকের সংশোধনী নোট / কারেকশন বার্তা:</strong>
+                            <p class="mb-0 text-dark small mt-0.5" id="editReqNotesDisplay">কোনো নোট প্রদান করা হয়নি।</p>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Comparison Container --}}
+                <div class="row g-3">
+                    {{-- 1. Original / Currently Live Post --}}
+                    <div class="col-12 col-lg-6">
+                        <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden bg-white">
+                            <div class="card-header bg-secondary bg-opacity-10 border-bottom py-2.5 px-3.5 d-flex align-items-center justify-content-between">
+                                <span class="fw-bold text-secondary small">
+                                    <i class="fas fa-globe me-1"></i> বর্তমানে লাইভ থাকা মূল পোস্ট (Original)
+                                </span>
+                                <span class="badge bg-secondary rounded-pill small">Current Live</span>
+                            </div>
+                            <div class="card-body p-3.5">
+                                <div class="mb-2">
+                                    <small class="text-muted d-block fw-semibold" style="font-size: 11px;">মূল শিরোনাম</small>
+                                    <h6 class="fw-bold text-dark mb-0" id="origTitleDisplay">—</h6>
+                                </div>
+                                <div class="mb-2" id="origSubtitleWrap">
+                                    <small class="text-muted d-block fw-semibold" style="font-size: 11px;">সাবটাইটেল</small>
+                                    <div class="text-muted small" id="origSubtitleDisplay">—</div>
+                                </div>
+                                <div class="mb-2">
+                                    <small class="text-muted d-block fw-semibold" style="font-size: 11px;">ক্যাটাগরি</small>
+                                    <span class="badge bg-light text-dark border" id="origCategoryDisplay">—</span>
+                                </div>
+                                <div class="mb-2" id="origExcerptWrap">
+                                    <small class="text-muted d-block fw-semibold" style="font-size: 11px;">সারসংক্ষেপ (Excerpt)</small>
+                                    <div class="p-2 bg-light rounded-3 small text-dark" style="max-height: 80px; overflow-y: auto;" id="origExcerptDisplay">—</div>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block fw-semibold mb-1" style="font-size: 11px;">মূল লেখার কনটেন্ট</small>
+                                    <div class="p-3 bg-light rounded-3 border small overflow-auto text-dark" style="max-height: 280px; line-height: 1.6;" id="origContentDisplay">
+                                        —
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- 2. Author's Revised / Corrected Post --}}
+                    <div class="col-12 col-lg-6">
+                        <div class="card h-100 border-2 border-warning shadow-sm rounded-4 overflow-hidden bg-white">
+                            <div class="card-header bg-warning bg-opacity-25 border-bottom py-2.5 px-3.5 d-flex align-items-center justify-content-between">
+                                <span class="fw-bold text-dark small">
+                                    <i class="fas fa-feather-pointed me-1 text-warning-emphasis"></i> লেখকের প্রস্তাবিত সংশোধিত রূপ (Revised)
+                                </span>
+                                <span class="badge bg-warning text-dark rounded-pill small">Proposed Changes</span>
+                            </div>
+                            <div class="card-body p-3.5">
+                                <div class="mb-2">
+                                    <small class="text-warning-emphasis d-block fw-semibold" style="font-size: 11px;">সংশোধিত শিরোনাম</small>
+                                    <h6 class="fw-bold text-success mb-0" id="revTitleDisplay">—</h6>
+                                </div>
+                                <div class="mb-2" id="revSubtitleWrap">
+                                    <small class="text-warning-emphasis d-block fw-semibold" style="font-size: 11px;">সংশোধিত সাবটাইটেল</small>
+                                    <div class="text-dark small" id="revSubtitleDisplay">—</div>
+                                </div>
+                                <div class="mb-2">
+                                    <small class="text-warning-emphasis d-block fw-semibold" style="font-size: 11px;">ক্যাটাগরি</small>
+                                    <span class="badge bg-warning-subtle text-dark border border-warning-subtle" id="revCategoryDisplay">—</span>
+                                </div>
+                                <div class="mb-2" id="revExcerptWrap">
+                                    <small class="text-warning-emphasis d-block fw-semibold" style="font-size: 11px;">সংশোধিত সারসংক্ষেপ</small>
+                                    <div class="p-2 bg-warning-subtle rounded-3 small text-dark" style="max-height: 80px; overflow-y: auto;" id="revExcerptDisplay">—</div>
+                                </div>
+                                <div>
+                                    <small class="text-warning-emphasis d-block fw-semibold mb-1" style="font-size: 11px;">সংশোধিত লেখার কনটেন্ট</small>
+                                    <div class="p-3 bg-white rounded-3 border border-warning-subtle small overflow-auto text-dark" style="max-height: 280px; line-height: 1.6;" id="revContentDisplay">
+                                        —
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer bg-white border-0 py-3 px-4 d-flex flex-wrap justify-content-between gap-2">
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-3.5 fw-semibold" id="btnModalRejectEditReq" onclick="triggerRejectEditRequest()">
+                        <i class="fas fa-times me-1"></i> কারেকশন বাতিল করুন
+                    </button>
+                    <a href="#" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-3.5" id="btnModalEditManual">
+                        <i class="fas fa-pen-to-square me-1"></i> নিজে এডিট করতে ওপেন করুন
+                    </a>
+                </div>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-light btn-sm rounded-pill px-3.5" data-bs-dismiss="modal">বন্ধ করুন</button>
+                    <button type="button" class="btn btn-success btn-sm rounded-pill px-4 fw-bold shadow-sm" id="btnModalApproveEditReq" onclick="triggerApproveEditRequest()">
+                        <i class="fas fa-circle-check me-1"></i> কারেকশন অনুমোদন ও রিপ্লেস করুন
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 @push('scripts')
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
 <script>
@@ -1228,6 +1399,389 @@ async function ajaxRejectBlogPostSubmit() {
     }
 }
 
+// Open Blog Post Preview Modal
+function openBlogPostPreviewModal(postId) {
+    const modalEl = document.getElementById('blogPostPreviewModal');
+    if (!modalEl) return;
+
+    // Reset Modal UI
+    document.getElementById('previewModalCategory').textContent = 'Loading...';
+    document.getElementById('previewModalCategory').className = 'badge bg-secondary rounded-pill px-2.5 py-1';
+    document.getElementById('previewModalStatus').textContent = '...';
+    document.getElementById('previewModalStatus').className = 'badge bg-secondary rounded-pill px-2.5 py-1';
+    document.getElementById('previewModalId').textContent = `ID: #${postId}`;
+    document.getElementById('previewModalReadTime').innerHTML = '<i class="fas fa-spinner fa-spin"></i> লোড হচ্ছে...';
+    
+    document.getElementById('previewModalBody').innerHTML = `
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status"></div>
+            <div class="small text-muted mt-2">লেখা ও প্রিভিউ লোড হচ্ছে...</div>
+        </div>
+    `;
+    document.getElementById('previewModalLeftActions').innerHTML = '';
+    document.getElementById('previewModalRightActions').innerHTML = '';
+
+    const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+    modal.show();
+
+    fetch(`/admin/blog/${postId}/details`, {
+        headers: {
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': csrfToken
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            // 1. Header Badges
+            document.getElementById('previewModalCategory').textContent = data.category || 'General';
+            document.getElementById('previewModalCategory').className = 'badge bg-primary bg-opacity-25 text-white border border-primary border-opacity-25 rounded-pill px-2.5 py-1 fw-bold';
+            
+            const isPub = data.is_published;
+            const isPen = (data.status === 'pending' || data.mod_status === 'pending');
+            const isRej = (data.status === 'rejected' || data.mod_status === 'rejected');
+            
+            const statusEl = document.getElementById('previewModalStatus');
+            if (isPub) {
+                statusEl.className = 'badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1 fw-bold';
+                statusEl.innerHTML = '<i class="fas fa-circle-check me-1"></i> Published';
+            } else if (isPen) {
+                statusEl.className = 'badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-2.5 py-1 fw-bold';
+                statusEl.innerHTML = '<i class="fas fa-clock me-1"></i> Pending Review';
+            } else if (isRej) {
+                statusEl.className = 'badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-1 fw-bold';
+                statusEl.innerHTML = '<i class="fas fa-times-circle me-1"></i> Rejected';
+            } else {
+                statusEl.className = 'badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-2.5 py-1 fw-bold';
+                statusEl.innerHTML = '<i class="fas fa-file-pen me-1"></i> Draft';
+            }
+
+            document.getElementById('previewModalReadTime').innerHTML = `<i class="fas fa-book-open me-1 text-warning"></i> ${data.read_time}`;
+
+            // 2. Cover image markup
+            let coverMarkup = '';
+            if (data.cover_url) {
+                coverMarkup = `
+                    <div class="mb-4 text-center">
+                        <div class="rounded-4 overflow-hidden shadow-sm border mx-auto d-inline-block position-relative" style="max-width: 760px; width: 100%; aspect-ratio: 16/9; background: #0f172a;">
+                            <img src="${data.cover_url}" alt="${data.title}" class="w-100 h-100 object-fit-cover">
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 3. Author Info Bar
+            let authorContact = '';
+            if (data.author_phone) {
+                const cleanPhone = data.author_phone.replace(/[^0-9]/g, '');
+                authorContact += `
+                    <a href="https://wa.me/88${cleanPhone}" target="_blank" class="btn btn-xs btn-outline-success rounded-pill px-2.5 py-1 shadow-xs" style="font-size: 11px;">
+                        <i class="fab fa-whatsapp me-1"></i>${data.author_phone}
+                    </a>
+                `;
+            }
+            if (data.author_email) {
+                authorContact += `
+                    <a href="mailto:${data.author_email}" class="btn btn-xs btn-outline-secondary rounded-pill px-2.5 py-1 shadow-xs" style="font-size: 11px;">
+                        <i class="fas fa-envelope me-1"></i>${data.author_email}
+                    </a>
+                `;
+            }
+
+            let avatarMarkup = '';
+            if (data.author_avatar) {
+                avatarMarkup = `<img src="${data.author_avatar}" class="w-100 h-100 object-fit-cover rounded-circle">`;
+            } else {
+                avatarMarkup = `<div class="w-100 h-100 rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center fw-bold fs-6">${(data.author_name || 'আই').substring(0, 1)}</div>`;
+            }
+
+            // 4. Tags
+            let tagsMarkup = '';
+            if (Array.isArray(data.tags) && data.tags.length > 0) {
+                tagsMarkup = `
+                    <div class="d-flex align-items-center gap-1.5 flex-wrap mt-4 pt-3 border-top">
+                        <span class="text-muted small fw-semibold me-1"><i class="fas fa-tags me-1 text-primary"></i>ট্যাগ:</span>
+                        ${data.tags.map(t => `<span class="badge bg-light text-dark border rounded-pill px-2.5 py-1 small">${t}</span>`).join('')}
+                    </div>
+                `;
+            }
+
+            // 5. Excerpt blockquote
+            let excerptMarkup = '';
+            if (data.excerpt) {
+                excerptMarkup = `
+                    <div class="p-3.5 bg-light border-start border-4 border-primary rounded-end-3 mb-4 shadow-xs">
+                        <div class="text-primary small fw-bold mb-1 text-uppercase" style="font-size: 11px; letter-spacing: 0.04em;">সারসংক্ষেপ (Excerpt):</div>
+                        <p class="mb-0 text-dark" style="line-height: 1.6; font-size: 0.95rem; font-style: italic;">${data.excerpt}</p>
+                    </div>
+                `;
+            }
+
+            // 6. Alerts (Rejection / Edit Request)
+            let alertsMarkup = '';
+            if (data.status === 'rejected' && data.rejection_reason) {
+                alertsMarkup += `
+                    <div class="alert alert-danger rounded-3 shadow-xs mb-4">
+                        <i class="fas fa-triangle-exclamation me-1.5"></i>
+                        <strong>বাতিলের কারণ:</strong> ${data.rejection_reason}
+                    </div>
+                `;
+            }
+            if (data.has_edit_request) {
+                alertsMarkup += `
+                    <div class="alert alert-warning rounded-3 shadow-xs mb-4 d-flex align-items-center justify-content-between flex-wrap gap-2">
+                        <div>
+                            <i class="fas fa-code-compare text-warning-emphasis me-1.5"></i>
+                            <strong>লেখকের সংশোধিত কারেকশন আবেদন পেন্ডিং রয়েছে!</strong>
+                        </div>
+                        <button type="button" class="btn btn-warning btn-sm rounded-pill px-3 fw-bold text-dark shadow-xs" onclick="bootstrap.Modal.getInstance(document.getElementById('blogPostPreviewModal'))?.hide(); openBlogEditRequestModal(${data.id});">
+                            কারেকশন পর্যালোচনা করুন
+                        </button>
+                    </div>
+                `;
+            }
+
+            // Render Full Body
+            document.getElementById('previewModalBody').innerHTML = `
+                <div class="p-4 p-md-5 bg-white">
+                    <div style="max-width: 820px; margin: 0 auto;">
+                        ${alertsMarkup}
+                        ${coverMarkup}
+
+                        <!-- Article Header -->
+                        <div class="mb-4 pb-3 border-bottom">
+                            <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1">
+                                    <i class="fas fa-folder me-1"></i>${data.category}
+                                </span>
+                                <span class="text-muted small">
+                                    <i class="far fa-calendar-alt me-1"></i>${data.published_at || data.created_at || '—'}
+                                </span>
+                                <span class="text-muted small">
+                                    <i class="far fa-eye me-1"></i>${data.views_count} ভিউ
+                                </span>
+                            </div>
+
+                            <h2 class="fw-bold text-dark mb-2" style="font-size: 1.85rem; line-height: 1.35; font-family: 'Hind Siliguri', 'Kalpurush', sans-serif;">
+                                ${data.title}
+                            </h2>
+
+                            ${data.subtitle ? `<h5 class="text-muted fw-normal mb-3" style="line-height: 1.4;">${data.subtitle}</h5>` : ''}
+
+                            <!-- Author Card -->
+                            <div class="d-flex align-items-center justify-content-between p-3 rounded-4 bg-light border flex-wrap gap-2 mt-3">
+                                <div class="d-flex align-items-center gap-2.5">
+                                    <div class="rounded-circle overflow-hidden flex-shrink-0" style="width: 44px; height: 44px;">
+                                        ${avatarMarkup}
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold text-dark fs-6">${data.author_name}</div>
+                                        <div class="small text-muted" style="font-size: 12px;">লেখক / কন্ট্রিবিউটর</div>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                    ${authorContact}
+                                </div>
+                            </div>
+                        </div>
+
+                        ${excerptMarkup}
+
+                        <!-- Reading Content -->
+                        <div class="reading-article-prose mt-4" style="font-family: 'Hind Siliguri', 'Kalpurush', 'SolaimanLipi', sans-serif; font-size: 1.08rem; line-height: 1.75; color: #1e293b;">
+                            ${data.content || '<em class="text-muted">কোনো কনটেন্ট পাওয়া যায়নি।</em>'}
+                        </div>
+
+                        ${tagsMarkup}
+                    </div>
+                </div>
+            `;
+
+            // Left Actions
+            const safeTitle = (data.title || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+            document.getElementById('previewModalLeftActions').innerHTML = `
+                <a href="${data.edit_url}" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-xs">
+                    <i class="fas fa-pen-to-square me-1"></i> Edit Post / এডিট
+                </a>
+                ${isPub ? `
+                    <a href="${data.show_url}" target="_blank" class="btn btn-outline-info btn-sm rounded-pill px-3 shadow-xs">
+                        <i class="fas fa-arrow-up-right-from-square me-1"></i> Live on Site
+                    </a>
+                ` : ''}
+            `;
+
+            // Right Actions with prominent Approve Button
+            let rightButtons = '';
+            if (isPub) {
+                rightButtons = `
+                    <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-3" onclick="bootstrap.Modal.getInstance(document.getElementById('blogPostPreviewModal'))?.hide(); openBlogRejectModal(${data.id}, '${safeTitle}');">
+                        <i class="fas fa-ban me-1"></i> Reject / বাতিল
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3" onclick="updatePostStatus(${data.id}, 'draft', this)">
+                        <i class="fas fa-file-pen me-1"></i> Move to Draft
+                    </button>
+                    <span class="badge bg-success-subtle text-success border border-success-subtle py-2 px-3 rounded-pill fw-bold fs-6">
+                        <i class="fas fa-circle-check me-1"></i> Approved & Published
+                    </span>
+                `;
+            } else {
+                rightButtons = `
+                    <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-semibold" onclick="bootstrap.Modal.getInstance(document.getElementById('blogPostPreviewModal'))?.hide(); openBlogRejectModal(${data.id}, '${safeTitle}');">
+                        <i class="fas fa-times me-1"></i> Reject / বাতিল
+                    </button>
+                    <button type="button" class="btn btn-success btn-sm rounded-pill px-4 fw-bold shadow-xs btn-approve-action" onclick="ajaxApproveBlogPost(${data.id}, this)">
+                        <i class="fas fa-circle-check me-1.5"></i> Approve & Publish / অনুমোদন ও প্রকাশ
+                    </button>
+                `;
+            }
+            rightButtons += `<button type="button" class="btn btn-secondary btn-sm rounded-pill px-3" data-bs-dismiss="modal">Close</button>`;
+
+            document.getElementById('previewModalRightActions').innerHTML = rightButtons;
+
+        } else {
+            document.getElementById('previewModalBody').innerHTML = `
+                <div class="alert alert-danger m-4">
+                    ${data.message || 'পোস্টের তথ্য লোড করতে ব্যর্থ হয়েছে।'}
+                </div>
+            `;
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        document.getElementById('previewModalBody').innerHTML = `
+            <div class="alert alert-danger m-4">
+                সার্ভার যোগাযোগে ত্রুটি হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।
+            </div>
+        `;
+    });
+}
+
+// 1-Click Approve Blog Post via AJAX
+async function ajaxApproveBlogPost(postId, triggerBtn = null) {
+    let origHtml = '';
+    if (triggerBtn) {
+        origHtml = triggerBtn.innerHTML;
+        triggerBtn.disabled = true;
+        triggerBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Approving...';
+    }
+
+    try {
+        const res = await fetch(`/admin/blog/${postId}/approve`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': csrfToken
+            }
+        });
+
+        const data = await res.json();
+
+        if (triggerBtn) {
+            triggerBtn.disabled = false;
+            triggerBtn.innerHTML = origHtml;
+        }
+
+        if (data.success) {
+            // 1. Update Preview Modal Status & Action if modal is open
+            const modalStatus = document.getElementById('previewModalStatus');
+            if (modalStatus) {
+                modalStatus.className = 'badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1 fw-bold';
+                modalStatus.innerHTML = '<i class="fas fa-circle-check me-1"></i> Published (Approved)';
+            }
+            const rightActions = document.getElementById('previewModalRightActions');
+            if (rightActions) {
+                rightActions.innerHTML = `
+                    <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-3" onclick="bootstrap.Modal.getInstance(document.getElementById('blogPostPreviewModal'))?.hide(); openBlogRejectModal(${postId}, '');">
+                        <i class="fas fa-ban me-1"></i> Reject
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3" onclick="updatePostStatus(${postId}, 'draft', this)">
+                        <i class="fas fa-file-pen me-1"></i> Move to Draft
+                    </button>
+                    <span class="badge bg-success-subtle text-success border border-success-subtle py-2 px-3 rounded-pill fw-bold fs-6">
+                        <i class="fas fa-circle-check me-1"></i> Approved & Published
+                    </span>
+                    <button type="button" class="btn btn-secondary btn-sm rounded-pill px-3" data-bs-dismiss="modal">Close</button>
+                `;
+            }
+            const leftActions = document.getElementById('previewModalLeftActions');
+            if (leftActions && data.show_url) {
+                leftActions.innerHTML = `
+                    <a href="/admin/content/blog/${postId}/edit" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-xs">
+                        <i class="fas fa-pen-to-square me-1"></i> Edit Post
+                    </a>
+                    <a href="${data.show_url}" target="_blank" class="btn btn-outline-info btn-sm rounded-pill px-3 shadow-xs">
+                        <i class="fas fa-arrow-up-right-from-square me-1"></i> Live on Site
+                    </a>
+                `;
+            }
+
+            // 2. Update Table Select Dropdown
+            const select = document.getElementById('statusSelect' + postId);
+            if (select) {
+                select.value = 'published';
+                select.className = 'form-select form-select-sm status-select-badge bg-success-subtle text-success border-success-subtle';
+            }
+
+            // 3. Row Green Flash Animation
+            const row = document.getElementById('postRow' + postId);
+            if (row) {
+                row.classList.remove('row-approved-flash');
+                void row.offsetWidth; // Force Reflow
+                row.classList.add('row-approved-flash');
+            }
+
+            // 4. Update Approve & Reject Button States in table row
+            const approveBtn = document.getElementById('approveBtn' + postId);
+            if (approveBtn) {
+                approveBtn.className = 'adm-action-btn btn btn-outline-success shadow-xs';
+                approveBtn.innerHTML = '<i class="fas fa-check-double me-1"></i> Approved';
+                approveBtn.title = 'Published (Click to re-approve)';
+                approveBtn.disabled = false;
+            }
+            const rejectBtn = document.getElementById('rejectBtn' + postId);
+            if (rejectBtn) {
+                rejectBtn.className = 'adm-action-btn btn btn-outline-danger shadow-xs';
+                rejectBtn.innerHTML = '<i class="fas fa-times me-1"></i> Reject';
+                rejectBtn.title = 'Reject / Request Changes';
+                rejectBtn.disabled = false;
+            }
+
+            // 5. Update KPI Counter Badges
+            updateBlogCountersLive('published');
+
+            // 6. Show Toast
+            showBlogToast('success', data.message);
+        } else {
+            showBlogToast('danger', data.message || 'অনুমোদন ব্যর্থ হয়েছে।');
+        }
+    } catch (err) {
+        console.error(err);
+        if (triggerBtn) {
+            triggerBtn.disabled = false;
+            triggerBtn.innerHTML = origHtml;
+        }
+        showBlogToast('danger', 'সার্ভার যোগাযোগে ত্রুটি হয়েছে।');
+    }
+}
+
+// Live KPI Counters Update
+function updateBlogCountersLive(newStatus) {
+    const publishedStat = document.querySelector('.card.border-success h3');
+    const pendingStat = document.querySelector('.card.border-warning h3');
+
+    if (newStatus === 'published') {
+        if (pendingStat) {
+            let pVal = parseInt(pendingStat.textContent.replace(/,/g, '')) || 0;
+            if (pVal > 0) pendingStat.textContent = (pVal - 1).toLocaleString();
+        }
+        if (publishedStat) {
+            let pubVal = parseInt(publishedStat.textContent.replace(/,/g, '')) || 0;
+            publishedStat.textContent = (pubVal + 1).toLocaleString();
+        }
+    }
+}
+
 // AJAX Update Post Status with Instant Visual Feedback
 async function updatePostStatus(postId, newStatus, triggerBtn = null, reason = null) {
     const select = document.getElementById('statusSelect' + postId);
@@ -1317,7 +1871,31 @@ async function updatePostStatus(postId, newStatus, triggerBtn = null, reason = n
                 rejectBtn.disabled = false;
             }
 
-            // 4. Floating Toast Alert
+            // 4. Update preview modal if open
+            const modalEl = document.getElementById('blogPostPreviewModal');
+            if (modalEl && modalEl.classList.contains('show')) {
+                const statusEl = document.getElementById('previewModalStatus');
+                if (statusEl) {
+                    if (newStatus === 'published') {
+                        statusEl.className = 'badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1 fw-bold';
+                        statusEl.innerHTML = '<i class="fas fa-circle-check me-1"></i> Published';
+                    } else if (newStatus === 'pending') {
+                        statusEl.className = 'badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-2.5 py-1 fw-bold';
+                        statusEl.innerHTML = '<i class="fas fa-clock me-1"></i> Pending';
+                    } else if (newStatus === 'rejected') {
+                        statusEl.className = 'badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-1 fw-bold';
+                        statusEl.innerHTML = '<i class="fas fa-times-circle me-1"></i> Rejected';
+                    } else {
+                        statusEl.className = 'badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-2.5 py-1 fw-bold';
+                        statusEl.innerHTML = '<i class="fas fa-file-pen me-1"></i> Draft';
+                    }
+                }
+            }
+
+            // 5. Update KPI stats live
+            updateBlogCountersLive(newStatus);
+
+            // 6. Floating Toast Alert
             showBlogToast(newStatus === 'published' ? 'success' : (newStatus === 'rejected' ? 'warning' : 'info'), data.message);
         } else {
             showBlogToast('danger', data.message || 'স্ট্যাটাস পরিবর্তন ব্যর্থ হয়েছে।');
@@ -1525,138 +2103,10 @@ async function runBulkNormalizeTypography() {
             </div>`;
     });
 }
-{{-- ═════════════════════════════════════════════════════════════════════════ --}}
-{{-- 5. MODALS (EDIT REQUEST REVIEW & REJECT REASON)                             --}}
-{{-- ═════════════════════════════════════════════════════════════════════════ --}}
 
-{{-- Modal: Author Edit Request Review & Replace --}}
-<div class="modal fade" id="blogEditRequestModal" tabindex="-1" aria-labelledby="blogEditRequestModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-xl">
-        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
-            <div class="modal-header bg-dark text-white border-0 py-3 px-4">
-                <div class="d-flex align-items-center gap-2.5">
-                    <div class="p-2 bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
-                        <i class="fas fa-code-compare fs-6"></i>
-                    </div>
-                    <div>
-                        <h5 class="modal-title fw-bold mb-0 text-white" id="blogEditRequestModalLabel">
-                            লেখকের কারেকশন রিকোয়েস্ট পর্যালোচনা ও রিপ্লেস
-                        </h5>
-                        <div class="small opacity-75" id="editReqMetaHeader">পোস্ট আইডি ও লেখকের তথ্য লোড হচ্ছে...</div>
-                    </div>
-                </div>
-                <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-
-            <div class="modal-body p-4 bg-light">
-                {{-- Correction Note & Author Message Alert --}}
-                <div class="alert alert-warning border-0 rounded-4 shadow-xs mb-3 p-3">
-                    <div class="d-flex align-items-start gap-2">
-                        <i class="fas fa-comment-dots text-warning-emphasis fs-5 mt-0.5"></i>
-                        <div class="w-100">
-                            <strong class="text-dark d-block">লেখকের সংশোধনী নোট / কারেকশন বার্তা:</strong>
-                            <p class="mb-0 text-dark small mt-0.5" id="editReqNotesDisplay">কোনো নোট প্রদান করা হয়নি।</p>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- Comparison Container --}}
-                <div class="row g-3">
-                    {{-- 1. Original / Currently Live Post --}}
-                    <div class="col-12 col-lg-6">
-                        <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden bg-white">
-                            <div class="card-header bg-secondary bg-opacity-10 border-bottom py-2.5 px-3.5 d-flex align-items-center justify-content-between">
-                                <span class="fw-bold text-secondary small">
-                                    <i class="fas fa-globe me-1"></i> বর্তমানে লাইভ থাকা মূল পোস্ট (Original)
-                                </span>
-                                <span class="badge bg-secondary rounded-pill small">Current Live</span>
-                            </div>
-                            <div class="card-body p-3.5">
-                                <div class="mb-2">
-                                    <small class="text-muted d-block fw-semibold" style="font-size: 11px;">মূল শিরোনাম</small>
-                                    <h6 class="fw-bold text-dark mb-0" id="origTitleDisplay">—</h6>
-                                </div>
-                                <div class="mb-2" id="origSubtitleWrap">
-                                    <small class="text-muted d-block fw-semibold" style="font-size: 11px;">সাবটাইটেল</small>
-                                    <div class="text-muted small" id="origSubtitleDisplay">—</div>
-                                </div>
-                                <div class="mb-2">
-                                    <small class="text-muted d-block fw-semibold" style="font-size: 11px;">ক্যাটাগরি</small>
-                                    <span class="badge bg-light text-dark border" id="origCategoryDisplay">—</span>
-                                </div>
-                                <div class="mb-2" id="origExcerptWrap">
-                                    <small class="text-muted d-block fw-semibold" style="font-size: 11px;">সারসংক্ষেপ (Excerpt)</small>
-                                    <div class="p-2 bg-light rounded-3 small text-dark" style="max-height: 80px; overflow-y: auto;" id="origExcerptDisplay">—</div>
-                                </div>
-                                <div>
-                                    <small class="text-muted d-block fw-semibold mb-1" style="font-size: 11px;">মূল লেখার কনটেন্ট</small>
-                                    <div class="p-3 bg-light rounded-3 border small overflow-auto text-dark" style="max-height: 280px; line-height: 1.6;" id="origContentDisplay">
-                                        —
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {{-- 2. Author's Revised / Corrected Post --}}
-                    <div class="col-12 col-lg-6">
-                        <div class="card h-100 border-2 border-warning shadow-sm rounded-4 overflow-hidden bg-white">
-                            <div class="card-header bg-warning bg-opacity-25 border-bottom py-2.5 px-3.5 d-flex align-items-center justify-content-between">
-                                <span class="fw-bold text-dark small">
-                                    <i class="fas fa-feather-pointed me-1 text-warning-emphasis"></i> লেখকের প্রস্তাবিত সংশোধিত রূপ (Revised)
-                                </span>
-                                <span class="badge bg-warning text-dark rounded-pill small">Proposed Changes</span>
-                            </div>
-                            <div class="card-body p-3.5">
-                                <div class="mb-2">
-                                    <small class="text-warning-emphasis d-block fw-semibold" style="font-size: 11px;">সংশোধিত শিরোনাম</small>
-                                    <h6 class="fw-bold text-success mb-0" id="revTitleDisplay">—</h6>
-                                </div>
-                                <div class="mb-2" id="revSubtitleWrap">
-                                    <small class="text-warning-emphasis d-block fw-semibold" style="font-size: 11px;">সংশোধিত সাবটাইটেল</small>
-                                    <div class="text-dark small" id="revSubtitleDisplay">—</div>
-                                </div>
-                                <div class="mb-2">
-                                    <small class="text-warning-emphasis d-block fw-semibold" style="font-size: 11px;">ক্যাটাগরি</small>
-                                    <span class="badge bg-warning-subtle text-dark border border-warning-subtle" id="revCategoryDisplay">—</span>
-                                </div>
-                                <div class="mb-2" id="revExcerptWrap">
-                                    <small class="text-warning-emphasis d-block fw-semibold" style="font-size: 11px;">সংশোধিত সারসংক্ষেপ</small>
-                                    <div class="p-2 bg-warning-subtle rounded-3 small text-dark" style="max-height: 80px; overflow-y: auto;" id="revExcerptDisplay">—</div>
-                                </div>
-                                <div>
-                                    <small class="text-warning-emphasis d-block fw-semibold mb-1" style="font-size: 11px;">সংশোধিত লেখার কনটেন্ট</small>
-                                    <div class="p-3 bg-white rounded-3 border border-warning-subtle small overflow-auto text-dark" style="max-height: 280px; line-height: 1.6;" id="revContentDisplay">
-                                        —
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="modal-footer bg-white border-0 py-3 px-4 d-flex flex-wrap justify-content-between gap-2">
-                <div class="d-flex gap-2">
-                    <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-3.5 fw-semibold" id="btnModalRejectEditReq" onclick="triggerRejectEditRequest()">
-                        <i class="fas fa-times me-1"></i> কারেকশন বাতিল করুন
-                    </button>
-                    <a href="#" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-3.5" id="btnModalEditManual">
-                        <i class="fas fa-pen-to-square me-1"></i> নিজে এডিট করতে ওপেন করুন
-                    </a>
-                </div>
-                <div class="d-flex gap-2">
-                    <button type="button" class="btn btn-light btn-sm rounded-pill px-3.5" data-bs-dismiss="modal">বন্ধ করুন</button>
-                    <button type="button" class="btn btn-success btn-sm rounded-pill px-4 fw-bold shadow-sm" id="btnModalApproveEditReq" onclick="triggerApproveEditRequest()">
-                        <i class="fas fa-circle-check me-1"></i> কারেকশন অনুমোদন ও রিপ্লেস করুন
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script>
+// ─────────────────────────────────────────────────────────────────────────
+// Author Correction / Edit Request Review & Actions
+// ─────────────────────────────────────────────────────────────────────────
 let currentEditReqPostId = null;
 
 function openBlogEditRequestModal(postId) {
@@ -1722,7 +2172,7 @@ function triggerApproveEditRequest() {
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
-                    showSuccessToast(data.message);
+                    showBlogToast('success', data.message);
                     setTimeout(() => { location.reload(); }, 1000);
                 } else {
                     Swal.fire({ title: 'ত্রুটি', text: data.message || 'সমস্যা হয়েছে।', icon: 'error' });
@@ -1770,7 +2220,7 @@ function triggerRejectEditRequest() {
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
-                    showSuccessToast(data.message);
+                    showBlogToast('info', data.message);
                     setTimeout(() => { location.reload(); }, 1000);
                 } else {
                     Swal.fire({ title: 'ত্রুটি', text: data.message || 'সমস্যা হয়েছে।', icon: 'error' });

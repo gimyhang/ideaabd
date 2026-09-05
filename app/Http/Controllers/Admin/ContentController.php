@@ -136,6 +136,24 @@ class ContentController extends Controller
             if (($attributes['status'] ?? null) === 'published' && empty($attributes['published_at'])) {
                 $attributes['published_at'] = now();
             }
+
+            // Handle Blog Cover / Photocard Auto-Optimization
+            if ($request->filled('generated_cover_data') && str_starts_with((string)$request->input('generated_cover_data'), 'data:image')) {
+                $savedData = \App\Services\ImageOptimizerService::convertBase64AndStore($request->input('generated_cover_data'), 'blog', 'public', 82, 1400, 900);
+                if ($savedData) {
+                    $attributes['featured_image'] = $savedData;
+                }
+            }
+
+            if (empty($attributes['featured_image'])) {
+                $authorName = $request->input('owner_name') ?: (auth()->user()?->name ?: 'আইডিয়া প্রকাশন');
+                $attributes['featured_image'] = \App\Services\ImageOptimizerService::generatePhotocardAndStore(
+                    $attributes['title'] ?? 'সাহিত্যপত্র',
+                    $authorName,
+                    'blog',
+                    'public'
+                );
+            }
         }
 
         if (in_array($type, ['books', 'ebooks'], true) && empty($attributes['cover_image'])) {
@@ -307,9 +325,16 @@ class ContentController extends Controller
                     $attributes['published_at'] = now();
                 }
             }
+
+            if ($request->filled('generated_cover_data') && str_starts_with((string)$request->input('generated_cover_data'), 'data:image')) {
+                $savedData = \App\Services\ImageOptimizerService::convertBase64AndStore($request->input('generated_cover_data'), 'blog', 'public', 82, 1400, 900);
+                if ($savedData) {
+                    $attributes['featured_image'] = $savedData;
+                }
+            }
         }
 
-        if (in_array($type, ['books', 'ebooks'], true) && empty($attributes['cover_image']) && empty($record->cover_image)) {
+        if (in_array($type, ['books', 'ebooks'], true) && empty($attributes['cover_image'])) {
             if ($request->filled('generated_cover_data') && str_starts_with((string)$request->input('generated_cover_data'), 'data:image')) {
                 $savedData = $this->saveImageOrBase64(null, $request->input('generated_cover_data'), 'books/covers');
                 if ($savedData) {
@@ -317,7 +342,7 @@ class ContentController extends Controller
                 }
             }
 
-            if (empty($attributes['cover_image'])) {
+            if (empty($attributes['cover_image']) && empty($record->cover_image)) {
                 $authorName = null;
                 if ($request->has('author_names')) {
                     $rawNames = array_filter(array_map('trim', (array) $request->input('author_names')));
@@ -1037,7 +1062,7 @@ class ContentController extends Controller
                 $files = (array) $request->file('look_inside_images');
                 foreach ($files as $imgFile) {
                     if ($imgFile instanceof \Illuminate\Http\UploadedFile) {
-                        $imagePaths[] = $imgFile->store('books/look_inside', 'public');
+                        $imagePaths[] = \App\Services\ImageOptimizerService::convertAndStore($imgFile, 'books/look_inside', 'public', 82, 1400, 1800);
                     }
                 }
                 if (!empty($imagePaths)) {
@@ -1075,7 +1100,13 @@ class ContentController extends Controller
             return false;
         }
 
-        $path = $file->store($field['disk'] ?? 'uploads', self::UPLOAD_DISK);
+        $folder = $field['disk'] ?? 'uploads';
+        $mime = $file->getMimeType();
+        if (str_starts_with($mime, 'image/') && !str_contains($mime, 'svg')) {
+            $path = \App\Services\ImageOptimizerService::convertAndStore($file, $folder, self::UPLOAD_DISK, 82, 1600, 1600);
+        } else {
+            $path = $file->store($folder, self::UPLOAD_DISK);
+        }
 
         // Replacing a file should not leave the old one behind on disk.
         $this->deleteStoredFile($record->{$name} ?? null);
@@ -1088,24 +1119,18 @@ class ContentController extends Controller
      */
     private function saveImageOrBase64(?UploadedFile $file, ?string $base64Data, string $folder): ?string
     {
-        if ($base64Data && str_starts_with($base64Data, 'data:image/')) {
-            @list($type, $data) = explode(';', $base64Data);
-            @list(, $data) = explode(',', $data);
-            $decoded = base64_decode($data);
-            if ($decoded !== false) {
-                $ext = 'jpg';
-                if (str_contains($type, 'png')) $ext = 'png';
-                elseif (str_contains($type, 'webp')) $ext = 'webp';
-                elseif (str_contains($type, 'svg')) $ext = 'svg';
-
-                $filename = $folder . '/cover_' . uniqid('', true) . '.' . $ext;
-                Storage::disk(self::UPLOAD_DISK)->put($filename, $decoded);
-
-                return $filename;
+        if ($base64Data && str_starts_with($base64Data, 'data:image')) {
+            $optimizedPath = \App\Services\ImageOptimizerService::convertBase64AndStore($base64Data, $folder, self::UPLOAD_DISK, 85, 1200, 1600);
+            if ($optimizedPath) {
+                return $optimizedPath;
             }
         }
 
         if ($file && $file->isValid()) {
+            $mime = $file->getMimeType();
+            if (str_starts_with($mime, 'image/') && !str_contains($mime, 'svg')) {
+                return \App\Services\ImageOptimizerService::convertAndStore($file, $folder, self::UPLOAD_DISK, 85, 1200, 1600);
+            }
             return $file->store($folder, self::UPLOAD_DISK);
         }
 

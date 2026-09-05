@@ -104,6 +104,7 @@ class RegistrationController extends Controller
                 'trade_license'  => ['nullable', 'string'],
             ]),
             'author' => $request->validate([
+                'name_en'        => ['nullable', 'string', 'max:255'],
                 'pen_name'       => ['nullable', 'string', 'max:255'],
                 'bio'            => ['nullable', 'string'],
                 'genre'          => ['nullable'],
@@ -130,26 +131,14 @@ class RegistrationController extends Controller
             $extra['genres'] = array_values(array_unique(array_filter(array_map('trim', $selectedGenres))));
         }
 
-        // Handle avatar photo upload (Cropped Base64 or standard file upload)
+        // Handle avatar photo upload (Convert to .avif automatically)
         $avatarPath = null;
         if ($request->filled('avatar_cropped') && str_starts_with($request->input('avatar_cropped'), 'data:image')) {
-            try {
-                $croppedData = $request->input('avatar_cropped');
-                @list($typeInfo, $data) = explode(';', $croppedData);
-                @list(, $data)          = explode(',', $data);
-                $decodedData = base64_decode($data);
-                if ($decodedData !== false) {
-                    $filename = 'avatars/author_' . time() . '_' . uniqid() . '.jpg';
-                    \Illuminate\Support\Facades\Storage::disk('public')->put($filename, $decodedData);
-                    $avatarPath = $filename;
-                }
-            } catch (\Throwable $e) {
-                Log::warning("Could not process cropped avatar: " . $e->getMessage());
-            }
+            $avatarPath = \App\Services\ImageOptimizerService::convertBase64AndStore($request->input('avatar_cropped'), 'avatars', 'public', 85, 600, 600);
         }
         
         if (!$avatarPath && $request->hasFile('avatar')) {
-            $avatarPath = $request->file('avatar')->store('avatars', 'public');
+            $avatarPath = \App\Services\ImageOptimizerService::convertAndStore($request->file('avatar'), 'avatars', 'public', 85, 600, 600);
         }
 
         // Generate 6 digit verification OTP
@@ -183,6 +172,7 @@ class RegistrationController extends Controller
                 $authorName = !empty($extra['pen_name']) ? $extra['pen_name'] : $base['name'];
                 \Modules\Author\Models\Author::findOrCreateUnified([
                     'name'        => $authorName,
+                    'name_en'     => $extra['name_en'] ?? null,
                     'phone'       => $base['phone'],
                     'email'       => $base['email'],
                     'bio'         => $extra['bio'] ?? null,

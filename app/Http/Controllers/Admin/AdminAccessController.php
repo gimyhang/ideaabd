@@ -595,22 +595,14 @@ class AdminAccessController extends Controller
     private function saveImageOrBase64(?\Illuminate\Http\UploadedFile $file, ?string $base64Data, string $folder): ?string
     {
         if ($base64Data && str_starts_with($base64Data, 'data:image/')) {
-            @list($type, $data) = explode(';', $base64Data);
-            @list(, $data) = explode(',', $data);
-            $decoded = base64_decode($data);
-            if ($decoded !== false) {
-                $ext = 'png';
-                if (str_contains($type, 'jpeg') || str_contains($type, 'jpg')) $ext = 'jpg';
-                elseif (str_contains($type, 'webp')) $ext = 'webp';
-                
-                $filename = $folder . '/' . uniqid('crop_', true) . '.' . $ext;
-                \Illuminate\Support\Facades\Storage::disk('public')->put($filename, $decoded);
-                return 'storage/' . $filename;
+            $path = \App\Services\ImageOptimizerService::convertBase64AndStore($base64Data, $folder, 'public', 85, 1920, 1080);
+            if ($path) {
+                return 'storage/' . $path;
             }
         }
 
         if ($file && $file->isValid()) {
-            $path = $file->store($folder, 'public');
+            $path = \App\Services\ImageOptimizerService::convertAndStore($file, $folder, 'public', 85, 1920, 1080);
             return 'storage/' . $path;
         }
 

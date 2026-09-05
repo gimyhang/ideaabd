@@ -85,15 +85,15 @@
     window.SwalConfirm = function(options) {
         var isDark = document.body.classList.contains('dark-mode');
         return Swal.fire({
-            title: options.title || 'আপনি কি নিশ্চিত?',
+            title: options.title || 'Are you sure?',
             text: options.text || '',
             html: options.html || undefined,
             icon: options.icon || 'warning',
             showCancelButton: true,
             confirmButtonColor: options.confirmButtonColor || '#0284c7',
             cancelButtonColor: options.cancelButtonColor || '#64748b',
-            confirmButtonText: options.confirmButtonText || '<i class="fas fa-check me-1"></i> হ্যাঁ, নিশ্চিত',
-            cancelButtonText: options.cancelButtonText || '<i class="fas fa-times me-1"></i> বাতিল',
+            confirmButtonText: options.confirmButtonText || '<i class="fas fa-check me-1"></i> Yes, Confirm',
+            cancelButtonText: options.cancelButtonText || '<i class="fas fa-times me-1"></i> Cancel',
             reverseButtons: true,
             focusCancel: options.focusCancel || false,
             background: isDark ? '#1e293b' : '#ffffff',

@@ -276,6 +276,8 @@ Route::prefix('publisher')->name('publisher.')->middleware(['auth'])->group(func
     Route::delete('/books/{id}', [\App\Http\Controllers\Publisher\PublisherPortalController::class, 'destroyBook'])->name('books.destroy');
     Route::post('/profile', [\App\Http\Controllers\Publisher\PublisherPortalController::class, 'updateProfile'])->name('profile.update');
     Route::get('/purchases/{id}/challan', [\App\Http\Controllers\Publisher\PublisherPortalController::class, 'printChallan'])->name('purchases.challan');
+    Route::post('/quick/category', [\App\Http\Controllers\Publisher\PublisherPortalController::class, 'quickStoreCategory'])->name('quick.category');
+    Route::post('/quick/author', [\App\Http\Controllers\Publisher\PublisherPortalController::class, 'quickStoreAuthor'])->name('quick.author');
 });
 
 // Company Panel route alias (Publisher/seller company-panel redirect)
@@ -355,10 +357,13 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::get('/categories', [AdminController::class, 'categories'])->name('categories');
     Route::get('/blog', [AdminController::class, 'blog'])->name('blog');
     Route::get('/blog-categories', [AdminController::class, 'blogCategories'])->name('blog-categories');
+    Route::get('/blog/{id}/details', [AdminController::class, 'blogPostDetails'])->name('blog.details');
     Route::post('/blog/settings', [AdminController::class, 'updateBlogSettings'])->name('blog.settings.update');
     Route::post('/blog/bulk-normalize-typography', [AdminController::class, 'bulkNormalizeBlogTypography'])->name('blog.bulk-normalize-typography');
     Route::post('/blog/bulk-action', [AdminController::class, 'bulkBlogAction'])->name('blog.bulk-action');
     Route::post('/blog/{id}/toggle-status', [AdminController::class, 'togglePostStatus'])->name('blog.toggle-status');
+    Route::post('/blog/{id}/approve', [AdminController::class, 'approveBlogPost'])->name('blog.approve');
+    Route::post('/blog/{id}/reject', [AdminController::class, 'rejectBlogPost'])->name('blog.reject');
     Route::post('/blog/{id}/toggle-featured', [AdminController::class, 'togglePostFeatured'])->name('blog.toggle-featured');
     Route::post('/blog/{id}/approve-edit-request', [AdminController::class, 'approveBlogEditRequest'])->name('blog.approve-edit-request');
     Route::post('/blog/{id}/reject-edit-request', [AdminController::class, 'rejectBlogEditRequest'])->name('blog.reject-edit-request');

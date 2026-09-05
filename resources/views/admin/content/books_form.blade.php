@@ -763,31 +763,42 @@
         </div>
 
         {{-- 2. COVER IMAGE --}}
-        <div class="adm-card p-3 mb-3">
-            <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom">
-                <span class="fw-bold text-dark small"><i class="fas fa-image text-primary me-1.5"></i> Cover Image *</span>
-                <span class="badge bg-primary-subtle text-primary small">2:3 Ratio</span>
+        <div class="adm-card p-3 mb-3 border-0 shadow-sm rounded-4">
+            <div class="d-flex align-items-center justify-content-between mb-2.5 pb-2 border-bottom">
+                <span class="fw-bold text-dark small d-flex align-items-center gap-1.5">
+                    <i class="fas fa-image text-primary"></i> Cover Image <span class="text-danger">*</span>
+                </span>
+                <div class="d-flex align-items-center gap-1.5">
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle small px-2 py-0.5 rounded-pill" style="font-size: 10px;">2:3 Portrait</span>
+                    <span class="badge bg-success-subtle text-success border border-success-subtle small px-2 py-0.5 rounded-pill" style="font-size: 10px;">
+                        <i class="fas fa-bolt me-0.5"></i>Auto .AVIF
+                    </span>
+                </div>
             </div>
             
             {{-- Realistic Mockup Preview --}}
-            <div class="p-2.5 bg-light rounded-3 border text-center mb-2.5">
-                <div class="position-relative mx-auto mb-2 shadow-sm rounded-2 overflow-hidden" 
-                     style="width: 120px; height: 175px; background: #e2e8f0; border-left: 4px solid #1e293b;">
+            <div class="p-3 bg-light bg-opacity-75 rounded-3 border text-center mb-3">
+                <div class="position-relative mx-auto mb-2 shadow rounded-2 overflow-hidden" 
+                     style="width: 130px; height: 195px; background: #e2e8f0; border-left: 5px solid #1e293b; box-shadow: 0 8px 20px rgba(0,0,0,0.12);">
                     @php
                         $currCoverUrl = ($editing && !empty($record->cover_image))
                             ? (str_starts_with($record->cover_image, 'http') ? $record->cover_image : asset('storage/' . ltrim($record->cover_image, '/')))
-                            : 'https://placehold.co/300x450/e2e8f0/475569?text=Cover+Image';
+                            : '';
                     @endphp
                     <img id="mockupCoverImg" src="{{ $currCoverUrl }}" 
-                         alt="Cover Mockup" class="w-100 h-100 object-fit-cover">
+                         alt="Cover Mockup" class="w-100 h-100 object-fit-cover {{ empty($currCoverUrl) ? 'd-none' : '' }}">
+                    <div id="mockupCoverPlaceholder" class="w-100 h-100 d-flex flex-column align-items-center justify-content-center p-2 text-muted {{ !empty($currCoverUrl) ? 'd-none' : '' }}" style="background: #f1f5f9;">
+                        <i class="fas fa-book-open text-primary fs-3 mb-1 opacity-75"></i>
+                        <span class="small fw-semibold" style="font-size: 11px;">কভার প্রিভিউ</span>
+                    </div>
                     <span id="mockupDiscountBadge" class="badge bg-danger position-absolute top-0 start-0 m-1 shadow-xs d-none" style="font-size: 10px;">
                         -0%
                     </span>
                 </div>
-                <div id="mockupTitle" class="fw-bold text-dark text-truncate mb-0.5" style="font-size: 0.88rem;">
+                <div id="mockupTitle" class="fw-bold text-dark text-truncate mb-0.5" style="font-size: 0.9rem;">
                     {{ $editing ? ($record->title ?? 'Book Title') : 'Book Title' }}
                 </div>
-                <div id="mockupAuthor" class="small text-muted mb-1 text-truncate" style="font-size: 0.76rem;">
+                <div id="mockupAuthor" class="small text-muted mb-1 text-truncate" style="font-size: 0.78rem;">
                     {{ $editing ? ($record->author_name ?? 'Author Name') : 'Author Name' }}
                 </div>
                 <div class="d-flex align-items-center justify-content-center gap-1.5">
@@ -795,6 +806,59 @@
                 </div>
             </div>
 
+            {{-- 1-Click Auto-Generate & Palette Bar --}}
+            <div class="p-2.5 bg-primary bg-opacity-10 rounded-3 border border-primary border-opacity-25 mb-2.5">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="small fw-bold text-dark d-flex align-items-center gap-1" style="font-size: 12px;">
+                        <i class="fa-solid fa-wand-magic-sparkles text-primary"></i> অটোজেনারেট প্রচ্ছদ
+                    </span>
+                    <span class="badge bg-white text-primary border border-primary-subtle py-0.5 px-2 rounded-pill fw-semibold" style="font-size: 10px;">
+                        ১-ক্লিকে তৈরি
+                    </span>
+                </div>
+
+                <div class="d-flex gap-1.5 mb-2">
+                    <button type="button" class="btn btn-primary btn-sm flex-fill rounded-pill fw-bold py-1.5 d-flex align-items-center justify-content-center gap-1.5 shadow-xs" 
+                            onclick="magicAutoGenerateCover()" style="font-size: 12px;">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        <span>✦ অটোজেনারেট প্রচ্ছদ</span>
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill fw-semibold px-2.5 d-flex align-items-center justify-content-center shadow-xs" 
+                            onclick="generateAutoBookCoverLive()" title="রিফ্রেশ করুন" style="font-size: 12px;">
+                        <i class="fa-solid fa-rotate"></i>
+                    </button>
+                </div>
+
+                {{-- Quick Theme Swatches (1-click color palette pickers) --}}
+                <div class="d-flex align-items-center justify-content-between px-1">
+                    <span class="text-muted fw-semibold" style="font-size: 10.5px;">থিম কালার:</span>
+                    <div class="d-flex align-items-center gap-1.5" id="autoCoverThemeSwatches">
+                        <button type="button" class="btn p-0 rounded-circle border shadow-2xs cover-theme-btn active" 
+                                style="width: 22px; height: 22px; background: #0f172a;" title="রয়্যাল নেভি" onclick="applyAutoCoverTheme('royal_blue')"></button>
+                        <button type="button" class="btn p-0 rounded-circle border shadow-2xs cover-theme-btn" 
+                                style="width: 22px; height: 22px; background: #064e3b;" title="ডিপ এমারেল্ড" onclick="applyAutoCoverTheme('deep_emerald')"></button>
+                        <button type="button" class="btn p-0 rounded-circle border shadow-2xs cover-theme-btn" 
+                                style="width: 22px; height: 22px; background: #450a0a;" title="ডিপ মেরুন" onclick="applyAutoCoverTheme('crimson_ruby')"></button>
+                        <button type="button" class="btn p-0 rounded-circle border shadow-2xs cover-theme-btn" 
+                                style="width: 22px; height: 22px; background: #2e1065;" title="রয়্যাল প্লাম" onclick="applyAutoCoverTheme('regal_purple')"></button>
+                        <button type="button" class="btn p-0 rounded-circle border shadow-2xs cover-theme-btn" 
+                                style="width: 22px; height: 22px; background: #18181b;" title="মিডনাইট চারকোল" onclick="applyAutoCoverTheme('midnight_slate')"></button>
+                        <button type="button" class="btn p-0 rounded-circle border shadow-2xs cover-theme-btn" 
+                                style="width: 22px; height: 22px; background: #3b1d11;" title="চকলেট ব্রাউন" onclick="applyAutoCoverTheme('warm_brown')"></button>
+                        <button type="button" class="btn p-0 rounded-circle border shadow-2xs cover-theme-btn" 
+                                style="width: 22px; height: 22px; background: #042f2e;" title="ডার্ক টিল" onclick="applyAutoCoverTheme('dark_teal')"></button>
+                    </div>
+                </div>
+                <input type="hidden" name="generated_cover_data" id="f-generated_cover_data">
+                <input type="hidden" name="auto_cover_theme" id="f-auto_cover_theme" value="royal_blue">
+            </div>
+
+            <div class="text-center my-1.5 position-relative">
+                <hr class="my-0 text-muted opacity-25">
+                <span class="position-absolute top-50 start-50 translate-middle bg-white px-2 text-muted fw-semibold" style="font-size: 10px;">অথবা ফাইল আপলোড করুন</span>
+            </div>
+
+            {{-- Upload Dropzone --}}
             <div class="adm-dropzone position-relative mb-1" id="dropzone-cover_image"
                  ondragover="handleDropzoneDragOver(event, this)"
                  ondragleave="handleDropzoneDragLeave(event, this)"
@@ -803,150 +867,19 @@
                        class="adm-dropzone__file-input"
                        onchange="previewAdminCoverInput(this)">
                 <div class="adm-dropzone__icon"><i class="fas fa-cloud-arrow-up text-primary fs-4"></i></div>
-                <div class="fw-bold text-dark small">Upload Cover Image</div>
-                <div class="text-muted small" style="font-size: 11px;">JPG, PNG, WebP (Max. 10MB)</div>
+                <div class="fw-bold text-dark small">কভার ফাইল আপলোড করুন</div>
+                <div class="text-muted small" style="font-size: 11px;">JPG, PNG, WebP, AVIF (Max. 10MB)</div>
             </div>
 
-            {{-- Auto Generate Cover & Rich Customizer Panel --}}
-            <div class="p-2.5 bg-light rounded-3 border mt-2">
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="small fw-bold text-dark" style="font-size: 11.5px;">
-                        <i class="fa-solid fa-wand-magic-sparkles text-primary me-1"></i> প্রচ্ছদ কালার ও ফন্ট কাস্টমাইজ
-                    </span>
-                    <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none text-primary fw-semibold" 
-                            style="font-size: 11px;" onclick="toggleAutoCoverOptions()">
-                        <i class="fa-solid fa-sliders me-0.5"></i><span id="autoCoverToggleText">অপশন দেখুন</span>
-                    </button>
-                </div>
-
-                <!-- Theme Presets Selection & Magic Auto-Generate Button -->
-                <div class="mb-2">
-                    <div class="d-flex align-items-center justify-content-between mb-1">
-                        <label class="form-label small fw-semibold text-muted mb-0" style="font-size: 10.5px;">কালার থিম প্রিসেট</label>
-                        <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2 rounded-pill fw-bold" 
-                                onclick="magicAutoGenerateCover()" style="font-size: 10.5px;" title="র্যান্ডম আকর্ষণীয় ডিজাইন তৈরি করুন">
-                            <i class="fa-solid fa-dice me-1"></i>অটোজেনারেট
-                        </button>
-                    </div>
-                    <select id="autoCoverThemeSelect" name="auto_cover_theme" class="form-select form-select-sm" style="font-size: 11.5px;" onchange="applyAutoCoverTheme(this.value)">
-                        <option value="royal_blue">রয়্যাল নেভি (#0f172a)</option>
-                        <option value="deep_emerald">ডিপ ফরেস্ট গ্রিন (#064e3b)</option>
-                        <option value="crimson_ruby">ডিপ মেরুন (#450a0a)</option>
-                        <option value="regal_purple">রয়্যাল প্লাম (#2e1065)</option>
-                        <option value="midnight_slate">মিডনাইট চারকোল (#18181b)</option>
-                        <option value="warm_brown">চকলেট ব্রাউন (#3b1d11)</option>
-                        <option value="dark_teal">ডার্ক টিল (#042f2e)</option>
-                        <option value="custom">কাস্টম কালার...</option>
-                    </select>
-                </div>
-
-                <!-- Detailed Customizer (Collapsible) -->
-                <div id="autoCoverCustomOptions" class="vstack gap-2 p-2 bg-white rounded-2 border mb-2" style="font-size: 11px;">
-                    <!-- 1. Font Family -->
-                    <div>
-                        <label class="form-label fw-semibold text-dark mb-1" style="font-size: 10.5px;">
-                            <i class="fa-solid fa-font text-primary me-0.5"></i> ফন্ট স্টাইল (Font Style)
-                        </label>
-                        <select id="autoCoverFontSelect" name="auto_cover_font" class="form-select form-select-sm" style="font-size: 11px;" onchange="generateAutoBookCoverLive()">
-                            <option value="Hind Siliguri">Hind Siliguri (আধুনিক বোল্ড)</option>
-                            <option value="SolaimanLipi">SolaimanLipi (ক্ল্যাসিক সাহিত্যিক)</option>
-                            <option value="Noto Serif Bengali">Noto Serif Bengali (প্রিমিয়াম সেরিক)</option>
-                            <option value="Kalpurush">Kalpurush (ক্লিন ও স্পষ্ট)</option>
-                            <option value="Tiro Bangla">Tiro Bangla (ঐতিহ্যবাহী)</option>
-                        </select>
-                    </div>
-
-                    <!-- 2. Color Controls (Background, Title, Author) -->
-                    <div class="row g-1.5">
-                        <div class="col-4">
-                            <label class="form-label fw-semibold text-dark mb-0.5" style="font-size: 10px;">কভার রঙ</label>
-                            <div class="d-flex align-items-center gap-1">
-                                <input type="color" id="autoCoverBgColor" name="auto_cover_bg" value="#0f172a" 
-                                       class="form-control form-control-color w-100 p-0.5 rounded" style="height: 28px;"
-                                       oninput="generateAutoBookCoverLive()">
-                            </div>
-                        </div>
-                        <div class="col-4">
-                            <label class="form-label fw-semibold text-dark mb-0.5" style="font-size: 10px;">বইয়ের নাম</label>
-                            <div class="d-flex align-items-center gap-1">
-                                <input type="color" id="autoCoverTitleColor" name="auto_cover_title_color" value="#ffffff" 
-                                       class="form-control form-control-color w-100 p-0.5 rounded" style="height: 28px;"
-                                       oninput="generateAutoBookCoverLive()">
-                            </div>
-                        </div>
-                        <div class="col-4">
-                            <label class="form-label fw-semibold text-dark mb-0.5" style="font-size: 10px;">লেখক নাম</label>
-                            <div class="d-flex align-items-center gap-1">
-                                <input type="color" id="autoCoverAuthorColor" name="auto_cover_author_color" value="#fde047" 
-                                       class="form-control form-control-color w-100 p-0.5 rounded" style="height: 28px;"
-                                       oninput="generateAutoBookCoverLive()">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 3. Font Size Range Sliders (বইয়ের নাম ও লেখক ফন্ট সাইজ বার) -->
-                    <div>
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <label class="form-label fw-semibold text-dark mb-0" style="font-size: 10.5px;">
-                                <i class="fa-solid fa-text-height text-primary me-0.5"></i> বইয়ের নামের ফন্ট সাইজ বার
-                            </label>
-                            <span class="badge bg-light text-primary border py-0 px-1.5 fw-bold" id="lblTitleSize" style="font-size: 10px;">70px</span>
-                        </div>
-                        <input type="range" class="form-range" id="autoCoverTitleRange" name="auto_cover_title_size_px" 
-                               min="36" max="110" value="70" step="2"
-                               oninput="document.getElementById('lblTitleSize').textContent = this.value + 'px'; generateAutoBookCoverLive();">
-                    </div>
-
-                    <div>
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <label class="form-label fw-semibold text-dark mb-0" style="font-size: 10.5px;">
-                                <i class="fa-solid fa-text-width text-success me-0.5"></i> লেখকের নামের ফন্ট সাইজ বার
-                            </label>
-                            <span class="badge bg-light text-success border py-0 px-1.5 fw-bold" id="lblAuthorSize" style="font-size: 10px;">30px</span>
-                        </div>
-                        <input type="range" class="form-range" id="autoCoverAuthorRange" name="auto_cover_author_size_px" 
-                               min="16" max="56" value="30" step="2"
-                               oninput="document.getElementById('lblAuthorSize').textContent = this.value + 'px'; generateAutoBookCoverLive();">
-                    </div>
-
-                    <div>
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <label class="form-label fw-semibold text-dark mb-0" style="font-size: 10.5px;">
-                                <i class="fa-solid fa-arrows-up-down text-secondary me-0.5"></i> উপর-নিচ পজিশন বার
-                            </label>
-                            <span class="badge bg-light text-muted border py-0 px-1.5 fw-bold" id="lblPosSize" style="font-size: 10px;">240px</span>
-                        </div>
-                        <input type="range" class="form-range" id="autoCoverPosRange" 
-                               min="120" max="380" value="240" step="5"
-                               oninput="document.getElementById('lblPosSize').textContent = this.value + 'px'; generateAutoBookCoverLive();">
-                    </div>
-                </div>
-
-                <div class="d-flex gap-1.5">
-                    <button type="button" class="btn btn-outline-primary btn-sm flex-fill rounded-pill fw-bold py-1.5 d-flex align-items-center justify-content-center gap-1 shadow-2xs" 
-                            onclick="magicAutoGenerateCover()" style="font-size: 11.5px;">
-                        <i class="fa-solid fa-wand-magic-sparkles text-primary"></i>
-                        <span>অটোজেনারেট</span>
-                    </button>
-                    <button type="button" class="btn btn-primary btn-sm flex-fill rounded-pill fw-bold py-1.5 d-flex align-items-center justify-content-center gap-1 shadow-xs" 
-                            onclick="generateAutoBookCoverLive()" style="font-size: 11.5px;">
-                        <i class="fa-solid fa-rotate"></i>
-                        <span>প্রিভিউ রিফ্রেশ</span>
-                    </button>
-                </div>
-                <div class="text-muted small mt-1 text-center" style="font-size: 10px; line-height: 1.3;">
-                    * টাইপ করার সাথে সাথে বা সাইজ বার সরালে প্রচ্ছদ স্বয়ংক্রিয়ভাবে আপডেট হয়।
-                </div>
-                <input type="hidden" name="generated_cover_data" id="f-generated_cover_data">
-            </div>
-            
             {{-- Cover Upload Status --}}
             <div id="preview-container-cover_image" class="mt-2 p-2 bg-light rounded-3 border d-none">
                 <div class="d-flex align-items-center gap-2">
                     <img id="preview-img-cover_image" src="" class="rounded border shadow-xs" style="width: 42px; height: 58px; object-fit: cover;">
                     <div class="flex-grow-1 overflow-hidden" style="min-width: 0;">
                         <div class="d-flex align-items-center gap-1 mb-0.5">
-                            <span class="badge bg-success-subtle text-success border border-success-subtle py-0.5 px-1.5" style="font-size: 9.5px;">Ready to Upload</span>
+                            <span class="badge bg-success text-white py-0.5 px-1.5" style="font-size: 9.5px;">
+                                <i class="fas fa-check me-0.5"></i> প্রস্তুত (.avif এ কনভার্ট হবে)
+                            </span>
                             <span id="preview-filesize-cover_image" class="text-muted small fw-semibold" style="font-size: 10.5px;"></span>
                         </div>
                         <div id="preview-filename-cover_image" class="text-dark small fw-bold text-truncate" style="font-size: 11.5px;"></div>
@@ -1068,73 +1001,53 @@
 
 <script>
 (function() {
-    function toggleAutoCoverOptions() {
-        const opts = document.getElementById('autoCoverCustomOptions');
-        const txt = document.getElementById('autoCoverToggleText');
-        if (opts) {
-            if (opts.classList.contains('d-none')) {
-                opts.classList.remove('d-none');
-                if (txt) txt.textContent = 'হাইড করুন';
-            } else {
-                opts.classList.add('d-none');
-                if (txt) txt.textContent = 'অপশন দেখুন';
-            }
-        }
-    }
+    let currentThemeKey = 'royal_blue';
+    const isEditingBook = {{ $editing ? 'true' : 'false' }};
+    const hasInitialCover = {{ ($editing && !empty($record->cover_image)) ? 'true' : 'false' }};
+    let userRequestedNewCover = false;
+
+    const presets = {
+        royal_blue: { bg: '#0f172a', title: '#ffffff', author: '#fde047', accent: '#fbbf24', font: 'Hind Siliguri' },
+        deep_emerald: { bg: '#064e3b', title: '#ffffff', author: '#fef08a', accent: '#a7f3d0', font: 'SolaimanLipi' },
+        crimson_ruby: { bg: '#450a0a', title: '#ffffff', author: '#fed7aa', accent: '#fb923c', font: 'Noto Serif Bengali' },
+        regal_purple: { bg: '#2e1065', title: '#ffffff', author: '#fef08a', accent: '#d8b4fe', font: 'Kalpurush' },
+        midnight_slate: { bg: '#18181b', title: '#ffffff', author: '#e2e8f0', accent: '#cbd5e1', font: 'Hind Siliguri' },
+        warm_brown: { bg: '#3b1d11', title: '#ffffff', author: '#fde047', accent: '#f59e0b', font: 'Tiro Bangla' },
+        dark_teal: { bg: '#042f2e', title: '#ffffff', author: '#a7f3d0', accent: '#2dd4bf', font: 'SolaimanLipi' }
+    };
 
     function applyAutoCoverTheme(key) {
-        const presets = {
-            royal_blue: { bg: '#0f172a', title: '#ffffff', author: '#fde047' },
-            deep_emerald: { bg: '#064e3b', title: '#ffffff', author: '#fef08a' },
-            crimson_ruby: { bg: '#450a0a', title: '#ffffff', author: '#fed7aa' },
-            regal_purple: { bg: '#2e1065', title: '#ffffff', author: '#fef08a' },
-            midnight_slate: { bg: '#18181b', title: '#ffffff', author: '#e2e8f0' },
-            warm_brown: { bg: '#3b1d11', title: '#ffffff', author: '#fde047' },
-            dark_teal: { bg: '#042f2e', title: '#ffffff', author: '#a7f3d0' }
-        };
-        if (presets[key]) {
-            const bgInp = document.getElementById('autoCoverBgColor');
-            const titleInp = document.getElementById('autoCoverTitleColor');
-            const authorInp = document.getElementById('autoCoverAuthorColor');
-            if (bgInp) bgInp.value = presets[key].bg;
-            if (titleInp) titleInp.value = presets[key].title;
-            if (authorInp) authorInp.value = presets[key].author;
-        }
-        generateAutoBookCoverLive();
+        if (!presets[key]) key = 'royal_blue';
+        currentThemeKey = key;
+        userRequestedNewCover = true;
+        const themeInp = document.getElementById('f-auto_cover_theme');
+        if (themeInp) themeInp.value = key;
+
+        const swatches = document.querySelectorAll('#autoCoverThemeSwatches .cover-theme-btn');
+        swatches.forEach(btn => btn.classList.remove('border-primary', 'shadow'));
+
+        generateAutoBookCoverLive(true);
     }
 
     function magicAutoGenerateCover() {
-        const designerPalettes = [
-            { key: 'royal_blue', bg: '#0f172a', title: '#ffffff', author: '#fde047', font: 'Hind Siliguri' },
-            { key: 'deep_emerald', bg: '#064e3b', title: '#ffffff', author: '#fef08a', font: 'SolaimanLipi' },
-            { key: 'crimson_ruby', bg: '#450a0a', title: '#ffffff', author: '#fed7aa', font: 'Noto Serif Bengali' },
-            { key: 'regal_purple', bg: '#2e1065', title: '#ffffff', author: '#fef08a', font: 'Kalpurush' },
-            { key: 'midnight_slate', bg: '#18181b', title: '#ffffff', author: '#e2e8f0', font: 'Hind Siliguri' },
-            { key: 'warm_brown', bg: '#3b1d11', title: '#ffffff', author: '#fde047', font: 'Tiro Bangla' },
-            { key: 'dark_teal', bg: '#042f2e', title: '#ffffff', author: '#a7f3d0', font: 'SolaimanLipi' },
-            { key: 'deep_indigo', bg: '#1e1b4b', title: '#ffffff', author: '#fecdd3', font: 'Noto Serif Bengali' },
-            { key: 'terracotta', bg: '#431407', title: '#ffffff', author: '#fed7aa', font: 'Hind Siliguri' },
-            { key: 'obsidian_gold', bg: '#09090b', title: '#ffffff', author: '#f59e0b', font: 'SolaimanLipi' }
-        ];
-
-        const pick = designerPalettes[Math.floor(Math.random() * designerPalettes.length)];
-
-        const bgInp = document.getElementById('autoCoverBgColor');
-        const titleInp = document.getElementById('autoCoverTitleColor');
-        const authorInp = document.getElementById('autoCoverAuthorColor');
-        const fontInp = document.getElementById('autoCoverFontSelect');
-        const themeSelect = document.getElementById('autoCoverThemeSelect');
-
-        if (bgInp) bgInp.value = pick.bg;
-        if (titleInp) titleInp.value = pick.title;
-        if (authorInp) authorInp.value = pick.author;
-        if (fontInp) fontInp.value = pick.font;
-        if (themeSelect) themeSelect.value = pick.key || 'custom';
-
-        generateAutoBookCoverLive();
+        const keys = Object.keys(presets);
+        const randomKey = keys[Math.floor(Math.random() * keys.length)];
+        userRequestedNewCover = true;
+        applyAutoCoverTheme(randomKey);
     }
 
-    function generateAutoBookCoverLive() {
+    function generateAutoBookCoverLive(force = false) {
+        // If an uploaded file is active in dropzone, do not override
+        const fileInput = document.getElementById('f-cover_image');
+        if (fileInput && fileInput.files && fileInput.files.length > 0) {
+            return;
+        }
+
+        // In edit mode with an existing cover, do not overwrite unless user explicitly requested
+        if (hasInitialCover && !userRequestedNewCover && !force) {
+            return;
+        }
+
         const titleInput = document.getElementById('f-title');
         const title = (titleInput && titleInput.value.trim()) ? titleInput.value.trim() : 'বইয়ের নাম';
 
@@ -1153,40 +1066,55 @@
         }
         if (!authorName) authorName = 'আইডিয়া প্রকাশন';
 
-        const bgInp = document.getElementById('autoCoverBgColor');
-        const titleColorInp = document.getElementById('autoCoverTitleColor');
-        const authorColorInp = document.getElementById('autoCoverAuthorColor');
-        const fontInp = document.getElementById('autoCoverFontSelect');
-        const titleRange = document.getElementById('autoCoverTitleRange');
-        const authorRange = document.getElementById('autoCoverAuthorRange');
-        const posRange = document.getElementById('autoCoverPosRange');
-
-        const bgColor = bgInp ? bgInp.value : '#0f172a';
-        const titleColor = titleColorInp ? titleColorInp.value : '#ffffff';
-        const authorColor = authorColorInp ? authorColorInp.value : '#fde047';
-        const selectedFont = fontInp ? fontInp.value : 'Hind Siliguri';
-        const titleFontSize = titleRange ? parseInt(titleRange.value, 10) : 70;
-        const authorFontSize = authorRange ? parseInt(authorRange.value, 10) : 30;
-        const titleStartY = posRange ? parseInt(posRange.value, 10) : 240;
+        const theme = presets[currentThemeKey] || presets.royal_blue;
+        const bgColor = theme.bg;
+        const titleColor = theme.title;
+        const authorColor = theme.author;
+        const accentColor = theme.accent || '#fbbf24';
+        const selectedFont = theme.font || 'Hind Siliguri';
 
         const canvas = document.createElement('canvas');
         canvas.width = 600;
         canvas.height = 900;
         const ctx = canvas.getContext('2d');
 
+        // Solid Background
         ctx.fillStyle = bgColor;
         ctx.fillRect(0, 0, 600, 900);
 
-        ctx.fillStyle = titleColor;
+        // Subtle gradient shading
+        const grad = ctx.createLinearGradient(0, 0, 0, 900);
+        grad.addColorStop(0, 'rgba(255,255,255,0.06)');
+        grad.addColorStop(1, 'rgba(0,0,0,0.35)');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, 600, 900);
+
+        // Framing
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(25, 25, 550, 850);
+        ctx.strokeStyle = accentColor;
+        ctx.lineWidth = 3;
+        ctx.strokeRect(35, 35, 530, 830);
+
+        // Top Badge
         ctx.textAlign = 'center';
+        ctx.fillStyle = accentColor;
+        ctx.font = '600 15px "' + selectedFont + '", "Kalpurush", sans-serif';
+        ctx.fillText('✦ আইডিয়া প্রকাশন ✦', 300, 85);
+
+        // Bengali Title wrap
+        const fontSize = title.length > 35 ? 36 : (title.length > 18 ? 44 : 52);
+        ctx.font = '800 ' + fontSize + 'px "' + selectedFont + '", "SolaimanLipi", "Kalpurush", serif';
+        ctx.fillStyle = titleColor;
 
         const words = title.split(' ');
         let lines = [];
         let currentLine = '';
-        const maxCharsPerLine = titleFontSize > 80 ? 9 : (titleFontSize > 60 ? 11 : 14);
+        const maxChars = fontSize > 45 ? 10 : (fontSize > 38 ? 13 : 16);
         words.forEach(word => {
             const testLine = currentLine ? currentLine + ' ' + word : word;
-            if (testLine.length > maxCharsPerLine) {
+            if (testLine.length > maxChars) {
                 if (currentLine) lines.push(currentLine);
                 currentLine = word;
             } else {
@@ -1195,30 +1123,52 @@
         });
         if (currentLine) lines.push(currentLine);
 
-        ctx.font = '800 ' + titleFontSize + 'px "' + selectedFont + '", "SolaimanLipi", "Kalpurush", "Noto Serif Bengali", serif';
-
-        const lineHeight = titleFontSize * 1.25;
+        const lineHeight = fontSize * 1.25;
         const titleBlockHeight = lines.length * lineHeight;
+        const startY = 340 - (titleBlockHeight / 2) + (lineHeight / 2);
 
         lines.forEach((line, idx) => {
-            ctx.fillText(line, 300, titleStartY + (idx * lineHeight));
+            ctx.fillText(line, 300, startY + (idx * lineHeight));
         });
 
-        const authorY = titleStartY + titleBlockHeight + 40;
+        // Divider
+        const dividerY = Math.max(480, startY + titleBlockHeight + 25);
+        ctx.strokeStyle = accentColor;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(150, dividerY);
+        ctx.lineTo(250, dividerY);
+        ctx.stroke();
 
+        ctx.beginPath();
+        ctx.moveTo(350, dividerY);
+        ctx.lineTo(450, dividerY);
+        ctx.stroke();
+
+        ctx.fillStyle = accentColor;
+        ctx.font = '14px sans-serif';
+        ctx.fillText('❖ ✦ ❖', 300, dividerY + 5);
+
+        // Author
         ctx.fillStyle = authorColor;
-        ctx.font = '600 ' + authorFontSize + 'px "' + selectedFont + '", "SolaimanLipi", "Noto Serif Bengali", serif';
-        ctx.fillText(authorName, 300, authorY);
+        ctx.font = '600 24px "' + selectedFont + '", "SolaimanLipi", serif';
+        ctx.fillText(authorName, 300, dividerY + 50);
 
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
-        ctx.font = '500 13px "' + selectedFont + '", "SolaimanLipi", sans-serif';
-        ctx.fillText('আইডিয়া প্রকাশন', 300, 840);
+        // Bottom Footer
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+        ctx.font = '500 12px "' + selectedFont + '", sans-serif';
+        ctx.fillText('আইডিয়া প্রকাশন | www.ideaabd.com', 300, 835);
 
-        const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
+        const dataUrl = canvas.toDataURL('image/webp', 0.95);
 
         const mockupImg = document.getElementById('mockupCoverImg');
+        const placeholder = document.getElementById('mockupCoverPlaceholder');
         if (mockupImg) {
             mockupImg.src = dataUrl;
+            mockupImg.classList.remove('d-none');
+        }
+        if (placeholder) {
+            placeholder.classList.add('d-none');
         }
 
         const genInput = document.getElementById('f-generated_cover_data');
@@ -1231,17 +1181,42 @@
         }
     }
 
-    window.toggleAutoCoverOptions = toggleAutoCoverOptions;
     window.applyAutoCoverTheme = applyAutoCoverTheme;
     window.magicAutoGenerateCover = magicAutoGenerateCover;
     window.generateAutoBookCoverLive = generateAutoBookCoverLive;
 
-    // Run automatically after load
-    setTimeout(function() {
-        const previewCont = document.getElementById('preview-container-cover_image');
-        if (!previewCont || previewCont.classList.contains('d-none')) {
-            generateAutoBookCoverLive();
+    // Listen to changes in Title and Authors
+    document.addEventListener('DOMContentLoaded', function() {
+        const titleInp = document.getElementById('f-title');
+        if (titleInp) {
+            titleInp.addEventListener('input', function() {
+                if (!hasInitialCover || userRequestedNewCover) {
+                    generateAutoBookCoverLive(false);
+                }
+            });
         }
-    }, 100);
+        const authorInp = document.getElementById('f-author_name');
+        if (authorInp) {
+            authorInp.addEventListener('input', function() {
+                if (!hasInitialCover || userRequestedNewCover) {
+                    generateAutoBookCoverLive(false);
+                }
+            });
+        }
+        document.querySelectorAll('.author-name-input').forEach(inp => {
+            inp.addEventListener('input', function() {
+                if (!hasInitialCover || userRequestedNewCover) {
+                    generateAutoBookCoverLive(false);
+                }
+            });
+        });
+
+        // Run automatically after load if new book
+        setTimeout(function() {
+            if (!hasInitialCover) {
+                generateAutoBookCoverLive(false);
+            }
+        }, 150);
+    });
 })();
 </script>

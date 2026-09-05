@@ -241,23 +241,21 @@
                                 <div class="mt-2 p-2 bg-light rounded border">
                                     <div class="d-flex align-items-center justify-content-between mb-1">
                                         <label for="f-sub_category_name" class="form-label small fw-semibold text-dark mb-0" style="font-size: 11.5px;">
-                                            <i class="fas fa-folder-tree me-1 text-primary"></i>Or write new Sub-Category name:
+                                            <i class="fas fa-folder-tree me-1 text-primary"></i>Or New Sub-Category Name:
                                         </label>
                                     </div>
                                     <input type="text" id="f-sub_category_name" name="sub_category_name" 
-                                           class="form-control form-control-sm" placeholder="e.g. Historical Fiction / Poetry / Science">
-                                    <div class="form-text" style="font-size: 11px;">Select a parent category above and enter a sub-category here to auto-create it.</div>
+                                           class="form-control form-control-sm" placeholder="New Sub-Category Name">
                                 </div>
                             @else
                                 <div class="mt-2 p-2 bg-light rounded border">
                                     <div class="d-flex align-items-center justify-content-between mb-1">
                                         <label for="f-new_blog_category_name" class="form-label small fw-semibold text-dark mb-0" style="font-size: 11.5px;">
-                                            <i class="fas fa-feather-pointed me-1 text-primary"></i>Or enter new Blog Category name:
+                                            <i class="fas fa-feather-pointed me-1 text-primary"></i>Or New Category Name:
                                         </label>
                                     </div>
                                     <input type="text" id="f-new_blog_category_name" name="new_blog_category_name" 
-                                           class="form-control form-control-sm" placeholder="e.g. Poetry / Essays / Short Stories / Translation">
-                                    <div class="form-text" style="font-size: 11px;">If not in the list, write here and it will be created automatically.</div>
+                                           class="form-control form-control-sm" placeholder="New Category Name">
                                 </div>
                             @endif
                             @error('category_id')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
@@ -291,14 +289,6 @@
                                         <label class="form-label small fw-bold text-dark mb-0">
                                             <i class="fas fa-pen-fancy text-primary me-1"></i> Primary Blog Author
                                         </label>
-                                        <div class="text-muted mt-0.5" style="font-size: 11.5px;">
-                                            Current Author: <strong class="text-primary" id="currentAuthorBadgeText">{{ $displayAuthorName }}</strong>
-                                            @if($existingAuthorUser)
-                                                <span class="badge bg-primary-subtle text-primary border ms-1">{{ $existingAuthorUser->role === 'author' ? 'Registered Author' : $existingAuthorUser->role }}</span>
-                                            @elseif($currentOwnerName)
-                                                <span class="badge bg-secondary-subtle text-secondary border ms-1">Custom Contributor</span>
-                                            @endif
-                                        </div>
                                     </div>
                                     <button type="button" class="btn btn-sm btn-outline-primary py-1 px-2.5 rounded-pill fw-semibold"
                                             data-bs-toggle="modal" data-bs-target="#quickAddAuthorModal" style="font-size: 11.5px;">
@@ -309,10 +299,10 @@
                                 {{-- Author Dropdown (Users & Directory Authors) --}}
                                 <div class="mb-2">
                                     <label for="f-author_id" class="form-label small fw-semibold text-dark mb-1" style="font-size: 12px;">
-                                        Select Author from Directory:
+                                        Select Author:
                                     </label>
                                     <select id="f-author_id" name="author_id" class="form-select @error('author_id') is-invalid @enderror" onchange="onBlogAuthorDropdownChange(this)">
-                                        <option value="">— Select Author (Total: {{ count($authorOptions) }}) —</option>
+                                        <option value="">— Select Author —</option>
                                         @foreach ($authorOptions as $aId => $aName)
                                             <option value="{{ $aId }}" @selected((string) $selectedAuthorKey === (string) $aId)>
                                                 {{ $aName }}
@@ -325,16 +315,13 @@
                                 {{-- Custom Author Display Name --}}
                                 <div>
                                     <label for="f-owner_name" class="form-label small fw-semibold text-dark mb-1" style="font-size: 12px;">
-                                        <i class="fas fa-signature text-secondary me-1"></i> Display Author Name (Byline credit on website):
+                                        <i class="fas fa-signature text-secondary me-1"></i> Display Author Name:
                                     </label>
                                     <input type="text" id="f-owner_name" name="owner_name" 
                                            value="{{ $currentOwnerName }}"
                                            class="form-control form-control-sm" 
-                                           placeholder="e.g., Kazi Nazrul Islam / Rabindranath Tagore / Humayun Ahmed"
+                                           placeholder="Display Author Name"
                                            oninput="updateLiveMockupCard()">
-                                    <div class="form-text text-muted mt-1" style="font-size: 11px;">
-                                        <i class="fas fa-info-circle text-primary me-1"></i> This name will appear on the blog as the primary author credit. If left empty, selected account name is used.
-                                    </div>
                                 </div>
                             </div>
 
@@ -364,8 +351,7 @@
 
                             <div class="mt-2 p-2 bg-light rounded border">
                                 <input type="text" id="f-new_publisher_name" name="new_publisher_name" 
-                                       class="form-control form-control-sm" placeholder="Or enter new publisher name...">
-                                <div class="form-text" style="font-size: 11px;">If not in the list, write the name here and it will be created automatically.</div>
+                                       class="form-control form-control-sm" placeholder="New Publisher Name">
                             </div>
                             @error('publisher_id')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                         {{-- ══ SECTION 2: BINDING, PRICING, SALES DISCOUNT & PURCHASE COMMISSION ENGINE (BOOKS) ══ --}}
@@ -952,8 +938,7 @@
                                     <!-- Spell Checker Results Notification Box -->
                                     <div id="spell-results-{{ $name }}" class="mt-2.5 d-none"></div>
 
-                                    <div class="d-flex flex-wrap align-items-center justify-content-between text-muted mt-1" style="font-size: 11.5px;">
-                                        <div><i class="fas fa-circle-info text-primary me-1"></i> Use <strong>“Poetry Mode”</strong> for verse formatting or <strong>“Prose Mode”</strong> & <strong>“Fix Spacing”</strong> for clean stanzas.</div>
+                                    <div class="d-flex flex-wrap align-items-center justify-content-end text-muted mt-1" style="font-size: 11.5px;">
                                         <div id="editorWordStats-{{ $name }}" class="fw-semibold text-dark"></div>
                                     </div>
                                     @break
@@ -981,19 +966,31 @@
 
                                 @case('file')
                                     @php
-                                        $isCover = in_array($name, ['cover_image', 'image', 'banner'], true);
+                                        $isCover = in_array($name, ['cover_image', 'image', 'banner', 'featured_image'], true);
                                         $isPdf   = in_array($name, ['sample_pdf_path', 'file_path', 'epub_file_path', 'sample_file_path'], true);
                                         $isAvatar = in_array($name, ['avatar', 'author_image', 'logo'], true);
 
                                         $guideText = '';
                                         if ($isCover) {
-                                            $guideText = 'Dimensions: 600 × 900 px (2:3), JPG/PNG/WebP, max 4MB';
+                                            $guideText = ($name === 'featured_image') ? 'Dimensions: 1200 × 675 px (16:9), JPG/PNG/WebP/AVIF, max 8MB' : 'Dimensions: 600 × 900 px (2:3), JPG/PNG/WebP/AVIF, max 4MB';
                                         } elseif ($isAvatar) {
                                             $guideText = 'Dimensions: 400 × 400 px (1:1 square), max 4MB';
                                         } elseif ($isPdf) {
                                             $guideText = 'PDF / EPUB format, max 20MB';
                                         }
                                     @endphp
+
+                                    @if ($isCover)
+                                        <div class="d-flex align-items-center justify-content-between mb-2">
+                                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1" style="font-size: 11px;">
+                                                <i class="fa-solid fa-wand-magic-sparkles me-1"></i> অটো .avif অপ্টিমাইজড
+                                            </span>
+                                            <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-2.5 py-0.5 fw-semibold" style="font-size: 11.5px;" onclick="generatePhotocardCover('{{ $name }}')">
+                                                <i class="fas fa-wand-magic-sparkles me-1"></i> অটোজেনারেট কভার
+                                            </button>
+                                        </div>
+                                        <input type="hidden" name="generated_cover_data" id="f-generated_cover_data_{{ $name }}" value="">
+                                    @endif
 
                                     <!-- Modern Interactive Drag & Drop Zone -->
                                     <div class="adm-dropzone position-relative mb-2" id="dropzone-{{ $name }}"
@@ -1036,7 +1033,7 @@
                                     <div id="preview-container-{{ $name }}" class="d-none mb-2 p-2.5 bg-light rounded-3 border border-success border-opacity-50">
                                         <div class="d-flex align-items-center gap-3">
                                             @if ($isCover || $isAvatar)
-                                                <img id="preview-img-{{ $name }}" src="" alt="Preview" class="rounded border shadow-xs {{ $isAvatar ? 'rounded-circle' : '' }}" style="height: 65px; width: {{ $isAvatar ? '65px' : '50px' }}; object-fit: cover;">
+                                                <img id="preview-img-{{ $name }}" src="" alt="Preview" class="rounded border shadow-xs {{ $isAvatar ? 'rounded-circle' : '' }}" style="height: 65px; width: {{ $isAvatar ? '65px' : ($name === 'featured_image' ? '110px' : '50px') }}; object-fit: cover;">
                                             @else
                                                 <div class="rounded-3 bg-danger-subtle text-danger d-flex align-items-center justify-content-center flex-shrink-0" style="width: 50px; height: 55px; font-size: 1.5rem;">
                                                     <i class="fas fa-file-pdf"></i>
@@ -1338,12 +1335,45 @@
             </div>
         @endif
 
+        {{-- Live Blog Photocard & Auto-Generate Cover Widget --}}
+        @if ($spec['key'] === 'blog')
+            <div class="adm-card p-3 mb-3">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <h6 class="fw-bold mb-0 text-dark">
+                        <i class="fas fa-image me-1.5 text-success"></i> Blog Cover / Photocard
+                    </h6>
+                    <span class="badge bg-success-subtle text-success border border-success-subtle small rounded-pill px-2">
+                        <i class="fa-solid fa-wand-magic-sparkles me-1"></i> Auto .avif
+                    </span>
+                </div>
+
+                <div class="p-2.5 bg-light rounded-3 border text-center mb-3">
+                    <div class="position-relative mx-auto mb-2 overflow-hidden rounded-3 shadow-sm border bg-dark" style="aspect-ratio: 16/9; max-width: 100%;">
+                        <img id="blogMockupCoverImg" 
+                             src="{{ ($editing && !empty($record->featured_image)) ? (str_starts_with($record->featured_image, 'http') ? $record->featured_image : asset('storage/' . ltrim($record->featured_image, '/'))) : 'https://placehold.co/1200x675/022c22/fbbf24?text=Auto+Photocard+Cover' }}" 
+                             alt="Blog Cover" class="img-fluid w-100 h-100 object-fit-cover">
+                    </div>
+                    <div id="blogMockupTitle" class="fw-bold text-dark text-truncate mb-0.5" style="font-size: 0.95rem;">
+                        {{ $editing ? ($record->title ?? 'ব্লগ পোস্টের শিরোনাম') : 'ব্লগ পোস্টের শিরোনাম' }}
+                    </div>
+                    <div id="blogMockupAuthor" class="small text-muted text-truncate" style="font-size: 0.82rem;">
+                        ✍️ রচনা: {{ $editing ? ($record->owner_name ?? ($record->author ? $record->author->name : 'আইডিয়া প্রকাশন')) : 'আইডিয়া প্রকাশন' }}
+                    </div>
+                </div>
+
+                {{-- Auto-Generate Button --}}
+                <div class="d-grid gap-2">
+                    <button type="button" class="btn btn-success fw-bold text-white rounded-pill py-2 shadow-xs d-flex align-items-center justify-content-center gap-2" 
+                            onclick="generatePhotocardCover('featured_image')">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> ১-ক্লিকে অটোজেনারেট কভার
+                    </button>
+                </div>
+            </div>
+        @endif
+
         {{-- Posting on behalf of someone --}}
         <div class="adm-card p-3 mb-3">
-            <h2 class="h6 fw-bold mb-1"><i class="fas fa-user-pen me-1 text-muted"></i> On Behalf of (Contributor Credit)</h2>
-            <p class="text-muted small mb-3" style="font-size: 11.5px;">
-                Credit this entry to an offline contributor or another registered user account.
-            </p>
+            <h2 class="h6 fw-bold mb-3"><i class="fas fa-user-pen me-1 text-muted"></i> On Behalf of (Contributor Credit)</h2>
 
             <div class="mb-2.5">
                 <label for="f-submitted_by" class="form-label small fw-semibold mb-1">Registered User</label>
@@ -1401,7 +1431,6 @@
                 <input type="text" id="f-slug" name="slug" value="{{ $val('slug') }}"
                        placeholder="Leave blank to auto-generate"
                        class="form-control form-control-sm @error('slug') is-invalid @enderror">
-                <div class="form-text" style="font-size: 11px;">SEO-friendly URL identifier.</div>
                 @error('slug')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
         </div>
@@ -1695,108 +1724,6 @@
 
 @push('scripts')
 <script>
-// Pricing Engine Interactive Calculations
-function onMainPriceChange() {
-    const mrp = parseFloat(document.getElementById('f-price')?.value) || 0;
-    const purchDiscPct = parseFloat(document.getElementById('f-purchase_discount_percent')?.value) || 0;
-    
-    if (mrp > 0 && purchDiscPct > 0) {
-        const cost = mrp - (mrp * (purchDiscPct / 100));
-        const costInput = document.getElementById('f-cost_price');
-        if (costInput) costInput.value = cost.toFixed(2);
-    }
-    
-    calculateLiveSummaryPricing();
-    updateLiveMockupCard();
-}
-
-function onPurchaseDiscountPercentChange() {
-    const mrp = parseFloat(document.getElementById('f-price')?.value) || 0;
-    const purchDiscPct = parseFloat(document.getElementById('f-purchase_discount_percent')?.value) || 0;
-    if (mrp > 0) {
-        const cost = mrp - (mrp * (purchDiscPct / 100));
-        const costInput = document.getElementById('f-cost_price');
-        if (costInput) costInput.value = cost.toFixed(2);
-    }
-    calculateLiveSummaryPricing();
-}
-
-function onCostPriceChange() {
-    const mrp = parseFloat(document.getElementById('f-price')?.value) || 0;
-    const cost = parseFloat(document.getElementById('f-cost_price')?.value) || 0;
-    if (mrp > 0 && cost > 0 && cost <= mrp) {
-        const pct = ((mrp - cost) / mrp) * 100;
-        const purchInput = document.getElementById('f-purchase_discount_percent');
-        if (purchInput) purchInput.value = pct.toFixed(1);
-    }
-    calculateLiveSummaryPricing();
-}
-
-function onSoldPercentChange() {
-    calculateLiveSummaryPricing();
-    updateLiveMockupCard();
-}
-
-function calculateLiveSummaryPricing() {
-    const mrp = parseFloat(document.getElementById('f-price')?.value) || 0;
-    const soldPct = parseFloat(document.getElementById('f-sold_percent')?.value) || 0;
-    const cost = parseFloat(document.getElementById('f-cost_price')?.value) || 0;
-    
-    const offerPrice = soldPct > 0 ? (mrp - (mrp * (soldPct / 100))) : mrp;
-    const offerSpan = document.getElementById('liveCalculatedOfferPrice');
-    if (offerSpan) offerSpan.textContent = '৳' + offerPrice.toFixed(2);
-    
-    const profitSpan = document.getElementById('liveCalculatedProfit');
-    if (profitSpan) {
-        const profit = offerPrice - cost;
-        const profitPct = cost > 0 ? ((profit / cost) * 100).toFixed(1) : 0;
-        profitSpan.textContent = '৳' + profit.toFixed(2) + ' (' + profitPct + '%)';
-    }
-}
-
-function toggleLookInsideFormat(val) {
-    const pdfPanel = document.getElementById('lookInsidePdfPanel');
-    const imgPanel = document.getElementById('lookInsideImagesPanel');
-    if (val === 'images') {
-        if (pdfPanel) pdfPanel.classList.add('d-none');
-        if (imgPanel) imgPanel.classList.remove('d-none');
-    } else {
-        if (pdfPanel) pdfPanel.classList.remove('d-none');
-        if (imgPanel) imgPanel.classList.add('d-none');
-    }
-}
-
-function previewAdminMultiImages(input) {
-    const container = document.getElementById('multiImagesPreviewContainer');
-    if (!container) return;
-    container.innerHTML = '';
-    if (input.files && input.files.length > 0) {
-        Array.from(input.files).forEach((file, idx) => {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const thumb = document.createElement('div');
-                thumb.className = 'position-relative border rounded p-1 bg-white shadow-xs';
-                thumb.style.width = '60px';
-                thumb.style.height = '85px';
-                thumb.innerHTML = `<img src="${e.target.result}" class="w-100 h-100 object-fit-cover rounded"><span class="badge bg-dark position-absolute bottom-0 start-0 m-0.5" style="font-size: 8px;">#${idx+1}</span>`;
-                container.appendChild(thumb);
-            }
-            reader.readAsDataURL(file);
-        });
-    }
-}
-
-function toggleAdminPreOrderFields(val) {
-    const box = document.getElementById('adminPreOrderContainer');
-    if (box) {
-        if (val === 'pre_order') {
-            box.classList.remove('d-none');
-        } else {
-            box.classList.add('d-none');
-        }
-    }
-}
-
 function syncCategorySelects(val) {
     const mainSel = document.getElementById('f-category_id');
     const sideSel = document.getElementById('f-category_id_sidebar');
@@ -2420,87 +2347,6 @@ function updatePaperbackCalculations() {
     }
 }
 
-// 2. HARDCOVER PRICING HANDLERS (SEPARATE & INDEPENDENT)
-function onHardcoverPriceChange() {
-    const hardPrice = parseFloat(document.getElementById('f-hardcover_price')?.value) || 0;
-    const pDiscPct = parseFloat(document.getElementById('f-hardcover_purchase_discount_percent')?.value) || 0;
-    const costInput = document.getElementById('f-hardcover_cost_price');
-
-    if (hardPrice > 0 && pDiscPct > 0 && pDiscPct <= 100) {
-        const costVal = Math.round(hardPrice * (1 - pDiscPct / 100) * 100) / 100;
-        if (costInput) costInput.value = costVal;
-    }
-    updateHardcoverCalculations();
-    updateLiveMockupCard();
-}
-
-function onHardcoverPurchaseDiscountChange() {
-    const hardPrice = parseFloat(document.getElementById('f-hardcover_price')?.value) || 0;
-    const pDiscPct = parseFloat(document.getElementById('f-hardcover_purchase_discount_percent')?.value) || 0;
-    const costInput = document.getElementById('f-hardcover_cost_price');
-
-    if (hardPrice > 0 && pDiscPct >= 0 && pDiscPct <= 100) {
-        const costVal = Math.round(hardPrice * (1 - pDiscPct / 100) * 100) / 100;
-        if (costInput) costInput.value = costVal;
-    }
-    updateHardcoverCalculations();
-}
-
-function onHardcoverCostChange() {
-    const hardPrice = parseFloat(document.getElementById('f-hardcover_price')?.value) || 0;
-    const cost = parseFloat(document.getElementById('f-hardcover_cost_price')?.value) || 0;
-    const pDiscInput = document.getElementById('f-hardcover_purchase_discount_percent');
-
-    if (hardPrice > 0 && cost > 0 && cost < hardPrice) {
-        const pct = Math.round(((hardPrice - cost) / hardPrice) * 100);
-        if (pDiscInput) pDiscInput.value = pct;
-    }
-    updateHardcoverCalculations();
-}
-
-function onHardcoverSoldPercentChange() {
-    updateHardcoverCalculations();
-    updateLiveMockupCard();
-}
-
-function updateHardcoverCalculations() {
-    const hardPrice = parseFloat(document.getElementById('f-hardcover_price')?.value) || 0;
-    const soldPct = parseFloat(document.getElementById('f-hardcover_sold_percent')?.value) || 0;
-    const cost = parseFloat(document.getElementById('f-hardcover_cost_price')?.value) || 0;
-
-    const offerEl = document.getElementById('liveHardcoverOfferPrice');
-    const profitEl = document.getElementById('liveHardcoverProfit');
-    const discHidden = document.getElementById('f-hardcover_discount_price');
-
-    let offerPrice = hardPrice;
-    if (hardPrice > 0 && soldPct > 0 && soldPct <= 100) {
-        offerPrice = Math.round(hardPrice * (1 - soldPct / 100) * 100) / 100;
-    }
-    if (discHidden) {
-        discHidden.value = (offerPrice < hardPrice) ? offerPrice : '';
-    }
-
-    if (offerEl) {
-        offerEl.textContent = '৳' + offerPrice.toFixed(2);
-    }
-
-    if (profitEl) {
-        if (offerPrice > 0 && cost > 0) {
-            const profit = offerPrice - cost;
-            const margin = Math.round((profit / offerPrice) * 1000) / 10;
-            if (profit >= 0) {
-                profitEl.className = 'text-success fw-bold';
-                profitEl.textContent = `৳${profit.toFixed(2)} (${margin}%)`;
-            } else {
-                profitEl.className = 'text-danger fw-bold';
-                profitEl.textContent = `Loss ৳${Math.abs(profit).toFixed(2)} (${margin}%)`;
-            }
-        } else {
-            profitEl.textContent = '৳0.00 (0%)';
-        }
-    }
-}
-
 // Aliases for legacy calls
 function onMainPriceChange() { onPaperbackPriceChange(); }
 function onPurchaseDiscountPercentChange() { onPaperbackPurchaseDiscountChange(); }
@@ -2581,6 +2427,10 @@ function clearAdminMultiImages() {
 }
 
 function previewAdminCoverInput(input) {
+    const genInput = document.getElementById('f-generated_cover_data');
+    if (genInput) genInput.value = '';
+    const genFieldInput = document.getElementById('f-generated_cover_data_cover_image');
+    if (genFieldInput) genFieldInput.value = '';
     previewAdminFileInput(input, 'preview-container-cover_image');
 }
 
@@ -2593,7 +2443,13 @@ function clearAdminFileInput(inputId, containerId, mockupImgId) {
     if (input) input.value = '';
     const container = document.getElementById(containerId);
     if (container) container.classList.add('d-none');
-    if (mockupImgId) {
+    if (inputId === 'f-cover_image') {
+        const genInput = document.getElementById('f-generated_cover_data');
+        if (genInput) genInput.value = '';
+        if (typeof generateAutoBookCoverLive === 'function') {
+            generateAutoBookCoverLive(true);
+        }
+    } else if (mockupImgId) {
         const mockup = document.getElementById(mockupImgId);
         if (mockup) mockup.src = 'https://placehold.co/300x450/e2e8f0/475569?text=Cover+Image';
     }
@@ -2656,6 +2512,15 @@ function updateLiveMockupCard() {
     }
     if (mockAuthor) {
         mockAuthor.innerHTML = '<i class="fas fa-pen-nib text-success me-1"></i><span>' + (authorVal || 'Author Name') + '</span>';
+    }
+
+    const blogMockTitle = document.getElementById('blogMockupTitle');
+    if (blogMockTitle) {
+        blogMockTitle.textContent = titleVal || 'ব্লগ পোস্টের শিরোনাম';
+    }
+    const blogMockAuthor = document.getElementById('blogMockupAuthor');
+    if (blogMockAuthor) {
+        blogMockAuthor.textContent = '✍️ রচনা: ' + (authorVal || 'আইডিয়া প্রকাশন');
     }
 
     // Pricing & Format Badge calculation (prioritize selected cover type)
@@ -3750,25 +3615,6 @@ function showValidationToast(msg) {
         toast.style.transform = 'translateY(20px)';
     }, 4500);
 }
-// Client-Side Real-Time Auto Book Cover Generator
-function generateAutoBookCoverLive() {
-    const titleInput = document.getElementById('f-title');
-    const title = (titleInput && titleInput.value.trim()) ? titleInput.value.trim() : 'বইয়ের নাম';
-
-    let authorName = '';
-    const authorInputs = document.querySelectorAll('.author-name-input');
-    authorInputs.forEach(inp => {
-        if (inp.value.trim()) {
-            authorName = (authorName ? authorName + ', ' : '') + inp.value.trim();
-        }
-    });
-    if (!authorName) {
-        const firstAuthSel = document.querySelector('select[name="author_ids[]"]');
-        if (firstAuthSel && firstAuthSel.selectedOptions[0] && firstAuthSel.value) {
-            authorName = firstAuthSel.selectedOptions[0].text;
-        }
-    }
-    if (!authorName) authorName = 'আইডিয়া প্রকাশন';
 
 function toggleAutoCoverOptions() {
     const opts = document.getElementById('autoCoverCustomOptions');
@@ -3923,7 +3769,7 @@ function generateAutoBookCoverLive() {
     ctx.font = '500 13px "' + selectedFont + '", "SolaimanLipi", sans-serif';
     ctx.fillText('আইডিয়া প্রকাশন', 300, 840);
 
-    const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
+    const dataUrl = canvas.toDataURL('image/webp', 0.95);
 
     const mockupImg = document.getElementById('mockupCoverImg');
     if (mockupImg) {
@@ -3934,19 +3780,254 @@ function generateAutoBookCoverLive() {
     if (genInput) {
         genInput.value = dataUrl;
     }
+}
+
+function generatePhotocardCover(fieldName = 'featured_image') {
+    const titleInput = document.getElementById('f-title') || document.getElementById('f-name');
+    const authorInput = document.getElementById('f-owner_name') || document.getElementById('f-author_name') || document.getElementById('f-author_id') || document.getElementById('f-author_link_id');
+    const title = (titleInput && titleInput.value.trim()) ? titleInput.value.trim() : 'সাহিত্যপত্র ও রচনা';
+    let author = 'আইডিয়া প্রকাশন';
+    if (authorInput) {
+        if (authorInput.tagName === 'SELECT' && authorInput.selectedOptions.length) {
+            author = authorInput.selectedOptions[0].text.replace(/^[—\-]+|[—\-]+$/g, '').replace(/\[.*?\]/, '').trim() || author;
+        } else if (authorInput.value && authorInput.value.trim()) {
+            author = authorInput.value.trim();
+        }
+    }
+
+    const isBook = fieldName.includes('cover') && !fieldName.includes('featured');
+    const canvas = document.createElement('canvas');
+    canvas.width = isBook ? 600 : 1200;
+    canvas.height = isBook ? 900 : 675;
+    const ctx = canvas.getContext('2d');
+
+    if (!isBook) {
+        // Landscape Luxury Blog Photocard (1200 x 675)
+        const grad = ctx.createLinearGradient(0, 0, 1200, 675);
+        grad.addColorStop(0, '#022c22');
+        grad.addColorStop(0.5, '#064e3b');
+        grad.addColorStop(1, '#022019');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, 1200, 675);
+
+        const radial = ctx.createRadialGradient(600, 310, 40, 600, 310, 580);
+        radial.addColorStop(0, 'rgba(251, 191, 36, 0.22)');
+        radial.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        ctx.fillStyle = radial;
+        ctx.fillRect(0, 0, 1200, 675);
+
+        // Gold border framing
+        ctx.strokeStyle = 'rgba(251, 191, 36, 0.45)';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(30, 30, 1140, 615);
+        ctx.strokeStyle = '#fbbf24';
+        ctx.lineWidth = 4;
+        ctx.strokeRect(42, 42, 1116, 591);
+
+        // Decorative corner lines
+        ctx.strokeStyle = '#fbbf24';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(42, 85); ctx.lineTo(85, 42);
+        ctx.moveTo(42, 105); ctx.lineTo(105, 42);
+        ctx.moveTo(1158, 85); ctx.lineTo(1115, 42);
+        ctx.moveTo(1158, 105); ctx.lineTo(1095, 42);
+        ctx.moveTo(42, 590); ctx.lineTo(85, 633);
+        ctx.moveTo(42, 570); ctx.lineTo(105, 633);
+        ctx.moveTo(1158, 590); ctx.lineTo(1115, 633);
+        ctx.moveTo(1158, 570); ctx.lineTo(1095, 633);
+        ctx.stroke();
+
+        // Top category pill badge
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.12)';
+        ctx.strokeStyle = '#fbbf24';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        if (typeof ctx.roundRect === 'function') {
+            ctx.roundRect(460, 68, 280, 44, 22);
+        } else {
+            ctx.rect(460, 68, 280, 44);
+        }
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#fbbf24';
+        ctx.font = 'bold 20px "Hind Siliguri", "Kalpurush", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('✦ আইডিয়া সাহিত্যপত্র ✦', 600, 97);
+
+        // Main Headline (Multi-line word wrap)
+        let fontSize = 48;
+        if (title.length > 60) fontSize = 38;
+        else if (title.length > 35) fontSize = 44;
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold ' + fontSize + 'px "Hind Siliguri", "Kalpurush", sans-serif';
+        ctx.textAlign = 'center';
+
+        const words = title.split(' ');
+        let line = '';
+        const lines = [];
+        const maxW = 1000;
+
+        for (let n = 0; n < words.length; n++) {
+            const testLine = line + (line ? ' ' : '') + words[n];
+            const metrics = ctx.measureText(testLine);
+            if (metrics.width > maxW && n > 0) {
+                lines.push(line);
+                line = words[n];
+                if (lines.length >= 2) break;
+            } else {
+                line = testLine;
+            }
+        }
+        if (line && lines.length < 3) lines.push(line);
+
+        const lineHeight = fontSize + 16;
+        const totalTextHeight = lines.length * lineHeight;
+        let startY = 320 - (totalTextHeight / 2) + (lineHeight / 2);
+
+        for (let i = 0; i < lines.length; i++) {
+            ctx.fillText(lines[i], 600, startY + (i * lineHeight));
+        }
+
+        // Central divider ornament
+        const dividerY = Math.max(430, startY + totalTextHeight + 20);
+        ctx.strokeStyle = 'rgba(234, 179, 8, 0.7)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(300, dividerY);
+        ctx.lineTo(520, dividerY);
+        ctx.moveTo(680, dividerY);
+        ctx.lineTo(900, dividerY);
+        ctx.stroke();
+
+        ctx.fillStyle = '#fef08a';
+        ctx.font = '22px sans-serif';
+        ctx.fillText('❖ ─── ✦ ─── ❖', 600, dividerY + 8);
+
+        // Bottom footer line
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(75, 565);
+        ctx.lineTo(1125, 565);
+        ctx.stroke();
+
+        // Footer Author & Imprint
+        ctx.textAlign = 'left';
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 24px "Hind Siliguri", "Kalpurush", sans-serif';
+        ctx.fillText('✍️ রচনা: ' + author, 80, 608);
+
+        ctx.textAlign = 'right';
+        ctx.fillStyle = '#fbbf24';
+        ctx.font = 'bold 22px "Hind Siliguri", "Kalpurush", sans-serif';
+        ctx.fillText('আইডিয়া প্রকাশন | www.ideaabd.com', 1120, 608);
+    } else {
+        // Portrait Book Cover (600 x 900)
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(0, 0, 600, 900);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 46px "Hind Siliguri", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(title, 300, 360);
+
+        ctx.fillStyle = '#fde047';
+        ctx.font = '600 28px "Hind Siliguri", sans-serif';
+        ctx.fillText(author, 300, 470);
+
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+        ctx.font = '500 16px "Hind Siliguri", sans-serif';
+        ctx.fillText('আইডিয়া প্রকাশন', 300, 840);
+    }
+
+    const dataUrl = canvas.toDataURL('image/webp', 0.95);
+
+    // Update or create hidden inputs
+    let hiddenField = document.getElementById('f-generated_cover_data_' + fieldName) || document.getElementById('f-generated_cover_data');
+    if (!hiddenField) {
+        hiddenField = document.createElement('input');
+        hiddenField.type = 'hidden';
+        hiddenField.name = 'generated_cover_data';
+        hiddenField.id = 'f-generated_cover_data_' + fieldName;
+        const mainForm = document.getElementById('contentMainForm');
+        if (mainForm) mainForm.appendChild(hiddenField);
+    }
+    if (hiddenField) {
+        hiddenField.value = dataUrl;
+    }
+
+    // Update Dropzone Preview
+    const previewContainer = document.getElementById('preview-container-' + fieldName);
+    const previewImg = document.getElementById('preview-img-' + fieldName);
+    const previewFilename = document.getElementById('preview-filename-' + fieldName);
+    const previewFilesize = document.getElementById('preview-filesize-' + fieldName);
+
+    if (previewImg) {
+        previewImg.src = dataUrl;
+    }
+    if (previewFilename) {
+        previewFilename.textContent = 'Auto_Generated_Photocard.avif';
+    }
+    if (previewFilesize) {
+        previewFilesize.textContent = isBook ? 'Portrait Cover (600x900)' : 'Landscape 1200x675 (.avif Ready)';
+    }
+    if (previewContainer) {
+        previewContainer.classList.remove('d-none');
+    }
+
+    // Update Mockups
+    const mockupCover = document.getElementById('mockupCoverImg');
+    if (mockupCover) {
+        mockupCover.src = dataUrl;
+    }
+    const blogMockupCover = document.getElementById('blogMockupCoverImg');
+    if (blogMockupCover) {
+        blogMockupCover.src = dataUrl;
+    }
+    const prevBlogCoverImg = document.getElementById('prevBlogCoverImg');
+    const prevBlogCoverWrapper = document.getElementById('prevBlogCoverWrapper');
+    if (prevBlogCoverImg) {
+        prevBlogCoverImg.src = dataUrl;
+        if (prevBlogCoverWrapper) prevBlogCoverWrapper.classList.remove('d-none');
+    }
+}
 
 // Expose to window for inline onclick / oninput
 window.toggleAutoCoverOptions = toggleAutoCoverOptions;
 window.applyAutoCoverTheme = applyAutoCoverTheme;
 window.magicAutoGenerateCover = magicAutoGenerateCover;
 window.generateAutoBookCoverLive = generateAutoBookCoverLive;
+window.generatePhotocardCover = generatePhotocardCover;
 
 // Auto-trigger live cover rendering on page load & when typing title or author
 document.addEventListener('DOMContentLoaded', function() {
+    const isBlogType = @json($spec['key'] === 'blog');
     const titleEl = document.getElementById('f-title');
     if (titleEl) {
         titleEl.addEventListener('input', function() {
-            generateAutoBookCoverLive();
+            if (isBlogType) {
+                const previewCont = document.getElementById('preview-container-featured_image');
+                if (previewCont && !previewCont.classList.contains('d-none')) {
+                    generatePhotocardCover('featured_image');
+                }
+            } else {
+                generateAutoBookCoverLive();
+            }
+        });
+    }
+
+    const ownerNameEl = document.getElementById('f-owner_name');
+    if (ownerNameEl) {
+        ownerNameEl.addEventListener('input', function() {
+            if (isBlogType) {
+                const previewCont = document.getElementById('preview-container-featured_image');
+                if (previewCont && !previewCont.classList.contains('d-none')) {
+                    generatePhotocardCover('featured_image');
+                }
+            }
         });
     }
 

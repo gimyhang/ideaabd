@@ -2,21 +2,21 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
   <url>
     <loc>https://www.ideaabd.com/ideapatra</loc>
-    <lastmod>2026-09-04</lastmod>
+    <lastmod>2026-09-05</lastmod>
     <changefreq>hourly</changefreq>
     <priority>0.98</priority>
     <xhtml:link rel="alternate" hreflang="bn" href="https://www.ideaabd.com/ideapatra"/>
   </url>
   <url>
     <loc>https://www.ideaabd.com/blog</loc>
-    <lastmod>2026-09-04</lastmod>
+    <lastmod>2026-09-05</lastmod>
     <changefreq>hourly</changefreq>
     <priority>0.96</priority>
     <xhtml:link rel="alternate" hreflang="bn" href="https://www.ideaabd.com/blog"/>
   </url>
   <url>
     <loc>https://www.ideaabd.com/ideapatra/write</loc>
-    <lastmod>2026-09-04</lastmod>
+    <lastmod>2026-09-05</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.85</priority>
     <xhtml:link rel="alternate" hreflang="bn" href="https://www.ideaabd.com/ideapatra/write"/>
@@ -200,6 +200,30 @@
     <lastmod>2026-08-26</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.86</priority>
+  </url>
+  <url>
+    <loc>https://www.ideaabd.com/blog/rokeya-2</loc>
+    <lastmod>2026-09-05</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.90</priority>
+    <xhtml:link rel="alternate" hreflang="bn" href="https://www.ideaabd.com/blog/rokeya-2"/>
+    <xhtml:link rel="alternate" hreflang="bn-BD" href="https://www.ideaabd.com/ideapatra/rokeya-2"/>
+    <image:image>
+      <image:loc>https://www.ideaabd.com/storage/blog/t7JY074Urh5BuBAOWu9h7nb1_1788606500.jpg</image:loc>
+      <image:title>রোকেয়া</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://www.ideaabd.com/blog/rokeya</loc>
+    <lastmod>2026-09-05</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.90</priority>
+    <xhtml:link rel="alternate" hreflang="bn" href="https://www.ideaabd.com/blog/rokeya"/>
+    <xhtml:link rel="alternate" hreflang="bn-BD" href="https://www.ideaabd.com/ideapatra/rokeya"/>
+    <image:image>
+      <image:loc>https://www.ideaabd.com/storage/blog/photocard_1788606026_oFBHo6iD.svg</image:loc>
+      <image:title>রোকেয়া</image:title>
+    </image:image>
   </url>
   <url>
     <loc>https://www.ideaabd.com/blog/test-article-1788362300</loc>

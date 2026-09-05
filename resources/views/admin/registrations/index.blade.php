@@ -366,9 +366,12 @@
                                 <td class="text-end pe-3">
                                     <div class="d-inline-flex gap-1.5 align-items-center" id="regActions-{{ $user->id }}">
                                         {{-- 1. View Button --}}
-                                        <a href="{{ route('admin.registrations.show', $user) }}" class="btn btn-sm btn-outline-info rounded-pill px-2.5 py-1 shadow-xs fw-semibold" title="View Details">
+                                        <button type="button" 
+                                                class="btn btn-sm btn-outline-info rounded-pill px-2.5 py-1 shadow-xs fw-semibold" 
+                                                onclick="openRegDetailsModal({{ $user->id }})" 
+                                                title="View Details">
                                             <i class="fas fa-eye me-1"></i> View
-                                        </a>
+                                        </button>
 
                                         {{-- 2. Approve Button --}}
                                         @if($user->reg_status === 'approved')
@@ -643,6 +646,32 @@ function ajaxApproveUser(userId, userName = '', triggerBtn = null) {
                 const curApp = parseInt(approvedStat.textContent.replace(/,/g, '')) || 0;
                 approvedStat.textContent = (curApp + 1).toLocaleString();
             }
+
+            // 6. Update modal if currently opened
+            const modalEl = document.getElementById('regDetailsModal');
+            if (modalEl && modalEl.classList.contains('show')) {
+                const modalBadges = document.getElementById('modalStatusBadges');
+                if (modalBadges) {
+                    modalBadges.innerHTML = `
+                        <span class="badge bg-success rounded-pill px-2.5 py-1">APPROVED</span>
+                        <span class="badge bg-primary rounded-pill px-2.5 py-1">Active</span>
+                    `;
+                }
+                const modalFooter = document.getElementById('modalFooterActions');
+                if (modalFooter) {
+                    modalFooter.innerHTML = `
+                        <a href="/admin/registrations/${userId}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                            <i class="fas fa-arrow-up-right-from-square me-1"></i> Full Page
+                        </a>
+                        <a href="/admin/registrations/${userId}/edit" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                            <i class="fas fa-pen-to-square me-1"></i> Edit Profile
+                        </a>
+                        <span class="badge bg-success py-2 px-3 rounded-pill fw-bold">
+                            <i class="fas fa-circle-check me-1"></i> Approved & Active
+                        </span>
+                    `;
+                }
+            }
         } else {
             showToast(data.message || 'Approval failed', false);
         }
@@ -786,45 +815,85 @@ function toggleUserActiveStatus(userId, switchEl) {
 
 // AJAX Delete User
 function ajaxDeleteUser(userId, userName) {
-    SwalConfirm({
-        title: 'অ্যাকাউন্ট ডিলিট নিশ্চিতকরণ',
-        html: `আপনি কি নিশ্চিত যে <strong>‘${userName}’</strong> এর রেজিস্ট্রেশন ও অ্যাকাউন্ট স্থায়ীভাবে মুছে ফেলতে চান?`,
-        icon: 'warning',
-        confirmButtonText: '<i class="fas fa-trash-can me-1"></i> হ্যাঁ, ডিলিট করুন',
-        confirmButtonColor: '#ef4444',
-        cancelButtonText: 'বাতিল'
-    }).then(function(result) {
-        if (result.isConfirmed) {
-            fetch(`/admin/registrations/${userId}`, {
-                method: 'DELETE',
-                headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Accept': 'application/json'
+    const doDelete = () => {
+        fetch(`/admin/registrations/${userId}`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                showToast(data.message, true);
+                const row = document.getElementById(`regRow-${userId}`);
+                if (row) {
+                    row.style.transition = 'all 0.3s ease';
+                    row.style.opacity = '0';
+                    setTimeout(() => row.remove(), 300);
                 }
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    showToast(data.message, true);
-                    const row = document.getElementById(`regRow-${userId}`);
-                    if (row) row.remove();
-                } else {
-                    showToast(data.message || 'ডিলিট করতে সমস্যা হয়েছে।', false);
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                showToast('সার্ভার যোগাযোগে ত্রুটি হয়েছে।', false);
-            });
+            } else {
+                showToast(data.message || 'ডিলিট করতে সমস্যা হয়েছে।', false);
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            showToast('সার্ভার যোগাযোগে ত্রুটি হয়েছে।', false);
+        });
+    };
+
+    if (typeof SwalConfirm === 'function') {
+        SwalConfirm({
+            title: 'অ্যাকাউন্ট ডিলিট নিশ্চিতকরণ',
+            html: `আপনি কি নিশ্চিত যে <strong>‘${userName}’</strong> এর রেজিস্ট্রেশন ও অ্যাকাউন্ট স্থায়ীভাবে মুছে ফেলতে চান?`,
+            icon: 'warning',
+            confirmButtonText: '<i class="fas fa-trash-can me-1"></i> হ্যাঁ, ডিলিট করুন',
+            confirmButtonColor: '#ef4444',
+            cancelButtonText: 'বাতিল'
+        }).then(function(result) {
+            if (result.isConfirmed) doDelete();
+        });
+    } else if (typeof Swal !== 'undefined') {
+        Swal.fire({
+            title: 'অ্যাকাউন্ট ডিলিট নিশ্চিতকরণ',
+            html: `আপনি কি নিশ্চিত যে <strong>‘${userName}’</strong> এর রেজিস্ট্রেশন ও অ্যাকাউন্ট স্থায়ীভাবে মুছে ফেলতে চান?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: '<i class="fas fa-trash-can me-1"></i> হ্যাঁ, ডিলিট করুন',
+            confirmButtonColor: '#ef4444',
+            cancelButtonText: 'বাতিল'
+        }).then(function(result) {
+            if (result.isConfirmed) doDelete();
+        });
+    } else {
+        if (confirm(`আপনি কি নিশ্চিত যে ‘${userName}’ এর রেজিস্ট্রেশন ও অ্যাকাউন্ট স্থায়ীভাবে মুছে ফেলতে চান?`)) {
+            doDelete();
         }
-    });
-}
+    }
 }
 
 // Open Registration Details Modal
 function openRegDetailsModal(userId) {
     const modalEl = document.getElementById('regDetailsModal');
-    const modal = new bootstrap.Modal(modalEl);
+    if (!modalEl) return;
+
+    // Reset modal UI immediately
+    document.getElementById('modalUserName').textContent = 'Loading...';
+    document.getElementById('modalUserRoleBadge').textContent = `ID: #${userId}`;
+    const avatarBox = document.getElementById('modalAvatarBox');
+    if (avatarBox) {
+        avatarBox.innerHTML = '<div class="w-100 h-100 d-flex align-items-center justify-content-center text-secondary"><div class="spinner-border spinner-border-sm" role="status"></div></div>';
+    }
+    document.getElementById('modalDetailsBody').innerHTML = `
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status"></div>
+            <div class="small text-muted mt-2">Loading application details...</div>
+        </div>
+    `;
+    document.getElementById('modalFooterActions').innerHTML = '';
+
+    const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
     modal.show();
 
     fetch(`/admin/registrations/${userId}/details`, {
@@ -837,9 +906,8 @@ function openRegDetailsModal(userId) {
             const r = data.reg_data || {};
 
             document.getElementById('modalUserName').textContent = u.name;
-            document.getElementById('modalUserRoleBadge').textContent = `Role: ${u.role.toUpperCase()} | ID: #${u.id}`;
+            document.getElementById('modalUserRoleBadge').textContent = `Role: ${(u.reg_type || u.role).toUpperCase()} | ID: #${u.id}`;
 
-            const avatarBox = document.getElementById('modalAvatarBox');
             if (avatarBox) {
                 if (data.avatar_url) {
                     avatarBox.innerHTML = `<img src="${data.avatar_url}" class="w-100 h-100 object-fit-cover">`;
@@ -850,25 +918,34 @@ function openRegDetailsModal(userId) {
 
             // Build dynamic details HTML
             let extraHtml = '';
-            if (u.role === 'author') {
+            if (u.role === 'author' || u.reg_type === 'author') {
+                const bengaliName = r.name_bn || r.bengali_name || r.author_name_bn || '';
                 extraHtml = `
+                    ${bengaliName ? `<div class="col-sm-6"><small class="text-muted d-block">বাংলা নাম (Bengali Name)</small><div class="fw-semibold text-dark">${bengaliName}</div></div>` : ''}
                     <div class="col-sm-6"><small class="text-muted d-block">Pen Name / Pseudonym</small><div class="fw-semibold text-dark">${r.pen_name || '—'}</div></div>
-                    <div class="col-sm-6"><small class="text-muted d-block">Genre</small><div class="fw-semibold text-dark">${r.genre || '—'}</div></div>
+                    <div class="col-sm-6"><small class="text-muted d-block">Genre / Categories</small><div class="fw-semibold text-dark">${Array.isArray(r.genres) ? r.genres.join(', ') : (r.genre || '—')}</div></div>
                     <div class="col-sm-6"><small class="text-muted d-block">National ID (NID)</small><div class="fw-semibold text-dark font-monospace">${r.nid || '—'}</div></div>
+                    <div class="col-sm-6"><small class="text-muted d-block">Profession / পেশা</small><div class="fw-semibold text-dark">${r.profession || '—'}</div></div>
+                    <div class="col-sm-6"><small class="text-muted d-block">Present Address / বর্তমান ঠিকানা</small><div class="fw-semibold text-dark">${r.present_address || r.address || '—'}</div></div>
+                    <div class="col-sm-6"><small class="text-muted d-block">Permanent Address / স্থায়ী ঠিকানা</small><div class="fw-semibold text-dark">${r.permanent_address || '—'}</div></div>
+                    ${r.website || r.social_link || r.facebook ? `<div class="col-sm-6"><small class="text-muted d-block">Website / Social Profile</small><div class="fw-semibold text-dark"><a href="${r.website || r.social_link || r.facebook}" target="_blank" class="text-decoration-none text-primary"><i class="fas fa-link me-1"></i>${r.website || r.social_link || r.facebook}</a></div></div>` : ''}
                 `;
-            } else if (u.role === 'publisher') {
+            } else if (u.role === 'publisher' || u.reg_type === 'publisher') {
                 extraHtml = `
                     <div class="col-sm-6"><small class="text-muted d-block">Publisher House Name</small><div class="fw-semibold text-dark">${r.publisher_name || '—'}</div></div>
                     <div class="col-sm-6"><small class="text-muted d-block">Trade License No.</small><div class="fw-semibold text-dark font-monospace">${r.trade_license || '—'}</div></div>
                     <div class="col-sm-6"><small class="text-muted d-block">Established Year</small><div class="fw-semibold text-dark">${r.established || '—'}</div></div>
-                    <div class="col-sm-6"><small class="text-muted d-block">Address</small><div class="fw-semibold text-dark">${r.address || '—'}</div></div>
+                    <div class="col-sm-6"><small class="text-muted d-block">Business Address</small><div class="fw-semibold text-dark">${r.address || '—'}</div></div>
+                    <div class="col-sm-6"><small class="text-muted d-block">National ID (NID)</small><div class="fw-semibold text-dark font-monospace">${r.nid || '—'}</div></div>
+                    <div class="col-sm-6"><small class="text-muted d-block">Website / Social</small><div class="fw-semibold text-dark">${r.website ? `<a href="${r.website}" target="_blank" class="text-decoration-none text-primary"><i class="fas fa-globe me-1"></i>${r.website}</a>` : '—'}</div></div>
                 `;
-            } else if (u.role === 'seller') {
+            } else if (u.role === 'seller' || u.reg_type === 'seller') {
                 extraHtml = `
                     <div class="col-sm-6"><small class="text-muted d-block">Shop / Business Name</small><div class="fw-semibold text-dark">${r.shop_name || '—'}</div></div>
                     <div class="col-sm-6"><small class="text-muted d-block">Trade License No.</small><div class="fw-semibold text-dark font-monospace">${r.trade_license || '—'}</div></div>
                     <div class="col-sm-6"><small class="text-muted d-block">Business Address</small><div class="fw-semibold text-dark">${r.address || '—'}</div></div>
                     <div class="col-sm-6"><small class="text-muted d-block">National ID (NID)</small><div class="fw-semibold text-dark font-monospace">${r.nid || '—'}</div></div>
+                    <div class="col-sm-6"><small class="text-muted d-block">Zone / District</small><div class="fw-semibold text-dark">${r.zone || r.district || '—'}</div></div>
                 `;
             }
 
@@ -888,9 +965,9 @@ function openRegDetailsModal(userId) {
                     </div>
                     <div class="col-sm-6">
                         <small class="text-muted d-block">Status & Activity</small>
-                        <div class="d-flex gap-1.5 align-items-center mt-1">
+                        <div class="d-flex gap-1.5 align-items-center mt-1" id="modalStatusBadges">
                             <span class="badge ${u.reg_status === 'approved' ? 'bg-success' : (u.reg_status === 'pending' ? 'bg-warning text-dark' : 'bg-danger')} rounded-pill px-2.5 py-1">
-                                ${u.reg_status.toUpperCase()}
+                                ${(u.reg_status || 'pending').toUpperCase()}
                             </span>
                             <span class="badge ${u.is_active ? 'bg-primary' : 'bg-secondary'} rounded-pill px-2.5 py-1">
                                 ${u.is_active ? 'Active' : 'Inactive'}
@@ -899,14 +976,14 @@ function openRegDetailsModal(userId) {
                     </div>
                     ${extraHtml}
                     <div class="col-12">
-                        <small class="text-muted d-block">Bio & Literary Background</small>
+                        <small class="text-muted d-block">Bio & Application Notes (লেখকের পরিচিতি / তথ্য)</small>
                         <div class="bg-light p-3 rounded-3 small text-dark mt-1" style="max-height: 140px; overflow-y: auto;">
                             ${r.bio ? r.bio : '<em class="text-muted">No biography provided.</em>'}
                         </div>
                     </div>
                     <div class="col-sm-6">
                         <small class="text-muted d-block">Application Date</small>
-                        <div class="small text-muted">${data.created_at_formatted}</div>
+                        <div class="small text-muted">${data.created_at_formatted || '—'}</div>
                     </div>
                     <div class="col-sm-6">
                         <small class="text-muted d-block">Approved Date</small>
@@ -923,19 +1000,29 @@ function openRegDetailsModal(userId) {
             `;
 
             // Setup footer modal actions
+            const safeName = (u.name || '').replace(/'/g, "\\'");
             document.getElementById('modalFooterActions').innerHTML = `
+                <a href="/admin/registrations/${u.id}" class="btn btn-outline-secondary btn-sm rounded-pill px-3" title="View dedicated page">
+                    <i class="fas fa-arrow-up-right-from-square me-1"></i> Full Page
+                </a>
                 <a href="/admin/registrations/${u.id}/edit" class="btn btn-outline-primary btn-sm rounded-pill px-3">
                     <i class="fas fa-pen-to-square me-1"></i> Edit Profile
                 </a>
                 ${u.reg_status !== 'approved' ? `
-                    <button type="button" class="btn btn-danger btn-sm rounded-pill px-3 fw-semibold" onclick="bootstrap.Modal.getInstance(document.getElementById('regDetailsModal')).hide(); openRejectModal(${u.id}, '${u.name.replace(/'/g, "\\'")}');">
+                    <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-semibold" onclick="bootstrap.Modal.getInstance(document.getElementById('regDetailsModal')).hide(); openRejectModal(${u.id}, '${safeName}');">
                         <i class="fas fa-circle-xmark me-1"></i> Reject
                     </button>
-                    <button type="button" class="btn btn-success btn-sm rounded-pill px-3 fw-bold" onclick="ajaxApproveUser(${u.id}, '${u.name.replace(/'/g, "\\'")}'); bootstrap.Modal.getInstance(document.getElementById('regDetailsModal')).hide();">
+                    <button type="button" class="btn btn-success btn-sm rounded-pill px-3 fw-bold shadow-xs" onclick="ajaxApproveUser(${u.id}, '${safeName}', this)">
                         <i class="fas fa-circle-check me-1"></i> Approve & Activate
                     </button>
-                ` : ''}
+                ` : `
+                    <span class="badge bg-success-subtle text-success border border-success-subtle py-2 px-3 rounded-pill fw-bold">
+                        <i class="fas fa-circle-check me-1"></i> Already Approved
+                    </span>
+                `}
             `;
+        } else {
+            document.getElementById('modalDetailsBody').innerHTML = '<div class="alert alert-warning mb-0">No application details found for this user.</div>';
         }
     })
     .catch(err => {

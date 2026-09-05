@@ -42,7 +42,7 @@ class BlogController extends Controller
         $validated['author_id'] = auth()->id();
 
         if ($request->hasFile('featured_image')) {
-            $validated['featured_image'] = $request->file('featured_image')->store('blog', 'public');
+            $validated['featured_image'] = \App\Services\ImageOptimizerService::convertAndStore($request->file('featured_image'), 'blog', 'public', 82, 1400, 900);
         }
 
         BlogPost::create($validated);
@@ -67,7 +67,7 @@ class BlogController extends Controller
         ]);
 
         if ($request->hasFile('featured_image')) {
-            $validated['featured_image'] = $request->file('featured_image')->store('blog', 'public');
+            $validated['featured_image'] = \App\Services\ImageOptimizerService::convertAndStore($request->file('featured_image'), 'blog', 'public', 82, 1400, 900);
         }
 
         $post->update($validated);

@@ -2,43 +2,43 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
   <url>
     <loc>https://www.ideaabd.com/books</loc>
-    <lastmod>2026-09-04</lastmod>
+    <lastmod>2026-09-05</lastmod>
     <changefreq>hourly</changefreq>
     <priority>0.98</priority>
   </url>
   <url>
     <loc>https://www.ideaabd.com/books?sort=bestselling</loc>
-    <lastmod>2026-09-04</lastmod>
+    <lastmod>2026-09-05</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.92</priority>
   </url>
   <url>
     <loc>https://www.ideaabd.com/books?sort=newest</loc>
-    <lastmod>2026-09-04</lastmod>
+    <lastmod>2026-09-05</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.92</priority>
   </url>
   <url>
     <loc>https://www.ideaabd.com/books?sort=popular</loc>
-    <lastmod>2026-09-04</lastmod>
+    <lastmod>2026-09-05</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.90</priority>
   </url>
   <url>
     <loc>https://www.ideaabd.com/books?filter=boimela-2026</loc>
-    <lastmod>2026-09-04</lastmod>
+    <lastmod>2026-09-05</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.95</priority>
   </url>
   <url>
     <loc>https://www.ideaabd.com/books?filter=mega-discount</loc>
-    <lastmod>2026-09-04</lastmod>
+    <lastmod>2026-09-05</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.93</priority>
   </url>
   <url>
     <loc>https://www.ideaabd.com/books?category=pshcimbnger-bi</loc>
-    <lastmod>2026-09-04</lastmod>
+    <lastmod>2026-09-05</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.90</priority>
   </url>

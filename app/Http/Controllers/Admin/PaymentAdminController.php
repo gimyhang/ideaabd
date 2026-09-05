@@ -228,7 +228,7 @@ class PaymentAdminController extends Controller
         foreach (['bkash', 'nagad', 'rocket', 'upay', 'cellfin', 'bank'] as $gw) {
             // Check if a new file was uploaded
             if (isset($qrCodes[$gw]) && $qrCodes[$gw]->isValid()) {
-                $path = $qrCodes[$gw]->store('settings/qrcodes', 'public');
+                $path = \App\Services\ImageOptimizerService::convertAndStore($qrCodes[$gw], 'settings/qrcodes', 'public', 88, 1200, 1200);
                 $gateways[$gw]['qr_code'] = 'storage/' . $path;
             } elseif ($request->filled("qr_base64.{$gw}")) {
                 // Base64 cropped image
@@ -291,21 +291,8 @@ class PaymentAdminController extends Controller
             return null;
         }
 
-        @list($type, $data) = explode(';', $base64Data);
-        @list(, $data) = explode(',', $data);
-        $decoded = base64_decode($data);
-        if ($decoded === false) {
-            return null;
-        }
-
-        $ext = 'png';
-        if (str_contains($type, 'jpeg') || str_contains($type, 'jpg')) $ext = 'jpg';
-        elseif (str_contains($type, 'webp')) $ext = 'webp';
-
-        $filename = $folder . '/' . uniqid('qr_', true) . '.' . $ext;
-        Storage::disk('public')->put($filename, $decoded);
-
-        return 'storage/' . $filename;
+        $path = \App\Services\ImageOptimizerService::convertBase64AndStore($base64Data, $folder, 'public', 88, 1200, 1200);
+        return $path ? 'storage/' . $path : null;
     }
 
     /**

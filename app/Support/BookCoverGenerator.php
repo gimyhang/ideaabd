@@ -74,30 +74,15 @@ class BookCoverGenerator
             $idx = abs(crc32($title . $authorName)) % count($keys);
             $themeKey = $keys[$idx];
         }
-        $theme = $themes[$themeKey];
 
-        // Apply custom overrides if provided
-        if (!empty($customOptions['bg_color'])) {
-            $theme['bg'] = $customOptions['bg_color'];
-        }
-        if (!empty($customOptions['title_color'])) {
-            $theme['title_color'] = $customOptions['title_color'];
-        }
-        if (!empty($customOptions['author_color'])) {
-            $theme['author_color'] = $customOptions['author_color'];
-        }
-        if (!empty($customOptions['font_family'])) {
-            $theme['font_family'] = $customOptions['font_family'];
-        }
-
-        $svgContent = self::renderSvg($title, $authorName, $subtitle, $categoryName, $theme, $customOptions);
-
-        $slug = Str::slug($title) ?: 'book';
-        $filename = 'books/covers/cover_' . substr($slug, 0, 40) . '_' . Str::random(8) . '.svg';
-
-        Storage::disk('public')->put($filename, $svgContent);
-
-        return $filename;
+        return \App\Services\ImageOptimizerService::generateBookCoverAndStore(
+            $title,
+            $authorName,
+            $categoryName,
+            $themeKey,
+            'books/covers',
+            'public'
+        );
     }
 
     /**

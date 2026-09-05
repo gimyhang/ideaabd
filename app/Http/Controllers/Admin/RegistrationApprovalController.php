@@ -81,27 +81,25 @@ class RegistrationApprovalController extends Controller
     // Show individual registration detail page
     public function show(User $user)
     {
-        abort_unless(in_array($user->role, ['seller', 'publisher', 'author', 'buyer']), 404);
         return view('admin.registrations.show', compact('user'));
     }
 
     // Edit individual registration detail page
     public function edit(User $user)
     {
-        abort_unless(in_array($user->role, ['seller', 'publisher', 'author', 'buyer']), 404);
         return view('admin.registrations.edit', compact('user'));
     }
 
     // AJAX Details endpoint for popup modal preview
     public function details(User $user)
     {
-        abort_unless(in_array($user->role, ['seller', 'publisher', 'author', 'buyer']), 404);
-
         $regData = is_array($user->reg_data) ? $user->reg_data : [];
 
         $avatarUrl = null;
         if (!empty($user->avatar)) {
             $avatarUrl = str_starts_with($user->avatar, 'http') ? $user->avatar : asset('storage/' . ltrim($user->avatar, '/'));
+        } elseif (!empty($regData['avatar'])) {
+            $avatarUrl = str_starts_with($regData['avatar'], 'http') ? $regData['avatar'] : asset('storage/' . ltrim($regData['avatar'], '/'));
         }
 
         return response()->json([
@@ -117,8 +115,6 @@ class RegistrationApprovalController extends Controller
     // Update registration detail
     public function update(Request $request, User $user)
     {
-        abort_unless(in_array($user->role, ['seller', 'publisher', 'author', 'buyer']), 404);
-
         $validated = $request->validate([
             'name'           => ['required', 'string', 'max:255'],
             'email'          => ['required', 'email', 'max:255', 'unique:users,email,' . $user->id],
@@ -145,9 +141,9 @@ class RegistrationApprovalController extends Controller
 
         $regData = is_array($user->reg_data) ? $user->reg_data : [];
 
-        // Handle avatar upload if provided
+        // Handle avatar upload if provided (Convert to AVIF)
         if ($request->hasFile('avatar')) {
-            $avatarPath = $request->file('avatar')->store('authors', 'public');
+            $avatarPath = \App\Services\ImageOptimizerService::convertAndStore($request->file('avatar'), 'authors', 'public');
             $user->avatar = $avatarPath;
             $regData['avatar'] = $avatarPath;
         }

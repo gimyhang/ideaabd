@@ -255,10 +255,10 @@ class PublisherPortalController extends Controller
             }
         }
 
-        // Handle Cover Image Upload
+        // Handle Cover Image Upload (Convert to AVIF)
         $coverPath = null;
         if ($request->hasFile('cover_image')) {
-            $coverPath = $request->file('cover_image')->store('books/covers', 'public');
+            $coverPath = \App\Services\ImageOptimizerService::convertAndStore($request->file('cover_image'), 'books/covers', 'public');
         }
 
         // Handle Sample PDF Upload
@@ -273,7 +273,7 @@ class PublisherPortalController extends Controller
             $imagesList = [];
             foreach ((array)$request->file('look_inside_images') as $img) {
                 if ($img instanceof \Illuminate\Http\UploadedFile) {
-                    $imagesList[] = $img->store('books/look_inside', 'public');
+                    $imagesList[] = \App\Services\ImageOptimizerService::convertAndStore($img, 'books/look_inside', 'public');
                 }
             }
             if (!empty($imagesList)) {
@@ -554,7 +554,7 @@ class PublisherPortalController extends Controller
         ];
 
         if ($request->hasFile('cover_image')) {
-            $updates['cover_image'] = $request->file('cover_image')->store('books/covers', 'public');
+            $updates['cover_image'] = \App\Services\ImageOptimizerService::convertAndStore($request->file('cover_image'), 'books/covers', 'public');
         }
 
         if ($request->hasFile('pdf_sample')) {
@@ -565,7 +565,7 @@ class PublisherPortalController extends Controller
             $imagesList = [];
             foreach ((array)$request->file('look_inside_images') as $img) {
                 if ($img instanceof \Illuminate\Http\UploadedFile) {
-                    $imagesList[] = $img->store('books/look_inside', 'public');
+                    $imagesList[] = \App\Services\ImageOptimizerService::convertAndStore($img, 'books/look_inside', 'public');
                 }
             }
             if (!empty($imagesList)) {
@@ -682,12 +682,77 @@ class PublisherPortalController extends Controller
         ];
 
         if ($request->hasFile('logo')) {
-            $updates['logo'] = $request->file('logo')->store('publishers/logos', 'public');
+            $updates['logo'] = \App\Services\ImageOptimizerService::convertAndStore($request->file('logo'), 'publishers/logos', 'public');
         }
 
         $publisher->update($updates);
 
         return redirect()->route('publisher.dashboard', ['tab' => 'settings'])
             ->with('success', 'Publisher company details and profile saved successfully!');
+    }
+
+    /**
+     * Quickly create a new category via AJAX.
+     */
+    public function quickStoreCategory(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+        ]);
+
+        $name = trim($validated['name']);
+        $slug = Str::slug($name) ?: 'cat-' . time();
+        if (Category::where('slug', $slug)->exists()) {
+            $slug .= '-' . rand(100, 999);
+        }
+
+        $category = Category::create([
+            'name'      => $name,
+            'slug'      => $slug,
+            'is_active' => true,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => "ক্যাটাগরি '{$category->name}' সফলভাবে তৈরি হয়েছে।",
+            'item'    => [
+                'id'   => $category->id,
+                'name' => $category->name,
+                'slug' => $category->slug,
+            ],
+        ]);
+    }
+
+    /**
+     * Quickly create a new author via AJAX.
+     */
+    public function quickStoreAuthor(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+        ]);
+
+        $name = trim($validated['name']);
+        $slug = Str::slug($name) ?: 'author-' . time();
+        if (Author::where('slug', $slug)->exists()) {
+            $slug .= '-' . rand(100, 999);
+        }
+
+        $author = Author::create([
+            'name'        => $name,
+            'slug'        => $slug,
+            'is_active'   => true,
+            'is_verified' => false,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => "লেখক '{$author->name}' সফলভাবে যুক্ত হয়েছে।",
+            'item'    => [
+                'id'   => $author->id,
+                'name' => $author->name,
+                'slug' => $author->slug,
+            ],
+        ]);
     }
 }

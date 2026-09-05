@@ -149,8 +149,8 @@
                 <!-- Publisher Filter (with Registered Publishers Quick Selection) -->
                 <div class="col-6 col-md-4 col-lg-3">
                     <select name="publisher_id" class="form-select form-select-sm" onchange="submitFilterForm()">
-                        <option value="">— All Publishers (সকল প্রকাশক) —</option>
-                        <option value="registered" @selected(request('publisher_id') === 'registered') class="fw-bold text-primary">🏢 All Registered Publishers (নিবন্ধিত প্রকাশক)</option>
+                        <option value="">— All Publishers —</option>
+                        <option value="registered" @selected(request('publisher_id') === 'registered') class="fw-bold text-primary">🏢 All Registered Publishers</option>
                         <option value="idea" @selected(request('publisher_id') === 'idea')>⭐ IDEA Publication (In-House)</option>
                         <optgroup label="Specific Publishers">
                             @foreach ($publishers as $pId => $pName)
@@ -385,12 +385,12 @@
             color: #475569;
             background: #f8fafc;
             border-bottom: 1px solid #e2e8f0;
-            padding: 10px 12px;
+            padding: 13px 14px;
             white-space: nowrap;
             vertical-align: middle;
         }
         .adm-books-table tbody td {
-            padding: 9px 12px;
+            padding: 13px 14px;
             border-bottom: 1px solid #f1f5f9;
             font-size: 12.5px;
             vertical-align: middle;
@@ -477,8 +477,8 @@
     </style>
 
     <div class="adm-card p-0 overflow-hidden shadow-sm border-0 rounded-4">
-        <div class="d-flex align-items-center justify-content-between px-3 py-2 bg-light border-bottom" style="font-size: 12px;">
-            <span class="text-muted"><i class="fas fa-arrows-left-right text-primary me-1"></i> ডানে-বামে স্ক্রল করে সকল কলাম ও অ্যাকশন কমান্ড দেখুন</span>
+        <div class="d-flex align-items-center justify-content-between px-3 py-2.5 bg-light border-bottom" style="font-size: 12px;">
+            <span class="text-muted"><i class="fas fa-arrows-left-right text-primary me-1"></i> Scroll horizontally to view all columns and quick action commands</span>
             <div class="d-flex align-items-center gap-1">
                 <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2 rounded-pill" onclick="scrollAdminBooksTable(-300)" title="Scroll Left">
                     <i class="fas fa-chevron-left"></i>
@@ -521,7 +521,7 @@
                                     $coverUrl = asset('storage/' . ltrim($cover, '/'));
                                 }
                             } else {
-                                $firstLetter = mb_substr($book->title ?? 'বই', 0, 1, 'UTF-8');
+                                $firstLetter = mb_substr($book->title ?? 'B', 0, 1, 'UTF-8');
                                 $svg = "<svg xmlns='http://www.w3.org/2000/svg' width='100' height='150' viewBox='0 0 100 150'><rect width='100' height='150' fill='#1e293b'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='#38bdf8' font-weight='bold' font-size='32' font-family='sans-serif'>{$firstLetter}</text></svg>";
                                 $coverUrl = "data:image/svg+xml;utf8," . rawurlencode($svg);
                             }
@@ -574,7 +574,7 @@
                                 <div class="d-flex align-items-center gap-2.5">
                                     <div class="position-relative flex-shrink-0 cursor-pointer" onclick="openQuickEditModal({{ $book->id }}, 'cover')" title="Click to change cover image">
                                         <img src="{{ $coverUrl }}" alt="{{ $book->title }}" 
-                                             class="rounded shadow-xs border" style="width: 38px; height: 52px; object-fit: cover;" id="bookCoverImg_{{ $book->id }}">
+                                             class="rounded shadow-xs border" style="width: 44px; height: 60px; object-fit: cover;" id="bookCoverImg_{{ $book->id }}">
                                         <span class="position-absolute bottom-0 end-0 bg-dark bg-opacity-75 text-white p-0.5 rounded-circle" style="font-size: 8px; width: 14px; height: 14px; display: flex; align-items: center; justify-content: center;">
                                             <i class="fas fa-camera"></i>
                                         </span>
@@ -1487,12 +1487,12 @@ function exportBooksToCSV() {
 // Confirmation Dialog for Safe Book Deletion
 function confirmDeleteBook(bookId, bookTitle) {
     SwalConfirm({
-        title: 'বইটি ডিলিট করতে চান?',
-        html: `আপনি কি নিশ্চিত যে <strong>‘${bookTitle}’</strong> বইটি ডিলিট করতে চান?<br><span class="text-danger small">এটি ক্যাটাগরি ও লাইভ বুক শপ থেকে মুছে যাবে।</span>`,
+        title: 'Delete this book?',
+        html: `Are you sure you want to delete <strong>‘${bookTitle}’</strong>?<br><span class="text-danger small">This book will be permanently removed from catalog & storefront.</span>`,
         icon: 'warning',
-        confirmButtonText: '<i class="fas fa-trash-can me-1"></i> হ্যাঁ, ডিলিট করুন',
+        confirmButtonText: '<i class="fas fa-trash-can me-1"></i> Yes, Delete',
         confirmButtonColor: '#ef4444',
-        cancelButtonText: 'বাতিল'
+        cancelButtonText: 'Cancel'
     }).then(function(result) {
         if (result.isConfirmed) {
             const form = document.getElementById(`deleteBookForm_${bookId}`);
@@ -1520,12 +1520,12 @@ function syncTableScrollFromBar(bar) {
 // 1-Click Instant AJAX Book Approval
 async function ajaxApproveBook(bookId) {
     const result = await SwalConfirm({
-        title: 'বই অনুমোদন ও লাইভ প্রকাশ',
-        text: 'আপনি কি এই বইটি অনুমোদন করে লাইভ বুক শপে প্রকাশ করতে চান?',
+        title: 'Approve & Publish Book',
+        text: 'Do you want to approve this book and make it live in the storefront?',
         icon: 'question',
-        confirmButtonText: '<i class="fas fa-circle-check me-1"></i> হ্যাঁ, অনুমোদন করুন',
+        confirmButtonText: '<i class="fas fa-circle-check me-1"></i> Yes, Approve',
         confirmButtonColor: '#10b981',
-        cancelButtonText: 'বাতিল'
+        cancelButtonText: 'Cancel'
     });
     if (!result.isConfirmed) return;
 
@@ -1565,23 +1565,23 @@ async function ajaxApproveBook(bookId) {
                 toggleEl.checked = true;
             }
             if (typeof SwalToast === 'function') {
-                SwalToast('success', data.message || 'বইটি সফলভাবে অনুমোদন করা হয়েছে!');
+                SwalToast('success', data.message || 'Book approved and published successfully!');
             } else {
-                showBookToast('success', data.message || 'বইটি সফলভাবে অনুমোদন করা হয়েছে!');
+                showBookToast('success', data.message || 'Book approved and published successfully!');
             }
         } else {
             if (typeof SwalToast === 'function') {
-                SwalToast('error', data.message || 'অনুমোদনে সমস্যা হয়েছে।');
+                SwalToast('error', data.message || 'Failed to approve book.');
             } else {
-                showBookToast('error', data.message || 'অনুমোদনে সমস্যা হয়েছে।');
+                showBookToast('error', data.message || 'Failed to approve book.');
             }
         }
     } catch (err) {
         console.error(err);
         if (typeof SwalToast === 'function') {
-            SwalToast('error', 'সার্ভার যোগাযোগে ত্রুটি হয়েছে।');
+            SwalToast('error', 'Server connection error.');
         } else {
-            showBookToast('error', 'সার্ভার যোগাযোগে ত্রুটি হয়েছে।');
+            showBookToast('error', 'Server connection error.');
         }
     }
 }
@@ -1619,18 +1619,18 @@ async function ajaxSetBookPending(bookId) {
             }
             const toggleEl = document.getElementById(`toggleBook-${bookId}`);
             if (toggleEl) toggleEl.checked = false;
-            showBookToast('info', 'বইটির রিভিউ স্ট্যাটাস Pending (অপেক্ষমান) করা হয়েছে।');
+            showBookToast('info', 'Book review status set to Pending.');
         }
     } catch (err) {
         console.error(err);
-        showBookToast('error', 'সার্ভার যোগাযোগে ত্রুটি হয়েছে।');
+        showBookToast('error', 'Server connection error.');
     }
 }
 
 // Open Book Reject Modal
 function openBookRejectModal(bookId, bookTitle) {
     document.getElementById('rejectBookId').value = bookId;
-    document.getElementById('rejectBookTitle').textContent = bookTitle || 'বই';
+    document.getElementById('rejectBookTitle').textContent = bookTitle || 'Book';
     document.getElementById('rejectBookReason').value = '';
     const modalEl = document.getElementById('rejectBookModal');
     if (modalEl) {
@@ -1644,7 +1644,7 @@ async function ajaxRejectBookSubmit() {
     const bookId = document.getElementById('rejectBookId').value;
     const reason = document.getElementById('rejectBookReason').value.trim();
     if (!reason) {
-        alert('অনুগ্রহ করে বাতিলের সুনির্দিষ্ট কারণ লিখুন।');
+        alert('Please provide a specific reason for rejection.');
         return;
     }
 
@@ -1684,13 +1684,13 @@ async function ajaxRejectBookSubmit() {
             if (toggleEl) {
                 toggleEl.checked = false;
             }
-            showBookToast('warning', data.message || 'বইটি বাতিল করা হয়েছে।');
+            showBookToast('warning', data.message || 'Book has been rejected.');
         } else {
-            showBookToast('error', data.message || 'বাতিলকরণে ত্রুটি হয়েছে।');
+            showBookToast('error', data.message || 'Failed to reject book.');
         }
     } catch (err) {
         console.error(err);
-        showBookToast('error', 'সার্ভার যোগাযোগে ত্রুটি হয়েছে।');
+        showBookToast('error', 'Server connection error.');
     }
 }
 
@@ -1711,11 +1711,11 @@ async function toggleBookActive(bookId, switchEl) {
             showBookToast('success', data.message);
         } else {
             switchEl.checked = !switchEl.checked;
-            showBookToast('error', data.message || 'স্ট্যাটাস পরিবর্তনে ত্রুটি হয়েছে।');
+            showBookToast('error', data.message || 'Failed to toggle status.');
         }
     } catch (err) {
         switchEl.checked = !switchEl.checked;
-        showBookToast('error', 'সার্ভারে সংযোগ ব্যর্থ হয়েছে।');
+        showBookToast('error', 'Server connection error.');
     }
 }
 
@@ -1759,24 +1759,24 @@ document.addEventListener('DOMContentLoaded', function() {
         <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
             <div class="modal-header bg-danger text-white py-3">
                 <h5 class="modal-title fs-6 fw-bold">
-                    <i class="fas fa-triangle-exclamation me-1.5"></i> বই বাতিল বা সংশোধনের নির্দেশ
+                    <i class="fas fa-triangle-exclamation me-1.5"></i> Reject or Request Revision
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body p-4">
                 <input type="hidden" id="rejectBookId">
                 <p class="small text-muted mb-2">
-                    বই: <strong class="text-dark" id="rejectBookTitle"></strong>
+                    Book: <strong class="text-dark" id="rejectBookTitle"></strong>
                 </p>
                 <div class="mb-3">
-                    <label class="form-label small fw-bold text-dark">বাতিলের কারণ / প্রয়োজনীয় সংশোধন:</label>
-                    <textarea id="rejectBookReason" class="form-control rounded-3" rows="3" placeholder="যেমন: প্রচ্ছদের রেজোলিউশন কম, পৃষ্ঠার সংখ্যা মেলেনি, আইএসবিএন অসম্পূর্ণ..."></textarea>
+                    <label class="form-label small fw-bold text-dark">Rejection Reason / Required Revisions:</label>
+                    <textarea id="rejectBookReason" class="form-control rounded-3" rows="3" placeholder="e.g. Low cover resolution, incorrect page count, incomplete ISBN..."></textarea>
                 </div>
             </div>
             <div class="modal-footer bg-light py-2">
                 <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-sm btn-danger rounded-pill px-4 fw-bold" onclick="ajaxRejectBookSubmit()">
-                    <i class="fas fa-circle-xmark me-1"></i> নিশ্চিত বাতিল করুন
+                    <i class="fas fa-circle-xmark me-1"></i> Confirm Rejection
                 </button>
             </div>
         </div>

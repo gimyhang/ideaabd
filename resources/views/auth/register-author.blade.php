@@ -1,6 +1,7 @@
 @extends('layouts.app')
 @section('title', 'লেখক রেজিস্ট্রেশন - ideaabd')
 @section('content')
+@php $errors = $errors ?? new \Illuminate\Support\ViewErrorBag(); @endphp
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-lg-8 col-md-10">
@@ -11,8 +12,7 @@
                             <i class="fas fa-pen-fancy text-white fs-4"></i>
                         </div>
                         <div>
-                            <h4 class="fw-bold mb-1" style="color:#198754">লেখক রেজিস্ট্রেশন</h4>
-                            <small class="text-muted">আপনার মোবাইল নম্বরটি ইউজারনেম হিসেবে ব্যবহার হবে</small>
+                            <h4 class="fw-bold mb-0" style="color:#198754">লেখক রেজিস্ট্রেশন</h4>
                         </div>
                     </div>
                 </div>
@@ -30,84 +30,108 @@
                     <form method="POST" action="{{ route('register.submit', 'author') }}" enctype="multipart/form-data" id="authorRegForm">
                         @csrf
                         
-                        {{-- ══ DYNAMIC ADJUSTABLE AUTHOR PHOTO STUDIO ══ --}}
+                        {{-- ══ AUTHOR PROFILE PHOTO CIRCULAR PREVIEW & ZOOM ADJUSTER ══ --}}
                         <div class="mb-4 p-3.5 bg-light rounded-4 border">
-                            <label class="form-label fw-bold text-dark d-block mb-1">
-                                <i class="fas fa-camera text-success me-1"></i> লেখকের ছবি / প্রোফাইল ফটো <span class="text-muted small fw-normal">(এডজাস্টেবল ক্রপ ও ফিক্সড সাইজ)</span>
-                            </label>
-                            <p class="text-muted small mb-3" style="font-size: 12px;">
-                                যেকোনো সাইজের ছবি নির্বাচন করুন। ছবির ওপর ড্র্যাগ করে ও জুম স্লাইডার দিয়ে মুখমণ্ডল সঠিকভাবে বসিয়ে নিন।
-                            </p>
+                            <div class="d-flex align-items-center justify-content-between mb-3">
+                                <label class="form-label fw-bold text-dark mb-0">
+                                    <i class="fas fa-camera text-success me-1"></i> লেখকের ছবি / প্রোফাইল ফটো
+                                </label>
+                                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1" style="font-size: 11px;">
+                                    <i class="fa-solid fa-wand-magic-sparkles me-1"></i> অটো .avif অপ্টিমাইজড
+                                </span>
+                            </div>
 
                             <div class="row g-3 align-items-center">
-                                <div class="col-12 col-md-5 text-center">
-                                    {{-- Interactive Crop Canvas Container --}}
-                                    <div class="position-relative mx-auto rounded-4 overflow-hidden border border-2 border-success-subtle shadow-xs bg-white" 
-                                         style="width: 200px; height: 200px; cursor: grab; touch-action: none;" id="canvasWrapper">
-                                        <canvas id="cropCanvas" width="200" height="200" style="display:block; width:100%; height:100%;"></canvas>
+                                <div class="col-12 col-md-4 text-center">
+                                    {{-- Fixed 150x150 Circular Avatar Frame (Clickable for Instant Upload) --}}
+                                    <div class="position-relative mx-auto border border-3 border-success shadow-sm bg-light cursor-pointer avatar-upload-circle" 
+                                         style="width: 150px; height: 150px; min-width: 150px; min-height: 150px; max-width: 150px; max-height: 150px; border-radius: 50% !important; overflow: hidden !important; -webkit-mask-image: -webkit-radial-gradient(white, black); box-sizing: border-box; cursor: pointer;" 
+                                         id="avatarPreviewContainer"
+                                         onclick="document.getElementById('authorAvatarInput').click()"
+                                         title="ছবি আপলোড করতে ক্লিক করুন">
                                         
-                                        {{-- Circular Overlay Mask Guide --}}
-                                        <div class="position-absolute top-0 start-0 w-100 h-100 pointer-events-none d-flex align-items-center justify-content-center" 
-                                             style="box-shadow: 0 0 0 9999px rgba(0,0,0,0.45); border-radius: 50%; pointer-events: none;">
-                                            <div class="border border-white border-opacity-75 rounded-circle w-100 h-100" style="border-style: dashed !important;"></div>
+                                        {{-- Only this image scales inside the circular mask --}}
+                                        <img id="authorAvatarLivePreview" src="" alt="Author Avatar Preview" 
+                                             class="d-none" 
+                                             style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; transform-origin: center center; transition: transform 0.05s ease-out;">
+
+                                        {{-- Hover Overlay on Image --}}
+                                        <div id="avatarHoverOverlay" class="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center text-white bg-dark bg-opacity-50 opacity-0 transition-opacity" style="transition: opacity 0.2s ease; border-radius: 50%; pointer-events: none;">
+                                            <i class="fas fa-camera fs-4 mb-1"></i>
+                                            <span style="font-size: 11px;" class="fw-semibold">পরিবর্তন করুন</span>
                                         </div>
 
-                                        {{-- Initial placeholder when no image uploaded --}}
-                                        <div id="canvasPlaceholder" class="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center bg-light text-muted p-2 pointer-events-none">
+                                        {{-- Initial Placeholder --}}
+                                        <div id="authorAvatarPlaceholder" class="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center text-muted p-2 bg-light" style="border-radius: 50%; pointer-events: none;">
                                             <i class="fas fa-cloud-arrow-up text-success fs-2 mb-1"></i>
-                                            <span style="font-size: 11px;" class="fw-semibold">ছবি আপলোড করুন</span>
+                                            <span style="font-size: 12px;" class="fw-semibold text-dark">ছবি আপলোড</span>
+                                            <span style="font-size: 10.5px;" class="text-muted">ক্লিক করে নির্বাচন করুন</span>
                                         </div>
                                     </div>
 
-                                    {{-- Hidden Input to hold the final Base64 Cropped Image --}}
+                                    <div id="photoStatusBadge" class="mt-2 text-success small fw-semibold" style="display: none; font-size: 11.5px;">
+                                        <i class="fas fa-circle-check text-success me-1"></i> ছবি যুক্ত হয়েছে
+                                    </div>
+
+                                    {{-- Hidden Input to hold Base64 data if needed --}}
                                     <input type="hidden" name="avatar_cropped" id="authorAvatarCropped">
                                 </div>
 
-                                <div class="col-12 col-md-7">
-                                    {{-- File Picker --}}
-                                    <div class="mb-2.5">
+                                <div class="col-12 col-md-8">
+                                    <div class="mb-2">
+                                        <label for="authorAvatarInput" class="form-label small fw-semibold text-secondary mb-1">ডিভাইস থেকে ছবি আপলোড করুন:</label>
                                         <input type="file" name="avatar" id="authorAvatarInput" 
-                                               accept="image/jpeg,image/png,image/jpg,image/webp" 
-                                               class="form-control form-control-sm rounded-3 @error('avatar') is-invalid @enderror"
-                                               onchange="loadAuthorImage(this)">
+                                               accept="image/jpeg,image/png,image/jpg,image/webp,image/avif" 
+                                               class="form-control rounded-3 @error('avatar') is-invalid @enderror"
+                                               onchange="handleAuthorPhotoUpload(this)">
                                         @error('avatar')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                                     </div>
 
-                                    {{-- Interactive Controls: Zoom Slider, Rotate, Reset --}}
-                                    <div id="cropControls" class="p-2.5 bg-white rounded-3 border" style="display: none;">
+                                    {{-- Zoom / Size Adjustment Slider Bar --}}
+                                    <div id="photoZoomControls" class="p-2.5 bg-white rounded-3 border mt-2 shadow-2xs" style="display: none;">
                                         <div class="d-flex align-items-center justify-content-between mb-1.5" style="font-size: 11.5px;">
-                                            <span class="text-muted fw-semibold"><i class="fas fa-magnifying-glass-plus text-success me-1"></i>জুম এডজাস্ট:</span>
-                                            <span class="badge bg-light text-dark border font-monospace" id="zoomValBadge">100%</span>
+                                            <span class="text-secondary fw-semibold">
+                                                <i class="fas fa-magnifying-glass-plus text-success me-1"></i> ছবি ছোট / বড় অ্যাডজাস্ট:
+                                            </span>
+                                            <span class="badge bg-success-subtle text-success border border-success-subtle font-monospace" id="photoZoomBadge">100%</span>
                                         </div>
-                                        <div class="d-flex align-items-center gap-2 mb-2">
-                                            <button type="button" class="btn btn-sm btn-light border rounded-circle p-1" style="width:26px;height:26px;" onclick="adjustZoom(-0.1)" title="Zoom Out"><i class="fa-solid fa-minus" style="font-size:10px;"></i></button>
-                                            <input type="range" class="form-range flex-grow-1" id="zoomSlider" min="0.2" max="3.5" step="0.05" value="1" oninput="onZoomChange(this.value)">
-                                            <button type="button" class="btn btn-sm btn-light border rounded-circle p-1" style="width:26px;height:26px;" onclick="adjustZoom(0.1)" title="Zoom In"><i class="fa-solid fa-plus" style="font-size:10px;"></i></button>
-                                        </div>
-
-                                        <div class="d-flex align-items-center gap-2 flex-wrap">
-                                            <button type="button" class="btn btn-light btn-sm border rounded-pill px-2.5 py-1 text-dark small" onclick="rotateImage(90)">
-                                                <i class="fas fa-rotate-right me-1 text-primary"></i> ঘোরান (Rotate)
+                                        <div class="d-flex align-items-center gap-2">
+                                            <button type="button" class="btn btn-sm btn-light border rounded-circle p-0 d-flex align-items-center justify-content-center" style="width:26px;height:26px;" onclick="adjustAvatarZoom(-0.1)" title="ছোট করুন">
+                                                <i class="fa-solid fa-minus text-secondary" style="font-size:10px;"></i>
                                             </button>
-                                            <button type="button" class="btn btn-light btn-sm border rounded-pill px-2.5 py-1 text-dark small" onclick="resetCrop()">
-                                                <i class="fas fa-arrows-to-circle me-1 text-secondary"></i> রিসেট / কেন্দ্র
+                                            <input type="range" class="form-range flex-grow-1" id="avatarZoomSlider" min="1.0" max="3.0" step="0.05" value="1.0" oninput="onAvatarZoomSlider(this.value)">
+                                            <button type="button" class="btn btn-sm btn-light border rounded-circle p-0 d-flex align-items-center justify-content-center" style="width:26px;height:26px;" onclick="adjustAvatarZoom(0.1)" title="বড় করুন">
+                                                <i class="fa-solid fa-plus text-secondary" style="font-size:10px;"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-2 py-0.5" style="font-size: 11px;" onclick="resetAvatarZoom()">
+                                                রিসেট
                                             </button>
                                         </div>
                                     </div>
 
-                                    <div class="small text-muted mt-2" style="font-size: 11.5px;">
-                                        <i class="fas fa-circle-check text-success me-1"></i> ছবি যত বড়ই হোক স্বয়ংক্রিয়ভাবে গোলাকার ফ্রেমে ফিক্সড হয়ে অ্যাডজাস্ট হবে।
+                                    <div id="photoActionButtons" class="d-flex align-items-center gap-2 mt-2" style="display: none !important;">
+                                        <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-3 py-1" onclick="removeAuthorPhoto()">
+                                            <i class="fas fa-trash-can me-1"></i> ছবি মুছুন / পরিবর্তন
+                                        </button>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        {{-- ══ BASIC CREDENTIALS ══ --}}
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">লেখকের পুরো নাম <span class="text-danger">*</span></label>
-                            <input type="text" name="name" class="form-control rounded-3 @error('name') is-invalid @enderror"
-                                   value="{{ old('name') }}" required placeholder="আপনার পুরো নাম">
-                            @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        {{-- ══ BASIC CREDENTIALS: BENGALI & ENGLISH NAMES ══ --}}
+                        <div class="row g-2.5 mb-3">
+                            <div class="col-12 col-sm-6">
+                                <label class="form-label fw-semibold">লেখক নাম (বাংলা) <span class="text-danger">*</span></label>
+                                <input type="text" name="name" class="form-control rounded-3 @error('name') is-invalid @enderror"
+                                       value="{{ old('name') }}" required placeholder="বাংলায় পূর্ণ নাম">
+                                @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            </div>
+                            <div class="col-12 col-sm-6">
+                                <label class="form-label fw-semibold">লেখক নাম (ইংরেজি) <span class="text-muted small">(ঐচ্ছিক)</span></label>
+                                <input type="text" name="name_en" class="form-control rounded-3 @error('name_en') is-invalid @enderror"
+                                       value="{{ old('name_en') }}" placeholder="Full Name in English">
+                                @error('name_en')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            </div>
                         </div>
 
                         <div class="mb-3">
@@ -134,9 +158,9 @@
 
                         <div class="row g-2">
                             <div class="col-sm-6 mb-3">
-                                <label class="form-label fw-semibold">পাসওয়ার্ড <span class="text-danger">*</span></label>
+                                <label class="form-label fw-semibold">পাসওয়ার্ড <span class="text-danger">*</span> <small class="text-muted fw-normal">(কমপক্ষে ৮ অক্ষর)</small></label>
                                 <div class="input-group">
-                                    <input type="password" name="password" id="authorRegPassword" class="form-control rounded-start-3 @error('password') is-invalid @enderror" required minlength="6" maxlength="50" placeholder="ন্যূনতম ৬ অক্ষর" oninput="checkPasswordStrength(this.value, 'authorPwdStrengthBar', 'authorPwdStrengthText')">
+                                    <input type="password" name="password" id="authorRegPassword" class="form-control rounded-start-3 @error('password') is-invalid @enderror" required minlength="8" maxlength="50" placeholder="কমপক্ষে ৮ অক্ষর" oninput="checkPasswordStrength(this.value, 'authorPwdStrengthBar', 'authorPwdStrengthText')">
                                     <button type="button" class="btn btn-outline-secondary rounded-end-3" onclick="togglePasswordVisibility('authorRegPassword', this)" title="পাসওয়ার্ড দেখুন বা লুকান">
                                         <i class="fa-regular fa-eye"></i>
                                     </button>
@@ -146,7 +170,7 @@
                             <div class="col-sm-6 mb-3">
                                 <label class="form-label fw-semibold">পাসওয়ার্ড নিশ্চিত করুন <span class="text-danger">*</span></label>
                                 <div class="input-group">
-                                    <input type="password" name="password_confirmation" id="authorRegPasswordConfirm" class="form-control rounded-start-3" required minlength="6" maxlength="50" placeholder="পুনরায় লিখুন">
+                                    <input type="password" name="password_confirmation" id="authorRegPasswordConfirm" class="form-control rounded-start-3" required minlength="8" maxlength="50" placeholder="পুনরায় ৮ অক্ষরের পাসওয়ার্ড লিখুন">
                                     <button type="button" class="btn btn-outline-secondary rounded-end-3" onclick="togglePasswordVisibility('authorRegPasswordConfirm', this)" title="পাসওয়ার্ড দেখুন বা লুকান">
                                         <i class="fa-regular fa-eye"></i>
                                     </button>
@@ -163,33 +187,30 @@
                         </div>
 
                         <hr class="my-3">
-                        <h6 class="fw-bold text-dark mb-3"><i class="fas fa-feather-pointed text-success me-1"></i> লেখকের অতিরিক্ত তথ্য ও সাহিত্য ঘরানা</h6>
+                        <h6 class="fw-bold text-dark mb-3"><i class="fas fa-feather-pointed text-success me-1"></i> অতিরিক্ত তথ্য ও সাহিত্যকর্ম</h6>
 
                         <div class="mb-3">
-                            <label class="form-label fw-semibold">ছদ্মনাম / কলমনাম <span class="text-muted small">(যদি থাকে)</span></label>
-                            <input type="text" name="pen_name" class="form-control rounded-3" value="{{ old('pen_name') }}" placeholder="ঐচ্ছিক — ব্যবহার না করলে আসল নাম ব্যবহার হবে">
+                            <label class="form-label fw-semibold">লেখকের ছদ্মনাম</label>
+                            <input type="text" name="pen_name" class="form-control rounded-3" value="{{ old('pen_name') }}" placeholder="ঐচ্ছিক">
                         </div>
 
-                        {{-- ══ GENRE / WRITING TOPICS WITH TICK MARK CHECKBOXES ══ --}}
-                        <div class="mb-3.5 p-3.5 bg-light rounded-4 border">
-                            <label class="form-label fw-bold text-dark d-block mb-1.5">
-                                <i class="fa-solid fa-tags text-success me-1"></i> Genre / Writing Topics (লেখার ধরন ও সাহিত্য ঘরানা)
+                        {{-- ══ WRITING TOPICS ══ --}}
+                        <div class="mb-4 p-3.5 bg-light rounded-4 border">
+                            <label class="form-label fw-bold text-dark d-block mb-3 fs-6">
+                                <i class="fa-solid fa-tags text-success me-1.5"></i> Writing Topics
                             </label>
-                            <small class="text-muted d-block mb-2.5">
-                                যে যে বিষয়ে আপনি লেখেন সেগুলোতে টিক চিহ্ন দিন (একাধিক নির্বাচন করা যাবে):
-                            </small>
 
                             @php
                                 $presetGenres = [
-                                    'কথাসাহিত্য'   => ['icon' => 'fa-book-open', 'en' => 'Fiction / Stories'],
-                                    'কবিতা'        => ['icon' => 'fa-feather', 'en' => 'Poetry'],
-                                    'ছড়া'          => ['icon' => 'fa-music', 'en' => 'Rhymes'],
-                                    'প্রবন্ধ'       => ['icon' => 'fa-file-lines', 'en' => 'Essays'],
-                                    'গবেষণা'      => ['icon' => 'fa-microscope', 'en' => 'Research'],
-                                    'ভ্রমণগদ্য'     => ['icon' => 'fa-compass', 'en' => 'Travelogue'],
-                                    'অনুবাদ'       => ['icon' => 'fa-language', 'en' => 'Translation'],
-                                    'সায়েন্সফিকশন'  => ['icon' => 'fa-rocket', 'en' => 'Sci-Fi'],
-                                    'অন্যান্য'      => ['icon' => 'fa-ellipsis', 'en' => 'Others'],
+                                    'কথাসাহিত্য'   => 'fa-book-open',
+                                    'কবিতা'        => 'fa-feather',
+                                    'ছড়া'          => 'fa-music',
+                                    'প্রবন্ধ'       => 'fa-file-lines',
+                                    'গবেষণা'      => 'fa-microscope',
+                                    'ভ্রমণগদ্য'     => 'fa-compass',
+                                    'অনুবাদ'       => 'fa-language',
+                                    'সায়েন্সফিকশন'  => 'fa-rocket',
+                                    'অন্যান্য'      => 'fa-ellipsis',
                                 ];
                                 $oldGenres = old('genres', []);
                                 if (is_string(old('genre')) && !empty(old('genre'))) {
@@ -198,21 +219,24 @@
                                 $oldGenres = array_map('trim', $oldGenres);
                             @endphp
 
-                            <div class="row g-2" id="genreCheckboxGrid">
-                                @foreach($presetGenres as $genreName => $genreMeta)
+                            <div class="row g-2.5" id="genreCheckboxGrid">
+                                @foreach($presetGenres as $genreName => $icon)
                                     @php $isChecked = in_array($genreName, $oldGenres); @endphp
-                                    <div class="col-6 col-sm-4 col-md-4">
-                                        <label class="genre-chip-label d-flex align-items-center justify-content-between p-2.5 rounded-3 border bg-white shadow-2xs cursor-pointer w-100 position-relative transition-all {{ $isChecked ? 'border-success bg-success-subtle text-success fw-bold' : 'text-dark' }}" 
-                                               style="cursor: pointer; user-select: none; transition: all 0.15s ease;" for="genre_{{ $loop->index }}">
+                                    <div class="col-6 col-md-4">
+                                        <label class="genre-card-pill d-flex align-items-center justify-content-between p-2.5 rounded-3 border bg-white cursor-pointer w-100 position-relative shadow-2xs {{ $isChecked ? 'active-genre-card' : '' }}" 
+                                               style="cursor: pointer; user-select: none; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);" for="genre_{{ $loop->index }}">
                                             <div class="d-flex align-items-center gap-2 overflow-hidden">
-                                                <i class="fa-solid {{ $genreMeta['icon'] }} text-muted genre-icon {{ $isChecked ? 'text-success' : '' }}" style="font-size: 13px;"></i>
-                                                <span class="genre-text small text-truncate">{{ $genreName }}</span>
+                                                <div class="genre-icon-box rounded-circle d-flex align-items-center justify-content-center {{ $isChecked ? 'bg-success text-white' : 'bg-light text-secondary' }}" 
+                                                     style="width: 30px; height: 30px; min-width: 30px; font-size: 12px; transition: all 0.2s ease;">
+                                                    <i class="fa-solid {{ $icon }}"></i>
+                                                </div>
+                                                <span class="genre-text fw-semibold text-truncate {{ $isChecked ? 'text-success' : 'text-dark' }}" style="font-size: 13.5px;">{{ $genreName }}</span>
                                             </div>
-                                            <div class="genre-check-indicator ms-1">
+                                            <div class="genre-check-indicator ms-1 flex-shrink-0">
                                                 <input type="checkbox" name="genres[]" value="{{ $genreName }}" id="genre_{{ $loop->index }}" 
                                                        class="genre-checkbox d-none" {{ $isChecked ? 'checked' : '' }} onchange="toggleGenreChip(this)">
-                                                <span class="badge-tick rounded-circle d-flex align-items-center justify-content-center {{ $isChecked ? 'bg-success text-white' : 'border text-transparent' }}" 
-                                                      style="width: 20px; height: 20px; font-size: 10px; transition: all 0.15s ease;">
+                                                <span class="badge-tick rounded-2 d-flex align-items-center justify-content-center {{ $isChecked ? 'bg-success text-white border-success' : 'border border-secondary-subtle text-transparent bg-white' }}" 
+                                                      style="width: 20px; height: 20px; font-size: 10.5px; transition: all 0.2s ease;">
                                                     <i class="fa-solid fa-check"></i>
                                                 </span>
                                             </div>
@@ -222,20 +246,30 @@
                             </div>
 
                             {{-- Other Genre Write-in Box --}}
-                            <div class="mt-2.5" id="otherGenreInputWrap" style="{{ in_array('অন্যান্য', $oldGenres) ? '' : 'display:none;' }}">
-                                <input type="text" name="genre_other" id="genre_other" class="form-control form-control-sm rounded-3" 
-                                       placeholder="অন্যান্য ঘরানা বা বিষয়ের নাম লিখুন..." value="{{ old('genre_other') }}">
+                            <div class="mt-3" id="otherGenreInputWrap" style="{{ in_array('অন্যান্য', $oldGenres) ? '' : 'display:none;' }}">
+                                <input type="text" name="genre_other" id="genre_other" class="form-control rounded-3" 
+                                       placeholder="অন্যান্য বিষয় লিখুন..." value="{{ old('genre_other') }}">
                             </div>
 
                             {{-- Legacy single genre string hidden input fallback --}}
                             <input type="hidden" name="genre" id="genreCombinedInput" value="{{ old('genre') }}">
                         </div>
 
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">পরিচিতি / বায়ো</label>
-                            <textarea name="bio" rows="3" class="form-control rounded-3 @error('bio') is-invalid @enderror"
-                                      placeholder="আপনার সম্পর্কে সংক্ষেপে লিখুন (ঐচ্ছিক)...">{{ old('bio') }}</textarea>
-                            @error('bio')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        {{-- ══ DYNAMIC BIO TEXTAREA ══ --}}
+                        <div class="mb-4">
+                            <div class="d-flex align-items-center justify-content-between mb-1.5">
+                                <label class="form-label fw-semibold text-dark mb-0">
+                                    <i class="fas fa-pen-nib text-success me-1"></i> লেখক পরিচিতি / বায়ো
+                                </label>
+                                <span class="badge bg-light text-secondary border font-monospace" id="bioCounterBadge" style="font-size: 11.5px;">০ / ৫০০ শব্দ</span>
+                            </div>
+                            
+                            <textarea name="bio" id="authorBioInput" rows="9" 
+                                      class="form-control rounded-3 p-3 @error('bio') is-invalid @enderror bio-textarea-dynamic"
+                                      style="min-height: 220px; height: 240px; font-size: 14.5px; line-height: 1.8; overflow-y: auto; resize: vertical;"
+                                      placeholder="বায়ো লিখুন:"
+                                      oninput="updateBioStats(this)">{{ old('bio') }}</textarea>
+                            @error('bio')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                         </div>
 
                         <div class="mb-3">
@@ -268,200 +302,267 @@
 </div>
 
 <style>
-.genre-chip-label:hover {
+/* Avatar Upload Circle Clickable Styling */
+.avatar-upload-circle {
+    transition: all 0.2s ease-in-out;
+}
+.avatar-upload-circle:hover {
+    border-color: #146c43 !important;
+    transform: scale(1.02);
+    box-shadow: 0 6px 16px rgba(25, 135, 84, 0.25) !important;
+}
+.avatar-upload-circle:hover #avatarHoverOverlay {
+    opacity: 1 !important;
+}
+
+/* Genre Cards Modern Styling */
+.genre-card-pill {
+    border-color: #e2e8f0 !important;
+    background: #ffffff;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.genre-card-pill:hover {
     border-color: #198754 !important;
-    transform: translateY(-1px);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(25, 135, 84, 0.12) !important;
+}
+.genre-card-pill.active-genre-card {
+    border-color: #198754 !important;
+    background: #f0fdf4 !important;
+    box-shadow: 0 2px 8px rgba(25, 135, 84, 0.15) !important;
+}
+.genre-card-pill.active-genre-card .genre-text {
+    color: #198754 !important;
+    font-weight: 700 !important;
+}
+.genre-card-pill.active-genre-card .genre-icon-box {
+    background: #198754 !important;
+    color: #ffffff !important;
+}
+
+/* Dynamic Bio Textarea Custom Scrollbar */
+.bio-textarea-dynamic {
+    scrollbar-width: thin;
+    scrollbar-color: #198754 #f1f5f9;
+}
+.bio-textarea-dynamic::-webkit-scrollbar {
+    width: 8px;
+}
+.bio-textarea-dynamic::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 4px;
+}
+.bio-textarea-dynamic::-webkit-scrollbar-thumb {
+    background: #198754;
+    border-radius: 4px;
+}
+.bio-textarea-dynamic::-webkit-scrollbar-thumb:hover {
+    background: #157347;
 }
 </style>
 
 <script>
-/* =========================================================================
-   1. DYNAMIC ADJUSTABLE PHOTO CROPPER CANVAS STUDIO
-   ========================================================================= */
-let canvas = document.getElementById('cropCanvas');
-let ctx = canvas.getContext('2d');
-let currentImg = null;
-let imgX = 100;
-let imgY = 100;
-let scale = 1;
-let rotation = 0;
-let isDragging = false;
-let startX, startY;
+let currentAvatarZoom = 1.0;
+let originalAvatarImg = null;
 
-function loadAuthorImage(input) {
+function handleAuthorPhotoUpload(input) {
     if (input.files && input.files[0]) {
+        const file = input.files[0];
+        
+        if (!file.type.startsWith('image/')) {
+            alert('অনুগ্রহ করে একটি ছবি ফাইল (JPG, PNG, WebP, AVIF) নির্বাচন করুন।');
+            return;
+        }
+
+        const previewImg = document.getElementById('authorAvatarLivePreview');
+        const placeholder = document.getElementById('authorAvatarPlaceholder');
+        const statusBadge = document.getElementById('photoStatusBadge');
+        const actionButtons = document.getElementById('photoActionButtons');
+        const zoomControls = document.getElementById('photoZoomControls');
+        const slider = document.getElementById('avatarZoomSlider');
+        const badge = document.getElementById('photoZoomBadge');
+
         const reader = new FileReader();
         reader.onload = function(e) {
-            currentImg = new Image();
-            currentImg.onload = function() {
-                // Initialize positions
-                document.getElementById('canvasPlaceholder').style.display = 'none';
-                document.getElementById('cropControls').style.display = 'block';
-                
-                // Calculate fit scale
-                const canvasW = canvas.width;
-                const canvasH = canvas.height;
-                const scaleW = canvasW / currentImg.width;
-                const scaleH = canvasH / currentImg.height;
-                scale = Math.max(scaleW, scaleH);
-                
-                document.getElementById('zoomSlider').value = scale;
-                document.getElementById('zoomValBadge').textContent = `${Math.round(scale * 100)}%`;
-                
-                imgX = canvasW / 2;
-                imgY = canvasH / 2;
-                rotation = 0;
-                
-                renderCanvas();
+            const dataUri = e.target.result;
+            
+            // Show image inside fixed circular frame
+            if (previewImg) {
+                previewImg.src = dataUri;
+                previewImg.style.setProperty('display', 'block', 'important');
+                previewImg.style.transform = 'scale(1)';
+                previewImg.style.transformOrigin = 'center center';
+                previewImg.classList.remove('d-none');
+            }
+            if (placeholder) {
+                placeholder.style.setProperty('display', 'none', 'important');
+            }
+            if (statusBadge) {
+                statusBadge.style.display = 'block';
+            }
+            if (actionButtons) {
+                actionButtons.style.setProperty('display', 'flex', 'important');
+            }
+            if (zoomControls) {
+                zoomControls.style.display = 'block';
+            }
+            
+            // Reset zoom to 100%
+            currentAvatarZoom = 1.0;
+            if (slider) slider.value = 1;
+            if (badge) badge.textContent = '100%';
+
+            originalAvatarImg = new Image();
+            originalAvatarImg.onload = function() {
+                renderCroppedBase64();
             };
-            currentImg.src = e.target.result;
+            originalAvatarImg.src = dataUri;
         };
-        reader.readAsDataURL(input.files[0]);
+        reader.readAsDataURL(file);
     }
 }
 
-function renderCanvas() {
-    if (!currentImg) return;
+function onAvatarZoomSlider(val) {
+    currentAvatarZoom = parseFloat(val);
+    const badge = document.getElementById('photoZoomBadge');
+    const previewImg = document.getElementById('authorAvatarLivePreview');
     
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.save();
+    if (badge) {
+        badge.textContent = Math.round(currentAvatarZoom * 100) + '%';
+    }
+    if (previewImg) {
+        previewImg.style.transform = `scale(${currentAvatarZoom})`;
+        previewImg.style.transformOrigin = 'center center';
+    }
+    renderCroppedBase64();
+}
+
+function adjustAvatarZoom(delta) {
+    let newVal = Math.min(3.0, Math.max(1.0, currentAvatarZoom + delta));
+    const slider = document.getElementById('avatarZoomSlider');
+    if (slider) {
+        slider.value = newVal.toFixed(2);
+    }
+    onAvatarZoomSlider(newVal);
+}
+
+function resetAvatarZoom() {
+    const slider = document.getElementById('avatarZoomSlider');
+    if (slider) {
+        slider.value = 1;
+    }
+    onAvatarZoomSlider(1);
+}
+
+function renderCroppedBase64() {
+    if (!originalAvatarImg || !originalAvatarImg.width) return;
     
-    // Move to center of transformation
-    ctx.translate(imgX, imgY);
-    ctx.rotate((rotation * Math.PI) / 180);
-    ctx.scale(scale, scale);
+    const canvas = document.createElement('canvas');
+    const size = 600;
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d');
     
-    // Draw centered
-    ctx.drawImage(currentImg, -currentImg.width / 2, -currentImg.height / 2);
-    ctx.restore();
+    const imgW = originalAvatarImg.naturalWidth || originalAvatarImg.width;
+    const imgH = originalAvatarImg.naturalHeight || originalAvatarImg.height;
     
-    // Update hidden cropped Base64 input
-    exportCroppedAvatar();
-}
-
-function exportCroppedAvatar() {
-    if (!currentImg) return;
-    // Export full canvas as high-quality JPEG
-    const highResCanvas = document.createElement('canvas');
-    highResCanvas.width = 400;
-    highResCanvas.height = 400;
-    const hrCtx = highResCanvas.getContext('2d');
+    // Scale and crop centered
+    const minDim = Math.min(imgW, imgH);
+    const cropSize = minDim / currentAvatarZoom;
+    const sx = (imgW - cropSize) / 2;
+    const sy = (imgH - cropSize) / 2;
     
-    // Draw scaled representation
-    const ratio = 400 / canvas.width;
-    hrCtx.save();
-    hrCtx.translate(imgX * ratio, imgY * ratio);
-    hrCtx.rotate((rotation * Math.PI) / 180);
-    hrCtx.scale(scale * ratio, scale * ratio);
-    hrCtx.drawImage(currentImg, -currentImg.width / 2, -currentImg.height / 2);
-    hrCtx.restore();
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, size, size);
     
-    const dataUrl = highResCanvas.toDataURL('image/jpeg', 0.92);
-    document.getElementById('authorAvatarCropped').value = dataUrl;
-}
-
-function onZoomChange(val) {
-    scale = parseFloat(val);
-    document.getElementById('zoomValBadge').textContent = `${Math.round(scale * 100)}%`;
-    renderCanvas();
-}
-
-function adjustZoom(delta) {
-    const slider = document.getElementById('zoomSlider');
-    let newVal = parseFloat(slider.value) + delta;
-    newVal = Math.max(parseFloat(slider.min), Math.min(parseFloat(slider.max), newVal));
-    slider.value = newVal;
-    onZoomChange(newVal);
-}
-
-function rotateImage(deg) {
-    rotation = (rotation + deg) % 360;
-    renderCanvas();
-}
-
-function resetCrop() {
-    if (!currentImg) return;
-    imgX = canvas.width / 2;
-    imgY = canvas.height / 2;
-    const scaleW = canvas.width / currentImg.width;
-    const scaleH = canvas.height / currentImg.height;
-    scale = Math.max(scaleW, scaleH);
-    rotation = 0;
-    document.getElementById('zoomSlider').value = scale;
-    document.getElementById('zoomValBadge').textContent = `${Math.round(scale * 100)}%`;
-    renderCanvas();
-}
-
-// Canvas Mouse & Touch Dragging
-const wrapper = document.getElementById('canvasWrapper');
-
-function startDrag(e) {
-    if (!currentImg) return;
-    isDragging = true;
-    wrapper.style.cursor = 'grabbing';
-    const pos = getEventPos(e);
-    startX = pos.x - imgX;
-    startY = pos.y - imgY;
-}
-
-function onDrag(e) {
-    if (!isDragging || !currentImg) return;
-    if (e.cancelable) e.preventDefault();
-    const pos = getEventPos(e);
-    imgX = pos.x - startX;
-    imgY = pos.y - startY;
-    renderCanvas();
-}
-
-function stopDrag() {
-    if (isDragging) {
-        isDragging = false;
-        wrapper.style.cursor = 'grab';
-        exportCroppedAvatar();
+    ctx.drawImage(originalAvatarImg, Math.max(0, sx), Math.max(0, sy), cropSize, cropSize, 0, 0, size, size);
+    
+    const croppedDataUri = canvas.toDataURL('image/jpeg', 0.92);
+    const croppedInput = document.getElementById('authorAvatarCropped');
+    if (croppedInput) {
+        croppedInput.value = croppedDataUri;
     }
 }
 
-function getEventPos(e) {
-    const rect = canvas.getBoundingClientRect();
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-    return {
-        x: clientX - rect.left,
-        y: clientY - rect.top
-    };
+function removeAuthorPhoto() {
+    const input = document.getElementById('authorAvatarInput');
+    const previewImg = document.getElementById('authorAvatarLivePreview');
+    const placeholder = document.getElementById('authorAvatarPlaceholder');
+    const statusBadge = document.getElementById('photoStatusBadge');
+    const actionButtons = document.getElementById('photoActionButtons');
+    const zoomControls = document.getElementById('photoZoomControls');
+    const croppedInput = document.getElementById('authorAvatarCropped');
+    const slider = document.getElementById('avatarZoomSlider');
+    const badge = document.getElementById('photoZoomBadge');
+
+    if (input) input.value = '';
+    if (croppedInput) croppedInput.value = '';
+    originalAvatarImg = null;
+    currentAvatarZoom = 1.0;
+
+    if (previewImg) {
+        previewImg.src = '';
+        previewImg.style.transform = 'scale(1)';
+        previewImg.style.setProperty('display', 'none', 'important');
+        previewImg.classList.add('d-none');
+    }
+    if (placeholder) {
+        placeholder.style.setProperty('display', 'flex', 'important');
+    }
+    if (statusBadge) {
+        statusBadge.style.display = 'none';
+    }
+    if (actionButtons) {
+        actionButtons.style.setProperty('display', 'none', 'important');
+    }
+    if (zoomControls) {
+        zoomControls.style.display = 'none';
+    }
+    if (slider) {
+        slider.value = 1;
+    }
+    if (badge) {
+        badge.textContent = '100%';
+    }
 }
-
-wrapper.addEventListener('mousedown', startDrag);
-window.addEventListener('mousemove', onDrag);
-window.addEventListener('mouseup', stopDrag);
-
-wrapper.addEventListener('touchstart', startDrag, { passive: false });
-window.addEventListener('touchmove', onDrag, { passive: false });
-window.addEventListener('touchend', stopDrag);
 
 /* =========================================================================
    2. GENRE / WRITING TOPICS CHIP SELECTOR & TICK MARKS
    ========================================================================= */
 function toggleGenreChip(checkbox) {
-    const label = checkbox.closest('.genre-chip-label');
-    const icon = label.querySelector('.genre-icon');
+    const label = checkbox.closest('.genre-card-pill');
+    const iconBox = label.querySelector('.genre-icon-box');
     const tick = label.querySelector('.badge-tick');
+    const text = label.querySelector('.genre-text');
     
     if (checkbox.checked) {
-        label.classList.add('border-success', 'bg-success-subtle', 'text-success', 'fw-bold');
-        label.classList.remove('text-dark');
-        if (icon) icon.classList.add('text-success');
+        label.classList.add('active-genre-card');
+        if (iconBox) {
+            iconBox.classList.remove('bg-light', 'text-secondary');
+            iconBox.classList.add('bg-success', 'text-white');
+        }
+        if (text) {
+            text.classList.remove('text-dark');
+            text.classList.add('text-success');
+        }
         if (tick) {
-            tick.classList.remove('border', 'text-transparent');
-            tick.classList.add('bg-success', 'text-white');
+            tick.classList.remove('border', 'text-transparent', 'bg-light');
+            tick.classList.add('bg-success', 'text-white', 'border-success');
         }
     } else {
-        label.classList.remove('border-success', 'bg-success-subtle', 'text-success', 'fw-bold');
-        label.classList.add('text-dark');
-        if (icon) icon.classList.remove('text-success');
+        label.classList.remove('active-genre-card');
+        if (iconBox) {
+            iconBox.classList.remove('bg-success', 'text-white');
+            iconBox.classList.add('bg-light', 'text-secondary');
+        }
+        if (text) {
+            text.classList.remove('text-success');
+            text.classList.add('text-dark');
+        }
         if (tick) {
-            tick.classList.remove('bg-success', 'text-white');
-            tick.classList.add('border', 'text-transparent');
+            tick.classList.remove('bg-success', 'text-white', 'border-success');
+            tick.classList.add('border', 'text-transparent', 'bg-light');
         }
     }
 
@@ -491,7 +592,47 @@ function syncCombinedGenres() {
 document.getElementById('genre_other')?.addEventListener('input', syncCombinedGenres);
 
 /* =========================================================================
-   3. PASSWORD UTILITIES
+   3. DYNAMIC BIO WORD / CHAR STATS & EXPANSION
+   ========================================================================= */
+function toBengaliNumber(num) {
+    const bnNums = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+    return String(num).replace(/[0-9]/g, d => bnNums[d]);
+}
+
+function updateBioStats(textarea) {
+    const text = textarea.value.trim();
+    const words = text ? text.split(/\s+/).filter(Boolean).length : 0;
+    const chars = textarea.value.length;
+
+    const badge = document.getElementById('bioCounterBadge');
+    const charSpan = document.getElementById('bioCharCount');
+
+    if (badge) {
+        badge.textContent = `${toBengaliNumber(words)} / ${toBengaliNumber(500)} শব্দ`;
+        if (words > 500) {
+            badge.className = 'badge bg-danger text-white border border-danger font-monospace';
+        } else if (words >= 400) {
+            badge.className = 'badge bg-warning text-dark border border-warning font-monospace';
+        } else {
+            badge.className = 'badge bg-light text-secondary border font-monospace';
+        }
+    }
+
+    if (charSpan) {
+        charSpan.textContent = `${toBengaliNumber(chars)} অক্ষর`;
+    }
+}
+
+// Initial bio stats sync on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const bioTextarea = document.getElementById('authorBioInput');
+    if (bioTextarea && bioTextarea.value) {
+        updateBioStats(bioTextarea);
+    }
+});
+
+/* =========================================================================
+   4. PASSWORD UTILITIES & MINIMUM 8 CHARACTERS CHECK
    ========================================================================= */
 function togglePasswordVisibility(inputId, btn) {
     const input = document.getElementById(inputId);
@@ -519,19 +660,19 @@ function checkPasswordStrength(password, barId, textId) {
     }
 
     let score = 0;
-    if (password.length >= 6) score += 25;
-    if (password.length >= 8) score += 25;
+    if (password.length >= 8) score += 30;
+    if (password.length >= 10) score += 15;
     if (/[A-Z]/.test(password) && /[a-z]/.test(password)) score += 25;
     if (/[0-9]/.test(password)) score += 15;
-    if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) score += 10;
+    if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) score += 15;
 
-    if (score < 40) {
-        bar.style.width = '30%';
+    if (password.length < 8) {
+        bar.style.width = '25%';
         bar.className = 'progress-bar bg-danger';
-        text.textContent = 'দুর্বল (Weak)';
+        text.textContent = `অপূর্ণাঙ্গ (${toBengaliNumber(password.length)}/৮ অক্ষর — কমপক্ষে ৮ অক্ষর আবশ্যক)`;
         text.className = 'text-danger fw-bold';
-    } else if (score < 75) {
-        bar.style.width = '65%';
+    } else if (score < 60) {
+        bar.style.width = '55%';
         bar.className = 'progress-bar bg-warning';
         text.textContent = 'মাঝারি (Medium)';
         text.className = 'text-warning fw-bold';
@@ -544,9 +685,22 @@ function checkPasswordStrength(password, barId, textId) {
 }
 
 // Form submit handler
-document.getElementById('authorRegForm')?.addEventListener('submit', function() {
-    exportCroppedAvatar();
+document.getElementById('authorRegForm')?.addEventListener('submit', function(e) {
+    const pwdInput = document.getElementById('authorRegPassword');
+    if (pwdInput && pwdInput.value.length < 8) {
+        e.preventDefault();
+        alert('পাসওয়ার্ড কমপক্ষে ৮ অক্ষরের হতে হবে।');
+        pwdInput.focus();
+        return false;
+    }
+
     syncCombinedGenres();
+    
+    const submitBtn = document.getElementById('authorSubmitBtn');
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>আপনার তথ্য ও ছবি প্রসেসিং হচ্ছে...';
+    }
 });
 </script>
 @endsection

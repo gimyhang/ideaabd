@@ -89,7 +89,7 @@ final class ContentTypes
                     'preview_pages'           => ['label' => 'Online Preview Pages', 'type' => 'number',        'default' => 0,            'rules' => 'nullable|integer|min:0|max:10000',      'col' => 4],
 
                     // --- 5. Media & Sample Files ---
-                    'cover_image'             => ['label' => 'Cover Image (2:3 Standard)', 'type' => 'file',   'accept' => 'image/*',     'disk' => 'books',                          'rules' => 'nullable|image|max:4096',                  'col' => 4],
+                    'cover_image'             => ['label' => 'Cover Image (2:3 Standard)', 'type' => 'file',   'accept' => 'image/*',     'disk' => 'books/covers',                   'rules' => 'nullable|image|max:10240',                 'col' => 4],
                     'author_image'            => ['label' => 'Author Photo (1:1 Square)', 'type' => 'file',   'accept' => 'image/*',     'disk' => 'authors',                        'rules' => 'nullable|image|max:4096',                  'col' => 4],
                     'sample_pdf_path'         => ['label' => 'Sample PDF Preview', 'type' => 'file',       'accept' => 'application/pdf', 'disk' => 'books/samples',              'rules' => 'nullable|file|mimetypes:application/pdf|max:20480', 'col' => 4],
 

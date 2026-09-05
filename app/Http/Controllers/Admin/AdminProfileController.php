@@ -76,7 +76,7 @@ class AdminProfileController extends Controller
         $regData['bio'] = $validated['bio'] ?? ($regData['bio'] ?? null);
 
         if ($request->hasFile('avatar')) {
-            $path = $request->file('avatar')->store('avatars', 'public');
+            $path = \App\Services\ImageOptimizerService::convertAndStore($request->file('avatar'), 'avatars', 'public', 85, 600, 600);
             $user->avatar = $path;
         }
 
@@ -151,7 +151,8 @@ class AdminProfileController extends Controller
             'signature' => ['required', 'image', 'mimes:png,webp,svg', 'max:2048'],
         ]);
 
-        $path = $request->file('signature')->store('signatures', 'public');
+        $file = $request->file('signature');
+        $path = \App\Services\ImageOptimizerService::convertAndStore($file, 'signatures', 'public', 90, 800, 800);
         $regData = $user->reg_data ?? [];
         
         if (!empty($regData['signature']) && Storage::disk('public')->exists($regData['signature'])) {

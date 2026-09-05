@@ -457,21 +457,18 @@ class AuthorEbookController extends Controller
                         }
 
                         imagejpeg($dst, $fullPath, 92);
-                        imagedestroy($src);
-                        imagedestroy($dst);
-
-                        return 'ebooks/covers/' . $filename;
-                    }
+                    imagedestroy($src);
+                    return \App\Services\ImageOptimizerService::convertAndStore($file, 'ebooks/covers', 'public', 85, 800, 1200);
                 } catch (\Throwable $e) {
                     \Illuminate\Support\Facades\Log::error("Cover processing exception: " . $e->getMessage());
                 }
             }
 
-            return $file->store('ebooks/covers', 'public');
+            return \App\Services\ImageOptimizerService::convertAndStore($file, 'ebooks/covers', 'public', 85, 800, 1200);
         }
 
-        // Auto-generate high-contrast soft-shade aesthetic SVG cover with selected AI Theme
-        return $this->generateDefaultEbookCover($title, $authorName, $aiTheme);
+        // Auto-generate high-contrast soft-shade aesthetic AVIF cover with selected AI Theme
+        return \App\Services\ImageOptimizerService::generateBookCoverAndStore($title, $authorName, null, 'royal_blue', 'ebooks/covers', 'public');
     }
 
     /**

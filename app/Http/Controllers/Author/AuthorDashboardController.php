@@ -250,26 +250,14 @@ class AuthorDashboardController extends Controller
         $author = $user->getAuthorRecord();
         $avatarPath = null;
 
-        // 1. Check if Base64 cropped photo sent from mobile studio
+        // 1. Process Cropped Base64 Avatar or Direct File Upload to .avif
         if ($request->filled('avatar_cropped') && str_starts_with($request->input('avatar_cropped'), 'data:image')) {
-            try {
-                $croppedData = $request->input('avatar_cropped');
-                @list($typeInfo, $data) = explode(';', $croppedData);
-                @list(, $data)          = explode(',', $data);
-                $decodedData = base64_decode($data);
-                if ($decodedData !== false) {
-                    $filename = 'avatars/author_' . $user->id . '_' . time() . '_' . uniqid() . '.jpg';
-                    \Illuminate\Support\Facades\Storage::disk('public')->put($filename, $decodedData);
-                    $avatarPath = $filename;
-                }
-            } catch (\Throwable $e) {
-                \Illuminate\Support\Facades\Log::warning("Could not process dynamic cropped author avatar: " . $e->getMessage());
-            }
+            $avatarPath = \App\Services\ImageOptimizerService::convertBase64AndStore($request->input('avatar_cropped'), 'avatars', 'public', 85, 600, 600);
         }
 
         // 2. Fallback to direct file upload
         if (!$avatarPath && $request->hasFile('avatar')) {
-            $avatarPath = $request->file('avatar')->store('avatars', 'public');
+            $avatarPath = \App\Services\ImageOptimizerService::convertAndStore($request->file('avatar'), 'avatars', 'public', 85, 600, 600);
         }
 
         if (!$avatarPath) {

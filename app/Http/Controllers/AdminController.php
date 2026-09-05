@@ -1015,14 +1015,13 @@ class AdminController extends Controller
             \App\Models\AdminDashboardSetting::where('key', 'blog_og_banner')->delete();
         } elseif ($request->hasFile('blog_og_banner') || $request->filled('blog_og_banner_cropped')) {
             $savedBanner = null;
-            if ($request->filled('blog_og_banner_cropped') && preg_match('/^data:image\/(\w+);base64,/', $request->input('blog_og_banner_cropped'))) {
-                $base64 = substr($request->input('blog_og_banner_cropped'), strpos($request->input('blog_og_banner_cropped'), ',') + 1);
-                $binary = base64_decode($base64);
-                $filename = 'crop_' . uniqid('', true) . '.jpg';
-                \Illuminate\Support\Facades\Storage::disk('public')->put('images/banners/' . $filename, $binary);
-                $savedBanner = 'storage/images/banners/' . $filename;
+            if ($request->filled('blog_og_banner_cropped') && str_starts_with($request->input('blog_og_banner_cropped'), 'data:image')) {
+                $path = \App\Services\ImageOptimizerService::convertBase64AndStore($request->input('blog_og_banner_cropped'), 'images/banners', 'public', 82, 1920, 1080);
+                if ($path) {
+                    $savedBanner = 'storage/' . $path;
+                }
             } elseif ($request->hasFile('blog_og_banner')) {
-                $path = $request->file('blog_og_banner')->store('images/banners', 'public');
+                $path = \App\Services\ImageOptimizerService::convertAndStore($request->file('blog_og_banner'), 'images/banners', 'public', 82, 1920, 1080);
                 $savedBanner = 'storage/' . $path;
             }
 
@@ -1089,11 +1088,124 @@ class AdminController extends Controller
                 'status'     => $newStatus,
                 'mod_status' => $post->mod_status,
                 'slug'       => $post->slug,
-                'show_url'   => route('blog.show', $post->slug),
+                'show_url'   => route('blog.show', $post->slug ?: $post->id),
             ]);
         }
 
         return back()->with('success', $message);
+    }
+
+    /**
+     * Get blog post details for instant preview modal.
+     */
+    public function blogPostDetails($id): \Illuminate\Http\JsonResponse
+    {
+        $post = \Modules\Blog\Models\BlogPost::with(['category', 'author', 'submitter', 'tags'])->findOrFail($id);
+
+        $authorName = $post->author?->name ?? $post->submitter?->name ?? $post->owner_name ?? 'সম্পাদকীয় বিভাগ';
+        $authorPhone = $post->author?->phone ?? $post->submitter?->phone ?? $post->owner_phone ?? null;
+        $authorEmail = $post->author?->email ?? $post->submitter?->email ?? null;
+
+        $cleanText = strip_tags($post->content ?? '');
+        $wordCount = str_word_count($cleanText);
+        $readMinutes = max(1, (int)ceil($wordCount / 180));
+
+        $authorAvatar = null;
+        if ($post->author) {
+            $authorAvatar = $post->author->avatar ? (str_starts_with($post->author->avatar, 'http') ? $post->author->avatar : asset('storage/' . ltrim($post->author->avatar, '/'))) : null;
+        }
+
+        return response()->json([
+            'success'          => true,
+            'id'               => $post->id,
+            'title'            => $post->title,
+            'subtitle'         => $post->subtitle,
+            'slug'             => $post->slug,
+            'category'         => $post->category?->name ?? 'সাধারণ (General)',
+            'category_id'      => $post->category_id,
+            'author_name'      => $authorName,
+            'author_phone'     => $authorPhone,
+            'author_email'     => $authorEmail,
+            'author_avatar'    => $authorAvatar,
+            'excerpt'          => $post->excerpt,
+            'content'          => $post->content,
+            'cover_url'        => $post->cover_url,
+            'status'           => $post->status ?? 'pending',
+            'mod_status'       => $post->mod_status ?? 'pending',
+            'is_published'     => ($post->status === 'published' || $post->mod_status === 'approved'),
+            'is_featured'      => (bool) $post->is_featured,
+            'published_at'     => $post->published_at ? $post->published_at->format('d M, Y h:i A') : null,
+            'created_at'       => $post->created_at ? $post->created_at->format('d M, Y h:i A') : null,
+            'views_count'      => $post->view_count ?? 0,
+            'rejection_reason' => $post->rejection_reason,
+            'has_edit_request' => $post->hasPendingEditRequest(),
+            'tags'             => $post->tags->pluck('name')->toArray(),
+            'show_url'         => route('blog.show', $post->slug ?: $post->id),
+            'edit_url'         => route('admin.content.edit', ['type' => 'blog', 'id' => $post->id]),
+            'read_time'        => "{$readMinutes} মিনিট পাঠ",
+        ]);
+    }
+
+    /**
+     * 1-Click Approve and Publish Blog Post.
+     */
+    public function approveBlogPost(Request $request, $id): \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
+    {
+        $post = \Modules\Blog\Models\BlogPost::findOrFail($id);
+        $post->status = 'published';
+        $post->mod_status = 'approved';
+        $post->rejection_reason = null;
+        if (!$post->published_at) {
+            $post->published_at = now();
+        }
+        $post->save();
+
+        $this->accessService->log('blog_approved', "ব্লগ পোস্ট '{$post->title}' সফলভাবে অনুমোদন ও প্রকাশ করা হয়েছে");
+
+        $message = "‘{$post->title}’ পোস্টটি সফলভাবে অনুমোদন করা হয়েছে এবং ব্লগে প্রকাশিত হয়েছে!";
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success'    => true,
+                'message'    => $message,
+                'status'     => 'published',
+                'mod_status' => 'approved',
+                'slug'       => $post->slug,
+                'show_url'   => route('blog.show', $post->slug ?: $post->id),
+            ]);
+        }
+
+        return back()->with('success', $message);
+    }
+
+    /**
+     * Reject Blog Post with Reason.
+     */
+    public function rejectBlogPost(Request $request, $id): \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
+    {
+        $post = \Modules\Blog\Models\BlogPost::findOrFail($id);
+        $reason = $request->input('reason') ?: $request->input('rejection_reason') ?: 'সম্পাদকীয় নীতিমালার সাথে সামঞ্জস্যপূর্ণ নয় বা সংশোধন প্রয়োজন।';
+
+        $post->status = 'rejected';
+        $post->mod_status = 'rejected';
+        $post->rejection_reason = $reason;
+        $post->save();
+
+        $this->accessService->log('blog_rejected', "ব্লগ পোস্ট '{$post->title}' বাতিল করা হয়েছে। কারণ: {$reason}");
+
+        $message = "‘{$post->title}’ পোস্টটি বাতিল করা হয়েছে।";
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success'          => true,
+                'message'          => $message,
+                'status'           => 'rejected',
+                'mod_status'       => 'rejected',
+                'rejection_reason' => $reason,
+            ]);
+        }
+
+        return back()->with('info', $message);
     }
 
     public function togglePostFeatured(Request $request, $id): \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
@@ -1375,7 +1487,7 @@ class AdminController extends Controller
 
         $avatarPath = null;
         if ($request->hasFile('avatar_file')) {
-            $avatarPath = $request->file('avatar_file')->store('authors', 'public');
+            $avatarPath = \App\Services\ImageOptimizerService::convertAndStore($request->file('avatar_file'), 'authors', 'public');
         }
 
         $author = \Modules\Author\Models\Author::findOrCreateUnified([
@@ -1433,7 +1545,7 @@ class AdminController extends Controller
             $updates['is_verified'] = $request->boolean('is_verified');
         }
         if ($request->hasFile('avatar_file')) {
-            $updates['avatar'] = $request->file('avatar_file')->store('authors', 'public');
+            $updates['avatar'] = \App\Services\ImageOptimizerService::convertAndStore($request->file('avatar_file'), 'authors', 'public');
         }
 
         $author->update($updates);
@@ -1654,7 +1766,7 @@ class AdminController extends Controller
 
         $logoPath = null;
         if ($request->hasFile('logo_file')) {
-            $logoPath = $request->file('logo_file')->store('publishers/logos', 'public');
+            $logoPath = \App\Services\ImageOptimizerService::convertAndStore($request->file('logo_file'), 'publishers/logos', 'public');
         }
 
         $publisher = \Modules\Publisher\Models\Publisher::create([
@@ -2071,7 +2183,7 @@ class AdminController extends Controller
 
         // Handle direct cover image file upload
         if ($request->hasFile('cover_image_file')) {
-            $path = $request->file('cover_image_file')->store('books/covers', 'public');
+            $path = \App\Services\ImageOptimizerService::convertAndStore($request->file('cover_image_file'), 'books/covers', 'public');
             $updates['cover_image'] = $path;
         }
 

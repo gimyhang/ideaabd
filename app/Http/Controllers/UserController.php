@@ -153,7 +153,7 @@ class UserController extends Controller
         }
 
         if ($request->hasFile('avatar')) {
-            $updates['avatar'] = $request->file('avatar')->store('avatars', 'public');
+            $updates['avatar'] = \App\Services\ImageOptimizerService::convertAndStore($request->file('avatar'), 'avatars', 'public', 85, 600, 600);
         }
 
         $user->update($updates);
