@@ -920,7 +920,11 @@ class AdminController extends Controller
                 if ($status === 'published') {
                     $q->where(fn($w) => $w->where('status', 'published')->orWhere('mod_status', 'approved'));
                 } elseif ($status === 'pending') {
-                    $q->where(fn($w) => $w->where('status', 'pending')->orWhere('mod_status', 'pending'));
+                    $q->where(fn($w) => $w->where('status', 'pending')->orWhere('mod_status', 'pending'))
+                      ->where('status', '!=', 'hold')
+                      ->where(fn($w) => $w->whereNull('mod_status')->orWhere('mod_status', '!=', 'hold'));
+                } elseif ($status === 'hold' || $status === 'quarantine') {
+                    $q->where(fn($w) => $w->where('status', 'hold')->orWhere('mod_status', 'hold'));
                 } elseif ($status === 'rejected') {
                     $q->where(fn($w) => $w->where('status', 'rejected')->orWhere('mod_status', 'rejected'));
                 } elseif ($status === 'draft') {
@@ -939,7 +943,7 @@ class AdminController extends Controller
             ->when($request->filled('is_featured'), function ($q) use ($request) {
                 $q->where('is_featured', $request->boolean('is_featured'));
             })
-            ->orderByRaw("CASE WHEN status = 'pending' OR mod_status = 'pending' THEN 0 ELSE 1 END")
+            ->orderByRaw("CASE WHEN status = 'pending' AND mod_status != 'hold' THEN 0 WHEN status = 'hold' OR mod_status = 'hold' THEN 2 ELSE 1 END")
             ->latest('id');
 
         $perPage = in_array((int)$request->input('per_page'), [10, 20, 50, 100], true) ? (int)$request->input('per_page') : 20;
@@ -948,7 +952,8 @@ class AdminController extends Controller
         $stats = [
             'total'     => \Modules\Blog\Models\BlogPost::count(),
             'published' => \Modules\Blog\Models\BlogPost::where(fn($w) => $w->where('status', 'published')->orWhere('mod_status', 'approved'))->count(),
-            'pending'   => \Modules\Blog\Models\BlogPost::where(fn($w) => $w->where('status', 'pending')->orWhere('mod_status', 'pending'))->count(),
+            'pending'   => \Modules\Blog\Models\BlogPost::where(fn($w) => $w->where('status', 'pending')->orWhere('mod_status', 'pending'))->where('status', '!=', 'hold')->where(fn($w) => $w->whereNull('mod_status')->orWhere('mod_status', '!=', 'hold'))->count(),
+            'hold'      => \Modules\Blog\Models\BlogPost::where(fn($w) => $w->where('status', 'hold')->orWhere('mod_status', 'hold'))->count(),
             'draft'     => \Modules\Blog\Models\BlogPost::where('status', 'draft')->count(),
             'rejected'  => \Modules\Blog\Models\BlogPost::where(fn($w) => $w->where('status', 'rejected')->orWhere('mod_status', 'rejected'))->count(),
             'featured'  => \Modules\Blog\Models\BlogPost::where('is_featured', true)->count(),
@@ -1053,7 +1058,7 @@ class AdminController extends Controller
         $post = \Modules\Blog\Models\BlogPost::findOrFail($id);
         $newStatus = $request->input('status', 'published');
 
-        if (!in_array($newStatus, ['published', 'pending', 'draft', 'rejected'], true)) {
+        if (!in_array($newStatus, ['published', 'pending', 'draft', 'rejected', 'hold'], true)) {
             $newStatus = 'published';
         }
 
@@ -1065,6 +1070,9 @@ class AdminController extends Controller
                 $post->published_at = now();
             }
             $message = "‘{$post->title}’ পোস্টটি সফলভাবে অনুমোদন করা হয়েছে এবং ব্লগে প্রকাশিত হয়েছে!";
+        } elseif ($newStatus === 'hold') {
+            $post->mod_status = 'hold';
+            $message = "‘{$post->title}’ পোস্টটি অপ্রকাশযোগ্য / হোল্ড তালিকায় স্থানান্তর করা হয়েছে।";
         } elseif ($newStatus === 'rejected') {
             $post->mod_status = 'rejected';
             $post->rejection_reason = $request->input('rejection_reason') ?: 'অসম্পূর্ণ বা সংশোধন প্রয়োজন।';
@@ -1089,6 +1097,33 @@ class AdminController extends Controller
                 'mod_status' => $post->mod_status,
                 'slug'       => $post->slug,
                 'show_url'   => route('blog.show', $post->slug ?: $post->id),
+            ]);
+        }
+
+        return back()->with('success', $message);
+    }
+
+    /**
+     * Move Blog Post to Hold / Quarantine (অপ্রকাশযোগ্য / স্থগিত).
+     */
+    public function holdBlogPost(Request $request, $id): \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
+    {
+        $post = \Modules\Blog\Models\BlogPost::findOrFail($id);
+        $post->status = 'hold';
+        $post->mod_status = 'hold';
+        $post->save();
+
+        $this->accessService->log('blog_hold', "ব্লগ পোস্ট '{$post->title}' অপ্রকাশযোগ্য / হোল্ড করা হয়েছে");
+
+        $message = "‘{$post->title}’ পোস্টটি অপ্রকাশযোগ্য / হোল্ড তালিকায় সফলভাবে স্থানান্তর করা হয়েছে।";
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success'    => true,
+                'message'    => $message,
+                'status'     => 'hold',
+                'mod_status' => 'hold',
+                'slug'       => $post->slug,
             ]);
         }
 
@@ -1255,6 +1290,22 @@ class AdminController extends Controller
                 'published_at' => now(),
             ]);
             return back()->with('success', count($ids) . 'টি পোস্ট সফলভাবে প্রকাশ ও অনুমোদন করা হয়েছে।');
+        }
+
+        if ($action === 'hold') {
+            \Modules\Blog\Models\BlogPost::whereIn('id', $ids)->update([
+                'status'     => 'hold',
+                'mod_status' => 'hold',
+            ]);
+            return back()->with('success', count($ids) . 'টি পোস্ট সফলভাবে অপ্রকাশযোগ্য / হোল্ড তালিকায় স্থানান্তর করা হয়েছে।');
+        }
+
+        if ($action === 'pending') {
+            \Modules\Blog\Models\BlogPost::whereIn('id', $ids)->update([
+                'status'     => 'pending',
+                'mod_status' => 'pending',
+            ]);
+            return back()->with('success', count($ids) . 'টি পোস্ট পুনরায় পেন্ডিং পর্যালোচনায় নেওয়া হয়েছে।');
         }
 
         if ($action === 'draft') {

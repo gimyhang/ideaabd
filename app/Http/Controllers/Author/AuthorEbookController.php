@@ -457,7 +457,9 @@ class AuthorEbookController extends Controller
                         }
 
                         imagejpeg($dst, $fullPath, 92);
-                    imagedestroy($src);
+                        imagedestroy($dst);
+                        imagedestroy($src);
+                    }
                     return \App\Services\ImageOptimizerService::convertAndStore($file, 'ebooks/covers', 'public', 85, 800, 1200);
                 } catch (\Throwable $e) {
                     \Illuminate\Support\Facades\Log::error("Cover processing exception: " . $e->getMessage());

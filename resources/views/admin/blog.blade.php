@@ -243,7 +243,7 @@
 
 {{-- 2. Stat Metric Cards --}}
 <div class="row g-3 mb-4">
-    <div class="col-6 col-md-3">
+    <div class="col-6 col-lg">
         <a href="{{ route('admin.blog') }}" class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-primary text-decoration-none hover-lift h-100">
             <div class="d-flex align-items-center justify-content-between">
                 <div>
@@ -254,7 +254,7 @@
             </div>
         </a>
     </div>
-    <div class="col-6 col-md-3">
+    <div class="col-6 col-lg">
         <a href="{{ route('admin.blog', ['status' => 'published']) }}" class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-success text-decoration-none hover-lift h-100">
             <div class="d-flex align-items-center justify-content-between">
                 <div>
@@ -265,7 +265,7 @@
             </div>
         </a>
     </div>
-    <div class="col-6 col-md-3">
+    <div class="col-6 col-lg">
         <a href="{{ route('admin.blog', ['status' => 'pending']) }}" class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-warning text-decoration-none hover-lift h-100">
             <div class="d-flex align-items-center justify-content-between">
                 <div>
@@ -276,7 +276,18 @@
             </div>
         </a>
     </div>
-    <div class="col-6 col-md-3">
+    <div class="col-6 col-lg">
+        <a href="{{ route('admin.blog', ['status' => 'hold']) }}" class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-secondary text-decoration-none hover-lift h-100">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="text-muted small fw-semibold">Hold (অপ্রকাশযোগ্য)</span>
+                    <h3 class="fw-bold mb-0 text-secondary">{{ number_format($stats['hold'] ?? 0) }}</h3>
+                </div>
+                <div class="rounded-circle bg-secondary-subtle text-secondary p-3"><i class="fas fa-pause-circle fs-4"></i></div>
+            </div>
+        </a>
+    </div>
+    <div class="col-6 col-lg">
         <a href="{{ route('admin.blog', ['status' => 'featured']) }}" class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-info text-decoration-none hover-lift h-100">
             <div class="d-flex align-items-center justify-content-between">
                 <div>
@@ -319,7 +330,8 @@
                 <select name="status" class="form-select" onchange="this.form.submit()">
                     <option value="all" @selected(request('status') === 'all' || !request('status'))>All Statuses</option>
                     <option value="published" @selected(request('status') === 'published')>Published</option>
-                    <option value="pending" @selected(request('status') === 'pending')>Pending</option>
+                    <option value="pending" @selected(request('status') === 'pending')>⏳ Pending Review</option>
+                    <option value="hold" @selected(request('status') === 'hold')>⏸️ Hold / অপ্রকাশযোগ্য</option>
                     <option value="featured" @selected(request('status') === 'featured')>Featured</option>
                     <option value="draft" @selected(request('status') === 'draft')>Draft</option>
                     <option value="rejected" @selected(request('status') === 'rejected')>Rejected</option>
@@ -357,10 +369,12 @@
                 <label class="form-check-label small fw-semibold text-muted" for="selectAllCheckbox">Select All</label>
             </div>
             
-            <div class="input-group input-group-sm" style="max-width: 280px;">
+            <div class="input-group input-group-sm" style="max-width: 320px;">
                 <select name="bulk_action" id="bulkActionSelect" class="form-select form-select-sm rounded-start-pill">
                     <option value="">Choose bulk action...</option>
                     <option value="publish">Publish & Approve Selected</option>
+                    <option value="hold">⏸️ Move to Hold (আলাদা রাখুন)</option>
+                    <option value="pending">⏳ Restore to Pending (পেন্ডিং করুন)</option>
                     <option value="draft">Draft Selected</option>
                     <option value="delete">Delete Selected</option>
                 </select>
@@ -399,14 +413,15 @@
                             <th>Status</th>
                             <th>Views</th>
                             <th>Date</th>
-                            <th class="text-end pe-3" style="min-width: 340px;">Actions</th>
+                            <th class="text-end pe-3" style="min-width: 380px;">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach ($posts as $n => $post)
                             @php
                                 $isPublished = ($post->status === 'published' || $post->mod_status === 'approved');
-                                $isPending = ($post->status === 'pending' || $post->mod_status === 'pending');
+                                $isHold = ($post->status === 'hold' || $post->mod_status === 'hold');
+                                $isPending = ($post->status === 'pending' || $post->mod_status === 'pending') && !$isHold;
                                 $isRejected = ($post->status === 'rejected' || $post->mod_status === 'rejected');
                                 $isDraft = ($post->status === 'draft');
                                 $coverImg = $post->cover_url ?: ($post->featured_image ? (str_starts_with($post->featured_image, 'http') ? $post->featured_image : asset('storage/' . ltrim($post->featured_image, '/'))) : null);
@@ -449,6 +464,11 @@
                                                    class="fw-bold text-dark text-decoration-none hover-primary d-block line-clamp-1" title="{{ $post->title }}">
                                                     {{ $post->title }}
                                                 </a>
+                                                @if($isHold)
+                                                    <span class="badge bg-secondary text-white rounded-pill px-2 py-0.5 small" style="font-size: 0.72rem;">
+                                                        <i class="fas fa-pause-circle me-1"></i>হোল্ড / অপ্রকাশযোগ্য
+                                                    </span>
+                                                @endif
                                                 @if($post->hasPendingEditRequest())
                                                     <span class="badge bg-warning text-dark rounded-pill px-2 py-0.5 small cursor-pointer shadow-xs animate-pulse" 
                                                           onclick="openBlogEditRequestModal({{ $post->id }})" title="লেখকের সংশোধনী আবেদন দেখতে ক্লিক করুন">
@@ -469,7 +489,7 @@
 
                                     @if($post->hasPendingEditRequest())
                                         <script id="editReqData{{ $post->id }}" type="application/json">
-                                        {!! json_encode([
+                                         {!! json_encode([
                                             'id' => $post->id,
                                             'title' => $post->title,
                                             'subtitle' => $post->subtitle,
@@ -508,11 +528,12 @@
                                 <!-- Dynamic Status Dropdown -->
                                 <td>
                                     <select class="form-select form-select-sm status-select-badge 
-                                            {{ $isPublished ? 'bg-success-subtle text-success border-success-subtle' : ($isPending ? 'bg-warning-subtle text-warning border-warning-subtle' : ($isRejected ? 'bg-danger-subtle text-danger border-danger-subtle' : 'bg-secondary-subtle text-secondary border-secondary-subtle')) }}" 
+                                            {{ $isPublished ? 'bg-success-subtle text-success border-success-subtle' : ($isHold ? 'bg-secondary-subtle text-secondary border-secondary-subtle' : ($isPending ? 'bg-warning-subtle text-warning border-warning-subtle' : ($isRejected ? 'bg-danger-subtle text-danger border-danger-subtle' : 'bg-secondary-subtle text-secondary border-secondary-subtle'))) }}" 
                                             id="statusSelect{{ $post->id }}"
                                             onchange="updatePostStatus({{ $post->id }}, this.value)">
                                         <option value="published" @selected($isPublished)>✓ Published</option>
                                         <option value="pending" @selected($isPending)>⏳ Pending</option>
+                                        <option value="hold" @selected($isHold)>⏸️ Hold</option>
                                         <option value="draft" @selected($isDraft)>📝 Draft</option>
                                         <option value="rejected" @selected($isRejected)>✕ Rejected</option>
                                     </select>
@@ -530,7 +551,7 @@
                                     {{ $post->published_at ? $post->published_at->format('d M, Y') : ($post->created_at ? $post->created_at->format('d M, Y') : '—') }}
                                 </td>
 
-                                <!-- All Action Buttons (View, Edit Request, Approve, Reject, Edit, Delete) -->
+                                <!-- All Action Buttons (View, Edit Request, Approve, Hold, Reject, Edit, Delete) -->
                                 <td class="text-end pe-3 text-nowrap">
                                     <div class="adm-actions-wrap" id="postActions{{ $post->id }}" data-slug="{{ $post->slug }}">
                                         {{-- 1. View / Preview Post Modal Trigger --}}
@@ -566,7 +587,22 @@
                                             </button>
                                         @endif
 
-                                        {{-- 4. Reject Button --}}
+                                        {{-- 4. Hold / Unhold Button --}}
+                                        @if($isHold)
+                                            <button type="button" class="adm-action-btn btn btn-outline-warning shadow-xs" 
+                                                    id="holdBtn{{ $post->id }}"
+                                                    onclick="updatePostStatus({{ $post->id }}, 'pending', this)" title="Held / স্থগিত (ক্লিক করে পুনরায় পেন্ডিং করুন)">
+                                                <i class="fas fa-play me-1"></i> Unhold
+                                            </button>
+                                        @else
+                                            <button type="button" class="adm-action-btn btn btn-outline-secondary shadow-xs" 
+                                                    id="holdBtn{{ $post->id }}"
+                                                    onclick="updatePostStatus({{ $post->id }}, 'hold', this)" title="Hold / অপ্রকাশযোগ্য হিসেবে আলাদা রাখুন">
+                                                <i class="fas fa-pause me-1"></i> Hold
+                                            </button>
+                                        @endif
+
+                                        {{-- 5. Reject Button --}}
                                         @if($isRejected)
                                             <button type="button" class="adm-action-btn btn btn-outline-danger shadow-xs" 
                                                     id="rejectBtn{{ $post->id }}"
@@ -581,13 +617,13 @@
                                             </button>
                                         @endif
 
-                                        {{-- 5. Edit Button --}}
+                                        {{-- 6. Edit Button --}}
                                         <a href="{{ route('admin.content.edit', ['type' => 'blog', 'id' => $post->id]) }}" 
                                            class="adm-action-btn btn btn-outline-primary shadow-xs" title="Edit Post">
                                             <i class="fas fa-pen-to-square me-1"></i> Edit
                                         </a>
 
-                                        {{-- 6. Live Blog Link (if published) --}}
+                                        {{-- 7. Live Blog Link (if published) --}}
                                         @if($isPublished)
                                             <a href="{{ route('blog.show', $post->slug) }}" target="_blank" rel="noopener" 
                                                class="adm-action-btn btn btn-light border shadow-xs" title="View live on website">
@@ -595,7 +631,7 @@
                                             </a>
                                         @endif
 
-                                        {{-- 7. Delete Button --}}
+                                        {{-- 8. Delete Button --}}
                                         <button type="button" class="adm-action-btn adm-action-btn-icon btn btn-outline-danger shadow-xs" 
                                                 onclick="deletePost({{ $post->id }}, '{{ addslashes($post->title) }}')" title="Delete Post">
                                             <i class="fas fa-trash-can"></i>
@@ -1610,12 +1646,15 @@ function openBlogPostPreviewModal(postId) {
                 ` : ''}
             `;
 
-            // Right Actions with prominent Approve Button
+            // Right Actions with prominent Approve & Hold Buttons
             let rightButtons = '';
             if (isPub) {
                 rightButtons = `
                     <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-3" onclick="bootstrap.Modal.getInstance(document.getElementById('blogPostPreviewModal'))?.hide(); openBlogRejectModal(${data.id}, '${safeTitle}');">
                         <i class="fas fa-ban me-1"></i> Reject / বাতিল
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3" onclick="updatePostStatus(${data.id}, 'hold', this)">
+                        <i class="fas fa-pause me-1"></i> Move to Hold
                     </button>
                     <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3" onclick="updatePostStatus(${data.id}, 'draft', this)">
                         <i class="fas fa-file-pen me-1"></i> Move to Draft
@@ -1624,10 +1663,25 @@ function openBlogPostPreviewModal(postId) {
                         <i class="fas fa-circle-check me-1"></i> Approved & Published
                     </span>
                 `;
+            } else if (data.status === 'hold' || data.mod_status === 'hold') {
+                rightButtons = `
+                    <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-3" onclick="bootstrap.Modal.getInstance(document.getElementById('blogPostPreviewModal'))?.hide(); openBlogRejectModal(${data.id}, '${safeTitle}');">
+                        <i class="fas fa-times me-1"></i> Reject / বাতিল
+                    </button>
+                    <button type="button" class="btn btn-outline-warning btn-sm rounded-pill px-3" onclick="updatePostStatus(${data.id}, 'pending', this)">
+                        <i class="fas fa-play me-1"></i> Unhold / পেন্ডিং করুন
+                    </button>
+                    <button type="button" class="btn btn-success btn-sm rounded-pill px-4 fw-bold shadow-xs btn-approve-action" onclick="ajaxApproveBlogPost(${data.id}, this)">
+                        <i class="fas fa-circle-check me-1.5"></i> Approve & Publish
+                    </button>
+                `;
             } else {
                 rightButtons = `
                     <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-semibold" onclick="bootstrap.Modal.getInstance(document.getElementById('blogPostPreviewModal'))?.hide(); openBlogRejectModal(${data.id}, '${safeTitle}');">
                         <i class="fas fa-times me-1"></i> Reject / বাতিল
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3" onclick="updatePostStatus(${data.id}, 'hold', this)">
+                        <i class="fas fa-pause me-1"></i> Hold / অপ্রকাশযোগ্য
                     </button>
                     <button type="button" class="btn btn-success btn-sm rounded-pill px-4 fw-bold shadow-xs btn-approve-action" onclick="ajaxApproveBlogPost(${data.id}, this)">
                         <i class="fas fa-circle-check me-1.5"></i> Approve & Publish / অনুমোদন ও প্রকাশ
@@ -1695,6 +1749,9 @@ async function ajaxApproveBlogPost(postId, triggerBtn = null) {
                     <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-3" onclick="bootstrap.Modal.getInstance(document.getElementById('blogPostPreviewModal'))?.hide(); openBlogRejectModal(${postId}, '');">
                         <i class="fas fa-ban me-1"></i> Reject
                     </button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3" onclick="updatePostStatus(${postId}, 'hold', this)">
+                        <i class="fas fa-pause me-1"></i> Move to Hold
+                    </button>
                     <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3" onclick="updatePostStatus(${postId}, 'draft', this)">
                         <i class="fas fa-file-pen me-1"></i> Move to Draft
                     </button>
@@ -1746,6 +1803,13 @@ async function ajaxApproveBlogPost(postId, triggerBtn = null) {
                 rejectBtn.title = 'Reject / Request Changes';
                 rejectBtn.disabled = false;
             }
+            const holdBtn = document.getElementById('holdBtn' + postId);
+            if (holdBtn) {
+                holdBtn.className = 'adm-action-btn btn btn-outline-secondary shadow-xs';
+                holdBtn.innerHTML = '<i class="fas fa-pause me-1"></i> Hold';
+                holdBtn.title = 'Hold / অপ্রকাশযোগ্য হিসেবে আলাদা রাখুন';
+                holdBtn.onclick = function() { updatePostStatus(postId, 'hold', this); };
+            }
 
             // 5. Update KPI Counter Badges
             updateBlogCountersLive('published');
@@ -1769,6 +1833,7 @@ async function ajaxApproveBlogPost(postId, triggerBtn = null) {
 function updateBlogCountersLive(newStatus) {
     const publishedStat = document.querySelector('.card.border-success h3');
     const pendingStat = document.querySelector('.card.border-warning h3');
+    const holdStat = document.querySelector('.card.border-secondary h3');
 
     if (newStatus === 'published') {
         if (pendingStat) {
@@ -1778,6 +1843,15 @@ function updateBlogCountersLive(newStatus) {
         if (publishedStat) {
             let pubVal = parseInt(publishedStat.textContent.replace(/,/g, '')) || 0;
             publishedStat.textContent = (pubVal + 1).toLocaleString();
+        }
+    } else if (newStatus === 'hold') {
+        if (pendingStat) {
+            let pVal = parseInt(pendingStat.textContent.replace(/,/g, '')) || 0;
+            if (pVal > 0) pendingStat.textContent = (pVal - 1).toLocaleString();
+        }
+        if (holdStat) {
+            let hVal = parseInt(holdStat.textContent.replace(/,/g, '')) || 0;
+            holdStat.textContent = (hVal + 1).toLocaleString();
         }
     }
 }
@@ -1825,6 +1899,8 @@ async function updatePostStatus(postId, newStatus, triggerBtn = null, reason = n
                 select.className = 'form-select form-select-sm status-select-badge';
                 if (newStatus === 'published') {
                     select.classList.add('bg-success-subtle', 'text-success', 'border-success-subtle');
+                } else if (newStatus === 'hold') {
+                    select.classList.add('bg-secondary-subtle', 'text-secondary', 'border-secondary-subtle');
                 } else if (newStatus === 'pending') {
                     select.classList.add('bg-warning-subtle', 'text-warning', 'border-warning-subtle');
                 } else if (newStatus === 'rejected') {
@@ -1842,7 +1918,7 @@ async function updatePostStatus(postId, newStatus, triggerBtn = null, reason = n
                 row.classList.add('row-approved-flash');
             }
 
-            // 3. Update Approve & Reject Button States (All 5 buttons remain present)
+            // 3. Update Approve, Hold & Reject Button States
             const approveBtn = document.getElementById('approveBtn' + postId);
             if (approveBtn) {
                 if (newStatus === 'published') {
@@ -1855,6 +1931,22 @@ async function updatePostStatus(postId, newStatus, triggerBtn = null, reason = n
                     approveBtn.title = 'Approve & Publish Immediately';
                 }
                 approveBtn.disabled = false;
+            }
+
+            const holdBtn = document.getElementById('holdBtn' + postId);
+            if (holdBtn) {
+                if (newStatus === 'hold') {
+                    holdBtn.className = 'adm-action-btn btn btn-outline-warning shadow-xs';
+                    holdBtn.innerHTML = '<i class="fas fa-play me-1"></i> Unhold';
+                    holdBtn.title = 'Held / স্থগিত (ক্লিক করে পুনরায় পেন্ডিং করুন)';
+                    holdBtn.onclick = function() { updatePostStatus(postId, 'pending', this); };
+                } else {
+                    holdBtn.className = 'adm-action-btn btn btn-outline-secondary shadow-xs';
+                    holdBtn.innerHTML = '<i class="fas fa-pause me-1"></i> Hold';
+                    holdBtn.title = 'Hold / অপ্রকাশযোগ্য হিসেবে আলাদা রাখুন';
+                    holdBtn.onclick = function() { updatePostStatus(postId, 'hold', this); };
+                }
+                holdBtn.disabled = false;
             }
 
             const rejectBtn = document.getElementById('rejectBtn' + postId);
@@ -1879,6 +1971,9 @@ async function updatePostStatus(postId, newStatus, triggerBtn = null, reason = n
                     if (newStatus === 'published') {
                         statusEl.className = 'badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1 fw-bold';
                         statusEl.innerHTML = '<i class="fas fa-circle-check me-1"></i> Published';
+                    } else if (newStatus === 'hold') {
+                        statusEl.className = 'badge bg-secondary text-white border border-secondary rounded-pill px-2.5 py-1 fw-bold';
+                        statusEl.innerHTML = '<i class="fas fa-pause-circle me-1"></i> Hold / অপ্রকাশযোগ্য';
                     } else if (newStatus === 'pending') {
                         statusEl.className = 'badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-2.5 py-1 fw-bold';
                         statusEl.innerHTML = '<i class="fas fa-clock me-1"></i> Pending';

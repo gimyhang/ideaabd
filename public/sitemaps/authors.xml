@@ -2,9 +2,31 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
   <url>
     <loc>https://www.ideaabd.com/authors</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.90</priority>
+  </url>
+  <url>
+    <loc>https://www.ideaabd.com/authors/sbyngkriy-author</loc>
+    <lastmod>2026-09-05</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.82</priority>
+  </url>
+  <url>
+    <loc>https://www.ideaabd.com/authors/test-author</loc>
+    <lastmod>2026-09-05</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.82</priority>
+  </url>
+  <url>
+    <loc>https://www.ideaabd.com/authors/shakil-masud</loc>
+    <lastmod>2026-09-06</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.82</priority>
+    <image:image>
+      <image:loc>https://www.ideaabd.com/storage/authors/tc1How0KajQXbuSjMMLpxJk6hxOeAsRuxoo8UCvk.jpg</image:loc>
+      <image:title>Shakil Masud — লেখক পরিচিতি</image:title>
+    </image:image>
   </url>
   <url>
     <loc>https://www.ideaabd.com/authors/mnir-hosen</loc>
@@ -56,13 +78,13 @@
   </url>
   <url>
     <loc>https://www.ideaabd.com/authors/humayun-ahmed</loc>
-    <lastmod>2026-08-22</lastmod>
+    <lastmod>2026-09-05</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.82</priority>
   </url>
   <url>
     <loc>https://www.ideaabd.com/authors/shrtchndr-chttopadhzay</loc>
-    <lastmod>2026-08-21</lastmod>
+    <lastmod>2026-09-05</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.82</priority>
   </url>

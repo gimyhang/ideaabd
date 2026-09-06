@@ -384,6 +384,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::post('/blog/bulk-action', [AdminController::class, 'bulkBlogAction'])->name('blog.bulk-action');
     Route::post('/blog/{id}/toggle-status', [AdminController::class, 'togglePostStatus'])->name('blog.toggle-status');
     Route::post('/blog/{id}/approve', [AdminController::class, 'approveBlogPost'])->name('blog.approve');
+    Route::post('/blog/{id}/hold', [AdminController::class, 'holdBlogPost'])->name('blog.hold');
     Route::post('/blog/{id}/reject', [AdminController::class, 'rejectBlogPost'])->name('blog.reject');
     Route::post('/blog/{id}/toggle-featured', [AdminController::class, 'togglePostFeatured'])->name('blog.toggle-featured');
     Route::post('/blog/{id}/approve-edit-request', [AdminController::class, 'approveBlogEditRequest'])->name('blog.approve-edit-request');
@@ -626,8 +627,15 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::prefix('pos')->name('pos.')->controller(\App\Http\Controllers\Admin\PosAdminController::class)->group(function () {
         Route::get('/', 'index')->name('index');
         Route::get('/search', 'searchBooks')->name('search');
+        Route::get('/offline-catalog', 'offlineCatalog')->name('offline-catalog');
+        Route::post('/offline-sync', 'syncOfflineSales')->name('offline-sync');
+        Route::get('/customers/search', 'searchCustomers')->name('customers.search');
         Route::post('/checkout', 'checkout')->name('checkout');
         Route::get('/receipt/{id}', 'receipt')->name('receipt');
+        Route::post('/void/{id}', 'voidSale')->name('void');
+        Route::get('/shift-report', 'shiftReport')->name('shift-report');
+        Route::post('/register/close', 'closeRegister')->name('register.close');
+        Route::post('/register/open', 'openRegister')->name('register.open');
     });
 
     // Affiliate Marketing & Influencers Network
