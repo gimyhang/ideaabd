@@ -18,14 +18,14 @@
         <div class="col-12 col-md-4">
             <div class="author-card p-3">
                 <span class="text-muted small fw-semibold">Wallet Balance</span>
-                <h3 class="fw-bold mb-0 text-primary font-monospace mt-1">৳{{ number_format($author->wallet_balance ?? 0, 2) }}</h3>
+                <h3 class="fw-bold mb-0 text-primary font-monospace mt-1">৳{{ number_format($author?->wallet_balance ?? 0, 2) }}</h3>
                 <small class="text-muted" style="font-size: 11px;">Available for payout</small>
             </div>
         </div>
         <div class="col-12 col-md-4">
             <div class="author-card p-3">
                 <span class="text-muted small fw-semibold">Total Payouts</span>
-                <h3 class="fw-bold mb-0 text-secondary font-monospace mt-1">৳{{ number_format($author->total_payout_withdrawn ?? 0, 2) }}</h3>
+                <h3 class="fw-bold mb-0 text-secondary font-monospace mt-1">৳{{ number_format($author?->total_payout_withdrawn ?? 0, 2) }}</h3>
                 <small class="text-muted" style="font-size: 11px;">Withdrawn to date</small>
             </div>
         </div>

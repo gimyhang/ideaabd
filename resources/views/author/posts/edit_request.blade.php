@@ -87,7 +87,7 @@
                             <label for="postCategory" class="form-label small fw-semibold text-dark mb-1">Category <span class="text-danger">*</span></label>
                             <select name="category_id" id="postCategory" class="form-select form-select-sm @error('category_id') is-invalid @enderror" required>
                                 <option value="">— Select Category —</option>
-                                @foreach($blogCategories as $cat)
+                                @foreach(($blogCategories ?? ($categories ?? [])) as $cat)
                                     <option value="{{ $cat->id }}" @selected($categoryIdVal == $cat->id)>
                                         {{ $cat->name }}
                                     </option>

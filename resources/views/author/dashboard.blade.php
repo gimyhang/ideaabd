@@ -709,19 +709,25 @@
                          ondragover="event.preventDefault(); this.classList.add('border-warning');"
                          ondragleave="this.classList.remove('border-warning');"
                          ondrop="handleModalFileDrop(event)">
-                        <canvas id="modalCropCanvas" width="240" height="240" style="display:block; width:100%; height:100%;"></canvas>
+                        <canvas id="modalCropCanvas" width="240" height="240" style="display:block; width:240px; height:240px;"></canvas>
                         
-                        {{-- Circular Overlay Mask Guide --}}
-                        <div class="position-absolute top-0 start-0 w-100 h-100 pointer-events-none d-flex align-items-center justify-content-center" 
-                             style="box-shadow: 0 0 0 9999px rgba(0,0,0,0.45); border-radius: 50%; pointer-events: none;">
-                            <div class="border border-white border-opacity-75 rounded-circle w-100 h-100" style="border-style: dashed !important;"></div>
-                        </div>
+                        {{-- Clean, Non-blocking SVG Circular Mask Guide --}}
+                        <svg class="position-absolute top-0 start-0 w-100 h-100 pe-none" viewBox="0 0 240 240" style="pointer-events: none; z-index: 5;">
+                            <defs>
+                                <mask id="authorCropCircleMask">
+                                    <rect width="240" height="240" fill="white"/>
+                                    <circle cx="120" cy="120" r="115" fill="black"/>
+                                </mask>
+                            </defs>
+                            <rect width="240" height="240" fill="rgba(15, 23, 42, 0.50)" mask="url(#authorCropCircleMask)"/>
+                            <circle cx="120" cy="120" r="115" fill="none" stroke="rgba(255, 255, 255, 0.85)" stroke-width="2" stroke-dasharray="6,4"/>
+                        </svg>
 
                         {{-- Initial placeholder when no image uploaded --}}
-                        <div id="modalCanvasPlaceholder" class="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center bg-light text-muted p-3 pointer-events-none text-center">
-                            <i class="fas fa-cloud-arrow-up text-primary fs-1 mb-2 animate-bounce"></i>
+                        <div id="modalCanvasPlaceholder" class="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center bg-light text-muted p-3 pointer-events-none text-center" style="z-index: 6;">
+                            <i class="fas fa-cloud-arrow-up text-primary fs-1 mb-2"></i>
                             <span class="fw-bold text-dark small mb-1">ছবি আপলোড বা ড্রপ করুন</span>
-                            <span class="text-muted" style="font-size: 11px;">JPG, PNG, WebP (Max 10MB)</span>
+                            <span class="text-muted" style="font-size: 11px;">JPG, PNG, WebP, HEIC</span>
                         </div>
                     </div>
                     <div class="text-muted small mt-1.5" style="font-size: 11.5px;">
@@ -735,13 +741,14 @@
                         <label class="btn btn-outline-primary btn-sm flex-grow-1 rounded-pill fw-semibold py-1.5" style="cursor: pointer;">
                             <i class="fas fa-images me-1"></i> গ্যালারি থেকে সিলেক্ট করুন
                             <input type="file" id="modalAuthorAvatarInput" 
-                                   accept="image/jpeg,image/png,image/jpg,image/webp" 
+                                   accept="image/jpeg,image/png,image/jpg,image/webp,image/heic,image/heif" 
                                    class="d-none"
+                                   onclick="this.value=null;"
                                    onchange="loadModalAuthorImage(this)">
                         </label>
                         <label class="btn btn-outline-secondary btn-sm rounded-pill fw-semibold py-1.5 px-3" style="cursor: pointer;" title="সরাসরি ক্যামেরা থেকে ছবি তুলুন">
                             <i class="fas fa-camera me-1"></i> ক্যামেরা
-                            <input type="file" accept="image/*" capture="user" class="d-none" onchange="loadModalAuthorImage(this)">
+                            <input type="file" accept="image/*" capture="user" class="d-none" onclick="this.value=null;" onchange="loadModalAuthorImage(this)">
                         </label>
                     </div>
                 </div>
@@ -754,7 +761,7 @@
                     </div>
                     <div class="d-flex align-items-center gap-2 mb-2">
                         <button type="button" class="btn btn-sm btn-white border rounded-circle p-1" style="width:28px;height:28px;" onclick="adjustModalZoom(-0.1)" title="Zoom Out"><i class="fa-solid fa-minus" style="font-size:10px;"></i></button>
-                        <input type="range" class="form-range flex-grow-1" id="modalZoomSlider" min="0.2" max="3.5" step="0.05" value="1" oninput="onModalZoomChange(this.value)">
+                        <input type="range" class="form-range flex-grow-1" id="modalZoomSlider" min="0.01" max="5.0" step="0.01" value="1" oninput="onModalZoomChange(this.value)">
                         <button type="button" class="btn btn-sm btn-white border rounded-circle p-1" style="width:28px;height:28px;" onclick="adjustModalZoom(0.1)" title="Zoom In"><i class="fa-solid fa-plus" style="font-size:10px;"></i></button>
                     </div>
 
@@ -1100,39 +1107,63 @@ function openBioEditModal() {
 function loadModalAuthorImage(input) {
     if (input.files && input.files[0]) {
         const file = input.files[0];
+        
+        // 1. Instant preview on main dashboard avatar element
+        const mainBox = document.getElementById('dashAvatarMainBox');
+        if (mainBox) {
+            try {
+                const objectUrl = URL.createObjectURL(file);
+                mainBox.innerHTML = `<img src="${objectUrl}" alt="Preview" class="w-100 h-100 object-fit-cover current-author-avatar-img">`;
+            } catch(e) {}
+        }
+
         const reader = new FileReader();
         reader.onload = function(e) {
-            // Instant preview on main avatar box
-            const mainBox = document.getElementById('dashAvatarMainBox');
-            if (mainBox) {
-                mainBox.innerHTML = `<img src="${e.target.result}" alt="Preview" class="w-100 h-100 object-fit-cover current-author-avatar-img">`;
-            }
-
+            const dataUri = e.target.result;
             modalCurrentImg = new Image();
             modalCurrentImg.onload = function() {
-                if (!modalCanvas) modalCanvas = document.getElementById('modalCropCanvas');
-                if (modalCanvas && !modalCtx) modalCtx = modalCanvas.getContext('2d');
+                modalCanvas = document.getElementById('modalCropCanvas');
+                if (modalCanvas) {
+                    modalCanvas.width = 240;
+                    modalCanvas.height = 240;
+                    modalCtx = modalCanvas.getContext('2d');
+                }
 
-                document.getElementById('modalCanvasPlaceholder').style.display = 'none';
-                document.getElementById('modalCropControls').style.display = 'block';
-                document.getElementById('modalSavePhotoBtn').disabled = false;
+                const placeholder = document.getElementById('modalCanvasPlaceholder');
+                if (placeholder) placeholder.style.setProperty('display', 'none', 'important');
                 
-                const canvasW = modalCanvas ? modalCanvas.width : 240;
-                const canvasH = modalCanvas ? modalCanvas.height : 240;
+                const controls = document.getElementById('modalCropControls');
+                if (controls) controls.style.setProperty('display', 'block', 'important');
+                
+                const saveBtn = document.getElementById('modalSavePhotoBtn');
+                if (saveBtn) saveBtn.disabled = false;
+                
+                const canvasW = 240;
+                const canvasH = 240;
                 const scaleW = canvasW / modalCurrentImg.width;
                 const scaleH = canvasH / modalCurrentImg.height;
                 modalScale = Math.max(scaleW, scaleH);
                 
-                document.getElementById('modalZoomSlider').value = modalScale;
-                document.getElementById('modalZoomValBadge').textContent = `${Math.round(modalScale * 100)}%`;
+                const slider = document.getElementById('modalZoomSlider');
+                if (slider) {
+                    const minScale = Math.min(scaleW, scaleH) * 0.4;
+                    const maxScale = Math.max(scaleW, scaleH) * 4.0;
+                    slider.min = Math.max(0.001, minScale).toFixed(4);
+                    slider.max = Math.max(minScale + 0.1, maxScale).toFixed(4);
+                    slider.step = ((parseFloat(slider.max) - parseFloat(slider.min)) / 100).toFixed(4);
+                    slider.value = modalScale;
+                }
+                const badge = document.getElementById('modalZoomValBadge');
+                if (badge) badge.textContent = '100%';
                 
                 modalImgX = canvasW / 2;
                 modalImgY = canvasH / 2;
                 modalRotation = 0;
                 
                 renderModalCanvas();
+                exportModalCroppedAvatar();
             };
-            modalCurrentImg.src = e.target.result;
+            modalCurrentImg.src = dataUri;
         };
         reader.readAsDataURL(file);
     }
@@ -1144,7 +1175,12 @@ function renderModalCanvas() {
     if (!modalCurrentImg || !modalCtx) return;
     
     modalCtx.clearRect(0, 0, modalCanvas.width, modalCanvas.height);
+    modalCtx.fillStyle = '#f8fafc';
+    modalCtx.fillRect(0, 0, modalCanvas.width, modalCanvas.height);
+    
     modalCtx.save();
+    modalCtx.imageSmoothingEnabled = true;
+    modalCtx.imageSmoothingQuality = 'high';
     
     modalCtx.translate(modalImgX, modalImgY);
     modalCtx.rotate((modalRotation * Math.PI) / 180);
@@ -1161,9 +1197,15 @@ function exportModalCroppedAvatar() {
     highRes.height = 500;
     const hrCtx = highRes.getContext('2d');
     
+    hrCtx.fillStyle = '#ffffff';
+    hrCtx.fillRect(0, 0, 500, 500);
+    
     const canvasW = modalCanvas ? modalCanvas.width : 240;
     const ratio = 500 / canvasW;
     hrCtx.save();
+    hrCtx.imageSmoothingEnabled = true;
+    hrCtx.imageSmoothingQuality = 'high';
+    
     hrCtx.translate(modalImgX * ratio, modalImgY * ratio);
     hrCtx.rotate((modalRotation * Math.PI) / 180);
     hrCtx.scale(modalScale * ratio, modalScale * ratio);
@@ -1175,13 +1217,20 @@ function exportModalCroppedAvatar() {
 
 function onModalZoomChange(val) {
     modalScale = parseFloat(val);
-    document.getElementById('modalZoomValBadge').textContent = `${Math.round(modalScale * 100)}%`;
+    const slider = document.getElementById('modalZoomSlider');
+    const min = parseFloat(slider.min) || 0.01;
+    const max = parseFloat(slider.max) || 5.0;
+    const pct = Math.round(((modalScale - min) / (max - min)) * 100);
+    const badge = document.getElementById('modalZoomValBadge');
+    if (badge) badge.textContent = `${pct}%`;
     renderModalCanvas();
 }
 
 function adjustModalZoom(delta) {
     const slider = document.getElementById('modalZoomSlider');
-    let newVal = parseFloat(slider.value) + delta;
+    if (!slider) return;
+    const range = parseFloat(slider.max) - parseFloat(slider.min);
+    let newVal = parseFloat(slider.value) + (delta * (range / 10));
     newVal = Math.max(parseFloat(slider.min), Math.min(parseFloat(slider.max), newVal));
     slider.value = newVal;
     onModalZoomChange(newVal);
@@ -1194,16 +1243,21 @@ function rotateModalImage(deg) {
 
 function resetModalCrop() {
     if (!modalCurrentImg) return;
-    const canvasW = modalCanvas ? modalCanvas.width : 240;
-    const canvasH = modalCanvas ? modalCanvas.height : 240;
+    const canvasW = 240;
+    const canvasH = 240;
     modalImgX = canvasW / 2;
     modalImgY = canvasH / 2;
     const scaleW = canvasW / modalCurrentImg.width;
     const scaleH = canvasH / modalCurrentImg.height;
     modalScale = Math.max(scaleW, scaleH);
     modalRotation = 0;
-    document.getElementById('modalZoomSlider').value = modalScale;
-    document.getElementById('modalZoomValBadge').textContent = `${Math.round(modalScale * 100)}%`;
+    
+    const slider = document.getElementById('modalZoomSlider');
+    if (slider) {
+        slider.value = modalScale;
+    }
+    const badge = document.getElementById('modalZoomValBadge');
+    if (badge) badge.textContent = '100%';
     renderModalCanvas();
 }
 

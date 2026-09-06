@@ -457,22 +457,29 @@
             
             <div class="modal-body p-4">
                 {{-- Interactive Crop Canvas Container --}}
+                {{-- Interactive Crop Canvas Container --}}
                 <div class="text-center mb-3">
                     <div class="position-relative mx-auto rounded-4 overflow-hidden border border-2 border-primary shadow-xs bg-light" 
                          style="width: 240px; height: 240px; cursor: grab; touch-action: none;" id="adminCanvasWrapper"
                          ondragover="event.preventDefault(); this.classList.add('border-warning');"
                          ondragleave="this.classList.remove('border-warning');"
                          ondrop="handleAdminPhotoDrop(event)">
-                        <canvas id="adminCropCanvas" width="240" height="240" style="display:block; width:100%; height:100%;"></canvas>
+                        <canvas id="adminCropCanvas" width="240" height="240" style="display:block; width:240px; height:240px;"></canvas>
                         
-                        {{-- Circular Overlay Mask Guide --}}
-                        <div class="position-absolute top-0 start-0 w-100 h-100 pointer-events-none d-flex align-items-center justify-content-center" 
-                             style="box-shadow: 0 0 0 9999px rgba(0,0,0,0.45); border-radius: 50%; pointer-events: none;">
-                            <div class="border border-white border-opacity-75 rounded-circle w-100 h-100" style="border-style: dashed !important;"></div>
-                        </div>
+                        {{-- Clean, Non-blocking SVG Circular Mask Guide --}}
+                        <svg class="position-absolute top-0 start-0 w-100 h-100 pe-none" viewBox="0 0 240 240" style="pointer-events: none; z-index: 5;">
+                            <defs>
+                                <mask id="adminCropCircleMask">
+                                    <rect width="240" height="240" fill="white"/>
+                                    <circle cx="120" cy="120" r="115" fill="black"/>
+                                </mask>
+                            </defs>
+                            <rect width="240" height="240" fill="rgba(15, 23, 42, 0.50)" mask="url(#adminCropCircleMask)"/>
+                            <circle cx="120" cy="120" r="115" fill="none" stroke="rgba(255, 255, 255, 0.85)" stroke-width="2" stroke-dasharray="6,4"/>
+                        </svg>
 
                         {{-- Initial placeholder when no image uploaded --}}
-                        <div id="adminCanvasPlaceholder" class="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center bg-light text-muted p-3 pointer-events-none text-center">
+                        <div id="adminCanvasPlaceholder" class="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center bg-light text-muted p-3 pointer-events-none text-center" style="z-index: 6;">
                             <i class="fas fa-cloud-arrow-up text-primary fs-1 mb-2"></i>
                             <span class="fw-bold text-dark small mb-1">ছবি নির্বাচন বা ড্রপ করুন</span>
                             <span class="text-muted" style="font-size: 11px;">মোবাইল ক্যামেরা ও গ্যালারি সাপোর্টেড</span>
@@ -491,11 +498,12 @@
                             <input type="file" id="adminModalAvatarInput" 
                                    accept="image/jpeg,image/png,image/jpg,image/webp,image/heic,image/heif" 
                                    class="d-none"
+                                   onclick="this.value=null;"
                                    onchange="loadAdminStudioImage(this)">
                         </label>
                         <label class="btn btn-outline-secondary btn-sm rounded-pill fw-semibold py-1.5 px-3" style="cursor: pointer;" title="ক্যামেরা থেকে ছবি তুলুন">
                             <i class="fas fa-camera me-1"></i> ক্যামেরা
-                            <input type="file" accept="image/*" capture="user" class="d-none" onchange="loadAdminStudioImage(this)">
+                            <input type="file" accept="image/*" capture="user" class="d-none" onclick="this.value=null;" onchange="loadAdminStudioImage(this)">
                         </label>
                     </div>
                 </div>
@@ -508,7 +516,7 @@
                     </div>
                     <div class="d-flex align-items-center gap-2 mb-2">
                         <button type="button" class="btn btn-sm btn-white border rounded-circle p-1" style="width:28px;height:28px;" onclick="adjustAdminZoom(-0.1)" title="Zoom Out"><i class="fa-solid fa-minus" style="font-size:10px;"></i></button>
-                        <input type="range" class="form-range flex-grow-1" id="adminZoomSlider" min="0.2" max="3.5" step="0.05" value="1" oninput="onAdminZoomChange(this.value)">
+                        <input type="range" class="form-range flex-grow-1" id="adminZoomSlider" min="0.01" max="5.0" step="0.01" value="1" oninput="onAdminZoomChange(this.value)">
                         <button type="button" class="btn btn-sm btn-white border rounded-circle p-1" style="width:28px;height:28px;" onclick="adjustAdminZoom(0.1)" title="Zoom In"><i class="fa-solid fa-plus" style="font-size:10px;"></i></button>
                     </div>
 
@@ -602,35 +610,56 @@ function handleAdminPhotoDrop(e) {
 
 function loadAdminStudioImage(input) {
     if (input.files && input.files[0]) {
+        const file = input.files[0];
         const reader = new FileReader();
         reader.onload = function(e) {
+            const dataUri = e.target.result;
             studioCurrentImg = new Image();
             studioCurrentImg.onload = function() {
-                if (!studioCanvas) studioCanvas = document.getElementById('adminCropCanvas');
-                if (studioCanvas && !studioCtx) studioCtx = studioCanvas.getContext('2d');
+                studioCanvas = document.getElementById('adminCropCanvas');
+                if (studioCanvas) {
+                    studioCanvas.width = 240;
+                    studioCanvas.height = 240;
+                    studioCtx = studioCanvas.getContext('2d');
+                }
 
-                document.getElementById('adminCanvasPlaceholder').style.display = 'none';
-                document.getElementById('adminCropControls').style.display = 'block';
-                document.getElementById('adminApplyPhotoBtn').disabled = false;
+                const placeholder = document.getElementById('adminCanvasPlaceholder');
+                if (placeholder) placeholder.style.setProperty('display', 'none', 'important');
                 
-                const canvasW = studioCanvas ? studioCanvas.width : 240;
-                const canvasH = studioCanvas ? studioCanvas.height : 240;
+                const controls = document.getElementById('adminCropControls');
+                if (controls) controls.style.setProperty('display', 'block', 'important');
+                
+                const applyBtn = document.getElementById('adminApplyPhotoBtn');
+                if (applyBtn) applyBtn.disabled = false;
+                
+                const canvasW = 240;
+                const canvasH = 240;
                 const scaleW = canvasW / studioCurrentImg.width;
                 const scaleH = canvasH / studioCurrentImg.height;
                 studioScale = Math.max(scaleW, scaleH);
                 
-                document.getElementById('adminZoomSlider').value = studioScale;
-                document.getElementById('adminZoomValBadge').textContent = `${Math.round(studioScale * 100)}%`;
+                const slider = document.getElementById('adminZoomSlider');
+                if (slider) {
+                    const minScale = Math.min(scaleW, scaleH) * 0.4;
+                    const maxScale = Math.max(scaleW, scaleH) * 4.0;
+                    slider.min = Math.max(0.001, minScale).toFixed(4);
+                    slider.max = Math.max(minScale + 0.1, maxScale).toFixed(4);
+                    slider.step = ((parseFloat(slider.max) - parseFloat(slider.min)) / 100).toFixed(4);
+                    slider.value = studioScale;
+                }
+                const badge = document.getElementById('adminZoomValBadge');
+                if (badge) badge.textContent = '100%';
                 
                 studioImgX = canvasW / 2;
                 studioImgY = canvasH / 2;
                 studioRotation = 0;
                 
                 renderAdminCanvas();
+                exportAdminCroppedAvatar();
             };
-            studioCurrentImg.src = e.target.result;
+            studioCurrentImg.src = dataUri;
         };
-        reader.readAsDataURL(input.files[0]);
+        reader.readAsDataURL(file);
     }
 }
 
@@ -640,7 +669,12 @@ function renderAdminCanvas() {
     if (!studioCurrentImg || !studioCtx) return;
     
     studioCtx.clearRect(0, 0, studioCanvas.width, studioCanvas.height);
+    studioCtx.fillStyle = '#f8fafc';
+    studioCtx.fillRect(0, 0, studioCanvas.width, studioCanvas.height);
+    
     studioCtx.save();
+    studioCtx.imageSmoothingEnabled = true;
+    studioCtx.imageSmoothingQuality = 'high';
     
     studioCtx.translate(studioImgX, studioImgY);
     studioCtx.rotate((studioRotation * Math.PI) / 180);
@@ -657,9 +691,15 @@ function exportAdminCroppedAvatar() {
     highRes.height = 500;
     const hrCtx = highRes.getContext('2d');
     
+    hrCtx.fillStyle = '#ffffff';
+    hrCtx.fillRect(0, 0, 500, 500);
+    
     const canvasW = studioCanvas ? studioCanvas.width : 240;
     const ratio = 500 / canvasW;
     hrCtx.save();
+    hrCtx.imageSmoothingEnabled = true;
+    hrCtx.imageSmoothingQuality = 'high';
+    
     hrCtx.translate(studioImgX * ratio, studioImgY * ratio);
     hrCtx.rotate((studioRotation * Math.PI) / 180);
     hrCtx.scale(studioScale * ratio, studioScale * ratio);
@@ -671,13 +711,20 @@ function exportAdminCroppedAvatar() {
 
 function onAdminZoomChange(val) {
     studioScale = parseFloat(val);
-    document.getElementById('adminZoomValBadge').textContent = `${Math.round(studioScale * 100)}%`;
+    const slider = document.getElementById('adminZoomSlider');
+    const min = parseFloat(slider.min) || 0.01;
+    const max = parseFloat(slider.max) || 5.0;
+    const pct = Math.round(((studioScale - min) / (max - min)) * 100);
+    const badge = document.getElementById('adminZoomValBadge');
+    if (badge) badge.textContent = `${pct}%`;
     renderAdminCanvas();
 }
 
 function adjustAdminZoom(delta) {
     const slider = document.getElementById('adminZoomSlider');
-    let newVal = parseFloat(slider.value) + delta;
+    if (!slider) return;
+    const range = parseFloat(slider.max) - parseFloat(slider.min);
+    let newVal = parseFloat(slider.value) + (delta * (range / 10));
     newVal = Math.max(parseFloat(slider.min), Math.min(parseFloat(slider.max), newVal));
     slider.value = newVal;
     onAdminZoomChange(newVal);

@@ -81,10 +81,10 @@
                                 Payment Method <span class="text-danger">*</span>
                             </label>
                             <select id="f-payment_method" name="payment_method" required class="form-select form-select-sm rounded-3 @error('payment_method') is-invalid @enderror">
-                                <option value="bkash" @selected(old('payment_method', $author->payout_account_type) === 'bkash')>bKash</option>
-                                <option value="nagad" @selected(old('payment_method', $author->payout_account_type) === 'nagad')>Nagad</option>
-                                <option value="rocket" @selected(old('payment_method', $author->payout_account_type) === 'rocket')>Rocket</option>
-                                <option value="bank" @selected(old('payment_method', $author->payout_account_type) === 'bank')>Bank Transfer</option>
+                                <option value="bkash" @selected(old('payment_method', $author?->payout_account_type ?? ($author?->payout_method ?? '')) === 'bkash')>bKash</option>
+                                <option value="nagad" @selected(old('payment_method', $author?->payout_account_type ?? ($author?->payout_method ?? '')) === 'nagad')>Nagad</option>
+                                <option value="rocket" @selected(old('payment_method', $author?->payout_account_type ?? ($author?->payout_method ?? '')) === 'rocket')>Rocket</option>
+                                <option value="bank" @selected(old('payment_method', $author?->payout_account_type ?? ($author?->payout_method ?? '')) === 'bank')>Bank Transfer</option>
                             </select>
                             @error('payment_method')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
@@ -96,7 +96,7 @@
                             </label>
                             <textarea id="f-account_details" name="account_details" rows="3" required
                                       class="form-control form-control-sm rounded-3 font-monospace @error('account_details') is-invalid @enderror" 
-                                      placeholder="Account number, bank name, routing number...">{{ old('account_details', $author->payout_account_details) }}</textarea>
+                                      placeholder="Account number, bank name, routing number...">{{ old('account_details', $author?->payout_account_details ?? ($author?->payout_number ?? '')) }}</textarea>
                             @error('account_details')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
 

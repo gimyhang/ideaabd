@@ -47,7 +47,7 @@
                     <span class="text-dark small fw-bold">Wallet Balance</span>
                     <span class="p-2 bg-primary text-white rounded-3"><i class="fas fa-wallet"></i></span>
                 </div>
-                <h3 class="fw-bold mb-1 text-dark font-monospace">৳{{ number_format($author->wallet_balance ?? 0, 2) }}</h3>
+                <h3 class="fw-bold mb-1 text-dark font-monospace">৳{{ number_format($author?->wallet_balance ?? 0, 2) }}</h3>
                 <div class="d-flex align-items-center justify-content-between mt-1">
                     <span class="small text-muted" style="font-size: 11px;">Royalties + Honorariums</span>
                     <a href="{{ route('author.payouts.index') }}" class="btn btn-xs btn-primary rounded-pill px-2.5 py-0.5 text-nowrap" style="font-size: 11px;">
