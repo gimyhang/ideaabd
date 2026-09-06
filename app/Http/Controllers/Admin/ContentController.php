@@ -127,6 +127,27 @@ class ContentController extends Controller
         );
 
         $credit = $this->creditAttributes($request, $spec, isNew: true, record: null);
+        if ($type === 'authors') {
+            $authorName = $attributes['name_bn'] ?? ($attributes['name_en'] ?? ($attributes['name'] ?? ''));
+            $attributes['name'] = $authorName;
+            $record = \Modules\Author\Models\Author::findOrCreateUnified(array_merge($attributes, [
+                'name'        => $authorName,
+                'name_bn'     => $attributes['name_bn'] ?? $authorName,
+                'name_en'     => $attributes['name_en'] ?? null,
+                'phone'       => $attributes['phone'] ?? null,
+                'email'       => $attributes['email'] ?? null,
+                'bio'         => $attributes['bio'] ?? null,
+                'avatar'      => $attributes['avatar'] ?? null,
+                'website'     => $attributes['website'] ?? null,
+                'is_active'   => !empty($attributes['is_active']),
+                'is_verified' => !empty($attributes['is_verified']),
+            ]));
+
+            return redirect()
+                ->route($spec['listRoute'])
+                ->with('success', "Author “{$record->name}” সফলভাবে সংরক্ষিত ও ডিরেক্টরিতে সমন্বিত হয়েছে।");
+        }
+
         if ($type === 'blog') {
             if (empty($attributes['author_id']) || !is_numeric($attributes['author_id'])) {
                 $attributes['author_id'] = (int) (auth()->id() ?: 1);
@@ -299,6 +320,14 @@ class ContentController extends Controller
         $credit = $this->creditAttributes($request, $spec, isNew: false, record: $record);
         foreach ($credit as $k => $v) {
             $attributes[$k] = $v;
+        }
+
+        if ($type === 'authors') {
+            if (empty($attributes['name']) && !empty($attributes['name_bn'])) {
+                $attributes['name'] = $attributes['name_bn'];
+            } elseif (empty($attributes['name']) && !empty($attributes['name_en'])) {
+                $attributes['name'] = $attributes['name_en'];
+            }
         }
 
         if ($type === 'blog') {

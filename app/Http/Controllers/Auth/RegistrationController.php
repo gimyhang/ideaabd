@@ -74,11 +74,13 @@ class RegistrationController extends Controller
         } elseif ($type === 'author') {
             // Author MUST provide their own real email and mobile number (acts as username)
             $base = $request->validate([
-                'name'     => ['required', 'string', 'max:255'],
+                'name_bn'  => ['required', 'string', 'max:255'],
+                'name_en'  => ['required', 'string', 'max:255'],
                 'phone'    => ['required', 'string', 'max:20', 'unique:users,phone'],
                 'email'    => ['required', 'email', 'max:255', 'unique:users,email'],
                 'password' => $passwordRules,
             ], $customMessages);
+            $base['name'] = $base['name_bn'] ?: $base['name_en'];
         } else {
             // Seller / Publisher
             $base = $request->validate([
@@ -105,6 +107,7 @@ class RegistrationController extends Controller
             ]),
             'author' => $request->validate([
                 'full_name'      => ['nullable', 'string', 'max:255'],
+                'name_bn'        => ['nullable', 'string', 'max:255'],
                 'name_en'        => ['nullable', 'string', 'max:255'],
                 'pen_name'       => ['nullable', 'string', 'max:255'],
                 'bio'            => ['nullable', 'string'],
@@ -112,6 +115,7 @@ class RegistrationController extends Controller
                 'genres'         => ['nullable', 'array'],
                 'genres.*'       => ['nullable', 'string'],
                 'nid'            => ['nullable', 'string'],
+                'nid_file'       => ['nullable', 'file', 'mimes:jpeg,png,jpg,webp,pdf', 'max:10240'],
                 'avatar'         => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:10240'],
                 'avatar_cropped' => ['nullable', 'string'],
             ]),
@@ -130,6 +134,17 @@ class RegistrationController extends Controller
             $genreString = implode(', ', array_unique(array_filter(array_map('trim', $selectedGenres))));
             $extra['genre'] = $genreString;
             $extra['genres'] = array_values(array_unique(array_filter(array_map('trim', $selectedGenres))));
+
+            // Handle NID document upload
+            if ($request->hasFile('nid_file')) {
+                $extra['nid_file'] = $request->file('nid_file')->store('documents/nid', 'public');
+            }
+            if (!empty($base['name_bn'])) {
+                $extra['name_bn'] = $base['name_bn'];
+            }
+            if (!empty($base['name_en'])) {
+                $extra['name_en'] = $base['name_en'];
+            }
         }
 
         // Handle avatar photo upload (Convert to .avif automatically)
@@ -170,14 +185,16 @@ class RegistrationController extends Controller
         // Auto create/sync entry in authors table if type is author using Unified registration
         if ($type === 'author') {
             try {
-                $authorName = !empty($extra['pen_name']) ? $extra['pen_name'] : $base['name'];
+                $authorName = $base['name_bn'] ?? (!empty($extra['pen_name']) ? $extra['pen_name'] : $base['name']);
                 \Modules\Author\Models\Author::findOrCreateUnified([
                     'name'        => $authorName,
-                    'name_en'     => $extra['name_en'] ?? null,
+                    'name_bn'     => $base['name_bn'] ?? $authorName,
+                    'name_en'     => $base['name_en'] ?? ($extra['name_en'] ?? null),
                     'phone'       => $base['phone'],
                     'email'       => $base['email'],
                     'bio'         => $extra['bio'] ?? null,
                     'avatar'      => $avatarPath,
+                    'user_id'     => $user->id,
                     'is_active'   => false, // Pending admin approval
                     'is_verified' => false,
                 ]);

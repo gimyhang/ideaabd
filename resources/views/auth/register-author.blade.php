@@ -118,69 +118,81 @@
                             </div>
                         </div>
 
-                        {{-- ══ BASIC CREDENTIALS: AUTHOR NAME (ENGLISH) & FULL NAME ══ --}}
-                        <div class="row g-2.5 mb-3">
-                            <div class="col-12 col-sm-6">
-                                <label class="form-label fw-semibold">লেখক নাম (Author Name) <span class="text-danger">*</span></label>
-                                <input type="text" name="name" class="form-control rounded-3 @error('name') is-invalid @enderror"
-                                       value="{{ old('name') }}" required placeholder="Author Name in English (যেমন: Humayun Ahmed)">
-                                <div class="form-text small text-muted" style="font-size: 11px;"><i class="fa-solid fa-circle-info text-primary me-1"></i> এটি লেখার শিরোনামের নিচে ইংরেজি অক্ষরে লেখক নাম হিসেবে প্রদর্শিত হবে।</div>
-                                @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        {{-- ══ AUTHOR NAME (BANGLA) & AUTHOR NAME (ENGLISH) ══ --}}
+                        <div class="row g-3 mb-3">
+                            <div class="col-12 col-md-6">
+                                <label class="form-label fw-semibold">Author Name (bangla) <span class="text-danger">*</span></label>
+                                <input type="text" name="name_bn" class="form-control rounded-3 @error('name_bn') is-invalid @enderror"
+                                       value="{{ old('name_bn', old('name')) }}" required placeholder="Author Name in Bengali (e.g. হুমায়ূন আহমেদ)">
+                                <div class="form-text small text-muted" style="font-size: 11px;"><i class="fa-solid fa-circle-info text-primary me-1"></i> (এই নামটা ব্লগ ও বইয়ে শো করবে)</div>
+                                @error('name_bn')<div class="invalid-feedback">{{ $message }}</div>@enderror
                             </div>
-                            <div class="col-12 col-sm-6">
-                                <label class="form-label fw-semibold">Full Name (পূর্ণ নাম)</label>
+                            <div class="col-12 col-md-6">
+                                <label class="form-label fw-semibold">Author Name (english) <span class="text-danger">*</span></label>
+                                <input type="text" name="name_en" class="form-control rounded-3 @error('name_en') is-invalid @enderror"
+                                       value="{{ old('name_en') }}" required placeholder="Author Name in English (e.g. Humayun Ahmed)">
+                                <div class="form-text small text-muted" style="font-size: 11px;"><i class="fa-solid fa-globe text-primary me-1"></i> Author name in English for profile and web address.</div>
+                                @error('name_en')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            </div>
+                        </div>
+
+                        {{-- ══ FULL NAME & MOBILE NO (UID) ══ --}}
+                        <div class="row g-3 mb-3">
+                            <div class="col-12 col-md-6">
+                                <label class="form-label fw-semibold">Full Name:</label>
                                 <input type="text" name="full_name" class="form-control rounded-3 @error('full_name') is-invalid @enderror"
-                                       value="{{ old('full_name') }}" placeholder="এনআইডি বা প্রাতিষ্ঠানিক পূর্ণ নাম">
-                                <div class="form-text small text-muted" style="font-size: 11px;"><i class="fa-solid fa-id-card text-muted me-1"></i> শুধুমাত্র অফিশিয়াল পরিচিতি ও ভেরিফিকেশন তথ্য হিসেবে থাকবে।</div>
+                                       value="{{ old('full_name') }}" placeholder="Full Name (Official / NID)">
+                                <div class="form-text small text-muted" style="font-size: 11px;"><i class="fa-solid fa-id-card text-muted me-1"></i> Official identity / NID name.</div>
                                 @error('full_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                             </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">মোবাইল নম্বর (ইউজারনেম) <span class="text-danger">*</span></label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-phone text-success"></i></span>
-                                <input type="tel" name="phone" class="form-control rounded-end-3 @error('phone') is-invalid @enderror"
-                                       value="{{ old('phone') }}" required placeholder="01XXXXXXXXX">
+                            <div class="col-12 col-md-6">
+                                <label class="form-label fw-semibold">Mobile No (uid) <span class="text-danger">*</span>:</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-phone text-success"></i></span>
+                                    <input type="tel" name="phone" class="form-control rounded-end-3 @error('phone') is-invalid @enderror"
+                                           value="{{ old('phone') }}" required placeholder="01XXXXXXXXX">
+                                </div>
+                                <div class="form-text small text-muted" style="font-size: 11px;"><i class="fa-solid fa-shield-check text-success me-1"></i> This mobile number will be your login User ID (UID).</div>
+                                @error('phone')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                             </div>
-                            <div class="form-text small text-muted"><i class="fa-solid fa-shield-check text-success me-1"></i> এই মোবাইল নম্বরটি দিয়ে আপনি ওয়েবসাইটে লগইন করবেন।</div>
-                            @error('phone')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                         </div>
 
+                        {{-- ══ EMAIL ══ --}}
                         <div class="mb-3">
-                            <label class="form-label fw-semibold">লেখকের নিজস্ব সক্রিয় ইমেইল <span class="text-danger">*</span></label>
+                            <label class="form-label fw-semibold">Email <span class="text-danger">*</span>:</label>
                             <div class="input-group">
                                 <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-envelope text-primary"></i></span>
                                 <input type="email" name="email" class="form-control rounded-end-3 @error('email') is-invalid @enderror"
                                        value="{{ old('email') }}" required placeholder="yourname@gmail.com">
                             </div>
-                            <div class="form-text small text-muted"><i class="fa-solid fa-circle-info text-primary me-1"></i> অ্যাকাউন্ট অনুমোদন, পাসওয়ার্ড রিসেট ও লেখা অনুমোদনের নোটিফিকেশন এই ইমেইলে যাবে।</div>
+                            <div class="form-text small text-muted" style="font-size: 11px;"><i class="fa-solid fa-circle-info text-primary me-1"></i> Account approval, security and royalty notifications will be sent here.</div>
                             @error('email')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                         </div>
 
-                        <div class="row g-2">
-                            <div class="col-sm-6 mb-3">
-                                <label class="form-label fw-semibold">পাসওয়ার্ড <span class="text-danger">*</span> <small class="text-muted fw-normal">(কমপক্ষে ৮ অক্ষর)</small></label>
+                        {{-- ══ PASSWORD & PASSWORD RETYPE ══ --}}
+                        <div class="row g-3 mb-3">
+                            <div class="col-12 col-md-6">
+                                <label class="form-label fw-semibold">Password <span class="text-danger">*</span>: <small class="text-muted fw-normal">(Minimum 8 characters)</small></label>
                                 <div class="input-group">
-                                    <input type="password" name="password" id="authorRegPassword" class="form-control rounded-start-3 @error('password') is-invalid @enderror" required minlength="8" maxlength="50" placeholder="কমপক্ষে ৮ অক্ষর" oninput="checkPasswordStrength(this.value, 'authorPwdStrengthBar', 'authorPwdStrengthText')">
-                                    <button type="button" class="btn btn-outline-secondary rounded-end-3" onclick="togglePasswordVisibility('authorRegPassword', this)" title="পাসওয়ার্ড দেখুন বা লুকান">
+                                    <input type="password" name="password" id="authorRegPassword" class="form-control rounded-start-3 @error('password') is-invalid @enderror" required minlength="8" maxlength="50" placeholder="Minimum 8 characters" oninput="checkPasswordStrength(this.value, 'authorPwdStrengthBar', 'authorPwdStrengthText')">
+                                    <button type="button" class="btn btn-outline-secondary rounded-end-3" onclick="togglePasswordVisibility('authorRegPassword', this)" title="Show/Hide Password">
                                         <i class="fa-regular fa-eye"></i>
                                     </button>
                                 </div>
                                 @error('password')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                             </div>
-                            <div class="col-sm-6 mb-3">
-                                <label class="form-label fw-semibold">পাসওয়ার্ড নিশ্চিত করুন <span class="text-danger">*</span></label>
+                            <div class="col-12 col-md-6">
+                                <label class="form-label fw-semibold">Password Retype <span class="text-danger">*</span>:</label>
                                 <div class="input-group">
-                                    <input type="password" name="password_confirmation" id="authorRegPasswordConfirm" class="form-control rounded-start-3" required minlength="8" maxlength="50" placeholder="পুনরায় ৮ অক্ষরের পাসওয়ার্ড লিখুন">
-                                    <button type="button" class="btn btn-outline-secondary rounded-end-3" onclick="togglePasswordVisibility('authorRegPasswordConfirm', this)" title="পাসওয়ার্ড দেখুন বা লুকান">
+                                    <input type="password" name="password_confirmation" id="authorRegPasswordConfirm" class="form-control rounded-start-3" required minlength="8" maxlength="50" placeholder="Retype your password">
+                                    <button type="button" class="btn btn-outline-secondary rounded-end-3" onclick="togglePasswordVisibility('authorRegPasswordConfirm', this)" title="Show/Hide Password">
                                         <i class="fa-regular fa-eye"></i>
                                     </button>
                                 </div>
                             </div>
-                            <div class="col-12 mb-3">
+                            <div class="col-12">
                                 <div class="d-flex align-items-center justify-content-between mb-1" style="font-size: 11.5px;">
-                                    <span class="text-muted">পাসওয়ার্ডের শক্তি: <strong id="authorPwdStrengthText" class="text-secondary">টাইপ করুন...</strong></span>
+                                    <span class="text-muted">Password Strength: <strong id="authorPwdStrengthText" class="text-secondary">Type password...</strong></span>
                                 </div>
                                 <div class="progress" style="height: 4px;">
                                     <div id="authorPwdStrengthBar" class="progress-bar bg-danger" role="progressbar" style="width: 0%; transition: width 0.3s ease;"></div>
@@ -188,18 +200,37 @@
                             </div>
                         </div>
 
-                        <hr class="my-3">
-                        <h6 class="fw-bold text-dark mb-3"><i class="fas fa-feather-pointed text-success me-1"></i> অতিরিক্ত তথ্য ও সাহিত্যকর্ম</h6>
+                        <hr class="my-4">
 
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">লেখকের ছদ্মনাম</label>
-                            <input type="text" name="pen_name" class="form-control rounded-3" value="{{ old('pen_name') }}" placeholder="ঐচ্ছিক">
+                        {{-- ══ SECTION: INFORMATION ══ --}}
+                        <h5 class="fw-bold text-dark mb-3 pb-2 border-bottom d-flex align-items-center gap-2">
+                            <i class="fas fa-file-lines text-success"></i>
+                            <span>Information</span>
+                        </h5>
+
+                        <div class="row g-3 mb-3">
+                            {{-- Nid No --}}
+                            <div class="col-12 col-md-6">
+                                <label class="form-label fw-semibold">Nid No:</label>
+                                <input type="text" name="nid" class="form-control rounded-3 @error('nid') is-invalid @enderror font-monospace" 
+                                       value="{{ old('nid') }}" placeholder="National ID / Passport No (Optional)">
+                                @error('nid')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            </div>
+
+                            {{-- Nid upload --}}
+                            <div class="col-12 col-md-6">
+                                <label class="form-label fw-semibold">Nid upload:</label>
+                                <input type="file" name="nid_file" class="form-control rounded-3 @error('nid_file') is-invalid @enderror" 
+                                       accept="image/jpeg,image/png,image/jpg,image/webp,application/pdf">
+                                <div class="form-text small text-muted" style="font-size: 11px;"><i class="fa-solid fa-file-arrow-up text-primary me-1"></i> Upload NID / Passport copy (JPG, PNG, PDF).</div>
+                                @error('nid_file')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            </div>
                         </div>
 
                         {{-- ══ WRITING TOPICS ══ --}}
                         <div class="mb-4 p-3.5 bg-light rounded-4 border">
                             <label class="form-label fw-bold text-dark d-block mb-3 fs-6">
-                                <i class="fa-solid fa-tags text-success me-1.5"></i> Writing Topics
+                                <i class="fa-solid fa-tags text-success me-1.5"></i> Writing Topics:
                             </label>
 
                             @php
@@ -250,7 +281,7 @@
                             {{-- Other Genre Write-in Box --}}
                             <div class="mt-3" id="otherGenreInputWrap" style="{{ in_array('অন্যান্য', $oldGenres) ? '' : 'display:none;' }}">
                                 <input type="text" name="genre_other" id="genre_other" class="form-control rounded-3" 
-                                       placeholder="অন্যান্য বিষয় লিখুন..." value="{{ old('genre_other') }}">
+                                       placeholder="Other Writing Topics..." value="{{ old('genre_other') }}">
                             </div>
 
                             {{-- Legacy single genre string hidden input fallback --}}
@@ -261,39 +292,34 @@
                         <div class="mb-4">
                             <div class="d-flex align-items-center justify-content-between mb-1.5">
                                 <label class="form-label fw-semibold text-dark mb-0">
-                                    <i class="fas fa-pen-nib text-success me-1"></i> লেখক পরিচিতি / বায়ো
+                                    <i class="fas fa-pen-nib text-success me-1"></i> Bio:
                                 </label>
-                                <span class="badge bg-light text-secondary border font-monospace" id="bioCounterBadge" style="font-size: 11.5px;">০ / ৫০০ শব্দ</span>
+                                <span class="badge bg-light text-secondary border font-monospace" id="bioCounterBadge" style="font-size: 11.5px;">0 / 500 words</span>
                             </div>
                             
                             <textarea name="bio" id="authorBioInput" rows="9" 
                                       class="form-control rounded-3 p-3 @error('bio') is-invalid @enderror bio-textarea-dynamic"
-                                      style="min-height: 220px; height: 240px; font-size: 14.5px; line-height: 1.8; overflow-y: auto; resize: vertical;"
-                                      placeholder="বায়ো লিখুন:"
+                                      style="min-height: 200px; height: 220px; font-size: 14.5px; line-height: 1.8; overflow-y: auto; resize: vertical;"
+                                      placeholder="Write author biography, background, published works, awards..."
                                       oninput="updateBioStats(this)">{{ old('bio') }}</textarea>
                             @error('bio')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">জাতীয় পরিচয়পত্র নম্বর</label>
-                            <input type="text" name="nid" class="form-control rounded-3" value="{{ old('nid') }}" placeholder="ঐচ্ছিক">
                         </div>
 
                         {{-- Submit Notice Banner --}}
                         <div class="alert alert-success bg-success-subtle border-success-subtle text-success-emphasis small py-2.5 px-3 rounded-3 d-flex align-items-center gap-2 mb-3">
                             <i class="fas fa-circle-check fs-5 text-success"></i>
                             <span class="fw-semibold">
-                                আপনার রেজিস্ট্রেশন সফল হয়েছে। ২৪ ঘণ্টার মধ্যে একটিভ না হলে সাপোর্ট টিমকে অবগত করুন।
+                                Registration will be submitted for verification. If not activated within 24 hours, please contact support.
                             </span>
                         </div>
 
                         <button type="submit" class="btn w-100 py-3 fw-bold text-white rounded-pill shadow-sm" style="background:#198754; font-size: 15.5px;" id="authorSubmitBtn">
-                            <i class="fas fa-paper-plane me-1.5"></i> সাবমিট করুন
+                            <i class="fas fa-paper-plane me-1.5"></i> Submit Registration
                         </button>
                         
                         <p class="text-center mt-3 mb-0">
                             <a href="{{ route('register.choose') }}" class="text-muted small text-decoration-none">
-                                <i class="fa-solid fa-arrow-left me-1"></i> অন্য ধরনের অ্যাকাউন্ট (পাঠক / ক্রেতা / প্রকাশক)
+                                <i class="fa-solid fa-arrow-left me-1"></i> Other Account Types (Buyer / Publisher / Seller)
                             </a>
                         </p>
                     </form>

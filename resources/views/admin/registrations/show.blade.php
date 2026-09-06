@@ -82,65 +82,152 @@
                     
                     <table class="table table-sm table-borderless align-middle mb-0">
                         <tbody>
-                            <tr>
-                                <td class="fw-semibold text-muted" style="width:35%">Author / Display Name</td>
-                                <td class="fw-bold text-dark">{{ $user->name }}</td>
-                            </tr>
-                            @if(!empty($user->reg_data['full_name']))
-                            <tr>
-                                <td class="fw-semibold text-muted">Full Name (Identity)</td>
-                                <td class="fw-bold text-dark">{{ $user->reg_data['full_name'] }}</td>
-                            </tr>
-                            @endif
-                            <tr>
-                                <td class="fw-semibold text-muted">Account Role</td>
-                                <td class="fw-bold text-dark">{{ ucfirst($user->reg_type ?? $user->role) }}</td>
-                            </tr>
-                            <tr>
-                                <td class="fw-semibold text-muted">Login Username</td>
-                                <td class="font-monospace fw-bold text-primary">{{ $user->phone }}</td>
-                            </tr>
-                            <tr>
-                                <td class="fw-semibold text-muted">Email Address</td>
-                                <td>{{ $user->email }}</td>
-                            </tr>
-                            @if(is_array($user->reg_data))
-                                @foreach($user->reg_data as $key => $value)
-                                @if(!in_array($key, ['full_name', 'name_en', 'name_bn', 'otp_code', 'avatar_cropped', 'password', '_token', '_method']))
+                            @if($user->role === 'author' || $user->reg_type === 'author')
                                 <tr>
-                                    <td class="fw-semibold text-muted" style="width:35%">{{ str_replace('_', ' ', ucwords($key, '_')) }}</td>
+                                    <td class="fw-semibold text-muted" style="width:35%">Author Name (bangla)</td>
+                                    <td class="fw-bold text-dark">{{ $user->reg_data['name_bn'] ?? ($authorRec->name_bn ?? $user->name) }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-semibold text-muted">Author Name (english)</td>
+                                    <td class="fw-bold text-dark">{{ $user->reg_data['name_en'] ?? ($authorRec->name_en ?? '—') }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-semibold text-muted">Full Name</td>
+                                    <td class="text-dark">{{ $user->reg_data['full_name'] ?? '—' }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-semibold text-muted">Mobile No (uid)</td>
+                                    <td class="font-monospace fw-bold text-primary">{{ $user->phone }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-semibold text-muted">Email</td>
+                                    <td class="text-dark">{{ $user->email }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-semibold text-muted">Nid No</td>
+                                    <td class="font-monospace text-dark">{{ $user->reg_data['nid'] ?? ($user->reg_data['nid_or_passport'] ?? '—') }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-semibold text-muted">Nid upload</td>
                                     <td>
-                                        @if($key === 'bio' && !empty($value))
-                                            <div class="p-2.5 bg-light rounded-3 border border-light-subtle small mt-1" style="line-height: 1.6; white-space: pre-line;">
-                                                {{ is_array($value) ? implode(', ', $value) : $value }}
-                                            </div>
-                                        @elseif($key === 'avatar' && !empty($value))
-                                            <div class="d-flex align-items-center gap-2 mt-1">
-                                                <img src="{{ str_starts_with($value, 'http') ? $value : asset('storage/' . ltrim($value, '/')) }}" 
-                                                     alt="Avatar" class="rounded-circle object-fit-cover border shadow-xs" style="width: 44px; height: 44px;">
-                                                <span class="text-muted small font-monospace">{{ basename($value) }}</span>
-                                            </div>
-                                        @elseif(is_array($value))
-                                            @if(empty($value))
-                                                <span class="text-muted">—</span>
-                                            @else
-                                                <div class="d-flex flex-wrap gap-1">
-                                                    @foreach($value as $vItem)
-                                                        @if(is_scalar($vItem))
-                                                            <span class="badge bg-light text-dark border rounded-pill px-2 py-1 small">{{ $vItem }}</span>
-                                                        @endif
-                                                    @endforeach
-                                                </div>
-                                            @endif
-                                        @elseif(is_bool($value))
-                                            <span class="badge {{ $value ? 'bg-success' : 'bg-secondary' }} rounded-pill px-2 py-1">{{ $value ? 'Yes' : 'No' }}</span>
+                                        @if(!empty($user->reg_data['nid_file']))
+                                            <a href="{{ asset('storage/' . ltrim($user->reg_data['nid_file'], '/')) }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 shadow-2xs">
+                                                <i class="fas fa-file-arrow-down me-1"></i> View / Download NID
+                                            </a>
                                         @else
-                                            {{ (string) $value !== '' ? $value : '—' }}
+                                            <span class="text-muted small">No file uploaded</span>
                                         @endif
                                     </td>
                                 </tr>
+                                <tr>
+                                    <td class="fw-semibold text-muted">Writing Topics</td>
+                                    <td>
+                                        @php
+                                            $topics = $user->reg_data['genres'] ?? (!empty($user->reg_data['genre']) ? (is_array($user->reg_data['genre']) ? $user->reg_data['genre'] : explode(',', $user->reg_data['genre'])) : []);
+                                        @endphp
+                                        @if(!empty($topics))
+                                            <div class="d-flex flex-wrap gap-1">
+                                                @foreach((array)$topics as $topic)
+                                                    @if(trim($topic))
+                                                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1">{{ trim($topic) }}</span>
+                                                    @endif
+                                                @endforeach
+                                            </div>
+                                        @else
+                                            <span class="text-muted">—</span>
+                                        @endif
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-semibold text-muted">Bio</td>
+                                    <td>
+                                        @php $bio = $user->reg_data['bio'] ?? ($authorRec->bio ?? null); @endphp
+                                        @if($bio)
+                                            <div class="p-2.5 bg-light rounded-3 border border-light-subtle small mt-1" style="line-height: 1.6; white-space: pre-line;">
+                                                {{ $bio }}
+                                            </div>
+                                        @else
+                                            <span class="text-muted">—</span>
+                                        @endif
+                                    </td>
+                                </tr>
+                                @if(is_array($user->reg_data))
+                                    @foreach($user->reg_data as $key => $value)
+                                        @if(!in_array($key, ['name_bn', 'name_en', 'name_bangla', 'name_english', 'full_name', 'nid', 'nid_file', 'nid_or_passport', 'genre', 'genres', 'bio', 'otp_code', 'avatar_cropped', 'avatar', 'password', '_token', '_method']))
+                                        <tr>
+                                            <td class="fw-semibold text-muted">{{ str_replace('_', ' ', ucwords($key, '_')) }}</td>
+                                            <td>
+                                                @if(is_array($value))
+                                                    {{ implode(', ', $value) }}
+                                                @elseif(is_bool($value))
+                                                    <span class="badge {{ $value ? 'bg-success' : 'bg-secondary' }} rounded-pill px-2 py-1">{{ $value ? 'Yes' : 'No' }}</span>
+                                                @else
+                                                    {{ (string) $value !== '' ? $value : '—' }}
+                                                @endif
+                                            </td>
+                                        </tr>
+                                        @endif
+                                    @endforeach
                                 @endif
-                                @endforeach
+                            @else
+                                <tr>
+                                    <td class="fw-semibold text-muted" style="width:35%">Full Name / Title</td>
+                                    <td class="fw-bold text-dark">{{ $user->name }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-semibold text-muted">Account Role</td>
+                                    <td class="fw-bold text-dark">{{ ucfirst($user->reg_type ?? $user->role) }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-semibold text-muted">Mobile No (uid)</td>
+                                    <td class="font-monospace fw-bold text-primary">{{ $user->phone }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-semibold text-muted">Email</td>
+                                    <td>{{ $user->email }}</td>
+                                </tr>
+                                @if(is_array($user->reg_data))
+                                    @foreach($user->reg_data as $key => $value)
+                                    @if(!in_array($key, ['full_name', 'name_en', 'name_bn', 'otp_code', 'avatar_cropped', 'password', '_token', '_method']))
+                                    <tr>
+                                        <td class="fw-semibold text-muted" style="width:35%">{{ str_replace('_', ' ', ucwords($key, '_')) }}</td>
+                                        <td>
+                                            @if($key === 'bio' && !empty($value))
+                                                <div class="p-2.5 bg-light rounded-3 border border-light-subtle small mt-1" style="line-height: 1.6; white-space: pre-line;">
+                                                    {{ is_array($value) ? implode(', ', $value) : $value }}
+                                                </div>
+                                            @elseif($key === 'avatar' && !empty($value))
+                                                <div class="d-flex align-items-center gap-2 mt-1">
+                                                    <img src="{{ str_starts_with($value, 'http') ? $value : asset('storage/' . ltrim($value, '/')) }}" 
+                                                         alt="Avatar" class="rounded-circle object-fit-cover border shadow-xs" style="width: 44px; height: 44px;">
+                                                    <span class="text-muted small font-monospace">{{ basename($value) }}</span>
+                                                </div>
+                                            @elseif($key === 'nid_file' && !empty($value))
+                                                <a href="{{ asset('storage/' . ltrim($value, '/')) }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 shadow-2xs">
+                                                    <i class="fas fa-file-arrow-down me-1"></i> View / Download Document
+                                                </a>
+                                            @elseif(is_array($value))
+                                                @if(empty($value))
+                                                    <span class="text-muted">—</span>
+                                                @else
+                                                    <div class="d-flex flex-wrap gap-1">
+                                                        @foreach($value as $vItem)
+                                                            @if(is_scalar($vItem))
+                                                                <span class="badge bg-light text-dark border rounded-pill px-2 py-1 small">{{ $vItem }}</span>
+                                                            @endif
+                                                        @endforeach
+                                                    </div>
+                                                @endif
+                                            @elseif(is_bool($value))
+                                                <span class="badge {{ $value ? 'bg-success' : 'bg-secondary' }} rounded-pill px-2 py-1">{{ $value ? 'Yes' : 'No' }}</span>
+                                            @else
+                                                {{ (string) $value !== '' ? $value : '—' }}
+                                            @endif
+                                        </td>
+                                    </tr>
+                                    @endif
+                                    @endforeach
+                                @endif
                             @endif
                         </tbody>
                     </table>

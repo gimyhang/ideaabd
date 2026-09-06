@@ -165,16 +165,17 @@
                         {{-- Row 1: Author Name (Bangla) & Author Name (English) --}}
                         <div class="col-md-6">
                             <label class="form-label small fw-bold text-dark">
-                                Author Name (Bangla) <span class="text-danger">*</span>
+                                Author Name (bangla) <span class="text-danger">*</span>
                             </label>
                             <input type="text" name="name_bn" class="form-control rounded-3" 
                                    value="{{ old('name_bn', $regData['name_bn'] ?? ($regData['name_bangla'] ?? (preg_match('/[\x{0980}-\x{09FF}]/u', $user->name) ? $user->name : ''))) }}" 
                                    placeholder="বাংলায় লেখক নাম (যেমন: সাকিল মাসুদ)" required>
+                            <div class="form-text small text-muted" style="font-size: 11px;">(এই নামটা ব্লগ ও বইয়ে শো করবে)</div>
                         </div>
 
                         <div class="col-md-6">
                             <label class="form-label small fw-bold text-dark">
-                                Author Name (English) <span class="text-danger">*</span>
+                                Author Name (english) <span class="text-danger">*</span>
                             </label>
                             <input type="text" name="name" class="form-control rounded-3" 
                                    value="{{ old('name', $regData['name_en'] ?? ($regData['name_english'] ?? (!preg_match('/[\x{0980}-\x{09FF}]/u', $user->name) ? $user->name : ''))) }}" 
@@ -184,14 +185,14 @@
                         {{-- Row 2: Full Name & Pen Name --}}
                         <div class="col-md-6">
                             <label class="form-label small fw-bold text-dark">
-                                Full Name
+                                Full Name:
                             </label>
-                            <input type="text" name="full_name" class="form-control rounded-3" value="{{ old('full_name', $regData['full_name'] ?? '') }}" placeholder="Full Name (Identity / Official)">
+                            <input type="text" name="full_name" class="form-control rounded-3" value="{{ old('full_name', $regData['full_name'] ?? '') }}" placeholder="Full Name (Official / NID)">
                         </div>
 
                         <div class="col-md-6">
                             <label class="form-label small fw-bold text-dark">
-                                Pen Name
+                                Pen Name:
                             </label>
                             <input type="text" name="pen_name" class="form-control rounded-3" 
                                    value="{{ old('pen_name', $regData['pen_name'] ?? '') }}" 
@@ -201,14 +202,14 @@
                         {{-- Row 3: Email & Phone --}}
                         <div class="col-md-6">
                             <label class="form-label small fw-bold text-dark">
-                                Email <span class="text-danger">*</span>
+                                Email <span class="text-danger">*</span>:
                             </label>
                             <input type="email" name="email" class="form-control rounded-3" value="{{ old('email', $user->email) }}" required>
                         </div>
 
                         <div class="col-md-6">
                             <label class="form-label small fw-bold text-dark">
-                                Phone <span class="text-danger">*</span>
+                                Mobile No (uid) <span class="text-danger">*</span>:
                             </label>
                             <input type="text" name="phone" class="form-control rounded-3 font-monospace" value="{{ old('phone', $user->phone) }}" required>
                         </div>
@@ -249,42 +250,56 @@
                 </div>
 
                 {{-- ========================================================= --}}
-                {{-- 3. PROFILE DETAILS                                        --}}
+                {{-- 3. INFORMATION & PROFILE DETAILS                          --}}
                 {{-- ========================================================= --}}
                 <div id="authorDetailsCard" class="mb-4" style="{{ old('role', $user->role) === 'author' ? '' : 'display:none;' }}">
                     <h6 class="fw-bold text-dark mb-3 pb-2 border-bottom d-flex align-items-center gap-2">
-                        <i class="fas fa-feather-pointed text-success"></i>
-                        <span>Profile</span>
+                        <i class="fas fa-file-lines text-success"></i>
+                        <span>Information</span>
                     </h6>
 
                     <div class="row g-3">
 
-                        {{-- Genres --}}
+                        {{-- NID No --}}
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-dark">
+                                Nid No:
+                            </label>
+                            <input type="text" name="nid" class="form-control rounded-3 font-monospace" 
+                                   value="{{ $currNid }}" 
+                                   placeholder="National ID / Passport Number">
+                        </div>
+
+                        {{-- NID upload --}}
                         <div class="col-md-6">
                             <label class="form-label small fw-bold text-dark d-flex align-items-center justify-content-between">
-                                <span>Genres</span>
+                                <span>Nid upload:</span>
+                                @if(!empty($regData['nid_file']))
+                                    <a href="{{ asset('storage/' . ltrim($regData['nid_file'], '/')) }}" target="_blank" class="badge bg-primary-subtle text-primary border text-decoration-none">
+                                        <i class="fas fa-file-arrow-down me-1"></i> View Current Document
+                                    </a>
+                                @endif
+                            </label>
+                            <input type="file" name="nid_file" class="form-control rounded-3" 
+                                   accept="image/jpeg,image/png,image/jpg,image/webp,application/pdf">
+                        </div>
+
+                        {{-- Writing Topics --}}
+                        <div class="col-md-12">
+                            <label class="form-label small fw-bold text-dark d-flex align-items-center justify-content-between">
+                                <span>Writing Topics:</span>
                             </label>
                             <input type="text" name="genre" id="adminRegGenreInput" class="form-control rounded-3 mb-1.5" 
                                    value="{{ $currGenre }}" 
-                                   placeholder="Fiction, Poetry, Essays, Science...">
+                                   placeholder="Fiction, Poetry, Essays, Research...">
                             <div class="d-flex flex-wrap gap-1 mt-1">
-                                @foreach(['Fiction', 'Poetry', 'Essays', 'Research', 'Novel', 'Non-Fiction', 'Translation', 'Sci-Fi'] as $g)
+                                @foreach(['Fiction', 'Poetry', 'Essays', 'Research', 'Novel', 'Non-Fiction', 'Translation', 'Sci-Fi', 'কথাসাহিত্য', 'কবিতা', 'ছড়া', 'প্রবন্ধ', 'গবেষণা', 'ভ্রমণগদ্য', 'অনুবাদ', 'সায়েন্সফিকশন'] as $g)
                                     <button type="button" class="btn btn-sm btn-white border rounded-pill px-2 py-0.5 shadow-2xs text-secondary small" 
                                             style="font-size: 11px;" onclick="toggleAdminGenre('{{ $g }}')">
                                         <i class="fa-solid fa-plus me-0.5 text-success"></i> {{ $g }}
                                     </button>
                                 @endforeach
                             </div>
-                        </div>
-
-                        {{-- NID --}}
-                        <div class="col-md-6">
-                            <label class="form-label small fw-bold text-dark">
-                                NID
-                            </label>
-                            <input type="text" name="nid" class="form-control rounded-3 font-monospace" 
-                                   value="{{ $currNid }}" 
-                                   placeholder="National ID / Passport Number">
                         </div>
 
                         {{-- Profession --}}

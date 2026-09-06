@@ -175,6 +175,7 @@ class RegistrationApprovalController extends Controller
             'genre'          => ['nullable', 'string', 'max:255'],
             'bio'            => ['nullable', 'string'],
             'nid'            => ['nullable', 'string', 'max:50'],
+            'nid_file'       => ['nullable', 'file', 'mimes:jpeg,png,jpg,webp,pdf', 'max:10240'],
             'shop_name'      => ['nullable', 'string', 'max:255'],
             'zone'           => ['nullable', 'string', 'max:255'],
             'publisher_name' => ['nullable', 'string', 'max:255'],
@@ -227,10 +228,20 @@ class RegistrationApprovalController extends Controller
             $regData['avatar'] = $avatarPath;
         }
 
+        // Process NID File upload if present
+        if ($request->hasFile('nid_file')) {
+            try {
+                $nidPath = $request->file('nid_file')->store('documents/nid', 'public');
+                $regData['nid_file'] = $nidPath;
+            } catch (\Throwable $e) {
+                Log::warning("NID file upload failed: " . $e->getMessage());
+            }
+        }
+
         // Update extra reg_data fields (Author Bengali/English names, pen name, genres, bio, nid, addresses, etc.)
         $extraFields = [
             'full_name', 'name_bn', 'name_en', 'name_bangla', 'name_english',
-            'pen_name', 'genre', 'genres', 'bio', 'nid', 'dob', 'profession',
+            'pen_name', 'genre', 'genres', 'bio', 'nid', 'nid_file', 'dob', 'profession',
             'payout_number', 'present_address', 'permanent_address', 'father_name', 'mother_name',
             'shop_name', 'zone', 'publisher_name', 'address', 'trade_license',
             'website', 'facebook', 'twitter', 'youtube'
