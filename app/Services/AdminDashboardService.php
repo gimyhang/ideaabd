@@ -70,13 +70,19 @@ class AdminDashboardService
             $pendingSubmissions = (int) $this->safe(fn () => \Modules\Author\Models\AuthorSubmission::where('status', 'pending')->count(), 0);
         }
 
-        $totalCount = $pendingOrders + $pendingRegistrations + $pendingBooks + $pendingEbooks + $pendingBlogs + $pendingBookRequests + $pendingSubmissions;
+        $authorUpdates = (int) $this->safe(fn () => User::where('role', 'author')
+            ->where(function ($q) {
+                $q->where('reg_data', 'like', '%"profile_update_status":"updated"%');
+            })->count(), 0);
+
+        $totalCount = $pendingOrders + $pendingRegistrations + $pendingBooks + $pendingEbooks + $pendingBlogs + $pendingBookRequests + $pendingSubmissions + $authorUpdates;
 
         return [
             'total_count'          => $totalCount,
             'has_alerts'           => $totalCount > 0,
             'orders'               => $pendingOrders,
             'registrations'        => $pendingRegistrations,
+            'author_updates'       => $authorUpdates,
             'books'                => $pendingBooks,
             'ebooks'               => $pendingEbooks,
             'blogs'                => $pendingBlogs,

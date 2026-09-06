@@ -327,6 +327,14 @@
                                             <a href="javascript:void(0)" onclick="openRegDetailsModal({{ $user->id }})" class="text-primary fw-bold text-decoration-none ms-1">Details →</a>
                                         </div>
                                     @endif
+
+                                    @if(($regData['profile_update_status'] ?? '') === 'updated')
+                                        <div class="mt-1" id="authorUpdateBadge-{{ $user->id }}">
+                                            <span class="badge bg-warning text-dark px-2 py-0.5 rounded-pill shadow-xs" style="font-size: 10px;" title="Author updated profile on {{ $regData['profile_updated_at'] ?? '' }}">
+                                                <i class="fas fa-bell me-0.5"></i> Profile Updated
+                                            </span>
+                                        </div>
+                                    @endif
                                 </td>
 
                                 {{-- Approval Status Badge --}}
@@ -362,7 +370,7 @@
                                 {{-- Creation Date --}}
                                 <td class="text-muted small">{{ $user->created_at ? $user->created_at->format('d M, Y') : 'N/A' }}</td>
 
-                                {{-- All 5 Action Buttons (View, Approve, Reject, Edit, Delete) --}}
+                                {{-- All Action Buttons (View, Sync, Approve, Reject, Edit, Delete) --}}
                                 <td class="text-end pe-3">
                                     <div class="d-inline-flex gap-1.5 align-items-center" id="regActions-{{ $user->id }}">
                                         {{-- 1. View Button --}}
@@ -372,6 +380,17 @@
                                                 title="View Details">
                                             <i class="fas fa-eye me-1"></i> View
                                         </button>
+
+                                        {{-- Sync Author to Directory Button --}}
+                                        @if($user->role === 'author' || $user->reg_type === 'author')
+                                            <button type="button" 
+                                                    id="btnSyncAuthor-{{ $user->id }}"
+                                                    class="btn btn-sm btn-outline-warning text-dark rounded-pill px-2.5 py-1 shadow-xs fw-semibold" 
+                                                    onclick="ajaxSyncAuthor({{ $user->id }}, this)" 
+                                                    title="Sync to Author Directory">
+                                                <i class="fas fa-arrows-rotate me-1"></i> Sync
+                                            </button>
+                                        @endif
 
                                         {{-- 2. Approve Button --}}
                                         @if($user->reg_status === 'approved')
@@ -867,10 +886,52 @@ function ajaxDeleteUser(userId, userName) {
             if (result.isConfirmed) doDelete();
         });
     } else {
-        if (confirm(`আপনি কি নিশ্চিত যে ‘${userName}’ এর রেজিস্ট্রেশন ও অ্যাকাউন্ট স্থায়ীভাবে মুছে ফেলতে চান?`)) {
-            doDelete();
-        }
+// Direct Sync Author to Directory
+function ajaxSyncAuthor(userId, btn) {
+    if (!btn) btn = document.getElementById(`btnSyncAuthor-${userId}`);
+    const originalHtml = btn ? btn.innerHTML : '';
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span> Syncing...';
     }
+
+    fetch(`/admin/registrations/${userId}/sync-author`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': csrfToken,
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({})
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+        }
+
+        if (data.success) {
+            showToast(data.message || 'লেখক ডিরেক্টরিতে সফলভাবে সিঙ্ক হয়েছে!', true);
+            const badge = document.getElementById(`authorUpdateBadge-${userId}`);
+            if (badge) {
+                badge.innerHTML = '<span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-0.5 rounded-pill shadow-xs" style="font-size: 10px;"><i class="fas fa-check-double me-0.5"></i> Synced</span>';
+            }
+            if (btn) {
+                btn.className = 'btn btn-sm btn-outline-success text-success rounded-pill px-2.5 py-1 shadow-xs fw-semibold';
+                btn.innerHTML = '<i class="fas fa-circle-check me-1"></i> Synced';
+            }
+        } else {
+            showToast(data.message || 'সিঙ্ক করতে ত্রুটি হয়েছে।', false);
+        }
+    })
+    .catch(err => {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+        }
+        showToast('সার্ভার সংযোগ সমস্যা। আবার চেষ্টা করুন।', false);
+    });
 }
 
 // Open Registration Details Modal

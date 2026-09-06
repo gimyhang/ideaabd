@@ -10,7 +10,20 @@
 @endsection
 
 @section('actions')
-    <div class="d-flex gap-2">
+    <div class="d-flex gap-2 align-items-center flex-wrap">
+        @if($user->role === 'author' || $user->reg_type === 'author')
+            @php
+                $authorRec = $user->getAuthorRecord();
+            @endphp
+            <button type="button" class="btn btn-warning text-dark btn-sm rounded-pill px-3 fw-bold shadow-xs" id="btnHeaderSyncAuthor" onclick="syncThisAuthor()">
+                <i class="fas fa-arrows-rotate me-1"></i> Sync to Directory
+            </button>
+            @if($authorRec && $authorRec->slug)
+                <a href="{{ route('authors.show', $authorRec->slug) }}" target="_blank" class="btn btn-outline-info btn-sm rounded-pill px-3 fw-semibold">
+                    <i class="fas fa-arrow-up-right-from-square me-1"></i> Directory View
+                </a>
+            @endif
+        @endif
         <a href="{{ route('admin.registrations.show', $user) }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
             <i class="fas fa-arrow-left me-1"></i> Back
         </a>
@@ -878,6 +891,45 @@ function syncRoleForms() {
         if (authorCard) authorCard.style.display = 'none';
         if (businessCard) businessCard.style.display = 'none';
     }
+}
+
+function syncThisAuthor() {
+    const btn = document.getElementById('btnHeaderSyncAuthor');
+    const originalText = btn ? btn.innerHTML : '';
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span> সিঙ্ক হচ্ছে...';
+    }
+
+    fetch('{{ route("admin.registrations.sync-author", $user) }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({})
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
+        if (data.success) {
+            alert(data.message || 'লেখক প্রোফাইল সফলভাবে লেখক ডিরেক্টরিতে সিঙ্ক হয়েছে!');
+            window.location.reload();
+        } else {
+            alert(data.message || 'সিঙ্ক করতে ত্রুটি হয়েছে।');
+        }
+    })
+    .catch(err => {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
+        alert('সার্ভার সংযোগ সমস্যা। আবার চেষ্টা করুন।');
+    });
 }
 
 // Initial bio counter count & role sync

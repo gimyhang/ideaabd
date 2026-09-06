@@ -8,11 +8,27 @@
 @endsection
 
 @section('actions')
-    <div class="d-flex gap-2">
-        <a href="{{ route('admin.registrations.edit', $user) }}" class="btn btn-outline-primary rounded-pill px-3">
+    <div class="d-flex gap-2 align-items-center flex-wrap">
+        @if($user->role === 'author' || $user->reg_type === 'author')
+            @php
+                $authorRec = $user->getAuthorRecord();
+            @endphp
+            <form action="{{ route('admin.registrations.sync-author', $user) }}" method="POST" class="m-0">
+                @csrf
+                <button type="submit" class="btn btn-warning text-dark btn-sm rounded-pill px-3 fw-bold shadow-xs">
+                    <i class="fas fa-arrows-rotate me-1"></i> Sync to Directory
+                </button>
+            </form>
+            @if($authorRec && $authorRec->slug)
+                <a href="{{ route('authors.show', $authorRec->slug) }}" target="_blank" class="btn btn-outline-info btn-sm rounded-pill px-3 fw-semibold">
+                    <i class="fas fa-arrow-up-right-from-square me-1"></i> Directory View
+                </a>
+            @endif
+        @endif
+        <a href="{{ route('admin.registrations.edit', $user) }}" class="btn btn-outline-primary rounded-pill px-3 btn-sm">
             <i class="fas fa-edit me-1"></i> Edit Profile
         </a>
-        <a href="{{ route('admin.registrations.index') }}" class="btn btn-outline-secondary rounded-pill px-3">
+        <a href="{{ route('admin.registrations.index') }}" class="btn btn-outline-secondary rounded-pill px-3 btn-sm">
             <i class="fas fa-arrow-left me-1"></i> Back to Requests
         </a>
     </div>

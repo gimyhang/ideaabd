@@ -106,6 +106,20 @@
                         </a>
                     @endif
 
+                    {{-- 2.1 Author Profile Updates (Bio/Photo changes) --}}
+                    @if(($alerts['author_updates'] ?? 0) > 0)
+                        <a href="{{ route('admin.registrations.index', ['type' => 'author']) }}" class="dropdown-item d-flex align-items-center justify-content-between p-2.5 rounded-3 mb-1 bg-warning-subtle">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-warning text-dark p-2 rounded-circle"><i class="fas fa-user-pen"></i></span>
+                                <div>
+                                    <div class="fw-bold text-dark small">Author Profile Updates</div>
+                                    <div class="text-muted" style="font-size: 0.72rem;">Authors updated bio/photo</div>
+                                </div>
+                            </div>
+                            <span class="badge bg-warning text-dark fw-bold rounded-pill px-2">{{ $alerts['author_updates'] }}</span>
+                        </a>
+                    @endif
+
                     {{-- 3. Pending Blog Posts --}}
                     @if(($alerts['blogs'] ?? 0) > 0)
                         <a href="{{ route('admin.blog', ['status' => 'pending']) }}" class="dropdown-item d-flex align-items-center justify-content-between p-2.5 rounded-3 mb-1 bg-light">

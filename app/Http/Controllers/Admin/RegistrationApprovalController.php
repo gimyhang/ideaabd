@@ -468,6 +468,98 @@ class RegistrationApprovalController extends Controller
         return back()->with('success', "{$user->name} এর অ্যাকাউন্ট {$statusText} করা হয়েছে।");
     }
 
+    // Sync author profile directly to Authors Directory
+    public function syncAuthor(Request $request, User $user)
+    {
+        try {
+            $regData = is_array($user->reg_data) ? $user->reg_data : [];
+            $authorName = $regData['pen_name'] ?? ($regData['name_bangla'] ?? ($regData['full_name'] ?? $user->name));
+            $authorAvatar = $user->avatar ?: ($regData['avatar'] ?? null);
+
+            $author = $user->getAuthorRecord();
+            if (!$author) {
+                $author = \Modules\Author\Models\Author::findOrCreateUnified([
+                    'user_id'     => $user->id,
+                    'name'        => $authorName,
+                    'name_bn'     => $regData['name_bn'] ?? ($regData['name_bangla'] ?? null),
+                    'name_en'     => $user->name,
+                    'email'       => $user->email,
+                    'phone'       => $user->phone,
+                    'bio'         => $regData['bio'] ?? null,
+                    'website'     => $regData['website'] ?? null,
+                    'avatar'      => $authorAvatar,
+                    'is_active'   => true,
+                    'is_verified' => true,
+                ]);
+            } else {
+                $author->name = $authorName;
+                $author->name_en = $user->name;
+                if (!empty($regData['name_bn']) || !empty($regData['name_bangla'])) {
+                    $author->name_bn = $regData['name_bn'] ?? $regData['name_bangla'];
+                }
+                if (!empty($regData['bio'])) {
+                    $author->bio = $regData['bio'];
+                }
+                if (!empty($authorAvatar)) {
+                    $author->avatar = $authorAvatar;
+                }
+                if (!empty($user->email)) {
+                    $author->email = $user->email;
+                }
+                if (!empty($user->phone)) {
+                    $author->phone = $user->phone;
+                }
+                if (!empty($regData['website'])) {
+                    $author->website = $regData['website'];
+                }
+                if (!empty($regData['payout_method'])) {
+                    $author->payout_account_type = $regData['payout_method'];
+                }
+                if (!empty($regData['payout_number'])) {
+                    $author->payout_account_details = $regData['payout_number'];
+                }
+                $author->is_active = true;
+                $author->is_verified = true;
+                $author->user_id = $user->id;
+                $author->save();
+            }
+
+            // Mark status as synced
+            $regData['profile_update_status'] = 'synced';
+            $regData['last_synced_at'] = now()->toDateTimeString();
+            $user->reg_data = $regData;
+            $user->save();
+
+            // Clear author cache
+            try {
+                \Illuminate\Support\Facades\Cache::forget('authors_directory_all');
+                \Illuminate\Support\Facades\Cache::forget('featured_authors_home');
+            } catch (\Throwable $e) {}
+
+            $authorUrl = route('authors.show', $author->slug ?: $author->id);
+
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success'    => true,
+                    'message'    => 'লেখক প্রোফাইল সফলভাবে লেখক ডিরেক্টরিতে সিঙ্ক ও লাইভ করা হয়েছে!',
+                    'author'     => $author,
+                    'author_url' => $authorUrl,
+                ]);
+            }
+
+            return back()->with('success', 'লেখক প্রোফাইল সফলভাবে লেখক ডিরেক্টরিতে সিঙ্ক ও লাইভ করা হয়েছে!');
+        } catch (\Throwable $e) {
+            \Log::error('Author Sync Failed: ' . $e->getMessage());
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'সিঙ্ক করতে ত্রুটি হয়েছে: ' . $e->getMessage(),
+                ], 500);
+            }
+            return back()->with('error', 'সিঙ্ক করতে ত্রুটি হয়েছে: ' . $e->getMessage());
+        }
+    }
+
     // Cancel / Delete registration entirely
     public function cancel(Request $request, User $user)
     {

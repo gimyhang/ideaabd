@@ -284,27 +284,52 @@ class AuthorDashboardController extends Controller
                 return back()->with('error', 'কোনো ছবি পাওয়া যায়নি।');
             }
 
-            DB::transaction(function () use ($user, $author, $avatarPath) {
-                // Update User
+            DB::transaction(function () use ($user, &$author, $avatarPath) {
+                // 1. Update User Record & flag as updated for Admin
                 $user->avatar = $avatarPath;
                 $regData = is_array($user->reg_data) ? $user->reg_data : [];
                 $regData['avatar'] = $avatarPath;
+                $regData['profile_updated_at'] = now()->toDateTimeString();
+                $regData['profile_update_status'] = 'updated';
                 $user->reg_data = $regData;
                 $user->save();
 
-                // Update Author Directory Record
-                if ($author) {
+                // 2. Ensure Author Directory Record exists, is active, and receives the new avatar
+                if (!$author) {
+                    $author = \Modules\Author\Models\Author::findOrCreateUnified([
+                        'user_id'     => $user->id,
+                        'name'        => $regData['pen_name'] ?? ($regData['full_name'] ?? $user->name),
+                        'name_en'     => $user->name,
+                        'name_bn'     => $regData['name_bn'] ?? ($regData['name_bangla'] ?? null),
+                        'email'       => $user->email,
+                        'phone'       => $user->phone,
+                        'avatar'      => $avatarPath,
+                        'is_active'   => true,
+                        'is_verified' => true,
+                    ]);
+                } else {
                     $author->avatar = $avatarPath;
+                    $author->is_active = true;
+                    $author->is_verified = true;
+                    if (empty($author->user_id)) {
+                        $author->user_id = $user->id;
+                    }
                     $author->save();
                 }
             });
+
+            // Clear author cache
+            try {
+                \Illuminate\Support\Facades\Cache::forget('authors_directory_all');
+                \Illuminate\Support\Facades\Cache::forget('featured_authors_home');
+            } catch (\Throwable $e) {}
 
             $fullUrl = asset('storage/' . ltrim($avatarPath, '/'));
 
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
                     'success'    => true,
-                    'message'    => 'প্রোফাইল ছবি সফলভাবে আপডেট ও সেভ হয়েছে!',
+                    'message'    => 'প্রোফাইল ছবি সফলভাবে আপডেট ও ডিরেক্টরিতে সেভ হয়েছে!',
                     'avatar_url' => $fullUrl,
                     'avatar_path'=> $avatarPath,
                 ]);
@@ -350,7 +375,7 @@ class AuthorDashboardController extends Controller
         ]);
 
         try {
-            DB::transaction(function () use ($user, $author, $request) {
+            DB::transaction(function () use ($user, &$author, $request) {
                 $user->name = $request->input('name');
                 if ($request->filled('phone')) {
                     $user->phone = $request->input('phone');
@@ -397,12 +422,40 @@ class AuthorDashboardController extends Controller
                     $regData['payout_number'] = $request->input('payout_number') ?? '';
                 }
 
+                $regData['profile_updated_at'] = now()->toDateTimeString();
+                $regData['profile_update_status'] = 'updated';
+
                 $user->reg_data = $regData;
                 $user->save();
 
-                if ($author) {
-                    $authorName = $request->filled('pen_name') ? $request->input('pen_name') : $request->input('name');
+                $authorName = $request->filled('pen_name') ? $request->input('pen_name') : $request->input('name');
+                $socialLinks = array_filter([
+                    'facebook' => $request->input('facebook') ?: ($regData['facebook'] ?? null),
+                    'twitter'  => $request->input('twitter') ?: ($regData['twitter'] ?? null),
+                    'youtube'  => $request->input('youtube') ?: ($regData['youtube'] ?? null),
+                ]);
+
+                if (!$author) {
+                    $author = \Modules\Author\Models\Author::findOrCreateUnified([
+                        'user_id'      => $user->id,
+                        'name'         => $authorName,
+                        'name_en'      => $request->input('name'),
+                        'name_bn'      => $regData['name_bn'] ?? ($regData['name_bangla'] ?? null),
+                        'email'        => $user->email,
+                        'phone'        => $request->input('phone') ?: $user->phone,
+                        'bio'          => $request->input('bio'),
+                        'website'      => $request->input('website'),
+                        'avatar'       => $user->avatar ?: ($regData['avatar'] ?? null),
+                        'social_links' => !empty($socialLinks) ? $socialLinks : null,
+                        'is_active'    => true,
+                        'is_verified'  => true,
+                    ]);
+                } else {
                     $author->name = $authorName;
+                    $author->name_en = $request->input('name');
+                    if (!empty($regData['name_bn'])) {
+                        $author->name_bn = $regData['name_bn'];
+                    }
                     $author->bio = $request->input('bio');
                     if ($request->filled('phone')) {
                         $author->phone = $request->input('phone');
@@ -416,16 +469,22 @@ class AuthorDashboardController extends Controller
                     if ($request->has('payout_number')) {
                         $author->payout_account_details = $request->input('payout_number');
                     }
-
-                    $socialLinks = array_filter([
-                        'facebook' => $request->input('facebook') ?: ($regData['facebook'] ?? null),
-                        'twitter'  => $request->input('twitter') ?: ($regData['twitter'] ?? null),
-                        'youtube'  => $request->input('youtube') ?: ($regData['youtube'] ?? null),
-                    ]);
                     $author->social_links = !empty($socialLinks) ? $socialLinks : null;
+                    $author->is_active = true;
+                    $author->is_verified = true;
+                    $author->user_id = $user->id;
+                    if (!empty($user->avatar)) {
+                        $author->avatar = $user->avatar;
+                    }
                     $author->save();
                 }
             });
+
+            // Clear author cache
+            try {
+                \Illuminate\Support\Facades\Cache::forget('authors_directory_all');
+                \Illuminate\Support\Facades\Cache::forget('featured_authors_home');
+            } catch (\Throwable $e) {}
 
             $user->refresh();
 
