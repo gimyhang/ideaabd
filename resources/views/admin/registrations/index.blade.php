@@ -240,13 +240,13 @@
                 <table class="table table-hover align-middle mb-0 table-registrations" id="registrationsTable">
                     <thead class="table-light text-muted small text-uppercase">
                         <tr>
-                            <th class="ps-3" style="width: 40px;">#</th>
-                            <th style="min-width: 180px;">Applicant & Contact</th>
-                            <th class="text-center" style="width: 95px;">Role</th>
-                            <th style="min-width: 190px;">Profile Details & Bio</th>
-                            <th class="text-center" style="width: 125px;">Status & Active</th>
-                            <th class="text-center" style="width: 90px;">Date</th>
-                            <th class="text-end pe-3" style="width: 185px;">Actions</th>
+                            <th class="ps-2 text-center" style="width: 34px;">#</th>
+                            <th style="width: 24%;">Applicant & Contact</th>
+                            <th class="text-center" style="width: 10%;">Role</th>
+                            <th style="width: 28%;">Profile Details & Bio</th>
+                            <th class="text-center" style="width: 13%;">Status</th>
+                            <th class="text-center" style="width: 9%;">Date</th>
+                            <th class="text-end pe-2" style="width: 16%;">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -260,13 +260,13 @@
                                 $currColor = $roleColors[$user->role] ?? 'secondary';
                             @endphp
                             <tr id="regRow-{{ $user->id }}" class="{{ $user->reg_status === 'pending' ? 'table-warning-subtle' : '' }}">
-                                <td class="ps-3 text-muted small font-monospace">{{ $registrations->firstItem() + $n }}</td>
+                                <td class="ps-2 text-center text-muted small font-monospace">{{ $registrations->firstItem() + $n }}</td>
                                 
                                 {{-- User & Contact --}}
-                                <td>
+                                <td class="text-truncate">
                                     <div class="d-flex align-items-center gap-2">
                                         <div class="rounded-circle overflow-hidden shadow-xs flex-shrink-0 position-relative border" 
-                                             style="width: 38px; height: 38px; background: linear-gradient(135deg, #e0e7ff, #c7d2fe);">
+                                             style="width: 36px; height: 36px; background: linear-gradient(135deg, #e0e7ff, #c7d2fe);">
                                             @if(!empty($user->avatar))
                                                 <img src="{{ str_starts_with($user->avatar, 'http') ? $user->avatar : asset('storage/' . ltrim($user->avatar, '/')) }}" 
                                                      class="w-100 h-100 object-fit-cover">
@@ -277,13 +277,13 @@
                                             @endif
                                         </div>
 
-                                        <div class="min-w-0" style="max-width: 190px;">
-                                            <div class="fw-bold text-dark text-truncate" style="font-size: 0.88rem;">
+                                        <div class="min-w-0" style="max-width: calc(100% - 44px);">
+                                            <div class="fw-bold text-dark text-truncate" style="font-size: 0.86rem;">
                                                 <a href="javascript:void(0)" onclick="openRegDetailsModal({{ $user->id }})" class="text-decoration-none text-dark hover-primary" title="{{ $user->name }}">
                                                     {{ $user->name }}
                                                 </a>
                                             </div>
-                                            <div class="text-muted d-flex flex-column" style="font-size: 0.73rem; line-height: 1.3;">
+                                            <div class="text-muted d-flex flex-column" style="font-size: 0.72rem; line-height: 1.25;">
                                                 <span class="text-truncate" title="{{ $user->email }}"><i class="fas fa-envelope text-muted me-1"></i>{{ $user->email }}</span>
                                                 <span class="text-truncate font-monospace" title="{{ $user->phone }}"><i class="fas fa-phone-alt text-muted me-1"></i>{{ $user->phone }}</span>
                                             </div>
@@ -293,36 +293,42 @@
 
                                 {{-- Role Badge --}}
                                 <td class="text-center">
-                                    <span class="badge bg-{{ $currColor }}-subtle text-{{ $currColor }} border border-{{ $currColor }}-subtle rounded-pill px-2 py-0.5" style="font-size: 0.72rem;">
+                                    <span class="badge bg-{{ $currColor }}-subtle text-{{ $currColor }} border border-{{ $currColor }}-subtle rounded-pill px-2 py-0.5" style="font-size: 0.70rem;">
                                         <i class="fas fa-{{ $roleIcons[$user->role] ?? 'user' }} me-1"></i>
                                         {{ $roleLabels[$user->role] ?? ucfirst($user->role) }}
                                     </span>
                                 </td>
 
                                 {{-- Submitted Information & Bio --}}
-                                <td>
-                                    <div class="d-flex flex-column gap-0.5" style="font-size: 0.78rem;">
-                                        @if(!empty($regData['pen_name']))
-                                            <div class="text-truncate"><span class="text-muted fw-semibold">লেখকনেম:</span> <strong class="text-primary">{{ $regData['pen_name'] }}</strong></div>
-                                        @endif
-                                        @if(!empty($regData['genre']))
-                                            <div class="text-truncate text-muted"><span class="fw-semibold">শাখা:</span> {{ $regData['genre'] }}</div>
-                                        @endif
-                                        @if(!empty($regData['shop_name']))
-                                            <div class="text-truncate"><span class="text-muted fw-semibold">শপ:</span> <strong>{{ $regData['shop_name'] }}</strong></div>
-                                        @endif
-                                        @if(!empty($regData['publisher_name']))
-                                            <div class="text-truncate"><span class="text-muted fw-semibold">প্রকাশনী:</span> <strong>{{ $regData['publisher_name'] }}</strong></div>
-                                        @endif
+                                <td class="text-truncate">
+                                    <div class="d-flex flex-column gap-0.5" style="font-size: 0.78rem; line-height: 1.25;">
+                                        <div class="text-truncate">
+                                            @if(!empty($regData['pen_name']))
+                                                <span class="text-muted fw-semibold">লেখকনেম:</span> <strong class="text-primary">{{ $regData['pen_name'] }}</strong>
+                                            @elseif(!empty($regData['shop_name']))
+                                                <span class="text-muted fw-semibold">শপ:</span> <strong class="text-dark">{{ $regData['shop_name'] }}</strong>
+                                            @elseif(!empty($regData['publisher_name']))
+                                                <span class="text-muted fw-semibold">প্রকাশনী:</span> <strong class="text-dark">{{ $regData['publisher_name'] }}</strong>
+                                            @else
+                                                <span class="text-muted fst-italic">সাধারণ তথ্য</span>
+                                            @endif
+
+                                            @if(!empty($regData['genre']))
+                                                <span class="text-muted small ms-1">({{ $regData['genre'] }})</span>
+                                            @endif
+                                        </div>
+
                                         @if(!empty($bioText))
-                                            <div class="mt-0.5 p-1 px-1.5 bg-light rounded border text-muted text-truncate d-flex align-items-center justify-content-between" style="font-size: 0.71rem; max-width: 220px;" title="{{ strip_tags($bioText) }}">
-                                                <span class="text-truncate">{{ Str::limit(strip_tags($bioText), 30) }}</span>
-                                                <a href="javascript:void(0)" onclick="openRegDetailsModal({{ $user->id }})" class="text-primary fw-bold text-decoration-none ms-1 flex-shrink-0" title="সম্পূর্ণ দেখুন">→</a>
+                                            <div class="text-muted text-truncate d-flex align-items-center gap-1" style="font-size: 0.72rem;" title="{{ strip_tags($bioText) }}">
+                                                <i class="fas fa-quote-left text-muted opacity-50" style="font-size: 9px;"></i>
+                                                <span class="text-truncate">{{ Str::limit(strip_tags($bioText), 28) }}</span>
+                                                <a href="javascript:void(0)" onclick="openRegDetailsModal({{ $user->id }})" class="text-primary fw-bold text-decoration-none ms-auto flex-shrink-0" title="সম্পূর্ণ দেখুন">View →</a>
                                             </div>
                                         @endif
+
                                         @if(($regData['profile_update_status'] ?? '') === 'updated')
                                             <div id="authorUpdateBadge-{{ $user->id }}" class="mt-0.5">
-                                                <span class="badge bg-warning text-dark px-1.5 py-0.5 rounded-pill shadow-xs" style="font-size: 9.5px;" title="Author updated profile on {{ $regData['profile_updated_at'] ?? '' }}">
+                                                <span class="badge bg-warning text-dark px-1.5 py-0.5 rounded-pill shadow-xs" style="font-size: 9px;" title="Author updated profile on {{ $regData['profile_updated_at'] ?? '' }}">
                                                     <i class="fas fa-bell me-0.5"></i> Profile Updated
                                                 </span>
                                             </div>
@@ -332,7 +338,7 @@
 
                                 {{-- Status & Active Toggle Combined --}}
                                 <td class="text-center" id="statusBadgeCell-{{ $user->id }}">
-                                    <div class="d-flex flex-column align-items-center justify-content-center gap-1">
+                                    <div class="d-inline-flex flex-column align-items-center justify-content-center gap-1">
                                         @if($user->reg_status === 'pending')
                                             <span class="badge bg-warning text-dark px-2 py-0.5 rounded-pill shadow-xs" style="font-size: 0.72rem;">
                                                 <i class="fas fa-hourglass-half me-0.5"></i> Pending
@@ -348,7 +354,7 @@
                                         @endif
 
                                         {{-- Compact Active switch --}}
-                                        <div class="form-check form-switch cursor-pointer mb-0 d-flex align-items-center gap-1" style="font-size: 0.72rem;">
+                                        <div class="form-check form-switch cursor-pointer mb-0 d-flex align-items-center gap-1" style="font-size: 0.70rem; transform: scale(0.92);">
                                             <input class="form-check-input mt-0" type="checkbox" role="switch" 
                                                    id="activeSwitch-{{ $user->id }}" 
                                                    @checked($user->is_active) 
@@ -362,7 +368,7 @@
                                 </td>
 
                                 {{-- Creation Date --}}
-                                <td class="text-center text-muted" style="font-size: 0.75rem;">
+                                <td class="text-center text-muted" style="font-size: 0.74rem;">
                                     {{ $user->created_at ? $user->created_at->format('d M, Y') : 'N/A' }}
                                 </td>
 
@@ -567,20 +573,24 @@
     0%, 100% { opacity: 1; }
     50% { opacity: .5; }
 }
+.table-registrations {
+    table-layout: fixed !important;
+    width: 100% !important;
+}
 .table-registrations th,
 .table-registrations td {
-    padding: 0.5rem 0.45rem !important;
+    padding: 0.42rem 0.35rem !important;
     vertical-align: middle;
 }
 .btn-action-icon {
-    width: 30px;
-    height: 30px;
+    width: 28px;
+    height: 28px;
     padding: 0 !important;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     border-radius: 50% !important;
-    font-size: 11.5px;
+    font-size: 11px;
     transition: all 0.15s ease-in-out;
 }
 .btn-action-icon:hover {
