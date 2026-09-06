@@ -360,7 +360,7 @@
                                 </td>
 
                                 {{-- Creation Date --}}
-                                <td class="text-muted small">{{ $user->created_at->format('d M, Y') }}</td>
+                                <td class="text-muted small">{{ $user->created_at ? $user->created_at->format('d M, Y') : 'N/A' }}</td>
 
                                 {{-- All 5 Action Buttons (View, Approve, Reject, Edit, Delete) --}}
                                 <td class="text-end pe-3">
@@ -1043,7 +1043,7 @@ function exportRegistrationsToCSV() {
             '"{{ $u->phone }}"',
             '"{{ $u->reg_status }}"',
             '{{ $u->is_active ? "Yes" : "No" }}',
-            '"{{ $u->created_at->format('Y-m-d H:i:s') }}"'
+            '{{ $u->created_at ? $u->created_at->format("Y-m-d H:i:s") : "" }}'
         ]);
     @endforeach
 

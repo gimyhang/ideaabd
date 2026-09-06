@@ -28,7 +28,7 @@
                 <h5 class="fw-bold mb-0 text-dark">
                     <i class="fas fa-user-pen text-primary me-2"></i> Edit Applicant & Profile Information
                 </h5>
-                <small class="text-muted">User ID: #{{ $user->id }} • Submitted: {{ $user->created_at->format('d M, Y') }}</small>
+                <small class="text-muted">User ID: #{{ $user->id }} • Submitted: {{ $user->created_at ? $user->created_at->format('d M, Y') : 'N/A' }}</small>
             </div>
             <div class="d-flex align-items-center gap-2">
                 <span class="badge {{ $user->reg_status === 'approved' ? 'bg-success' : ($user->reg_status === 'pending' ? 'bg-warning text-dark' : 'bg-danger') }} rounded-pill px-3 py-1.5 shadow-xs">

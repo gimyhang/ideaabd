@@ -49,7 +49,7 @@
                     <span class="badge bg-danger px-3 py-2 mb-3 rounded-pill">Rejected</span>
                 @endif
 
-                <small class="text-muted d-block">Registered On:<br>{{ $user->created_at->format('d M Y, h:i A') }}</small>
+                <small class="text-muted d-block">Registered On:<br>{{ $user->created_at ? $user->created_at->format('d M Y, h:i A') : 'N/A' }}</small>
             </div>
         </div>
 

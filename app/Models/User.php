@@ -157,40 +157,52 @@ class User extends Authenticatable
 
     public function getAuthorRecord(): ?\Modules\Author\Models\Author
     {
-        $author = \Modules\Author\Models\Author::where('user_id', $this->id)->first();
-        if ($author) {
-            return $author;
+        if (empty($this->id)) {
+            return null;
         }
 
-        $author = \Modules\Author\Models\Author::where('email', $this->email)
-            ->orWhere('phone', $this->phone)
-            ->first();
-
-        if (!$author && $this->name) {
-            $author = \Modules\Author\Models\Author::where('name', $this->name)->first();
-        }
-
-        if (!$author && ($this->isAuthor() || $this->isAdmin() || $this->reg_type === 'author')) {
-            $slug = \Illuminate\Support\Str::slug($this->name) ?: 'author-' . $this->id;
-            if (\Modules\Author\Models\Author::where('slug', $slug)->exists()) {
-                $slug .= '-' . $this->id;
+        try {
+            $author = \Modules\Author\Models\Author::where('user_id', $this->id)->first();
+            if ($author) {
+                return $author;
             }
-            $author = \Modules\Author\Models\Author::create([
-                'user_id'            => $this->id,
-                'name'               => $this->name,
-                'slug'               => $slug,
-                'email'              => $this->email,
-                'phone'              => $this->phone,
-                'is_active'          => true,
-                'is_verified'        => true,
-                'royalty_percentage' => 50.00,
-                'wallet_balance'     => 0.00,
-            ]);
-        } elseif ($author && empty($author->user_id)) {
-            $author->update(['user_id' => $this->id]);
-        }
 
-        return $author;
+            if (!empty($this->email) || !empty($this->phone)) {
+                $author = \Modules\Author\Models\Author::where(function($q) {
+                    if (!empty($this->email)) $q->where('email', $this->email);
+                    if (!empty($this->phone)) $q->orWhere('phone', $this->phone);
+                })->first();
+            }
+
+            if (!$author && !empty($this->name)) {
+                $author = \Modules\Author\Models\Author::where('name', $this->name)->first();
+            }
+
+            if (!$author && $this->exists && ($this->isAuthor() || $this->isAdmin() || $this->reg_type === 'author')) {
+                $slug = \Illuminate\Support\Str::slug($this->name) ?: 'author-' . $this->id;
+                if (\Modules\Author\Models\Author::where('slug', $slug)->exists()) {
+                    $slug .= '-' . $this->id . '-' . \Illuminate\Support\Str::lower(\Illuminate\Support\Str::random(4));
+                }
+                $author = \Modules\Author\Models\Author::create([
+                    'user_id'            => $this->id,
+                    'name'               => $this->name,
+                    'slug'               => $slug,
+                    'email'              => $this->email,
+                    'phone'              => $this->phone,
+                    'is_active'          => true,
+                    'is_verified'        => true,
+                    'royalty_percentage' => 50.00,
+                    'wallet_balance'     => 0.00,
+                ]);
+            } elseif ($author && empty($author->user_id) && $this->exists) {
+                $author->update(['user_id' => $this->id]);
+            }
+
+            return $author;
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning("User::getAuthorRecord failed: " . $e->getMessage());
+            return null;
+        }
     }
 
     public function getDesignationAttribute(): string
