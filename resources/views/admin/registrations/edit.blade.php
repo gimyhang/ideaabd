@@ -60,8 +60,23 @@
                 @method('PUT')
 
                 @php 
+                    $author = $user->getAuthorRecord();
                     $regData = is_array($user->reg_data) ? $user->reg_data : [];
-                    $currAvatar = $user->avatar ? asset('storage/' . ltrim($user->avatar, '/')) : null;
+                    $rawAvatar = $user->avatar ?: ($author?->avatar ?: ($regData['avatar'] ?? null));
+                    $currAvatar = null;
+                    if ($rawAvatar) {
+                        $currAvatar = str_starts_with($rawAvatar, 'http') ? $rawAvatar : asset('storage/' . ltrim($rawAvatar, '/'));
+                    }
+                    $currBio = old('bio', $regData['bio'] ?? ($author?->bio ?? ''));
+                    $currPenName = old('pen_name', $regData['pen_name'] ?? ($author && $author->name !== $user->name ? $author->name : ''));
+                    $currGenre = old('genre', is_array($regData['genre'] ?? null) ? implode(', ', $regData['genre']) : ($regData['genre'] ?? ($author?->genre ?? '')));
+                    $currPhone = old('phone', $user->phone ?: ($author?->phone ?? ''));
+                    $currFatherName = old('father_name', $regData['father_name'] ?? '');
+                    $currMotherName = old('mother_name', $regData['mother_name'] ?? '');
+                    $currNid = old('nid', $regData['nid'] ?? ($regData['nid_or_passport'] ?? ''));
+                    $currAddress = old('present_address', $regData['present_address'] ?? ($regData['address'] ?? ''));
+                    $currPayout = old('payout_number', $regData['payout_number'] ?? ($author?->payout_account_details ?? ''));
+                    $currWebsite = old('website', $regData['website'] ?? ($author?->website ?? ''));
                 @endphp
 
                 {{-- ========================================================= --}}
@@ -237,7 +252,7 @@
                                 <span>Genres</span>
                             </label>
                             <input type="text" name="genre" id="adminRegGenreInput" class="form-control rounded-3 mb-1.5" 
-                                   value="{{ old('genre', is_array($regData['genre'] ?? null) ? implode(', ', $regData['genre']) : ($regData['genre'] ?? (is_array($regData['genres'] ?? null) ? implode(', ', $regData['genres']) : ''))) }}" 
+                                   value="{{ $currGenre }}" 
                                    placeholder="Fiction, Poetry, Essays, Science...">
                             <div class="d-flex flex-wrap gap-1 mt-1">
                                 @foreach(['Fiction', 'Poetry', 'Essays', 'Research', 'Novel', 'Non-Fiction', 'Translation', 'Sci-Fi'] as $g)
@@ -255,7 +270,7 @@
                                 NID
                             </label>
                             <input type="text" name="nid" class="form-control rounded-3 font-monospace" 
-                                   value="{{ old('nid', $regData['nid'] ?? '') }}" 
+                                   value="{{ $currNid }}" 
                                    placeholder="National ID / Passport Number">
                         </div>
 
@@ -284,7 +299,7 @@
                                 Payout
                             </label>
                             <input type="text" name="payout_number" class="form-control rounded-3 font-monospace" 
-                                   value="{{ old('payout_number', $regData['payout_number'] ?? ($regData['bkash_number'] ?? ($regData['payment_number'] ?? ''))) }}" 
+                                   value="{{ $currPayout }}" 
                                    placeholder="Bkash / Nagad Number">
                         </div>
 
@@ -294,7 +309,7 @@
                                 Address
                             </label>
                             <input type="text" name="present_address" class="form-control rounded-3" 
-                                   value="{{ old('present_address', $regData['present_address'] ?? ($regData['address'] ?? '')) }}" 
+                                   value="{{ $currAddress }}" 
                                    placeholder="Present Address">
                         </div>
 
@@ -319,7 +334,7 @@
                             <textarea name="bio" id="authorBioInput" rows="14" class="form-control rounded-3 p-3 font-sans" 
                                       style="min-height: 320px; font-size: 0.95rem; line-height: 1.75;"
                                       placeholder="Author biography, literary achievements, publications, awards and background..." 
-                                      oninput="updateCharCount(this, 'bioCounter')">{{ old('bio', is_array($regData['bio'] ?? null) ? implode("\n", $regData['bio']) : ($regData['bio'] ?? '')) }}</textarea>
+                                      oninput="updateCharCount(this, 'bioCounter')">{{ $currBio }}</textarea>
                         </div>
                     </div>
                 </div>
@@ -336,68 +351,50 @@
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label small fw-bold text-dark">
-                                <i class="fab fa-facebook text-primary me-1"></i> Facebook
+                                Website / Portfolio URL
                             </label>
-                            <input type="text" name="facebook" class="form-control rounded-3" 
+                            <input type="url" name="website" class="form-control rounded-3" 
+                                   value="{{ $currWebsite }}" 
+                                   placeholder="https://authorwebsite.com">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-dark">
+                                Facebook Profile
+                            </label>
+                            <input type="url" name="facebook" class="form-control rounded-3" 
                                    value="{{ old('facebook', $regData['facebook'] ?? '') }}" 
                                    placeholder="https://facebook.com/username">
-                        </div>
-
-                        <div class="col-md-6">
-                            <label class="form-label small fw-bold text-dark">
-                                <i class="fas fa-globe text-success me-1"></i> Website
-                            </label>
-                            <input type="text" name="website" class="form-control rounded-3" 
-                                   value="{{ old('website', $regData['website'] ?? '') }}" 
-                                   placeholder="https://example.com">
-                        </div>
-
-                        <div class="col-md-6">
-                            <label class="form-label small fw-bold text-dark">
-                                <i class="fab fa-x-twitter text-dark me-1"></i> Twitter
-                            </label>
-                            <input type="text" name="twitter" class="form-control rounded-3" 
-                                   value="{{ old('twitter', $regData['twitter'] ?? '') }}" 
-                                   placeholder="https://x.com/username">
-                        </div>
-
-                        <div class="col-md-6">
-                            <label class="form-label small fw-bold text-dark">
-                                <i class="fab fa-youtube text-danger me-1"></i> YouTube
-                            </label>
-                            <input type="text" name="youtube" class="form-control rounded-3" 
-                                   value="{{ old('youtube', $regData['youtube'] ?? '') }}" 
-                                   placeholder="https://youtube.com/@channel">
                         </div>
                     </div>
                 </div>
 
                 {{-- ========================================================= --}}
-                {{-- 5. BUSINESS DETAILS                                       --}}
+                {{-- 5. PUBLISHER / SELLER SPECIFIC DETAILS                     --}}
                 {{-- ========================================================= --}}
-                <div id="businessDetailsCard" class="mb-4" style="{{ in_array(old('role', $user->role), ['seller', 'publisher']) ? '' : 'display:none;' }}">
+                <div id="businessDetailsCard" class="mb-4" style="{{ in_array(old('role', $user->role), ['publisher', 'seller']) ? '' : 'display:none;' }}">
                     <h6 class="fw-bold text-dark mb-3 pb-2 border-bottom d-flex align-items-center gap-2">
-                        <i class="fas fa-shop text-warning"></i>
-                        <span>Business</span>
+                        <i class="fas fa-store text-warning"></i>
+                        <span>Business & Commercial Details</span>
                     </h6>
 
                     <div class="row g-3">
                         <div class="col-md-6" id="shopNameWrap">
                             <label class="form-label small fw-bold text-dark">
-                                Shop
+                                Stall / Bookshop Name (Sellers)
                             </label>
                             <input type="text" name="shop_name" class="form-control rounded-3" 
                                    value="{{ old('shop_name', $regData['shop_name'] ?? '') }}" 
-                                   placeholder="Bookstore Name">
+                                   placeholder="Bookshop or Stall Name">
                         </div>
 
                         <div class="col-md-6" id="zoneWrap">
                             <label class="form-label small fw-bold text-dark">
-                                Zone / Area (Sellers)
+                                Stall Number / Stall Zone
                             </label>
                             <input type="text" name="zone" class="form-control rounded-3" 
                                    value="{{ old('zone', $regData['zone'] ?? '') }}" 
-                                   placeholder="e.g. Dhaka Zone, Chittagong Zone...">
+                                   placeholder="Zone A / Stall 123">
                         </div>
 
                         <div class="col-md-6" id="publisherNameWrap">
@@ -556,11 +553,33 @@ function openAdminPhotoStudio() {
     if (modalEl) {
         const modal = new bootstrap.Modal(modalEl);
         modal.show();
+        setTimeout(() => {
+            if (!studioCanvas) studioCanvas = document.getElementById('adminCropCanvas');
+            if (studioCanvas && !studioCtx) studioCtx = studioCanvas.getContext('2d');
+            if (studioCurrentImg) renderAdminCanvas();
+        }, 200);
     }
 }
 
 function handleDirectFilePick(input) {
     if (input.files && input.files[0]) {
+        const file = input.files[0];
+        
+        // 1. Immediately show live thumbnail preview in avatarPreviewBox
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const previewBox = document.getElementById('avatarPreviewBox');
+            if (previewBox) {
+                previewBox.innerHTML = `<img src="${e.target.result}" class="w-100 h-100 object-fit-cover">`;
+            }
+            const statusBadge = document.getElementById('avatarSelectedStatus');
+            if (statusBadge) {
+                statusBadge.style.display = 'inline-block';
+            }
+        };
+        reader.readAsDataURL(file);
+
+        // 2. Open studio modal for fine crop
         openAdminPhotoStudio();
         loadAdminStudioImage(input);
     }
@@ -577,7 +596,7 @@ function handleAdminPhotoDrop(e) {
             return;
         }
         const fakeInput = { files: [file] };
-        loadAdminStudioImage(fakeInput);
+        handleDirectFilePick(fakeInput);
     }
 }
 
@@ -587,12 +606,15 @@ function loadAdminStudioImage(input) {
         reader.onload = function(e) {
             studioCurrentImg = new Image();
             studioCurrentImg.onload = function() {
+                if (!studioCanvas) studioCanvas = document.getElementById('adminCropCanvas');
+                if (studioCanvas && !studioCtx) studioCtx = studioCanvas.getContext('2d');
+
                 document.getElementById('adminCanvasPlaceholder').style.display = 'none';
                 document.getElementById('adminCropControls').style.display = 'block';
                 document.getElementById('adminApplyPhotoBtn').disabled = false;
                 
-                const canvasW = studioCanvas.width;
-                const canvasH = studioCanvas.height;
+                const canvasW = studioCanvas ? studioCanvas.width : 240;
+                const canvasH = studioCanvas ? studioCanvas.height : 240;
                 const scaleW = canvasW / studioCurrentImg.width;
                 const scaleH = canvasH / studioCurrentImg.height;
                 studioScale = Math.max(scaleW, scaleH);
@@ -613,6 +635,8 @@ function loadAdminStudioImage(input) {
 }
 
 function renderAdminCanvas() {
+    if (!studioCanvas) studioCanvas = document.getElementById('adminCropCanvas');
+    if (studioCanvas && !studioCtx) studioCtx = studioCanvas.getContext('2d');
     if (!studioCurrentImg || !studioCtx) return;
     
     studioCtx.clearRect(0, 0, studioCanvas.width, studioCanvas.height);
@@ -624,8 +648,6 @@ function renderAdminCanvas() {
     
     studioCtx.drawImage(studioCurrentImg, -studioCurrentImg.width / 2, -studioCurrentImg.height / 2);
     studioCtx.restore();
-    
-    exportAdminCroppedAvatar();
 }
 
 function exportAdminCroppedAvatar() {
@@ -635,7 +657,8 @@ function exportAdminCroppedAvatar() {
     highRes.height = 500;
     const hrCtx = highRes.getContext('2d');
     
-    const ratio = 500 / studioCanvas.width;
+    const canvasW = studioCanvas ? studioCanvas.width : 240;
+    const ratio = 500 / canvasW;
     hrCtx.save();
     hrCtx.translate(studioImgX * ratio, studioImgY * ratio);
     hrCtx.rotate((studioRotation * Math.PI) / 180);
@@ -667,10 +690,12 @@ function rotateAdminImage(deg) {
 
 function resetAdminCrop() {
     if (!studioCurrentImg) return;
-    studioImgX = studioCanvas.width / 2;
-    studioImgY = studioCanvas.height / 2;
-    const scaleW = studioCanvas.width / studioCurrentImg.width;
-    const scaleH = studioCanvas.height / studioCurrentImg.height;
+    const canvasW = studioCanvas ? studioCanvas.width : 240;
+    const canvasH = studioCanvas ? studioCanvas.height : 240;
+    studioImgX = canvasW / 2;
+    studioImgY = canvasH / 2;
+    const scaleW = canvasW / studioCurrentImg.width;
+    const scaleH = canvasH / studioCurrentImg.height;
     studioScale = Math.max(scaleW, scaleH);
     studioRotation = 0;
     document.getElementById('adminZoomSlider').value = studioScale;

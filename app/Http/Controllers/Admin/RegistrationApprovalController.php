@@ -94,12 +94,25 @@ class RegistrationApprovalController extends Controller
     public function details(User $user)
     {
         $regData = is_array($user->reg_data) ? $user->reg_data : [];
+        $author = $user->getAuthorRecord();
 
+        $rawAvatar = $user->avatar ?: ($author?->avatar ?: ($regData['avatar'] ?? null));
         $avatarUrl = null;
-        if (!empty($user->avatar)) {
-            $avatarUrl = str_starts_with($user->avatar, 'http') ? $user->avatar : asset('storage/' . ltrim($user->avatar, '/'));
-        } elseif (!empty($regData['avatar'])) {
-            $avatarUrl = str_starts_with($regData['avatar'], 'http') ? $regData['avatar'] : asset('storage/' . ltrim($regData['avatar'], '/'));
+        if (!empty($rawAvatar)) {
+            $avatarUrl = str_starts_with($rawAvatar, 'http') ? $rawAvatar : asset('storage/' . ltrim($rawAvatar, '/'));
+        }
+
+        if (empty($regData['bio']) && $author && !empty($author->bio)) {
+            $regData['bio'] = $author->bio;
+        }
+        if (empty($regData['pen_name']) && $author && !empty($author->name) && $author->name !== $user->name) {
+            $regData['pen_name'] = $author->name;
+        }
+        if (empty($regData['genre']) && $author && !empty($author->genre)) {
+            $regData['genre'] = $author->genre;
+        }
+        if (empty($regData['website']) && $author && !empty($author->website)) {
+            $regData['website'] = $author->website;
         }
 
         return response()->json([
@@ -107,6 +120,7 @@ class RegistrationApprovalController extends Controller
             'user'                  => $user,
             'avatar_url'            => $avatarUrl,
             'reg_data'              => $regData,
+            'author'                => $author,
             'created_at_formatted'  => $user->created_at ? $user->created_at->format('d M Y, h:i A') : '',
             'approved_at_formatted' => $user->approved_at ? \Carbon\Carbon::parse($user->approved_at)->format('d M Y, h:i A') : null,
         ]);

@@ -328,12 +328,15 @@ class AuthorDashboardController extends Controller
      */
     public function updateProfile(Request $request)
     {
+        $user = auth()->user();
+        $author = $user->getAuthorRecord();
+
         $request->validate([
             'name'            => ['required', 'string', 'max:255'],
             'pen_name'        => ['nullable', 'string', 'max:255'],
             'bio'             => ['nullable', 'string', 'max:5000'],
             'genre'           => ['nullable', 'string', 'max:255'],
-            'phone'           => ['nullable', 'string', 'max:50'],
+            'phone'           => ['nullable', 'string', 'max:50', \Illuminate\Validation\Rule::unique('users', 'phone')->ignore($user->id)],
             'website'         => ['nullable', 'string', 'max:255'],
             'facebook'        => ['nullable', 'string', 'max:255'],
             'twitter'         => ['nullable', 'string', 'max:255'],
@@ -347,9 +350,6 @@ class AuthorDashboardController extends Controller
         ]);
 
         try {
-            $user = auth()->user();
-            $author = $user->getAuthorRecord();
-
             DB::transaction(function () use ($user, $author, $request) {
                 $user->name = $request->input('name');
                 if ($request->filled('phone')) {

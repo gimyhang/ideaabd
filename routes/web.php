@@ -77,7 +77,6 @@ Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login')->
 Route::post('/login', [LoginController::class, 'login'])->middleware('guest');
 Route::get('/login/refresh-bot-challenge', [LoginController::class, 'refreshBotChallenge'])->name('login.refresh-bot');
 Route::get('/login/visual-challenge', [LoginController::class, 'getVisualChallenge'])->name('login.visual-challenge');
-Route::post('/login/verify-visual-challenge', [LoginController::class, 'verifyVisualChallenge'])->name('login.verify-visual-challenge');
 Route::match(['get', 'post'], '/logout', [LoginController::class, 'logout'])->name('logout');
 
 // --- Password Reset via Email / WhatsApp (+8801558712810) ---

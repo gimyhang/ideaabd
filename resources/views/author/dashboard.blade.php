@@ -1077,6 +1077,11 @@ function openPhotoStudioModal() {
     if (modalEl) {
         const modal = new bootstrap.Modal(modalEl);
         modal.show();
+        setTimeout(() => {
+            if (!modalCanvas) modalCanvas = document.getElementById('modalCropCanvas');
+            if (modalCanvas && !modalCtx) modalCtx = modalCanvas.getContext('2d');
+            if (modalCurrentImg) renderModalCanvas();
+        }, 200);
     }
 }
 
@@ -1094,16 +1099,26 @@ function openBioEditModal() {
 
 function loadModalAuthorImage(input) {
     if (input.files && input.files[0]) {
+        const file = input.files[0];
         const reader = new FileReader();
         reader.onload = function(e) {
+            // Instant preview on main avatar box
+            const mainBox = document.getElementById('dashAvatarMainBox');
+            if (mainBox) {
+                mainBox.innerHTML = `<img src="${e.target.result}" alt="Preview" class="w-100 h-100 object-fit-cover current-author-avatar-img">`;
+            }
+
             modalCurrentImg = new Image();
             modalCurrentImg.onload = function() {
+                if (!modalCanvas) modalCanvas = document.getElementById('modalCropCanvas');
+                if (modalCanvas && !modalCtx) modalCtx = modalCanvas.getContext('2d');
+
                 document.getElementById('modalCanvasPlaceholder').style.display = 'none';
                 document.getElementById('modalCropControls').style.display = 'block';
                 document.getElementById('modalSavePhotoBtn').disabled = false;
                 
-                const canvasW = modalCanvas.width;
-                const canvasH = modalCanvas.height;
+                const canvasW = modalCanvas ? modalCanvas.width : 240;
+                const canvasH = modalCanvas ? modalCanvas.height : 240;
                 const scaleW = canvasW / modalCurrentImg.width;
                 const scaleH = canvasH / modalCurrentImg.height;
                 modalScale = Math.max(scaleW, scaleH);
@@ -1119,11 +1134,13 @@ function loadModalAuthorImage(input) {
             };
             modalCurrentImg.src = e.target.result;
         };
-        reader.readAsDataURL(input.files[0]);
+        reader.readAsDataURL(file);
     }
 }
 
 function renderModalCanvas() {
+    if (!modalCanvas) modalCanvas = document.getElementById('modalCropCanvas');
+    if (modalCanvas && !modalCtx) modalCtx = modalCanvas.getContext('2d');
     if (!modalCurrentImg || !modalCtx) return;
     
     modalCtx.clearRect(0, 0, modalCanvas.width, modalCanvas.height);
@@ -1135,18 +1152,17 @@ function renderModalCanvas() {
     
     modalCtx.drawImage(modalCurrentImg, -modalCurrentImg.width / 2, -modalCurrentImg.height / 2);
     modalCtx.restore();
-    
-    exportModalCroppedAvatar();
 }
 
 function exportModalCroppedAvatar() {
     if (!modalCurrentImg) return;
     const highRes = document.createElement('canvas');
-    highRes.width = 400;
-    highRes.height = 400;
+    highRes.width = 500;
+    highRes.height = 500;
     const hrCtx = highRes.getContext('2d');
     
-    const ratio = 400 / modalCanvas.width;
+    const canvasW = modalCanvas ? modalCanvas.width : 240;
+    const ratio = 500 / canvasW;
     hrCtx.save();
     hrCtx.translate(modalImgX * ratio, modalImgY * ratio);
     hrCtx.rotate((modalRotation * Math.PI) / 180);
@@ -1154,7 +1170,7 @@ function exportModalCroppedAvatar() {
     hrCtx.drawImage(modalCurrentImg, -modalCurrentImg.width / 2, -modalCurrentImg.height / 2);
     hrCtx.restore();
     
-    modalCroppedDataUrl = highRes.toDataURL('image/jpeg', 0.92);
+    modalCroppedDataUrl = highRes.toDataURL('image/jpeg', 0.90);
 }
 
 function onModalZoomChange(val) {
@@ -1178,10 +1194,12 @@ function rotateModalImage(deg) {
 
 function resetModalCrop() {
     if (!modalCurrentImg) return;
-    modalImgX = modalCanvas.width / 2;
-    modalImgY = modalCanvas.height / 2;
-    const scaleW = modalCanvas.width / modalCurrentImg.width;
-    const scaleH = modalCanvas.height / modalCurrentImg.height;
+    const canvasW = modalCanvas ? modalCanvas.width : 240;
+    const canvasH = modalCanvas ? modalCanvas.height : 240;
+    modalImgX = canvasW / 2;
+    modalImgY = canvasH / 2;
+    const scaleW = canvasW / modalCurrentImg.width;
+    const scaleH = canvasH / modalCurrentImg.height;
     modalScale = Math.max(scaleW, scaleH);
     modalRotation = 0;
     document.getElementById('modalZoomSlider').value = modalScale;
@@ -1193,7 +1211,8 @@ function resetModalCrop() {
 const modalWrapper = document.getElementById('modalCanvasWrapper');
 
 function getModalPos(e) {
-    const rect = modalCanvas.getBoundingClientRect();
+    if (!modalCanvas) modalCanvas = document.getElementById('modalCropCanvas');
+    const rect = modalCanvas ? modalCanvas.getBoundingClientRect() : { left: 0, top: 0 };
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
     const clientY = e.touches ? e.touches[0].clientY : e.clientY;
     return {
@@ -1285,10 +1304,10 @@ function submitDynamicAuthorPhoto() {
             const newUrl = data.avatar_url;
             const mainBox = document.getElementById('dashAvatarMainBox');
             if (mainBox && newUrl) {
-                mainBox.innerHTML = `<img src="${newUrl}" alt="Author Avatar" class="w-100 h-100 object-fit-cover current-author-avatar-img">`;
+                mainBox.innerHTML = `<img src="${newUrl}?v=${Date.now()}" alt="Author Avatar" class="w-100 h-100 object-fit-cover current-author-avatar-img">`;
             }
-            document.querySelectorAll('.header-author-avatar-img').forEach(img => {
-                img.src = newUrl;
+            document.querySelectorAll('.header-author-avatar-img, .current-author-avatar-img').forEach(img => {
+                img.src = `${newUrl}?v=${Date.now()}`;
             });
             
             setTimeout(() => {
