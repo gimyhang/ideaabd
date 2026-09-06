@@ -582,6 +582,50 @@
                 <input type="hidden" id="f-book_size" name="book_size" value="{{ $val('book_size') }}">
             </div>
 
+            {{-- IDEA PUBLICATION SERIAL (আইডিয়া প্রকাশন নিজস্ব ক্রমিক) --}}
+            <div class="col-12 col-md-3">
+                <div class="d-flex align-items-center justify-content-between mb-1">
+                    <label for="f-idea_serial_no" class="form-label small fw-bold text-dark mb-0">
+                        <i class="fas fa-star text-warning me-1"></i> Idea Serial (আইডিয়া সিরিয়াল)
+                    </label>
+                    <button type="button" class="btn btn-xs btn-outline-warning text-dark rounded-pill px-2 py-0 fw-semibold" onclick="generateAutoIdeaSerialForForm()" style="font-size: 10px;" title="Auto generate Idea Prokashon serial number">
+                        <i class="fas fa-magic me-0.5"></i> Auto IP
+                    </button>
+                </div>
+                <input type="text" id="f-idea_serial_no" name="idea_serial_no" value="{{ $val('idea_serial_no') }}" 
+                       class="form-control form-control-sm font-monospace fw-bold bg-warning-subtle bg-opacity-25 border-warning @error('idea_serial_no') is-invalid @enderror"
+                       placeholder="e.g. IP-042" oninput="updateLiveBarcodePreview(this.value)">
+                <div class="form-text text-muted" style="font-size: 9.5px;">আইডিয়া প্রকাশন নিজস্ব ক্রমিক (IP-001...)</div>
+                @error('idea_serial_no')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+            </div>
+
+            {{-- GENERAL CATALOG SKU (গণ সিরিয়াল) --}}
+            <div class="col-12 col-md-3">
+                <div class="d-flex align-items-center justify-content-between mb-1">
+                    <label for="f-sku" class="form-label small fw-bold text-dark mb-0">
+                        <i class="fas fa-fingerprint text-primary me-1"></i> General SKU (গণ সিরিয়াল)
+                    </label>
+                    <button type="button" class="btn btn-xs btn-outline-primary rounded-pill px-2 py-0 fw-semibold" onclick="generateAutoGeneralSkuForForm()" style="font-size: 10px;" title="Auto generate global catalog SKU">
+                        <i class="fas fa-wand-magic-sparkles me-0.5"></i> Auto SKU
+                    </button>
+                </div>
+                <input type="text" id="f-sku" name="sku" value="{{ $val('sku') }}" 
+                       class="form-control form-control-sm font-monospace fw-semibold @error('sku') is-invalid @enderror"
+                       placeholder="e.g. BK-00042">
+                <div class="form-text text-muted" style="font-size: 9.5px;">সকল বইয়ের কেন্দ্রীয় গণ সিরিয়াল</div>
+                @error('sku')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+            </div>
+
+            <div class="col-6 col-md-3">
+                <label for="f-isbn" class="form-label small fw-bold text-dark mb-1">
+                    <i class="fas fa-barcode text-secondary me-1"></i> ISBN / EAN-13
+                </label>
+                <input type="text" id="f-isbn" name="isbn" value="{{ $val('isbn') }}"
+                       class="form-control form-control-sm @error('isbn') is-invalid @enderror"
+                       placeholder="e.g. 978-984-XXXX-XX-X">
+                @error('isbn')<div class="invalid-feedback">{{ $message }}</div>@enderror
+            </div>
+
             <div class="col-6 col-md-3">
                 <label for="f-published_at" class="form-label small fw-bold text-dark mb-1">
                     <i class="fas fa-calendar-check text-warning me-1"></i> Published Date
@@ -591,14 +635,44 @@
                 @error('published_at')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
 
-            <div class="col-6 col-md-3">
-                <label for="f-isbn" class="form-label small fw-bold text-dark mb-1">
-                    <i class="fas fa-barcode text-secondary me-1"></i> ISBN
-                </label>
-                <input type="text" id="f-isbn" name="isbn" value="{{ $val('isbn') }}"
-                       class="form-control form-control-sm @error('isbn') is-invalid @enderror"
-                       placeholder="e.g. 978-984-XXXX-XX-X">
-                @error('isbn')<div class="invalid-feedback">{{ $message }}</div>@enderror
+            {{-- LIVE BARCODE & QR CODE PREVIEW STRIP --}}
+            <div class="col-12">
+                <div class="p-3 bg-light rounded-3 border">
+                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+                        <div>
+                            <span class="small fw-bold text-dark"><i class="fas fa-qrcode text-primary me-1"></i> Live Barcode & QR Code Engine</span>
+                            <small class="text-muted d-block" style="font-size: 11px;">মোবাইল ক্যামেরা বা বারকোড রিডার গান দিয়ে সরাসরি রিড করা যাবে।</small>
+                        </div>
+                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-1" style="font-size: 10px;">
+                            <i class="fas fa-check-circle me-0.5"></i> Auto-Generated
+                        </span>
+                    </div>
+
+                    <div class="row g-2 align-items-center">
+                        <div class="col-12 col-md-7">
+                            <div class="bg-white p-2.5 rounded-2 border text-center" id="barcodePreviewBox" style="min-height: 70px;">
+                                <div id="barcodeSvgContainer" class="d-flex justify-content-center align-items-center">
+                                    {{-- Rendered dynamically or via initial PHP --}}
+                                    @php
+                                        $initialCode = $val('sku') ?: ($val('isbn') ?: 'IDEA-' . ($record->id ?? 'NEW'));
+                                    @endphp
+                                    {!! \App\Services\BarcodeService::generateCode128Svg((string)$initialCode, 42, 1.8, true) !!}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-5">
+                            <div class="bg-white p-2 rounded-2 border d-flex align-items-center gap-2.5">
+                                <div id="qrSvgContainer" class="flex-shrink-0">
+                                    {!! \App\Services\BarcodeService::generateQrCodeSvg(url('/books/' . ($record->slug ?? ($record->id ?? 'preview'))), 56) !!}
+                                </div>
+                                <div class="small">
+                                    <div class="fw-bold text-dark font-monospace" style="font-size: 11.5px;" id="qrCodeLabel">{{ $val('sku') ?: 'IP-AUTO' }}</div>
+                                    <div class="text-muted" style="font-size: 10px;">Scan to open storefront or POS checkout</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             {{-- ROW 10: Summary --}}
@@ -1199,6 +1273,91 @@
             updateLiveMockupCard();
         }
     }
+
+    window.generateAutoIdeaSerialForForm = function() {
+        const input = document.getElementById('f-idea_serial_no');
+        fetch('{{ route("admin.books.generate-serial") }}?publisher_id=2')
+            .then(res => res.json())
+            .then(data => {
+                if (data.success && data.serial) {
+                    if (input) {
+                        input.value = data.serial;
+                        updateLiveBarcodePreview(data.serial);
+                    }
+                }
+            })
+            .catch(err => {
+                console.error('Idea serial error:', err);
+                if (input && !input.value) {
+                    input.value = 'IP-AUTO';
+                    updateLiveBarcodePreview('IP-AUTO');
+                }
+            });
+    };
+
+    window.generateAutoGeneralSkuForForm = function() {
+        const skuInput = document.getElementById('f-sku');
+        fetch('{{ route("admin.books.generate-serial") }}?type=general')
+            .then(res => res.json())
+            .then(data => {
+                if (data.success && data.serial) {
+                    if (skuInput) {
+                        skuInput.value = data.general_sku || data.serial;
+                    }
+                }
+            })
+            .catch(err => {
+                if (skuInput && !skuInput.value) {
+                    skuInput.value = 'BK-' + Date.now().toString().slice(-5);
+                }
+            });
+    };
+
+    window.updateLiveBarcodePreview = function(code) {
+        const ideaSerial = document.getElementById('f-idea_serial_no')?.value;
+        const sku = document.getElementById('f-sku')?.value;
+        const cleanCode = (code || ideaSerial || sku || 'IP-AUTO').trim();
+        const label = document.getElementById('qrCodeLabel');
+        if (label) {
+            label.textContent = cleanCode;
+        }
+
+        // Generate quick vector Code128 pattern simulation
+        const container = document.getElementById('barcodeSvgContainer');
+        if (!container) return;
+
+        // Simple real-time SVG renderer for visual feedback
+        let bars = '';
+        let x = 20;
+        for (let i = 0; i < cleanCode.length; i++) {
+            const charCode = cleanCode.charCodeAt(i);
+            const w1 = ((charCode % 3) + 1.2) * 1.5;
+            const w2 = (((charCode >> 1) % 3) + 1) * 1.5;
+            bars += `<rect x="${x}" y="4" width="${w1.toFixed(1)}" height="42" fill="#0f172a" />`;
+            x += w1 + ((charCode % 2) + 1.2) * 1.5;
+            bars += `<rect x="${x}" y="4" width="${w2.toFixed(1)}" height="42" fill="#0f172a" />`;
+            x += w2 + 2;
+        }
+        
+        container.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${Math.max(x + 20, 180)} 62" width="100%" height="100%" style="background:#ffffff; border-radius:4px; max-width:240px; display:inline-block; vertical-align:middle;">
+            ${bars}
+            <text x="50%" y="58" text-anchor="middle" font-family="Consolas, Monaco, monospace" font-size="11" font-weight="700" fill="#0f172a" letter-spacing="1">${cleanCode}</text>
+        </svg>`;
+    };
+
+    // Auto generate defaults on new book creation
+    document.addEventListener('DOMContentLoaded', function() {
+        const ideaInput = document.getElementById('f-idea_serial_no');
+        const skuInput = document.getElementById('f-sku');
+        @if(empty($record->id))
+            if (ideaInput && !ideaInput.value) {
+                generateAutoIdeaSerialForForm();
+            }
+            if (skuInput && !skuInput.value) {
+                generateAutoGeneralSkuForForm();
+            }
+        @endif
+    });
 
     window.applyAutoCoverTheme = applyAutoCoverTheme;
     window.magicAutoGenerateCover = magicAutoGenerateCover;

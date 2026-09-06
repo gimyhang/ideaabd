@@ -372,6 +372,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
 
     Route::get('/users', [AdminController::class, 'users'])->name('users');
     Route::get('/books', [AdminController::class, 'books'])->name('books');
+    Route::post('/books/sync-serials', [AdminController::class, 'syncBookSerials'])->name('books.sync-serials');
+    Route::get('/books/generate-serial', [AdminController::class, 'generateBookSerial'])->name('books.generate-serial');
+    Route::get('/books/print-labels', [AdminController::class, 'printBookLabels'])->name('books.print-labels');
+    Route::get('/books/{id}/barcode-data', [AdminController::class, 'getBookBarcodeData'])->name('books.barcode-data');
     Route::post('/books/{id}/toggle-status', [AdminController::class, 'toggleBookStatus'])->name('books.toggle-status');
     Route::post('/books/{id}/approve', [AdminController::class, 'approveBook'])->name('books.approve');
     Route::post('/books/{id}/reject', [AdminController::class, 'rejectBook'])->name('books.reject');

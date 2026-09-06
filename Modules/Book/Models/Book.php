@@ -50,6 +50,7 @@ class Book extends Model
         'slug',
         'isbn',
         'sku',
+        'idea_serial_no',
         'summary',
         'description',
         'published_at',
@@ -115,6 +116,16 @@ class Book extends Model
     protected static function booted()
     {
         static::saving(function ($book) {
+            // Auto-generate Idea Prokashon serial number (IP-XXX) if Idea book and empty
+            if ($book->is_idea_prokashon && empty(trim((string) $book->idea_serial_no))) {
+                $book->idea_serial_no = \App\Services\BarcodeService::generateNextIdeaSerial();
+            }
+
+            // Auto-generate General Catalog SKU (BK-XXXXX) if empty
+            if (empty(trim((string) $book->sku))) {
+                $book->sku = \App\Services\BarcodeService::generateNextGeneralSku();
+            }
+
             // Auto resolve or unify author if author_name is provided but author_link_id is missing
             if (empty($book->author_link_id) && !empty($book->author_name)) {
                 $author = \Modules\Author\Models\Author::findOrCreateUnified([
@@ -325,5 +336,50 @@ class Book extends Model
             return $this->hardcover_discount_price ? (float)$this->hardcover_discount_price : ($this->discount_price ? (float)$this->discount_price : null);
         }
         return $this->discount_price ? (float)$this->discount_price : ($this->hardcover_discount_price ? (float)$this->hardcover_discount_price : null);
+    }
+
+    /**
+     * Check if this book belongs to Idea Prokashon (In-House)
+     */
+    public function getIsIdeaProkashonAttribute(): bool
+    {
+        return empty($this->publisher_id) || (int) $this->publisher_id === 2;
+    }
+
+    /**
+     * Get vector Code 128 SVG Barcode (Uses Idea Serial if present, else SKU or ISBN)
+     */
+    public function getBarcodeSvgAttribute(): string
+    {
+        $code = !empty($this->idea_serial_no) ? $this->idea_serial_no : (!empty($this->sku) ? $this->sku : (!empty($this->isbn) ? $this->isbn : 'IDEA-' . $this->id));
+        return \App\Services\BarcodeService::generateCode128Svg($code, 46, 1.8, true);
+    }
+
+    /**
+     * Get Primary Product Identifier Code (Idea Serial for Idea books, SKU for others)
+     */
+    public function getProductCodeAttribute(): string
+    {
+        if ($this->is_idea_prokashon && !empty($this->idea_serial_no)) {
+            return $this->idea_serial_no;
+        }
+        return $this->sku ?: ('BK-' . $this->id);
+    }
+
+    /**
+     * Get vector QR Code SVG
+     */
+    public function getQrCodeSvgAttribute(): string
+    {
+        $url = url('/books/' . ($this->slug ?: $this->id));
+        return \App\Services\BarcodeService::generateQrCodeSvg($url, 110);
+    }
+
+    /**
+     * Get QR Code Payload String
+     */
+    public function getQrPayloadAttribute(): string
+    {
+        return url('/books/' . ($this->slug ?: $this->id));
     }
 }

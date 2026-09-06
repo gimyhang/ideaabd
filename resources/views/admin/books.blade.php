@@ -17,6 +17,12 @@
                 </span>
             @endif
         </a>
+        <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-xs" onclick="syncAllBookSerials()" title="Auto-assign missing serial numbers (SKU) to books">
+            <i class="fas fa-wand-magic-sparkles me-1"></i> Sync Serials
+        </button>
+        <a href="{{ route('admin.books.print-labels') }}" target="_blank" class="btn btn-outline-dark btn-sm rounded-pill px-3 shadow-xs" title="Print Barcode & QR Sticker Labels">
+            <i class="fas fa-barcode me-1"></i> Print Labels
+        </a>
         <button type="button" class="btn btn-outline-success btn-sm rounded-pill px-3 shadow-xs" onclick="exportBooksToCSV()" title="Export to CSV file">
             <i class="fas fa-file-csv me-1"></i> Export (CSV)
         </button>
@@ -226,7 +232,9 @@
                 <!-- Sort By -->
                 <div class="col-6 col-md-2">
                     <select name="sort" class="form-select form-select-sm" onchange="submitFilterForm()">
-                        <option value="latest" @selected(request('sort') === 'latest' || !request('sort'))>Newest First</option>
+                        <option value="idea_serial_asc" @selected(request('sort') === 'idea_serial_asc' || (request('publisher_id') === 'idea' && !request('sort')))>⭐ Idea Serial (১ থেকে ক্রমিক)</option>
+                        <option value="idea_serial_desc" @selected(request('sort') === 'idea_serial_desc')>⭐ Idea Serial (সর্বোচ্চ থেকে ক্রমিক)</option>
+                        <option value="latest" @selected(request('sort') === 'latest' || (!request('publisher_id') && !request('sort')))>Newest First</option>
                         <option value="oldest" @selected(request('sort') === 'oldest')>Oldest First</option>
                         <option value="title_asc" @selected(request('sort') === 'title_asc')>Title: A to Z</option>
                         <option value="title_desc" @selected(request('sort') === 'title_desc')>Title: Z to A</option>
@@ -584,8 +592,20 @@
                                            class="fw-bold text-dark text-decoration-none hover-primary d-block text-truncate mb-0.5" title="{{ $book->title }}" id="bookTitleDisplay_{{ $book->id }}">
                                             {{ $book->title }}
                                         </a>
-                                        <div class="d-flex align-items-center gap-1.5 small text-muted font-monospace" style="font-size: 11px;">
-                                            <span class="badge bg-light text-muted border px-1.5 py-0.5" id="bookSkuDisplay_{{ $book->id }}">{{ $book->sku ?: 'NO-SKU' }}</span>
+                                        <div class="d-flex flex-wrap align-items-center gap-1.5 small text-muted font-monospace" style="font-size: 11px;">
+                                            @if($book->idea_serial_no)
+                                                <span class="badge bg-warning-subtle text-dark border border-warning px-1.5 py-0.5 fw-bold" id="bookIdeaSerialDisplay_{{ $book->id }}" title="আইডিয়া প্রকাশন নিজস্ব ক্রমিক নম্বর">
+                                                    <i class="fas fa-star text-warning me-0.5"></i>{{ $book->idea_serial_no }}
+                                                </span>
+                                            @endif
+                                            @if($book->sku)
+                                                <span class="badge bg-light text-muted border px-1.5 py-0.5" id="bookSkuDisplay_{{ $book->id }}" title="গণ সিরিয়াল (General SKU)">
+                                                    {{ $book->sku }}
+                                                </span>
+                                            @endif
+                                            <button type="button" class="btn btn-xs btn-outline-dark py-0 px-1.5 rounded-pill" onclick="openBarcodeModal({{ $book->id }})" title="View Barcode & QR Code" style="font-size: 10px;">
+                                                <i class="fas fa-barcode me-0.5"></i>QR
+                                            </button>
                                             @if($book->isbn)
                                                 <span class="text-truncate" title="ISBN: {{ $book->isbn }}"><i class="fas fa-barcode me-0.5"></i>{{ $book->isbn }}</span>
                                             @endif
@@ -822,6 +842,13 @@
                                             <i class="fas fa-arrow-up-right-from-square" style="font-size: 10px;"></i>
                                         </a>
                                     @endif
+
+                                    {{-- Barcode & QR Code Action --}}
+                                    <button type="button" class="btn btn-sm btn-light border text-dark rounded-circle shadow-xs adm-icon-action-btn" 
+                                            style="width: 29px; height: 29px; padding: 0; display: inline-flex; align-items: center; justify-content: center;" 
+                                            onclick="openBarcodeModal({{ $book->id }})" title="View Barcode & QR Code">
+                                        <i class="fas fa-barcode" style="font-size: 11px;"></i>
+                                    </button>
 
                                     {{-- Delete Action --}}
                                     <button type="button" class="btn btn-sm btn-light border text-danger rounded-circle shadow-xs adm-icon-action-btn" 
@@ -1734,6 +1761,76 @@ function showBookToast(type, msg) {
     setTimeout(() => { alertDiv.remove(); }, 4000);
 }
 
+function syncAllBookSerials() {
+    if (!confirm('আপনি কি সব বইয়ের জন্য স্বয়ংক্রিয় সিরিয়াল নম্বর (আইডিয়া প্রকাশন ও অন্যান্য পাবলিশার) সিঙ্ক করতে চান?')) {
+        return;
+    }
+
+    fetch('{{ route("admin.books.sync-serials") }}', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}',
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            showBookToast('success', data.message || 'সিরিয়াল নম্বর সফলভাবে সিঙ্ক হয়েছে!');
+            setTimeout(() => window.location.reload(), 1200);
+        } else {
+            showBookToast('error', data.message || 'সিরিয়াল সিঙ্ক করতে ব্যর্থ হয়েছে।');
+        }
+    })
+    .catch(err => {
+        showBookToast('error', 'সার্ভার সংযোগ সমস্যা।');
+    });
+}
+
+function openBarcodeModal(bookId) {
+    const modalEl = document.getElementById('bookBarcodeModal');
+    if (!modalEl) return;
+
+    // Reset modal content to loading state
+    document.getElementById('barcodeModalTitle').textContent = 'Loading book barcode...';
+    document.getElementById('barcodeModalAuthor').textContent = '';
+    document.getElementById('barcodeModalSku').textContent = '...';
+    document.getElementById('barcodeModalPrice').textContent = '';
+    document.getElementById('barcodeModalSvgBox').innerHTML = '<div class="spinner-border text-primary" role="status"></div>';
+    document.getElementById('barcodeModalQrBox').innerHTML = '<div class="spinner-border text-primary" role="status"></div>';
+
+    const bsModal = new bootstrap.Modal(modalEl);
+    bsModal.show();
+
+    fetch(`/admin/books/${bookId}/barcode-data`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('barcodeModalTitle').textContent = data.title;
+                document.getElementById('barcodeModalAuthor').textContent = data.author + ' | ' + data.publisher;
+                document.getElementById('barcodeModalSku').textContent = data.sku || 'IP-AUTO';
+                document.getElementById('barcodeModalPrice').textContent = '৳' + Math.round(data.effective_price || 0);
+                
+                document.getElementById('barcodeModalSvgBox').innerHTML = data.barcode_svg;
+                document.getElementById('barcodeModalQrBox').innerHTML = data.qr_svg;
+
+                // Setup print buttons
+                document.getElementById('barcodeModalPrint1x').href = `{{ route('admin.books.print-labels') }}?ids=${data.id}&copies=1`;
+                document.getElementById('barcodeModalPrint5x').href = `{{ route('admin.books.print-labels') }}?ids=${data.id}&copies=5`;
+                document.getElementById('barcodeModalStoreLink').href = data.store_url;
+
+                document.getElementById('barcodeModalCopyBtn').onclick = function() {
+                    navigator.clipboard.writeText(data.sku || data.id);
+                    showBookToast('success', `সিরিয়াল কোড '${data.sku}' কপি করা হয়েছে!`);
+                };
+            }
+        })
+        .catch(err => {
+            document.getElementById('barcodeModalSvgBox').innerHTML = '<span class="text-danger">Failed to load barcode.</span>';
+        });
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     const wrapper = document.getElementById('adminBooksTableWrapper');
     const syncBar = document.getElementById('adminBooksScrollSyncBar');
@@ -1752,6 +1849,68 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 @endpush
+
+{{-- Universal Book Barcode & QR Code Modal --}}
+<div class="modal fade" id="bookBarcodeModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header bg-dark text-white py-3">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="p-2 bg-primary rounded-circle text-white"><i class="fas fa-barcode"></i></span>
+                    <div>
+                        <h6 class="modal-title fw-bold mb-0 text-white">Product Barcode & QR Code</h6>
+                        <small class="text-white-50" style="font-size: 11px;">মোবাইল ক্যামেরা ও বারকোড রিডার কম্প্যাটিবল</small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4 bg-light">
+                {{-- Book Info Header --}}
+                <div class="bg-white p-3 rounded-3 border mb-3 text-center">
+                    <h6 class="fw-bold text-dark mb-1" id="barcodeModalTitle">Book Title</h6>
+                    <div class="small text-muted mb-2" id="barcodeModalAuthor">Author Name</div>
+                    <div class="d-flex align-items-center justify-content-center gap-2">
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2.5 py-1 font-monospace fw-bold" id="barcodeModalSku">IP-001</span>
+                        <span class="badge bg-success text-white px-2.5 py-1 fw-bold fs-6 font-monospace" id="barcodeModalPrice">৳350</span>
+                        <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-2" id="barcodeModalCopyBtn" title="Copy Serial Code">
+                            <i class="fas fa-copy me-1"></i>Copy
+                        </button>
+                    </div>
+                </div>
+
+                {{-- Barcode (Code 128) Container --}}
+                <div class="bg-white p-3 rounded-3 border mb-3 text-center">
+                    <small class="text-muted d-block mb-2 fw-semibold text-uppercase" style="font-size: 10px; letter-spacing: 0.5px;">Vector Barcode (Code 128)</small>
+                    <div id="barcodeModalSvgBox" class="d-flex justify-content-center align-items-center" style="min-height: 70px;">
+                        <!-- SVG injected here -->
+                    </div>
+                </div>
+
+                {{-- QR Code Container --}}
+                <div class="bg-white p-3 rounded-3 border text-center">
+                    <small class="text-muted d-block mb-2 fw-semibold text-uppercase" style="font-size: 10px; letter-spacing: 0.5px;">Smartphone Scannable QR Code</small>
+                    <div id="barcodeModalQrBox" class="d-flex justify-content-center align-items-center" style="min-height: 110px;">
+                        <!-- SVG injected here -->
+                    </div>
+                    <small class="text-muted d-block mt-2" style="font-size: 11px;">যেকোনো মোবাইল ক্যামেরা দিয়ে স্ক্যান করলে বইটির পেজ ও চেকআউট চলে আসবে</small>
+                </div>
+            </div>
+            <div class="modal-footer bg-white py-2.5 d-flex justify-content-between">
+                <a href="#" target="_blank" id="barcodeModalStoreLink" class="btn btn-sm btn-outline-dark rounded-pill px-3">
+                    <i class="fas fa-arrow-up-right-from-square me-1"></i> View Book
+                </a>
+                <div class="d-flex gap-2">
+                    <a href="#" target="_blank" id="barcodeModalPrint1x" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold">
+                        <i class="fas fa-print me-1"></i> Print 1x Label
+                    </a>
+                    <a href="#" target="_blank" id="barcodeModalPrint5x" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold">
+                        <i class="fas fa-tags me-1"></i> Print 5x Labels
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 {{-- Book Reject Modal --}}
 <div class="modal fade" id="rejectBookModal" tabindex="-1" aria-hidden="true">

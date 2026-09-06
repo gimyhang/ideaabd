@@ -84,6 +84,7 @@ class PublisherPortalController extends Controller
                       ->orWhere('subtitle', 'like', $like)
                       ->orWhere('isbn', 'like', $like)
                       ->orWhere('sku', 'like', $like)
+                      ->orWhere('idea_serial_no', 'like', $like)
                       ->orWhere('author_name', 'like', $like);
                 });
             })
@@ -93,16 +94,33 @@ class PublisherPortalController extends Controller
             ->when($stockFilter === 'out', fn ($q) => $q->where('stock_quantity', '<=', 0))
             ->when($stockFilter === 'in_stock', fn ($q) => $q->where('stock_quantity', '>', 5));
 
-        match ($sort) {
-            'oldest'     => $booksQuery->oldest('id'),
-            'title_asc'  => $booksQuery->orderBy('title', 'asc'),
-            'title_desc' => $booksQuery->orderBy('title', 'desc'),
-            'price_low'  => $booksQuery->orderBy('price', 'asc'),
-            'price_high' => $booksQuery->orderBy('price', 'desc'),
-            'stock_low'  => $booksQuery->orderBy('stock_quantity', 'asc'),
-            'stock_high' => $booksQuery->orderByDesc('stock_quantity'),
-            default      => $booksQuery->latest('id'),
-        };
+        $isIdeaPub = ($publisher->id == 2 || $publisher->slug === 'ideaprokashon');
+
+        if ($isIdeaPub) {
+            match ($sort) {
+                'oldest'           => $booksQuery->oldest('id'),
+                'latest'           => $booksQuery->latest('id'),
+                'title_asc'        => $booksQuery->orderBy('title', 'asc'),
+                'title_desc'       => $booksQuery->orderBy('title', 'desc'),
+                'price_low'        => $booksQuery->orderBy('price', 'asc'),
+                'price_high'       => $booksQuery->orderBy('price', 'desc'),
+                'stock_low'        => $booksQuery->orderBy('stock_quantity', 'asc'),
+                'stock_high'       => $booksQuery->orderByDesc('stock_quantity'),
+                'idea_serial_desc' => $booksQuery->orderByRaw("CASE WHEN idea_serial_no IS NOT NULL AND idea_serial_no != '' THEN CAST(REGEXP_REPLACE(idea_serial_no, '[^0-9]', '') AS UNSIGNED) ELSE id END DESC"),
+                default            => $booksQuery->orderByRaw("CASE WHEN idea_serial_no IS NOT NULL AND idea_serial_no != '' THEN CAST(REGEXP_REPLACE(idea_serial_no, '[^0-9]', '') AS UNSIGNED) ELSE id END ASC"),
+            };
+        } else {
+            match ($sort) {
+                'oldest'     => $booksQuery->oldest('id'),
+                'title_asc'  => $booksQuery->orderBy('title', 'asc'),
+                'title_desc' => $booksQuery->orderBy('title', 'desc'),
+                'price_low'  => $booksQuery->orderBy('price', 'asc'),
+                'price_high' => $booksQuery->orderBy('price', 'desc'),
+                'stock_low'  => $booksQuery->orderBy('stock_quantity', 'asc'),
+                'stock_high' => $booksQuery->orderByDesc('stock_quantity'),
+                default      => $booksQuery->latest('id'),
+            };
+        }
 
         $books = $booksQuery->paginate(15)->withQueryString();
 

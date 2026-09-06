@@ -444,6 +444,7 @@ class AdminController extends Controller
                                   ->orWhere('cover_artist', 'like', $like)
                                   ->orWhere('isbn', 'like', $like)
                                   ->orWhere('sku', 'like', $like)
+                                  ->orWhere('idea_serial_no', 'like', $like)
                                   ->orWhere('slug', 'like', $like)
                                   ->orWhere('summary', 'like', $like)
                                   ->orWhere('description', 'like', $like)
@@ -520,18 +521,24 @@ class AdminController extends Controller
             ->when($modStatus !== '', fn ($q) => $q->where('mod_status', $modStatus))
             ->when($status !== null && $status !== '', fn ($q) => $q->where('is_active', (bool) $status));
 
-        match ($sort) {
-            'oldest'        => $query->oldest('id'),
-            'title_asc'     => $query->orderBy('title', 'asc'),
-            'title_desc'    => $query->orderBy('title', 'desc'),
-            'price_low'     => $query->orderBy('price', 'asc'),
-            'price_high'    => $query->orderBy('price', 'desc'),
-            'sales_high'    => $query->orderByDesc('sales_count'),
-            'stock_low'     => $query->orderBy('stock_quantity', 'asc'),
-            'stock_high'    => $query->orderByDesc('stock_quantity'),
-            'discount_high' => $query->whereNotNull('discount_price')->orderByRaw('(price - discount_price) DESC'),
-            default         => $query->latest('id'),
-        };
+        if (($publisherId === 'idea' || $publisherId === '2' || $publisherId === 'in_house') && (!$request->filled('sort') || $sort === 'idea_serial_asc')) {
+            $query->orderByRaw("CASE WHEN idea_serial_no IS NOT NULL AND idea_serial_no != '' THEN CAST(REGEXP_REPLACE(idea_serial_no, '[^0-9]', '') AS UNSIGNED) ELSE id END ASC");
+        } else {
+            match ($sort) {
+                'oldest'           => $query->oldest('id'),
+                'title_asc'        => $query->orderBy('title', 'asc'),
+                'title_desc'       => $query->orderBy('title', 'desc'),
+                'price_low'        => $query->orderBy('price', 'asc'),
+                'price_high'       => $query->orderBy('price', 'desc'),
+                'sales_high'       => $query->orderByDesc('sales_count'),
+                'stock_low'        => $query->orderBy('stock_quantity', 'asc'),
+                'stock_high'       => $query->orderByDesc('stock_quantity'),
+                'discount_high'    => $query->whereNotNull('discount_price')->orderByRaw('(price - discount_price) DESC'),
+                'idea_serial_asc'  => $query->orderByRaw("CASE WHEN idea_serial_no IS NOT NULL AND idea_serial_no != '' THEN CAST(REGEXP_REPLACE(idea_serial_no, '[^0-9]', '') AS UNSIGNED) ELSE 999999 END ASC"),
+                'idea_serial_desc' => $query->orderByRaw("CASE WHEN idea_serial_no IS NOT NULL AND idea_serial_no != '' THEN CAST(REGEXP_REPLACE(idea_serial_no, '[^0-9]', '') AS UNSIGNED) ELSE 0 END DESC"),
+                default            => $query->latest('id'),
+            };
+        }
 
         $books = $query->paginate($perPage)->withQueryString();
 
@@ -634,6 +641,106 @@ class AdminController extends Controller
         }
 
         return back()->with('success', "‘{$book->title}’ বইটি বাতিল করা হয়েছে।");
+    }
+
+    /**
+     * Auto-generate next serial number (SKU / Idea Serial) dynamically via AJAX
+     */
+    public function generateBookSerial(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $type = $request->input('type');
+        if ($type === 'general') {
+            $generalSku = \App\Services\BarcodeService::generateNextGeneralSku();
+            return response()->json([
+                'success'     => true,
+                'serial'      => $generalSku,
+                'general_sku' => $generalSku,
+            ]);
+        }
+
+        $pubId = $request->filled('publisher_id') ? (int) $request->input('publisher_id') : 2;
+        $serial = \App\Services\BarcodeService::generateNextSerial($pubId);
+        $generalSku = \App\Services\BarcodeService::generateNextGeneralSku();
+
+        return response()->json([
+            'success'     => true,
+            'serial'      => $serial,
+            'general_sku' => $generalSku,
+            'is_idea'     => empty($pubId) || $pubId === 2,
+        ]);
+    }
+
+    /**
+     * Batch assign missing serial numbers to all books in database
+     */
+    public function syncBookSerials(Request $request): \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
+    {
+        $updated = \App\Services\BarcodeService::assignMissingSerials();
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'updated' => $updated,
+                'message' => "মোট {$updated} টি বইয়ের জন্য নতুন স্বয়ংক্রিয় সিরিয়াল নম্বর (SKU) তৈরি করা হয়েছে।",
+            ]);
+        }
+
+        return back()->with('success', "মোট {$updated} টি বইয়ের জন্য নতুন স্বয়ংক্রিয় সিরিয়াল নম্বর (SKU) সফলভাবে তৈরি করা হয়েছে।");
+    }
+
+    /**
+     * Fetch complete Barcode and QR Code vector data for a book
+     */
+    public function getBookBarcodeData(Request $request, int $id): \Illuminate\Http\JsonResponse
+    {
+        $book = \Modules\Book\Models\Book::with(['publisher', 'authorLink'])->findOrFail($id);
+
+        $code = !empty($book->idea_serial_no) ? $book->idea_serial_no : (!empty($book->sku) ? $book->sku : (!empty($book->isbn) ? $book->isbn : 'IDEA-' . $book->id));
+        $barcodeSvg = \App\Services\BarcodeService::generateCode128Svg($code, 50, 2.0, true);
+        $qrSvg = \App\Services\BarcodeService::generateQrCodeSvg(url('/books/' . ($book->slug ?: $book->id)), 140);
+
+        return response()->json([
+            'success'          => true,
+            'id'               => $book->id,
+            'title'            => $book->title,
+            'author'           => $book->author_name ?: ($book->authorLink?->name ?? 'আইডিয়া লেখক'),
+            'publisher'        => $book->publisher?->name ?? 'আইডিয়া প্রকাশন (Idea Prokashon)',
+            'sku'              => $book->sku,
+            'idea_serial_no'   => $book->idea_serial_no,
+            'isbn'             => $book->isbn,
+            'price'            => $book->price,
+            'discount_price'   => $book->discount_price,
+            'effective_price'  => $book->effective_paperback_price,
+            'is_idea'          => $book->is_idea_prokashon,
+            'barcode_svg'      => $barcodeSvg,
+            'qr_svg'           => $qrSvg,
+            'store_url'        => url('/books/' . ($book->slug ?: $book->id)),
+        ]);
+    }
+
+    /**
+     * Printable Barcode & QR Code Label Stickers View (Thermal 50x30mm or Grid)
+     */
+    public function printBookLabels(Request $request): View
+    {
+        $bookIds = $request->input('ids');
+        if (is_string($bookIds)) {
+            $bookIds = explode(',', $bookIds);
+        }
+        $bookIds = is_array($bookIds) ? array_filter(array_map('intval', $bookIds)) : [];
+
+        $query = \Modules\Book\Models\Book::with(['publisher', 'authorLink']);
+        if (!empty($bookIds)) {
+            $query->whereIn('id', $bookIds);
+        } else {
+            $query->where('stock_quantity', '>', 0)->latest('id')->limit(50);
+        }
+
+        $books = $query->get();
+        $copies = max(1, min(100, (int) $request->input('copies', 1)));
+        $labelFormat = $request->input('format', 'thermal'); // 'thermal' (50x30mm) or 'sheet' (A4 24-up)
+
+        return view('admin.books.labels-print', compact('books', 'copies', 'labelFormat'));
     }
 
     public function ebooks(Request $request): View

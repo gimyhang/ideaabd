@@ -762,7 +762,11 @@
                         <!-- Sort By -->
                         <div class="col-12 col-md-2">
                             <select name="sort" class="form-select form-select-sm" onchange="this.form.submit()">
-                                <option value="latest" @selected(request('sort') === 'latest' || !request('sort'))>Newest First</option>
+                                @if($publisher->id == 2 || $publisher->slug === 'ideaprokashon')
+                                    <option value="idea_serial_asc" @selected(request('sort') === 'idea_serial_asc' || !request('sort'))>⭐ Idea Serial (১ থেকে ক্রমিক)</option>
+                                    <option value="idea_serial_desc" @selected(request('sort') === 'idea_serial_desc')>⭐ Idea Serial (সর্বোচ্চ থেকে ক্রমিক)</option>
+                                @endif
+                                <option value="latest" @selected(request('sort') === 'latest' || (!$publisher->is_idea_prokashon && !request('sort')))>Newest First</option>
                                 <option value="oldest" @selected(request('sort') === 'oldest')>Oldest First</option>
                                 <option value="price_low" @selected(request('sort') === 'price_low')>Price: Low to High</option>
                                 <option value="price_high" @selected(request('sort') === 'price_high')>Price: High to Low</option>
@@ -820,12 +824,19 @@
                                                     <a href="{{ route('book.show', $b->slug ?? $b->id) }}" target="_blank" class="fw-bold text-dark text-decoration-none hover-primary d-block text-truncate mb-0.5">
                                                         {{ $b->title }}
                                                     </a>
-                                                    @if($b->edition)
-                                                        <span class="badge bg-light text-dark border py-0.5 px-1.5" style="font-size: 10px;">{{ $b->edition }}</span>
-                                                    @endif
-                                                    @if($b->isbn)
-                                                        <small class="text-muted d-block" style="font-size: 10px;">ISBN: {{ $b->isbn }}</small>
-                                                    @endif
+                                                    <div class="d-flex flex-wrap align-items-center gap-1.5 mt-0.5 font-monospace" style="font-size: 10.5px;">
+                                                        @if($b->idea_serial_no)
+                                                            <span class="badge bg-warning-subtle text-dark border border-warning px-1.5 py-0.5 fw-bold" title="আইডিয়া প্রকাশন নিজস্ব ক্রমিক নম্বর">
+                                                                <i class="fas fa-star text-warning me-0.5"></i>{{ $b->idea_serial_no }}
+                                                            </span>
+                                                        @endif
+                                                        @if($b->sku)
+                                                            <span class="badge bg-light text-muted border px-1.5 py-0.5" title="গণ সিরিয়াল (General SKU)">{{ $b->sku }}</span>
+                                                        @endif
+                                                        @if($b->edition)
+                                                            <span class="badge bg-light text-dark border py-0.5 px-1.5">{{ $b->edition }}</span>
+                                                        @endif
+                                                    </div>
                                                 </div>
                                             </div>
                                         </td>
