@@ -237,13 +237,13 @@
             </div>
         @else
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0 table-registrations" id="registrationsTable">
+                <table class="table table-sm table-hover align-middle mb-0 table-registrations" id="registrationsTable">
                     <thead class="table-light text-muted small text-uppercase">
                         <tr>
-                            <th class="ps-2 text-center" style="width: 34px;">#</th>
+                            <th class="ps-2 text-center" style="width: 30px;">#</th>
                             <th style="width: 24%;">Applicant & Contact</th>
-                            <th class="text-center" style="width: 10%;">Role</th>
-                            <th style="width: 28%;">Profile Details & Bio</th>
+                            <th class="text-center" style="width: 9.5%;">Role</th>
+                            <th style="width: 28.5%;">Profile Details & Bio</th>
                             <th class="text-center" style="width: 13%;">Status</th>
                             <th class="text-center" style="width: 9%;">Date</th>
                             <th class="text-end pe-2" style="width: 16%;">Actions</th>
@@ -260,32 +260,32 @@
                                 $currColor = $roleColors[$user->role] ?? 'secondary';
                             @endphp
                             <tr id="regRow-{{ $user->id }}" class="{{ $user->reg_status === 'pending' ? 'table-warning-subtle' : '' }}">
-                                <td class="ps-2 text-center text-muted small font-monospace">{{ $registrations->firstItem() + $n }}</td>
+                                <td class="ps-2 text-center text-muted font-monospace" style="font-size: 11px;">{{ $registrations->firstItem() + $n }}</td>
                                 
-                                {{-- User & Contact --}}
+                                {{-- User & Contact (30px avatar, 12-13px font) --}}
                                 <td class="text-truncate">
-                                    <div class="d-flex align-items-center gap-2">
-                                        <div class="rounded-circle overflow-hidden shadow-xs flex-shrink-0 position-relative border" 
-                                             style="width: 36px; height: 36px; background: linear-gradient(135deg, #e0e7ff, #c7d2fe);">
+                                    <div class="d-flex align-items-center gap-1.5">
+                                        <div class="rounded-circle overflow-hidden shadow-2xs flex-shrink-0 position-relative border" 
+                                             style="width: 30px; height: 30px; min-width: 30px; min-height: 30px; background: linear-gradient(135deg, #e0e7ff, #c7d2fe);">
                                             @if(!empty($user->avatar))
                                                 <img src="{{ str_starts_with($user->avatar, 'http') ? $user->avatar : asset('storage/' . ltrim($user->avatar, '/')) }}" 
                                                      class="w-100 h-100 object-fit-cover">
                                             @else
-                                                <div class="w-100 h-100 d-flex align-items-center justify-content-center text-primary fw-bold" style="font-size: 13px;">
+                                                <div class="w-100 h-100 d-flex align-items-center justify-content-center text-primary fw-bold" style="font-size: 11px;">
                                                     {{ mb_substr($user->name, 0, 1) }}
                                                 </div>
                                             @endif
                                         </div>
 
-                                        <div class="min-w-0" style="max-width: calc(100% - 44px);">
-                                            <div class="fw-bold text-dark text-truncate" style="font-size: 0.86rem;">
+                                        <div class="min-w-0" style="max-width: calc(100% - 36px);">
+                                            <div class="fw-bold text-dark text-truncate" style="font-size: 12.5px; line-height: 1.2;">
                                                 <a href="javascript:void(0)" onclick="openRegDetailsModal({{ $user->id }})" class="text-decoration-none text-dark hover-primary" title="{{ $user->name }}">
                                                     {{ $user->name }}
                                                 </a>
                                             </div>
-                                            <div class="text-muted d-flex flex-column" style="font-size: 0.72rem; line-height: 1.25;">
-                                                <span class="text-truncate" title="{{ $user->email }}"><i class="fas fa-envelope text-muted me-1"></i>{{ $user->email }}</span>
-                                                <span class="text-truncate font-monospace" title="{{ $user->phone }}"><i class="fas fa-phone-alt text-muted me-1"></i>{{ $user->phone }}</span>
+                                            <div class="text-muted d-flex flex-column" style="font-size: 11px; line-height: 1.2;">
+                                                <span class="text-truncate" title="{{ $user->email }}"><i class="fas fa-envelope text-muted me-1" style="font-size: 9.5px;"></i>{{ $user->email }}</span>
+                                                <span class="text-truncate font-monospace" title="{{ $user->phone }}"><i class="fas fa-phone-alt text-muted me-1" style="font-size: 9.5px;"></i>{{ $user->phone }}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -293,15 +293,15 @@
 
                                 {{-- Role Badge --}}
                                 <td class="text-center">
-                                    <span class="badge bg-{{ $currColor }}-subtle text-{{ $currColor }} border border-{{ $currColor }}-subtle rounded-pill px-2 py-0.5" style="font-size: 0.70rem;">
-                                        <i class="fas fa-{{ $roleIcons[$user->role] ?? 'user' }} me-1"></i>
+                                    <span class="badge bg-{{ $currColor }}-subtle text-{{ $currColor }} border border-{{ $currColor }}-subtle rounded-pill px-1.5 py-0.5" style="font-size: 10px;">
+                                        <i class="fas fa-{{ $roleIcons[$user->role] ?? 'user' }} me-0.5"></i>
                                         {{ $roleLabels[$user->role] ?? ucfirst($user->role) }}
                                     </span>
                                 </td>
 
-                                {{-- Submitted Information & Bio --}}
-                                <td class="text-truncate">
-                                    <div class="d-flex flex-column gap-0.5" style="font-size: 0.78rem; line-height: 1.25;">
+                                {{-- Profile Details & Bio (Line-clamp-2 Text Truncation with Click to View Full) --}}
+                                <td>
+                                    <div class="d-flex flex-column gap-0.5 cursor-pointer" onclick="openRegDetailsModal({{ $user->id }})" title="সম্পূর্ণ তথ্য দেখতে ক্লিক করুন" style="font-size: 12px; line-height: 1.25;">
                                         <div class="text-truncate">
                                             @if(!empty($regData['pen_name']))
                                                 <span class="text-muted fw-semibold">লেখকনেম:</span> <strong class="text-primary">{{ $regData['pen_name'] }}</strong>
@@ -314,21 +314,20 @@
                                             @endif
 
                                             @if(!empty($regData['genre']))
-                                                <span class="text-muted small ms-1">({{ $regData['genre'] }})</span>
+                                                <span class="badge bg-light text-secondary border px-1 py-0 ms-1" style="font-size: 9.5px;">{{ $regData['genre'] }}</span>
                                             @endif
                                         </div>
 
                                         @if(!empty($bioText))
-                                            <div class="text-muted text-truncate d-flex align-items-center gap-1" style="font-size: 0.72rem;" title="{{ strip_tags($bioText) }}">
-                                                <i class="fas fa-quote-left text-muted opacity-50" style="font-size: 9px;"></i>
-                                                <span class="text-truncate">{{ Str::limit(strip_tags($bioText), 28) }}</span>
-                                                <a href="javascript:void(0)" onclick="openRegDetailsModal({{ $user->id }})" class="text-primary fw-bold text-decoration-none ms-auto flex-shrink-0" title="সম্পূর্ণ দেখুন">View →</a>
+                                            <div class="text-muted text-truncate-2" style="font-size: 11px;" title="{{ strip_tags($bioText) }}">
+                                                <i class="fas fa-quote-left text-muted opacity-40 me-0.5" style="font-size: 8px;"></i>
+                                                {{ strip_tags($bioText) }}
                                             </div>
                                         @endif
 
                                         @if(($regData['profile_update_status'] ?? '') === 'updated')
-                                            <div id="authorUpdateBadge-{{ $user->id }}" class="mt-0.5">
-                                                <span class="badge bg-warning text-dark px-1.5 py-0.5 rounded-pill shadow-xs" style="font-size: 9px;" title="Author updated profile on {{ $regData['profile_updated_at'] ?? '' }}">
+                                            <div id="authorUpdateBadge-{{ $user->id }}">
+                                                <span class="badge bg-warning text-dark px-1.5 py-0 rounded-pill shadow-xs" style="font-size: 9px;" title="Author updated profile on {{ $regData['profile_updated_at'] ?? '' }}">
                                                     <i class="fas fa-bell me-0.5"></i> Profile Updated
                                                 </span>
                                             </div>
@@ -338,23 +337,23 @@
 
                                 {{-- Status & Active Toggle Combined --}}
                                 <td class="text-center" id="statusBadgeCell-{{ $user->id }}">
-                                    <div class="d-inline-flex flex-column align-items-center justify-content-center gap-1">
+                                    <div class="d-inline-flex flex-column align-items-center justify-content-center">
                                         @if($user->reg_status === 'pending')
-                                            <span class="badge bg-warning text-dark px-2 py-0.5 rounded-pill shadow-xs" style="font-size: 0.72rem;">
+                                            <span class="badge bg-warning text-dark px-2 py-0.5 rounded-pill shadow-xs mb-1" style="font-size: 10px;">
                                                 <i class="fas fa-hourglass-half me-0.5"></i> Pending
                                             </span>
                                         @elseif($user->reg_status === 'approved')
-                                            <span class="badge bg-success text-white px-2 py-0.5 rounded-pill shadow-xs" style="font-size: 0.72rem;">
+                                            <span class="badge bg-success text-white px-2 py-0.5 rounded-pill shadow-xs mb-1" style="font-size: 10px;">
                                                 <i class="fas fa-circle-check me-0.5"></i> Approved
                                             </span>
                                         @else
-                                            <span class="badge bg-danger text-white px-2 py-0.5 rounded-pill shadow-xs" style="font-size: 0.72rem;" title="{{ $user->rejection_reason ?? 'Rejected' }}">
+                                            <span class="badge bg-danger text-white px-2 py-0.5 rounded-pill shadow-xs mb-1" style="font-size: 10px;" title="{{ $user->rejection_reason ?? 'Rejected' }}">
                                                 <i class="fas fa-circle-xmark me-0.5"></i> Rejected
                                             </span>
                                         @endif
 
-                                        {{-- Compact Active switch --}}
-                                        <div class="form-check form-switch cursor-pointer mb-0 d-flex align-items-center gap-1" style="font-size: 0.70rem; transform: scale(0.92);">
+                                        {{-- Micro Active switch --}}
+                                        <div class="form-check form-switch cursor-pointer mb-0 d-flex align-items-center gap-1" style="font-size: 10.5px; transform: scale(0.85); transform-origin: center;">
                                             <input class="form-check-input mt-0" type="checkbox" role="switch" 
                                                    id="activeSwitch-{{ $user->id }}" 
                                                    @checked($user->is_active) 
@@ -368,12 +367,12 @@
                                 </td>
 
                                 {{-- Creation Date --}}
-                                <td class="text-center text-muted" style="font-size: 0.74rem;">
+                                <td class="text-center text-muted" style="font-size: 11px;">
                                     {{ $user->created_at ? $user->created_at->format('d M, Y') : 'N/A' }}
                                 </td>
 
                                 {{-- Compact Action Icons --}}
-                                <td class="text-end pe-3">
+                                <td class="text-end pe-2">
                                     <div class="d-inline-flex gap-1 align-items-center justify-content-end" id="regActions-{{ $user->id }}">
                                         {{-- 1. View Button --}}
                                         <button type="button" 
@@ -576,25 +575,39 @@
 .table-registrations {
     table-layout: fixed !important;
     width: 100% !important;
+    font-size: 12px;
 }
-.table-registrations th,
+.table-registrations th {
+    padding: 0.35rem 0.30rem !important;
+    font-size: 11px !important;
+    vertical-align: middle;
+    letter-spacing: 0.02em;
+}
 .table-registrations td {
-    padding: 0.42rem 0.35rem !important;
+    padding: 0.28rem 0.30rem !important;
     vertical-align: middle;
 }
+.text-truncate-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.25;
+}
 .btn-action-icon {
-    width: 28px;
-    height: 28px;
+    width: 26px;
+    height: 26px;
     padding: 0 !important;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     border-radius: 50% !important;
-    font-size: 11px;
+    font-size: 10px;
     transition: all 0.15s ease-in-out;
 }
 .btn-action-icon:hover {
-    transform: translateY(-1px) scale(1.08);
+    transform: translateY(-1px) scale(1.1);
 }
 @media print {
     .btn, .breadcrumb, .modal, .toast-container, form { display: none !important; }
