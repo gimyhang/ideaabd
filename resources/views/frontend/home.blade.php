@@ -1472,9 +1472,14 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 }
 @media (max-width: 576px) {
+    .idea-book-slider {
+        gap: 8px !important;
+        padding: 4px 1px !important;
+    }
     .idea-slider-item {
-        flex: 0 0 calc(50% - 8px);
-        min-width: 140px;
+        flex: 0 0 calc(50% - 4px) !important;
+        min-width: 0 !important;
+        max-width: calc(50% - 4px) !important;
     }
 }
 
