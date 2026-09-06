@@ -2640,7 +2640,7 @@ class IdeaAccountingController extends Controller
     }
 
     /**
-     * Book Binder & Worker Work Log & Cash Ledger (কাজের খতিয়ান ও টাকা তোলার হিসাব).
+     * Universal Dynamic Staff & Artisan Work Log & Cash Ledger (যেকোনো স্টাফের কাজের খতিয়ান ও টাকা তোলার হিসাব).
      */
     public function employeeLedger($id, Request $request): View
     {
@@ -2649,7 +2649,8 @@ class IdeaAccountingController extends Controller
         $perPage = $request->input('per_page', 25);
         $dateFrom = $request->input('date_from');
         $dateTo = $request->input('date_to');
-        $bookFilter = $request->input('book_title');
+        $bookFilter = $request->input('book_title') ?: $request->input('search');
+        $entryTypeFilter = $request->input('entry_type');
 
         $query = $employee->workLogs()->latest('log_date')->latest('id');
         if ($dateFrom) {
@@ -2659,7 +2660,14 @@ class IdeaAccountingController extends Controller
             $query->whereDate('log_date', '<=', $dateTo);
         }
         if ($bookFilter) {
-            $query->where('book_title', 'like', '%' . $bookFilter . '%');
+            $query->where(function ($q) use ($bookFilter) {
+                $q->where('book_title', 'like', '%' . $bookFilter . '%')
+                  ->orWhere('notes', 'like', '%' . $bookFilter . '%')
+                  ->orWhere('voucher_no', 'like', '%' . $bookFilter . '%');
+            });
+        }
+        if ($entryTypeFilter && in_array($entryTypeFilter, ['work', 'payment'])) {
+            $query->where('entry_type', $entryTypeFilter);
         }
 
         $workLogs = ($perPage === 'all' || $request->has('print'))
@@ -2671,54 +2679,108 @@ class IdeaAccountingController extends Controller
         $balanceDue = $totalEarned - $totalPaid;
         $totalWorkQuantity = (float) $employee->workLogs()->where('entry_type', 'work')->sum('quantity');
 
-        // Multi-day Book Production Aggregation
-        $allWorkLogs = $employee->workLogs()->where('entry_type', 'work')->get();
-        $bookSummaries = $allWorkLogs
-            ->filter(fn($l) => !empty($l->book_title))
-            ->groupBy('book_title')
-            ->map(function ($logs, $bookTitle) {
-                $maxPrinted = (float) $logs->max('printed_quantity');
-                $maxReceived = (float) ($logs->max('received_quantity') ?: $maxPrinted);
-                $totalDelivered = (float) $logs->sum('delivered_quantity');
-                if ($totalDelivered == 0) {
-                    $totalDelivered = (float) $logs->sum('quantity');
-                }
-                $totalWastage = (float) $logs->sum('wastage_quantity');
-                $totalEarned = (float) $logs->sum('earned_amount');
-                $firstPrintDate = $logs->whereNotNull('print_date')->sortBy('print_date')->first()?->print_date;
-                $lastLogDate = $logs->sortByDesc('log_date')->first()?->log_date;
-                $daysCount = $logs->pluck('log_date')->map(fn($d) => $d ? $d->format('Y-m-d') : '')->unique()->filter()->count();
-                $incomplete = max(0, $maxReceived - ($totalDelivered + $totalWastage));
-                $progress = $maxReceived > 0 ? min(100, round(($totalDelivered / $maxReceived) * 100, 1)) : 100;
-                $lastUnitRate = (float) ($logs->sortByDesc('id')->first()?->unit_rate ?: 0);
+        // Chronological running balances
+        $chronologicalLogs = $employee->workLogs()->orderBy('log_date', 'asc')->orderBy('id', 'asc')->get();
+        $runningBalanceMap = [];
+        $runningBal = 0;
+        foreach ($chronologicalLogs as $clog) {
+            if ($clog->entry_type === 'work') {
+                $runningBal += (float) $clog->earned_amount;
+            } else {
+                $runningBal -= (float) $clog->paid_amount;
+            }
+            $runningBalanceMap[$clog->id] = $runningBal;
+        }
 
-                return [
-                    'book_title'      => $bookTitle,
-                    'print_date'      => $firstPrintDate ? $firstPrintDate->format('Y-m-d') : null,
-                    'last_log_date'   => $lastLogDate ? $lastLogDate->format('d M, Y') : null,
-                    'days_count'      => $daysCount,
-                    'entries_count'   => $logs->count(),
-                    'printed_qty'     => $maxPrinted,
-                    'received_qty'    => $maxReceived,
-                    'total_delivered' => $totalDelivered,
-                    'total_wastage'   => $totalWastage,
-                    'incomplete_qty'  => $incomplete,
-                    'total_earned'    => $totalEarned,
-                    'progress'        => $progress,
-                    'unit_rate'       => $lastUnitRate,
-                    'status'          => $incomplete <= 0 ? 'completed' : 'in_progress',
-                ];
-            })->values();
+        // Attach running balance to paginated logs
+        foreach ($workLogs as $log) {
+            $log->running_balance = $runningBalanceMap[$log->id] ?? 0;
+        }
+
+        // All Work Logs for Summaries
+        $allWorkLogs = $employee->workLogs()->where('entry_type', 'work')->get();
+        $bookSummaries = collect();
+        $taskSummaries = collect();
+
+        $roleCat = $employee->getRoleCategory();
+
+        if ($roleCat === 'artisan') {
+            // Multi-day Book Production Aggregation for Press / Binders
+            $bookSummaries = $allWorkLogs
+                ->filter(fn($l) => !empty($l->book_title))
+                ->groupBy('book_title')
+                ->map(function ($logs, $bookTitle) {
+                    $maxPrinted = (float) $logs->max('printed_quantity');
+                    $maxReceived = (float) ($logs->max('received_quantity') ?: $maxPrinted);
+                    $totalDelivered = (float) $logs->sum('delivered_quantity');
+                    if ($totalDelivered == 0) {
+                        $totalDelivered = (float) $logs->sum('quantity');
+                    }
+                    $totalWastage = (float) $logs->sum('wastage_quantity');
+                    $totalEarned = (float) $logs->sum('earned_amount');
+                    $firstPrintDate = $logs->whereNotNull('print_date')->sortBy('print_date')->first()?->print_date;
+                    $lastLogDate = $logs->sortByDesc('log_date')->first()?->log_date;
+                    $daysCount = $logs->pluck('log_date')->map(fn($d) => $d ? $d->format('Y-m-d') : '')->unique()->filter()->count();
+                    $incomplete = max(0, $maxReceived - ($totalDelivered + $totalWastage));
+                    $progress = $maxReceived > 0 ? min(100, round(($totalDelivered / $maxReceived) * 100, 1)) : 100;
+                    $lastUnitRate = (float) ($logs->sortByDesc('id')->first()?->unit_rate ?: 0);
+
+                    return [
+                        'book_title'      => $bookTitle,
+                        'print_date'      => $firstPrintDate ? $firstPrintDate->format('Y-m-d') : null,
+                        'last_log_date'   => $lastLogDate ? $lastLogDate->format('d M, Y') : null,
+                        'days_count'      => $daysCount,
+                        'entries_count'   => $logs->count(),
+                        'printed_qty'     => $maxPrinted,
+                        'received_qty'    => $maxReceived,
+                        'total_delivered' => $totalDelivered,
+                        'total_wastage'   => $totalWastage,
+                        'incomplete_qty'  => $incomplete,
+                        'total_earned'    => $totalEarned,
+                        'progress'        => $progress,
+                        'unit_rate'       => $lastUnitRate,
+                        'status'          => $incomplete <= 0 ? 'completed' : 'in_progress',
+                    ];
+                })->values();
+        } else {
+            // Task-wise Aggregation for Computer Operator, Proofreader, Peon, Marketing, Designer, etc.
+            $taskSummaries = $allWorkLogs
+                ->groupBy(function ($l) {
+                    return !empty($l->book_title) ? $l->book_title : 'সাধারণ কাজ ও দায়িত্ব (General Tasks)';
+                })
+                ->map(function ($logs, $taskTitle) {
+                    $totalQty = (float) $logs->sum('quantity');
+                    $totalEarned = (float) $logs->sum('earned_amount');
+                    $lastLogDate = $logs->sortByDesc('log_date')->first()?->log_date;
+                    $unitName = $logs->sortByDesc('id')->first()?->unit_name ?: 'Unit';
+                    $lastRate = (float) ($logs->sortByDesc('id')->first()?->unit_rate ?: 0);
+
+                    return [
+                        'task_title'    => $taskTitle,
+                        'total_qty'     => $totalQty,
+                        'unit_name'     => $unitName,
+                        'total_earned'  => $totalEarned,
+                        'entries_count' => $logs->count(),
+                        'last_log_date' => $lastLogDate ? $lastLogDate->format('d M, Y') : null,
+                        'unit_rate'     => $lastRate,
+                    ];
+                })->values();
+        }
+
+        // All active employees for quick-switcher
+        $allEmployees = IdeaEmployee::orderBy('name')->get(['id', 'name', 'designation', 'department', 'salary_rate_type']);
 
         $invoiceSettings = self::getInvoiceSettings();
+        $roleConfig = $employee->getRoleConfig();
 
         return view('admin.accounting.employees.ledger', compact(
-            'employee', 'workLogs', 'totalEarned', 'totalPaid', 'balanceDue', 'totalWorkQuantity', 'bookSummaries', 'invoiceSettings'
+            'employee', 'workLogs', 'totalEarned', 'totalPaid', 'balanceDue', 'totalWorkQuantity',
+            'bookSummaries', 'taskSummaries', 'allEmployees', 'invoiceSettings', 'roleConfig'
         ));
     }
 
     /**
-     * Store Work Entry or Cash Withdrawal for Book Binder / Worker.
+     * Store Work Entry or Cash Withdrawal for any staff member.
      */
     public function storeWorkLog($id, Request $request): RedirectResponse
     {
@@ -2740,6 +2802,7 @@ class IdeaAccountingController extends Controller
             'earned_amount'       => 'nullable|numeric|min:0',
             'paid_amount'         => 'nullable|numeric|min:0',
             'payment_method'      => 'nullable|string|max:50',
+            'expense_category'    => 'nullable|string|max:255',
             'notes'               => 'nullable|string|max:1000',
         ]);
 

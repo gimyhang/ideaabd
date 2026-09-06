@@ -1,11 +1,16 @@
 @extends('layouts.admin')
 
-@section('title', $employee->name . ' — Work Log & Cash Ledger — Idea Prakashan')
+@php
+    $role = $employee->getRoleConfig();
+    $roleCat = $employee->getRoleCategory();
+@endphp
+
+@section('title', $employee->name . ' — ' . $role['title_bn'] . ' — Idea Prakashan')
 
 @push('styles')
 <style>
 /* =========================================================
-   INTERNATIONAL A4 PRINT STYLES FOR ARTISAN LEDGER
+   INTERNATIONAL A4 PRINT STYLES FOR STAFF LEDGER
    ========================================================= */
 @media print {
     @page {
@@ -17,7 +22,7 @@
         background: #ffffff !important;
         color: #000000 !important;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
-        font-size: 9.5pt !important;
+        font-size: 9pt !important;
         line-height: 1.25 !important;
         margin: 0 !important;
         padding: 0 !important;
@@ -33,7 +38,8 @@
     .modal, 
     .pagination, 
     .alert,
-    .filter-card {
+    .filter-card,
+    .staff-switcher-box {
         display: none !important;
     }
 
@@ -68,14 +74,14 @@
     }
 
     .print-company-name {
-        font-size: 17pt !important;
+        font-size: 16pt !important;
         font-weight: 800 !important;
         color: #0f172a !important;
         letter-spacing: -0.5px;
     }
 
     .print-doc-title {
-        font-size: 11pt !important;
+        font-size: 10.5pt !important;
         font-weight: 700 !important;
         text-transform: uppercase;
         background-color: #f1f5f9 !important;
@@ -85,7 +91,7 @@
         letter-spacing: 0.5px;
     }
 
-    /* Compact Artisan & Summary Box */
+    /* Compact Staff & Summary Box */
     .print-artisan-grid {
         display: grid !important;
         grid-template-columns: 1.6fr 1fr;
@@ -94,27 +100,7 @@
         padding: 6px 8px;
         background-color: #f8fafc !important;
         margin-bottom: 8px;
-        font-size: 9pt !important;
-    }
-
-    .print-summary-badges {
-        display: grid !important;
-        grid-template-columns: 1fr 1fr 1fr;
-        gap: 6px;
-        margin-bottom: 8px;
-    }
-
-    .print-kpi-box {
-        border: 1px solid #cbd5e1;
-        padding: 4px 6px;
-        text-align: center;
-        background-color: #ffffff !important;
-    }
-
-    .print-kpi-box .val {
-        font-size: 11pt !important;
-        font-weight: 800 !important;
-        font-family: monospace !important;
+        font-size: 8.5pt !important;
     }
 
     /* High Density Table for 15-25 Rows on Single A4 */
@@ -128,7 +114,7 @@
     table.print-table td {
         border: 1px solid #cbd5e1 !important;
         padding: 3px 4px !important;
-        font-size: 8.5pt !important;
+        font-size: 8pt !important;
         line-height: 1.2 !important;
         vertical-align: middle !important;
     }
@@ -138,7 +124,7 @@
         color: #0f172a !important;
         font-weight: 700 !important;
         text-transform: uppercase;
-        font-size: 8pt !important;
+        font-size: 7.5pt !important;
     }
 
     table.print-table tr {
@@ -154,21 +140,21 @@
         background: transparent !important;
         color: #000000 !important;
         padding: 0 !important;
-        font-size: 8.5pt !important;
+        font-size: 8pt !important;
         font-weight: 700 !important;
     }
 
     /* Print Signatures */
     .print-signatures {
         display: block !important;
-        margin-top: 18px;
+        margin-top: 24px;
         page-break-inside: avoid !important;
     }
 
     .sig-line {
         border-top: 1px solid #000000;
         padding-top: 3px;
-        font-size: 8.5pt;
+        font-size: 8pt;
         text-align: center;
         font-weight: 600;
     }
@@ -178,9 +164,24 @@
 .print-only-block {
     display: none;
 }
-.bg-purple-light { background-color: #f3e8ff; }
-.text-purple { color: #7e22ce; }
-.border-purple { border-color: #d8b4fe; }
+.shadow-2xs {
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+.cursor-pointer {
+    cursor: pointer;
+}
+.running-bal-pos {
+    color: #dc2626;
+    font-weight: 700;
+}
+.running-bal-neg {
+    color: #16a34a;
+    font-weight: 700;
+}
+.running-bal-zero {
+    color: #64748b;
+    font-weight: 600;
+}
 </style>
 @endpush
 
@@ -192,115 +193,163 @@
         <div class="d-flex justify-content-between align-items-start">
             <div>
                 <div class="print-company-name">আইডিয়া প্রকাশন | IDEA PRAKASHAN</div>
-                <div style="font-size: 8.5pt; color: #334155;">
-                    {{ $invoiceSettings['company_address'] ?? 'বাংলাবাজার, ঢাকা — বই প্রকাশনা, মুদ্রণ ও বাঁধাই ব্যবস্থাপনা' }}
+                <div style="font-size: 8pt; color: #334155;">
+                    {{ $invoiceSettings['company_address'] ?? 'বাংলাবাজার, ঢাকা — বই প্রকাশনা, টাইপসেটিং, প্রুফ রিডিং ও বাঁধাই ব্যবস্থাপনা' }}
                     @if(!empty($invoiceSettings['company_phone'])) · Phone: {{ $invoiceSettings['company_phone'] }} @endif
                     @if(!empty($invoiceSettings['company_email'])) · Email: {{ $invoiceSettings['company_email'] }} @endif
                 </div>
             </div>
             <div class="text-end">
-                <div class="print-doc-title">Artisan Ledger Statement</div>
-                <div style="font-size: 8pt; color: #475569; margin-top: 2px;">
+                <div class="print-doc-title">{{ $role['title_bn'] }} (Statement)</div>
+                <div style="font-size: 7.5pt; color: #475569; margin-top: 2px;">
                     Date: <strong>{{ date('d M, Y — h:i A') }}</strong>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Print-Only Artisan Info & Financial Summary Grid -->
+    <!-- Print-Only Staff Info & Financial Summary Grid -->
     <div class="print-only-block print-artisan-grid">
         <div>
-            <div><strong>Artisan / Staff:</strong> {{ $employee->name }} ({{ $employee->designation }})</div>
-            <div><strong>Department & Skill:</strong> {{ $employee->department }} @if($employee->skill_category) · {{ $employee->skill_category }} @endif · Phone: {{ $employee->phone ?: 'N/A' }}</div>
-            <div><strong>Piece-Rate / Unit Wage:</strong> {{ $employee->formatted_rate }}</div>
+            <div><strong>Staff Name:</strong> {{ $employee->name }} ({{ $employee->designation }})</div>
+            <div><strong>Department:</strong> {{ $employee->department }} @if($employee->skill_category) · {{ $employee->skill_category }} @endif · Phone: {{ $employee->phone ?: 'N/A' }}</div>
+            <div><strong>Work Rate / Wage:</strong> {{ $employee->formatted_rate }}</div>
         </div>
         <div class="text-end">
-            <div><strong>Total Earned:</strong> ৳{{ number_format($totalEarned, 2) }} ({{ number_format($totalWorkQuantity) }} pcs)</div>
+            <div><strong>Total Earned:</strong> ৳{{ number_format($totalEarned, 2) }} ({{ number_format($totalWorkQuantity) }} {{ $role['unit_default'] }})</div>
             <div><strong>Total Paid / Drawn:</strong> ৳{{ number_format($totalPaid, 2) }}</div>
-            <div><strong>Net Balance Payable:</strong> <span style="font-weight: 800;">৳{{ number_format(abs($balanceDue), 2) }}</span> ({{ $balanceDue >= 0 ? 'Due' : 'Advance' }})</div>
+            <div><strong>Current Balance:</strong> <span style="font-weight: 800;">৳{{ number_format(abs($balanceDue), 2) }}</span> ({{ $balanceDue >= 0 ? 'Due to Staff' : 'Advance' }})</div>
         </div>
     </div>
 
     <!-- Screen Profile & Quick Action Header (No Print) -->
     <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white no-print">
         <div class="card-body p-3 p-md-4">
-            <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3">
+            <div class="d-flex flex-column flex-xl-row align-items-start align-items-xl-center justify-content-between gap-3">
                 <div class="d-flex align-items-center gap-3">
-                    <div class="rounded-circle fw-bold d-flex align-items-center justify-content-center flex-shrink-0" 
-                         style="width: 54px; height: 54px; background-color: #f3e8ff; color: #7e22ce; font-size: 22px;">
-                        {{ mb_substr($employee->name, 0, 1) }}
+                    <div class="rounded-circle fw-bold d-flex align-items-center justify-content-center flex-shrink-0 shadow-sm" 
+                         style="width: 58px; height: 58px; background-color: {{ $role['bg_color'] }}; color: {{ $role['text_color'] }}; border: 2px solid {{ $role['border_color'] }}; font-size: 22px;">
+                        <i class="{{ $role['icon'] }}"></i>
                     </div>
                     <div>
-                        <div class="d-flex align-items-center gap-2 mb-0.5">
+                        <div class="d-flex align-items-center gap-2 mb-0.5 flex-wrap">
                             <h4 class="fw-bold text-dark mb-0">{{ $employee->name }}</h4>
-                            <span class="badge border px-2.5 py-0.5 rounded-pill small fw-bold" style="background-color: #f3e8ff; color: #7e22ce; border-color: #d8b4fe;">
+                            <span class="badge border px-2.5 py-1 rounded-pill small fw-bold" style="background-color: {{ $role['bg_color'] }}; color: {{ $role['text_color'] }}; border-color: {{ $role['border_color'] }};">
                                 {{ $employee->designation }}
+                            </span>
+                            <span class="badge bg-light text-secondary border rounded-pill px-2.5 py-0.5 small">
+                                ID: #EMP-{{ str_pad($employee->id, 3, '0', STR_PAD_LEFT) }}
                             </span>
                         </div>
                         <p class="text-muted small mb-0">
-                            {{ $employee->department }} 
-                            @if($employee->skill_category) · <strong class="text-dark">{{ $employee->skill_category }}</strong> @endif
+                            <strong>{{ $role['title_bn'] }}</strong>
+                            · Dept: <span class="text-dark fw-semibold">{{ $employee->department }}</span>
+                            @if($employee->skill_category) · <span class="text-secondary">{{ $employee->skill_category }}</span> @endif
                             · Rate: <strong class="text-primary font-monospace">{{ $employee->formatted_rate }}</strong>
                             · Phone: <strong class="text-dark font-monospace">{{ $employee->phone ?: 'N/A' }}</strong>
                         </p>
                     </div>
                 </div>
 
-                <div class="d-flex align-items-center gap-2 flex-wrap ms-md-auto">
+                <!-- Right Action Buttons & Quick Staff Switcher -->
+                <div class="d-flex align-items-center gap-2 flex-wrap ms-xl-auto">
+                    <!-- Quick Staff Switcher Dropdown -->
+                    @if(isset($allEmployees) && $allEmployees->count() > 1)
+                        <div class="dropdown">
+                            <button class="btn btn-outline-secondary dropdown-toggle rounded-pill px-3 py-2 fw-semibold shadow-2xs" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fa-solid fa-users me-1 text-primary"></i> Switch Staff
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-4 py-2" style="max-height: 320px; overflow-y: auto; width: 280px;">
+                                <li class="dropdown-header small text-muted text-uppercase fw-bold">Select Staff / Artisan</li>
+                                @foreach($allEmployees as $emp)
+                                    <li>
+                                        <a class="dropdown-item py-2 d-flex align-items-center justify-content-between {{ $emp->id == $employee->id ? 'active fw-bold' : '' }}" href="{{ route('admin.accounting.employees.ledger', $emp->id) }}">
+                                            <div>
+                                                <div class="text-truncate" style="max-width: 170px;">{{ $emp->name }}</div>
+                                                <small class="opacity-75 d-block" style="font-size: 11px;">{{ $emp->designation }}</small>
+                                            </div>
+                                            @if($emp->id == $employee->id)
+                                                <i class="fa-solid fa-check"></i>
+                                            @endif
+                                        </a>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
                     <a href="{{ route('admin.accounting.employees.index') }}" class="btn btn-outline-secondary rounded-pill px-3 py-2 fw-semibold">
-                        <i class="fa-solid fa-arrow-left me-1"></i> Staff Directory
+                        <i class="fa-solid fa-arrow-left me-1"></i> Staff List
                     </a>
-                    <button type="button" class="btn btn-primary rounded-pill px-3.5 py-2 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#addWorkModal" style="background-color: #7e22ce; border-color: #7e22ce;">
-                        <i class="fa-solid fa-book-bookmark me-1.5"></i> Add Book Binding Log
+
+                    <!-- Add Work / Task Log Button -->
+                    <button type="button" class="btn text-white rounded-pill px-3.5 py-2 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#addWorkModal" style="background-color: {{ $role['accent_color'] }}; border-color: {{ $role['accent_color'] }};">
+                        <i class="fa-solid fa-plus-circle me-1.5"></i> Add Work Log (কাজের হিসাব)
                     </button>
+
+                    <!-- Record Cash Payout Button -->
                     <button type="button" class="btn btn-success rounded-pill px-3.5 py-2 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#addWithdrawalModal">
-                        <i class="fa-solid fa-hand-holding-dollar me-1.5"></i> Record Cash Payout
+                        <i class="fa-solid fa-hand-holding-dollar me-1.5"></i> Record Payout (টাকা পরিশোধ)
                     </button>
-                    <button onclick="window.print()" class="btn btn-dark rounded-pill px-3.5 py-2 fw-bold shadow-sm">
-                        <i class="fa-solid fa-print me-1.5"></i> Print A4 Statement
+
+                    <!-- Print Button -->
+                    <button onclick="window.print()" class="btn btn-dark rounded-pill px-3 py-2 fw-bold shadow-sm">
+                        <i class="fa-solid fa-print me-1"></i> Print A4
                     </button>
                 </div>
             </div>
 
             <hr class="my-3 opacity-25">
 
-            <!-- Summary KPI Badges (3 Cards) -->
+            <!-- Summary KPI Badges (4 Cards) -->
             <div class="row g-3">
-                <div class="col-sm-4">
-                    <div class="p-3 bg-light rounded-3 border d-flex align-items-center justify-content-between h-100" style="border-left: 4px solid #7e22ce !important;">
+                <div class="col-sm-6 col-lg-3">
+                    <div class="p-3 bg-light rounded-3 border d-flex align-items-center justify-content-between h-100" style="border-left: 4px solid {{ $role['accent_color'] }} !important;">
                         <div>
-                            <span class="small text-muted fw-semibold">Total Work Value / Earned</span>
-                            <h4 class="fw-bold mb-0 font-monospace" style="color: #7e22ce;">৳{{ number_format($totalEarned, 2) }}</h4>
-                            <span class="text-muted" style="font-size: 11.5px;">Godown Delivered: <strong class="text-dark font-monospace">{{ number_format($totalWorkQuantity) }}</strong> Books / Units</span>
+                            <span class="small text-muted fw-semibold">Total Work Earned (মোট উপার্জন)</span>
+                            <h4 class="fw-bold mb-0 font-monospace" style="color: {{ $role['accent_color'] }};">৳{{ number_format($totalEarned, 2) }}</h4>
+                            <span class="text-muted" style="font-size: 11.5px;">Completed: <strong class="text-dark font-monospace">{{ number_format($totalWorkQuantity) }}</strong> {{ $role['unit_default'] }}</span>
                         </div>
-                        <span class="badge bg-white border p-2.5 rounded-circle fs-4" style="color: #7e22ce;"><i class="fa-solid fa-boxes-packing"></i></span>
+                        <span class="badge bg-white border p-2.5 rounded-circle fs-4" style="color: {{ $role['accent_color'] }};">
+                            <i class="{{ $role['icon'] }}"></i>
+                        </span>
                     </div>
                 </div>
-                <div class="col-sm-4">
+                <div class="col-sm-6 col-lg-3">
                     <div class="p-3 bg-light rounded-3 border d-flex align-items-center justify-content-between h-100" style="border-left: 4px solid #0284c7 !important;">
                         <div>
-                            <span class="small text-muted fw-semibold">Total Cash Withdrawn / Paid</span>
+                            <span class="small text-muted fw-semibold">Total Paid / Drawn (পরিশোধিত টাকা)</span>
                             <h4 class="fw-bold text-primary mb-0 font-monospace">৳{{ number_format($totalPaid, 2) }}</h4>
                             <span class="text-muted" style="font-size: 11.5px;">Cash / bKash / Bank Draws</span>
                         </div>
                         <span class="badge bg-white text-primary border p-2.5 rounded-circle fs-4"><i class="fa-solid fa-hand-holding-dollar"></i></span>
                     </div>
                 </div>
-                <div class="col-sm-4">
+                <div class="col-sm-6 col-lg-3">
                     <div class="p-3 rounded-3 border d-flex align-items-center justify-content-between h-100" 
                          style="background-color: {{ $balanceDue > 0 ? '#fef2f2' : '#f0fdf4' }}; border-color: {{ $balanceDue > 0 ? '#fca5a5' : '#86efac' }} !important; border-left: 4px solid {{ $balanceDue > 0 ? '#dc2626' : '#16a34a' }} !important;">
                         <div>
                             <span class="small fw-semibold {{ $balanceDue > 0 ? 'text-danger' : 'text-success' }}">
-                                {{ $balanceDue >= 0 ? 'Current Net Balance Due' : 'Advance Balance' }}
+                                {{ $balanceDue >= 0 ? 'Current Net Due (বকেয়া পাওনা)' : 'Advance Balance (অগ্রিম জমা)' }}
                             </span>
                             <h4 class="fw-bold mb-0 font-monospace {{ $balanceDue > 0 ? 'text-danger' : 'text-success' }}">
                                 ৳{{ number_format(abs($balanceDue), 2) }}
                             </h4>
-                            <span class="text-muted" style="font-size: 11.5px;">{{ $balanceDue > 0 ? 'Payable to Artisan' : 'No outstanding balance' }}</span>
+                            <span class="text-muted" style="font-size: 11.5px;">{{ $balanceDue > 0 ? 'Payable to Staff' : 'Advance drawn' }}</span>
                         </div>
                         <span class="badge bg-white border p-2.5 rounded-circle fs-4 {{ $balanceDue > 0 ? 'text-danger' : 'text-success' }}">
                             <i class="fa-solid fa-scale-balanced"></i>
                         </span>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-lg-3">
+                    <div class="p-3 bg-light rounded-3 border d-flex align-items-center justify-content-between h-100" style="border-left: 4px solid #64748b !important;">
+                        <div>
+                            <span class="small text-muted fw-semibold">Wage & Rate Structure</span>
+                            <h6 class="fw-bold text-dark mb-0 font-monospace text-truncate" style="max-width: 160px;" title="{{ $employee->formatted_rate }}">{{ $employee->formatted_rate }}</h6>
+                            <span class="text-muted" style="font-size: 11.5px;">Type: <strong class="text-dark">{{ ucfirst($employee->salary_rate_type ?? 'Monthly') }}</strong></span>
+                        </div>
+                        <span class="badge bg-white text-secondary border p-2.5 rounded-circle fs-4"><i class="fa-solid fa-tags"></i></span>
                     </div>
                 </div>
             </div>
@@ -313,17 +362,24 @@
             <form action="{{ route('admin.accounting.employees.ledger', $employee->id) }}" method="GET" class="row g-2 align-items-center">
                 <div class="col-md-3">
                     <div class="input-group input-group-sm">
-                        <span class="input-group-text bg-light"><i class="fa-solid fa-book"></i></span>
-                        <input type="text" name="book_title" value="{{ request('book_title') }}" class="form-control" placeholder="Search Book Title...">
+                        <span class="input-group-text bg-light"><i class="fa-solid fa-search"></i></span>
+                        <input type="text" name="search" value="{{ request('search') ?: request('book_title') }}" class="form-control" placeholder="Search Book / Task / Note...">
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
+                    <select name="entry_type" class="form-select form-select-sm">
+                        <option value="">All Transactions (সকল)</option>
+                        <option value="work" {{ request('entry_type') === 'work' ? 'selected' : '' }}>Work Logs Only (কাজের এন্ট্রি)</option>
+                        <option value="payment" {{ request('entry_type') === 'payment' ? 'selected' : '' }}>Payouts & Draws (টাকা উত্তোলন)</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
                     <div class="input-group input-group-sm">
                         <span class="input-group-text bg-light">From</span>
                         <input type="date" name="date_from" value="{{ request('date_from') }}" class="form-control">
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <div class="input-group input-group-sm">
                         <span class="input-group-text bg-light">To</span>
                         <input type="date" name="date_to" value="{{ request('date_to') }}" class="form-control">
@@ -334,14 +390,14 @@
                         <option value="25" {{ request('per_page', 25) == 25 ? 'selected' : '' }}>25 / Page</option>
                         <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50 / Page</option>
                         <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100 / Page</option>
-                        <option value="all" {{ request('per_page') == 'all' ? 'selected' : '' }}>All Records (Print)</option>
+                        <option value="all" {{ request('per_page') == 'all' ? 'selected' : '' }}>All (Full Print)</option>
                     </select>
                 </div>
                 <div class="col-md-1 d-flex gap-1">
-                    <button type="submit" class="btn btn-sm btn-primary w-100 fw-bold" style="background-color: #7e22ce; border-color: #7e22ce;">
+                    <button type="submit" class="btn btn-sm btn-primary w-100 fw-bold" style="background-color: {{ $role['accent_color'] }}; border-color: {{ $role['accent_color'] }};">
                         <i class="fa-solid fa-filter"></i>
                     </button>
-                    @if(request()->hasAny(['book_title', 'date_from', 'date_to', 'per_page']))
+                    @if(request()->hasAny(['search', 'book_title', 'entry_type', 'date_from', 'date_to', 'per_page']))
                         <a href="{{ route('admin.accounting.employees.ledger', $employee->id) }}" class="btn btn-sm btn-outline-secondary" title="Reset Filters">
                             <i class="fa-solid fa-rotate-left"></i>
                         </a>
@@ -351,12 +407,13 @@
         </div>
     </div>
 
-    <!-- Multi-Day Book Production Progress Summary (Grouped by Book) -->
+    <!-- Dynamic Work Summary Breakdown (Grouped by Book or Task) -->
     @if(isset($bookSummaries) && $bookSummaries->isNotEmpty())
+        <!-- Book Binding / Press Artisan Multi-Day Summary -->
         <div class="card border-0 shadow-sm rounded-4 bg-white mb-4 overflow-hidden">
             <div class="card-header bg-light border-bottom p-2.5 p-md-3 d-flex align-items-center justify-content-between">
                 <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2" style="font-size: 13.5px;">
-                    <i class="fa-solid fa-book-open-reader text-purple" style="color: #7e22ce;"></i> Book-Wise Multi-Day Binding Progress & Totals
+                    <i class="fa-solid fa-book-open-reader" style="color: {{ $role['accent_color'] }};"></i> Book-Wise Multi-Day Binding Progress & Totals
                 </h6>
                 <span class="badge bg-white text-dark border px-2.5 py-1 small">
                     {{ $bookSummaries->count() }} Books Tracked
@@ -398,7 +455,7 @@
                                         {{ (float)$book['received_qty'] > 0 ? number_format((float)$book['received_qty']) : '—' }}
                                     </td>
                                     <td class="text-center font-monospace">
-                                        <span class="badge px-2 py-1 fw-bold rounded-pill" style="background-color: #f3e8ff; color: #7e22ce; border: 1px solid #d8b4fe;">
+                                        <span class="badge px-2 py-1 fw-bold rounded-pill" style="background-color: {{ $role['bg_color'] }}; color: {{ $role['text_color'] }}; border: 1px solid {{ $role['border_color'] }};">
                                             📦 {{ number_format((float)$book['total_delivered']) }} pcs
                                         </span>
                                     </td>
@@ -416,17 +473,72 @@
                                     <td class="text-center">
                                         <div class="d-flex align-items-center gap-1.5 justify-content-center">
                                             <div class="progress flex-grow-1" style="height: 6px; max-width: 80px;">
-                                                <div class="progress-bar {{ $book['progress'] >= 100 ? 'bg-success' : 'bg-purple' }}" 
+                                                <div class="progress-bar bg-success" 
                                                      role="progressbar" 
-                                                     style="width: {{ $book['progress'] }}%; {{ $book['progress'] < 100 ? 'background-color: #7e22ce;' : '' }}" 
+                                                     style="width: {{ $book['progress'] }}%;" 
                                                      aria-valuenow="{{ $book['progress'] }}" aria-valuemin="0" aria-valuemax="100">
                                                 </div>
                                             </div>
                                             <span class="small font-monospace fw-bold text-dark" style="font-size: 10px;">{{ $book['progress'] }}%</span>
                                         </div>
                                     </td>
-                                    <td class="text-end pe-3 fw-bold font-monospace" style="color: #7e22ce;">
+                                    <td class="text-end pe-3 fw-bold font-monospace" style="color: {{ $role['accent_color'] }};">
                                         ৳{{ number_format($book['total_earned'], 2) }}
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    @elseif(isset($taskSummaries) && $taskSummaries->isNotEmpty())
+        <!-- Task-Wise Summary for Computer Operators, Proofreaders, Peons, Marketing & Designers -->
+        <div class="card border-0 shadow-sm rounded-4 bg-white mb-4 overflow-hidden">
+            <div class="card-header bg-light border-bottom p-2.5 p-md-3 d-flex align-items-center justify-content-between">
+                <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2" style="font-size: 13.5px;">
+                    <i class="{{ $role['icon'] }}" style="color: {{ $role['accent_color'] }};"></i> {{ $role['work_label'] }} (Task & Book Summary)
+                </h6>
+                <span class="badge bg-white text-dark border px-2.5 py-1 small">
+                    {{ $taskSummaries->count() }} Projects / Tasks Tracked
+                </span>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0 print-table">
+                        <thead class="bg-white table-light small text-muted">
+                            <tr>
+                                <th class="ps-3" style="width: 45%;">Book Title / Project / Task Name</th>
+                                <th class="text-center" style="width: 15%;">Total Units Completed</th>
+                                <th class="text-center" style="width: 12%;">Unit Rate</th>
+                                <th class="text-center" style="width: 14%;">Entries / Days</th>
+                                <th class="text-end pe-3" style="width: 14%;">Total Earned (৳)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($taskSummaries as $task)
+                                <tr>
+                                    <td class="ps-3">
+                                        <div class="fw-bold text-dark">{{ $task['task_title'] }}</div>
+                                        @if($task['last_log_date'])
+                                            <div class="small text-muted mt-0.5" style="font-size: 10.5px;">
+                                                <i class="fa-solid fa-clock-rotate-left me-1 text-primary"></i>Last updated: {{ $task['last_log_date'] }}
+                                            </div>
+                                        @endif
+                                    </td>
+                                    <td class="text-center font-monospace fw-bold text-dark">
+                                        <span class="badge px-2.5 py-1 rounded-pill" style="background-color: {{ $role['bg_color'] }}; color: {{ $role['text_color'] }}; border: 1px solid {{ $role['border_color'] }};">
+                                            {{ number_format($task['total_qty']) }} {{ $task['unit_name'] }}
+                                        </span>
+                                    </td>
+                                    <td class="text-center font-monospace text-dark">
+                                        ৳{{ number_format($task['unit_rate'], 2) }}
+                                    </td>
+                                    <td class="text-center text-muted small">
+                                        {{ $task['entries_count'] }} logs
+                                    </td>
+                                    <td class="text-end pe-3 fw-bold font-monospace" style="color: {{ $role['accent_color'] }};">
+                                        ৳{{ number_format($task['total_earned'], 2) }}
                                     </td>
                                 </tr>
                             @endforeach
@@ -437,11 +549,11 @@
         </div>
     @endif
 
-    <!-- Daily Date-Wise Ledger Table (A4 Precision Formatted) -->
+    <!-- Daily Date-Wise Ledger Table with Running Balance (A4 Formatted) -->
     <div class="card border-0 shadow-sm rounded-4 bg-white overflow-hidden mb-3">
         <div class="card-header bg-white border-bottom p-2.5 p-md-3 d-flex align-items-center justify-content-between">
             <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2" style="font-size: 13.5px;">
-                <i class="fa-solid fa-receipt text-primary"></i> Date-Wise Daily Production Log & Ledger Statement
+                <i class="fa-solid fa-receipt text-primary"></i> Date-Wise Daily Ledger Statement & Running Balance
             </h6>
             <span class="badge bg-light text-dark border px-2.5 py-1 small">
                 Showing {{ $workLogs->count() }} of {{ $workLogs->total() }} Records
@@ -452,14 +564,14 @@
                 <table class="table table-hover align-middle mb-0 print-table">
                     <thead class="bg-light table-light small text-muted">
                         <tr>
-                            <th class="ps-2.5" style="width: 14%;">Date & Voucher</th>
+                            <th class="ps-2.5" style="width: 13%;">Date & Voucher</th>
                             <th style="width: 10%;">Type</th>
-                            <th style="width: 24%;">Book Title & Print Details</th>
-                            <th class="text-center" style="width: 14%;">Bound Qty (আজকের বাঁধাই)</th>
-                            <th class="text-center" style="width: 16%;">Production Balance</th>
-                            <th class="text-center" style="width: 8%;">Rate</th>
+                            <th style="width: 25%;">Task / Book Title / Purpose</th>
+                            <th class="text-center" style="width: 12%;">Output / Qty</th>
+                            <th class="text-center" style="width: 8%;">Rate (৳)</th>
                             <th class="text-end" style="width: 10%;">Earned (+)</th>
-                            <th class="text-end" style="width: 10%;">Withdrawn (-)</th>
+                            <th class="text-end" style="width: 10%;">Paid (-)</th>
+                            <th class="text-end" style="width: 12%;">Running Balance</th>
                             <th class="no-print text-end pe-2.5" style="width: 4%;">Action</th>
                         </tr>
                     </thead>
@@ -472,444 +584,360 @@
                                 </td>
                                 <td>
                                     @if($log->entry_type === 'work')
-                                        <span class="badge border px-1.5 py-0.5 rounded-pill fw-bold" style="background-color: #f3e8ff; color: #7e22ce; border-color: #d8b4fe; font-size: 8pt;">
-                                            <i class="fa-solid fa-book-bookmark me-0.5"></i> Binding
+                                        <span class="badge border px-2 py-0.5 rounded-pill fw-bold" style="background-color: {{ $role['bg_color'] }}; color: {{ $role['text_color'] }}; border-color: {{ $role['border_color'] }}; font-size: 8pt;">
+                                            <i class="{{ $role['icon'] }} me-0.5"></i> Work
                                         </span>
                                     @else
-                                        <span class="badge border px-1.5 py-0.5 rounded-pill fw-bold" style="background-color: #e0f2fe; color: #0284c7; border-color: #bae6fd; font-size: 8pt;">
+                                        <span class="badge border px-2 py-0.5 rounded-pill fw-bold" style="background-color: #e0f2fe; color: #0284c7; border-color: #bae6fd; font-size: 8pt;">
                                             <i class="fa-solid fa-money-bill-transfer me-0.5"></i> Payout
                                         </span>
                                     @endif
                                 </td>
                                 <td>
-                                    <div class="fw-bold text-dark" style="font-size: 9.5pt;">{{ $log->book_title ?: ($log->entry_type === 'work' ? 'Book Binding Work' : 'Cash Withdrawal / Payout') }}</div>
+                                    <div class="fw-bold text-dark" style="font-size: 9.5pt;">
+                                        {{ $log->book_title ?: ($log->entry_type === 'work' ? 'General Staff Work / Task' : 'Cash Withdrawal / Payout') }}
+                                    </div>
                                     @if($log->print_date)
                                         <div class="text-muted" style="font-size: 8pt;">
-                                            <i class="fa-solid fa-print me-1 text-secondary"></i>Print: <strong>{{ $log->print_date->format('d M, Y') }}</strong>
+                                            <i class="fa-solid fa-print me-1 text-secondary"></i>Print Date: <strong>{{ $log->print_date->format('d M, Y') }}</strong>
                                         </div>
                                     @endif
                                     @if($log->notes)
                                         <div class="text-muted" style="font-size: 8pt;"><i class="fa-solid fa-info-circle me-1 text-primary"></i>{{ $log->notes }}</div>
                                     @endif
                                 </td>
-                                <td class="text-center">
+                                <td class="text-center font-monospace">
                                     @if($log->entry_type === 'work')
-                                        <span class="badge px-2 py-0.5 fw-bold rounded-pill" style="background-color: #7e22ce; color: #ffffff; font-size: 9pt;">
-                                            📖 {{ number_format((float)($log->quantity ?: ($log->delivered_quantity ?: $log->received_quantity))) }} pcs
+                                        <span class="badge px-2 py-0.5 fw-bold rounded-pill text-dark border" style="background-color: #f8fafc; font-size: 9pt;">
+                                            {{ number_format((float)($log->quantity ?: 1)) }} {{ $log->unit_name ?: $role['unit_default'] }}
                                         </span>
                                     @else
-                                        <span class="text-muted" style="font-size: 8.5pt;">—</span>
-                                    @endif
-                                </td>
-                                <td class="text-center font-monospace" style="font-size: 8.5pt;">
-                                    @if($log->entry_type === 'work')
-                                        <div>
-                                            @if($log->printed_quantity > 0)
-                                                <span class="text-muted">Printed: {{ number_format((float)$log->printed_quantity) }} · </span>
-                                            @endif
-                                            @if($log->incomplete_quantity > 0)
-                                                <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-1 py-0.5 fw-bold" style="font-size: 8pt;">
-                                                    Left: {{ number_format((float)$log->incomplete_quantity) }}
-                                                </span>
-                                            @else
-                                                <span class="badge bg-success-subtle text-success border border-success-subtle px-1 py-0.5" style="font-size: 8pt;">
-                                                    Done
-                                                </span>
-                                            @endif
-                                            @if($log->wastage_quantity > 0)
-                                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-1 py-0.5 ms-0.5" style="font-size: 8pt;">
-                                                    Waste: {{ number_format((float)$log->wastage_quantity) }}
-                                                </span>
-                                            @endif
-                                        </div>
-                                    @elseif($log->entry_type === 'payment')
-                                        <span class="badge bg-light text-muted border px-1.5 py-0.5" style="font-size: 8pt;">
-                                            {{ strtoupper($log->payment_method) }}
+                                        <span class="text-muted" style="font-size: 8pt;">
+                                            <i class="fa-solid fa-wallet text-secondary me-0.5"></i> {{ ucfirst($log->payment_method ?? 'Cash') }}
                                         </span>
-                                    @else
-                                        <span class="text-muted">—</span>
                                     @endif
                                 </td>
-                                <td class="text-center font-monospace" style="font-size: 9pt;">
-                                    @if($log->entry_type === 'work' && $log->unit_rate > 0)
-                                        <span class="fw-bold text-dark">৳{{ number_format($log->unit_rate, 2) }}</span>
-                                    @else
-                                        <span class="text-muted">—</span>
-                                    @endif
+                                <td class="text-center font-monospace text-dark" style="font-size: 9pt;">
+                                    {{ (float)$log->unit_rate > 0 ? '৳' . number_format((float)$log->unit_rate, 2) : '—' }}
                                 </td>
-                                <td class="text-end fw-bold font-monospace" style="color: #7e22ce; font-size: 9.5pt;">
-                                    @if($log->earned_amount > 0)
-                                        +৳{{ number_format($log->earned_amount, 2) }}
-                                    @else
-                                        —
-                                    @endif
+                                <td class="text-end fw-bold font-monospace" style="color: {{ $role['accent_color'] }}; font-size: 9.5pt;">
+                                    {{ (float)$log->earned_amount > 0 ? '৳' . number_format((float)$log->earned_amount, 2) : '—' }}
                                 </td>
                                 <td class="text-end fw-bold text-primary font-monospace" style="font-size: 9.5pt;">
-                                    @if($log->paid_amount > 0)
-                                        -৳{{ number_format($log->paid_amount, 2) }}
-                                    @else
-                                        —
-                                    @endif
+                                    {{ (float)$log->paid_amount > 0 ? '৳' . number_format((float)$log->paid_amount, 2) : '—' }}
+                                </td>
+                                <td class="text-end font-monospace pe-2" style="font-size: 9.5pt;">
+                                    @php $rBal = (float)($log->running_balance ?? 0); @endphp
+                                    <span class="{{ $rBal > 0 ? 'running-bal-pos' : ($rBal < 0 ? 'running-bal-neg' : 'running-bal-zero') }}">
+                                        ৳{{ number_format(abs($rBal), 2) }}
+                                        <small style="font-size: 7.5pt; font-weight: normal;">{{ $rBal > 0 ? '(Due)' : ($rBal < 0 ? '(Adv)' : '') }}</small>
+                                    </span>
                                 </td>
                                 <td class="no-print text-end pe-2.5">
-                                    <form action="{{ route('admin.accounting.employees.work-logs.destroy', $log->id) }}" method="POST" data-confirm="আপনি কি নিশ্চিত যে এই লেজার রেকর্ডটি মুছে ফেলতে চান?" data-confirm-title="রেকর্ড ডিলিট">
+                                    <form action="{{ route('admin.accounting.employees.work-logs.destroy', $log->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this log entry?');" class="d-inline">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-outline-danger border-0 rounded-circle p-1" title="Delete Record">
-                                            <i class="fa-solid fa-trash" style="font-size: 11px;"></i>
+                                        <button type="submit" class="btn btn-sm btn-link text-danger p-0 text-decoration-none" title="Delete Log Entry">
+                                            <i class="fa-solid fa-trash-can"></i>
                                         </button>
                                     </form>
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="9" class="text-center py-4 text-muted">
-                                    <i class="fa-solid fa-book-bookmark text-muted opacity-50 fs-3 mb-1"></i>
-                                    <p class="small mb-0">No production logs or payout entries recorded yet.</p>
+                                <td colspan="9" class="text-center py-5 text-muted">
+                                    <div class="py-4">
+                                        <i class="{{ $role['icon'] }} fs-1 opacity-25 d-block mb-2"></i>
+                                        <h6 class="fw-bold text-dark">No Ledger Records Found</h6>
+                                        <p class="small text-muted mb-3">Add daily work logs or cash withdrawals to start building this staff ledger.</p>
+                                        <button type="button" class="btn btn-sm text-white rounded-pill px-3 py-1.5 fw-semibold" data-bs-toggle="modal" data-bs-target="#addWorkModal" style="background-color: {{ $role['accent_color'] }};">
+                                            <i class="fa-solid fa-plus-circle me-1"></i> Add First Work Log
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         @endforelse
                     </tbody>
-                    <tfoot>
-                        <tr class="table-light fw-bold" style="border-top: 2px solid #0f172a !important;">
-                            <td colspan="6" class="text-end py-1.5" style="font-size: 9.5pt;">Grand Total Summary:</td>
-                            <td class="text-end font-monospace py-1.5" style="color: #7e22ce; font-size: 10.5pt;">
-                                ৳{{ number_format($totalEarned, 2) }}
-                            </td>
-                            <td class="text-end text-primary font-monospace py-1.5" style="font-size: 10.5pt;">
-                                ৳{{ number_format($totalPaid, 2) }}
-                            </td>
-                            <td class="no-print"></td>
-                        </tr>
-                    </tfoot>
+                    @if($workLogs->isNotEmpty())
+                        <tfoot class="bg-light table-light fw-bold">
+                            <tr>
+                                <td colspan="5" class="ps-2.5 text-uppercase small text-dark">
+                                    Grand Totals ({{ $workLogs->total() }} Records)
+                                </td>
+                                <td class="text-end font-monospace" style="color: {{ $role['accent_color'] }}; font-size: 10pt;">
+                                    ৳{{ number_format($totalEarned, 2) }}
+                                </td>
+                                <td class="text-end text-primary font-monospace" style="font-size: 10pt;">
+                                    ৳{{ number_format($totalPaid, 2) }}
+                                </td>
+                                <td class="text-end font-monospace pe-2" style="font-size: 10pt;">
+                                    <span class="{{ $balanceDue > 0 ? 'text-danger' : 'text-success' }}">
+                                        ৳{{ number_format(abs($balanceDue), 2) }}
+                                    </span>
+                                </td>
+                                <td class="no-print"></td>
+                            </tr>
+                        </tfoot>
+                    @endif
                 </table>
             </div>
-
-            @if($workLogs->hasPages())
-                <div class="p-2.5 border-top d-flex justify-content-center no-print">
-                    {{ $workLogs->links() }}
-                </div>
-            @endif
         </div>
+
+        @if($workLogs->hasPages())
+            <div class="card-footer bg-white border-top p-3 no-print d-flex justify-content-between align-items-center">
+                <span class="text-muted small">Showing {{ $workLogs->firstItem() }} - {{ $workLogs->lastItem() }} of {{ $workLogs->total() }} records</span>
+                {{ $workLogs->links() }}
+            </div>
+        @endif
     </div>
 
-    <!-- Official Printable Signatures Block -->
+    <!-- Print Signatures Block -->
     <div class="print-only-block print-signatures">
-        <div class="row g-4 pt-4">
-            <div class="col-3">
-                <div class="sig-line">Prepared By</div>
-            </div>
-            <div class="col-3">
-                <div class="sig-line">Checked / Accounts</div>
-            </div>
-            <div class="col-3">
-                <div class="sig-line">Worker / Artisan Signature</div>
-            </div>
-            <div class="col-3">
-                <div class="sig-line">Authorized Signatory</div>
-            </div>
-        </div>
-        <div class="text-center mt-3 text-muted" style="font-size: 7.5pt;">
-            This is an official computer-generated production and accounting statement issued by Idea Prakashan Management System.
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 30px; margin-top: 35px;">
+            <div class="sig-line">Staff / Artisan Signature</div>
+            <div class="sig-line">Accountant Verification</div>
+            <div class="sig-line">Idea Prakashan Management</div>
         </div>
     </div>
-
 </div>
 
-<!-- Modal: Add Book Binding Production Log -->
-<div class="modal fade" id="addWorkModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <form action="{{ route('admin.accounting.employees.work-logs.store', $employee->id) }}" method="POST" class="modal-content rounded-4 border-0 shadow-lg">
-            @csrf
-            <input type="hidden" name="entry_type" value="work">
-            <div class="modal-header bg-dark text-white border-0 py-3">
-                <h5 class="modal-title fw-bold fs-6 d-flex align-items-center gap-2">
-                    <i class="fa-solid fa-book-bookmark text-purple" style="color: #c084fc;"></i> Book Binding & Production Log Entry
+<!-- ========================================================================= -->
+<!-- MODAL 1: ADD WORK / TASK LOG ENTRY                                        -->
+<!-- ========================================================================= -->
+<div class="modal fade" id="addWorkModal" tabindex="-1" aria-labelledby="addWorkModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header text-white border-0 py-3 px-4" style="background-color: {{ $role['accent_color'] }};">
+                <h5 class="modal-title fw-bold text-white mb-0" id="addWorkModalLabel">
+                    <i class="{{ $role['icon'] }} me-2"></i> {{ $role['title_bn'] }} — কাজের হিসাব এন্ট্রি
                 </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body p-4">
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <label class="form-label small fw-bold text-dark">
-                            <i class="fa-solid fa-calendar-day me-1 text-primary"></i> Binding / Entry Date *
-                        </label>
-                        <input type="date" name="log_date" value="{{ date('Y-m-d') }}" class="form-control rounded-3" required>
+            <form action="{{ route('admin.accounting.employees.work-logs.store', $employee->id) }}" method="POST" id="workLogForm">
+                @csrf
+                <input type="hidden" name="entry_type" value="work">
+
+                <div class="modal-body p-4">
+                    <!-- Staff Info Card Inside Modal -->
+                    <div class="p-2.5 rounded-3 mb-3 d-flex align-items-center justify-content-between" style="background-color: {{ $role['bg_color'] }}; border: 1px solid {{ $role['border_color'] }};">
+                        <div>
+                            <span class="fw-bold text-dark">{{ $employee->name }}</span> ({{ $employee->designation }})
+                            <div class="small text-muted">Preset Rate: <strong class="text-primary font-monospace">{{ $employee->formatted_rate }}</strong></div>
+                        </div>
+                        <span class="badge rounded-pill px-3 py-1 font-monospace" style="background-color: #ffffff; color: {{ $role['text_color'] }}; border: 1px solid {{ $role['border_color'] }};">
+                            Current Due: ৳{{ number_format($balanceDue, 2) }}
+                        </span>
                     </div>
 
-                    <div class="col-md-6">
-                        <label class="form-label small fw-bold text-dark">
-                            <i class="fa-solid fa-print me-1 text-secondary"></i> Book Print Date
-                        </label>
-                        <input type="date" name="print_date" id="work_print_date" value="{{ date('Y-m-d') }}" class="form-control rounded-3">
-                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-dark">Date (কাজের তারিখ) <span class="text-danger">*</span></label>
+                            <input type="date" name="log_date" value="{{ date('Y-m-d') }}" class="form-control" required>
+                        </div>
 
-                    <div class="col-12">
-                        <label class="form-label small fw-bold text-dark">
-                            Book Title & Job Description *
-                        </label>
-                        <input type="text" list="existingBooksDatalist" name="book_title" id="work_book_title" class="form-control rounded-3" required placeholder="Type or select book title..." oninput="onBookTitleSelected(this.value)" autocomplete="off">
-                        
-                        <datalist id="existingBooksDatalist">
-                            @if(isset($bookSummaries))
-                                @foreach($bookSummaries as $book)
-                                    <option value="{{ $book['book_title'] }}">
-                                        Printed: {{ (float)$book['printed_qty'] }} | Delivered So Far: {{ (float)$book['total_delivered'] }} | Incomplete: {{ (float)$book['incomplete_qty'] }}
-                                    </option>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-dark">Book / Project / Task Title (বই বা কাজের নাম) <span class="text-danger">*</span></label>
+                            <input type="text" name="book_title" class="form-control" placeholder="e.g. বাংলা ব্যাকরণ সহায়িকা / কভার ডিজাইন / টাইপসেটিং" required>
+                        </div>
+
+                        <!-- Unit & Quantity Section -->
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold text-dark">Work Unit (একক) <span class="text-danger">*</span></label>
+                            <select name="unit_name" id="workUnitSelect" class="form-select" onchange="calculateWorkTotal()">
+                                @foreach($role['units'] as $u)
+                                    <option value="{{ $u }}" {{ str_contains($u, $role['unit_default']) ? 'selected' : '' }}>{{ $u }}</option>
                                 @endforeach
-                            @endif
-                        </datalist>
-
-                        <!-- Multi-day Notice Card (Dynamically shown when existing book selected) -->
-                        <div id="multiDayNoticeCard" class="mt-2 p-2.5 bg-light rounded-3 border d-none">
-                            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
-                                <span class="small text-muted">
-                                    <i class="fa-solid fa-clock-rotate-left text-primary me-1"></i> Multi-Day Job: 
-                                    Previously Delivered: <strong id="notice_prev_delivered" class="text-success">0</strong> copies.
-                                    Remaining before today: <strong id="notice_prev_incomplete" class="text-warning">0</strong> copies.
-                                </span>
-                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-0.5 small">
-                                    Continuing Multi-Day Log
-                                </span>
-                            </div>
+                            </select>
                         </div>
-                    </div>
 
-                    <!-- Production Quantities Breakdown -->
-                    <div class="col-12">
-                        <div class="p-3 bg-light rounded-3 border">
-                            <h6 class="fw-bold text-dark mb-2.5 small">
-                                <i class="fa-solid fa-calculator text-primary me-1"></i> Production & Stock Reconciliation
-                            </h6>
-                            <div class="row g-2">
-                                <div class="col-6 col-md-4">
-                                    <label class="form-label small fw-semibold text-muted">1. Total Printed</label>
-                                    <input type="number" step="0.01" name="printed_quantity" id="work_printed_qty" class="form-control form-control-sm font-monospace fw-bold" placeholder="e.g. 500" oninput="onPrintedQtyInput()">
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold text-dark">Completed Quantity (পরিমাণ / সংখ্যা) <span class="text-danger">*</span></label>
+                            <input type="number" step="any" name="quantity" id="workQuantityInput" value="1" class="form-control font-monospace fw-bold" placeholder="e.g. 100" required oninput="calculateWorkTotal()">
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold text-dark">Unit Rate (প্রতি এককের দর ৳) <span class="text-danger">*</span></label>
+                            <input type="number" step="any" name="unit_rate" id="workUnitRateInput" value="{{ $employee->basic_salary ?: 0 }}" class="form-control font-monospace fw-bold text-primary" required oninput="calculateWorkTotal()">
+                        </div>
+
+                        <div class="col-12">
+                            <div class="p-3 bg-light rounded-3 border d-flex align-items-center justify-content-between">
+                                <div>
+                                    <span class="small text-muted d-block">Total Calculated Earnings (মোট উপার্জিত মজুরি):</span>
+                                    <h4 class="fw-bold mb-0 font-monospace" id="displayEarnedAmount" style="color: {{ $role['accent_color'] }};">
+                                        ৳{{ number_format($employee->basic_salary ?: 0, 2) }}
+                                    </h4>
                                 </div>
-                                <div class="col-6 col-md-4">
-                                    <label class="form-label small fw-semibold text-muted">2. Received for Binding</label>
-                                    <input type="number" step="0.01" name="received_quantity" id="work_received_qty" class="form-control form-control-sm font-monospace fw-bold" placeholder="e.g. 500" oninput="onProductionQtyChanged()">
-                                </div>
-                                <div class="col-6 col-md-4">
-                                    <label class="form-label small fw-bold text-success">3. Delivered to Godown *</label>
-                                    <input type="number" step="0.01" name="delivered_quantity" id="work_delivered_qty" class="form-control form-control-sm font-monospace fw-bold border-success" placeholder="Today's delivery e.g. 50" required oninput="onDeliveredQtyInput()">
-                                </div>
-                                <div class="col-6 col-md-4 mt-2">
-                                    <label class="form-label small fw-bold text-warning">4. Incomplete (Auto)</label>
-                                    <input type="number" step="0.01" name="incomplete_quantity" id="work_incomplete_qty" class="form-control form-control-sm font-monospace fw-bold bg-warning-subtle text-dark border-warning" placeholder="0" oninput="calcWorkModalEarned()">
-                                </div>
-                                <div class="col-6 col-md-4 mt-2">
-                                    <label class="form-label small fw-bold text-success">5. Total Binding (Auto) *</label>
-                                    <input type="number" step="0.01" name="quantity" id="work_total_binding" class="form-control form-control-sm font-monospace fw-bold bg-success-subtle text-success border-success" placeholder="0" required oninput="onTotalBindingInput()">
-                                </div>
-                                <div class="col-6 col-md-4 mt-2">
-                                    <label class="form-label small fw-semibold text-danger">Wastage / Damage</label>
-                                    <input type="number" step="0.01" name="wastage_quantity" id="work_wastage_qty" class="form-control form-control-sm font-monospace text-danger" placeholder="0" oninput="onProductionQtyChanged()">
-                                </div>
-                                <div class="col-12 mt-2">
-                                    <span class="small text-muted" style="font-size: 11.5px;">
-                                        <i class="fa-solid fa-info-circle text-primary me-1"></i> Multi-day calculation: Incomplete is auto-calculated: <strong>Total Printed - (2. Received for Binding + 3. Delivered to Godown + Wastage)</strong>. Today's bill amount is <strong>5. Total Binding × Rate</strong>.
-                                    </span>
+                                <div class="w-50">
+                                    <label class="form-label small text-muted mb-1">Override Total Earned (৳)</label>
+                                    <input type="number" step="any" name="earned_amount" id="workEarnedAmountInput" value="{{ $employee->basic_salary ?: 0 }}" class="form-control form-control-sm font-monospace fw-bold text-end">
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- Rate & Bill Calculation -->
-                    <div class="col-md-6">
-                        <label class="form-label small fw-bold text-dark">Rate per Book / Unit (৳) *</label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-light">৳</span>
-                            <input type="number" step="0.01" name="unit_rate" id="work_modal_rate" value="{{ (float)$employee->basic_salary ?: '' }}" class="form-control font-monospace fw-bold" placeholder="e.g. 4.50" required oninput="calcWorkModalEarned()">
+                        <!-- Press / Binding Advanced Details (Collapsible) -->
+                        @if($roleCat === 'artisan')
+                            <div class="col-12">
+                                <div class="accordion" id="pressDetailsAccordion">
+                                    <div class="accordion-item border rounded-3">
+                                        <h2 class="accordion-header">
+                                            <button class="accordion-button collapsed py-2 px-3 small fw-bold text-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#pressDetailsCollapse">
+                                                <i class="fa-solid fa-sliders me-2"></i> Press & Multi-Day Production Quantities (ঐচ্ছিক / বিস্তারিত বাঁধাই হিসাব)
+                                            </button>
+                                        </h2>
+                                        <div id="pressDetailsCollapse" class="accordion-collapse collapse" data-bs-parent="#pressDetailsAccordion">
+                                            <div class="accordion-body p-3 bg-light">
+                                                <div class="row g-2">
+                                                    <div class="col-md-4">
+                                                        <label class="form-label small text-muted">Print Date (ছাপার তারিখ)</label>
+                                                        <input type="date" name="print_date" class="form-control form-control-sm">
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-label small text-muted">Total Printed (মোট ছাপা সংখ্যা)</label>
+                                                        <input type="number" step="any" name="printed_quantity" class="form-control form-control-sm font-monospace">
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-label small text-muted">Received (বাঁধাইয়ের জন্য গ্রহণ)</label>
+                                                        <input type="number" step="any" name="received_quantity" class="form-control form-control-sm font-monospace">
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-label small text-muted">Delivered to Godown (গোডাউনে জমা)</label>
+                                                        <input type="number" step="any" name="delivered_quantity" class="form-control form-control-sm font-monospace">
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-label small text-muted">Wastage / Defect (নষ্ট / ওয়েস্টেজ)</label>
+                                                        <input type="number" step="any" name="wastage_quantity" class="form-control form-control-sm font-monospace">
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-label small text-muted">Incomplete Left (অবশিষ্ট সংখ্যা)</label>
+                                                        <input type="number" step="any" name="incomplete_quantity" class="form-control form-control-sm font-monospace">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+
+                        <div class="col-12">
+                            <label class="form-label small fw-bold text-dark">Notes / Remarks (কাজের নোট বা মন্তব্য)</label>
+                            <textarea name="notes" rows="2" class="form-control rounded-3" placeholder="e.g. ১ম খণ্ডের ১-১২০ পৃষ্ঠা টাইপ সম্পন্ন / কাভার ল্যামিনেশন ও বাঁধাই ডেলিভারি"></textarea>
                         </div>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label small fw-bold text-dark">Total Billable Earned Amount (৳) *</label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-light fw-bold text-purple" style="color: #7e22ce;">৳</span>
-                            <input type="number" step="0.01" name="earned_amount" id="work_modal_earned" class="form-control rounded-end-3 font-monospace fw-bold fs-5 text-purple" style="color: #7e22ce;" required placeholder="0.00">
-                        </div>
-                    </div>
-
-                    <div class="col-12">
-                        <label class="form-label small fw-semibold text-muted">Notes / Specifications</label>
-                        <textarea name="notes" class="form-control rounded-3" rows="2" placeholder="Lot no, binding specifications, delivery notes..."></textarea>
                     </div>
                 </div>
-            </div>
-            <div class="modal-footer bg-light border-top p-3">
-                <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
-                <button type="submit" class="btn btn-primary rounded-pill px-5 fw-bold shadow-sm" style="background-color: #7e22ce; border-color: #7e22ce;">
-                    <i class="fa-solid fa-check me-1"></i> Save Binding Log
-                </button>
-            </div>
-        </form>
+
+                <div class="modal-footer bg-light border-0 py-3 px-4">
+                    <button type="button" class="btn btn-light border rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn text-white rounded-pill px-4 fw-bold shadow-sm" style="background-color: {{ $role['accent_color'] }};">
+                        <i class="fa-solid fa-check-circle me-1"></i> Save Work Log (কাজের হিসাব সংরক্ষণ)
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
-<!-- Modal: Add Cash Withdrawal / Payment -->
-<div class="modal fade" id="addWithdrawalModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <form action="{{ route('admin.accounting.employees.work-logs.store', $employee->id) }}" method="POST" class="modal-content rounded-4 border-0 shadow-lg">
-            @csrf
-            <input type="hidden" name="entry_type" value="payment">
-            <div class="modal-header bg-dark text-white border-0 py-3">
-                <h5 class="modal-title fw-bold fs-6 d-flex align-items-center gap-2">
-                    <i class="fa-solid fa-hand-holding-dollar text-success"></i> Record Artisan Cash Withdrawal / Payout
+<!-- ========================================================================= -->
+<!-- MODAL 2: RECORD CASH PAYOUT / SALARY DRAW                                  -->
+<!-- ========================================================================= -->
+<div class="modal fade" id="addWithdrawalModal" tabindex="-1" aria-labelledby="addWithdrawalModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-md">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header bg-success text-white border-0 py-3 px-4">
+                <h5 class="modal-title fw-bold text-white mb-0" id="addWithdrawalModalLabel">
+                    <i class="fa-solid fa-hand-holding-dollar me-2"></i> Record Cash Payout (টাকা পরিশোধ / উত্তোলন)
                 </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body p-4">
-                <div class="row g-3">
-                    <div class="col-12">
-                        <div class="p-2.5 bg-light rounded-3 border d-flex justify-content-between align-items-center">
-                            <span class="small text-muted fw-semibold">Current Outstanding Balance:</span>
-                            <span class="fw-bold font-monospace fs-6 {{ $balanceDue > 0 ? 'text-danger' : 'text-success' }}">
-                                ৳{{ number_format($balanceDue, 2) }}
-                            </span>
+            <form action="{{ route('admin.accounting.employees.work-logs.store', $employee->id) }}" method="POST">
+                @csrf
+                <input type="hidden" name="entry_type" value="payment">
+
+                <div class="modal-body p-4">
+                    <div class="p-2.5 rounded-3 mb-3 bg-success-subtle border border-success-subtle d-flex align-items-center justify-content-between">
+                        <div>
+                            <span class="fw-bold text-dark">{{ $employee->name }}</span> ({{ $employee->designation }})
+                            <div class="small text-muted">Department: {{ $employee->department }}</div>
+                        </div>
+                        <div class="text-end">
+                            <span class="small text-muted d-block">Current Due:</span>
+                            <strong class="text-danger font-monospace fs-6">৳{{ number_format($balanceDue, 2) }}</strong>
                         </div>
                     </div>
 
-                    <div class="col-12">
-                        <label class="form-label small fw-bold text-dark">Payout Date *</label>
-                        <input type="date" name="log_date" value="{{ date('Y-m-d') }}" class="form-control rounded-3" required>
-                    </div>
-
-                    <div class="col-12">
-                        <label class="form-label small fw-bold text-dark">Amount Withdrawn (৳) *</label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-light fw-bold text-success">৳</span>
-                            <input type="number" step="0.01" name="paid_amount" class="form-control rounded-end-3 font-monospace fw-bold fs-5 text-success" required placeholder="e.g. 3000">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-dark">Payment Date (টাকা পরিশোধের তারিখ) <span class="text-danger">*</span></label>
+                            <input type="date" name="log_date" value="{{ date('Y-m-d') }}" class="form-control" required>
                         </div>
-                    </div>
 
-                    <div class="col-12">
-                        <label class="form-label small fw-bold text-dark">Payment Method *</label>
-                        <select name="payment_method" class="form-select rounded-3 fw-semibold" required>
-                            <option value="cash">Cash</option>
-                            <option value="bkash">bKash</option>
-                            <option value="nagad">Nagad</option>
-                            <option value="rocket">Rocket</option>
-                            <option value="bank">Bank Transfer</option>
-                        </select>
-                    </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-dark">Paid Amount (টাকার পরিমাণ ৳) <span class="text-danger">*</span></label>
+                            <input type="number" step="any" name="paid_amount" class="form-control font-monospace fw-bold fs-5 text-success" placeholder="e.g. 5000" required>
+                        </div>
 
-                    <div class="col-12">
-                        <label class="form-label small fw-semibold text-muted">Notes / Remarks</label>
-                        <textarea name="notes" class="form-control rounded-3" rows="2" placeholder="e.g. Weekly advance draw, food allowance, or partial work settlement..."></textarea>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-dark">Payment Method (পরিশোধের মাধ্যম) <span class="text-danger">*</span></label>
+                            <select name="payment_method" class="form-select" required>
+                                <option value="cash" selected>💵 Cash (নগদ ক্যাশ)</option>
+                                <option value="bkash">📱 bKash (বিকাশ)</option>
+                                <option value="nagad">📱 Nagad (নগদ)</option>
+                                <option value="rocket">📱 Rocket (রকেট)</option>
+                                <option value="bank">🏦 Bank Transfer (ব্যাংক)</option>
+                                <option value="cheque">📄 Cheque (চেক)</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-dark">Purpose / Expense Head (ব্যয়ের খাত)</label>
+                            <select name="expense_category" class="form-select">
+                                <option value="">Auto-Assign by Staff Role (স্বয়ংক্রিয় খাত)</option>
+                                <option value="কম্পিউটার টাইপ, কম্পোজ ও মেকআপ মজুরি">কম্পিউটার টাইপ, কম্পোজ ও মেকআপ মজুরি</option>
+                                <option value="প্রুফ রিডিং ও সম্পাদনা মজুরি">প্রুফ রিডিং ও সম্পাদনা মজুরি</option>
+                                <option value="চুক্তিভিত্তিক ও বাইন্ডিং মজুরি (Piece-rate Wages)">চুক্তিভিত্তিক ও বাইন্ডিং মজুরি</option>
+                                <option value="অফিস সহায়ক ও স্টাফ বেতন/ভাতা">অফিস সহায়ক ও স্টাফ বেতন/ভাতা</option>
+                                <option value="মার্কেটিং ও সেলস বেতন/টিএ/কমিশন">মার্কেটিং ও সেলস বেতন/টিএ/কমিশন</option>
+                                <option value="গ্রাফিক্স ও কভার ডিজাইন মজুরি">গ্রাফিক্স ও কভার ডিজাইন মজুরি</option>
+                                <option value="স্টাফ অগ্রিম উত্তোলন (Advance Salary/Wage)">স্টাফ অগ্রিম উত্তোলন (Advance)</option>
+                            </select>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label small fw-bold text-dark">Notes / Reference (ভাউচার নোট বা কারণ)</label>
+                            <textarea name="notes" rows="2" class="form-control rounded-3" placeholder="e.g. সাপ্তাহিক মজুরি পরিশোধ / হাতখরচ / চলতি মাসের অগ্রিম বাবদ"></textarea>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="modal-footer bg-light border-top p-3">
-                <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
-                <button type="submit" class="btn btn-success rounded-pill px-5 fw-bold shadow-sm">
-                    <i class="fa-solid fa-check me-1"></i> Save Payout
-                </button>
-            </div>
-        </form>
+
+                <div class="modal-footer bg-light border-0 py-3 px-4">
+                    <button type="button" class="btn btn-light border rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success rounded-pill px-4 fw-bold shadow-sm">
+                        <i class="fa-solid fa-hand-holding-dollar me-1"></i> Confirm Payout (টাকা পরিশোধ নিশ্চিত করুন)
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
 @push('scripts')
 <script>
-const bookSummariesMap = @json($bookSummaries ?? []);
-let currentPrevDelivered = 0;
-let currentPrevWastage = 0;
+function calculateWorkTotal() {
+    const qty = parseFloat(document.getElementById('workQuantityInput')?.value) || 0;
+    const rate = parseFloat(document.getElementById('workUnitRateInput')?.value) || 0;
+    const total = qty * rate;
 
-function onBookTitleSelected(title) {
-    title = (title || '').trim().toLowerCase();
-    const found = bookSummariesMap.find(b => (b.book_title || '').trim().toLowerCase() === title);
-    const noticeEl = document.getElementById('multiDayNoticeCard');
+    const displayEl = document.getElementById('displayEarnedAmount');
+    const earnedInput = document.getElementById('workEarnedAmountInput');
 
-    if (found) {
-        currentPrevDelivered = parseFloat(found.total_delivered) || 0;
-        currentPrevWastage = parseFloat(found.total_wastage) || 0;
-
-        if (found.printed_qty > 0) {
-            document.getElementById('work_printed_qty').value = found.printed_qty;
-        }
-        if (found.received_qty > 0) {
-            document.getElementById('work_received_qty').value = found.received_qty;
-        }
-        if (found.print_date) {
-            document.getElementById('work_print_date').value = found.print_date;
-        }
-        if (found.unit_rate > 0) {
-            document.getElementById('work_modal_rate').value = found.unit_rate;
-        }
-
-        if (noticeEl) {
-            document.getElementById('notice_prev_delivered').textContent = currentPrevDelivered;
-            document.getElementById('notice_prev_incomplete').textContent = found.incomplete_qty;
-            noticeEl.classList.remove('d-none');
-        }
-    } else {
-        currentPrevDelivered = 0;
-        currentPrevWastage = 0;
-        if (noticeEl) {
-            noticeEl.classList.add('d-none');
-        }
+    if (displayEl) {
+        displayEl.textContent = '৳' + total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
-
-    onProductionQtyChanged();
-}
-
-function onProductionQtyChanged() {
-    const printed = parseFloat(document.getElementById('work_printed_qty').value) || 0;
-    const received = parseFloat(document.getElementById('work_received_qty').value) || 0;
-    const delivered = parseFloat(document.getElementById('work_delivered_qty').value) || 0;
-    const wastage = parseFloat(document.getElementById('work_wastage_qty').value) || 0;
-
-    // 5. Total Binding (Auto) = 2. Received for Binding + 3. Delivered to Godown
-    const totalBinding = received + delivered;
-    document.getElementById('work_total_binding').value = totalBinding;
-
-    // 4. Incomplete (Auto) = 1. Total Printed - (2. Received for Binding + 3. Delivered to Godown + Wastage)
-    const incomplete = printed > 0 ? Math.max(0, printed - (totalBinding + wastage)) : 0;
-    document.getElementById('work_incomplete_qty').value = incomplete;
-
-    // Total Earned Amount = 5. Total Binding * Rate
-    const rate = parseFloat(document.getElementById('work_modal_rate').value) || 0;
-    const earnedInput = document.getElementById('work_modal_earned');
-    if (totalBinding > 0 && rate > 0) {
-        earnedInput.value = (totalBinding * rate).toFixed(2);
+    if (earnedInput) {
+        earnedInput.value = total.toFixed(2);
     }
 }
-
-function onPrintedQtyInput() {
-    onProductionQtyChanged();
-}
-
-function onDeliveredQtyInput() {
-    onProductionQtyChanged();
-}
-
-function onTotalBindingInput() {
-    calcWorkModalEarned();
-}
-
-function calcWorkModalEarned() {
-    const totalBinding = parseFloat(document.getElementById('work_total_binding').value) || 0;
-    const rate = parseFloat(document.getElementById('work_modal_rate').value) || 0;
-    const earnedInput = document.getElementById('work_modal_earned');
-
-    if (totalBinding > 0 && rate > 0) {
-        earnedInput.value = (totalBinding * rate).toFixed(2);
-    }
-}
-
-// Initial calculation bind
-document.addEventListener('DOMContentLoaded', function() {
-    ['work_printed_qty', 'work_received_qty', 'work_delivered_qty', 'work_total_binding', 'work_wastage_qty', 'work_modal_rate'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) {
-            el.addEventListener('input', onProductionQtyChanged);
-            el.addEventListener('change', onProductionQtyChanged);
-            el.addEventListener('keyup', onProductionQtyChanged);
-        }
-    });
-});
 </script>
 @endpush
 @endsection
