@@ -295,38 +295,35 @@ document.addEventListener('DOMContentLoaded', function() {
                             @endif
                         </div>
 
-                        <div class="text-center my-auto w-100 py-1">
-                            <a href="{{ route('book.show', $topSeller->slug) }}" class="d-block w-100 text-decoration-none">
-                                <div class="rounded-3 overflow-hidden shadow-sm mx-auto position-relative w-100 book-cover-frame" 
-                                     style="aspect-ratio: 7 / 10; max-height: 240px; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border: 1px solid #e2e8f0;">
+                        <div class="text-center my-auto w-100 py-1 d-flex flex-column flex-grow-1 justify-content-center">
+                            <a href="{{ route('book.show', $topSeller->slug) }}" class="d-flex align-items-center justify-content-center w-100 flex-grow-1 text-decoration-none" title="{{ $topSeller->title }}">
+                                <div class="rounded-3 overflow-hidden shadow-xs mx-auto position-relative w-100 book-cover-frame d-flex align-items-center justify-content-center p-1" 
+                                     style="min-height: 310px; max-height: 375px; height: 100%; background: #f8fafc; border: 1px solid #e2e8f0;">
                                     @if($tsCoverUrl)
-                                        <img src="{{ $tsCoverUrl }}" class="w-100 h-100 object-fit-cover transition-transform" alt="{{ $topSeller->title }}">
+                                        <img src="{{ $tsCoverUrl }}" class="w-100 h-100 object-fit-contain transition-transform" style="max-height: 360px;" alt="{{ $topSeller->title }}">
                                     @else
                                         <div class="w-100 h-100 bg-dark d-flex align-items-center justify-content-center text-white" style="font-size: 3rem;">📘</div>
                                     @endif
                                 </div>
                             </a>
-                            <h6 class="fw-bold text-dark text-truncate mt-2.5 mb-1" style="font-size: 1rem;">
-                                <a href="{{ route('book.show', $topSeller->slug) }}" class="text-dark text-decoration-none hover-primary" title="{{ $topSeller->title }}">
-                                    {{ $topSeller->title }}
-                                </a>
-                            </h6>
-                            <p class="text-muted small text-truncate mb-1.5" style="font-size: 0.82rem;">
-                                {{ $topSeller->authors->isNotEmpty() ? $topSeller->authors->pluck('name')->join(', ') : ($topSeller->author_name ?: 'আইডিয়া প্রকাশন') }}
-                            </p>
-                            <div class="d-flex align-items-center justify-content-center gap-2 mb-2">
-                                @if($topSeller->discount_price && $topSeller->discount_price < $topSeller->price)
-                                    <span class="text-muted text-decoration-line-through small" style="font-size: 0.84rem;">৳@bn(round($topSeller->price))</span>
-                                    <span class="text-danger fw-bold fs-5">৳@bn(round($topSeller->discount_price))</span>
-                                @else
-                                    <span class="text-dark fw-bold fs-5">৳@bn(round($topSeller->price))</span>
-                                @endif
-                            </div>
                         </div>
 
-                        <a href="{{ route('book.show', $topSeller->slug) }}" class="btn btn-primary btn-sm rounded-pill w-100 fw-bold py-2 shadow-xs d-flex align-items-center justify-content-center gap-1.5 mt-1" style="font-size: 0.88rem;">
-                            <i class="fa-solid fa-cart-shopping"></i> সরাসরি অর্ডার করুন
-                        </a>
+                        {{-- Bottom Action Row: Price beside compact Buy Now button --}}
+                        <div class="d-flex align-items-center justify-content-between gap-2 mt-2 pt-1 border-top w-100">
+                            <div class="d-flex align-items-baseline gap-1.5 text-start">
+                                @if($topSeller->discount_price && $topSeller->discount_price < $topSeller->price)
+                                    <span class="text-danger fw-bold fs-5" style="line-height: 1;">৳@bn(round($topSeller->discount_price))</span>
+                                    <span class="text-muted text-decoration-line-through small" style="font-size: 0.78rem; line-height: 1;">৳@bn(round($topSeller->price))</span>
+                                @else
+                                    <span class="text-dark fw-bold fs-5" style="line-height: 1;">৳@bn(round($topSeller->price))</span>
+                                @endif
+                            </div>
+
+                            <a href="{{ route('book.show', $topSeller->slug) }}" class="btn btn-primary btn-sm rounded-pill px-3 py-1.5 fw-bold shadow-xs d-inline-flex align-items-center gap-1 hover-lift flex-shrink-0" style="font-size: 0.82rem;">
+                                <i class="fa-solid fa-bolt text-warning" style="font-size: 11px;"></i>
+                                <span>Buy Now</span>
+                            </a>
+                        </div>
 
                     </div>
                 </div>
@@ -411,6 +408,61 @@ document.addEventListener('DOMContentLoaded', function() {
                     @endforeach
                 </div>
                 <button type="button" class="idea-slider-nav-btn next-btn shadow-md d-none d-lg-flex" onclick="scrollIdeaSlider('flashSaleSlider', 1)" aria-label="পরবর্তী">
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+            </div>
+
+        </div>
+    </div>
+</section>
+@endif
+
+{{-- ══ 4.1 SECTION: প্রি-অর্ডার বইসমূহ (PRE-ORDER BOOKS - SLIDER) ═══════════════ --}}
+@if(isset($preOrderBooks) && $preOrderBooks->isNotEmpty())
+<section class="mb-4">
+    <div class="container">
+        <div class="card p-3 p-md-4 border-0 shadow-sm rounded-4 bg-white position-relative" style="border: 1px solid #f1f5f9 !important;">
+            
+            {{-- Section Header --}}
+            <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="rounded-circle bg-warning bg-opacity-20 text-warning d-flex align-items-center justify-content-center shadow-2xs" style="width: 32px; height: 32px;">
+                        <i class="fa-solid fa-clock-rotate-left text-warning fs-6"></i>
+                    </span>
+                    <div>
+                        <h4 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2" style="font-size: clamp(1.05rem, 2.5vw, 1.35rem);">
+                            <span>প্রি-অর্ডার বইসমূহ</span>
+                            <span class="badge bg-warning text-dark rounded-pill px-2 py-0.5 small fw-bold" style="font-size: 0.68rem;">আসন্ন বই</span>
+                        </h4>
+                        <span class="text-muted small" style="font-size: 0.78rem;">প্রকাশের আগেই বিশেষ সুবিধায় অগ্রিম অর্ডার করুন</span>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <button type="button" class="btn btn-sm btn-light rounded-circle shadow-2xs border d-none d-md-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" onclick="scrollIdeaSlider('preOrderSlider', -1)" title="পূর্ববর্তী">
+                        <i class="fa-solid fa-chevron-left text-secondary" style="font-size: 11px;"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-light rounded-circle shadow-2xs border d-none d-md-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" onclick="scrollIdeaSlider('preOrderSlider', 1)" title="পরবর্তী">
+                        <i class="fa-solid fa-chevron-right text-secondary" style="font-size: 11px;"></i>
+                    </button>
+                    <a href="{{ route('book.index', ['stock_status' => 'pre_order']) }}" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-bold ms-1" style="font-size: 0.80rem;">
+                        সব দেখুন <i class="fa-solid fa-arrow-right ms-0.5"></i>
+                    </a>
+                </div>
+            </div>
+
+            {{-- Slider Track with Floating Nav Buttons --}}
+            <div class="idea-slider-wrapper position-relative">
+                <button type="button" class="idea-slider-nav-btn prev-btn shadow-md d-none d-lg-flex" onclick="scrollIdeaSlider('preOrderSlider', -1)" aria-label="পূর্ববর্তী">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </button>
+                <div class="idea-book-slider" id="preOrderSlider">
+                    @foreach($preOrderBooks as $b)
+                        <div class="idea-slider-item">
+                            @include('book::frontend.partials.book-card', ['book' => $b])
+                        </div>
+                    @endforeach
+                </div>
+                <button type="button" class="idea-slider-nav-btn next-btn shadow-md d-none d-lg-flex" onclick="scrollIdeaSlider('preOrderSlider', 1)" aria-label="পরবর্তী">
                     <i class="fa-solid fa-chevron-right"></i>
                 </button>
             </div>
@@ -837,60 +889,7 @@ document.addEventListener('DOMContentLoaded', function() {
 </section>
 @endif
 
-{{-- ══ 12. SECTION: প্রি-অর্ডার বইসমূহ (PRE-ORDER BOOKS - IF AVAILABLE) ═══════════ --}}
-@if(isset($preOrderBooks) && $preOrderBooks->isNotEmpty())
-<section class="mb-4">
-    <div class="container">
-        <div class="card p-3 p-md-4 border-0 shadow-sm rounded-4 bg-white position-relative" style="border: 1px solid #f1f5f9 !important;">
-            
-            {{-- Section Header --}}
-            <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
-                <div class="d-flex align-items-center gap-2">
-                    <span class="rounded-circle bg-warning bg-opacity-20 text-warning d-flex align-items-center justify-content-center shadow-2xs" style="width: 32px; height: 32px;">
-                        <i class="fa-solid fa-clock-rotate-left text-warning fs-6"></i>
-                    </span>
-                    <div>
-                        <h4 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2" style="font-size: clamp(1.05rem, 2.5vw, 1.35rem);">
-                            <span>প্রি-অর্ডার বইসমূহ</span>
-                            <span class="badge bg-warning text-dark rounded-pill px-2 py-0.5 small fw-bold" style="font-size: 0.68rem;">আসন্ন বই</span>
-                        </h4>
-                        <span class="text-muted small" style="font-size: 0.78rem;">প্রকাশের আগেই বিশেষ সুবিধায় অগ্রিম অর্ডার করুন</span>
-                    </div>
-                </div>
-                <div class="d-flex align-items-center gap-2">
-                    <button type="button" class="btn btn-sm btn-light rounded-circle shadow-2xs border d-none d-md-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" onclick="scrollIdeaSlider('preOrderSlider', -1)" title="পূর্ববর্তী">
-                        <i class="fa-solid fa-chevron-left text-secondary" style="font-size: 11px;"></i>
-                    </button>
-                    <button type="button" class="btn btn-sm btn-light rounded-circle shadow-2xs border d-none d-md-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" onclick="scrollIdeaSlider('preOrderSlider', 1)" title="পরবর্তী">
-                        <i class="fa-solid fa-chevron-right text-secondary" style="font-size: 11px;"></i>
-                    </button>
-                    <a href="{{ route('book.index', ['stock_status' => 'pre_order']) }}" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-bold ms-1" style="font-size: 0.80rem;">
-                        সব দেখুন <i class="fa-solid fa-arrow-right ms-0.5"></i>
-                    </a>
-                </div>
-            </div>
 
-            {{-- Slider Track with Floating Nav Buttons --}}
-            <div class="idea-slider-wrapper position-relative">
-                <button type="button" class="idea-slider-nav-btn prev-btn shadow-md d-none d-lg-flex" onclick="scrollIdeaSlider('preOrderSlider', -1)" aria-label="পূর্ববর্তী">
-                    <i class="fa-solid fa-chevron-left"></i>
-                </button>
-                <div class="idea-book-slider" id="preOrderSlider">
-                    @foreach($preOrderBooks as $b)
-                        <div class="idea-slider-item">
-                            @include('book::frontend.partials.book-card', ['book' => $b])
-                        </div>
-                    @endforeach
-                </div>
-                <button type="button" class="idea-slider-nav-btn next-btn shadow-md d-none d-lg-flex" onclick="scrollIdeaSlider('preOrderSlider', 1)" aria-label="পরবর্তী">
-                    <i class="fa-solid fa-chevron-right"></i>
-                </button>
-            </div>
-
-        </div>
-    </div>
-</section>
-@endif
 
 {{-- ══ 13. SECTION: ইতিমধ্যে দেখা বইসমূহ (RECENTLY VIEWED - WHEN IN SESSION) ═════ --}}
 @if(isset($recentlyViewedBooks) && $recentlyViewedBooks->isNotEmpty())

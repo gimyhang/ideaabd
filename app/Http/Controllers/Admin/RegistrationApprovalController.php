@@ -117,6 +117,7 @@ class RegistrationApprovalController extends Controller
     {
         $validated = $request->validate([
             'name'           => ['required', 'string', 'max:255'],
+            'name_bn'        => ['nullable', 'string', 'max:255'],
             'email'          => ['required', 'email', 'max:255', 'unique:users,email,' . $user->id],
             'phone'          => ['required', 'string', 'max:20', 'unique:users,phone,' . $user->id],
             'role'           => ['required', 'in:author,seller,publisher,buyer'],
@@ -172,7 +173,8 @@ class RegistrationApprovalController extends Controller
         $wasPending = ($user->reg_status === 'pending');
         $isNowApproved = ($validated['reg_status'] === 'approved');
 
-        $user->name = $request->input('name_bn') ?: $validated['name'];
+        // Author Name (English) is primary display name
+        $user->name = trim($validated['name']);
         $user->email = $validated['email'];
         $user->phone = $validated['phone'];
         $user->role = $validated['role'];
@@ -191,7 +193,7 @@ class RegistrationApprovalController extends Controller
 
         $user->save();
 
-        // Update authors table if role is author
+        // Update authors directory & linked blog posts if role is author
         if ($user->role === 'author') {
             try {
                 $authorName = $user->name;
@@ -203,6 +205,7 @@ class RegistrationApprovalController extends Controller
 
                 \Modules\Author\Models\Author::findOrCreateUnified([
                     'name'         => $authorName,
+                    'name_en'      => $authorName,
                     'email'        => $user->email,
                     'phone'        => $user->phone,
                     'bio'          => $regData['bio'] ?? null,
@@ -213,6 +216,11 @@ class RegistrationApprovalController extends Controller
                     'is_active'    => $user->is_active,
                     'is_verified'  => ($user->reg_status === 'approved'),
                 ]);
+
+                // Sync blog posts owner_name
+                \Modules\Blog\Models\BlogPost::where('author_id', $user->id)
+                    ->orWhere('submitted_by', $user->id)
+                    ->update(['owner_name' => $authorName]);
             } catch (\Throwable $e) {
                 Log::warning("Could not sync updated author directory: " . $e->getMessage());
             }
@@ -261,16 +269,24 @@ class RegistrationApprovalController extends Controller
         if ($user->role === 'author') {
             try {
                 $regData = is_array($user->reg_data) ? $user->reg_data : [];
-                $authorName = !empty($regData['pen_name']) ? $regData['pen_name'] : $user->name;
+                $authorName = $user->name;
 
                 \Modules\Author\Models\Author::findOrCreateUnified([
                     'name'        => $authorName,
+                    'name_en'     => $authorName,
                     'email'       => $user->email,
                     'phone'       => $user->phone,
                     'bio'         => $regData['bio'] ?? null,
+                    'avatar'      => $user->avatar ?: ($regData['avatar'] ?? null),
+                    'user_id'     => $user->id,
                     'is_active'   => true,
                     'is_verified' => true,
                 ]);
+
+                // Sync blog posts owner_name
+                \Modules\Blog\Models\BlogPost::where('author_id', $user->id)
+                    ->orWhere('submitted_by', $user->id)
+                    ->update(['owner_name' => $authorName]);
             } catch (\Throwable $e) {
                 Log::warning("Could not sync author entry on approval: " . $e->getMessage());
             }

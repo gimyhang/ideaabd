@@ -10,16 +10,15 @@
         <div>
             <h4 class="fw-bold mb-1 text-dark d-flex align-items-center gap-2">
                 <i class="fas fa-pen-to-square text-warning"></i>
-                <span>আইডিয়াপত্র সম্পাদনা (খসড়া / পরিমার্জন)</span>
+                <span>Edit Post</span>
             </h4>
-            <p class="text-muted small mb-0">আপনার সংরক্ষিত খসড়া বা পরিমার্জনযোগ্য লেখা সম্পাদনা করুন</p>
         </div>
         <div class="d-flex align-items-center gap-2">
             <a href="{{ route('author.posts.index') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
-                <i class="fas fa-arrow-left me-1"></i> ফিরে যান
+                <i class="fas fa-arrow-left me-1"></i> Back
             </a>
             <a href="{{ route('author.posts.create') }}" class="btn btn-sm btn-warning text-dark fw-bold rounded-pill px-3">
-                <i class="fas fa-plus-circle me-1"></i> নতুন লেখা
+                <i class="fas fa-plus-circle me-1"></i> New Post
             </a>
         </div>
     </div>
@@ -29,11 +28,10 @@
         <div class="alert alert-danger d-flex align-items-start gap-3 p-3 rounded-3 shadow-xs mb-4">
             <i class="fas fa-triangle-exclamation fs-4 text-danger mt-1 flex-shrink-0"></i>
             <div>
-                <h6 class="fw-bold mb-1 text-danger">সম্পাদনা ও সংশোধন আবশ্যক</h6>
+                <h6 class="fw-bold mb-1 text-danger">Revision Required</h6>
                 <p class="small mb-0 text-dark">
-                    <strong>সম্পাদকীয় মন্তব্য:</strong> {{ $post->rejection_reason }}
+                    <strong>Editor Notes:</strong> {{ $post->rejection_reason }}
                 </p>
-                <div class="small text-muted mt-1">মন্তব্য অনুযায়ী লেখাটি পরিমার্জন করে পুনরায় পর্যালোচনার জন্য জমা দিন।</div>
             </div>
         </div>
     @endif
@@ -50,12 +48,12 @@
                     {{-- Title --}}
                     <div class="mb-3">
                         <label for="postTitle" class="form-label fw-bold text-dark mb-1">
-                            লেখার মূল শিরোনাম <span class="text-danger">*</span>
+                            Title <span class="text-danger">*</span>
                         </label>
                         <input type="text" name="title" id="postTitle" 
                                value="{{ old('title', $post->title) }}" 
                                class="form-control form-control-lg fw-bold @error('title') is-invalid @enderror" 
-                               placeholder="আকর্ষণীয় শিরোনাম লিখুন..." required 
+                               placeholder="Enter post title..." required 
                                oninput="onAuthorTitleChange(this.value)">
                         @error('title')
                             <div class="invalid-feedback">{{ $message }}</div>
@@ -65,19 +63,19 @@
                     {{-- Subtitle & Category Row --}}
                     <div class="row g-3 mb-3">
                         <div class="col-12 col-md-7">
-                            <label for="postSubtitle" class="form-label small fw-semibold text-dark mb-1">উপশিরোনাম / ট্যাগলাইন (ঐচ্ছিক)</label>
+                            <label for="postSubtitle" class="form-label small fw-semibold text-dark mb-1">Subtitle</label>
                             <input type="text" name="subtitle" id="postSubtitle" 
                                    value="{{ old('subtitle', $post->subtitle) }}" 
                                    class="form-control form-control-sm @error('subtitle') is-invalid @enderror" 
-                                   placeholder="এক লাইনে লেখার মূল সুর বা সারমর্ম...">
+                                   placeholder="Subtitle or tagline...">
                             @error('subtitle')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
                         <div class="col-12 col-md-5">
-                            <label for="postCategory" class="form-label small fw-semibold text-dark mb-1">ক্যাটাগরি / সাহিত্য ধারা <span class="text-danger">*</span></label>
+                            <label for="postCategory" class="form-label small fw-semibold text-dark mb-1">Category <span class="text-danger">*</span></label>
                             <select name="category_id" id="postCategory" class="form-select form-select-sm @error('category_id') is-invalid @enderror" required>
-                                <option value="">— ক্যাটাগরি নির্বাচন করুন —</option>
+                                <option value="">Select Category</option>
                                 @foreach($blogCategories as $cat)
                                     <option value="{{ $cat->id }}" @selected(old('category_id', $post->category_id) == $cat->id)>
                                         {{ $cat->name }}
@@ -93,12 +91,12 @@
                     {{-- Excerpt / Short Summary --}}
                     <div class="mb-3">
                         <div class="d-flex align-items-center justify-content-between mb-1">
-                            <label for="postExcerpt" class="form-label small fw-semibold text-dark mb-0">সংক্ষিপ্ত ভূমিকা / ফেস্টিভাল টিজার (ঐচ্ছিক)</label>
-                            <span class="text-muted small" style="font-size: 11px;" id="excerptCounter">{{ mb_strlen($post->excerpt ?? '') }} / ২০০ অক্ষর</span>
+                            <label for="postExcerpt" class="form-label small fw-semibold text-dark mb-0">Excerpt</label>
+                            <span class="text-muted small" style="font-size: 11px;" id="excerptCounter">{{ mb_strlen($post->excerpt ?? '') }} / 200</span>
                         </div>
                         <textarea name="excerpt" id="postExcerpt" rows="2" 
                                   class="form-control form-control-sm @error('excerpt') is-invalid @enderror" 
-                                  placeholder="পাঠকদের আকৃষ্ট করার জন্য ১-২ বাক্যের সংক্ষিপ্ত বিবরণ..." 
+                                  placeholder="Short summary or teaser..." 
                                   maxlength="500"
                                   oninput="updateExcerptCount(this)">{{ old('excerpt', $post->excerpt) }}</textarea>
                         @error('excerpt')
@@ -110,66 +108,66 @@
                     <div class="mb-3">
                         <div class="d-flex align-items-center justify-content-between mb-1">
                             <label class="form-label fw-bold text-dark mb-0">
-                                মূল রচনা / পান্ডুলিপি <span class="text-danger">*</span>
+                                Content <span class="text-danger">*</span>
                             </label>
                             <div class="d-flex align-items-center gap-2">
-                                <span class="badge bg-light text-dark border small fw-normal" id="contentWordStats">শব্দ: ০ | স্তবক: ০</span>
+                                <span class="badge bg-light text-dark border small fw-normal" id="contentWordStats">Words: 0 | Lines: 0</span>
                             </div>
                         </div>
 
                         <div class="border rounded-3 overflow-hidden shadow-xs">
                             {{-- Formatting Toolbar --}}
                             <div class="bg-light p-2 border-bottom d-flex flex-wrap gap-1 align-items-center">
-                                <button type="button" class="btn btn-sm btn-light border py-1 px-2.5 fw-bold" onclick="execCmd('bold')" title="বোল্ড (Ctrl+B)">
+                                <button type="button" class="btn btn-sm btn-light border py-1 px-2.5 fw-bold" onclick="execCmd('bold')" title="Bold">
                                     <i class="fas fa-bold"></i>
                                 </button>
-                                <button type="button" class="btn btn-sm btn-light border py-1 px-2.5 fst-italic" onclick="execCmd('italic')" title="ইটালিক (Ctrl+I)">
+                                <button type="button" class="btn btn-sm btn-light border py-1 px-2.5 fst-italic" onclick="execCmd('italic')" title="Italic">
                                     <i class="fas fa-italic"></i>
                                 </button>
-                                <button type="button" class="btn btn-sm btn-light border py-1 px-2.5 text-decoration-underline" onclick="execCmd('underline')" title="আন্ডারলাইন (Ctrl+U)">
+                                <button type="button" class="btn btn-sm btn-light border py-1 px-2.5 text-decoration-underline" onclick="execCmd('underline')" title="Underline">
                                     <i class="fas fa-underline"></i>
                                 </button>
 
                                 <div class="vr mx-1"></div>
 
-                                <button type="button" class="btn btn-sm btn-light border py-1 px-2" onclick="execFormatBlock('p')" title="প্যারাগ্রাফ">
+                                <button type="button" class="btn btn-sm btn-light border py-1 px-2" onclick="execFormatBlock('p')" title="Paragraph">
                                     <i class="fas fa-paragraph"></i>
                                 </button>
-                                <button type="button" class="btn btn-sm btn-light border py-1 px-2 fw-bold" onclick="execFormatBlock('h3')" title="উপশিরোনাম (H3)">
+                                <button type="button" class="btn btn-sm btn-light border py-1 px-2 fw-bold" onclick="execFormatBlock('h3')" title="Heading 3">
                                     H3
                                 </button>
-                                <button type="button" class="btn btn-sm btn-light border py-1 px-2" onclick="execFormatBlock('blockquote')" title="উদ্ধৃতি / কোট">
+                                <button type="button" class="btn btn-sm btn-light border py-1 px-2" onclick="execFormatBlock('blockquote')" title="Quote">
                                     <i class="fas fa-quote-left"></i>
                                 </button>
 
                                 <div class="vr mx-1"></div>
 
-                                <button type="button" class="btn btn-sm btn-light border py-1 px-2" onclick="execCmd('insertUnorderedList')" title="বুলেট লিস্ট">
+                                <button type="button" class="btn btn-sm btn-light border py-1 px-2" onclick="execCmd('insertUnorderedList')" title="Bullet List">
                                     <i class="fas fa-list-ul"></i>
                                 </button>
-                                <button type="button" class="btn btn-sm btn-light border py-1 px-2" onclick="execCmd('insertOrderedList')" title="নাম্বার লিস্ট">
+                                <button type="button" class="btn btn-sm btn-light border py-1 px-2" onclick="execCmd('insertOrderedList')" title="Numbered List">
                                     <i class="fas fa-list-ol"></i>
                                 </button>
-                                <button type="button" class="btn btn-sm btn-light border py-1 px-2" onclick="execCmd('insertHorizontalRule')" title="বিভাজক রেখা">
+                                <button type="button" class="btn btn-sm btn-light border py-1 px-2" onclick="execCmd('insertHorizontalRule')" title="Divider">
                                     <i class="fas fa-minus"></i>
                                 </button>
 
                                 <div class="vr mx-1"></div>
 
                                 {{-- Literary Helpers --}}
-                                <button type="button" class="btn btn-sm btn-outline-primary border py-1 px-2.5 fw-semibold" onclick="formatPoetryMode()" title="কবিতার চরণ ও স্তবক ঠিক করুন">
-                                    <i class="fas fa-feather-alt me-1"></i> কবিতা মোড
+                                <button type="button" class="btn btn-sm btn-outline-primary border py-1 px-2.5 fw-semibold" onclick="formatPoetryMode()" title="Poetry Format">
+                                    <i class="fas fa-feather-alt me-1"></i> Poetry
                                 </button>
-                                <button type="button" class="btn btn-sm btn-outline-secondary border py-1 px-2.5 fw-semibold" onclick="formatProseMode()" title="গদ্য প্যারাগ্রাফ সাজান">
-                                    <i class="fas fa-align-left me-1"></i> গদ্য মোড
+                                <button type="button" class="btn btn-sm btn-outline-secondary border py-1 px-2.5 fw-semibold" onclick="formatProseMode()" title="Prose Format">
+                                    <i class="fas fa-align-left me-1"></i> Prose
                                 </button>
-                                <button type="button" class="btn btn-sm btn-outline-info border py-1 px-2.5 fw-semibold" onclick="formatCleanSpacing()" title="অতিরিক্ত ফাঁকা লাইন মুছুন">
-                                    <i class="fas fa-wand-magic-sparkles me-1"></i> স্পেসিং মেরামত
+                                <button type="button" class="btn btn-sm btn-outline-info border py-1 px-2.5 fw-semibold" onclick="formatCleanSpacing()" title="Clean Spacing">
+                                    <i class="fas fa-wand-magic-sparkles me-1"></i> Format
                                 </button>
 
                                 <div class="vr mx-1"></div>
 
-                                <button type="button" class="btn btn-sm btn-light border py-1 px-2 text-danger" onclick="execCmd('removeFormat')" title="ফরম্যাটিং মুছুন">
+                                <button type="button" class="btn btn-sm btn-light border py-1 px-2 text-danger" onclick="execCmd('removeFormat')" title="Clear Format">
                                     <i class="fas fa-eraser"></i>
                                 </button>
                             </div>
@@ -203,11 +201,8 @@
                 <div class="author-card p-3 mb-4">
                     <h6 class="fw-bold mb-2 text-dark d-flex align-items-center gap-1.5">
                         <i class="fas fa-image text-primary"></i>
-                        <span>পোস্ট কাভার / ফটোকার্ড</span>
+                        <span>Cover Image</span>
                     </h6>
-                    <p class="text-muted small mb-3" style="font-size: 12px;">
-                        বিদ্যমান কাভার পরিবর্তন করতে নতুন ছবি আপলোড করুন অথবা অটো ফটোকার্ড জেনারেট করুন।
-                    </p>
 
                     @php
                         $coverUrl = $post->cover_url ?: ($post->featured_image ? (str_starts_with($post->featured_image, 'http') ? $post->featured_image : asset('storage/' . ltrim($post->featured_image, '/'))) : null);
@@ -229,12 +224,11 @@
 
                     {{-- File Upload Input --}}
                     <div class="mb-2.5">
-                        <label for="featuredImageInput" class="form-label small fw-semibold text-dark mb-1">নতুন কাভার ছবি আপলোড (ঐচ্ছিক)</label>
+                        <label for="featuredImageInput" class="form-label small fw-semibold text-dark mb-1">Upload New Cover</label>
                         <input type="file" name="featured_image" id="featuredImageInput" 
                                accept="image/jpeg,image/png,image/webp" 
                                class="form-control form-control-sm @error('featured_image') is-invalid @enderror"
                                onchange="previewCoverFile(this)">
-                        <div class="form-text" style="font-size: 11px;">JPG, PNG বা WebP (সর্বোচ্চ ৮ মেগাবাইট)।</div>
                         @error('featured_image')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -243,21 +237,17 @@
                     {{-- Auto Photocard Canvas Holder & Trigger --}}
                     <input type="hidden" name="ai_photocard_data" id="aiPhotocardData" value="">
                     <button type="button" class="btn btn-sm btn-outline-primary rounded-pill w-100 py-1.5 fw-semibold" onclick="generateAutoTitleCard()">
-                        <i class="fas fa-wand-magic-sparkles me-1.5"></i> শিরোনাম দিয়ে নতুন ফটোকার্ড তৈরি
+                        <i class="fas fa-wand-magic-sparkles me-1.5"></i> Generate Title Card
                     </button>
                     <canvas id="autoCardCanvas" width="1200" height="630" style="display: none;"></canvas>
                 </div>
 
-                {{-- Editorial Guidelines Card --}}
+                {{-- Policy Terms --}}
                 <div class="author-card p-3 mb-4 bg-light bg-opacity-50">
-                    <h6 class="fw-bold mb-2 text-dark d-flex align-items-center gap-1.5" style="font-size: 13.5px;">
-                        <i class="fas fa-scroll text-warning"></i>
-                        <span>সম্পাদকীয় নির্দেশিকা ও স্বত্বাধিকার</span>
-                    </h6>
                     <div class="form-check mb-0">
                         <input class="form-check-input @error('agree_policy') is-invalid @enderror" type="checkbox" name="agree_policy" value="1" id="agreePolicy" checked required>
-                        <label class="form-check-label small fw-semibold text-dark" for="agreePolicy" style="font-size: 11.5px;">
-                            আমি আইডিয়া প্রকাশনের সম্পাদকীয় নীতিমালা ও শর্তাবলি মেনে নিচ্ছি। <span class="text-danger">*</span>
+                        <label class="form-check-label small fw-semibold text-dark" for="agreePolicy" style="font-size: 12px;">
+                            I accept the editorial policy & terms. <span class="text-danger">*</span>
                         </label>
                         @error('agree_policy')
                             <div class="invalid-feedback">{{ $message }}</div>
@@ -270,12 +260,12 @@
                     <input type="hidden" name="action_type" id="postActionType" value="submit">
                     
                     <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-warning text-dark fw-bold py-2.5 rounded-pill shadow-sm" onclick="setActionType('submit')">
-                            <i class="fas fa-paper-plane me-1.5"></i> সংশোধিত লেখা জমা দিন
+                        <button type="submit" class="btn btn-warning text-dark fw-bold py-2 rounded-pill shadow-sm" onclick="setActionType('submit')">
+                            <i class="fas fa-paper-plane me-1.5"></i> Update & Submit
                         </button>
                         
                         <button type="submit" class="btn btn-outline-secondary py-2 rounded-pill fw-semibold" onclick="setActionType('draft')">
-                            <i class="fas fa-floppy-disk me-1.5"></i> খসড়া হিসেবে আপডেট করুন
+                            <i class="fas fa-floppy-disk me-1.5"></i> Save Draft
                         </button>
                     </div>
                 </div>

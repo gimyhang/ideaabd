@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'বিল / চালান সম্পাদনা #' . $bill->bill_no . ' — আইডিয়া প্রকাশন')
+@section('title', 'Edit Bill #' . $bill->bill_no . ' — POS')
 
 @section('content')
 <div class="container-fluid py-4 px-md-4" style="max-width: 1440px;">
@@ -13,7 +13,7 @@
             <div class="alert alert-danger alert-dismissible rounded-4 mb-4 shadow-sm border-0">
                 <div class="d-flex align-items-center gap-2 mb-1">
                     <i class="fas fa-circle-exclamation text-danger fs-5"></i>
-                    <strong class="text-danger">অনুগ্রহ করে নিচের ত্রুটিগুলো সংশোধন করুন:</strong>
+                    <strong class="text-danger">Please fix the following errors:</strong>
                 </div>
                 <ul class="mb-0 ps-3 mt-1 small">@foreach($errors->all() as $e)<li>{{ $e }}</li>@endforeach</ul>
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
@@ -36,8 +36,7 @@
                             <i class="fas fa-file-pen fs-6"></i>
                         </div>
                         <div>
-                            <h5 class="fw-bold mb-0 text-dark">বিল ও চালান সম্পাদনা (#{{ $bill->bill_no }})</h5>
-                            <small class="text-muted">এডমিন ও সেলার ইনভয়েস স্ট্যান্ডার্ড ফরম্যাট</small>
+                            <h5 class="fw-bold mb-0 text-dark">Edit Bill (#{{ $bill->bill_no }})</h5>
                         </div>
                     </div>
 
@@ -46,19 +45,19 @@
                         <input type="radio" class="btn-check" name="type" id="typeInvoice" value="invoice" 
                                @checked($currentType === 'invoice') onchange="updateDocType('invoice')">
                         <label class="btn btn-outline-primary rounded-pill px-3 fw-semibold border-0" for="typeInvoice">
-                            <i class="fas fa-receipt me-1"></i> বিল / ক্যাশ মেমো
+                            <i class="fas fa-receipt me-1"></i> Invoice
                         </label>
 
                         <input type="radio" class="btn-check" name="type" id="typeChallan" value="challan" 
                                @checked($currentType === 'challan') onchange="updateDocType('challan')">
                         <label class="btn btn-outline-primary rounded-pill px-3 fw-semibold border-0" for="typeChallan">
-                            <i class="fas fa-truck me-1"></i> ডেলিভারি চালান
+                            <i class="fas fa-truck me-1"></i> Challan
                         </label>
 
                         <input type="radio" class="btn-check" name="type" id="typeQuotation" value="quotation" 
                                @checked($currentType === 'quotation') onchange="updateDocType('quotation')">
                         <label class="btn btn-outline-primary rounded-pill px-3 fw-semibold border-0" for="typeQuotation">
-                            <i class="fas fa-file-lines me-1"></i> কোটেশন / প্রফর্মা
+                            <i class="fas fa-file-lines me-1"></i> Quotation
                         </label>
                     </div>
                 </div>
@@ -69,31 +68,31 @@
                         <div class="row g-2 align-items-center">
                             <div class="col-12 col-md-4">
                                 <label class="form-label small fw-bold text-dark mb-1">
-                                    <i class="fas fa-hashtag text-primary me-1"></i>ডকুমেন্ট / মেমো নম্বর:
+                                    <i class="fas fa-hashtag text-primary me-1"></i>Bill / Ref No:
                                 </label>
                                 <input type="text" name="bill_no" id="billNoInput" class="form-control form-control-sm fw-bold font-monospace bg-white" 
                                        value="{{ old('bill_no', $bill->bill_no) }}">
                             </div>
                             <div class="col-12 col-md-4">
                                 <label class="form-label small fw-bold text-dark mb-1">
-                                    <i class="fas fa-calendar-alt text-primary me-1"></i>তারিখ:
+                                    <i class="fas fa-calendar-alt text-primary me-1"></i>Date:
                                 </label>
                                 <input type="date" name="bill_date" class="form-control form-control-sm bg-white" 
                                        value="{{ old('bill_date', ($bill->bill_date ?? $bill->created_at)->format('Y-m-d')) }}">
                             </div>
                             <div class="col-12 col-md-4">
                                 <label class="form-label small fw-bold text-dark mb-1">
-                                    <i class="fas fa-bookmark text-primary me-1"></i>স্মারক / চালান সূত্র (Ref No):
+                                    <i class="fas fa-bookmark text-primary me-1"></i>Reference No:
                                 </label>
                                 <input type="text" name="reference_no" class="form-control form-control-sm bg-white" 
-                                       placeholder="উদা: IDEA-CH/2026/08" value="{{ old('reference_no', $bill->reference_no) }}">
+                                       placeholder="REF-2026-01" value="{{ old('reference_no', $bill->reference_no) }}">
                             </div>
                             <div class="col-12 mt-2">
                                 <label class="form-label small fw-bold text-dark mb-1">
-                                    <i class="fas fa-heading text-primary me-1"></i>ডকুমেন্টের বিষয় / বিবরণ (Subject):
+                                    <i class="fas fa-heading text-primary me-1"></i>Subject / Description:
                                 </label>
                                 <input type="text" name="subject" id="docSubjectInput" class="form-control form-control-sm bg-white" 
-                                       placeholder="উদা: লাইব্রেরি বা গ্রাহকের অনুকূলে নতুন বই সরবরাহ ও বিক্রয় চালান" value="{{ old('subject', $bill->subject) }}">
+                                       placeholder="Book supply and delivery..." value="{{ old('subject', $bill->subject) }}">
                             </div>
                         </div>
                     </div>
@@ -102,46 +101,46 @@
                     <div class="p-3 bg-white rounded-3 border">
                         <h6 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2 border-bottom pb-2">
                             <i class="fas fa-user-tag text-primary"></i>
-                            <span>গ্রাহক ও প্রতিষ্ঠানের তথ্য (Client Information)</span>
+                            <span>Customer Information</span>
                         </h6>
                         <div class="row g-3">
                             <div class="col-12 col-sm-6 col-lg-4">
-                                <label class="form-label small fw-semibold">গ্রাহক / প্রাপকের নাম <span class="text-danger">*</span></label>
+                                <label class="form-label small fw-semibold">Customer Name <span class="text-danger">*</span></label>
                                 <div class="input-group input-group-sm">
                                     <span class="input-group-text bg-light"><i class="fas fa-user text-muted"></i></span>
                                     <input type="text" name="customer_name" class="form-control" value="{{ old('customer_name', $bill->customer_name) }}" required>
                                 </div>
                             </div>
                             <div class="col-12 col-sm-6 col-lg-4">
-                                <label class="form-label small fw-semibold">প্রতিষ্ঠান / লাইব্রেরির নাম</label>
+                                <label class="form-label small fw-semibold">Organization (Optional)</label>
                                 <div class="input-group input-group-sm">
                                     <span class="input-group-text bg-light"><i class="fas fa-building text-muted"></i></span>
                                     <input type="text" name="customer_org" class="form-control" value="{{ old('customer_org', $bill->customer_org) }}">
                                 </div>
                             </div>
                             <div class="col-12 col-sm-6 col-lg-4">
-                                <label class="form-label small fw-semibold">পদবী / পরিচিতি</label>
+                                <label class="form-label small fw-semibold">Designation (Optional)</label>
                                 <div class="input-group input-group-sm">
                                     <span class="input-group-text bg-light"><i class="fas fa-id-badge text-muted"></i></span>
                                     <input type="text" name="customer_designation" class="form-control" value="{{ old('customer_designation', $bill->customer_designation) }}">
                                 </div>
                             </div>
                             <div class="col-12 col-sm-6 col-lg-4">
-                                <label class="form-label small fw-semibold">মোবাইল নম্বর</label>
+                                <label class="form-label small fw-semibold">Phone</label>
                                 <div class="input-group input-group-sm">
                                     <span class="input-group-text bg-light"><i class="fas fa-phone text-muted"></i></span>
                                     <input type="tel" name="customer_phone" class="form-control" value="{{ old('customer_phone', $bill->customer_phone) }}">
                                 </div>
                             </div>
                             <div class="col-12 col-sm-6 col-lg-4">
-                                <label class="form-label small fw-semibold">ইমেইল (ঐচ্ছিক)</label>
+                                <label class="form-label small fw-semibold">Email (Optional)</label>
                                 <div class="input-group input-group-sm">
                                     <span class="input-group-text bg-light"><i class="fas fa-envelope text-muted"></i></span>
                                     <input type="email" name="customer_email" class="form-control" value="{{ old('customer_email', $bill->customer_email) }}">
                                 </div>
                             </div>
                             <div class="col-12 col-sm-6 col-lg-4">
-                                <label class="form-label small fw-semibold">ডেলিভারি / পূর্ণাঙ্গ ঠিকানা</label>
+                                <label class="form-label small fw-semibold">Delivery Address</label>
                                 <div class="input-group input-group-sm">
                                     <span class="input-group-text bg-light"><i class="fas fa-map-marker-alt text-muted"></i></span>
                                     <input type="text" name="customer_address" class="form-control" value="{{ old('customer_address', $bill->customer_address) }}">
@@ -157,12 +156,11 @@
                 <div class="card-header bg-white py-3 border-bottom d-flex flex-wrap justify-content-between align-items-center gap-2">
                     <div>
                         <h5 class="fw-bold mb-0 text-dark">
-                            <i class="fas fa-book-open text-primary me-2"></i>বই ও পণ্যের তালিকা (Items Table)
+                            <i class="fas fa-book-open text-primary me-2"></i>Items Table
                         </h5>
-                        <small class="text-muted">বইয়ের নাম লিখলে স্বয়ংক্রিয় সাজেশন ও নির্ধারিত মূল্য চলে আসবে</small>
                     </div>
                     <button type="button" class="btn btn-sm btn-primary rounded-pill px-3 shadow-xs" id="addItemBtn">
-                        <i class="fas fa-plus-circle me-1"></i> নতুন বই যোগ করুন
+                        <i class="fas fa-plus-circle me-1"></i> Add Item
                     </button>
                 </div>
 
@@ -172,12 +170,12 @@
                             <thead class="table-light text-center small text-muted text-uppercase">
                                 <tr>
                                     <th style="width: 45px;">#</th>
-                                    <th style="min-width: 280px;" class="text-start">বইয়ের নাম ও বিবরণ <span class="text-danger">*</span></th>
-                                    <th style="width: 170px;" class="text-start">লেখক / বিবরণ</th>
-                                    <th style="width: 100px;">পরিমাণ <span class="text-danger">*</span></th>
-                                    <th style="width: 125px;">একক মূল্য (৳) <span class="text-danger">*</span></th>
-                                    <th style="width: 110px;">ছাড় (%)</th>
-                                    <th style="width: 135px;" class="text-end">মোট মূল্য (৳)</th>
+                                    <th style="min-width: 280px;" class="text-start">Book Title & Details <span class="text-danger">*</span></th>
+                                    <th style="width: 170px;" class="text-start">Author</th>
+                                    <th style="width: 100px;">Qty <span class="text-danger">*</span></th>
+                                    <th style="width: 125px;">Unit Price (৳) <span class="text-danger">*</span></th>
+                                    <th style="width: 110px;">Discount (%)</th>
+                                    <th style="width: 135px;" class="text-end">Total (৳)</th>
                                     <th style="width: 50px;"></th>
                                 </tr>
                             </thead>
@@ -192,18 +190,18 @@
                                     $lineTotal = (float)($item['line_total'] ?? ($lineRaw - $lineDisc));
                                 @endphp
                                 <tr class="item-row" data-index="{{ $index }}">
-                                    <td class="text-center text-muted fw-bold row-index">@bn($index + 1)</td>
+                                    <td class="text-center text-muted fw-bold row-index">{{ $index + 1 }}</td>
                                     <td>
                                         <div class="position-relative">
                                             <input type="hidden" name="items[{{ $index }}][book_id]" class="item-book-id" value="{{ $item['book_id'] ?? '' }}">
                                             <input type="text" name="items[{{ $index }}][title]" class="form-control form-control-sm item-title-input" 
-                                                   value="{{ $item['title'] ?? '' }}" placeholder="বইয়ের নাম লিখুন (সার্চ করুন)..." autocomplete="off" required>
+                                                   value="{{ $item['title'] ?? '' }}" placeholder="Search book title..." autocomplete="off" required>
                                             <div class="dropdown-menu search-suggestions-menu w-100 shadow-lg p-1" style="max-height: 250px; overflow-y: auto;"></div>
                                         </div>
                                     </td>
                                     <td>
                                         <input type="text" name="items[{{ $index }}][author]" class="form-control form-control-sm item-author-input" 
-                                               value="{{ $item['author'] ?? '' }}" placeholder="লেখকের নাম...">
+                                               value="{{ $item['author'] ?? '' }}" placeholder="Author...">
                                     </td>
                                     <td>
                                         <input type="number" name="items[{{ $index }}][qty]" class="form-control form-control-sm text-center item-qty-input fw-bold" 
@@ -227,7 +225,7 @@
                                         ৳ {{ number_format($lineTotal, 2) }}
                                     </td>
                                     <td class="text-center">
-                                        <button type="button" class="btn btn-outline-danger btn-sm p-1 rounded-circle remove-row-btn" title="মুছে ফেলুন">
+                                        <button type="button" class="btn btn-outline-danger btn-sm p-1 rounded-circle remove-row-btn" title="Remove">
                                             <i class="fas fa-trash-alt fa-xs"></i>
                                         </button>
                                     </td>
@@ -246,17 +244,17 @@
                     <div class="card border-0 shadow-sm rounded-4 h-100 p-3 p-md-4 bg-white">
                         <h6 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2 border-bottom pb-2">
                             <i class="fas fa-clipboard-list text-primary"></i>
-                            <span>মন্তব্য ও শর্তাবলী (Notes & Terms)</span>
+                            <span>Notes & Terms</span>
                         </h6>
                         <div class="mb-3">
-                            <label class="form-label small fw-semibold">অতিরিক্ত নোট বা মন্তব্য (ঐচ্ছিক):</label>
+                            <label class="form-label small fw-semibold">Notes (Optional):</label>
                             <textarea name="notes" class="form-control form-control-sm" rows="3" 
-                                      placeholder="উদা: মেমো যাচাইকৃত। কাস্টমারকে স্পেশাল পার্সেল ডেলিভারি দেয়া হয়েছে...">{{ old('notes', $bill->notes) }}</textarea>
+                                      placeholder="Additional notes...">{{ old('notes', $bill->notes) }}</textarea>
                         </div>
                         <div>
-                            <label class="form-label small fw-semibold">বিল / চালানের শর্তাবলী (ঐচ্ছিক):</label>
+                            <label class="form-label small fw-semibold">Terms & Conditions (Optional):</label>
                             <textarea name="terms_conditions" class="form-control form-control-sm" rows="3" 
-                                      placeholder="উদা: বিক্রিত বই ফেরতযোগ্য নয়।">{{ old('terms_conditions', $bill->terms_conditions ?? '১. বিক্রিত বই ফেরতযোগ্য নয়। ত্রুটিযুক্ত বই ৭ দিনের মধ্যে পরিবর্তনযোগ্য।') }}</textarea>
+                                      placeholder="Terms & Conditions...">{{ old('terms_conditions', $bill->terms_conditions ?? '1. Sold books are non-refundable. Defective books are exchangeable within 7 days.') }}</textarea>
                         </div>
                     </div>
                 </div>
@@ -265,32 +263,32 @@
                 <div class="col-12 col-lg-6">
                     <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-white">
                         <h6 class="fw-bold text-dark mb-3 d-flex align-items-center justify-content-between border-bottom pb-2">
-                            <span><i class="fas fa-calculator text-success me-2"></i>হিসাব ও পেমেন্ট বিবরণী</span>
-                            <span class="badge bg-success-subtle text-success border">Financial Summary</span>
+                            <span><i class="fas fa-calculator text-success me-2"></i>Financial Summary</span>
+                            <span class="badge bg-success-subtle text-success border">Summary</span>
                         </h6>
 
                         {{-- Calculation Rows --}}
                         <div class="d-flex flex-column gap-2 mb-3">
                             <div class="d-flex justify-content-between align-items-center">
-                                <span class="text-muted small">বইয়ের মূল সর্বমোট (Subtotal):</span>
+                                <span class="text-muted small">Subtotal:</span>
                                 <span class="fw-bold text-dark font-monospace" id="subtotalDisplay">৳ {{ number_format($bill->subtotal, 2) }}</span>
                             </div>
 
                             <div class="d-flex justify-content-between align-items-center">
-                                <span class="text-muted small">সর্বমোট ছাড় (Total Discount):</span>
+                                <span class="text-muted small">Total Discount:</span>
                                 <span class="fw-bold text-danger font-monospace" id="itemDiscountDisplay">- ৳ {{ number_format($bill->discount, 2) }}</span>
                             </div>
 
                             {{-- Overall / Special Discount Box --}}
                             <div class="p-2.5 bg-light rounded-3 border">
                                 <div class="d-flex justify-content-between align-items-center mb-1.5">
-                                    <label class="form-label small fw-bold text-dark mb-0">মোটের ওপর বিশেষ ছাড়:</label>
+                                    <label class="form-label small fw-bold text-dark mb-0">Special Discount:</label>
                                     <div class="btn-group btn-group-sm" role="group">
                                         <input type="radio" class="btn-check" name="special_discount_type" id="spec_type_percent" value="percent" checked onchange="recalc()">
-                                        <label class="btn btn-outline-primary py-0 px-2" for="spec_type_percent" style="font-size: 11px;">শতকরা (%)</label>
+                                        <label class="btn btn-outline-primary py-0 px-2" for="spec_type_percent" style="font-size: 11px;">Percent (%)</label>
 
                                         <input type="radio" class="btn-check" name="special_discount_type" id="spec_type_fixed" value="fixed" onchange="recalc()">
-                                        <label class="btn btn-outline-primary py-0 px-2" for="spec_type_fixed" style="font-size: 11px;">নির্দিষ্ট (৳)</label>
+                                        <label class="btn btn-outline-primary py-0 px-2" for="spec_type_fixed" style="font-size: 11px;">Fixed (৳)</label>
                                     </div>
                                 </div>
                                 <div class="input-group input-group-sm mb-1.5">
@@ -299,7 +297,7 @@
                                     <span class="input-group-text bg-white fw-bold" id="specialDiscountUnit">%</span>
                                 </div>
                                 <div class="d-flex flex-wrap gap-1 align-items-center">
-                                    <span class="small text-muted me-1" style="font-size: 10.5px;">কুইক %:</span>
+                                    <span class="small text-muted me-1" style="font-size: 10.5px;">Quick %:</span>
                                     @foreach([5, 10, 15, 20, 25, 30, 40, 50] as $preset)
                                         <button type="button" class="btn btn-outline-secondary btn-xs py-0 px-1.5" 
                                                 style="font-size: 10px;" onclick="applySpecialDiscount({{ $preset }})">
@@ -307,32 +305,32 @@
                                         </button>
                                     @endforeach
                                     <button type="button" class="btn btn-outline-danger btn-xs py-0 px-1.5 ms-auto" 
-                                            style="font-size: 10px;" onclick="applySpecialDiscount(0)">০%</button>
+                                            style="font-size: 10px;" onclick="applySpecialDiscount(0)">0%</button>
                                 </div>
                             </div>
 
                             <div class="d-flex justify-content-between align-items-center pt-2 border-top">
-                                <span class="fw-bold text-dark fs-6">সর্বমোট প্রদেয় বিল (Grand Total):</span>
+                                <span class="fw-bold text-dark fs-6">Grand Total:</span>
                                 <span class="fw-bold text-primary fs-5 font-monospace" id="grandTotalDisplay">৳ {{ number_format($bill->total, 2) }}</span>
                             </div>
 
                             {{-- Payment Details --}}
                             <div class="row g-2 pt-2 border-top">
                                 <div class="col-6">
-                                    <label class="form-label small fw-semibold mb-1">পেমেন্ট মেথড</label>
+                                    <label class="form-label small fw-semibold mb-1">Payment Method</label>
                                     <select name="payment_method" class="form-select form-select-sm" required>
-                                        <option value="cash" @selected(old('payment_method', $bill->payment_method)==='cash')>💵 নগদ (Cash)</option>
-                                        <option value="bkash" @selected(old('payment_method', $bill->payment_method)==='bkash')>📱 বিকাশ (bKash)</option>
-                                        <option value="nagad" @selected(old('payment_method', $bill->payment_method)==='nagad')>📱 নগদ (Nagad)</option>
-                                        <option value="card" @selected(old('payment_method', $bill->payment_method)==='card')>💳 ব্যাংক / কার্ড</option>
+                                        <option value="cash" @selected(old('payment_method', $bill->payment_method)==='cash')>Cash</option>
+                                        <option value="bkash" @selected(old('payment_method', $bill->payment_method)==='bkash')>bKash</option>
+                                        <option value="nagad" @selected(old('payment_method', $bill->payment_method)==='nagad')>Nagad</option>
+                                        <option value="card" @selected(old('payment_method', $bill->payment_method)==='card')>Bank / Card</option>
                                     </select>
                                 </div>
                                 <div class="col-6">
-                                    <label class="form-label small fw-semibold mb-1">পেমেন্ট স্ট্যাটাস</label>
+                                    <label class="form-label small fw-semibold mb-1">Payment Status</label>
                                     <select name="payment_status" id="paymentStatusSelect" class="form-select form-select-sm" required onchange="handleStatusChange()">
-                                        <option value="paid" @selected(old('payment_status', $bill->payment_status)==='paid')>✅ পরিশোধিত (Paid)</option>
-                                        <option value="unpaid" @selected(old('payment_status', $bill->payment_status)==='unpaid')>⏳ বকেয়া (Unpaid)</option>
-                                        <option value="partial" @selected(old('payment_status', $bill->payment_status)==='partial')>⚠️ আংশিক (Partial)</option>
+                                        <option value="paid" @selected(old('payment_status', $bill->payment_status)==='paid')>Paid</option>
+                                        <option value="unpaid" @selected(old('payment_status', $bill->payment_status)==='unpaid')>Unpaid</option>
+                                        <option value="partial" @selected(old('payment_status', $bill->payment_status)==='partial')>Partial</option>
                                     </select>
                                 </div>
                             </div>
@@ -340,13 +338,13 @@
                             {{-- Paid & Due Amount Inputs --}}
                             <div class="row g-2 pt-1">
                                 <div class="col-6">
-                                    <label class="form-label small fw-bold text-success mb-1">জমা / আদায় (Paid ৳):</label>
+                                    <label class="form-label small fw-bold text-success mb-1">Paid Amount (৳):</label>
                                     <input type="number" step="0.5" min="0" name="paid_amount" id="paidAmountInput" 
                                            class="form-control form-control-sm fw-bold border-success text-success" 
                                            value="{{ old('paid_amount', $bill->paid_amount) }}" placeholder="0.00" oninput="handlePaidInput()">
                                 </div>
                                 <div class="col-6">
-                                    <label class="form-label small fw-bold text-danger mb-1">বকেয়া টাকা (Due ৳):</label>
+                                    <label class="form-label small fw-bold text-danger mb-1">Due Amount (৳):</label>
                                     <input type="number" step="0.5" min="0" name="due_amount" id="dueAmountInput" 
                                            class="form-control form-control-sm fw-bold border-danger text-danger bg-light" 
                                            value="{{ old('due_amount', $bill->due_amount) }}" readonly>
@@ -361,11 +359,11 @@
             <div class="card border-0 shadow-sm rounded-4 bg-white mb-5">
                 <div class="card-body p-3 d-flex flex-wrap align-items-center justify-content-between gap-3">
                     <a href="{{ route('subadmin.bills.show', $bill) }}" class="btn btn-outline-secondary rounded-pill px-4">
-                        <i class="fas fa-arrow-left me-1"></i> বিল প্রিভিউতে ফিরুন
+                        <i class="fas fa-arrow-left me-1"></i> Back to Preview
                     </a>
                     <div class="d-flex flex-wrap gap-2">
                         <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm" id="submitBillBtn">
-                            <i class="fas fa-save me-1.5"></i> পরিবর্তন সংরক্ষণ করুন
+                            <i class="fas fa-save me-1.5"></i> Save Changes
                         </button>
                     </div>
                 </div>
@@ -382,12 +380,12 @@
             <div class="position-relative">
                 <input type="hidden" name="items[__INDEX__][book_id]" class="item-book-id" value="">
                 <input type="text" name="items[__INDEX__][title]" class="form-control form-control-sm item-title-input" 
-                       placeholder="বইয়ের নাম লিখুন (সার্চ করুন)..." autocomplete="off" required>
+                       placeholder="Search book title..." autocomplete="off" required>
                 <div class="dropdown-menu search-suggestions-menu w-100 shadow-lg p-1" style="max-height: 250px; overflow-y: auto;"></div>
             </div>
         </td>
         <td>
-            <input type="text" name="items[__INDEX__][author]" class="form-control form-control-sm item-author-input" placeholder="লেখকের নাম...">
+            <input type="text" name="items[__INDEX__][author]" class="form-control form-control-sm item-author-input" placeholder="Author...">
         </td>
         <td>
             <input type="number" name="items[__INDEX__][qty]" class="form-control form-control-sm text-center item-qty-input fw-bold" 
@@ -411,7 +409,7 @@
             ৳ 0.00
         </td>
         <td class="text-center">
-            <button type="button" class="btn btn-outline-danger btn-sm p-1 rounded-circle remove-row-btn" title="মুছে ফেলুন">
+            <button type="button" class="btn btn-outline-danger btn-sm p-1 rounded-circle remove-row-btn" title="Remove">
                 <i class="fas fa-trash-alt fa-xs"></i>
             </button>
         </td>

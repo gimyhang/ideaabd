@@ -67,7 +67,17 @@
                     <table class="table table-sm table-borderless align-middle mb-0">
                         <tbody>
                             <tr>
-                                <td class="fw-semibold text-muted" style="width:35%">Account Role</td>
+                                <td class="fw-semibold text-muted" style="width:35%">Author / Display Name</td>
+                                <td class="fw-bold text-dark">{{ $user->name }}</td>
+                            </tr>
+                            @if(!empty($user->reg_data['full_name']))
+                            <tr>
+                                <td class="fw-semibold text-muted">Full Name (Identity)</td>
+                                <td class="fw-bold text-dark">{{ $user->reg_data['full_name'] }}</td>
+                            </tr>
+                            @endif
+                            <tr>
+                                <td class="fw-semibold text-muted">Account Role</td>
                                 <td class="fw-bold text-dark">{{ ucfirst($user->reg_type ?? $user->role) }}</td>
                             </tr>
                             <tr>
@@ -80,7 +90,7 @@
                             </tr>
                             @if(is_array($user->reg_data))
                                 @foreach($user->reg_data as $key => $value)
-                                @if(!in_array($key, ['otp_code', 'avatar_cropped', 'password', '_token', '_method']))
+                                @if(!in_array($key, ['full_name', 'name_en', 'name_bn', 'otp_code', 'avatar_cropped', 'password', '_token', '_method']))
                                 <tr>
                                     <td class="fw-semibold text-muted" style="width:35%">{{ str_replace('_', ' ', ucwords($key, '_')) }}</td>
                                     <td>

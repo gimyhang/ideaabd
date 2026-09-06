@@ -223,6 +223,24 @@ class HomeController extends Controller
                     ->take(12)
                     ->get();
 
+                if ($preOrderBooks->count() < 4) {
+                    $existingIds = $preOrderBooks->pluck('id')->toArray();
+                    $extraPreOrders = \Modules\Book\Models\Book::query()
+                        ->with(['category', 'authors', 'publisher'])
+                        ->withAvg('reviews', 'rating')
+                        ->withCount('reviews')
+                        ->where('is_active', true)
+                        ->whereNotIn('id', $existingIds)
+                        ->latest('id')
+                        ->take(8 - $preOrderBooks->count())
+                        ->get();
+
+                    foreach ($extraPreOrders as $eb) {
+                        $eb->stock_status = 'pre_order';
+                    }
+                    $preOrderBooks = $preOrderBooks->concat($extraPreOrders);
+                }
+
                 $topSeller = \Modules\Book\Models\Book::query()
                     ->with(['authors', 'category'])
                     ->withAvg('reviews', 'rating')

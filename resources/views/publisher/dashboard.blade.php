@@ -927,13 +927,6 @@
                     <h6 class="fw-bold text-dark mb-1 d-flex align-items-center gap-1.5">
                         <i class="fas fa-circle-info text-primary"></i> 
                         <span>প্রকাশনা ও এডমিন মডারেশন পলিসি</span>
-                    </h6>
-                    <p class="small text-muted mb-0" style="font-size: 12.5px; line-height: 1.55;">
-                        নতুন বই এন্ট্রি করার পর বা কোনো তথ্য পরিবর্তন করার পর বইটি সরাসরি এডমিন প্যানেলের <strong>অপেক্ষমান (Pending Review)</strong> তালিকায় সংরক্ষিত থাকবে। আইডিয়া প্রকাশন এডমিন টিম অনুমোদন (Approve) করলেই তা সাথে সাথে লাইভ শপে প্রকাশিত হবে।
-                    </p>
-                </div>
-            </div>
-
             <form method="POST" action="{{ $editBook ? route('publisher.books.update', $editBook->id) : route('publisher.books.store') }}" enctype="multipart/form-data" id="pubBookForm">
                 @csrf
                 @if($editBook)
@@ -956,9 +949,9 @@
                                     </div>
                                     <div>
                                         <h5 class="fw-bold mb-1 text-dark" style="font-size: clamp(1.05rem, 1.4vw, 1.25rem);">
-                                            {{ $editBook ? "Edit Product — {$editBook->title}" : "Product Entry — Standard Publisher Format" }}
+                                            {{ $editBook ? "Edit Product — {$editBook->title}" : "Add New Product" }}
                                         </h5>
-                                        <span class="small text-muted" style="font-size: 12px;">Standard specifications, multiple contributors, 2-way pricing & compact dropdowns</span>
+                                        <span class="small text-muted" style="font-size: 12px;">Specifications, pricing & catalog details</span>
                                     </div>
                                 </div>
                                 @if($editBook)
@@ -980,23 +973,23 @@
                                             <i class="fas fa-box text-primary me-1"></i> Product Type <span class="text-danger">*</span>
                                         </label>
                                         <select name="product_type" id="pubProductType" class="form-select pub-form-select" required onchange="onProductTypeChange()">
-                                            <option value="book" @selected(old('product_type', $editBook->product_type ?? 'book') === 'book')>📚 Book (বই)</option>
-                                            <option value="stationery" @selected(old('product_type', $editBook->product_type ?? '') === 'stationery')>✏️ Stationery (স্টেশনারি)</option>
-                                            <option value="islamic_gift" @selected(old('product_type', $editBook->product_type ?? '') === 'islamic_gift')>🎁 Islamic Gift (ইসলামিক গিফট)</option>
-                                            <option value="other" @selected(old('product_type', $editBook->product_type ?? '') === 'other')>📦 Other Item (অন্যান্য পণ্য)</option>
+                                            <option value="book" @selected(old('product_type', $editBook->product_type ?? 'book') === 'book')>📚 Book</option>
+                                            <option value="stationery" @selected(old('product_type', $editBook->product_type ?? '') === 'stationery')>✏️ Stationery</option>
+                                            <option value="islamic_gift" @selected(old('product_type', $editBook->product_type ?? '') === 'islamic_gift')>🎁 Islamic Gift</option>
+                                            <option value="other" @selected(old('product_type', $editBook->product_type ?? '') === 'other')>📦 Other Item</option>
                                         </select>
                                     </div>
 
                                     <div class="col-12 col-md-6">
                                         <label for="pubStockStatus" class="pub-form-label">
-                                            <i class="fas fa-dolly text-success me-1"></i> Order Type <span class="text-danger">*</span>
+                                            <i class="fas fa-dolly text-success me-1"></i> Stock / Order Type <span class="text-danger">*</span>
                                         </label>
                                         <select name="stock_status" id="pubStockStatus" class="form-select pub-form-select" required onchange="onOrderTypeChange()">
-                                            <option value="in_stock" @selected(old('stock_status', $editBook->stock_status ?? 'in_stock') === 'in_stock')>🟢 Buy Now / In Stock (সরাসরি ক্রয়)</option>
-                                            <option value="pre_order" @selected(old('stock_status', $editBook->stock_status ?? '') === 'pre_order')>⏳ Pre-Order (প্রি-অর্ডার)</option>
-                                            <option value="low" @selected(old('stock_status', $editBook->stock_status ?? '') === 'low')>🟡 Low Stock (সীমিত স্টক)</option>
-                                            <option value="out" @selected(old('stock_status', $editBook->stock_status ?? '') === 'out')>🔴 Out of Stock (স্টক শেষ)</option>
-                                            <option value="upcoming" @selected(old('stock_status', $editBook->stock_status ?? '') === 'upcoming')>📅 Upcoming (শীঘ্রই আসছে)</option>
+                                            <option value="in_stock" @selected(old('stock_status', $editBook->stock_status ?? 'in_stock') === 'in_stock')>🟢 In Stock</option>
+                                            <option value="pre_order" @selected(old('stock_status', $editBook->stock_status ?? '') === 'pre_order')>⏳ Pre-Order</option>
+                                            <option value="low" @selected(old('stock_status', $editBook->stock_status ?? '') === 'low')>🟡 Low Stock</option>
+                                            <option value="out" @selected(old('stock_status', $editBook->stock_status ?? '') === 'out')>🔴 Out of Stock</option>
+                                            <option value="upcoming" @selected(old('stock_status', $editBook->stock_status ?? '') === 'upcoming')>📅 Upcoming</option>
                                         </select>
                                     </div>
 
@@ -1005,14 +998,14 @@
                                         <div class="p-3 bg-warning-subtle border border-warning rounded-3 shadow-xs">
                                             <div class="row g-2.5">
                                                 <div class="col-12 col-md-6">
-                                                    <label class="pub-form-label mb-1"><i class="fas fa-calendar-day me-1 text-warning"></i>Pre-Order Release / Delivery Date</label>
+                                                    <label class="pub-form-label mb-1"><i class="fas fa-calendar-day me-1 text-warning"></i>Release / Delivery Date</label>
                                                     <input type="date" name="pre_order_release_date" class="form-control pub-form-control" 
                                                            value="{{ old('pre_order_release_date', ($editBook && $editBook->pre_order_release_date ? $editBook->pre_order_release_date->format('Y-m-d') : '')) }}">
                                                 </div>
                                                 <div class="col-12 col-md-6">
-                                                    <label class="pub-form-label mb-1"><i class="fas fa-gift me-1 text-warning"></i>Pre-Order Note / Gift Offer</label>
+                                                    <label class="pub-form-label mb-1"><i class="fas fa-gift me-1 text-warning"></i>Pre-Order Note / Gift</label>
                                                     <input type="text" name="pre_order_note" class="form-control pub-form-control" 
-                                                           value="{{ old('pre_order_note', $editBook->pre_order_note ?? '') }}" placeholder="e.g. লেখক অটোগ্রাফ ও ফ্রি বুকমার্ক...">
+                                                           value="{{ old('pre_order_note', $editBook->pre_order_note ?? '') }}" placeholder="e.g. Free bookmark...">
                                                 </div>
                                             </div>
                                         </div>
@@ -1021,10 +1014,10 @@
                                     {{-- ROW 2: Title / Product Name (BN) * & Product Name (EN) * (2 columns in 1 row) --}}
                                     <div class="col-12 col-md-6">
                                         <label id="pubTitleLabelBn" for="pubBookTitleInput" class="pub-form-label">
-                                            <i class="fas fa-book text-primary me-1"></i> Title / Product Name (BN) <span class="text-danger">*</span>
+                                            <i class="fas fa-book text-primary me-1"></i> Product Name (BN) <span class="text-danger">*</span>
                                         </label>
                                         <input type="text" name="title" id="pubBookTitleInput" class="form-control pub-form-control fw-bold" 
-                                               value="{{ old('title', $editBook->title ?? '') }}" required placeholder="বইয়ের বাংলা নাম (যেমন: পথের পাঁচালী)" oninput="updatePubMockup()">
+                                               value="{{ old('title', $editBook->title ?? '') }}" required placeholder="Product name in Bangla" oninput="updatePubMockup()">
                                     </div>
 
                                     <div class="col-12 col-md-6">
@@ -1032,7 +1025,7 @@
                                             <i class="fas fa-language text-secondary me-1"></i> Product Name (EN) <span class="text-danger">*</span>
                                         </label>
                                         <input type="text" name="title_en" id="pubTitleEnInput" class="form-control pub-form-control" 
-                                               value="{{ old('title_en', $editBook->title_en ?? ($editBook->subtitle ?? '')) }}" placeholder="Product Name in English (e.g. Pather Panchali)">
+                                               value="{{ old('title_en', $editBook->title_en ?? ($editBook->subtitle ?? '')) }}" placeholder="Product name in English">
                                     </div>
 
                                     {{-- ROW 3: Author Name * & Translator Name (2 columns with + dynamic adder) --}}
@@ -1074,7 +1067,7 @@
                                                         @endforeach
                                                     </select>
                                                     <input type="text" name="author_names[]" class="form-control pub-form-control pub-author-name-input" 
-                                                           value="{{ $aName }}" placeholder="লেখকের নাম লিখুন..." oninput="updatePubMockup()">
+                                                           value="{{ $aName }}" placeholder="Author name..." oninput="updatePubMockup()">
                                                     @if($aIdx === 0)
                                                         <button type="button" class="btn btn-outline-secondary px-3" onclick="addPubAuthorField()" title="Add another author"><i class="fas fa-plus text-success"></i></button>
                                                     @else
@@ -1109,7 +1102,7 @@
                                             @foreach($existingTranslators as $tIdx => $tName)
                                                 <div class="input-group pub-translator-field-row shadow-xs">
                                                     <input type="text" name="translator_names[]" class="form-control pub-form-control rounded-start-3" 
-                                                           value="{{ $tName }}" placeholder="অনুবাদকের নাম...">
+                                                           value="{{ $tName }}" placeholder="Translator name...">
                                                     @if($tIdx === 0)
                                                         <button type="button" class="btn btn-outline-secondary px-3" onclick="addPubTranslatorField()" title="Add another translator"><i class="fas fa-plus text-success"></i></button>
                                                     @else
@@ -1145,7 +1138,7 @@
                                             @foreach($existingEditors as $eIdx => $eName)
                                                 <div class="input-group pub-editor-field-row shadow-xs">
                                                     <input type="text" name="editor_names[]" class="form-control pub-form-control rounded-start-3" 
-                                                           value="{{ $eName }}" placeholder="সম্পাদকের নাম...">
+                                                           value="{{ $eName }}" placeholder="Editor name...">
                                                     @if($eIdx === 0)
                                                         <button type="button" class="btn btn-outline-secondary px-3" onclick="addPubEditorField()" title="Add another editor"><i class="fas fa-plus text-success"></i></button>
                                                     @else
@@ -1180,7 +1173,7 @@
                                             @foreach($existingRewriters as $rIdx => $rName)
                                                 <div class="input-group pub-rewriter-field-row shadow-xs">
                                                     <input type="text" name="rewriter_names[]" class="form-control pub-form-control rounded-start-3" 
-                                                           value="{{ $rName }}" placeholder="পুনর্লিখনকারী / রূপান্তরকারীর নাম...">
+                                                           value="{{ $rName }}" placeholder="Rewriter name...">
                                                     @if($rIdx === 0)
                                                         <button type="button" class="btn btn-outline-secondary px-3" onclick="addPubRewriterField()" title="Add another rewriter"><i class="fas fa-plus text-success"></i></button>
                                                     @else
@@ -1197,13 +1190,13 @@
                                             <i class="fas fa-globe text-primary me-1"></i> Language <span class="text-danger">*</span>
                                         </label>
                                         <select name="language" id="pubLanguageSelect" class="form-select pub-form-select" required>
-                                            <option value="Bengali" @selected(old('language', $editBook->language ?? 'Bengali') === 'Bengali')>বাংলা (Bengali)</option>
-                                            <option value="English" @selected(old('language', $editBook->language ?? '') === 'English')>ইংরেজি (English)</option>
-                                            <option value="Arabic" @selected(old('language', $editBook->language ?? '') === 'Arabic')>আরবি (Arabic)</option>
-                                            <option value="Urdu" @selected(old('language', $editBook->language ?? '') === 'Urdu')>উর্দু (Urdu)</option>
-                                            <option value="Hindi" @selected(old('language', $editBook->language ?? '') === 'Hindi')>হিন্দি (Hindi)</option>
-                                            <option value="Persian" @selected(old('language', $editBook->language ?? '') === 'Persian')>ফারসি (Persian)</option>
-                                            <option value="Other" @selected(old('language', $editBook->language ?? '') === 'Other')>অন্যান্য (Other)</option>
+                                            <option value="Bengali" @selected(old('language', $editBook->language ?? 'Bengali') === 'Bengali')>Bengali</option>
+                                            <option value="English" @selected(old('language', $editBook->language ?? '') === 'English')>English</option>
+                                            <option value="Arabic" @selected(old('language', $editBook->language ?? '') === 'Arabic')>Arabic</option>
+                                            <option value="Urdu" @selected(old('language', $editBook->language ?? '') === 'Urdu')>Urdu</option>
+                                            <option value="Hindi" @selected(old('language', $editBook->language ?? '') === 'Hindi')>Hindi</option>
+                                            <option value="Persian" @selected(old('language', $editBook->language ?? '') === 'Persian')>Persian</option>
+                                            <option value="Other" @selected(old('language', $editBook->language ?? '') === 'Other')>Other</option>
                                         </select>
                                     </div>
 
@@ -1212,13 +1205,13 @@
                                             <i class="fas fa-flag text-danger me-1"></i> Country
                                         </label>
                                         <select name="country" id="pubCountrySelect" class="form-select pub-form-select">
-                                            <option value="Bangladesh" @selected(old('country', $editBook->country ?? 'Bangladesh') === 'Bangladesh')>বাংলাদেশ (Bangladesh)</option>
-                                            <option value="India" @selected(old('country', $editBook->country ?? '') === 'India')>ভারত (India)</option>
-                                            <option value="Saudi Arabia" @selected(old('country', $editBook->country ?? '') === 'Saudi Arabia')>সৌদি আরব (Saudi Arabia)</option>
-                                            <option value="Egypt" @selected(old('country', $editBook->country ?? '') === 'Egypt')>মিশর (Egypt)</option>
-                                            <option value="United Kingdom" @selected(old('country', $editBook->country ?? '') === 'United Kingdom')>যুক্তরাজ্য (UK)</option>
-                                            <option value="United States" @selected(old('country', $editBook->country ?? '') === 'United States')>যুক্তরাষ্ট্র (USA)</option>
-                                            <option value="Other" @selected(old('country', $editBook->country ?? '') === 'Other')>অন্যান্য (Other)</option>
+                                            <option value="Bangladesh" @selected(old('country', $editBook->country ?? 'Bangladesh') === 'Bangladesh')>Bangladesh</option>
+                                            <option value="India" @selected(old('country', $editBook->country ?? '') === 'India')>India</option>
+                                            <option value="Saudi Arabia" @selected(old('country', $editBook->country ?? '') === 'Saudi Arabia')>Saudi Arabia</option>
+                                            <option value="Egypt" @selected(old('country', $editBook->country ?? '') === 'Egypt')>Egypt</option>
+                                            <option value="United Kingdom" @selected(old('country', $editBook->country ?? '') === 'United Kingdom')>UK</option>
+                                            <option value="United States" @selected(old('country', $editBook->country ?? '') === 'United States')>USA</option>
+                                            <option value="Other" @selected(old('country', $editBook->country ?? '') === 'Other')>Other</option>
                                         </select>
                                     </div>
 
@@ -1228,48 +1221,48 @@
                                             <i class="fas fa-book-bookmark text-primary me-1"></i> Binding <span class="text-danger">*</span>
                                         </label>
                                         <select name="cover_type" id="pubCoverType" class="form-select pub-form-select" required onchange="toggleCoverPricing()">
-                                            <option value="paperback" @selected(old('cover_type', $editBook->cover_type ?? 'paperback') === 'paperback')>পেপারব্যাক (Paperback)</option>
-                                            <option value="hardcover" @selected(old('cover_type', $editBook->cover_type ?? '') === 'hardcover')>হার্ডকভার (Hardcover)</option>
-                                            <option value="board_book" @selected(old('cover_type', $editBook->cover_type ?? '') === 'board_book')>বোর্ড বুক (Board Book)</option>
-                                            <option value="spiral" @selected(old('cover_type', $editBook->cover_type ?? '') === 'spiral')>স্পাইরাল (Spiral Bound)</option>
-                                            <option value="both" @selected(old('cover_type', $editBook->cover_type ?? '') === 'both')>উভয় (Hard & Paperback)</option>
+                                            <option value="paperback" @selected(old('cover_type', $editBook->cover_type ?? 'paperback') === 'paperback')>Paperback</option>
+                                            <option value="hardcover" @selected(old('cover_type', $editBook->cover_type ?? '') === 'hardcover')>Hardcover</option>
+                                            <option value="board_book" @selected(old('cover_type', $editBook->cover_type ?? '') === 'board_book')>Board Book</option>
+                                            <option value="spiral" @selected(old('cover_type', $editBook->cover_type ?? '') === 'spiral')>Spiral Bound</option>
+                                            <option value="both" @selected(old('cover_type', $editBook->cover_type ?? '') === 'both')>Both (Hard & Paperback)</option>
                                         </select>
                                     </div>
 
                                     <div class="col-12 col-md-4">
                                         <label for="pubPaperType" class="pub-form-label">
-                                            <i class="fas fa-scroll text-secondary me-1"></i> Paper Quality (মান ও GSM)
+                                            <i class="fas fa-scroll text-secondary me-1"></i> Paper Quality
                                         </label>
                                         <select name="paper_type" id="pubPaperType" class="form-select pub-form-select">
-                                            <optgroup label="── অফহোয়াইট পেপার (Off-white Paper) ──">
-                                                <option value="50 GSM Off-white" @selected(old('paper_type', $editBook->paper_type ?? '') === '50 GSM Off-white' || old('paper_type', $editBook->paper_type ?? '') === '50 GSM Offset')>৫০ GSM অফহোয়াইট পেপার (50 GSM Off-white)</option>
-                                                <option value="55 GSM Off-white" @selected(old('paper_type', $editBook->paper_type ?? '') === '55 GSM Off-white' || old('paper_type', $editBook->paper_type ?? '') === '55 GSM Offset')>৫৫ GSM অফহোয়াইট পেপার (55 GSM Off-white)</option>
-                                                <option value="60 GSM Off-white" @selected(old('paper_type', $editBook->paper_type ?? '') === '60 GSM Off-white' || old('paper_type', $editBook->paper_type ?? '') === '60 GSM Offset')>৬০ GSM অফহোয়াইট পেপার (60 GSM Off-white)</option>
-                                                <option value="65 GSM Off-white" @selected(old('paper_type', $editBook->paper_type ?? '') === '65 GSM Off-white' || old('paper_type', $editBook->paper_type ?? '') === '65 GSM Offset')>৬৫ GSM অফহোয়াইট পেপার (65 GSM Off-white)</option>
-                                                <option value="70 GSM Off-white" @selected(old('paper_type', $editBook->paper_type ?? '') === '70 GSM Off-white' || old('paper_type', $editBook->paper_type ?? '') === '70 GSM Offset')>৭০ GSM অফহোয়াইট পেপার (70 GSM Off-white)</option>
-                                                <option value="80 GSM Off-white" @selected(old('paper_type', $editBook->paper_type ?? '80 GSM Off-white') === '80 GSM Off-white' || old('paper_type', $editBook->paper_type ?? '') === '80 GSM Offset')>৮০ GSM অফহোয়াইট পেপার (80 GSM Off-white)</option>
-                                                <option value="100 GSM Off-white" @selected(old('paper_type', $editBook->paper_type ?? '') === '100 GSM Off-white' || old('paper_type', $editBook->paper_type ?? '') === '100 GSM Offset')>১০০ GSM অফহোয়াইট পেপার (100 GSM Off-white)</option>
-                                                <option value="120 GSM Off-white" @selected(old('paper_type', $editBook->paper_type ?? '') === '120 GSM Off-white' || old('paper_type', $editBook->paper_type ?? '') === '120 GSM Offset')>১২০ GSM অফহোয়াইট পেপার (120 GSM Off-white)</option>
+                                            <optgroup label="── Off-white Paper ──">
+                                                <option value="50 GSM Off-white" @selected(old('paper_type', $editBook->paper_type ?? '') === '50 GSM Off-white' || old('paper_type', $editBook->paper_type ?? '') === '50 GSM Offset')>50 GSM Off-white</option>
+                                                <option value="55 GSM Off-white" @selected(old('paper_type', $editBook->paper_type ?? '') === '55 GSM Off-white' || old('paper_type', $editBook->paper_type ?? '') === '55 GSM Offset')>55 GSM Off-white</option>
+                                                <option value="60 GSM Off-white" @selected(old('paper_type', $editBook->paper_type ?? '') === '60 GSM Off-white' || old('paper_type', $editBook->paper_type ?? '') === '60 GSM Offset')>60 GSM Off-white</option>
+                                                <option value="65 GSM Off-white" @selected(old('paper_type', $editBook->paper_type ?? '') === '65 GSM Off-white' || old('paper_type', $editBook->paper_type ?? '') === '65 GSM Offset')>65 GSM Off-white</option>
+                                                <option value="70 GSM Off-white" @selected(old('paper_type', $editBook->paper_type ?? '') === '70 GSM Off-white' || old('paper_type', $editBook->paper_type ?? '') === '70 GSM Offset')>70 GSM Off-white</option>
+                                                <option value="80 GSM Off-white" @selected(old('paper_type', $editBook->paper_type ?? '80 GSM Off-white') === '80 GSM Off-white' || old('paper_type', $editBook->paper_type ?? '') === '80 GSM Offset')>80 GSM Off-white</option>
+                                                <option value="100 GSM Off-white" @selected(old('paper_type', $editBook->paper_type ?? '') === '100 GSM Off-white' || old('paper_type', $editBook->paper_type ?? '') === '100 GSM Offset')>100 GSM Off-white</option>
+                                                <option value="120 GSM Off-white" @selected(old('paper_type', $editBook->paper_type ?? '') === '120 GSM Off-white' || old('paper_type', $editBook->paper_type ?? '') === '120 GSM Offset')>120 GSM Off-white</option>
                                             </optgroup>
-                                            <optgroup label="── নিউজপ্রিন্ট (Newsprint Paper) ──">
-                                                <option value="50 GSM Newsprint" @selected(old('paper_type', $editBook->paper_type ?? '') === '50 GSM Newsprint')>৫০ GSM নিউজপ্রিন্ট (50 GSM Newsprint)</option>
-                                                <option value="55 GSM Newsprint" @selected(old('paper_type', $editBook->paper_type ?? '') === '55 GSM Newsprint')>৫৫ GSM নিউজপ্রিন্ট (55 GSM Newsprint)</option>
-                                                <option value="60 GSM Newsprint" @selected(old('paper_type', $editBook->paper_type ?? '') === '60 GSM Newsprint')>৬০ GSM নিউজপ্রিন্ট (60 GSM Newsprint)</option>
-                                                <option value="70 GSM Newsprint" @selected(old('paper_type', $editBook->paper_type ?? '') === '70 GSM Newsprint')>৭০ GSM নিউজপ্রিন্ট (70 GSM Newsprint)</option>
+                                            <optgroup label="── Newsprint ──">
+                                                <option value="50 GSM Newsprint" @selected(old('paper_type', $editBook->paper_type ?? '') === '50 GSM Newsprint')>50 GSM Newsprint</option>
+                                                <option value="55 GSM Newsprint" @selected(old('paper_type', $editBook->paper_type ?? '') === '55 GSM Newsprint')>55 GSM Newsprint</option>
+                                                <option value="60 GSM Newsprint" @selected(old('paper_type', $editBook->paper_type ?? '') === '60 GSM Newsprint')>60 GSM Newsprint</option>
+                                                <option value="70 GSM Newsprint" @selected(old('paper_type', $editBook->paper_type ?? '') === '70 GSM Newsprint')>70 GSM Newsprint</option>
                                             </optgroup>
-                                            <optgroup label="── গ্লোসি পেপার / আর্ট পেপার (Glossy / Art Paper) ──">
-                                                <option value="100 GSM Glossy Paper" @selected(old('paper_type', $editBook->paper_type ?? '') === '100 GSM Glossy Paper')>১০০ GSM গ্লোসি পেপার (100 GSM Glossy)</option>
-                                                <option value="120 GSM Glossy Paper" @selected(old('paper_type', $editBook->paper_type ?? '') === '120 GSM Glossy Paper')>১২০ GSM গ্লোসি পেপার (120 GSM Glossy)</option>
-                                                <option value="130 GSM Glossy Paper" @selected(old('paper_type', $editBook->paper_type ?? '') === '130 GSM Glossy Paper')>১৩০ GSM গ্লোসি পেপার (130 GSM Glossy)</option>
-                                                <option value="150 GSM Glossy Paper" @selected(old('paper_type', $editBook->paper_type ?? '') === '150 GSM Glossy Paper')>১৫০ GSM গ্লোসি পেপার (150 GSM Glossy)</option>
-                                                <option value="170 GSM Glossy Paper" @selected(old('paper_type', $editBook->paper_type ?? '') === '170 GSM Glossy Paper')>১৭০ GSM গ্লোসি পেপার (170 GSM Glossy)</option>
-                                                <option value="200 GSM Glossy Paper" @selected(old('paper_type', $editBook->paper_type ?? '') === '200 GSM Glossy Paper')>২০০ GSM গ্লোসি পেপার (200 GSM Glossy)</option>
-                                                <option value="250 GSM Glossy Paper" @selected(old('paper_type', $editBook->paper_type ?? '') === '250 GSM Glossy Paper')>২৫০ GSM গ্লোসি পেপার (250 GSM Glossy)</option>
-                                                <option value="300 GSM Glossy Paper" @selected(old('paper_type', $editBook->paper_type ?? '') === '300 GSM Glossy Paper')>৩০০ GSM গ্লোসি পেপার / বোর্ড (300 GSM)</option>
+                                            <optgroup label="── Glossy / Art Paper ──">
+                                                <option value="100 GSM Glossy Paper" @selected(old('paper_type', $editBook->paper_type ?? '') === '100 GSM Glossy Paper')>100 GSM Glossy</option>
+                                                <option value="120 GSM Glossy Paper" @selected(old('paper_type', $editBook->paper_type ?? '') === '120 GSM Glossy Paper')>120 GSM Glossy</option>
+                                                <option value="130 GSM Glossy Paper" @selected(old('paper_type', $editBook->paper_type ?? '') === '130 GSM Glossy Paper')>130 GSM Glossy</option>
+                                                <option value="150 GSM Glossy Paper" @selected(old('paper_type', $editBook->paper_type ?? '') === '150 GSM Glossy Paper')>150 GSM Glossy</option>
+                                                <option value="170 GSM Glossy Paper" @selected(old('paper_type', $editBook->paper_type ?? '') === '170 GSM Glossy Paper')>170 GSM Glossy</option>
+                                                <option value="200 GSM Glossy Paper" @selected(old('paper_type', $editBook->paper_type ?? '') === '200 GSM Glossy Paper')>200 GSM Glossy</option>
+                                                <option value="250 GSM Glossy Paper" @selected(old('paper_type', $editBook->paper_type ?? '') === '250 GSM Glossy Paper')>250 GSM Glossy</option>
+                                                <option value="300 GSM Glossy Paper" @selected(old('paper_type', $editBook->paper_type ?? '') === '300 GSM Glossy Paper')>300 GSM Glossy</option>
                                             </optgroup>
-                                            <optgroup label="── অন্যান্য পেপার কোয়ালিটি ──">
-                                                <option value="100 GSM Cream Paper" @selected(old('paper_type', $editBook->paper_type ?? '') === '100 GSM Cream Paper')>১০০ GSM ক্রিম / বুক পেপার (Cream Paper)</option>
-                                                <option value="Other" @selected(old('paper_type', $editBook->paper_type ?? '') === 'Other')>Other Quality / কাস্টম পেপার</option>
+                                            <optgroup label="── Other ──">
+                                                <option value="100 GSM Cream Paper" @selected(old('paper_type', $editBook->paper_type ?? '') === '100 GSM Cream Paper')>100 GSM Cream Paper</option>
+                                                <option value="Other" @selected(old('paper_type', $editBook->paper_type ?? '') === 'Other')>Other Quality</option>
                                             </optgroup>
                                         </select>
                                     </div>
@@ -1293,21 +1286,21 @@
 
                                     <div class="col-12 col-sm-6 col-md-3">
                                         <label for="pubPageCount" class="pub-form-label">
-                                            <i class="fas fa-file-lines text-secondary me-1"></i> Number of Pages <span class="text-danger">*</span>
+                                            <i class="fas fa-file-lines text-secondary me-1"></i> Pages <span class="text-danger">*</span>
                                         </label>
                                         <input type="number" name="page_count" id="pubPageCount" class="form-control pub-form-control" min="1" required
-                                               value="{{ old('page_count', $editBook->page_count ?? ($editBook->number_of_pages ?? 0)) }}" placeholder="মোট পৃষ্ঠা সংখ্যা">
+                                               value="{{ old('page_count', $editBook->page_count ?? ($editBook->number_of_pages ?? 0)) }}" placeholder="e.g. 250">
                                     </div>
 
                                     {{-- Book Size: 2 Columns for Height (cm) & Width (cm) --}}
                                     <div class="col-12 col-sm-6 col-md-5">
                                         <label class="pub-form-label">
-                                            <i class="fas fa-ruler-combined text-secondary me-1"></i> Book Size / Dimensions (মাপ ২-কলামে)
+                                            <i class="fas fa-ruler-combined text-secondary me-1"></i> Dimensions (cm)
                                         </label>
                                         <div class="row g-2">
                                             <div class="col-6">
                                                 <div class="input-group shadow-xs">
-                                                    <span class="input-group-text pub-input-addon rounded-start-3 px-2">Height</span>
+                                                    <span class="input-group-text pub-input-addon rounded-start-3 px-2">H</span>
                                                     <input type="number" step="0.1" min="0" id="pubBookHeightCm" name="book_height_cm" 
                                                            value="{{ old('book_height_cm', $editBook->book_height_cm ?? '') }}" class="form-control pub-form-control px-2" placeholder="21.5" oninput="syncPubBookSizeCombined()">
                                                     <span class="input-group-text pub-input-addon rounded-end-3 px-2">cm</span>
@@ -1315,7 +1308,7 @@
                                             </div>
                                             <div class="col-6">
                                                 <div class="input-group shadow-xs">
-                                                    <span class="input-group-text pub-input-addon rounded-start-3 px-2">Width</span>
+                                                    <span class="input-group-text pub-input-addon rounded-start-3 px-2">W</span>
                                                     <input type="number" step="0.1" min="0" id="pubBookWidthCm" name="book_width_cm" 
                                                            value="{{ old('book_width_cm', $editBook->book_width_cm ?? '') }}" class="form-control pub-form-control px-2" placeholder="14.0" oninput="syncPubBookSizeCombined()">
                                                     <span class="input-group-text pub-input-addon rounded-end-3 px-2">cm</span>
@@ -1329,8 +1322,8 @@
                                     <div class="col-12">
                                         <div class="pub-pricing-box shadow-xs">
                                             <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3 pb-2 border-bottom border-light">
-                                                <span class="fw-bold text-dark small"><i class="fas fa-calculator text-primary me-1.5"></i> মূল্য নির্ধারণ ও ক্রয়-বিক্রয় লাভ হিসাব (Pricing Engine)</span>
-                                                <span class="badge bg-primary-subtle text-primary small px-2.5 py-1 rounded-pill">2-Way Auto Sync</span>
+                                                <span class="fw-bold text-dark small"><i class="fas fa-calculator text-primary me-1.5"></i> Pricing & Margin Calculator</span>
+                                                <span class="badge bg-primary-subtle text-primary small px-2.5 py-1 rounded-pill">Auto Sync</span>
                                             </div>
                                             <div class="row g-2.5 g-md-3">
                                                 <div class="col-6 col-md-3">
@@ -1370,7 +1363,7 @@
 
                                                 <div class="col-6 col-md-3">
                                                     <label for="pubSoldPct" class="pub-form-label mb-1">
-                                                        Sold % (Sale Discount)
+                                                        Sale Discount (%)
                                                     </label>
                                                     <div class="input-group shadow-xs">
                                                         <input type="number" step="0.5" min="0" max="100" id="pubSoldPct" 
@@ -1381,8 +1374,8 @@
                                                 </div>
                                             </div>
                                             <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mt-3 pt-2.5 border-top" style="font-size: 12.5px;">
-                                                <span class="text-secondary">Customer Offer Price: <strong class="text-primary font-monospace fs-6" id="pubCalculatedOfferPrice">৳0.00</strong></span>
-                                                <span class="text-secondary">Estimated Margin/Profit: <strong class="text-success font-monospace fs-6" id="pubCalculatedProfit">৳0.00 (0%)</strong></span>
+                                                <span class="text-secondary">Customer Price: <strong class="text-primary font-monospace fs-6" id="pubCalculatedOfferPrice">৳0.00</strong></span>
+                                                <span class="text-secondary">Profit Margin: <strong class="text-success font-monospace fs-6" id="pubCalculatedProfit">৳0.00 (0%)</strong></span>
                                             </div>
                                         </div>
                                     </div>
@@ -1390,7 +1383,7 @@
                                     {{-- ROW 9: Publication/Edition Start Date & ISBN (2 columns in 1 row) --}}
                                     <div class="col-12 col-md-6">
                                         <label for="pubPublishedAt" class="pub-form-label">
-                                            <i class="fas fa-calendar-check text-warning me-1"></i> Publication / Edition Start Date
+                                            <i class="fas fa-calendar-check text-warning me-1"></i> Publication Date
                                         </label>
                                         <input type="date" name="published_at" id="pubPublishedAt" class="form-control pub-form-control" 
                                                value="{{ old('published_at', ($editBook && $editBook->published_at ? $editBook->published_at->format('Y-m-d') : '')) }}">
@@ -1408,55 +1401,37 @@
                                     <div class="col-12">
                                         <div class="d-flex align-items-center justify-content-between mb-1.5">
                                             <label for="pubSummaryInput" class="pub-form-label mb-0">
-                                                <i class="fas fa-align-left text-primary me-1"></i> Product Summary (বইয়ের সংক্ষেপ — সর্বোচ্চ ১০০০ শব্দ)
+                                                <i class="fas fa-align-left text-primary me-1"></i> Product Summary (Max 1000 words)
                                             </label>
                                             <div class="word-counter-badge safe" id="pubSummaryWordBadge">
                                                 <i class="fas fa-font me-1"></i> Words: <span id="pubSummaryWordCount">0</span> / 1000
                                             </div>
                                         </div>
                                         <textarea name="summary" id="pubSummaryInput" rows="4" class="form-control pub-form-control p-3" 
-                                                  placeholder="বইয়ের সংক্ষেপ বা আকর্ষণীয় সারসংক্ষেপ লিখুন (সর্বোচ্চ ১০০০ শব্দ)..."
+                                                  placeholder="Product summary and description..."
                                                   oninput="updateGenericWordCount(this, 1000, 'pubSummaryWordCount', 'pubSummaryWordBadge', 'pubSummaryProgressBar', 'pubSummaryWarning')">{{ old('summary', $editBook->summary ?? '') }}</textarea>
                                         <div class="word-counter-progress mt-1.5">
                                             <div class="word-counter-progress__bar" id="pubSummaryProgressBar"></div>
                                         </div>
-                                        <div class="d-flex justify-content-between align-items-center mt-1">
-                                            <div class="form-text text-muted mb-0" style="font-size: 11px;">বইয়ের সারাংশ ও ফ্ল্যাপ বর্ণনা (সর্বোচ্চ ১০০০ শব্দ)।</div>
-                                            <div id="pubSummaryWarning" class="text-danger small fw-bold d-none"></div>
-                                        </div>
+                                        <div id="pubSummaryWarning" class="text-danger small fw-bold d-none mt-1"></div>
                                     </div>
 
                                 </div>
                             </div>
 
-                            {{-- BANGLADESHI LEGAL & PUBLISHING COMPLIANCE AGREEMENT & SAVE FOOTER --}}
+                            {{-- PUBLISHING COMPLIANCE & SAVE FOOTER --}}
                             <div class="card-footer bg-light border-top p-3 p-md-4">
-                                <div class="pub-compliance-box mb-3.5 shadow-xs">
-                                    <div class="d-flex align-items-center gap-2 mb-2 text-dark fw-bold" style="font-size: 0.92rem;">
-                                        <i class="fas fa-scale-balanced text-success fs-5"></i>
-                                        <span>বাংলাদেশে বই প্রকাশ ও মুদ্রণ আইন ও নীতিমালা সম্মতি</span>
-                                    </div>
-
-                                    <div class="p-3 bg-light rounded-3 border mb-2.5 small text-secondary" style="font-size: 11.5px; line-height: 1.65; max-height: 160px; overflow-y: auto;">
-                                        <p class="mb-1.5"><strong>১. সাধারণ বিধি ও নৈতিকতা:</strong> প্রেস ও প্রকাশনা, কপিরাইট, দণ্ডবিধি, অশ্লীল প্রকাশনা এবং ডিজিটাল মাধ্যমে প্রকাশিত কনটেন্টসংক্রান্ত প্রচলিত আইন ও বিধি মানা আবশ্যক। বইয়ের বিষয়বস্তু রাষ্ট্রীয় নিরাপত্তা, জনশৃঙ্খলা, ধর্মীয় অনুভূতি ও শালীনতার পরিপন্থী হওয়া যাবে না।</p>
-                                        <p class="mb-1.5"><strong>২. দণ্ডবিধি ও প্রকাশনা আইন:</strong> দণ্ডবিধি, ১৮৬০-এর ২৯২, ২৯৩ ও ৫০৫ ধারা এবং মুদ্রণ ও প্রকাশনা আইন, ১৯৭৩ অনুযায়ী প্রেস পরিচালনা ও প্রকাশনার নীতিমালা কঠোরভাবে মানতে হবে।</p>
-                                        <p class="mb-1.5"><strong>৩. কপিরাইট ও মেধাস্বত্ব:</strong> কপিরাইট আইন, ২০০০ অনুযায়ী অন্যের লেখা, ছবি বা ডিজাইন অনুমতি ছাড়া ব্যবহার বা প্রকাশ করা যাবে না।</p>
-                                        <p class="mb-0"><strong>৪. দায়বদ্ধতা ও পর্যালোচনা:</strong> বইয়ের তথ্য নির্ভুল ও দায়িত্বশীল হতে হবে। অভিযোগ বা সংশয় দেখা দিলে আইডিয়া প্রকাশন পর্যালোচনা টিম ব্যবস্থা গ্রহণের পূর্ণ অধিকার রাখে।</p>
-                                    </div>
-
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="pubComplianceCheck" name="compliance_agreed" value="1" checked required>
-                                        <label class="form-check-label small text-dark fw-bold cursor-pointer" for="pubComplianceCheck" style="font-size: 12.5px;">
-                                            উপরোক্ত সকল শর্ত ও প্রযোজ্য আইন-বিধি মেনে বই প্রকাশের বিষয়ে আমি সম্মত।
-                                        </label>
-                                    </div>
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="pubComplianceCheck" name="compliance_agreed" value="1" checked required>
+                                    <label class="form-check-label small text-dark fw-bold cursor-pointer" for="pubComplianceCheck" style="font-size: 12.5px;">
+                                        I agree to copyright and publishing compliance guidelines.
+                                    </label>
                                 </div>
 
                                 {{-- PUBLISH & SAVE BUTTON BAR --}}
                                 <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3 pt-1">
                                     <div>
-                                        <h6 class="fw-bold mb-0.5 text-dark">Save & Publish to Catalog</h6>
-                                        <small class="text-muted" style="font-size: 12px;">Review specifications and publish the book directly to your store.</small>
+                                        <h6 class="fw-bold mb-0.5 text-dark">Save to Catalog</h6>
                                     </div>
                                     <div class="d-flex flex-wrap align-items-center gap-2.5">
                                         <button type="button" class="btn btn-outline-secondary rounded-pill px-4 py-2 fw-semibold small shadow-xs" onclick="switchPublisherTab('books')">
@@ -1464,7 +1439,7 @@
                                         </button>
                                         <button type="submit" id="pubSubmitBookBtn" class="btn btn-success btn-lg rounded-pill px-4 py-2.5 fw-bold shadow-sm d-flex align-items-center gap-2" style="font-size: 0.95rem;">
                                             <i class="fas fa-circle-check fs-5"></i>
-                                            <span>{{ $editBook ? "Save & Update Product" : "Publish & Save Book" }}</span>
+                                            <span>{{ $editBook ? "Save Changes" : "Publish Book" }}</span>
                                         </button>
                                     </div>
                                 </div>
@@ -1796,44 +1771,44 @@
                     @csrf
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold text-dark mb-1">Company / Publisher Name <span class="text-danger">*</span></label>
+                            <label class="form-label small fw-bold text-dark mb-1">Publisher Name <span class="text-danger">*</span></label>
                             <input type="text" name="name" class="form-control rounded-3" value="{{ old('name', $publisher->name) }}" required>
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold text-dark mb-1">Official Phone / Hotline <span class="text-danger">*</span></label>
+                            <label class="form-label small fw-bold text-dark mb-1">Phone <span class="text-danger">*</span></label>
                             <input type="text" name="phone" class="form-control rounded-3" value="{{ old('phone', $publisher->phone) }}" required>
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold text-dark mb-1">Email Address</label>
+                            <label class="form-label small fw-bold text-dark mb-1">Email</label>
                             <input type="email" name="email" class="form-control rounded-3" value="{{ old('email', $publisher->email) }}">
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold text-dark mb-1">Website URL</label>
+                            <label class="form-label small fw-bold text-dark mb-1">Website</label>
                             <input type="url" name="website" class="form-control rounded-3" value="{{ old('website', $publisher->website) }}" placeholder="https://...">
                         </div>
 
                         <div class="col-12">
-                            <label class="form-label small fw-bold text-dark mb-1">Office / Distribution Address</label>
-                            <textarea name="address" rows="2" class="form-control rounded-3" placeholder="e.g. 38 Banglabazar, Dhaka">{{ old('address', $publisher->address) }}</textarea>
+                            <label class="form-label small fw-bold text-dark mb-1">Address</label>
+                            <textarea name="address" rows="2" class="form-control rounded-3" placeholder="Office / Warehouse address...">{{ old('address', $publisher->address) }}</textarea>
                         </div>
 
                         <div class="col-12">
-                            <label class="form-label small fw-bold text-dark mb-1">Publisher Bio & Introduction</label>
-                            <textarea name="description" rows="3" class="form-control rounded-3" placeholder="Company background, publication focus...">{{ old('description', $publisher->description) }}</textarea>
+                            <label class="form-label small fw-bold text-dark mb-1">About / Bio</label>
+                            <textarea name="description" rows="3" class="form-control rounded-3" placeholder="Brief publisher description...">{{ old('description', $publisher->description) }}</textarea>
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold text-dark mb-1">Official Publisher Logo</label>
+                            <label class="form-label small fw-bold text-dark mb-1">Logo</label>
                             <input type="file" name="logo" class="form-control rounded-3" accept="image/*">
                         </div>
                     </div>
 
                     <div class="mt-4 pt-2 border-top d-flex justify-content-end">
                         <button type="submit" class="btn btn-success rounded-pill px-4 px-md-5 fw-bold shadow-sm">
-                            <i class="fas fa-save me-1.5"></i> Save Profile Settings
+                            <i class="fas fa-save me-1.5"></i> Save Profile
                         </button>
                     </div>
                 </form>

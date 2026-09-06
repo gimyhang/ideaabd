@@ -919,16 +919,14 @@ function openRegDetailsModal(userId) {
             // Build dynamic details HTML
             let extraHtml = '';
             if (u.role === 'author' || u.reg_type === 'author') {
-                const bengaliName = r.name_bn || r.bengali_name || r.author_name_bn || '';
                 extraHtml = `
-                    ${bengaliName ? `<div class="col-sm-6"><small class="text-muted d-block">বাংলা নাম (Bengali Name)</small><div class="fw-semibold text-dark">${bengaliName}</div></div>` : ''}
-                    <div class="col-sm-6"><small class="text-muted d-block">Pen Name / Pseudonym</small><div class="fw-semibold text-dark">${r.pen_name || '—'}</div></div>
-                    <div class="col-sm-6"><small class="text-muted d-block">Genre / Categories</small><div class="fw-semibold text-dark">${Array.isArray(r.genres) ? r.genres.join(', ') : (r.genre || '—')}</div></div>
-                    <div class="col-sm-6"><small class="text-muted d-block">National ID (NID)</small><div class="fw-semibold text-dark font-monospace">${r.nid || '—'}</div></div>
-                    <div class="col-sm-6"><small class="text-muted d-block">Profession / পেশা</small><div class="fw-semibold text-dark">${r.profession || '—'}</div></div>
-                    <div class="col-sm-6"><small class="text-muted d-block">Present Address / বর্তমান ঠিকানা</small><div class="fw-semibold text-dark">${r.present_address || r.address || '—'}</div></div>
-                    <div class="col-sm-6"><small class="text-muted d-block">Permanent Address / স্থায়ী ঠিকানা</small><div class="fw-semibold text-dark">${r.permanent_address || '—'}</div></div>
-                    ${r.website || r.social_link || r.facebook ? `<div class="col-sm-6"><small class="text-muted d-block">Website / Social Profile</small><div class="fw-semibold text-dark"><a href="${r.website || r.social_link || r.facebook}" target="_blank" class="text-decoration-none text-primary"><i class="fas fa-link me-1"></i>${r.website || r.social_link || r.facebook}</a></div></div>` : ''}
+                    ${r.full_name ? `<div class="col-sm-6"><small class="text-muted d-block">Full Name (Identity)</small><div class="fw-semibold text-dark">${r.full_name}</div></div>` : ''}
+                    <div class="col-sm-6"><small class="text-muted d-block">Pen Name</small><div class="fw-semibold text-dark">${r.pen_name || '—'}</div></div>
+                    <div class="col-sm-6"><small class="text-muted d-block">Genre</small><div class="fw-semibold text-dark">${Array.isArray(r.genres) ? r.genres.join(', ') : (r.genre || '—')}</div></div>
+                    <div class="col-sm-6"><small class="text-muted d-block">NID</small><div class="fw-semibold text-dark font-monospace">${r.nid || '—'}</div></div>
+                    <div class="col-sm-6"><small class="text-muted d-block">Profession</small><div class="fw-semibold text-dark">${r.profession || '—'}</div></div>
+                    <div class="col-sm-6"><small class="text-muted d-block">Address</small><div class="fw-semibold text-dark">${r.present_address || r.address || '—'}</div></div>
+                    ${r.website || r.social_link || r.facebook ? `<div class="col-sm-6"><small class="text-muted d-block">Website / Social</small><div class="fw-semibold text-dark"><a href="${r.website || r.social_link || r.facebook}" target="_blank" class="text-decoration-none text-primary"><i class="fas fa-link me-1"></i>${r.website || r.social_link || r.facebook}</a></div></div>` : ''}
                 `;
             } else if (u.role === 'publisher' || u.reg_type === 'publisher') {
                 extraHtml = `
@@ -936,15 +934,15 @@ function openRegDetailsModal(userId) {
                     <div class="col-sm-6"><small class="text-muted d-block">Trade License No.</small><div class="fw-semibold text-dark font-monospace">${r.trade_license || '—'}</div></div>
                     <div class="col-sm-6"><small class="text-muted d-block">Established Year</small><div class="fw-semibold text-dark">${r.established || '—'}</div></div>
                     <div class="col-sm-6"><small class="text-muted d-block">Business Address</small><div class="fw-semibold text-dark">${r.address || '—'}</div></div>
-                    <div class="col-sm-6"><small class="text-muted d-block">National ID (NID)</small><div class="fw-semibold text-dark font-monospace">${r.nid || '—'}</div></div>
-                    <div class="col-sm-6"><small class="text-muted d-block">Website / Social</small><div class="fw-semibold text-dark">${r.website ? `<a href="${r.website}" target="_blank" class="text-decoration-none text-primary"><i class="fas fa-globe me-1"></i>${r.website}</a>` : '—'}</div></div>
+                    <div class="col-sm-6"><small class="text-muted d-block">NID</small><div class="fw-semibold text-dark font-monospace">${r.nid || '—'}</div></div>
+                    <div class="col-sm-6"><small class="text-muted d-block">Website</small><div class="fw-semibold text-dark">${r.website ? `<a href="${r.website}" target="_blank" class="text-decoration-none text-primary"><i class="fas fa-globe me-1"></i>${r.website}</a>` : '—'}</div></div>
                 `;
             } else if (u.role === 'seller' || u.reg_type === 'seller') {
                 extraHtml = `
-                    <div class="col-sm-6"><small class="text-muted d-block">Shop / Business Name</small><div class="fw-semibold text-dark">${r.shop_name || '—'}</div></div>
+                    <div class="col-sm-6"><small class="text-muted d-block">Shop Name</small><div class="fw-semibold text-dark">${r.shop_name || '—'}</div></div>
                     <div class="col-sm-6"><small class="text-muted d-block">Trade License No.</small><div class="fw-semibold text-dark font-monospace">${r.trade_license || '—'}</div></div>
-                    <div class="col-sm-6"><small class="text-muted d-block">Business Address</small><div class="fw-semibold text-dark">${r.address || '—'}</div></div>
-                    <div class="col-sm-6"><small class="text-muted d-block">National ID (NID)</small><div class="fw-semibold text-dark font-monospace">${r.nid || '—'}</div></div>
+                    <div class="col-sm-6"><small class="text-muted d-block">Address</small><div class="fw-semibold text-dark">${r.address || '—'}</div></div>
+                    <div class="col-sm-6"><small class="text-muted d-block">NID</small><div class="fw-semibold text-dark font-monospace">${r.nid || '—'}</div></div>
                     <div class="col-sm-6"><small class="text-muted d-block">Zone / District</small><div class="fw-semibold text-dark">${r.zone || r.district || '—'}</div></div>
                 `;
             }
@@ -952,7 +950,7 @@ function openRegDetailsModal(userId) {
             document.getElementById('modalDetailsBody').innerHTML = `
                 <div class="row g-3">
                     <div class="col-sm-6">
-                        <small class="text-muted d-block">Full Name</small>
+                        <small class="text-muted d-block">Author / Display Name (English)</small>
                         <div class="fw-semibold text-dark fs-6">${u.name}</div>
                     </div>
                     <div class="col-sm-6">

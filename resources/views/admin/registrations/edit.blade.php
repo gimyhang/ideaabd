@@ -111,15 +111,43 @@
                     </h6>
 
                     <div class="row g-3">
-                        {{-- Name --}}
+                        {{-- Row 1: Author Name (Bangla) & Author Name (English) --}}
                         <div class="col-md-6">
                             <label class="form-label small fw-bold text-dark">
-                                Name <span class="text-danger">*</span>
+                                Author Name (Bangla) <span class="text-danger">*</span>
                             </label>
-                            <input type="text" name="name" class="form-control rounded-3" value="{{ old('name', $user->name) }}" placeholder="Display Name" required>
+                            <input type="text" name="name_bn" class="form-control rounded-3" 
+                                   value="{{ old('name_bn', $regData['name_bn'] ?? ($regData['name_bangla'] ?? (preg_match('/[\x{0980}-\x{09FF}]/u', $user->name) ? $user->name : ''))) }}" 
+                                   placeholder="বাংলায় লেখক নাম (যেমন: সাকিল মাসুদ)" required>
                         </div>
 
-                        {{-- Email --}}
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-dark">
+                                Author Name (English) <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" name="name" class="form-control rounded-3" 
+                                   value="{{ old('name', $regData['name_en'] ?? ($regData['name_english'] ?? (!preg_match('/[\x{0980}-\x{09FF}]/u', $user->name) ? $user->name : ''))) }}" 
+                                   placeholder="Author Name in English (e.g. Sakil Masud)" required>
+                        </div>
+
+                        {{-- Row 2: Full Name & Pen Name --}}
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-dark">
+                                Full Name
+                            </label>
+                            <input type="text" name="full_name" class="form-control rounded-3" value="{{ old('full_name', $regData['full_name'] ?? '') }}" placeholder="Full Name (Identity / Official)">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-dark">
+                                Pen Name
+                            </label>
+                            <input type="text" name="pen_name" class="form-control rounded-3" 
+                                   value="{{ old('pen_name', $regData['pen_name'] ?? '') }}" 
+                                   placeholder="Pseudonym / Literary Alias">
+                        </div>
+
+                        {{-- Row 3: Email & Phone --}}
                         <div class="col-md-6">
                             <label class="form-label small fw-bold text-dark">
                                 Email <span class="text-danger">*</span>
@@ -127,7 +155,6 @@
                             <input type="email" name="email" class="form-control rounded-3" value="{{ old('email', $user->email) }}" required>
                         </div>
 
-                        {{-- Phone --}}
                         <div class="col-md-6">
                             <label class="form-label small fw-bold text-dark">
                                 Phone <span class="text-danger">*</span>
@@ -135,8 +162,8 @@
                             <input type="text" name="phone" class="form-control rounded-3 font-monospace" value="{{ old('phone', $user->phone) }}" required>
                         </div>
 
-                        {{-- Role --}}
-                        <div class="col-md-3">
+                        {{-- Row 4: Role & Status --}}
+                        <div class="col-md-6">
                             <label class="form-label small fw-bold text-dark">
                                 Role <span class="text-danger">*</span>
                             </label>
@@ -147,8 +174,7 @@
                             </select>
                         </div>
 
-                        {{-- Status --}}
-                        <div class="col-md-3">
+                        <div class="col-md-6">
                             <label class="form-label small fw-bold text-dark">
                                 Status <span class="text-danger">*</span>
                             </label>
@@ -181,45 +207,6 @@
                     </h6>
 
                     <div class="row g-3">
-                        {{-- BanglaName --}}
-                        <div class="col-md-6">
-                            <label class="form-label small fw-bold text-dark">
-                                BanglaName
-                            </label>
-                            <input type="text" name="name_bn" class="form-control rounded-3" 
-                                   value="{{ old('name_bn', $regData['name_bn'] ?? ($regData['name_bangla'] ?? $user->name)) }}" 
-                                   placeholder="Bangla Name">
-                        </div>
-
-                        {{-- EnglishName --}}
-                        <div class="col-md-6">
-                            <label class="form-label small fw-bold text-dark">
-                                EnglishName
-                            </label>
-                            <input type="text" name="name_en" class="form-control rounded-3" 
-                                   value="{{ old('name_en', $regData['name_en'] ?? ($regData['name_english'] ?? '')) }}" 
-                                   placeholder="English Name">
-                        </div>
-
-                        {{-- LegalName --}}
-                        <div class="col-md-6">
-                            <label class="form-label small fw-bold text-dark">
-                                LegalName
-                            </label>
-                            <input type="text" name="full_name" class="form-control rounded-3" 
-                                   value="{{ old('full_name', $regData['full_name'] ?? '') }}" 
-                                   placeholder="Legal name on Official Document">
-                        </div>
-
-                        {{-- PenName --}}
-                        <div class="col-md-6">
-                            <label class="form-label small fw-bold text-dark">
-                                PenName
-                            </label>
-                            <input type="text" name="pen_name" class="form-control rounded-3" 
-                                   value="{{ old('pen_name', $regData['pen_name'] ?? '') }}" 
-                                   placeholder="Pseudonym / Literary Alias">
-                        </div>
 
                         {{-- Genres --}}
                         <div class="col-md-6">

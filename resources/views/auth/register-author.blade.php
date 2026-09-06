@@ -118,19 +118,21 @@
                             </div>
                         </div>
 
-                        {{-- ══ BASIC CREDENTIALS: BENGALI & ENGLISH NAMES ══ --}}
+                        {{-- ══ BASIC CREDENTIALS: AUTHOR NAME (ENGLISH) & FULL NAME ══ --}}
                         <div class="row g-2.5 mb-3">
                             <div class="col-12 col-sm-6">
-                                <label class="form-label fw-semibold">লেখক নাম (বাংলা) <span class="text-danger">*</span></label>
+                                <label class="form-label fw-semibold">লেখক নাম (Author Name) <span class="text-danger">*</span></label>
                                 <input type="text" name="name" class="form-control rounded-3 @error('name') is-invalid @enderror"
-                                       value="{{ old('name') }}" required placeholder="বাংলায় পূর্ণ নাম">
+                                       value="{{ old('name') }}" required placeholder="Author Name in English (যেমন: Humayun Ahmed)">
+                                <div class="form-text small text-muted" style="font-size: 11px;"><i class="fa-solid fa-circle-info text-primary me-1"></i> এটি লেখার শিরোনামের নিচে ইংরেজি অক্ষরে লেখক নাম হিসেবে প্রদর্শিত হবে।</div>
                                 @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                             </div>
                             <div class="col-12 col-sm-6">
-                                <label class="form-label fw-semibold">লেখক নাম (ইংরেজি) <span class="text-muted small">(ঐচ্ছিক)</span></label>
-                                <input type="text" name="name_en" class="form-control rounded-3 @error('name_en') is-invalid @enderror"
-                                       value="{{ old('name_en') }}" placeholder="Full Name in English">
-                                @error('name_en')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                <label class="form-label fw-semibold">Full Name (পূর্ণ নাম)</label>
+                                <input type="text" name="full_name" class="form-control rounded-3 @error('full_name') is-invalid @enderror"
+                                       value="{{ old('full_name') }}" placeholder="এনআইডি বা প্রাতিষ্ঠানিক পূর্ণ নাম">
+                                <div class="form-text small text-muted" style="font-size: 11px;"><i class="fa-solid fa-id-card text-muted me-1"></i> শুধুমাত্র অফিশিয়াল পরিচিতি ও ভেরিফিকেশন তথ্য হিসেবে থাকবে।</div>
+                                @error('full_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                             </div>
                         </div>
 

@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'বিল ও বিক্রয় তালিকা — আইডিয়া প্রকাশন')
+@section('title', 'Bills & Invoices — POS')
 
 @section('content')
 <div class="container-fluid py-4 px-md-4" style="max-width: 1440px;">
@@ -31,8 +31,8 @@
                     <i class="fas fa-file-invoice"></i>
                 </div>
                 <div>
-                    <div class="small text-muted fw-semibold">সর্বমোট মেমো</div>
-                    <div class="fs-4 fw-bold text-dark">@bn($stats['total'])</div>
+                    <div class="small text-muted fw-semibold">Total Bills</div>
+                    <div class="fs-4 fw-bold text-dark">{{ $stats['total'] }}</div>
                 </div>
             </div>
         </div>
@@ -42,8 +42,8 @@
                     <i class="fas fa-truck"></i>
                 </div>
                 <div>
-                    <div class="small text-muted fw-semibold">ডেলিভারি চালান</div>
-                    <div class="fs-4 fw-bold text-info">@bn($stats['challans'] ?? 0)</div>
+                    <div class="small text-muted fw-semibold">Challans</div>
+                    <div class="fs-4 fw-bold text-info">{{ $stats['challans'] ?? 0 }}</div>
                 </div>
             </div>
         </div>
@@ -53,8 +53,8 @@
                     <i class="fas fa-check-circle"></i>
                 </div>
                 <div>
-                    <div class="small text-muted fw-semibold">পরিশোধিত বিল</div>
-                    <div class="fs-4 fw-bold text-success">@bn($stats['paid'])</div>
+                    <div class="small text-muted fw-semibold">Paid Bills</div>
+                    <div class="fs-4 fw-bold text-success">{{ $stats['paid'] }}</div>
                 </div>
             </div>
         </div>
@@ -64,8 +64,8 @@
                     <i class="fas fa-clock"></i>
                 </div>
                 <div>
-                    <div class="small text-muted fw-semibold">বকেয়া বিল</div>
-                    <div class="fs-4 fw-bold text-danger">@bn($stats['unpaid'])</div>
+                    <div class="small text-muted fw-semibold">Unpaid Bills</div>
+                    <div class="fs-4 fw-bold text-danger">{{ $stats['unpaid'] }}</div>
                 </div>
             </div>
         </div>
@@ -75,8 +75,8 @@
                     <i class="fas fa-taka-sign"></i>
                 </div>
                 <div>
-                    <div class="small text-muted fw-semibold">মোট আদায়</div>
-                    <div class="fs-5 fw-bold text-success">৳@bn(number_format($stats['revenue'], 0))</div>
+                    <div class="small text-muted fw-semibold">Revenue</div>
+                    <div class="fs-5 fw-bold text-success">৳{{ number_format($stats['revenue'], 0) }}</div>
                 </div>
             </div>
         </div>
@@ -86,8 +86,8 @@
                     <i class="fas fa-hand-holding-dollar"></i>
                 </div>
                 <div>
-                    <div class="small text-muted fw-semibold">বকেয়া পাওনা</div>
-                    <div class="fs-5 fw-bold text-danger">৳@bn(number_format($stats['due'] ?? 0, 0))</div>
+                    <div class="small text-muted fw-semibold">Total Due</div>
+                    <div class="fs-5 fw-bold text-danger">৳{{ number_format($stats['due'] ?? 0, 0) }}</div>
                 </div>
             </div>
         </div>
@@ -96,37 +96,37 @@
     {{-- 2. Fast Date & Type Filter Pills --}}
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
         <div class="d-flex flex-wrap align-items-center gap-2">
-            <span class="small text-muted fw-bold me-1"><i class="fas fa-calendar-day me-1"></i>দ্রুত তারিখ:</span>
+            <span class="small text-muted fw-bold me-1"><i class="fas fa-calendar-day me-1"></i>Quick Date:</span>
             <a href="{{ route('subadmin.bills.index') }}" class="btn btn-sm rounded-pill {{ !request('date_preset') ? 'btn-primary' : 'btn-outline-secondary' }}">
-                সকল
+                All
             </a>
             <a href="{{ route('subadmin.bills.index', array_merge(request()->except('date_preset', 'page'), ['date_preset' => 'today'])) }}" 
                class="btn btn-sm rounded-pill {{ request('date_preset') === 'today' ? 'btn-primary' : 'btn-outline-secondary' }}">
-                আজকে
+                Today
             </a>
             <a href="{{ route('subadmin.bills.index', array_merge(request()->except('date_preset', 'page'), ['date_preset' => 'yesterday'])) }}" 
                class="btn btn-sm rounded-pill {{ request('date_preset') === 'yesterday' ? 'btn-primary' : 'btn-outline-secondary' }}">
-                গতকাল
+                Yesterday
             </a>
             <a href="{{ route('subadmin.bills.index', array_merge(request()->except('date_preset', 'page'), ['date_preset' => 'this_week'])) }}" 
                class="btn btn-sm rounded-pill {{ request('date_preset') === 'this_week' ? 'btn-primary' : 'btn-outline-secondary' }}">
-                এই সপ্তাহ
+                This Week
             </a>
             <a href="{{ route('subadmin.bills.index', array_merge(request()->except('date_preset', 'page'), ['date_preset' => 'this_month'])) }}" 
                class="btn btn-sm rounded-pill {{ request('date_preset') === 'this_month' ? 'btn-primary' : 'btn-outline-secondary' }}">
-                এই মাস
+                This Month
             </a>
         </div>
 
         <div class="d-flex flex-wrap gap-2">
             <a href="{{ route('subadmin.bills.create', ['type' => 'invoice']) }}" class="btn btn-sm btn-primary rounded-pill px-3 shadow-xs">
-                <i class="fas fa-plus-circle me-1"></i> নতুন বিল তৈরি
+                <i class="fas fa-plus-circle me-1"></i> Create Bill
             </a>
             <a href="{{ route('subadmin.bills.create', ['type' => 'challan']) }}" class="btn btn-sm btn-info text-white rounded-pill px-3 shadow-xs">
-                <i class="fas fa-truck me-1"></i> নতুন চালান তৈরি
+                <i class="fas fa-truck me-1"></i> Create Challan
             </a>
             <a href="{{ route('subadmin.bills.export', request()->query()) }}" class="btn btn-sm btn-outline-success rounded-pill px-3">
-                <i class="fas fa-file-excel me-1"></i> CSV এক্সপোর্ট
+                <i class="fas fa-file-excel me-1"></i> Export CSV
             </a>
         </div>
     </div>
@@ -141,23 +141,23 @@
             <div class="col-12 col-md-3">
                 <div class="input-group input-group-sm">
                     <span class="input-group-text bg-white"><i class="fas fa-search text-muted"></i></span>
-                    <input type="text" name="search" class="form-control" placeholder="মেমো নং, গ্রাহক, প্রতিষ্ঠান বা মোবাইল..." value="{{ request('search') }}">
+                    <input type="text" name="search" class="form-control" placeholder="Search memo, customer, phone..." value="{{ request('search') }}">
                 </div>
             </div>
 
             <div class="col-6 col-md-2">
                 <select name="type" class="form-select form-select-sm">
-                    <option value="">— সব ডকুমেন্টের ধরন —</option>
-                    <option value="invoice" @selected(request('type') === 'invoice')>ক্যাশ মেমো / ইনভয়েস</option>
-                    <option value="challan" @selected(request('type') === 'challan')>ডেলিভারি চালান</option>
-                    <option value="quotation" @selected(request('type') === 'quotation')>কোটেশন / প্রফর্মা</option>
+                    <option value="">— All Document Types —</option>
+                    <option value="invoice" @selected(request('type') === 'invoice')>Invoice / Cash Memo</option>
+                    <option value="challan" @selected(request('type') === 'challan')>Delivery Challan</option>
+                    <option value="quotation" @selected(request('type') === 'quotation')>Quotation / Proforma</option>
                 </select>
             </div>
             
             @if($isAdmin && count($sellers) > 0)
                 <div class="col-6 col-md-2">
                     <select name="seller_id" class="form-select form-select-sm">
-                        <option value="">— সব সেলার / স্টাফ —</option>
+                        <option value="">— All Sellers / Staff —</option>
                         @foreach ($sellers as $sId => $sName)
                             <option value="{{ $sId }}" @selected((string)request('seller_id') === (string)$sId)>
                                 {{ $sName }}
@@ -169,26 +169,26 @@
 
             <div class="col-6 col-md-2">
                 <select name="payment_status" class="form-select form-select-sm">
-                    <option value="">— সব পেমেন্ট স্ট্যাটাস —</option>
-                    <option value="paid" @selected(request('payment_status') === 'paid')>পরিশোধিত (Paid)</option>
-                    <option value="unpaid" @selected(request('payment_status') === 'unpaid')>বকেয়া (Unpaid)</option>
-                    <option value="partial" @selected(request('payment_status') === 'partial')>আংশিক (Partial)</option>
+                    <option value="">— All Payment Statuses —</option>
+                    <option value="paid" @selected(request('payment_status') === 'paid')>Paid</option>
+                    <option value="unpaid" @selected(request('payment_status') === 'unpaid')>Unpaid</option>
+                    <option value="partial" @selected(request('payment_status') === 'partial')>Partial</option>
                 </select>
             </div>
 
             <div class="col-6 col-md-2">
                 <select name="payment_method" class="form-select form-select-sm">
-                    <option value="">— সব মেথড —</option>
-                    <option value="cash" @selected(request('payment_method') === 'cash')>নগদ (Cash)</option>
-                    <option value="bkash" @selected(request('payment_method') === 'bkash')>বিকাশ (bKash)</option>
-                    <option value="nagad" @selected(request('payment_method') === 'nagad')>নগদ (Nagad)</option>
-                    <option value="card" @selected(request('payment_method') === 'card')>কার্ড / ব্যাংক</option>
+                    <option value="">— All Methods —</option>
+                    <option value="cash" @selected(request('payment_method') === 'cash')>Cash</option>
+                    <option value="bkash" @selected(request('payment_method') === 'bkash')>bKash</option>
+                    <option value="nagad" @selected(request('payment_method') === 'nagad')>Nagad</option>
+                    <option value="card" @selected(request('payment_method') === 'card')>Card / Bank</option>
                 </select>
             </div>
 
             <div class="col-12 col-md-1 text-end">
                 <button type="submit" class="btn btn-primary btn-sm rounded-pill w-100">
-                    <i class="fas fa-filter me-1"></i>ফিল্টার
+                    <i class="fas fa-filter me-1"></i>Filter
                 </button>
             </div>
         </form>
@@ -201,20 +201,20 @@
         <div class="card border-0 shadow-sm rounded-4 bg-white overflow-hidden">
             <div class="card-header bg-white py-3 border-bottom d-flex flex-wrap justify-content-between align-items-center gap-2">
                 <div class="d-flex align-items-center gap-2">
-                    <input type="checkbox" id="selectAllCheckbox" class="form-check-input mt-0" title="সকল সিলেক্ট করুন">
-                    <label for="selectAllCheckbox" class="small fw-bold text-dark mb-0 cursor-pointer">সব নির্বাচন</label>
-                    <span class="text-muted small">| মোট বিল ও চালান: <strong>@bn($bills->total())</strong> টি</span>
+                    <input type="checkbox" id="selectAllCheckbox" class="form-check-input mt-0" title="Select All">
+                    <label for="selectAllCheckbox" class="small fw-bold text-dark mb-0 cursor-pointer">Select All</label>
+                    <span class="text-muted small">| Total: <strong>{{ $bills->total() }}</strong></span>
                 </div>
 
                 {{-- Bulk Action Dropdown --}}
                 <div class="d-flex align-items-center gap-2">
                     <select name="bulk_action" id="bulkActionSelect" class="form-select form-select-sm" style="width: 170px;">
-                        <option value="">— বাল্ক অ্যাকশন —</option>
-                        <option value="mark_paid">পরিশোধিত চিহ্নিত করুন</option>
-                        <option value="delete">মুছে ফেলুন (Delete)</option>
+                        <option value="">— Bulk Actions —</option>
+                        <option value="mark_paid">Mark as Paid</option>
+                        <option value="delete">Delete</option>
                     </select>
                     <button type="submit" class="btn btn-sm btn-outline-secondary rounded-pill px-3" onclick="return confirmBulkAction()">
-                        প্রয়োগ করুন
+                        Apply
                     </button>
                 </div>
             </div>
@@ -224,17 +224,17 @@
                     <thead class="table-light text-muted small text-uppercase">
                         <tr>
                             <th style="width: 40px;" class="text-center">#</th>
-                            <th style="width: 160px;">মেমো নং ও ধরন</th>
-                            <th>গ্রাহক ও প্রতিষ্ঠান</th>
+                            <th style="width: 160px;">Bill No & Type</th>
+                            <th>Customer & Organization</th>
                             @if($isAdmin)
-                                <th>সেলার</th>
+                                <th>Seller</th>
                             @endif
-                            <th>তারিখ</th>
-                            <th class="text-end">সর্বমোট (৳)</th>
-                            <th class="text-end">পরিশোধিত</th>
-                            <th class="text-end">বকেয়া</th>
-                            <th class="text-center">স্ট্যাটাস</th>
-                            <th class="text-center" style="width: 140px;">অ্যাকশন</th>
+                            <th>Date</th>
+                            <th class="text-end">Total (৳)</th>
+                            <th class="text-end">Paid</th>
+                            <th class="text-end">Due</th>
+                            <th class="text-center">Status</th>
+                            <th class="text-center" style="width: 140px;">Action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -267,7 +267,7 @@
                                 </td>
                                 @if($isAdmin)
                                     <td>
-                                        <span class="badge bg-light text-dark border">{{ $bill->seller->name ?? 'সেলার' }}</span>
+                                        <span class="badge bg-light text-dark border">{{ $bill->seller->name ?? 'Seller' }}</span>
                                     </td>
                                 @endif
                                 <td class="small text-muted">
@@ -285,27 +285,27 @@
                                 <td class="text-center">
                                     @if($bill->payment_status === 'paid')
                                         <span class="badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1 rounded-pill">
-                                            <i class="fas fa-check-circle me-1"></i>পরিশোধিত
+                                            <i class="fas fa-check-circle me-1"></i>Paid
                                         </span>
                                     @elseif($bill->payment_status === 'partial')
                                         <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2.5 py-1 rounded-pill">
-                                            <i class="fas fa-clock me-1"></i>আংশিক
+                                            <i class="fas fa-clock me-1"></i>Partial
                                         </span>
                                     @else
                                         <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2.5 py-1 rounded-pill">
-                                            <i class="fas fa-triangle-exclamation me-1"></i>বকেয়া
+                                            <i class="fas fa-triangle-exclamation me-1"></i>Unpaid
                                         </span>
                                     @endif
                                 </td>
                                 <td class="text-center">
                                     <div class="btn-group btn-group-sm">
-                                        <a href="{{ route('subadmin.bills.show', $bill) }}" class="btn btn-outline-primary" title="মেমো ও চালান প্রিন্ট">
+                                        <a href="{{ route('subadmin.bills.show', $bill) }}" class="btn btn-outline-primary" title="Print Memo">
                                             <i class="fas fa-eye"></i>
                                         </a>
-                                        <a href="{{ route('subadmin.bills.receipt', $bill) }}" target="_blank" class="btn btn-outline-secondary" title="থার্মাল রিসিট">
+                                        <a href="{{ route('subadmin.bills.receipt', $bill) }}" target="_blank" class="btn btn-outline-secondary" title="Receipt">
                                             <i class="fas fa-receipt"></i>
                                         </a>
-                                        <a href="{{ route('subadmin.bills.edit', $bill) }}" class="btn btn-outline-warning text-dark" title="সম্পাদনা">
+                                        <a href="{{ route('subadmin.bills.edit', $bill) }}" class="btn btn-outline-warning text-dark" title="Edit">
                                             <i class="fas fa-pen-to-square"></i>
                                         </a>
                                     </div>
@@ -315,7 +315,7 @@
                             <tr>
                                 <td colspan="{{ $isAdmin ? 10 : 9 }}" class="text-center py-5 text-muted">
                                     <i class="fas fa-file-invoice-dollar fs-1 text-muted mb-2 d-block opacity-50"></i>
-                                    কোনো বিল বা চালান পাওয়া যায়নি।
+                                    No bills or challans found.
                                 </td>
                             </tr>
                         @endforelse
@@ -341,18 +341,18 @@ document.getElementById('selectAllCheckbox').addEventListener('change', function
 function confirmBulkAction() {
     const action = document.getElementById('bulkActionSelect').value;
     if (!action) {
-        alert('অনুগ্রহ করে একটি অ্যাকশন নির্বাচন করুন।');
+        alert('Please select an action.');
         return false;
     }
     const checkedCount = document.querySelectorAll('.bill-checkbox:checked').length;
     if (checkedCount === 0) {
-        alert('অনুগ্রহ করে কমপক্ষে একটি বিল নির্বাচন করুন।');
+        alert('Please select at least one bill.');
         return false;
     }
     if (action === 'delete') {
-        return confirm(`আপনি কি নিশ্চিত যে নির্বাচিত ${checkedCount} টি বিল মুছে ফেলতে চান?`);
+        return confirm(`Are you sure you want to delete ${checkedCount} selected bills?`);
     }
-    return confirm(`নির্বাচিত ${checkedCount} টি বিলে এই পরিবর্তনটি করতে চান?`);
+    return confirm(`Apply action to ${checkedCount} selected bills?`);
 }
 </script>
 @endpush

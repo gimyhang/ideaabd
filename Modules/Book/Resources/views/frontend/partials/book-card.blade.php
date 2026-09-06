@@ -57,31 +57,31 @@
     $reviewsCount = $book->reviews_count ?? ($book->relationLoaded('reviews') ? $book->reviews->count() : 0);
 @endphp
 
-<div class="card h-100 w-100 border-0 shadow-none rounded-3 p-2 d-flex flex-column text-start position-relative bg-white amz-bookshelf-item hover-lift" 
+<div class="card h-100 w-100 border-0 shadow-none rounded-3 p-2 d-flex flex-column text-center position-relative bg-white amz-bookshelf-item hover-lift" 
      style="transition: transform 0.2s ease, box-shadow 0.2s ease;">
     
-    <!-- 1. Book Cover Image (Clickable Link to Detail Page) -->
-    <div class="position-relative overflow-hidden rounded-2 mb-2 w-100 mx-auto book-cover-frame shadow-xs" 
-         style="aspect-ratio: 7 / 10; width: 100%; max-height: 260px; background: #0f172a;">
+    <!-- 1. Book Cover Image (Clickable Link to Detail Page - Prominent Height & Aspect Ratio) -->
+    <div class="position-relative overflow-hidden rounded-2 mb-1.5 w-100 mx-auto book-cover-frame shadow-xs" 
+         style="aspect-ratio: 1 / 1.48; width: 100%; min-height: 250px; max-height: 350px; background: #0f172a;">
         
         <a href="{{ route('book.show', $book->slug ?: $book->id) }}" class="d-block w-100 h-100 text-decoration-none">
             @if($coverUrl)
                 <img src="{{ $coverUrl }}" 
                      alt="{{ $book->title }}" 
-                     class="w-100 h-100 object-fit-cover"
+                     class="w-100 h-100 object-fit-cover d-block"
                      loading="lazy"
                      onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'140\' height=\'200\' viewBox=\'0 0 140 200\'><rect width=\'140\' height=\'200\' fill=\'%231e293b\'/><text x=\'50%25\' y=\'50%25\' dominant-baseline=\'middle\' text-anchor=\'middle\' fill=\'%2338bdf8\' font-size=\'28\' font-weight=\'bold\' font-family=\'sans-serif\'>{{ mb_substr($book->title ?? 'বই', 0, 1, 'UTF-8') }}</text></svg>';">
             @else
-                <div class="w-100 h-100 d-flex flex-column justify-content-between p-2.5 text-start position-relative" 
-                     style="background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%); border-left: 3px solid #38bdf8;">
-                    <span class="badge bg-primary bg-opacity-25 text-info px-1.5 py-0.5 rounded-pill" style="font-size: 0.60rem;">
+                <div class="w-100 h-100 d-flex flex-column justify-content-between p-2.5 text-center position-relative" 
+                     style="background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%); border-top: 3px solid #38bdf8;">
+                    <span class="badge bg-primary bg-opacity-25 text-info px-1.5 py-0.5 rounded-pill mx-auto" style="font-size: 0.60rem;">
                         {{ $book->category->name ?? 'আইডিয়া' }}
                     </span>
                     <div class="my-auto py-1">
-                        <h6 class="fw-bold text-white mb-1 line-clamp-2" style="font-size: 0.78rem; line-height: 1.35; font-family: 'Hind Siliguri', serif;">
+                        <h6 class="fw-bold text-white text-truncate" style="font-size: 0.78rem; line-height: 1.3; font-family: 'Hind Siliguri', serif; margin: 0; padding: 0;">
                             {{ $book->title }}
                         </h6>
-                        <p class="text-white-50 small mb-0 text-truncate" style="font-size: 0.68rem;">
+                        <p class="text-white-50 small mb-0 text-truncate" style="font-size: 0.68rem; margin: 0; padding: 0;">
                             {{ $authorName }}
                         </p>
                     </div>
@@ -103,11 +103,11 @@
         @endif
     </div>
     
-    <!-- 2. Book Info (Reviews, Title, Author, Format, Price) -->
-    <div class="d-flex flex-column flex-grow-1 justify-content-start text-start">
+    <!-- 2. Book Info (Centered, Reviews, Title, Author, Price - ZERO GAP MARGINS) -->
+    <div class="d-flex flex-column flex-grow-1 justify-content-start align-items-center text-center w-100" style="margin: 0; padding: 0; gap: 0 !important;">
         
-        <!-- A. Customer Rating Stars & Reader Review Count (Amazon Format) -->
-        <div class="d-flex align-items-center gap-1 mb-0.5" style="font-size: 11px; line-height: 1.1;">
+        <!-- A. Customer Rating Stars & Reader Review Count (Centered) -->
+        <div class="d-flex align-items-center justify-content-center gap-1 w-100" style="font-size: 11px; line-height: 1.1; margin: 0; padding: 0; margin-bottom: 2px !important;">
             <div class="d-inline-flex gap-0.5 text-warning">
                 @for($s = 1; $s <= 5; $s++)
                     @if($ratingScore >= $s)
@@ -119,7 +119,7 @@
                     @endif
                 @endfor
             </div>
-            <a href="{{ route('book.show', $book->slug ?: $book->id) }}#tab-reviews" class="text-secondary text-decoration-none hover-underline" style="font-size: 10.5px;">
+            <a href="{{ route('book.show', $book->slug ?: $book->id) }}#tab-reviews" class="text-secondary text-decoration-none hover-underline" style="font-size: 10.5px; line-height: 1; margin: 0; padding: 0;">
                 @if($reviewsCount > 0)
                     @bn($reviewsCount)
                 @else
@@ -129,60 +129,39 @@
         </div>
 
         @if(!isset($hideTitleAuthor) || !$hideTitleAuthor)
-            <!-- B. Book Title (Tight line spacing, No prefix) -->
-            <h6 class="fw-bold mb-0.5" style="font-size: 0.86rem; line-height: 1.25; min-height: 2.15rem; max-height: 2.15rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
-                <a href="{{ route('book.show', $book->slug ?: $book->id) }}" class="text-dark text-decoration-none hover-primary" title="{{ $book->title }}">
+            <!-- B. Book Title (Centered, Single line with ellipsis, zero margin/padding) -->
+            <h6 class="fw-bold text-truncate w-100" style="font-size: 0.86rem; line-height: 1.25; margin: 0 !important; padding: 0 !important;">
+                <a href="{{ route('book.show', $book->slug ?: $book->id) }}" class="text-dark text-decoration-none hover-primary d-block text-truncate" title="{{ $book->title }}">
                     {{ $book->title }}
                 </a>
             </h6>
             
-            <!-- C. Author Name (Direct clean text, No prefix) -->
-            <div class="mb-1 text-truncate" style="font-size: 0.73rem; line-height: 1.2;">
+            <!-- C. Author Name (Centered, Single line with ellipsis, tight zero margin) -->
+            <div class="text-truncate w-100" style="font-size: 0.73rem; line-height: 1.15; margin: 0 !important; padding: 0 !important;">
                 @if($authorUrl)
-                    <a href="{{ $authorUrl }}" class="text-secondary text-decoration-none hover-primary">
+                    <a href="{{ $authorUrl }}" class="text-secondary text-decoration-none hover-primary d-block text-truncate">
                         {{ $authorName }}
                     </a>
                 @else
-                    <span class="text-secondary">{{ $authorName }}</span>
+                    <span class="text-secondary d-block text-truncate">{{ $authorName }}</span>
                 @endif
             </div>
         @endif
 
-        <!-- D. Format & Price (Directly under stars when title/author hidden) -->
-        <div class="{{ (!isset($hideTitleAuthor) || !$hideTitleAuthor) ? 'mt-auto' : '' }} pt-0.5">
-            <div class="text-muted small mb-0.5" style="font-size: 0.68rem; line-height: 1.1;">
-                @if($book->stock_status === 'pre_order')
-                    <span class="badge bg-warning bg-opacity-20 text-warning-emphasis border border-warning border-opacity-50 px-1.5 py-0.5 rounded-pill fw-bold" style="font-size: 0.62rem;">
-                        <i class="fa-solid fa-clock-rotate-left me-0.5"></i> প্রি-অর্ডার
-                    </span>
-                    @if(!empty($book->pre_order_release_date))
-                        <span class="text-muted d-block mt-0.5 text-truncate" style="font-size: 0.62rem;">
-                            <i class="fa-regular fa-calendar-check me-0.5 text-warning-emphasis"></i>প্রকাশ: {{ \Carbon\Carbon::parse($book->pre_order_release_date)->format('d M, Y') }}
-                        </span>
-                    @endif
-                @elseif($isEbook)
-                    <span>ই-বুক</span>
-                @elseif($hasHardcover)
-                    <span>হার্ডকভার</span>
-                @else
-                    <span>পেপারব্যাক</span>
-                @endif
-            </div>
-
-            <div class="d-flex align-items-baseline gap-1" style="line-height: 1.1;">
-                @if($cardDiscPrice && $cardDiscPrice < $cardRegularPrice)
-                    <span class="fw-bold text-dark" style="font-size: 1rem;">
-                        ৳@bn(round($cardDiscPrice))
-                    </span>
-                    <span class="text-muted text-decoration-line-through small" style="font-size: 0.75rem;">
-                        ৳@bn(round($cardRegularPrice))
-                    </span>
-                @else
-                    <span class="fw-bold text-dark" style="font-size: 1rem;">
-                        ৳@bn(round($cardRegularPrice))
-                    </span>
-                @endif
-            </div>
+        <!-- D. Price Row (Centered, Zero Margin) -->
+        <div class="d-flex align-items-baseline justify-content-center gap-1 w-100" style="line-height: 1.1; margin: 0 !important; padding: 0 !important;">
+            @if($cardDiscPrice && $cardDiscPrice < $cardRegularPrice)
+                <span class="fw-bold text-dark" style="font-size: 1rem; line-height: 1.1;">
+                    ৳@bn(round($cardDiscPrice))
+                </span>
+                <span class="text-muted text-decoration-line-through small" style="font-size: 0.75rem; line-height: 1.1;">
+                    ৳@bn(round($cardRegularPrice))
+                </span>
+            @else
+                <span class="fw-bold text-dark" style="font-size: 1rem; line-height: 1.1;">
+                    ৳@bn(round($cardRegularPrice))
+                </span>
+            @endif
         </div>
 
     </div>

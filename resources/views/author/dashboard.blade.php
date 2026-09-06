@@ -286,7 +286,7 @@
     </div>
 
     {{-- ═════════════════════════════════════════════════════════════════════════ --}}
-    {{-- 3. QUICK MOBILE WRITING / DRAFTING WIDGET (টগলযোগ্য ক্ল্যাপ্স ফরম)        --}}
+    {{-- 3. QUICK MOBILE WRITING / DRAFTING WIDGET                                  --}}
     {{-- ═════════════════════════════════════════════════════════════════════════ --}}
     <div class="author-card bg-white overflow-hidden">
         <div class="p-3 d-flex align-items-center justify-content-between cursor-pointer border-bottom bg-light bg-opacity-25"
@@ -299,10 +299,10 @@
                 <span class="badge bg-warning bg-opacity-20 text-warning-emphasis rounded-circle p-1.5">
                     <i class="fas fa-pen-to-square"></i>
                 </span>
-                <span class="small fw-bold">মোবাইল কুইক ড্রাফট (Quick Draft)</span>
+                <span class="small fw-bold">Quick Draft</span>
             </h6>
             <div class="d-flex align-items-center gap-2">
-                <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2 py-1 small" style="font-size: 10.5px;">ট্যাপ করে ড্রাফট লিখুন ▾</span>
+                <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2 py-1 small" style="font-size: 10.5px;">Write Draft ▾</span>
                 <i class="fas fa-chevron-down text-muted small"></i>
             </div>
         </div>
@@ -315,19 +315,19 @@
 
                     <div class="row g-2">
                         <div class="col-12 col-md-8">
-                            <input type="text" name="title" class="form-control form-control-sm rounded-3 fw-semibold" placeholder="আপনার লেখার শিরোনাম বা ভাবনা লিখুন..." required>
+                            <input type="text" name="title" class="form-control form-control-sm rounded-3 fw-semibold" placeholder="Post Title..." required>
                         </div>
                         <div class="col-12 col-md-4">
                             <button type="submit" class="btn btn-sm btn-warning text-dark fw-bold rounded-pill px-3 w-100">
-                                <i class="fas fa-save me-1"></i> ড্রাফট সংরক্ষণ
+                                <i class="fas fa-save me-1"></i> Save Draft
                             </button>
                         </div>
                         <div class="col-12 mt-2">
-                            <textarea name="content" rows="3" class="form-control rounded-3 small" placeholder="লেখা বা কবিতার অংশ বিশেষ এখানে টাইপ করে রাখুন, পরবর্তীতে পূর্ণাঙ্গ রূপ দিতে পারবেন..." required></textarea>
+                            <textarea name="content" rows="3" class="form-control rounded-3 small" placeholder="Write draft thoughts or excerpt..." required></textarea>
                         </div>
                         <div class="col-12 text-end mt-1">
                             <a href="{{ route('author.posts.create') }}" class="small text-primary text-decoration-none fw-semibold">
-                                পূর্ণাঙ্গ এডিটরে যান →
+                                Full Editor →
                             </a>
                         </div>
                     </div>
@@ -696,16 +696,12 @@
             <div class="modal-header border-0 pb-0 pt-3.5 px-4 bg-light">
                 <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2" id="authorPhotoStudioModalLabel">
                     <i class="fas fa-camera text-primary"></i>
-                    <span>লেখক ছবি স্টুডিও (Dynamic Photo Cropper)</span>
+                    <span>Photo Studio</span>
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             
             <div class="modal-body p-4">
-                <p class="text-muted small mb-3" style="font-size: 12.5px;">
-                    মোবাইল বা কম্পিউটার থেকে ছবি নির্বাচন করুন। ছবির ওপর ড্র্যাগ করে ও জুম স্লাইডার দিয়ে সঠিকভাবে ১:১ গোলাকার ফ্রেমে অ্যাডজাস্ট করে সেভ করুন।
-                </p>
-
                 {{-- Interactive Crop Canvas Container --}}
                 <div class="text-center mb-3">
                     <div class="position-relative mx-auto rounded-4 overflow-hidden border border-2 border-primary shadow-xs bg-white" 
@@ -721,7 +717,7 @@
                         {{-- Initial placeholder when no image uploaded --}}
                         <div id="modalCanvasPlaceholder" class="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center bg-light text-muted p-2 pointer-events-none">
                             <i class="fas fa-cloud-arrow-up text-primary fs-2 mb-1"></i>
-                            <span style="font-size: 11.5px;" class="fw-semibold">গ্যালারি / ক্যামেরা থেকে ছবি বাছুন</span>
+                            <span style="font-size: 11.5px;" class="fw-semibold">Upload Photo</span>
                         </div>
                     </div>
                 </div>
@@ -729,7 +725,7 @@
                 {{-- File Picker --}}
                 <div class="mb-3">
                     <label class="form-label small fw-bold text-dark mb-1">
-                        <i class="fas fa-image text-primary me-1"></i> নতুন ছবি নির্বাচন করুন:
+                        <i class="fas fa-image text-primary me-1"></i> Select Photo:
                     </label>
                     <input type="file" id="modalAuthorAvatarInput" 
                            accept="image/jpeg,image/png,image/jpg,image/webp" 
@@ -740,7 +736,7 @@
                 {{-- Interactive Controls: Zoom Slider, Rotate, Reset --}}
                 <div id="modalCropControls" class="p-3 bg-light rounded-3 border mb-3" style="display: none;">
                     <div class="d-flex align-items-center justify-content-between mb-1.5" style="font-size: 11.5px;">
-                        <span class="text-muted fw-semibold"><i class="fas fa-magnifying-glass-plus text-primary me-1"></i>জুম অ্যাডজাস্ট:</span>
+                        <span class="text-muted fw-semibold"><i class="fas fa-magnifying-glass-plus text-primary me-1"></i>Zoom:</span>
                         <span class="badge bg-white text-dark border font-monospace" id="modalZoomValBadge">100%</span>
                     </div>
                     <div class="d-flex align-items-center gap-2 mb-2">
@@ -751,10 +747,10 @@
 
                     <div class="d-flex align-items-center gap-2 flex-wrap justify-content-center">
                         <button type="button" class="btn btn-white btn-sm border rounded-pill px-3 py-1 text-dark small" onclick="rotateModalImage(90)">
-                            <i class="fas fa-rotate-right me-1 text-primary"></i> ঘোরান (Rotate)
+                            <i class="fas fa-rotate-right me-1 text-primary"></i> Rotate
                         </button>
                         <button type="button" class="btn btn-white btn-sm border rounded-pill px-3 py-1 text-dark small" onclick="resetModalCrop()">
-                            <i class="fas fa-arrows-to-circle me-1 text-secondary"></i> রিসেট
+                            <i class="fas fa-arrows-to-circle me-1 text-secondary"></i> Reset
                         </button>
                     </div>
                 </div>
@@ -764,10 +760,10 @@
             </div>
 
             <div class="modal-footer border-0 pt-0 px-4 pb-3.5 d-flex justify-content-between">
-                <button type="button" class="btn btn-light rounded-pill px-3.5" data-bs-dismiss="modal">বন্ধ করুন</button>
+                <button type="button" class="btn btn-light rounded-pill px-3.5" data-bs-dismiss="modal">Close</button>
                 <button type="button" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm" id="modalSavePhotoBtn" onclick="submitDynamicAuthorPhoto()" disabled>
                     <span class="spinner-border spinner-border-sm d-none me-1" id="modalPhotoSpinner" role="status"></span>
-                    <i class="fas fa-save me-1" id="modalPhotoSaveIcon"></i> ছবি সেভ করুন
+                    <i class="fas fa-save me-1" id="modalPhotoSaveIcon"></i> Save Photo
                 </button>
             </div>
         </div>
@@ -783,7 +779,7 @@
             <div class="modal-header border-0 pb-0 pt-3.5 px-4 bg-light">
                 <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2" id="authorBioEditModalLabel">
                     <i class="fas fa-user-pen text-primary"></i>
-                    <span>লেখক পরিচিতি ও বায়ো এডিট</span>
+                    <span>Edit Bio</span>
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -792,33 +788,30 @@
                 <div class="modal-body p-4">
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold text-dark">লেখকের নাম <span class="text-danger">*</span></label>
+                            <label class="form-label small fw-bold text-dark">Author Name <span class="text-danger">*</span></label>
                             <input type="text" id="editAuthorNameInput" class="form-control rounded-3" value="{{ auth()->user()->name }}" required>
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold text-dark">ছদ্মনাম / কলমনাম <span class="text-muted small">(যদি থাকে)</span></label>
-                            <input type="text" id="editAuthorPenNameInput" class="form-control rounded-3" value="{{ $authorPenName }}" placeholder="ঐচ্ছিক কলমনাম">
+                            <label class="form-label small fw-bold text-dark">Pen Name <span class="text-muted small">(Optional)</span></label>
+                            <input type="text" id="editAuthorPenNameInput" class="form-control rounded-3" value="{{ $authorPenName }}" placeholder="Optional Pen Name">
                         </div>
 
                         <div class="col-12">
                             <div class="d-flex justify-content-between align-items-center mb-1">
-                                <label class="form-label small fw-bold text-dark mb-0">লেখক পরিচিতি ও সাহিত্য জীবনবৃত্তান্ত (Author Bio) <span class="text-danger">*</span></label>
-                                <span class="text-muted small" id="editBioCounter" style="font-size: 11px;">0 অক্ষর</span>
+                                <label class="form-label small fw-bold text-dark mb-0">Author Bio <span class="text-danger">*</span></label>
+                                <span class="text-muted small" id="editBioCounter" style="font-size: 11px;">0 chars</span>
                             </div>
-                            <textarea id="editAuthorBioInput" rows="5" class="form-control rounded-3 small" placeholder="আপনার সাহিত্যকর্ম, অর্জন, প্রকাশনা ও সংক্ষিপ্ত জীবনবৃত্তান্ত বিস্তারিত লিখুন যাতে পাঠকরা আপনার সম্পর্কে জানতে পারে..." oninput="document.getElementById('editBioCounter').textContent = this.value.length + ' অক্ষর'">{{ $authorBioText }}</textarea>
-                            <div class="form-text text-muted" style="font-size: 11px;">
-                                <i class="fas fa-info-circle text-primary me-1"></i> এই পরিচিতি আপনার পাবলিক লেখক পেজে ও ব্লগে প্রদর্শিত হবে।
-                            </div>
+                            <textarea id="editAuthorBioInput" rows="5" class="form-control rounded-3 small" placeholder="Short bio, literary background and achievements..." oninput="document.getElementById('editBioCounter').textContent = this.value.length + ' chars'">{{ $authorBioText }}</textarea>
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold text-dark">লেখার বিষয় / সাহিত্য ধারা (Genre)</label>
-                            <input type="text" id="editAuthorGenreInput" class="form-control rounded-3" value="{{ $author?->genre ?? ($userRegData['genre'] ?? '') }}" placeholder="যেমন: কবিতা, কথাসাহিত্য, গবেষণা, প্রবন্ধ">
+                            <label class="form-label small fw-bold text-dark">Genre</label>
+                            <input type="text" id="editAuthorGenreInput" class="form-control rounded-3" value="{{ $author?->genre ?? ($userRegData['genre'] ?? '') }}" placeholder="e.g. Poetry, Fiction, Research">
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold text-dark">ওয়েবসাইট / ফেসবুক পেজ লিংক</label>
+                            <label class="form-label small fw-bold text-dark">Website / Social Link</label>
                             <input type="url" id="editAuthorWebsiteInput" class="form-control rounded-3" value="{{ $author?->website ?? ($userRegData['website'] ?? '') }}" placeholder="https://facebook.com/yourpage">
                         </div>
                     </div>
@@ -827,10 +820,10 @@
                 </div>
 
                 <div class="modal-footer border-0 pt-0 px-4 pb-3.5 d-flex justify-content-between">
-                    <button type="button" class="btn btn-light rounded-pill px-3.5" data-bs-dismiss="modal">বাতিল</button>
+                    <button type="button" class="btn btn-light rounded-pill px-3.5" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm" id="saveBioSubmitBtn">
                         <span class="spinner-border spinner-border-sm d-none me-1" id="saveBioSpinner"></span>
-                        <i class="fas fa-save me-1" id="saveBioIcon"></i> বায়ো আপডেট ও সেভ করুন
+                        <i class="fas fa-save me-1" id="saveBioIcon"></i> Save Bio
                     </button>
                 </div>
             </form>

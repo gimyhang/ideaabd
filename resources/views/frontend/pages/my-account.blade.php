@@ -219,18 +219,18 @@
                                     <div class="input-group input-group-sm">
                                         <span class="input-group-text bg-light border-end-0 text-muted"><i class="fas fa-search"></i></span>
                                         <input type="text" name="order_search" value="{{ request('order_search') }}" 
-                                               class="form-control border-start-0 ps-0" placeholder="অর্ডার আইডি বা বইয়ের নাম দিয়ে খুঁজুন...">
-                                        <button type="submit" class="btn btn-primary px-3 fw-semibold">খুঁজুন</button>
+                                               class="form-control border-start-0 ps-0" placeholder="Search order ID, book...">
+                                        <button type="submit" class="btn btn-primary px-3 fw-semibold">Search</button>
                                     </div>
                                 </div>
                                 <div class="col-12 col-md-5">
                                     <select name="order_status" class="form-select form-select-sm" onchange="this.form.submit()">
-                                        <option value="all" @selected(request('order_status') === 'all' || !request('order_status'))>— সকল অর্ডার —</option>
-                                        <option value="pending" @selected(request('order_status') === 'pending')>অপেক্ষমাণ (Pending)</option>
-                                        <option value="processing" @selected(request('order_status') === 'processing')>প্রসেসিং (Processing)</option>
-                                        <option value="shipped" @selected(request('order_status') === 'shipped')>কুরিয়ারে পাঠানো হয়েছে (Shipped)</option>
-                                        <option value="delivered" @selected(request('order_status') === 'delivered')>ডেলিভারিকৃত (Delivered)</option>
-                                        <option value="cancelled" @selected(request('order_status') === 'cancelled')>বাতিল (Cancelled)</option>
+                                        <option value="all" @selected(request('order_status') === 'all' || !request('order_status'))>— All Orders —</option>
+                                        <option value="pending" @selected(request('order_status') === 'pending')>Pending</option>
+                                        <option value="processing" @selected(request('order_status') === 'processing')>Processing</option>
+                                        <option value="shipped" @selected(request('order_status') === 'shipped')>Shipped</option>
+                                        <option value="delivered" @selected(request('order_status') === 'delivered')>Delivered</option>
+                                        <option value="cancelled" @selected(request('order_status') === 'cancelled')>Cancelled</option>
                                     </select>
                                 </div>
                             </form>
@@ -543,37 +543,37 @@
                     <div class="card border-0 shadow-sm rounded-4 bg-white p-4" style="max-width: 750px;">
                         <h5 class="fw-bold text-dark mb-3 pb-2 border-bottom d-flex align-items-center gap-2">
                             <i class="fas fa-map-location-dot text-success"></i>
-                            <span>ডিফল্ট ডেলিভারি ও শিপিং ঠিকানা</span>
+                            <span>Shipping Address</span>
                         </h5>
 
                         <form method="POST" action="{{ route('my-account.address.update') }}">
                             @csrf
                             <div class="row g-3">
                                 <div class="col-md-6">
-                                    <label class="form-label small fw-bold text-dark mb-1">প্রাপকের পুরো নাম <span class="text-danger">*</span></label>
-                                    <input type="text" name="name" class="form-control rounded-3" value="{{ old('name', $defaultAddress['name'] ?? $user->name) }}" required>
+                                    <label class="form-label small fw-bold text-dark mb-1">Recipient Name <span class="text-danger">*</span></label>
+                                    <input type="text" name="name" class="form-control rounded-3" value="{{ old('name', $defaultAddress['name'] ?? $user->name) }}" required placeholder="Recipient name">
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label small fw-bold text-dark mb-1">যোগাযোগের মোবাইল নম্বর <span class="text-danger">*</span></label>
-                                    <input type="text" name="phone" class="form-control rounded-3" value="{{ old('phone', $defaultAddress['phone'] ?? $user->phone) }}" required>
+                                    <label class="form-label small fw-bold text-dark mb-1">Phone Number <span class="text-danger">*</span></label>
+                                    <input type="text" name="phone" class="form-control rounded-3" value="{{ old('phone', $defaultAddress['phone'] ?? $user->phone) }}" required placeholder="01XXXXXXXXX">
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label small fw-bold text-dark mb-1">জেলা (District) <span class="text-danger">*</span></label>
-                                    <input type="text" name="district" class="form-control rounded-3" value="{{ old('district', $defaultAddress['district']) }}" required placeholder="যেমন: ঢাকা, রংপুর, চট্টগ্রাম...">
+                                    <label class="form-label small fw-bold text-dark mb-1">District <span class="text-danger">*</span></label>
+                                    <input type="text" name="district" class="form-control rounded-3" value="{{ old('district', $defaultAddress['district']) }}" required placeholder="District name">
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label small fw-bold text-dark mb-1">থানা / উপজেলা (Thana/Upazila)</label>
-                                    <input type="text" name="thana" class="form-control rounded-3" value="{{ old('thana', $defaultAddress['thana']) }}" placeholder="যেমন: কোতোয়ালী, ধানমন্ডি...">
+                                    <label class="form-label small fw-bold text-dark mb-1">Thana / Upazila</label>
+                                    <input type="text" name="thana" class="form-control rounded-3" value="{{ old('thana', $defaultAddress['thana']) }}" placeholder="Thana / Area">
                                 </div>
                                 <div class="col-12">
-                                    <label class="form-label small fw-bold text-dark mb-1">পূর্ণাঙ্গ ঠিকানা (বাসা/রোড/এলাকা) <span class="text-danger">*</span></label>
-                                    <textarea name="address" rows="3" class="form-control rounded-3" required placeholder="বাড়ি নম্বর, রোড নম্বর, এলাকা ও পোস্ট কোড...">{{ old('address', $defaultAddress['address']) }}</textarea>
+                                    <label class="form-label small fw-bold text-dark mb-1">Full Address <span class="text-danger">*</span></label>
+                                    <textarea name="address" rows="3" class="form-control rounded-3" required placeholder="House, Road, Area, Postcode...">{{ old('address', $defaultAddress['address']) }}</textarea>
                                 </div>
                             </div>
 
                             <div class="mt-4 pt-2 border-top d-flex justify-content-end">
                                 <button type="submit" class="btn btn-success rounded-pill px-5 fw-bold shadow-sm">
-                                    <i class="fas fa-save me-1.5"></i> ঠিকানা সংরক্ষণ করুন
+                                    <i class="fas fa-save me-1.5"></i> Save Address
                                 </button>
                             </div>
                         </form>
@@ -588,26 +588,26 @@
                         <div class="row g-4 align-items-center">
                             <div class="col-md-6">
                                 <div class="p-4 rounded-4 text-white" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
-                                    <span class="small fw-semibold text-white-50 d-block mb-1">মোট রিডার্স লয়্যালটি পয়েন্ট</span>
-                                    <h2 class="fw-bold mb-2">@bn($user->loyalty_points ?? 0) <small class="fs-6">পয়েন্ট</small></h2>
-                                    <p class="small mb-0 opacity-90">প্রতি ১০০ টাকার অর্ডারে ৫ পয়েন্ট জমা হয়। পয়েন্ট ব্যবহার করে পরবর্তী অর্ডারে ছাড় পাওয়া যাবে।</p>
+                                    <span class="small fw-semibold text-white-50 d-block mb-1">Loyalty Points</span>
+                                    <h2 class="fw-bold mb-2">@bn($user->loyalty_points ?? 0) <small class="fs-6">pts</small></h2>
+                                    <p class="small mb-0 opacity-90">5 points per ৳100 spent</p>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="p-4 rounded-4 text-white" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
-                                    <span class="small fw-semibold text-white-50 d-block mb-1">অ্যাফিলিয়েট ব্যালেন্স</span>
+                                    <span class="small fw-semibold text-white-50 d-block mb-1">Affiliate Balance</span>
                                     <h2 class="fw-bold mb-2">@taka($user->affiliate_balance ?? 0)</h2>
-                                    <p class="small mb-0 opacity-90">আপনার শেয়ারকৃত লিংক থেকে বই বিক্রির অর্জিত কমিশন সরাসরি আপনার ওয়ালেটে জমা হয়।</p>
+                                    <p class="small mb-0 opacity-90">Sales commission wallet</p>
                                 </div>
                             </div>
                         </div>
 
                         <div class="mt-4 pt-3 border-top">
-                            <h6 class="fw-bold text-dark mb-2">আপনার ব্যক্তিগত অ্যাফিলিয়েট লিংক</h6>
+                            <h6 class="fw-bold text-dark mb-2">Your Affiliate Link</h6>
                             <div class="input-group">
                                 <input type="text" id="affiliateShareUrl" class="form-control fw-semibold text-muted bg-light" value="{{ url('/?ref=' . $user->id) }}" readonly>
                                 <button type="button" class="btn btn-primary px-4 fw-semibold" onclick="copyAffiliateLink()">
-                                    <i class="fas fa-copy me-1"></i> কপি করুন
+                                    <i class="fas fa-copy me-1"></i> Copy
                                 </button>
                             </div>
                         </div>
@@ -621,9 +621,9 @@
                 <div class="tab-pane fade {{ request('tab') === 'author-blogs' ? 'show active' : '' }}" id="v-pills-author" role="tabpanel">
                     <div class="card border-0 shadow-sm rounded-4 bg-white p-4">
                         <div class="d-flex align-items-center justify-content-between pb-3 mb-3 border-bottom">
-                            <h5 class="fw-bold mb-0 text-dark"><i class="fas fa-pen-nib text-success me-2"></i>লেখক পোর্টাল ও প্রকাশিত রচনা</h5>
+                            <h5 class="fw-bold mb-0 text-dark"><i class="fas fa-pen-nib text-success me-2"></i>Author Portal & Posts</h5>
                             <a href="{{ route('author.dashboard') }}" class="btn btn-success rounded-pill px-4 fw-semibold shadow-xs">
-                                <i class="fas fa-gauge-high me-1"></i> পূর্ণাঙ্গ লেখক ড্যাশবোর্ড
+                                <i class="fas fa-gauge-high me-1"></i> Author Dashboard
                             </a>
                         </div>
 
@@ -631,36 +631,36 @@
                             <table class="table table-hover align-middle mb-0">
                                 <thead class="table-light">
                                     <tr>
-                                        <th>শিরোনাম</th>
-                                        <th>ক্যাটাগরি</th>
-                                        <th>অবস্থা</th>
-                                        <th>তারিখ</th>
-                                        <th class="text-end">অ্যাকশন</th>
+                                        <th>Title</th>
+                                        <th>Category</th>
+                                        <th>Status</th>
+                                        <th>Date</th>
+                                        <th class="text-end">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @forelse($authorPosts as $p)
                                         <tr>
                                             <td class="fw-bold text-dark">{{ $p->title }}</td>
-                                            <td><span class="badge bg-light text-dark border">{{ $p->category?->name ?? 'সাধারণ' }}</span></td>
+                                            <td><span class="badge bg-light text-dark border">{{ $p->category?->name ?? 'General' }}</span></td>
                                             <td>
                                                 @if($p->status === 'published' || $p->mod_status === 'approved')
-                                                    <span class="badge bg-success text-white rounded-pill px-2 py-0.5">প্রকাশিত</span>
+                                                    <span class="badge bg-success text-white rounded-pill px-2 py-0.5">Published</span>
                                                 @elseif($p->status === 'pending' || $p->mod_status === 'pending')
-                                                    <span class="badge bg-warning text-dark rounded-pill px-2 py-0.5">অনুমোদন অপেক্ষমাণ</span>
+                                                    <span class="badge bg-warning text-dark rounded-pill px-2 py-0.5">Pending</span>
                                                 @else
-                                                    <span class="badge bg-secondary text-white rounded-pill px-2 py-0.5">খসড়া</span>
+                                                    <span class="badge bg-secondary text-white rounded-pill px-2 py-0.5">Draft</span>
                                                 @endif
                                             </td>
                                             <td class="small text-muted">{{ $p->created_at ? $p->created_at->format('d M, Y') : '—' }}</td>
                                             <td class="text-end">
                                                 <a href="{{ route('blog.show', $p->slug) }}" target="_blank" class="btn btn-sm btn-light border rounded-pill px-3">
-                                                    <i class="fas fa-eye me-1"></i> দেখুন
+                                                    <i class="fas fa-eye me-1"></i> View
                                                 </a>
                                             </td>
                                         </tr>
                                     @empty
-                                        <tr><td colspan="5" class="text-center py-4 text-muted">কোনো লেখা পাওয়া যায়নি।</td></tr>
+                                        <tr><td colspan="5" class="text-center py-4 text-muted">No posts found.</td></tr>
                                     @endforelse
                                 </tbody>
                             </table>
@@ -678,32 +678,32 @@
                     <div class="card border-0 shadow-sm rounded-4 bg-white p-4 mb-4" style="max-width: 750px;">
                         <h5 class="fw-bold text-dark mb-3 pb-2 border-bottom d-flex align-items-center gap-2">
                             <i class="fas fa-user-pen text-primary"></i>
-                            <span>ব্যক্তিগত প্রোফাইল তথ্য হালনাগাদ</span>
+                            <span>Edit Profile</span>
                         </h5>
 
                         <form method="POST" action="{{ route('my-account.profile.update') }}" enctype="multipart/form-data">
                             @csrf
                             <div class="row g-3">
                                 <div class="col-md-6">
-                                    <label class="form-label small fw-bold text-dark mb-1">আপনার পুরো নাম <span class="text-danger">*</span></label>
-                                    <input type="text" name="name" class="form-control rounded-3" value="{{ old('name', $user->name) }}" required>
+                                    <label class="form-label small fw-bold text-dark mb-1">Full Name <span class="text-danger">*</span></label>
+                                    <input type="text" name="name" class="form-control rounded-3" value="{{ old('name', $user->name) }}" required placeholder="Your full name">
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label small fw-bold text-dark mb-1">মোবাইল নম্বর <span class="text-danger">*</span></label>
-                                    <input type="text" name="phone" class="form-control rounded-3" value="{{ old('phone', $user->phone) }}" required>
+                                    <label class="form-label small fw-bold text-dark mb-1">Phone Number <span class="text-danger">*</span></label>
+                                    <input type="text" name="phone" class="form-control rounded-3" value="{{ old('phone', $user->phone) }}" required placeholder="01XXXXXXXXX">
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label small fw-bold text-dark mb-1">ইমেইল এড্রেস</label>
+                                    <label class="form-label small fw-bold text-dark mb-1">Email</label>
                                     <input type="email" name="email" class="form-control rounded-3" value="{{ old('email', str_contains($user->email, '@buyer.ideaabd.com') ? '' : $user->email) }}" placeholder="your-email@gmail.com">
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label small fw-bold text-dark mb-1">প্রোফাইল ছবি (Avatar)</label>
+                                    <label class="form-label small fw-bold text-dark mb-1">Avatar</label>
                                     <input type="file" name="avatar" class="form-control rounded-3" accept="image/*">
                                 </div>
                             </div>
                             <div class="mt-4 pt-2 border-top d-flex justify-content-end">
                                 <button type="submit" class="btn btn-primary rounded-pill px-5 fw-bold shadow-sm">
-                                    <i class="fas fa-save me-1.5"></i> প্রোফাইল সংরক্ষণ করুন
+                                    <i class="fas fa-save me-1.5"></i> Save Profile
                                 </button>
                             </div>
                         </form>
@@ -713,28 +713,28 @@
                     <div class="card border-0 shadow-sm rounded-4 bg-white p-4" style="max-width: 750px;">
                         <h5 class="fw-bold text-dark mb-3 pb-2 border-bottom d-flex align-items-center gap-2">
                             <i class="fas fa-lock text-danger"></i>
-                            <span>পাসওয়ার্ড পরিবর্তন করুন</span>
+                            <span>Change Password</span>
                         </h5>
 
                         <form method="POST" action="{{ route('my-account.password.update') }}">
                             @csrf
                             <div class="row g-3">
                                 <div class="col-12">
-                                    <label class="form-label small fw-bold text-dark mb-1">বর্তমান পাসওয়ার্ড <span class="text-danger">*</span></label>
-                                    <input type="password" name="current_password" class="form-control rounded-3" required placeholder="বর্তমান পাসওয়ার্ড দিন...">
+                                    <label class="form-label small fw-bold text-dark mb-1">Current Password <span class="text-danger">*</span></label>
+                                    <input type="password" name="current_password" class="form-control rounded-3" required placeholder="Current password">
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label small fw-bold text-dark mb-1">নতুন পাসওয়ার্ড <span class="text-danger">*</span></label>
-                                    <input type="password" name="password" class="form-control rounded-3" required placeholder="সর্বনিম্ন ৮ অক্ষর (যেমন: Pass@123)">
+                                    <label class="form-label small fw-bold text-dark mb-1">New Password <span class="text-danger">*</span></label>
+                                    <input type="password" name="password" class="form-control rounded-3" required placeholder="Min 8 characters">
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label small fw-bold text-dark mb-1">নতুন পাসওয়ার্ড নিশ্চিত করুন <span class="text-danger">*</span></label>
-                                    <input type="password" name="password_confirmation" class="form-control rounded-3" required placeholder="পুনরায় নতুন পাসওয়ার্ড লিখুন...">
+                                    <label class="form-label small fw-bold text-dark mb-1">Confirm Password <span class="text-danger">*</span></label>
+                                    <input type="password" name="password_confirmation" class="form-control rounded-3" required placeholder="Confirm new password">
                                 </div>
                             </div>
                             <div class="mt-4 pt-2 border-top d-flex justify-content-end">
                                 <button type="submit" class="btn btn-danger rounded-pill px-5 fw-bold shadow-sm">
-                                    <i class="fas fa-key me-1.5"></i> পাসওয়ার্ড পরিবর্তন করুন
+                                    <i class="fas fa-key me-1.5"></i> Update Password
                                 </button>
                             </div>
                         </form>

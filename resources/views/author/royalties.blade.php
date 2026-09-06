@@ -1,7 +1,7 @@
 @extends('author.layout')
 
-@section('title', 'রয়্যালটি ও বিক্রয় হিসাব — লেখক পোর্টাল')
-@section('heading', 'রয়্যালটি লেজার ও বিক্রয় বিবরণী (Royalty Ledger)')
+@section('title', 'Royalties — Author Portal')
+@section('heading', 'Royalties')
 
 @section('content')
 <div class="d-flex flex-column gap-4">
@@ -10,23 +10,23 @@
     <div class="row g-3">
         <div class="col-12 col-md-4">
             <div class="author-card p-3">
-                <span class="text-muted small fw-semibold">সর্বমোট অর্জিত রয়্যালটি (৫০%)</span>
+                <span class="text-muted small fw-semibold">Total Royalties</span>
                 <h3 class="fw-bold mb-0 text-success font-monospace mt-1">৳{{ number_format($totalEarned, 2) }}</h3>
-                <small class="text-muted" style="font-size: 11px;">৫০% রয়্যালটি মডেল অনুযায়ী</small>
+                <small class="text-muted" style="font-size: 11px;">50% Royalty Model</small>
             </div>
         </div>
         <div class="col-12 col-md-4">
             <div class="author-card p-3">
-                <span class="text-muted small fw-semibold">বর্তমান ওয়ালেট ব্যালেন্স</span>
+                <span class="text-muted small fw-semibold">Wallet Balance</span>
                 <h3 class="fw-bold mb-0 text-primary font-monospace mt-1">৳{{ number_format($author->wallet_balance ?? 0, 2) }}</h3>
-                <small class="text-muted" style="font-size: 11px;">উত্তোলনযোগ্য জমা টাকা</small>
+                <small class="text-muted" style="font-size: 11px;">Available for payout</small>
             </div>
         </div>
         <div class="col-12 col-md-4">
             <div class="author-card p-3">
-                <span class="text-muted small fw-semibold">সর্বমোট উত্তোলিত অর্থ (Payouts)</span>
+                <span class="text-muted small fw-semibold">Total Payouts</span>
                 <h3 class="fw-bold mb-0 text-secondary font-monospace mt-1">৳{{ number_format($author->total_payout_withdrawn ?? 0, 2) }}</h3>
-                <small class="text-muted" style="font-size: 11px;">বিকাশ/নগদ/ব্যাংকে নেওয়া অর্থ</small>
+                <small class="text-muted" style="font-size: 11px;">Withdrawn to date</small>
             </div>
         </div>
     </div>
@@ -36,7 +36,7 @@
         <form method="GET" action="{{ route('author.royalties') }}" class="row g-2 align-items-center">
             <div class="col-12 col-md-6">
                 <select name="ebook_id" class="form-select form-select-sm rounded-3">
-                    <option value="">সকল ই-বুকের বিক্রয় হিসাব (All Books)</option>
+                    <option value="">All Books</option>
                     @foreach($authorEbooks as $eb)
                         <option value="{{ $eb->id }}" @selected(request('ebook_id') == $eb->id)>{{ $eb->title }}</option>
                     @endforeach
@@ -44,15 +44,15 @@
             </div>
             <div class="col-6 col-md-4">
                 <select name="status" class="form-select form-select-sm rounded-3">
-                    <option value="">সকল স্ট্যাটাস</option>
-                    <option value="earned" @selected(request('status') === 'earned')>অর্জিত (Earned)</option>
-                    <option value="withdrawn" @selected(request('status') === 'withdrawn')>উত্তোলিত (Withdrawn)</option>
-                    <option value="refunded" @selected(request('status') === 'refunded')>রিফান্ডেড (Refunded)</option>
+                    <option value="">All Statuses</option>
+                    <option value="earned" @selected(request('status') === 'earned')>Earned</option>
+                    <option value="withdrawn" @selected(request('status') === 'withdrawn')>Withdrawn</option>
+                    <option value="refunded" @selected(request('status') === 'refunded')>Refunded</option>
                 </select>
             </div>
             <div class="col-6 col-md-2">
                 <button type="submit" class="btn btn-sm btn-outline-secondary w-100 rounded-pill fw-semibold">
-                    <i class="fas fa-filter me-1"></i> ফিল্টার
+                    <i class="fas fa-filter me-1"></i> Filter
                 </button>
             </div>
         </form>
@@ -64,14 +64,14 @@
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light small fw-bold text-secondary">
                     <tr>
-                        <th>তারিখ ও সময়</th>
-                        <th>অর্ডার নম্বর</th>
-                        <th>বইয়ের নাম</th>
-                        <th>বিক্রয় মূল্য</th>
-                        <th>রয়্যালটি পার্সেন্ট</th>
-                        <th>লেখক রয়্যালটি (৫০%)</th>
-                        <th>প্ল্যাটফর্ম শেয়ার</th>
-                        <th>স্ট্যাটাস</th>
+                        <th>Date & Time</th>
+                        <th>Order #</th>
+                        <th>Book Title</th>
+                        <th>Price</th>
+                        <th>Royalty %</th>
+                        <th>Author Share</th>
+                        <th>Platform Fee</th>
+                        <th>Status</th>
                     </tr>
                 </thead>
                 <tbody class="small">
@@ -82,7 +82,7 @@
                                 <span class="badge bg-light text-dark border font-monospace">#{{ $r->order?->order_number ?? $r->order_id }}</span>
                             </td>
                             <td>
-                                <strong class="text-dark">{{ $r->ebook?->title ?? 'ই-বুক' }}</strong>
+                                <strong class="text-dark">{{ $r->ebook?->title ?? 'Ebook' }}</strong>
                             </td>
                             <td class="font-monospace">৳{{ number_format($r->sale_price, 2) }}</td>
                             <td>
@@ -96,11 +96,11 @@
                             </td>
                             <td>
                                 @if($r->status === 'earned')
-                                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5">অর্জিত (Earned)</span>
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5">Earned</span>
                                 @elseif($r->status === 'withdrawn')
-                                    <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-2 py-0.5">উত্তোলিত</span>
+                                    <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-2 py-0.5">Withdrawn</span>
                                 @else
-                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2 py-0.5">বাতিল/রিফান্ড</span>
+                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2 py-0.5">Refunded</span>
                                 @endif
                             </td>
                         </tr>
@@ -108,7 +108,7 @@
                         <tr>
                             <td colspan="8" class="text-center py-5 text-muted">
                                 <i class="fas fa-receipt fs-2 mb-2 d-block opacity-25"></i>
-                                এখনও কোনো রয়্যালটি ট্রানজ্যাকশন জমা হয়নি।
+                                No royalty records found.
                             </td>
                         </tr>
                     @endforelse

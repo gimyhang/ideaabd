@@ -104,6 +104,7 @@ class RegistrationController extends Controller
                 'trade_license'  => ['nullable', 'string'],
             ]),
             'author' => $request->validate([
+                'full_name'      => ['nullable', 'string', 'max:255'],
                 'name_en'        => ['nullable', 'string', 'max:255'],
                 'pen_name'       => ['nullable', 'string', 'max:255'],
                 'bio'            => ['nullable', 'string'],

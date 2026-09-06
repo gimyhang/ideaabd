@@ -86,11 +86,11 @@
             <form method="GET" action="{{ route('subadmin.dashboard') }}" class="d-flex flex-wrap align-items-center justify-content-between gap-3">
                 <div class="d-flex align-items-center gap-2">
                     <i class="fas fa-filter text-primary"></i>
-                    <strong class="text-dark small">সেলার ফিল্টার (অ্যাডমিন ভিউ):</strong>
+                    <strong class="text-dark small">Seller Filter:</strong>
                 </div>
                 <div class="d-flex align-items-center gap-2 flex-grow-1 flex-md-grow-0">
                     <select name="seller_id" class="form-select form-select-sm rounded-pill px-3 fw-semibold" onchange="this.form.submit()">
-                        <option value="">-- সকল বিক্রেতা / আমার ড্যাশবোর্ড --</option>
+                        <option value="">-- All Sellers / My Dashboard --</option>
                         @foreach($sellersList as $sId => $sName)
                             <option value="{{ $sId }}" {{ request('seller_id') == $sId ? 'selected' : '' }}>{{ $sName }}</option>
                         @endforeach
@@ -101,7 +101,7 @@
     @endif
 
     {{-- ═════════════════════════════════════════════════════════════════════════ --}}
-    {{-- 2. KPI METRICS CARDS (সুষম ২×৩ ডেসকটপ ও ২×২ মোবাইল গ্রিড)                 --}}
+    {{-- 2. KPI METRICS CARDS                                                      --}}
     {{-- ═════════════════════════════════════════════════════════════════════════ --}}
     <div class="row g-2.5 g-md-3 mb-4">
         {{-- Metric 1: Total Sales Revenue --}}
@@ -109,12 +109,12 @@
             <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-primary h-100 d-flex flex-column justify-content-between">
                 <div>
                     <div class="d-flex align-items-center justify-content-between mb-1">
-                        <span class="text-muted small fw-semibold text-truncate">মোট বিক্রয়</span>
+                        <span class="text-muted small fw-semibold text-truncate">Total Sales</span>
                         <span class="p-1 px-1.5 bg-primary-subtle text-primary rounded-2"><i class="fas fa-sack-dollar small"></i></span>
                     </div>
                     <h4 class="fw-bold mb-0 text-dark font-monospace fs-4">৳{{ number_format($totalSales, 0) }}</h4>
                 </div>
-                <small class="text-muted mt-1" style="font-size: 11px;">সর্বমোট বিক্রিত পণ্য</small>
+                <small class="text-muted mt-1" style="font-size: 11px;">Gross sales</small>
             </div>
         </div>
 
@@ -123,12 +123,12 @@
             <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-success h-100 d-flex flex-column justify-content-between">
                 <div>
                     <div class="d-flex align-items-center justify-content-between mb-1">
-                        <span class="text-muted small fw-semibold text-truncate">পরিশোধিত অর্থ</span>
+                        <span class="text-muted small fw-semibold text-truncate">Paid / Settled</span>
                         <span class="p-1 px-1.5 bg-success-subtle text-success rounded-2"><i class="fas fa-circle-check small"></i></span>
                     </div>
                     <h4 class="fw-bold mb-0 text-success font-monospace fs-4">৳{{ number_format($totalPaid, 0) }}</h4>
                 </div>
-                <small class="text-success" style="font-size: 11px;">@bn($paidBillsCount) টি পরিশোধিত বিল</small>
+                <small class="text-success" style="font-size: 11px;">@bn($paidBillsCount) Paid Bills</small>
             </div>
         </div>
 
@@ -137,12 +137,12 @@
             <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-danger h-100 d-flex flex-column justify-content-between">
                 <div>
                     <div class="d-flex align-items-center justify-content-between mb-1">
-                        <span class="text-muted small fw-semibold text-truncate">বকেয়া বিল</span>
+                        <span class="text-muted small fw-semibold text-truncate">Due Amount</span>
                         <span class="p-1 px-1.5 bg-danger-subtle text-danger rounded-2"><i class="fas fa-clock small"></i></span>
                     </div>
                     <h4 class="fw-bold mb-0 text-danger font-monospace fs-4">৳{{ number_format($totalDue, 0) }}</h4>
                 </div>
-                <small class="text-danger" style="font-size: 11px;">@bn($dueBillsCount) টি বকেয়া মেমো</small>
+                <small class="text-danger" style="font-size: 11px;">@bn($dueBillsCount) Due Bills</small>
             </div>
         </div>
 
@@ -151,12 +151,12 @@
             <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-warning h-100 d-flex flex-column justify-content-between">
                 <div>
                     <div class="d-flex align-items-center justify-content-between mb-1">
-                        <span class="text-muted small fw-semibold text-truncate">আজকের বিক্রয়</span>
+                        <span class="text-muted small fw-semibold text-truncate">Today Sales</span>
                         <span class="p-1 px-1.5 bg-warning-subtle text-warning-emphasis rounded-2"><i class="fas fa-calendar-day small"></i></span>
                     </div>
                     <h4 class="fw-bold mb-0 text-dark font-monospace fs-4">৳{{ number_format($todaySales, 0) }}</h4>
                 </div>
-                <small class="text-muted" style="font-size: 11px;">@bn($todayBills) টি আজকের ইনভয়েস</small>
+                <small class="text-muted" style="font-size: 11px;">@bn($todayBills) Invoices Today</small>
             </div>
         </div>
 
@@ -165,12 +165,12 @@
             <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-info h-100 d-flex flex-column justify-content-between">
                 <div>
                     <div class="d-flex align-items-center justify-content-between mb-1">
-                        <span class="text-muted small fw-semibold text-truncate">সর্বমোট মেমো</span>
+                        <span class="text-muted small fw-semibold text-truncate">Total Bills</span>
                         <span class="p-1 px-1.5 bg-info-subtle text-info rounded-2"><i class="fas fa-file-invoice small"></i></span>
                     </div>
                     <h4 class="fw-bold mb-0 text-info font-monospace fs-4">@bn($totalBills)</h4>
                 </div>
-                <small class="text-muted" style="font-size: 11px;">মোট ইনভয়েস সংখ্যা</small>
+                <small class="text-muted" style="font-size: 11px;">Total Invoices</small>
             </div>
         </div>
 
@@ -179,12 +179,12 @@
             <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-secondary h-100 d-flex flex-column justify-content-between">
                 <div>
                     <div class="d-flex align-items-center justify-content-between mb-1">
-                        <span class="text-muted small fw-semibold text-truncate">বিক্রিত বইয়ের কপি</span>
+                        <span class="text-muted small fw-semibold text-truncate">Items Sold</span>
                         <span class="p-1 px-1.5 bg-secondary-subtle text-secondary rounded-2"><i class="fas fa-boxes-stacked small"></i></span>
                     </div>
                     <h4 class="fw-bold mb-0 text-dark font-monospace fs-4">@bn($totalItemsSold)</h4>
                 </div>
-                <small class="text-muted" style="font-size: 11px;">মোট ডেলিভারিকৃত কপি</small>
+                <small class="text-muted" style="font-size: 11px;">Delivered copies</small>
             </div>
         </div>
     </div>
@@ -199,10 +199,10 @@
                 <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
                     <h5 class="fw-bold text-dark mb-0 fs-6 fs-md-5 d-flex align-items-center gap-2">
                         <span class="badge bg-primary-subtle text-primary rounded-circle p-1.5"><i class="fas fa-receipt"></i></span>
-                        <span>সাম্প্রতিক বিক্রয় ও ইনভয়েস তালিকা</span>
+                        <span>Recent Sales & Invoices</span>
                     </h5>
                     <a href="{{ route('subadmin.bills.index') }}" class="small text-primary text-decoration-none fw-semibold">
-                        সকল বিল (@bn($totalBills)) →
+                        All Bills (@bn($totalBills)) →
                     </a>
                 </div>
 
@@ -211,12 +211,12 @@
                     <table class="table table-hover align-middle mb-0 small">
                         <thead class="table-light text-secondary">
                             <tr>
-                                <th>মেমো নম্বর</th>
-                                <th>ক্রেতা / কাস্টমার</th>
-                                <th>তারিখ</th>
-                                <th>মোট মূল্য</th>
-                                <th>স্ট্যাটাস</th>
-                                <th class="text-end">অ্যাকশন</th>
+                                <th>Invoice #</th>
+                                <th>Customer</th>
+                                <th>Date</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th class="text-end">Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -228,7 +228,7 @@
                                         </a>
                                     </td>
                                     <td>
-                                        <div class="fw-semibold text-dark text-truncate" style="max-width: 170px;">{{ $bill->customer_name ?: 'ক্যাশ ক্রেতা' }}</div>
+                                        <div class="fw-semibold text-dark text-truncate" style="max-width: 170px;">{{ $bill->customer_name ?: 'Cash Customer' }}</div>
                                         @if($bill->customer_phone)
                                             <small class="text-muted d-block font-monospace">{{ $bill->customer_phone }}</small>
                                         @endif
@@ -239,25 +239,25 @@
                                     </td>
                                     <td>
                                         @if($bill->payment_status === 'paid')
-                                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1">পরিশোধিত</span>
+                                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1">Paid</span>
                                         @elseif($bill->payment_status === 'partial')
-                                            <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2.5 py-1">আংশিক</span>
+                                            <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2.5 py-1">Partial</span>
                                         @else
-                                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-1">বকেয়া</span>
+                                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-1">Due</span>
                                         @endif
                                     </td>
                                     <td class="text-end">
                                         <div class="btn-group btn-group-sm">
-                                            <a href="{{ route('subadmin.bills.receipt', $bill->id) }}" target="_blank" class="btn btn-outline-secondary" title="রসিদ প্রিন্ট">
+                                            <a href="{{ route('subadmin.bills.receipt', $bill->id) }}" target="_blank" class="btn btn-outline-secondary" title="Print Receipt">
                                                 <i class="fas fa-print"></i>
                                             </a>
-                                            <a href="{{ route('subadmin.bills.show', $bill->id) }}" class="btn btn-outline-primary" title="বিস্তারিত">
+                                            <a href="{{ route('subadmin.bills.show', $bill->id) }}" class="btn btn-outline-primary" title="View">
                                                 <i class="fas fa-eye"></i>
                                             </a>
                                             @if($bill->payment_status !== 'paid')
-                                                <form action="{{ route('subadmin.bills.quick-pay', $bill->id) }}" method="POST" class="d-inline" onsubmit="return confirm('বিলটি পরিশোধিত হিসেবে চিহ্নিত করবেন?')">
+                                                <form action="{{ route('subadmin.bills.quick-pay', $bill->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Mark bill as paid?')">
                                                     @csrf
-                                                    <button type="submit" class="btn btn-outline-success" title="পেইড মার্ক করুন">
+                                                    <button type="submit" class="btn btn-outline-success" title="Mark as Paid">
                                                         <i class="fas fa-check"></i>
                                                     </button>
                                                 </form>
@@ -269,7 +269,7 @@
                                 <tr>
                                     <td colspan="6" class="text-center py-4 text-muted">
                                         <i class="fas fa-file-invoice fs-3 opacity-25 d-block mb-1"></i>
-                                        এখনও কোনো বিল তৈরি করা হয়নি। উপরের "নতুন বিল (POS)" বাটনে ক্লিক করে প্রথম বিল তৈরি করুন।
+                                        No bills created yet.
                                     </td>
                                 </tr>
                             @endforelse
@@ -286,16 +286,16 @@
                                     #{{ $bill->bill_no }}
                                 </a>
                                 @if($bill->payment_status === 'paid')
-                                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5" style="font-size: 10.5px;">পরিশোধিত</span>
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5" style="font-size: 10.5px;">Paid</span>
                                 @elseif($bill->payment_status === 'partial')
-                                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2 py-0.5" style="font-size: 10.5px;">আংশিক</span>
+                                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2 py-0.5" style="font-size: 10.5px;">Partial</span>
                                 @else
-                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2 py-0.5" style="font-size: 10.5px;">বকেয়া</span>
+                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2 py-0.5" style="font-size: 10.5px;">Due</span>
                                 @endif
                             </div>
                             <div class="d-flex align-items-center justify-content-between mb-2">
                                 <div>
-                                    <div class="fw-semibold text-dark small">{{ $bill->customer_name ?: 'ক্যাশ ক্রেতা' }}</div>
+                                    <div class="fw-semibold text-dark small">{{ $bill->customer_name ?: 'Cash Customer' }}</div>
                                     @if($bill->customer_phone)
                                         <small class="text-muted font-monospace" style="font-size: 11px;">{{ $bill->customer_phone }}</small>
                                     @endif
@@ -307,14 +307,14 @@
                             </div>
                             <div class="d-flex align-items-center justify-content-between pt-2 border-top border-light-subtle">
                                 <span class="text-muted" style="font-size: 11px;">
-                                    <i class="fas fa-boxes-stacked me-1"></i>{{ is_array($bill->items) ? count($bill->items) : 0 }} আইটেম
+                                    <i class="fas fa-boxes-stacked me-1"></i>{{ is_array($bill->items) ? count($bill->items) : 0 }} items
                                 </span>
                                 <div class="d-flex gap-1.5">
                                     <a href="{{ route('subadmin.bills.receipt', $bill->id) }}" target="_blank" class="btn btn-xs btn-outline-secondary rounded-pill px-2.5 py-1" style="font-size: 11px;">
-                                        <i class="fas fa-print me-1"></i> রসিদ
+                                        <i class="fas fa-print me-1"></i> Receipt
                                     </a>
                                     <a href="{{ route('subadmin.bills.show', $bill->id) }}" class="btn btn-xs btn-primary rounded-pill px-2.5 py-1" style="font-size: 11px;">
-                                        <i class="fas fa-eye me-1"></i> দেখুন
+                                        <i class="fas fa-eye me-1"></i> View
                                     </a>
                                 </div>
                             </div>
@@ -322,7 +322,7 @@
                     @empty
                         <div class="text-center py-4 text-muted small">
                             <i class="fas fa-file-invoice fs-3 opacity-25 d-block mb-1"></i>
-                            এখনও কোনো বিল তৈরি করা হয়নি।
+                            No bills created yet.
                         </div>
                     @endforelse
                 </div>
@@ -339,13 +339,13 @@
                             <i class="fas fa-cash-register"></i>
                         </div>
                         <div>
-                            <h5 class="fw-bold mb-0 text-white">ইনস্ট্যান্ট পিওএস মেমো</h5>
-                            <small class="text-white-50">দ্রুত বই স্ক্যান বা নির্বাচন করে প্রিন্ট করুন</small>
+                            <h5 class="fw-bold mb-0 text-white">Quick POS Memo</h5>
+                            <small class="text-white-50">Instant Bill & Print</small>
                         </div>
                     </div>
                     <a href="{{ route('subadmin.bills.create') }}" class="btn btn-warning btn-lg rounded-pill fw-bold text-dark w-100 shadow-sm d-flex align-items-center justify-content-center gap-2">
                         <i class="fas fa-plus-circle"></i>
-                        <span>নতুন বিল তৈরি করুন</span>
+                        <span>Create Bill</span>
                     </a>
                 </div>
 
@@ -354,21 +354,21 @@
                     <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
                         <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
                             <i class="fas fa-wallet text-success"></i>
-                            <span>হিসাব ও সেটেলমেন্ট বিবরণী</span>
+                            <span>Financial Ledger</span>
                         </h6>
-                        <a href="{{ route('subadmin.accounts') }}" class="small text-primary text-decoration-none fw-semibold">লেজার →</a>
+                        <a href="{{ route('subadmin.accounts') }}" class="small text-primary text-decoration-none fw-semibold">Ledger →</a>
                     </div>
 
                     <div class="d-flex justify-content-between align-items-center mb-2 small">
-                        <span class="text-muted">এই মাসের মোট বিক্রয়:</span>
+                        <span class="text-muted">This Month Sales:</span>
                         <strong class="text-dark font-monospace">৳{{ number_format($thisMonthSales, 2) }}</strong>
                     </div>
                     <div class="d-flex justify-content-between align-items-center mb-2 small">
-                        <span class="text-muted">সর্বমোট সংগৃহীত ক্যাশ:</span>
+                        <span class="text-muted">Collected Cash:</span>
                         <strong class="text-success font-monospace">৳{{ number_format($totalPaid, 2) }}</strong>
                     </div>
                     <div class="d-flex justify-content-between align-items-center pt-2 border-top small">
-                        <span class="fw-bold text-dark">সর্বমোট বকেয়া ব্যালেন্স:</span>
+                        <span class="fw-bold text-dark">Total Due:</span>
                         <strong class="text-danger font-monospace fs-6">৳{{ number_format($totalDue, 2) }}</strong>
                     </div>
                 </div>
@@ -378,9 +378,9 @@
                     <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
                         <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
                             <i class="fas fa-book-bookmark text-primary"></i>
-                            <span>জনপ্রিয় বই ও স্টক</span>
+                            <span>Popular Books & Stock</span>
                         </h6>
-                        <a href="{{ route('book.index') }}" target="_blank" class="small text-primary text-decoration-none fw-semibold">স্টোরফ্রন্ট →</a>
+                        <a href="{{ route('book.index') }}" target="_blank" class="small text-primary text-decoration-none fw-semibold">Storefront →</a>
                     </div>
 
                     <div class="d-flex flex-column gap-2">
@@ -391,7 +391,7 @@
                                     <small class="text-muted font-monospace">৳{{ number_format($pb->price, 0) }}</small>
                                 </div>
                                 <span class="badge {{ $pb->stock_quantity > 0 ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger' }} rounded-pill px-2 py-0.5" style="font-size: 10px;">
-                                    {{ $pb->stock_quantity > 0 ? $pb->stock_quantity . ' কপি' : 'স্টক শেষ' }}
+                                    {{ $pb->stock_quantity > 0 ? $pb->stock_quantity . ' pcs' : 'Out of stock' }}
                                 </span>
                             </div>
                         @endforeach
