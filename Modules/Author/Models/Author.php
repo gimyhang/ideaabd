@@ -22,7 +22,6 @@ class Author extends Model
         'slug',
         'bio',
         'avatar',
-        'author_image',
         'email',
         'phone',
         'website',

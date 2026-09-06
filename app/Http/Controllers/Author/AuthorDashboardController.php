@@ -7,6 +7,8 @@ use App\Models\AuthorHonorarium;
 use App\Models\AuthorPayoutRequest;
 use App\Models\AuthorRoyalty;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
 use Modules\Blog\Models\BlogPost;
 use Modules\Ebook\Models\Ebook;
@@ -246,53 +248,79 @@ class AuthorDashboardController extends Controller
             'avatar_cropped' => ['nullable', 'string'],
         ]);
 
-        $user = auth()->user();
-        $author = $user->getAuthorRecord();
-        $avatarPath = null;
+        try {
+            $user = auth()->user();
+            $author = $user->getAuthorRecord();
+            $avatarPath = null;
 
-        // 1. Process Cropped Base64 Avatar or Direct File Upload to .avif
-        if ($request->filled('avatar_cropped') && str_starts_with($request->input('avatar_cropped'), 'data:image')) {
-            $avatarPath = \App\Services\ImageOptimizerService::convertBase64AndStore($request->input('avatar_cropped'), 'avatars', 'public', 85, 600, 600);
-        }
-
-        // 2. Fallback to direct file upload
-        if (!$avatarPath && $request->hasFile('avatar')) {
-            $avatarPath = \App\Services\ImageOptimizerService::convertAndStore($request->file('avatar'), 'avatars', 'public', 85, 600, 600);
-        }
-
-        if (!$avatarPath) {
-            if ($request->ajax() || $request->wantsJson()) {
-                return response()->json(['success' => false, 'message' => 'কোনো ছবি পাওয়া যায়নি। অনুগ্রহ করে একটি ছবি নির্বাচন করুন।'], 422);
+            // 1. Process Cropped Base64 Avatar or Direct File Upload
+            if ($request->filled('avatar_cropped') && str_starts_with($request->input('avatar_cropped'), 'data:image')) {
+                $avatarPath = \App\Services\ImageOptimizerService::convertBase64AndStore(
+                    $request->input('avatar_cropped'),
+                    'avatars',
+                    'public',
+                    85,
+                    600,
+                    600
+                );
             }
-            return back()->with('error', 'কোনো ছবি পাওয়া যায়নি।');
+
+            // 2. Fallback to direct file upload
+            if (!$avatarPath && $request->hasFile('avatar')) {
+                $avatarPath = \App\Services\ImageOptimizerService::convertAndStore(
+                    $request->file('avatar'),
+                    'avatars',
+                    'public',
+                    85,
+                    600,
+                    600
+                );
+            }
+
+            if (!$avatarPath) {
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json(['success' => false, 'message' => 'কোনো ছবি পাওয়া যায়নি। অনুগ্রহ করে একটি ছবি নির্বাচন করুন।'], 422);
+                }
+                return back()->with('error', 'কোনো ছবি পাওয়া যায়নি।');
+            }
+
+            DB::transaction(function () use ($user, $author, $avatarPath) {
+                // Update User
+                $user->avatar = $avatarPath;
+                $regData = is_array($user->reg_data) ? $user->reg_data : [];
+                $regData['avatar'] = $avatarPath;
+                $user->reg_data = $regData;
+                $user->save();
+
+                // Update Author Directory Record
+                if ($author) {
+                    $author->avatar = $avatarPath;
+                    $author->save();
+                }
+            });
+
+            $fullUrl = asset('storage/' . ltrim($avatarPath, '/'));
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success'    => true,
+                    'message'    => 'প্রোফাইল ছবি সফলভাবে আপডেট ও সেভ হয়েছে!',
+                    'avatar_url' => $fullUrl,
+                    'avatar_path'=> $avatarPath,
+                ]);
+            }
+
+            return back()->with('success', 'প্রোফাইল ছবি সফলভাবে আপডেট হয়েছে!');
+        } catch (\Throwable $e) {
+            \Log::error('Author Avatar Upload Failed: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'ছবি সংরক্ষণ করতে ত্রুটি হয়েছে: ' . $e->getMessage()
+                ], 500);
+            }
+            return back()->with('error', 'ছবি সংরক্ষণ করতে ত্রুটি হয়েছে।');
         }
-
-        // Update User
-        $user->avatar = $avatarPath;
-        $regData = is_array($user->reg_data) ? $user->reg_data : [];
-        $regData['avatar'] = $avatarPath;
-        $user->reg_data = $regData;
-        $user->save();
-
-        // Update Author Directory Record
-        if ($author) {
-            $author->avatar = $avatarPath;
-            $author->author_image = $avatarPath;
-            $author->save();
-        }
-
-        $fullUrl = asset('storage/' . ltrim($avatarPath, '/'));
-
-        if ($request->ajax() || $request->wantsJson()) {
-            return response()->json([
-                'success'    => true,
-                'message'    => 'প্রোফাইল ছবি সফলভাবে আপডেট ও সেভ হয়েছে!',
-                'avatar_url' => $fullUrl,
-                'avatar_path'=> $avatarPath,
-            ]);
-        }
-
-        return back()->with('success', 'প্রোফাইল ছবি সফলভাবে আপডেট হয়েছে!');
     }
 
     /**
@@ -301,77 +329,133 @@ class AuthorDashboardController extends Controller
     public function updateProfile(Request $request)
     {
         $request->validate([
-            'name'      => ['required', 'string', 'max:255'],
-            'pen_name'  => ['nullable', 'string', 'max:255'],
-            'bio'       => ['nullable', 'string', 'max:5000'],
-            'genre'     => ['nullable', 'string', 'max:255'],
-            'website'   => ['nullable', 'string', 'max:255'],
-            'facebook'  => ['nullable', 'string', 'max:255'],
-            'twitter'   => ['nullable', 'string', 'max:255'],
-            'youtube'   => ['nullable', 'string', 'max:255'],
+            'name'            => ['required', 'string', 'max:255'],
+            'pen_name'        => ['nullable', 'string', 'max:255'],
+            'bio'             => ['nullable', 'string', 'max:5000'],
+            'genre'           => ['nullable', 'string', 'max:255'],
+            'phone'           => ['nullable', 'string', 'max:50'],
+            'website'         => ['nullable', 'string', 'max:255'],
+            'facebook'        => ['nullable', 'string', 'max:255'],
+            'twitter'         => ['nullable', 'string', 'max:255'],
+            'youtube'         => ['nullable', 'string', 'max:255'],
+            'father_name'     => ['nullable', 'string', 'max:255'],
+            'mother_name'     => ['nullable', 'string', 'max:255'],
+            'nid_or_passport' => ['nullable', 'string', 'max:100'],
+            'present_address' => ['nullable', 'string', 'max:500'],
+            'payout_method'   => ['nullable', 'string', 'max:50'],
+            'payout_number'   => ['nullable', 'string', 'max:50'],
         ]);
 
-        $user = auth()->user();
-        $author = $user->getAuthorRecord();
+        try {
+            $user = auth()->user();
+            $author = $user->getAuthorRecord();
 
-        $user->name = $request->input('name');
-        $regData = is_array($user->reg_data) ? $user->reg_data : [];
+            DB::transaction(function () use ($user, $author, $request) {
+                $user->name = $request->input('name');
+                if ($request->filled('phone')) {
+                    $user->phone = $request->input('phone');
+                }
 
-        if ($request->filled('pen_name')) {
-            $regData['pen_name'] = trim($request->input('pen_name'));
-        }
-        $regData['bio'] = $request->input('bio') ?? '';
+                $regData = is_array($user->reg_data) ? $user->reg_data : [];
 
-        if ($request->filled('genre')) {
-            $regData['genre'] = trim($request->input('genre'));
-        }
-        if ($request->has('website')) {
-            $regData['website'] = $request->input('website');
-        }
-        if ($request->has('facebook')) {
-            $regData['facebook'] = $request->input('facebook');
-        }
-        if ($request->has('twitter')) {
-            $regData['twitter'] = $request->input('twitter');
-        }
-        if ($request->has('youtube')) {
-            $regData['youtube'] = $request->input('youtube');
-        }
+                if ($request->has('pen_name')) {
+                    $regData['pen_name'] = trim($request->input('pen_name') ?? '');
+                }
+                $regData['bio'] = $request->input('bio') ?? '';
 
-        $user->reg_data = $regData;
-        $user->save();
+                if ($request->has('genre')) {
+                    $regData['genre'] = trim($request->input('genre') ?? '');
+                }
+                if ($request->has('website')) {
+                    $regData['website'] = $request->input('website') ?? '';
+                }
+                if ($request->has('facebook')) {
+                    $regData['facebook'] = $request->input('facebook') ?? '';
+                }
+                if ($request->has('twitter')) {
+                    $regData['twitter'] = $request->input('twitter') ?? '';
+                }
+                if ($request->has('youtube')) {
+                    $regData['youtube'] = $request->input('youtube') ?? '';
+                }
+                if ($request->has('father_name')) {
+                    $regData['father_name'] = $request->input('father_name') ?? '';
+                }
+                if ($request->has('mother_name')) {
+                    $regData['mother_name'] = $request->input('mother_name') ?? '';
+                }
+                if ($request->has('nid_or_passport')) {
+                    $regData['nid_or_passport'] = $request->input('nid_or_passport') ?? '';
+                }
+                if ($request->has('present_address')) {
+                    $regData['present_address'] = $request->input('present_address') ?? '';
+                }
+                if ($request->has('payout_method')) {
+                    $regData['payout_method'] = $request->input('payout_method') ?? '';
+                }
+                if ($request->has('payout_number')) {
+                    $regData['payout_number'] = $request->input('payout_number') ?? '';
+                }
 
-        if ($author) {
-            $authorName = $request->filled('pen_name') ? $request->input('pen_name') : $request->input('name');
-            $author->name = $authorName;
-            $author->bio = $request->input('bio');
-            if ($request->filled('genre')) {
-                $author->genre = $request->input('genre');
+                $user->reg_data = $regData;
+                $user->save();
+
+                if ($author) {
+                    $authorName = $request->filled('pen_name') ? $request->input('pen_name') : $request->input('name');
+                    $author->name = $authorName;
+                    $author->bio = $request->input('bio');
+                    if ($request->filled('phone')) {
+                        $author->phone = $request->input('phone');
+                    }
+                    if ($request->has('website')) {
+                        $author->website = $request->input('website');
+                    }
+                    if ($request->has('payout_method')) {
+                        $author->payout_account_type = $request->input('payout_method');
+                    }
+                    if ($request->has('payout_number')) {
+                        $author->payout_account_details = $request->input('payout_number');
+                    }
+
+                    $socialLinks = array_filter([
+                        'facebook' => $request->input('facebook') ?: ($regData['facebook'] ?? null),
+                        'twitter'  => $request->input('twitter') ?: ($regData['twitter'] ?? null),
+                        'youtube'  => $request->input('youtube') ?: ($regData['youtube'] ?? null),
+                    ]);
+                    $author->social_links = !empty($socialLinks) ? $socialLinks : null;
+                    $author->save();
+                }
+            });
+
+            $user->refresh();
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success'         => true,
+                    'message'         => 'লেখক প্রোফাইল ও পরিচিতি সফলভাবে আপডেট হয়েছে!',
+                    'name'            => $user->name,
+                    'pen_name'        => $user->reg_data['pen_name'] ?? '',
+                    'bio'             => $user->reg_data['bio'] ?? '',
+                    'genre'           => $user->reg_data['genre'] ?? '',
+                    'father_name'     => $user->reg_data['father_name'] ?? '',
+                    'mother_name'     => $user->reg_data['mother_name'] ?? '',
+                    'nid_or_passport' => $user->reg_data['nid_or_passport'] ?? '',
+                    'present_address' => $user->reg_data['present_address'] ?? '',
+                    'payout_method'   => $user->reg_data['payout_method'] ?? '',
+                    'payout_number'   => $user->reg_data['payout_number'] ?? '',
+                ]);
             }
-            if ($request->filled('website')) {
-                $author->website = $request->input('website');
-            }
-            $socialLinks = array_filter([
-                'facebook' => $request->input('facebook') ?: ($regData['facebook'] ?? null),
-                'twitter'  => $request->input('twitter') ?: ($regData['twitter'] ?? null),
-                'youtube'  => $request->input('youtube') ?: ($regData['youtube'] ?? null),
-            ]);
-            if (!empty($socialLinks)) {
-                $author->social_links = $socialLinks;
-            }
-            $author->save();
-        }
 
-        if ($request->ajax() || $request->wantsJson()) {
-            return response()->json([
-                'success'  => true,
-                'message'  => 'লেখক পরিচিতি ও বায়ো সফলভাবে আপডেট হয়েছে!',
-                'name'     => $user->name,
-                'pen_name' => $regData['pen_name'] ?? '',
-                'bio'      => $regData['bio'] ?? '',
-            ]);
+            return back()->with('success', 'লেখক প্রোফাইল ও পরিচিতি সফলভাবে আপডেট হয়েছে!');
+        } catch (\Throwable $e) {
+            \Log::error('Author Profile Update Failed: ' . $e->getMessage());
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'প্রোফাইল আপডেট করতে সমস্যা হয়েছে: ' . $e->getMessage()
+                ], 500);
+            }
+            return back()->with('error', 'প্রোফাইল আপডেট করতে সমস্যা হয়েছে।');
         }
-
-        return back()->with('success', 'লেখক পরিচিতি ও বায়ো সফলভাবে আপডেট হয়েছে!');
     }
 }
