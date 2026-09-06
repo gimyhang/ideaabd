@@ -65,37 +65,60 @@
                 @endphp
 
                 {{-- ========================================================= --}}
-                {{-- 1. PHOTO / AVATAR                                         --}}
+                {{-- 1. PHOTO / AVATAR WITH TOUCH PHOTO STUDIO CROPPING        --}}
                 {{-- ========================================================= --}}
                 <div class="p-3.5 bg-light rounded-4 border mb-4">
                     <div class="d-flex flex-column flex-sm-row align-items-center gap-3.5">
                         
-                        {{-- Avatar Live Preview Frame --}}
-                        <div class="position-relative flex-shrink-0">
+                        {{-- Avatar Live Preview Frame with Click-to-Studio --}}
+                        <div class="position-relative flex-shrink-0 cursor-pointer" onclick="openAdminPhotoStudio()" title="ছবি পরিবর্তন বা এডিট করতে ক্লিক করুন" style="cursor: pointer;">
                             <div class="rounded-circle overflow-hidden shadow-sm border border-3 border-white position-relative bg-white" 
-                                 style="width: 96px; height: 96px; min-width: 96px; min-height: 96px; aspect-ratio: 1 / 1;" id="avatarPreviewBox">
+                                 style="width: 100px; height: 100px; min-width: 100px; min-height: 100px; aspect-ratio: 1 / 1;" id="avatarPreviewBox">
                                 @if($currAvatar)
-                                    <img src="{{ $currAvatar }}" alt="{{ $user->name }}" class="w-100 h-100 object-fit-cover">
+                                    <img src="{{ $currAvatar }}" alt="{{ $user->name }}" class="w-100 h-100 object-fit-cover" id="currentAvatarDisplayImg">
                                 @else
-                                    <div class="w-100 h-100 d-flex align-items-center justify-content-center text-primary fs-2 fw-bold bg-primary-subtle">
+                                    <div class="w-100 h-100 d-flex align-items-center justify-content-center text-primary fs-2 fw-bold bg-primary-subtle" id="avatarInitialPlaceholder">
                                         {{ mb_substr($user->name, 0, 1) }}
                                     </div>
                                 @endif
                             </div>
+                            <span class="position-absolute bottom-0 end-0 bg-warning text-dark rounded-circle p-1.5 shadow-xs border border-2 border-white d-flex align-items-center justify-content-center" style="width: 28px; height: 28px;">
+                                <i class="fas fa-camera small" style="font-size: 11px;"></i>
+                            </span>
                         </div>
 
-                        {{-- File Input & Guidelines --}}
+                        {{-- Action Buttons & Hidden Inputs --}}
                         <div class="flex-grow-1 w-100">
-                            <label class="form-label fw-bold text-dark mb-1 d-flex align-items-center gap-1.5">
-                                <i class="fas fa-camera text-primary"></i>
-                                <span>Photo</span>
+                            <label class="form-label fw-bold text-dark mb-1.5 d-flex align-items-center justify-content-between">
+                                <span class="d-flex align-items-center gap-1.5">
+                                    <i class="fas fa-camera text-primary"></i>
+                                    <span>User Photo / Avatar</span>
+                                </span>
+                                <span class="badge bg-white text-success border small" id="avatarSelectedStatus" style="display: none;">
+                                    <i class="fas fa-check-circle me-1"></i>নতুন ছবি রেডি
+                                </span>
                             </label>
-                            <input type="file" name="avatar" id="avatarInput" 
-                                   class="form-control form-control-sm rounded-3 mb-1" 
-                                   accept="image/jpeg,image/png,image/jpg,image/webp" 
-                                   onchange="previewAvatar(this, 'avatarPreviewBox')">
+                            
+                            {{-- Buttons for Studio & Direct File Pick --}}
+                            <div class="d-flex flex-wrap gap-2 mb-1.5">
+                                <button type="button" class="btn btn-primary btn-sm rounded-pill px-3 py-1.5 fw-semibold shadow-xs" onclick="openAdminPhotoStudio()">
+                                    <i class="fas fa-crop-simple me-1"></i> ফটো স্টুডিও ও ক্রপার
+                                </button>
+                                <label class="btn btn-outline-secondary btn-sm rounded-pill px-3 py-1.5 fw-semibold mb-0" style="cursor: pointer;">
+                                    <i class="fas fa-camera me-1"></i> মোবাইল ক্যামেরা
+                                    <input type="file" accept="image/*" capture="user" class="d-none" onchange="handleDirectFilePick(this)">
+                                </label>
+                                <label class="btn btn-light border btn-sm rounded-pill px-3 py-1.5 fw-semibold mb-0" style="cursor: pointer;">
+                                    <i class="fas fa-images me-1"></i> ফাইল বাছাই
+                                    <input type="file" name="avatar" id="avatarInput" accept="image/jpeg,image/png,image/jpg,image/webp,image/heic,image/heif" class="d-none" onchange="handleDirectFilePick(this)">
+                                </label>
+                            </div>
+
+                            {{-- Hidden Cropped Avatar Data --}}
+                            <input type="hidden" name="avatar_cropped" id="regAvatarCroppedInput">
+
                             <div class="text-muted small" style="font-size: 0.76rem;">
-                                JPG, PNG or WebP format (1:1 aspect ratio).
+                                মোবাইল বা ক্যামেরা থেকে তোলা ছবি স্বয়ংক্রিয়ভাবে কম্প্রেস ও অপ্টিমাইজ হয়ে সেভ হবে। (JPG, PNG, WebP)
                             </div>
                         </div>
                     </div>
@@ -421,17 +444,307 @@
     </div>
 </div>
 
-<script>
-function previewAvatar(input, previewBoxId) {
-    const box = document.getElementById(previewBoxId);
-    if (!box) return;
+{{-- ═════════════════════════════════════════════════════════════════════════ --}}
+{{-- ADMIN TOUCH & MOBILE-FRIENDLY PHOTO STUDIO MODAL                            --}}
+{{-- ═════════════════════════════════════════════════════════════════════════ --}}
+<div class="modal fade" id="adminAvatarStudioModal" tabindex="-1" aria-labelledby="adminAvatarStudioModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header border-0 pb-0 pt-3.5 px-4 bg-light">
+                <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2" id="adminAvatarStudioModalLabel">
+                    <i class="fas fa-camera text-primary"></i>
+                    <span>ছবি এডিটর ও ফটো স্টুডিও</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            
+            <div class="modal-body p-4">
+                {{-- Interactive Crop Canvas Container --}}
+                <div class="text-center mb-3">
+                    <div class="position-relative mx-auto rounded-4 overflow-hidden border border-2 border-primary shadow-xs bg-light" 
+                         style="width: 240px; height: 240px; cursor: grab; touch-action: none;" id="adminCanvasWrapper"
+                         ondragover="event.preventDefault(); this.classList.add('border-warning');"
+                         ondragleave="this.classList.remove('border-warning');"
+                         ondrop="handleAdminPhotoDrop(event)">
+                        <canvas id="adminCropCanvas" width="240" height="240" style="display:block; width:100%; height:100%;"></canvas>
+                        
+                        {{-- Circular Overlay Mask Guide --}}
+                        <div class="position-absolute top-0 start-0 w-100 h-100 pointer-events-none d-flex align-items-center justify-content-center" 
+                             style="box-shadow: 0 0 0 9999px rgba(0,0,0,0.45); border-radius: 50%; pointer-events: none;">
+                            <div class="border border-white border-opacity-75 rounded-circle w-100 h-100" style="border-style: dashed !important;"></div>
+                        </div>
 
+                        {{-- Initial placeholder when no image uploaded --}}
+                        <div id="adminCanvasPlaceholder" class="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center bg-light text-muted p-3 pointer-events-none text-center">
+                            <i class="fas fa-cloud-arrow-up text-primary fs-1 mb-2"></i>
+                            <span class="fw-bold text-dark small mb-1">ছবি নির্বাচন বা ড্রপ করুন</span>
+                            <span class="text-muted" style="font-size: 11px;">মোবাইল ক্যামেরা ও গ্যালারি সাপোর্টেড</span>
+                        </div>
+                    </div>
+                    <div class="text-muted small mt-1.5" style="font-size: 11.5px;">
+                        <i class="fas fa-hand-pointer text-secondary me-1"></i>মাউস বা আঙুল দিয়ে টেনে ছবির পজিশন ঠিক করুন
+                    </div>
+                </div>
+
+                {{-- File Picker Options inside modal --}}
+                <div class="mb-3">
+                    <div class="d-flex gap-2">
+                        <label class="btn btn-outline-primary btn-sm flex-grow-1 rounded-pill fw-semibold py-1.5" style="cursor: pointer;">
+                            <i class="fas fa-images me-1"></i> গ্যালারি থেকে সিলেক্ট করুন
+                            <input type="file" id="adminModalAvatarInput" 
+                                   accept="image/jpeg,image/png,image/jpg,image/webp,image/heic,image/heif" 
+                                   class="d-none"
+                                   onchange="loadAdminStudioImage(this)">
+                        </label>
+                        <label class="btn btn-outline-secondary btn-sm rounded-pill fw-semibold py-1.5 px-3" style="cursor: pointer;" title="ক্যামেরা থেকে ছবি তুলুন">
+                            <i class="fas fa-camera me-1"></i> ক্যামেরা
+                            <input type="file" accept="image/*" capture="user" class="d-none" onchange="loadAdminStudioImage(this)">
+                        </label>
+                    </div>
+                </div>
+
+                {{-- Interactive Controls: Zoom Slider, Rotate, Reset --}}
+                <div id="adminCropControls" class="p-3 bg-light rounded-3 border mb-3" style="display: none;">
+                    <div class="d-flex align-items-center justify-content-between mb-1.5" style="font-size: 11.5px;">
+                        <span class="text-muted fw-semibold"><i class="fas fa-magnifying-glass-plus text-primary me-1"></i>জুম ইন/আউট:</span>
+                        <span class="badge bg-white text-dark border font-monospace" id="adminZoomValBadge">100%</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <button type="button" class="btn btn-sm btn-white border rounded-circle p-1" style="width:28px;height:28px;" onclick="adjustAdminZoom(-0.1)" title="Zoom Out"><i class="fa-solid fa-minus" style="font-size:10px;"></i></button>
+                        <input type="range" class="form-range flex-grow-1" id="adminZoomSlider" min="0.2" max="3.5" step="0.05" value="1" oninput="onAdminZoomChange(this.value)">
+                        <button type="button" class="btn btn-sm btn-white border rounded-circle p-1" style="width:28px;height:28px;" onclick="adjustAdminZoom(0.1)" title="Zoom In"><i class="fa-solid fa-plus" style="font-size:10px;"></i></button>
+                    </div>
+
+                    <div class="d-flex align-items-center gap-2 flex-wrap justify-content-center">
+                        <button type="button" class="btn btn-white btn-sm border rounded-pill px-3 py-1 text-dark small" onclick="rotateAdminImage(90)">
+                            <i class="fas fa-rotate-right me-1 text-primary"></i> ৯০° ঘোরান
+                        </button>
+                        <button type="button" class="btn btn-white btn-sm border rounded-pill px-3 py-1 text-dark small" onclick="resetAdminCrop()">
+                            <i class="fas fa-arrows-to-circle me-1 text-secondary"></i> রিসেট
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer border-0 pt-0 px-4 pb-3.5 d-flex justify-content-between">
+                <button type="button" class="btn btn-light rounded-pill px-3.5" data-bs-dismiss="modal">বাতিল</button>
+                <button type="button" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm" id="adminApplyPhotoBtn" onclick="applyCroppedPhotoToForm()" disabled>
+                    <i class="fas fa-check me-1"></i> ছবি সেট করুন
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+/* =========================================================================
+   ADMIN TOUCH PHOTO STUDIO CROPPER & TOUCH ENGINE
+   ========================================================================= */
+let studioCanvas = document.getElementById('adminCropCanvas');
+let studioCtx = studioCanvas ? studioCanvas.getContext('2d') : null;
+let studioCurrentImg = null;
+let studioImgX = 120;
+let studioImgY = 120;
+let studioScale = 1;
+let studioRotation = 0;
+let studioIsDragging = false;
+let studioStartX, studioStartY;
+let studioCroppedDataUrl = null;
+
+function openAdminPhotoStudio() {
+    const modalEl = document.getElementById('adminAvatarStudioModal');
+    if (modalEl) {
+        const modal = new bootstrap.Modal(modalEl);
+        modal.show();
+    }
+}
+
+function handleDirectFilePick(input) {
+    if (input.files && input.files[0]) {
+        openAdminPhotoStudio();
+        loadAdminStudioImage(input);
+    }
+}
+
+function handleAdminPhotoDrop(e) {
+    e.preventDefault();
+    const wrapper = document.getElementById('adminCanvasWrapper');
+    if (wrapper) wrapper.classList.remove('border-warning');
+    if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]) {
+        const file = e.dataTransfer.files[0];
+        if (!file.type.match('image.*')) {
+            alert('অনুগ্রহ করে শুধুমাত্র ইমেজ ফাইল (JPG, PNG, WebP) ড্রপ করুন।');
+            return;
+        }
+        const fakeInput = { files: [file] };
+        loadAdminStudioImage(fakeInput);
+    }
+}
+
+function loadAdminStudioImage(input) {
     if (input.files && input.files[0]) {
         const reader = new FileReader();
         reader.onload = function(e) {
-            box.innerHTML = `<img src="${e.target.result}" class="w-100 h-100 object-fit-cover position-absolute top-0 start-0">`;
+            studioCurrentImg = new Image();
+            studioCurrentImg.onload = function() {
+                document.getElementById('adminCanvasPlaceholder').style.display = 'none';
+                document.getElementById('adminCropControls').style.display = 'block';
+                document.getElementById('adminApplyPhotoBtn').disabled = false;
+                
+                const canvasW = studioCanvas.width;
+                const canvasH = studioCanvas.height;
+                const scaleW = canvasW / studioCurrentImg.width;
+                const scaleH = canvasH / studioCurrentImg.height;
+                studioScale = Math.max(scaleW, scaleH);
+                
+                document.getElementById('adminZoomSlider').value = studioScale;
+                document.getElementById('adminZoomValBadge').textContent = `${Math.round(studioScale * 100)}%`;
+                
+                studioImgX = canvasW / 2;
+                studioImgY = canvasH / 2;
+                studioRotation = 0;
+                
+                renderAdminCanvas();
+            };
+            studioCurrentImg.src = e.target.result;
         };
         reader.readAsDataURL(input.files[0]);
+    }
+}
+
+function renderAdminCanvas() {
+    if (!studioCurrentImg || !studioCtx) return;
+    
+    studioCtx.clearRect(0, 0, studioCanvas.width, studioCanvas.height);
+    studioCtx.save();
+    
+    studioCtx.translate(studioImgX, studioImgY);
+    studioCtx.rotate((studioRotation * Math.PI) / 180);
+    studioCtx.scale(studioScale, studioScale);
+    
+    studioCtx.drawImage(studioCurrentImg, -studioCurrentImg.width / 2, -studioCurrentImg.height / 2);
+    studioCtx.restore();
+    
+    exportAdminCroppedAvatar();
+}
+
+function exportAdminCroppedAvatar() {
+    if (!studioCurrentImg) return;
+    const highRes = document.createElement('canvas');
+    highRes.width = 500;
+    highRes.height = 500;
+    const hrCtx = highRes.getContext('2d');
+    
+    const ratio = 500 / studioCanvas.width;
+    hrCtx.save();
+    hrCtx.translate(studioImgX * ratio, studioImgY * ratio);
+    hrCtx.rotate((studioRotation * Math.PI) / 180);
+    hrCtx.scale(studioScale * ratio, studioScale * ratio);
+    hrCtx.drawImage(studioCurrentImg, -studioCurrentImg.width / 2, -studioCurrentImg.height / 2);
+    hrCtx.restore();
+    
+    studioCroppedDataUrl = highRes.toDataURL('image/jpeg', 0.90);
+}
+
+function onAdminZoomChange(val) {
+    studioScale = parseFloat(val);
+    document.getElementById('adminZoomValBadge').textContent = `${Math.round(studioScale * 100)}%`;
+    renderAdminCanvas();
+}
+
+function adjustAdminZoom(delta) {
+    const slider = document.getElementById('adminZoomSlider');
+    let newVal = parseFloat(slider.value) + delta;
+    newVal = Math.max(parseFloat(slider.min), Math.min(parseFloat(slider.max), newVal));
+    slider.value = newVal;
+    onAdminZoomChange(newVal);
+}
+
+function rotateAdminImage(deg) {
+    studioRotation = (studioRotation + deg) % 360;
+    renderAdminCanvas();
+}
+
+function resetAdminCrop() {
+    if (!studioCurrentImg) return;
+    studioImgX = studioCanvas.width / 2;
+    studioImgY = studioCanvas.height / 2;
+    const scaleW = studioCanvas.width / studioCurrentImg.width;
+    const scaleH = studioCanvas.height / studioCurrentImg.height;
+    studioScale = Math.max(scaleW, scaleH);
+    studioRotation = 0;
+    document.getElementById('adminZoomSlider').value = studioScale;
+    document.getElementById('adminZoomValBadge').textContent = `${Math.round(studioScale * 100)}%`;
+    renderAdminCanvas();
+}
+
+// Touch & Mouse Drag Handlers
+const canvasWrapper = document.getElementById('adminCanvasWrapper');
+
+function getAdminPos(e) {
+    const rect = studioCanvas.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    return {
+        x: clientX - rect.left,
+        y: clientY - rect.top
+    };
+}
+
+if (canvasWrapper) {
+    const startAdminDrag = (e) => {
+        if (!studioCurrentImg) return;
+        studioIsDragging = true;
+        canvasWrapper.style.cursor = 'grabbing';
+        const pos = getAdminPos(e);
+        studioStartX = pos.x - studioImgX;
+        studioStartY = pos.y - studioImgY;
+    };
+
+    const onAdminDrag = (e) => {
+        if (!studioIsDragging || !studioCurrentImg) return;
+        if (e.cancelable) e.preventDefault();
+        const pos = getAdminPos(e);
+        studioImgX = pos.x - studioStartX;
+        studioImgY = pos.y - studioStartY;
+        renderAdminCanvas();
+    };
+
+    const stopAdminDrag = () => {
+        if (studioIsDragging) {
+            studioIsDragging = false;
+            canvasWrapper.style.cursor = 'grab';
+            exportAdminCroppedAvatar();
+        }
+    };
+
+    canvasWrapper.addEventListener('mousedown', startAdminDrag);
+    window.addEventListener('mousemove', onAdminDrag);
+    window.addEventListener('mouseup', stopAdminDrag);
+
+    canvasWrapper.addEventListener('touchstart', startAdminDrag, { passive: false });
+    window.addEventListener('touchmove', onAdminDrag, { passive: false });
+    window.addEventListener('touchend', stopAdminDrag);
+}
+
+function applyCroppedPhotoToForm() {
+    exportAdminCroppedAvatar();
+    if (studioCroppedDataUrl) {
+        document.getElementById('regAvatarCroppedInput').value = studioCroppedDataUrl;
+        
+        const previewBox = document.getElementById('avatarPreviewBox');
+        if (previewBox) {
+            previewBox.innerHTML = `<img src="${studioCroppedDataUrl}" class="w-100 h-100 object-fit-cover">`;
+        }
+        
+        const statusBadge = document.getElementById('avatarSelectedStatus');
+        if (statusBadge) {
+            statusBadge.style.display = 'inline-block';
+        }
+
+        const modalEl = document.getElementById('adminAvatarStudioModal');
+        const modal = bootstrap.Modal.getInstance(modalEl);
+        if (modal) modal.hide();
     }
 }
 
@@ -509,6 +822,9 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 .shadow-xs {
     box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+.cursor-pointer {
+    cursor: pointer !important;
 }
 </style>
 @endsection

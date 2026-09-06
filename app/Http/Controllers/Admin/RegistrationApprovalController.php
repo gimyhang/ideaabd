@@ -119,7 +119,7 @@ class RegistrationApprovalController extends Controller
             'name'           => ['required', 'string', 'max:255'],
             'name_bn'        => ['nullable', 'string', 'max:255'],
             'email'          => ['required', 'email', 'max:255', 'unique:users,email,' . $user->id],
-            'phone'          => ['required', 'string', 'max:20', 'unique:users,phone,' . $user->id],
+            'phone'          => ['required', 'string', 'max:30', 'unique:users,phone,' . $user->id],
             'role'           => ['required', 'in:author,seller,publisher,buyer'],
             'reg_status'     => ['required', 'in:pending,approved,rejected'],
             'is_active'      => ['nullable', 'boolean'],
@@ -137,14 +137,45 @@ class RegistrationApprovalController extends Controller
             'facebook'       => ['nullable', 'string', 'max:255'],
             'twitter'        => ['nullable', 'string', 'max:255'],
             'youtube'        => ['nullable', 'string', 'max:255'],
-            'avatar'         => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:4096'],
+            'avatar'         => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp,heic,heif', 'max:20480'],
+            'avatar_cropped' => ['nullable', 'string'],
         ]);
 
         $regData = is_array($user->reg_data) ? $user->reg_data : [];
 
-        // Handle avatar upload if provided (Convert to AVIF)
-        if ($request->hasFile('avatar')) {
-            $avatarPath = \App\Services\ImageOptimizerService::convertAndStore($request->file('avatar'), 'authors', 'public');
+        // 1. Process Cropped Base64 Avatar or Direct File Upload
+        $avatarPath = null;
+        if ($request->filled('avatar_cropped') && str_starts_with($request->input('avatar_cropped'), 'data:image')) {
+            try {
+                $avatarPath = \App\Services\ImageOptimizerService::convertBase64AndStore(
+                    $request->input('avatar_cropped'),
+                    'authors',
+                    'public',
+                    85,
+                    600,
+                    600
+                );
+            } catch (\Throwable $e) {
+                Log::warning("Base64 avatar conversion failed: " . $e->getMessage());
+            }
+        }
+
+        if (!$avatarPath && $request->hasFile('avatar')) {
+            try {
+                $avatarPath = \App\Services\ImageOptimizerService::convertAndStore(
+                    $request->file('avatar'),
+                    'authors',
+                    'public',
+                    85,
+                    600,
+                    600
+                );
+            } catch (\Throwable $e) {
+                Log::warning("Direct avatar conversion failed: " . $e->getMessage());
+            }
+        }
+
+        if ($avatarPath) {
             $user->avatar = $avatarPath;
             $regData['avatar'] = $avatarPath;
         }
@@ -203,19 +234,46 @@ class RegistrationApprovalController extends Controller
                     'youtube'  => $request->input('youtube') ?: ($regData['youtube'] ?? null),
                 ]);
 
-                \Modules\Author\Models\Author::findOrCreateUnified([
-                    'name'         => $authorName,
-                    'name_en'      => $authorName,
-                    'email'        => $user->email,
-                    'phone'        => $user->phone,
-                    'bio'          => $regData['bio'] ?? null,
-                    'avatar'       => $user->avatar ?: ($regData['avatar'] ?? null),
-                    'website'      => $regData['website'] ?? null,
-                    'social_links' => $socialLinks,
-                    'user_id'      => $user->id,
-                    'is_active'    => $user->is_active,
-                    'is_verified'  => ($user->reg_status === 'approved'),
-                ]);
+                $authorRecord = $user->getAuthorRecord();
+                if ($authorRecord) {
+                    if ($avatarPath) {
+                        $authorRecord->avatar = $avatarPath;
+                    }
+                    $authorRecord->name = $authorName;
+                    $authorRecord->name_en = $authorName;
+                    if (!empty($regData['name_bn'])) {
+                        $authorRecord->name_bn = $regData['name_bn'];
+                    }
+                    $authorRecord->email = $user->email;
+                    $authorRecord->phone = $user->phone;
+                    if (isset($regData['bio'])) {
+                        $authorRecord->bio = $regData['bio'];
+                    }
+                    if (isset($regData['website'])) {
+                        $authorRecord->website = $regData['website'];
+                    }
+                    if (!empty($socialLinks)) {
+                        $authorRecord->social_links = $socialLinks;
+                    }
+                    $authorRecord->is_active = $user->is_active;
+                    $authorRecord->is_verified = ($user->reg_status === 'approved');
+                    $authorRecord->save();
+                } else {
+                    \Modules\Author\Models\Author::findOrCreateUnified([
+                        'name'         => $authorName,
+                        'name_en'      => $authorName,
+                        'name_bn'      => $regData['name_bn'] ?? ($regData['name_bangla'] ?? null),
+                        'email'        => $user->email,
+                        'phone'        => $user->phone,
+                        'bio'          => $regData['bio'] ?? null,
+                        'avatar'       => $user->avatar ?: ($regData['avatar'] ?? null),
+                        'website'      => $regData['website'] ?? null,
+                        'social_links' => $socialLinks,
+                        'user_id'      => $user->id,
+                        'is_active'    => $user->is_active,
+                        'is_verified'  => ($user->reg_status === 'approved'),
+                    ]);
+                }
 
                 // Sync blog posts owner_name
                 \Modules\Blog\Models\BlogPost::where('author_id', $user->id)
