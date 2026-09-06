@@ -272,9 +272,13 @@ class RegistrationApprovalController extends Controller
         $user->save();
 
         // Update authors directory & linked blog posts if role is author
-        if ($user->role === 'author') {
+        if ($user->role === 'author' || $user->reg_type === 'author') {
             try {
-                $authorName = $user->name;
+                $authorName = !empty($regData['pen_name']) ? trim($regData['pen_name']) : (!empty($regData['name_bn']) ? trim($regData['name_bn']) : $user->name);
+                $nameBn = !empty($regData['name_bn']) ? trim($regData['name_bn']) : (!empty($regData['name_bangla']) ? trim($regData['name_bangla']) : $authorName);
+                $nameEn = $user->name;
+                $authorAvatar = $user->avatar ?: ($avatarPath ?: ($regData['avatar'] ?? null));
+
                 $socialLinks = array_filter([
                     'facebook' => $request->input('facebook') ?: ($regData['facebook'] ?? null),
                     'twitter'  => $request->input('twitter') ?: ($regData['twitter'] ?? null),
@@ -283,14 +287,13 @@ class RegistrationApprovalController extends Controller
 
                 $authorRecord = $user->getAuthorRecord();
                 if ($authorRecord) {
-                    if ($avatarPath) {
-                        $authorRecord->avatar = $avatarPath;
+                    if ($authorAvatar) {
+                        $authorRecord->avatar = $authorAvatar;
                     }
                     $authorRecord->name = $authorName;
-                    $authorRecord->name_en = $authorName;
-                    if (!empty($regData['name_bn'])) {
-                        $authorRecord->name_bn = $regData['name_bn'];
-                    }
+                    $authorRecord->name_bn = $nameBn;
+                    $authorRecord->name_en = $nameEn;
+                    $authorRecord->user_id = $user->id;
                     $authorRecord->email = $user->email;
                     $authorRecord->phone = $user->phone;
                     if (isset($regData['bio'])) {
@@ -308,19 +311,25 @@ class RegistrationApprovalController extends Controller
                 } else {
                     \Modules\Author\Models\Author::findOrCreateUnified([
                         'name'         => $authorName,
-                        'name_en'      => $authorName,
-                        'name_bn'      => $regData['name_bn'] ?? ($regData['name_bangla'] ?? null),
+                        'name_en'      => $nameEn,
+                        'name_bn'      => $nameBn,
                         'email'        => $user->email,
                         'phone'        => $user->phone,
                         'bio'          => $regData['bio'] ?? null,
-                        'avatar'       => $user->avatar ?: ($regData['avatar'] ?? null),
+                        'avatar'       => $authorAvatar,
                         'website'      => $regData['website'] ?? null,
-                        'social_links' => $socialLinks,
+                        'social_links' => !empty($socialLinks) ? $socialLinks : null,
                         'user_id'      => $user->id,
                         'is_active'    => $user->is_active,
                         'is_verified'  => ($user->reg_status === 'approved'),
                     ]);
                 }
+
+                // Clear author caches
+                try {
+                    \Illuminate\Support\Facades\Cache::forget('authors_directory_all');
+                    \Illuminate\Support\Facades\Cache::forget('featured_authors_home');
+                } catch (\Throwable $e) {}
 
                 // Sync blog posts owner_name
                 \Modules\Blog\Models\BlogPost::where('author_id', $user->id)
@@ -370,23 +379,64 @@ class RegistrationApprovalController extends Controller
             'email_verified_at'=> $user->email_verified_at ?: now(),
         ]);
 
-        // If user is author, activate their entry in authors table using unified resolution
-        if ($user->role === 'author') {
+        // If user is author, activate & sync their entry in authors table using unified resolution
+        if ($user->role === 'author' || $user->reg_type === 'author') {
             try {
                 $regData = is_array($user->reg_data) ? $user->reg_data : [];
-                $authorName = $user->name;
+                $authorName = !empty($regData['pen_name']) ? trim($regData['pen_name']) : (!empty($regData['name_bn']) ? trim($regData['name_bn']) : $user->name);
+                $nameBn = !empty($regData['name_bn']) ? trim($regData['name_bn']) : (!empty($regData['name_bangla']) ? trim($regData['name_bangla']) : $authorName);
+                $nameEn = $user->name;
+                $authorAvatar = $user->avatar ?: ($regData['avatar'] ?? null);
 
-                \Modules\Author\Models\Author::findOrCreateUnified([
-                    'name'        => $authorName,
-                    'name_en'     => $authorName,
-                    'email'       => $user->email,
-                    'phone'       => $user->phone,
-                    'bio'         => $regData['bio'] ?? null,
-                    'avatar'      => $user->avatar ?: ($regData['avatar'] ?? null),
-                    'user_id'     => $user->id,
-                    'is_active'   => true,
-                    'is_verified' => true,
+                $socialLinks = array_filter([
+                    'facebook' => $regData['facebook'] ?? null,
+                    'twitter'  => $regData['twitter'] ?? null,
+                    'youtube'  => $regData['youtube'] ?? null,
                 ]);
+
+                $authorRecord = $user->getAuthorRecord();
+                if ($authorRecord) {
+                    $authorRecord->name = $authorName;
+                    $authorRecord->name_bn = $nameBn;
+                    $authorRecord->name_en = $nameEn;
+                    $authorRecord->user_id = $user->id;
+                    if (!empty($regData['bio'])) {
+                        $authorRecord->bio = $regData['bio'];
+                    }
+                    if (!empty($authorAvatar)) {
+                        $authorRecord->avatar = $authorAvatar;
+                    }
+                    if (!empty($regData['website'])) {
+                        $authorRecord->website = $regData['website'];
+                    }
+                    if (!empty($socialLinks)) {
+                        $authorRecord->social_links = $socialLinks;
+                    }
+                    $authorRecord->is_active = true;
+                    $authorRecord->is_verified = true;
+                    $authorRecord->save();
+                } else {
+                    \Modules\Author\Models\Author::findOrCreateUnified([
+                        'name'         => $authorName,
+                        'name_en'      => $nameEn,
+                        'name_bn'      => $nameBn,
+                        'email'        => $user->email,
+                        'phone'        => $user->phone,
+                        'bio'          => $regData['bio'] ?? null,
+                        'avatar'       => $authorAvatar,
+                        'website'      => $regData['website'] ?? null,
+                        'social_links' => !empty($socialLinks) ? $socialLinks : null,
+                        'user_id'      => $user->id,
+                        'is_active'    => true,
+                        'is_verified'  => true,
+                    ]);
+                }
+
+                // Clear author caches
+                try {
+                    \Illuminate\Support\Facades\Cache::forget('authors_directory_all');
+                    \Illuminate\Support\Facades\Cache::forget('featured_authors_home');
+                } catch (\Throwable $e) {}
 
                 // Sync blog posts owner_name
                 \Modules\Blog\Models\BlogPost::where('author_id', $user->id)

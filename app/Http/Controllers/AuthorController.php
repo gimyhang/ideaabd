@@ -30,6 +30,8 @@ class AuthorController extends Controller
             $term = trim($request->input('q') ?: $request->input('search'));
             $query->where(function ($sub) use ($term) {
                 $sub->where('name', 'like', '%' . $term . '%')
+                    ->orWhere('name_bn', 'like', '%' . $term . '%')
+                    ->orWhere('name_en', 'like', '%' . $term . '%')
                     ->orWhere('slug', 'like', '%' . $term . '%')
                     ->orWhere('bio', 'like', '%' . $term . '%')
                     ->orWhereHas('books', function ($bq) use ($term) {
@@ -41,7 +43,11 @@ class AuthorController extends Controller
         // Alphabetical & Bengali Character Filter
         if ($request->filled('letter')) {
             $letter = trim($request->letter);
-            $query->where('name', 'like', "{$letter}%");
+            $query->where(function ($lq) use ($letter) {
+                $lq->where('name', 'like', "{$letter}%")
+                   ->orWhere('name_bn', 'like', "{$letter}%")
+                   ->orWhere('name_en', 'like', "{$letter}%");
+            });
         }
 
         // Category Filter (Authors who published books in a specific Category)

@@ -1593,6 +1593,8 @@ class AdminController extends Controller
                             $like = '%' . $token . '%';
                             $master->where(function ($w) use ($like) {
                                 $w->where('name', 'like', $like)
+                                  ->orWhere('name_bn', 'like', $like)
+                                  ->orWhere('name_en', 'like', $like)
                                   ->orWhere('slug', 'like', $like)
                                   ->orWhere('email', 'like', $like)
                                   ->orWhere('phone', 'like', $like)

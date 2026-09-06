@@ -174,21 +174,35 @@ class User extends Authenticatable
                 })->first();
             }
 
+            $regData = is_array($this->reg_data) ? $this->reg_data : [];
+            $penName = !empty($regData['pen_name']) ? trim($regData['pen_name']) : (!empty($regData['name_bn']) ? trim($regData['name_bn']) : null);
+            $nameBn = !empty($regData['name_bn']) ? trim($regData['name_bn']) : (!empty($regData['name_bangla']) ? trim($regData['name_bangla']) : $penName);
+
+            if (!$author && !empty($penName)) {
+                $author = \Modules\Author\Models\Author::where('name', $penName)->orWhere('name_bn', $penName)->first();
+            }
+
             if (!$author && !empty($this->name)) {
-                $author = \Modules\Author\Models\Author::where('name', $this->name)->first();
+                $author = \Modules\Author\Models\Author::where('name', $this->name)->orWhere('name_en', $this->name)->first();
             }
 
             if (!$author && $this->exists && ($this->isAuthor() || $this->isAdmin() || $this->reg_type === 'author')) {
-                $slug = \Illuminate\Support\Str::slug($this->name) ?: 'author-' . $this->id;
+                $displayName = $penName ?: $this->name;
+                $slug = \Illuminate\Support\Str::slug($this->name ?: $displayName) ?: 'author-' . $this->id;
                 if (\Modules\Author\Models\Author::where('slug', $slug)->exists()) {
                     $slug .= '-' . $this->id . '-' . \Illuminate\Support\Str::lower(\Illuminate\Support\Str::random(4));
                 }
                 $author = \Modules\Author\Models\Author::create([
                     'user_id'            => $this->id,
-                    'name'               => $this->name,
+                    'name'               => $displayName,
+                    'name_bn'            => $nameBn ?: $displayName,
+                    'name_en'            => $this->name,
                     'slug'               => $slug,
                     'email'              => $this->email,
                     'phone'              => $this->phone,
+                    'bio'                => $regData['bio'] ?? null,
+                    'avatar'             => $this->avatar ?: ($regData['avatar'] ?? null),
+                    'website'            => $regData['website'] ?? null,
                     'is_active'          => true,
                     'is_verified'        => true,
                     'royalty_percentage' => 50.00,

@@ -249,6 +249,14 @@ class BlogPost extends Model
             return $this->owner_name;
         }
         if ($this->author) {
+            $regData = is_array($this->author->reg_data) ? $this->author->reg_data : (json_decode($this->author->reg_data ?? '', true) ?: []);
+            $penName = !empty($regData['pen_name']) ? trim($regData['pen_name']) : (!empty($regData['name_bn']) ? trim($regData['name_bn']) : null);
+            if ($penName) {
+                return $penName;
+            }
+            if ($this->author->authorProfile && !empty($this->author->authorProfile->name)) {
+                return $this->author->authorProfile->name;
+            }
             return $this->author->name;
         }
         return 'সম্পাদকীয় বিভাগ';
