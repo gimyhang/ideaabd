@@ -537,10 +537,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::put('/{user}', 'update')->name('update');
         Route::post('/{user}/quick-update', 'quickUpdate')->name('quick-update');
         Route::post('/{user}/sync-author', 'syncAuthor')->name('sync-author');
-        Route::patch('/{user}/approve', 'approve')->name('approve');
-        Route::patch('/{user}/reject', 'reject')->name('reject');
-        Route::patch('/{user}/toggle-status', 'toggleStatus')->name('toggle-status');
-        Route::delete('/{user}', 'cancel')->name('cancel');
+        Route::match(['post', 'patch'], '/{user}/approve', 'approve')->name('approve');
+        Route::match(['post', 'patch'], '/{user}/reject', 'reject')->name('reject');
+        Route::match(['post', 'patch'], '/{user}/toggle-status', 'toggleStatus')->name('toggle-status');
+        Route::match(['delete', 'post'], '/{user}', 'cancel')->name('cancel');
     });
 
     // Payment management & gateways

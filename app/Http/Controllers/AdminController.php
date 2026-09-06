@@ -1734,6 +1734,18 @@ class AdminController extends Controller
         $author->is_active = !$author->is_active;
         $author->save();
 
+        // Sync linked user registration
+        if (!empty($author->user_id)) {
+            \App\Models\User::where('id', $author->user_id)->update(['is_active' => $author->is_active]);
+        } elseif (!empty($author->email)) {
+            \App\Models\User::where('email', $author->email)->update(['is_active' => $author->is_active]);
+        }
+
+        try {
+            \Illuminate\Support\Facades\Cache::forget('authors_directory_all');
+            \Illuminate\Support\Facades\Cache::forget('featured_authors_home');
+        } catch (\Throwable $e) {}
+
         $statusText = $author->is_active ? 'সক্রিয়' : 'নিষ্ক্রিয়';
         $this->accessService->log('author_status_toggle', "লেখক '{$author->name}' {$statusText} করা হয়েছে");
 
@@ -1749,6 +1761,22 @@ class AdminController extends Controller
         $author = \Modules\Author\Models\Author::findOrFail($id);
         $author->is_verified = !$author->is_verified;
         $author->save();
+
+        // Sync linked user registration verification & approval
+        if (!empty($author->user_id)) {
+            \App\Models\User::where('id', $author->user_id)->update([
+                'reg_status' => $author->is_verified ? \App\Models\User::STATUS_APPROVED : \App\Models\User::STATUS_PENDING,
+            ]);
+        } elseif (!empty($author->email)) {
+            \App\Models\User::where('email', $author->email)->update([
+                'reg_status' => $author->is_verified ? \App\Models\User::STATUS_APPROVED : \App\Models\User::STATUS_PENDING,
+            ]);
+        }
+
+        try {
+            \Illuminate\Support\Facades\Cache::forget('authors_directory_all');
+            \Illuminate\Support\Facades\Cache::forget('featured_authors_home');
+        } catch (\Throwable $e) {}
 
         $vText = $author->is_verified ? 'যাচাইকৃত (Verified)' : 'সাধারণ (Unverified)';
         $this->accessService->log('author_verified_toggle', "লেখক '{$author->name}' কে {$vText} হিসেবে চিহ্নিত করা হয়েছে");
