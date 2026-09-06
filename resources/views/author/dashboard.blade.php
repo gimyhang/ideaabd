@@ -1,7 +1,7 @@
 @extends('author.layout')
 
-@section('title', 'লেখক ড্যাশবোর্ড — আইডিয়া প্রকাশন')
-@section('heading', 'স্বাগতম, ' . auth()->user()->name)
+@section('title', 'Author Dashboard — IDEA')
+@section('heading', 'Welcome, ' . auth()->user()->name)
 
 @section('content')
 <div class="d-flex flex-column gap-3.5">
@@ -30,7 +30,7 @@
             <div class="d-flex flex-column flex-md-row align-items-center align-items-md-start gap-3">
                 
                 {{-- Interactive Avatar with Quick Edit Badge --}}
-                <div class="position-relative flex-shrink-0 cursor-pointer" onclick="openPhotoStudioModal()" title="ছবি পরিবর্তন করতে ক্লিক করুন">
+                <div class="position-relative flex-shrink-0 cursor-pointer" onclick="openPhotoStudioModal()" title="Change Photo">
                     <div class="rounded-circle overflow-hidden shadow-md border border-3 border-white position-relative bg-white" 
                          style="width: 82px; height: 82px; min-width: 82px; min-height: 82px; aspect-ratio: 1 / 1;" id="dashAvatarMainBox">
                         @if($dashAvatarUrl)
@@ -44,7 +44,7 @@
                     
                     {{-- Camera Change Badge --}}
                     <button type="button" class="btn btn-warning btn-sm rounded-circle position-absolute bottom-0 end-0 p-0 d-flex align-items-center justify-content-center shadow-sm border border-2 border-white" 
-                            style="width: 28px; height: 28px; transform: translate(2px, 2px);" title="ছবি পরিবর্তন করুন">
+                            style="width: 28px; height: 28px; transform: translate(2px, 2px);" title="Change Photo">
                         <i class="fas fa-camera text-dark" style="font-size: 11px;"></i>
                     </button>
                 </div>
@@ -59,15 +59,17 @@
                             </span>
                         @endif
                         <span class="badge bg-success bg-opacity-75 text-white rounded-pill px-2.5 py-1 small">
-                            <i class="fas fa-circle-check me-1"></i>লেখক
+                            <i class="fas fa-circle-check me-1"></i>Author
                         </span>
                     </div>
 
-                    {{-- Bio preview snippet with collapsible full details toggle --}}
+                    {{-- Bio preview snippet --}}
                     <div class="mb-2.5">
-                        <p class="text-white-50 small mb-1 text-truncate" style="font-size: 0.82rem; max-width: 600px;" id="dashAuthorBioDisplay">
-                            {{ $authorBioText ?: 'আপনার লেখক পরিচিতি ও সাহিত্য জীবনবৃত্তান্ত যুক্ত করুন যাতে পাঠকরা আপনার সম্পর্কে জানতে পারে।' }}
-                        </p>
+                        @if($authorBioText)
+                            <p class="text-white-50 small mb-1 text-truncate" style="font-size: 0.82rem; max-width: 600px;" id="dashAuthorBioDisplay">
+                                {{ $authorBioText }}
+                            </p>
+                        @endif
                         @if($hasExtraDetails)
                             <button class="btn btn-link text-info text-decoration-none p-0 small fw-semibold" 
                                     type="button" 
@@ -76,78 +78,74 @@
                                     aria-expanded="false" 
                                     aria-controls="authorExtraDetailsCollapse" 
                                     style="font-size: 11.5px;">
-                                <i class="fas fa-circle-info me-1"></i>পরিচিতি ও অতিরিক্ত তথ্য <i class="fas fa-chevron-down ms-0.5 small"></i>
+                                <i class="fas fa-circle-info me-1"></i>Profile Info <i class="fas fa-chevron-down ms-0.5 small"></i>
                             </button>
                         @endif
                     </div>
 
-                    {{-- Collapsible Section for Bio & Registration Info (পিতা, মাতা, ঠিকানা, পে-আউট) --}}
+                    {{-- Collapsible Section for Details --}}
                     <div class="collapse mb-3" id="authorExtraDetailsCollapse">
                         <div class="p-3 rounded-3 text-start small border border-white border-opacity-15" style="background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(8px);">
                             @if($authorBioText)
                                 <div class="mb-2">
-                                    <strong class="text-info d-block mb-0.5"><i class="fas fa-book-open me-1"></i>লেখক বায়ো:</strong>
+                                    <strong class="text-info d-block mb-0.5"><i class="fas fa-book-open me-1"></i>Bio:</strong>
                                     <span class="text-light opacity-90" style="line-height: 1.45;">{{ $authorBioText }}</span>
                                 </div>
                             @endif
                             <div class="row g-2 text-white-50 pt-2 border-top border-white border-opacity-10" style="font-size: 11.5px;">
                                 @if($fatherName)
                                     <div class="col-6 col-md-4">
-                                        <span class="text-white fw-semibold">পিতার নাম:</span> {{ $fatherName }}
+                                        <span class="text-white fw-semibold">Father:</span> {{ $fatherName }}
                                     </div>
                                 @endif
                                 @if($motherName)
                                     <div class="col-6 col-md-4">
-                                        <span class="text-white fw-semibold">মাতার নাম:</span> {{ $motherName }}
+                                        <span class="text-white fw-semibold">Mother:</span> {{ $motherName }}
                                     </div>
                                 @endif
                                 @if($nidOrPassport)
                                     <div class="col-6 col-md-4">
-                                        <span class="text-white fw-semibold">NID/পাসপোর্ট:</span> {{ $nidOrPassport }}
+                                        <span class="text-white fw-semibold">NID/Passport:</span> {{ $nidOrPassport }}
                                     </div>
                                 @endif
                                 @if($presentAddress)
                                     <div class="col-12 col-md-6">
-                                        <span class="text-white fw-semibold">ঠিকানা:</span> {{ $presentAddress }}
+                                        <span class="text-white fw-semibold">Address:</span> {{ $presentAddress }}
                                     </div>
                                 @endif
                                 @if($payoutMethod && $payoutNumber)
                                     <div class="col-12 col-md-6">
-                                        <span class="text-white fw-semibold">পে-আউট মাধ্যম:</span> {{ strtoupper($payoutMethod) }} ({{ $payoutNumber }})
+                                        <span class="text-white fw-semibold">Payout:</span> {{ strtoupper($payoutMethod) }} ({{ $payoutNumber }})
                                     </div>
                                 @endif
                             </div>
                         </div>
                     </div>
 
-                    {{-- 1. Profile Actions Horizontal Button Grid (মোবাইলে সুষম ৩-কলাম গ্রিড) --}}
+                    {{-- Profile Action Buttons --}}
                     <div class="row g-1.5 g-md-2">
                         <div class="col-4">
                             <button type="button" class="btn btn-warning btn-sm w-100 rounded-pill py-1.5 px-1 px-md-3 fw-bold text-dark shadow-xs d-flex align-items-center justify-content-center gap-1 text-truncate" onclick="openPhotoStudioModal()">
                                 <i class="fas fa-camera"></i>
-                                <span class="d-none d-sm-inline">ছবি পরিবর্তন</span>
-                                <span class="d-inline d-sm-none" style="font-size: 11px;">ছবি</span>
+                                <span>Photo</span>
                             </button>
                         </div>
                         <div class="col-4">
                             <button type="button" class="btn btn-outline-light btn-sm w-100 rounded-pill py-1.5 px-1 px-md-3 fw-semibold d-flex align-items-center justify-content-center gap-1 text-truncate" onclick="openBioEditModal()">
                                 <i class="fas fa-user-pen"></i>
-                                <span class="d-none d-sm-inline">পরিচিতি এডিট</span>
-                                <span class="d-inline d-sm-none" style="font-size: 11px;">এডিট</span>
+                                <span>Edit Bio</span>
                             </button>
                         </div>
                         <div class="col-4">
                             @if($author && $author->slug)
                                 <a href="{{ route('authors.show', $author->slug) }}" target="_blank" class="btn btn-outline-info btn-sm w-100 rounded-pill py-1.5 px-1 px-md-3 fw-semibold text-white d-flex align-items-center justify-content-center gap-1 text-truncate">
                                     <i class="fas fa-arrow-up-right-from-square"></i>
-                                    <span class="d-none d-sm-inline">পাবলিক প্রোফাইল</span>
-                                    <span class="d-inline d-sm-none" style="font-size: 11px;">প্রোফাইল</span>
+                                    <span>Profile</span>
                                 </a>
                             @else
                                 <a href="{{ route('home') }}" target="_blank" class="btn btn-outline-info btn-sm w-100 rounded-pill py-1.5 px-1 px-md-3 fw-semibold text-white d-flex align-items-center justify-content-center gap-1 text-truncate">
                                     <i class="fas fa-store"></i>
-                                    <span class="d-none d-sm-inline">লাইভ স্টোর</span>
-                                    <span class="d-inline d-sm-none" style="font-size: 11px;">স্টোর</span>
+                                    <span>Store</span>
                                 </a>
                             @endif
                         </div>
@@ -160,53 +158,50 @@
     </div>
 
     {{-- ═════════════════════════════════════════════════════════════════════════ --}}
-    {{-- 1. PRIMARY CTA QUICK ACTION BAR (কম্প্যাক্ট ৩-কলাম টাইলস)                  --}}
+    {{-- 1. PRIMARY CTA QUICK ACTION BAR                                            --}}
     {{-- ═════════════════════════════════════════════════════════════════════════ --}}
     <div class="card border-0 shadow-sm rounded-4 p-2.5 p-md-3 bg-white">
         <div class="row g-2">
-            {{-- Action 1: New Ideapatra Post --}}
             <div class="col-4">
                 <a href="{{ route('author.posts.create') }}" class="btn btn-light border bg-warning-subtle border-warning-subtle w-100 py-2 py-md-2.5 rounded-3 fw-bold text-dark d-flex flex-column flex-md-row align-items-center justify-content-center gap-1 gap-md-2 shadow-xs hover-lift text-decoration-none">
                     <i class="fas fa-feather-pointed text-warning-emphasis fs-5"></i>
-                    <span style="font-size: 12px;" class="fw-bold text-truncate">+ আইডিয়াপত্র</span>
+                    <span style="font-size: 12px;" class="fw-bold text-truncate">+ Post</span>
                 </a>
             </div>
 
-            {{-- Action 2: Upload E-Book --}}
             <div class="col-4">
                 <a href="{{ route('author.ebooks.create') }}" class="btn btn-light border bg-primary-subtle border-primary-subtle w-100 py-2 py-md-2.5 rounded-3 fw-bold text-primary-emphasis d-flex flex-column flex-md-row align-items-center justify-content-center gap-1 gap-md-2 shadow-xs hover-lift text-decoration-none">
                     <i class="fas fa-cloud-arrow-up text-primary fs-5"></i>
-                    <span style="font-size: 12px;" class="fw-bold text-truncate">+ ই-বুক</span>
+                    <span style="font-size: 12px;" class="fw-bold text-truncate">+ E-Book</span>
                 </a>
             </div>
 
-            {{-- Action 3: Submit Cover / Manuscript --}}
             <div class="col-4">
                 <a href="{{ route('author.ebooks.create') }}" class="btn btn-light border bg-success-subtle border-success-subtle w-100 py-2 py-md-2.5 rounded-3 fw-bold text-success-emphasis d-flex flex-column flex-md-row align-items-center justify-content-center gap-1 gap-md-2 shadow-xs hover-lift text-decoration-none">
                     <i class="fas fa-file-arrow-up text-success fs-5"></i>
-                    <span style="font-size: 12px;" class="fw-bold text-truncate">+ পাণ্ডুলিপি</span>
+                    <span style="font-size: 12px;" class="fw-bold text-truncate">+ Manuscript</span>
                 </a>
             </div>
         </div>
     </div>
 
     {{-- ═════════════════════════════════════════════════════════════════════════ --}}
-    {{-- 2. DYNAMIC STATUS CARDS (সুষম ২×২ গ্রিড লেআউট)                            --}}
+    {{-- 2. DYNAMIC STATUS CARDS                                                    --}}
     {{-- ═════════════════════════════════════════════════════════════════════════ --}}
     <div class="row g-2.5 g-md-3">
-        {{-- Card 1: Ideapatra Posts Counter --}}
+        {{-- Card 1: Posts Counter --}}
         <div class="col-6 col-lg-3">
             <div class="author-card p-3 h-100 border-start border-4 border-warning d-flex flex-column justify-content-between">
                 <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="text-muted small fw-semibold text-truncate">আইডিয়াপত্র</span>
+                    <span class="text-muted small fw-semibold text-truncate">Posts</span>
                     <span class="p-1.5 px-2 bg-warning-subtle text-warning-emphasis rounded-3"><i class="fas fa-pen-nib small"></i></span>
                 </div>
                 <div>
-                    <h3 class="fw-bold mb-1 text-dark fs-4 font-monospace">@bn($totalPosts)</h3>
+                    <h3 class="fw-bold mb-1 text-dark fs-4 font-monospace">{{ $totalPosts }}</h3>
                     <div class="small text-muted d-flex flex-wrap align-items-center gap-1">
-                        <span class="badge bg-success-subtle text-success" style="font-size: 10px;">@bn($publishedPosts) লাইভ</span>
+                        <span class="badge bg-success-subtle text-success" style="font-size: 10px;">{{ $publishedPosts }} Live</span>
                         @if($pendingPosts > 0)
-                            <span class="badge bg-warning-subtle text-warning-emphasis" style="font-size: 10px;">@bn($pendingPosts) পেন্ডিং</span>
+                            <span class="badge bg-warning-subtle text-warning-emphasis" style="font-size: 10px;">{{ $pendingPosts }} Pending</span>
                         @endif
                     </div>
                 </div>
@@ -217,14 +212,14 @@
         <div class="col-6 col-lg-3">
             <div class="author-card p-3 h-100 border-start border-4 border-primary d-flex flex-column justify-content-between">
                 <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="text-muted small fw-semibold text-truncate">ই-বুক ও সেলস</span>
+                    <span class="text-muted small fw-semibold text-truncate">E-Books & Sales</span>
                     <span class="p-1.5 px-2 bg-primary-subtle text-primary rounded-3"><i class="fas fa-book-bookmark small"></i></span>
                 </div>
                 <div>
-                    <h3 class="fw-bold mb-1 text-dark fs-4 font-monospace">@bn($totalEbooks)</h3>
+                    <h3 class="fw-bold mb-1 text-dark fs-4 font-monospace">{{ $totalEbooks }}</h3>
                     <div class="small text-muted d-flex flex-wrap align-items-center gap-1">
-                        <span class="badge bg-primary-subtle text-primary" style="font-size: 10px;">@bn($totalCopiesSold) বিক্রি</span>
-                        <span class="badge bg-success-subtle text-success" style="font-size: 10px;">@bn($publishedEbooks) লাইভ</span>
+                        <span class="badge bg-primary-subtle text-primary" style="font-size: 10px;">{{ $totalCopiesSold }} Sold</span>
+                        <span class="badge bg-success-subtle text-success" style="font-size: 10px;">{{ $publishedEbooks }} Live</span>
                     </div>
                 </div>
             </div>
@@ -234,35 +229,35 @@
         <div class="col-6 col-lg-3">
             <div class="author-card p-3 h-100 border-start border-4 border-success d-flex flex-column justify-content-between">
                 <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="text-muted small fw-semibold text-truncate">ই-বুক রয়্যালটি</span>
+                    <span class="text-muted small fw-semibold text-truncate">Royalty (50%)</span>
                     <span class="p-1.5 px-2 bg-success-subtle text-success rounded-3"><i class="fas fa-sack-dollar small"></i></span>
                 </div>
                 <div>
                     <h3 class="fw-bold mb-1 text-success font-monospace fs-4">৳{{ number_format($totalRoyaltyEarned, 2) }}</h3>
-                    <div class="small text-muted text-truncate" style="font-size: 11px;">৫০% রয়্যালটি শেয়ার</div>
+                    <div class="small text-muted text-truncate" style="font-size: 11px;">50% E-Book Share</div>
                 </div>
             </div>
         </div>
 
-        {{-- Card 4: Reader Honorarium / পাঠক সম্মানি --}}
+        {{-- Card 4: Reader Tips --}}
         <div class="col-6 col-lg-3">
             <div class="author-card p-3 h-100 border-start border-4 border-danger d-flex flex-column justify-content-between">
                 <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="text-muted small fw-semibold text-truncate">পাঠক সম্মানি</span>
+                    <span class="text-muted small fw-semibold text-truncate">Reader Tips</span>
                     <span class="p-1.5 px-2 bg-danger bg-opacity-10 text-danger rounded-3"><i class="fas fa-heart small"></i></span>
                 </div>
                 <div>
                     <h3 class="fw-bold mb-1 text-danger font-monospace fs-4">৳{{ number_format($totalHonorariumEarned, 2) }}</h3>
                     <div class="small text-muted d-flex align-items-center justify-content-between" style="font-size: 11px;">
-                        <span>@bn($totalHonorariumCount) জন পাঠক</span>
-                        <a href="{{ route('author.honorariums') }}" class="text-danger text-decoration-none fw-bold">বিস্তারিত →</a>
+                        <span>{{ $totalHonorariumCount }} Tips</span>
+                        <a href="{{ route('author.honorariums') }}" class="text-danger text-decoration-none fw-bold">View →</a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    {{-- Card 5: Wallet Overview Highlight Banner --}}
+    {{-- Card 5: Wallet Banner --}}
     <div class="card border-0 shadow-sm rounded-4 p-3 p-md-3.5 text-white" style="background: linear-gradient(135deg, #1e1b4b 0%, #312e81 60%, #4338ca 100%);">
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
             <div class="d-flex align-items-center gap-3">
@@ -270,23 +265,23 @@
                     <i class="fas fa-wallet"></i>
                 </div>
                 <div>
-                    <span class="text-white-50 small text-uppercase fw-semibold" style="letter-spacing: 0.5px; font-size: 11px;">উত্তোলনযোগ্য ব্যালেন্স</span>
+                    <span class="text-white-50 small text-uppercase fw-semibold" style="letter-spacing: 0.5px; font-size: 11px;">Available Balance</span>
                     <h2 class="fw-bold mb-0 text-warning font-monospace fs-3 fs-md-2">৳{{ number_format($availableBalance, 2) }}</h2>
                 </div>
             </div>
             <div class="d-flex flex-wrap align-items-center gap-2 w-100 w-sm-auto justify-content-between justify-content-md-end">
                 <a href="{{ route('author.payouts.index') }}" class="btn btn-warning btn-sm rounded-pill px-3 py-2 fw-bold text-dark shadow-sm flex-grow-1 flex-md-grow-0 text-center">
-                    <i class="fas fa-hand-holding-dollar me-1"></i> উত্তোলন করুন
+                    <i class="fas fa-hand-holding-dollar me-1"></i> Withdraw
                 </a>
                 <a href="{{ route('author.honorariums') }}" class="btn btn-outline-light btn-sm rounded-pill px-3 py-2 fw-semibold flex-grow-1 flex-md-grow-0 text-center">
-                    <i class="fas fa-receipt me-1"></i> সম্মানি লেজার
+                    <i class="fas fa-receipt me-1"></i> Ledger
                 </a>
             </div>
         </div>
     </div>
 
     {{-- ═════════════════════════════════════════════════════════════════════════ --}}
-    {{-- 3. QUICK MOBILE WRITING / DRAFTING WIDGET                                  --}}
+    {{-- 3. QUICK DRAFT WIDGET                                                      --}}
     {{-- ═════════════════════════════════════════════════════════════════════════ --}}
     <div class="author-card bg-white overflow-hidden">
         <div class="p-3 d-flex align-items-center justify-content-between cursor-pointer border-bottom bg-light bg-opacity-25"
@@ -337,7 +332,7 @@
     </div>
 
     {{-- ═════════════════════════════════════════════════════════════════════════ --}}
-    {{-- 4. RECENT SALES / ROYALTIES & E-BOOKS GRID (কার্ড-বেসড রেসপনসিভ লিস্ট)       --}}
+    {{-- 4. RECENT SALES & E-BOOKS GRID                                             --}}
     {{-- ═════════════════════════════════════════════════════════════════════════ --}}
     <div class="row g-3">
         {{-- Left: Recent Sales & Royalty Earnings --}}
@@ -345,23 +340,23 @@
             <div class="author-card p-3 p-md-4 h-100">
                 <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
                     <h6 class="fw-bold mb-0 text-dark">
-                        <i class="fas fa-receipt text-primary me-1.5"></i> সাম্প্রতিক বিক্রয় ও রয়্যালটি (Recent Sales)
+                        <i class="fas fa-receipt text-primary me-1.5"></i> Recent Sales
                     </h6>
                     <a href="{{ route('author.royalties') }}" class="small text-primary text-decoration-none fw-semibold">
-                        সবগুলো <i class="fas fa-arrow-right small"></i>
+                        View All <i class="fas fa-arrow-right small"></i>
                     </a>
                 </div>
 
-                {{-- Desktop Table View (>= 768px) --}}
+                {{-- Desktop Table View --}}
                 <div class="table-responsive d-none d-md-block">
                     <table class="table table-hover align-middle mb-0">
                         <thead class="table-light small fw-bold text-secondary">
                             <tr>
-                                <th>তারিখ</th>
-                                <th>ই-বুক শিরোনাম</th>
-                                <th>মূল্য</th>
-                                <th>রয়্যালটি (৫০%)</th>
-                                <th>স্ট্যাটাস</th>
+                                <th>Date</th>
+                                <th>E-Book Title</th>
+                                <th>Price</th>
+                                <th>Royalty (50%)</th>
+                                <th>Status</th>
                             </tr>
                         </thead>
                         <tbody class="small">
@@ -369,20 +364,20 @@
                                 <tr>
                                     <td class="text-muted">{{ $royalty->created_at->format('d M, Y') }}</td>
                                     <td>
-                                        <strong class="text-dark">{{ $royalty->ebook?->title ?? 'ই-বুক' }}</strong>
-                                        <small class="d-block text-muted">অর্ডার: #{{ $royalty->order?->order_number ?? $royalty->order_id }}</small>
+                                        <strong class="text-dark">{{ $royalty->ebook?->title ?? 'E-Book' }}</strong>
+                                        <small class="d-block text-muted">Order #{{ $royalty->order?->order_number ?? $royalty->order_id }}</small>
                                     </td>
                                     <td class="font-monospace">৳{{ number_format($royalty->sale_price, 2) }}</td>
                                     <td class="fw-bold text-success font-monospace">+৳{{ number_format($royalty->royalty_amount, 2) }}</td>
                                     <td>
-                                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5">অর্জিত</span>
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5">Earned</span>
                                     </td>
                                 </tr>
                             @empty
                                 <tr>
                                     <td colspan="5" class="text-center py-4 text-muted">
                                         <i class="fas fa-receipt fs-3 opacity-25 d-block mb-1"></i>
-                                        এখনও কোনো বিক্রয় ট্রানজ্যাকশন নেই। বই বিক্রি হলে ৫০% রয়্যালটি এখানে দেখতে পাবেন।
+                                        No sales records yet.
                                     </td>
                                 </tr>
                             @endforelse
@@ -390,16 +385,16 @@
                     </table>
                 </div>
 
-                {{-- Mobile Card-Based List View (< 768px) --}}
+                {{-- Mobile Card View --}}
                 <div class="d-flex flex-column gap-2 d-md-none">
                     @forelse($recentRoyalties as $royalty)
                         <div class="p-2.5 rounded-3 border bg-light bg-opacity-40">
                             <div class="d-flex align-items-start justify-content-between gap-2 mb-1.5">
                                 <div class="overflow-hidden">
-                                    <h6 class="small fw-bold mb-0 text-dark text-truncate">{{ $royalty->ebook?->title ?? 'ই-বুক' }}</h6>
-                                    <small class="text-muted" style="font-size: 10.5px;">অর্ডার: #{{ $royalty->order?->order_number ?? $royalty->order_id }}</small>
+                                    <h6 class="small fw-bold mb-0 text-dark text-truncate">{{ $royalty->ebook?->title ?? 'E-Book' }}</h6>
+                                    <small class="text-muted" style="font-size: 10.5px;">Order #{{ $royalty->order?->order_number ?? $royalty->order_id }}</small>
                                 </div>
-                                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5" style="font-size: 10px;">অর্জিত</span>
+                                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5" style="font-size: 10px;">Earned</span>
                             </div>
                             <div class="d-flex align-items-center justify-content-between pt-1 border-top border-light-subtle">
                                 <span class="text-muted" style="font-size: 11px;">
@@ -414,7 +409,7 @@
                     @empty
                         <div class="text-center py-4 text-muted small">
                             <i class="fas fa-receipt fs-3 opacity-25 d-block mb-1"></i>
-                            এখনও কোনো বিক্রয় ট্রানজ্যাকশন নেই।
+                            No sales records yet.
                         </div>
                     @endforelse
                 </div>
@@ -422,15 +417,15 @@
             </div>
         </div>
 
-        {{-- Right: My Ebooks Quick Status --}}
+        {{-- Right: My E-Books --}}
         <div class="col-12 col-lg-4">
             <div class="author-card p-3 p-md-4 h-100">
                 <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
                     <h6 class="fw-bold mb-0 text-dark">
-                        <i class="fas fa-book text-info me-1.5"></i> আমার ই-বুকসমূহ
+                        <i class="fas fa-book text-info me-1.5"></i> My E-Books
                     </h6>
                     <a href="{{ route('author.ebooks.index') }}" class="small text-primary text-decoration-none fw-semibold">
-                        ম্যানেজ করুন
+                        Manage
                     </a>
                 </div>
 
@@ -444,23 +439,23 @@
                                 <div class="font-monospace small text-primary fw-semibold" style="font-size: 11px;">৳{{ number_format($eb->price, 2) }}</div>
                                 <div class="mt-0.5">
                                     @if($eb->mod_status === 'approved')
-                                        <span class="badge bg-success-subtle text-success" style="font-size: 9.5px;">লাইভ</span>
+                                        <span class="badge bg-success-subtle text-success" style="font-size: 9.5px;">Live</span>
                                     @elseif($eb->mod_status === 'rejected')
-                                        <span class="badge bg-danger-subtle text-danger" style="font-size: 9.5px;">সংশোধন প্রয়োজন</span>
+                                        <span class="badge bg-danger-subtle text-danger" style="font-size: 9.5px;">Revision</span>
                                     @else
-                                        <span class="badge bg-warning-subtle text-warning-emphasis" style="font-size: 9.5px;">পেন্ডিং</span>
+                                        <span class="badge bg-warning-subtle text-warning-emphasis" style="font-size: 9.5px;">Pending</span>
                                     @endif
                                 </div>
                             </div>
-                            <a href="{{ route('author.ebooks.edit', $eb->id) }}" class="btn btn-xs btn-outline-secondary rounded-pill p-1 px-2" title="এডিট">
+                            <a href="{{ route('author.ebooks.edit', $eb->id) }}" class="btn btn-xs btn-outline-secondary rounded-pill p-1 px-2" title="Edit">
                                 <i class="fas fa-pen small"></i>
                             </a>
                         </div>
                     @empty
                         <div class="text-center py-4 text-muted">
-                            <p class="small mb-2">আপনি এখনও কোনো ই-বুক আপলোড করেননি।</p>
+                            <p class="small mb-2">No e-books uploaded yet.</p>
                             <a href="{{ route('author.ebooks.create') }}" class="btn btn-sm btn-primary rounded-pill px-3">
-                                <i class="fas fa-plus me-1"></i> প্রথম ই-বুক আপলোড
+                                <i class="fas fa-plus me-1"></i> Upload E-Book
                             </a>
                         </div>
                     @endforelse
@@ -470,7 +465,7 @@
     </div>
 
     {{-- ═════════════════════════════════════════════════════════════════════════ --}}
-    {{-- 5. RECENT READER HONORARIUMS & APPRECIATION NOTES (পাঠক সম্মানি ও শুভেচ্ছা) --}}
+    {{-- 5. RECENT TIPS & APPRECIATION                                              --}}
     {{-- ═════════════════════════════════════════════════════════════════════════ --}}
     @if(isset($recentHonorariums) && $recentHonorariums->isNotEmpty())
         <div class="author-card p-3 p-md-4 bg-white border-start border-4 border-danger">
@@ -479,10 +474,10 @@
                     <span class="badge bg-danger bg-opacity-10 text-danger rounded-circle p-1.5">
                         <i class="fas fa-heart"></i>
                     </span>
-                    <span class="small fw-bold">সাম্প্রতিক পাঠক সম্মানি বার্তা</span>
+                    <span class="small fw-bold">Recent Reader Tips</span>
                 </h6>
                 <a href="{{ route('author.honorariums') }}" class="btn btn-sm btn-outline-danger rounded-pill px-2.5 py-0.5 fw-semibold" style="font-size: 11px;">
-                    সকল (@bn($totalHonorariumCount)) →
+                    All ({{ $totalHonorariumCount }}) →
                 </a>
             </div>
 
@@ -520,7 +515,7 @@
     @endif
 
     {{-- ═════════════════════════════════════════════════════════════════════════ --}}
-    {{-- 6. IDEAPATRA (ARTICLES & BLOG POSTS LIST)                                 --}}
+    {{-- 6. RECENT POSTS LIST                                                       --}}
     {{-- ═════════════════════════════════════════════════════════════════════════ --}}
     <div class="author-card p-3 p-md-4 bg-white">
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3 pb-2 border-bottom">
@@ -529,30 +524,30 @@
                     <span class="badge bg-warning bg-opacity-20 text-warning-emphasis rounded-circle p-1.5">
                         <i class="fas fa-feather-pointed"></i>
                     </span>
-                    <span class="small fw-bold">আইডিয়াপত্র (আমার রচনা)</span>
+                    <span class="small fw-bold">My Posts</span>
                 </h6>
             </div>
             <div class="d-flex align-items-center gap-2">
                 <a href="{{ route('author.posts.index') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5 py-0.5" style="font-size: 11px;">
-                    সকল (@bn($totalPosts))
+                    All ({{ $totalPosts }})
                 </a>
                 <a href="{{ route('author.posts.create') }}" class="btn btn-sm btn-warning text-dark fw-bold rounded-pill px-3 shadow-xs" style="font-size: 11.5px;">
-                    <i class="fas fa-plus me-1"></i> নতুন লিখুন
+                    <i class="fas fa-plus me-1"></i> New Post
                 </a>
             </div>
         </div>
 
-        {{-- Desktop Table (>= 768px) --}}
+        {{-- Desktop Table --}}
         <div class="table-responsive d-none d-md-block">
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light small fw-bold text-secondary">
                     <tr>
-                        <th style="width: 50px;">ছবি</th>
-                        <th>লেখার শিরোনাম</th>
-                        <th>তারিখ</th>
-                        <th>ভিউ সংখ্যা</th>
-                        <th>স্ট্যাটাস</th>
-                        <th class="text-end">অ্যাকশন</th>
+                        <th style="width: 50px;">Cover</th>
+                        <th>Title</th>
+                        <th>Date</th>
+                        <th>Views</th>
+                        <th>Status</th>
+                        <th class="text-end">Action</th>
                     </tr>
                 </thead>
                 <tbody class="small">
@@ -572,24 +567,24 @@
                             </td>
                             <td class="text-muted">{{ $post->created_at->format('d M, Y') }}</td>
                             <td>
-                                <span class="text-muted font-monospace"><i class="fas fa-eye me-1"></i>@bn($post->view_count ?? 0)</span>
+                                <span class="text-muted font-monospace"><i class="fas fa-eye me-1"></i>{{ $post->view_count ?? 0 }}</span>
                             </td>
                             <td>
                                 @if($post->status === 'published')
-                                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5">লাইভ</span>
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5">Live</span>
                                 @elseif($post->status === 'pending')
-                                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2 py-0.5">রিভিউতে</span>
+                                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2 py-0.5">Pending</span>
                                 @else
-                                    <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-2 py-0.5">ড্রাফট</span>
+                                    <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-2 py-0.5">Draft</span>
                                 @endif
                             </td>
                             <td class="text-end">
                                 <div class="btn-group btn-group-sm">
-                                    <a href="{{ route('blog.show', $post->slug ?: $post->id) }}" target="_blank" class="btn btn-outline-primary" title="পড়ুন">
-                                        <i class="fas fa-eye me-1"></i> পড়ুন
+                                    <a href="{{ route('blog.show', $post->slug ?: $post->id) }}" target="_blank" class="btn btn-outline-primary" title="View">
+                                        <i class="fas fa-eye me-1"></i> Read
                                     </a>
                                     @if($post->status !== 'published' && $post->mod_status !== 'approved' && $post->status !== 'pending')
-                                        <a href="{{ route('author.posts.edit', $post->id) }}" class="btn btn-outline-secondary" title="এডিট">
+                                        <a href="{{ route('author.posts.edit', $post->id) }}" class="btn btn-outline-secondary" title="Edit">
                                             <i class="fas fa-pen"></i>
                                         </a>
                                     @endif
@@ -600,7 +595,7 @@
                         <tr>
                             <td colspan="6" class="text-center py-4 text-muted">
                                 <i class="fas fa-newspaper fs-3 opacity-25 d-block mb-1"></i>
-                                আপনি এখনও কোনো রচনা প্রকাশ করেননি। উপরের বাটনে ক্লিক করে প্রথম রচনা লিখুন।
+                                No posts created yet.
                             </td>
                         </tr>
                     @endforelse
@@ -608,7 +603,7 @@
             </table>
         </div>
 
-        {{-- Mobile Card List (< 768px) --}}
+        {{-- Mobile Card List --}}
         <div class="d-flex flex-column gap-2 d-md-none">
             @forelse($recentPosts as $post)
                 @php
@@ -621,23 +616,23 @@
                             <h6 class="small fw-bold mb-0 text-dark text-truncate">{{ $post->title }}</h6>
                             <div class="d-flex align-items-center gap-2 text-muted" style="font-size: 10.5px;">
                                 <span><i class="fas fa-calendar-day me-1"></i>{{ $post->created_at->format('d M, Y') }}</span>
-                                <span><i class="fas fa-eye me-1"></i>@bn($post->view_count ?? 0)</span>
+                                <span><i class="fas fa-eye me-1"></i>{{ $post->view_count ?? 0 }}</span>
                             </div>
                         </div>
                     </div>
                     <div class="d-flex align-items-center justify-content-between pt-1 border-top border-light-subtle">
                         <div>
                             @if($post->status === 'published')
-                                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5" style="font-size: 10px;">লাইভ</span>
+                                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5" style="font-size: 10px;">Live</span>
                             @elseif($post->status === 'pending')
-                                <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2 py-0.5" style="font-size: 10px;">রিভিউতে</span>
+                                <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2 py-0.5" style="font-size: 10px;">Pending</span>
                             @else
-                                <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-2 py-0.5" style="font-size: 10px;">ড্রাফট</span>
+                                <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-2 py-0.5" style="font-size: 10px;">Draft</span>
                             @endif
                         </div>
                         <div class="d-flex gap-1.5">
                             <a href="{{ route('blog.show', $post->slug ?: $post->id) }}" target="_blank" class="btn btn-xs btn-outline-primary rounded-pill px-2 py-0.5" style="font-size: 10.5px;">
-                                <i class="fas fa-eye me-0.5"></i> পড়ুন
+                                <i class="fas fa-eye me-0.5"></i> Read
                             </a>
                             @if($post->status !== 'published' && $post->mod_status !== 'approved' && $post->status !== 'pending')
                                 <a href="{{ route('author.posts.edit', $post->id) }}" class="btn btn-xs btn-outline-secondary rounded-pill px-2 py-0.5" style="font-size: 10.5px;">
@@ -650,7 +645,7 @@
             @empty
                 <div class="text-center py-4 text-muted small">
                     <i class="fas fa-newspaper fs-3 opacity-25 d-block mb-1"></i>
-                    আপনি এখনও কোনো রচনা প্রকাশ করেননি।
+                    No posts created yet.
                 </div>
             @endforelse
         </div>
@@ -659,36 +654,33 @@
 </div>
 
 {{-- ═════════════════════════════════════════════════════════════════════════ --}}
-{{-- 2. FLOATING ACTION BUTTON (FAB) & SPEED DIAL (FOR MOBILE DEVICES < 992PX)   --}}
+{{-- 2. FLOATING ACTION BUTTON (FAB) FOR MOBILE (< 992PX)                        --}}
 {{-- ═════════════════════════════════════════════════════════════════════════ --}}
 <div class="author-fab-wrapper d-lg-none" id="authorFabContainer">
-    {{-- Backdrop overlay when FAB is opened --}}
     <div class="author-fab-backdrop" id="authorFabBackdrop" onclick="closeAuthorFab()"></div>
 
-    {{-- Speed dial action list --}}
     <div class="author-fab-menu d-flex flex-column align-items-end gap-2" id="authorFabMenu">
         <a href="{{ route('author.posts.create') }}" class="author-fab-action text-decoration-none shadow-sm">
-            <span class="author-fab-label">নতুন আইডিয়াপত্র পোস্ট</span>
+            <span class="author-fab-label">+ Post</span>
             <span class="author-fab-icon bg-warning text-dark"><i class="fas fa-feather-pointed"></i></span>
         </a>
         <a href="{{ route('author.ebooks.create') }}" class="author-fab-action text-decoration-none shadow-sm">
-            <span class="author-fab-label">ই-বুক আপলোড করুন</span>
+            <span class="author-fab-label">+ E-Book</span>
             <span class="author-fab-icon bg-primary text-white"><i class="fas fa-cloud-arrow-up"></i></span>
         </a>
         <a href="{{ route('author.ebooks.create') }}" class="author-fab-action text-decoration-none shadow-sm">
-            <span class="author-fab-label">প্রচ্ছদ / পাণ্ডুলিপি সাবমিট</span>
+            <span class="author-fab-label">+ Manuscript</span>
             <span class="author-fab-icon bg-success text-white"><i class="fas fa-file-arrow-up"></i></span>
         </a>
     </div>
 
-    {{-- Main FAB Floating Trigger Button --}}
-    <button type="button" class="btn btn-warning author-fab-main-btn rounded-circle shadow-lg d-flex align-items-center justify-content-center" id="authorFabMainBtn" onclick="toggleAuthorFab()" title="দ্রুত অ্যাকশন">
+    <button type="button" class="btn btn-warning author-fab-main-btn rounded-circle shadow-lg d-flex align-items-center justify-content-center" id="authorFabMainBtn" onclick="toggleAuthorFab()" title="Quick Actions">
         <i class="fas fa-plus fs-4 text-dark" id="authorFabIcon"></i>
     </button>
 </div>
 
 {{-- ═════════════════════════════════════════════════════════════════════════ --}}
-{{-- 7. DYNAMIC AUTHOR PHOTO STUDIO MODAL (MOBILE & DESKTOP TOUCH-FRIENDLY)     --}}
+{{-- 7. DYNAMIC AUTHOR PHOTO STUDIO MODAL                                       --}}
 {{-- ═════════════════════════════════════════════════════════════════════════ --}}
 <div class="modal fade" id="authorPhotoStudioModal" tabindex="-1" aria-labelledby="authorPhotoStudioModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -696,7 +688,7 @@
             <div class="modal-header border-0 pb-0 pt-3 px-4 bg-light">
                 <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2" id="authorPhotoStudioModalLabel">
                     <i class="fas fa-camera text-primary"></i>
-                    <span>লেখক প্রোফাইল ছবি স্টুডিও</span>
+                    <span>Photo Studio</span>
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -711,7 +703,7 @@
                          ondrop="handleModalFileDrop(event)">
                         <canvas id="modalCropCanvas" width="240" height="240" style="display:block; width:240px; height:240px;"></canvas>
                         
-                        {{-- Clean, Non-blocking SVG Circular Mask Guide --}}
+                        {{-- SVG Circular Mask Guide --}}
                         <svg class="position-absolute top-0 start-0 w-100 h-100 pe-none" viewBox="0 0 240 240" style="pointer-events: none; z-index: 5;">
                             <defs>
                                 <mask id="authorCropCircleMask">
@@ -723,40 +715,40 @@
                             <circle cx="120" cy="120" r="115" fill="none" stroke="rgba(255, 255, 255, 0.85)" stroke-width="2" stroke-dasharray="6,4"/>
                         </svg>
 
-                        {{-- Initial placeholder when no image uploaded --}}
+                        {{-- Placeholder --}}
                         <div id="modalCanvasPlaceholder" class="position-absolute top-0 start-0 w-100 h-100 flex-column align-items-center justify-content-center bg-light text-muted p-3 pointer-events-none text-center" style="display: flex; z-index: 6;">
                             <i class="fas fa-cloud-arrow-up text-primary fs-1 mb-2"></i>
-                            <span class="fw-bold text-dark small mb-1">ছবি আপলোড বা ড্রপ করুন</span>
+                            <span class="fw-bold text-dark small mb-1">Select / Drop Photo</span>
                             <span class="text-muted" style="font-size: 11px;">JPG, PNG, WebP, HEIC</span>
                         </div>
                     </div>
                     <div class="text-muted small mt-1.5" style="font-size: 11.5px;">
-                        <i class="fas fa-hand-pointer text-secondary me-1"></i>মাউস বা আঙুল দিয়ে টেনে পজিশন ঠিক করুন
+                        <i class="fas fa-hand-pointer text-secondary me-1"></i>Drag to reposition
                     </div>
                 </div>
 
-                {{-- File Picker Options --}}
+                {{-- File Pickers --}}
                 <div class="mb-3">
                     <div class="d-flex gap-2">
                         <label class="btn btn-outline-primary btn-sm flex-grow-1 rounded-pill fw-semibold py-1.5" style="cursor: pointer;">
-                            <i class="fas fa-images me-1"></i> গ্যালারি থেকে সিলেক্ট করুন
+                            <i class="fas fa-images me-1"></i> Select Photo
                             <input type="file" id="modalAuthorAvatarInput" 
                                    accept="image/jpeg,image/png,image/jpg,image/webp,image/heic,image/heif" 
                                    class="d-none"
                                    onclick="this.value=null;"
                                    onchange="loadModalAuthorImage(this)">
                         </label>
-                        <label class="btn btn-outline-secondary btn-sm rounded-pill fw-semibold py-1.5 px-3" style="cursor: pointer;" title="সরাসরি ক্যামেরা থেকে ছবি তুলুন">
-                            <i class="fas fa-camera me-1"></i> ক্যামেরা
+                        <label class="btn btn-outline-secondary btn-sm rounded-pill fw-semibold py-1.5 px-3" style="cursor: pointer;" title="Take Photo">
+                            <i class="fas fa-camera me-1"></i> Camera
                             <input type="file" accept="image/*" capture="user" class="d-none" onclick="this.value=null;" onchange="loadModalAuthorImage(this)">
                         </label>
                     </div>
                 </div>
 
-                {{-- Interactive Controls: Zoom Slider, Rotate, Reset --}}
+                {{-- Zoom / Rotate / Reset Controls --}}
                 <div id="modalCropControls" class="p-3 bg-light rounded-3 border mb-3 d-none">
                     <div class="d-flex align-items-center justify-content-between mb-1.5" style="font-size: 11.5px;">
-                        <span class="text-muted fw-semibold"><i class="fas fa-magnifying-glass-plus text-primary me-1"></i>জুম নিয়ন্ত্রণ:</span>
+                        <span class="text-muted fw-semibold"><i class="fas fa-magnifying-glass-plus text-primary me-1"></i>Zoom:</span>
                         <span class="badge bg-white text-dark border font-monospace" id="modalZoomValBadge">100%</span>
                     </div>
                     <div class="d-flex align-items-center gap-2 mb-2">
@@ -767,23 +759,23 @@
 
                     <div class="d-flex align-items-center gap-2 flex-wrap justify-content-center">
                         <button type="button" class="btn btn-white btn-sm border rounded-pill px-3 py-1 text-dark small" onclick="rotateModalImage(90)">
-                            <i class="fas fa-rotate-right me-1 text-primary"></i> ৯০° ঘোরান
+                            <i class="fas fa-rotate-right me-1 text-primary"></i> Rotate 90°
                         </button>
                         <button type="button" class="btn btn-white btn-sm border rounded-pill px-3 py-1 text-dark small" onclick="resetModalCrop()">
-                            <i class="fas fa-arrows-to-circle me-1 text-secondary"></i> রিসেট পজিশন
+                            <i class="fas fa-arrows-to-circle me-1 text-secondary"></i> Reset
                         </button>
                     </div>
                 </div>
 
-                {{-- Alert Box --}}
+                {{-- Alert --}}
                 <div id="modalPhotoUploadAlert" class="alert d-none small py-2 px-3 rounded-3 mb-0"></div>
             </div>
 
             <div class="modal-footer border-0 pt-0 px-4 pb-3.5 d-flex justify-content-between">
-                <button type="button" class="btn btn-light rounded-pill px-3.5" data-bs-dismiss="modal">বাতিল</button>
+                <button type="button" class="btn btn-light rounded-pill px-3.5" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm" id="modalSavePhotoBtn" onclick="submitDynamicAuthorPhoto()" disabled>
                     <span class="spinner-border spinner-border-sm d-none me-1" id="modalPhotoSpinner" role="status"></span>
-                    <i class="fas fa-save me-1" id="modalPhotoSaveIcon"></i> ছবি সংরক্ষণ করুন
+                    <i class="fas fa-save me-1" id="modalPhotoSaveIcon"></i> Save Photo
                 </button>
             </div>
         </div>
@@ -791,7 +783,7 @@
 </div>
 
 {{-- ═════════════════════════════════════════════════════════════════════════ --}}
-{{-- 8. AUTHOR LITERARY PROFILE & BIO EDIT MODAL                                --}}
+{{-- 8. AUTHOR BIO & PROFILE EDIT MODAL                                         --}}
 {{-- ═════════════════════════════════════════════════════════════════════════ --}}
 <div class="modal fade" id="authorBioEditModal" tabindex="-1" aria-labelledby="authorBioEditModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -799,7 +791,7 @@
             <div class="modal-header border-0 pb-0 pt-3.5 px-4 bg-light">
                 <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2" id="authorBioEditModalLabel">
                     <i class="fas fa-user-pen text-primary"></i>
-                    <span>লেখক পরিচিতি ও প্রোফাইল সম্পাদন</span>
+                    <span>Edit Profile</span>
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -807,21 +799,20 @@
             <form id="authorBioEditForm" onsubmit="submitAuthorBio(event)">
                 <div class="modal-body p-4">
                     
-                    {{-- Nav Tabs for Organized Editing --}}
                     <ul class="nav nav-pills nav-fill mb-3 bg-light p-1 rounded-3" id="authorEditTabs" role="tablist">
                         <li class="nav-item" role="presentation">
                             <button class="nav-link active small py-1.5 fw-semibold" id="tab-basic-tab" data-bs-toggle="tab" data-bs-target="#tab-basic" type="button" role="tab">
-                                <i class="fas fa-user me-1"></i> মৌলিক পরিচিতি
+                                <i class="fas fa-user me-1"></i> Basic Info
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
                             <button class="nav-link small py-1.5 fw-semibold" id="tab-bio-tab" data-bs-toggle="tab" data-bs-target="#tab-bio" type="button" role="tab">
-                                <i class="fas fa-book-open me-1"></i> সাহিত্য বায়ো ও জনরা
+                                <i class="fas fa-book-open me-1"></i> Bio & Genre
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
                             <button class="nav-link small py-1.5 fw-semibold" id="tab-contact-tab" data-bs-toggle="tab" data-bs-target="#tab-contact" type="button" role="tab">
-                                <i class="fas fa-address-card me-1"></i> ঠিকানা ও পে-আউট
+                                <i class="fas fa-address-card me-1"></i> Address & Payout
                             </button>
                         </li>
                     </ul>
@@ -831,22 +822,22 @@
                         <div class="tab-pane fade show active" id="tab-basic" role="tabpanel">
                             <div class="row g-3">
                                 <div class="col-md-6">
-                                    <label class="form-label small fw-bold text-dark">লেখকের পূর্ণ নাম <span class="text-danger">*</span></label>
-                                    <input type="text" id="editAuthorNameInput" class="form-control rounded-3" value="{{ auth()->user()->name }}" required placeholder="আপনার পূর্ণ নাম">
+                                    <label class="form-label small fw-bold text-dark">Full Name <span class="text-danger">*</span></label>
+                                    <input type="text" id="editAuthorNameInput" class="form-control rounded-3" value="{{ auth()->user()->name }}" required placeholder="Full Name">
                                 </div>
 
                                 <div class="col-md-6">
-                                    <label class="form-label small fw-bold text-dark">সাহিত্যিক ছদ্মনাম <span class="text-muted small">(যদি থাকে)</span></label>
-                                    <input type="text" id="editAuthorPenNameInput" class="form-control rounded-3" value="{{ $authorPenName }}" placeholder="যেমন: বনফুল, সুনীল ইত্যাদি">
+                                    <label class="form-label small fw-bold text-dark">Pen Name <span class="text-muted small">(Optional)</span></label>
+                                    <input type="text" id="editAuthorPenNameInput" class="form-control rounded-3" value="{{ $authorPenName }}" placeholder="e.g. Literary Pen Name">
                                 </div>
 
                                 <div class="col-md-6">
-                                    <label class="form-label small fw-bold text-dark">মোবাইল নম্বর</label>
+                                    <label class="form-label small fw-bold text-dark">Phone Number</label>
                                     <input type="text" id="editAuthorPhoneInput" class="form-control rounded-3" value="{{ auth()->user()->phone ?? ($author?->phone ?? '') }}" placeholder="017XXXXXXXX">
                                 </div>
 
                                 <div class="col-md-6">
-                                    <label class="form-label small fw-bold text-dark">ইমেইল <span class="text-muted small">(লগইন আইডি)</span></label>
+                                    <label class="form-label small fw-bold text-dark">Email <span class="text-muted small">(Login ID)</span></label>
                                     <input type="email" class="form-control rounded-3 bg-light" value="{{ auth()->user()->email }}" readonly disabled>
                                 </div>
                             </div>
@@ -857,20 +848,20 @@
                             <div class="row g-3">
                                 <div class="col-12">
                                     <div class="d-flex justify-content-between align-items-center mb-1">
-                                        <label class="form-label small fw-bold text-dark mb-0">সাহিত্যিক পরিচিতি ও বায়ো</label>
-                                        <span class="text-muted small" id="editBioCounter" style="font-size: 11px;">0 অক্ষর</span>
+                                        <label class="form-label small fw-bold text-dark mb-0">Author Bio</label>
+                                        <span class="text-muted small" id="editBioCounter" style="font-size: 11px;">0 chars</span>
                                     </div>
-                                    <textarea id="editAuthorBioInput" rows="5" class="form-control rounded-3 small" placeholder="আপনার সাহিত্য চর্চা, প্রকাশিত বই ও সংক্ষিপ্ত জীবনী..." oninput="document.getElementById('editBioCounter').textContent = this.value.length + ' অক্ষর'">{{ $authorBioText }}</textarea>
+                                    <textarea id="editAuthorBioInput" rows="5" class="form-control rounded-3 small" placeholder="Write your author biography, published works, or literary background..." oninput="document.getElementById('editBioCounter').textContent = this.value.length + ' chars'">{{ $authorBioText }}</textarea>
                                 </div>
 
                                 <div class="col-md-6">
-                                    <label class="form-label small fw-bold text-dark">প্রধান সাহিত্যধারা / জনরা</label>
-                                    <input type="text" id="editAuthorGenreInput" class="form-control rounded-3" value="{{ $author?->genre ?? ($userRegData['genre'] ?? '') }}" placeholder="যেমন: কবিতা, উপন্যাস, অনুবাদ, গবেষণা">
+                                    <label class="form-label small fw-bold text-dark">Genre / Field</label>
+                                    <input type="text" id="editAuthorGenreInput" class="form-control rounded-3" value="{{ $author?->genre ?? ($userRegData['genre'] ?? '') }}" placeholder="e.g. Poetry, Fiction, Research">
                                 </div>
 
                                 <div class="col-md-6">
-                                    <label class="form-label small fw-bold text-dark">ওয়েবসাইট / ফেসবুক পেজ লিঙ্ক</label>
-                                    <input type="url" id="editAuthorWebsiteInput" class="form-control rounded-3" value="{{ $author?->website ?? ($userRegData['website'] ?? '') }}" placeholder="https://facebook.com/authorname">
+                                    <label class="form-label small fw-bold text-dark">Website / Social URL</label>
+                                    <input type="url" id="editAuthorWebsiteInput" class="form-control rounded-3" value="{{ $author?->website ?? ($userRegData['website'] ?? '') }}" placeholder="https://...">
                                 </div>
                             </div>
                         </div>
@@ -879,39 +870,39 @@
                         <div class="tab-pane fade" id="tab-contact" role="tabpanel">
                             <div class="row g-3">
                                 <div class="col-md-6">
-                                    <label class="form-label small fw-bold text-dark">পিতার নাম</label>
-                                    <input type="text" id="editAuthorFatherNameInput" class="form-control rounded-3" value="{{ $fatherName }}" placeholder="পিতার নাম">
+                                    <label class="form-label small fw-bold text-dark">Father's Name</label>
+                                    <input type="text" id="editAuthorFatherNameInput" class="form-control rounded-3" value="{{ $fatherName }}" placeholder="Father's Name">
                                 </div>
 
                                 <div class="col-md-6">
-                                    <label class="form-label small fw-bold text-dark">মাতার নাম</label>
-                                    <input type="text" id="editAuthorMotherNameInput" class="form-control rounded-3" value="{{ $motherName }}" placeholder="মাতার নাম">
+                                    <label class="form-label small fw-bold text-dark">Mother's Name</label>
+                                    <input type="text" id="editAuthorMotherNameInput" class="form-control rounded-3" value="{{ $motherName }}" placeholder="Mother's Name">
                                 </div>
 
                                 <div class="col-md-6">
-                                    <label class="form-label small fw-bold text-dark">NID / পাসপোর্ট নম্বর</label>
-                                    <input type="text" id="editAuthorNidInput" class="form-control rounded-3" value="{{ $nidOrPassport }}" placeholder="জাতীয় পরিচয়পত্র বা পাসপোর্ট নম্বর">
+                                    <label class="form-label small fw-bold text-dark">NID / Passport</label>
+                                    <input type="text" id="editAuthorNidInput" class="form-control rounded-3" value="{{ $nidOrPassport }}" placeholder="NID or Passport number">
                                 </div>
 
                                 <div class="col-md-6">
-                                    <label class="form-label small fw-bold text-dark">বর্তমান ঠিকানা</label>
-                                    <input type="text" id="editAuthorAddressInput" class="form-control rounded-3" value="{{ $presentAddress }}" placeholder="বাড়ি, রোড, থানা, জেলা">
+                                    <label class="form-label small fw-bold text-dark">Present Address</label>
+                                    <input type="text" id="editAuthorAddressInput" class="form-control rounded-3" value="{{ $presentAddress }}" placeholder="Address...">
                                 </div>
 
                                 <div class="col-md-6">
-                                    <label class="form-label small fw-bold text-dark">রয়্যালটি পে-আউট মাধ্যম</label>
+                                    <label class="form-label small fw-bold text-dark">Payout Method</label>
                                     <select id="editAuthorPayoutMethodSelect" class="form-select rounded-3">
-                                        <option value="">নির্বাচন করুন</option>
-                                        <option value="bkash" {{ strtolower($payoutMethod ?? '') === 'bkash' ? 'selected' : '' }}>bKash (বিকাশ)</option>
-                                        <option value="nagad" {{ strtolower($payoutMethod ?? '') === 'nagad' ? 'selected' : '' }}>Nagad (নগদ)</option>
-                                        <option value="rocket" {{ strtolower($payoutMethod ?? '') === 'rocket' ? 'selected' : '' }}>Rocket (রকেট)</option>
-                                        <option value="bank" {{ strtolower($payoutMethod ?? '') === 'bank' ? 'selected' : '' }}>Bank Account (ব্যাংক একাউন্ট)</option>
+                                        <option value="">Select Method</option>
+                                        <option value="bkash" {{ strtolower($payoutMethod ?? '') === 'bkash' ? 'selected' : '' }}>bKash</option>
+                                        <option value="nagad" {{ strtolower($payoutMethod ?? '') === 'nagad' ? 'selected' : '' }}>Nagad</option>
+                                        <option value="rocket" {{ strtolower($payoutMethod ?? '') === 'rocket' ? 'selected' : '' }}>Rocket</option>
+                                        <option value="bank" {{ strtolower($payoutMethod ?? '') === 'bank' ? 'selected' : '' }}>Bank Account</option>
                                     </select>
                                 </div>
 
                                 <div class="col-md-6">
-                                    <label class="form-label small fw-bold text-dark">পে-আউট একাউন্ট / মোবাইল নম্বর</label>
-                                    <input type="text" id="editAuthorPayoutNumberInput" class="form-control rounded-3" value="{{ $payoutNumber }}" placeholder="যেমন: 017XXXXXXXX বা ব্যাংক হিসাব নম্বর">
+                                    <label class="form-label small fw-bold text-dark">Payout Number / Account</label>
+                                    <input type="text" id="editAuthorPayoutNumberInput" class="form-control rounded-3" value="{{ $payoutNumber }}" placeholder="Account or phone number">
                                 </div>
                             </div>
                         </div>
@@ -921,10 +912,10 @@
                 </div>
 
                 <div class="modal-footer border-0 pt-0 px-4 pb-3.5 d-flex justify-content-between">
-                    <button type="button" class="btn btn-light rounded-pill px-3.5" data-bs-dismiss="modal">বাতিল</button>
+                    <button type="button" class="btn btn-light rounded-pill px-3.5" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm" id="saveBioSubmitBtn">
                         <span class="spinner-border spinner-border-sm d-none me-1" id="saveBioSpinner"></span>
-                        <i class="fas fa-save me-1" id="saveBioIcon"></i> তথ্য সংরক্ষণ করুন
+                        <i class="fas fa-save me-1" id="saveBioIcon"></i> Save Changes
                     </button>
                 </div>
             </form>
@@ -949,70 +940,67 @@
     z-index: 1040;
 }
 .author-fab-main-btn {
-    width: 52px;
-    height: 52px;
-    background: linear-gradient(135deg, #f59e0b, #d97706) !important;
-    border: 2px solid #ffffff !important;
-    box-shadow: 0 4px 15px rgba(217, 119, 6, 0.45) !important;
-    transition: transform 0.25s ease, background 0.25s ease;
+    width: 54px;
+    height: 54px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+    border: 3px solid #ffffff;
+    transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 .author-fab-main-btn:active {
     transform: scale(0.92);
 }
-.author-fab-main-btn.active {
-    background: #0f172a !important;
-    border-color: #38bdf8 !important;
-}
-.author-fab-main-btn.active i {
+.author-fab-wrapper.active .author-fab-main-btn {
     transform: rotate(45deg);
+    background-color: #ef4444 !important;
+    border-color: #ffffff;
     color: #ffffff !important;
 }
-.author-fab-main-btn i {
-    transition: transform 0.25s ease;
+.author-fab-wrapper.active .author-fab-main-btn i {
+    color: #ffffff !important;
 }
 .author-fab-menu {
     position: absolute;
-    bottom: 62px;
-    right: 0;
-    pointer-events: none;
+    bottom: 66px;
+    right: 4px;
     opacity: 0;
-    transform: translateY(15px) scale(0.95);
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: none;
+    transform: translateY(15px);
+    transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
-.author-fab-menu.active {
-    pointer-events: auto;
+.author-fab-wrapper.active .author-fab-menu {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    pointer-events: auto;
+    transform: translateY(0);
 }
 .author-fab-action {
     display: flex;
     align-items: center;
-    gap: 8px;
-    background: #ffffff;
-    padding: 6px 12px;
-    border-radius: 50px;
-    border: 1px solid rgba(0,0,0,0.08);
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    gap: 10px;
     white-space: nowrap;
 }
-.author-fab-action:active {
-    transform: scale(0.96);
-}
 .author-fab-label {
-    font-size: 0.78rem;
-    font-weight: 700;
-    color: #1e293b;
+    background: rgba(15, 23, 42, 0.90);
+    backdrop-filter: blur(6px);
+    color: #ffffff;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 .author-fab-icon {
-    width: 32px;
-    height: 32px;
+    width: 42px;
+    height: 42px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.85rem;
+    border: 2px solid #ffffff;
+    font-size: 15px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.18);
 }
 .author-fab-backdrop {
+    display: none;
     position: fixed;
     top: 0;
     left: 0;
@@ -1020,59 +1008,35 @@
     bottom: 0;
     background: rgba(15, 23, 42, 0.4);
     backdrop-filter: blur(2px);
-    z-index: 1035;
-    display: none;
-    opacity: 0;
-    transition: opacity 0.25s ease;
+    z-index: -1;
 }
-.author-fab-backdrop.active {
+.author-fab-wrapper.active .author-fab-backdrop {
     display: block;
-    opacity: 1;
 }
 </style>
 
 <script>
-/* =========================================================================
-   FAB SPEED DIAL HANDLERS
-   ========================================================================= */
+// Floating Action Button Toggle
 function toggleAuthorFab() {
-    const btn = document.getElementById('authorFabMainBtn');
-    const menu = document.getElementById('authorFabMenu');
-    const backdrop = document.getElementById('authorFabBackdrop');
-    if (!btn || !menu) return;
-    const isActive = btn.classList.toggle('active');
-    menu.classList.toggle('active', isActive);
-    if (backdrop) {
-        if (isActive) {
-            backdrop.style.display = 'block';
-            setTimeout(() => backdrop.classList.add('active'), 10);
-        } else {
-            backdrop.classList.remove('active');
-            setTimeout(() => backdrop.style.display = 'none', 250);
-        }
+    const container = document.getElementById('authorFabContainer');
+    if (container) {
+        container.classList.toggle('active');
     }
 }
 
 function closeAuthorFab() {
-    const btn = document.getElementById('authorFabMainBtn');
-    const menu = document.getElementById('authorFabMenu');
-    const backdrop = document.getElementById('authorFabBackdrop');
-    if (btn) btn.classList.remove('active');
-    if (menu) menu.classList.remove('active');
-    if (backdrop) {
-        backdrop.classList.remove('active');
-        setTimeout(() => backdrop.style.display = 'none', 250);
+    const container = document.getElementById('authorFabContainer');
+    if (container) {
+        container.classList.remove('active');
     }
 }
 
-/* =========================================================================
-   DYNAMIC AUTHOR PHOTO STUDIO CROPPER & TOUCH ENGINE
-   ========================================================================= */
+// Interactive Photo Studio Cropper
 let modalCanvas = document.getElementById('modalCropCanvas');
 let modalCtx = modalCanvas ? modalCanvas.getContext('2d') : null;
 let modalCurrentImg = null;
-let modalImgX = 110;
-let modalImgY = 110;
+let modalImgX = 120;
+let modalImgY = 120;
 let modalScale = 1;
 let modalRotation = 0;
 let modalIsDragging = false;
@@ -1095,10 +1059,6 @@ function openPhotoStudioModal() {
 function openBioEditModal() {
     const modalEl = document.getElementById('authorBioEditModal');
     if (modalEl) {
-        const bio = document.getElementById('editAuthorBioInput');
-        if (bio) {
-            document.getElementById('editBioCounter').textContent = bio.value.length + ' অক্ষর';
-        }
         const modal = new bootstrap.Modal(modalEl);
         modal.show();
     }
@@ -1108,7 +1068,7 @@ function loadModalAuthorImage(input) {
     if (input.files && input.files[0]) {
         const file = input.files[0];
         
-        // 1. Instant preview on main dashboard avatar element
+        // Instant preview
         const mainBox = document.getElementById('dashAvatarMainBox');
         if (mainBox) {
             try {
@@ -1317,7 +1277,7 @@ if (modalWrapper) {
     window.addEventListener('touchend', stopModalDrag);
 }
 
-// AJAX SUBMIT DYNAMIC AUTHOR PHOTO
+// Submit Photo via AJAX
 function submitDynamicAuthorPhoto() {
     exportModalCroppedAvatar();
     
@@ -1357,10 +1317,9 @@ function submitDynamicAuthorPhoto() {
         
         if (data.success) {
             alertBox.className = 'alert alert-success small py-2 px-3 rounded-3 mb-0';
-            alertBox.textContent = data.message;
+            alertBox.textContent = data.message || 'Photo updated successfully.';
             alertBox.classList.remove('d-none');
             
-            // Update all avatar images on the page instantly!
             const newUrl = data.avatar_url;
             const mainBox = document.getElementById('dashAvatarMainBox');
             if (mainBox && newUrl) {
@@ -1377,7 +1336,7 @@ function submitDynamicAuthorPhoto() {
             }, 1200);
         } else {
             alertBox.className = 'alert alert-danger small py-2 px-3 rounded-3 mb-0';
-            alertBox.textContent = data.message || 'ছবি আপলোড ব্যর্থ হয়েছে।';
+            alertBox.textContent = data.message || 'Failed to upload photo.';
             alertBox.classList.remove('d-none');
         }
     })
@@ -1386,7 +1345,7 @@ function submitDynamicAuthorPhoto() {
         spinner.classList.add('d-none');
         icon.classList.remove('d-none');
         alertBox.className = 'alert alert-danger small py-2 px-3 rounded-3 mb-0';
-        alertBox.textContent = 'সার্ভার সংযোগ সমস্যা। অনুগ্রহ করে আবার চেষ্টা করুন।';
+        alertBox.textContent = 'Server connection error. Please try again.';
         alertBox.classList.remove('d-none');
     });
 }
@@ -1398,7 +1357,7 @@ function handleModalFileDrop(e) {
     if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]) {
         const file = e.dataTransfer.files[0];
         if (!file.type.match('image.*')) {
-            alert('অনুগ্রহ করে শুধুমাত্র ইমেজ ফাইল (JPG, PNG, WebP) ড্রপ করুন।');
+            alert('Please drop an image file (JPG, PNG, WebP).');
             return;
         }
         const fakeInput = { files: [file] };
@@ -1406,7 +1365,7 @@ function handleModalFileDrop(e) {
     }
 }
 
-// AJAX SUBMIT AUTHOR BIO & PROFILE
+// Submit Profile Bio via AJAX
 function submitAuthorBio(e) {
     e.preventDefault();
     const name = document.getElementById('editAuthorNameInput')?.value.trim() || '';
@@ -1464,25 +1423,23 @@ function submitAuthorBio(e) {
         
         if (data.success) {
             alertBox.className = 'alert alert-success small py-2 px-3 rounded-3 mb-0';
-            alertBox.textContent = data.message;
+            alertBox.textContent = data.message || 'Profile updated successfully.';
             alertBox.classList.remove('d-none');
             
-            // Update displayed values
             const nameDisplay = document.getElementById('dashAuthorNameDisplay');
             if (nameDisplay && name) nameDisplay.textContent = name;
             const bioDisplay = document.getElementById('dashAuthorBioDisplay');
-            if (bioDisplay) bioDisplay.textContent = bio || 'আপনার লেখক পরিচিতি ও সাহিত্য জীবনবৃত্তান্ত যুক্ত করুন যাতে পাঠকরা আপনার সম্পর্কে জানতে পারে।';
+            if (bioDisplay) bioDisplay.textContent = bio || '';
             
             setTimeout(() => {
                 const modalEl = document.getElementById('authorBioEditModal');
                 const modal = bootstrap.Modal.getInstance(modalEl);
                 if (modal) modal.hide();
-                // Reload lightly or stay
                 window.location.reload();
             }, 800);
         } else {
             alertBox.className = 'alert alert-danger small py-2 px-3 rounded-3 mb-0';
-            alertBox.textContent = data.message || 'আপডেট করা সম্ভব হয়নি।';
+            alertBox.textContent = data.message || 'Could not update profile.';
             alertBox.classList.remove('d-none');
         }
     })
@@ -1491,7 +1448,7 @@ function submitAuthorBio(e) {
         spinner.classList.add('d-none');
         icon.classList.remove('d-none');
         alertBox.className = 'alert alert-danger small py-2 px-3 rounded-3 mb-0';
-        alertBox.textContent = 'সার্ভার ত্রুটি। আবার চেষ্টা করুন।';
+        alertBox.textContent = 'Server error. Please try again.';
         alertBox.classList.remove('d-none');
     });
 }

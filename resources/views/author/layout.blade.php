@@ -181,7 +181,7 @@
                 <span class="p-2 bg-primary rounded-3"><i class="fas fa-feather-pointed"></i></span>
                 <div>
                     <h6 class="mb-0 fw-bold text-white font-monospace">IDEA KDP</h6>
-                    <small class="text-white-50" style="font-size: 10.5px;">লেখক সেলফ-পাবলিশিং</small>
+                    <small class="text-white-50" style="font-size: 10.5px;">Author Studio</small>
                 </div>
             </a>
         </div>
@@ -192,12 +192,12 @@
         @endphp
         <div class="p-3 mb-3 rounded-3 text-white" style="background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%); border: 1px solid rgba(255,255,255,0.1);">
             <div class="small text-white-50 mb-1 d-flex align-items-center justify-content-between">
-                <span>রয়্যালটি ওয়ালেট (৫০%)</span>
+                <span>Wallet (50%)</span>
                 <i class="fas fa-wallet text-warning"></i>
             </div>
             <h4 class="fw-bold mb-1 text-warning font-monospace">৳{{ number_format($authRecord?->wallet_balance ?? 0, 2) }}</h4>
             <a href="{{ route('author.payouts.index') }}" class="btn btn-xs btn-outline-light rounded-pill w-100 py-1 text-decoration-none fw-semibold" style="font-size: 11px;">
-                <i class="fas fa-money-bill-transfer me-1"></i> উত্তোলন (Payout)
+                <i class="fas fa-money-bill-transfer me-1"></i> Payout
             </a>
         </div>
 
@@ -205,49 +205,49 @@
         <nav class="flex-grow-1 overflow-y-auto pe-1">
             <a href="{{ route('author.dashboard') }}" class="author-nav-link {{ request()->routeIs('author.dashboard') ? 'active' : '' }}">
                 <i class="fas fa-chart-line text-info"></i>
-                <span>ড্যাশবোর্ড (Dashboard)</span>
+                <span>Dashboard</span>
             </a>
 
             {{-- SECTION 1: E-BOOKS & ROYALTIES --}}
             <div class="text-white-50 text-uppercase fw-bold px-3 pt-3 pb-1" style="font-size: 10px; letter-spacing: 0.8px;">
-                ই-বুক ও রয়্যালটি (KDP)
+                E-Books & Royalty
             </div>
             <a href="{{ route('author.ebooks.index') }}" class="author-nav-link {{ request()->routeIs('author.ebooks.index') ? 'active' : '' }}">
                 <i class="fas fa-book-open text-primary"></i>
-                <span>আমার ই-বুকসমূহ</span>
+                <span>My E-Books</span>
             </a>
             <a href="{{ route('author.ebooks.create') }}" class="author-nav-link text-white bg-success bg-opacity-25 border border-success border-opacity-25 my-1">
                 <i class="fas fa-plus-circle text-success"></i>
-                <span class="fw-bold">নতুন ই-বুক আপলোড</span>
+                <span class="fw-bold">Upload E-Book</span>
             </a>
             <a href="{{ route('author.royalties') }}" class="author-nav-link {{ request()->routeIs('author.royalties') ? 'active' : '' }}">
                 <i class="fas fa-receipt text-warning"></i>
-                <span>রয়্যালটি লেজার (৫০%)</span>
+                <span>Royalties (50%)</span>
             </a>
             <a href="{{ route('author.payouts.index') }}" class="author-nav-link {{ request()->routeIs('author.payouts.*') ? 'active' : '' }}">
                 <i class="fas fa-hand-holding-dollar text-success"></i>
-                <span>উত্তোলন ও পে-আউট</span>
+                <span>Payouts</span>
             </a>
 
-            {{-- SECTION 2: IDEAPATRA (BLOG & ARTICLES) --}}
+            {{-- SECTION 2: POSTS & ARTICLES --}}
             <div class="text-white-50 text-uppercase fw-bold px-3 pt-3 pb-1" style="font-size: 10px; letter-spacing: 0.8px;">
-                আইডিয়াপত্র (IdeaPatra)
+                Posts & Tips
             </div>
             <a href="{{ route('author.posts.index') }}" class="author-nav-link {{ request()->routeIs('author.posts.index') || request()->routeIs('author.posts.edit') ? 'active' : '' }}">
                 <i class="fas fa-feather-pointed text-primary"></i>
-                <span>আমার আইডিয়াপত্র</span>
+                <span>My Posts</span>
             </a>
             <a href="{{ route('author.honorariums') }}" class="author-nav-link {{ request()->routeIs('author.honorariums') ? 'active' : '' }}">
                 <i class="fas fa-heart text-danger"></i>
-                <span>পাঠক সম্মানি (Tips)</span>
+                <span>Reader Tips</span>
             </a>
             <a href="{{ route('author.posts.create') }}" class="author-nav-link {{ request()->routeIs('author.posts.create') ? 'active' : '' }}">
                 <i class="fas fa-pen-nib text-warning"></i>
-                <span>নতুন আইডিয়াপত্র লিখুন</span>
+                <span>Write Post</span>
             </a>
             <a href="{{ route('blog.index') }}" target="_blank" class="author-nav-link">
                 <i class="fas fa-newspaper text-info"></i>
-                <span>আইডিয়াপত্র লাইভ ফিড</span>
+                <span>Live Feed</span>
             </a>
         </nav>
 
@@ -267,12 +267,12 @@
                 </div>
                 <div class="overflow-hidden">
                     <div class="small fw-bold text-truncate text-white">{{ auth()->user()->name }}</div>
-                    <small class="text-white-50 d-block text-truncate" style="font-size: 11px;">লেখক (Author)</small>
+                    <small class="text-white-50 d-block text-truncate" style="font-size: 11px;">Author</small>
                 </div>
             </div>
             <form action="{{ route('logout') }}" method="POST" class="m-0">
                 @csrf
-                <button type="submit" class="btn btn-sm btn-link text-white-50 p-1" title="লগআউট">
+                <button type="submit" class="btn btn-sm btn-link text-white-50 p-1" title="Logout">
                     <i class="fas fa-power-off"></i>
                 </button>
             </form>
@@ -286,74 +286,71 @@
                 <span class="p-2 bg-primary rounded-3 text-white"><i class="fas fa-feather-pointed"></i></span>
                 <div>
                     <h6 class="mb-0 fw-bold text-white font-monospace">IDEA KDP</h6>
-                    <small class="text-white-50" style="font-size: 10px;">লেখক সেলফ-পাবলিশিং</small>
+                    <small class="text-white-50" style="font-size: 10px;">Author Studio</small>
                 </div>
             </div>
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
         </div>
         <div class="offcanvas-body p-3 d-flex flex-column">
-            {{-- Author Wallet in Mobile Drawer --}}
             <div class="p-3 mb-3 rounded-3 text-white" style="background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%); border: 1px solid rgba(255,255,255,0.1);">
                 <div class="small text-white-50 mb-1 d-flex align-items-center justify-content-between">
-                    <span>রয়্যালটি ওয়ালেট (৫০%)</span>
+                    <span>Wallet (50%)</span>
                     <i class="fas fa-wallet text-warning"></i>
                 </div>
                 <h4 class="fw-bold mb-1 text-warning font-monospace">৳{{ number_format($authRecord?->wallet_balance ?? 0, 2) }}</h4>
                 <a href="{{ route('author.payouts.index') }}" class="btn btn-xs btn-outline-light rounded-pill w-100 py-1 text-decoration-none fw-semibold" style="font-size: 11px;">
-                    <i class="fas fa-money-bill-transfer me-1"></i> উত্তোলন (Payout)
+                    <i class="fas fa-money-bill-transfer me-1"></i> Payout
                 </a>
             </div>
 
-            {{-- Mobile Nav Links --}}
             <nav class="flex-grow-1 overflow-y-auto pe-1">
                 <a href="{{ route('author.dashboard') }}" class="author-nav-link {{ request()->routeIs('author.dashboard') ? 'active' : '' }}">
                     <i class="fas fa-chart-line text-info"></i>
-                    <span>ড্যাশবোর্ড</span>
+                    <span>Dashboard</span>
                 </a>
 
                 <div class="text-white-50 text-uppercase fw-bold px-3 pt-3 pb-1" style="font-size: 10px; letter-spacing: 0.8px;">
-                    ই-বুক ও রয়্যালটি
+                    E-Books & Royalty
                 </div>
                 <a href="{{ route('author.ebooks.index') }}" class="author-nav-link {{ request()->routeIs('author.ebooks.index') ? 'active' : '' }}">
                     <i class="fas fa-book-open text-primary"></i>
-                    <span>আমার ই-বুকসমূহ</span>
+                    <span>My E-Books</span>
                 </a>
                 <a href="{{ route('author.ebooks.create') }}" class="author-nav-link text-white bg-success bg-opacity-25 border border-success border-opacity-25 my-1">
                     <i class="fas fa-plus-circle text-success"></i>
-                    <span class="fw-bold">নতুন ই-বুক আপলোড</span>
+                    <span class="fw-bold">Upload E-Book</span>
                 </a>
                 <a href="{{ route('author.royalties') }}" class="author-nav-link {{ request()->routeIs('author.royalties') ? 'active' : '' }}">
                     <i class="fas fa-receipt text-warning"></i>
-                    <span>রয়্যালটি লেজার (৫০%)</span>
+                    <span>Royalties</span>
                 </a>
                 <a href="{{ route('author.payouts.index') }}" class="author-nav-link {{ request()->routeIs('author.payouts.*') ? 'active' : '' }}">
                     <i class="fas fa-hand-holding-dollar text-success"></i>
-                    <span>উত্তোলন ও পে-আউট</span>
+                    <span>Payouts</span>
                 </a>
 
                 <div class="text-white-50 text-uppercase fw-bold px-3 pt-3 pb-1" style="font-size: 10px; letter-spacing: 0.8px;">
-                    আইডিয়াপত্র
+                    Posts & Tips
                 </div>
                 <a href="{{ route('author.posts.index') }}" class="author-nav-link {{ request()->routeIs('author.posts.index') || request()->routeIs('author.posts.edit') ? 'active' : '' }}">
                     <i class="fas fa-feather-pointed text-primary"></i>
-                    <span>আমার আইডিয়াপত্র</span>
+                    <span>My Posts</span>
                 </a>
                 <a href="{{ route('author.honorariums') }}" class="author-nav-link {{ request()->routeIs('author.honorariums') ? 'active' : '' }}">
                     <i class="fas fa-heart text-danger"></i>
-                    <span>পাঠক সম্মানি (Tips)</span>
+                    <span>Reader Tips</span>
                 </a>
                 <a href="{{ route('author.posts.create') }}" class="author-nav-link {{ request()->routeIs('author.posts.create') ? 'active' : '' }}">
                     <i class="fas fa-pen-nib text-warning"></i>
-                    <span>নতুন আইডিয়াপত্র লিখুন</span>
+                    <span>Write Post</span>
                 </a>
             </nav>
 
-            {{-- Logout Button in Drawer --}}
             <div class="pt-3 border-top border-secondary border-opacity-25">
                 <form action="{{ route('logout') }}" method="POST">
                     @csrf
                     <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill w-100 fw-semibold">
-                        <i class="fas fa-power-off me-1"></i> লগআউট করুন
+                        <i class="fas fa-power-off me-1"></i> Logout
                     </button>
                 </form>
             </div>
@@ -368,12 +365,12 @@
                 <button class="btn btn-sm btn-outline-secondary d-lg-none rounded-pill px-2.5 py-1" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileAuthorDrawer" aria-controls="mobileAuthorDrawer">
                     <i class="fas fa-bars"></i>
                 </button>
-                <h5 class="fw-bold mb-0 text-dark" style="font-size: 1.05rem;">@yield('heading', 'লেখক সেলফ-পাবলিশিং পোর্টাল')</h5>
+                <h5 class="fw-bold mb-0 text-dark" style="font-size: 1.05rem;">@yield('heading', 'Author Studio')</h5>
             </div>
 
             <div class="d-flex align-items-center gap-2">
                 <a href="{{ route('home') }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold">
-                    <i class="fas fa-store me-1"></i> <span class="d-none d-sm-inline">লাইভ স্টোর</span>
+                    <i class="fas fa-store me-1"></i> <span class="d-none d-sm-inline">Store</span>
                 </a>
             </div>
         </header>
@@ -390,7 +387,7 @@
 
             @if(session('error'))
                 <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center rounded-4 mb-4 shadow-xs" role="alert">
-                    <i class="fas fa-circle-exclamation fs-5 me-2 text-danger"></i>
+                    <i class="fas fa-circle-error fs-5 me-2 text-danger"></i>
                     <div>{{ session('error') }}</div>
                     <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
@@ -402,7 +399,7 @@
 
         {{-- Footer --}}
         <footer class="bg-white border-top py-3 px-4 text-center text-muted small d-none d-lg-block">
-            © {{ date('Y') }} আইডিয়া প্রকাশন (IDEA Publication) • Author Self-Publishing & E-Book Royalty Engine
+            © {{ date('Y') }} IDEA Publication • Author Self-Publishing & E-Book Royalty Engine
         </footer>
     </div>
 
@@ -410,23 +407,23 @@
     <nav class="author-mobile-bottom-bar d-lg-none">
         <a href="{{ route('author.dashboard') }}" class="bottom-nav-item {{ request()->routeIs('author.dashboard') ? 'active' : '' }}">
             <i class="fas fa-chart-pie"></i>
-            <span>ড্যাশবোর্ড</span>
+            <span>Dashboard</span>
         </a>
         <a href="{{ route('author.posts.create') }}" class="bottom-nav-item {{ request()->routeIs('author.posts.create') ? 'active' : '' }}">
             <i class="fas fa-pen-nib"></i>
-            <span>লিখুন</span>
+            <span>Write</span>
         </a>
         <a href="{{ route('author.ebooks.create') }}" class="bottom-nav-item text-warning {{ request()->routeIs('author.ebooks.create') ? 'active' : '' }}">
             <i class="fas fa-circle-plus fs-4"></i>
-            <span>আপলোড</span>
+            <span>Upload</span>
         </a>
         <a href="{{ route('author.ebooks.index') }}" class="bottom-nav-item {{ request()->routeIs('author.ebooks.index') ? 'active' : '' }}">
             <i class="fas fa-book-bookmark"></i>
-            <span>ই-বুক</span>
+            <span>E-Books</span>
         </a>
         <a href="{{ route('author.royalties') }}" class="bottom-nav-item {{ request()->routeIs('author.royalties') ? 'active' : '' }}">
             <i class="fas fa-wallet"></i>
-            <span>রয়্যালটি</span>
+            <span>Royalty</span>
         </a>
     </nav>
 
