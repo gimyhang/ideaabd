@@ -241,11 +241,11 @@
                     <thead class="table-light text-muted small text-uppercase">
                         <tr>
                             <th class="ps-2 text-center" style="width: 32px;">#</th>
-                            <th style="width: 24%;">Applicant & Contact</th>
-                            <th class="text-center" style="width: 9.5%;">Role</th>
-                            <th style="width: 28.5%;">Profile Details & Bio</th>
-                            <th class="text-center" style="width: 13%;">Status</th>
-                            <th class="text-center" style="width: 9%;">Date</th>
+                            <th style="width: 22%;">Applicant & Contact</th>
+                            <th class="text-center" style="width: 8%;">Role</th>
+                            <th style="width: 26%;">Profile Details & Bio</th>
+                            <th class="text-center" style="width: 12%;">Status</th>
+                            <th class="text-center" style="width: 10%;">Date</th>
                             <th class="text-end pe-2" style="width: 16%;">Actions</th>
                         </tr>
                     </thead>
@@ -300,37 +300,39 @@
                                     </span>
                                 </td>
 
-                                {{-- 3. Profile Details & Bio (1-line truncation with See More / See Less Inline Toggle) --}}
+                                {{-- 3. Profile Details & Bio (Compact, Dynamic, 1-line truncation with See More / See Less Toggle) --}}
                                 <td>
-                                    <div class="d-flex flex-column gap-0.5" style="font-size: 12px; line-height: 1.25;">
-                                        <div class="text-truncate">
+                                    <div class="d-flex flex-column gap-0.5" style="font-size: 11.5px; line-height: 1.25;">
+                                        <div class="d-flex align-items-center flex-wrap gap-1">
                                             @if(!empty($regData['pen_name']))
-                                                <span class="text-muted fw-semibold">লেখকনেম:</span> <strong class="text-primary">{{ $regData['pen_name'] }}</strong>
+                                                <span class="text-muted" style="font-size: 11px;">লেখক:</span> <strong class="text-primary" style="font-size: 11.5px;">{{ $regData['pen_name'] }}</strong>
                                             @elseif(!empty($regData['shop_name']))
-                                                <span class="text-muted fw-semibold">শপ:</span> <strong class="text-dark">{{ $regData['shop_name'] }}</strong>
+                                                <span class="text-muted" style="font-size: 11px;">শপ:</span> <strong class="text-dark" style="font-size: 11.5px;">{{ $regData['shop_name'] }}</strong>
                                             @elseif(!empty($regData['publisher_name']))
-                                                <span class="text-muted fw-semibold">প্রকাশনী:</span> <strong class="text-dark">{{ $regData['publisher_name'] }}</strong>
+                                                <span class="text-muted" style="font-size: 11px;">প্রকাশনী:</span> <strong class="text-dark" style="font-size: 11.5px;">{{ $regData['publisher_name'] }}</strong>
                                             @else
-                                                <span class="text-muted fst-italic">সাধারণ তথ্য</span>
+                                                <span class="text-muted fst-italic" style="font-size: 11px;">সাধারণ তথ্য</span>
                                             @endif
 
                                             @if(!empty($regData['genre']))
-                                                <span class="badge bg-light text-secondary border px-1 py-0 ms-1" style="font-size: 9.5px;">{{ $regData['genre'] }}</span>
+                                                <span class="badge bg-light text-secondary border px-1.5 py-0 text-truncate align-middle" style="max-width: 80px; font-size: 9px; font-weight: normal;" title="Genre: {{ $regData['genre'] }}">
+                                                    <i class="fas fa-tag text-muted me-0.5" style="font-size: 8px;"></i>{{ Str::limit($regData['genre'], 10) }}
+                                                </span>
                                             @endif
                                         </div>
 
                                         @if(!empty($cleanBio))
                                             <div class="text-muted d-flex align-items-center flex-wrap gap-1" style="font-size: 11px;">
                                                 <i class="fas fa-quote-left text-muted opacity-40 me-0.5 flex-shrink-0" style="font-size: 8px;"></i>
-                                                <span class="bio-short-{{ $user->id }} text-truncate" style="max-width: 175px;" title="{{ $cleanBio }}">
-                                                    {{ Str::limit($cleanBio, 35) }}
+                                                <span class="bio-short-{{ $user->id }} text-truncate" style="max-width: 140px;" title="{{ $cleanBio }}">
+                                                    {{ Str::limit($cleanBio, 26) }}
                                                 </span>
                                                 <span class="bio-full-{{ $user->id }} d-none" style="white-space: normal; line-height: 1.3;">
                                                     {{ $cleanBio }}
                                                 </span>
-                                                @if(mb_strlen($cleanBio) > 35)
+                                                @if(mb_strlen($cleanBio) > 26)
                                                     <button type="button" class="btn btn-link btn-xs p-0 text-primary fw-bold text-decoration-none see-more-btn flex-shrink-0" 
-                                                            onclick="toggleBioSeeMore({{ $user->id }}, this)" style="font-size: 10px; line-height: 1;">
+                                                            onclick="toggleBioSeeMore({{ $user->id }}, this)" style="font-size: 9.5px; line-height: 1;">
                                                         See More
                                                     </button>
                                                 @endif
@@ -339,7 +341,7 @@
 
                                         @if(($regData['profile_update_status'] ?? '') === 'updated')
                                             <div id="authorUpdateBadge-{{ $user->id }}">
-                                                <span class="badge bg-warning text-dark px-1.5 py-0 rounded-pill shadow-xs" style="font-size: 9px;" title="Author updated profile on {{ $regData['profile_updated_at'] ?? '' }}">
+                                                <span class="badge bg-warning text-dark px-1.5 py-0 rounded-pill shadow-xs" style="font-size: 8.5px;" title="Author updated profile on {{ $regData['profile_updated_at'] ?? '' }}">
                                                     <i class="fas fa-bell me-0.5"></i> Profile Updated
                                                 </span>
                                             </div>
