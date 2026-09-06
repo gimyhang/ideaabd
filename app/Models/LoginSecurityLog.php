@@ -45,9 +45,9 @@ class LoginSecurityLog extends Model
     }
 
     /**
-     * Check if an IP address is blocked or locked, and whether human visual challenge is required.
+     * Check if an IP address is blocked or locked, and whether captcha is required.
      */
-    public static function checkIpStatus(string $ip): array
+    public static function checkIpStatus(string $ip, ?string $username = null): array
     {
         $log = self::where('ip_address', $ip)->first();
 
@@ -57,8 +57,12 @@ class LoginSecurityLog extends Model
                 'attempts'                  => 0,
                 'is_security_issue'         => false,
                 'requires_visual_challenge' => false,
+                'requires_captcha'          => false,
+                'show_captcha'              => false,
             ];
         }
+
+        $threshold = (int) config('services.recaptcha.threshold', 3);
 
         // 1. Check if permanently or auto-blocked
         if ($log->is_blocked) {
@@ -70,10 +74,12 @@ class LoginSecurityLog extends Model
                 'is_security_issue'         => true,
                 'threat_level'              => $log->threat_level ?: 'critical',
                 'requires_visual_challenge' => false,
+                'requires_captcha'          => false,
+                'show_captcha'              => false,
             ];
         }
 
-        // 2. Check if currently under temporary lockout (after 3 attempts)
+        // 2. Check if currently under temporary lockout (after multiple attempts)
         if ($log->locked_until && Carbon::now()->lt($log->locked_until)) {
             $remainingMinutes = Carbon::now()->diffInMinutes($log->locked_until) + 1;
             return [
@@ -84,43 +90,58 @@ class LoginSecurityLog extends Model
                 'is_security_issue'         => true,
                 'threat_level'              => $log->threat_level ?: 'high',
                 'requires_visual_challenge' => true,
+                'requires_captcha'          => true,
+                'show_captcha'              => true,
             ];
         }
 
-        // Check if 3 or more failed attempts occurred -> Requires visual image challenge to prove human
-        $requiresVisualChallenge = ($log->attempt_count >= 3 || $log->is_security_issue);
+        // Check if 3 or more failed attempts occurred -> Requires captcha
+        $requiresCaptcha = ($log->attempt_count >= $threshold || $log->is_security_issue);
 
         return [
-            'status'                    => ($log->attempt_count >= 3 ? 'security_issue' : 'warning'),
+            'status'                    => ($requiresCaptcha ? 'security_issue' : ($log->attempt_count > 0 ? 'warning' : 'clean')),
             'attempts'                  => $log->attempt_count,
             'is_security_issue'         => (bool)$log->is_security_issue,
-            'threat_level'              => $log->threat_level ?: 'medium',
-            'requires_visual_challenge' => $requiresVisualChallenge,
+            'threat_level'              => $log->threat_level ?: ($requiresCaptcha ? 'high' : 'medium'),
+            'requires_visual_challenge' => $requiresCaptcha,
+            'requires_captcha'          => $requiresCaptcha,
+            'show_captcha'              => $requiresCaptcha,
         ];
     }
 
     /**
-     * Determine if an IP requires human visual challenge before attempting login.
+     * Determine if an IP or User requires Google reCAPTCHA challenge before attempting login.
      */
-    public static function requiresHumanChallenge(string $ip): bool
+    public static function requiresHumanChallenge(string $ip, ?string $username = null): bool
     {
+        $threshold = (int) config('services.recaptcha.threshold', 3);
         $log = self::where('ip_address', $ip)->first();
-        if (!$log) {
-            return false;
+        if ($log) {
+            return $log->attempt_count >= $threshold || (bool)$log->is_security_issue;
         }
 
-        return $log->attempt_count >= 3 || $log->is_security_issue;
+        return false;
+    }
+
+    /**
+     * Alias for checking if captcha is required.
+     */
+    public static function requiresCaptcha(string $ip, ?string $username = null): bool
+    {
+        return self::requiresHumanChallenge($ip, $username);
     }
 
     /**
      * Record a failed login attempt with tiered rules:
      * - Attempt 1-2: Normal failure warning.
-     * - Attempt 3+: Flagged as SECURITY ISSUE + 10-min lockout + requires visual sign challenge for human verification.
-     * - Attempt 4: Warning (1 chance left).
+     * - Attempt 3+: Flagged as SECURITY ISSUE + requires Google reCAPTCHA v2 challenge.
+     * - Attempt 4: Warning (1 chance left before auto-block).
      * - Attempt 5: Auto-Blocked in DB!
      */
     public static function recordFailedAttempt(string $ip, string $username): array
     {
+        $threshold = (int) config('services.recaptcha.threshold', 3);
+
         $log = self::firstOrCreate(
             ['ip_address' => $ip],
             ['attempt_count' => 0]
@@ -129,25 +150,8 @@ class LoginSecurityLog extends Model
         $log->last_username = $username;
         $log->attempt_count += 1;
 
-        if ($log->attempt_count === 3) {
-            // Tier 1 Trigger: Flag as Security Issue & 10-minute temporary lockout
-            $log->locked_until = Carbon::now()->addMinutes(10);
-            $log->is_security_issue = true;
-            $log->threat_level = 'high';
-            $log->flagged_at = Carbon::now();
-            $log->save();
-
-            return [
-                'action'                    => 'locked_10min',
-                'count'                     => 3,
-                'is_security_issue'         => true,
-                'requires_visual_challenge' => true,
-                'message'                   => 'নিরাপত্তা সতর্কতা: ৩ বার ভুল পাসওয়ার্ড দিয়ে চেষ্টা করায় এটি সিকিউরিটি ইস্যু হিসেবে চিহ্নিত হয়েছে! আপনার আইপি ১০ মিনিটের জন্য সাময়িক লক করা হয়েছে। এরপর ছবিতে ক্লিক করে সাইন বা মানুষ প্রমাণ সাপেক্ষে লগইনের সুযোগ পাবেন।',
-            ];
-        }
-
         if ($log->attempt_count >= 5) {
-            // Tier 2 Trigger: Auto IP Block
+            // Auto IP Block on 5th failed attempt
             $log->is_blocked = true;
             $log->is_security_issue = true;
             $log->threat_level = 'critical';
@@ -160,33 +164,45 @@ class LoginSecurityLog extends Model
                 'count'                     => $log->attempt_count,
                 'is_security_issue'         => true,
                 'requires_visual_challenge' => false,
+                'requires_captcha'          => false,
+                'show_captcha'              => false,
                 'message'                   => 'নিরাপত্তা সতর্কতা: ভুল পাসওয়ার্ড দিয়ে ৫বার ব্যর্থ চেষ্টার কারণে এই আইপি অ্যাড্রেসটি সাময়িক অটো-ব্লক করা হয়েছে। অ্যাকাউন্ট ফিরে পেতে অ্যাডমিনের সাথে যোগাযোগ করুন।',
             ];
         }
 
-        if ($log->attempt_count >= 4) {
+        if ($log->attempt_count >= $threshold) {
+            // Trigger Captcha Requirement for 3+ attempts
             $log->is_security_issue = true;
             $log->threat_level = 'high';
+            $log->flagged_at = Carbon::now();
             $log->save();
 
+            $msg = ($log->attempt_count === 3)
+                ? 'নিরাপত্তা সতর্কতা: আপনি ৩ বার ভুল পাসওয়ার্ড দিয়েছেন! নিরাপত্তার স্বার্থে Google reCAPTCHA ভেরিফিকেশন সম্পন্ন করে লগইন করুন।'
+                : "সতর্কতা: ভুল পাসওয়ার্ড! এটি আপনার {$log->attempt_count}ম প্রচেষ্টা। Google reCAPTCHA সম্পন্ন করে পুনরায় চেষ্টা করুন। (৫ম প্রচেষ্টায় আইপি ব্লক হবে)";
+
             return [
-                'action'                    => 'warning_last_chance',
-                'count'                     => 4,
+                'action'                    => 'captcha_required',
+                'count'                     => $log->attempt_count,
                 'is_security_issue'         => true,
                 'requires_visual_challenge' => true,
-                'message'                   => 'সতর্কতা: ভুল পাসওয়ার্ড! এটি আপনার ৪র্থ প্রচেষ্টা। আর ১ বার ভুল পাসওয়ার্ড দিলে আপনার আইপি স্বয়ংক্রিয়ভাবে ব্লক হয়ে যাবে।',
+                'requires_captcha'          => true,
+                'show_captcha'              => true,
+                'message'                   => $msg,
             ];
         }
 
         $log->save();
 
-        $remainingInTier = 3 - $log->attempt_count;
+        $remainingInTier = $threshold - $log->attempt_count;
         return [
             'action'                    => 'failed',
             'count'                     => $log->attempt_count,
             'is_security_issue'         => false,
             'requires_visual_challenge' => false,
-            'message'                   => "ইমেইল/ইউজারনেম বা পাসওয়ার্ড সঠিক নয়। (আর {$remainingInTier}টি সুযোগের পর সিকিউরিটি লক হবে)",
+            'requires_captcha'          => false,
+            'show_captcha'              => false,
+            'message'                   => "ইমেইল/ইউজারনেম বা পাসওয়ার্ড সঠিক নয়।",
         ];
     }
 
@@ -206,9 +222,12 @@ class LoginSecurityLog extends Model
     /**
      * Clear failed attempts upon successful login.
      */
-    public static function recordSuccessfulLogin(string $ip): void
+    public static function recordSuccessfulLogin(string $ip, ?string $username = null): void
     {
         self::where('ip_address', $ip)->delete();
+        if ($username) {
+            self::where('last_username', $username)->delete();
+        }
     }
 
     /**

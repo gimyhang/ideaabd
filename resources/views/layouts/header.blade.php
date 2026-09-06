@@ -331,13 +331,20 @@
                         </ul>
                     </div>
                 @else
-                    {{-- Hello, Sign in Box for Guests --}}
-                    <a href="{{ route('login') }}" class="d-flex align-items-center gap-2 text-decoration-none text-dark hover-primary px-3 py-1.5 rounded-pill border bg-light bg-opacity-75 shadow-2xs hover-shadow transition-all" title="Hello, Sign in / লগইন করুন" style="min-height: 42px;">
-                        <i class="fa-solid fa-circle-user text-primary fs-5"></i>
-                        <div class="text-start lh-1 d-none d-sm-block">
-                            <small class="text-muted d-block" style="font-size: 10px;">স্বাগতম,</small>
-                            <strong style="font-size: 12.5px;">লগইন</strong>
-                        </div>
+                    {{-- 1. Ultra-Modern Login Button (English text, dynamic animated icon) --}}
+                    <a href="{{ route('login') }}" class="btn-hdr-auth btn-hdr-login d-inline-flex align-items-center gap-1.5 text-decoration-none px-3 py-1.5 rounded-pill shadow-2xs transition-all" title="Login to your account" style="min-height: 40px;">
+                        <span class="auth-icon-wrap d-inline-flex align-items-center justify-content-center">
+                            <i class="fa-solid fa-arrow-right-to-bracket text-primary auth-icon"></i>
+                        </span>
+                        <span class="fw-bold auth-text" style="font-size: 13px; letter-spacing: 0.2px;">Login</span>
+                    </a>
+
+                    {{-- 2. Ultra-Modern Sign Up Button (With dynamic animated icon) --}}
+                    <a href="{{ Route::has('register.choose') ? route('register.choose') : route('register') }}" class="btn-hdr-auth btn-hdr-signup btn btn-primary rounded-pill px-3 py-1.5 d-inline-flex align-items-center gap-1.5 shadow-xs fw-bold text-decoration-none transition-all" title="Sign Up / Create an account" style="min-height: 40px; font-size: 13px;">
+                        <span class="auth-icon-wrap d-inline-flex align-items-center justify-content-center">
+                            <i class="fa-solid fa-user-plus text-white auth-icon"></i>
+                        </span>
+                        <span class="auth-text d-none d-sm-inline">Sign Up</span>
                     </a>
                 @endauth
 
@@ -550,7 +557,96 @@
                 </li>
             </ul>
         </div>
-    </nav>
+    {{-- ══════════════════════════════════════════════════════════════════
+         DYNAMIC FUNCTIONAL ICON & AUTH BUTTON STYLES
+    ══════════════════════════════════════════════════════════════════ --}}
+    <style>
+        /* Modern Header Action Buttons */
+        .btn-hdr-auth {
+            position: relative;
+            overflow: hidden;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+            transition: all 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+            white-space: nowrap;
+        }
+
+        /* 1. Login Button */
+        .btn-hdr-login {
+            background: #f8fafc;
+            border: 1.5px solid #cbd5e1 !important;
+            color: #0f172a !important;
+        }
+        .btn-hdr-login:hover {
+            background: #ffffff !important;
+            border-color: #0284c7 !important;
+            color: #0284c7 !important;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(2, 132, 199, 0.18) !important;
+        }
+        .btn-hdr-login:hover .auth-icon {
+            transform: translateX(3px) scale(1.15);
+            color: #0284c7 !important;
+        }
+
+        /* 2. Sign Up Button */
+        .btn-hdr-signup {
+            background: linear-gradient(135deg, #006a4e 0%, #004d40 100%) !important;
+            border: 1.5px solid transparent !important;
+            color: #ffffff !important;
+        }
+        .btn-hdr-signup:hover {
+            background: linear-gradient(135deg, #00875a 0%, #00573f 100%) !important;
+            color: #ffffff !important;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 106, 78, 0.35) !important;
+        }
+        .btn-hdr-signup:hover .auth-icon {
+            transform: scale(1.22) rotate(8deg);
+        }
+
+        /* Dynamic Icon Elements */
+        .auth-icon-wrap {
+            width: 22px;
+            height: 22px;
+            transition: all 0.25s ease;
+        }
+        .auth-icon {
+            transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.25s ease;
+            display: inline-block;
+        }
+
+        /* Dynamic Cart Button & Live Counter */
+        .site-actions a[href*="cart"]:hover .fa-bag-shopping {
+            animation: dynamicCartBounce 0.45s ease;
+        }
+        @keyframes dynamicCartBounce {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            30% { transform: translateY(-3px) rotate(-10deg); }
+            60% { transform: translateY(-1px) rotate(8deg); }
+        }
+
+        /* Dynamic Search Icon */
+        .site-search__form button[type="submit"]:hover i {
+            transform: scale(1.2) rotate(10deg);
+            transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        /* Dynamic Post / Blog Icon */
+        .site-actions a[href*="blog/write"]:hover i {
+            animation: dynamicPenTilt 0.4s ease infinite alternate;
+        }
+        @keyframes dynamicPenTilt {
+            0% { transform: rotate(0deg) scale(1); }
+            100% { transform: rotate(-15deg) scale(1.18); }
+        }
+
+        /* Dynamic Mobile Burger Menu Icon */
+        .site-burger:hover i {
+            transform: scale(1.15);
+            color: #0284c7;
+            transition: transform 0.2s ease, color 0.2s ease;
+        }
+    </style>
 </header>
 
 {{-- ══════════════════════════════════════════════════════════════════
@@ -665,25 +761,26 @@
             </div>
         @else
             {{-- Guest Welcome & Login/Register Cards --}}
-            <div class="card border-0 rounded-4 p-3 mb-3 shadow-sm" style="background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);">
+            <div class="card border-0 rounded-4 p-3 mb-3 shadow-sm" style="background: linear-gradient(135deg, #f0fdf4 0%, #e0f2fe 100%); border: 1px solid rgba(0, 106, 78, 0.15) !important;">
                 <div class="d-flex align-items-center justify-content-between mb-2">
-                    <div class="fw-bold text-dark" style="font-size: 0.95rem;">
-                        <i class="fa-solid fa-circle-user text-primary me-1"></i> স্বাগতম ভিজিটর!
+                    <div class="fw-bold text-dark d-flex align-items-center gap-1.5" style="font-size: 0.95rem;">
+                        <i class="fa-solid fa-circle-user text-primary fs-5"></i>
+                        <span>Welcome, Guest!</span>
                     </div>
-                    <span class="badge bg-primary text-white rounded-pill px-2 py-0.5" style="font-size: 9.5px;">লগইন করুন</span>
+                    <span class="badge bg-primary text-white rounded-pill px-2.5 py-1" style="font-size: 10px;">Idea Prokashon</span>
                 </div>
-                <p class="small text-muted mb-2.5" style="font-size: 11.5px; line-height: 1.35;">বই কেনা, অর্ডার ট্র্যাকিং ও লেখকের সাথে যুক্ত হতে একাউন্টে প্রবেশ করুন।</p>
+                <p class="small text-muted mb-2.5" style="font-size: 11.5px; line-height: 1.4;">বই কেনা, অর্ডার ট্র্যাকিং ও প্রকাশনা সেবায় যুক্ত হতে একাউন্টে প্রবেশ অথবা নতুন রেজিস্ট্রেশন করুন।</p>
                 <div class="row g-2">
                     <div class="col-6">
-                        <a href="{{ route('login') }}" class="btn btn-primary rounded-pill btn-sm fw-bold w-100 d-inline-flex align-items-center justify-content-center gap-1 shadow-xs">
-                            <i class="fa-solid fa-arrow-right-to-bracket small"></i>
-                            <span>লগইন</span>
+                        <a href="{{ route('login') }}" class="btn-hdr-auth btn btn-outline-primary bg-white rounded-pill btn-sm fw-bold w-100 d-inline-flex align-items-center justify-content-center gap-1.5 shadow-xs py-2">
+                            <i class="fa-solid fa-arrow-right-to-bracket text-primary auth-icon"></i>
+                            <span>Login</span>
                         </a>
                     </div>
                     <div class="col-6">
-                        <a href="{{ Route::has('register.choose') ? route('register.choose') : route('register') }}" class="btn btn-outline-primary bg-white rounded-pill btn-sm fw-bold w-100 d-inline-flex align-items-center justify-content-center gap-1 shadow-xs">
-                            <i class="fa-solid fa-user-plus small"></i>
-                            <span>রেজিস্ট্রেশন</span>
+                        <a href="{{ Route::has('register.choose') ? route('register.choose') : route('register') }}" class="btn-hdr-auth btn btn-primary rounded-pill btn-sm fw-bold w-100 d-inline-flex align-items-center justify-content-center gap-1.5 shadow-xs py-2">
+                            <i class="fa-solid fa-user-plus text-white auth-icon"></i>
+                            <span>Sign Up</span>
                         </a>
                     </div>
                 </div>

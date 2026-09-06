@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\LoginSecurityLog;
+use App\Services\RecaptchaService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -223,8 +224,9 @@ class LoginController extends Controller
             'time'   => microtime(true),
         ]);
 
-        // 2. Check IP status and whether visual sign challenge is required
+        // 2. Check IP status and whether captcha challenge is required
         $ipStatus = LoginSecurityLog::checkIpStatus($request->ip());
+        $requiresCaptcha = (bool)($ipStatus['requires_captcha'] ?? $ipStatus['requires_visual_challenge'] ?? false) || Session::get('show_captcha', false);
         $requiresVisualChallenge = (bool)($ipStatus['requires_visual_challenge'] ?? false);
         $visualChallenge = null;
 
@@ -239,6 +241,10 @@ class LoginController extends Controller
                 'requiresVisualChallenge' => $requiresVisualChallenge,
                 'visualChallenge'         => $visualChallenge,
                 'ipStatus'                => $ipStatus,
+                'requiresCaptcha'         => $requiresCaptcha,
+                'showCaptcha'             => $requiresCaptcha,
+                'recaptchaSiteKey'        => RecaptchaService::getSiteKey(),
+                'recaptchaEnabled'        => RecaptchaService::isEnabled(),
             ])
             ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
             ->header('Pragma', 'no-cache')
@@ -330,88 +336,87 @@ class LoginController extends Controller
 
     public function login(Request $request)
     {
+        $isAjax = $request->ajax() || $request->wantsJson();
+
         // 1. Invisible Honeypot Bot Check
         if ($request->filled('website_url_hp') || $request->filled('b_check_field')) {
-            throw ValidationException::withMessages([
-                'email' => 'স্বয়ংক্রিয় রোবট কার্যকলাপ সনাক্ত হয়েছে। অনুগ্রহ করে সাধারণ ব্রাউজার ব্যবহার করুন।',
-            ]);
+            $msg = 'স্বয়ংক্রিয় রোবট কার্যকলাপ সনাক্ত হয়েছে। অনুগ্রহ করে সাধারণ ব্রাউজার ব্যবহার করুন।';
+            if ($isAjax) {
+                return response()->json(['success' => false, 'message' => $msg], 422);
+            }
+            throw ValidationException::withMessages(['email' => $msg]);
         }
 
         $loginInput = trim((string) ($request->input('email') ?? $request->input('username') ?? $request->input('login') ?? ''));
         $password   = (string) $request->input('password', '');
 
         if ($loginInput === '' || $password === '') {
-            throw ValidationException::withMessages([
-                'email' => 'ইমেইল/ইউজারনেম এবং পাসওয়ার্ড দিন।',
-            ]);
+            $msg = 'ইমেইল/ইউজারনেম এবং পাসওয়ার্ড দিন।';
+            if ($isAjax) {
+                return response()->json(['success' => false, 'message' => $msg], 422);
+            }
+            throw ValidationException::withMessages(['email' => $msg]);
         }
 
         // 2. Intelligent IP Security & Block Check
-        $ipStatus = LoginSecurityLog::checkIpStatus($request->ip());
+        $ipStatus = LoginSecurityLog::checkIpStatus($request->ip(), $loginInput);
         if ($ipStatus['status'] === 'blocked') {
-            throw ValidationException::withMessages([
-                'email' => "নিরাপত্তা সতর্কতা: ভুল পাসওয়ার্ড দিয়ে ৫বার ব্যর্থ চেষ্টার কারণে এই আইপি অ্যাড্রেসটি ({$request->ip()}) সাময়িক অটো-ব্লক করা হয়েছে। অ্যাকাউন্ট ফিরে পেতে অ্যাডমিনের সাথে যোগাযোগ করুন।",
-            ]);
-        }
-        if ($ipStatus['status'] === 'locked') {
-            $remMin = $ipStatus['remaining_minutes'] ?? 10;
-            throw ValidationException::withMessages([
-                'email' => "ভুল পাসওয়ার্ড দিয়ে ৩বার চেষ্টা করা হয়েছে! নিরাপত্তার স্বার্থে আপনার আইপি সাময়িক লক করা হয়েছে। অনুগ্রহ করে আরও {$remMin} মিনিট পর ছবিতে সাইন চিহ্নিত করে আবার চেষ্টা করুন।",
-            ]);
-        }
-
-        // 3. Visual Sign Challenge Check for 3+ failed attempts or security issue
-        $mustVerifyVisual = LoginSecurityLog::requiresHumanChallenge($request->ip());
-        if ($mustVerifyVisual) {
-            $challengeSession = Session::get('login_visual_challenge');
-            $isVerified = !empty($challengeSession['verified']);
-
-            // Direct check if submitted in form payload
-            if (!$isVerified && $request->filled('visual_selected_indices')) {
-                $rawIndices = json_decode((string)$request->input('visual_selected_indices'), true);
-                if (is_array($rawIndices)) {
-                    $userSelected = array_map('intval', $rawIndices);
-                    sort($userSelected);
-                    $solution = (array)($challengeSession['solution'] ?? []);
-                    sort($solution);
-                    if ($userSelected === $solution && count($solution) > 0) {
-                        $isVerified = true;
-                        LoginSecurityLog::recordChallengePassed($request->ip());
-                    }
-                }
+            $msg = "নিরাপত্তা সতর্কতা: ভুল পাসওয়ার্ড দিয়ে ৫বার ব্যর্থ চেষ্টার কারণে এই আইপি অ্যাড্রেসটি ({$request->ip()}) সাময়িক অটো-ব্লক করা হয়েছে। অ্যাকাউন্ট ফিরে পেতে অ্যাডমিনের সাথে যোগাযোগ করুন।";
+            if ($isAjax) {
+                return response()->json(['success' => false, 'is_blocked' => true, 'message' => $msg], 422);
             }
+            throw ValidationException::withMessages(['email' => $msg]);
+        }
+
+        // 3. Google reCAPTCHA v2 / Visual Verification Check (3+ Failed Attempts Threshold)
+        $mustVerifyCaptcha = LoginSecurityLog::requiresCaptcha($request->ip(), $loginInput);
+        if ($mustVerifyCaptcha) {
+            $recaptchaToken = (string) ($request->input('g-recaptcha-response') ?? $request->input('recaptcha_token') ?? $request->input('captcha_token') ?? '');
+            
+            if ($recaptchaToken === '') {
+                Session::flash('show_captcha', true);
+                $msg = 'নিরাপত্তা সতর্কতা: একাধিক ব্যর্থ লগইন চেষ্টার কারণে Google reCAPTCHA যাচাইকরণ আবশ্যক। অনুগ্রহ করে ক্যাপচা পূরণ করুন।';
+                if ($isAjax) {
+                    return response()->json([
+                        'success'          => false,
+                        'show_captcha'     => true,
+                        'captcha_required' => true,
+                        'message'          => $msg,
+                    ], 422);
+                }
+                throw ValidationException::withMessages(['g-recaptcha-response' => $msg]);
+            }
+
+            // Verify the token with Google reCAPTCHA API
+            $isVerified = RecaptchaService::verify($recaptchaToken, $request->ip());
 
             if (!$isVerified) {
-                // Regenerate challenge if not valid
-                self::createVisualChallenge();
-                throw ValidationException::withMessages([
-                    'visual_challenge' => 'নিরাপত্তা সতর্কতা: আপনি ৩ বার ভুল পাসওয়ার্ড দিয়েছেন। মানুষের উপস্থিতি প্রমাণ করতে নিচের ছবিতে সঠিক সাইনগুলো ক্লিক করে যাচাই সম্পন্ন করুন।',
-                ]);
-            }
-        }
-
-        // 4. Brute-Force Rate Limiting (Max 5 attempts per 60 seconds)
-        $throttleKey = 'login_attempt:' . sha1($request->ip() . '|' . strtolower($loginInput));
-        if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
-            $seconds = RateLimiter::availableIn($throttleKey);
-            throw ValidationException::withMessages([
-                'email' => "খুব বেশি ভুল লগইন চেষ্টা করা হয়েছে! আপনার অ্যাকাউন্টের সুরক্ষায় লগইন সাময়িক লক করা হয়েছে। অনুগ্রহ করে {$seconds} সেকেন্ড পর আবার চেষ্টা করুন।",
-            ]);
-        }
-
-        // 5. Human Bot Math Verification Check (if not in visual challenge mode)
-        if (!$mustVerifyVisual) {
-            $attempts = RateLimiter::attempts($throttleKey);
-            if ($attempts >= 2 || $request->filled('bot_answer')) {
-                $challenge = Session::get('login_bot_challenge');
-                $userAns = trim((string) $request->input('bot_answer'));
-                if (!$challenge || (int)$userAns !== (int)($challenge['answer'] ?? -999)) {
-                    RateLimiter::hit($throttleKey, 60);
-                    throw ValidationException::withMessages([
-                        'bot_answer' => 'রোবট সুরক্ষা যাচাইকরণ (ক্যাপচা) উত্তর সঠিক হয়নি। পুনরায় চেষ্টা করুন।',
-                    ]);
+                Session::flash('show_captcha', true);
+                $msg = 'Google reCAPTCHA যাচাইকরণ সফল হয়নি। অনুগ্রহ করে আবার চেষ্টা করুন।';
+                if ($isAjax) {
+                    return response()->json([
+                        'success'          => false,
+                        'show_captcha'     => true,
+                        'captcha_required' => true,
+                        'message'          => $msg,
+                    ], 422);
                 }
+                throw ValidationException::withMessages(['g-recaptcha-response' => $msg]);
             }
+
+            // Token verified successfully
+            LoginSecurityLog::recordChallengePassed($request->ip());
+        }
+
+        // 4. Brute-Force Rate Limiting Throttling (Max 10 attempts per minute)
+        $throttleKey = 'login_attempt:' . sha1($request->ip() . '|' . strtolower($loginInput));
+        if (RateLimiter::tooManyAttempts($throttleKey, 10)) {
+            $seconds = RateLimiter::availableIn($throttleKey);
+            $msg = "খুব বেশি ভুল লগইন চেষ্টা করা হয়েছে! অনুগ্রহ করে {$seconds} সেকেন্ড পর আবার চেষ্টা করুন।";
+            if ($isAjax) {
+                return response()->json(['success' => false, 'message' => $msg], 422);
+            }
+            throw ValidationException::withMessages(['email' => $msg]);
         }
 
         try {
@@ -465,73 +470,95 @@ class LoginController extends Controller
             if ($matchedUser) {
                 // Clear Rate Limiter & IP security attempts on successful login
                 RateLimiter::clear($throttleKey);
-                LoginSecurityLog::recordSuccessfulLogin($request->ip());
+                LoginSecurityLog::recordSuccessfulLogin($request->ip(), $loginInput);
                 Session::forget('login_bot_challenge');
                 Session::forget('login_visual_challenge');
+                Session::forget('show_captcha');
 
                 // Check registration approval for vendor/author/seller/publisher
                 if (in_array($matchedUser->role, ['author', 'seller', 'publisher'], true)) {
                     if ($matchedUser->reg_status === 'pending' || !$matchedUser->is_active) {
-                        throw ValidationException::withMessages([
-                            'email' => 'আপনার অ্যাকাউন্টটি এখনও অ্যাডমিন কর্তৃক অনুমোদিত হয়নি। অনুমোদন সম্পন্ন হলে আপনার ইমেইলে নোটিফিকেশন পৌঁছে যাবে এবং আপনি লগইন করতে পারবেন।',
-                        ]);
+                        $msg = 'আপনার অ্যাকাউন্টটি এখনও অ্যাডমিন কর্তৃক অনুমোদিত হয়নি। অনুমোদন সম্পন্ন হলে আপনার ইমেইলে নোটিফিকেশন পৌঁছে যাবে এবং আপনি লগইন করতে পারবেন।';
+                        if ($isAjax) {
+                            return response()->json(['success' => false, 'message' => $msg], 422);
+                        }
+                        throw ValidationException::withMessages(['email' => $msg]);
                     }
                     if ($matchedUser->reg_status === 'rejected') {
-                        throw ValidationException::withMessages([
-                            'email' => 'আপনার রেজিস্ট্রেশন অ্যাকাউন্টটির আবেদন প্রত্যাখ্যাত বা বাতিল করা হয়েছে।' . ($matchedUser->rejection_reason ? ' কারণ: ' . $matchedUser->rejection_reason : ''),
-                        ]);
+                        $msg = 'আপনার রেজিস্ট্রেশন অ্যাকাউন্টটির আবেদন প্রত্যাখ্যাত বা বাতিল করা হয়েছে।' . ($matchedUser->rejection_reason ? ' কারণ: ' . $matchedUser->rejection_reason : '');
+                        if ($isAjax) {
+                            return response()->json(['success' => false, 'message' => $msg], 422);
+                        }
+                        throw ValidationException::withMessages(['email' => $msg]);
                     }
                 }
 
                 // Check active status
                 if (isset($matchedUser->is_active) && ! $matchedUser->is_active) {
-                    throw ValidationException::withMessages([
-                        'email' => 'আপনার অ্যাকাউন্টটি নিষ্ক্রিয় করা আছে। কর্তৃপক্ষের সাথে যোগাযোগ করুন।',
-                    ]);
+                    $msg = 'আপনার অ্যাকাউন্টটি নিষ্ক্রিয় করা আছে। Authorities-এর সাথে যোগাযোগ করুন।';
+                    if ($isAjax) {
+                        return response()->json(['success' => false, 'message' => $msg], 422);
+                    }
+                    throw ValidationException::withMessages(['email' => $msg]);
                 }
 
                 Auth::login($matchedUser, $request->boolean('remember'));
                 $request->session()->regenerate();
 
-                // If user logged in via Admin One-Time Password / Auto-generated password, redirect to reset password
+                $redirectUrl = route('home');
                 if (!empty($matchedUser->must_change_password)) {
-                    return redirect()->route('my-account')->with('warning', 'আপনি অ্যাডমিন কর্তৃক তৈরি নতুন পাসওয়ার্ড/ওটিপি দিয়ে লগইন করেছেন। নিরাপত্তার স্বার্থে অনুগ্রহ করে অবিলম্বে আপনার প্রোফাইল থেকে একটি স্থায়ী পাসওয়ার্ড সেট করুন।');
+                    $redirectUrl = route('my-account');
+                } elseif ($matchedUser->isAdmin()) {
+                    $redirectUrl = route('admin.dashboard');
+                } elseif ($matchedUser->isSeller() || $matchedUser->isSubAdmin() || $matchedUser->reg_type === 'seller') {
+                    $redirectUrl = route('subadmin.dashboard');
+                } elseif ($matchedUser->isPublisher() || $matchedUser->reg_type === 'publisher') {
+                    $redirectUrl = route('publisher.dashboard');
+                } elseif ($matchedUser->isAuthor() || $matchedUser->reg_type === 'author') {
+                    $redirectUrl = route('author.dashboard');
+                } elseif ($matchedUser->isBuyer()) {
+                    $redirectUrl = route('my-account');
                 }
 
-                // Redirect based on role
-                if ($matchedUser->isAdmin()) {
-                    return redirect()->intended(route('admin.dashboard'));
-                }
-                if ($matchedUser->isSeller() || $matchedUser->isSubAdmin() || $matchedUser->reg_type === 'seller') {
-                    return redirect()->intended(route('subadmin.dashboard'));
-                }
-                if ($matchedUser->isPublisher() || $matchedUser->reg_type === 'publisher') {
-                    return redirect()->intended(route('publisher.dashboard'));
-                }
-                if ($matchedUser->isAuthor() || $matchedUser->reg_type === 'author') {
-                    return redirect()->intended(route('author.dashboard'));
-                }
-                if ($matchedUser->isBuyer()) {
-                    return redirect()->intended(route('my-account'));
+                if ($isAjax) {
+                    return response()->json([
+                        'success'  => true,
+                        'message'  => 'লগইন সফল হয়েছে! ড্যাশবোর্ডে রিডাইরেক্ট করা হচ্ছে...',
+                        'redirect' => $redirectUrl,
+                    ]);
                 }
 
-                return redirect()->intended(route('home'));
+                if (!empty($matchedUser->must_change_password)) {
+                    return redirect()->route('my-account')->with('warning', 'আপনি নতুন পাসওয়ার্ড/ওটিপি দিয়ে লগইন করেছেন। অনুগ্রহ করে প্রোফাইল থেকে একটি স্থায়ী পাসওয়ার্ড সেট করুন।');
+                }
+
+                return redirect()->intended($redirectUrl);
             }
         } catch (\Illuminate\Database\QueryException $e) {
-            throw ValidationException::withMessages([
-                'email' => 'সিস্টেম ডাটাবেজ অফলাইনে আছে বা কানেক্ট হতে পারছে না। অনুগ্রহ করে সার্ভার চেক করুন।',
-            ]);
+            $msg = 'সিস্টেম ডাটাবেজ অফলাইনে আছে বা কানেক্ট হতে পারছে না। অনুগ্রহ করে সার্ভার চেক করুন।';
+            if ($isAjax) {
+                return response()->json(['success' => false, 'message' => $msg], 500);
+            }
+            throw ValidationException::withMessages(['email' => $msg]);
         }
 
-        // Record failed attempt in RateLimiter and LoginSecurityLog
         RateLimiter::hit($throttleKey, 60);
         $failResult = LoginSecurityLog::recordFailedAttempt($request->ip(), $loginInput);
 
-        // Reset visual verification after a failed login chance
-        if (Session::has('login_visual_challenge')) {
-            $s = Session::get('login_visual_challenge');
-            $s['verified'] = false;
-            Session::put('login_visual_challenge', $s);
+        $showCaptcha = (bool) ($failResult['show_captcha'] ?? false);
+        if ($showCaptcha) {
+            Session::flash('show_captcha', true);
+        }
+
+        if ($isAjax) {
+            return response()->json([
+                'success'          => false,
+                'show_captcha'     => $showCaptcha,
+                'captcha_required' => (bool) ($failResult['requires_captcha'] ?? false),
+                'attempts'         => $failResult['count'] ?? 1,
+                'is_blocked'       => ($failResult['action'] ?? '') === 'auto_blocked',
+                'message'          => $failResult['message'] ?? 'ইমেইল/ইউজারনেম বা পাসওয়ার্ড সঠিক নয়।',
+            ], 422);
         }
 
         throw ValidationException::withMessages([

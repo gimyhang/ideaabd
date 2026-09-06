@@ -63,4 +63,16 @@ return [
         'callback_url'    => env('NAGAD_CALLBACK_URL'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Google reCAPTCHA v2 Configuration
+    |--------------------------------------------------------------------------
+    */
+    'recaptcha' => [
+        'enabled'    => env('RECAPTCHA_ENABLED', true),
+        'site_key'   => env('RECAPTCHA_SITE_KEY', '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI'),
+        'secret_key' => env('RECAPTCHA_SECRET_KEY', '6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe'),
+        'threshold'  => (int) env('LOGIN_FAILED_ATTEMPTS_FOR_CAPTCHA', 3),
+    ],
+
 ];

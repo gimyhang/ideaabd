@@ -1,305 +1,640 @@
-@extends('layouts.app')
-@section('title', 'লগইন — আইডিয়া প্রকাশন')
+<!DOCTYPE html>
+<html lang="bn" class="notranslate" translate="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="google" content="notranslate">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>লগইন — আইডিয়া প্রকাশন ডিজিটাল পোর্টাল</title>
 
-@section('content')
-<div class="container py-5" style="max-width: 560px;">
-    <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
-        <div class="card-header border-0 py-4 text-center text-white position-relative" 
-             style="background: linear-gradient(135deg, #0c4a6e 0%, #0369a1 50%, #0284c7 100%);">
-            <div class="bg-white rounded-circle p-2 d-inline-flex shadow-sm mb-2" style="width: 68px; height: 68px;">
-                <img src="{{ \App\Support\SiteSetting::loginLogoUrl() }}" class="w-100 h-100 object-fit-contain" alt="{{ \App\Support\SiteSetting::name() }}">
-            </div>
-            <h3 class="fw-bold mb-1 text-white">আপনার অ্যাকাউন্টে লগইন করুন</h3>
-            <small class="text-white-50" style="font-size: 0.85rem;">আইডিয়া প্রকাশন ডিজিটাল প্ল্যাটফর্ম</small>
+    {{-- Favicon --}}
+    @php $siteFaviconUrl = \App\Support\SiteSetting::faviconUrl(); @endphp
+    @if ($siteFaviconUrl)
+        <link rel="icon" href="{{ $siteFaviconUrl }}">
+    @else
+        <link rel="icon" href="{{ asset('favicon.ico') }}">
+    @endif
+
+    {{-- Fonts: Kalpurush, Nikosh, Hind Siliguri, Noto Sans Bengali & Inter --}}
+    <link href="https://fonts.maateen.me/kalpurush/font.css" rel="stylesheet">
+    <link href="https://fonts.maateen.me/nikosh/font.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome 6 Pro / Free -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Google reCAPTCHA v2 Script -->
+    <script src="https://www.google.com/recaptcha/api.js?onload=onRecaptchaLoaded&render=explicit" async defer></script>
+
+    <style>
+        :root {
+            --brand-dark-green: #004d40;
+            --brand-primary-green: #006a4e;
+            --brand-light-green: #00875a;
+            --brand-accent-red: #da291c;
+            --brand-gold: #f59e0b;
+            --brand-input-bg: #f8fafc;
+            --brand-border: #cbd5e1;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Kalpurush', 'Nikosh', 'Hind Siliguri', 'Noto Sans Bengali', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            background-color: #f8fafc;
+            color: #0f172a;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ══════════════════════════════════════════════════════════════════
+           1. CLEAN, MODERN & ELEGANT PAGE BACKGROUND
+           ══════════════════════════════════════════════════════════════════ */
+        .portal-wrapper {
+            flex: 1 0 auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 100vh;
+            background: linear-gradient(180deg, #f1f5f9 0%, #f8fafc 50%, #eef2f6 100%);
+            position: relative;
+        }
+
+        /* Subtle ambient glow */
+        .portal-wrapper::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: radial-gradient(circle at 50% 30%, rgba(0, 106, 78, 0.04) 0%, transparent 65%);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* ══════════════════════════════════════════════════════════════════
+           2. HEADER & TOPBAR (DARK GREEN WITH GOLD ACCENT)
+           ══════════════════════════════════════════════════════════════════ */
+        .portal-header {
+            background: linear-gradient(90deg, #004d40 0%, #006a4e 60%, #00573f 100%);
+            color: #ffffff;
+            border-bottom: 3px solid var(--brand-gold);
+            box-shadow: 0 4px 15px rgba(0, 77, 64, 0.2);
+            position: relative;
+            z-index: 10;
+        }
+
+        .portal-nav-link {
+            color: rgba(255, 255, 255, 0.9);
+            text-decoration: none;
+            font-size: 13.5px;
+            font-weight: 500;
+            padding: 6px 12px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .portal-nav-link:hover {
+            color: #ffffff;
+            background-color: rgba(255, 255, 255, 0.15);
+            transform: translateY(-1px);
+        }
+
+        /* ══════════════════════════════════════════════════════════════════
+           3. CENTERED LOGIN CARD (CLEAN WHITE ON CENTERED AXIS)
+           ══════════════════════════════════════════════════════════════════ */
+        .login-main-container {
+            position: relative;
+            z-index: 5;
+            padding: 40px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-grow: 1;
+        }
+
+        .brand-login-card {
+            background: #ffffff;
+            width: 100%;
+            max-width: 470px;
+            border-radius: 16px;
+            border: 1px solid rgba(0, 106, 78, 0.16);
+            box-shadow: 0 20px 45px -15px rgba(15, 23, 42, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.03);
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .brand-card-top-strip {
+            height: 5px;
+            background: linear-gradient(90deg, var(--brand-accent-red) 0%, var(--brand-gold) 35%, var(--brand-primary-green) 100%);
+        }
+
+        .brand-card-header {
+            padding: 24px 28px 16px 28px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .brand-emblem-circle {
+            width: 52px;
+            height: 52px;
+            min-width: 52px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #da291c 0%, #b91c1c 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(218, 41, 28, 0.28);
+            border: 2px solid #ffffff;
+        }
+
+        .brand-card-body {
+            padding: 24px 28px 28px 28px;
+        }
+
+        /* Input Controls */
+        .brand-form-label {
+            font-size: 13.5px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        .brand-form-label .required-star {
+            color: var(--brand-accent-red);
+            font-weight: bold;
+            margin-left: 2px;
+        }
+
+        .brand-input-group {
+            position: relative;
+            display: flex;
+            align-items: stretch;
+            width: 100%;
+        }
+
+        .brand-input-icon {
+            background-color: var(--brand-input-bg);
+            border: 1.5px solid var(--brand-border);
+            border-right: none;
+            border-radius: 10px 0 0 10px;
+            padding: 0 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #64748b;
+            font-size: 15px;
+        }
+
+        .brand-form-control {
+            background-color: var(--brand-input-bg);
+            border: 1.5px solid var(--brand-border);
+            border-radius: 0 10px 10px 0;
+            padding: 12px 14px;
+            font-size: 14.5px;
+            color: #0f172a;
+            font-weight: 500;
+            width: 100%;
+            transition: all 0.2s ease;
+        }
+
+        .brand-form-control:focus {
+            background-color: #ffffff;
+            border-color: var(--brand-primary-green);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(0, 106, 78, 0.15);
+        }
+
+        .brand-form-control.has-toggle {
+            border-radius: 0;
+        }
+
+        .brand-toggle-btn {
+            background-color: var(--brand-input-bg);
+            border: 1.5px solid var(--brand-border);
+            border-left: none;
+            border-radius: 0 10px 10px 0;
+            padding: 0 14px;
+            color: #64748b;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .brand-toggle-btn:hover {
+            color: var(--brand-primary-green);
+            background-color: #e2e8f0;
+        }
+
+        /* Action Buttons */
+        .btn-brand-primary {
+            background: linear-gradient(135deg, #006a4e 0%, #004d40 100%);
+            color: #ffffff;
+            border: none;
+            border-radius: 10px;
+            padding: 12px 20px;
+            font-size: 16px;
+            font-weight: 700;
+            width: 100%;
+            letter-spacing: 0.3px;
+            box-shadow: 0 4px 12px rgba(0, 106, 78, 0.25);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-brand-primary:hover:not(:disabled) {
+            background: linear-gradient(135deg, #00875a 0%, #00573f 100%);
+            color: #ffffff;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(0, 106, 78, 0.35);
+        }
+
+        .btn-brand-secondary {
+            background-color: #f1f5f9;
+            color: #334155;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 10px;
+            padding: 10px 18px;
+            font-size: 14px;
+            font-weight: 600;
+            width: 100%;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-brand-secondary:hover {
+            background-color: #e2e8f0;
+            color: #0f172a;
+            border-color: #94a3b8;
+            text-decoration: none;
+        }
+
+        /* Captcha Frame */
+        .brand-captcha-box {
+            background: #f8fafc;
+            border: 1.5px dashed #cbd5e1;
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* ══════════════════════════════════════════════════════════════════
+           4. FOOTER BAR (DARK GREEN)
+           ══════════════════════════════════════════════════════════════════ */
+        .portal-footer {
+            background: #00382f;
+            color: rgba(255, 255, 255, 0.85);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 14px 20px;
+            font-size: 12.5px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .portal-footer-link {
+            color: rgba(255, 255, 255, 0.75);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .portal-footer-link:hover {
+            color: var(--brand-gold);
+            text-decoration: underline;
+        }
+
+        /* Role Quick Grid */
+        .role-badge-link {
+            padding: 8px 10px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            text-decoration: none;
+            color: #334155;
+            font-size: 12.5px;
+            font-weight: 600;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: all 0.2s;
+        }
+        .role-badge-link:hover {
+            background: #ecfdf5;
+            border-color: var(--brand-primary-green);
+            color: var(--brand-primary-green);
+            transform: translateY(-2px);
+        }
+
+        /* Responsive Tweaks */
+        @media (max-width: 576px) {
+            .brand-card-header {
+                padding: 18px 20px 14px 20px;
+            }
+            .brand-card-body {
+                padding: 18px 20px 22px 20px;
+            }
+            .portal-header-title h5 {
+                font-size: 15px !important;
+            }
+            .portal-header-title small {
+                font-size: 11px !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="portal-wrapper">
+    {{-- ========================================================================= --}}
+    {{-- 1. HEADER & TOPBAR (DARK GREEN WITH GOLD ACCENT) --}}
+    {{-- ========================================================================= --}}
+    <header class="portal-header py-2.5 px-3 px-lg-4">
+        <div class="container d-flex align-items-center justify-content-between flex-wrap gap-2.5">
+            {{-- Left Side: Idea Prokashon Logo and Portal Title --}}
+            <a href="{{ url('/') }}" class="d-flex align-items-center text-decoration-none text-white gap-2.5" title="হোম পেইজে যান">
+                <div class="bg-white rounded-circle p-1 d-flex align-items-center justify-content-center shadow-sm" style="width: 44px; height: 44px; flex-shrink: 0;">
+                    <img src="{{ \App\Support\SiteSetting::loginLogoUrl() ?: \App\Support\SiteSetting::logoUrl() }}" alt="Idea Prokashon" class="w-100 h-100 object-fit-contain" 
+                         onerror="this.src='{{ asset('images/logo.png') }}';">
+                </div>
+                <div class="portal-header-title d-flex flex-column justify-content-center lh-sm">
+                    <h5 class="fw-bold mb-0 text-white" style="font-size: 16.5px; letter-spacing: 0.2px;">
+                        আইডিয়া প্রকাশন ডিজিটাল পোর্টাল
+                    </h5>
+                    <small class="text-white-50" style="font-size: 11.5px;">
+                        অনলাইন বই ও প্রকাশনা ডিজিটাল প্ল্যাটফর্ম
+                    </small>
+                </div>
+            </a>
+
+            {{-- Right Side: Helpful Navigation Links --}}
+            <nav class="d-flex align-items-center gap-1 gap-md-2 flex-wrap ms-auto">
+                <a href="{{ url('/') }}" class="portal-nav-link">
+                    <i class="fa-solid fa-house-chimney"></i> <span>Home</span>
+                </a>
+                <a href="{{ url('/documents') }}" class="portal-nav-link">
+                    <i class="fa-solid fa-file-lines"></i> <span>Documents</span>
+                </a>
+                <a href="{{ url('/faq') }}" class="portal-nav-link">
+                    <i class="fa-solid fa-circle-question"></i> <span>FAQ</span>
+                </a>
+                <a href="{{ url('/contact') }}" class="portal-nav-link">
+                    <i class="fa-solid fa-book-bookmark"></i> <span>Manual & Help</span>
+                </a>
+            </nav>
         </div>
+    </header>
 
-        <div class="card-body p-4 p-md-4.5">
-            {{-- Error Alerts --}}
-            @if(isset($errors) && $errors->any())
-                <div class="alert alert-danger py-2.5 px-3 rounded-3 small mb-3 border-0 bg-danger bg-opacity-10 text-danger">
-                    <div class="fw-bold mb-1"><i class="fa-solid fa-triangle-exclamation me-1"></i> লগইন ব্যর্থ হয়েছে:</div>
-                    <ul class="mb-0 ps-3">
-                        @foreach($errors->all() as $e)
-                            <li>{{ $e }}</li>
-                        @endforeach
-                    </ul>
+    {{-- ========================================================================= --}}
+    {{-- 2. CENTERED LOGIN CARD --}}
+    {{-- ========================================================================= --}}
+    <main class="login-main-container">
+        <div class="brand-login-card">
+            <div class="brand-card-top-strip"></div>
+
+            {{-- Card Header: Main Site Logo (Round Shape) + Bold Login Title & Subtitle --}}
+            <div class="brand-card-header">
+                <div class="bg-white rounded-circle p-1.5 border shadow-2xs d-flex align-items-center justify-content-center overflow-hidden" style="width: 52px; height: 52px; flex-shrink: 0; border-color: rgba(0, 106, 78, 0.2) !important;">
+                    <img src="{{ \App\Support\SiteSetting::loginLogoUrl() ?: \App\Support\SiteSetting::logoUrl() }}" 
+                         alt="{{ \App\Support\SiteSetting::name() }}" 
+                         class="w-100 h-100 object-fit-contain rounded-circle"
+                         onerror="this.src='{{ asset('images/logo.png') }}';">
                 </div>
-            @endif
-
-            @if(session('error'))
-                <div class="alert alert-danger py-2.5 px-3 rounded-3 small mb-3 border-0 bg-danger bg-opacity-10 text-danger">
-                    <i class="fa-solid fa-circle-exclamation me-1"></i> {{ session('error') }}
+                <div>
+                    <h4 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2" style="font-size: 21px; letter-spacing: -0.2px;">
+                        <span>Login / লগইন</span>
+                    </h4>
+                    <small class="text-muted fw-medium d-block mt-0.5" style="font-size: 13px;">
+                        মোবাইল নম্বর ও পাসওয়ার্ড দিয়ে লগইন করুন
+                    </small>
                 </div>
-            @endif
+            </div>
 
-            @if(session('status'))
-                <div class="alert alert-success py-2.5 px-3 rounded-3 small mb-3 border-0 bg-success bg-opacity-10 text-success">
-                    <i class="fa-solid fa-circle-check me-1"></i> {{ session('status') }}
-                </div>
-            @endif
-
-            <form method="POST" action="{{ route('login') }}" id="loginForm" autocomplete="on">
-                @csrf
-
-                {{-- Invisible Honeypot Anti-Bot Security Field --}}
-                <div style="display:none !important; visibility:hidden; position:absolute; left:-9999px;" aria-hidden="true">
-                    <input type="text" name="website_url_hp" tabindex="-1" autocomplete="off">
-                    <input type="checkbox" name="b_check_field" tabindex="-1" autocomplete="off">
-                </div>
-
-                {{-- Identity / Username / Email / Phone --}}
-                <div class="mb-3">
-                    <label class="form-label fw-bold text-dark mb-1" style="font-size: 15px;">
-                        <i class="fa-solid fa-user text-primary me-1"></i> ইমেইল, মোবাইল নম্বর বা ইউজারনেম <span class="text-danger">*</span>
-                    </label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light border-end-0 fs-5"><i class="fa-solid fa-user-shield text-muted"></i></span>
-                        <input type="text" name="email" id="loginEmailInput" class="form-control form-control-lg rounded-end-3" 
-                               value="{{ old('email') }}" placeholder="ইমেইল, মোবাইল নম্বর (017...) অথবা admin..." 
-                               required autofocus autocomplete="username" 
-                               style="font-size: 15px; height: 48px;"
-                               autocorrect="off" autocapitalize="none" spellcheck="false">
+            <div class="brand-card-body">
+                {{-- Inline Error / Alert Box --}}
+                <div id="loginAlertBox" class="alert alert-danger py-2.5 px-3 rounded-3 small mb-3 border-0 bg-danger bg-opacity-10 text-danger {{ (isset($errors) && $errors->any()) || session('error') ? '' : 'd-none' }}">
+                    <div class="fw-bold mb-1 d-flex align-items-center gap-1.5" id="alertTitle">
+                        <i class="fa-solid fa-triangle-exclamation text-danger"></i>
+                        <span>লগইন সতর্কতা:</span>
+                    </div>
+                    <div id="alertMessage">
+                        @if(isset($errors) && $errors->any())
+                            <ul class="mb-0 ps-3">
+                                @foreach($errors->all() as $e)
+                                    <li>{{ $e }}</li>
+                                @endforeach
+                            </ul>
+                        @elseif(session('error'))
+                            {{ session('error') }}
+                        @endif
                     </div>
                 </div>
 
-                {{-- Password with Show/Hide Toggle Eye --}}
-                <div class="mb-3">
-                    <div class="d-flex align-items-center justify-content-between mb-1">
-                        <label class="form-label fw-bold text-dark mb-0" style="font-size: 15px;">
-                            <i class="fa-solid fa-lock text-primary me-1"></i> Password <span class="text-danger">*</span>
+                @if(session('status'))
+                    <div class="alert alert-success py-2.5 px-3 rounded-3 small mb-3 border-0 bg-success bg-opacity-10 text-success">
+                        <i class="fa-solid fa-circle-check me-1"></i> {{ session('status') }}
+                    </div>
+                @endif
+
+                <form method="POST" action="{{ route('login') }}" id="loginForm" autocomplete="on">
+                    @csrf
+
+                    {{-- Invisible Anti-Bot Honeypot --}}
+                    <div style="display:none !important; visibility:hidden; position:absolute; left:-9999px;" aria-hidden="true">
+                        <input type="text" name="website_url_hp" tabindex="-1" autocomplete="off">
+                        <input type="checkbox" name="b_check_field" tabindex="-1" autocomplete="off">
+                    </div>
+
+                    {{-- Hidden Google reCAPTCHA Token Input --}}
+                    <input type="hidden" name="g-recaptcha-response" id="gRecaptchaResponseInput" value="">
+
+                    {{-- 1. Mobile Number Input --}}
+                    <div class="mb-3">
+                        <label class="brand-form-label" for="loginEmailInput">
+                            মোবাইল নম্বর: <span class="required-star">*</span>
                         </label>
-                        <a href="{{ route('password.request') }}" class="text-decoration-none text-primary fw-semibold" style="font-size: 13px;">
-                            <i class="fa-solid fa-key me-0.5"></i> Forgot Password?
-                        </a>
+                        <div class="brand-input-group">
+                            <span class="brand-input-icon"><i class="fa-solid fa-phone"></i></span>
+                            <input type="text" name="email" id="loginEmailInput" class="brand-form-control" 
+                                   value="{{ old('email') }}" placeholder="আপনার মোবাইল নম্বর লিখুন..." 
+                                   required autofocus autocomplete="username"
+                                   autocorrect="off" autocapitalize="none" spellcheck="false">
+                        </div>
                     </div>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light border-end-0 fs-5"><i class="fa-solid fa-key text-muted"></i></span>
-                        <input type="password" name="password" id="loginPasswordInput" class="form-control form-control-lg" 
-                               placeholder="Enter your password..." required autocomplete="current-password"
-                               style="font-size: 15px; height: 48px;">
-                        <button type="button" class="btn btn-outline-secondary rounded-end-3" id="toggleLoginPasswordBtn" 
-                                onclick="togglePasswordVisibility('loginPasswordInput', this)" title="পাসওয়ার্ড দেখুন বা লুকান">
-                            <i class="fa-regular fa-eye fs-5"></i>
+
+                    {{-- 2. Password Field with Toggle --}}
+                    <div class="mb-3">
+                        <div class="d-flex align-items-center justify-content-between mb-1">
+                            <label class="brand-form-label mb-0" for="loginPasswordInput">
+                                পাসওয়ার্ড: <span class="required-star">*</span>
+                            </label>
+                            <a href="{{ route('password.request') }}" class="text-decoration-none fw-semibold" style="color: var(--brand-primary-green); font-size: 12.5px;">
+                                <i class="fa-solid fa-key me-0.5"></i> Forgot Password?
+                            </a>
+                        </div>
+                        <div class="brand-input-group">
+                            <span class="brand-input-icon"><i class="fa-solid fa-lock"></i></span>
+                            <input type="password" name="password" id="loginPasswordInput" class="brand-form-control has-toggle" 
+                                   placeholder="আপনার পাসওয়ার্ড লিখুন..." required autocomplete="current-password">
+                            <button type="button" class="brand-toggle-btn" id="togglePasswordBtn" onclick="togglePasswordVisibility()" title="পাসওয়ার্ড দেখুন বা লুকান">
+                                <i class="fa-regular fa-eye" id="togglePasswordIcon"></i>
+                            </button>
+                        </div>
+                        {{-- Remember Me Helper --}}
+                        <div class="d-flex align-items-center justify-content-end mt-1.5">
+                            <div class="form-check">
+                                <input type="checkbox" name="remember" id="remember" class="form-check-input" value="1" @checked(old('remember'))>
+                                <label for="remember" class="form-check-label text-muted cursor-pointer" style="font-size: 12px;">Remember Me</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- 3. Google reCAPTCHA v2 (Shown automatically only if triggered by security threshold) --}}
+                    <div id="captchaWrapper" class="{{ ($requiresCaptcha ?? false) ? '' : 'd-none' }} mb-3.5">
+                        <label class="brand-form-label mb-1">
+                            Security Verification: <span class="required-star">*</span>
+                        </label>
+                        <div class="brand-captcha-box">
+                            <div id="googleRecaptchaInlineWidget"></div>
+                            <div id="captchaInlineFeedback" class="small fw-semibold text-muted mt-1" style="font-size: 11.5px;">
+                                <i class="fa-solid fa-shield-check text-success me-1"></i> Google 256-bit reCAPTCHA Protected
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- 4. Action Buttons --}}
+                    <div class="d-flex flex-column gap-2 mt-3 pt-1">
+                        {{-- Primary Login Button (Full-width Dark Green - English Only) --}}
+                        <button type="submit" class="btn-brand-primary" id="loginSubmitBtn">
+                            <i class="fa-solid fa-right-to-bracket"></i> Login
                         </button>
-                    </div>
-                </div>
 
-                {{-- Interactive Visual Sign & Image Challenge (Triggered for 3+ Failed Attempts / Security Issues) --}}
-                @php
-                    $isVisualChallengeActive = !empty($requiresVisualChallenge) || (isset($ipStatus['requires_visual_challenge']) && $ipStatus['requires_visual_challenge']) || $errors->has('visual_challenge');
-                @endphp
-
-                <div id="visualChallengeContainer" class="{{ $isVisualChallengeActive ? '' : 'd-none' }} mb-4">
-                    <div class="card border-0 rounded-4 shadow-sm overflow-hidden" style="background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%); border: 1.5px solid #cbd5e1 !important;">
-                        <div class="card-header border-0 py-3 px-3.5 bg-white d-flex align-items-center justify-content-between border-bottom">
-                            <div class="d-flex align-items-center gap-2">
-                                <span class="badge bg-danger rounded-pill px-2.5 py-1 text-white shadow-2xs">
-                                    <i class="fa-solid fa-shield-halved me-1"></i> সিকিউরিটি ভেরিফিকেশন
-                                </span>
-                                <span class="fw-bold text-dark" style="font-size: 13.5px;">মানুষ প্রমাণ (Human Check)</span>
-                            </div>
-                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-2 py-0.5" 
-                                    id="refreshVisualChallengeBtn" onclick="fetchNewVisualChallenge(this)" title="নতুন ছবি লোড করুন" style="font-size: 11.5px;">
-                                <i class="fa-solid fa-rotate me-1" id="refreshVisualIcon"></i> রিলোড
-                            </button>
-                        </div>
-
-                        <div class="card-body p-3.5">
-                            {{-- Instruction Banner --}}
-                            <div class="p-2.5 rounded-3 mb-3 text-center d-flex align-items-center justify-content-center gap-2" 
-                                 id="visualChallengeHeaderBadge"
-                                 style="background: {{ $visualChallenge['target_color'] ?? '#0284c7' }}15; border: 1.5px dashed {{ $visualChallenge['target_color'] ?? '#0284c7' }};">
-                                <i class="fa-solid {{ $visualChallenge['target_icon'] ?? 'fa-eye' }} fs-5" 
-                                   id="visualTargetIcon" 
-                                   style="color: {{ $visualChallenge['target_color'] ?? '#0284c7' }};"></i>
-                                <div class="text-start">
-                                    <div class="fw-bold text-dark" style="font-size: 13.5px;" id="visualInstructionText">
-                                        নিচের ছবিগুলো থেকে সব <strong>{{ $visualChallenge['target_title'] ?? 'নির্দিষ্ট সাইন' }}</strong> চিহ্নিত করুন:
-                                    </div>
-                                    <small class="text-muted" style="font-size: 11.5px;" id="visualInstructionSub">
-                                        {{ $visualChallenge['target_desc'] ?? 'সঠিক ৩টি ছবিতে ক্লিক করে মানুষ প্রমাণ করুন' }}
-                                    </small>
-                                </div>
-                            </div>
-
-                            {{-- 3x3 Visual Tiles Grid --}}
-                            <div class="row g-2 text-center" id="visualTilesGrid">
-                                @if(!empty($visualChallenge['tiles']))
-                                    @foreach($visualChallenge['tiles'] as $tile)
-                                        <div class="col-4">
-                                            <div class="visual-tile position-relative p-2.5 rounded-3 bg-white border cursor-pointer transition-all shadow-2xs h-100 d-flex flex-column align-items-center justify-content-center"
-                                                 data-index="{{ $tile['index'] }}"
-                                                 onclick="toggleVisualTile(this)"
-                                                 style="min-height: 84px; border-color: #cbd5e1; user-select: none;">
-                                                <div class="tile-check-badge position-absolute top-0 end-0 m-1 rounded-circle bg-success text-white d-none align-items-center justify-content-center shadow-2xs" 
-                                                     style="width: 20px; height: 20px; font-size: 11px;">
-                                                    <i class="fa-solid fa-check"></i>
-                                                </div>
-                                                <div class="tile-icon text-secondary mb-1" style="font-size: 26px;">
-                                                    <i class="fa-solid {{ $tile['icon'] }}"></i>
-                                                </div>
-                                                <div class="tile-label fw-semibold text-dark text-truncate w-100" style="font-size: 11px;">
-                                                    {{ $tile['label'] }}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    @endforeach
-                                @endif
-                            </div>
-
-                            {{-- Challenge Feedback Status --}}
-                            <div id="visualChallengeFeedback" class="mt-2.5 text-center small fw-semibold d-none"></div>
-
-                            {{-- Hidden JSON array of selected indices --}}
-                            <input type="hidden" name="visual_selected_indices" id="visualSelectedIndicesInput" value="[]">
-
-                            <div class="d-flex align-items-center justify-content-between gap-2 mt-3 pt-2 border-top">
-                                <span class="text-muted" style="font-size: 11.5px;">
-                                    <i class="fa-solid fa-circle-info text-primary me-0.5"></i> ৩টি সঠিক ছবি নির্বাচন করুন
-                                </span>
-                                <button type="button" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold" id="verifyVisualBtn" onclick="verifyVisualSelection(this)">
-                                    <i class="fa-solid fa-shield-check me-1"></i> যাচাই করুন
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- Human Bot Math Security Challenge (Fallback for Standard Login) --}}
-                @php
-                    $b1 = $botNum1 ?? random_int(3, 8);
-                    $b2 = $botNum2 ?? random_int(1, 6);
-                @endphp
-                <div class="rounded-4 border mb-4 shadow-2xs p-3 p-sm-3.5 {{ $isVisualChallengeActive ? 'd-none' : '' }}" id="botChallengeBox" 
-                     style="background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%); border-color: #cbd5e1 !important;">
-                    <div class="d-flex align-items-center justify-content-between gap-2 gap-sm-3 flex-wrap flex-sm-nowrap">
-                        {{-- Left Column: Row 1 = Equation, Row 2 = যোগফল লিখুন --}}
-                        <div class="d-flex flex-column justify-content-center ps-1 ps-sm-2">
-                            <div class="text-primary font-monospace fw-bold text-nowrap" id="botEquationText" 
-                                 style="font-size: clamp(18px, 4.5vw, 22px); letter-spacing: 0.8px; line-height: 1.2;">
-                                {{ $b1 }} + {{ $b2 }} = ?
-                            </div>
-                            <div class="text-secondary fw-semibold text-nowrap mt-0.5" style="font-size: clamp(11.5px, 3vw, 13px); color: #475569 !important;">
-                                যোগফল লিখুন
-                            </div>
-                        </div>
-
-                        {{-- Right Column: Merged Answer Input & Refresh Button --}}
-                        <div class="d-flex align-items-center gap-1.5 gap-sm-2 ms-auto pe-1">
-                            <input type="number" name="bot_answer" id="botAnswerInput" 
-                                   class="form-control form-control-lg text-center fw-bold font-monospace bg-white border shadow-2xs px-1 px-sm-2" 
-                                   style="width: 110px; min-width: 90px; max-width: 130px; font-size: clamp(16px, 4vw, 19px); height: 46px; border-radius: 10px;" 
-                                   placeholder="যোগফল" {{ $isVisualChallengeActive ? '' : 'required' }} min="0" max="40" autocomplete="off">
-                            <button type="button" class="btn btn-outline-primary rounded-circle d-flex align-items-center justify-content-center shadow-2xs flex-shrink-0" 
-                                    id="refreshBotBtn" onclick="refreshBotChallenge(this)" title="নতুন সংখ্যা পেতে ক্লিক করুন" 
-                                    style="width: 40px; height: 40px;">
-                                <i class="fa-solid fa-rotate" id="refreshBotIcon"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <div class="form-check">
-                        <input type="checkbox" name="remember" id="remember" class="form-check-input" value="1" @checked(old('remember'))>
-                        <label for="remember" class="form-check-label small text-muted cursor-pointer" style="font-size: 13px;">Remember Me</label>
-                    </div>
-                    <span class="text-muted" style="font-size: 12px;">
-                        <i class="fa-solid fa-shield-check text-success me-0.5"></i> 256-bit SSL Secure
-                    </span>
-                </div>
-
-                <button type="submit" class="btn btn-primary w-100 py-2.5 fw-bold rounded-pill shadow-sm fs-5" id="loginSubmitBtn">
-                    <i class="fa-solid fa-right-to-bracket me-1.5"></i> Login / লগইন করুন
-                </button>
-            </form>
-
-            {{-- Prominent Registration / Sign Up Callout --}}
-            <div class="mt-4 pt-3 border-top">
-                <div class="p-3 bg-light rounded-4 border shadow-2xs">
-                    <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
-                        <span class="fw-bold text-dark d-flex align-items-center gap-1.5" style="font-size: clamp(14px, 3.8vw, 17px);">
-                            <i class="fa-solid fa-user-plus text-primary"></i>
-                            <span>আপনার একাউন্ট না থাকলে সাইন আপ করুন:</span>
-                        </span>
-                        <a href="{{ route('register.choose') }}" class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 text-decoration-none px-3 py-1.5 rounded-pill fw-bold" style="font-size: 13px;">
-                            সবগুলো <i class="fa-solid fa-angle-right ms-1"></i>
+                        {{-- Secondary Button (Reset Password - Concise English with Tooltip) --}}
+                        <a href="{{ route('password.request') }}" class="btn-brand-secondary" title="পাসওয়ার্ড ভুলে গেলে রিসেট করুন">
+                            <i class="fa-solid fa-key text-secondary"></i> Reset Password
                         </a>
                     </div>
-                    
-                    <div class="row g-2 text-center">
-                        <div class="col-6 col-sm-3">
-                            <a href="{{ route('register.form', 'author') }}" class="d-block p-3 rounded-4 border bg-white text-decoration-none shadow-2xs hover-lift transition-all h-100">
-                                <div class="text-success mb-1.5" style="font-size: 26px;"><i class="fa-solid fa-feather-pointed"></i></div>
-                                <div class="fw-bold text-dark" style="font-size: 18px;">লেখক</div>
-                                <div class="text-muted fw-semibold" style="font-size: 13.5px;">লেখা প্রকাশ</div>
+                </form>
+
+                {{-- Sign Up / Registration Options --}}
+                <div class="mt-4 pt-3 border-top">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <span class="fw-bold text-dark" style="font-size: 12.5px;">
+                            <i class="fa-solid fa-user-plus text-success me-1"></i> নতুন অ্যাকাউন্ট তৈরি করুন:
+                        </span>
+                        <a href="{{ route('register.choose') }}" class="text-decoration-none fw-bold" style="color: var(--brand-primary-green); font-size: 12px;">
+                            সবগুলো <i class="fa-solid fa-angle-right"></i>
+                        </a>
+                    </div>
+                    <div class="row g-1.5 text-center">
+                        <div class="col-3">
+                            <a href="{{ route('register.form', 'author') }}" class="role-badge-link">
+                                <i class="fa-solid fa-feather-pointed text-success mb-1"></i>
+                                <span>লেখক</span>
                             </a>
                         </div>
-                        <div class="col-6 col-sm-3">
-                            <a href="{{ route('register.form', 'buyer') }}" class="d-block p-3 rounded-4 border bg-white text-decoration-none shadow-2xs hover-lift transition-all h-100">
-                                <div class="text-warning mb-1.5" style="font-size: 26px;"><i class="fa-solid fa-bag-shopping"></i></div>
-                                <div class="fw-bold text-dark" style="font-size: 18px;">পাঠক/বায়ার</div>
-                                <div class="text-muted fw-semibold" style="font-size: 13.5px;">বই ক্রয়</div>
+                        <div class="col-3">
+                            <a href="{{ route('register.form', 'buyer') }}" class="role-badge-link">
+                                <i class="fa-solid fa-bag-shopping text-warning mb-1"></i>
+                                <span>পাঠক</span>
                             </a>
                         </div>
-                        <div class="col-6 col-sm-3">
-                            <a href="{{ route('register.form', 'publisher') }}" class="d-block p-3 rounded-4 border bg-white text-decoration-none shadow-2xs hover-lift transition-all h-100">
-                                <div class="text-danger mb-1.5" style="font-size: 26px;"><i class="fa-solid fa-building"></i></div>
-                                <div class="fw-bold text-dark" style="font-size: 18px;">প্রকাশক</div>
-                                <div class="text-muted fw-semibold" style="font-size: 13.5px;">প্রকাশনী</div>
+                        <div class="col-3">
+                            <a href="{{ route('register.form', 'publisher') }}" class="role-badge-link">
+                                <i class="fa-solid fa-building text-danger mb-1"></i>
+                                <span>প্রকাশক</span>
                             </a>
                         </div>
-                        <div class="col-6 col-sm-3">
-                            <a href="{{ route('register.form', 'seller') }}" class="d-block p-3 rounded-4 border bg-white text-decoration-none shadow-2xs hover-lift transition-all h-100">
-                                <div class="text-primary mb-1.5" style="font-size: 26px;"><i class="fa-solid fa-store"></i></div>
-                                <div class="fw-bold text-dark" style="font-size: 18px;">সেলার</div>
-                                <div class="text-muted fw-semibold" style="font-size: 13.5px;">বই বিক্রি</div>
+                        <div class="col-3">
+                            <a href="{{ route('register.form', 'seller') }}" class="role-badge-link">
+                                <i class="fa-solid fa-store text-primary mb-1"></i>
+                                <span>সেলার</span>
                             </a>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
+    </main>
+
+    {{-- ========================================================================= --}}
+    {{-- 3. FOOTER BAR (DARK GREEN) --}}
+    {{-- ========================================================================= --}}
+    <footer class="portal-footer">
+        <div class="container-fluid d-flex align-items-center justify-content-between flex-wrap gap-2">
+            <div>
+                © ২০২৬ আইডিয়া প্রকাশন । ডিজিটাল বুক ও প্রকাশনা প্ল্যাটফর্ম । সর্বস্বত্ব সংরক্ষিত।
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                <a href="{{ url('/terms') }}" class="portal-footer-link">ব্যবহারের শর্তাবলী (Terms)</a>
+                <span class="text-white-50">•</span>
+                <a href="{{ url('/privacy') }}" class="portal-footer-link">গোপনীয়তা নীতি (Privacy Policy)</a>
+                <span class="text-white-50">•</span>
+                <a href="{{ url('/contact') }}" class="portal-footer-link">যোগাযোগ ও সহায়তা (Help & Contact)</a>
+            </div>
+        </div>
+    </footer>
 </div>
 
-<style>
-.visual-tile {
-    cursor: pointer;
-    border-radius: 12px !important;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.visual-tile:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
-    border-color: #94a3b8 !important;
-}
-.visual-tile.selected {
-    background: #eff6ff !important;
-    border-color: #0284c7 !important;
-    border-width: 2px !important;
-    box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.25) !important;
-}
-.visual-tile.selected .tile-icon {
-    color: #0284c7 !important;
-}
-.visual-tile.selected .tile-check-badge {
-    display: flex !important;
-}
-.visual-tile.verified-success {
-    background: #f0fdf4 !important;
-    border-color: #16a34a !important;
-}
-</style>
-
 <script>
-let selectedVisualIndices = [];
-let isVisualVerified = false;
+let recaptchaWidgetId = null;
+let isRecaptchaReady = false;
+let recaptchaSiteKey = '{{ $recaptchaSiteKey ?? "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI" }}';
 
-function togglePasswordVisibility(inputId, btn) {
-    const input = document.getElementById(inputId);
-    const icon = btn.querySelector('i');
+/**
+ * Toggle Password Visibility with Eye Icon
+ */
+function togglePasswordVisibility() {
+    const input = document.getElementById('loginPasswordInput');
+    const icon = document.getElementById('togglePasswordIcon');
+    const checkbox = document.getElementById('showPasswordCheckbox');
+
     if (input.type === 'password') {
+        input.type = 'text';
+        if (icon) {
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        }
+        if (checkbox) checkbox.checked = true;
+    } else {
+        input.type = 'password';
+        if (icon) {
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
+        if (checkbox) checkbox.checked = false;
+    }
+}
+
+function syncPasswordCheckbox(cb) {
+    const input = document.getElementById('loginPasswordInput');
+    const icon = document.getElementById('togglePasswordIcon');
+    if (cb.checked) {
         input.type = 'text';
         if (icon) {
             icon.classList.remove('fa-eye');
@@ -314,247 +649,154 @@ function togglePasswordVisibility(inputId, btn) {
     }
 }
 
-function toggleVisualTile(tileEl) {
-    const index = parseInt(tileEl.getAttribute('data-index'), 10);
-    const hiddenInput = document.getElementById('visualSelectedIndicesInput');
-    const feedback = document.getElementById('visualChallengeFeedback');
+/**
+ * Google reCAPTCHA explicit onload callback
+ */
+window.onRecaptchaLoaded = function() {
+    isRecaptchaReady = true;
+    renderGoogleRecaptcha();
+};
 
-    if (tileEl.classList.contains('selected')) {
-        tileEl.classList.remove('selected');
-        selectedVisualIndices = selectedVisualIndices.filter(i => i !== index);
-    } else {
-        tileEl.classList.add('selected');
-        if (!selectedVisualIndices.includes(index)) {
-            selectedVisualIndices.push(index);
+function renderGoogleRecaptcha() {
+    const container = document.getElementById('googleRecaptchaInlineWidget');
+    if (container && window.grecaptcha && isRecaptchaReady && recaptchaWidgetId === null) {
+        try {
+            recaptchaWidgetId = window.grecaptcha.render('googleRecaptchaInlineWidget', {
+                'sitekey': recaptchaSiteKey,
+                'callback': onCaptchaSuccessCallback,
+                'expired-callback': onCaptchaExpiredCallback,
+                'error-callback': onCaptchaErrorCallback,
+                'theme': 'light'
+            });
+        } catch (e) {
+            console.error('reCAPTCHA render error', e);
         }
     }
+}
 
-    if (hiddenInput) {
-        hiddenInput.value = JSON.stringify(selectedVisualIndices);
-    }
+function onCaptchaSuccessCallback(token) {
+    const tokenInput = document.getElementById('gRecaptchaResponseInput');
+    const feedback = document.getElementById('captchaInlineFeedback');
+    if (tokenInput) tokenInput.value = token;
     if (feedback) {
-        feedback.classList.add('d-none');
+        feedback.className = 'small fw-bold text-success mt-1';
+        feedback.innerHTML = '<i class="fa-solid fa-circle-check me-1"></i> Verification successful!';
     }
 }
 
-async function verifyVisualSelection(btn) {
-    const hiddenInput = document.getElementById('visualSelectedIndicesInput');
-    const feedback = document.getElementById('visualChallengeFeedback');
-    const verifyBtn = btn || document.getElementById('verifyVisualBtn');
-
-    if (selectedVisualIndices.length === 0) {
-        if (feedback) {
-            feedback.className = 'mt-2.5 text-center small fw-semibold text-danger';
-            feedback.textContent = 'অনুগ্রহ করে অন্তত ৩টি সঠিক ছবিতে ক্লিক করুন।';
-            feedback.classList.remove('d-none');
-        }
-        return;
-    }
-
-    if (verifyBtn) {
-        verifyBtn.disabled = true;
-        verifyBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span> যাচাই হচ্ছে...';
-    }
-
-    try {
-        const res = await fetch('{{ route("login.verify-visual-challenge") }}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                'Accept': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
-            },
-            body: JSON.stringify({
-                selected: selectedVisualIndices
-            })
-        });
-
-        const data = await res.json();
-
-        if (res.ok && data.success) {
-            isVisualVerified = true;
-            if (feedback) {
-                feedback.className = 'mt-2.5 text-center small fw-bold text-success';
-                feedback.innerHTML = '<i class="fa-solid fa-circle-check me-1"></i> ' + data.message;
-                feedback.classList.remove('d-none');
-            }
-            if (verifyBtn) {
-                verifyBtn.className = 'btn btn-sm btn-success rounded-pill px-3 fw-bold';
-                verifyBtn.innerHTML = '<i class="fa-solid fa-check-double me-1"></i> মানুষ যাচাই সম্পন্ন';
-            }
-            // Highlight selected tiles with green
-            document.querySelectorAll('.visual-tile.selected').forEach(t => t.classList.add('verified-success'));
-        } else {
-            isVisualVerified = false;
-            if (feedback) {
-                feedback.className = 'mt-2.5 text-center small fw-semibold text-danger';
-                feedback.innerHTML = '<i class="fa-solid fa-triangle-exclamation me-1"></i> ' + (data.message || 'যাচাইকরণ সঠিক হয়নি।');
-                feedback.classList.remove('d-none');
-            }
-            if (data.new_challenge) {
-                renderVisualChallenge(data.new_challenge);
-            }
-            if (verifyBtn) {
-                verifyBtn.disabled = false;
-                verifyBtn.innerHTML = '<i class="fa-solid fa-shield-check me-1"></i> পুনরায় যাচাই করুন';
-            }
-        }
-    } catch (e) {
-        console.error('Visual verification error', e);
-        if (feedback) {
-            feedback.className = 'mt-2.5 text-center small fw-semibold text-danger';
-            feedback.textContent = 'সার্ভার সমস্যা হয়েছে। আবার চেষ্টা করুন।';
-            feedback.classList.remove('d-none');
-        }
-        if (verifyBtn) {
-            verifyBtn.disabled = false;
-            verifyBtn.innerHTML = '<i class="fa-solid fa-shield-check me-1"></i> যাচাই করুন';
-        }
-    }
-}
-
-async function fetchNewVisualChallenge(btn) {
-    const icon = document.getElementById('refreshVisualIcon');
-    if (icon) icon.classList.add('fa-spin');
-    if (btn) btn.disabled = true;
-
-    try {
-        const res = await fetch('{{ route("login.visual-challenge") }}', {
-            headers: {
-                'Accept': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        });
-        const data = await res.json();
-        if (data && data.success && data.challenge) {
-            renderVisualChallenge(data.challenge);
-        }
-    } catch (e) {
-        console.error('Failed to load visual challenge', e);
-    } finally {
-        if (icon) icon.classList.remove('fa-spin');
-        if (btn) btn.disabled = false;
-    }
-}
-
-function renderVisualChallenge(c) {
-    selectedVisualIndices = [];
-    isVisualVerified = false;
-    const hiddenInput = document.getElementById('visualSelectedIndicesInput');
-    if (hiddenInput) hiddenInput.value = '[]';
-
-    const headerBadge = document.getElementById('visualChallengeHeaderBadge');
-    const targetIcon = document.getElementById('visualTargetIcon');
-    const instructionText = document.getElementById('visualInstructionText');
-    const instructionSub = document.getElementById('visualInstructionSub');
-    const grid = document.getElementById('visualTilesGrid');
-    const feedback = document.getElementById('visualChallengeFeedback');
-    const verifyBtn = document.getElementById('verifyVisualBtn');
-
-    if (headerBadge) {
-        headerBadge.style.background = (c.target_color || '#0284c7') + '15';
-        headerBadge.style.borderColor = (c.target_color || '#0284c7');
-    }
-    if (targetIcon) {
-        targetIcon.className = 'fa-solid ' + (c.target_icon || 'fa-eye') + ' fs-5';
-        targetIcon.style.color = (c.target_color || '#0284c7');
-    }
-    if (instructionText) {
-        instructionText.innerHTML = 'নিচের ছবিগুলো থেকে সব <strong>' + c.target_title + '</strong> চিহ্নিত করুন:';
-    }
-    if (instructionSub) {
-        instructionSub.textContent = c.target_desc || 'সঠিক ৩টি ছবিতে ক্লিক করে মানুষ প্রমাণ করুন';
-    }
+function onCaptchaExpiredCallback() {
+    const tokenInput = document.getElementById('gRecaptchaResponseInput');
+    const feedback = document.getElementById('captchaInlineFeedback');
+    if (tokenInput) tokenInput.value = '';
     if (feedback) {
-        feedback.classList.add('d-none');
-        feedback.textContent = '';
-    }
-    if (verifyBtn) {
-        verifyBtn.disabled = false;
-        verifyBtn.className = 'btn btn-sm btn-primary rounded-pill px-3 fw-bold';
-        verifyBtn.innerHTML = '<i class="fa-solid fa-shield-check me-1"></i> যাচাই করুন';
-    }
-
-    if (grid && c.tiles) {
-        grid.innerHTML = '';
-        c.tiles.forEach(tile => {
-            const col = document.createElement('div');
-            col.className = 'col-4';
-            col.innerHTML = `
-                <div class="visual-tile position-relative p-2.5 rounded-3 bg-white border cursor-pointer transition-all shadow-2xs h-100 d-flex flex-column align-items-center justify-content-center"
-                     data-index="${tile.index}"
-                     onclick="toggleVisualTile(this)"
-                     style="min-height: 84px; border-color: #cbd5e1; user-select: none;">
-                    <div class="tile-check-badge position-absolute top-0 end-0 m-1 rounded-circle bg-success text-white d-none align-items-center justify-content-center shadow-2xs" 
-                         style="width: 20px; height: 20px; font-size: 11px;">
-                        <i class="fa-solid fa-check"></i>
-                    </div>
-                    <div class="tile-icon text-secondary mb-1" style="font-size: 26px;">
-                        <i class="fa-solid ${tile.icon}"></i>
-                    </div>
-                    <div class="tile-label fw-semibold text-dark text-truncate w-100" style="font-size: 11px;">
-                        ${tile.label}
-                    </div>
-                </div>
-            `;
-            grid.appendChild(col);
-        });
+        feedback.className = 'small fw-semibold text-danger mt-1';
+        feedback.innerHTML = '<i class="fa-solid fa-triangle-exclamation me-1"></i> Verification expired. Please verify again.';
     }
 }
 
-async function refreshBotChallenge(btn) {
-    const icon = document.getElementById('refreshBotIcon');
-    const eqText = document.getElementById('botEquationText');
-    const ansInput = document.getElementById('botAnswerInput');
-    const challengeBox = document.getElementById('botChallengeBox');
-
-    if (icon) icon.classList.add('fa-spin');
-    if (btn) btn.disabled = true;
-
-    try {
-        const res = await fetch('{{ route("login.refresh-bot") }}', {
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'Accept': 'application/json'
-            }
-        });
-        const data = await res.json();
-        if (data && data.success) {
-            if (eqText) eqText.textContent = data.equation;
-            if (ansInput) {
-                ansInput.value = '';
-                ansInput.focus();
-            }
-            if (challengeBox) {
-                challengeBox.classList.add('animate__animated', 'animate__pulse');
-                setTimeout(() => challengeBox.classList.remove('animate__animated', 'animate__pulse'), 1000);
-            }
-        }
-    } catch (e) {
-        console.error('Failed to refresh bot challenge', e);
-    } finally {
-        if (icon) icon.classList.remove('fa-spin');
-        if (btn) btn.disabled = false;
+function onCaptchaErrorCallback() {
+    const feedback = document.getElementById('captchaInlineFeedback');
+    if (feedback) {
+        feedback.className = 'small fw-semibold text-danger mt-1';
+        feedback.innerHTML = '<i class="fa-solid fa-circle-exclamation me-1"></i> Verification error. Please try again.';
     }
 }
 
+/**
+ * Form Submit with Client-side validation & AJAX handling
+ */
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('loginForm');
-    const btn = document.getElementById('loginSubmitBtn');
-    if (form && btn) {
-        form.addEventListener('submit', function(e) {
-            const visualContainer = document.getElementById('visualChallengeContainer');
-            if (visualContainer && !visualContainer.classList.contains('d-none')) {
-                const hiddenInput = document.getElementById('visualSelectedIndicesInput');
-                if (hiddenInput) {
-                    hiddenInput.value = JSON.stringify(selectedVisualIndices);
+    const submitBtn = document.getElementById('loginSubmitBtn');
+    const alertBox = document.getElementById('loginAlertBox');
+    const alertMessage = document.getElementById('alertMessage');
+    const tokenInput = document.getElementById('gRecaptchaResponseInput');
+
+    if (form) {
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const emailInput = document.getElementById('loginEmailInput');
+            const passwordInput = document.getElementById('loginPasswordInput');
+
+            if (!emailInput.value.trim() || !passwordInput.value) {
+                if (alertBox && alertMessage) {
+                    alertMessage.textContent = 'মোবাইল নম্বর এবং পাসওয়ার্ড দিন।';
+                    alertBox.classList.remove('d-none');
+                }
+                return;
+            }
+
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1.5" role="status"></span> Logging in...';
+            }
+
+            const formData = new FormData(form);
+
+            try {
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    if (alertBox) {
+                        alertBox.className = 'alert alert-success py-2.5 px-3 rounded-3 small mb-3 border-0 bg-success bg-opacity-10 text-success';
+                        alertMessage.innerHTML = '<i class="fa-solid fa-circle-check me-1"></i> ' + (data.message || 'লগইন সফল হয়েছে! ড্যাশবোর্ডে নিয়ে যাওয়া হচ্ছে...');
+                        alertBox.classList.remove('d-none');
+                    }
+                    if (submitBtn) {
+                        submitBtn.innerHTML = '<i class="fa-solid fa-circle-check me-1.5"></i> Logged In!';
+                        submitBtn.className = 'btn-brand-primary bg-success';
+                    }
+                    window.location.href = data.redirect || '{{ route("home") }}';
+                    return;
+                }
+
+                // Error handling
+                const msg = data.message || 'মোবাইল নম্বর বা পাসওয়ার্ড সঠিক নয়।';
+                if (alertBox && alertMessage) {
+                    alertBox.className = 'alert alert-danger py-2.5 px-3 rounded-3 small mb-3 border-0 bg-danger bg-opacity-10 text-danger';
+                    alertMessage.textContent = msg;
+                    alertBox.classList.remove('d-none');
+                }
+
+                if (data.show_captcha) {
+                    const captchaWrapper = document.getElementById('captchaWrapper');
+                    if (captchaWrapper) {
+                        captchaWrapper.classList.remove('d-none');
+                        renderGoogleRecaptcha();
+                    }
+                }
+
+                // Reset reCAPTCHA on failure
+                if (window.grecaptcha && recaptchaWidgetId !== null) {
+                    try {
+                        window.grecaptcha.reset(recaptchaWidgetId);
+                        if (tokenInput) tokenInput.value = '';
+                    } catch(err){}
+                }
+
+            } catch (err) {
+                console.error('Login error:', err);
+                form.submit();
+            } finally {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> Login';
                 }
             }
-            btn.disabled = true;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1.5" role="status"></span> Checking & Logging in...';
         });
     }
 });
 </script>
-@endsection
+</body>
+</html>

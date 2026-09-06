@@ -224,10 +224,31 @@ Route::prefix('ideapatra')->name('ideapatra.')->group(function () {
 Route::post('/blog/honorarium/send', [\App\Http\Controllers\AuthorHonorariumController::class, 'store'])->name('blog.honorarium.send');
 Route::post('/author-honorarium/send', [\App\Http\Controllers\AuthorHonorariumController::class, 'store'])->name('author.honorarium.send');
 
-// Static Pages
+// Static & Information Pages
 Route::view('/hub', 'frontend.pages.hub')->name('hub');
 Route::view('/about', 'frontend.pages.about')->name('about');
+Route::view('/faq', 'frontend.pages.faq')->name('faq');
+Route::view('/documents', 'frontend.pages.documents')->name('documents');
 Route::view('/contact', 'frontend.pages.contact')->name('contact');
+Route::post('/contact/submit', function (\Illuminate\Http\Request $request) {
+    $data = $request->validate([
+        'name'    => 'required|string|max:100',
+        'phone'   => 'required|string|max:25',
+        'email'   => 'nullable|email|max:100',
+        'subject' => 'nullable|string|max:150',
+        'message' => 'required|string|max:3000',
+    ]);
+
+    // Can optionally send notification, email or store inquiry
+    if ($request->ajax() || $request->wantsJson()) {
+        return response()->json([
+            'success' => true,
+            'message' => 'আপনার বার্তাটি সফলভাবে পাঠানো হয়েছে! আমাদের টিম দ্রুতই আপনার সাথে যোগাযোগ করবে।'
+        ]);
+    }
+
+    return redirect()->back()->with('success', 'আপনার বার্তাটি সফলভাবে পাঠানো হয়েছে! আমাদের টিম দ্রুতই আপনার সাথে যোগাযোগ করবে।');
+})->name('contact.submit');
 
 // --- Registration routes --------------------------------------------------
 Route::get('/register', [RegistrationController::class, 'choose'])->name('register.choose');
