@@ -479,7 +479,7 @@
                         </svg>
 
                         {{-- Initial placeholder when no image uploaded --}}
-                        <div id="adminCanvasPlaceholder" class="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center bg-light text-muted p-3 pointer-events-none text-center" style="z-index: 6;">
+                        <div id="adminCanvasPlaceholder" class="position-absolute top-0 start-0 w-100 h-100 flex-column align-items-center justify-content-center bg-light text-muted p-3 pointer-events-none text-center" style="display: flex; z-index: 6;">
                             <i class="fas fa-cloud-arrow-up text-primary fs-1 mb-2"></i>
                             <span class="fw-bold text-dark small mb-1">ছবি নির্বাচন বা ড্রপ করুন</span>
                             <span class="text-muted" style="font-size: 11px;">মোবাইল ক্যামেরা ও গ্যালারি সাপোর্টেড</span>
@@ -509,7 +509,7 @@
                 </div>
 
                 {{-- Interactive Controls: Zoom Slider, Rotate, Reset --}}
-                <div id="adminCropControls" class="p-3 bg-light rounded-3 border mb-3" style="display: none;">
+                <div id="adminCropControls" class="p-3 bg-light rounded-3 border mb-3 d-none">
                     <div class="d-flex align-items-center justify-content-between mb-1.5" style="font-size: 11.5px;">
                         <span class="text-muted fw-semibold"><i class="fas fa-magnifying-glass-plus text-primary me-1"></i>জুম ইন/আউট:</span>
                         <span class="badge bg-white text-dark border font-monospace" id="adminZoomValBadge">100%</span>
@@ -624,10 +624,16 @@ function loadAdminStudioImage(input) {
                 }
 
                 const placeholder = document.getElementById('adminCanvasPlaceholder');
-                if (placeholder) placeholder.style.setProperty('display', 'none', 'important');
+                if (placeholder) {
+                    placeholder.classList.add('d-none');
+                    placeholder.style.display = 'none';
+                }
                 
                 const controls = document.getElementById('adminCropControls');
-                if (controls) controls.style.setProperty('display', 'block', 'important');
+                if (controls) {
+                    controls.classList.remove('d-none');
+                    controls.style.display = 'block';
+                }
                 
                 const applyBtn = document.getElementById('adminApplyPhotoBtn');
                 if (applyBtn) applyBtn.disabled = false;

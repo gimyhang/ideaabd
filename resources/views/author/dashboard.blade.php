@@ -724,7 +724,7 @@
                         </svg>
 
                         {{-- Initial placeholder when no image uploaded --}}
-                        <div id="modalCanvasPlaceholder" class="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center bg-light text-muted p-3 pointer-events-none text-center" style="z-index: 6;">
+                        <div id="modalCanvasPlaceholder" class="position-absolute top-0 start-0 w-100 h-100 flex-column align-items-center justify-content-center bg-light text-muted p-3 pointer-events-none text-center" style="display: flex; z-index: 6;">
                             <i class="fas fa-cloud-arrow-up text-primary fs-1 mb-2"></i>
                             <span class="fw-bold text-dark small mb-1">ছবি আপলোড বা ড্রপ করুন</span>
                             <span class="text-muted" style="font-size: 11px;">JPG, PNG, WebP, HEIC</span>
@@ -754,7 +754,7 @@
                 </div>
 
                 {{-- Interactive Controls: Zoom Slider, Rotate, Reset --}}
-                <div id="modalCropControls" class="p-3 bg-light rounded-3 border mb-3" style="display: none;">
+                <div id="modalCropControls" class="p-3 bg-light rounded-3 border mb-3 d-none">
                     <div class="d-flex align-items-center justify-content-between mb-1.5" style="font-size: 11.5px;">
                         <span class="text-muted fw-semibold"><i class="fas fa-magnifying-glass-plus text-primary me-1"></i>জুম নিয়ন্ত্রণ:</span>
                         <span class="badge bg-white text-dark border font-monospace" id="modalZoomValBadge">100%</span>
@@ -1130,10 +1130,16 @@ function loadModalAuthorImage(input) {
                 }
 
                 const placeholder = document.getElementById('modalCanvasPlaceholder');
-                if (placeholder) placeholder.style.setProperty('display', 'none', 'important');
+                if (placeholder) {
+                    placeholder.classList.add('d-none');
+                    placeholder.style.display = 'none';
+                }
                 
                 const controls = document.getElementById('modalCropControls');
-                if (controls) controls.style.setProperty('display', 'block', 'important');
+                if (controls) {
+                    controls.classList.remove('d-none');
+                    controls.style.display = 'block';
+                }
                 
                 const saveBtn = document.getElementById('modalSavePhotoBtn');
                 if (saveBtn) saveBtn.disabled = false;
