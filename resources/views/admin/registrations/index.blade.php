@@ -886,6 +886,15 @@ function ajaxDeleteUser(userId, userName) {
             if (result.isConfirmed) doDelete();
         });
     } else {
+        if (confirm(`আপনি কি নিশ্চিত যে ‘${userName}’ এর অ্যাকাউন্ট ডিলিট করতে চান?`)) {
+            doDelete();
+        }
+    }
+}
+
+// Global CSRF Token
+const csrfToken = '{{ csrf_token() }}';
+
 // Direct Sync Author to Directory
 function ajaxSyncAuthor(userId, btn) {
     if (!btn) btn = document.getElementById(`btnSyncAuthor-${userId}`);
@@ -965,13 +974,14 @@ function openRegDetailsModal(userId) {
         if (data.success && data.user) {
             const u = data.user;
             const r = data.reg_data || {};
+            const auth = data.author || {};
 
             document.getElementById('modalUserName').textContent = u.name;
             document.getElementById('modalUserRoleBadge').textContent = `Role: ${(u.reg_type || u.role).toUpperCase()} | ID: #${u.id}`;
 
             if (avatarBox) {
                 if (data.avatar_url) {
-                    avatarBox.innerHTML = `<img src="${data.avatar_url}" class="w-100 h-100 object-fit-cover">`;
+                    avatarBox.innerHTML = `<img src="${data.avatar_url}" class="w-100 h-100 object-fit-cover" alt="${u.name}">`;
                 } else {
                     avatarBox.innerHTML = `<div class="w-100 h-100 d-flex align-items-center justify-content-center text-primary fw-bold fs-5">${u.name.substring(0,1)}</div>`;
                 }
@@ -981,13 +991,53 @@ function openRegDetailsModal(userId) {
             let extraHtml = '';
             if (u.role === 'author' || u.reg_type === 'author') {
                 extraHtml = `
-                    ${r.full_name ? `<div class="col-sm-6"><small class="text-muted d-block">Full Name (Identity)</small><div class="fw-semibold text-dark">${r.full_name}</div></div>` : ''}
-                    <div class="col-sm-6"><small class="text-muted d-block">Pen Name</small><div class="fw-semibold text-dark">${r.pen_name || '—'}</div></div>
-                    <div class="col-sm-6"><small class="text-muted d-block">Genre</small><div class="fw-semibold text-dark">${Array.isArray(r.genres) ? r.genres.join(', ') : (r.genre || '—')}</div></div>
-                    <div class="col-sm-6"><small class="text-muted d-block">NID</small><div class="fw-semibold text-dark font-monospace">${r.nid || '—'}</div></div>
-                    <div class="col-sm-6"><small class="text-muted d-block">Profession</small><div class="fw-semibold text-dark">${r.profession || '—'}</div></div>
-                    <div class="col-sm-6"><small class="text-muted d-block">Address</small><div class="fw-semibold text-dark">${r.present_address || r.address || '—'}</div></div>
-                    ${r.website || r.social_link || r.facebook ? `<div class="col-sm-6"><small class="text-muted d-block">Website / Social</small><div class="fw-semibold text-dark"><a href="${r.website || r.social_link || r.facebook}" target="_blank" class="text-decoration-none text-primary"><i class="fas fa-link me-1"></i>${r.website || r.social_link || r.facebook}</a></div></div>` : ''}
+                    <div class="col-sm-6">
+                        <small class="text-muted d-block">Bengali Name (বাংলা নাম)</small>
+                        <div class="fw-semibold text-dark">${r.name_bn || r.name_bangla || auth.name_bn || '—'}</div>
+                    </div>
+                    <div class="col-sm-6">
+                        <small class="text-muted d-block">Pen Name (কলমি নাম)</small>
+                        <div class="fw-semibold text-dark">${r.pen_name || auth.name || '—'}</div>
+                    </div>
+                    <div class="col-sm-6">
+                        <small class="text-muted d-block">Father's Name (পিতার নাম)</small>
+                        <div class="fw-semibold text-dark">${r.father_name || '—'}</div>
+                    </div>
+                    <div class="col-sm-6">
+                        <small class="text-muted d-block">Mother's Name (মাতার নাম)</small>
+                        <div class="fw-semibold text-dark">${r.mother_name || '—'}</div>
+                    </div>
+                    <div class="col-sm-6">
+                        <small class="text-muted d-block">NID / Passport</small>
+                        <div class="fw-semibold text-dark font-monospace">${r.nid_or_passport || r.nid || '—'}</div>
+                    </div>
+                    <div class="col-sm-6">
+                        <small class="text-muted d-block">Genre / Writing Category</small>
+                        <div class="fw-semibold text-dark">${Array.isArray(r.genres) ? r.genres.join(', ') : (r.genre || '—')}</div>
+                    </div>
+                    <div class="col-sm-6">
+                        <small class="text-muted d-block">Profession (পেশা)</small>
+                        <div class="fw-semibold text-dark">${r.profession || '—'}</div>
+                    </div>
+                    <div class="col-sm-6">
+                        <small class="text-muted d-block">Payout Method & Number</small>
+                        <div class="fw-semibold text-dark">${r.payout_method ? `<span class="badge bg-light text-dark border me-1">${r.payout_method.toUpperCase()}</span>` : ''}${r.payout_number || '—'}</div>
+                    </div>
+                    <div class="col-12">
+                        <small class="text-muted d-block">Address (ঠিকানা)</small>
+                        <div class="fw-semibold text-dark">${r.present_address || r.address || '—'}</div>
+                    </div>
+                    ${r.website || r.facebook || r.twitter || r.youtube ? `
+                        <div class="col-12">
+                            <small class="text-muted d-block">Website & Social Links</small>
+                            <div class="d-flex flex-wrap gap-2 mt-1">
+                                ${r.website ? `<a href="${r.website}" target="_blank" class="badge bg-light text-primary border text-decoration-none py-1.5 px-2"><i class="fas fa-globe me-1"></i>Website</a>` : ''}
+                                ${r.facebook ? `<a href="${r.facebook}" target="_blank" class="badge bg-light text-primary border text-decoration-none py-1.5 px-2"><i class="fab fa-facebook me-1"></i>Facebook</a>` : ''}
+                                ${r.twitter ? `<a href="${r.twitter}" target="_blank" class="badge bg-light text-info border text-decoration-none py-1.5 px-2"><i class="fab fa-twitter me-1"></i>Twitter</a>` : ''}
+                                ${r.youtube ? `<a href="${r.youtube}" target="_blank" class="badge bg-light text-danger border text-decoration-none py-1.5 px-2"><i class="fab fa-youtube me-1"></i>YouTube</a>` : ''}
+                            </div>
+                        </div>
+                    ` : ''}
                 `;
             } else if (u.role === 'publisher' || u.reg_type === 'publisher') {
                 extraHtml = `
@@ -1008,10 +1058,29 @@ function openRegDetailsModal(userId) {
                 `;
             }
 
+            // Update status alert inside modal
+            let updateAlertHtml = '';
+            if (r.profile_update_status === 'updated') {
+                updateAlertHtml = `
+                    <div class="col-12">
+                        <div class="alert alert-warning d-flex align-items-center justify-content-between mb-0 py-2 px-3 rounded-3 shadow-xs">
+                            <div class="small">
+                                <i class="fas fa-bell me-1.5 text-warning"></i>
+                                <strong>Profile Updated:</strong> লেখক সম্প্রতি তথ্য বা ছবি আপডেট করেছেন (${r.profile_updated_at || 'Recently'}).
+                            </div>
+                            <button type="button" class="btn btn-sm btn-warning text-dark fw-bold rounded-pill px-3 py-1 shadow-xs" onclick="ajaxSyncAuthor(${u.id}, this)">
+                                <i class="fas fa-arrows-rotate me-1"></i> Sync to Directory
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+
             document.getElementById('modalDetailsBody').innerHTML = `
                 <div class="row g-3">
+                    ${updateAlertHtml}
                     <div class="col-sm-6">
-                        <small class="text-muted d-block">Author / Display Name (English)</small>
+                        <small class="text-muted d-block">Display Name / Name (English)</small>
                         <div class="fw-semibold text-dark fs-6">${u.name}</div>
                     </div>
                     <div class="col-sm-6">
@@ -1035,9 +1104,9 @@ function openRegDetailsModal(userId) {
                     </div>
                     ${extraHtml}
                     <div class="col-12">
-                        <small class="text-muted d-block">Bio & Application Notes (লেখকের পরিচিতি / তথ্য)</small>
-                        <div class="bg-light p-3 rounded-3 small text-dark mt-1" style="max-height: 140px; overflow-y: auto;">
-                            ${r.bio ? r.bio : '<em class="text-muted">No biography provided.</em>'}
+                        <small class="text-muted d-block">Biography & Notes (লেখকের বিস্তারিত তথ্য ও পরিচিতি)</small>
+                        <div class="bg-light p-3 rounded-3 small text-dark mt-1 border" style="max-height: 160px; overflow-y: auto; white-space: pre-line;">
+                            ${r.bio ? r.bio : '<em class="text-muted">কোনো বায়ো বা বিবরণ দেওয়া হয়নি।</em>'}
                         </div>
                     </div>
                     <div class="col-sm-6">
@@ -1060,7 +1129,26 @@ function openRegDetailsModal(userId) {
 
             // Setup footer modal actions
             const safeName = (u.name || '').replace(/'/g, "\\'");
+            let authorDirectoryBtn = '';
+            if (data.author_slug) {
+                authorDirectoryBtn = `
+                    <a href="/authors/${data.author_slug}" target="_blank" class="btn btn-outline-info btn-sm rounded-pill px-3" title="View Public Profile">
+                        <i class="fas fa-globe me-1"></i> Public Directory
+                    </a>
+                `;
+            }
+            let syncBtn = '';
+            if (u.role === 'author' || u.reg_type === 'author') {
+                syncBtn = `
+                    <button type="button" class="btn btn-outline-warning text-dark btn-sm rounded-pill px-3 fw-semibold" onclick="ajaxSyncAuthor(${u.id}, this)">
+                        <i class="fas fa-arrows-rotate me-1"></i> Sync Directory
+                    </button>
+                `;
+            }
+
             document.getElementById('modalFooterActions').innerHTML = `
+                ${syncBtn}
+                ${authorDirectoryBtn}
                 <a href="/admin/registrations/${u.id}" class="btn btn-outline-secondary btn-sm rounded-pill px-3" title="View dedicated page">
                     <i class="fas fa-arrow-up-right-from-square me-1"></i> Full Page
                 </a>
@@ -1076,7 +1164,7 @@ function openRegDetailsModal(userId) {
                     </button>
                 ` : `
                     <span class="badge bg-success-subtle text-success border border-success-subtle py-2 px-3 rounded-pill fw-bold">
-                        <i class="fas fa-circle-check me-1"></i> Already Approved
+                        <i class="fas fa-circle-check me-1"></i> Approved
                     </span>
                 `}
             `;
@@ -1086,7 +1174,7 @@ function openRegDetailsModal(userId) {
     })
     .catch(err => {
         console.error(err);
-        document.getElementById('modalDetailsBody').innerHTML = '<div class="alert alert-danger mb-0">Failed to load application details.</div>';
+        document.getElementById('modalDetailsBody').innerHTML = '<div class="alert alert-danger mb-0">Failed to load application details: ' + (err.message || 'Server error') + '</div>';
     });
 }
 

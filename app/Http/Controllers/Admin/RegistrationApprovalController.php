@@ -102,25 +102,58 @@ class RegistrationApprovalController extends Controller
             $avatarUrl = str_starts_with($rawAvatar, 'http') ? $rawAvatar : asset('storage/' . ltrim($rawAvatar, '/'));
         }
 
-        if (empty($regData['bio']) && $author && !empty($author->bio)) {
-            $regData['bio'] = $author->bio;
-        }
-        if (empty($regData['pen_name']) && $author && !empty($author->name) && $author->name !== $user->name) {
-            $regData['pen_name'] = $author->name;
-        }
-        if (empty($regData['genre']) && $author && !empty($author->genre)) {
-            $regData['genre'] = $author->genre;
-        }
-        if (empty($regData['website']) && $author && !empty($author->website)) {
-            $regData['website'] = $author->website;
+        if ($author) {
+            if (empty($regData['bio']) && !empty($author->bio)) {
+                $regData['bio'] = $author->bio;
+            }
+            if (empty($regData['pen_name']) && !empty($author->name) && $author->name !== $user->name) {
+                $regData['pen_name'] = $author->name;
+            }
+            if (empty($regData['name_bn']) && !empty($author->name_bn)) {
+                $regData['name_bn'] = $author->name_bn;
+            }
+            if (empty($regData['website']) && !empty($author->website)) {
+                $regData['website'] = $author->website;
+            }
+            if (empty($regData['payout_method']) && !empty($author->payout_account_type)) {
+                $regData['payout_method'] = $author->payout_account_type;
+            }
+            if (empty($regData['payout_number']) && !empty($author->payout_account_details)) {
+                $regData['payout_number'] = $author->payout_account_details;
+            }
+            if (!empty($author->social_links) && is_array($author->social_links)) {
+                $regData['facebook'] = $regData['facebook'] ?? ($author->social_links['facebook'] ?? null);
+                $regData['twitter']  = $regData['twitter'] ?? ($author->social_links['twitter'] ?? null);
+                $regData['youtube']  = $regData['youtube'] ?? ($author->social_links['youtube'] ?? null);
+            }
         }
 
         return response()->json([
             'success'               => true,
-            'user'                  => $user,
+            'user'                  => [
+                'id'                => $user->id,
+                'name'              => $user->name,
+                'email'             => $user->email,
+                'phone'             => $user->phone,
+                'role'              => $user->role,
+                'reg_type'          => $user->reg_type ?? $user->role,
+                'reg_status'        => $user->reg_status,
+                'is_active'         => (bool) $user->is_active,
+                'rejection_reason'  => $user->rejection_reason,
+            ],
             'avatar_url'            => $avatarUrl,
             'reg_data'              => $regData,
-            'author'                => $author,
+            'author'                => $author ? [
+                'id'            => $author->id,
+                'name'          => $author->name,
+                'name_bn'       => $author->name_bn,
+                'slug'          => $author->slug,
+                'bio'           => $author->bio,
+                'is_active'     => $author->is_active,
+                'is_verified'   => $author->is_verified,
+            ] : null,
+            'author_slug'           => $author?->slug,
+            'author_id'             => $author?->id,
             'created_at_formatted'  => $user->created_at ? $user->created_at->format('d M Y, h:i A') : '',
             'approved_at_formatted' => $user->approved_at ? \Carbon\Carbon::parse($user->approved_at)->format('d M Y, h:i A') : null,
         ]);
