@@ -95,6 +95,12 @@
                 -{{ $discountPercentage }}%
             </span>
         @endif
+
+        @if($book->stock_status === 'pre_order')
+            <span class="position-absolute top-0 end-0 m-1.5 badge bg-warning text-dark rounded-pill shadow-xs fw-bold px-1.5 py-0.5" style="font-size: 0.65rem;">
+                <i class="fa-solid fa-clock-rotate-left me-0.5"></i> প্রি-অর্ডার
+            </span>
+        @endif
     </div>
     
     <!-- 2. Book Info (Reviews, Title, Author, Format, Price) -->
@@ -125,7 +131,7 @@
         @if(!isset($hideTitleAuthor) || !$hideTitleAuthor)
             <!-- B. Book Title (Tight line spacing, No prefix) -->
             <h6 class="fw-bold mb-0.5" style="font-size: 0.86rem; line-height: 1.25; min-height: 2.15rem; max-height: 2.15rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
-                <a href="{{ route('book.show', $book->slug ?: $book->id) }}" class="text-dark text-decoration-none hover-primary">
+                <a href="{{ route('book.show', $book->slug ?: $book->id) }}" class="text-dark text-decoration-none hover-primary" title="{{ $book->title }}">
                     {{ $book->title }}
                 </a>
             </h6>
@@ -146,7 +152,14 @@
         <div class="{{ (!isset($hideTitleAuthor) || !$hideTitleAuthor) ? 'mt-auto' : '' }} pt-0.5">
             <div class="text-muted small mb-0.5" style="font-size: 0.68rem; line-height: 1.1;">
                 @if($book->stock_status === 'pre_order')
-                    <span class="text-warning-emphasis fw-bold">প্রি-অর্ডার</span>
+                    <span class="badge bg-warning bg-opacity-20 text-warning-emphasis border border-warning border-opacity-50 px-1.5 py-0.5 rounded-pill fw-bold" style="font-size: 0.62rem;">
+                        <i class="fa-solid fa-clock-rotate-left me-0.5"></i> প্রি-অর্ডার
+                    </span>
+                    @if(!empty($book->pre_order_release_date))
+                        <span class="text-muted d-block mt-0.5 text-truncate" style="font-size: 0.62rem;">
+                            <i class="fa-regular fa-calendar-check me-0.5 text-warning-emphasis"></i>প্রকাশ: {{ \Carbon\Carbon::parse($book->pre_order_release_date)->format('d M, Y') }}
+                        </span>
+                    @endif
                 @elseif($isEbook)
                     <span>ই-বুক</span>
                 @elseif($hasHardcover)

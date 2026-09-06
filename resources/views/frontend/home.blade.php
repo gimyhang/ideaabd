@@ -406,7 +406,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="idea-book-slider" id="flashSaleSlider">
                     @foreach($flashSales as $b)
                         <div class="idea-slider-item">
-                            @include('book::frontend.partials.book-card', ['book' => $b, 'hideTitleAuthor' => true])
+                            @include('book::frontend.partials.book-card', ['book' => $b])
                         </div>
                     @endforeach
                 </div>
@@ -461,7 +461,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="idea-book-slider" id="bestsellerSlider">
                     @foreach($recentlySold as $b)
                         <div class="idea-slider-item">
-                            @include('book::frontend.partials.book-card', ['book' => $b, 'hideTitleAuthor' => true])
+                            @include('book::frontend.partials.book-card', ['book' => $b])
                         </div>
                     @endforeach
                 </div>
@@ -515,7 +515,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="idea-book-slider" id="ideaBooksSlider">
                     @foreach($ideaSpecialBooks as $b)
                         <div class="idea-slider-item">
-                            @include('book::frontend.partials.book-card', ['book' => $b, 'hideTitleAuthor' => true])
+                            @include('book::frontend.partials.book-card', ['book' => $b])
                         </div>
                     @endforeach
                 </div>
@@ -638,7 +638,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="idea-book-slider" id="newArrivalsSlider">
                     @foreach($books as $b)
                         <div class="idea-slider-item">
-                            @include('book::frontend.partials.book-card', ['book' => $b, 'hideTitleAuthor' => true])
+                            @include('book::frontend.partials.book-card', ['book' => $b])
                         </div>
                     @endforeach
                 </div>
@@ -726,7 +726,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="idea-book-slider" id="ebookSlider">
                     @foreach($bestSellerEbooks as $b)
                         <div class="idea-slider-item">
-                            @include('book::frontend.partials.book-card', ['book' => $b, 'hideTitleAuthor' => true])
+                            @include('book::frontend.partials.book-card', ['book' => $b])
                         </div>
                     @endforeach
                 </div>
@@ -823,7 +823,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="idea-book-slider" id="ideaSpecialSlider">
                     @foreach($ideaSpecialBooks as $b)
                         <div class="idea-slider-item">
-                            @include('book::frontend.partials.book-card', ['book' => $b, 'hideTitleAuthor' => true])
+                            @include('book::frontend.partials.book-card', ['book' => $b])
                         </div>
                     @endforeach
                 </div>
@@ -878,7 +878,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="idea-book-slider" id="preOrderSlider">
                     @foreach($preOrderBooks as $b)
                         <div class="idea-slider-item">
-                            @include('book::frontend.partials.book-card', ['book' => $b, 'hideTitleAuthor' => true])
+                            @include('book::frontend.partials.book-card', ['book' => $b])
                         </div>
                     @endforeach
                 </div>
@@ -929,7 +929,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="idea-book-slider" id="recentlyViewedSlider">
                     @foreach($recentlyViewedBooks as $b)
                         <div class="idea-slider-item">
-                            @include('book::frontend.partials.book-card', ['book' => $b, 'hideTitleAuthor' => true])
+                            @include('book::frontend.partials.book-card', ['book' => $b])
                         </div>
                     @endforeach
                 </div>
@@ -1627,21 +1627,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 slider.scrollLeft = scrollLeft - walk;
             });
 
-            // Auto-advance slider smoothly every 4.2 seconds
+            // Auto-advance slider smoothly one by one every 3.8 seconds
             setInterval(() => {
                 if (isHovered || isTouching || isDown || slider.classList.contains('active')) return;
                 
                 const maxScroll = slider.scrollWidth - slider.clientWidth;
-                if (maxScroll <= 20) return;
+                if (maxScroll <= 15) return;
 
-                const scrollStep = Math.max(180, slider.clientWidth * 0.45);
+                const singleItem = slider.querySelector('.idea-slider-item');
+                const scrollStep = singleItem ? (singleItem.offsetWidth + 14) : Math.max(180, slider.clientWidth * 0.45);
                 
-                if (slider.scrollLeft >= maxScroll - 15) {
+                if (slider.scrollLeft >= maxScroll - 10) {
                     slider.scrollTo({ left: 0, behavior: 'smooth' });
                 } else {
                     slider.scrollBy({ left: scrollStep, behavior: 'smooth' });
                 }
-            }, 4200 + (idx * 400));
+            }, 3800 + (idx * 300));
         });
     });
 
