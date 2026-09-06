@@ -128,25 +128,23 @@
             </a>
         </div>
 
-        @if(!isset($hideTitleAuthor) || !$hideTitleAuthor)
-            <!-- B. Book Title (Centered, Single line with ellipsis, zero margin/padding) -->
-            <h6 class="fw-bold text-truncate w-100" style="font-size: clamp(0.78rem, 2.8vw, 0.86rem); line-height: 1.25; margin: 0 !important; padding: 0 !important;">
-                <a href="{{ route('book.show', $book->slug ?: $book->id) }}" class="text-dark text-decoration-none hover-primary d-block text-truncate" title="{{ $book->title }}">
-                    {{ $book->title }}
+        <!-- B. Book Title (Centered, Single line with ellipsis, zero margin/padding) -->
+        <h6 class="fw-bold text-truncate w-100" style="font-size: clamp(0.78rem, 2.8vw, 0.86rem); line-height: 1.25; margin: 0 !important; padding: 0 !important;">
+            <a href="{{ route('book.show', $book->slug ?: $book->id) }}" class="text-dark text-decoration-none hover-primary d-block text-truncate" title="{{ $book->title }}">
+                {{ $book->title }}
+            </a>
+        </h6>
+        
+        <!-- C. Author Name (Centered, Single line with ellipsis, tight zero margin) -->
+        <div class="text-truncate w-100" style="font-size: clamp(0.68rem, 2.2vw, 0.73rem); line-height: 1.15; margin: 0 !important; padding: 0 !important;">
+            @if($authorUrl)
+                <a href="{{ $authorUrl }}" class="text-secondary text-decoration-none hover-primary d-block text-truncate">
+                    {{ $authorName }}
                 </a>
-            </h6>
-            
-            <!-- C. Author Name (Centered, Single line with ellipsis, tight zero margin) -->
-            <div class="text-truncate w-100" style="font-size: clamp(0.68rem, 2.2vw, 0.73rem); line-height: 1.15; margin: 0 !important; padding: 0 !important;">
-                @if($authorUrl)
-                    <a href="{{ $authorUrl }}" class="text-secondary text-decoration-none hover-primary d-block text-truncate">
-                        {{ $authorName }}
-                    </a>
-                @else
-                    <span class="text-secondary d-block text-truncate">{{ $authorName }}</span>
-                @endif
-            </div>
-        @endif
+            @else
+                <span class="text-secondary d-block text-truncate">{{ $authorName }}</span>
+            @endif
+        </div>
 
         <!-- D. Price Row (Centered, Zero Margin) -->
         <div class="d-flex align-items-baseline justify-content-center gap-1 w-100 mt-0.5" style="line-height: 1.1; margin: 0 !important; padding: 0 !important;">

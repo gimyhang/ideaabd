@@ -303,38 +303,48 @@
             </div>
 
         @else
-            <!-- ══ 4. AMAZON-STYLE SLIDING CATEGORY & COLLECTION CAROUSELS ════════════ -->
+            <!-- ══ 4. SLIDING CATEGORY & COLLECTION CAROUSELS (MATCHING HOMEPAGE) ══════ -->
             <div class="d-flex flex-column gap-4">
 
                 {{-- Shelf 1: FLASH SALES (ফ্ল্যাশ সেলস স্লাইডিং রো) --}}
                 @if(isset($flashSales) && $flashSales->isNotEmpty())
-                <div class="card p-3 p-md-4 border-0 shadow-2xs rounded-4 bg-white position-relative amz-shelf-card">
+                <div class="card p-3 p-md-4 border-0 shadow-sm rounded-4 bg-white position-relative" style="border: 1px solid #f1f5f9 !important;">
                     <div class="d-flex align-items-center justify-content-between mb-2.5 pb-2 border-bottom">
                         <div class="d-flex align-items-center gap-2">
-                            <span class="badge bg-warning text-dark rounded-circle p-1.5 shadow-2xs"><i class="fa-solid fa-bolt" style="font-size: 11px;"></i></span>
-                            <h5 class="fw-bold text-dark mb-0 fs-6 fs-md-5">ফ্ল্যাশ সেলস</h5>
-                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2 py-0.5 small d-none d-sm-inline">সীমিত সময়ের ছাড়</span>
+                            <span class="rounded-circle bg-warning bg-opacity-20 text-warning d-flex align-items-center justify-content-center shadow-2xs" style="width: 32px; height: 32px;">
+                                <i class="fa-solid fa-bolt text-warning fs-6"></i>
+                            </span>
+                            <h4 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2" style="font-size: clamp(1.05rem, 2.5vw, 1.35rem);">
+                                <span>ফ্ল্যাশ সেলস</span>
+                                <span class="badge bg-danger text-white rounded-pill px-2 py-0.5 small fw-bold" style="font-size: 0.68rem;">সীমিত অফার</span>
+                            </h4>
                         </div>
-                        <a href="{{ route('book.index', ['discount_min' => '20']) }}" class="btn btn-sm btn-link text-primary text-decoration-none fw-bold small p-0 hover-underline">
-                            সকল বই দেখুন →
-                        </a>
+                        <div class="d-flex align-items-center gap-2">
+                            <button type="button" class="btn btn-sm btn-light rounded-circle shadow-2xs border d-none d-md-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" onclick="scrollIdeaSlider('flashSaleSlider', -1)" title="পূর্ববর্তী">
+                                <i class="fa-solid fa-chevron-left text-secondary" style="font-size: 11px;"></i>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-light rounded-circle shadow-2xs border d-none d-md-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" onclick="scrollIdeaSlider('flashSaleSlider', 1)" title="পরবর্তী">
+                                <i class="fa-solid fa-chevron-right text-secondary" style="font-size: 11px;"></i>
+                            </button>
+                            <a href="{{ route('book.index', ['discount_min' => '20']) }}" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-bold ms-1" style="font-size: 0.80rem;">
+                                সব দেখুন <i class="fa-solid fa-arrow-right ms-0.5"></i>
+                            </a>
+                        </div>
                     </div>
                     
-                    <div class="position-relative amz-slider-container">
-                        <button type="button" class="btn btn-white border shadow-sm rounded-circle position-absolute top-50 start-0 translate-middle-y z-3 amz-shelf-btn prev-btn d-none d-md-flex align-items-center justify-content-center" style="width: 40px; height: 40px; left: -14px !important;">
-                            <i class="fa-solid fa-chevron-left text-dark"></i>
+                    <div class="idea-slider-wrapper position-relative">
+                        <button type="button" class="idea-slider-nav-btn prev-btn shadow-md d-none d-lg-flex" onclick="scrollIdeaSlider('flashSaleSlider', -1)" aria-label="পূর্ববর্তী">
+                            <i class="fa-solid fa-chevron-left"></i>
                         </button>
-
-                        <div class="amz-shelf-track">
+                        <div class="idea-book-slider" id="flashSaleSlider">
                             @foreach($flashSales as $book)
-                                <div class="amz-shelf-item">
-                                    @include('book::frontend.partials.book-card', ['book' => $book, 'hideTitleAuthor' => true])
+                                <div class="idea-slider-item">
+                                    @include('book::frontend.partials.book-card', ['book' => $book])
                                 </div>
                             @endforeach
                         </div>
-
-                        <button type="button" class="btn btn-white border shadow-sm rounded-circle position-absolute top-50 end-0 translate-middle-y z-3 amz-shelf-btn next-btn d-none d-md-flex align-items-center justify-content-center" style="width: 40px; height: 40px; right: -14px !important;">
-                            <i class="fa-solid fa-chevron-right text-dark"></i>
+                        <button type="button" class="idea-slider-nav-btn next-btn shadow-md d-none d-lg-flex" onclick="scrollIdeaSlider('flashSaleSlider', 1)" aria-label="পরবর্তী">
+                            <i class="fa-solid fa-chevron-right"></i>
                         </button>
                     </div>
                 </div>
@@ -342,32 +352,43 @@
 
                 {{-- Shelf 2: BEST SELLERS (সর্বাধিক বিক্রিত বই স্লাইডিং রো) --}}
                 @if(isset($recentlySold) && $recentlySold->isNotEmpty())
-                <div class="card p-3 p-md-4 border-0 shadow-2xs rounded-4 bg-white position-relative amz-shelf-card">
+                <div class="card p-3 p-md-4 border-0 shadow-sm rounded-4 bg-white position-relative" style="border: 1px solid #f1f5f9 !important;">
                     <div class="d-flex align-items-center justify-content-between mb-2.5 pb-2 border-bottom">
                         <div class="d-flex align-items-center gap-2">
-                            <span class="badge bg-danger text-white rounded-circle p-1.5 shadow-2xs"><i class="fa-solid fa-fire" style="font-size: 11px;"></i></span>
-                            <h5 class="fw-bold text-dark mb-0 fs-6 fs-md-5">বেস্টসেলার বই সম্ভার</h5>
+                            <span class="rounded-circle bg-danger bg-opacity-10 text-danger d-flex align-items-center justify-content-center shadow-2xs" style="width: 32px; height: 32px;">
+                                <i class="fa-solid fa-fire text-danger fs-6"></i>
+                            </span>
+                            <h4 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2" style="font-size: clamp(1.05rem, 2.5vw, 1.35rem);">
+                                <span>সর্বাধিক বিক্রিত বই</span>
+                                <span class="badge bg-danger text-white rounded-pill px-2 py-0.5 small fw-bold" style="font-size: 0.68rem;">শীর্ষ চার্ট</span>
+                            </h4>
                         </div>
-                        <a href="{{ route('book.index', ['sort' => 'bestselling']) }}" class="btn btn-sm btn-link text-primary text-decoration-none fw-bold small p-0 hover-underline">
-                            সকল বই দেখুন →
-                        </a>
+                        <div class="d-flex align-items-center gap-2">
+                            <button type="button" class="btn btn-sm btn-light rounded-circle shadow-2xs border d-none d-md-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" onclick="scrollIdeaSlider('bestsellerSlider', -1)" title="পূর্ববর্তী">
+                                <i class="fa-solid fa-chevron-left text-secondary" style="font-size: 11px;"></i>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-light rounded-circle shadow-2xs border d-none d-md-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" onclick="scrollIdeaSlider('bestsellerSlider', 1)" title="পরবর্তী">
+                                <i class="fa-solid fa-chevron-right text-secondary" style="font-size: 11px;"></i>
+                            </button>
+                            <a href="{{ route('book.index', ['sort' => 'bestselling']) }}" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-bold ms-1" style="font-size: 0.80rem;">
+                                সব দেখুন <i class="fa-solid fa-arrow-right ms-0.5"></i>
+                            </a>
+                        </div>
                     </div>
                     
-                    <div class="position-relative amz-slider-container">
-                        <button type="button" class="btn btn-white border shadow-sm rounded-circle position-absolute top-50 start-0 translate-middle-y z-3 amz-shelf-btn prev-btn d-none d-md-flex align-items-center justify-content-center" style="width: 40px; height: 40px; left: -14px !important;">
-                            <i class="fa-solid fa-chevron-left text-dark"></i>
+                    <div class="idea-slider-wrapper position-relative">
+                        <button type="button" class="idea-slider-nav-btn prev-btn shadow-md d-none d-lg-flex" onclick="scrollIdeaSlider('bestsellerSlider', -1)" aria-label="পূর্ববর্তী">
+                            <i class="fa-solid fa-chevron-left"></i>
                         </button>
-
-                        <div class="amz-shelf-track">
+                        <div class="idea-book-slider" id="bestsellerSlider">
                             @foreach($recentlySold as $book)
-                                <div class="amz-shelf-item">
-                                    @include('book::frontend.partials.book-card', ['book' => $book, 'hideTitleAuthor' => true])
+                                <div class="idea-slider-item">
+                                    @include('book::frontend.partials.book-card', ['book' => $book])
                                 </div>
                             @endforeach
                         </div>
-
-                        <button type="button" class="btn btn-white border shadow-sm rounded-circle position-absolute top-50 end-0 translate-middle-y z-3 amz-shelf-btn next-btn d-none d-md-flex align-items-center justify-content-center" style="width: 40px; height: 40px; right: -14px !important;">
-                            <i class="fa-solid fa-chevron-right text-dark"></i>
+                        <button type="button" class="idea-slider-nav-btn next-btn shadow-md d-none d-lg-flex" onclick="scrollIdeaSlider('bestsellerSlider', 1)" aria-label="পরবর্তী">
+                            <i class="fa-solid fa-chevron-right"></i>
                         </button>
                     </div>
                 </div>
@@ -375,32 +396,43 @@
 
                 {{-- Shelf 3: NEW RELEASES (নতুন বই স্লাইডিং রো) --}}
                 @if(isset($newArrivals) && $newArrivals->isNotEmpty())
-                <div class="card p-3 p-md-4 border-0 shadow-2xs rounded-4 bg-white position-relative amz-shelf-card">
+                <div class="card p-3 p-md-4 border-0 shadow-sm rounded-4 bg-white position-relative" style="border: 1px solid #f1f5f9 !important;">
                     <div class="d-flex align-items-center justify-content-between mb-2.5 pb-2 border-bottom">
                         <div class="d-flex align-items-center gap-2">
-                            <span class="badge bg-success text-white rounded-circle p-1.5 shadow-2xs"><i class="fa-solid fa-sparkles" style="font-size: 11px;"></i></span>
-                            <h5 class="fw-bold text-dark mb-0 fs-6 fs-md-5">নতুন প্রকাশিত বই</h5>
+                            <span class="rounded-circle bg-success bg-opacity-10 text-success d-flex align-items-center justify-content-center shadow-2xs" style="width: 32px; height: 32px;">
+                                <i class="fa-solid fa-sparkles text-success fs-6"></i>
+                            </span>
+                            <h4 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2" style="font-size: clamp(1.05rem, 2.5vw, 1.35rem);">
+                                <span>নতুন প্রকাশিত বই</span>
+                                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5 small fw-bold" style="font-size: 0.68rem;">নতুন</span>
+                            </h4>
                         </div>
-                        <a href="{{ route('book.index', ['sort' => 'latest']) }}" class="btn btn-sm btn-link text-primary text-decoration-none fw-bold small p-0 hover-underline">
-                            সকল বই দেখুন →
-                        </a>
+                        <div class="d-flex align-items-center gap-2">
+                            <button type="button" class="btn btn-sm btn-light rounded-circle shadow-2xs border d-none d-md-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" onclick="scrollIdeaSlider('newArrivalsSlider', -1)" title="পূর্ববর্তী">
+                                <i class="fa-solid fa-chevron-left text-secondary" style="font-size: 11px;"></i>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-light rounded-circle shadow-2xs border d-none d-md-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" onclick="scrollIdeaSlider('newArrivalsSlider', 1)" title="পরবর্তী">
+                                <i class="fa-solid fa-chevron-right text-secondary" style="font-size: 11px;"></i>
+                            </button>
+                            <a href="{{ route('book.index', ['sort' => 'latest']) }}" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-bold ms-1" style="font-size: 0.80rem;">
+                                সব দেখুন <i class="fa-solid fa-arrow-right ms-0.5"></i>
+                            </a>
+                        </div>
                     </div>
                     
-                    <div class="position-relative amz-slider-container">
-                        <button type="button" class="btn btn-white border shadow-sm rounded-circle position-absolute top-50 start-0 translate-middle-y z-3 amz-shelf-btn prev-btn d-none d-md-flex align-items-center justify-content-center" style="width: 40px; height: 40px; left: -14px !important;">
-                            <i class="fa-solid fa-chevron-left text-dark"></i>
+                    <div class="idea-slider-wrapper position-relative">
+                        <button type="button" class="idea-slider-nav-btn prev-btn shadow-md d-none d-lg-flex" onclick="scrollIdeaSlider('newArrivalsSlider', -1)" aria-label="পূর্ববর্তী">
+                            <i class="fa-solid fa-chevron-left"></i>
                         </button>
-
-                        <div class="amz-shelf-track">
+                        <div class="idea-book-slider" id="newArrivalsSlider">
                             @foreach($newArrivals as $book)
-                                <div class="amz-shelf-item">
-                                    @include('book::frontend.partials.book-card', ['book' => $book, 'hideTitleAuthor' => true])
+                                <div class="idea-slider-item">
+                                    @include('book::frontend.partials.book-card', ['book' => $book])
                                 </div>
                             @endforeach
                         </div>
-
-                        <button type="button" class="btn btn-white border shadow-sm rounded-circle position-absolute top-50 end-0 translate-middle-y z-3 amz-shelf-btn next-btn d-none d-md-flex align-items-center justify-content-center" style="width: 40px; height: 40px; right: -14px !important;">
-                            <i class="fa-solid fa-chevron-right text-dark"></i>
+                        <button type="button" class="idea-slider-nav-btn next-btn shadow-md d-none d-lg-flex" onclick="scrollIdeaSlider('newArrivalsSlider', 1)" aria-label="পরবর্তী">
+                            <i class="fa-solid fa-chevron-right"></i>
                         </button>
                     </div>
                 </div>
@@ -420,37 +452,50 @@
                                 ->latest('id')
                                 ->take(12)
                                 ->get();
+                            $catSliderId = 'catSlider_' . $cat->id;
                         @endphp
                         @if($catBooks->isNotEmpty())
-                        <div class="card p-3 p-md-4 border-0 shadow-2xs rounded-4 bg-white position-relative amz-shelf-card">
+                        <div class="card p-3 p-md-4 border-0 shadow-sm rounded-4 bg-white position-relative" style="border: 1px solid #f1f5f9 !important;">
                             <div class="d-flex align-items-center justify-content-between mb-2.5 pb-2 border-bottom">
                                 <div class="d-flex align-items-center gap-2">
-                                    <span class="badge bg-primary text-white rounded-circle p-1.5 shadow-2xs"><i class="fa-solid fa-bookmark" style="font-size: 11px;"></i></span>
-                                    <h5 class="fw-bold text-dark mb-0 fs-6 fs-md-5">{{ $cat->name }}</h5>
-                                    @if(isset($cat->books_count))
-                                        <span class="badge bg-light text-muted border rounded-pill px-2 py-0.5 small d-none d-sm-inline">@bn($cat->books_count)টি বই</span>
-                                    @endif
+                                    <span class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center shadow-2xs" style="width: 32px; height: 32px;">
+                                        <i class="fa-solid fa-bookmark text-primary fs-6"></i>
+                                    </span>
+                                    <div>
+                                        <h4 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2" style="font-size: clamp(1.05rem, 2.5vw, 1.35rem);">
+                                            <span>{{ $cat->name }}</span>
+                                            @if(isset($cat->books_count))
+                                                <span class="badge bg-light text-muted border rounded-pill px-2 py-0.5 small fw-normal d-none d-sm-inline">@bn($cat->books_count)টি বই</span>
+                                            @endif
+                                        </h4>
+                                    </div>
                                 </div>
-                                <a href="{{ route('book.index', ['category' => $cat->slug]) }}" class="btn btn-sm btn-link text-primary text-decoration-none fw-bold small p-0 hover-underline">
-                                    সকল বই দেখুন →
-                                </a>
+                                <div class="d-flex align-items-center gap-2">
+                                    <button type="button" class="btn btn-sm btn-light rounded-circle shadow-2xs border d-none d-md-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" onclick="scrollIdeaSlider('{{ $catSliderId }}', -1)" title="পূর্ববর্তী">
+                                        <i class="fa-solid fa-chevron-left text-secondary" style="font-size: 11px;"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-light rounded-circle shadow-2xs border d-none d-md-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" onclick="scrollIdeaSlider('{{ $catSliderId }}', 1)" title="পরবর্তী">
+                                        <i class="fa-solid fa-chevron-right text-secondary" style="font-size: 11px;"></i>
+                                    </button>
+                                    <a href="{{ route('book.index', ['category' => $cat->slug]) }}" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-bold ms-1" style="font-size: 0.80rem;">
+                                        সব দেখুন <i class="fa-solid fa-arrow-right ms-0.5"></i>
+                                    </a>
+                                </div>
                             </div>
                             
-                            <div class="position-relative amz-slider-container">
-                                <button type="button" class="btn btn-white border shadow-sm rounded-circle position-absolute top-50 start-0 translate-middle-y z-3 amz-shelf-btn prev-btn d-none d-md-flex align-items-center justify-content-center" style="width: 40px; height: 40px; left: -14px !important;">
-                                    <i class="fa-solid fa-chevron-left text-dark"></i>
+                            <div class="idea-slider-wrapper position-relative">
+                                <button type="button" class="idea-slider-nav-btn prev-btn shadow-md d-none d-lg-flex" onclick="scrollIdeaSlider('{{ $catSliderId }}', -1)" aria-label="পূর্ববর্তী">
+                                    <i class="fa-solid fa-chevron-left"></i>
                                 </button>
-
-                                <div class="amz-shelf-track">
+                                <div class="idea-book-slider" id="{{ $catSliderId }}">
                                     @foreach($catBooks as $book)
-                                        <div class="amz-shelf-item">
-                                            @include('book::frontend.partials.book-card', ['book' => $book, 'hideTitleAuthor' => true])
+                                        <div class="idea-slider-item">
+                                            @include('book::frontend.partials.book-card', ['book' => $book])
                                         </div>
                                     @endforeach
                                 </div>
-
-                                <button type="button" class="btn btn-white border shadow-sm rounded-circle position-absolute top-50 end-0 translate-middle-y z-3 amz-shelf-btn next-btn d-none d-md-flex align-items-center justify-content-center" style="width: 40px; height: 40px; right: -14px !important;">
-                                    <i class="fa-solid fa-chevron-right text-dark"></i>
+                                <button type="button" class="idea-slider-nav-btn next-btn shadow-md d-none d-lg-flex" onclick="scrollIdeaSlider('{{ $catSliderId }}', 1)" aria-label="পরবর্তী">
+                                    <i class="fa-solid fa-chevron-right"></i>
                                 </button>
                             </div>
                         </div>
@@ -464,13 +509,24 @@
     </div>
 </div>
 
-{{-- Amazon Bookshelf Sliding & Dynamic Pill Bar Script --}}
+{{-- Slider Navigation & Dynamic Pill Bar Script --}}
+@push('scripts')
 <script>
 function scrollPillSlider(direction) {
     const track = document.getElementById('categoryPillTrack');
     if (!track) return;
     const scrollAmount = (track.clientWidth * 0.65) * direction;
     track.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+}
+
+function scrollIdeaSlider(sliderId, direction) {
+    const slider = document.getElementById(sliderId);
+    if (!slider) return;
+    const scrollDistance = (slider.clientWidth * 0.75) * direction;
+    slider.scrollBy({
+        left: scrollDistance,
+        behavior: 'smooth'
+    });
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -515,113 +571,163 @@ document.addEventListener('DOMContentLoaded', function() {
         }, { passive: false });
     }
 
-    // 2. Bookshelf Sliders with Buttons & Mouse Drag
-    document.querySelectorAll('.amz-shelf-card').forEach(function(shelf) {
-        var track = shelf.querySelector('.amz-shelf-track');
-        var prevBtn = shelf.querySelector('.prev-btn');
-        var nextBtn = shelf.querySelector('.next-btn');
-
-        if (!track) return;
-
-        if (prevBtn) {
-            prevBtn.addEventListener('click', function() {
-                var scrollAmount = track.clientWidth * 0.75;
-                track.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
-            });
-        }
-
-        if (nextBtn) {
-            nextBtn.addEventListener('click', function() {
-                var scrollAmount = track.clientWidth * 0.75;
-                track.scrollBy({ left: scrollAmount, behavior: 'smooth' });
-            });
-        }
-
-        // Drag to scroll for book tracks
+    // 2. Continuous Gentle Auto-Move & Interactive Mouse Drag for All Book Sliders
+    const autoScrollSliders = document.querySelectorAll('.idea-book-slider');
+    autoScrollSliders.forEach((slider, idx) => {
+        let isHovered = false;
+        let isTouching = false;
         let isDown = false;
         let startX;
         let scrollLeft;
 
-        track.addEventListener('mousedown', (e) => {
-            isDown = true;
-            startX = e.pageX - track.offsetLeft;
-            scrollLeft = track.scrollLeft;
+        slider.addEventListener('mouseenter', () => isHovered = true);
+        slider.addEventListener('mouseleave', () => {
+            isHovered = false;
+            isDown = false;
+            slider.classList.remove('active');
         });
-        track.addEventListener('mouseleave', () => isDown = false);
-        track.addEventListener('mouseup', () => isDown = false);
-        track.addEventListener('mousemove', (e) => {
+        slider.addEventListener('touchstart', () => isTouching = true, { passive: true });
+        slider.addEventListener('touchend', () => isTouching = false, { passive: true });
+
+        slider.addEventListener('mousedown', (e) => {
+            isDown = true;
+            slider.classList.add('active');
+            startX = e.pageX - slider.offsetLeft;
+            scrollLeft = slider.scrollLeft;
+        });
+
+        slider.addEventListener('mouseup', () => {
+            isDown = false;
+            slider.classList.remove('active');
+        });
+
+        slider.addEventListener('mousemove', (e) => {
             if (!isDown) return;
             e.preventDefault();
-            const x = e.pageX - track.offsetLeft;
+            const x = e.pageX - slider.offsetLeft;
             const walk = (x - startX) * 1.5;
-            track.scrollLeft = scrollLeft - walk;
+            slider.scrollLeft = scrollLeft - walk;
         });
+
+        setInterval(() => {
+            if (isHovered || isTouching || isDown || slider.classList.contains('active')) return;
+            
+            const maxScroll = slider.scrollWidth - slider.clientWidth;
+            if (maxScroll <= 15) return;
+
+            const singleItem = slider.querySelector('.idea-slider-item');
+            const scrollStep = singleItem ? (singleItem.offsetWidth + 14) : Math.max(180, slider.clientWidth * 0.45);
+            
+            if (slider.scrollLeft >= maxScroll - 10) {
+                slider.scrollTo({ left: 0, behavior: 'smooth' });
+            } else {
+                slider.scrollBy({ left: scrollStep, behavior: 'smooth' });
+            }
+        }, 4000 + (idx * 300));
     });
 });
 </script>
+@endpush
 
 <style>
-.amz-shelf-card {
-    border: 1px solid #eef2f6 !important;
+/* ══ IDEA SLIDER STYLING (100% IDENTICAL TO HOMEPAGE) ══ */
+.idea-slider-wrapper {
+    position: relative;
+    width: 100%;
 }
-.amz-shelf-track {
+.idea-book-slider {
     display: flex;
-    gap: 16px;
+    gap: 14px;
     overflow-x: auto;
     scroll-behavior: smooth;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
     padding: 6px 2px;
     cursor: grab;
+    user-select: none;
+    -webkit-user-select: none;
 }
-.amz-shelf-track:active {
+.idea-book-slider:active {
     cursor: grabbing;
 }
-.amz-shelf-item {
+.idea-book-slider::-webkit-scrollbar {
+    display: none;
+}
+.idea-slider-item {
     flex: 0 0 calc(16.666% - 13.5px);
     min-width: 180px;
     max-width: 220px;
     display: flex;
 }
 @media (max-width: 1200px) {
-    .amz-shelf-item {
+    .idea-slider-item {
         flex: 0 0 calc(20% - 13px);
         min-width: 165px;
     }
 }
 @media (max-width: 992px) {
-    .amz-shelf-item {
+    .idea-slider-item {
         flex: 0 0 calc(25% - 12px);
         min-width: 155px;
     }
 }
 @media (max-width: 768px) {
-    .amz-shelf-item {
+    .idea-slider-item {
         flex: 0 0 calc(33.333% - 10px);
         min-width: 145px;
     }
 }
 @media (max-width: 576px) {
-    .amz-shelf-track {
+    .idea-book-slider {
         gap: 8px !important;
         padding: 4px 1px !important;
     }
-    .amz-shelf-item {
+    .idea-slider-item {
         flex: 0 0 calc(50% - 4px) !important;
         min-width: 0 !important;
         max-width: calc(50% - 4px) !important;
     }
 }
 
-.amz-shelf-btn {
-    background-color: #ffffff !important;
-    opacity: 0.92;
-    transition: opacity 0.2s, transform 0.2s, box-shadow 0.2s;
+/* Floating Navigation Arrows */
+.idea-slider-nav-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(8px);
+    border: 1px solid #e2e8f0;
+    color: #1e293b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    opacity: 0;
+    visibility: hidden;
 }
-.amz-shelf-btn:hover {
+.idea-slider-wrapper:hover .idea-slider-nav-btn {
     opacity: 1;
-    transform: translateY(-50%) scale(1.1);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+    visibility: visible;
 }
-.amz-shelf-track::-webkit-scrollbar,
+.idea-slider-nav-btn.prev-btn {
+    left: -14px;
+}
+.idea-slider-nav-btn.next-btn {
+    right: -14px;
+}
+.idea-slider-nav-btn:hover {
+    background: #0066cc;
+    color: #ffffff;
+    border-color: #0066cc;
+    transform: translateY(-50%) scale(1.12);
+    box-shadow: 0 6px 16px rgba(0, 102, 204, 0.35);
+}
+
 .pill-scroll-track::-webkit-scrollbar {
     display: none;
 }
