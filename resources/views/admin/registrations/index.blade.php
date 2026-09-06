@@ -240,7 +240,7 @@
                 <table class="table table-sm table-hover align-middle mb-0 table-registrations" id="registrationsTable">
                     <thead class="table-light text-muted small text-uppercase">
                         <tr>
-                            <th class="ps-2 text-center" style="width: 30px;">#</th>
+                            <th class="ps-2 text-center" style="width: 32px;">#</th>
                             <th style="width: 24%;">Applicant & Contact</th>
                             <th class="text-center" style="width: 9.5%;">Role</th>
                             <th style="width: 28.5%;">Profile Details & Bio</th>
@@ -254,6 +254,7 @@
                             @php
                                 $regData = is_array($user->reg_data) ? $user->reg_data : [];
                                 $bioText = $regData['bio'] ?? null;
+                                $cleanBio = !empty($bioText) ? trim(strip_tags($bioText)) : null;
                                 $roleIcons = ['seller' => 'store', 'publisher' => 'building', 'author' => 'pen-fancy', 'buyer' => 'user'];
                                 $roleColors = ['seller' => 'primary', 'publisher' => 'info', 'author' => 'success', 'buyer' => 'secondary'];
                                 $roleLabels = ['seller' => 'Seller', 'publisher' => 'Publisher', 'author' => 'Author', 'buyer' => 'Buyer'];
@@ -262,36 +263,36 @@
                             <tr id="regRow-{{ $user->id }}" class="{{ $user->reg_status === 'pending' ? 'table-warning-subtle' : '' }}">
                                 <td class="ps-2 text-center text-muted font-monospace" style="font-size: 11px;">{{ $registrations->firstItem() + $n }}</td>
                                 
-                                {{-- User & Contact (30px avatar, 12-13px font) --}}
+                                {{-- 1. Applicant & Contact (32px avatar, 12px font, tight margins) --}}
                                 <td class="text-truncate">
-                                    <div class="d-flex align-items-center gap-1.5">
+                                    <div class="d-flex align-items-center gap-2">
                                         <div class="rounded-circle overflow-hidden shadow-2xs flex-shrink-0 position-relative border" 
-                                             style="width: 30px; height: 30px; min-width: 30px; min-height: 30px; background: linear-gradient(135deg, #e0e7ff, #c7d2fe);">
+                                             style="width: 32px; height: 32px; min-width: 32px; min-height: 32px; border-radius: 50% !important; background: linear-gradient(135deg, #e0e7ff, #c7d2fe);">
                                             @if(!empty($user->avatar))
                                                 <img src="{{ str_starts_with($user->avatar, 'http') ? $user->avatar : asset('storage/' . ltrim($user->avatar, '/')) }}" 
-                                                     class="w-100 h-100 object-fit-cover">
+                                                     class="w-100 h-100 object-fit-cover" style="border-radius: 50%;">
                                             @else
-                                                <div class="w-100 h-100 d-flex align-items-center justify-content-center text-primary fw-bold" style="font-size: 11px;">
+                                                <div class="w-100 h-100 d-flex align-items-center justify-content-center text-primary fw-bold" style="font-size: 11.5px; border-radius: 50%;">
                                                     {{ mb_substr($user->name, 0, 1) }}
                                                 </div>
                                             @endif
                                         </div>
 
-                                        <div class="min-w-0" style="max-width: calc(100% - 36px);">
-                                            <div class="fw-bold text-dark text-truncate" style="font-size: 12.5px; line-height: 1.2;">
+                                        <div class="min-w-0" style="max-width: calc(100% - 40px);">
+                                            <div class="fw-bold text-dark text-truncate m-0 p-0" style="font-size: 12px; line-height: 1.2;">
                                                 <a href="javascript:void(0)" onclick="openRegDetailsModal({{ $user->id }})" class="text-decoration-none text-dark hover-primary" title="{{ $user->name }}">
                                                     {{ $user->name }}
                                                 </a>
                                             </div>
-                                            <div class="text-muted d-flex flex-column" style="font-size: 11px; line-height: 1.2;">
-                                                <span class="text-truncate" title="{{ $user->email }}"><i class="fas fa-envelope text-muted me-1" style="font-size: 9.5px;"></i>{{ $user->email }}</span>
-                                                <span class="text-truncate font-monospace" title="{{ $user->phone }}"><i class="fas fa-phone-alt text-muted me-1" style="font-size: 9.5px;"></i>{{ $user->phone }}</span>
+                                            <div class="text-muted d-flex flex-column m-0 p-0" style="font-size: 11px; line-height: 1.2;">
+                                                <span class="text-truncate m-0 p-0" title="{{ $user->email }}"><i class="fas fa-envelope text-muted me-1" style="font-size: 9px;"></i>{{ $user->email }}</span>
+                                                <span class="text-truncate font-monospace m-0 p-0" title="{{ $user->phone }}"><i class="fas fa-phone-alt text-muted me-1" style="font-size: 9px;"></i>{{ $user->phone }}</span>
                                             </div>
                                         </div>
                                     </div>
                                 </td>
 
-                                {{-- Role Badge --}}
+                                {{-- 2. Role Badge --}}
                                 <td class="text-center">
                                     <span class="badge bg-{{ $currColor }}-subtle text-{{ $currColor }} border border-{{ $currColor }}-subtle rounded-pill px-1.5 py-0.5" style="font-size: 10px;">
                                         <i class="fas fa-{{ $roleIcons[$user->role] ?? 'user' }} me-0.5"></i>
@@ -299,9 +300,9 @@
                                     </span>
                                 </td>
 
-                                {{-- Profile Details & Bio (Line-clamp-2 Text Truncation with Click to View Full) --}}
+                                {{-- 3. Profile Details & Bio (1-line truncation with See More / See Less Inline Toggle) --}}
                                 <td>
-                                    <div class="d-flex flex-column gap-0.5 cursor-pointer" onclick="openRegDetailsModal({{ $user->id }})" title="সম্পূর্ণ তথ্য দেখতে ক্লিক করুন" style="font-size: 12px; line-height: 1.25;">
+                                    <div class="d-flex flex-column gap-0.5" style="font-size: 12px; line-height: 1.25;">
                                         <div class="text-truncate">
                                             @if(!empty($regData['pen_name']))
                                                 <span class="text-muted fw-semibold">লেখকনেম:</span> <strong class="text-primary">{{ $regData['pen_name'] }}</strong>
@@ -318,10 +319,21 @@
                                             @endif
                                         </div>
 
-                                        @if(!empty($bioText))
-                                            <div class="text-muted text-truncate-2" style="font-size: 11px;" title="{{ strip_tags($bioText) }}">
-                                                <i class="fas fa-quote-left text-muted opacity-40 me-0.5" style="font-size: 8px;"></i>
-                                                {{ strip_tags($bioText) }}
+                                        @if(!empty($cleanBio))
+                                            <div class="text-muted d-flex align-items-center flex-wrap gap-1" style="font-size: 11px;">
+                                                <i class="fas fa-quote-left text-muted opacity-40 me-0.5 flex-shrink-0" style="font-size: 8px;"></i>
+                                                <span class="bio-short-{{ $user->id }} text-truncate" style="max-width: 175px;" title="{{ $cleanBio }}">
+                                                    {{ Str::limit($cleanBio, 35) }}
+                                                </span>
+                                                <span class="bio-full-{{ $user->id }} d-none" style="white-space: normal; line-height: 1.3;">
+                                                    {{ $cleanBio }}
+                                                </span>
+                                                @if(mb_strlen($cleanBio) > 35)
+                                                    <button type="button" class="btn btn-link btn-xs p-0 text-primary fw-bold text-decoration-none see-more-btn flex-shrink-0" 
+                                                            onclick="toggleBioSeeMore({{ $user->id }}, this)" style="font-size: 10px; line-height: 1;">
+                                                        See More
+                                                    </button>
+                                                @endif
                                             </div>
                                         @endif
 
@@ -335,7 +347,7 @@
                                     </div>
                                 </td>
 
-                                {{-- Status & Active Toggle Combined --}}
+                                {{-- 4. Status & Account Active (Small Badges & scale-75 Toggle Switch) --}}
                                 <td class="text-center" id="statusBadgeCell-{{ $user->id }}">
                                     <div class="d-inline-flex flex-column align-items-center justify-content-center">
                                         @if($user->reg_status === 'pending')
@@ -352,8 +364,8 @@
                                             </span>
                                         @endif
 
-                                        {{-- Micro Active switch --}}
-                                        <div class="form-check form-switch cursor-pointer mb-0 d-flex align-items-center gap-1" style="font-size: 10.5px; transform: scale(0.85); transform-origin: center;">
+                                        {{-- scale-75 Active switch --}}
+                                        <div class="form-check form-switch cursor-pointer mb-0 d-flex align-items-center gap-1 scale-75" style="font-size: 10.5px; transform: scale(0.75); transform-origin: center;">
                                             <input class="form-check-input mt-0" type="checkbox" role="switch" 
                                                    id="activeSwitch-{{ $user->id }}" 
                                                    @checked($user->is_active) 
@@ -366,15 +378,15 @@
                                     </div>
                                 </td>
 
-                                {{-- Creation Date --}}
+                                {{-- 5. Creation Date --}}
                                 <td class="text-center text-muted" style="font-size: 11px;">
                                     {{ $user->created_at ? $user->created_at->format('d M, Y') : 'N/A' }}
                                 </td>
 
-                                {{-- Compact Action Icons --}}
+                                {{-- 6. Compact Action Icons (26px) --}}
                                 <td class="text-end pe-2">
                                     <div class="d-inline-flex gap-1 align-items-center justify-content-end" id="regActions-{{ $user->id }}">
-                                        {{-- 1. View Button --}}
+                                        {{-- View Button --}}
                                         <button type="button" 
                                                 class="btn btn-action-icon btn-outline-info" 
                                                 onclick="openRegDetailsModal({{ $user->id }})" 
@@ -395,7 +407,7 @@
                                             </button>
                                         @endif
 
-                                        {{-- 2. Approve Button --}}
+                                        {{-- Approve Button --}}
                                         @if($user->reg_status === 'approved')
                                             <button type="button" 
                                                     id="btnApprove-{{ $user->id }}"
@@ -416,7 +428,7 @@
                                             </button>
                                         @endif
 
-                                        {{-- 3. Reject Button --}}
+                                        {{-- Reject Button --}}
                                         @if($user->reg_status === 'rejected')
                                             <button type="button" 
                                                     id="btnReject-{{ $user->id }}"
@@ -437,7 +449,7 @@
                                             </button>
                                         @endif
 
-                                        {{-- 4. Edit Button --}}
+                                        {{-- Edit Button --}}
                                         <a href="{{ route('admin.registrations.edit', $user) }}" 
                                            class="btn btn-action-icon btn-outline-primary" 
                                            title="Edit Registration & Profile"
@@ -445,7 +457,7 @@
                                             <i class="fas fa-pen"></i>
                                         </a>
 
-                                        {{-- 5. Delete Button --}}
+                                        {{-- Delete Button --}}
                                         <button type="button" 
                                                 class="btn btn-action-icon btn-outline-secondary text-danger" 
                                                 onclick="ajaxDeleteUser({{ $user->id }}, '{{ addslashes($user->name) }}')" 
@@ -453,8 +465,6 @@
                                                 data-bs-toggle="tooltip">
                                             <i class="fas fa-trash-can"></i>
                                         </button>
-                                    </div>
-                                </td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -577,14 +587,14 @@
     width: 100% !important;
     font-size: 12px;
 }
-.table-registrations th {
-    padding: 0.35rem 0.30rem !important;
+.table-registrations thead tr th {
+    padding: 6px 10px !important;
     font-size: 11px !important;
     vertical-align: middle;
     letter-spacing: 0.02em;
 }
-.table-registrations td {
-    padding: 0.28rem 0.30rem !important;
+.table-registrations tbody tr td {
+    padding: 6px 10px !important;
     vertical-align: middle;
 }
 .text-truncate-2 {
@@ -643,6 +653,23 @@ function showToast(message, isSuccess = true) {
     toast.show();
 }
 
+// Toggle Bio See More / See Less Inline
+function toggleBioSeeMore(userId, btn) {
+    const shortEl = document.querySelector(`.bio-short-${userId}`);
+    const fullEl = document.querySelector(`.bio-full-${userId}`);
+    if (!shortEl || !fullEl) return;
+
+    if (fullEl.classList.contains('d-none')) {
+        fullEl.classList.remove('d-none');
+        shortEl.classList.add('d-none');
+        if (btn) btn.textContent = 'See Less';
+    } else {
+        fullEl.classList.add('d-none');
+        shortEl.classList.remove('d-none');
+        if (btn) btn.textContent = 'See More';
+    }
+}
+
 // 1-Click AJAX Approve User
 function ajaxApproveUser(userId, userName = '', triggerBtn = null) {
     const btn = triggerBtn || document.getElementById(`btnApprove-${userId}`);
@@ -674,11 +701,11 @@ function ajaxApproveUser(userId, userName = '', triggerBtn = null) {
             const statusCell = document.getElementById(`statusBadgeCell-${userId}`);
             if (statusCell) {
                 statusCell.innerHTML = `
-                    <div class="d-flex flex-column align-items-center justify-content-center gap-1">
-                        <span class="badge bg-success text-white px-2 py-0.5 rounded-pill shadow-xs" style="font-size: 0.72rem;">
+                    <div class="d-inline-flex flex-column align-items-center justify-content-center">
+                        <span class="badge bg-success text-white px-2 py-0.5 rounded-pill shadow-xs mb-1" style="font-size: 10px;">
                             <i class="fas fa-circle-check me-0.5"></i> Approved
                         </span>
-                        <div class="form-check form-switch cursor-pointer mb-0 d-flex align-items-center gap-1" style="font-size: 0.72rem;">
+                        <div class="form-check form-switch cursor-pointer mb-0 d-flex align-items-center gap-1 scale-75" style="font-size: 10.5px; transform: scale(0.75); transform-origin: center;">
                             <input class="form-check-input mt-0" type="checkbox" role="switch" 
                                    id="activeSwitch-${userId}" 
                                    checked 
@@ -813,11 +840,11 @@ function submitAjaxReject(event) {
             const statusCell = document.getElementById(`statusBadgeCell-${userId}`);
             if (statusCell) {
                 statusCell.innerHTML = `
-                    <div class="d-flex flex-column align-items-center justify-content-center gap-1">
-                        <span class="badge bg-danger text-white px-2 py-0.5 rounded-pill shadow-xs" style="font-size: 0.72rem;" title="${reason}">
+                    <div class="d-inline-flex flex-column align-items-center justify-content-center">
+                        <span class="badge bg-danger text-white px-2 py-0.5 rounded-pill shadow-xs mb-1" style="font-size: 10px;" title="${reason}">
                             <i class="fas fa-circle-xmark me-0.5"></i> Rejected
                         </span>
-                        <div class="form-check form-switch cursor-pointer mb-0 d-flex align-items-center gap-1" style="font-size: 0.72rem;">
+                        <div class="form-check form-switch cursor-pointer mb-0 d-flex align-items-center gap-1 scale-75" style="font-size: 10.5px; transform: scale(0.75); transform-origin: center;">
                             <input class="form-check-input mt-0" type="checkbox" role="switch" 
                                    id="activeSwitch-${userId}" 
                                    onchange="toggleUserActiveStatus(${userId}, this)"
