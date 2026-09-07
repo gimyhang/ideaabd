@@ -219,8 +219,13 @@ class AdminAccessController extends Controller
         // Header Navigation Menu Items
         $headerMenuItems = \App\Support\SiteSetting::headerNav();
 
+        // Authors list for Designer Attribution & Profile linking
+        $authors = \Illuminate\Support\Facades\Schema::hasTable('authors')
+            ? \Modules\Author\Models\Author::orderBy('name')->get(['id', 'name', 'name_bn', 'slug'])
+            : collect();
+
         return view('admin.system-settings', compact(
-            'settings', 'noticeSetting', 'maintSetting', 'ecomSetting', 'themeSetting', 'invoiceSetting', 'paymentGateways', 'diagnostics', 'headerMenuItems'
+            'settings', 'noticeSetting', 'maintSetting', 'ecomSetting', 'themeSetting', 'invoiceSetting', 'paymentGateways', 'diagnostics', 'headerMenuItems', 'authors'
         ));
     }
 
@@ -232,6 +237,11 @@ class AdminAccessController extends Controller
         $request->validate([
             'site_name'       => 'nullable|string|max:100',
             'site_tagline'    => 'nullable|string|max:200',
+            'show_designer_credit' => 'nullable|boolean',
+            'designer_author_id'   => 'nullable|integer',
+            'designer_name'        => 'nullable|string|max:100',
+            'designer_slug'        => 'nullable|string|max:150',
+            'designer_url'         => 'nullable|string|max:255',
             'notice_text'     => 'nullable|string|max:500',
             'notice_active'   => 'nullable|boolean',
             'notice_type'     => 'required|in:info,warning,success,danger',
@@ -322,6 +332,28 @@ class AdminAccessController extends Controller
                     );
                 }
             }
+
+            // 1.3 Designer Attribution & Author Profile Settings
+            AdminDashboardSetting::updateOrCreate(
+                ['key' => 'show_designer_credit'],
+                ['value' => $request->boolean('show_designer_credit'), 'updated_by' => auth()->id()]
+            );
+            AdminDashboardSetting::updateOrCreate(
+                ['key' => 'designer_author_id'],
+                ['value' => $request->filled('designer_author_id') ? (int) $request->input('designer_author_id') : null, 'updated_by' => auth()->id()]
+            );
+            AdminDashboardSetting::updateOrCreate(
+                ['key' => 'designer_name'],
+                ['value' => $request->filled('designer_name') ? $request->string('designer_name')->trim()->value() : null, 'updated_by' => auth()->id()]
+            );
+            AdminDashboardSetting::updateOrCreate(
+                ['key' => 'designer_slug'],
+                ['value' => $request->filled('designer_slug') ? $request->string('designer_slug')->trim()->value() : null, 'updated_by' => auth()->id()]
+            );
+            AdminDashboardSetting::updateOrCreate(
+                ['key' => 'designer_url'],
+                ['value' => $request->filled('designer_url') ? $request->string('designer_url')->trim()->value() : null, 'updated_by' => auth()->id()]
+            );
 
             // 2. Handle logo (File or Cropped Base64) & Dimensions
             if ($request->has('site_logo_height')) {

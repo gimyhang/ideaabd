@@ -269,6 +269,88 @@
                                         </div>
                                     </div>
                                 </div>
+
+                                <!-- Designer Attribution & Author Profile Customization Card -->
+                                @php
+                                    $designerAuthorId = \App\Support\SiteSetting::designerAuthorId();
+                                    $designerName = \App\Support\SiteSetting::designerName();
+                                    $designerSlug = \App\Support\SiteSetting::designerSlug();
+                                    $designerUrl = \App\Support\SiteSetting::designerUrl();
+                                    $showDesignerCredit = \App\Support\SiteSetting::showDesignerCredit();
+                                @endphp
+                                <div class="p-3 bg-light rounded-4 border mb-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <div>
+                                            <label class="form-label small fw-bold text-dark mb-0 d-flex align-items-center gap-1.5">
+                                                <i class="fa-solid fa-compass-drafting text-primary"></i> 
+                                                <span>ডিজাইনার ক্রেডিট ও লেখক লিংক কাস্টমাইজেশন</span>
+                                            </label>
+                                            <div class="small text-muted" style="font-size: 11px;">ফুটার বারের "ডিজাইন বাই" অংশে লেখক প্রোফাইল লিঙ্ক ও নাম কাস্টমাইজ করুন</div>
+                                        </div>
+                                        <div class="form-check form-switch mb-0">
+                                            <input class="form-check-input" type="checkbox" name="show_designer_credit" value="1" id="chkShowDesignerCredit" {{ $showDesignerCredit ? 'checked' : '' }} onchange="updateDesignerPreview()">
+                                            <label class="form-check-label small fw-semibold text-dark" for="chkShowDesignerCredit">প্রদর্শন</label>
+                                        </div>
+                                    </div>
+
+                                    <!-- Author Directory Selector -->
+                                    <div class="mb-2">
+                                        <label class="form-label small fw-semibold text-muted mb-1">
+                                            <i class="fa-solid fa-user-pen text-secondary me-1"></i>লেখক ডিরেক্টরি থেকে নির্বাচন করুন (Author Directory)
+                                        </label>
+                                        <select name="designer_author_id" id="designerAuthorSelect" class="form-select form-select-sm rounded-3" onchange="onDesignerAuthorChange(this)">
+                                            <option value="" data-name="" data-slug="">-- কাস্টম নাম বা ডিফল্ট (Masud Rana Shakil) ব্যবহার করুন --</option>
+                                            @if(isset($authors) && $authors->count() > 0)
+                                                @foreach($authors as $authItem)
+                                                    <option value="{{ $authItem->id }}" 
+                                                            data-name="{{ $authItem->name }}" 
+                                                            data-slug="{{ $authItem->slug }}" 
+                                                            {{ $designerAuthorId == $authItem->id ? 'selected' : '' }}>
+                                                        {{ $authItem->name }} @if(!empty($authItem->name_bn) && $authItem->name_bn !== $authItem->name) ({{ $authItem->name_bn }}) @endif — [slug: {{ $authItem->slug }}]
+                                                    </option>
+                                                @endforeach
+                                            @endif
+                                        </select>
+                                    </div>
+
+                                    <!-- Custom Overrides (Optional) -->
+                                    <div class="row g-2 mb-2">
+                                        <div class="col-sm-6">
+                                            <label class="form-label small fw-semibold text-muted mb-1">কাস্টম ডিজাইনারের নাম (Custom Name)</label>
+                                            <input type="text" name="designer_name" id="inputDesignerName" value="{{ \App\Support\SiteSetting::get('designer_name') }}" class="form-control form-control-sm rounded-3" placeholder="Masud Rana Shakil" oninput="updateDesignerPreview()">
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <label class="form-label small fw-semibold text-muted mb-1">কাস্টম স্লাগ / ইউজারনেম (Slug)</label>
+                                            <input type="text" name="designer_slug" id="inputDesignerSlug" value="{{ \App\Support\SiteSetting::get('designer_slug') }}" class="form-control form-control-sm rounded-3" placeholder="sakil-masud" oninput="updateDesignerPreview()">
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-2">
+                                        <label class="form-label small fw-semibold text-muted mb-1">সরাসরি বাহ্যিক URL (ঐচ্ছিক / Optional Direct URL)</label>
+                                        <input type="url" name="designer_url" id="inputDesignerUrl" value="{{ \App\Support\SiteSetting::get('designer_url') }}" class="form-control form-control-sm rounded-3" placeholder="https://www.ideaabd.com/authors/sakil-masud (খালি থাকলে প্রোফাইল লিঙ্ক অটো হবে)" oninput="updateDesignerPreview()">
+                                    </div>
+
+                                    <!-- Live Attribution Preview Banner -->
+                                    <div class="p-2.5 rounded-3 border" style="background: #090d16; color: #94a3b8; font-size: 11.5px;">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <span class="badge bg-dark text-info border border-info-subtle rounded-pill px-2 py-0.5" style="font-size: 10px;">
+                                                <i class="fa-solid fa-eye me-1"></i>লাইভ ফুটার প্রিভিউ
+                                            </span>
+                                            <span id="designerPreviewStatus" class="badge {{ $showDesignerCredit ? 'bg-success-subtle text-success' : 'bg-secondary-subtle text-muted' }}" style="font-size: 10px;">
+                                                {{ $showDesignerCredit ? 'ফুটার বারে দৃশ্যমান' : 'লুকানো (Hidden)' }}
+                                            </span>
+                                        </div>
+                                        <div id="designerPreviewLine" style="{{ $showDesignerCredit ? '' : 'opacity: 0.4;' }}">
+                                            &copy; ২০২৬ {{ $settings['site_name'] ?? 'আইডিয়া প্রকাশন' }} । ডিজিটাল বুক ও প্রকাশনা প্ল্যাটফর্ম । সর্বস্বত্ব সংরক্ষিত। 
+                                            <span id="designerCreditTextWrapper" class="ms-1" style="color: #64748b;">
+                                                ডিজাইন বাই <a href="#" id="previewDesignerLink" class="text-info text-decoration-none fw-semibold" style="pointer-events: none;"><span id="previewDesignerNameText">{{ $designerName }}</span></a>
+                                            </span>
+                                        </div>
+                                        <div class="mt-1 font-monospace text-truncate text-white-50" style="font-size: 10px;" id="previewTargetUrl">
+                                            গন্তব্য লিংক: {{ $designerUrl }}
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
                             <!-- Right: Modern World-Class Logo Sizing, Navbar Simulator & Cropper -->
@@ -2785,6 +2867,50 @@
             <button type="button" class="btn btn-outline-danger btn-sm rounded-3 px-2" onclick="this.closest('.board-row').remove()"><i class="fa-solid fa-trash"></i></button>
         `;
         container.appendChild(row);
+    }
+
+    function onDesignerAuthorChange(selectElem) {
+        const selectedOpt = selectElem.options[selectElem.selectedIndex];
+        if (selectedOpt && selectedOpt.value) {
+            const name = selectedOpt.getAttribute('data-name');
+            const slug = selectedOpt.getAttribute('data-slug');
+            if (name) document.getElementById('inputDesignerName').value = name;
+            if (slug) document.getElementById('inputDesignerSlug').value = slug;
+            document.getElementById('inputDesignerUrl').value = '';
+        }
+        updateDesignerPreview();
+    }
+
+    function updateDesignerPreview() {
+        const isShown = document.getElementById('chkShowDesignerCredit')?.checked;
+        const authorSelect = document.getElementById('designerAuthorSelect');
+        const selectedOpt = authorSelect ? authorSelect.options[authorSelect.selectedIndex] : null;
+        const optName = selectedOpt && selectedOpt.value ? selectedOpt.getAttribute('data-name') : '';
+        const optSlug = selectedOpt && selectedOpt.value ? selectedOpt.getAttribute('data-slug') : '';
+
+        const customName = document.getElementById('inputDesignerName')?.value?.trim();
+        const customSlug = document.getElementById('inputDesignerSlug')?.value?.trim();
+        const customUrl = document.getElementById('inputDesignerUrl')?.value?.trim();
+
+        let finalName = customName || optName || 'Masud Rana Shakil';
+        let finalSlug = customSlug || optSlug || 'sakil-masud';
+        let finalUrl = customUrl || (window.location.origin + '/authors/' + finalSlug);
+
+        const nameElem = document.getElementById('previewDesignerNameText');
+        if (nameElem) nameElem.textContent = finalName;
+
+        const urlElem = document.getElementById('previewTargetUrl');
+        if (urlElem) urlElem.textContent = 'গন্তব্য লিংক: ' + finalUrl;
+
+        const statusBadge = document.getElementById('designerPreviewStatus');
+        const previewLine = document.getElementById('designerPreviewLine');
+        if (statusBadge) {
+            statusBadge.className = isShown ? 'badge bg-success-subtle text-success' : 'badge bg-secondary-subtle text-muted';
+            statusBadge.textContent = isShown ? 'ফুটার বারে দৃশ্যমান' : 'লুকানো (Hidden)';
+        }
+        if (previewLine) {
+            previewLine.style.opacity = isShown ? '1' : '0.4';
+        }
     }
 </script>
 @endpush

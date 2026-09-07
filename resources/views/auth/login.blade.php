@@ -586,9 +586,11 @@
         <div class="container-fluid d-flex align-items-center justify-content-between flex-wrap gap-2">
             <div>
                 &copy; ২০২৬ {{ \App\Support\SiteSetting::name() ?: 'আইডিয়া প্রকাশন' }} । ডিজিটাল বুক ও প্রকাশনা প্ল্যাটফর্ম । সর্বস্বত্ব সংরক্ষিত।
-                <span class="d-inline-block ms-1" style="color: rgba(255,255,255,0.7);">ডিজাইন বাই 
-                    <a href="{{ route('authors.show', 'sakil-masud') }}" class="text-warning text-decoration-none fw-semibold" title="Masud Rana Shakil — লেখক প্রোফাইল দেখুন">Masud Rana Shakil</a>
-                </span>
+                @if(\App\Support\SiteSetting::showDesignerCredit())
+                    <span class="d-inline-block ms-1" style="color: rgba(255,255,255,0.7);">ডিজাইন বাই 
+                        <a href="{{ \App\Support\SiteSetting::designerUrl() }}" class="text-warning text-decoration-none fw-semibold" title="{{ \App\Support\SiteSetting::designerName() }} — লেখক প্রোফাইল দেখুন">{{ \App\Support\SiteSetting::designerName() }}</a>
+                    </span>
+                @endif
             </div>
             <div class="d-flex align-items-center gap-3">
                 <a href="{{ route('terms') }}" class="portal-footer-link">Terms</a>

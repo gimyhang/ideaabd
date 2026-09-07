@@ -68,7 +68,11 @@
     <!-- Copyright Strip -->
     <div class="border-t border-slate-800 bg-slate-900/80 py-6 text-center text-[11px] text-slate-400">
         <div class="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-4 sm:flex-row">
-            <p>© ২০২৬ {{ \App\Support\SiteSetting::name() ?: 'আইডিয়া প্রকাশন' }} । ডিজিটাল বুক ও প্রকাশনা প্ল্যাটফর্ম । সর্বস্বত্ব সংরক্ষিত। <span class="text-slate-500">ডিজাইন বাই <a href="{{ route('authors.show', 'sakil-masud') }}" class="text-cyan-400 hover:underline">Masud Rana Shakil</a></span></p>
+            <p>© ২০২৬ {{ \App\Support\SiteSetting::name() ?: 'আইডিয়া প্রকাশন' }} । ডিজিটাল বুক ও প্রকাশনা প্ল্যাটফর্ম । সর্বস্বত্ব সংরক্ষিত। 
+                @if(\App\Support\SiteSetting::showDesignerCredit())
+                    <span class="text-slate-500">ডিজাইন বাই <a href="{{ \App\Support\SiteSetting::designerUrl() }}" class="text-cyan-400 hover:underline" title="{{ \App\Support\SiteSetting::designerName() }} — লেখক প্রোফাইল দেখুন">{{ \App\Support\SiteSetting::designerName() }}</a></span>
+                @endif
+            </p>
             <div class="flex flex-wrap items-center justify-center gap-3 text-slate-400 text-[11px]">
                 <a href="{{ route('terms') }}" class="hover:text-cyan-400 transition-colors">ব্যবহারের শর্তাবলী (Terms)</a>
                 <span class="text-slate-600">•</span>

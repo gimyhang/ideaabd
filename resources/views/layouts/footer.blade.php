@@ -239,9 +239,11 @@
                 <div class="col-lg-7">
                     <p class="mb-0 small" style="color: #94a3b8; font-size: 12.5px; line-height: 1.6;">
                         &copy; ২০২৬ {{ $footerName }} । ডিজিটাল বুক ও প্রকাশনা প্ল্যাটফর্ম । সর্বস্বত্ব সংরক্ষিত। 
-                        <span class="d-inline-block ms-1" style="color: #64748b;">ডিজাইন বাই 
-                            <a href="{{ route('authors.show', 'sakil-masud') }}" class="text-info text-decoration-none fw-semibold" style="transition: color 0.2s ease;" onmouseover="this.style.color='#38bdf8'; this.style.textDecoration='underline';" onmouseout="this.style.color=''; this.style.textDecoration='none';" title="Masud Rana Shakil — লেখক প্রোফাইল দেখুন">Masud Rana Shakil</a>
-                        </span>
+                        @if(\App\Support\SiteSetting::showDesignerCredit())
+                            <span class="d-inline-block ms-1" style="color: #64748b;">ডিজাইন বাই 
+                                <a href="{{ \App\Support\SiteSetting::designerUrl() }}" class="text-info text-decoration-none fw-semibold" style="transition: color 0.2s ease;" onmouseover="this.style.color='#38bdf8'; this.style.textDecoration='underline';" onmouseout="this.style.color=''; this.style.textDecoration='none';" title="{{ \App\Support\SiteSetting::designerName() }} — লেখক প্রোফাইল দেখুন">{{ \App\Support\SiteSetting::designerName() }}</a>
+                            </span>
+                        @endif
                     </p>
                 </div>
                 <div class="col-lg-5 text-lg-end">

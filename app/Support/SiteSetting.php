@@ -451,4 +451,65 @@ class SiteSetting
     {
         return self::get('terms_custom_notice');
     }
+
+    // --- Designer Attribution & Author Profile Customization Helpers ---
+    public static function showDesignerCredit(): bool
+    {
+        return (bool) (self::get('show_designer_credit', true));
+    }
+
+    public static function designerAuthorId(): ?int
+    {
+        $id = self::get('designer_author_id');
+        return $id ? (int) $id : null;
+    }
+
+    public static function designerName(): string
+    {
+        $customName = self::get('designer_name');
+        if (!empty($customName)) {
+            return (string) $customName;
+        }
+
+        $authorId = self::designerAuthorId();
+        if ($authorId && class_exists(\Modules\Author\Models\Author::class)) {
+            $author = \Modules\Author\Models\Author::find($authorId);
+            if ($author && !empty($author->name)) {
+                return (string) $author->name;
+            }
+        }
+
+        return 'Masud Rana Shakil';
+    }
+
+    public static function designerSlug(): string
+    {
+        $authorId = self::designerAuthorId();
+        if ($authorId && class_exists(\Modules\Author\Models\Author::class)) {
+            $author = \Modules\Author\Models\Author::find($authorId);
+            if ($author && !empty($author->slug)) {
+                return (string) $author->slug;
+            }
+        }
+
+        $customSlug = self::get('designer_slug');
+        if (!empty($customSlug)) {
+            return (string) $customSlug;
+        }
+
+        return 'sakil-masud';
+    }
+
+    public static function designerUrl(): string
+    {
+        $customUrl = self::get('designer_url');
+        if (!empty($customUrl)) {
+            return (string) $customUrl;
+        }
+
+        $slug = self::designerSlug();
+        return \Illuminate\Support\Facades\Route::has('authors.show') 
+            ? route('authors.show', $slug) 
+            : url('/authors/' . $slug);
+    }
 }
