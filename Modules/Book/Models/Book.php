@@ -156,6 +156,14 @@ class Book extends Model
     }
 
     /**
+     * Category Display Name (fallback to 'বিবিধ' if missing)
+     */
+    public function getCategoryDisplayNameAttribute(): string
+    {
+        return $this->category?->name ?? 'বিবিধ';
+    }
+
+    /**
      * Publisher Relationship
      */
     public function publisher(): BelongsTo

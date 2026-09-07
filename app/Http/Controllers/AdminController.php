@@ -413,7 +413,10 @@ class AdminController extends Controller
         $search        = $request->string('search')->trim()->value();
         $authorId      = $request->input('author_id');
         $publisherId   = $request->input('publisher_id');
-        $categoryId    = $request->input('category_id');
+        $categoryIdRaw = $request->input('category_id') ?: $request->input('category');
+        $categoryId    = ($categoryIdRaw && !is_numeric($categoryIdRaw))
+            ? \Illuminate\Support\Facades\DB::table('categories')->where('slug', $categoryIdRaw)->value('id')
+            : $categoryIdRaw;
         $stockFilter   = $request->string('stock')->trim()->value();
         $format        = $request->string('format')->trim()->value();
         $coverType     = $request->string('cover_type')->trim()->value();
@@ -424,6 +427,18 @@ class AdminController extends Controller
         $modStatus     = $request->string('mod_status')->trim()->value();
         $sort          = $request->string('sort')->trim()->value() ?: 'latest';
         $perPage       = in_array((int) $request->input('per_page'), [10, 20, 50, 100, 200], true) ? (int) $request->input('per_page') : 20;
+
+        $bibidhCategory = \Modules\Book\Models\Category::firstOrCreate(
+            ['slug' => 'bibidh'],
+            [
+                'name'        => 'বিবিধ',
+                'slug'        => 'bibidh',
+                'description' => 'যেসব বইয়ের সুনির্দিষ্ট ক্যাটাগরি বা বিষয় নির্ধারণ করা নেই।',
+                'is_active'   => true,
+                'sort_order'  => 9999,
+            ]
+        );
+        $bibidhId = $bibidhCategory->id;
 
         $query = \Modules\Book\Models\Book::query()
             ->with(['category', 'publisher', 'authorLink', 'authors'])
@@ -504,10 +519,20 @@ class AdminController extends Controller
                     $q->where('publisher_id', $pId);
                 }
             })
-            ->when($categoryId, function ($q, $cId) {
-                $childIds = DB::table('categories')->where('parent_id', $cId)->whereNull('deleted_at')->pluck('id')->all();
-                $allIds = array_merge([(int)$cId], $childIds);
-                $q->whereIn('category_id', $allIds);
+            ->when($categoryId, function ($q, $cId) use ($bibidhId) {
+                $isBibidh = ($cId == $bibidhId || $cId === 'bibidh' || $cId === 'uncategorized' || $cId === 'null');
+                if ($isBibidh) {
+                    $validIds = DB::table('categories')->whereNull('deleted_at')->where('id', '!=', $bibidhId)->pluck('id')->all();
+                    $q->where(function ($sq) use ($bibidhId, $validIds) {
+                        $sq->where('category_id', $bibidhId)
+                           ->orWhereNull('category_id')
+                           ->orWhereNotIn('category_id', $validIds);
+                    });
+                } else {
+                    $childIds = DB::table('categories')->where('parent_id', $cId)->whereNull('deleted_at')->pluck('id')->all();
+                    $allIds = array_merge([(int)$cId], $childIds);
+                    $q->whereIn('category_id', $allIds);
+                }
             })
             ->when($stockFilter === 'pre_order', fn ($q) => $q->where('stock_status', 'pre_order'))
             ->when($stockFilter === 'low', fn ($q) => $q->where('stock_quantity', '<=', 5)->where('stock_quantity', '>', 0))
@@ -572,7 +597,7 @@ class AdminController extends Controller
             'discount'            => \Modules\Book\Models\Book::whereNotNull('discount_price')->where('discount_price', '>', 0)->whereColumn('discount_price', '<', 'price')->count(),
         ];
 
-        return view('admin.books', compact('books', 'categories', 'publishers', 'authors', 'stats', 'sort', 'perPage'));
+        return view('admin.books', compact('books', 'categories', 'publishers', 'authors', 'stats', 'sort', 'perPage', 'bibidhId'));
     }
 
     public function toggleBookStatus(Request $request, int $id): \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
@@ -951,10 +976,22 @@ class AdminController extends Controller
         $status   = $request->input('is_active');
         $parentId = $request->input('parent_id');
         $sort     = $request->string('sort')->trim()->value() ?: 'sort_order';
-        $perPage  = in_array((int) $request->input('per_page'), [10, 25, 50, 100], true) ? (int) $request->input('per_page') : 25;
+        $perPage  = in_array((int) $request->input('per_page'), [10, 20, 25, 40, 50, 80, 100, 200], true) ? (int) $request->input('per_page') : 40;
+
+        $bibidhCategory = \Modules\Book\Models\Category::firstOrCreate(
+            ['slug' => 'bibidh'],
+            [
+                'name'        => 'বিবিধ',
+                'slug'        => 'bibidh',
+                'description' => 'যেসব বইয়ের সুনির্দিষ্ট ক্যাটাগরি বা বিষয় নির্ধারণ করা নেই।',
+                'is_active'   => true,
+                'sort_order'  => 9999,
+            ]
+        );
+        $bibidhId = $bibidhCategory->id;
 
         $query = \Modules\Book\Models\Category::query()
-            ->with(['parent'])
+            ->with(['parent', 'recentBooks'])
             ->withCount('books')
             ->when($search, function ($q, $term) {
                 $searchData = $this->parseSearchKeywords($term);
@@ -985,6 +1022,34 @@ class AdminController extends Controller
         };
 
         $categories = $query->paginate($perPage)->withQueryString();
+
+        // Calculate uncategorized books (category_id is NULL or references missing category)
+        $validCategoryIds = \Modules\Book\Models\Category::pluck('id')->all();
+        $uncategorizedCount = \Modules\Book\Models\Book::where(function ($q) use ($bibidhId, $validCategoryIds) {
+            $q->whereNull('category_id')
+              ->orWhereNotIn('category_id', $validCategoryIds);
+        })->count();
+
+        $uncategorizedBooks = \Modules\Book\Models\Book::select(['id', 'category_id', 'title', 'cover_image'])
+            ->where(function ($q) use ($bibidhId, $validCategoryIds) {
+                $q->whereNull('category_id')
+                  ->orWhereNotIn('category_id', $validCategoryIds);
+            })
+            ->whereNotNull('cover_image')
+            ->where('cover_image', '!=', '')
+            ->latest('id')
+            ->take(6)
+            ->get();
+
+        foreach ($categories as $cat) {
+            if ($cat->id === $bibidhId || $cat->slug === 'bibidh') {
+                $cat->books_count = ($cat->books_count ?? 0) + $uncategorizedCount;
+                if ($uncategorizedBooks->isNotEmpty()) {
+                    $existingRecent = $cat->recentBooks ?? collect();
+                    $cat->setRelation('recentBooks', $existingRecent->merge($uncategorizedBooks)->unique('id')->take(6));
+                }
+            }
+        }
         $parentCategories = \Modules\Book\Models\Category::whereNull('parent_id')->orderBy('name')->pluck('name', 'id')->all();
 
         $stats = [

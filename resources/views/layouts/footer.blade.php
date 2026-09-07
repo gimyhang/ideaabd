@@ -108,11 +108,12 @@
                     <span>নীতিমালা ও সহায়তা</span>
                 </h6>
                 <ul class="list-unstyled mb-0 footer-links">
-                    <li><a href="{{ route('contact') }}"><i class="fa-solid fa-angle-right me-1.5 opacity-50"></i>হেল্পলাইন ও যোগাযোগ</a></li>
+                    <li><a href="{{ route('terms') }}"><i class="fa-solid fa-angle-right me-1.5 opacity-50"></i>ব্যবহারের শর্তাবলী (Terms)</a></li>
+                    <li><a href="{{ route('privacy') }}"><i class="fa-solid fa-angle-right me-1.5 opacity-50"></i>গোপনীয়তা নীতি (Privacy Policy)</a></li>
+                    <li><a href="{{ route('contact') }}"><i class="fa-solid fa-angle-right me-1.5 opacity-50"></i>যোগাযোগ ও সহায়তা (Help & Contact)</a></li>
+                    <li><a href="{{ route('refund.policy') }}"><i class="fa-solid fa-angle-right me-1.5 opacity-50"></i>রিটার্ন ও রিফান্ড পলিসি</a></li>
+                    <li><a href="{{ route('faq') }}"><i class="fa-solid fa-angle-right me-1.5 opacity-50"></i>সাধারণ জিজ্ঞাসা (FAQ)</a></li>
                     <li><a href="{{ route('blog.write') }}"><i class="fa-solid fa-angle-right me-1.5 opacity-50"></i>লেখা সাবমিট করুন</a></li>
-                    <li><a href="{{ route('register.choose') }}"><i class="fa-solid fa-angle-right me-1.5 opacity-50"></i>লেখক রেজিস্ট্রেশন</a></li>
-                    <li><a href="{{ route('login') }}"><i class="fa-solid fa-angle-right me-1.5 opacity-50"></i>অ্যাকাউন্ট লগইন</a></li>
-                    <li><a href="{{ route('contact') }}"><i class="fa-solid fa-angle-right me-1.5 opacity-50"></i>আমাদের ঠিকানা</a></li>
                 </ul>
             </div>
 
@@ -234,19 +235,23 @@
     {{-- Bottom Copyright Bar --}}
     <div class="py-3" style="background: #020710; border-top: 1px solid rgba(255,255,255,0.06);">
         <div class="container">
-            <div class="row align-items-center g-2 text-center text-md-start">
-                <div class="col-md-7">
-                    <p class="mb-0 small" style="color: #94a3b8; font-size: 12.5px;">
-                        &copy; {{ date('Y') }} <strong class="text-white">{{ $footerName }}</strong> (ideaabd.com) &mdash; সর্বস্বত্ব সংরক্ষিত। 
-                        <span class="d-inline-block ms-1" style="color: #64748b;">| ডিজাইনার: 
-                            <a href="{{ route('authors.show', 'sakil-masud') }}" class="text-info text-decoration-none fw-semibold" style="transition: color 0.2s ease;" onmouseover="this.style.color='#38bdf8'; this.style.textDecoration='underline';" onmouseout="this.style.color=''; this.style.textDecoration='none';" title="মাসুদ রানা সাকিল — প্রোফাইল দেখুন">মাসুদ রানা সাকিল</a>
+            <div class="row align-items-center g-2 text-center text-lg-start">
+                <div class="col-lg-7">
+                    <p class="mb-0 small" style="color: #94a3b8; font-size: 12.5px; line-height: 1.6;">
+                        &copy; ২০২৬ {{ $footerName }} । ডিজিটাল বুক ও প্রকাশনা প্ল্যাটফর্ম । সর্বস্বত্ব সংরক্ষিত। 
+                        <span class="d-inline-block ms-1" style="color: #64748b;">ডিজাইন বাই 
+                            <a href="{{ route('authors.show', 'sakil-masud') }}" class="text-info text-decoration-none fw-semibold" style="transition: color 0.2s ease;" onmouseover="this.style.color='#38bdf8'; this.style.textDecoration='underline';" onmouseout="this.style.color=''; this.style.textDecoration='none';" title="Masud Rana Shakil — লেখক প্রোফাইল দেখুন">Masud Rana Shakil</a>
                         </span>
                     </p>
                 </div>
-                <div class="col-md-5 text-md-end">
-                    <span class="small" style="color: #64748b; font-size: 12px;">
-                        <i class="fa-solid fa-shield-check text-success me-1"></i> সুরক্ষিত ও নিরাপদ ডিজিটাল প্রকাশনা প্ল্যাটফর্ম
-                    </span>
+                <div class="col-lg-5 text-lg-end">
+                    <div class="small d-inline-flex flex-wrap align-items-center justify-content-center justify-content-lg-end gap-1" style="font-size: 12px; color: #94a3b8;">
+                        <a href="{{ route('terms') }}" class="text-secondary text-decoration-none hover-white">ব্যবহারের শর্তাবলী (Terms)</a>
+                        <span class="text-white-50 mx-1">•</span>
+                        <a href="{{ route('privacy') }}" class="text-secondary text-decoration-none hover-white">গোপনীয়তা নীতি (Privacy Policy)</a>
+                        <span class="text-white-50 mx-1">•</span>
+                        <a href="{{ route('contact') }}" class="text-secondary text-decoration-none hover-white">যোগাযোগ ও সহায়তা (Help & Contact)</a>
+                    </div>
                 </div>
             </div>
         </div>

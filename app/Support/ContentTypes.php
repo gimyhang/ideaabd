@@ -228,6 +228,7 @@ final class ContentTypes
                 'fields'    => [
                     'name'        => ['label' => 'Category Name', 'type' => 'text', 'rules' => 'required|string|max:255', 'unique' => true, 'col' => 6],
                     'parent_id'   => ['label' => 'Parent Category', 'type' => 'select', 'lookup' => 'parent_categories', 'rules' => 'nullable|integer', 'col' => 6],
+                    'icon_or_image' => ['label' => 'Icon / Image URL or FontAwesome Class', 'type' => 'text', 'rules' => 'nullable|string|max:500', 'col' => 12],
                     'description' => ['label' => 'Description', 'type' => 'textarea', 'rules' => 'nullable|string|max:2000', 'col' => 12],
                     'sort_order'  => ['label' => 'Sort Order', 'type' => 'number', 'default' => 0, 'rules' => 'nullable|integer|min:0', 'col' => 6],
                     'is_active'   => ['label' => 'Active Status', 'type' => 'checkbox', 'rules' => 'nullable|boolean', 'col' => 6],

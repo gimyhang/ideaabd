@@ -545,7 +545,7 @@
                         <i class="fas fa-plus-circle me-0.5"></i>+ Add
                     </button>
                 </div>
-                <select id="f-publisher_id" name="publisher_id" class="form-select form-select-sm @error('publisher_id') is-invalid @enderror">
+                <select id="f-publisher_id" name="publisher_id" class="form-select form-select-sm @error('publisher_id') is-invalid @enderror" onchange="handlePublisherChange(this.value)">
                     <option value="">— Select Publisher —</option>
                     @foreach (($lookups['publishers'] ?? []) as $pId => $pName)
                         <option value="{{ $pId }}" @selected((string)$val('publisher_id') === (string)$pId)>{{ $pName }}</option>
@@ -594,8 +594,8 @@
                 </div>
                 <input type="text" id="f-idea_serial_no" name="idea_serial_no" value="{{ $val('idea_serial_no') }}" 
                        class="form-control form-control-sm font-monospace fw-bold bg-warning-subtle bg-opacity-25 border-warning @error('idea_serial_no') is-invalid @enderror"
-                       placeholder="e.g. IP-042" oninput="updateLiveBarcodePreview(this.value)">
-                <div class="form-text text-muted" style="font-size: 9.5px;">আইডিয়া প্রকাশন নিজস্ব ক্রমিক (IP-001...)</div>
+                       placeholder="e.g. IP001" oninput="updateLiveBarcodePreview(this.value)">
+                <div class="form-text text-muted" style="font-size: 9.5px;">আইডিয়া প্রকাশন নিজস্ব ক্রমিক (IP001, IP002...) — এন্ট্রির সময় কাস্টমাইজ বা এডিট করতে পারবেন</div>
                 @error('idea_serial_no')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
             </div>
 
@@ -666,7 +666,7 @@
                                     {!! \App\Services\BarcodeService::generateQrCodeSvg(url('/books/' . ($record->slug ?? ($record->id ?? 'preview'))), 56) !!}
                                 </div>
                                 <div class="small">
-                                    <div class="fw-bold text-dark font-monospace" style="font-size: 11.5px;" id="qrCodeLabel">{{ $val('sku') ?: 'IP-AUTO' }}</div>
+                                    <div class="fw-bold text-dark font-monospace" style="font-size: 11.5px;" id="qrCodeLabel">{{ $val('idea_serial_no') ?: ($val('sku') ?: 'IP001') }}</div>
                                     <div class="text-muted" style="font-size: 10px;">Scan to open storefront or POS checkout</div>
                                 </div>
                             </div>
@@ -1274,9 +1274,21 @@
         }
     }
 
+    window.handlePublisherChange = function(pubId) {
+        const isIdea = !pubId || pubId == '2';
+        const ideaInput = document.getElementById('f-idea_serial_no');
+        if (isIdea) {
+            if (ideaInput && !ideaInput.value) {
+                generateAutoIdeaSerialForForm();
+            }
+        }
+    };
+
     window.generateAutoIdeaSerialForForm = function() {
         const input = document.getElementById('f-idea_serial_no');
-        fetch('{{ route("admin.books.generate-serial") }}?publisher_id=2')
+        const pubSelect = document.getElementById('f-publisher_id');
+        const pubId = pubSelect ? (pubSelect.value || 2) : 2;
+        fetch(`{{ route("admin.books.generate-serial") }}?publisher_id=${pubId}`)
             .then(res => res.json())
             .then(data => {
                 if (data.success && data.serial) {
@@ -1289,8 +1301,8 @@
             .catch(err => {
                 console.error('Idea serial error:', err);
                 if (input && !input.value) {
-                    input.value = 'IP-AUTO';
-                    updateLiveBarcodePreview('IP-AUTO');
+                    input.value = 'IP001';
+                    updateLiveBarcodePreview('IP001');
                 }
             });
     };
@@ -1316,7 +1328,7 @@
     window.updateLiveBarcodePreview = function(code) {
         const ideaSerial = document.getElementById('f-idea_serial_no')?.value;
         const sku = document.getElementById('f-sku')?.value;
-        const cleanCode = (code || ideaSerial || sku || 'IP-AUTO').trim();
+        const cleanCode = (code || ideaSerial || sku || 'IP001').trim();
         const label = document.getElementById('qrCodeLabel');
         if (label) {
             label.textContent = cleanCode;

@@ -68,11 +68,13 @@
     <!-- Copyright Strip -->
     <div class="border-t border-slate-800 bg-slate-900/80 py-6 text-center text-[11px] text-slate-400">
         <div class="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-4 sm:flex-row">
-            <p>© {{ date('Y') }} IdeaABD (আইডিয়া প্রকাশন)। সর্বস্বত্ব সংরক্ষিত। <span class="text-slate-500">| ডিজাইনার: <a href="{{ route('authors.show', 'sakil-masud') }}" class="text-cyan-400 hover:underline">মাসুদ রানা সাকিল</a></span></p>
-            <div class="flex items-center gap-4 text-slate-500 text-[11px]">
-                <a href="/privacy" class="hover:text-slate-800">গোপনীয়তা নীতি</a>
-                <span>•</span>
-                <a href="/terms" class="hover:text-slate-800">ব্যবহারের শর্তাবলী</a>
+            <p>© ২০২৬ {{ \App\Support\SiteSetting::name() ?: 'আইডিয়া প্রকাশন' }} । ডিজিটাল বুক ও প্রকাশনা প্ল্যাটফর্ম । সর্বস্বত্ব সংরক্ষিত। <span class="text-slate-500">ডিজাইন বাই <a href="{{ route('authors.show', 'sakil-masud') }}" class="text-cyan-400 hover:underline">Masud Rana Shakil</a></span></p>
+            <div class="flex flex-wrap items-center justify-center gap-3 text-slate-400 text-[11px]">
+                <a href="{{ route('terms') }}" class="hover:text-cyan-400 transition-colors">ব্যবহারের শর্তাবলী (Terms)</a>
+                <span class="text-slate-600">•</span>
+                <a href="{{ route('privacy') }}" class="hover:text-cyan-400 transition-colors">গোপনীয়তা নীতি (Privacy Policy)</a>
+                <span class="text-slate-600">•</span>
+                <a href="{{ route('contact') }}" class="hover:text-cyan-400 transition-colors">যোগাযোগ ও সহায়তা (Help & Contact)</a>
             </div>
         </div>
     </div>

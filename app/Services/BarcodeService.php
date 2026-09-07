@@ -27,7 +27,7 @@ class BarcodeService
     ];
 
     /**
-     * Generate next available Idea Publication In-House Serial Number (e.g. 'IP-001', 'IP-002'...)
+     * Generate next available Idea Publication In-House Serial Number (e.g. 'IP001', 'IP002'...)
      */
     public static function generateNextIdeaSerial(): string
     {
@@ -40,7 +40,7 @@ class BarcodeService
 
         $maxNum = 0;
         foreach ($allIdeaSerials as $serial) {
-            if (preg_match('/^IP-(\d+)$/i', trim($serial), $matches)) {
+            if (preg_match('/^IP-?(\d+)$/i', trim($serial), $matches)) {
                 $num = (int) $matches[1];
                 if ($num > $maxNum) {
                     $maxNum = $num;
@@ -56,7 +56,7 @@ class BarcodeService
         }
 
         $next = $maxNum + 1;
-        return sprintf('IP-%03d', $next);
+        return sprintf('IP%03d', $next);
     }
 
     /**
@@ -130,15 +130,17 @@ class BarcodeService
         $ideaSerialCounter = 1;
         foreach ($ideaBooks as $book) {
             $changed = false;
-            $ideaSerial = sprintf('IP-%03d', $ideaSerialCounter);
+            $ideaSerial = sprintf('IP%03d', $ideaSerialCounter);
             
-            if ($book->idea_serial_no !== $ideaSerial) {
-                $book->idea_serial_no = $ideaSerial;
-                $changed = true;
+            if (empty($book->idea_serial_no) || preg_match('/^IP-?\d+$/i', $book->idea_serial_no)) {
+                if ($book->idea_serial_no !== $ideaSerial) {
+                    $book->idea_serial_no = $ideaSerial;
+                    $changed = true;
+                }
             }
 
             // General SKU
-            if (empty($book->sku) || str_starts_with($book->sku, 'IP-')) {
+            if (empty($book->sku) || str_starts_with($book->sku, 'IP-') || str_starts_with($book->sku, 'IP')) {
                 $book->sku = sprintf('BK-%05d', $book->id);
                 $changed = true;
             }

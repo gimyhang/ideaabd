@@ -75,6 +75,18 @@ class Category extends Model
     }
 
     /**
+     * Recent books for cover slideshow / carousel
+     */
+    public function recentBooks(): HasMany
+    {
+        return $this->hasMany(Book::class, 'category_id')
+            ->select(['id', 'category_id', 'title', 'cover_image'])
+            ->whereNotNull('cover_image')
+            ->where('cover_image', '!=', '')
+            ->latest('id');
+    }
+
+    /**
      * Ebooks in this category
      */
     public function ebooks(): HasMany

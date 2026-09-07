@@ -19,8 +19,12 @@ class BookController extends Controller
     /**
      * আইডিয়া প্রকাশন অ্যাডভান্সড ফিল্টারিং ও সার্চ ক্যাটালগ
      */
-    public function index(Request $request): View
+    public function index(Request $request): View|\Illuminate\Http\JsonResponse
     {
+        if ($request->has('suggest') || $request->wantsJson() || ($request->ajax() && !$request->has('page'))) {
+            return $this->suggest($request);
+        }
+
         $canUseBooks = false;
 
         try {
@@ -40,7 +44,8 @@ class BookController extends Controller
         $sidebarAuthors = collect();
         $sidebarPublishers = collect();
         $topSeller = null;
-        $isSearchMode = $request->anyFilled(['search', 'category', 'author', 'publisher', 'in_stock', 'min_price', 'max_price', 'rating', 'format', 'discount_min', 'sort']) || ($request->has('page') && (int)$request->get('page') > 1);
+        $rawSearch = trim((string)($request->input('search') ?: $request->input('q') ?: ''));
+        $isSearchMode = $request->anyFilled(['search', 'q', 'category', 'author', 'publisher', 'in_stock', 'min_price', 'max_price', 'rating', 'format', 'discount_min', 'sort']) || ($request->has('page') && (int)$request->get('page') > 1);
 
         $activeFilterTitle = null;
 
@@ -107,8 +112,8 @@ class BookController extends Controller
                 $pubVal = $request->string('publisher')->trim()->value();
                 $matchedPub = $sidebarPublishers->first(fn($p) => $p->slug === $pubVal || (string)$p->id === $pubVal || $p->name === $pubVal);
                 $activeFilterTitle = $matchedPub ? $matchedPub->name : $pubVal;
-            } elseif ($request->filled('search')) {
-                $activeFilterTitle = 'অনুসন্ধান: "' . $request->string('search')->trim()->value() . '"';
+            } elseif (!empty($rawSearch)) {
+                $activeFilterTitle = 'অনুসন্ধান: "' . $rawSearch . '"';
             } elseif ($request->has('page') && (int)$request->get('page') > 1) {
                 $activeFilterTitle = 'সকল বই (পৃষ্ঠা ' . $request->get('page') . ')';
             }
@@ -194,17 +199,30 @@ class BookController extends Controller
                             });
                     });
                 })
-                ->when($request->filled('search'), function ($q) use ($request) {
-                    $search = $request->string('search')->trim()->value();
-                    $q->where(fn ($sub) =>
-                        $sub->where('title', 'LIKE', "%{$search}%")
-                            ->orWhere('title_en', 'LIKE', "%{$search}%")
-                            ->orWhere('isbn', 'LIKE', "%{$search}%")
-                            ->orWhere('author_name', 'LIKE', "%{$search}%")
-                            ->orWhereHas('authors', fn ($a) => $a->where('name', 'LIKE', "%{$search}%"))
-                            ->orWhereHas('category', fn ($c) => $c->where('name', 'LIKE', "%{$search}%"))
-                            ->orWhereHas('publisher', fn ($p) => $p->where('name', 'LIKE', "%{$search}%"))
-                    );
+                ->when(!empty($rawSearch), function ($q) use ($rawSearch) {
+                    $tokens = array_filter(preg_split('/\s+/', $rawSearch));
+                    $q->where(function ($master) use ($rawSearch, $tokens) {
+                        $master->where('title', 'LIKE', "%{$rawSearch}%")
+                            ->orWhere('title_en', 'LIKE', "%{$rawSearch}%")
+                            ->orWhere('sku', 'LIKE', "%{$rawSearch}%")
+                            ->orWhere('idea_serial_no', 'LIKE', "%{$rawSearch}%")
+                            ->orWhere('isbn', 'LIKE', "%{$rawSearch}%")
+                            ->orWhere('author_name', 'LIKE', "%{$rawSearch}%")
+                            ->orWhereHas('authors', fn ($a) => $a->where('name', 'LIKE', "%{$rawSearch}%"))
+                            ->orWhereHas('category', fn ($c) => $c->where('name', 'LIKE', "%{$rawSearch}%"))
+                            ->orWhereHas('publisher', fn ($p) => $p->where('name', 'LIKE', "%{$rawSearch}%"));
+
+                        foreach ($tokens as $token) {
+                            $like = "%{$token}%";
+                            $master->orWhere(function ($sub) use ($like) {
+                                $sub->where('title', 'LIKE', $like)
+                                    ->orWhere('title_en', 'LIKE', $like)
+                                    ->orWhere('author_name', 'LIKE', $like)
+                                    ->orWhereHas('authors', fn($a) => $a->where('name', 'LIKE', $like))
+                                    ->orWhereHas('category', fn($c) => $c->where('name', 'LIKE', $like));
+                            });
+                        }
+                    });
                 });
 
             // Sorting logic
@@ -393,6 +411,181 @@ class BookController extends Controller
         return response()->json([
             'success' => true,
             'data'    => $book
+        ]);
+    }
+
+    /**
+     * World-Class Real-Time Smart Live Search & Spotlight Suggestions
+     */
+    public function suggest(Request $request): JsonResponse
+    {
+        $query = trim((string)($request->input('q') ?: $request->input('search') ?: ''));
+        $type = (string)$request->input('type', 'all');
+
+        if (mb_strlen($query) < 1) {
+            return response()->json([
+                'success'    => true,
+                'query'      => $query,
+                'books'      => [],
+                'authors'    => [],
+                'categories' => [],
+                'publishers' => [],
+                'total'      => 0,
+            ]);
+        }
+
+        // Tokenize query words
+        $tokens = array_filter(preg_split('/\s+/', $query));
+
+        // 1. Books Query
+        $booksQuery = Book::query()
+            ->with(['authors:id,name,slug', 'category:id,name,slug', 'publisher:id,name,slug'])
+            ->where('is_active', true);
+
+        if ($type === 'books' || $type === 'all') {
+            $booksQuery->where(function ($master) use ($tokens, $query) {
+                // Exact or full match priority
+                $master->where('title', 'LIKE', "%{$query}%")
+                       ->orWhere('title_en', 'LIKE', "%{$query}%")
+                       ->orWhere('sku', 'LIKE', "%{$query}%")
+                       ->orWhere('idea_serial_no', 'LIKE', "%{$query}%")
+                       ->orWhere('isbn', 'LIKE', "%{$query}%")
+                       ->orWhere('author_name', 'LIKE', "%{$query}%");
+
+                // Multi-token match
+                foreach ($tokens as $token) {
+                    $like = "%{$token}%";
+                    $master->orWhere(function ($sub) use ($like) {
+                        $sub->where('title', 'LIKE', $like)
+                            ->orWhere('title_en', 'LIKE', $like)
+                            ->orWhere('author_name', 'LIKE', $like)
+                            ->orWhereHas('authors', fn($a) => $a->where('name', 'LIKE', $like))
+                            ->orWhereHas('category', fn($c) => $c->where('name', 'LIKE', $like))
+                            ->orWhereHas('publisher', fn($p) => $p->where('name', 'LIKE', $like));
+                    });
+                }
+            });
+        } else {
+            $booksQuery->whereRaw('1 = 0');
+        }
+
+        $totalBooksCount = $booksQuery->count();
+        $books = $booksQuery->orderByDesc('sales_count')->latest('id')->take(6)->get()->map(function ($book) {
+            $authorName = $book->author_name ?: ($book->authors->first()?->name ?? 'আইডিয়া লেখক');
+            $categoryName = $book->category?->name ?? 'সাধারণ';
+            $cover = $book->cover_image ? (str_starts_with($book->cover_image, 'http') ? $book->cover_image : asset('storage/' . ltrim($book->cover_image, '/'))) : asset('assets/images/book-placeholder.png');
+            $price = (float)$book->price;
+            $discountPrice = (float)$book->discount_price;
+            $hasDiscount = $discountPrice > 0 && $discountPrice < $price;
+
+            return [
+                'id'             => $book->id,
+                'title'          => $book->title,
+                'slug'           => $book->slug ?: (string)$book->id,
+                'url'            => route('book.show', $book->slug ?: $book->id),
+                'author'         => $authorName,
+                'category'       => $categoryName,
+                'format'         => $book->format ?? 'paperback',
+                'format_label'   => $book->format === 'hardcover' ? 'হার্ডকভার' : ($book->format === 'ebook' ? 'ই-বুক' : 'কাগজের বই'),
+                'cover'          => $cover,
+                'price'          => $price,
+                'discount_price' => $discountPrice,
+                'has_discount'   => $hasDiscount,
+                'price_formatted'=> '৳' . number_format($hasDiscount ? $discountPrice : $price, 0),
+                'mrp_formatted'  => $hasDiscount ? '৳' . number_format($price, 0) : null,
+                'in_stock'       => (int)$book->stock_quantity > 0,
+                'idea_serial_no' => $book->idea_serial_no,
+            ];
+        });
+
+        // 2. Authors Query
+        $authors = collect();
+        if ($type === 'authors' || $type === 'all') {
+            $authors = Author::query()
+                ->where('is_active', true)
+                ->where(function ($q) use ($query) {
+                    $q->where('name', 'LIKE', "%{$query}%")
+                      ->orWhere('name_bn', 'LIKE', "%{$query}%")
+                      ->orWhere('name_en', 'LIKE', "%{$query}%")
+                      ->orWhere('slug', 'LIKE', "%{$query}%");
+                })
+                ->withCount(['books' => fn($bq) => $bq->where('is_active', true)])
+                ->orderByDesc('books_count')
+                ->take(4)
+                ->get()
+                ->map(function ($author) {
+                    $avatar = $author->avatar ? (str_starts_with($author->avatar, 'http') ? $author->avatar : asset('storage/' . ltrim($author->avatar, '/'))) : null;
+                    return [
+                        'id'          => $author->id,
+                        'name'        => $author->name,
+                        'slug'        => $author->slug ?: (string)$author->id,
+                        'url'         => route('authors.show', $author->slug ?: $author->id),
+                        'avatar'      => $avatar,
+                        'books_count' => $author->books_count,
+                        'is_verified' => (bool)$author->is_verified,
+                    ];
+                });
+        }
+
+        // 3. Categories Query
+        $categories = collect();
+        if ($type === 'all') {
+            $categories = Category::query()
+                ->where('is_active', true)
+                ->where(function ($q) use ($query) {
+                    $q->where('name', 'LIKE', "%{$query}%")
+                      ->orWhere('slug', 'LIKE', "%{$query}%")
+                      ->orWhere('description', 'LIKE', "%{$query}%");
+                })
+                ->withCount(['books' => fn($bq) => $bq->where('is_active', true)])
+                ->orderByDesc('books_count')
+                ->take(4)
+                ->get()
+                ->map(function ($cat) {
+                    return [
+                        'id'          => $cat->id,
+                        'name'        => $cat->name,
+                        'slug'        => $cat->slug ?: (string)$cat->id,
+                        'url'         => route('book.index', ['category' => $cat->slug ?: $cat->id]),
+                        'books_count' => $cat->books_count,
+                    ];
+                });
+        }
+
+        // 4. Publishers Query
+        $publishers = collect();
+        if ($type === 'publishers' || $type === 'all') {
+            $publishers = Publisher::query()
+                ->where('is_active', true)
+                ->where(function ($q) use ($query) {
+                    $q->where('name', 'LIKE', "%{$query}%")
+                      ->orWhere('slug', 'LIKE', "%{$query}%");
+                })
+                ->withCount(['books' => fn($bq) => $bq->where('is_active', true)])
+                ->orderByDesc('books_count')
+                ->take(3)
+                ->get()
+                ->map(function ($pub) {
+                    return [
+                        'id'          => $pub->id,
+                        'name'        => $pub->name,
+                        'slug'        => $pub->slug ?: (string)$pub->id,
+                        'url'         => route('publishers.show', $pub->slug ?: $pub->id),
+                        'books_count' => $pub->books_count,
+                    ];
+                });
+        }
+
+        return response()->json([
+            'success'          => true,
+            'query'            => $query,
+            'type'             => $type,
+            'total_books'      => $totalBooksCount,
+            'books'            => $books,
+            'authors'          => $authors,
+            'categories'       => $categories,
+            'publishers'       => $publishers,
+            'full_search_url'  => route('book.index', ['search' => $query, 'type' => $type]),
         ]);
     }
 }

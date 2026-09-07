@@ -227,7 +227,7 @@
         @foreach($books as $book)
             @php
                 $isIdea = $book->is_idea_prokashon;
-                $serial = $book->sku ?: ($isIdea ? 'IP-' . sprintf('%03d', $book->id) : 'BK-' . $book->id);
+                $serial = $book->idea_serial_no ?: ($book->sku ?: ($isIdea ? sprintf('IP%03d', $book->id) : 'BK-' . $book->id));
                 $price = (float)($book->discount_price > 0 && $book->discount_price < $book->price ? $book->discount_price : $book->price);
                 $hasDiscount = $book->discount_price > 0 && $book->discount_price < $book->price;
                 $barcodeSvg = \App\Services\BarcodeService::generateCode128Svg($serial, 36, 1.5, false);

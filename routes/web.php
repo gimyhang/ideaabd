@@ -92,6 +92,7 @@ Route::post('/reset-password', [\App\Http\Controllers\Auth\PasswordResetControll
 
 // --- Search ------------------------------------------------------------------
 Route::get('/search', [BookController::class, 'index'])->name('search');
+Route::get('/search/suggest', [BookController::class, 'suggest'])->name('search.suggest');
 
 // --- Wishlist / Cart / Checkout ----------------------------------------------
 Route::get('/wishlist', fn() => redirect('/books'))->name('wishlist')->middleware('auth');
@@ -227,6 +228,12 @@ Route::post('/author-honorarium/send', [\App\Http\Controllers\AuthorHonorariumCo
 Route::view('/hub', 'frontend.pages.hub')->name('hub');
 Route::view('/about', 'frontend.pages.about')->name('about');
 Route::view('/faq', 'frontend.pages.faq')->name('faq');
+Route::view('/terms', 'frontend.pages.terms')->name('terms');
+Route::view('/terms-and-conditions', 'frontend.pages.terms')->name('terms.conditions');
+Route::view('/privacy', 'frontend.pages.privacy')->name('privacy');
+Route::view('/privacy-policy', 'frontend.pages.privacy')->name('privacy.policy');
+Route::view('/refund-policy', 'frontend.pages.refund')->name('refund.policy');
+Route::view('/shipping-policy', 'frontend.pages.terms')->name('shipping.policy');
 Route::view('/documents', 'frontend.pages.documents')->name('documents');
 Route::view('/contact', 'frontend.pages.contact')->name('contact');
 Route::post('/contact/submit', function (\Illuminate\Http\Request $request) {

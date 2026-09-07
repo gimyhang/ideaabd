@@ -173,6 +173,13 @@
                     </li>
                     <li class="nav-item" role="presentation">
                         <button class="nav-link rounded-pill fw-semibold py-2.5 px-3 d-flex align-items-center justify-content-center gap-2" 
+                                id="tab-terms-btn" data-bs-toggle="pill" data-bs-target="#tab-terms" type="button" role="tab">
+                            <i class="fa-solid fa-scale-balanced text-teal" style="color: #0d9488;"></i>
+                            <span>শর্তাবলী ও প্রাতিষ্ঠানিক পলিসি</span>
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link rounded-pill fw-semibold py-2.5 px-3 d-flex align-items-center justify-content-center gap-2" 
                                 id="tab-system-btn" data-bs-toggle="pill" data-bs-target="#tab-system" type="button" role="tab">
                             <i class="fa-solid fa-server text-secondary"></i>
                             <span>Server Diagnostics</span>
@@ -1538,6 +1545,160 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
+
+                    <!-- Tab: Terms, Return Policy & Legal Framework (ব্যবহারের শর্তাবলী ও প্রাতিষ্ঠানিক পলিসি) -->
+                    <div class="tab-pane fade" id="tab-terms" role="tabpanel">
+                        <div class="d-flex align-items-center justify-content-between mb-4 pb-2 border-bottom flex-wrap gap-2">
+                            <div>
+                                <h5 class="fw-bold text-dark mb-1 d-flex align-items-center gap-2">
+                                    <i class="fa-solid fa-scale-balanced text-success"></i> ব্যবহারের শর্তাবলী, রিটার্ন-রিফান্ড ও প্রাতিষ্ঠানিক পলিসি কাস্টমাইজেশন
+                                </h5>
+                                <p class="small text-muted mb-0">
+                                    ওয়েবসাইটের <a href="{{ route('terms') }}" target="_blank" class="text-decoration-none fw-bold text-primary">/terms</a>, 
+                                    <a href="{{ route('refund.policy') }}" target="_blank" class="text-decoration-none fw-bold text-success">/refund-policy</a> ও 
+                                    <a href="{{ route('privacy') }}" target="_blank" class="text-decoration-none fw-bold text-info">/privacy</a> পেজের সকল নিয়ম ও ধারা এখান থেকে পরিবর্তন করুন।
+                                </p>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <a href="{{ route('terms') }}" target="_blank" class="btn btn-outline-success btn-sm rounded-pill px-3 fw-semibold">
+                                    <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> পাবলিক পেজ দেখুন
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- 1. Header & Version Banner -->
+                        <div class="card border-0 rounded-4 bg-light p-3.5 mb-4 border">
+                            <h6 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
+                                <i class="fa-solid fa-heading text-primary"></i> পলিসি পেজ হেডার ও সংস্করণ পরিচিতি
+                            </h6>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold text-dark small mb-1">
+                                        <i class="fa-solid fa-tag text-success me-1"></i> পলিসি ব্যাজ
+                                    </label>
+                                    <input type="text" name="terms_badge" class="form-control rounded-3" 
+                                           value="{{ $settings['terms_badge'] ?? 'আইডিয়া প্রকাশন অফিশিয়াল পলিসি ফ্রেমওয়ার্ক' }}" 
+                                           placeholder="যেমন: আইডিয়া প্রকাশন অফিশিয়াল পলিসি ফ্রেমওয়ার্ক">
+                                </div>
+                                <div class="col-md-5">
+                                    <label class="form-label fw-bold text-dark small mb-1">
+                                        <i class="fa-solid fa-file-contract text-primary me-1"></i> পেজ প্রধান শিরোনাম
+                                    </label>
+                                    <input type="text" name="terms_title" class="form-control rounded-3" 
+                                           value="{{ $settings['terms_title'] ?? 'ব্যবহারের শর্তাবলী ও প্রাতিষ্ঠানিক নীতিমালা' }}" 
+                                           placeholder="যেমন: ব্যবহারের শর্তাবলী ও প্রাতিষ্ঠানিক নীতিমালা">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold text-dark small mb-1">
+                                        <i class="fa-regular fa-clock text-warning me-1"></i> সংস্করণ মাস/সাল
+                                    </label>
+                                    <input type="text" name="terms_version" class="form-control rounded-3" 
+                                           value="{{ $settings['terms_version'] ?? 'সেপ্টেম্বর ২০২৬' }}" 
+                                           placeholder="যেমন: সেপ্টেম্বর ২০২৬">
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label fw-bold text-dark small mb-1">
+                                        <i class="fa-solid fa-align-left text-info me-1"></i> হেডার সারসংক্ষেপ / সাবটাইটেল
+                                    </label>
+                                    <textarea name="terms_subtitle" class="form-control rounded-3" rows="2" 
+                                              placeholder="সংক্ষিপ্ত সারসংক্ষেপ...">{{ $settings['terms_subtitle'] ?? 'আইডিয়া প্রকাশন (ideaabd.com) প্ল্যাটফর্মের মাধ্যমে বই ও ই-বুক ক্রয়, ডেলিভারি সেবা, পাণ্ডুলিপি জমা, রয়্যালটি বণ্টন ও ডিজিটাল কনটেন্ট ব্যবহারের সুনির্দিষ্ট নিয়মাবলি।' }}</textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 2. Section: রিটার্ন, রিফান্ড ও বই প্রতিস্থাপন নীতি (#sec-returns) -->
+                        <div class="card border-0 rounded-4 bg-white p-3.5 mb-4 border shadow-2xs">
+                            <div class="d-flex align-items-center justify-content-between mb-3">
+                                <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                                    <i class="fa-solid fa-arrows-rotate text-danger"></i> ধারা ০৫ — রিটার্ন, রিফান্ড ও বই প্রতিস্থাপন নীতি (#sec-returns)
+                                </h6>
+                                <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-3 py-1 fw-bold small">
+                                    <i class="fa-solid fa-shield-heart me-1"></i> সর্বাধিক অগ্রাধিকারপ্রাপ্ত সেকশন
+                                </span>
+                            </div>
+
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="p-3 bg-light rounded-3 border">
+                                        <label class="form-label fw-bold text-dark small mb-1">
+                                            <i class="fa-solid fa-calendar-day text-success me-1"></i> রিটার্ন করার সর্বোচ্চ সময়সীমা (দিন)
+                                        </label>
+                                        <div class="input-group">
+                                            <input type="number" name="terms_return_days" class="form-control rounded-start-3" 
+                                                   value="{{ $settings['terms_return_days'] ?? 7 }}" min="1" max="90">
+                                            <span class="input-group-text bg-white small text-muted">দিন (ডেলিভারি পাওয়ার পর)</span>
+                                        </div>
+                                        <div class="form-text small text-muted">ডিফল্ট: ৭ দিন। এই সংখ্যাটি পেজের সব জায়গায় স্বয়ংক্রিয়ভাবে পরিবর্তিত হবে।</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="p-3 bg-light rounded-3 border">
+                                        <label class="form-label fw-bold text-dark small mb-1">
+                                            <i class="fa-solid fa-bolt text-warning me-1"></i> রিফান্ড নিষ্পত্তির সময়সীমা
+                                        </label>
+                                        <input type="text" name="terms_refund_timeline" class="form-control rounded-3" 
+                                               value="{{ $settings['terms_refund_timeline'] ?? '২৪ থেকে ৭২ ঘণ্টা' }}" 
+                                               placeholder="যেমন: ২৪ থেকে ৭২ ঘণ্টা">
+                                        <div class="form-text small text-muted">মোবাইল ব্যাংকিং বা কার্ড রিফান্ডের গড় নিষ্পত্তির সময়কাল।</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold text-dark small mb-1">
+                                        <i class="fa-solid fa-circle-check text-success me-1"></i> যে যে ক্ষেত্রে রিটার্ন ও প্রতিস্থাপন প্রযোজ্য (কাস্টম বিবরণ)
+                                    </label>
+                                    <textarea name="terms_return_conditions" class="form-control rounded-3" rows="4" 
+                                              placeholder="খালি রাখলে ডিফল্ট স্ট্যান্ডার্ড নীতি প্রদর্শিত হবে...">{{ $settings['terms_return_conditions'] ?? '' }}</textarea>
+                                    <div class="form-text small text-muted">নতুন কোনো বিশেষ শর্ত বা নিয়ম যোগ করতে চাইলে এখানে লিখুন (প্রতি লাইনে একটি করে)।</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold text-dark small mb-1">
+                                        <i class="fa-solid fa-circle-xmark text-danger me-1"></i> যে যে ক্ষেত্রে রিটার্ন গ্রহণযোগ্য নয় (Excluded Cases)
+                                    </label>
+                                    <textarea name="terms_return_excluded" class="form-control rounded-3" rows="4" 
+                                              placeholder="খালি রাখলে ডিফল্ট নিয়ম প্রদর্শিত হবে...">{{ $settings['terms_return_excluded'] ?? '' }}</textarea>
+                                    <div class="form-text small text-muted">পাঠক কর্তৃক নষ্ট করা বা ৭ দিন অতিক্রান্ত হওয়ার শর্তাবলী।</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 3. Section: শিপিং, ই-বুক ও রয়্যালটি বিশেষ নীতিমালা -->
+                        <div class="card border-0 rounded-4 bg-light p-3.5 mb-4 border">
+                            <h6 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
+                                <i class="fa-solid fa-sliders text-info"></i> অন্যান্য পলিসি ধারা ও কাস্টম নোট
+                            </h6>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold text-dark small mb-1">
+                                        <i class="fa-solid fa-truck-fast text-success me-1"></i> শিপিং ও ডেলিভারি পলিসি নোট (ধারা ০৪)
+                                    </label>
+                                    <textarea name="terms_shipping_note" class="form-control rounded-3" rows="3" 
+                                              placeholder="শিপিং ও পার্সেল হ্যান্ডওভার সংক্রান্ত অতিরিক্ত কোনো নির্দেশনা থাকলে লিখুন...">{{ $settings['terms_shipping_note'] ?? '' }}</textarea>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold text-dark small mb-1">
+                                        <i class="fa-solid fa-tablet-screen-button text-primary me-1"></i> ডিজিটাল ই-বুক ও DRM নীতিমালা নোট (ধারা ০৬)
+                                    </label>
+                                    <textarea name="terms_ebook_drm_note" class="form-control rounded-3" rows="3" 
+                                              placeholder="ই-বুক পাইরেসি রোধ ও ডিজিটাল রিডিং শর্তাবলী...">{{ $settings['terms_ebook_drm_note'] ?? '' }}</textarea>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold text-dark small mb-1">
+                                        <i class="fa-solid fa-pen-fancy text-warning me-1"></i> লেখক স্বত্বাধিকার ও রয়্যালটি নোট (ধারা ০৭)
+                                    </label>
+                                    <textarea name="terms_author_royalty_note" class="form-control rounded-3" rows="3" 
+                                              placeholder="লেখক কপিরাইট ও রয়্যালটি পে-আউট সংক্রান্ত বিশেষ নোট...">{{ $settings['terms_author_royalty_note'] ?? '' }}</textarea>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold text-dark small mb-1">
+                                        <i class="fa-solid fa-bullhorn text-danger me-1"></i> বিশেষ জরুরি বিজ্ঞপ্তি / পলিসি ঘোষণা (Addendum Notice)
+                                    </label>
+                                    <textarea name="terms_custom_notice" class="form-control rounded-3" rows="3" 
+                                              placeholder="বইমেলা বা ঈদ উপলক্ষে বিশেষ কোনো ডেলিভারি বা রিটার্ন শর্ত প্রযোজ্য হলে এখানে লিখুন...">{{ $settings['terms_custom_notice'] ?? '' }}</textarea>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
 
                 </div>

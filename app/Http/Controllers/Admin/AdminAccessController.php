@@ -255,6 +255,18 @@ class AdminAccessController extends Controller
             'ideapatra_section_badge' => 'nullable|string|max:150',
             'ideapatra_section_title' => 'nullable|string|max:250',
             'ideapatra_section_subtitle' => 'nullable|string|max:500',
+            'terms_badge'     => 'nullable|string|max:200',
+            'terms_title'     => 'nullable|string|max:250',
+            'terms_subtitle'  => 'nullable|string|max:1000',
+            'terms_version'   => 'nullable|string|max:100',
+            'terms_return_days' => 'nullable|integer|min:1|max:90',
+            'terms_refund_timeline' => 'nullable|string|max:100',
+            'terms_return_conditions' => 'nullable|string|max:5000',
+            'terms_return_excluded' => 'nullable|string|max:5000',
+            'terms_shipping_note' => 'nullable|string|max:3000',
+            'terms_ebook_drm_note' => 'nullable|string|max:3000',
+            'terms_author_royalty_note' => 'nullable|string|max:3000',
+            'terms_custom_notice' => 'nullable|string|max:5000',
         ]);
 
         if (Schema::hasTable('admin_dashboard_settings')) {
@@ -290,6 +302,25 @@ class AdminAccessController extends Controller
                     ['key' => 'ideapatra_section_subtitle'],
                     ['value' => $request->string('ideapatra_section_subtitle')->trim()->value(), 'updated_by' => auth()->id()]
                 );
+            }
+
+            // 1.2 Terms, Return Policy & Legal Framework Customization
+            $termsKeys = [
+                'terms_badge', 'terms_title', 'terms_subtitle', 'terms_version',
+                'terms_return_days', 'terms_refund_timeline', 'terms_return_conditions',
+                'terms_return_excluded', 'terms_shipping_note', 'terms_ebook_drm_note',
+                'terms_author_royalty_note', 'terms_custom_notice'
+            ];
+            foreach ($termsKeys as $tKey) {
+                if ($request->has($tKey)) {
+                    $tVal = $tKey === 'terms_return_days' 
+                        ? (int) $request->input($tKey, 7)
+                        : $request->input($tKey);
+                    AdminDashboardSetting::updateOrCreate(
+                        ['key' => $tKey],
+                        ['value' => $tVal, 'updated_by' => auth()->id()]
+                    );
+                }
             }
 
             // 2. Handle logo (File or Cropped Base64) & Dimensions

@@ -404,7 +404,7 @@
                     <i class="fa-solid fa-circle-question"></i> <span>FAQ</span>
                 </a>
                 <a href="{{ url('/contact') }}" class="portal-nav-link">
-                    <i class="fa-solid fa-book-bookmark"></i> <span>Manual & Help</span>
+                    <i class="fa-solid fa-headset"></i> <span>Contact</span>
                 </a>
             </nav>
         </div>
@@ -417,7 +417,7 @@
         <div class="brand-login-card">
             <div class="brand-card-top-strip"></div>
 
-            {{-- Card Header: Main Site Logo (Round Shape) + Bold Login Title & Subtitle --}}
+            {{-- Card Header: Main Site Logo (Round Shape) + Clean Login Title --}}
             <div class="brand-card-header">
                 <div class="bg-white rounded-circle p-1.5 border shadow-2xs d-flex align-items-center justify-content-center overflow-hidden" style="width: 52px; height: 52px; flex-shrink: 0; border-color: rgba(0, 106, 78, 0.2) !important;">
                     <img src="{{ \App\Support\SiteSetting::loginLogoUrl() ?: \App\Support\SiteSetting::logoUrl() }}" 
@@ -426,12 +426,9 @@
                          onerror="this.src='{{ asset('images/logo.png') }}';">
                 </div>
                 <div>
-                    <h4 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2" style="font-size: 21px; letter-spacing: -0.2px;">
-                        <span>Login / লগইন</span>
+                    <h4 class="fw-bold mb-0 text-dark" style="font-size: 22px; letter-spacing: -0.3px;">
+                        Login
                     </h4>
-                    <small class="text-muted fw-medium d-block mt-0.5" style="font-size: 13px;">
-                        মোবাইল নম্বর ও পাসওয়ার্ড দিয়ে লগইন করুন
-                    </small>
                 </div>
             </div>
 
@@ -440,7 +437,7 @@
                 <div id="loginAlertBox" class="alert alert-danger py-2.5 px-3 rounded-3 small mb-3 border-0 bg-danger bg-opacity-10 text-danger {{ (isset($errors) && $errors->any()) || session('error') ? '' : 'd-none' }}">
                     <div class="fw-bold mb-1 d-flex align-items-center gap-1.5" id="alertTitle">
                         <i class="fa-solid fa-triangle-exclamation text-danger"></i>
-                        <span>লগইন সতর্কতা:</span>
+                        <span>Login Alert:</span>
                     </div>
                     <div id="alertMessage">
                         @if(isset($errors) && $errors->any())
@@ -476,12 +473,12 @@
                     {{-- 1. Mobile Number Input --}}
                     <div class="mb-3">
                         <label class="brand-form-label" for="loginEmailInput">
-                            মোবাইল নম্বর: <span class="required-star">*</span>
+                            Mobile Number: <span class="required-star">*</span>
                         </label>
                         <div class="brand-input-group">
                             <span class="brand-input-icon"><i class="fa-solid fa-phone"></i></span>
                             <input type="text" name="email" id="loginEmailInput" class="brand-form-control" 
-                                   value="{{ old('email') }}" placeholder="আপনার মোবাইল নম্বর লিখুন..." 
+                                   value="{{ old('email') }}" placeholder="Enter mobile number..." 
                                    required autofocus autocomplete="username"
                                    autocorrect="off" autocapitalize="none" spellcheck="false">
                         </div>
@@ -491,7 +488,7 @@
                     <div class="mb-3">
                         <div class="d-flex align-items-center justify-content-between mb-1">
                             <label class="brand-form-label mb-0" for="loginPasswordInput">
-                                পাসওয়ার্ড: <span class="required-star">*</span>
+                                Password: <span class="required-star">*</span>
                             </label>
                             <a href="{{ route('password.request') }}" class="text-decoration-none fw-semibold" style="color: var(--brand-primary-green); font-size: 12.5px;">
                                 <i class="fa-solid fa-key me-0.5"></i> Forgot Password?
@@ -500,8 +497,8 @@
                         <div class="brand-input-group">
                             <span class="brand-input-icon"><i class="fa-solid fa-lock"></i></span>
                             <input type="password" name="password" id="loginPasswordInput" class="brand-form-control has-toggle" 
-                                   placeholder="আপনার পাসওয়ার্ড লিখুন..." required autocomplete="current-password">
-                            <button type="button" class="brand-toggle-btn" id="togglePasswordBtn" onclick="togglePasswordVisibility()" title="পাসওয়ার্ড দেখুন বা লুকান">
+                                   placeholder="Enter password..." required autocomplete="current-password">
+                            <button type="button" class="brand-toggle-btn" id="togglePasswordBtn" onclick="togglePasswordVisibility()" title="Show/Hide Password">
                                 <i class="fa-regular fa-eye" id="togglePasswordIcon"></i>
                             </button>
                         </div>
@@ -522,7 +519,7 @@
                         <div class="brand-captcha-box">
                             <div id="googleRecaptchaInlineWidget"></div>
                             <div id="captchaInlineFeedback" class="small fw-semibold text-muted mt-1" style="font-size: 11.5px;">
-                                <i class="fa-solid fa-shield-check text-success me-1"></i> Google 256-bit reCAPTCHA Protected
+                                <i class="fa-solid fa-shield-check text-success me-1"></i> Google reCAPTCHA Protected
                             </div>
                         </div>
                     </div>
@@ -531,12 +528,12 @@
                     <div class="d-flex flex-column gap-2 mt-3 pt-1">
                         {{-- Primary Login Button (Full-width Dark Green - English Only) --}}
                         <button type="submit" class="btn-brand-primary" id="loginSubmitBtn">
-                            <i class="fa-solid fa-right-to-bracket"></i> Login
+                            <i class="fa-solid fa-right-to-bracket me-1.5"></i> Login
                         </button>
 
-                        {{-- Secondary Button (Reset Password - Concise English with Tooltip) --}}
-                        <a href="{{ route('password.request') }}" class="btn-brand-secondary" title="পাসওয়ার্ড ভুলে গেলে রিসেট করুন">
-                            <i class="fa-solid fa-key text-secondary"></i> Reset Password
+                        {{-- Secondary Button (Reset Password - Concise English) --}}
+                        <a href="{{ route('password.request') }}" class="btn-brand-secondary">
+                            <i class="fa-solid fa-key text-secondary me-1"></i> Reset Password
                         </a>
                     </div>
                 </form>
@@ -545,35 +542,35 @@
                 <div class="mt-4 pt-3 border-top">
                     <div class="d-flex align-items-center justify-content-between mb-2">
                         <span class="fw-bold text-dark" style="font-size: 12.5px;">
-                            <i class="fa-solid fa-user-plus text-success me-1"></i> নতুন অ্যাকাউন্ট তৈরি করুন:
+                            <i class="fa-solid fa-user-plus text-success me-1"></i> Create New Account:
                         </span>
                         <a href="{{ route('register.choose') }}" class="text-decoration-none fw-bold" style="color: var(--brand-primary-green); font-size: 12px;">
-                            সবগুলো <i class="fa-solid fa-angle-right"></i>
+                            All <i class="fa-solid fa-angle-right"></i>
                         </a>
                     </div>
                     <div class="row g-1.5 text-center">
                         <div class="col-3">
                             <a href="{{ route('register.form', 'author') }}" class="role-badge-link">
                                 <i class="fa-solid fa-feather-pointed text-success mb-1"></i>
-                                <span>লেখক</span>
+                                <span>Author</span>
                             </a>
                         </div>
                         <div class="col-3">
                             <a href="{{ route('register.form', 'buyer') }}" class="role-badge-link">
                                 <i class="fa-solid fa-bag-shopping text-warning mb-1"></i>
-                                <span>পাঠক</span>
+                                <span>Reader</span>
                             </a>
                         </div>
                         <div class="col-3">
                             <a href="{{ route('register.form', 'publisher') }}" class="role-badge-link">
                                 <i class="fa-solid fa-building text-danger mb-1"></i>
-                                <span>প্রকাশক</span>
+                                <span>Publisher</span>
                             </a>
                         </div>
                         <div class="col-3">
                             <a href="{{ route('register.form', 'seller') }}" class="role-badge-link">
                                 <i class="fa-solid fa-store text-primary mb-1"></i>
-                                <span>সেলার</span>
+                                <span>Seller</span>
                             </a>
                         </div>
                     </div>
@@ -588,14 +585,17 @@
     <footer class="portal-footer">
         <div class="container-fluid d-flex align-items-center justify-content-between flex-wrap gap-2">
             <div>
-                © ২০২৬ আইডিয়া প্রকাশন । ডিজিটাল বুক ও প্রকাশনা প্ল্যাটফর্ম । সর্বস্বত্ব সংরক্ষিত।
+                &copy; ২০২৬ {{ \App\Support\SiteSetting::name() ?: 'আইডিয়া প্রকাশন' }} । ডিজিটাল বুক ও প্রকাশনা প্ল্যাটফর্ম । সর্বস্বত্ব সংরক্ষিত।
+                <span class="d-inline-block ms-1" style="color: rgba(255,255,255,0.7);">ডিজাইন বাই 
+                    <a href="{{ route('authors.show', 'sakil-masud') }}" class="text-warning text-decoration-none fw-semibold" title="Masud Rana Shakil — লেখক প্রোফাইল দেখুন">Masud Rana Shakil</a>
+                </span>
             </div>
             <div class="d-flex align-items-center gap-3">
-                <a href="{{ url('/terms') }}" class="portal-footer-link">ব্যবহারের শর্তাবলী (Terms)</a>
+                <a href="{{ route('terms') }}" class="portal-footer-link">Terms</a>
                 <span class="text-white-50">•</span>
-                <a href="{{ url('/privacy') }}" class="portal-footer-link">গোপনীয়তা নীতি (Privacy Policy)</a>
+                <a href="{{ route('privacy') }}" class="portal-footer-link">Privacy Policy</a>
                 <span class="text-white-50">•</span>
-                <a href="{{ url('/contact') }}" class="portal-footer-link">যোগাযোগ ও সহায়তা (Help & Contact)</a>
+                <a href="{{ route('contact') }}" class="portal-footer-link">Help & Contact</a>
             </div>
         </div>
     </footer>

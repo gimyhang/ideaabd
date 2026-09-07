@@ -29,6 +29,9 @@
         <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-xs" onclick="window.print()" title="Print List">
             <i class="fas fa-print me-1"></i> Print
         </button>
+        <a href="{{ route('admin.categories') }}" class="btn btn-outline-info btn-sm rounded-pill px-3 shadow-xs fw-semibold" title="বইয়ের ক্যাটাগরি ব্যবস্থাপনা">
+            <i class="fas fa-folder-tree me-1"></i> Categories
+        </a>
         <a href="{{ route('admin.content.create', 'books') }}" class="btn btn-primary btn-sm rounded-pill px-3 fw-bold shadow-xs">
             <i class="fas fa-plus-circle me-1"></i> Add New Book
         </a>
@@ -665,7 +668,11 @@
                                         </span>
                                     </a>
                                 @else
-                                    <span class="text-muted small">—</span>
+                                    <a href="{{ route('admin.books', ['category_id' => $bibidhId ?? 'bibidh']) }}" class="text-decoration-none" title="ক্যাটাগরি সিলেক্ট মিসিং (বিবিধ ক্যাটাগরির অন্তর্ভুক্ত)">
+                                        <span class="badge bg-warning-subtle text-dark border border-warning-subtle rounded-pill px-2 py-0.5" style="font-size: 11px;">
+                                            <i class="fas fa-folder-open me-0.5 text-warning"></i>বিবিধ
+                                        </span>
+                                    </a>
                                 @endif
                             </td>
 
@@ -1809,7 +1816,7 @@ function openBarcodeModal(bookId) {
             if (data.success) {
                 document.getElementById('barcodeModalTitle').textContent = data.title;
                 document.getElementById('barcodeModalAuthor').textContent = data.author + ' | ' + data.publisher;
-                document.getElementById('barcodeModalSku').textContent = data.sku || 'IP-AUTO';
+                document.getElementById('barcodeModalSku').textContent = data.idea_serial_no || (data.sku || 'IP001');
                 document.getElementById('barcodeModalPrice').textContent = '৳' + Math.round(data.effective_price || 0);
                 
                 document.getElementById('barcodeModalSvgBox').innerHTML = data.barcode_svg;
@@ -1821,8 +1828,9 @@ function openBarcodeModal(bookId) {
                 document.getElementById('barcodeModalStoreLink').href = data.store_url;
 
                 document.getElementById('barcodeModalCopyBtn').onclick = function() {
-                    navigator.clipboard.writeText(data.sku || data.id);
-                    showBookToast('success', `সিরিয়াল কোড '${data.sku}' কপি করা হয়েছে!`);
+                    const copyVal = data.idea_serial_no || data.sku || data.id;
+                    navigator.clipboard.writeText(copyVal);
+                    showBookToast('success', `সিরিয়াল কোড '${copyVal}' কপি করা হয়েছে!`);
                 };
             }
         })
@@ -1870,7 +1878,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <h6 class="fw-bold text-dark mb-1" id="barcodeModalTitle">Book Title</h6>
                     <div class="small text-muted mb-2" id="barcodeModalAuthor">Author Name</div>
                     <div class="d-flex align-items-center justify-content-center gap-2">
-                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2.5 py-1 font-monospace fw-bold" id="barcodeModalSku">IP-001</span>
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2.5 py-1 font-monospace fw-bold" id="barcodeModalSku">IP001</span>
                         <span class="badge bg-success text-white px-2.5 py-1 fw-bold fs-6 font-monospace" id="barcodeModalPrice">৳350</span>
                         <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-2" id="barcodeModalCopyBtn" title="Copy Serial Code">
                             <i class="fas fa-copy me-1"></i>Copy

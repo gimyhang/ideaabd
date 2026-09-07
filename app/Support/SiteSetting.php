@@ -390,4 +390,65 @@ class SiteSetting
         }
         return self::defaultHeaderNav();
     }
+
+    // --- Terms & Legal Policies Customization Helpers ---
+    public static function termsBadge(): string
+    {
+        return (string) (self::get('terms_badge') ?: 'আইডিয়া প্রকাশন অফিশিয়াল পলিসি ফ্রেমওয়ার্ক');
+    }
+
+    public static function termsTitle(): string
+    {
+        return (string) (self::get('terms_title') ?: 'ব্যবহারের শর্তাবলী ও প্রাতিষ্ঠানিক নীতিমালা');
+    }
+
+    public static function termsSubtitle(): string
+    {
+        return (string) (self::get('terms_subtitle') ?: 'আইডিয়া প্রকাশন (ideaabd.com) প্ল্যাটফর্মের মাধ্যমে বই ও ই-বুক ক্রয়, ডেলিভারি সেবা, পাণ্ডুলিপি জমা, রয়্যালটি বণ্টন ও ডিজিটাল কনটেন্ট ব্যবহারের সুনির্দিষ্ট নিয়মাবলি।');
+    }
+
+    public static function termsVersion(): string
+    {
+        return (string) (self::get('terms_version') ?: 'সেপ্টেম্বর ২০২৬');
+    }
+
+    public static function termsReturnDays(): int
+    {
+        return (int) (self::get('terms_return_days') ?: 7);
+    }
+
+    public static function termsRefundTimeline(): string
+    {
+        return (string) (self::get('terms_refund_timeline') ?: '২৪-৭২ ঘণ্টা');
+    }
+
+    public static function termsReturnConditions(): ?string
+    {
+        return self::get('terms_return_conditions');
+    }
+
+    public static function termsReturnExcluded(): ?string
+    {
+        return self::get('terms_return_excluded');
+    }
+
+    public static function termsShippingNote(): ?string
+    {
+        return self::get('terms_shipping_note');
+    }
+
+    public static function termsEbookDrmNote(): ?string
+    {
+        return self::get('terms_ebook_drm_note');
+    }
+
+    public static function termsAuthorRoyaltyNote(): ?string
+    {
+        return self::get('terms_author_royalty_note');
+    }
+
+    public static function termsCustomNotice(): ?string
+    {
+        return self::get('terms_custom_notice');
+    }
 }

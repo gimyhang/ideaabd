@@ -190,28 +190,37 @@
 
             {{-- 2. Enhanced Live Search Bar with Filter (Centered) --}}
             <div class="site-search flex-grow-1 mx-auto position-relative" style="max-width: 620px;">
-                <form action="{{ route('search') }}" method="GET" class="site-search__form m-0" id="headerGlobalSearchForm">
-                    <div class="input-group search-input-group rounded-pill border shadow-2xs overflow-hidden bg-light bg-opacity-50">
+                <form action="{{ route('search') }}" method="GET" class="site-search__form m-0" id="headerGlobalSearchForm" autocomplete="off">
+                    <div class="input-group search-input-group rounded-pill border overflow-hidden bg-white shadow-2xs transition-all" id="headerSearchGroup">
                         {{-- Search Filter Dropdown --}}
-                        <select name="type" class="form-select search-filter-select border-0 bg-transparent text-secondary fw-semibold py-2 ps-3 pe-4 d-none d-md-block" style="max-width: 125px; font-size: 13px; cursor: pointer;">
-                            <option value="all" selected>সকল ক্যাটাগরি</option>
+                        <select name="type" id="headerSearchType" class="form-select search-filter-select border-0 bg-transparent text-secondary fw-semibold py-2 ps-3 pe-3 d-none d-md-block" style="max-width: 120px; font-size: 13px; cursor: pointer;">
+                            <option value="all" selected>সকল কিছু</option>
                             <option value="books">বইসমূহ</option>
                             <option value="authors">লেখক</option>
                             <option value="publishers">প্রকাশক</option>
-                            <option value="blog">আইডিয়াপত্র</option>
                         </select>
-                        <span class="border-end d-none d-md-block my-2" style="border-color: #cbd5e1 !important;"></span>
+                        <span class="border-end d-none d-md-block my-2" style="border-color: #e2e8f0 !important;"></span>
                         
                         {{-- Search Input --}}
                         <input type="search"
                                name="q"
                                id="headerSearchInput"
-                               class="form-control border-0 bg-transparent py-2 px-3 fw-medium"
-                               placeholder="বইয়ের নাম, লেখক, প্রকাশক বা বিষয় দিয়ে খুঁজুন..."
+                               class="form-control border-0 bg-transparent py-2 ps-3 pe-2 fw-medium text-dark shadow-none"
+                               placeholder="বইয়ের নাম, লেখক, বিষয় বা প্রকাশনী দিয়ে খুঁজুন..."
                                aria-label="বই অনুসন্ধান"
                                autocomplete="off"
-                               value="{{ request('q') }}"
+                               value="{{ request('q') ?: request('search') }}"
                                style="font-size: 13.5px;">
+
+                        {{-- Quick Clear Button --}}
+                        <button type="button" id="headerSearchClearBtn" class="btn btn-link text-muted p-0 pe-2 text-decoration-none d-none" title="ক্লিয়ার করুন" style="font-size: 14px; width: 28px; display: inline-flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-times-circle"></i>
+                        </button>
+
+                        {{-- Keyboard Shortcut Badge (Desktop) --}}
+                        <div class="d-none d-xl-flex align-items-center pe-2 user-select-none">
+                            <kbd class="badge bg-light text-muted border px-1.5 py-0.5 fw-semibold font-monospace" style="font-size: 10px;">⌘K</kbd>
+                        </div>
                         
                         {{-- Submit Button --}}
                         <button class="btn btn-primary px-3.5 py-2 rounded-pill m-1 d-flex align-items-center justify-content-center shadow-xs hover-shadow" type="submit" aria-label="খুঁজুন" style="min-width: 44px;">
@@ -220,12 +229,25 @@
                     </div>
                 </form>
 
-                {{-- Live Search Result Dropdown Card --}}
-                <div id="headerSearchResults" class="dropdown-menu w-100 p-0 border-0 shadow-2xl rounded-4 mt-2 d-none overflow-hidden" style="position: absolute; z-index: 1090; top: 100%; left: 0; max-height: 480px; overflow-y: auto;">
+                {{-- World-Class Live Search Result Dropdown Card --}}
+                <div id="headerSearchResults" class="dropdown-menu w-100 p-0 border-0 shadow-2xl rounded-4 mt-2 d-none overflow-hidden" 
+                     style="position: absolute; z-index: 1090; top: 100%; left: 0; max-height: 520px; overflow-y: auto; background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(20px); border: 1px solid rgba(226, 232, 240, 0.9) !important; box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.22), 0 0 0 1px rgba(0,0,0,0.03);">
+                    
+                    {{-- Search Loading Skeleton State --}}
                     <div class="site-search-spinner text-center p-3 text-muted" style="display: none;">
-                        <span class="spinner-border spinner-border-sm text-primary me-2"></span> অনুসন্ধান করা হচ্ছে...
+                        <div class="d-flex align-items-center justify-content-center gap-2 mb-2">
+                            <span class="spinner-border spinner-border-sm text-primary"></span>
+                            <span class="fw-semibold small text-dark" style="font-size: 12px;">অনুসন্ধান করা হচ্ছে...</span>
+                        </div>
+                        <div class="px-2">
+                            <div class="placeholder-glow mb-2"><span class="placeholder col-12 rounded-3" style="height: 42px; display: block; opacity: 0.25;"></span></div>
+                            <div class="placeholder-glow mb-2"><span class="placeholder col-12 rounded-3" style="height: 42px; display: block; opacity: 0.25;"></span></div>
+                            <div class="placeholder-glow"><span class="placeholder col-12 rounded-3" style="height: 42px; display: block; opacity: 0.25;"></span></div>
+                        </div>
                     </div>
-                    <div class="site-search-content"></div>
+                    
+                    {{-- Search Content --}}
+                    <div class="site-search-content p-2"></div>
                 </div>
             </div>
 
@@ -631,6 +653,79 @@
             transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
+        /* World-Class Search Bar & Spotlight Dropdown Styling */
+        #headerSearchGroup {
+            transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+            border: 1.5px solid #e2e8f0 !important;
+        }
+        #headerSearchGroup:focus-within {
+            border-color: #006a4e !important;
+            box-shadow: 0 0 0 4px rgba(0, 106, 78, 0.12), 0 10px 25px -5px rgba(0, 106, 78, 0.08) !important;
+            background: #ffffff !important;
+        }
+        .site-search-item {
+            transition: all 0.18s ease;
+            border-radius: 12px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 10px;
+            color: #1e293b;
+            border: 1px solid transparent;
+        }
+        .site-search-item:hover,
+        .site-search-item.is-selected {
+            background: #f8fafc;
+            color: #0f172a;
+            border-color: #e2e8f0;
+            transform: translateX(3px);
+        }
+        .site-search-item.is-selected {
+            background: #f0fdf4 !important;
+            border-color: #86efac !important;
+        }
+        .site-search-chip {
+            transition: all 0.18s ease;
+            cursor: pointer;
+            border-radius: 20px;
+            padding: 4px 12px;
+            font-size: 12px;
+            border: 1px solid #e2e8f0;
+            background: #ffffff;
+            color: #334155;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-weight: 500;
+        }
+        .site-search-chip:hover {
+            background: #006a4e;
+            color: #ffffff;
+            border-color: #006a4e;
+            transform: translateY(-1px);
+            box-shadow: 0 3px 8px rgba(0, 106, 78, 0.2);
+        }
+        .site-search-highlight {
+            background: rgba(254, 240, 138, 0.7);
+            color: #854d0e;
+            font-weight: 700;
+            padding: 0 2px;
+            border-radius: 3px;
+        }
+        .site-search-sec-hdr {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #64748b;
+            padding: 6px 8px 4px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
         /* Dynamic Post / Blog Icon */
         .site-actions a[href*="blog/write"]:hover i {
             animation: dynamicPenTilt 0.4s ease infinite alternate;
@@ -989,58 +1084,429 @@
             }
         }
 
-        // Live Header Search Suggestion Functionality
+        // World-Class Smart Live Header Search Engine
         (function() {
             const searchInput = document.getElementById('headerSearchInput');
             const searchResults = document.getElementById('headerSearchResults');
             const searchForm = document.getElementById('headerGlobalSearchForm');
+            const clearBtn = document.getElementById('headerSearchClearBtn');
+            const searchType = document.getElementById('headerSearchType');
             let debounceTimer = null;
+            let currentSelectedIndex = -1;
 
-            if (searchInput && searchResults) {
+            const TRENDING_SEARCHES = ['উপন্যাস', 'কবিতা', 'ছোটগল্প', 'আইডিয়া প্রকাশন', 'বিজ্ঞান ও প্রযুক্তি', 'ইতিহাস', 'অনুবাদ', 'শিশুতোষ'];
+
+            function getRecentSearches() {
+                try {
+                    return JSON.parse(localStorage.getItem('idea_recent_searches') || '[]');
+                } catch(e) {
+                    return [];
+                }
+            }
+
+            function addRecentSearch(term) {
+                if (!term || typeof term !== 'string') return;
+                const clean = term.trim();
+                if (clean.length < 2) return;
+                let recents = getRecentSearches().filter(t => t.toLowerCase() !== clean.toLowerCase());
+                recents.unshift(clean);
+                recents = recents.slice(0, 6);
+                try {
+                    localStorage.setItem('idea_recent_searches', JSON.stringify(recents));
+                } catch(e) {}
+            }
+
+            function removeRecentSearch(term, e) {
+                if (e) e.stopPropagation();
+                let recents = getRecentSearches().filter(t => t !== term);
+                localStorage.setItem('idea_recent_searches', JSON.stringify(recents));
+                showInitialSuggestions();
+            }
+
+            function clearAllRecentSearches(e) {
+                if (e) e.stopPropagation();
+                localStorage.removeItem('idea_recent_searches');
+                showInitialSuggestions();
+            }
+
+            function highlightText(text, query) {
+                if (!text || !query) return text || '';
+                const tokens = query.trim().split(/\s+/).filter(Boolean);
+                if (tokens.length === 0) return text;
+                const pattern = new RegExp('(' + tokens.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')', 'gi');
+                return text.replace(pattern, '<span class="site-search-highlight">$1</span>');
+            }
+
+            function showInitialSuggestions() {
+                if (!searchResults) return;
                 const searchSpinner = searchResults.querySelector('.site-search-spinner');
                 const searchContent = searchResults.querySelector('.site-search-content');
+                if (searchSpinner) searchSpinner.style.display = 'none';
 
-                searchInput.addEventListener('input', function() {
-                    const q = this.value.trim();
-                    const type = searchForm ? (searchForm.querySelector('select[name="type"]')?.value || 'all') : 'all';
+                const recents = getRecentSearches();
+                let html = '';
 
-                    if (q.length < 2) {
-                        searchResults.classList.add('d-none');
-                        searchContent.innerHTML = '';
-                        return;
+                // 1. Recent Searches (if any)
+                if (recents.length > 0) {
+                    html += `
+                        <div class="mb-3">
+                            <div class="site-search-sec-hdr">
+                                <span><i class="fa-solid fa-clock-rotate-left text-muted me-1"></i> সাম্প্রতিক অনুসন্ধান</span>
+                                <button type="button" class="btn btn-link text-muted p-0 text-decoration-none" style="font-size: 11px;" id="hdrClearAllRecentsBtn">সব মুছুন</button>
+                            </div>
+                            <div class="d-flex flex-wrap gap-1.5 px-2">
+                                ${recents.map(r => `
+                                    <span class="site-search-chip" data-query="${r}">
+                                        <span>${r}</span>
+                                        <i class="fas fa-times ms-1 opacity-50 hover-opacity-100" data-remove="${r}" title="মুছে ফেলুন" style="font-size: 10px;"></i>
+                                    </span>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // 2. Trending Searches
+                html += `
+                    <div>
+                        <div class="site-search-sec-hdr">
+                            <span><i class="fa-solid fa-fire-flame-curved text-warning me-1"></i> জনপ্রিয় অনুসন্ধান</span>
+                        </div>
+                        <div class="d-flex flex-wrap gap-1.5 px-2">
+                            ${TRENDING_SEARCHES.map(t => `
+                                <span class="site-search-chip" data-query="${t}">
+                                    <i class="fa-solid fa-magnifying-glass text-primary" style="font-size: 10px;"></i>
+                                    <span>${t}</span>
+                                </span>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+
+                if (searchContent) {
+                    searchContent.innerHTML = html;
+                    searchResults.classList.remove('d-none');
+                    currentSelectedIndex = -1;
+                    attachSuggestionChipEvents();
+                }
+            }
+
+            function attachSuggestionChipEvents() {
+                const clearAll = document.getElementById('hdrClearAllRecentsBtn');
+                if (clearAll) {
+                    clearAll.onclick = clearAllRecentSearches;
+                }
+
+                searchResults.querySelectorAll('.site-search-chip').forEach(chip => {
+                    chip.onclick = function(e) {
+                        const removeTerm = e.target.getAttribute('data-remove');
+                        if (removeTerm) {
+                            removeRecentSearch(removeTerm, e);
+                            return;
+                        }
+                        const q = this.getAttribute('data-query');
+                        if (q && searchInput) {
+                            searchInput.value = q;
+                            if (clearBtn) clearBtn.classList.remove('d-none');
+                            triggerSearch();
+                        }
+                    };
+                });
+            }
+
+            function renderLiveResults(data, q) {
+                const searchSpinner = searchResults.querySelector('.site-search-spinner');
+                const searchContent = searchResults.querySelector('.site-search-content');
+                if (searchSpinner) searchSpinner.style.display = 'none';
+
+                const totalMatches = (data.books?.length || 0) + (data.authors?.length || 0) + (data.categories?.length || 0) + (data.publishers?.length || 0);
+
+                if (totalMatches === 0) {
+                    searchContent.innerHTML = `
+                        <div class="text-center py-4 px-3">
+                            <div class="mx-auto mb-2 text-muted opacity-50" style="font-size: 32px;"><i class="fa-solid fa-book-open-reader"></i></div>
+                            <h6 class="fw-bold text-dark mb-1">“${q}” সম্পর্কিত কিছু পাওয়া যায়নি</h6>
+                            <p class="text-muted small mb-3" style="font-size: 12px;">বানানটি আবার পরীক্ষা করুন অথবা অন্য কোনো বই, লেখক বা বিষয় দিয়ে চেষ্টা করুন।</p>
+                            <div class="d-flex flex-wrap justify-content-center gap-1.5">
+                                ${TRENDING_SEARCHES.slice(0, 4).map(t => `
+                                    <span class="site-search-chip" data-query="${t}">${t}</span>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                    searchResults.classList.remove('d-none');
+                    attachSuggestionChipEvents();
+                    return;
+                }
+
+                let html = '';
+
+                // 1. Books Section
+                if (data.books && data.books.length > 0) {
+                    html += `
+                        <div class="mb-2">
+                            <div class="site-search-sec-hdr">
+                                <span><i class="fa-solid fa-book text-primary me-1"></i> বইসমূহ (${data.books.length}টি)</span>
+                                <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-2 py-0.5" style="font-size: 10px;">বইমেলা ও শপ</span>
+                            </div>
+                            <div class="d-flex flex-column gap-1">
+                                ${data.books.map((b, idx) => `
+                                    <a href="${b.url}" class="site-search-item" data-index="${idx}" onclick="window.addIdeaRecentSearch('${b.title.replace(/'/g, "\\'")}')">
+                                        <div class="position-relative flex-shrink-0">
+                                            <img src="${b.cover}" alt="${b.title}" class="rounded-2 shadow-2xs border" style="width: 36px; height: 50px; object-fit: cover;" onerror="this.src='/assets/images/book-placeholder.png'">
+                                        </div>
+                                        <div class="flex-grow-1 overflow-hidden">
+                                            <div class="fw-bold text-dark text-truncate lh-sm mb-0.5" style="font-size: 13px;">${highlightText(b.title, q)}</div>
+                                            <div class="d-flex align-items-center gap-1.5 text-muted small text-truncate" style="font-size: 11.5px;">
+                                                <span><i class="fa-solid fa-feather-pointed me-0.5 opacity-75"></i> ${highlightText(b.author, q)}</span>
+                                                <span class="opacity-50">•</span>
+                                                <span class="text-truncate">${b.category}</span>
+                                            </div>
+                                        </div>
+                                        <div class="text-end flex-shrink-0">
+                                            <div class="fw-bold text-primary font-monospace" style="font-size: 13px;">${b.price_formatted}</div>
+                                            ${b.has_discount && b.mrp_formatted ? `<small class="text-muted text-decoration-line-through font-monospace" style="font-size: 10px;">${b.mrp_formatted}</small>` : ''}
+                                            <div class="mt-0.5">
+                                                <span class="badge ${b.in_stock ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-light text-muted border'}" style="font-size: 9px; padding: 2px 5px;">
+                                                    ${b.in_stock ? 'স্টকে আছে' : 'স্টক শেষ'}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </a>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // 2. Authors Section
+                if (data.authors && data.authors.length > 0) {
+                    html += `
+                        <div class="mb-2 pt-2 border-top">
+                            <div class="site-search-sec-hdr">
+                                <span><i class="fa-solid fa-feather-pointed text-success me-1"></i> লেখকবৃন্দ</span>
+                            </div>
+                            <div class="row row-cols-1 row-cols-sm-2 g-1 px-1">
+                                ${data.authors.map(a => `
+                                    <div class="col">
+                                        <a href="${a.url}" class="site-search-item py-1.5 px-2" onclick="window.addIdeaRecentSearch('${a.name.replace(/'/g, "\\'")}')">
+                                            <div class="rounded-circle bg-light border d-flex align-items-center justify-content-center overflow-hidden flex-shrink-0" style="width: 28px; height: 28px; font-size: 11px;">
+                                                ${a.avatar ? `<img src="${a.avatar}" alt="${a.name}" class="w-100 h-100 object-fit-cover">` : `<span class="fw-bold text-success">${a.name.charAt(0)}</span>`}
+                                            </div>
+                                            <div class="text-truncate flex-grow-1">
+                                                <div class="fw-semibold text-dark text-truncate" style="font-size: 12.5px;">${highlightText(a.name, q)}</div>
+                                            </div>
+                                            <span class="badge bg-light text-muted border rounded-pill" style="font-size: 9.5px;">${a.books_count} টি বই</span>
+                                        </a>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // 3. Categories Section
+                if (data.categories && data.categories.length > 0) {
+                    html += `
+                        <div class="mb-2 pt-2 border-top">
+                            <div class="site-search-sec-hdr">
+                                <span><i class="fa-solid fa-shapes text-info me-1"></i> বিষয় ও ক্যাটাগরি</span>
+                            </div>
+                            <div class="d-flex flex-wrap gap-1.5 px-2">
+                                ${data.categories.map(c => `
+                                    <a href="${c.url}" class="site-search-chip">
+                                        <i class="fa-solid fa-layer-group text-info" style="font-size: 10px;"></i>
+                                        <span>${highlightText(c.name, q)}</span>
+                                        <span class="badge bg-light text-muted border-0 fw-normal ms-0.5" style="font-size: 10px;">(${c.books_count})</span>
+                                    </a>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // 4. Publishers Section
+                if (data.publishers && data.publishers.length > 0) {
+                    html += `
+                        <div class="mb-2 pt-2 border-top">
+                            <div class="site-search-sec-hdr">
+                                <span><i class="fa-solid fa-building text-warning me-1"></i> প্রকাশনা প্রতিষ্ঠান</span>
+                            </div>
+                            <div class="d-flex flex-wrap gap-1.5 px-2">
+                                ${data.publishers.map(p => `
+                                    <a href="${p.url}" class="site-search-chip">
+                                        <i class="fa-solid fa-building text-warning" style="font-size: 10px;"></i>
+                                        <span>${highlightText(p.name, q)}</span>
+                                    </a>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // 5. Full Search Footer Bar
+                const fullUrl = `{{ route('search') }}?q=${encodeURIComponent(q)}&type=${encodeURIComponent(data.type || 'all')}`;
+                html += `
+                    <div class="p-2 pt-2.5 mt-2 border-top bg-light bg-opacity-75 d-flex flex-wrap align-items-center justify-content-between gap-2" style="border-bottom-left-radius: 14px; border-bottom-right-radius: 14px;">
+                        <a href="${fullUrl}" class="btn btn-primary btn-sm rounded-pill px-3 py-1.5 fw-bold text-white d-inline-flex align-items-center gap-1.5 shadow-xs hover-shadow flex-grow-1 justify-content-center" style="font-size: 12.5px;">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <span>সকল ফলাফল দেখুন (${data.total_books || 0} টি বই)</span>
+                            <i class="fa-solid fa-arrow-right ms-1"></i>
+                        </a>
+                        <div class="d-none d-md-flex align-items-center gap-1 text-muted" style="font-size: 10px;">
+                            <span><kbd class="badge bg-white text-muted border px-1">↑↓</kbd> সিলেক্ট</span>
+                            <span><kbd class="badge bg-white text-muted border px-1">↵</kbd> দেখতে</span>
+                            <span><kbd class="badge bg-white text-muted border px-1">Esc</kbd> বন্ধ</span>
+                        </div>
+                    </div>
+                `;
+
+                searchContent.innerHTML = html;
+                searchResults.classList.remove('d-none');
+                currentSelectedIndex = -1;
+            }
+
+            function triggerSearch() {
+                if (!searchInput || !searchResults) return;
+                const q = searchInput.value.trim();
+                const type = searchType ? searchType.value : 'all';
+
+                if (clearBtn) {
+                    if (q.length > 0) {
+                        clearBtn.classList.remove('d-none');
+                    } else {
+                        clearBtn.classList.add('d-none');
                     }
+                }
 
-                    clearTimeout(debounceTimer);
-                    debounceTimer = setTimeout(() => {
-                        searchResults.classList.remove('d-none');
-                        searchSpinner.style.display = 'block';
-                        searchContent.innerHTML = '';
+                if (q.length === 0) {
+                    showInitialSuggestions();
+                    return;
+                }
 
-                        fetch(`{{ route('search') }}?q=${encodeURIComponent(q)}&type=${encodeURIComponent(type)}&suggest=1`, {
-                            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                        })
-                        .then(res => res.text())
-                        .then(html => {
-                            searchSpinner.style.display = 'none';
-                            searchContent.innerHTML = html;
-                        })
-                        .catch(() => {
-                            searchSpinner.style.display = 'none';
+                clearTimeout(debounceTimer);
+                const searchSpinner = searchResults.querySelector('.site-search-spinner');
+                const searchContent = searchResults.querySelector('.site-search-content');
+                if (searchSpinner) searchSpinner.style.display = 'block';
+                if (searchContent) searchContent.innerHTML = '';
+                searchResults.classList.remove('d-none');
+
+                debounceTimer = setTimeout(() => {
+                    fetch(`{{ route('search.suggest') }}?q=${encodeURIComponent(q)}&type=${encodeURIComponent(type)}`, {
+                        headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        renderLiveResults(data, q);
+                    })
+                    .catch(err => {
+                        console.error("Live search fetch error:", err);
+                        if (searchSpinner) searchSpinner.style.display = 'none';
+                        if (searchContent) {
                             searchContent.innerHTML = `
-                                <div class="text-center p-3 border-bottom border-light">
-                                    <span class="text-primary fw-bold">"${q}"</span> সম্পর্কিত ফলাফল
-                                </div>
-                                <div class="p-2">
-                                    <a href="{{ route('search') }}?q=${encodeURIComponent(q)}&type=${encodeURIComponent(type)}" class="btn btn-primary btn-sm w-100 rounded-pill fw-semibold">সব রেজাল্ট দেখুন →</a>
+                                <div class="p-3 text-center">
+                                    <a href="{{ route('search') }}?q=${encodeURIComponent(q)}&type=${encodeURIComponent(type)}" class="btn btn-primary btn-sm rounded-pill px-3 py-1.5 fw-bold w-100">
+                                        “${q}” এর সকল রেজাল্ট দেখুন →
+                                    </a>
                                 </div>
                             `;
-                        });
-                    }, 350);
+                        }
+                    });
+                }, 180);
+            }
+
+            window.addIdeaRecentSearch = addRecentSearch;
+
+            if (searchInput && searchResults) {
+                // Input Events
+                searchInput.addEventListener('input', triggerSearch);
+
+                searchInput.addEventListener('focus', function() {
+                    if (this.value.trim().length === 0) {
+                        showInitialSuggestions();
+                    } else {
+                        triggerSearch();
+                    }
                 });
 
-                document.addEventListener('click', function(e) {
-                    if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+                if (searchType) {
+                    searchType.addEventListener('change', function() {
+                        if (searchInput.value.trim().length > 0) {
+                            triggerSearch();
+                        }
+                    });
+                }
+
+                if (clearBtn) {
+                    clearBtn.addEventListener('click', function() {
+                        searchInput.value = '';
+                        clearBtn.classList.add('d-none');
+                        searchInput.focus();
+                        showInitialSuggestions();
+                    });
+                }
+
+                if (searchForm) {
+                    searchForm.addEventListener('submit', function(e) {
+                        const q = searchInput.value.trim();
+                        if (q) {
+                            addRecentSearch(q);
+                        }
+                    });
+                }
+
+                // Keyboard Navigation (ArrowUp, ArrowDown, Enter, Escape)
+                searchInput.addEventListener('keydown', function(e) {
+                    const items = searchResults.querySelectorAll('.site-search-item');
+                    if (e.key === 'ArrowDown') {
+                        if (items.length > 0) {
+                            e.preventDefault();
+                            currentSelectedIndex = (currentSelectedIndex + 1) % items.length;
+                            updateActiveSelection(items);
+                        }
+                    } else if (e.key === 'ArrowUp') {
+                        if (items.length > 0) {
+                            e.preventDefault();
+                            currentSelectedIndex = (currentSelectedIndex - 1 + items.length) % items.length;
+                            updateActiveSelection(items);
+                        }
+                    } else if (e.key === 'Enter') {
+                        if (currentSelectedIndex >= 0 && items[currentSelectedIndex]) {
+                            e.preventDefault();
+                            items[currentSelectedIndex].click();
+                        } else if (searchInput.value.trim()) {
+                            addRecentSearch(searchInput.value.trim());
+                        }
+                    } else if (e.key === 'Escape') {
                         searchResults.classList.add('d-none');
+                        searchInput.blur();
+                    }
+                });
+
+                function updateActiveSelection(items) {
+                    items.forEach((it, idx) => {
+                        if (idx === currentSelectedIndex) {
+                            it.classList.add('is-selected');
+                            it.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+                        } else {
+                            it.classList.remove('is-selected');
+                        }
+                    });
+                }
+
+                // Click Outside to Dismiss
+                document.addEventListener('click', function(e) {
+                    if (!searchInput.contains(e.target) && !searchResults.contains(e.target) && (!searchType || !searchType.contains(e.target))) {
+                        searchResults.classList.add('d-none');
+                    }
+                });
+
+                // Global Desktop Shortcut (Ctrl+K or Cmd+K)
+                document.addEventListener('keydown', function(e) {
+                    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                        e.preventDefault();
+                        searchInput.focus();
+                        searchInput.select();
                     }
                 });
             }
