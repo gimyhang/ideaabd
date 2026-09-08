@@ -85,29 +85,37 @@
         <div class="card-body p-3">
             <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
                 <div class="d-flex flex-wrap gap-1.5">
-                    <a href="{{ route('admin.accounting.employees.index', array_merge(request()->except('employment_type', 'page'))) }}" 
-                       class="btn btn-sm rounded-pill px-3 py-1.5 fw-semibold {{ empty($employmentType) ? 'btn-dark text-white' : 'btn-light border text-dark' }}">
+                    <a href="{{ route('admin.accounting.employees.index', array_merge(request()->except('department', 'employment_type', 'page'))) }}" 
+                       class="btn btn-sm rounded-pill px-3 py-1.5 fw-semibold {{ empty($department) && empty($employmentType) ? 'btn-dark text-white' : 'btn-light border text-dark' }}">
                         🌐 All Staff ({{ $totalEmployees }})
                     </a>
-                    <a href="{{ route('admin.accounting.employees.index', array_merge(request()->except('page'), ['employment_type' => 'monthly'])) }}" 
-                       class="btn btn-sm rounded-pill px-3 py-1.5 fw-semibold {{ $employmentType === 'monthly' ? 'btn-primary text-white' : 'btn-light border text-dark' }}">
-                        💼 Monthly Fixed
+                    <a href="{{ route('admin.accounting.employees.index', array_merge(request()->except('page', 'employment_type'), ['department' => 'Digital Marketing'])) }}" 
+                       class="btn btn-sm rounded-pill px-3 py-1.5 fw-semibold {{ str_contains((string)$department, 'Digital') ? 'btn-primary text-white' : 'btn-light border text-dark' }}">
+                        📱 Digital Marketing
                     </a>
-                    <a href="{{ route('admin.accounting.employees.index', array_merge(request()->except('page'), ['employment_type' => 'contract_piece'])) }}" 
+                    <a href="{{ route('admin.accounting.employees.index', array_merge(request()->except('page', 'employment_type'), ['department' => 'Content & Editorial'])) }}" 
+                       class="btn btn-sm rounded-pill px-3 py-1.5 fw-semibold {{ str_contains((string)$department, 'Editorial') || str_contains((string)$department, 'Content') ? 'btn-warning text-dark' : 'btn-light border text-dark' }}">
+                        ✍️ Content & Editorial
+                    </a>
+                    <a href="{{ route('admin.accounting.employees.index', array_merge(request()->except('page', 'employment_type'), ['department' => 'Technical & IT'])) }}" 
+                       class="btn btn-sm rounded-pill px-3 py-1.5 fw-semibold {{ str_contains((string)$department, 'Technical') || str_contains((string)$department, 'IT') ? 'btn-success text-white' : 'btn-light border text-dark' }}">
+                        💻 Technical & IT
+                    </a>
+                    <a href="{{ route('admin.accounting.employees.index', array_merge(request()->except('page', 'employment_type'), ['department' => 'Operations & Support'])) }}" 
+                       class="btn btn-sm rounded-pill px-3 py-1.5 fw-semibold {{ str_contains((string)$department, 'Operations') || str_contains((string)$department, 'Support') ? 'btn-danger text-white' : 'btn-light border text-dark' }}">
+                        ⚙️ Operations & Support
+                    </a>
+                    <a href="{{ route('admin.accounting.employees.index', array_merge(request()->except('page', 'department'), ['employment_type' => 'contract_piece'])) }}" 
                        class="btn btn-sm rounded-pill px-3 py-1.5 fw-semibold {{ $employmentType === 'contract_piece' ? 'btn-purple text-white' : 'btn-light border text-dark' }}" style="{{ $employmentType === 'contract_piece' ? 'background-color: #7e22ce;' : '' }}">
                         📚 Piece-Rate / Binders ({{ $pieceRateCount }})
                     </a>
-                    <a href="{{ route('admin.accounting.employees.index', array_merge(request()->except('page'), ['employment_type' => 'daily'])) }}" 
+                    <a href="{{ route('admin.accounting.employees.index', array_merge(request()->except('page', 'department'), ['employment_type' => 'daily'])) }}" 
                        class="btn btn-sm rounded-pill px-3 py-1.5 fw-semibold {{ $employmentType === 'daily' ? 'btn-warning text-dark' : 'btn-light border text-dark' }}">
                         ⏱️ Daily Wage ({{ $dailyWageCount }})
                     </a>
-                    <a href="{{ route('admin.accounting.employees.index', array_merge(request()->except('page'), ['employment_type' => 'weekly'])) }}" 
-                       class="btn btn-sm rounded-pill px-3 py-1.5 fw-semibold {{ $employmentType === 'weekly' ? 'btn-info text-white' : 'btn-light border text-dark' }}">
-                        📅 Weekly Wage
-                    </a>
-                    <a href="{{ route('admin.accounting.employees.index', array_merge(request()->except('page'), ['employment_type' => 'contract_project'])) }}" 
-                       class="btn btn-sm rounded-pill px-3 py-1.5 fw-semibold {{ $employmentType === 'contract_project' ? 'btn-secondary text-white' : 'btn-light border text-dark' }}">
-                        🎯 Project Contract
+                    <a href="{{ route('admin.accounting.employees.index', array_merge(request()->except('page', 'department'), ['employment_type' => 'monthly'])) }}" 
+                       class="btn btn-sm rounded-pill px-3 py-1.5 fw-semibold {{ $employmentType === 'monthly' ? 'btn-primary text-white' : 'btn-light border text-dark' }}">
+                        💼 Monthly Fixed
                     </a>
                 </div>
             </div>
@@ -168,13 +176,14 @@
                         @forelse($employees as $emp)
                             @php
                                 $empType = $emp->employment_type ?? 'monthly';
+                                $roleCfg = $emp->getRoleConfig();
                             @endphp
                             <tr>
                                 <td class="ps-3.5">
                                     <div class="d-flex align-items-center gap-2.5">
                                         <div class="rounded-circle fw-bold d-flex align-items-center justify-content-center flex-shrink-0" 
-                                             style="width: 42px; height: 42px; background-color: {{ $empType === 'contract_piece' ? '#f3e8ff' : ($empType === 'daily' ? '#fef3c7' : '#e0f2fe') }}; color: {{ $empType === 'contract_piece' ? '#7e22ce' : ($empType === 'daily' ? '#b45309' : '#0369a1') }}; font-size: 16px;">
-                                            {{ mb_substr($emp->name, 0, 1) }}
+                                             style="width: 42px; height: 42px; background-color: {{ $roleCfg['bg_color'] }}; color: {{ $roleCfg['text_color'] }}; font-size: 16px; border: 1px solid {{ $roleCfg['border_color'] }};">
+                                            <i class="{{ $roleCfg['icon'] }}" style="font-size: 15px;"></i>
                                         </div>
                                         <div>
                                             <h6 class="fw-bold text-dark mb-0 font-monospace-title">{{ $emp->name }}</h6>
@@ -188,8 +197,13 @@
                                     </div>
                                 </td>
                                 <td>
-                                    <div class="small fw-semibold text-dark">{{ $emp->department }}</div>
-                                    <span class="text-muted" style="font-size: 11px;">
+                                    <div>
+                                        <span class="badge rounded-pill px-2.5 py-1 small fw-semibold" 
+                                              style="background-color: {{ $roleCfg['bg_color'] }}; color: {{ $roleCfg['text_color'] }}; border: 1px solid {{ $roleCfg['border_color'] }}; font-size: 11px;">
+                                            <i class="{{ $roleCfg['icon'] }} me-1"></i>{{ $emp->department }}
+                                        </span>
+                                    </div>
+                                    <span class="text-muted d-block mt-1" style="font-size: 11px;">
                                         Schedule: <strong>{{ ucfirst($emp->payment_schedule ?: 'monthly') }}</strong>
                                     </span>
                                 </td>
@@ -327,16 +341,31 @@
                     </div>
                     <select class="form-select form-select-sm rounded-pill border-primary fw-semibold" id="addRolePresetSelect" onchange="applyEmployeePreset('add', this.value)">
                         <option value="">-- Select Staff / Worker Preset (যেকোনো স্টাফ সিলেক্ট করুন) --</option>
-                        <option value='{"name":"","desig":"Computer Operator / Typesetter (কম্পিউটার অপারেটর)","dept":"কম্পিউটার ও টাইপসেটিং (Computer & Typesetting)","type":"contract_piece","skill":"Computer Operator / Typesetter (কম্পিউটার অপারেটর ও কম্পোজিটর)","rate_type":"per_page","unit":"Page (পৃষ্ঠা)","rate":15.00,"schedule":"weekly"}'>💻 Computer Operator / Typesetter (Piece-rate: ৳15.00 / Page)</option>
-                        <option value='{"name":"","desig":"Proofreader & Sub-Editor (প্রুফ রিডার)","dept":"প্রুফ রিডিং ও সম্পাদনা (Proofreading & Editorial)","type":"contract_piece","skill":"Proofreader & Sub-Editor (প্রুফ রিডার ও সাব-এডিটর)","rate_type":"per_forma","unit":"Forma (ফর্মা)","rate":25.00,"schedule":"weekly"}'>✍️ Proofreader & Sub-Editor (Piece-rate: ৳25.00 / Forma)</option>
-                        <option value='{"name":"","desig":"Office Assistant / Peon (অফিস সহায়ক / পিওন)","dept":"অফিস সার্ভিস ও পিওন (Office Support & Peon)","type":"daily","skill":"Office Assistant / Peon / MLSS (অফিস সহায়ক / পিওন)","rate_type":"daily","unit":"Day (দিন)","rate":650.00,"schedule":"daily"}'>🏃 Peon / Office Assistant (Daily Wage: ৳650 / Day)</option>
-                        <option value='{"name":"","desig":"Marketing & Sales Executive (মার্কেটিং অফিসার)","dept":"মার্কেটিং ও সেলস (Marketing & Sales)","type":"monthly","skill":"Marketing & Sales Officer (মার্কেটিং ও সেলস অফিসার)","rate_type":"monthly","unit":"Month (মাস)","rate":18000.00,"schedule":"monthly"}'>📢 Marketing & Sales Executive (Monthly: ৳18,000 / Month)</option>
-                        <option value='{"name":"","desig":"Book Cover & Graphics Designer (গ্রাফিক্স ডিজাইনার)","dept":"গ্রাফিক্স ও কভার ডিজাইন (Graphics & Cover Design)","type":"contract_piece","skill":"Book Cover & Graphics Designer (গ্রাফিক্স ও কভার ডিজাইনার)","rate_type":"per_book","unit":"Cover (কভার)","rate":1500.00,"schedule":"per_job"}'>🎨 Book Cover Designer (Piece-rate: ৳1500 / Cover)</option>
-                        <option value='{"name":"","desig":"Master Book Binder (মাস্টার বুক বাইন্ডার)","dept":"ছাপাখানা ও বাঁধাই (Press & Book Binding)","type":"contract_piece","skill":"Master Book Binder (মাস্টার বুক বাইন্ডার ও বাঁধাই কারিগর)","rate_type":"per_book","unit":"Book (বই)","rate":4.50,"schedule":"per_job"}'>📚 Master Book Binder (Piece-rate: ৳4.50 / Book Binding)</option>
-                        <option value='{"name":"","desig":"Assistant Binder & Pasting Artisan (পেস্টিং কারিগর)","dept":"ছাপাখানা ও বাঁধাই (Press & Book Binding)","type":"contract_piece","skill":"Assistant Binder & Pasting Artisan (সহকারী বাইন্ডার ও পেস্টিং কারিগর)","rate_type":"per_forma","unit":"Forma (ফর্মা)","rate":0.60,"schedule":"weekly"}'>📖 Pasting Artisan (Piece-rate: ৳0.60 / Forma)</option>
-                        <option value='{"name":"","desig":"Paper Cutting Master (পেপার কাটিং মাস্টার)","dept":"ছাপাখানা ও বাঁধাই (Press & Book Binding)","type":"daily","skill":"Paper Cutting Master (পেপার কাটিং মাস্টার)","rate_type":"daily","unit":"Day (দিন)","rate":800.00,"schedule":"daily"}'>✂️ Paper Cutting Master (Daily Wage: ৳800 / Day)</option>
-                        <option value='{"name":"","desig":"Offset Press Machine Operator (প্রেস অপারেটর)","dept":"ছাপাখানা ও বাঁধাই (Press & Book Binding)","type":"monthly","skill":"Offset Press Machine Operator (অফসেট প্রেস মেশিন অপারেটর)","rate_type":"monthly","unit":"Month (মাস)","rate":24000.00,"schedule":"monthly"}'>🖨️ Offset Press Operator (Monthly Salary: ৳24,000 / Month)</option>
-                        <option value='{"name":"","desig":"Delivery & Packaging Staff (ডেলিভারি স্টাফ)","dept":"ডেলিভারি ও লজিস্টিকস (Delivery & Logistics)","type":"monthly","skill":"Delivery & Packaging Staff (ডেলিভারি ও প্যাকিং স্টাফ)","rate_type":"monthly","unit":"Month (মাস)","rate":14000.00,"schedule":"monthly"}'>🚚 Delivery & Packaging Staff (Monthly: ৳14,000 / Month)</option>
+                        <optgroup label="📱 1. Digital Marketing Class (ডিজিটাল মার্কেটিং)">
+                            <option value='{"name":"","desig":"Digital Marketing Specialist & Media Buyer","dept":"Digital Marketing (ডিজিটাল মার্কেটিং)","type":"monthly","skill":"Digital Marketing Specialist & Media Buyer (ডিজিটাল মার্কেটিং ও মিডিয়া বায়ার)","rate_type":"monthly","unit":"Month (মাস)","rate":25000.00,"schedule":"monthly"}'>📱 Digital Marketing Specialist & Media Buyer (Monthly: ৳25,000)</option>
+                            <option value='{"name":"","desig":"SEO & Social Media Campaign Manager","dept":"Digital Marketing (ডিজিটাল মার্কেটিং)","type":"monthly","skill":"SEO & Social Media Campaign Manager (এসইও ও সোশ্যাল মিডিয়া ম্যানেজার)","rate_type":"monthly","unit":"Month (মাস)","rate":20000.00,"schedule":"monthly"}'>📱 SEO & Social Media Manager (Monthly: ৳20,000)</option>
+                        </optgroup>
+                        <optgroup label="✍️ 2. Content & Editorial Class (কনটেন্ট ও সম্পাদকীয়)">
+                            <option value='{"name":"","desig":"Executive Editor & Content Lead","dept":"Content & Editorial (কনটেন্ট ও সম্পাদকীয়)","type":"monthly","skill":"Executive Editor & Content Lead (প্রধান সম্পাদক ও কনটেন্ট লিড)","rate_type":"monthly","unit":"Month (মাস)","rate":25000.00,"schedule":"monthly"}'>✍️ Executive Editor & Content Lead (Monthly: ৳25,000)</option>
+                            <option value='{"name":"","desig":"Proofreader & Sub-Editor","dept":"Content & Editorial (কনটেন্ট ও সম্পাদকীয়)","type":"contract_piece","skill":"Proofreader & Sub-Editor (প্রুফ রিডার ও সাব-এডিটর)","rate_type":"per_forma","unit":"Forma (ফর্মা)","rate":25.00,"schedule":"weekly"}'>✍️ Proofreader & Sub-Editor (Piece-rate: ৳25.00 / Forma)</option>
+                            <option value='{"name":"","desig":"Book Layout & Typesetter","dept":"Content & Editorial (কনটেন্ট ও সম্পাদকীয়)","type":"contract_piece","skill":"Book Layout & Typesetter (বই লেআউট ও কম্পোজিটর)","rate_type":"per_page","unit":"Page (পৃষ্ঠা)","rate":15.00,"schedule":"weekly"}'>💻 Typesetter & Book Layout (Piece-rate: ৳15.00 / Page)</option>
+                        </optgroup>
+                        <optgroup label="💻 3. Technical & IT Class (টেকনিক্যাল ও আইটি)">
+                            <option value='{"name":"","desig":"Full-Stack Web & Software Developer","dept":"Technical & IT (টেকনিক্যাল ও আইটি)","type":"monthly","skill":"Full-Stack Web & Software Developer (সফটওয়্যার ও ওয়েব ডেভেলপার)","rate_type":"monthly","unit":"Month (মাস)","rate":35000.00,"schedule":"monthly"}'>💻 Full-Stack Web & Software Developer (Monthly: ৳35,000)</option>
+                            <option value='{"name":"","desig":"IT Support & System Administrator","dept":"Technical & IT (টেকনিক্যাল ও আইটি)","type":"monthly","skill":"IT Support & System Administrator (আইটি সাপোর্ট ও সিস্টেম অ্যাডমিন)","rate_type":"monthly","unit":"Month (মাস)","rate":22000.00,"schedule":"monthly"}'>💻 IT Support & Systems Admin (Monthly: ৳22,000)</option>
+                            <option value='{"name":"","desig":"UI/UX & Graphics Designer","dept":"Technical & IT (টেকনিক্যাল ও আইটি)","type":"monthly","skill":"UI/UX & Graphics Designer (ইউআই/ইউএক্স ও গ্রাফিক্স ডিজাইনার)","rate_type":"monthly","unit":"Month (মাস)","rate":25000.00,"schedule":"monthly"}'>🎨 UI/UX & Graphics Designer (Monthly: ৳25,000)</option>
+                        </optgroup>
+                        <optgroup label="⚙️ 4. Operations & Support Class (অপারেশন্স ও কাস্টমার সাপোর্ট)">
+                            <option value='{"name":"","desig":"Customer Support & CRM Executive","dept":"Operations & Support (অপারেশনস ও সাপোর্ট)","type":"monthly","skill":"Customer Support & CRM Executive (কাস্টমার সাপোর্ট ও সিআরএম এক্সিকিউটিভ)","rate_type":"monthly","unit":"Month (মাস)","rate":18000.00,"schedule":"monthly"}'>⚙️ Customer Support & CRM Executive (Monthly: ৳18,000)</option>
+                            <option value='{"name":"","desig":"Order Fulfillment & Dispatch Officer","dept":"Operations & Support (অপারেশনস ও সাপোর্ট)","type":"monthly","skill":"Order Fulfillment & Dispatch Officer (অর্ডার প্রসেসিং ও ডিসপ্যাচ অফিসার)","rate_type":"monthly","unit":"Month (মাস)","rate":16000.00,"schedule":"monthly"}'>⚙️ Order Fulfillment & Dispatch Officer (Monthly: ৳16,000)</option>
+                            <option value='{"name":"","desig":"Office Assistant / Peon","dept":"Operations & Support (অপারেশনস ও সাপোর্ট)","type":"daily","skill":"Office Assistant / Peon / MLSS (অফিস সহায়ক / পিওন)","rate_type":"daily","unit":"Day (দিন)","rate":650.00,"schedule":"daily"}'>🏃 Office Assistant / Peon (Daily Wage: ৳650 / Day)</option>
+                        </optgroup>
+                        <optgroup label="📚 5. Press & Book Production Artisans (ছাপাখানা ও বাঁধাই কারিগর)">
+                            <option value='{"name":"","desig":"Master Book Binder","dept":"ছাপাখানা ও বাঁধাই (Press & Book Binding)","type":"contract_piece","skill":"Master Book Binder (মাস্টার বুক বাইন্ডার ও বাঁধাই কারিগর)","rate_type":"per_book","unit":"Book (বই)","rate":4.50,"schedule":"per_job"}'>📚 Master Book Binder (Piece-rate: ৳4.50 / Book Binding)</option>
+                            <option value='{"name":"","desig":"Assistant Binder & Pasting Artisan","dept":"ছাপাখানা ও বাঁধাই (Press & Book Binding)","type":"contract_piece","skill":"Assistant Binder & Pasting Artisan (সহকারী বাইন্ডার ও পেস্টিং কারিগর)","rate_type":"per_forma","unit":"Forma (ফর্মা)","rate":0.60,"schedule":"weekly"}'>📖 Pasting Artisan (Piece-rate: ৳0.60 / Forma)</option>
+                            <option value='{"name":"","desig":"Paper Cutting Master","dept":"ছাপাখানা ও বাঁধাই (Press & Book Binding)","type":"daily","skill":"Paper Cutting Master (পেপার কাটিং মাস্টার)","rate_type":"daily","unit":"Day (দিন)","rate":800.00,"schedule":"daily"}'>✂️ Paper Cutting Master (Daily Wage: ৳800 / Day)</option>
+                            <option value='{"name":"","desig":"Offset Press Machine Operator","dept":"ছাপাখানা ও বাঁধাই (Press & Book Binding)","type":"monthly","skill":"Offset Press Machine Operator (অফসেট প্রেস মেশিন অপারেটর)","rate_type":"monthly","unit":"Month (মাস)","rate":24000.00,"schedule":"monthly"}'>🖨️ Offset Press Operator (Monthly: ৳24,000 / Month)</option>
+                        </optgroup>
                     </select>
                 </div>
 

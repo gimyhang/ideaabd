@@ -817,12 +817,19 @@
 
     // Delete confirmation handler
     function confirmCategoryDelete(catId, catName) {
-        var confirmMsg = 'আপনি কি নিশ্চিত যে "' + catName + '" ক্যাটাগরিটি মুছে ফেলতে চান?';
-        if (window.confirm(confirmMsg)) {
-            var form = document.getElementById('globalCategoryDeleteForm');
-            form.action = "{{ url('admin/content/categories') }}/" + catId;
-            form.submit();
-        }
+        SwalConfirm({
+            title: 'ক্যাটাগরি মুছে ফেলা',
+            text: 'আপনি কি নিশ্চিত যে "' + catName + '" ক্যাটাগরিটি মুছে ফেলতে চান?',
+            icon: 'warning',
+            confirmButtonText: '<i class="fas fa-trash-can me-1"></i> হ্যাঁ, মুছে ফেলুন',
+            cancelButtonText: '<i class="fas fa-times me-1"></i> বাতিল'
+        }).then(function(result) {
+            if (result.isConfirmed) {
+                var form = document.getElementById('globalCategoryDeleteForm');
+                form.action = "{{ url('admin/content/categories') }}/" + catId;
+                form.submit();
+            }
+        });
     }
 
     // Interactive Slide Cycler

@@ -1,10 +1,10 @@
 @extends('layouts.admin')
 
-@section('title', 'Enterprise Cache & Performance Tuning Hub — আইডিয়া প্রকাশন')
-@section('heading', 'ক্যাশ ব্যবস্থাপনা ও পারফরম্যান্স টিউনিং হাব')
+@section('title', 'ক্যাশ ব্যবস্থাপনা ও পারফরম্যান্স টিউনিং হাব — Enterprise Cache')
+@section('heading', 'ক্যাশ ব্যবস্থাপনা ও পারফরম্যান্স টিউনিং হাব (Cache & Performance Tuning Hub)')
 
 @section('breadcrumb')
-    <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}" class="text-decoration-none">ড্যাশবোর্ড</a></li>
+    <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>
     <li class="breadcrumb-item active">ক্যাশ ও পারফরম্যান্স হাব</li>
 @endsection
 
@@ -466,10 +466,17 @@
 
     // 2. Confirm & Purge Master All Caches
     function confirmMasterPurge(btnElement) {
-        if (!confirm('আপনি কি নিশ্চিত যে সমস্ত সিস্টেম ক্যাশ, ভিউ ক্যাশ, কনফিগ ও রুট ক্যাশ একযোগে ক্লিয়ার করতে চান?')) {
-            return;
-        }
-        executeCacheAction('{{ route("admin.cache.clear-all") }}', 'সমস্ত ক্যাশ ক্লিয়ার হচ্ছে...', btnElement);
+        SwalConfirm({
+            title: 'মাস্টার ক্যাশ ক্লিয়ার',
+            text: 'আপনি কি নিশ্চিত যে সমস্ত সিস্টেম ক্যাশ, ভিউ ক্যাশ, কনফিগ ও রুট ক্যাশ একযোগে ক্লিয়ার করতে চান?',
+            icon: 'warning',
+            confirmButtonText: '<i class="fas fa-trash-can me-1"></i> হ্যাঁ, ক্যাশ ক্লিয়ার করুন',
+            cancelButtonText: '<i class="fas fa-times me-1"></i> বাতিল'
+        }).then(function(result) {
+            if (result.isConfirmed) {
+                executeCacheAction('{{ route("admin.cache.clear-all") }}', 'সমস্ত ক্যাশ ক্লিয়ার হচ্ছে...', btnElement);
+            }
+        });
     }
 
     // 3. Delete a Single Cache Key

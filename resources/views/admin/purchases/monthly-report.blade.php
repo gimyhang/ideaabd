@@ -4,20 +4,21 @@
 @section('heading', 'মাসিক ক্রয় ও বিক্রয় আর্থিক বিবরণী')
 
 @section('breadcrumb')
+    <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">ড্যাশবোর্ড</a></li>
     <li class="breadcrumb-item"><a href="{{ route('admin.purchases.index') }}">Purchases & Inventory</a></li>
     <li class="breadcrumb-item active" aria-current="page">মাসিক ক্রয়-বিক্রয় রিপোর্ট</li>
 @endsection
 
 @section('actions')
-    <div class="d-flex align-items-center gap-2">
-        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-xs" data-bs-toggle="modal" data-bs-target="#invoiceSettingsModal" title="Customize branding header">
-            <i class="fas fa-palette me-1 text-primary"></i> Memo Settings
+    <div class="d-flex flex-wrap align-items-center gap-2">
+        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-2xs fw-semibold" data-bs-toggle="modal" data-bs-target="#invoiceSettingsModal" title="Customize branding header">
+            <i class="fas fa-palette me-1.5 text-primary"></i> Memo Branding
         </button>
-        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-xs" onclick="window.print()">
-            <i class="fa-solid fa-print me-1"></i> প্রিন্ট রিপোর্ট
+        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-2xs fw-semibold" onclick="window.print()">
+            <i class="fa-solid fa-print me-1.5 text-primary"></i> প্রিন্ট রিপোর্ট
         </button>
-        <a href="{{ route('admin.purchases.index') }}" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-xs">
-            <i class="fa-solid fa-list-check me-1"></i> ক্রয় তালিকা
+        <a href="{{ route('admin.purchases.index') }}" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-2xs fw-semibold">
+            <i class="fa-solid fa-list-check me-1.5"></i> ক্রয় তালিকা
         </a>
     </div>
 @endsection
@@ -40,11 +41,11 @@
 @endphp
 
 @section('content')
-<div class="monthly-report-wrapper pb-5">
+<div class="d-flex flex-column gap-4 pb-4">
 
     {{-- Top Filter & Navigation Bar --}}
-    <div class="card border-0 shadow-sm rounded-4 bg-white mb-4">
-        <div class="card-body p-3 p-md-4">
+    <div class="card border-0 shadow-2xs rounded-4 bg-white overflow-hidden">
+        <div class="card-body p-3.5 px-4">
             <form action="{{ route('admin.purchases.monthly-report') }}" method="GET" class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
                 <div class="d-flex align-items-center gap-2">
                     <span class="rounded-circle bg-primary bg-opacity-10 text-primary p-2.5 d-inline-flex align-items-center justify-content-center">
@@ -90,34 +91,38 @@
     </div>
 
     {{-- Main Financial KPI Highlights --}}
-    <div class="row g-3 mb-4">
+    <div class="row g-3">
         
         {{-- Total Sales Revenue --}}
         <div class="col-xl-3 col-md-6 col-12">
-            <div class="card border-0 shadow-sm rounded-4 bg-white p-3.5 h-100 position-relative overflow-hidden" style="border-left: 4px solid #10b981 !important;">
+            <div class="card border-0 shadow-2xs rounded-4 bg-white p-3.5 h-100 position-relative overflow-hidden border-start border-4 border-success">
                 <div class="d-flex align-items-center justify-content-between mb-2">
                     <span class="small fw-bold text-muted text-uppercase">মোট বই বিক্রয় (Sales)</span>
-                    <span class="rounded-3 bg-success-subtle text-success p-2"><i class="fa-solid fa-chart-line-up fs-6"></i></span>
+                    <span class="rounded-circle bg-success-subtle text-success p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                        <i class="fa-solid fa-chart-line fs-6"></i>
+                    </span>
                 </div>
-                <h3 class="fw-bold text-success mb-1">৳{{ number_format($totalSalesAmount, 2) }}</h3>
-                <div class="d-flex align-items-center justify-content-between text-muted small mt-2 pt-1 border-top" style="font-size: 11.5px;">
-                    <span>মোট অর্ডার: <strong class="text-dark">{{ $totalOrdersCount }}টি</strong></span>
-                    <span>ডেলিভার্ড: <strong class="text-success">৳{{ number_format($deliveredSalesAmount, 0) }}</strong></span>
+                <h3 class="fw-bold text-success mb-1 font-monospace">৳{{ number_format($totalSalesAmount, 2) }}</h3>
+                <div class="d-flex align-items-center justify-content-between text-muted small mt-2 pt-2 border-top" style="font-size: 11.5px;">
+                    <span>অর্ডার: <strong class="text-dark">{{ $totalOrdersCount }}টি</strong></span>
+                    <span>ডেলিভার্ড: <strong class="text-success font-monospace">৳{{ number_format($deliveredSalesAmount, 0) }}</strong></span>
                 </div>
             </div>
         </div>
 
         {{-- Total Purchase Expenditure --}}
         <div class="col-xl-3 col-md-6 col-12">
-            <div class="card border-0 shadow-sm rounded-4 bg-white p-3.5 h-100 position-relative overflow-hidden" style="border-left: 4px solid #ef4444 !important;">
+            <div class="card border-0 shadow-2xs rounded-4 bg-white p-3.5 h-100 position-relative overflow-hidden border-start border-4 border-danger">
                 <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="small fw-bold text-muted text-uppercase">সর্বমোট ক্রয় ও ব্যয় (Purchases)</span>
-                    <span class="rounded-3 bg-danger-subtle text-danger p-2"><i class="fa-solid fa-cart-shopping fs-6"></i></span>
+                    <span class="small fw-bold text-muted text-uppercase">মোট ক্রয় ও ব্যয় (Purchases)</span>
+                    <span class="rounded-circle bg-danger-subtle text-danger p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                        <i class="fa-solid fa-cart-shopping fs-6"></i>
+                    </span>
                 </div>
-                <h3 class="fw-bold text-danger mb-1">৳{{ number_format($totalPurchaseAmount, 2) }}</h3>
-                <div class="d-flex align-items-center justify-content-between text-muted small mt-2 pt-1 border-top" style="font-size: 11.5px;">
-                    <span>পরিশোধ: <strong class="text-success">৳{{ number_format($totalPurchasePaid, 0) }}</strong></span>
-                    <span>বকেয়া: <strong class="text-danger">৳{{ number_format($totalPurchaseDue, 0) }}</strong></span>
+                <h3 class="fw-bold text-danger mb-1 font-monospace">৳{{ number_format($totalPurchaseAmount, 2) }}</h3>
+                <div class="d-flex align-items-center justify-content-between text-muted small mt-2 pt-2 border-top" style="font-size: 11.5px;">
+                    <span>পরিশোধ: <strong class="text-success font-monospace">৳{{ number_format($totalPurchasePaid, 0) }}</strong></span>
+                    <span>বকেয়া: <strong class="text-danger font-monospace">৳{{ number_format($totalPurchaseDue, 0) }}</strong></span>
                 </div>
             </div>
         </div>
@@ -125,17 +130,17 @@
         {{-- Net Margin / Balance --}}
         <div class="col-xl-3 col-md-6 col-12">
             @php $isProfit = $netBalance >= 0; @endphp
-            <div class="card border-0 shadow-sm rounded-4 bg-white p-3.5 h-100 position-relative overflow-hidden" style="border-left: 4px solid {{ $isProfit ? '#2563eb' : '#f59e0b' }} !important;">
+            <div class="card border-0 shadow-2xs rounded-4 bg-white p-3.5 h-100 position-relative overflow-hidden border-start border-4 {{ $isProfit ? 'border-primary' : 'border-warning' }}">
                 <div class="d-flex align-items-center justify-content-between mb-2">
                     <span class="small fw-bold text-muted text-uppercase">চলতি মাসের নিট ব্যালেন্স</span>
-                    <span class="rounded-3 {{ $isProfit ? 'bg-primary-subtle text-primary' : 'bg-warning-subtle text-warning-emphasis' }} p-2">
+                    <span class="rounded-circle {{ $isProfit ? 'bg-primary-subtle text-primary' : 'bg-warning-subtle text-warning' }} p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
                         <i class="fa-solid fa-scale-balanced fs-6"></i>
                     </span>
                 </div>
-                <h3 class="fw-bold {{ $isProfit ? 'text-primary' : 'text-warning' }} mb-1">
+                <h3 class="fw-bold {{ $isProfit ? 'text-primary' : 'text-warning' }} mb-1 font-monospace">
                     {{ $isProfit ? '+' : '' }}৳{{ number_format($netBalance, 2) }}
                 </h3>
-                <div class="text-muted small mt-2 pt-1 border-top" style="font-size: 11.5px;">
+                <div class="text-muted small mt-2 pt-2 border-top" style="font-size: 11.5px;">
                     <span>{{ $isProfit ? '🟢 বিক্রয় ক্রয়ের চেয়ে বেশি রয়েছে' : '🟠 ক্রয় ও উৎপাদন ব্যয় বিক্রয়ের চেয়ে বেশি' }}</span>
                 </div>
             </div>
@@ -143,16 +148,18 @@
 
         {{-- Total Invoices Count --}}
         <div class="col-xl-3 col-md-6 col-12">
-            <div class="card border-0 shadow-sm rounded-4 bg-white p-3.5 h-100 position-relative overflow-hidden" style="border-left: 4px solid #8b5cf6 !important;">
+            <div class="card border-0 shadow-2xs rounded-4 bg-white p-3.5 h-100 position-relative overflow-hidden border-start border-4 border-info">
                 <div class="d-flex align-items-center justify-content-between mb-2">
                     <span class="small fw-bold text-muted text-uppercase">ক্রয় চালানের সংখ্যা</span>
-                    <span class="rounded-3 bg-purple-subtle text-purple p-2"><i class="fa-solid fa-receipt fs-6"></i></span>
+                    <span class="rounded-circle bg-info-subtle text-info p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                        <i class="fa-solid fa-receipt fs-6"></i>
+                    </span>
                 </div>
-                <h3 class="fw-bold text-dark mb-1">{{ $purchases->count() }}টি চালান</h3>
-                <div class="d-flex align-items-center justify-content-between text-muted small mt-2 pt-1 border-top" style="font-size: 11.5px;">
-                    <span>বই: <strong>{{ $booksPurchases->count() }}টি</strong></span>
-                    <span>কাঁচামাল: <strong>{{ $rawPurchases->count() }}টি</strong></span>
-                    <span>অন্যান্য: <strong>{{ $otherPurchases->count() }}টি</strong></span>
+                <h3 class="fw-bold text-dark mb-1 font-monospace">{{ $purchases->count() }} <span class="fs-6 fw-normal text-muted">টি চালান</span></h3>
+                <div class="d-flex align-items-center justify-content-between text-muted small mt-2 pt-2 border-top" style="font-size: 11.5px;">
+                    <span>বই: <strong>{{ $booksPurchases->count() }}</strong></span>
+                    <span>কাঁচামাল: <strong>{{ $rawPurchases->count() }}</strong></span>
+                    <span>অন্যান্য: <strong>{{ $otherPurchases->count() }}</strong></span>
                 </div>
             </div>
         </div>
@@ -160,8 +167,8 @@
     </div>
 
     {{-- Three Classes of Purchases Breakdown --}}
-    <div class="card border-0 shadow-sm rounded-4 bg-white mb-4 overflow-hidden">
-        <div class="card-header bg-white py-3 px-4 border-bottom">
+    <div class="card border-0 shadow-2xs rounded-4 bg-white overflow-hidden">
+        <div class="card-header bg-light bg-opacity-50 py-3.5 px-4 border-bottom">
             <h6 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
                 <i class="fa-solid fa-layer-group text-primary"></i>
                 <span>ক্রয়ের শ্রেণিভিত্তিক ব্রেকডাউন (Purchase Categories Breakdown)</span>
@@ -224,8 +231,8 @@
 
     {{-- Production & Raw Materials Specific Sub-Breakdown --}}
     @if($rawPurchaseTotal > 0)
-    <div class="card border-0 shadow-sm rounded-4 bg-white mb-4 overflow-hidden">
-        <div class="card-header bg-white py-3 px-4 border-bottom">
+    <div class="card border-0 shadow-2xs rounded-4 bg-white overflow-hidden">
+        <div class="card-header bg-light bg-opacity-50 py-3.5 px-4 border-bottom">
             <h6 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
                 <i class="fa-solid fa-boxes-packing text-warning"></i>
                 <span>কাঁচামাল ও মুদ্রণ বিল উপ-শ্রেণি (Raw Materials & Production Sub-ledger)</span>
@@ -236,31 +243,31 @@
                 <div class="col-md-2 col-sm-4 col-6">
                     <div class="p-3 rounded-3 bg-light text-center border">
                         <div class="small text-muted mb-1">📄 কাগজ ও আর্টকার্ড</div>
-                        <h5 class="fw-bold text-dark mb-0">৳{{ number_format($paperTotal, 0) }}</h5>
+                        <h5 class="fw-bold text-dark mb-0 font-monospace">৳{{ number_format($paperTotal, 0) }}</h5>
                     </div>
                 </div>
                 <div class="col-md-2 col-sm-4 col-6">
                     <div class="p-3 rounded-3 bg-light text-center border">
                         <div class="small text-muted mb-1">🖨️ ছাপা বিল (১/৪ কালার)</div>
-                        <h5 class="fw-bold text-dark mb-0">৳{{ number_format($printTotal, 0) }}</h5>
+                        <h5 class="fw-bold text-dark mb-0 font-monospace">৳{{ number_format($printTotal, 0) }}</h5>
                     </div>
                 </div>
                 <div class="col-md-2 col-sm-4 col-6">
                     <div class="p-3 rounded-3 bg-light text-center border">
                         <div class="small text-muted mb-1">📖 বাঁধাই ও বাইন্ডিং</div>
-                        <h5 class="fw-bold text-dark mb-0">৳{{ number_format($bindingTotal, 0) }}</h5>
+                        <h5 class="fw-bold text-dark mb-0 font-monospace">৳{{ number_format($bindingTotal, 0) }}</h5>
                     </div>
                 </div>
                 <div class="col-md-2 col-sm-4 col-6">
                     <div class="p-3 rounded-3 bg-light text-center border">
                         <div class="small text-muted mb-1">⚙️ প্লেট ও সিটিপি বিল</div>
-                        <h5 class="fw-bold text-dark mb-0">৳{{ number_format($plateTotal, 0) }}</h5>
+                        <h5 class="fw-bold text-dark mb-0 font-monospace">৳{{ number_format($plateTotal, 0) }}</h5>
                     </div>
                 </div>
                 <div class="col-md-4 col-sm-8 col-12">
                     <div class="p-3 rounded-3 bg-light text-center border">
                         <div class="small text-muted mb-1">📦 অন্যান্য কাঁচামাল ও ল্যামিনেশন</div>
-                        <h5 class="fw-bold text-dark mb-0">৳{{ number_format($otherRawTotal, 0) }}</h5>
+                        <h5 class="fw-bold text-dark mb-0 font-monospace">৳{{ number_format($otherRawTotal, 0) }}</h5>
                     </div>
                 </div>
             </div>
@@ -269,8 +276,8 @@
     @endif
 
     {{-- Tabs: Detailed Purchases Ledger vs Sales Orders Ledger --}}
-    <div class="card border-0 shadow-sm rounded-4 bg-white overflow-hidden">
-        <div class="card-header bg-white border-bottom p-3">
+    <div class="card border-0 shadow-2xs rounded-4 bg-white overflow-hidden">
+        <div class="card-header bg-light bg-opacity-50 border-bottom p-3 px-4">
             <ul class="nav nav-pills gap-2" id="reportTabs" role="tablist">
                 <li class="nav-item" role="presentation">
                     <button class="nav-link active rounded-pill fw-semibold py-2 px-3.5 d-flex align-items-center gap-2" id="tab-purchases-btn" data-bs-toggle="pill" data-bs-target="#tab-purchases" type="button" role="tab">

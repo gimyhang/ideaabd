@@ -232,6 +232,14 @@ class AuthorEbookController extends Controller
     }
 
     /**
+     * Display the specified E-Book.
+     */
+    public function show(int $id): View
+    {
+        return $this->edit($id);
+    }
+
+    /**
      * Show form to edit Author's E-Book.
      */
     public function edit(int $id): View

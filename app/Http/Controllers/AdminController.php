@@ -137,9 +137,12 @@ class AdminController extends Controller
             ->paginate(20)
             ->withQueryString();
 
+        $assignableRoles = app(\App\Services\AdminAccessService::class)->getAllAssignableRoles();
+
         return view('admin.users', [
-            'users'      => $users,
-            'roleCounts' => $this->dashboard->roleBreakdown(),
+            'users'           => $users,
+            'roleCounts'      => $this->dashboard->roleBreakdown(),
+            'assignableRoles' => $assignableRoles,
         ]);
     }
 
@@ -2357,6 +2360,47 @@ class AdminController extends Controller
             'message'     => "ক্রয় আদেশ #{$poNumber} সফলভাবে {$validated['recipient_email']} ঠিকানায় ইমেইল করা হয়েছে!",
             'po_number'   => $poNumber,
             'purchase_id' => $createdPurchase?->id ?? null,
+        ]);
+    }
+
+    public function togglePublisherStatus($id): \Illuminate\Http\JsonResponse
+    {
+        $publisher = \Modules\Publisher\Models\Publisher::findOrFail($id);
+        $publisher->is_active = !$publisher->is_active;
+        $publisher->save();
+
+        return response()->json([
+            'success'   => true,
+            'is_active' => $publisher->is_active,
+            'message'   => $publisher->is_active ? 'প্রকাশকের অ্যাকাউন্ট সক্রিয় করা হয়েছে।' : 'প্রকাশকের অ্যাকাউন্ট স্থগিত করা হয়েছে।',
+        ]);
+    }
+
+    public function quickPublisherPayment(Request $request, $id): \Illuminate\Http\JsonResponse
+    {
+        $publisher = \Modules\Publisher\Models\Publisher::findOrFail($id);
+
+        $validated = $request->validate([
+            'amount'         => 'required|numeric|min:1',
+            'payment_method' => 'nullable|string|max:50',
+            'transaction_id' => 'nullable|string|max:100',
+            'notes'          => 'nullable|string|max:500',
+        ]);
+
+        $payment = \App\Models\PublisherPayment::create([
+            'publisher_id'   => $publisher->id,
+            'amount'         => $validated['amount'],
+            'payment_method' => $validated['payment_method'] ?? 'cash',
+            'transaction_id' => $validated['transaction_id'] ?? null,
+            'notes'          => $validated['notes'] ?? null,
+            'payment_date'   => now(),
+            'created_by'     => auth()->id(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'payment' => $payment,
+            'message' => 'পেমেন্ট সফলভাবে সংরক্ষিত হয়েছে।',
         ]);
     }
 

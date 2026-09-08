@@ -75,19 +75,23 @@ class RegistrationApprovalController extends Controller
             'sellers'    => User::where('role', 'seller')->count(),
         ];
 
-        return view('admin.registrations.index', compact('registrations', 'counts', 'sort', 'perPage'));
+        $assignableRoles = app(\App\Services\AdminAccessService::class)->getAllAssignableRoles();
+
+        return view('admin.registrations.index', compact('registrations', 'counts', 'sort', 'perPage', 'assignableRoles'));
     }
 
     // Show individual registration detail page
     public function show(User $user)
     {
-        return view('admin.registrations.show', compact('user'));
+        $assignableRoles = app(\App\Services\AdminAccessService::class)->getAllAssignableRoles();
+        return view('admin.registrations.show', compact('user', 'assignableRoles'));
     }
 
     // Edit individual registration detail page
     public function edit(User $user)
     {
-        return view('admin.registrations.edit', compact('user'));
+        $assignableRoles = app(\App\Services\AdminAccessService::class)->getAllAssignableRoles();
+        return view('admin.registrations.edit', compact('user', 'assignableRoles'));
     }
 
     // AJAX Details endpoint for popup modal preview

@@ -5,8 +5,9 @@
  */
 
 :root {
-    --side-w: 264px;
-    --side-w-sm: 76px;
+    --side-w: 268px;
+    --side-w-sm: 74px;
+    --side-transition: 0.28s cubic-bezier(0.2, 0, 0, 1);
     --ink: #0b2545;
     --ink-2: #13315c;
     --brand: #0066cc;
@@ -55,7 +56,11 @@ img, svg, video, iframe {
     display: flex;
     flex-direction: column;
     z-index: 1040;
-    transition: transform .25s ease, width .25s ease;
+    transition: width var(--side-transition), transform var(--side-transition), box-shadow var(--side-transition);
+    will-change: width, transform;
+    overflow-x: hidden;
+    overflow-y: hidden;
+    box-shadow: 2px 0 20px rgba(0, 0, 0, 0.12);
 }
 
 .adm-brand {
@@ -67,6 +72,7 @@ img, svg, video, iframe {
     color: #fff;
     text-decoration: none;
     flex: 0 0 auto;
+    transition: padding var(--side-transition);
 }
 
 .adm-brand:hover { color: #fff; }
@@ -81,6 +87,16 @@ img, svg, video, iframe {
     font-weight: 700;
     flex: 0 0 auto;
     box-shadow: 0 4px 12px rgba(0, 153, 255, .35);
+}
+
+.adm-brand__text {
+    font-weight: 700;
+    font-size: 1rem;
+    line-height: 1.1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: opacity var(--side-transition), max-width var(--side-transition);
 }
 
 .adm-brand__name { font-weight: 700; font-size: 1rem; line-height: 1.1; }
@@ -359,7 +375,7 @@ img, svg, video, iframe {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
-    transition: margin .25s ease;
+    transition: margin-left var(--side-transition), width var(--side-transition), max-width var(--side-transition);
     min-width: 0;
     max-width: calc(100vw - var(--side-w));
     width: calc(100% - var(--side-w));
@@ -390,6 +406,56 @@ body.side-mini .adm-main {
     display: flex;
     align-items: center;
     gap: .85rem;
+}
+
+.adm-iconbtn {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    background: #fff;
+    color: var(--ink);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: .95rem;
+    transition: all .2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+
+.adm-iconbtn:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+    color: var(--brand);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+}
+
+.adm-topbar-back-btn {
+    color: var(--brand);
+    background: #f8fafc;
+}
+
+.adm-topbar-back-btn:hover {
+    background: var(--brand);
+    color: #fff;
+    border-color: var(--brand);
+}
+
+.adm-topbar-back-btn:hover i {
+    color: #fff !important;
+}
+
+.dark-mode .adm-iconbtn {
+    background: #1e293b;
+    border-color: #334155;
+    color: #e2e8f0;
+}
+
+.dark-mode .adm-iconbtn:hover {
+    background: #334155;
+    color: #38bdf8;
 }
 
 .adm-content { 
@@ -525,23 +591,23 @@ body.side-mini .adm-main {
 }
 
 .adm-card__head {
-    padding: .9rem 1.1rem;
+    padding: 1rem 1.25rem;
     border-bottom: 1px solid var(--line);
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: .5rem;
+    gap: .75rem;
 }
 
 .adm-card__head h6 { margin: 0; font-weight: 700; font-size: .96rem; }
-.adm-card__body { padding: 1.1rem; }
-.adm-card__foot { padding: .75rem 1.1rem; border-top: 1px solid var(--line); }
+.adm-card__body { padding: 1.25rem; }
+.adm-card__foot { padding: .85rem 1.25rem; border-top: 1px solid var(--line); }
 
 .kpi {
     background: #fff;
     border: 1px solid var(--line);
     border-radius: 14px;
-    padding: 1rem 1.1rem;
+    padding: 1.15rem 1.25rem;
     height: 100%;
     position: relative;
     overflow: hidden;
@@ -549,16 +615,16 @@ body.side-mini .adm-main {
 }
 
 .kpi:hover { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(11, 37, 69, .1); }
-.kpi__label { font-size: .8rem; color: var(--muted); margin: 0 0 .3rem; padding-right: 3rem; }
+.kpi__label { font-size: .82rem; color: var(--muted); margin: 0 0 .35rem; padding-right: 3rem; }
 .kpi__value { font-size: 1.65rem; font-weight: 700; line-height: 1.15; margin: 0; }
-.kpi__foot { font-size: .78rem; margin: .35rem 0 0; color: var(--muted); }
+.kpi__foot { font-size: .8rem; margin: .45rem 0 0; color: var(--muted); }
 
 .kpi__icon {
     position: absolute;
-    top: .9rem;
-    right: 1rem;
-    width: 40px;
-    height: 40px;
+    top: 1rem;
+    right: 1.15rem;
+    width: 42px;
+    height: 42px;
     border-radius: 11px;
     display: grid;
     place-items: center;
@@ -576,18 +642,41 @@ body.side-mini .adm-main {
 .adm-table { margin: 0; }
 
 .adm-table > thead th {
-    background: #f7fafd;
-    font-size: .78rem;
-    letter-spacing: .03em;
-    text-transform: uppercase;
-    color: var(--muted);
-    font-weight: 600;
+    background: #f8fafc;
+    font-size: .8rem;
+    letter-spacing: .02em;
+    color: #475569;
+    font-weight: 700;
     border-bottom: 1px solid var(--line);
     white-space: nowrap;
+    padding: .85rem 1rem;
 }
 
-.adm-table > tbody td { vertical-align: middle; font-size: .9rem; }
-.adm-table > tbody tr:hover { background: #fafcfe; }
+.adm-table > tbody td { 
+    vertical-align: middle; 
+    font-size: .88rem; 
+    padding: .85rem 1rem;
+}
+
+.adm-table > tbody tr:hover { background: #f8fafc; }
+
+/* Global table padding enhancement inside admin cards */
+.adm-card .table th, 
+.adm-card .table td,
+.card .table th,
+.card .table td {
+    padding: .8rem .95rem;
+}
+
+.table th:first-child,
+.table td:first-child {
+    padding-left: 1.15rem !important;
+}
+
+.table th:last-child,
+.table td:last-child {
+    padding-right: 1.15rem !important;
+}
 
 /* Status pills */
 .pill {
@@ -666,36 +755,232 @@ body.side-mini .adm-main {
 .page-link { border-color: var(--line); color: var(--brand); }
 .page-item.active .page-link { background: var(--brand); border-color: var(--brand); }
 
-/* ── Collapsed sidebar (desktop) ───────────────────────────── */
-body.side-mini .adm-side { width: var(--side-w-sm); }
-body.side-mini .adm-main { margin-left: var(--side-w-sm); }
-body.side-mini .adm-nav__link { justify-content: center; padding: .6rem; }
-body.side-mini .adm-brand { justify-content: center; padding: 1.1rem .5rem; }
-
-body.side-mini .adm-nav__link span,
-body.side-mini .adm-nav__link .badge,
-body.side-mini .adm-nav__label,
-body.side-mini .adm-brand__text,
-body.side-mini .adm-side__foot { display: none; }
-
-/* ── Mobile ────────────────────────────────────────────────── */
-@media (max-width: 991.98px) {
-    .adm-side { transform: translateX(-100%); width: var(--side-w); }
-    body.side-open .adm-side { transform: none; }
-    body.side-open .adm-backdrop { display: block; }
-    .adm-main, body.side-mini .adm-main { margin-left: 0; }
-    body.side-mini .adm-side { width: var(--side-w); }
-    body.side-mini .adm-brand { justify-content: flex-start; padding: 1.1rem 1.15rem; }
-    body.side-mini .adm-nav__link { justify-content: flex-start; padding: .58rem .75rem; }
-
-    body.side-mini .adm-nav__link span,
-    body.side-mini .adm-nav__link .badge,
+/* ── Dynamic Mini Sidebar (Desktop: >= 992px) ────────────────────────── */
+@media (min-width: 992px) {
+    body.side-mini .adm-side { 
+        width: var(--side-w-sm) !important; 
+        overflow: visible !important;
+    }
+    body.side-mini .adm-main { 
+        margin-left: var(--side-w-sm) !important;
+        width: calc(100% - var(--side-w-sm)) !important;
+        max-width: calc(100vw - var(--side-w-sm)) !important;
+    }
+    body.side-mini .adm-brand { 
+        justify-content: center !important; 
+        padding: 0.9rem 0.4rem !important; 
+    }
     body.side-mini .adm-brand__text,
-    body.side-mini .adm-side__foot { display: inline; }
+    body.side-mini .adm-side__search-wrap,
+    body.side-mini .adm-side__favorites,
+    body.side-mini .adm-nav__group-header,
+    body.side-mini .adm-side__foot span { 
+        display: none !important; 
+        opacity: 0 !important;
+        pointer-events: none !important;
+    }
+    body.side-mini .adm-side__foot {
+        justify-content: center !important;
+        padding: 0.75rem 0.5rem !important;
+    }
+    body.side-mini .adm-side__foot button {
+        display: inline-flex !important;
+    }
+    body.side-mini .adm-nav__group-items {
+        display: flex !important;
+    }
+    body.side-mini .adm-nav {
+        padding: 0.6rem 0.35rem 1.5rem !important;
+        overflow-x: visible !important;
+    }
+    body.side-mini .adm-nav__link { 
+        justify-content: center !important; 
+        padding: 0.65rem 0 !important;
+        margin: 0 4px 5px !important;
+        border-radius: 10px !important;
+        position: relative !important;
+        text-align: center;
+    }
+    body.side-mini .adm-nav__link i:first-child {
+        margin: 0 !important;
+        font-size: 1.18rem !important;
+        width: auto !important;
+    }
+    body.side-mini .adm-nav__link .adm-nav__text,
+    body.side-mini .adm-nav__link .badge { 
+        display: none !important; 
+    }
 
-    body.side-mini .adm-nav__label { display: block; }
+    /* World-Class Floating Tooltip in Mini Mode */
+    body.side-mini .adm-nav__link[data-tooltip]:hover::after {
+        content: attr(data-tooltip);
+        position: fixed;
+        left: calc(var(--side-w-sm) + 10px);
+        background: #0f172a;
+        color: #ffffff;
+        padding: 6px 14px;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        white-space: nowrap;
+        z-index: 1090;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.15);
+        pointer-events: none;
+        animation: miniTooltipAnim 0.16s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+}
+
+@keyframes miniTooltipAnim {
+    from {
+        opacity: 0;
+        transform: translateY(-50%) translateX(-6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(-50%) translateX(0);
+    }
+}
+
+/* ── World-Class Mobile Responsive Drawer (<= 991.98px) ────────────────── */
+@media (max-width: 991.98px) {
+    .adm-side { 
+        position: fixed;
+        inset: 0 auto 0 0;
+        width: 280px !important;
+        max-width: 85vw !important;
+        z-index: 1060;
+        transform: translateX(-100%); 
+        box-shadow: none;
+        transition: transform var(--side-transition), box-shadow var(--side-transition);
+        will-change: transform;
+    }
+    body.side-open {
+        overflow: hidden;
+    }
+    body.side-open .adm-side { 
+        transform: translateX(0) !important;
+        box-shadow: 6px 0 40px rgba(0, 0, 0, 0.55) !important;
+    }
+    .adm-backdrop { 
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.65);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        z-index: 1055;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.28s ease;
+    }
+    body.side-open .adm-backdrop { 
+        opacity: 1 !important;
+        pointer-events: auto !important;
+        display: block !important;
+    }
+    .adm-main, 
+    body.side-mini .adm-main { 
+        margin-left: 0 !important;
+        max-width: 100vw !important;
+        width: 100% !important;
+    }
+    body.side-mini .adm-side { 
+        width: 280px !important; 
+    }
+    body.side-mini .adm-brand { 
+        justify-content: flex-start !important; 
+        padding: 1.1rem 1.15rem !important; 
+    }
+    body.side-mini .adm-brand__text,
+    body.side-mini .adm-side__search-wrap,
+    body.side-mini .adm-side__favorites,
+    body.side-mini .adm-nav__group-header,
+    body.side-mini .adm-side__foot,
+    body.side-mini .adm-side__foot span { 
+        display: flex !important; 
+        opacity: 1 !important;
+        pointer-events: auto !important;
+    }
+    body.side-mini .adm-nav__link { 
+        justify-content: flex-start !important; 
+        padding: .52rem .75rem !important; 
+    }
+    body.side-mini .adm-nav__link .adm-nav__text,
+    body.side-mini .adm-nav__link span,
+    body.side-mini .adm-nav__link .badge { 
+        display: inline !important; 
+    }
     .kpi__value { font-size: 1.4rem; }
     .adm-content { padding: 1rem .75rem 2.5rem; }
+}
+
+/* ── Modern Backspace & Back Button Styling ───────────────────────────── */
+.adm-topbar-back-btn {
+    color: var(--brand);
+    background: #f8fafc;
+    border: 1px solid var(--line);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+}
+
+.adm-topbar-back-btn:hover {
+    background: var(--brand);
+    color: #fff;
+    border-color: var(--brand);
+    transform: translateX(-2px);
+    box-shadow: 0 4px 12px rgba(0, 102, 204, 0.25);
+}
+
+.adm-topbar-back-btn:hover i {
+    color: #fff !important;
+}
+
+.adm-topbar-back-btn:active {
+    transform: scale(0.94);
+}
+
+.adm-nav-back-btn {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    border-color: #e2e8f0;
+    background: #ffffff;
+}
+
+.adm-nav-back-btn:hover {
+    background-color: #f1f5f9 !important;
+    border-color: #cbd5e1 !important;
+    transform: translateX(-3px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.adm-nav-back-btn:active {
+    transform: scale(0.96);
+}
+
+.dark-mode .adm-nav-back-btn {
+    background-color: #1e293b !important;
+    border-color: #334155 !important;
+    color: #e2e8f0 !important;
+}
+
+.dark-mode .adm-nav-back-btn:hover {
+    background-color: #334155 !important;
+    color: #38bdf8 !important;
+}
+
+.back-shortcut-chip {
+    font-size: 0.68rem;
+    font-family: inherit;
+    font-weight: 700;
+    background: rgba(0, 102, 204, 0.08);
+    color: var(--brand);
+    padding: 0.15rem 0.45rem;
+    border-radius: 4px;
+    border: 1px solid rgba(0, 102, 204, 0.15);
+}
+
+.dark-mode .back-shortcut-chip {
+    background: rgba(56, 189, 248, 0.12);
+    color: #38bdf8;
+    border-color: rgba(56, 189, 248, 0.25);
 }
 
 @media print {
@@ -1165,114 +1450,7 @@ body.dark-mode .timeline-item::before {
     flex: 1 1 auto;
 }
 
-/* ── Backdrop for Mobile Sidebar ───────────────────────────── */
-.adm-backdrop {
-    position: fixed;
-    inset: 0;
-    background: rgba(15, 23, 42, 0.65);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
-    z-index: 1050;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.3s ease;
-}
-
-body.side-open .adm-backdrop {
-    opacity: 1;
-    pointer-events: auto;
-    cursor: pointer;
-}
-
-/* ── Desktop Mini Sidebar ──────────────────────────────────── */
-@media (min-width: 992px) {
-    body.side-mini .adm-side {
-        width: var(--side-w-sm);
-    }
-    body.side-mini .adm-side .adm-brand__text,
-    body.side-mini .adm-side .adm-nav__label,
-    body.side-mini .adm-side .adm-nav__link span,
-    body.side-mini .adm-side .adm-side__foot {
-        display: none !important;
-    }
-    body.side-mini .adm-side .adm-nav__link {
-        justify-content: center;
-        padding: 0.75rem 0.5rem;
-    }
-    body.side-mini .adm-side .adm-nav__link i:first-child {
-        font-size: 1.2rem;
-        margin: 0;
-    }
-    body.side-mini .adm-main {
-        margin-left: var(--side-w-sm);
-    }
-}
-
-/* ── Mobile Responsive Sidebar & Layout (Max 991.98px) ──────── */
-@media (max-width: 991.98px) {
-    .adm-side {
-        position: fixed;
-        inset: 0 auto 0 0;
-        width: 280px;
-        max-width: 85vw;
-        z-index: 1060;
-        transform: translateX(-100%);
-        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        box-shadow: none;
-    }
-
-    body.side-open {
-        overflow: hidden;
-    }
-
-    body.side-open .adm-side {
-        transform: translateX(0);
-        box-shadow: 4px 0 35px rgba(0, 0, 0, 0.45);
-    }
-
-    .adm-side__close {
-        background: transparent;
-        border: none;
-        color: #fff;
-        padding: 0.5rem 0.75rem;
-        font-size: 1.25rem;
-        cursor: pointer;
-        opacity: 0.85;
-        transition: opacity 0.2s;
-    }
-
-    .adm-side__close:hover {
-        opacity: 1;
-    }
-
-    .adm-main {
-        margin-left: 0 !important;
-        width: 100% !important;
-    }
-
-    .adm-top {
-        padding: 0.5rem 0.75rem;
-        gap: 0.5rem;
-    }
-
-    .adm-content {
-        padding: 1rem 0.75rem 2.5rem;
-    }
-
-    .adm-card {
-        border-radius: 12px;
-    }
-
-    .table-responsive {
-        border-radius: 10px;
-    }
-
-    .adm-table thead th,
-    .adm-table tbody td {
-        padding: 0.75rem 0.85rem;
-        font-size: 0.88rem;
-    }
-}
+/* ── Bottom Section ────────────────────────────────────────── */
 
 /* ══════════════════════════════════════════════════════════════════
    GLOBAL MODERN SPACIOUS TABLE STYLES (NO MORE CRAMPED ROWS)

@@ -1,11 +1,11 @@
 @extends('layouts.admin')
 
-@section('title', 'Boi Mela Stall POS Terminal')
-@section('heading', 'Boi Mela Stall POS Terminal')
+@section('title', 'বইমেলা স্টল পিওএস টার্মিনাল — Boi Mela Stall POS')
+@section('heading', 'বইমেলা স্টল পিওএস টার্মিনাল (Boi Mela Stall POS Terminal)')
 
 @section('breadcrumb')
     <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>
-    <li class="breadcrumb-item active">POS Terminal</li>
+    <li class="breadcrumb-item active">বইমেলা POS টার্মিনাল</li>
 @endsection
 
 @push('styles')

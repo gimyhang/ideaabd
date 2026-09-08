@@ -28,10 +28,11 @@ class User extends Authenticatable
 
     protected $fillable = [
         'name', 'email', 'phone', 'password',
-        'role', 'avatar', 'is_active',
+        'role', 'custom_role_id', 'avatar', 'is_active',
         'reg_status', 'reg_type', 'reg_data',
         'approved_by', 'approved_at', 'rejection_reason',
         'loyalty_points', 'affiliate_balance',
+        'force_password_reset', 'ip_whitelist', 'session_invalidated_at',
     ];
 
     protected $hidden = ['password', 'remember_token'];
@@ -39,23 +40,93 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
-            'email_verified_at' => 'datetime',
-            'password'          => 'hashed',
-            'is_active'         => 'boolean',
-            'reg_data'          => 'array',
-            'loyalty_points'    => 'integer',
-            'affiliate_balance' => 'decimal:2',
+            'email_verified_at'      => 'datetime',
+            'password'               => 'hashed',
+            'is_active'              => 'boolean',
+            'reg_data'               => 'array',
+            'loyalty_points'         => 'integer',
+            'affiliate_balance'      => 'decimal:2',
+            'force_password_reset'   => 'boolean',
+            'session_invalidated_at' => 'datetime',
         ];
     }
 
-    // ─── Role helpers ───────────────────────────────────────────────
+    // ─── Role & Permission IAM helpers ───────────────────────────────
+    public function customRole()
+    {
+        return $this->belongsTo(AdminRole::class, 'custom_role_id');
+    }
+
+    public function directPermissions()
+    {
+        return $this->belongsToMany(
+            AdminPermission::class,
+            'user_has_permissions',
+            'user_id',
+            'permission_id'
+        )->withPivot('is_granted')->withTimestamps();
+    }
+
+    /**
+     * Check if user has permission (Super Admin -> Direct Override -> Role Inheritance).
+     */
+    public function hasPermission(string $permissionKey): bool
+    {
+        if ($this->isAdmin()) {
+            return true;
+        }
+
+        // 1. Check User Direct Overrides
+        $directOverride = \Illuminate\Support\Facades\DB::table('user_has_permissions')
+            ->join('admin_permissions', 'user_has_permissions.permission_id', '=', 'admin_permissions.id')
+            ->where('user_has_permissions.user_id', $this->id)
+            ->where('admin_permissions.key', $permissionKey)
+            ->select('user_has_permissions.is_granted')
+            ->first();
+
+        if ($directOverride !== null) {
+            return (bool) $directOverride->is_granted;
+        }
+
+        // 2. Check Assigned Custom Role or Base Role
+        $roleSlug = $this->customRole?->slug ?? $this->role;
+
+        return \Illuminate\Support\Facades\DB::table('role_has_permissions')
+            ->join('admin_permissions', 'role_has_permissions.permission_id', '=', 'admin_permissions.id')
+            ->where('role_has_permissions.role', $roleSlug)
+            ->where('admin_permissions.key', $permissionKey)
+            ->exists();
+    }
+
+    /**
+     * Get human-readable role name with badge.
+     */
+    public function getRoleDisplayName(): string
+    {
+        if ($this->customRole) {
+            return $this->customRole->name;
+        }
+
+        return match ($this->role) {
+            self::ROLE_ADMIN     => 'সুপার অ্যাডমিন (Admin)',
+            self::ROLE_SUB_ADMIN => 'সাব-অ্যাডমিন (Sub Admin)',
+            self::ROLE_SELLER    => 'সেলার / আউটলেট',
+            self::ROLE_PUBLISHER => 'প্রকাশক (Publisher)',
+            self::ROLE_AUTHOR    => 'লেখক (Author)',
+            self::ROLE_BUYER     => 'ক্রেতা / পাঠক',
+            default              => ucfirst(str_replace('_', ' ', $this->role)),
+        };
+    }
+
     public function isAdmin(): bool      { return $this->role === self::ROLE_ADMIN; }
-    public function isSubAdmin(): bool   { return $this->role === self::ROLE_SUB_ADMIN; }
+    public function isSuperAdmin(): bool { return $this->role === self::ROLE_ADMIN; }
+    public function hasAdminPermission(string $permissionKey): bool { return $this->hasPermission($permissionKey); }
+    public function isSubAdmin(): bool   { return in_array($this->role, [self::ROLE_SUB_ADMIN, self::ROLE_ADMIN], true) || ($this->custom_role_id !== null); }
     public function isSeller(): bool     { return in_array($this->role, [self::ROLE_SELLER, self::ROLE_SUB_ADMIN]); }
     public function isPublisher(): bool  { return $this->role === self::ROLE_PUBLISHER; }
     public function isAuthor(): bool     { return $this->role === self::ROLE_AUTHOR; }
     public function isBuyer(): bool      { return in_array($this->role, [self::ROLE_BUYER, self::ROLE_CUSTOMER]); }
-    public function hasRole(string $role): bool { return $this->role === $role; }
+    public function hasRole(string $role): bool { return $this->role === $role || ($this->customRole && $this->customRole->slug === $role); }
 
     // Registration status helpers
     public function isPending(): bool  { return $this->reg_status === self::STATUS_PENDING; }

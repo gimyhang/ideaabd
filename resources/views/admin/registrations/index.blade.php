@@ -397,6 +397,15 @@
                                             <i class="fas fa-eye"></i>
                                         </button>
 
+                                        {{-- Dynamic Role Appointment & Promotion Button --}}
+                                        <button type="button" 
+                                                class="btn btn-action-icon btn-outline-primary" 
+                                                onclick="openRegAssignRoleModal({{ $user->id }}, '{{ addslashes($user->name) }}', '{{ $user->role }}', '{{ $user->custom_role_id ?? '' }}', '{{ $user->reg_status }}', {{ $user->is_active ? 'true' : 'false' }})" 
+                                                title="যে কোনো পদে পদায়ন বা নিয়োগ দিন"
+                                                data-bs-toggle="tooltip">
+                                            <i class="fas fa-user-gear"></i>
+                                        </button>
+
                                         {{-- Sync Author to Directory Button --}}
                                         @if($user->role === 'author' || $user->reg_type === 'author')
                                             <button type="button" 
@@ -1302,6 +1311,120 @@ function exportRegistrationsToCSV() {
     link.click();
     document.body.removeChild(link);
     showToast('CSV file downloaded successfully!', true);
+}
+</script>
+
+<!-- Universal Role Assignment & Promotion Modal -->
+<div class="modal fade" id="regAssignRoleModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
+            <div class="modal-header py-3 px-4 bg-dark text-white">
+                <h6 class="modal-title fw-bold text-white d-flex align-items-center gap-2">
+                    <i class="fas fa-crown text-warning"></i>
+                    <span>আবেদনকারীকে পদায়ন ও নিয়োগ নিয়ন্ত্রণ</span>
+                </h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="" method="POST" id="regAssignRoleForm">
+                @csrf
+                <div class="modal-body p-4">
+                    <div class="p-3 bg-light rounded-3 mb-3 border">
+                        <small class="text-muted d-block" style="font-size: 11px;">আবেদনকারী / ইউজার:</small>
+                        <h6 class="fw-bold mb-0 text-dark" id="regAssignModalUserName"></h6>
+                        <small class="text-primary font-monospace fw-semibold" id="regAssignModalCurrentRole"></small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-dark">কোন পদে নিয়োগ বা পদায়ন করতে চান?</label>
+                        <select name="role" id="regAssignRoleSelect" class="form-select rounded-3 py-2 fw-semibold" required onchange="handleRegRoleSelectChange(this)">
+                            @foreach($assignableRoles ?? [] as $r)
+                                <option value="{{ $r['slug'] }}" data-custom-id="{{ $r['id'] ?? '' }}" data-dept="{{ $r['department'] }}">
+                                    {{ $r['name'] }} — ({{ $r['department'] }})
+                                </option>
+                            @endforeach
+                        </select>
+                        <input type="hidden" name="custom_role_id" id="regAssignCustomRoleId" value="">
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-dark">রেজিস্ট্রেশন স্ট্যাটাস</label>
+                            <select name="reg_status" id="regAssignRegStatus" class="form-select rounded-3">
+                                <option value="approved">অনুমোদিত (Approved)</option>
+                                <option value="pending">অপেক্ষমান (Pending)</option>
+                                <option value="rejected">বাতিল (Rejected)</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-dark">অ্যাকাউন্ট স্ট্যাটাস</label>
+                            <select name="is_active" id="regAssignIsActive" class="form-select rounded-3">
+                                <option value="1">সক্রিয় (Active)</option>
+                                <option value="0">স্থগিত / নিষ্ক্রিয় (Inactive)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-dark">নিয়োগ / পদায়নের রেফারেন্স বা নোট (ঐচ্ছিক)</label>
+                        <textarea name="notes" class="form-control rounded-3" rows="2" placeholder="e.g. আবেদন যাচাইপূর্বক সরাসরি বিশেষ পদে নিয়োগ দেওয়া হলো"></textarea>
+                    </div>
+
+                    <div class="alert alert-info border-0 rounded-3 small mb-0 py-2">
+                        <i class="fas fa-circle-info me-1"></i> শুধুমাত্র মূল সুপার অ্যাডমিন যেকোনো রেজিস্ট্রেশন থেকে যেকোনো আবেদনকারীকে ইচ্ছামতো যেকোনো পদে নিয়োগ দিতে বা বাতিল করতে পারবেন।
+                    </div>
+                </div>
+                <div class="modal-footer bg-light py-2.5 px-4 border-top">
+                    <button type="button" class="btn btn-light rounded-pill px-3" data-bs-dismiss="modal">বাতিল</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold shadow-xs">
+                        <i class="fas fa-check me-1.5"></i> পদায়ন ও নিয়োগ নিশ্চিত করুন
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function handleRegRoleSelectChange(selectEl) {
+    const opt = selectEl.options[selectEl.selectedIndex];
+    const customId = opt ? opt.getAttribute('data-custom-id') : '';
+    const customInput = document.getElementById('regAssignCustomRoleId');
+    if (customInput) customInput.value = customId || '';
+}
+
+function openRegAssignRoleModal(userId, userName, currentRole, customRoleId, regStatus, isActive) {
+    const form = document.getElementById('regAssignRoleForm');
+    if (form) {
+        form.action = `/admin/users/${userId}/assign-role`;
+    }
+
+    const nameEl = document.getElementById('regAssignModalUserName');
+    if (nameEl) nameEl.textContent = userName + ` (ID: #${userId})`;
+
+    const curRoleEl = document.getElementById('regAssignModalCurrentRole');
+    if (curRoleEl) curRoleEl.textContent = 'আবেদনকৃত/বর্তমান পদবী: ' + currentRole;
+
+    const roleSelect = document.getElementById('regAssignRoleSelect');
+    if (roleSelect) {
+        roleSelect.value = currentRole;
+        handleRegRoleSelectChange(roleSelect);
+    }
+
+    const regStatusSelect = document.getElementById('regAssignRegStatus');
+    if (regStatusSelect) {
+        regStatusSelect.value = regStatus || 'approved';
+    }
+
+    const isActiveSelect = document.getElementById('regAssignIsActive');
+    if (isActiveSelect) {
+        isActiveSelect.value = isActive ? '1' : '0';
+    }
+
+    const modalEl = document.getElementById('regAssignRoleModal');
+    if (modalEl) {
+        const modal = new bootstrap.Modal(modalEl);
+        modal.show();
+    }
 }
 </script>
 @endsection

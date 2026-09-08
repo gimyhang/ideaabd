@@ -214,6 +214,14 @@ class PublisherPortalController extends Controller
     }
 
     /**
+     * Edit book action - redirects to dashboard edit form.
+     */
+    public function editBook($id)
+    {
+        return redirect()->route('publisher.dashboard', ['tab' => 'books', 'edit_id' => $id]);
+    }
+
+    /**
      * Store a newly created book by the publisher.
      */
     public function storeBook(Request $request)

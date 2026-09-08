@@ -268,6 +268,9 @@ class AdminDashboardService
             // 17. Daily & Monthly Sales Target Progress
             'target_progress'     => $this->getSalesTargetProgress($todayRevenue),
 
+            // 18. CEO Executive Departmental Staff & HR Metrics (Digital Marketing, Content & Editorial, Technical & IT, Operations & Support)
+            'employee_departments'=> $this->getDepartmentalEmployeeStats(),
+
             'total_books'         => $this->count('books'),
             'total_ebooks'        => $this->count('ebooks'),
             'total_authors'       => $this->count('authors'),
@@ -678,7 +681,184 @@ class AdminDashboardService
         };
     }
 
-    private function count(string $table): ?int
+    /**
+     * Get CEO Executive Employee & Departmental Division Statistics.
+     * Covers: Digital Marketing, Content & Editorial, Technical & IT, Operations & Support.
+     */
+     public function getDepartmentalEmployeeStats(): array
+     {
+         if (!Schema::hasTable('idea_employees')) {
+             return [
+                 'total_employees'     => 0,
+                 'active_employees'    => 0,
+                 'total_monthly_payroll'=> 0.0,
+                 'departments'         => [],
+                 'recent_employees'    => collect(),
+             ];
+         }
+ 
+         return $this->safe(function () {
+             $employees = \App\Models\IdeaEmployee::query()->whereNull('deleted_at')->get();
+             $totalEmployees = $employees->count();
+             $activeEmployees = $employees->where('status', 'active')->count();
+             $monthlyPayroll = (float) $employees->where('status', 'active')->where(function($e) {
+                 return in_array($e->employment_type, ['monthly', null], true);
+             })->sum('basic_salary');
+ 
+             // Department Buckets
+             $deptBuckets = [
+                 'digital_marketing' => [
+                     'key'         => 'digital_marketing',
+                     'title'       => 'Digital Marketing',
+                     'title_bn'    => 'ডিজিটাল মার্কেটিং',
+                     'icon'        => 'fa-solid fa-bullhorn',
+                     'color'       => '#2563eb',
+                     'bg_light'    => '#eff6ff',
+                     'border'      => '#bfdbfe',
+                     'filter_slug' => 'Digital Marketing',
+                     'count'       => 0,
+                     'active'      => 0,
+                     'payroll'     => 0.0,
+                     'skills'      => ['SEO', 'Meta Ads', 'Content Marketing', 'Media Buying', 'Social Media'],
+                 ],
+                 'content_editorial' => [
+                     'key'         => 'content_editorial',
+                     'title'       => 'Content & Editorial',
+                     'title_bn'    => 'কনটেন্ট ও সম্পাদকীয়',
+                     'icon'        => 'fa-solid fa-feather-pointed',
+                     'color'       => '#ca8a04',
+                     'bg_light'    => '#fefce8',
+                     'border'      => '#fef08a',
+                     'filter_slug' => 'Content & Editorial',
+                     'count'       => 0,
+                     'active'      => 0,
+                     'payroll'     => 0.0,
+                     'skills'      => ['Manuscript Review', 'Proofreading', 'Book Editing', 'Composing', 'Translation'],
+                 ],
+                 'technical_it' => [
+                     'key'         => 'technical_it',
+                     'title'       => 'Technical & IT',
+                     'title_bn'    => 'টেকনিক্যাল ও আইটি',
+                     'icon'        => 'fa-solid fa-laptop-code',
+                     'color'       => '#16a34a',
+                     'bg_light'    => '#f0fdf4',
+                     'border'      => '#bbf7d0',
+                     'filter_slug' => 'Technical & IT',
+                     'count'       => 0,
+                     'active'      => 0,
+                     'payroll'     => 0.0,
+                     'skills'      => ['Web & App Dev', 'Server Admin', 'Database', 'UI/UX', 'IT Maintenance'],
+                 ],
+                 'operations_support' => [
+                     'key'         => 'operations_support',
+                     'title'       => 'Operations & Support',
+                     'title_bn'    => 'অপারেশন্স ও কাস্টমার সাপোর্ট',
+                     'icon'        => 'fa-solid fa-headset',
+                     'color'       => '#ea580c',
+                     'bg_light'    => '#fff7ed',
+                     'border'      => '#fed7aa',
+                     'filter_slug' => 'Operations & Support',
+                     'count'       => 0,
+                     'active'      => 0,
+                     'payroll'     => 0.0,
+                     'skills'      => ['CRM Support', 'Order Dispatch', 'Logistics', 'Inventory', 'Office Support'],
+                 ],
+                 'press_artisans' => [
+                     'key'         => 'press_artisans',
+                     'title'       => 'Press & Production Artisans',
+                     'title_bn'    => 'ছাপাখানা ও বাঁধাই কারিগর',
+                     'icon'        => 'fa-solid fa-book-bookmark',
+                     'color'       => '#7e22ce',
+                     'bg_light'    => '#f3e8ff',
+                     'border'      => '#d8b4fe',
+                     'filter_slug' => 'ছাপাখানা ও বাঁধাই',
+                     'count'       => 0,
+                     'active'      => 0,
+                     'payroll'     => 0.0,
+                     'skills'      => ['Book Binding', 'Forma Pasting', 'Offset Press', 'Paper Cutting', 'Lamination'],
+                 ],
+             ];
+ 
+             foreach ($employees as $emp) {
+                 $cat = $emp->getRoleCategory();
+                 $targetBucket = match($cat) {
+                     'digital_marketing'  => 'digital_marketing',
+                     'content_editorial'  => 'content_editorial',
+                     'technical_it'       => 'technical_it',
+                     'operations_support' => 'operations_support',
+                     'artisan'            => 'press_artisans',
+                     default              => 'operations_support',
+                 };
+ 
+                 $deptBuckets[$targetBucket]['count']++;
+                 if ($emp->status === 'active') {
+                     $deptBuckets[$targetBucket]['active']++;
+                     $deptBuckets[$targetBucket]['payroll'] += (float) $emp->basic_salary;
+                 }
+             }
+ 
+            $chartLabels = [];
+            $chartCounts = [];
+            $chartPayrolls = [];
+            $chartColors = [];
+
+            // Calculate percentage share & prepare chart series
+            foreach ($deptBuckets as $key => $data) {
+                $deptBuckets[$key]['share_percent'] = $totalEmployees > 0 
+                    ? round(($data['count'] / $totalEmployees) * 100, 1) 
+                    : 0;
+
+                $chartLabels[] = $data['title_bn'] . ' (' . $data['title'] . ')';
+                $chartCounts[] = $data['count'];
+                $chartPayrolls[] = $data['payroll'];
+                $chartColors[] = $data['color'];
+            }
+
+            $allEmployees = \App\Models\IdeaEmployee::query()
+                ->whereNull('deleted_at')
+                ->latest('id')
+                ->get()
+                ->map(function ($emp) {
+                    $cat = $emp->getRoleCategory();
+                    $cfg = $emp->getRoleConfig();
+                    $emp->bucket_key = match($cat) {
+                        'digital_marketing'  => 'digital_marketing',
+                        'content_editorial'  => 'content_editorial',
+                        'technical_it'       => 'technical_it',
+                        'operations_support' => 'operations_support',
+                        'artisan'            => 'press_artisans',
+                        default              => 'operations_support',
+                    };
+                    $emp->role_cfg = $cfg;
+                    return $emp;
+                });
+
+            return [
+                'total_employees'      => $totalEmployees,
+                'active_employees'     => $activeEmployees,
+                'total_monthly_payroll'=> $monthlyPayroll,
+                'departments'          => $deptBuckets,
+                'chart_data'           => [
+                    'labels'   => $chartLabels,
+                    'counts'   => $chartCounts,
+                    'payrolls' => $chartPayrolls,
+                    'colors'   => $chartColors,
+                ],
+                'all_employees'        => $allEmployees,
+                'recent_employees'     => $allEmployees->take(8),
+            ];
+        }, [
+            'total_employees'      => 0,
+            'active_employees'     => 0,
+            'total_monthly_payroll'=> 0.0,
+            'departments'          => [],
+            'chart_data'           => ['labels' => [], 'counts' => [], 'payrolls' => [], 'colors' => []],
+            'all_employees'        => collect(),
+            'recent_employees'     => collect(),
+        ]);
+     }
+ 
+     private function count(string $table): ?int
     {
         if (! $this->hasTable($table)) {
             return null;

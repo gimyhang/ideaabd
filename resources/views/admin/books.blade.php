@@ -1769,19 +1769,24 @@ function showBookToast(type, msg) {
 }
 
 function syncAllBookSerials() {
-    if (!confirm('আপনি কি সব বইয়ের জন্য স্বয়ংক্রিয় সিরিয়াল নম্বর (আইডিয়া প্রকাশন ও অন্যান্য পাবলিশার) সিঙ্ক করতে চান?')) {
-        return;
-    }
+    SwalConfirm({
+        title: 'বইয়ের সিরিয়াল সিঙ্ক',
+        text: 'আপনি কি সব বইয়ের জন্য স্বয়ংক্রিয় সিরিয়াল নম্বর (আইডিয়া প্রকাশন ও অন্যান্য পাবলিশার) সিঙ্ক করতে চান?',
+        icon: 'info',
+        confirmButtonText: '<i class="fas fa-rotate me-1"></i> হ্যাঁ, সিঙ্ক করুন',
+        cancelButtonText: '<i class="fas fa-times me-1"></i> বাতিল'
+    }).then(function(result) {
+        if (!result.isConfirmed) return;
 
-    fetch('{{ route("admin.books.sync-serials") }}', {
-        method: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}',
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-        }
-    })
-    .then(res => res.json())
+        fetch('{{ route("admin.books.sync-serials") }}', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}',
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(res => res.json())
     .then(data => {
         if (data.success) {
             showBookToast('success', data.message || 'সিরিয়াল নম্বর সফলভাবে সিঙ্ক হয়েছে!');

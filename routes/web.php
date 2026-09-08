@@ -561,9 +561,24 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::post('/quick/author', [\App\Http\Controllers\Admin\QuickResourceController::class, 'quickStoreAuthor'])->name('quick.author');
     Route::post('/quick/publisher', [\App\Http\Controllers\Admin\QuickResourceController::class, 'quickStorePublisher'])->name('quick.publisher');
 
-    // Admin access, permissions, activity logs & system settings
+    // Enterprise IAM, Dynamic Roles & Granular Permissions Access Control Hub
     Route::get('/roles-permissions', [AdminAccessController::class, 'rolesPermissions'])->name('roles.index');
     Route::post('/roles-permissions', [AdminAccessController::class, 'updatePermissions'])->name('roles.update');
+    Route::post('/roles/store', [AdminAccessController::class, 'storeRole'])->name('roles.store');
+    Route::put('/roles/{role}', [AdminAccessController::class, 'updateRole'])->name('roles.edit');
+    Route::delete('/roles/{role}', [AdminAccessController::class, 'deleteRole'])->name('roles.destroy');
+    Route::post('/roles/{role}/clone', [AdminAccessController::class, 'cloneRole'])->name('roles.clone');
+    
+    // Subordinate Staff IAM Access & Security Controls (অধীনস্থ লোক নিয়ন্ত্রণ ও নিয়োগ/বাতিল)
+    Route::post('/users/{user}/assign-role', [AdminAccessController::class, 'assignUserRole'])->name('users.assign-role');
+    Route::post('/users/{user}/revoke-role', [AdminAccessController::class, 'revokeUserRole'])->name('users.revoke-role');
+    Route::get('/staff-iam/{user}/inspector', [AdminAccessController::class, 'userPermissionsInspector'])->name('staff.inspector');
+    Route::post('/staff-iam/{user}/direct-permissions', [AdminAccessController::class, 'updateUserDirectPermissions'])->name('staff.direct-permissions');
+    Route::post('/staff-iam/{user}/toggle-status', [AdminAccessController::class, 'toggleStaffStatus'])->name('staff.toggle-status');
+    Route::post('/staff-iam/{user}/terminate-sessions', [AdminAccessController::class, 'terminateStaffSessions'])->name('staff.terminate-sessions');
+    Route::post('/staff-iam/{user}/force-password-reset', [AdminAccessController::class, 'forceStaffPasswordReset'])->name('staff.force-password-reset');
+    Route::post('/staff-iam/{user}/update-role', [AdminAccessController::class, 'updateStaffRole'])->name('staff.update-role');
+
     Route::get('/activity-logs', [AdminAccessController::class, 'activityLogs'])->name('activity-logs');
     Route::get('/audit-logs', [AdminAccessController::class, 'activityLogs'])->name('audit-logs.index');
     Route::get('/system-settings', [AdminAccessController::class, 'systemSettings'])->name('system-settings');
@@ -606,6 +621,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::prefix('media')->name('media.')->controller(\App\Http\Controllers\Admin\AdminMediaController::class)->group(function () {
         Route::get('/', 'index')->name('index');
         Route::post('/upload', 'upload')->name('upload');
+        Route::post('/optimize-all', 'optimizeAll')->name('optimize-all');
         Route::delete('/', 'destroy')->name('destroy');
     });
 
@@ -631,7 +647,11 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::prefix('subscriptions')->name('subscriptions.')->controller(\App\Http\Controllers\Admin\SubscriptionAdminController::class)->group(function () {
         Route::get('/', 'index')->name('index');
         Route::post('/plans', 'storePlan')->name('plans.store');
+        Route::put('/plans/{plan}', 'updatePlan')->name('plans.update');
+        Route::post('/plans/{plan}/toggle', 'togglePlan')->name('plans.toggle');
+        Route::delete('/plans/{plan}', 'destroyPlan')->name('plans.destroy');
         Route::post('/grant', 'grantSubscription')->name('grant');
+        Route::post('/cancel/{subscription}', 'cancelSubscription')->name('cancel');
     });
 
     // Amar Ekushey Boi Mela Stall POS

@@ -373,6 +373,16 @@
                 <button class="btn btn-sm btn-outline-secondary d-lg-none rounded-pill px-2.5 py-1" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileAuthorDrawer" aria-controls="mobileAuthorDrawer">
                     <i class="fas fa-bars"></i>
                 </button>
+                @if(!request()->routeIs('author.dashboard'))
+                    <button type="button" 
+                            onclick="if(window.history.length > 1 && document.referrer){ window.history.back(); } else { window.location.href='{{ route('author.dashboard') }}'; }" 
+                            class="btn btn-sm btn-light border bg-white shadow-2xs rounded-3 text-secondary px-2.5 py-1 d-inline-flex align-items-center gap-1.5 author-nav-back-btn" 
+                            title="পূর্ববর্তী পেজে ফিরে যান (Backspace বা Alt+Left)">
+                        <i class="fas fa-arrow-left-long text-primary"></i>
+                        <span class="fw-semibold small d-none d-sm-inline">ফিরে যান</span>
+                        <kbd class="bg-light text-muted border px-1 py-0 ms-0.5 d-none d-md-inline small font-monospace" style="font-size: 0.65rem;">⌫</kbd>
+                    </button>
+                @endif
                 <h5 class="fw-bold mb-0 text-dark" style="font-size: 1.05rem;">@yield('heading', 'Author Studio')</h5>
             </div>
 
@@ -437,6 +447,122 @@
 
     <!-- Bootstrap 5 Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        // Global SweetAlert2 World-Class Confirmation Helper
+        window.SwalConfirm = function(options) {
+            if (typeof options === 'string') options = { text: options };
+            return Swal.fire({
+                title: options.title || 'আপনি কি নিশ্চিত?',
+                text: options.text || '',
+                html: options.html || undefined,
+                icon: options.icon || 'warning',
+                showCancelButton: true,
+                confirmButtonText: options.confirmButtonText || '<i class="fas fa-check-circle me-1.5"></i> হ্যাঁ, নিশ্চিত করুন',
+                cancelButtonText: options.cancelButtonText || '<i class="fas fa-times me-1.5"></i> বাতিল',
+                reverseButtons: true,
+                focusCancel: true,
+                background: '#ffffff',
+                color: '#0f172a',
+                backdrop: 'rgba(15, 23, 42, 0.65)',
+                customClass: {
+                    popup: 'swal2-modern-popup rounded-4 shadow-2xl border p-4',
+                    title: 'fw-bold fs-5 mb-2',
+                    htmlContainer: 'text-muted small mb-4 lh-base',
+                    confirmButton: 'btn btn-primary rounded-pill px-4 py-2 fw-bold mx-1.5 shadow-sm d-inline-flex align-items-center gap-1',
+                    cancelButton: 'btn btn-outline-secondary rounded-pill px-4 py-2 fw-semibold mx-1.5 shadow-2xs d-inline-flex align-items-center gap-1'
+                },
+                buttonsStyling: false
+            });
+        };
+
+        // Automatic SweetAlert2 Form & Button Confirmation Interceptor
+        document.addEventListener('submit', function(e) {
+            var form = e.target;
+            if (!form) return;
+            if (form.dataset && form.dataset.confirm && !form.dataset.confirmed) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                SwalConfirm({
+                    title: form.dataset.confirmTitle || 'নিশ্চিতকরণ প্রয়োজন',
+                    text: form.dataset.confirm,
+                    icon: form.dataset.confirmIcon || 'warning',
+                    confirmButtonText: form.dataset.confirmBtn || '<i class="fas fa-check-circle me-1"></i> হ্যাঁ, নিশ্চিত করুন'
+                }).then(function(result) {
+                    if (result.isConfirmed) {
+                        form.dataset.confirmed = 'true';
+                        form.submit();
+                    }
+                });
+                return;
+            }
+            var onsubmitAttr = form.getAttribute('onsubmit');
+            if (onsubmitAttr && onsubmitAttr.includes('confirm(') && !form.dataset.confirmed) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                var match = onsubmitAttr.match(/confirm\(\s*['"`](.*?)['"`]\s*\)/);
+                var confirmMsg = match ? match[1].replace(/\\'/g, "'").replace(/\\"/g, '"') : 'আপনি কি নিশ্চিত?';
+                SwalConfirm({
+                    title: form.dataset.confirmTitle || 'নিশ্চিতকরণ প্রয়োজন',
+                    text: confirmMsg,
+                    icon: form.dataset.confirmIcon || 'warning'
+                }).then(function(result) {
+                    if (result.isConfirmed) {
+                        form.dataset.confirmed = 'true';
+                        form.submit();
+                    }
+                });
+            }
+        }, true);
+
+        document.addEventListener('click', function(e) {
+            var trigger = e.target.closest('[onclick*="confirm("], [data-confirm]');
+            if (!trigger || trigger.dataset.confirmed) return;
+            var onclickAttr = trigger.getAttribute('onclick');
+            var confirmMsg = trigger.dataset.confirm;
+            if (!confirmMsg && onclickAttr && onclickAttr.includes('confirm(')) {
+                var match = onclickAttr.match(/confirm\(\s*['"`](.*?)['"`]\s*\)/);
+                confirmMsg = match ? match[1].replace(/\\'/g, "'").replace(/\\"/g, '"') : 'আপনি কি নিশ্চিত?';
+            }
+            if (confirmMsg) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                var form = trigger.closest('form');
+                var isLink = trigger.tagName.toLowerCase() === 'a';
+                SwalConfirm({
+                    title: trigger.dataset.confirmTitle || 'নিশ্চিতকরণ প্রয়োজন',
+                    text: confirmMsg,
+                    icon: trigger.dataset.confirmIcon || 'warning'
+                }).then(function(result) {
+                    if (result.isConfirmed) {
+                        trigger.dataset.confirmed = 'true';
+                        if (form && trigger.type === 'submit') {
+                            form.dataset.confirmed = 'true';
+                            form.submit();
+                        } else if (isLink && trigger.href) {
+                            window.location.href = trigger.href;
+                        }
+                    }
+                });
+            }
+        }, true);
+
+        // Author Studio Smart Backspace / Alt+Left Navigation
+        document.addEventListener('keydown', function(e) {
+            var activeEl = document.activeElement;
+            var tag = (activeEl && activeEl.tagName) ? activeEl.tagName.toLowerCase() : '';
+            var isInput = tag === 'input' || tag === 'textarea' || tag === 'select' || (activeEl && activeEl.isContentEditable);
+            
+            if (!isInput) {
+                if (e.key === 'Backspace' || (e.altKey && e.key === 'ArrowLeft')) {
+                    if (window.history.length > 1 && document.referrer) {
+                        e.preventDefault();
+                        window.history.back();
+                    }
+                }
+            }
+        });
+    </script>
     @stack('scripts')
 </body>
 </html>

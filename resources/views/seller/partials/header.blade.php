@@ -48,6 +48,16 @@
 
         {{-- Action Buttons Navigation --}}
         <div class="d-flex flex-wrap align-items-center gap-2 w-100 w-md-auto justify-content-start justify-content-md-end">
+            @if(!request()->routeIs('subadmin.dashboard'))
+                <button type="button" 
+                        onclick="if(window.history.length > 1 && document.referrer){ window.history.back(); } else { window.location.href='{{ route('subadmin.dashboard') }}'; }" 
+                        class="btn btn-outline-light rounded-pill px-3 py-2 d-flex align-items-center gap-1.5 shadow-sm" 
+                        title="পূর্ববর্তী পেজে ফিরে যান (Backspace বা Alt+Left)">
+                    <i class="fas fa-arrow-left-long text-warning"></i>
+                    <span>ফিরে যান</span>
+                    <kbd class="bg-white bg-opacity-25 text-white border-0 px-1 py-0 ms-0.5 d-none d-md-inline small" style="font-size: 0.65rem;">⌫</kbd>
+                </button>
+            @endif
             <a href="{{ route('subadmin.dashboard') }}" 
                class="btn {{ request()->routeIs('subadmin.dashboard') ? 'btn-light text-dark fw-bold' : 'btn-outline-light' }} rounded-pill px-3 py-2 d-flex align-items-center gap-1.5 flex-grow-1 flex-md-grow-0 justify-content-center shadow-sm">
                 <i class="fas fa-gauge-high {{ request()->routeIs('subadmin.dashboard') ? 'text-primary' : '' }}"></i>

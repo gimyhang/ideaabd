@@ -1,16 +1,16 @@
 @extends('layouts.admin')
 
-@section('title', 'User Security, Password OTP & IP Blocklist')
-@section('heading', 'ইউজার লগইন নিরাপত্তা, ওয়ানটাইম পাসওয়ার্ড ও আইপি ব্লকলিস্ট')
+@section('title', 'ইউজার নিরাপত্তা ও আইপি ব্লকলিস্ট — User Security')
+@section('heading', 'ইউজার নিরাপত্তা, ওয়ানটাইম পাসওয়ার্ড ও আইপি ব্লকলিস্ট')
 
 @section('breadcrumb')
-    <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">ড্যাশবোর্ড</a></li>
+    <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>
     <li class="breadcrumb-item"><a href="{{ route('admin.users') }}">ইউজার ম্যানেজমেন্ট</a></li>
     <li class="breadcrumb-item active">নিরাপত্তা ও ওয়ানটাইম পাসওয়ার্ড</li>
 @endsection
 
 @section('actions')
-    <div class="d-flex gap-2 flex-wrap">
+    <div class="d-flex align-items-center gap-2 flex-wrap">
         <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-bold shadow-xs" data-bs-toggle="modal" data-bs-target="#manualBlockIpModal">
             <i class="fas fa-ban me-1"></i> আইপি ব্লক
         </button>
@@ -371,7 +371,11 @@
                                     </td>
                                     <td class="text-end pe-4">
                                         <div class="d-flex align-items-center justify-content-end gap-1.5">
-                                            <form action="{{ route('admin.users.security.unblock-ip') }}" method="POST" class="d-inline" onsubmit="return confirm('আপনি কি এই আইপিটির ব্লক ও ভুল চেষ্টার কাউন্টার ক্লিন করতে চান?');">
+                                            <form action="{{ route('admin.users.security.unblock-ip') }}" method="POST" class="d-inline"
+                                                  data-confirm="আপনি কি এই আইপি ({{ $log->ip_address }}) এর নিরাপত্তা ব্লক ও ব্যর্থ লগইন কাউন্টার ক্লিন করে আনব্লক করতে চান?"
+                                                  data-confirm-title="আইপি আনব্লক ও সিকিউরিটি ক্লিন"
+                                                  data-confirm-icon="question"
+                                                  data-confirm-btn="<i class='fas fa-lock-open me-1'></i> হ্যাঁ, আনব্লক করুন">
                                                 @csrf
                                                 <input type="hidden" name="ip_address" value="{{ $log->ip_address }}">
                                                 <button type="submit" class="btn btn-sm btn-success rounded-pill px-3 fw-bold">

@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'লেখক রেজিস্ট্রেশন - ideaabd')
+@section('title', 'Author Registration — IDEA Publication')
 @section('content')
 @php $errors = $errors ?? new \Illuminate\Support\ViewErrorBag(); @endphp
 <div class="container py-5">
@@ -12,7 +12,8 @@
                             <i class="fas fa-pen-fancy text-white fs-4"></i>
                         </div>
                         <div>
-                            <h4 class="fw-bold mb-0" style="color:#198754">লেখক রেজিস্ট্রেশন</h4>
+                            <h4 class="fw-bold mb-0" style="color:#198754">Author Registration</h4>
+                            <small class="text-muted">Publish books, e-books, and articles</small>
                         </div>
                     </div>
                 </div>
@@ -30,151 +31,140 @@
                     <form method="POST" action="{{ route('register.submit', 'author') }}" enctype="multipart/form-data" id="authorRegForm">
                         @csrf
                         
-                        {{-- ══ AUTHOR PROFILE PHOTO CIRCULAR PREVIEW & ZOOM ADJUSTER ══ --}}
+                        {{-- Profile Photo Upload & Zoom Adjuster --}}
                         <div class="mb-4 p-3.5 bg-light rounded-4 border">
                             <div class="d-flex align-items-center justify-content-between mb-3">
                                 <label class="form-label fw-bold text-dark mb-0">
-                                    <i class="fas fa-camera text-success me-1"></i> লেখকের ছবি / প্রোফাইল ফটো
+                                    <i class="fas fa-camera text-success me-1"></i> Profile Photo
                                 </label>
                                 <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1" style="font-size: 11px;">
-                                    <i class="fa-solid fa-wand-magic-sparkles me-1"></i> অটো .avif অপ্টিমাইজড
+                                    <i class="fa-solid fa-wand-magic-sparkles me-1"></i> Auto-Optimized
                                 </span>
                             </div>
 
                             <div class="row g-3 align-items-center">
                                 <div class="col-12 col-md-4 text-center">
-                                    {{-- Fixed 150x150 Circular Avatar Frame (Clickable for Instant Upload) --}}
                                     <div class="position-relative mx-auto border border-3 border-success shadow-sm bg-light cursor-pointer avatar-upload-circle" 
-                                         style="width: 150px; height: 150px; min-width: 150px; min-height: 150px; max-width: 150px; max-height: 150px; border-radius: 50% !important; overflow: hidden !important; -webkit-mask-image: -webkit-radial-gradient(white, black); box-sizing: border-box; cursor: pointer;" 
+                                         style="width: 140px; height: 140px; min-width: 140px; min-height: 140px; border-radius: 50% !important; overflow: hidden !important; cursor: pointer;" 
                                          id="avatarPreviewContainer"
                                          onclick="document.getElementById('authorAvatarInput').click()"
-                                         title="ছবি আপলোড করতে ক্লিক করুন">
+                                         title="Click to upload photo">
                                         
-                                        {{-- Only this image scales inside the circular mask --}}
                                         <img id="authorAvatarLivePreview" src="" alt="Author Avatar Preview" 
                                              class="d-none" 
-                                             style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; transform-origin: center center; transition: transform 0.05s ease-out;">
+                                             style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; transform-origin: center center;">
 
-                                        {{-- Hover Overlay on Image --}}
                                         <div id="avatarHoverOverlay" class="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center text-white bg-dark bg-opacity-50 opacity-0 transition-opacity" style="transition: opacity 0.2s ease; border-radius: 50%; pointer-events: none;">
                                             <i class="fas fa-camera fs-4 mb-1"></i>
-                                            <span style="font-size: 11px;" class="fw-semibold">পরিবর্তন করুন</span>
+                                            <span style="font-size: 11px;" class="fw-semibold">Change</span>
                                         </div>
 
-                                        {{-- Initial Placeholder --}}
                                         <div id="authorAvatarPlaceholder" class="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center text-muted p-2 bg-light" style="border-radius: 50%; pointer-events: none;">
                                             <i class="fas fa-cloud-arrow-up text-success fs-2 mb-1"></i>
-                                            <span style="font-size: 12px;" class="fw-semibold text-dark">ছবি আপলোড</span>
-                                            <span style="font-size: 10.5px;" class="text-muted">ক্লিক করে নির্বাচন করুন</span>
+                                            <span style="font-size: 12px;" class="fw-semibold text-dark">Upload</span>
+                                            <span style="font-size: 10.5px;" class="text-muted">Click to select</span>
                                         </div>
                                     </div>
 
                                     <div id="photoStatusBadge" class="mt-2 text-success small fw-semibold" style="display: none; font-size: 11.5px;">
-                                        <i class="fas fa-circle-check text-success me-1"></i> ছবি যুক্ত হয়েছে
+                                        <i class="fas fa-circle-check text-success me-1"></i> Photo selected
                                     </div>
 
-                                    {{-- Hidden Input to hold Base64 data if needed --}}
                                     <input type="hidden" name="avatar_cropped" id="authorAvatarCropped">
                                 </div>
 
                                 <div class="col-12 col-md-8">
                                     <div class="mb-2">
-                                        <label for="authorAvatarInput" class="form-label small fw-semibold text-secondary mb-1">ডিভাইস থেকে ছবি আপলোড করুন:</label>
+                                        <label for="authorAvatarInput" class="form-label small fw-semibold text-secondary mb-1">Upload Photo File:</label>
                                         <input type="file" name="avatar" id="authorAvatarInput" 
-                                               accept="image/jpeg,image/png,image/jpg,image/webp,image/avif" 
+                                               accept="image/jpeg,image/png,image/jpg,image/webp" 
                                                class="form-control rounded-3 @error('avatar') is-invalid @enderror"
                                                onchange="handleAuthorPhotoUpload(this)">
                                         @error('avatar')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                                     </div>
 
-                                    {{-- Zoom / Size Adjustment Slider Bar --}}
                                     <div id="photoZoomControls" class="p-2.5 bg-white rounded-3 border mt-2 shadow-2xs" style="display: none;">
                                         <div class="d-flex align-items-center justify-content-between mb-1.5" style="font-size: 11.5px;">
                                             <span class="text-secondary fw-semibold">
-                                                <i class="fas fa-magnifying-glass-plus text-success me-1"></i> ছবি ছোট / বড় অ্যাডজাস্ট:
+                                                <i class="fas fa-magnifying-glass-plus text-success me-1"></i> Zoom / Scale:
                                             </span>
                                             <span class="badge bg-success-subtle text-success border border-success-subtle font-monospace" id="photoZoomBadge">100%</span>
                                         </div>
                                         <div class="d-flex align-items-center gap-2">
-                                            <button type="button" class="btn btn-sm btn-light border rounded-circle p-0 d-flex align-items-center justify-content-center" style="width:26px;height:26px;" onclick="adjustAvatarZoom(-0.1)" title="ছোট করুন">
+                                            <button type="button" class="btn btn-sm btn-light border rounded-circle p-0 d-flex align-items-center justify-content-center" style="width:26px;height:26px;" onclick="adjustAvatarZoom(-0.1)" title="Zoom Out">
                                                 <i class="fa-solid fa-minus text-secondary" style="font-size:10px;"></i>
                                             </button>
                                             <input type="range" class="form-range flex-grow-1" id="avatarZoomSlider" min="1.0" max="3.0" step="0.05" value="1.0" oninput="onAvatarZoomSlider(this.value)">
-                                            <button type="button" class="btn btn-sm btn-light border rounded-circle p-0 d-flex align-items-center justify-content-center" style="width:26px;height:26px;" onclick="adjustAvatarZoom(0.1)" title="বড় করুন">
+                                            <button type="button" class="btn btn-sm btn-light border rounded-circle p-0 d-flex align-items-center justify-content-center" style="width:26px;height:26px;" onclick="adjustAvatarZoom(0.1)" title="Zoom In">
                                                 <i class="fa-solid fa-plus text-secondary" style="font-size:10px;"></i>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-2 py-0.5" style="font-size: 11px;" onclick="resetAvatarZoom()">
-                                                রিসেট
+                                                Reset
                                             </button>
                                         </div>
                                     </div>
 
                                     <div id="photoActionButtons" class="d-flex align-items-center gap-2 mt-2" style="display: none !important;">
                                         <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-3 py-1" onclick="removeAuthorPhoto()">
-                                            <i class="fas fa-trash-can me-1"></i> ছবি মুছুন / পরিবর্তন
+                                            <i class="fas fa-trash-can me-1"></i> Remove Photo
                                         </button>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        {{-- ══ AUTHOR NAME (BANGLA) & AUTHOR NAME (ENGLISH) ══ --}}
+                        {{-- Author Name Fields --}}
                         <div class="row g-3 mb-3">
                             <div class="col-12 col-md-6">
-                                <label class="form-label fw-semibold">Author Name (bangla) <span class="text-danger">*</span></label>
+                                <label class="form-label fw-semibold">Author Name (Bengali) <span class="text-danger">*</span></label>
                                 <input type="text" name="name_bn" class="form-control rounded-3 @error('name_bn') is-invalid @enderror"
-                                       value="{{ old('name_bn', old('name')) }}" required placeholder="Author Name in Bengali (e.g. হুমায়ূন আহমেদ)">
-                                <div class="form-text small text-muted" style="font-size: 11px;"><i class="fa-solid fa-circle-info text-primary me-1"></i> (এই নামটা ব্লগ ও বইয়ে শো করবে)</div>
+                                       value="{{ old('name_bn', old('name')) }}" required placeholder="e.g. হুমায়ূন আহমেদ">
                                 @error('name_bn')<div class="invalid-feedback">{{ $message }}</div>@enderror
                             </div>
                             <div class="col-12 col-md-6">
-                                <label class="form-label fw-semibold">Author Name (english) <span class="text-danger">*</span></label>
+                                <label class="form-label fw-semibold">Author Name (English) <span class="text-danger">*</span></label>
                                 <input type="text" name="name_en" class="form-control rounded-3 @error('name_en') is-invalid @enderror"
-                                       value="{{ old('name_en') }}" required placeholder="Author Name in English (e.g. Humayun Ahmed)">
-                                <div class="form-text small text-muted" style="font-size: 11px;"><i class="fa-solid fa-globe text-primary me-1"></i> Author name in English for profile and web address.</div>
+                                       value="{{ old('name_en') }}" required placeholder="e.g. Humayun Ahmed">
                                 @error('name_en')<div class="invalid-feedback">{{ $message }}</div>@enderror
                             </div>
                         </div>
 
-                        {{-- ══ FULL NAME & MOBILE NO (UID) ══ --}}
+                        {{-- Full Name & Mobile --}}
                         <div class="row g-3 mb-3">
                             <div class="col-12 col-md-6">
-                                <label class="form-label fw-semibold">Full Name:</label>
+                                <label class="form-label fw-semibold">Official Full Name <span class="badge bg-light text-muted border">Optional</span></label>
                                 <input type="text" name="full_name" class="form-control rounded-3 @error('full_name') is-invalid @enderror"
-                                       value="{{ old('full_name') }}" placeholder="Full Name (Official / NID)">
-                                <div class="form-text small text-muted" style="font-size: 11px;"><i class="fa-solid fa-id-card text-muted me-1"></i> Official identity / NID name.</div>
+                                       value="{{ old('full_name') }}" placeholder="As per National ID / Passport">
                                 @error('full_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                             </div>
                             <div class="col-12 col-md-6">
-                                <label class="form-label fw-semibold">Mobile No (uid) <span class="text-danger">*</span>:</label>
+                                <label class="form-label fw-semibold">Mobile No <span class="text-danger">*</span></label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-phone text-success"></i></span>
                                     <input type="tel" name="phone" class="form-control rounded-end-3 @error('phone') is-invalid @enderror"
                                            value="{{ old('phone') }}" required placeholder="01XXXXXXXXX">
                                 </div>
-                                <div class="form-text small text-muted" style="font-size: 11px;"><i class="fa-solid fa-shield-check text-success me-1"></i> This mobile number will be your login User ID (UID).</div>
                                 @error('phone')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                             </div>
                         </div>
 
-                        {{-- ══ EMAIL ══ --}}
+                        {{-- Email --}}
                         <div class="mb-3">
-                            <label class="form-label fw-semibold">Email <span class="text-danger">*</span>:</label>
+                            <label class="form-label fw-semibold">Email <span class="text-danger">*</span></label>
                             <div class="input-group">
                                 <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-envelope text-primary"></i></span>
                                 <input type="email" name="email" class="form-control rounded-end-3 @error('email') is-invalid @enderror"
-                                       value="{{ old('email') }}" required placeholder="yourname@gmail.com">
+                                       value="{{ old('email') }}" required placeholder="author@example.com">
                             </div>
-                            <div class="form-text small text-muted" style="font-size: 11px;"><i class="fa-solid fa-circle-info text-primary me-1"></i> Account approval, security and royalty notifications will be sent here.</div>
                             @error('email')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                         </div>
 
-                        {{-- ══ PASSWORD & PASSWORD RETYPE ══ --}}
+                        {{-- Password & Confirm Password --}}
                         <div class="row g-3 mb-3">
                             <div class="col-12 col-md-6">
-                                <label class="form-label fw-semibold">Password <span class="text-danger">*</span>: <small class="text-muted fw-normal">(Minimum 8 characters)</small></label>
+                                <label class="form-label fw-semibold">Password <span class="text-danger">*</span></label>
                                 <div class="input-group">
-                                    <input type="password" name="password" id="authorRegPassword" class="form-control rounded-start-3 @error('password') is-invalid @enderror" required minlength="8" maxlength="50" placeholder="Minimum 8 characters" oninput="checkPasswordStrength(this.value, 'authorPwdStrengthBar', 'authorPwdStrengthText')">
+                                    <input type="password" name="password" id="authorRegPassword" class="form-control rounded-start-3 @error('password') is-invalid @enderror" required minlength="8" maxlength="25" placeholder="Min 8 characters & symbol" oninput="checkPasswordStrength(this.value, 'authorPwdStrengthBar', 'authorPwdStrengthText')">
                                     <button type="button" class="btn btn-outline-secondary rounded-end-3" onclick="togglePasswordVisibility('authorRegPassword', this)" title="Show/Hide Password">
                                         <i class="fa-regular fa-eye"></i>
                                     </button>
@@ -182,9 +172,9 @@
                                 @error('password')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                             </div>
                             <div class="col-12 col-md-6">
-                                <label class="form-label fw-semibold">Password Retype <span class="text-danger">*</span>:</label>
+                                <label class="form-label fw-semibold">Confirm Password <span class="text-danger">*</span></label>
                                 <div class="input-group">
-                                    <input type="password" name="password_confirmation" id="authorRegPasswordConfirm" class="form-control rounded-start-3" required minlength="8" maxlength="50" placeholder="Retype your password">
+                                    <input type="password" name="password_confirmation" id="authorRegPasswordConfirm" class="form-control rounded-start-3" required minlength="8" maxlength="25" placeholder="Retype password">
                                     <button type="button" class="btn btn-outline-secondary rounded-end-3" onclick="togglePasswordVisibility('authorRegPasswordConfirm', this)" title="Show/Hide Password">
                                         <i class="fa-regular fa-eye"></i>
                                     </button>
@@ -202,48 +192,45 @@
 
                         <hr class="my-4">
 
-                        {{-- ══ SECTION: INFORMATION ══ --}}
-                        <h5 class="fw-bold text-dark mb-3 pb-2 border-bottom d-flex align-items-center gap-2">
+                        {{-- Identity & Document Information --}}
+                        <h6 class="fw-bold text-dark mb-3 pb-2 border-bottom d-flex align-items-center gap-2">
                             <i class="fas fa-file-lines text-success"></i>
-                            <span>Information</span>
-                        </h5>
+                            <span>Verification & Documents</span>
+                        </h6>
 
                         <div class="row g-3 mb-3">
-                            {{-- Nid No --}}
                             <div class="col-12 col-md-6">
-                                <label class="form-label fw-semibold">Nid No:</label>
+                                <label class="form-label fw-semibold">National ID / Passport No <span class="badge bg-light text-muted border">Optional</span></label>
                                 <input type="text" name="nid" class="form-control rounded-3 @error('nid') is-invalid @enderror font-monospace" 
-                                       value="{{ old('nid') }}" placeholder="National ID / Passport No (Optional)">
+                                       value="{{ old('nid') }}" placeholder="NID or Passport number">
                                 @error('nid')<div class="invalid-feedback">{{ $message }}</div>@enderror
                             </div>
 
-                            {{-- Nid upload --}}
                             <div class="col-12 col-md-6">
-                                <label class="form-label fw-semibold">Nid upload:</label>
+                                <label class="form-label fw-semibold">Document Copy <span class="badge bg-light text-muted border">Optional</span></label>
                                 <input type="file" name="nid_file" class="form-control rounded-3 @error('nid_file') is-invalid @enderror" 
                                        accept="image/jpeg,image/png,image/jpg,image/webp,application/pdf">
-                                <div class="form-text small text-muted" style="font-size: 11px;"><i class="fa-solid fa-file-arrow-up text-primary me-1"></i> Upload NID / Passport copy (JPG, PNG, PDF).</div>
                                 @error('nid_file')<div class="invalid-feedback">{{ $message }}</div>@enderror
                             </div>
                         </div>
 
-                        {{-- ══ WRITING TOPICS ══ --}}
+                        {{-- Writing Topics --}}
                         <div class="mb-4 p-3.5 bg-light rounded-4 border">
                             <label class="form-label fw-bold text-dark d-block mb-3 fs-6">
-                                <i class="fa-solid fa-tags text-success me-1.5"></i> Writing Topics:
+                                <i class="fa-solid fa-tags text-success me-1.5"></i> Writing Topics & Genres:
                             </label>
 
                             @php
                                 $presetGenres = [
-                                    'কথাসাহিত্য'   => 'fa-book-open',
-                                    'কবিতা'        => 'fa-feather',
-                                    'ছড়া'          => 'fa-music',
-                                    'প্রবন্ধ'       => 'fa-file-lines',
-                                    'গবেষণা'      => 'fa-microscope',
-                                    'ভ্রমণগদ্য'     => 'fa-compass',
-                                    'অনুবাদ'       => 'fa-language',
-                                    'সায়েন্সফিকশন'  => 'fa-rocket',
-                                    'অন্যান্য'      => 'fa-ellipsis',
+                                    'কথাসাহিত্য'   => ['icon' => 'fa-book-open', 'en' => 'Fiction / Novel'],
+                                    'কবিতা'        => ['icon' => 'fa-feather', 'en' => 'Poetry'],
+                                    'ছড়া'          => ['icon' => 'fa-music', 'en' => 'Rhymes'],
+                                    'প্রবন্ধ'       => ['icon' => 'fa-file-lines', 'en' => 'Essays / Articles'],
+                                    'গবেষণা'      => ['icon' => 'fa-microscope', 'en' => 'Research'],
+                                    'ভ্রমণগদ্য'     => ['icon' => 'fa-compass', 'en' => 'Travelogue'],
+                                    'অনুবাদ'       => ['icon' => 'fa-language', 'en' => 'Translation'],
+                                    'সায়েন্সফিকশন'  => ['icon' => 'fa-rocket', 'en' => 'Sci-Fi'],
+                                    'অন্যান্য'      => ['icon' => 'fa-ellipsis', 'en' => 'Others'],
                                 ];
                                 $oldGenres = old('genres', []);
                                 if (is_string(old('genre')) && !empty(old('genre'))) {
@@ -253,20 +240,20 @@
                             @endphp
 
                             <div class="row g-2.5" id="genreCheckboxGrid">
-                                @foreach($presetGenres as $genreName => $icon)
-                                    @php $isChecked = in_array($genreName, $oldGenres); @endphp
+                                @foreach($presetGenres as $genreKey => $meta)
+                                    @php $isChecked = in_array($genreKey, $oldGenres) || in_array($meta['en'], $oldGenres); @endphp
                                     <div class="col-6 col-md-4">
                                         <label class="genre-card-pill d-flex align-items-center justify-content-between p-2.5 rounded-3 border bg-white cursor-pointer w-100 position-relative shadow-2xs {{ $isChecked ? 'active-genre-card' : '' }}" 
                                                style="cursor: pointer; user-select: none; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);" for="genre_{{ $loop->index }}">
                                             <div class="d-flex align-items-center gap-2 overflow-hidden">
                                                 <div class="genre-icon-box rounded-circle d-flex align-items-center justify-content-center {{ $isChecked ? 'bg-success text-white' : 'bg-light text-secondary' }}" 
                                                      style="width: 30px; height: 30px; min-width: 30px; font-size: 12px; transition: all 0.2s ease;">
-                                                    <i class="fa-solid {{ $icon }}"></i>
+                                                    <i class="fa-solid {{ $meta['icon'] }}"></i>
                                                 </div>
-                                                <span class="genre-text fw-semibold text-truncate {{ $isChecked ? 'text-success' : 'text-dark' }}" style="font-size: 13.5px;">{{ $genreName }}</span>
+                                                <span class="genre-text fw-semibold text-truncate {{ $isChecked ? 'text-success' : 'text-dark' }}" style="font-size: 13px;">{{ $meta['en'] }}</span>
                                             </div>
                                             <div class="genre-check-indicator ms-1 flex-shrink-0">
-                                                <input type="checkbox" name="genres[]" value="{{ $genreName }}" id="genre_{{ $loop->index }}" 
+                                                <input type="checkbox" name="genres[]" value="{{ $genreKey }}" id="genre_{{ $loop->index }}" 
                                                        class="genre-checkbox d-none" {{ $isChecked ? 'checked' : '' }} onchange="toggleGenreChip(this)">
                                                 <span class="badge-tick rounded-2 d-flex align-items-center justify-content-center {{ $isChecked ? 'bg-success text-white border-success' : 'border border-secondary-subtle text-transparent bg-white' }}" 
                                                       style="width: 20px; height: 20px; font-size: 10.5px; transition: all 0.2s ease;">
@@ -278,48 +265,46 @@
                                 @endforeach
                             </div>
 
-                            {{-- Other Genre Write-in Box --}}
                             <div class="mt-3" id="otherGenreInputWrap" style="{{ in_array('অন্যান্য', $oldGenres) ? '' : 'display:none;' }}">
                                 <input type="text" name="genre_other" id="genre_other" class="form-control rounded-3" 
-                                       placeholder="Other Writing Topics..." value="{{ old('genre_other') }}">
+                                       placeholder="Specify other topics..." value="{{ old('genre_other') }}">
                             </div>
 
-                            {{-- Legacy single genre string hidden input fallback --}}
                             <input type="hidden" name="genre" id="genreCombinedInput" value="{{ old('genre') }}">
                         </div>
 
-                        {{-- ══ DYNAMIC BIO TEXTAREA ══ --}}
+                        {{-- Biography --}}
                         <div class="mb-4">
                             <div class="d-flex align-items-center justify-content-between mb-1.5">
                                 <label class="form-label fw-semibold text-dark mb-0">
-                                    <i class="fas fa-pen-nib text-success me-1"></i> Bio:
+                                    <i class="fas fa-pen-nib text-success me-1"></i> Biography (Bio) <span class="badge bg-light text-muted border">Optional</span>
                                 </label>
                                 <span class="badge bg-light text-secondary border font-monospace" id="bioCounterBadge" style="font-size: 11.5px;">0 / 500 words</span>
                             </div>
                             
-                            <textarea name="bio" id="authorBioInput" rows="9" 
+                            <textarea name="bio" id="authorBioInput" rows="6" 
                                       class="form-control rounded-3 p-3 @error('bio') is-invalid @enderror bio-textarea-dynamic"
-                                      style="min-height: 200px; height: 220px; font-size: 14.5px; line-height: 1.8; overflow-y: auto; resize: vertical;"
-                                      placeholder="Write author biography, background, published works, awards..."
+                                      style="min-height: 140px; font-size: 14px; line-height: 1.6;"
+                                      placeholder="Author background, published works, awards, education..."
                                       oninput="updateBioStats(this)">{{ old('bio') }}</textarea>
                             @error('bio')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                         </div>
 
-                        {{-- Submit Notice Banner --}}
-                        <div class="alert alert-success bg-success-subtle border-success-subtle text-success-emphasis small py-2.5 px-3 rounded-3 d-flex align-items-center gap-2 mb-3">
-                            <i class="fas fa-circle-check fs-5 text-success"></i>
+                        {{-- Notice Banner --}}
+                        <div class="alert alert-info bg-info-subtle border-info-subtle text-info-emphasis small py-2.5 px-3 rounded-3 d-flex align-items-center gap-2 mb-3">
+                            <i class="fas fa-circle-info fs-5 text-info"></i>
                             <span class="fw-semibold">
-                                Registration will be submitted for verification. If not activated within 24 hours, please contact support.
+                                Registration will be reviewed and activated within 24 hours.
                             </span>
                         </div>
 
-                        <button type="submit" class="btn w-100 py-3 fw-bold text-white rounded-pill shadow-sm" style="background:#198754; font-size: 15.5px;" id="authorSubmitBtn">
+                        <button type="submit" class="btn w-100 py-3 fw-bold text-white rounded-pill shadow-sm" style="background:#198754; font-size: 15px;" id="authorSubmitBtn">
                             <i class="fas fa-paper-plane me-1.5"></i> Submit Registration
                         </button>
                         
                         <p class="text-center mt-3 mb-0">
                             <a href="{{ route('register.choose') }}" class="text-muted small text-decoration-none">
-                                <i class="fa-solid fa-arrow-left me-1"></i> Other Account Types (Buyer / Publisher / Seller)
+                                <i class="fa-solid fa-arrow-left me-1"></i> Other Accounts (Buyer / Publisher / Seller)
                             </a>
                         </p>
                     </form>
@@ -330,7 +315,6 @@
 </div>
 
 <style>
-/* Avatar Upload Circle Clickable Styling */
 .avatar-upload-circle {
     transition: all 0.2s ease-in-out;
 }
@@ -343,7 +327,6 @@
     opacity: 1 !important;
 }
 
-/* Genre Cards Modern Styling */
 .genre-card-pill {
     border-color: #e2e8f0 !important;
     background: #ffffff;
@@ -369,24 +352,9 @@
     color: #ffffff !important;
 }
 
-/* Dynamic Bio Textarea Custom Scrollbar */
 .bio-textarea-dynamic {
     scrollbar-width: thin;
     scrollbar-color: #198754 #f1f5f9;
-}
-.bio-textarea-dynamic::-webkit-scrollbar {
-    width: 8px;
-}
-.bio-textarea-dynamic::-webkit-scrollbar-track {
-    background: #f1f5f9;
-    border-radius: 4px;
-}
-.bio-textarea-dynamic::-webkit-scrollbar-thumb {
-    background: #198754;
-    border-radius: 4px;
-}
-.bio-textarea-dynamic::-webkit-scrollbar-thumb:hover {
-    background: #157347;
 }
 </style>
 
@@ -399,7 +367,7 @@ function handleAuthorPhotoUpload(input) {
         const file = input.files[0];
         
         if (!file.type.startsWith('image/')) {
-            alert('অনুগ্রহ করে একটি ছবি ফাইল (JPG, PNG, WebP, AVIF) নির্বাচন করুন।');
+            alert('Please select an image file (JPG, PNG, WebP).');
             return;
         }
 
@@ -415,7 +383,6 @@ function handleAuthorPhotoUpload(input) {
         reader.onload = function(e) {
             const dataUri = e.target.result;
             
-            // Show image inside fixed circular frame
             if (previewImg) {
                 previewImg.src = dataUri;
                 previewImg.style.setProperty('display', 'block', 'important');
@@ -436,7 +403,6 @@ function handleAuthorPhotoUpload(input) {
                 zoomControls.style.display = 'block';
             }
             
-            // Reset zoom to 100%
             currentAvatarZoom = 1.0;
             if (slider) slider.value = 1;
             if (badge) badge.textContent = '100%';
@@ -495,7 +461,6 @@ function renderCroppedBase64() {
     const imgW = originalAvatarImg.naturalWidth || originalAvatarImg.width;
     const imgH = originalAvatarImg.naturalHeight || originalAvatarImg.height;
     
-    // Scale and crop centered
     const minDim = Math.min(imgW, imgH);
     const cropSize = minDim / currentAvatarZoom;
     const sx = (imgW - cropSize) / 2;
@@ -555,9 +520,6 @@ function removeAuthorPhoto() {
     }
 }
 
-/* =========================================================================
-   2. GENRE / WRITING TOPICS CHIP SELECTOR & TICK MARKS
-   ========================================================================= */
 function toggleGenreChip(checkbox) {
     const label = checkbox.closest('.genre-card-pill');
     const iconBox = label.querySelector('.genre-icon-box');
@@ -594,14 +556,12 @@ function toggleGenreChip(checkbox) {
         }
     }
 
-    // Toggle other genre input if "অন্যান্য" is checked
     const otherCheckbox = Array.from(document.querySelectorAll('.genre-checkbox')).find(c => c.value === 'অন্যান্য');
     const otherWrap = document.getElementById('otherGenreInputWrap');
     if (otherWrap && otherCheckbox) {
         otherWrap.style.display = otherCheckbox.checked ? 'block' : 'none';
     }
 
-    // Sync combined genres string
     syncCombinedGenres();
 }
 
@@ -619,24 +579,13 @@ function syncCombinedGenres() {
 
 document.getElementById('genre_other')?.addEventListener('input', syncCombinedGenres);
 
-/* =========================================================================
-   3. DYNAMIC BIO WORD / CHAR STATS & EXPANSION
-   ========================================================================= */
-function toBengaliNumber(num) {
-    const bnNums = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
-    return String(num).replace(/[0-9]/g, d => bnNums[d]);
-}
-
 function updateBioStats(textarea) {
     const text = textarea.value.trim();
     const words = text ? text.split(/\s+/).filter(Boolean).length : 0;
-    const chars = textarea.value.length;
-
     const badge = document.getElementById('bioCounterBadge');
-    const charSpan = document.getElementById('bioCharCount');
 
     if (badge) {
-        badge.textContent = `${toBengaliNumber(words)} / ${toBengaliNumber(500)} শব্দ`;
+        badge.textContent = `${words} / 500 words`;
         if (words > 500) {
             badge.className = 'badge bg-danger text-white border border-danger font-monospace';
         } else if (words >= 400) {
@@ -645,13 +594,8 @@ function updateBioStats(textarea) {
             badge.className = 'badge bg-light text-secondary border font-monospace';
         }
     }
-
-    if (charSpan) {
-        charSpan.textContent = `${toBengaliNumber(chars)} অক্ষর`;
-    }
 }
 
-// Initial bio stats sync on page load
 document.addEventListener('DOMContentLoaded', function() {
     const bioTextarea = document.getElementById('authorBioInput');
     if (bioTextarea && bioTextarea.value) {
@@ -659,9 +603,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-/* =========================================================================
-   4. PASSWORD UTILITIES & MINIMUM 8 CHARACTERS CHECK
-   ========================================================================= */
 function togglePasswordVisibility(inputId, btn) {
     const input = document.getElementById(inputId);
     const icon = btn.querySelector('i');
@@ -682,42 +623,40 @@ function checkPasswordStrength(password, barId, textId) {
     if (!password) {
         bar.style.width = '0%';
         bar.className = 'progress-bar bg-danger';
-        text.textContent = 'টাইপ করুন...';
+        text.textContent = 'Type password...';
         text.className = 'text-secondary';
         return;
     }
 
     let score = 0;
     if (password.length >= 8) score += 30;
-    if (password.length >= 10) score += 15;
     if (/[A-Z]/.test(password) && /[a-z]/.test(password)) score += 25;
-    if (/[0-9]/.test(password)) score += 15;
-    if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) score += 15;
+    if (/[0-9]/.test(password)) score += 25;
+    if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) score += 20;
 
     if (password.length < 8) {
         bar.style.width = '25%';
         bar.className = 'progress-bar bg-danger';
-        text.textContent = `অপূর্ণাঙ্গ (${toBengaliNumber(password.length)}/৮ অক্ষর — কমপক্ষে ৮ অক্ষর আবশ্যক)`;
+        text.textContent = `Weak (${password.length}/8 chars — min 8 required)`;
         text.className = 'text-danger fw-bold';
     } else if (score < 60) {
         bar.style.width = '55%';
         bar.className = 'progress-bar bg-warning';
-        text.textContent = 'মাঝারি (Medium)';
+        text.textContent = 'Medium';
         text.className = 'text-warning fw-bold';
     } else {
         bar.style.width = '100%';
         bar.className = 'progress-bar bg-success';
-        text.textContent = 'খুব শক্তিশালী (Strong)';
+        text.textContent = 'Strong';
         text.className = 'text-success fw-bold';
     }
 }
 
-// Form submit handler
 document.getElementById('authorRegForm')?.addEventListener('submit', function(e) {
     const pwdInput = document.getElementById('authorRegPassword');
     if (pwdInput && pwdInput.value.length < 8) {
         e.preventDefault();
-        alert('পাসওয়ার্ড কমপক্ষে ৮ অক্ষরের হতে হবে।');
+        alert('Password must be at least 8 characters long.');
         pwdInput.focus();
         return false;
     }
@@ -727,8 +666,9 @@ document.getElementById('authorRegForm')?.addEventListener('submit', function(e)
     const submitBtn = document.getElementById('authorSubmitBtn');
     if (submitBtn) {
         submitBtn.disabled = true;
-        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>আপনার তথ্য ও ছবি প্রসেসিং হচ্ছে...';
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Submitting registration...';
     }
 });
 </script>
 @endsection
+

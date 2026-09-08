@@ -63,10 +63,14 @@
                 </div>
 
                 @if($user->avatar)
-                    <form method="POST" action="{{ route('admin.profile.avatar.remove') }}" class="mt-3">
+                    <form method="POST" action="{{ route('admin.profile.avatar.remove') }}" class="mt-3"
+                          data-confirm="আপনি কি নিশ্চিত যে প্রোফাইল ছবি মুছে ফেলতে চান?"
+                          data-confirm-title="প্রোফাইল ছবি অপসারণ"
+                          data-confirm-icon="warning"
+                          data-confirm-btn="<i class='fas fa-trash-can me-1'></i> হ্যাঁ, মুছে ফেলুন">
                         @csrf
                         @method('DELETE')
-                        <button type="submit" class="btn btn-outline-danger btn-sm w-100 rounded-pill" onclick="return confirm('আপনি কি প্রোফাইল ছবি মুছে ফেলতে চান?');">
+                        <button type="submit" class="btn btn-outline-danger btn-sm w-100 rounded-pill">
                             <i class="fas fa-trash-can me-1"></i> ছবি মুছে ফেলুন
                         </button>
                     </form>
@@ -296,10 +300,14 @@
                                         <div class="p-3 bg-white border rounded shadow-xs mb-2 d-inline-block">
                                             <img src="{{ asset('storage/' . $user->reg_data['signature']) }}" alt="Signature" style="max-height: 90px; max-width: 220px;">
                                         </div>
-                                        <form method="POST" action="{{ route('admin.profile.signature.remove') }}">
+                                        <form method="POST" action="{{ route('admin.profile.signature.remove') }}"
+                                              data-confirm="আপনি কি ডিজিটাল স্বাক্ষর মুছে ফেলতে চান?"
+                                              data-confirm-title="স্বাক্ষর অপসারণ"
+                                              data-confirm-icon="warning"
+                                              data-confirm-btn="<i class='fas fa-trash-can me-1'></i> মুছে ফেলুন">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('আপনি কি ডিজিটাল স্বাক্ষর মুছে ফেলতে চান?');">
+                                            <button type="submit" class="btn btn-outline-danger btn-sm">
                                                 <i class="fas fa-trash-can me-1"></i>স্বাক্ষর মুছে ফেলুন
                                             </button>
                                         </form>
@@ -364,10 +372,14 @@
                             <h6 class="fw-bold text-dark mb-1"><i class="fas fa-laptop-code me-2 text-primary"></i>অন্যান্য ডিভাইস ও ব্রাউজার থেকে লগআউট</h6>
                             <p class="text-muted small mb-3">আপনি যদি অন্য কোনো কম্পিউটার বা মোবাইলে লগইন করা থাকেন, তবে এখান থেকে সমস্ত সেশন বাতিল করতে পারেন।</p>
                             
-                            <form method="POST" action="{{ route('admin.profile.logout-others') }}" class="d-flex flex-wrap gap-2">
+                            <form method="POST" action="{{ route('admin.profile.logout-others') }}" class="d-flex flex-wrap gap-2"
+                                  data-confirm="আপনি কি নিশ্চিত যে বর্তমান ডিভাইস ছাড়া অন্য সমস্ত ডিভাইস থেকে লগআউট করতে চান?"
+                                  data-confirm-title="অন্যান্য ডিভাইস থেকে লগআউট"
+                                  data-confirm-icon="warning"
+                                  data-confirm-btn="<i class='fas fa-right-from-bracket me-1'></i> হ্যাঁ, লগআউট অল">
                                 @csrf
                                 <input type="password" name="password" class="form-control form-control-sm" placeholder="নিশ্চিত করতে পাসওয়ার্ড দিন" required style="max-width: 250px;">
-                                <button type="submit" class="btn btn-sm btn-outline-dark" onclick="return confirm('আপনি কি নিশ্চিত যে অন্য সমস্ত ডিভাইস থেকে লগআউট করতে চান?');">
+                                <button type="submit" class="btn btn-sm btn-outline-dark">
                                     <i class="fas fa-right-from-bracket me-1"></i>লগআউট অল
                                 </button>
                             </form>

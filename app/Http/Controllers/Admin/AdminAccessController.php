@@ -14,6 +14,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
+use App\Models\AdminRole;
+use Illuminate\Http\JsonResponse;
+
 class AdminAccessController extends Controller
 {
     public function __construct(private readonly AdminAccessService $accessService)
@@ -21,34 +24,31 @@ class AdminAccessController extends Controller
     }
 
     /**
-     * View and manage role permissions matrix.
+     * View and manage Enterprise Role & Permission IAM Hub.
      */
-    public function rolesPermissions(): View
+    public function rolesPermissions(Request $request): View
     {
-        $permissions = Schema::hasTable('admin_permissions')
-            ? AdminPermission::all()->groupBy('module')
-            : collect();
+        abort_unless(auth()->user() && auth()->user()->isAdmin(), 403, 'এই সিকিউরিটি ও আইএএম কন্ট্রোল হাবটি শুধুমাত্র একক মূল সুপার অ্যাডমিনের এখতিয়ারাধীন।');
 
-        $rolePermissions = [];
-        if (Schema::hasTable('role_has_permissions')) {
-            $raw = DB::table('role_has_permissions')->get();
-            foreach ($raw as $row) {
-                $rolePermissions[$row->role][] = $row->permission_id;
-            }
-        }
+        $stats = $this->accessService->getIamSummaryStats();
+        $roles = $this->accessService->getAllRoles();
+        $permissions = $this->accessService->getPermissionsGrouped();
+        $rolePermissions = $this->accessService->getRolePermissionsMap();
+        $staffUsers = $this->accessService->getStaffUsers($request);
+        $recentLogs = $this->accessService->recentLogs(30);
 
-        $roles = [
-            'admin'     => 'সাইট অ্যাডমিন (Super Admin)',
-            'sub_admin' => 'সাব-অ্যাডমিন (Sub Admin)',
-            'manager'   => 'ম্যানেজার (Manager)',
-            'seller'    => 'সেলার (Seller)',
-        ];
-
-        return view('admin.roles-permissions', compact('permissions', 'rolePermissions', 'roles'));
+        return view('admin.roles-permissions', compact(
+            'stats',
+            'roles',
+            'permissions',
+            'rolePermissions',
+            'staffUsers',
+            'recentLogs'
+        ));
     }
 
     /**
-     * Update permissions assigned to roles.
+     * Update permissions assigned to roles across the full matrix.
      */
     public function updatePermissions(Request $request): RedirectResponse
     {
@@ -56,29 +56,223 @@ class AdminAccessController extends Controller
             'permissions' => 'nullable|array',
         ]);
 
-        if (! Schema::hasTable('role_has_permissions')) {
-            return back()->with('error', 'পারমিশন টেবিল মাইগ্রেট করা হয়নি।');
+        $this->accessService->syncMatrix($data['permissions'] ?? []);
+
+        return back()->with('success', 'রোল ও পারমিশন ম্যাট্রিক্স সফলভাবে আপডেট ও সিঙ্ক করা হয়েছে!');
+    }
+
+    /**
+     * Create a new custom role.
+     */
+    public function storeRole(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'name'        => 'required|string|max:100',
+            'slug'        => 'nullable|string|max:60|unique:admin_roles,slug',
+            'department'  => 'required|string|max:100',
+            'badge_color' => 'nullable|string|max:30',
+            'icon'        => 'nullable|string|max:60',
+            'description' => 'nullable|string|max:500',
+            'permissions' => 'nullable|array',
+        ], [], [
+            'name'        => 'রোলের নাম',
+            'slug'        => 'রোল স্লাগ',
+            'department'  => 'বিভাগ',
+            'badge_color' => 'ব্যাজ কালার',
+            'icon'        => 'আইকন',
+            'description' => 'বিবরণ',
+        ]);
+
+        $role = $this->accessService->createRole($data);
+
+        return back()->with('success', "নতুন কাস্টম রোল '{$role->name}' সফলভাবে তৈরি করা হয়েছে!");
+    }
+
+    /**
+     * Update an existing custom role.
+     */
+    public function updateRole(Request $request, AdminRole $role): RedirectResponse
+    {
+        $data = $request->validate([
+            'name'        => 'required|string|max:100',
+            'department'  => 'required|string|max:100',
+            'badge_color' => 'nullable|string|max:30',
+            'icon'        => 'nullable|string|max:60',
+            'description' => 'nullable|string|max:500',
+            'is_active'   => 'nullable|boolean',
+        ]);
+
+        $this->accessService->updateRole($role->id, $data);
+
+        return back()->with('success', "রোল '{$role->name}' সফলভাবে আপডেট করা হয়েছে!");
+    }
+
+    /**
+     * Clone an existing role.
+     */
+    public function cloneRole(Request $request, AdminRole $role): RedirectResponse
+    {
+        $request->validate([
+            'new_name' => 'required|string|max:100',
+        ]);
+
+        $cloned = $this->accessService->cloneRole($role->id, $request->string('new_name')->trim()->value());
+
+        return back()->with('success', "রোলটি সফলভাবে ক্লোন করা হয়েছে: '{$cloned->name}'!");
+    }
+
+    /**
+     * Delete a custom role.
+     */
+    public function deleteRole(AdminRole $role): RedirectResponse
+    {
+        try {
+            $this->accessService->deleteRole($role->id);
+            return back()->with('success', 'কাস্টম রোলটি সফলভাবে মুছে ফেলা হয়েছে!');
+        } catch (\Throwable $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+
+    /**
+     * Get JSON inspector data for user direct permissions modal.
+     */
+    public function userPermissionsInspector(User $user): JsonResponse
+    {
+        $data = $this->accessService->getUserPermissionInspector($user);
+
+        return response()->json([
+            'success' => true,
+            'data'    => $data,
+        ]);
+    }
+
+    /**
+     * Save direct user permission overrides (Grant / Deny).
+     */
+    public function updateUserDirectPermissions(Request $request, User $user): RedirectResponse
+    {
+        $grants = array_filter(array_map('intval', (array) $request->input('grants', [])));
+        $denies = array_filter(array_map('intval', (array) $request->input('denies', [])));
+
+        $this->accessService->syncUserDirectPermissions($user->id, $grants, $denies);
+
+        return back()->with('success', "কর্মী '{$user->name}' এর স্পেশাল পারমিশন ওভাররাইড সফলভাবে সংরক্ষিত হয়েছে!");
+    }
+
+    /**
+     * Toggle staff account active/suspended state.
+     */
+    public function toggleStaffStatus(User $user): RedirectResponse
+    {
+        $updated = $this->accessService->toggleStaffStatus($user->id);
+
+        return back()->with('success', $updated->is_active
+            ? "কর্মী '{$user->name}' এর অ্যাকাউন্ট সক্রিয় (Active) করা হয়েছে।"
+            : "কর্মী '{$user->name}' এর অ্যাকাউন্ট সাময়িকভাবে স্থগিত (Suspended) করা হয়েছে।");
+    }
+
+    /**
+     * Terminate all active sessions for a staff member.
+     */
+    public function terminateStaffSessions(User $user): RedirectResponse
+    {
+        $this->accessService->terminateStaffSessions($user->id);
+
+        return back()->with('success', "কর্মী '{$user->name}' এর সকল ব্রাউজার সেশন ও লগইন বাতিল (ফোর্স লগআউট) করা হয়েছে!");
+    }
+
+    /**
+     * Toggle force password reset on next login.
+     */
+    public function forceStaffPasswordReset(User $user): RedirectResponse
+    {
+        $updated = $this->accessService->forcePasswordReset($user->id);
+
+        return back()->with('success', $updated->force_password_reset
+            ? "কর্মী '{$user->name}' এর পরবর্তী লগইনে পাসওয়ার্ড পরিবর্তন বাধ্যতামূলক করা হয়েছে।"
+            : "কর্মী '{$user->name}' এর পাসওয়ার্ড রিসেট বাধ্যবাধকতা তুলে নেওয়া হয়েছে।");
+    }
+
+    /**
+     * Update staff member assigned role and optional IP whitelist.
+     */
+    public function updateStaffRole(Request $request, User $user): RedirectResponse
+    {
+        $data = $request->validate([
+            'custom_role_id' => 'nullable|integer',
+            'role'           => 'nullable|string|max:60',
+            'ip_whitelist'   => 'nullable|string|max:255',
+        ]);
+
+        $this->accessService->updateStaffRoleAndSecurity($user->id, $data);
+
+        return back()->with('success', "কর্মী '{$user->name}' এর রোল ও সিকিউরিটি কনফিগারেশন আপডেট করা হয়েছে!");
+    }
+
+    /**
+     * Appoint / assign any user (registered applicant/buyer/staff) to ANY role.
+     */
+    public function assignUserRole(Request $request, User $user)
+    {
+        abort_unless(auth()->user() && auth()->user()->isAdmin(), 403, 'শুধুমাত্র মূল সুপার অ্যাডমিন যে কাউকেই যেকোনো পদে পদায়ন বা নিয়োগ দিতে পারেন।');
+
+        $validated = $request->validate([
+            'role'           => 'required|string|max:60',
+            'custom_role_id' => 'nullable|integer',
+            'reg_status'     => 'nullable|string|in:pending,approved,rejected',
+            'is_active'      => 'nullable|boolean',
+            'notes'          => 'nullable|string|max:500',
+        ]);
+
+        $updatedUser = $this->accessService->assignUserRole(
+            $user->id,
+            $validated['role'],
+            !empty($validated['custom_role_id']) ? (int) $validated['custom_role_id'] : null,
+            $validated['reg_status'] ?? 'approved',
+            $request->has('is_active') ? $request->boolean('is_active') : true,
+            $validated['notes'] ?? null
+        );
+
+        $msg = "ব্যবহারকারী '{$updatedUser->name}' কে সফলভাবে '{$updatedUser->getRoleDisplayName()}' পদে পদায়ন ও নিয়োগ অনুমোদন করা হয়েছে!";
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => $msg,
+                'user'    => $updatedUser,
+                'role'    => $updatedUser->role,
+                'role_name' => $updatedUser->getRoleDisplayName(),
+            ]);
         }
 
-        DB::transaction(function () use ($data) {
-            DB::table('role_has_permissions')->truncate();
+        return back()->with('success', $msg);
+    }
 
-            $permissionsByRole = $data['permissions'] ?? [];
-            foreach ($permissionsByRole as $role => $permIds) {
-                foreach ((array) $permIds as $permId) {
-                    DB::table('role_has_permissions')->insert([
-                        'role'          => $role,
-                        'permission_id' => (int) $permId,
-                        'created_at'    => now(),
-                        'updated_at'    => now(),
-                    ]);
-                }
-            }
-        });
+    /**
+     * Revoke role and demote user back to general buyer.
+     */
+    public function revokeUserRole(Request $request, User $user)
+    {
+        abort_unless(auth()->user() && auth()->user()->isAdmin(), 403, 'শুধুমাত্র মূল সুপার অ্যাডমিন পদায়ন বাতিল করতে পারেন।');
 
-        $this->accessService->log('update_permissions', 'অ্যাডমিন রোল পারমিশন ম্যাট্রিক্স আপডেট করা হয়েছে');
+        $validated = $request->validate([
+            'reason' => 'nullable|string|max:500',
+        ]);
 
-        return back()->with('success', 'রোল ও পারমিশন সফলভাবে আপডেট করা হয়েছে!');
+        $updatedUser = $this->accessService->revokeUserRole($user->id, $validated['reason'] ?? null);
+
+        $msg = "ব্যবহারকারী '{$updatedUser->name}' এর পদায়ন বাতিল করে সাধারণ গ্রাহক (Buyer) করা হয়েছে!";
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => $msg,
+                'user'    => $updatedUser,
+            ]);
+        }
+
+        return back()->with('success', $msg);
     }
 
     /**

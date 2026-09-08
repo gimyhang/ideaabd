@@ -684,6 +684,70 @@ class AdminBackupController extends Controller
         return $out;
     }
 
+    /**
+     * Update automated backup configuration settings.
+     */
+    public function updateSettings(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'auto_backup_enabled' => 'nullable|boolean',
+            'backup_frequency'    => 'nullable|string|in:daily,weekly,monthly',
+            'backup_email'        => 'nullable|email',
+            'retention_days'      => 'nullable|integer|min:1|max:365',
+        ]);
+
+        if (Schema::hasTable('admin_dashboard_settings')) {
+            \App\Models\AdminDashboardSetting::updateOrCreate(
+                ['key' => 'backup_settings'],
+                ['value' => $validated]
+            );
+        }
+
+        $this->logAction('backup_settings_updated', 'স্বয়ংক্রিয় ডাটাবেজ ব্যাকআপ সেটিংস হালনাগাদ করা হয়েছে');
+
+        return redirect()->back()->with('success', 'স্বয়ংক্রিয় ব্যাকআপ সেটিংস সফলভাবে সংরক্ষিত হয়েছে।');
+    }
+
+    /**
+     * Send backup file to admin email address.
+     */
+    public function sendEmail(Request $request, string $filename): JsonResponse|RedirectResponse
+    {
+        $filename = basename($filename);
+        $filePath = $this->backupDir . DIRECTORY_SEPARATOR . $filename;
+
+        if (!File::exists($filePath)) {
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'ব্যাকআপ ফাইলটি পাওয়া যায়নি।'], 404);
+            }
+            return redirect()->back()->with('error', 'ব্যাকআপ ফাইলটি পাওয়া যায়নি।');
+        }
+
+        $recipientEmail = $request->input('email', config('mail.from.address', 'adideabd@gmail.com'));
+
+        try {
+            Mail::raw("আইডিয়া প্রকাশনের ডাটাবেজ ব্যাকআপ ফাইল '{$filename}' সংযুক্ত করা হয়েছে।", function ($message) use ($recipientEmail, $filePath, $filename) {
+                $message->to($recipientEmail)
+                    ->subject("Database Backup - {$filename}")
+                    ->attach($filePath);
+            });
+
+            $this->logAction('backup_emailed', "ব্যাকআপ ফাইল '{$filename}' {$recipientEmail} ঠিকানায় প্রেরণ করা হয়েছে");
+
+            if ($request->wantsJson()) {
+                return response()->json(['success' => true, 'message' => "ব্যাকআপ ফাইলটি সফলভাবে {$recipientEmail} ঠিকানায় পাঠানো হয়েছে।"]);
+            }
+            return redirect()->back()->with('success', "ব্যাকআপ ফাইলটি সফলভাবে {$recipientEmail} ঠিকানায় পাঠানো হয়েছে।");
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error("Backup email dispatch error: " . $e->getMessage());
+
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'ইমেইল পাঠাতে ব্যর্থ হয়েছে: ' . $e->getMessage()], 500);
+            }
+            return redirect()->back()->with('error', 'ইমেইল পাঠাতে ব্যর্থ হয়েছে: ' . $e->getMessage());
+        }
+    }
+
     private function logAction(string $action, string $details): void
     {
         if ($this->accessService) {

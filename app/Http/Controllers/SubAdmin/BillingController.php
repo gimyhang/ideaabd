@@ -538,6 +538,7 @@ class BillingController extends Controller
 
         return view('subadmin.billing.accounts', compact(
             'seller',
+            'targetSellerId',
             'totalSales',
             'paidSales',
             'unpaidDue',

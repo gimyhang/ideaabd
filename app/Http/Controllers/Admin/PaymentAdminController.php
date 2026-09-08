@@ -25,6 +25,8 @@ class PaymentAdminController extends Controller
      */
     public function index(Request $request): View
     {
+        abort_unless(auth()->user() && auth()->user()->isAdmin(), 403, 'পেমেন্ট গেটওয়ে মার্চেন্ট ক্রেডেনশিয়াল ও লেনদেন সিকিউরিটি শুধুমাত্র মূল একক সুপার অ্যাডমিনের এখতিয়ারভুক্ত।');
+
         // 1. Fetch Payment Gateways & Ecommerce Settings
         $settings = [];
         if (Schema::hasTable('admin_dashboard_settings')) {
@@ -210,6 +212,8 @@ class PaymentAdminController extends Controller
      */
     public function updateGateways(Request $request): RedirectResponse
     {
+        abort_unless(auth()->user() && auth()->user()->isAdmin(), 403, 'পেমেন্ট গেটওয়ে মার্চেন্ট ক্রেডেনশিয়াল আপডেট শুধুমাত্র মূল একক সুপার অ্যাডমিনের এখতিয়ারভুক্ত।');
+
         $validated = $request->validate([
             'payment_gateways' => 'required|array',
             'qr_codes'         => 'nullable|array',

@@ -439,4 +439,9 @@ class PaymentController extends Controller
     {
         return view('payment.fail');
     }
+
+    public function cancel()
+    {
+        return view('payment.fail')->with('error', 'পেমেন্ট বাতিল করা হয়েছে।');
+    }
 }

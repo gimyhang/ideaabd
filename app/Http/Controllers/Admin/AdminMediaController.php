@@ -109,23 +109,180 @@ class AdminMediaController extends Controller
         $file = $request->file('file');
 
         if ($file && $file->isValid()) {
+            $name = uniqid('media_', true) . '.' . $file->getClientOriginalExtension();
+
             if ($folder === 'banners' || $folder === 'settings') {
                 $targetDir = public_path('images/' . $folder);
                 if (!File::isDirectory($targetDir)) File::makeDirectory($targetDir, 0755, true);
-                $name = uniqid('media_', true) . '.' . $file->getClientOriginalExtension();
+                $destinationPath = $targetDir . '/' . $name;
                 $file->move($targetDir, $name);
             } else {
-                $file->store('settings/qrcodes', 'public');
+                $relPath = $file->storeAs('settings/qrcodes', $name, 'public');
+                $destinationPath = storage_path('app/public/' . $relPath);
             }
+
+            // Auto-optimize uploaded image
+            $this->optimizeImageFile($destinationPath);
 
             if ($this->accessService) {
-                $this->accessService->log('upload_media', "মিডিয়া লাইব্রেরিতে নতুন ছবি আপলোড করা হয়েছে");
+                $this->accessService->log('upload_media', "মিডিয়া লাইব্রেরিতে নতুন ছবি আপলোড ও অপ্টিমাইজ করা হয়েছে");
             }
 
-            return back()->with('success', 'ছবি সফলভাবে মিডিয়া লাইব্রেরিতে আপলোড করা হয়েছে!');
+            return back()->with('success', 'ছবি সফলভাবে মিডিয়া লাইব্রেরিতে আপলোড ও অপ্টিমাইজ করা হয়েছে!');
         }
 
         return back()->with('error', 'ফাইল আপলোড ব্যর্থ হয়েছে।');
+    }
+
+    /**
+     * Auto-Optimize All Existing Images in Library.
+     */
+    public function optimizeAll(Request $request)
+    {
+        $storagePublic = storage_path('app/public');
+        $publicImages = public_path('images');
+
+        $directories = [
+            $storagePublic . '/books/covers',
+            $publicImages . '/banners',
+            $publicImages . '/settings',
+            $storagePublic . '/settings/qrcodes',
+            $storagePublic . '/authors',
+            $publicImages,
+        ];
+
+        $optimizedCount = 0;
+        $totalBytesSaved = 0;
+
+        foreach ($directories as $dir) {
+            if (File::isDirectory($dir)) {
+                $files = File::files($dir);
+                foreach ($files as $file) {
+                    $ext = strtolower($file->getExtension());
+                    if (in_array($ext, ['jpg', 'jpeg', 'png', 'webp'])) {
+                        $beforeSize = $file->getSize();
+                        $saved = $this->optimizeImageFile($file->getPathname());
+                        if ($saved > 0) {
+                            $optimizedCount++;
+                            $totalBytesSaved += $saved;
+                        }
+                    }
+                }
+            }
+        }
+
+        $formattedSaved = $this->formatBytes($totalBytesSaved);
+
+        if ($this->accessService) {
+            $this->accessService->log('optimize_media', "মিডিয়া লাইব্রেরির {$optimizedCount}টি ছবি অপ্টিমাইজ করা হয়েছে (সাশ্রয়: {$formattedSaved})");
+        }
+
+        $msg = $optimizedCount > 0
+            ? "মোট {$optimizedCount}টি ছবি অপ্টিমাইজ সম্পন্ন হয়েছে! সর্বমোট {$formattedSaved} স্টোরেজ সাশ্রয় হয়েছে।"
+            : "সকল ছবি ইতোমধ্যে সর্বোচ্চ অপ্টিমাইজড অবস্থায় রয়েছে।";
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => $msg,
+                'count'   => $optimizedCount,
+                'saved'   => $formattedSaved,
+            ]);
+        }
+
+        return back()->with('success', $msg);
+    }
+
+    /**
+     * Optimize a single image file in place.
+     * Returns the number of bytes saved, or 0 if unchanged.
+     */
+    private function optimizeImageFile(string $filePath): int
+    {
+        if (!File::exists($filePath) || !extension_loaded('gd')) {
+            return 0;
+        }
+
+        $origSize = File::size($filePath);
+        $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+
+        if (!in_array($ext, ['jpg', 'jpeg', 'png', 'webp'])) {
+            return 0;
+        }
+
+        try {
+            $imageInfo = @getimagesize($filePath);
+            if (!$imageInfo) {
+                return 0;
+            }
+
+            $origWidth = $imageInfo[0];
+            $origHeight = $imageInfo[1];
+            $maxWidth = 1920;
+            $maxHeight = 1920;
+
+            // Load source image
+            $srcImage = match ($ext) {
+                'jpg', 'jpeg' => @imagecreatefromjpeg($filePath),
+                'png'         => @imagecreatefrompng($filePath),
+                'webp'        => @imagecreatefromwebp($filePath),
+                default       => null,
+            };
+
+            if (!$srcImage) {
+                return 0;
+            }
+
+            // Calculate resized dimensions if exceeding 1920px
+            $newWidth = $origWidth;
+            $newHeight = $origHeight;
+
+            if ($origWidth > $maxWidth || $origHeight > $maxHeight) {
+                $ratio = min($maxWidth / $origWidth, $maxHeight / $origHeight);
+                $newWidth = (int) round($origWidth * $ratio);
+                $newHeight = (int) round($origHeight * $ratio);
+            }
+
+            $targetImage = imagecreatetruecolor($newWidth, $newHeight);
+
+            // Handle transparency for PNG & WebP
+            if ($ext === 'png' || $ext === 'webp') {
+                imagealphablending($targetImage, false);
+                imagesavealpha($targetImage, true);
+                $transparent = imagecolorallocatealpha($targetImage, 255, 255, 255, 127);
+                imagefilledrectangle($targetImage, 0, 0, $newWidth, $newHeight, $transparent);
+            }
+
+            imagecopyresampled($targetImage, $srcImage, 0, 0, 0, 0, $newWidth, $newHeight, $origWidth, $origHeight);
+
+            // Save to a temporary file first
+            $tempPath = $filePath . '.tmp';
+            $saved = match ($ext) {
+                'jpg', 'jpeg' => imagejpeg($targetImage, $tempPath, 83),
+                'png'         => imagepng($targetImage, $tempPath, 8),
+                'webp'        => imagewebp($targetImage, $tempPath, 82),
+                default       => false,
+            };
+
+            imagedestroy($srcImage);
+            imagedestroy($targetImage);
+
+            if ($saved && File::exists($tempPath)) {
+                $newSize = File::size($tempPath);
+                // Keep the new file only if it is smaller or resized
+                if ($newSize < $origSize || $newWidth < $origWidth) {
+                    File::move($tempPath, $filePath);
+                    return max(0, $origSize - $newSize);
+                }
+                File::delete($tempPath);
+            }
+        } catch (\Throwable $e) {
+            if (isset($tempPath) && File::exists($tempPath)) {
+                @File::delete($tempPath);
+            }
+        }
+
+        return 0;
     }
 
     /**

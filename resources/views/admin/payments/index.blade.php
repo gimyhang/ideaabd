@@ -4,6 +4,7 @@
 @section('heading', 'পেমেন্ট গেটওয়ে, মোবাইল ব্যাংকিং ও লাইভ লেনদেন সেটিংস')
 
 @section('breadcrumb')
+    <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>
     <li class="breadcrumb-item active">পেমেন্ট গেটওয়ে ও লেনদেন সেটিংস</li>
 @endsection
 
@@ -1147,17 +1148,25 @@
 
     // Change payment status via dynamic form submission
     function changePaymentStatus(orderId, status) {
-        if (!confirm('আপনি কি এই অর্ডারের পেমেন্ট স্ট্যাটাস ' + status + ' করতে চান?')) return;
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = `/admin/payments/${orderId}/status`;
-        form.innerHTML = `
-            <input type="hidden" name="_token" value="{{ csrf_token() }}">
-            <input type="hidden" name="_method" value="PATCH">
-            <input type="hidden" name="payment_status" value="${status}">
-        `;
-        document.body.appendChild(form);
-        form.submit();
+        SwalConfirm({
+            title: 'পেমেন্ট স্ট্যাটাস পরিবর্তন',
+            text: 'আপনি কি এই অর্ডারের পেমেন্ট স্ট্যাটাস ' + status + ' করতে চান?',
+            icon: 'question',
+            confirmButtonText: '<i class="fas fa-check me-1"></i> হ্যাঁ, পরিবর্তন করুন',
+            cancelButtonText: '<i class="fas fa-times me-1"></i> বাতিল'
+        }).then(function(result) {
+            if (!result.isConfirmed) return;
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/admin/payments/${orderId}/status`;
+            form.innerHTML = `
+                <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="_method" value="PATCH">
+                <input type="hidden" name="payment_status" value="${status}">
+            `;
+            document.body.appendChild(form);
+            form.submit();
+        });
     }
 
     // Check tab query parameter on page load

@@ -2531,7 +2531,13 @@ class IdeaAccountingController extends Controller
         $query = IdeaEmployee::query()
             ->withCount('salaryPayments')
             ->withSum('salaryPayments', 'net_paid')
-            ->when($department, fn($q) => $q->where('department', $department))
+            ->when($department, function ($q, $dept) {
+                $q->where(function ($sub) use ($dept) {
+                    $sub->where('department', 'like', '%' . $dept . '%')
+                        ->orWhere('designation', 'like', '%' . $dept . '%')
+                        ->orWhere('skill_category', 'like', '%' . $dept . '%');
+                });
+            })
             ->when($employmentType, fn($q) => $q->where('employment_type', $employmentType))
             ->when($status, fn($q) => $q->where('status', $status))
             ->when($search, function ($q, $term) {

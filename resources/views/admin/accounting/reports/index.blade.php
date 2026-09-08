@@ -1,13 +1,32 @@
 @extends('layouts.admin')
 
 @section('title', 'আর্থিক হিসাব ও লাভ-ক্ষতি প্রতিবেদন (Financial & P&L Report) — আইডিয়া প্রকাশন')
+@section('heading', 'আর্থিক হিসাব ও লাভ-ক্ষতি প্রতিবেদন')
+
+@section('breadcrumb')
+    <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">ড্যাশবোর্ড</a></li>
+    <li class="breadcrumb-item"><a href="{{ route('admin.accounting.index') }}">Idea Accounting</a></li>
+    <li class="breadcrumb-item active" aria-current="page">লাভ-ক্ষতি ও আর্থিক প্রতিবেদন</li>
+@endsection
+
+@section('actions')
+    <div class="d-flex flex-wrap align-items-center gap-2">
+        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-2xs fw-semibold d-inline-flex align-items-center gap-1.5" onclick="window.print()">
+            <i class="fa-solid fa-print text-primary"></i>
+            <span>রিপোর্ট প্রিন্ট</span>
+        </button>
+        <a href="{{ route('admin.accounting.index') }}" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-2xs fw-semibold">
+            <i class="fa-solid fa-book-journal-whills me-1"></i> সাধারণ লেজার
+        </a>
+    </div>
+@endsection
 
 @section('content')
-<div class="container-fluid px-3 px-md-4 py-3">
+<div class="d-flex flex-column gap-4 pb-4">
 
     <!-- Top Action Bar & Period Filters -->
-    <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white overflow-hidden">
-        <div class="card-body p-3 p-md-4">
+    <div class="card border-0 shadow-2xs rounded-4 bg-white overflow-hidden">
+        <div class="card-body p-3.5 px-4">
             <div class="d-flex flex-column flex-lg-row align-items-start align-items-lg-center justify-content-between gap-3">
                 <div>
                     <div class="d-flex align-items-center gap-2 mb-1">
@@ -18,20 +37,8 @@
                             <i class="fa-solid fa-calendar-day me-1"></i> {{ $periodLabel }}
                         </span>
                     </div>
-                    <h4 class="fw-bold text-dark mb-0">আর্থিক প্রতিবেদন ও লাভ-ক্ষতি হিসাব (P&L Report)</h4>
-                    <p class="text-muted small mb-0">কাঁচামাল (কাগজ, বোর্ড, কালি, প্রেস) ও বেতন ব্যয়ের সাথে বিক্রয় আয়ের সমন্বিত প্রতিবেদন।</p>
-                </div>
-
-                <div class="d-flex align-items-center gap-2 flex-wrap ms-lg-auto">
-                    <!-- Print Button -->
-                    <button type="button" class="btn btn-outline-secondary rounded-pill px-3 py-2 fw-semibold d-inline-flex align-items-center gap-1.5 shadow-2xs" onclick="window.print()">
-                        <i class="fa-solid fa-print text-primary"></i>
-                        <span>রিপোর্ট প্রিন্ট</span>
-                    </button>
-                    <!-- Quick Ledger Link -->
-                    <a href="{{ route('admin.accounting.index') }}" class="btn btn-outline-primary rounded-pill px-3 py-2 fw-semibold shadow-2xs">
-                        <i class="fa-solid fa-book-journal-whills me-1"></i> সাধারণ লেজার
-                    </a>
+                    <h4 class="fw-bold text-dark mb-0">আর্থিক প্রতিবেদন ও লাভ-ক্ষতি বিবরণী (P&L Summary)</h4>
+                    <p class="text-muted small mb-0">কাঁচামাল (কাগজ, বোর্ড, কালি, প্রেস) ও বেতন ব্যয়ের সাথে বিক্রয় আয়ের সমন্বিত অডিট রিপোর্ট।</p>
                 </div>
             </div>
 
@@ -104,79 +111,79 @@
     </div>
 
     <!-- KPI Metric Summary Cards (5 Key Financial Pillars) -->
-    <div class="row g-3 mb-4">
+    <div class="row g-3">
         <!-- 1. Total Income -->
         <div class="col-sm-6 col-xl-3">
-            <div class="card h-100 border-0 shadow-sm rounded-4 p-3.5 bg-white border-start border-4 border-success">
+            <div class="card h-100 border-0 shadow-2xs rounded-4 p-3.5 bg-white border-start border-4 border-success">
                 <div class="d-flex justify-content-between align-items-center mb-2">
                     <span class="text-muted small fw-bold text-uppercase">মোট বিক্রয় ও আয়</span>
-                    <span class="badge bg-success-subtle text-success p-2 rounded-circle">
+                    <span class="rounded-circle bg-success-subtle text-success p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
                         <i class="fa-solid fa-arrow-trend-up fs-6"></i>
                     </span>
                 </div>
-                <h3 class="fw-bold text-dark mb-1">৳{{ number_format($totalIncome, 2) }}</h3>
-                <span class="small text-muted">বই বিক্রয় ও অন্যান্য আয়</span>
+                <h3 class="fw-bold text-dark mb-1 font-monospace">৳{{ number_format($totalIncome, 2) }}</h3>
+                <span class="small text-muted"><i class="fas fa-book-bookmark text-success me-1"></i>বই বিক্রয় ও অন্যান্য আয়</span>
             </div>
         </div>
 
         <!-- 2. Raw Materials & Production Expense -->
         <div class="col-sm-6 col-xl-3">
-            <div class="card h-100 border-0 shadow-sm rounded-4 p-3.5 bg-white border-start border-4 border-warning">
+            <div class="card h-100 border-0 shadow-2xs rounded-4 p-3.5 bg-white border-start border-4 border-warning">
                 <div class="d-flex justify-content-between align-items-center mb-2">
                     <span class="text-muted small fw-bold text-uppercase">কাঁচামাল ও উৎপাদন ব্যয়</span>
-                    <span class="badge bg-warning-subtle text-warning p-2 rounded-circle">
+                    <span class="rounded-circle bg-warning-subtle text-warning p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
                         <i class="fa-solid fa-print fs-6"></i>
                     </span>
                 </div>
-                <h3 class="fw-bold text-warning mb-1">৳{{ number_format($productionCost, 2) }}</h3>
-                <span class="small text-muted">কাগজ, বোর্ড, কালি, প্রেস ও বাঁধাই</span>
+                <h3 class="fw-bold text-warning mb-1 font-monospace">৳{{ number_format($productionCost, 2) }}</h3>
+                <span class="small text-muted"><i class="fas fa-boxes text-warning me-1"></i>কাগজ, বোর্ড, কালি, প্রেস ও বাঁধাই</span>
             </div>
         </div>
 
         <!-- 3. Payroll & Operating Expense -->
         <div class="col-sm-6 col-xl-3">
-            <div class="card h-100 border-0 shadow-sm rounded-4 p-3.5 bg-white border-start border-4 border-danger">
+            <div class="card h-100 border-0 shadow-2xs rounded-4 p-3.5 bg-white border-start border-4 border-danger">
                 <div class="d-flex justify-content-between align-items-center mb-2">
                     <span class="text-muted small fw-bold text-uppercase">বেতন ও পরিচালন ব্যয়</span>
-                    <span class="badge bg-danger-subtle text-danger p-2 rounded-circle">
+                    <span class="rounded-circle bg-danger-subtle text-danger p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
                         <i class="fa-solid fa-users-gear fs-6"></i>
                     </span>
                 </div>
-                <h3 class="fw-bold text-danger mb-1">৳{{ number_format($payrollCost + $otherExpense, 2) }}</h3>
+                <h3 class="fw-bold text-danger mb-1 font-monospace">৳{{ number_format($payrollCost + $otherExpense, 2) }}</h3>
                 <span class="small text-muted">বেতন: ৳{{ number_format($payrollCost, 0) }} | অফিস: ৳{{ number_format($otherExpense, 0) }}</span>
             </div>
         </div>
 
         <!-- 4. Net Profit / Loss -->
         <div class="col-sm-6 col-xl-3">
-            <div class="card h-100 border-0 shadow-sm rounded-4 p-3.5 text-white {{ $netProfit >= 0 ? 'bg-gradient-success' : 'bg-gradient-danger' }}" 
+            <div class="card h-100 border-0 shadow-2xs rounded-4 p-3.5 text-white {{ $netProfit >= 0 ? 'bg-gradient-success' : 'bg-gradient-danger' }}" 
                  style="background: {{ $netProfit >= 0 ? 'linear-gradient(135deg, #059669 0%, #047857 100%)' : 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)' }};">
                 <div class="d-flex justify-content-between align-items-center mb-2">
                     <span class="text-white-50 small fw-bold text-uppercase">নিট লাভ / মুনাফা (Net Profit)</span>
-                    <span class="badge bg-white bg-opacity-25 text-white p-2 rounded-circle">
+                    <span class="rounded-circle bg-white bg-opacity-25 text-white p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
                         <i class="fa-solid {{ $netProfit >= 0 ? 'fa-sack-dollar' : 'fa-triangle-exclamation' }} fs-6"></i>
                     </span>
                 </div>
-                <h3 class="fw-bold text-white mb-1">৳{{ number_format($netProfit, 2) }}</h3>
+                <h3 class="fw-bold text-white mb-1 font-monospace">৳{{ number_format($netProfit, 2) }}</h3>
                 <div class="d-flex align-items-center justify-content-between text-white-50 small">
                     <span>মার্জিন: <strong class="text-white">{{ $netProfitMargin }}%</strong></span>
-                    <span>মোট লাভ: ৳{{ number_format($grossProfit, 0) }}</span>
+                    <span>মোট লাভ: <strong class="text-white font-monospace">৳{{ number_format($grossProfit, 0) }}</strong></span>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Production Cost Breakdown vs Operating Cost Details -->
-    <div class="row g-4 mb-4">
+    <div class="row g-4">
         <!-- Raw Materials (কাঁচামাল ও উৎপাদন খরচ) Breakdown -->
         <div class="col-lg-6">
-            <div class="card border-0 shadow-sm rounded-4 h-100 bg-white overflow-hidden">
-                <div class="card-header bg-white border-bottom p-3.5 d-flex justify-content-between align-items-center">
+            <div class="card border-0 shadow-2xs rounded-4 h-100 bg-white overflow-hidden">
+                <div class="card-header bg-light bg-opacity-50 border-bottom p-3.5 px-4 d-flex justify-content-between align-items-center">
                     <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
                         <span class="p-1.5 rounded bg-warning-subtle text-warning"><i class="fa-solid fa-boxes-stacked"></i></span>
                         <span>কাঁচামাল ও বই উৎপাদন খাতের বিবরণ</span>
                     </h6>
-                    <span class="badge bg-light text-muted border rounded-pill px-2.5 py-1 small fw-semibold">
+                    <span class="badge bg-white text-dark border rounded-pill px-2.5 py-1 small fw-semibold font-monospace">
                         মোট: ৳{{ number_format($productionCost, 2) }}
                     </span>
                 </div>

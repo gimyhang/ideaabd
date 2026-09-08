@@ -1,11 +1,28 @@
 @extends('layouts.admin')
 
 @section('title', 'System Settings & Theme Control')
-@section('heading', 'System Settings & Theme Control Panel')
+@section('heading', 'সিস্টেম সেটিংস ও থিম কন্ট্রোল (System Settings & Theme Control)')
 
 @section('breadcrumb')
     <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>
-    <li class="breadcrumb-item active">System Settings</li>
+    <li class="breadcrumb-item active">সিস্টেম সেটিংস</li>
+@endsection
+
+@section('actions')
+    <div class="d-flex flex-wrap align-items-center gap-2">
+        <button type="submit" form="systemSettingsForm" class="btn btn-primary btn-sm rounded-pill px-3.5 py-1.5 fw-bold d-inline-flex align-items-center gap-1.5 shadow-xs">
+            <i class="fa-solid fa-floppy-disk"></i> পরিবর্তন সেভ করুন
+        </button>
+        <form action="{{ route('admin.system-settings.clear-cache') }}" method="POST" data-confirm="আপনি কি নিশ্চিত যে সিস্টেম ক্যাশ পরিষ্কার (Clear Cache) করতে চান?" data-confirm-title="সিস্টেম ক্যাশ">
+            @csrf
+            <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3 py-1.5 fw-semibold d-inline-flex align-items-center gap-1.5 shadow-xs">
+                <i class="fa-solid fa-broom"></i> ক্যাশ ক্লিয়ার
+            </button>
+        </form>
+        <a href="{{ route('home') }}" target="_blank" class="btn btn-outline-secondary btn-sm rounded-pill px-3 py-1.5 fw-semibold d-inline-flex align-items-center gap-1.5 shadow-xs">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> ওয়েবসাইট দেখুন
+        </a>
+    </div>
 @endsection
 
 @push('styles')
@@ -60,36 +77,7 @@
 @endphp
 
 @section('content')
-<div class="system-settings-wrapper pb-5">
-    
-    <!-- Top Action Bar -->
-    <div class="card border-0 shadow-sm rounded-4 bg-white mb-4">
-        <div class="card-body p-4 d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
-            <div>
-                <h5 class="fw-bold text-dark mb-1 d-flex align-items-center gap-2">
-                    <i class="fa-solid fa-sliders text-primary"></i> System Settings, Image Cropper & Theme Control
-                </h5>
-                <p class="text-muted small mb-0">Control logos, promotional banners, delivery fees, notice bar, invoice details, and color palettes.</p>
-            </div>
-            <div class="d-flex flex-wrap align-items-center gap-2">
-                <!-- Save Button in Top Header -->
-                <button type="submit" form="systemSettingsForm" class="btn btn-primary btn-sm rounded-pill px-3.5 py-2 fw-bold d-inline-flex align-items-center gap-1.5 shadow-sm">
-                    <i class="fa-solid fa-floppy-disk"></i> Save Changes
-                </button>
-                <!-- Clear Cache Form -->
-                <form action="{{ route('admin.system-settings.clear-cache') }}" method="POST" data-confirm="আপনি কি নিশ্চিত যে সিস্টেম ক্যাশ পরিষ্কার (Clear Cache) করতে চান?" data-confirm-title="সিস্টেম ক্যাশ">
-                    @csrf
-                    <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3 py-2 fw-semibold d-inline-flex align-items-center gap-1.5 shadow-xs">
-                        <i class="fa-solid fa-broom"></i> Clear Cache
-                    </button>
-                </form>
-                <!-- Live Site Link -->
-                <a href="{{ route('home') }}" target="_blank" class="btn btn-outline-secondary btn-sm rounded-pill px-3 py-2 fw-semibold d-inline-flex align-items-center gap-1.5 shadow-xs">
-                    <i class="fa-solid fa-arrow-up-right-from-square"></i> View Website
-                </a>
-            </div>
-        </div>
-    </div>
+<div class="system-settings-wrapper pb-4">
 
     <!-- Main Settings Form -->
     <form action="{{ route('admin.system-settings.update') }}" method="POST" enctype="multipart/form-data" id="systemSettingsForm">

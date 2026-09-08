@@ -235,6 +235,14 @@
             </div>
 
             <div class="d-flex flex-wrap align-items-center gap-2 mt-2 mt-md-0">
+                <button type="button" 
+                        onclick="if(window.history.length > 1 && document.referrer){ window.history.back(); } else { window.location.href='{{ route('home') }}'; }" 
+                        class="btn btn-outline-light rounded-pill px-3 py-1.5 fw-semibold small d-inline-flex align-items-center gap-1.5 shadow-sm" 
+                        title="পূর্ববর্তী পেজে ফিরে যান (Backspace বা Alt+Left)">
+                    <i class="fas fa-arrow-left-long text-warning"></i>
+                    <span>ফিরে যান</span>
+                    <kbd class="bg-white bg-opacity-25 text-white border-0 px-1 py-0 ms-0.5 d-none d-md-inline small font-monospace" style="font-size: 0.65rem;">⌫</kbd>
+                </button>
                 <button type="button" class="btn btn-warning text-dark rounded-pill px-3.5 py-1.5 fw-bold shadow-sm small" onclick="switchPublisherTab('add-book')">
                     <i class="fas fa-plus-circle me-1"></i> Add New Book
                 </button>

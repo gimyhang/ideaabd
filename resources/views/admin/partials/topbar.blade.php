@@ -5,9 +5,19 @@
 @endphp
 
 <header class="adm-top">
-    <button class="adm-iconbtn" data-side-toggle type="button" aria-label="Toggle sidebar">
-        <i class="fas fa-bars"></i>
-    </button>
+    <div class="d-flex align-items-center gap-2">
+        <button class="adm-iconbtn" data-side-toggle type="button" aria-label="Toggle sidebar" title="সাইডবার টগল করুন (Toggle Sidebar)">
+            <i class="fas fa-bars-staggered"></i>
+        </button>
+        @if(!request()->routeIs('admin.dashboard'))
+            <button class="adm-iconbtn adm-topbar-back-btn d-inline-flex align-items-center justify-content-center" type="button" 
+                    onclick="if(window.history.length > 1 && document.referrer && document.referrer.indexOf(window.location.host) !== -1){ window.history.back(); } else { window.location.href='{{ route('admin.dashboard') }}'; }" 
+                    title="পূর্ববর্তী পৃষ্ঠায় ফিরে যান (Backspace / Alt+←)" 
+                    aria-label="Back to Previous Page">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+        @endif
+    </div>
 
     {{-- Global catalog search with dynamic spotlight style --}}
     <form class="adm-search d-none d-md-block" action="{{ Route::has('admin.books') ? route('admin.books') : url('/admin') }}" method="GET" role="search" id="admGlobalSearchForm">

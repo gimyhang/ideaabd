@@ -29,49 +29,49 @@
             'label' => 'All Users',
             'icon' => 'fa-users',
             'color' => 'primary',
-            'desc' => 'All registered platform accounts',
+            'desc' => 'Total Platform Users',
             'count' => array_sum($roleCounts),
         ],
         'admin' => [
             'label' => 'Super Admin',
             'icon' => 'fa-crown',
             'color' => 'danger',
-            'desc' => 'Full access & financial administrators',
+            'desc' => 'Master Administrators',
             'count' => ($roleCounts['admin'] ?? 0),
         ],
         'sub_admin' => [
             'label' => 'Sub-Admin / Staff',
             'icon' => 'fa-user-shield',
             'color' => 'indigo',
-            'desc' => 'Moderation & billing staff',
+            'desc' => 'Assigned Staff & Moderators',
             'count' => ($roleCounts['sub_admin'] ?? 0),
         ],
         'seller' => [
             'label' => 'Sellers / Vendors',
             'icon' => 'fa-shop',
             'color' => 'success',
-            'desc' => 'Book vendors & store partners',
+            'desc' => 'Book Vendors & Stores',
             'count' => ($roleCounts['seller'] ?? 0),
         ],
         'author' => [
             'label' => 'Authors / Translators',
             'icon' => 'fa-pen-fancy',
             'color' => 'warning',
-            'desc' => 'Registered writers & authors',
+            'desc' => 'Writers & Creators',
             'count' => ($roleCounts['author'] ?? 0),
         ],
         'publisher' => [
             'label' => 'Publishing Houses',
             'icon' => 'fa-building',
             'color' => 'info',
-            'desc' => 'Partner publishers & imprints',
+            'desc' => 'Publishers & Imprints',
             'count' => ($roleCounts['publisher'] ?? 0),
         ],
         'buyer' => [
             'label' => 'Buyers & Readers',
             'icon' => 'fa-bag-shopping',
             'color' => 'teal',
-            'desc' => 'Online bookstore customers',
+            'desc' => 'Customers & Readers',
             'count' => ($roleCounts['buyer'] ?? 0) + ($roleCounts['customer'] ?? 0),
         ],
     ];
@@ -252,6 +252,26 @@
                         <!-- Action Buttons -->
                         <td class="text-center">
                             <div class="d-flex align-items-center justify-content-center gap-1.5 flex-wrap">
+                                {{-- Dynamic Appointment & Role Assignment --}}
+                                <button type="button" class="btn btn-sm btn-success rounded-pill px-2.5 py-1 fw-bold text-white shadow-2xs" style="font-size: 11px;" 
+                                        onclick="openAssignRoleModal('{{ $user->id }}', '{{ addslashes($user->name) }}', '{{ $user->role }}', '{{ $user->custom_role_id ?? '' }}', '{{ $user->reg_status }}', {{ $user->is_active ? 'true' : 'false' }})" 
+                                        title="যে কোনো পদে পদায়ন বা নিয়োগ দিন">
+                                    <i class="fa-solid fa-user-gear me-1"></i> পদায়ন
+                                </button>
+
+                                @if($user->role !== 'buyer' && $user->role !== 'admin')
+                                    <form action="{{ route('admin.users.revoke-role', $user->id) }}" method="POST" class="d-inline"
+                                          data-confirm="আপনি কি নিশ্চিত যে '{{ addslashes($user->name) }}' এর বর্তমান পদায়ন বাতিল করে সাধারণ ক্রেতা (Buyer) করতে চান?"
+                                          data-confirm-title="পদায়ন বাতিলের নিশ্চিতকরণ"
+                                          data-confirm-icon="warning"
+                                          data-confirm-btn="<i class='fas fa-user-xmark me-1'></i> হ্যাঁ, পদায়ন বাতিল করুন">
+                                        @csrf
+                                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-2 py-1 fw-semibold" style="font-size: 11px;" title="পদায়ন বাতিল করুন">
+                                            <i class="fa-solid fa-user-xmark"></i>
+                                        </button>
+                                    </form>
+                                @endif
+
                                 @if(in_array($user->role, ['sub_admin', 'admin']))
                                     <a href="{{ route('admin.sub-admins.show', $user->id) }}" class="btn btn-sm btn-outline-primary rounded-pill px-2.5 py-1" style="font-size: 11.5px;">
                                         <i class="fa-solid fa-sliders me-1"></i> Permissions
@@ -268,7 +288,11 @@
                                     <i class="fa-solid fa-key me-1"></i> পাসওয়ার্ড
                                 </button>
 
-                                <form action="{{ route('admin.users.security.generate-otp') }}" method="POST" class="d-inline" onsubmit="return confirm('আপনি কি এই ইউজারের জন্য একটি নতুন ওয়ানটাইম পাসওয়ার্ড (OTP) তৈরি করতে চান?');">
+                                <form action="{{ route('admin.users.security.generate-otp') }}" method="POST" class="d-inline"
+                                      data-confirm="আপনি কি '{{ addslashes($user->name) }}' এর জন্য একটি নতুন ওয়ানটাইম পাসওয়ার্ড (OTP) তৈরি করতে চান?"
+                                      data-confirm-title="ওয়ানটাইম পাসওয়ার্ড (OTP) তৈরি"
+                                      data-confirm-icon="info"
+                                      data-confirm-btn="<i class='fas fa-key me-1'></i> ওটিপি তৈরি করুন">
                                     @csrf
                                     <input type="hidden" name="user_id" value="{{ $user->id }}">
                                     <button type="submit" class="btn btn-sm btn-outline-warning rounded-pill px-2 py-1 text-dark fw-semibold" style="font-size: 11px;" title="ওয়ানটাইম ওটিপি (OTP) তৈরি করুন">
@@ -365,6 +389,76 @@
     </div>
 </div>
 
+<!-- Universal Role Assignment & Promotion Modal -->
+<div class="modal fade" id="assignRoleModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
+            <div class="modal-header py-3 px-4 bg-dark text-white">
+                <h6 class="modal-title fw-bold text-white d-flex align-items-center gap-2">
+                    <i class="fas fa-crown text-warning"></i>
+                    <span>ব্যবহারকারী পদায়ন ও নিয়োগ নিয়ন্ত্রণ</span>
+                </h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="" method="POST" id="assignRoleForm">
+                @csrf
+                <div class="modal-body p-4">
+                    <div class="p-3 bg-light rounded-3 mb-3 border">
+                        <small class="text-muted d-block" style="font-size: 11px;">নির্বাচিত ব্যবহারকারী:</small>
+                        <h6 class="fw-bold mb-0 text-dark" id="assignModalUserName"></h6>
+                        <small class="text-primary font-monospace fw-semibold" id="assignModalCurrentRole"></small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-dark">কোন পদে নিয়োগ বা পদায়ন করতে চান?</label>
+                        <select name="role" id="assignRoleSelect" class="form-select rounded-3 py-2 fw-semibold" required onchange="handleRoleSelectChange(this)">
+                            @foreach($assignableRoles ?? [] as $r)
+                                <option value="{{ $r['slug'] }}" data-custom-id="{{ $r['id'] ?? '' }}" data-dept="{{ $r['department'] }}">
+                                    {{ $r['name'] }} — ({{ $r['department'] }})
+                                </option>
+                            @endforeach
+                        </select>
+                        <input type="hidden" name="custom_role_id" id="assignCustomRoleId" value="">
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-dark">রেজিস্ট্রেশন স্ট্যাটাস</label>
+                            <select name="reg_status" id="assignRegStatus" class="form-select rounded-3">
+                                <option value="approved">অনুমোদিত (Approved)</option>
+                                <option value="pending">অপেক্ষমান (Pending)</option>
+                                <option value="rejected">বাতিল (Rejected)</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-dark">অ্যাকাউন্ট স্ট্যাটাস</label>
+                            <select name="is_active" id="assignIsActive" class="form-select rounded-3">
+                                <option value="1">সক্রিয় (Active)</option>
+                                <option value="0">স্থগিত / নিষ্ক্রিয় (Inactive)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-dark">নিয়োগ / পদায়নের বিবরণ বা রেফারেন্স (ঐচ্ছিক)</label>
+                        <textarea name="notes" class="form-control rounded-3" rows="2" placeholder="e.g. নতুন নিয়োগ / পদোন্নতি / দায়িত্ব হস্তান্তর"></textarea>
+                    </div>
+
+                    <div class="alert alert-info border-0 rounded-3 small mb-0 py-2">
+                        <i class="fas fa-circle-info me-1"></i> সুপার অ্যাডমিন হিসেবে আপনি সাধারণ ক্রেতা, লেখক, বিক্রেতা বা যেকোনো ইউজারকে মুহূর্তে যেকোনো পদে নিয়োগ দিতে বা বাতিল করতে পারেন।
+                    </div>
+                </div>
+                <div class="modal-footer bg-light py-2.5 px-4 border-top">
+                    <button type="button" class="btn btn-light rounded-pill px-3" data-bs-dismiss="modal">বাতিল</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold shadow-xs">
+                        <i class="fas fa-check me-1.5"></i> পদায়ন ও নিয়োগ নিশ্চিত করুন
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script>
 function copyPassText(text) {
     navigator.clipboard.writeText(text).then(() => {
@@ -393,6 +487,48 @@ function openAutoPasswordModal(userId = '', userName = '', identity = '') {
     generateRandomPassString();
 
     const modalEl = document.getElementById('autoPasswordModal');
+    if (modalEl) {
+        const modal = new bootstrap.Modal(modalEl);
+        modal.show();
+    }
+}
+
+function handleRoleSelectChange(selectEl) {
+    const opt = selectEl.options[selectEl.selectedIndex];
+    const customId = opt ? opt.getAttribute('data-custom-id') : '';
+    const customInput = document.getElementById('assignCustomRoleId');
+    if (customInput) customInput.value = customId || '';
+}
+
+function openAssignRoleModal(userId, userName, currentRole, customRoleId, regStatus, isActive) {
+    const form = document.getElementById('assignRoleForm');
+    if (form) {
+        form.action = `/admin/users/${userId}/assign-role`;
+    }
+
+    const nameEl = document.getElementById('assignModalUserName');
+    if (nameEl) nameEl.textContent = userName + ` (ID: #${userId})`;
+
+    const curRoleEl = document.getElementById('assignModalCurrentRole');
+    if (curRoleEl) curRoleEl.textContent = 'বর্তমান পদবী: ' + currentRole;
+
+    const roleSelect = document.getElementById('assignRoleSelect');
+    if (roleSelect) {
+        roleSelect.value = currentRole;
+        handleRoleSelectChange(roleSelect);
+    }
+
+    const regStatusSelect = document.getElementById('assignRegStatus');
+    if (regStatusSelect) {
+        regStatusSelect.value = regStatus || 'approved';
+    }
+
+    const isActiveSelect = document.getElementById('assignIsActive');
+    if (isActiveSelect) {
+        isActiveSelect.value = isActive ? '1' : '0';
+    }
+
+    const modalEl = document.getElementById('assignRoleModal');
     if (modalEl) {
         const modal = new bootstrap.Modal(modalEl);
         modal.show();

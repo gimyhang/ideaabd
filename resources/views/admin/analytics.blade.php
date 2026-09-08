@@ -815,7 +815,15 @@ function exportAnalyticsCSV() {
 
 function quickBlockVisitorIp(ip) {
     if (!ip) return;
-    if (confirm(`নিরাপত্তা সতর্কতা! আপনি কি নিশ্চিত আইপি '${ip}' চিরতরে ব্লক করতে চান?`)) {
+    SwalConfirm({
+        title: 'আইপি ব্লক নিশ্চিতকরণ',
+        text: `নিরাপত্তা সতর্কতা! আপনি কি নিশ্চিত আইপি '${ip}' চিরতরে ব্লক করতে চান?`,
+        icon: 'warning',
+        confirmButtonText: '<i class="fas fa-ban me-1"></i> হ্যাঁ, ব্লক করুন',
+        cancelButtonText: '<i class="fas fa-times me-1"></i> বাতিল'
+    }).then(function(result) {
+        if (!result.isConfirmed) return;
+
         const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
         fetch("{{ route('admin.users.security.block-ip') }}", {
             method: 'POST',

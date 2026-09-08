@@ -26,9 +26,13 @@
         </form>
 
         {{-- 1-Click Database Table Optimizer --}}
-        <form action="{{ route('admin.backup.optimize') }}" method="POST" class="m-0">
+        <form action="{{ route('admin.backup.optimize') }}" method="POST" class="m-0"
+              data-confirm="আপনি কি ডাটাবেজের সমস্ত টেবিল ও ইনডেক্স অপ্টিমাইজ করতে চান?"
+              data-confirm-title="ডাটাবেজ অপ্টিমাইজেশন"
+              data-confirm-icon="info"
+              data-confirm-btn="<i class='fas fa-wand-magic-sparkles me-1'></i> হ্যাঁ, অপ্টিমাইজ করুন">
             @csrf
-            <button type="submit" class="btn btn-outline-success btn-sm rounded-pill px-3 fw-bold d-inline-flex align-items-center gap-1.5 shadow-xs" onclick="return confirm('আপনি কি ডাটাবেজের সমস্ত টেবিল ও ইনডেক্স অপ্টিমাইজ করতে চান?');">
+            <button type="submit" class="btn btn-outline-success btn-sm rounded-pill px-3 fw-bold d-inline-flex align-items-center gap-1.5 shadow-xs">
                 <i class="fas fa-wand-magic-sparkles"></i>
                 <span>ডাটাবেজ অপ্টিমাইজ</span>
             </button>
@@ -397,7 +401,12 @@
                                         </button>
 
                                         {{-- Delete --}}
-                                        <form action="{{ route('admin.backup.destroy', $b['filename']) }}" method="POST" onsubmit="return confirm('আপনি কি নিশ্চিত এই ব্যাকআপ ফাইলটি মুছে ফেলতে চান?');" class="d-inline m-0">
+                                        <form action="{{ route('admin.backup.destroy', $b['filename']) }}" method="POST"
+                                              data-confirm="আপনি কি নিশ্চিত এই ব্যাকআপ ফাইলটি ({{ $b['filename'] }}) মুছে ফেলতে চান?"
+                                              data-confirm-title="ব্যাকআপ ফাইল অপসারণ"
+                                              data-confirm-icon="warning"
+                                              data-confirm-btn="<i class='fas fa-trash-can me-1'></i> মুছে ফেলুন"
+                                              class="d-inline m-0">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="btn btn-sm btn-outline-danger rounded-circle p-0 d-inline-flex align-items-center justify-content-center" style="width:28px;height:28px;" title="মুছে ফেলুন">

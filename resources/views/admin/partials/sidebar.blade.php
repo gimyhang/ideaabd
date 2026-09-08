@@ -95,19 +95,72 @@
             ['route' => 'home', 'icon' => 'arrow-up-right-from-square', 'label' => 'View Website', 'target' => '_blank'],
         ],
     ];
+
+    $routePermissions = [
+        'admin.books' => 'catalog.view',
+        'admin.bundles.index' => 'catalog.view',
+        'admin.categories' => 'catalog.view',
+        'admin.authors' => 'catalog.view',
+        'admin.publishers' => 'catalog.view',
+        'admin.ebooks' => 'ebooks.view',
+        'admin.subscriptions.index' => 'ebooks.view',
+        'admin.ebook-sales-report' => 'ebooks.view',
+        'admin.author-royalties.index' => 'royalties.manage',
+        'admin.author-payouts.index' => 'royalties.manage',
+        'admin.royalty-payout-logs' => 'royalties.manage',
+        'admin.purchases.index' => 'purchases.manage',
+        'admin.purchases.payments' => 'purchases.manage',
+        'admin.purchases.ledger' => 'purchases.manage',
+        'admin.purchases.monthly-report' => 'purchases.manage',
+        'admin.accounting.index' => 'accounting.view',
+        'admin.accounting.invoices.index' => 'accounting.view',
+        'admin.accounting.customer-ledger.index' => 'accounting.view',
+        'admin.accounting.salary.index' => 'accounting.salary_disburse',
+        'admin.accounting.employees.index' => 'staff.view',
+        'admin.accounting.reports.index' => 'accounting.reports',
+        'admin.blog' => 'editorial.view',
+        'admin.author-honorariums.index' => 'editorial.honorarium',
+        'admin.webzines' => 'editorial.view',
+        'admin.pos.index' => 'pos.operate',
+        'admin.ecommerce-orders' => 'orders.view',
+        'admin.affiliates.index' => 'marketing.affiliates_manage',
+        'admin.gateway-reports' => 'orders.view',
+        'admin.payments.index' => 'orders.view',
+        'admin.customers' => 'support.broadcast',
+        'admin.orders' => 'orders.view',
+        'admin.book-requests.index' => 'support.view',
+        'admin.users' => 'users.view',
+        'admin.tickets.index' => 'support.view',
+        'admin.users.security.index' => 'security.sessions',
+        'admin.registrations.index' => 'users.manage',
+        'admin.sub-admins.index' => 'roles.manage',
+        'admin.roles.index' => 'roles.manage',
+        'admin.currencies.index' => 'settings.manage',
+        'admin.translations.index' => 'editorial.view',
+        'admin.communication.index' => 'support.broadcast',
+        'admin.visitor-reports' => 'marketing.view',
+        'admin.system-settings' => 'settings.manage',
+        'admin.cache.manage' => 'settings.manage',
+        'admin.media.index' => 'catalog.view',
+        'admin.backup.index' => 'settings.manage',
+        'admin.audit-logs.index' => 'activity_logs.view',
+    ];
 @endphp
 
 <aside class="adm-side" data-sidebar>
     <div class="adm-side__header d-flex align-items-center justify-content-between">
-        <a href="{{ route('admin.dashboard') }}" class="adm-brand text-decoration-none">
-            <x-brand-logo :size="38" />
+        <a href="{{ route('admin.dashboard') }}" class="adm-brand text-decoration-none" title="{{ config('brand.name') }}">
+            <x-brand-logo :size="36" />
             <span class="adm-brand__text">
-                <span class="adm-brand__name d-block">{{ config('brand.name') }}</span>
-                <span class="adm-brand__sub">{{ config('brand.tagline') }}</span>
+                <span class="adm-brand__name d-block text-truncate">{{ config('brand.name') }}</span>
+                <span class="adm-brand__sub text-truncate">{{ config('brand.tagline') }}</span>
             </span>
         </a>
         <button type="button" class="adm-side__close d-lg-none btn btn-sm text-white" data-side-close aria-label="Close sidebar">
             <i class="fas fa-times fs-5"></i>
+        </button>
+        <button type="button" class="adm-side__desktop-toggle d-none d-lg-flex btn btn-sm text-white-50 p-1 border-0" data-side-toggle title="সাইডবার টগল করুন" aria-label="Toggle Mini Sidebar">
+            <i class="fas fa-bars-staggered"></i>
         </button>
     </div>
 
@@ -126,23 +179,23 @@
 
     <!-- 2. Quick Access / Favorites Chip Bar -->
     <div class="adm-side__favorites">
-        <a href="{{ route('admin.pos.index') }}" class="adm-side__fav-chip {{ request()->routeIs('admin.pos.*') ? 'is-active' : '' }}" title="Boi Mela Stall POS">
+        <a href="{{ route('admin.pos.index') }}" class="adm-side__fav-chip {{ request()->routeIs('admin.pos.*') ? 'is-active' : '' }}" title="Boi Mela Stall POS" data-tooltip="Boi Mela POS">
             <i class="fas fa-cash-register text-warning"></i>
             <span>POS</span>
         </a>
-        <a href="{{ route('admin.ecommerce-orders') }}" class="adm-side__fav-chip {{ request()->routeIs('admin.ecommerce-orders*') ? 'is-active' : '' }}" title="Book Orders">
+        <a href="{{ route('admin.ecommerce-orders') }}" class="adm-side__fav-chip {{ request()->routeIs('admin.ecommerce-orders*') ? 'is-active' : '' }}" title="Book Orders" data-tooltip="Book Orders">
             <i class="fas fa-cart-shopping text-info"></i>
             <span>Orders</span>
         </a>
-        <a href="{{ route('admin.books') }}" class="adm-side__fav-chip {{ request()->routeIs('admin.books*') ? 'is-active' : '' }}" title="Books Catalog">
+        <a href="{{ route('admin.books') }}" class="adm-side__fav-chip {{ request()->routeIs('admin.books*') ? 'is-active' : '' }}" title="Books Catalog" data-tooltip="Books Catalog">
             <i class="fas fa-book text-success"></i>
             <span>Books</span>
         </a>
-        <a href="{{ route('admin.currencies.index') }}" class="adm-side__fav-chip {{ request()->routeIs('admin.currencies.*') ? 'is-active' : '' }}" title="Multi-Currency FX">
+        <a href="{{ route('admin.currencies.index') }}" class="adm-side__fav-chip {{ request()->routeIs('admin.currencies.*') ? 'is-active' : '' }}" title="Multi-Currency FX" data-tooltip="Multi-Currency FX">
             <i class="fas fa-coins text-warning"></i>
             <span>FX</span>
         </a>
-        <a href="{{ route('admin.tickets.index') }}" class="adm-side__fav-chip {{ request()->routeIs('admin.tickets.*') ? 'is-active' : '' }}" title="Support Tickets">
+        <a href="{{ route('admin.tickets.index') }}" class="adm-side__fav-chip {{ request()->routeIs('admin.tickets.*') ? 'is-active' : '' }}" title="Support Tickets" data-tooltip="Support Tickets">
             <i class="fas fa-ticket text-danger"></i>
             <span>Tickets</span>
         </a>
@@ -150,9 +203,35 @@
 
     <!-- 3. Dynamic Collapsible Navigation Tree -->
     <nav class="adm-nav" id="admNavTree">
+        @php $sidebarAuthUser = auth()->user(); @endphp
         @foreach ($menu as $group => $items)
             @php
-                $items = array_filter($items, fn ($i) => Route::has($i['route']));
+                $items = array_filter($items, function ($i) use ($sidebarAuthUser, $routePermissions) {
+                    if (! Route::has($i['route'])) return false;
+                    if (! $sidebarAuthUser) return false;
+                    if ($sidebarAuthUser->isAdmin()) return true;
+
+                    // STRICT EXCLUSIVE LOCK: Core security, system settings, gateways & IAM are Super Admin only
+                    $exclusiveAdminRoutes = [
+                        'admin.roles.index',
+                        'admin.system-settings',
+                        'admin.backup.index',
+                        'admin.cache.manage',
+                        'admin.audit-logs.index',
+                        'admin.users.security.index',
+                        'admin.sub-admins.index',
+                        'admin.payments.index',
+                        'admin.currencies.index',
+                    ];
+                    if (in_array($i['route'], $exclusiveAdminRoutes, true)) {
+                        return false;
+                    }
+
+                    if ($i['route'] === 'home' || $i['route'] === 'admin.dashboard') return true;
+                    $reqPerm = $routePermissions[$i['route']] ?? null;
+                    if (! $reqPerm) return true;
+                    return $sidebarAuthUser->hasPermission($reqPerm);
+                });
                 $groupId = $group ? 'nav-grp-' . \Illuminate\Support\Str::slug($group) : 'nav-grp-main';
 
                 // Check if any child item in this group is active
@@ -184,6 +263,7 @@
                                 <a href="{{ $href }}"
                                    class="adm-nav__link {{ $active ? 'is-active' : '' }}"
                                    data-label="{{ strtolower($item['label'] . ' ' . $group) }}"
+                                   data-tooltip="{{ $item['label'] }}"
                                    @isset($item['target']) target="{{ $item['target'] }}" rel="noopener" @endisset
                                    @if ($active) id="activeNavItem" aria-current="page" @endif>
                                     <i class="fas fa-{{ $item['icon'] }}"></i>
@@ -205,6 +285,7 @@
                         <a href="{{ $href }}"
                            class="adm-nav__link {{ $active ? 'is-active' : '' }}"
                            data-label="{{ strtolower($item['label']) }}"
+                           data-tooltip="{{ $item['label'] }}"
                            @if ($active) id="activeNavItem" aria-current="page" @endif>
                             <i class="fas fa-{{ $item['icon'] }}"></i>
                             <span class="adm-nav__text">{{ $item['label'] }}</span>
