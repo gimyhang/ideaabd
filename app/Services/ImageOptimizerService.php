@@ -145,7 +145,7 @@ class ImageOptimizerService
     /**
      * Convert a Base64 data URL (e.g. from canvas cropper) into modern .avif / .webp
      */
-    public static function convertBase64AndStore(string $base64Data, string $folder = 'avatars', string $disk = 'public', int $quality = 85, ?int $maxWidth = 800, ?int $maxHeight = 800): ?string
+    public static function convertBase64AndStore(string $base64Data, string $folder = 'avatars', string $disk = 'public', int $quality = 85, ?int $maxWidth = 1600, ?int $maxHeight = 1600): ?string
     {
         try {
             if (!str_starts_with($base64Data, 'data:image')) {
@@ -246,24 +246,52 @@ class ImageOptimizerService
     }
 
     /**
-     * Generate an aesthetic luxury photocard (.avif / .webp) and store it in storage disk.
+     * Generate an aesthetic luxury photocard (SVG) with flawless Bengali typography and store it in storage disk.
      */
     public static function generatePhotocardAndStore(string $title, string $authorName = 'আইডিয়া প্রকাশন', string $folder = 'blog', string $disk = 'public'): string
     {
         $folder = trim($folder, '/');
         $randomName = Str::random(24) . '_' . time();
 
-        // If GD extension is not loaded in PHP, fallback gracefully to luxury SVG without crashing
-        if (!function_exists('imagecreatetruecolor') || !function_exists('imagecolorallocate')) {
-            $safeTitle = htmlspecialchars(Str::limit($title, 70), ENT_QUOTES, 'UTF-8');
-            $safeAuthor = htmlspecialchars($authorName, ENT_QUOTES, 'UTF-8');
-            $svg = <<<SVG
+        $safeTitle = htmlspecialchars(Str::limit($title, 80), ENT_QUOTES, 'UTF-8');
+        $safeAuthor = htmlspecialchars($authorName, ENT_QUOTES, 'UTF-8');
+
+        // Split title into balanced lines for SVG typography (max ~28 chars per line)
+        $words = explode(' ', $title);
+        $lines = [];
+        $curLine = '';
+        foreach ($words as $w) {
+            if (mb_strlen($curLine . ' ' . $w) > 28) {
+                if ($curLine) $lines[] = htmlspecialchars(trim($curLine), ENT_QUOTES, 'UTF-8');
+                $curLine = $w;
+            } else {
+                $curLine = $curLine ? $curLine . ' ' . $w : $w;
+            }
+        }
+        if ($curLine) $lines[] = htmlspecialchars(trim($curLine), ENT_QUOTES, 'UTF-8');
+        $lines = array_slice($lines, 0, 3);
+        if (empty($lines)) $lines = [$safeTitle];
+
+        $titleFontSize = count($lines) > 2 ? 40 : (count($lines) === 2 ? 46 : 52);
+        $lineH = (int) round($titleFontSize * 1.38);
+        $totalH = count($lines) * $lineH;
+        $startY = (int) round(315 - ($totalH / 2) + ($lineH / 2));
+
+        $tspanTags = '';
+        foreach ($lines as $i => $l) {
+            $y = $startY + ($i * $lineH);
+            $tspanTags .= "<tspan x=\"600\" y=\"{$y}\">{$l}</tspan>\n";
+        }
+
+        $dividerY = max(435, $startY + $totalH + 20);
+
+        $svg = <<<SVG
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" width="1200" height="675">
   <defs>
     <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#022c22" />
-      <stop offset="50%" stop-color="#064e3b" />
-      <stop offset="100%" stop-color="#022019" />
+      <stop offset="0%" stop-color="#0f172a" />
+      <stop offset="50%" stop-color="#1e1b4b" />
+      <stop offset="100%" stop-color="#312e81" />
     </linearGradient>
     <radialGradient id="glow" cx="50%" cy="45%" r="65%">
       <stop offset="0%" stop-color="#fbbf24" stop-opacity="0.18" />
@@ -279,164 +307,24 @@ class ImageOptimizerService
   <rect width="1200" height="675" fill="url(#glow)" />
   <rect x="30" y="30" width="1140" height="615" fill="none" stroke="#fbbf24" stroke-width="1.5" opacity="0.4" rx="10" />
   <rect x="42" y="42" width="1116" height="591" fill="none" stroke="#fbbf24" stroke-width="3" opacity="0.85" rx="6" />
-  <rect x="475" y="68" width="250" height="42" rx="21" fill="rgba(255,255,255,0.12)" stroke="#fbbf24" stroke-width="1.5" />
-  <text x="600" y="96" fill="#fbbf24" font-family="'Hind Siliguri', 'Kalpurush', sans-serif" font-size="19" font-weight="bold" text-anchor="middle">✦ সাহিত্যপত্র ও প্রবন্ধ ✦</text>
-  <text x="600" y="305" fill="#ffffff" font-family="'Hind Siliguri', 'Kalpurush', sans-serif" font-size="46" font-weight="bold" text-anchor="middle">{$safeTitle}</text>
-  <line x1="320" y1="410" x2="520" y2="410" stroke="url(#gold)" stroke-width="2" opacity="0.85" />
-  <text x="600" y="416" fill="#fef08a" font-size="20" text-anchor="middle">❖ ─── ✦ ─── ❖</text>
-  <line x1="680" y1="410" x2="880" y2="410" stroke="url(#gold)" stroke-width="2" opacity="0.85" />
+  <rect x="430" y="68" width="340" height="44" rx="22" fill="rgba(255,255,255,0.12)" stroke="#fbbf24" stroke-width="1.5" />
+  <text x="600" y="97" fill="#fbbf24" font-family="'Hind Siliguri', 'SolaimanLipi', 'Kalpurush', sans-serif" font-size="20" font-weight="bold" text-anchor="middle">✦ আইডিয়াপত্র • সাহিত্য ও চিন্তার উন্মুক্ত মঞ্চ ✦</text>
+  <g text-anchor="middle">
+    <text font-family="'Hind Siliguri', 'SolaimanLipi', 'Kalpurush', sans-serif" font-size="{$titleFontSize}" font-weight="bold" fill="#ffffff">
+      {$tspanTags}
+    </text>
+  </g>
+  <line x1="300" y1="{$dividerY}" x2="520" y2="{$dividerY}" stroke="url(#gold)" stroke-width="2" opacity="0.85" />
+  <text x="600" y="{$dividerY}" dy="6" fill="#fef08a" font-size="20" text-anchor="middle">❖ ─── ✦ ─── ❖</text>
+  <line x1="680" y1="{$dividerY}" x2="900" y2="{$dividerY}" stroke="url(#gold)" stroke-width="2" opacity="0.85" />
   <line x1="80" y1="565" x2="1120" y2="565" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" />
-  <text x="85" y="605" fill="#ffffff" font-family="'Hind Siliguri', 'Kalpurush', sans-serif" font-size="22" font-weight="bold">✍️ রচনা: {$safeAuthor}</text>
-  <text x="1115" y="605" fill="#fbbf24" font-family="'Hind Siliguri', 'Kalpurush', sans-serif" font-size="20" font-weight="bold" text-anchor="end">আইডিয়া প্রকাশন | www.ideaabd.com</text>
+  <text x="85" y="605" fill="#ffffff" font-family="'Hind Siliguri', 'SolaimanLipi', 'Kalpurush', sans-serif" font-size="24" font-weight="bold">✍️ রচনা: {$safeAuthor}</text>
+  <text x="1115" y="605" fill="#fbbf24" font-family="'Hind Siliguri', 'SolaimanLipi', 'Kalpurush', sans-serif" font-size="22" font-weight="bold" text-anchor="end">আইডিয়া প্রকাশন | ideaprakashan.com</text>
 </svg>
 SVG;
-            $filename = "{$folder}/photocard_" . time() . '_' . Str::random(8) . '.svg';
-            Storage::disk($disk)->put($filename, $svg);
-            return $filename;
-        }
-
-        $fontPath = public_path('fonts/kalpurush/kalpurush.ttf');
-        $useTtf = file_exists($fontPath);
-
-        $im = @imagecreatetruecolor(1200, 675);
-        if (!$im) {
-            $im = imagecreate(1200, 675);
-        }
-
-        // Gradient emerald background
-        for ($y = 0; $y < 675; $y++) {
-            $ratio = $y / 675;
-            $r = (int)(2 * (1 - $ratio) + 6 * $ratio * 0.5 + 2 * $ratio * 0.5);
-            $g = (int)(44 * (1 - $ratio) + 78 * $ratio * 0.5 + 32 * $ratio * 0.5);
-            $b = (int)(34 * (1 - $ratio) + 59 * $ratio * 0.5 + 25 * $ratio * 0.5);
-            $col = imagecolorallocate($im, $r, $g, $b);
-            imageline($im, 0, $y, 1200, $y, $col);
-        }
-
-        // Colors
-        $gold = imagecolorallocate($im, 251, 191, 36);
-        $goldDim = imagecolorallocate($im, 180, 140, 30);
-        $white = imagecolorallocate($im, 255, 255, 255);
-        $yellow = imagecolorallocate($im, 254, 240, 138);
-
-        // Double Gold Borders & Corner lines
-        imagesetthickness($im, 2);
-        imagerectangle($im, 30, 30, 1170, 645, $goldDim);
-        imagesetthickness($im, 4);
-        imagerectangle($im, 42, 42, 1158, 633, $gold);
-
-        // Corner decorative lines
-        imagesetthickness($im, 2);
-        imageline($im, 42, 85, 85, 42, $gold);
-        imageline($im, 42, 105, 105, 42, $gold);
-        imageline($im, 1158, 85, 1115, 42, $gold);
-        imageline($im, 1158, 105, 1095, 42, $gold);
-        imageline($im, 42, 590, 85, 633, $gold);
-        imageline($im, 42, 570, 105, 633, $gold);
-        imageline($im, 1158, 590, 1115, 633, $gold);
-        imageline($im, 1158, 570, 1095, 633, $gold);
-
-        if ($useTtf) {
-            // Top category badge
-            $badge = "✦ আইডিয়া সাহিত্যপত্র ✦";
-            $bbox = imagettfbbox(16, 0, $fontPath, $badge);
-            $w = abs($bbox[4] - $bbox[0]);
-            $x = (int)((1200 - $w) / 2);
-            imagettftext($im, 16, 0, $x, 100, $gold, $fontPath, $badge);
-
-            // Bengali Title with word wrap
-            $fontSize = mb_strlen($title) > 50 ? 32 : (mb_strlen($title) > 30 ? 36 : 42);
-            $words = explode(' ', $title);
-            $lines = [];
-            $curLine = '';
-            foreach ($words as $word) {
-                $test = $curLine ? $curLine . ' ' . $word : $word;
-                $bbox = imagettfbbox($fontSize, 0, $fontPath, $test);
-                $w = abs($bbox[4] - $bbox[0]);
-                if ($w > 950 && $curLine) {
-                    $lines[] = $curLine;
-                    $curLine = $word;
-                } else {
-                    $curLine = $test;
-                }
-            }
-            if ($curLine) $lines[] = $curLine;
-
-            $lineH = $fontSize + 24;
-            $totalH = count($lines) * $lineH;
-            $startY = (int)(330 - ($totalH / 2) + ($lineH / 2));
-
-            foreach ($lines as $i => $lineText) {
-                $bbox = imagettfbbox($fontSize, 0, $fontPath, $lineText);
-                $w = abs($bbox[4] - $bbox[0]);
-                $x = (int)((1200 - $w) / 2);
-                imagettftext($im, $fontSize, 0, $x, $startY + ($i * $lineH), $white, $fontPath, $lineText);
-            }
-
-            // Divider
-            $dividerY = max(430, $startY + $totalH + 20);
-            imagesetthickness($im, 2);
-            imageline($im, 300, $dividerY, 520, $dividerY, $goldDim);
-            imageline($im, 680, $dividerY, 900, $dividerY, $goldDim);
-            $ornament = "❖ ─── ✦ ─── ❖";
-            $bbox = imagettfbbox(18, 0, $fontPath, $ornament);
-            $w = abs($bbox[4] - $bbox[0]);
-            imagettftext($im, 18, 0, (int)((1200 - $w) / 2), $dividerY + 7, $yellow, $fontPath, $ornament);
-
-            // Bottom Footer
-            imagesetthickness($im, 1);
-            imageline($im, 75, 565, 1125, 565, $goldDim);
-            imagettftext($im, 20, 0, 80, 608, $white, $fontPath, "রচনা: " . $authorName);
-
-            $imprint = "আইডিয়া প্রকাশন | www.ideaabd.com";
-            $bbox = imagettfbbox(18, 0, $fontPath, $imprint);
-            $w = abs($bbox[4] - $bbox[0]);
-            imagettftext($im, 18, 0, 1120 - $w, 608, $gold, $fontPath, $imprint);
-        } else {
-            // Built-in font fallback
-            $titleCenter = max(20, (int)((1200 - (strlen($title) * 9)) / 2));
-            imagestring($im, 5, $titleCenter, 310, $title, $white);
-            imagestring($im, 4, 80, 600, "Author: " . $authorName, $white);
-            imagestring($im, 4, 900, 600, "ideaabd.com", $gold);
-        }
-
-        // Save to AVIF
-        if (function_exists('imageavif')) {
-            ob_start();
-            $success = @imageavif($im, null, 85);
-            $avifData = ob_get_clean();
-
-            if ($success && !empty($avifData)) {
-                imagedestroy($im);
-                $path = "{$folder}/{$randomName}.avif";
-                Storage::disk($disk)->put($path, $avifData);
-                return $path;
-            }
-        }
-
-        // Fallback WebP
-        if (function_exists('imagewebp')) {
-            ob_start();
-            $success = @imagewebp($im, null, 85);
-            $webpData = ob_get_clean();
-
-            if ($success && !empty($webpData)) {
-                imagedestroy($im);
-                $path = "{$folder}/{$randomName}.webp";
-                Storage::disk($disk)->put($path, $webpData);
-                return $path;
-            }
-        }
-
-        // Fallback JPEG
-        ob_start();
-        imagejpeg($im, null, 90);
-        $jpgData = ob_get_clean();
-        imagedestroy($im);
-
-        $path = "{$folder}/{$randomName}.jpg";
-        Storage::disk($disk)->put($path, $jpgData);
-        return $path;
+        $filename = "{$folder}/photocard_" . time() . '_' . Str::random(8) . '.svg';
+        Storage::disk($disk)->put($filename, $svg);
+        return $filename;
     }
 
     /**

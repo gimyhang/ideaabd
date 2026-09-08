@@ -236,10 +236,10 @@
 
                     {{-- Auto Photocard Canvas Holder & Trigger --}}
                     <input type="hidden" name="ai_photocard_data" id="aiPhotocardData" value="">
-                    <button type="button" class="btn btn-sm btn-outline-primary rounded-pill w-100 py-1.5 fw-semibold" onclick="generateAutoTitleCard()">
-                        <i class="fas fa-wand-magic-sparkles me-1.5"></i> Generate Title Card
+                    <button type="button" id="btnGenCard" class="btn btn-sm btn-outline-primary rounded-pill w-100 py-1.5 fw-semibold" onclick="generateAutoTitleCard()">
+                        <i class="fas fa-wand-magic-sparkles me-1.5"></i> কভার তৈরি করুন (Title Card)
                     </button>
-                    <canvas id="autoCardCanvas" width="1200" height="630" style="display: none;"></canvas>
+                    <canvas id="autoCardCanvas" width="1200" height="675" style="display: none;"></canvas>
                 </div>
 
                 {{-- Policy Terms --}}
@@ -257,22 +257,21 @@
 
                 {{-- Action Buttons Card --}}
                 <div class="author-card p-3">
-                    <input type="hidden" name="action_type" id="postActionType" value="submit">
+                    <input type="hidden" name="action_type" id="postActionType" value="{{ $post->status === 'draft' ? 'draft' : 'submit' }}">
                     
                     <div class="d-grid gap-2">
                         <button type="submit" class="btn btn-warning text-dark fw-bold py-2 rounded-pill shadow-sm" onclick="setActionType('submit')">
-                            <i class="fas fa-paper-plane me-1.5"></i> Update & Submit
+                            <i class="fas fa-paper-plane me-1.5"></i> Submit for Review
                         </button>
                         
                         <button type="submit" class="btn btn-outline-secondary py-2 rounded-pill fw-semibold" onclick="setActionType('draft')">
-                            <i class="fas fa-floppy-disk me-1.5"></i> Save Draft
+                            <i class="fas fa-floppy-disk me-1.5"></i> Update Draft
                         </button>
                     </div>
                 </div>
             </div>
         </div>
     </form>
-
 </div>
 
 <script>
@@ -394,82 +393,190 @@ function previewCoverFile(input) {
     }
 }
 
-function generateAutoTitleCard() {
-    const title = (document.getElementById('postTitle').value || '').trim() || 'সাহিত্য ও সংস্কৃতি';
-    const authorName = "{{ $author?->name ?? $user->name }}";
+async function generateAutoTitleCard() {
+    const btn = document.getElementById('btnGenCard');
+    const origBtnHtml = btn ? btn.innerHTML : '';
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1.5"></i> কভার তৈরি হচ্ছে...';
+    }
 
-    const canvas = document.getElementById('autoCardCanvas');
-    const ctx = canvas.getContext('2d');
+    try {
+        const title = (document.getElementById('postTitle').value || '').trim() || 'সাহিত্য ও সংস্কৃতি';
+        const authorName = "{{ $author?->name ?? $user->name }}";
 
-    // Background Gradient
-    const gradient = ctx.createLinearGradient(0, 0, 1200, 630);
-    gradient.addColorStop(0, '#0f172a');
-    gradient.addColorStop(0.5, '#1e1b4b');
-    gradient.addColorStop(1, '#312e81');
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, 1200, 630);
+        // Preload and ensure Bengali fonts are ready in canvas
+        try {
+            await document.fonts.load('bold 52px "Hind Siliguri"');
+            await document.fonts.load('bold 24px "Hind Siliguri"');
+            await document.fonts.load('bold 32px "Hind Siliguri"');
+            await document.fonts.ready;
+        } catch (e) {
+            console.warn('Font loading check:', e);
+        }
 
-    // Decorative Borders
-    ctx.strokeStyle = 'rgba(251, 191, 36, 0.4)';
-    ctx.lineWidth = 12;
-    ctx.strokeRect(30, 30, 1140, 570);
+        const canvas = document.getElementById('autoCardCanvas');
+        canvas.width = 1200;
+        canvas.height = 675;
+        const ctx = canvas.getContext('2d');
 
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(45, 45, 1110, 540);
+        // Background Gradient (Deep Luxury Indigo / Slate)
+        const gradient = ctx.createLinearGradient(0, 0, 1200, 675);
+        gradient.addColorStop(0, '#0f172a');
+        gradient.addColorStop(0.5, '#1e1b4b');
+        gradient.addColorStop(1, '#312e81');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, 1200, 675);
 
-    // Publication Badge
-    ctx.fillStyle = '#fbbf24';
-    ctx.font = 'bold 28px "Hind Siliguri", "Kalpurush", sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('আইডিয়াপত্র • সাহিত্য ও চিন্তার উন্মুক্ত মঞ্চ', 600, 120);
+        // Soft Center Radial Glow
+        const radial = ctx.createRadialGradient(600, 320, 30, 600, 320, 560);
+        radial.addColorStop(0, 'rgba(251, 191, 36, 0.2)');
+        radial.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        ctx.fillStyle = radial;
+        ctx.fillRect(0, 0, 1200, 675);
 
-    // Title (multiline)
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 54px "Hind Siliguri", "Kalpurush", sans-serif';
-    
-    const words = title.split(' ');
-    let line = '';
-    let y = 260;
-    const maxWidth = 1000;
-    const lineHeight = 68;
+        // Decorative Double Gold Borders
+        ctx.strokeStyle = 'rgba(251, 191, 36, 0.4)';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(30, 30, 1140, 615);
 
-    for (let n = 0; n < words.length; n++) {
-        const testLine = line + words[n] + ' ';
-        const metrics = ctx.measureText(testLine);
-        if (metrics.width > maxWidth && n > 0) {
-            ctx.fillText(line, 600, y);
-            line = words[n] + ' ';
-            y += lineHeight;
-            if (y > 380) break;
+        ctx.strokeStyle = '#fbbf24';
+        ctx.lineWidth = 4;
+        ctx.strokeRect(42, 42, 1116, 591);
+
+        // Ornate Corner Lines
+        ctx.strokeStyle = '#fbbf24';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(42, 85); ctx.lineTo(85, 42);
+        ctx.moveTo(42, 105); ctx.lineTo(105, 42);
+        ctx.moveTo(1158, 85); ctx.lineTo(1115, 42);
+        ctx.moveTo(1158, 105); ctx.lineTo(1095, 42);
+        ctx.moveTo(42, 590); ctx.lineTo(85, 633);
+        ctx.moveTo(42, 570); ctx.lineTo(105, 633);
+        ctx.moveTo(1158, 590); ctx.lineTo(1115, 633);
+        ctx.moveTo(1158, 570); ctx.lineTo(1095, 633);
+        ctx.stroke();
+
+        // Top Category Pill Badge
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.12)';
+        ctx.strokeStyle = '#fbbf24';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        if (typeof ctx.roundRect === 'function') {
+            ctx.roundRect(430, 65, 340, 44, 22);
         } else {
-            line = testLine;
+            ctx.rect(430, 65, 340, 44);
+        }
+        ctx.fill();
+        ctx.stroke();
+
+        // Badge Text
+        ctx.fillStyle = '#fbbf24';
+        ctx.font = 'bold 20px "Hind Siliguri", "Kalpurush", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('✦ আইডিয়াপত্র • সাহিত্য ও চিন্তার উন্মুক্ত মঞ্চ ✦', 600, 95);
+
+        // Title Calculation & Smart Wrapping
+        let fontSize = 48;
+        if (title.length > 60) fontSize = 38;
+        else if (title.length > 35) fontSize = 44;
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold ' + fontSize + 'px "Hind Siliguri", "Kalpurush", sans-serif';
+        ctx.textAlign = 'center';
+
+        const words = title.split(' ');
+        let line = '';
+        const lines = [];
+        const maxW = 980;
+
+        for (let n = 0; n < words.length; n++) {
+            const testLine = line + (line ? ' ' : '') + words[n];
+            const metrics = ctx.measureText(testLine);
+            if (metrics.width > maxW && n > 0) {
+                lines.push(line);
+                line = words[n];
+                if (lines.length >= 3) break;
+            } else {
+                line = testLine;
+            }
+        }
+        if (line && lines.length < 3) lines.push(line);
+
+        const lineHeight = fontSize + 18;
+        const totalTextHeight = lines.length * lineHeight;
+        let startY = 320 - (totalTextHeight / 2) + (lineHeight / 2);
+
+        for (let i = 0; i < lines.length; i++) {
+            ctx.fillText(lines[i], 600, startY + (i * lineHeight));
+        }
+
+        // Center Gold Divider Ornament
+        const dividerY = Math.max(430, startY + totalTextHeight + 20);
+        ctx.strokeStyle = 'rgba(234, 179, 8, 0.7)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(300, dividerY);
+        ctx.lineTo(520, dividerY);
+        ctx.moveTo(680, dividerY);
+        ctx.lineTo(900, dividerY);
+        ctx.stroke();
+
+        ctx.fillStyle = '#fef08a';
+        ctx.font = '22px "Hind Siliguri", sans-serif';
+        ctx.fillText('❖ ─── ✦ ─── ❖', 600, dividerY + 8);
+
+        // Footer Divider Line
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(75, 565);
+        ctx.lineTo(1125, 565);
+        ctx.stroke();
+
+        // Footer Author Name (Left)
+        ctx.textAlign = 'left';
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 24px "Hind Siliguri", "Kalpurush", sans-serif';
+        ctx.fillText('✍️ রচনা: ' + authorName, 80, 608);
+
+        // Footer Brand (Right)
+        ctx.textAlign = 'right';
+        ctx.fillStyle = '#fbbf24';
+        ctx.font = 'bold 22px "Hind Siliguri", "Kalpurush", sans-serif';
+        ctx.fillText('আইডিয়া প্রকাশন | ideaprakashan.com', 1120, 608);
+
+        // Convert Canvas to Data URL (High Quality JPEG)
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
+        document.getElementById('aiPhotocardData').value = dataUrl;
+
+        const img = document.getElementById('coverPreviewImg');
+        const placeholder = document.getElementById('coverPlaceholder');
+        if (img && placeholder) {
+            img.src = dataUrl;
+            img.classList.remove('d-none');
+            placeholder.classList.add('d-none');
+        }
+
+        // Clear file input so base64 takes effect
+        const fileInput = document.getElementById('featuredImageInput');
+        if (fileInput) fileInput.value = '';
+
+        if (btn) {
+            btn.innerHTML = '<i class="fas fa-check text-success me-1.5"></i> কভার তৈরি সম্পন্ন';
+            setTimeout(() => {
+                btn.disabled = false;
+                btn.innerHTML = origBtnHtml;
+            }, 2000);
+        }
+    } catch (err) {
+        console.error('Error generating title card:', err);
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = origBtnHtml;
         }
     }
-    ctx.fillText(line, 600, y);
-
-    // Author Name
-    ctx.fillStyle = '#93c5fd';
-    ctx.font = 'bold 36px "Hind Siliguri", "Kalpurush", sans-serif';
-    ctx.fillText(`— ${authorName}`, 600, y + 90);
-
-    // Brand Watermark
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
-    ctx.font = '22px sans-serif';
-    ctx.fillText('ideaprakashan.com', 600, 545);
-
-    const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
-    document.getElementById('aiPhotocardData').value = dataUrl;
-
-    const img = document.getElementById('coverPreviewImg');
-    const placeholder = document.getElementById('coverPlaceholder');
-    if (img && placeholder) {
-        img.src = dataUrl;
-        img.classList.remove('d-none');
-        placeholder.classList.add('d-none');
-    }
-
-    document.getElementById('featuredImageInput').value = '';
 }
 
 document.addEventListener('DOMContentLoaded', function() {
