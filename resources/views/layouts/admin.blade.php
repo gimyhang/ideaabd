@@ -270,33 +270,39 @@
             }, 300);
         }
 
-        // Toggle buttons click event
-        document.querySelectorAll('[data-side-toggle]').forEach(function (btn) {
-            btn.addEventListener('click', function (e) {
+        // Delegated Click & Tap Handlers for Sidebar (Mobile & Desktop)
+        document.addEventListener('click', function (e) {
+            var toggleBtn = e.target.closest('[data-side-toggle]');
+            if (toggleBtn) {
                 e.preventDefault();
                 toggleSidebar();
-            });
-        });
+                return;
+            }
 
-        // Close sidebar triggers (backdrop, close buttons)
-        document.querySelectorAll('[data-side-close]').forEach(function (el) {
-            el.addEventListener('click', function (e) {
+            var closeBtn = e.target.closest('[data-side-close]');
+            if (closeBtn) {
                 e.preventDefault();
                 closeMobileSidebar();
-            });
-        });
+                return;
+            }
 
-        // Auto-close mobile drawer when any link in sidebar is tapped
-        document.addEventListener('click', function(e) {
-            if (isMobile()) {
+            // Auto-close mobile drawer when any link in sidebar is tapped
+            if (isMobile() && body.classList.contains('side-open')) {
                 var navLink = e.target.closest('.adm-nav__link, .adm-side__fav-chip');
                 if (navLink && !navLink.getAttribute('target')) {
+                    closeMobileSidebar();
+                    return;
+                }
+
+                // If tapped outside sidebar while open
+                var isInsideSidebar = e.target.closest('.adm-side');
+                if (!isInsideSidebar) {
                     closeMobileSidebar();
                 }
             }
         });
 
-        // Escape key closes mobile sidebar or spotlight search
+        // Escape key closes mobile sidebar
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 closeMobileSidebar();
