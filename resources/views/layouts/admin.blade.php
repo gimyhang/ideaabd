@@ -224,7 +224,7 @@
         }
     }, true);
 
-    // Sidebar & Dark Mode toggle — stored in localStorage
+    // World-Class Sidebar, Touch Gestures & Dark Mode Controller
     (function () {
         var body = document.body;
         var MINI_KEY = 'adm-side-mini';
@@ -238,30 +238,129 @@
         if (dynBrand) document.documentElement.style.setProperty('--brand', dynBrand);
         if (dynBrand2) document.documentElement.style.setProperty('--brand-2', dynBrand2);
 
-        document.querySelectorAll('[data-side-toggle]').forEach(function (btn) {
-            btn.addEventListener('click', function () {
-                if (window.matchMedia('(max-width: 991.98px)').matches) {
-                    body.classList.toggle('side-open');
-                } else {
-                    body.classList.toggle('side-mini');
-                    localStorage.setItem(MINI_KEY, body.classList.contains('side-mini') ? '1' : '0');
+        function isMobile() {
+            return window.matchMedia('(max-width: 991.98px)').matches;
+        }
+
+        function closeMobileSidebar() {
+            if (body.classList.contains('side-open')) {
+                body.classList.remove('side-open');
+            }
+        }
+
+        function openMobileSidebar() {
+            if (!body.classList.contains('side-open')) {
+                body.classList.add('side-open');
+                window.dispatchEvent(new Event('side-open'));
+            }
+        }
+
+        function toggleSidebar() {
+            if (isMobile()) {
+                body.classList.toggle('side-open');
+                if (body.classList.contains('side-open')) {
+                    window.dispatchEvent(new Event('side-open'));
                 }
-                setTimeout(function() {
-                    window.dispatchEvent(new Event('resize'));
-                }, 300);
+            } else {
+                body.classList.toggle('side-mini');
+                localStorage.setItem(MINI_KEY, body.classList.contains('side-mini') ? '1' : '0');
+            }
+            setTimeout(function() {
+                window.dispatchEvent(new Event('resize'));
+            }, 300);
+        }
+
+        // Toggle buttons click event
+        document.querySelectorAll('[data-side-toggle]').forEach(function (btn) {
+            btn.addEventListener('click', function (e) {
+                e.preventDefault();
+                toggleSidebar();
             });
         });
 
+        // Close sidebar triggers (backdrop, close buttons)
+        document.querySelectorAll('[data-side-close]').forEach(function (el) {
+            el.addEventListener('click', function (e) {
+                e.preventDefault();
+                closeMobileSidebar();
+            });
+        });
+
+        // Auto-close mobile drawer when any link in sidebar is tapped
+        document.addEventListener('click', function(e) {
+            if (isMobile()) {
+                var navLink = e.target.closest('.adm-nav__link, .adm-side__fav-chip');
+                if (navLink && !navLink.getAttribute('target')) {
+                    closeMobileSidebar();
+                }
+            }
+        });
+
+        // Escape key closes mobile sidebar or spotlight search
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeMobileSidebar();
+            }
+        });
+
+        // ── Mobile Touch Gestures (Swipe to Open / Swipe to Close) ──
+        var touchStartX = 0;
+        var touchStartY = 0;
+        var touchEndX = 0;
+        var touchEndY = 0;
+        var isEdgeSwipe = false;
+
+        document.addEventListener('touchstart', function(e) {
+            if (!isMobile()) return;
+            var touch = e.touches[0];
+            touchStartX = touch.clientX;
+            touchStartY = touch.clientY;
+            touchEndX = touch.clientX;
+            touchEndY = touch.clientY;
+            // Detect if swipe starts from the left edge (within 35px)
+            isEdgeSwipe = (touchStartX <= 35 && !body.classList.contains('side-open'));
+        }, { passive: true });
+
+        document.addEventListener('touchmove', function(e) {
+            if (!isMobile()) return;
+            var touch = e.touches[0];
+            touchEndX = touch.clientX;
+            touchEndY = touch.clientY;
+        }, { passive: true });
+
+        document.addEventListener('touchend', function(e) {
+            if (!isMobile()) return;
+            var deltaX = touchEndX - touchStartX;
+            var deltaY = touchEndY - touchStartY;
+
+            // Ensure horizontal swipe is dominant (not vertical scrolling)
+            if (Math.abs(deltaX) > Math.abs(deltaY) * 1.5) {
+                // Swipe Right from edge -> Open Sidebar
+                if (isEdgeSwipe && deltaX > 50) {
+                    openMobileSidebar();
+                }
+                // Swipe Left anywhere when open -> Close Sidebar
+                else if (body.classList.contains('side-open') && deltaX < -50) {
+                    closeMobileSidebar();
+                }
+            }
+            isEdgeSwipe = false;
+        }, { passive: true });
+
+        // Clean up classes on desktop/mobile viewport resizing
+        window.addEventListener('resize', function() {
+            if (!isMobile() && body.classList.contains('side-open')) {
+                body.classList.remove('side-open');
+            }
+        });
+
+        // Theme toggle
         document.querySelectorAll('[data-theme-toggle]').forEach(function (btn) {
             btn.addEventListener('click', function () {
                 body.classList.toggle('dark-mode');
                 var isDark = body.classList.contains('dark-mode');
                 localStorage.setItem(DARK_KEY, isDark ? '1' : '0');
             });
-        });
-
-        document.querySelectorAll('[data-side-close]').forEach(function (el) {
-            el.addEventListener('click', function () { body.classList.remove('side-open'); });
         });
 
         // Smart Backspace / Alt+ArrowLeft Navigation for Admin Dashboards

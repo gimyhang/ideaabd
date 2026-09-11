@@ -150,7 +150,7 @@
 <aside class="adm-side" data-sidebar>
     <div class="adm-side__header d-flex align-items-center justify-content-between">
         <a href="{{ route('admin.dashboard') }}" class="adm-brand text-decoration-none" title="{{ config('brand.name') }}">
-            <x-brand-logo :size="36" />
+            <x-brand-logo :size="24" :height="24" :width="24" />
             <span class="adm-brand__text">
                 <span class="adm-brand__name d-block text-truncate">{{ config('brand.name') }}</span>
                 <span class="adm-brand__sub text-truncate">{{ config('brand.tagline') }}</span>
@@ -461,8 +461,8 @@
         }
     });
 
-    // 3. Smart Auto-Scroll to Active Item on Page Load
-    setTimeout(() => {
+    // 3. Smart Auto-Scroll to Active Item on Page Load & Drawer Open
+    function scrollToActiveNav() {
         const activeItem = document.getElementById('activeNavItem');
         const navContainer = document.getElementById('admNavTree');
         if (activeItem && navContainer) {
@@ -472,7 +472,12 @@
                 activeItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
         }
-    }, 150);
+    }
+
+    setTimeout(scrollToActiveNav, 180);
+    window.addEventListener('side-open', function() {
+        setTimeout(scrollToActiveNav, 250);
+    });
 })();
 </script>
 @endpush

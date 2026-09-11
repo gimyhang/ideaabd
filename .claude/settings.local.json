@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(php -r ' *)",
+      "Bash(php _check_admin_pages.php)",
+      "Bash(php artisan *)",
+      "Bash(curl -s -o /dev/null -w \"admin.css: %{http_code}  \\(%{size_download} bytes\\)\\\\n\" http://127.0.0.1:8321/css/admin.css)",
+      "Bash(curl -s -o /dev/null -w \"logo.svg : %{http_code}  \\(%{size_download} bytes\\)\\\\n\" http://127.0.0.1:8321/images/logo.svg)",
+      "Bash(curl -s -o /dev/null -w \"logo-mark: %{http_code}\\\\n\" http://127.0.0.1:8321/images/logo-mark.svg)",
+      "Bash(curl -s -o /dev/null -w \"/admin   : %{http_code} \\(redirect→login expected\\)\\\\n\" http://127.0.0.1:8321/admin)",
+      "Bash(php _inspect_html.php)",
+      "Bash(curl -s -o /dev/null -w \"login: %{http_code}\\\\n\" http://127.0.0.1:8321/login)",
+      "Bash(curl -s -o /dev/null -w \"css  : %{http_code}\\\\n\" http://127.0.0.1:8321/css/admin.css)",
+      "Bash(git rm *)",
+      "Bash(echo \"=== মুছছি ===\"; rm -fv .env.backup-check public/hot database/database.sqlite.bak-* 2>&1 | head; echo; echo \"=== মৃত ভিউ \\(কোনো রুট এগুলো ব্যবহার করে না\\) ===\"; grep -rn \"admin.index\\\\|admin\\\\.books\\\\.index\" routes/ app/Http/Controllers/ 2>/dev/null | grep -v \"^Binary\" | head)",
+      "Bash(awk '{print $1}')",
+      "Bash(curl -s -o /dev/null -w \"login: %{http_code}\\\\ncss  : %{http_code}\\\\n\" http://127.0.0.1:8321/login)",
+      "Bash(echo \"=== Modules\\\\\\\\User ref in Blog views ===\")",
+      "Bash(python -)",
+      "Bash(php -v)",
+      "Bash(APP_ENV=local php artisan migrate --force)",
+      "Bash(php -r '$p=new PDO\\(\"mysql:host=127.0.0.1;dbname=ideaabd_db\",\"root\",\"\"\\);foreach\\($p->query\\(\"select migration,batch from migrations\"\\)->fetchAll\\(PDO::FETCH_NUM\\) as $r\\) echo implode\\(\" | \",$r\\).\"\\\\n\";')"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\idea\\ideaabd\\database"
+    ]
+  }
+}
