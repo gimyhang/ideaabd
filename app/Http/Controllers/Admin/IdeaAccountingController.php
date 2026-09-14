@@ -2255,6 +2255,12 @@ class IdeaAccountingController extends Controller
             'bank_account_no'                => 'nullable|string|max:100',
             'bank_branch'                    => 'nullable|string|max:150',
             'bank_routing_no'                => 'nullable|string|max:50',
+            'receipt_primary_color'          => 'nullable|string|max:50',
+            'receipt_stamp_color'            => 'nullable|string|max:50',
+            'receipt_logo_height'            => 'nullable|string|max:20',
+            'receipt_logo_width'             => 'nullable|string|max:20',
+            'receipt_stamp_size'             => 'nullable|string|max:20',
+            'receipt_stamp_rotation'         => 'nullable|string|max:20',
             'remove_payment_qr'              => 'nullable',
         ]);
 
@@ -2290,6 +2296,12 @@ class IdeaAccountingController extends Controller
             $settings['default_tax_rate'] = $validated['default_tax_rate'] ?? '5.0';
             $settings['vat_presets'] = $validated['vat_presets'] ?? '0, 5, 7.5, 10, 15';
             $settings['tax_presets'] = $validated['tax_presets'] ?? '0, 2, 3, 5, 7, 10';
+            $settings['receipt_primary_color'] = $validated['receipt_primary_color'] ?? ($settings['receipt_primary_color'] ?? '#059669');
+            $settings['receipt_stamp_color'] = $validated['receipt_stamp_color'] ?? ($settings['receipt_stamp_color'] ?? '#6b21a8');
+            $settings['receipt_logo_height'] = $validated['receipt_logo_height'] ?? ($settings['receipt_logo_height'] ?? '58px');
+            $settings['receipt_logo_width'] = $validated['receipt_logo_width'] ?? ($settings['receipt_logo_width'] ?? '155px');
+            $settings['receipt_stamp_size'] = $validated['receipt_stamp_size'] ?? ($settings['receipt_stamp_size'] ?? '135px');
+            $settings['receipt_stamp_rotation'] = $validated['receipt_stamp_rotation'] ?? ($settings['receipt_stamp_rotation'] ?? '-10');
 
             // Handle 2:1 cropped base64 image
             if (!empty($validated['logo_base64']) && str_starts_with($validated['logo_base64'], 'data:image/')) {
@@ -2606,6 +2618,12 @@ class IdeaAccountingController extends Controller
             'default_tax_rate'               => '5.0',
             'vat_presets'                    => '0, 5, 7.5, 10, 15',
             'tax_presets'                    => '0, 2, 3, 5, 7, 10',
+            'receipt_primary_color'          => '#059669',
+            'receipt_stamp_color'            => '#6b21a8',
+            'receipt_logo_height'            => '58px',
+            'receipt_logo_width'             => '155px',
+            'receipt_stamp_size'             => '135px',
+            'receipt_stamp_rotation'         => '-10',
         ];
 
         try {

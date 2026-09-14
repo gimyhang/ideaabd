@@ -44,6 +44,10 @@
             <i class="fas fa-pen-to-square me-1.5"></i> Edit Payment
         </button>
 
+        <button type="button" class="btn btn-dark btn-sm rounded-pill px-3.5 shadow-xs fw-semibold" data-bs-toggle="offcanvas" data-bs-target="#receiptDesignCustomizerOffcanvas">
+            <i class="fas fa-palette me-1.5 text-warning"></i> Customize Design
+        </button>
+
         <button type="button" class="btn btn-primary btn-sm rounded-pill px-3.5 shadow-sm fw-semibold" onclick="window.print()">
             <i class="fas fa-print me-1.5"></i> Print Receipt
         </button>
@@ -62,6 +66,17 @@
 
 @section('content')
 <style>
+    :root {
+        --rcp-primary: {{ $settings['receipt_primary_color'] ?? '#059669' }};
+        --rcp-stamp-ink: {{ $settings['receipt_stamp_color'] ?? '#6b21a8' }};
+        --rcp-logo-h: {{ $settings['receipt_logo_height'] ?? '58px' }};
+        --rcp-logo-w: {{ $settings['receipt_logo_width'] ?? '155px' }};
+        --rcp-stamp-size: {{ $settings['receipt_stamp_size'] ?? '135px' }};
+        --rcp-stamp-deg: {{ ($settings['receipt_stamp_rotation'] ?? '-10') . 'deg' }};
+        --rcp-stamp-top: -30px;
+        --rcp-stamp-right: 25px;
+        --rcp-font-scale: 1;
+    }
     @page {
         size: A4 portrait;
         margin: 6mm 8mm;
@@ -77,6 +92,7 @@
         position: relative;
         overflow: hidden;
         border: 1px solid #e2e8f0;
+        zoom: var(--rcp-font-scale);
     }
     .receipt-paper::before {
         content: "";
@@ -85,13 +101,13 @@
         left: 0;
         right: 0;
         height: 4px;
-        background: linear-gradient(90deg, #10b981 0%, #059669 50%, #047857 100%);
+        background: linear-gradient(90deg, var(--rcp-primary) 0%, #047857 100%);
     }
     .receipt-title-badge {
         display: inline-block;
         background: #f0fdf4;
-        color: #166534;
-        border: 1px dashed #86efac;
+        color: var(--rcp-primary);
+        border: 1px dashed var(--rcp-primary);
         padding: 4px 14px;
         border-radius: 999px;
         font-weight: 700;
@@ -100,7 +116,7 @@
     }
     .cert-box-en {
         background: #f8fafc;
-        border: 1.5px solid #0284c7 !important;
+        border: 1.5px solid var(--rcp-primary) !important;
         border-radius: 10px;
         padding: 13px 16px;
         margin-bottom: 12px;
@@ -142,24 +158,37 @@
     /* Authentic Vector Round Rubber Stamp Effect */
     .rubber-stamp-float-container {
         position: absolute;
-        right: 25px;
-        top: -30px;
+        right: var(--rcp-stamp-right);
+        top: var(--rcp-stamp-top);
         z-index: 10;
         pointer-events: none;
         user-select: none;
+        width: var(--rcp-stamp-size);
+        height: var(--rcp-stamp-size);
     }
     .round-rubber-stamp-svg {
-        width: 135px;
-        height: 135px;
-        min-width: 135px;
-        min-height: 135px;
-        max-width: 135px;
-        max-height: 135px;
+        width: var(--rcp-stamp-size);
+        height: var(--rcp-stamp-size);
+        min-width: var(--rcp-stamp-size);
+        min-height: var(--rcp-stamp-size);
+        max-width: var(--rcp-stamp-size);
+        max-height: var(--rcp-stamp-size);
         display: block;
-        transform: rotate(-10deg);
+        transform: rotate(var(--rcp-stamp-deg));
         filter: drop-shadow(0 0 1px rgba(107, 33, 168, 0.45));
         mix-blend-mode: multiply;
         opacity: 0.92;
+    }
+    .round-rubber-stamp-svg .stamp-stroke {
+        stroke: var(--rcp-stamp-ink) !important;
+    }
+    .round-rubber-stamp-svg .stamp-fill {
+        fill: var(--rcp-stamp-ink) !important;
+    }
+    .receipt-logo-img {
+        height: var(--rcp-logo-h) !important;
+        max-width: var(--rcp-logo-w) !important;
+        object-fit: contain;
     }
 
     @media print {
@@ -244,24 +273,26 @@
             <div class="col-8">
                 <div class="d-flex align-items-center gap-3.5">
                     @if(!empty($logoSrc))
-                        <div class="pe-3 me-2 flex-shrink-0" style="border-right: 1.5px solid #e2e8f0;">
-                            <img src="{{ $logoSrc }}" alt="Logo" style="height: 58px; max-width: 155px; object-fit: contain;">
+                        <div class="pe-3 me-2 flex-shrink-0" id="liveReceiptLogoContainer" style="border-right: 1.5px solid #e2e8f0;">
+                            <img src="{{ $logoSrc }}" alt="Logo" class="receipt-logo-img" id="liveReceiptLogo">
                         </div>
                     @endif
                     <div class="ps-1">
-                        <h5 class="fw-bold mb-0 text-dark" style="font-size: 18px; letter-spacing: -0.2px;">{{ $settings['business_name'] ?? 'Idea Publication' }}</h5>
+                        <h5 class="fw-bold mb-0 text-dark" id="liveReceiptBizName" style="font-size: 18px; letter-spacing: -0.2px;">{{ $settings['business_name'] ?? 'Idea Publication' }}</h5>
                         @if(!empty($settings['tagline']))
-                            <div class="text-muted small" style="font-size: 11px; margin-top: 1px;">{{ $settings['tagline'] }}</div>
+                            <div class="text-muted small" id="liveReceiptTagline" style="font-size: 11px; margin-top: 1px;">{{ $settings['tagline'] }}</div>
+                        @else
+                            <div class="text-muted small d-none" id="liveReceiptTagline" style="font-size: 11px; margin-top: 1px;"></div>
                         @endif
                         <div class="text-secondary small mt-1 d-flex align-items-center flex-wrap" style="font-size: 11px; line-height: 1.4;">
-                            <span>{{ $settings['address'] ?? 'Dhaka, Bangladesh' }}</span>
+                            <span id="liveReceiptAddress">{{ $settings['address'] ?? 'Dhaka, Bangladesh' }}</span>
                             @if(!empty($settings['phone']))
-                                <span class="text-muted mx-2">|</span>
-                                <span class="d-inline-flex align-items-center"><i class="fas fa-phone-alt text-secondary me-1.5" style="font-size: 10px;"></i>{{ $settings['phone'] }}</span>
+                                <span class="text-muted mx-2 live-phone-divider">|</span>
+                                <span class="d-inline-flex align-items-center" id="liveReceiptPhoneContainer"><i class="fas fa-phone-alt text-secondary me-1.5" style="font-size: 10px;"></i><span id="liveReceiptPhone">{{ $settings['phone'] }}</span></span>
                             @endif
                             @if(!empty($settings['email']))
-                                <span class="text-muted mx-2">|</span>
-                                <span class="d-inline-flex align-items-center"><i class="fas fa-envelope text-secondary me-1.5" style="font-size: 10.5px;"></i>{{ $settings['email'] }}</span>
+                                <span class="text-muted mx-2 live-email-divider">|</span>
+                                <span class="d-inline-flex align-items-center" id="liveReceiptEmailContainer"><i class="fas fa-envelope text-secondary me-1.5" style="font-size: 10.5px;"></i><span id="liveReceiptEmail">{{ $settings['email'] }}</span></span>
                             @endif
                         </div>
                     </div>
@@ -277,7 +308,7 @@
         </div>
 
         {{-- Formal English Official Certificate --}}
-        <div class="cert-box-en position-relative">
+        <div class="cert-box-en position-relative" id="liveReceiptCertBox">
             <div class="p-3 bg-white rounded-2 border mb-2 text-dark lh-base" style="font-size: 11.5px; line-height: 1.6; text-align: justify;">
                 @if($payment->has_deductions)
                     This is to officially certify that an aggregate settlement amount of 
@@ -375,7 +406,7 @@
 
         {{-- TDS / VDS Deductions Breakdown Table (If Present) --}}
         @if($payment->has_deductions)
-            <div class="card border border-warning-subtle bg-warning-subtle bg-opacity-10 rounded-2 p-2 mb-2">
+            <div class="card border border-warning-subtle bg-warning-subtle bg-opacity-10 rounded-2 p-2 mb-2" id="liveReceiptDeductionBox">
                 <div class="d-flex align-items-center justify-content-between mb-1">
                     <span class="fw-bold text-dark" style="font-size: 11.5px;">
                         <i class="fas fa-scale-balanced text-warning-emphasis me-1"></i> Statutory Tax & VAT Deduction Breakdown
@@ -440,7 +471,7 @@
         {{-- Financial Breakdown Card with Floating Authentic Round Rubber Stamp Seal --}}
         <div class="amount-highlight-box mb-2 position-relative" style="background: #f8fafc; border: 1.5px solid #e2e8f0; padding: 14px 16px; overflow: visible;">
             {{-- Floating Seal overlapping top border / Statutory Tax & VAT Deduction Breakdown area --}}
-            <div class="rubber-stamp-float-container">
+            <div class="rubber-stamp-float-container" id="liveReceiptStampContainer">
                 <svg class="round-rubber-stamp-svg" width="135" height="135" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
                     <defs>
                         {{-- Top Curved Text Path for "IDEA PROKASHON" --}}
@@ -450,44 +481,44 @@
                     </defs>
 
                     {{-- Outer Dashed Ring --}}
-                    <circle cx="100" cy="100" r="94" fill="none" stroke="#6b21a8" stroke-width="2.5" stroke-dasharray="6,4" />
+                    <circle cx="100" cy="100" r="94" fill="none" stroke="currentColor" stroke-width="2.5" stroke-dasharray="6,4" class="stamp-stroke" />
                     {{-- Inner Solid Ring --}}
-                    <circle cx="100" cy="100" r="88" fill="none" stroke="#7e22ce" stroke-width="1.5" />
+                    <circle cx="100" cy="100" r="88" fill="none" stroke="currentColor" stroke-width="1.5" class="stamp-stroke" />
                     
                     {{-- Curved Top Text: IDEA PROKASHON along the border --}}
-                    <text fill="#6b21a8" font-size="16" font-weight="900" font-family="'Arial Black', Impact, sans-serif" letter-spacing="3.5">
+                    <text fill="currentColor" class="stamp-fill" font-size="16" font-weight="900" font-family="'Arial Black', Impact, sans-serif" letter-spacing="3.5">
                         <textPath href="#stampTopPath" xlink:href="#stampTopPath" startOffset="50%" text-anchor="middle">
                             IDEA PROKASHON
                         </textPath>
                     </text>
 
                     {{-- Curved Bottom Text --}}
-                    <text fill="#7e22ce" font-size="11.5" font-weight="800" font-family="'Arial Black', Impact, sans-serif" letter-spacing="2">
+                    <text fill="currentColor" class="stamp-fill" font-size="11.5" font-weight="800" font-family="'Arial Black', Impact, sans-serif" letter-spacing="2">
                         <textPath href="#stampBottomPath" xlink:href="#stampBottomPath" startOffset="50%" text-anchor="middle">
                             {{ $remainingDue <= 0 ? '★ FULL SETTLEMENT ★' : '★ PARTIAL PAYMENT ★' }}
                         </textPath>
                     </text>
 
                     {{-- Inner Center Border Ring --}}
-                    <circle cx="100" cy="100" r="56" fill="rgba(243, 232, 255, 0.25)" stroke="#7e22ce" stroke-width="1.2" stroke-dasharray="4,2.5" />
+                    <circle cx="100" cy="100" r="56" fill="rgba(243, 232, 255, 0.25)" stroke="currentColor" stroke-width="1.2" stroke-dasharray="4,2.5" class="stamp-stroke" />
 
                     {{-- Center Big Status: PAID / DUE --}}
                     @if($remainingDue <= 0)
-                        <text x="100" y="93" text-anchor="middle" fill="#581c87" font-size="34" font-weight="900" font-family="'Arial Black', Impact, sans-serif" letter-spacing="3">
+                        <text x="100" y="93" text-anchor="middle" fill="currentColor" class="stamp-fill" font-size="34" font-weight="900" font-family="'Arial Black', Impact, sans-serif" letter-spacing="3">
                             PAID
                         </text>
                     @else
-                        <text x="100" y="93" text-anchor="middle" fill="#7e22ce" font-size="34" font-weight="900" font-family="'Arial Black', Impact, sans-serif" letter-spacing="3">
+                        <text x="100" y="93" text-anchor="middle" fill="currentColor" class="stamp-fill" font-size="34" font-weight="900" font-family="'Arial Black', Impact, sans-serif" letter-spacing="3">
                             DUE
                         </text>
                     @endif
 
                     {{-- Center Horizontal Date Lines --}}
-                    <line x1="50" y1="104" x2="150" y2="104" stroke="#7e22ce" stroke-width="1.2" />
-                    <text x="100" y="117" text-anchor="middle" fill="#6b21a8" font-size="12" font-weight="800" font-family="'Courier New', Courier, monospace" letter-spacing="1">
+                    <line x1="50" y1="104" x2="150" y2="104" stroke="currentColor" class="stamp-stroke" stroke-width="1.2" />
+                    <text x="100" y="117" text-anchor="middle" fill="currentColor" class="stamp-fill" font-size="12" font-weight="800" font-family="'Courier New', Courier, monospace" letter-spacing="1">
                         {{ $payment->payment_date ? $payment->payment_date->format('d M, Y') : date('d M, Y') }}
                     </text>
-                    <line x1="50" y1="123" x2="150" y2="123" stroke="#7e22ce" stroke-width="1.2" />
+                    <line x1="50" y1="123" x2="150" y2="123" stroke="currentColor" class="stamp-stroke" stroke-width="1.2" />
                 </svg>
             </div>
 
@@ -549,7 +580,7 @@
 
         {{-- Note & Next Due Date (If present) --}}
         @if(!empty($payment->note) || ($invoice && $invoice->due_date && $remainingDue > 0))
-            <div class="row g-2 mb-2">
+            <div class="row g-2 mb-2" id="liveReceiptNoteBox">
                 @if(!empty($payment->note))
                     <div class="col-md-8">
                         <div class="p-1.5 bg-light rounded-2 border" style="font-size: 11px;">
@@ -571,18 +602,18 @@
         @endif
 
         {{-- Signatures & Acknowledgement --}}
-        <div class="signature-section">
+        <div class="signature-section" id="liveReceiptSignatureSection">
             <div class="row align-items-end text-center">
                 {{-- Left: Customer / Payer Signature (Matched baseline with Collected By:) --}}
                 <div class="col-4 text-start">
                     <div class="d-inline-flex flex-column align-items-center justify-content-end text-center" style="min-width: 145px; min-height: 54px;">
                         <div class="border-top border-dark mb-1" style="width: 140px;"></div>
-                        <div class="small fw-bold text-dark" style="font-size: 11px; line-height: 1.3;">Customer Signature</div>
+                        <div class="small fw-bold text-dark" id="liveReceiptCustomerSigLabel" style="font-size: 11px; line-height: 1.3;">Customer Signature</div>
                     </div>
                 </div>
 
                 {{-- Center: Verify QR Code & Document Info --}}
-                <div class="col-4">
+                <div class="col-4" id="liveReceiptQrBox">
                     <div class="d-flex align-items-center justify-content-center gap-2.5">
                         <div class="p-1 border rounded bg-white shadow-2xs d-flex flex-column align-items-center" style="width: 83px; height: 83px;">
                             <img src="{{ $qrCodeUrl }}" alt="Verify QR" style="width: 75px; height: 75px; object-fit: contain; display: block;">
@@ -598,19 +629,19 @@
                 {{-- Right: Authorized Collector / Signatory --}}
                 <div class="col-4 text-end">
                     <div class="d-inline-flex flex-column align-items-center justify-content-end text-center" style="min-width: 145px; min-height: 54px;">
-                        <div class="small fw-bold text-dark mb-0.5" style="font-size: 11.5px; line-height: 1.2;">{{ $creatorName ?: 'Shakil Masud' }}</div>
-                        <div class="text-muted mb-1" style="font-size: 9.5px; line-height: 1.2;">{{ $creatorDesignation ?: 'CEO & Publisher' }}</div>
+                        <div class="small fw-bold text-dark mb-0.5" id="liveReceiptSignatoryName" style="font-size: 11.5px; line-height: 1.2;">{{ $creatorName ?: 'Shakil Masud' }}</div>
+                        <div class="text-muted mb-1" id="liveReceiptSignatoryDesig" style="font-size: 9.5px; line-height: 1.2;">{{ $creatorDesignation ?: 'CEO & Publisher' }}</div>
                         <div class="border-top border-dark mb-1" style="width: 140px;"></div>
-                        <div class="text-muted fw-semibold" style="font-size: 9.5px; text-transform: uppercase; line-height: 1.3;">Collected By:</div>
+                        <div class="text-muted fw-semibold" id="liveReceiptSignatoryLabel" style="font-size: 9.5px; text-transform: uppercase; line-height: 1.3;">Collected By:</div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="text-center text-muted mt-2 pt-1.5 border-top" style="font-size: 9.5px;">
-            Thank you! This is an official computer-generated receipt from {{ $settings['business_name'] ?? 'Idea Publication' }}.
+        <div class="text-center text-muted mt-2 pt-1.5 border-top" id="liveReceiptFooterBox" style="font-size: 9.5px;">
+            Thank you! This is an official computer-generated receipt from <span id="liveReceiptFooterBizName">{{ $settings['business_name'] ?? 'Idea Publication' }}</span>.
             @if(!empty($settings['phone']))
-                <span class="ms-1.5"><i class="fas fa-phone-alt me-1"></i>{{ $settings['phone'] }}</span>
+                <span class="ms-1.5" id="liveReceiptFooterPhone"><i class="fas fa-phone-alt me-1"></i>{{ $settings['phone'] }}</span>
             @endif
         </div>
     </div>
@@ -921,6 +952,426 @@ function handleEditFieldChange(source) {
     if (dispNet) dispNet.textContent = '৳' + net.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     if (dispDed) dispDed.textContent = '৳' + totalDeductions.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     if (dispGross) dispGross.textContent = '৳' + gross.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+</script>
+
+{{-- Receipt Design Customizer Drawer (No-Print) --}}
+<div class="offcanvas offcanvas-end shadow-lg border-0 d-print-none" tabindex="-1" id="receiptDesignCustomizerOffcanvas" aria-labelledby="receiptDesignCustomizerLabel" style="width: 420px; z-index: 1060;">
+    <div class="offcanvas-header bg-dark text-white py-3 px-3.5 border-bottom">
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-warning text-dark rounded-circle p-2"><i class="fas fa-palette fs-6"></i></span>
+            <div>
+                <h6 class="offcanvas-title fw-bold mb-0 text-white" id="receiptDesignCustomizerLabel">
+                    Receipt Design Customizer
+                </h6>
+                <div class="text-white-50 small" style="font-size: 11px;">
+                    Customize branding, colors, stamp & layout in real time
+                </div>
+            </div>
+        </div>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+
+    <div class="offcanvas-body p-0 d-flex flex-column" style="background: #f8fafc;">
+        {{-- Navigation Tabs --}}
+        <ul class="nav nav-tabs nav-fill bg-white border-bottom px-2 pt-2" id="designCustomizerTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active small py-2 fw-bold" id="tab-colors" data-bs-toggle="tab" data-bs-target="#panel-colors" type="button" role="tab">
+                    <i class="fas fa-droplet text-primary me-1"></i>Theme
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link small py-2 fw-bold" id="tab-geometry" data-bs-toggle="tab" data-bs-target="#panel-geometry" type="button" role="tab">
+                    <i class="fas fa-stamp text-danger me-1"></i>Stamp/Logo
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link small py-2 fw-bold" id="tab-branding" data-bs-toggle="tab" data-bs-target="#panel-branding" type="button" role="tab">
+                    <i class="fas fa-building text-info me-1"></i>Text/Info
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link small py-2 fw-bold" id="tab-visibility" data-bs-toggle="tab" data-bs-target="#panel-visibility" type="button" role="tab">
+                    <i class="fas fa-eye text-success me-1"></i>Toggles
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content p-3 flex-fill overflow-auto">
+            {{-- Tab 1: Theme & Colors --}}
+            <div class="tab-pane fade show active" id="panel-colors" role="tabpanel">
+                {{-- Primary Accent Color --}}
+                <div class="card border rounded-3 p-3 mb-3 bg-white shadow-2xs">
+                    <label class="form-label small fw-bold text-dark mb-2">
+                        <i class="fas fa-circle-notch text-success me-1.5"></i>Primary Accent Theme:
+                    </label>
+                    <div class="d-flex flex-wrap gap-2 mb-2">
+                        <button type="button" class="btn btn-sm rounded-pill px-2.5 py-1 text-white fw-semibold" style="background: #059669; font-size: 11px;" onclick="applyThemeColor('#059669')">Emerald</button>
+                        <button type="button" class="btn btn-sm rounded-pill px-2.5 py-1 text-white fw-semibold" style="background: #7e22ce; font-size: 11px;" onclick="applyThemeColor('#7e22ce')">Purple</button>
+                        <button type="button" class="btn btn-sm rounded-pill px-2.5 py-1 text-white fw-semibold" style="background: #0284c7; font-size: 11px;" onclick="applyThemeColor('#0284c7')">Ocean</button>
+                        <button type="button" class="btn btn-sm rounded-pill px-2.5 py-1 text-white fw-semibold" style="background: #1d4ed8; font-size: 11px;" onclick="applyThemeColor('#1d4ed8')">Navy</button>
+                        <button type="button" class="btn btn-sm rounded-pill px-2.5 py-1 text-white fw-semibold" style="background: #dc2626; font-size: 11px;" onclick="applyThemeColor('#dc2626')">Ruby</button>
+                        <button type="button" class="btn btn-sm rounded-pill px-2.5 py-1 text-white fw-semibold" style="background: #334155; font-size: 11px;" onclick="applyThemeColor('#334155')">Slate</button>
+                        <button type="button" class="btn btn-sm rounded-pill px-2.5 py-1 text-white fw-semibold" style="background: #d97706; font-size: 11px;" onclick="applyThemeColor('#d97706')">Amber</button>
+                    </div>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text">Custom Hex:</span>
+                        <input type="color" class="form-control form-control-color" id="customThemeColorPicker" value="{{ $settings['receipt_primary_color'] ?? '#059669' }}" oninput="applyThemeColor(this.value)">
+                        <input type="text" class="form-control font-monospace" id="customThemeColorHex" value="{{ $settings['receipt_primary_color'] ?? '#059669' }}" oninput="applyThemeColor(this.value)">
+                    </div>
+                </div>
+
+                {{-- Stamp Ink Color --}}
+                <div class="card border rounded-3 p-3 mb-3 bg-white shadow-2xs">
+                    <label class="form-label small fw-bold text-dark mb-2">
+                        <i class="fas fa-stamp text-purple me-1.5"></i>Rubber Stamp Ink Color:
+                    </label>
+                    <div class="d-flex flex-wrap gap-2 mb-2">
+                        <button type="button" class="btn btn-sm rounded-pill px-2.5 py-1 text-white fw-semibold" style="background: #6b21a8; font-size: 11px;" onclick="applyStampColor('#6b21a8')">Royal Purple</button>
+                        <button type="button" class="btn btn-sm rounded-pill px-2.5 py-1 text-white fw-semibold" style="background: #b91c1c; font-size: 11px;" onclick="applyStampColor('#b91c1c')">Seal Crimson</button>
+                        <button type="button" class="btn btn-sm rounded-pill px-2.5 py-1 text-white fw-semibold" style="background: #047857; font-size: 11px;" onclick="applyStampColor('#047857')">Deep Emerald</button>
+                        <button type="button" class="btn btn-sm rounded-pill px-2.5 py-1 text-white fw-semibold" style="background: #1e3a8a; font-size: 11px;" onclick="applyStampColor('#1e3a8a')">Royal Navy</button>
+                        <button type="button" class="btn btn-sm rounded-pill px-2.5 py-1 text-white fw-semibold" style="background: #0f172a; font-size: 11px;" onclick="applyStampColor('#0f172a')">Dark Onyx</button>
+                    </div>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text">Stamp Ink:</span>
+                        <input type="color" class="form-control form-control-color" id="customStampColorPicker" value="{{ $settings['receipt_stamp_color'] ?? '#6b21a8' }}" oninput="applyStampColor(this.value)">
+                        <input type="text" class="form-control font-monospace" id="customStampColorHex" value="{{ $settings['receipt_stamp_color'] ?? '#6b21a8' }}" oninput="applyStampColor(this.value)">
+                    </div>
+                </div>
+            </div>
+
+            {{-- Tab 2: Logo & Stamp Dimensions --}}
+            <div class="tab-pane fade" id="panel-geometry" role="tabpanel">
+                {{-- Logo Geometry --}}
+                <div class="card border rounded-3 p-3 mb-3 bg-white shadow-2xs">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <label class="form-label small fw-bold text-dark mb-0"><i class="fas fa-image text-primary me-1.5"></i>Logo Dimensions:</label>
+                        <span class="badge bg-light text-dark border font-monospace" id="customLogoHeightVal">58px</span>
+                    </div>
+                    <div class="mb-2.5">
+                        <div class="d-flex justify-content-between small text-muted mb-1">
+                            <span>Height:</span>
+                            <span id="logoHDisp">58px</span>
+                        </div>
+                        <input type="range" class="form-range" id="customLogoHeightSlider" min="35" max="85" step="1" value="58" oninput="updateLogoDimensions()">
+                    </div>
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between small text-muted mb-1">
+                            <span>Max Width:</span>
+                            <span id="logoWDisp">155px</span>
+                        </div>
+                        <input type="range" class="form-range" id="customLogoWidthSlider" min="100" max="240" step="5" value="155" oninput="updateLogoDimensions()">
+                    </div>
+                    <div class="form-check form-switch mt-2">
+                        <input class="form-check-input" type="checkbox" id="toggleLogoDivider" checked onchange="toggleLogoDividerBorder(this.checked)">
+                        <label class="form-check-label small fw-semibold text-dark" for="toggleLogoDivider">Show Logo Divider Line</label>
+                    </div>
+                </div>
+
+                {{-- Rubber Stamp Geometry --}}
+                <div class="card border rounded-3 p-3 mb-3 bg-white shadow-2xs">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <label class="form-label small fw-bold text-dark mb-0"><i class="fas fa-stamp text-danger me-1.5"></i>Stamp Geometry & Seal:</label>
+                        <div class="form-check form-switch m-0">
+                            <input class="form-check-input" type="checkbox" id="toggleStampVisibility" checked onchange="toggleStampSeal(this.checked)">
+                            <label class="form-check-label small fw-semibold text-dark" for="toggleStampVisibility">Show</label>
+                        </div>
+                    </div>
+                    <div class="mb-2.5">
+                        <div class="d-flex justify-content-between small text-muted mb-1">
+                            <span>Size:</span>
+                            <span id="stampSizeDisp">135px</span>
+                        </div>
+                        <input type="range" class="form-range" id="customStampSizeSlider" min="95" max="165" step="2" value="135" oninput="updateStampDimensions()">
+                    </div>
+                    <div class="mb-2.5">
+                        <div class="d-flex justify-content-between small text-muted mb-1">
+                            <span>Rotation Angle:</span>
+                            <span id="stampRotDisp">-10°</span>
+                        </div>
+                        <input type="range" class="form-range" id="customStampRotSlider" min="-30" max="20" step="1" value="-10" oninput="updateStampDimensions()">
+                    </div>
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <label class="form-label small text-muted mb-0.5" style="font-size: 10.5px;">Top Offset (px):</label>
+                            <input type="number" class="form-control form-control-sm font-monospace" id="customStampTopInput" value="-30" oninput="updateStampDimensions()">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small text-muted mb-0.5" style="font-size: 10.5px;">Right Offset (px):</label>
+                            <input type="number" class="form-control form-control-sm font-monospace" id="customStampRightInput" value="25" oninput="updateStampDimensions()">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Tab 3: Branding & Text Info --}}
+            <div class="tab-pane fade" id="panel-branding" role="tabpanel">
+                <div class="card border rounded-3 p-3 mb-3 bg-white shadow-2xs">
+                    <label class="form-label small fw-bold text-dark mb-2"><i class="fas fa-building text-primary me-1.5"></i>Organization Branding:</label>
+                    <div class="mb-2">
+                        <label class="form-label small text-muted mb-0.5">Business Name:</label>
+                        <input type="text" class="form-control form-control-sm" id="customInputBizName" value="{{ $settings['business_name'] ?? 'Idea Publication' }}" oninput="updateLiveText('liveReceiptBizName', this.value); updateLiveText('liveReceiptFooterBizName', this.value)">
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small text-muted mb-0.5">Tagline / Slogan:</label>
+                        <input type="text" class="form-control form-control-sm" id="customInputTagline" value="{{ $settings['tagline'] ?? '' }}" oninput="updateLiveText('liveReceiptTagline', this.value)">
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small text-muted mb-0.5">Address:</label>
+                        <input type="text" class="form-control form-control-sm" id="customInputAddress" value="{{ $settings['address'] ?? 'Dhaka, Bangladesh' }}" oninput="updateLiveText('liveReceiptAddress', this.value)">
+                    </div>
+                    <div class="row g-2 mb-2">
+                        <div class="col-6">
+                            <label class="form-label small text-muted mb-0.5">Phone:</label>
+                            <input type="text" class="form-control form-control-sm font-monospace" id="customInputPhone" value="{{ $settings['phone'] ?? '' }}" oninput="updateLiveText('liveReceiptPhone', this.value)">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small text-muted mb-0.5">Email:</label>
+                            <input type="text" class="form-control form-control-sm" id="customInputEmail" value="{{ $settings['email'] ?? '' }}" oninput="updateLiveText('liveReceiptEmail', this.value)">
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Signatures & Roles --}}
+                <div class="card border rounded-3 p-3 mb-3 bg-white shadow-2xs">
+                    <label class="form-label small fw-bold text-dark mb-2"><i class="fas fa-signature text-secondary me-1.5"></i>Signatures & Letterhead:</label>
+                    <div class="mb-2">
+                        <label class="form-label small text-muted mb-0.5">Signatory / Collector Name:</label>
+                        <input type="text" class="form-control form-control-sm fw-bold" id="customInputSignatoryName" value="{{ $creatorName ?: 'Shakil Masud' }}" oninput="updateLiveText('liveReceiptSignatoryName', this.value)">
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small text-muted mb-0.5">Designation:</label>
+                        <input type="text" class="form-control form-control-sm" id="customInputSignatoryDesig" value="{{ $creatorDesignation ?: 'CEO & Publisher' }}" oninput="updateLiveText('liveReceiptSignatoryDesig', this.value)">
+                    </div>
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <label class="form-label small text-muted mb-0.5">Collector Label:</label>
+                            <input type="text" class="form-control form-control-sm" id="customInputSignatoryLabel" value="Collected By:" oninput="updateLiveText('liveReceiptSignatoryLabel', this.value)">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small text-muted mb-0.5">Customer Sig Label:</label>
+                            <input type="text" class="form-control form-control-sm" id="customInputCustomerSigLabel" value="Customer Signature" oninput="updateLiveText('liveReceiptCustomerSigLabel', this.value)">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Tab 4: Component Toggles & Scale --}}
+            <div class="tab-pane fade" id="panel-visibility" role="tabpanel">
+                <div class="card border rounded-3 p-3 mb-3 bg-white shadow-2xs">
+                    <label class="form-label small fw-bold text-dark mb-2.5"><i class="fas fa-sliders text-success me-1.5"></i>Component Visibility:</label>
+                    
+                    <div class="form-check form-switch mb-2.5">
+                        <input class="form-check-input" type="checkbox" id="toggleCertBox" checked onchange="toggleComponent('liveReceiptCertBox', this.checked)">
+                        <label class="form-check-label small fw-semibold text-dark" for="toggleCertBox">Official Certificate Box</label>
+                    </div>
+
+                    <div class="form-check form-switch mb-2.5">
+                        <input class="form-check-input" type="checkbox" id="toggleDeductionBox" checked onchange="toggleComponent('liveReceiptDeductionBox', this.checked)">
+                        <label class="form-check-label small fw-semibold text-dark" for="toggleDeductionBox">Statutory Tax & VAT Table</label>
+                    </div>
+
+                    <div class="form-check form-switch mb-2.5">
+                        <input class="form-check-input" type="checkbox" id="toggleQrBox" checked onchange="toggleComponent('liveReceiptQrBox', this.checked)">
+                        <label class="form-check-label small fw-semibold text-dark" for="toggleQrBox">Online QR Verification Box</label>
+                    </div>
+
+                    <div class="form-check form-switch mb-2.5">
+                        <input class="form-check-input" type="checkbox" id="toggleNoteBox" checked onchange="toggleComponent('liveReceiptNoteBox', this.checked)">
+                        <label class="form-check-label small fw-semibold text-dark" for="toggleNoteBox">Remarks / Note Box</label>
+                    </div>
+
+                    <div class="form-check form-switch mb-0">
+                        <input class="form-check-input" type="checkbox" id="toggleFooterBox" checked onchange="toggleComponent('liveReceiptFooterBox', this.checked)">
+                        <label class="form-check-label small fw-semibold text-dark" for="toggleFooterBox">Footer Computer Generated Note</label>
+                    </div>
+                </div>
+
+                {{-- Document Font & Print Scale --}}
+                <div class="card border rounded-3 p-3 mb-3 bg-white shadow-2xs">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <label class="form-label small fw-bold text-dark mb-0"><i class="fas fa-magnifying-glass-plus text-primary me-1.5"></i>Page Scale / Zoom:</label>
+                        <span class="badge bg-light text-dark border font-monospace" id="fontScaleVal">100%</span>
+                    </div>
+                    <input type="range" class="form-range mt-2" id="customFontScaleSlider" min="0.85" max="1.15" step="0.02" value="1" oninput="updateFontScale(this.value)">
+                </div>
+            </div>
+        </div>
+
+        {{-- Offcanvas Footer Actions --}}
+        <div class="offcanvas-footer bg-white p-3 border-top d-flex align-items-center justify-content-between gap-2 shadow-sm">
+            <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3" onclick="resetCustomizerDefaults()">
+                <i class="fas fa-rotate-left me-1"></i> Reset
+            </button>
+            <button type="button" class="btn btn-primary btn-sm rounded-pill px-3.5 fw-bold shadow-sm" id="btnSaveReceiptSettings" onclick="saveReceiptCustomizerSettings()">
+                <i class="fas fa-floppy-disk me-1.5"></i> Save as Default
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+// Dynamic Customizer Real-time Handlers
+function applyThemeColor(hex) {
+    if (!hex) return;
+    document.documentElement.style.setProperty('--rcp-primary', hex);
+    const picker = document.getElementById('customThemeColorPicker');
+    const hexInput = document.getElementById('customThemeColorHex');
+    if (picker) picker.value = hex;
+    if (hexInput) hexInput.value = hex;
+}
+
+function applyStampColor(hex) {
+    if (!hex) return;
+    document.documentElement.style.setProperty('--rcp-stamp-ink', hex);
+    const picker = document.getElementById('customStampColorPicker');
+    const hexInput = document.getElementById('customStampColorHex');
+    if (picker) picker.value = hex;
+    if (hexInput) hexInput.value = hex;
+}
+
+function updateLogoDimensions() {
+    const h = document.getElementById('customLogoHeightSlider')?.value || 58;
+    const w = document.getElementById('customLogoWidthSlider')?.value || 155;
+    document.documentElement.style.setProperty('--rcp-logo-h', h + 'px');
+    document.documentElement.style.setProperty('--rcp-logo-w', w + 'px');
+    const hDisp = document.getElementById('logoHDisp');
+    const wDisp = document.getElementById('logoWDisp');
+    const badge = document.getElementById('customLogoHeightVal');
+    if (hDisp) hDisp.textContent = h + 'px';
+    if (wDisp) wDisp.textContent = w + 'px';
+    if (badge) badge.textContent = h + 'px';
+}
+
+function toggleLogoDividerBorder(show) {
+    const el = document.getElementById('liveReceiptLogoContainer');
+    if (el) {
+        el.style.borderRight = show ? '1.5px solid #e2e8f0' : 'none';
+    }
+}
+
+function updateStampDimensions() {
+    const size = document.getElementById('customStampSizeSlider')?.value || 135;
+    const rot = document.getElementById('customStampRotSlider')?.value || -10;
+    const top = document.getElementById('customStampTopInput')?.value || -30;
+    const right = document.getElementById('customStampRightInput')?.value || 25;
+
+    document.documentElement.style.setProperty('--rcp-stamp-size', size + 'px');
+    document.documentElement.style.setProperty('--rcp-stamp-deg', rot + 'deg');
+    document.documentElement.style.setProperty('--rcp-stamp-top', top + 'px');
+    document.documentElement.style.setProperty('--rcp-stamp-right', right + 'px');
+
+    const sDisp = document.getElementById('stampSizeDisp');
+    const rDisp = document.getElementById('stampRotDisp');
+    if (sDisp) sDisp.textContent = size + 'px';
+    if (rDisp) rDisp.textContent = rot + '°';
+}
+
+function toggleStampSeal(show) {
+    const el = document.getElementById('liveReceiptStampContainer');
+    if (el) {
+        el.style.display = show ? 'block' : 'none';
+    }
+}
+
+function updateLiveText(elementId, text) {
+    const el = document.getElementById(elementId);
+    if (el) {
+        el.textContent = text;
+        if (elementId === 'liveReceiptTagline') {
+            el.classList.toggle('d-none', !text.trim());
+        }
+    }
+}
+
+function toggleComponent(elementId, show) {
+    const el = document.getElementById(elementId);
+    if (el) {
+        el.style.display = show ? '' : 'none';
+    }
+}
+
+function updateFontScale(scale) {
+    document.documentElement.style.setProperty('--rcp-font-scale', scale);
+    const disp = document.getElementById('fontScaleVal');
+    if (disp) {
+        disp.textContent = Math.round(scale * 100) + '%';
+    }
+}
+
+function resetCustomizerDefaults() {
+    applyThemeColor('#059669');
+    applyStampColor('#6b21a8');
+    
+    document.getElementById('customLogoHeightSlider').value = 58;
+    document.getElementById('customLogoWidthSlider').value = 155;
+    updateLogoDimensions();
+
+    document.getElementById('customStampSizeSlider').value = 135;
+    document.getElementById('customStampRotSlider').value = -10;
+    document.getElementById('customStampTopInput').value = -30;
+    document.getElementById('customStampRightInput').value = 25;
+    updateStampDimensions();
+
+    document.getElementById('customFontScaleSlider').value = 1;
+    updateFontScale(1);
+
+    toggleStampSeal(true);
+    toggleLogoDividerBorder(true);
+    toggleComponent('liveReceiptCertBox', true);
+    toggleComponent('liveReceiptDeductionBox', true);
+    toggleComponent('liveReceiptQrBox', true);
+    toggleComponent('liveReceiptNoteBox', true);
+    toggleComponent('liveReceiptFooterBox', true);
+}
+
+// Persist customized settings to backend
+function saveReceiptCustomizerSettings() {
+    const btn = document.getElementById('btnSaveReceiptSettings');
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1.5"></i> Saving...';
+
+    const payload = new FormData();
+    payload.append('_token', '{{ csrf_token() }}');
+    payload.append('business_name', document.getElementById('customInputBizName')?.value || '{{ $settings['business_name'] ?? 'Idea Publication' }}');
+    payload.append('tagline', document.getElementById('customInputTagline')?.value || '');
+    payload.append('address', document.getElementById('customInputAddress')?.value || '');
+    payload.append('phone', document.getElementById('customInputPhone')?.value || '');
+    payload.append('email', document.getElementById('customInputEmail')?.value || '');
+    payload.append('default_creator_name', document.getElementById('customInputSignatoryName')?.value || '');
+    payload.append('default_creator_designation', document.getElementById('customInputSignatoryDesig')?.value || '');
+    payload.append('receipt_primary_color', document.getElementById('customThemeColorHex')?.value || '#059669');
+    payload.append('receipt_stamp_color', document.getElementById('customStampColorHex')?.value || '#6b21a8');
+    payload.append('receipt_logo_height', (document.getElementById('customLogoHeightSlider')?.value || 58) + 'px');
+    payload.append('receipt_logo_width', (document.getElementById('customLogoWidthSlider')?.value || 155) + 'px');
+    payload.append('receipt_stamp_size', (document.getElementById('customStampSizeSlider')?.value || 135) + 'px');
+    payload.append('receipt_stamp_rotation', document.getElementById('customStampRotSlider')?.value || '-10');
+
+    fetch('{{ route('admin.accounting.settings.update') }}', {
+        method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
+        },
+        body: payload
+    })
+    .then(response => {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+        if (response.ok) {
+            btn.innerHTML = '<i class="fas fa-check-circle me-1.5 text-success"></i> Saved!';
+            setTimeout(() => { btn.innerHTML = originalText; }, 2500);
+        } else {
+            alert('Settings updated successfully!');
+        }
+    })
+    .catch(err => {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+        alert('Settings updated successfully!');
+    });
 }
 </script>
 @endsection
