@@ -449,6 +449,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::delete('/entries/{entry}', 'destroyEntry')->name('entries.destroy');
         Route::get('/invoices', 'invoices')->name('invoices.index');
         Route::get('/invoices/search-books', 'searchBooks')->name('invoices.search-books');
+        Route::get('/invoices/customer-search', 'searchCustomers')->name('invoices.customer-search');
         Route::get('/invoices/customer-due-info', 'getCustomerDueInfo')->name('invoices.customer-due-info');
         Route::post('/invoices/quick-store-book', 'quickStoreBook')->name('invoices.quick-store-book');
         Route::get('/invoices/create', 'createInvoice')->name('invoices.create');
@@ -468,6 +469,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         // Customer & Party Ledgers (গ্রাহক খতিয়ান ও রানিং স্টেটমেন্ট)
         Route::get('/customer-ledger', 'customerLedger')->name('customer-ledger.index');
         Route::post('/customer-ledger/payments', 'storeCustomerLedgerPayment')->name('customer-ledger.payments.store');
+
+        // Tax & VAT (TDS / VDS) Deduction Register & Monthly Reports (উৎসে কর ও মূসক কর্তন রেজিস্টার)
+        Route::get('/tax-vat-deductions', 'taxVatDeductions')->name('tax-vat-deductions.index');
 
         // Financial & P&L Reports (Daily, Weekly, Monthly, Yearly)
         Route::get('/reports', 'reports')->name('reports.index');

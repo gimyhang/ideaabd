@@ -1046,8 +1046,15 @@
                                     <td class="font-monospace">
                                         {{ $pmt->payment_date ? $pmt->payment_date->format('d M, Y') : '—' }}
                                     </td>
-                                    <td class="text-end font-monospace fw-bold text-success">
-                                        ৳{{ number_format($pmt->amount, 2) }}
+                                    <td class="text-end font-monospace">
+                                        <div class="fw-bold text-success fs-6">৳{{ number_format($pmt->amount, 2) }}</div>
+                                        @if($pmt->has_deductions)
+                                            <div class="mt-0.5" style="font-size: 10.5px;">
+                                                <span class="badge bg-warning-subtle text-dark border border-warning" title="নিট প্রাপ্তি: ৳{{ number_format($pmt->effective_net_amount, 2) }} | ভ্যাট/ট্যাক্স কর্তন: ৳{{ number_format($pmt->total_deductions, 2) }}">
+                                                    নিট: ৳{{ number_format($pmt->effective_net_amount, 2) }} | কর্তন: ৳{{ number_format($pmt->total_deductions, 2) }}
+                                                </span>
+                                            </div>
+                                        @endif
                                     </td>
                                     <td>
                                         <span class="badge bg-light text-dark border px-2 py-1">
@@ -1058,6 +1065,9 @@
                                         <div class="text-dark fw-medium">{{ $pmt->note ?: '—' }}</div>
                                         @if($pmt->transaction_ref)
                                             <div class="text-muted font-monospace" style="font-size: 11px;">Trx: {{ $pmt->transaction_ref }}</div>
+                                        @endif
+                                        @if($pmt->deduction_challan_no)
+                                            <div class="text-primary font-monospace" style="font-size: 10.5px;"><i class="fas fa-file-lines me-1"></i>চালান: {{ $pmt->deduction_challan_no }}</div>
                                         @endif
                                     </td>
                                     <td class="text-muted small">
@@ -2011,19 +2021,148 @@ function openResendModal(emails, customMsg) {
                         </div>
                     @endif
 
+                    {{-- VAT & Tax Deduction Adjustment Calculator --}}
+                    <div class="card border border-warning-subtle bg-warning-subtle bg-opacity-10 rounded-3 p-3 mb-3" id="vatTaxAdjustmentCard">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div class="form-check form-switch m-0">
+                                <input class="form-check-input" type="checkbox" role="switch" id="toggleVatTaxDeduction" onchange="toggleVatTaxSection(this.checked)">
+                                <label class="form-check-label fw-bold text-dark small" for="toggleVatTaxDeduction">
+                                    <i class="fas fa-calculator text-warning-emphasis me-1"></i> ভ্যাট ও ট্যাক্স কর্তন সমন্বয় ক্যালকুলেটর (TDS / VDS Adjustment)
+                                </label>
+                            </div>
+                            <span class="badge bg-warning text-dark border font-monospace" style="font-size: 11px;">উৎসে কর ও মূসক কর্তন</span>
+                        </div>
+                        
+                        <div id="vatTaxCalculatorPanel" class="mt-3 pt-3 border-top border-warning-subtle d-none">
+                            <div class="d-flex align-items-center justify-content-between mb-2.5 flex-wrap gap-2">
+                                <span class="text-muted small fw-bold"><i class="fas fa-arrow-right-arrow-left text-primary me-1"></i>হিসাবের ভিত্তি / ইনপুট মোড:</span>
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <input type="radio" class="btn-check" name="calc_mode" id="calcModeGross" value="gross" checked onchange="switchCalcMode('gross')">
+                                    <label class="btn btn-outline-primary btn-sm py-0.5 px-2.5 font-monospace" for="calcModeGross" style="font-size: 11.5px;">১. বিল বকেয়া থেকে কর্তন হিসাব</label>
+                                    
+                                    <input type="radio" class="btn-check" name="calc_mode" id="calcModeNet" value="net" onchange="switchCalcMode('net')">
+                                    <label class="btn btn-outline-primary btn-sm py-0.5 px-2.5 font-monospace" for="calcModeNet" style="font-size: 11.5px;">২. প্রাপ্ত চেক/ক্যাশ থেকে রিভার্স হিসাব</label>
+                                </div>
+                            </div>
+
+                            <div class="row g-2.5 mb-2.5">
+                                {{-- VAT / VDS --}}
+                                <div class="col-md-6 col-12">
+                                    <div class="p-2.5 bg-white rounded-3 border">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <label class="form-label small fw-bold text-dark mb-0">উৎসে মূসক/ভ্যাট (VDS):</label>
+                                            <div class="btn-group btn-group-sm">
+                                                <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-1.5" onclick="setVatRate(0)">0%</button>
+                                                <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-1.5" onclick="setVatRate(5)">5%</button>
+                                                <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-1.5" onclick="setVatRate(7.5)">7.5%</button>
+                                                <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-1.5" onclick="setVatRate(15)">15%</button>
+                                            </div>
+                                        </div>
+                                        <div class="input-group input-group-sm mb-1">
+                                            <input type="number" step="0.01" min="0" max="100" name="vat_deduction_rate" id="vatDeductionRate" class="form-control font-monospace" placeholder="হার %" value="" oninput="calculateVatTaxDeductions()">
+                                            <span class="input-group-text">%</span>
+                                            <input type="number" step="0.01" min="0" name="vat_deduction_amount" id="vatDeductionAmount" class="form-control font-monospace text-danger fw-bold" placeholder="টাকা ৳" value="" oninput="onDirectDeductionAmountChange()">
+                                            <span class="input-group-text">৳</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {{-- Tax / TDS / AIT --}}
+                                <div class="col-md-6 col-12">
+                                    <div class="p-2.5 bg-white rounded-3 border">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <label class="form-label small fw-bold text-dark mb-0">উৎসে আয়কর/ট্যাক্স (TDS/AIT):</label>
+                                            <div class="btn-group btn-group-sm">
+                                                <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-1.5" onclick="setTaxRate(0)">0%</button>
+                                                <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-1.5" onclick="setTaxRate(2)">2%</button>
+                                                <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-1.5" onclick="setTaxRate(3)">3%</button>
+                                                <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-1.5" onclick="setTaxRate(5)">5%</button>
+                                                <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-1.5" onclick="setTaxRate(7)">7%</button>
+                                            </div>
+                                        </div>
+                                        <div class="input-group input-group-sm mb-1">
+                                            <input type="number" step="0.01" min="0" max="100" name="tax_deduction_rate" id="taxDeductionRate" class="form-control font-monospace" placeholder="হার %" value="" oninput="calculateVatTaxDeductions()">
+                                            <span class="input-group-text">%</span>
+                                            <input type="number" step="0.01" min="0" name="tax_deduction_amount" id="taxDeductionAmount" class="form-control font-monospace text-danger fw-bold" placeholder="টাকা ৳" value="" oninput="onDirectDeductionAmountChange()">
+                                            <span class="input-group-text">৳</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row g-2.5 mb-2.5">
+                                {{-- Net Received (Cheque/Cash in hand) --}}
+                                <div class="col-md-6 col-12">
+                                    <div class="p-2.5 bg-white rounded-3 border">
+                                        <label class="form-label small fw-bold text-dark mb-1">
+                                            <i class="fas fa-money-bill-wave text-success me-1"></i>গ্রাহকের দেওয়া চেক/ক্যাশ (নিট প্রাপ্তি):
+                                        </label>
+                                        <div class="input-group input-group-sm">
+                                            <span class="input-group-text">৳</span>
+                                            <input type="number" step="0.01" min="0" name="net_amount" id="netAmountInput" class="form-control font-monospace fw-bold text-success" placeholder="0.00" oninput="onNetChequeAmountChange()">
+                                        </div>
+                                        <div class="text-muted" style="font-size: 10.5px; margin-top: 3px;">ব্যাংক চেক বা ক্যাশে যে পরিমাণ টাকা পাচ্ছেন</div>
+                                    </div>
+                                </div>
+
+                                {{-- Other Deductions / Security --}}
+                                <div class="col-md-6 col-12">
+                                    <div class="p-2.5 bg-white rounded-3 border">
+                                        <label class="form-label small fw-bold text-dark mb-1">অন্যান্য কর্তন (জামানত/সিকিউরিটি):</label>
+                                        <div class="input-group input-group-sm">
+                                            <span class="input-group-text">৳</span>
+                                            <input type="number" step="0.01" min="0" name="other_deduction_amount" id="otherDeductionAmount" class="form-control font-monospace text-danger fw-bold" placeholder="0.00" oninput="calculateVatTaxDeductions()">
+                                        </div>
+                                        <div class="text-muted" style="font-size: 10.5px; margin-top: 3px;">অন্য কোনো কর্তন থাকলে এখানে লিখুন</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Deduction Challan & Certificate Info --}}
+                            <div class="row g-2.5 mb-2.5">
+                                <div class="col-md-6 col-12">
+                                    <label class="form-label small fw-semibold text-dark mb-1">ট্রেজারি চালান নং / মূসক-৬.৬ সনদ নং (ঐচ্ছিক):</label>
+                                    <input type="text" name="deduction_challan_no" id="deductionChallanNo" class="form-control form-control-sm font-monospace" placeholder="যেমন: TR-12345 / মূসক-৬.৬">
+                                </div>
+                                <div class="col-md-6 col-12">
+                                    <label class="form-label small fw-semibold text-dark mb-1">কর্তন নোট / বিবরণ (ঐচ্ছিক):</label>
+                                    <input type="text" name="deduction_notes" id="deductionNotes" class="form-control form-control-sm" placeholder="যেমন: ৫% ট্যাক্স ও ৭.৫% ভ্যাট কর্তনপূর্বক চেক প্রদান">
+                                </div>
+                            </div>
+
+                            {{-- Live Settlement Summary Pill Bar --}}
+                            <div class="p-2.5 bg-success-subtle bg-opacity-25 rounded-3 border border-success-subtle">
+                                <div class="row g-2 text-center" style="font-size: 12px;">
+                                    <div class="col-4 border-end border-success-subtle">
+                                        <span class="text-muted d-block" style="font-size: 11px;">নিট চেক/ক্যাশ প্রাপ্তি</span>
+                                        <strong class="text-success font-monospace fs-7" id="displayCalcNet">৳0.00</strong>
+                                    </div>
+                                    <div class="col-4 border-end border-success-subtle">
+                                        <span class="text-muted d-block" style="font-size: 11px;">মোট ভ্যাট ও ট্যাক্স কর্তন</span>
+                                        <strong class="text-danger font-monospace fs-7" id="displayCalcDeductions">৳0.00</strong>
+                                    </div>
+                                    <div class="col-4">
+                                        <span class="text-muted d-block" style="font-size: 11px;">মোট বিল সমন্বয় (বকেয়া কমবে)</span>
+                                        <strong class="text-primary font-monospace fs-7" id="displayCalcGross">৳0.00</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="row g-3 mb-3">
                         <div class="col-md-6 col-12">
                             <label class="form-label small fw-bold text-dark">জমার তারিখ: <span class="text-danger">*</span></label>
                             <input type="date" name="payment_date" class="form-control" required value="{{ date('Y-m-d') }}">
                         </div>
                         <div class="col-md-6 col-12">
-                            <label class="form-label small fw-bold text-dark" id="paymentAmountLabel">জমার পরিমাণ (টাকা): <span class="text-danger">*</span></label>
+                            <label class="form-label small fw-bold text-dark" id="paymentAmountLabel">মোট বিল সমন্বয় / জমার পরিমাণ (টাকা): <span class="text-danger">*</span></label>
                             <div class="input-group">
                                 <span class="input-group-text">৳</span>
-                                <input type="number" step="0.01" min="0.01" name="amount" id="paymentAmountInput" class="form-control fw-bold font-monospace text-success fs-5" required placeholder="0.00" value="{{ $invoice->due_amount > 0 ? $invoice->due_amount : ($customerTotalDue ?? '') }}">
+                                <input type="number" step="0.01" min="0.01" name="amount" id="paymentAmountInput" class="form-control fw-bold font-monospace text-success fs-5" required placeholder="0.00" value="{{ $invoice->due_amount > 0 ? $invoice->due_amount : ($customerTotalDue ?? '') }}" oninput="onGrossAmountChange()">
                             </div>
                             <div class="form-text text-muted" id="paymentAmountHelp" style="font-size: 11px;">
-                                পূর্ণ বা আংশিক যেকোনো পরিমাণ টাকা লিখতে পারেন।
+                                ভ্যাট-ট্যাক্স কর্তনসহ বিলের মোট যে পরিমাণ সমন্বয় বা পরিশোধ হবে।
                             </div>
                         </div>
                     </div>
@@ -2033,7 +2172,7 @@ function openResendModal(emails, customMsg) {
                             <label class="form-label small fw-bold text-dark">পেমেন্ট মাধ্যম: <span class="text-danger">*</span></label>
                             <select name="payment_method" class="form-select" required>
                                 @foreach(\App\Models\IdeaInvoicePayment::paymentMethods() as $code => $lbl)
-                                    <option value="{{ $code }}" {{ $code === 'cash' ? 'selected' : '' }}>{{ $lbl }}</option>
+                                    <option value="{{ $code }}" {{ $code === 'cheque' ? 'selected' : ($code === 'cash' ? 'selected' : '') }}>{{ $lbl }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -2051,7 +2190,7 @@ function openResendModal(emails, customMsg) {
 
                     <div class="mb-2">
                         <label class="form-label small fw-bold text-dark">বিবরণ / নোট (ঐচ্ছিক):</label>
-                        <input type="text" name="note" id="paymentNoteInput" class="form-control" placeholder="যেমন: কিস্তি পরিশোধ / বিকাশ ক্যাশ ইন">
+                        <input type="text" name="note" id="paymentNoteInput" class="form-control" placeholder="যেমন: কিস্তি পরিশোধ / ভ্যাট কর্তনপূর্বক চেক গ্রহণ">
                     </div>
                 </div>
                 <div class="modal-footer bg-light p-3">
@@ -2070,6 +2209,8 @@ const singleInvoiceActionUrl = @json(route('admin.accounting.invoices.payments.s
 const allInvoicesActionUrl = @json(route('admin.accounting.customer-ledger.payments.store'));
 const singleInvoiceDue = @json((float)$invoice->due_amount);
 const customerTotalDue = @json((float)($customerTotalDue ?? $invoice->due_amount));
+
+let currentCalcMode = 'gross';
 
 function togglePaymentScope(scope) {
     const form = document.getElementById('recordPaymentForm');
@@ -2101,9 +2242,10 @@ function togglePaymentScope(scope) {
             noteInput.value = '';
         }
         if (helpText) {
-            helpText.textContent = 'পূর্ণ বা আংশিক যেকোনো পরিমাণ টাকা লিখতে পারেন।';
+            helpText.textContent = 'ভ্যাট-ট্যাক্স কর্তনসহ বিলের মোট যে পরিমাণ সমন্বয় বা পরিশোধ হবে।';
         }
     }
+    calculateVatTaxDeductions();
 }
 
 function openAllDueSettlementModal() {
@@ -2116,6 +2258,151 @@ function openAllDueSettlementModal() {
     }
     const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
     modal.show();
+}
+
+// VAT / Tax Calculator Functions
+function toggleVatTaxSection(isChecked) {
+    const panel = document.getElementById('vatTaxCalculatorPanel');
+    if (!panel) return;
+    if (isChecked) {
+        panel.classList.remove('d-none');
+        calculateVatTaxDeductions();
+    } else {
+        panel.classList.add('d-none');
+        // Reset deduction inputs
+        document.getElementById('vatDeductionRate').value = '';
+        document.getElementById('vatDeductionAmount').value = '';
+        document.getElementById('taxDeductionRate').value = '';
+        document.getElementById('taxDeductionAmount').value = '';
+        document.getElementById('otherDeductionAmount').value = '';
+        document.getElementById('netAmountInput').value = '';
+        document.getElementById('deductionChallanNo').value = '';
+        document.getElementById('deductionNotes').value = '';
+    }
+}
+
+function switchCalcMode(mode) {
+    currentCalcMode = mode;
+    calculateVatTaxDeductions();
+}
+
+function setVatRate(rate) {
+    const input = document.getElementById('vatDeductionRate');
+    if (input) {
+        input.value = rate > 0 ? rate : '';
+        calculateVatTaxDeductions();
+    }
+}
+
+function setTaxRate(rate) {
+    const input = document.getElementById('taxDeductionRate');
+    if (input) {
+        input.value = rate > 0 ? rate : '';
+        calculateVatTaxDeductions();
+    }
+}
+
+function onGrossAmountChange() {
+    if (currentCalcMode === 'gross') {
+        calculateVatTaxDeductions();
+    }
+}
+
+function onNetChequeAmountChange() {
+    const radioNet = document.getElementById('calcModeNet');
+    if (radioNet && !radioNet.checked) {
+        radioNet.checked = true;
+        currentCalcMode = 'net';
+    }
+    calculateVatTaxDeductions();
+}
+
+function onDirectDeductionAmountChange() {
+    const grossInput = document.getElementById('paymentAmountInput');
+    const vatAmtInput = document.getElementById('vatDeductionAmount');
+    const taxAmtInput = document.getElementById('taxDeductionAmount');
+    const otherInput = document.getElementById('otherDeductionAmount');
+    const netInput = document.getElementById('netAmountInput');
+    const vatRateInput = document.getElementById('vatDeductionRate');
+    const taxRateInput = document.getElementById('taxDeductionRate');
+
+    const gross = parseFloat(grossInput?.value) || 0;
+    const vatAmt = parseFloat(vatAmtInput?.value) || 0;
+    const taxAmt = parseFloat(taxAmtInput?.value) || 0;
+    const other = parseFloat(otherInput?.value) || 0;
+
+    if (gross > 0) {
+        if (vatRateInput) vatRateInput.value = vatAmt > 0 ? ((vatAmt / gross) * 100).toFixed(2) : '';
+        if (taxRateInput) taxRateInput.value = taxAmt > 0 ? ((taxAmt / gross) * 100).toFixed(2) : '';
+        const net = Math.max(0, gross - (vatAmt + taxAmt + other));
+        if (netInput) netInput.value = net.toFixed(2);
+    }
+
+    updateCalcDisplays(
+        parseFloat(netInput?.value) || 0,
+        vatAmt + taxAmt + other,
+        gross
+    );
+}
+
+function calculateVatTaxDeductions() {
+    const toggle = document.getElementById('toggleVatTaxDeduction');
+    if (!toggle || !toggle.checked) return;
+
+    const grossInput = document.getElementById('paymentAmountInput');
+    const netInput = document.getElementById('netAmountInput');
+    const vatRateInput = document.getElementById('vatDeductionRate');
+    const vatAmtInput = document.getElementById('vatDeductionAmount');
+    const taxRateInput = document.getElementById('taxDeductionRate');
+    const taxAmtInput = document.getElementById('taxDeductionAmount');
+    const otherInput = document.getElementById('otherDeductionAmount');
+
+    const vatRate = parseFloat(vatRateInput?.value) || 0;
+    const taxRate = parseFloat(taxRateInput?.value) || 0;
+    const other = parseFloat(otherInput?.value) || 0;
+
+    let gross = 0;
+    let net = 0;
+    let vatAmt = 0;
+    let taxAmt = 0;
+
+    if (currentCalcMode === 'gross') {
+        gross = parseFloat(grossInput?.value) || 0;
+        vatAmt = gross * (vatRate / 100);
+        taxAmt = gross * (taxRate / 100);
+        net = Math.max(0, gross - (vatAmt + taxAmt + other));
+
+        if (vatAmtInput) vatAmtInput.value = vatAmt > 0 ? vatAmt.toFixed(2) : '';
+        if (taxAmtInput) taxAmtInput.value = taxAmt > 0 ? taxAmt.toFixed(2) : '';
+        if (netInput) netInput.value = net.toFixed(2);
+    } else {
+        net = parseFloat(netInput?.value) || 0;
+        const totalDeductionPercent = (vatRate + taxRate) / 100;
+        if (totalDeductionPercent < 0.999) {
+            gross = (net + other) / (1 - totalDeductionPercent);
+        } else {
+            gross = net + other;
+        }
+        vatAmt = gross * (vatRate / 100);
+        taxAmt = gross * (taxRate / 100);
+
+        if (grossInput) grossInput.value = gross.toFixed(2);
+        if (vatAmtInput) vatAmtInput.value = vatAmt > 0 ? vatAmt.toFixed(2) : '';
+        if (taxAmtInput) taxAmtInput.value = taxAmt > 0 ? taxAmt.toFixed(2) : '';
+    }
+
+    const totalDeductions = vatAmt + taxAmt + other;
+    updateCalcDisplays(net, totalDeductions, gross);
+}
+
+function updateCalcDisplays(net, deductions, gross) {
+    const dNet = document.getElementById('displayCalcNet');
+    const dDed = document.getElementById('displayCalcDeductions');
+    const dGross = document.getElementById('displayCalcGross');
+
+    if (dNet) dNet.textContent = '৳' + Number(net || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    if (dDed) dDed.textContent = '৳' + Number(deductions || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    if (dGross) dGross.textContent = '৳' + Number(gross || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 </script>
 @endif

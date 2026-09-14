@@ -805,7 +805,7 @@
 {{-- COLLECT PAYMENT MODAL (কিস্তি / টাকা জমা গ্রহণ)                            --}}
 {{-- ========================================================================= --}}
 <div class="modal fade" id="collectLedgerPaymentModal" tabindex="-1" aria-labelledby="collectLedgerPaymentModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
             <form action="{{ route('admin.accounting.customer-ledger.payments.store') }}" method="POST">
                 @csrf
@@ -816,23 +816,25 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body p-4">
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold text-dark">গ্রাহকের নাম: <span class="text-danger">*</span></label>
-                        <input type="text" name="customer_name" id="modalCustomerName" class="form-control" required placeholder="গ্রাহকের নাম লিখুন" value="{{ $activeCustomer ? $activeCustomer['name'] : '' }}">
-                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6 col-12">
+                            <label class="form-label small fw-bold text-dark">গ্রাহকের নাম: <span class="text-danger">*</span></label>
+                            <input type="text" name="customer_name" id="modalCustomerName" class="form-control" required placeholder="গ্রাহকের নাম লিখুন" value="{{ $activeCustomer ? $activeCustomer['name'] : '' }}">
+                        </div>
 
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold text-dark">মোবাইল নম্বর (ঐচ্ছিক):</label>
-                        <input type="text" name="customer_phone" id="modalCustomerPhone" class="form-control" placeholder="017XXXXXXXX" value="{{ $activeCustomer && $activeCustomer['phone'] !== '—' ? $activeCustomer['phone'] : '' }}">
+                        <div class="col-md-6 col-12">
+                            <label class="form-label small fw-bold text-dark">মোবাইল নম্বর (ঐচ্ছিক):</label>
+                            <input type="text" name="customer_phone" id="modalCustomerPhone" class="form-control" placeholder="017XXXXXXXX" value="{{ $activeCustomer && $activeCustomer['phone'] !== '—' ? $activeCustomer['phone'] : '' }}">
+                        </div>
                     </div>
 
                     @if($statement && count($statement['due_invoices']) > 0)
                         <div class="mb-3">
                             <label class="form-label small fw-bold text-dark">নির্দিষ্ট বিল নির্বাচন (ঐচ্ছিক):</label>
-                            <select name="invoice_id" class="form-select">
-                                <option value="">— স্বয়ংক্রিয়ভাবে পুরোনো বকেয়া বিলে সমন্বয় (FIFO) —</option>
+                            <select name="invoice_id" id="ledgerInvoiceSelect" class="form-select" onchange="onLedgerInvoiceChange(this)">
+                                <option value="" data-due="{{ $statement['net_due'] }}">— স্বয়ংক্রিয়ভাবে পুরোনো বকেয়া বিলে সমন্বয় (FIFO) [মোট বকেয়া: ৳{{ number_format($statement['net_due'], 2) }}] —</option>
                                 @foreach($statement['due_invoices'] as $di)
-                                    <option value="{{ $di->id }}">
+                                    <option value="{{ $di->id }}" data-due="{{ $di->due_amount }}">
                                         বিল #{{ $di->invoice_no }} (বকেয়া: ৳{{ number_format($di->due_amount, 2) }})
                                     </option>
                                 @endforeach
@@ -841,17 +843,147 @@
                         </div>
                     @endif
 
+                    {{-- VAT & Tax Deduction Adjustment Calculator --}}
+                    <div class="card border border-warning-subtle bg-warning-subtle bg-opacity-10 rounded-3 p-3 mb-3" id="ledgerVatTaxAdjustmentCard">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div class="form-check form-switch m-0">
+                                <input class="form-check-input" type="checkbox" role="switch" id="toggleLedgerVatTax" onchange="toggleLedgerVatTaxSection(this.checked)">
+                                <label class="form-check-label fw-bold text-dark small" for="toggleLedgerVatTax">
+                                    <i class="fas fa-calculator text-warning-emphasis me-1"></i> ভ্যাট ও ট্যাক্স কর্তন সমন্বয় ক্যালকুলেটর (TDS / VDS Adjustment)
+                                </label>
+                            </div>
+                            <span class="badge bg-warning text-dark border font-monospace" style="font-size: 11px;">উৎসে কর ও মূসক কর্তন</span>
+                        </div>
+                        
+                        <div id="ledgerVatTaxCalculatorPanel" class="mt-3 pt-3 border-top border-warning-subtle d-none">
+                            <div class="d-flex align-items-center justify-content-between mb-2.5 flex-wrap gap-2">
+                                <span class="text-muted small fw-bold"><i class="fas fa-arrow-right-arrow-left text-primary me-1"></i>হিসাবের ভিত্তি / ইনপুট মোড:</span>
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <input type="radio" class="btn-check" name="ledger_calc_mode" id="ledgerCalcModeGross" value="gross" checked onchange="switchLedgerCalcMode('gross')">
+                                    <label class="btn btn-outline-primary btn-sm py-0.5 px-2.5 font-monospace" for="ledgerCalcModeGross" style="font-size: 11.5px;">১. বকেয়া থেকে কর্তন হিসাব</label>
+                                    
+                                    <input type="radio" class="btn-check" name="ledger_calc_mode" id="ledgerCalcModeNet" value="net" onchange="switchLedgerCalcMode('net')">
+                                    <label class="btn btn-outline-primary btn-sm py-0.5 px-2.5 font-monospace" for="ledgerCalcModeNet" style="font-size: 11.5px;">২. প্রাপ্ত চেক/ক্যাশ থেকে রিভার্স হিসাব</label>
+                                </div>
+                            </div>
+
+                            <div class="row g-2.5 mb-2.5">
+                                {{-- VAT / VDS --}}
+                                <div class="col-md-6 col-12">
+                                    <div class="p-2.5 bg-white rounded-3 border">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <label class="form-label small fw-bold text-dark mb-0">উৎসে মূসক/ভ্যাট (VDS):</label>
+                                            <div class="btn-group btn-group-sm">
+                                                <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-1.5" onclick="setLedgerVatRate(0)">0%</button>
+                                                <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-1.5" onclick="setLedgerVatRate(5)">5%</button>
+                                                <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-1.5" onclick="setLedgerVatRate(7.5)">7.5%</button>
+                                                <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-1.5" onclick="setLedgerVatRate(15)">15%</button>
+                                            </div>
+                                        </div>
+                                        <div class="input-group input-group-sm mb-1">
+                                            <input type="number" step="0.01" min="0" max="100" name="vat_deduction_rate" id="ledgerVatDeductionRate" class="form-control font-monospace" placeholder="হার %" value="" oninput="calculateLedgerVatTaxDeductions()">
+                                            <span class="input-group-text">%</span>
+                                            <input type="number" step="0.01" min="0" name="vat_deduction_amount" id="ledgerVatDeductionAmount" class="form-control font-monospace text-danger fw-bold" placeholder="টাকা ৳" value="" oninput="onLedgerDirectDeductionChange()">
+                                            <span class="input-group-text">৳</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {{-- Tax / TDS / AIT --}}
+                                <div class="col-md-6 col-12">
+                                    <div class="p-2.5 bg-white rounded-3 border">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <label class="form-label small fw-bold text-dark mb-0">উৎসে আয়কর/ট্যাক্স (TDS/AIT):</label>
+                                            <div class="btn-group btn-group-sm">
+                                                <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-1.5" onclick="setLedgerTaxRate(0)">0%</button>
+                                                <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-1.5" onclick="setLedgerTaxRate(2)">2%</button>
+                                                <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-1.5" onclick="setLedgerTaxRate(3)">3%</button>
+                                                <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-1.5" onclick="setLedgerTaxRate(5)">5%</button>
+                                                <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-1.5" onclick="setLedgerTaxRate(7)">7%</button>
+                                            </div>
+                                        </div>
+                                        <div class="input-group input-group-sm mb-1">
+                                            <input type="number" step="0.01" min="0" max="100" name="tax_deduction_rate" id="ledgerTaxDeductionRate" class="form-control font-monospace" placeholder="হার %" value="" oninput="calculateLedgerVatTaxDeductions()">
+                                            <span class="input-group-text">%</span>
+                                            <input type="number" step="0.01" min="0" name="tax_deduction_amount" id="ledgerTaxDeductionAmount" class="form-control font-monospace text-danger fw-bold" placeholder="টাকা ৳" value="" oninput="onLedgerDirectDeductionChange()">
+                                            <span class="input-group-text">৳</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row g-2.5 mb-2.5">
+                                {{-- Net Received (Cheque/Cash in hand) --}}
+                                <div class="col-md-6 col-12">
+                                    <div class="p-2.5 bg-white rounded-3 border">
+                                        <label class="form-label small fw-bold text-dark mb-1">
+                                            <i class="fas fa-money-bill-wave text-success me-1"></i>গ্রাহকের দেওয়া চেক/ক্যাশ (নিট প্রাপ্তি):
+                                        </label>
+                                        <div class="input-group input-group-sm">
+                                            <span class="input-group-text">৳</span>
+                                            <input type="number" step="0.01" min="0" name="net_amount" id="ledgerNetAmountInput" class="form-control font-monospace fw-bold text-success" placeholder="0.00" oninput="onLedgerNetChequeChange()">
+                                        </div>
+                                        <div class="text-muted" style="font-size: 10.5px; margin-top: 3px;">ব্যাংক চেক বা ক্যাশে যে পরিমাণ টাকা পাচ্ছেন</div>
+                                    </div>
+                                </div>
+
+                                {{-- Other Deductions / Security --}}
+                                <div class="col-md-6 col-12">
+                                    <div class="p-2.5 bg-white rounded-3 border">
+                                        <label class="form-label small fw-bold text-dark mb-1">অন্যান্য কর্তন (জামানত/সিকিউরিটি):</label>
+                                        <div class="input-group input-group-sm">
+                                            <span class="input-group-text">৳</span>
+                                            <input type="number" step="0.01" min="0" name="other_deduction_amount" id="ledgerOtherDeductionAmount" class="form-control font-monospace text-danger fw-bold" placeholder="0.00" oninput="calculateLedgerVatTaxDeductions()">
+                                        </div>
+                                        <div class="text-muted" style="font-size: 10.5px; margin-top: 3px;">অন্য কোনো কর্তন থাকলে এখানে লিখুন</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Deduction Challan & Certificate Info --}}
+                            <div class="row g-2.5 mb-2.5">
+                                <div class="col-md-6 col-12">
+                                    <label class="form-label small fw-semibold text-dark mb-1">ট্রেজারি চালান নং / মূসক-৬.৬ সনদ নং (ঐচ্ছিক):</label>
+                                    <input type="text" name="deduction_challan_no" id="ledgerDeductionChallanNo" class="form-control form-control-sm font-monospace" placeholder="যেমন: TR-12345 / মূসক-৬.৬">
+                                </div>
+                                <div class="col-md-6 col-12">
+                                    <label class="form-label small fw-semibold text-dark mb-1">কর্তন নোট / বিবরণ (ঐচ্ছিক):</label>
+                                    <input type="text" name="deduction_notes" id="ledgerDeductionNotes" class="form-control form-control-sm" placeholder="যেমন: ৫% ট্যাক্স ও ৭.৫% ভ্যাট কর্তনপূর্বক চেক প্রদান">
+                                </div>
+                            </div>
+
+                            {{-- Live Settlement Summary Pill Bar --}}
+                            <div class="p-2.5 bg-success-subtle bg-opacity-25 rounded-3 border border-success-subtle">
+                                <div class="row g-2 text-center" style="font-size: 12px;">
+                                    <div class="col-4 border-end border-success-subtle">
+                                        <span class="text-muted d-block" style="font-size: 11px;">নিট চেক/ক্যাশ প্রাপ্তি</span>
+                                        <strong class="text-success font-monospace fs-7" id="displayLedgerCalcNet">৳0.00</strong>
+                                    </div>
+                                    <div class="col-4 border-end border-success-subtle">
+                                        <span class="text-muted d-block" style="font-size: 11px;">মোট ভ্যাট ও ট্যাক্স কর্তন</span>
+                                        <strong class="text-danger font-monospace fs-7" id="displayLedgerCalcDeductions">৳0.00</strong>
+                                    </div>
+                                    <div class="col-4">
+                                        <span class="text-muted d-block" style="font-size: 11px;">মোট সমন্বিত জমা (বকেয়া কমবে)</span>
+                                        <strong class="text-primary font-monospace fs-7" id="displayLedgerCalcGross">৳0.00</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="row g-3 mb-3">
                         <div class="col-6">
                             <label class="form-label small fw-bold text-dark">জমার তারিখ: <span class="text-danger">*</span></label>
                             <input type="date" name="payment_date" class="form-control" required value="{{ date('Y-m-d') }}">
                         </div>
                         <div class="col-6">
-                            <label class="form-label small fw-bold text-dark">জমার পরিমাণ (টাকা): <span class="text-danger">*</span></label>
+                            <label class="form-label small fw-bold text-dark">মোট বকেয়া সমন্বয় / জমার পরিমাণ (টাকা): <span class="text-danger">*</span></label>
                             <div class="input-group">
                                 <span class="input-group-text">৳</span>
-                                <input type="number" step="0.01" min="0.01" name="amount" class="form-control fw-bold font-monospace text-success" required placeholder="0.00" value="{{ $statement && $statement['net_due'] > 0 ? $statement['net_due'] : '' }}">
+                                <input type="number" step="0.01" min="0.01" name="amount" id="ledgerPaymentAmountInput" class="form-control fw-bold font-monospace text-success" required placeholder="0.00" value="{{ $statement && $statement['net_due'] > 0 ? $statement['net_due'] : '' }}" oninput="onLedgerGrossChange()">
                             </div>
+                            <div class="form-text text-muted" style="font-size: 10.5px;">ভ্যাট-ট্যাক্সসহ মোট যে পরিমাণ সমন্বয় বা পরিশোধ হবে।</div>
                         </div>
                     </div>
 
@@ -860,7 +992,7 @@
                             <label class="form-label small fw-bold text-dark">পেমেন্ট মাধ্যম: <span class="text-danger">*</span></label>
                             <select name="payment_method" class="form-select" required>
                                 @foreach($paymentMethods as $code => $lbl)
-                                    <option value="{{ $code }}" {{ $code === 'cash' ? 'selected' : '' }}>{{ $lbl }}</option>
+                                    <option value="{{ $code }}" {{ $code === 'cheque' ? 'selected' : ($code === 'cash' ? 'selected' : '') }}>{{ $lbl }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -878,7 +1010,7 @@
 
                     <div class="mb-3">
                         <label class="form-label small fw-bold text-dark">বিবরণ / নোট (ঐচ্ছিক):</label>
-                        <input type="text" name="note" class="form-control" placeholder="যেমন: ২য় কিস্তি পরিশোধ / বিকাশ ক্যাশ ইন">
+                        <input type="text" name="note" class="form-control" placeholder="যেমন: ২য় কিস্তি পরিশোধ / ভ্যাট কর্তনপূর্বক চেক গ্রহণ">
                     </div>
                 </div>
                 <div class="modal-footer bg-light p-3">
@@ -895,11 +1027,167 @@
 @include('admin.partials.branding-modal')
 
 <script>
+    let currentLedgerCalcMode = 'gross';
+
     function setPaymentCustomer(name, phone) {
         const nameInput = document.getElementById('modalCustomerName');
         const phoneInput = document.getElementById('modalCustomerPhone');
         if (nameInput) nameInput.value = name;
         if (phoneInput) phoneInput.value = phone || '';
+    }
+
+    function onLedgerInvoiceChange(selectEl) {
+        const selected = selectEl.options[selectEl.selectedIndex];
+        const due = parseFloat(selected.getAttribute('data-due')) || 0;
+        const amountInput = document.getElementById('ledgerPaymentAmountInput');
+        if (amountInput && due > 0) {
+            amountInput.value = due.toFixed(2);
+            calculateLedgerVatTaxDeductions();
+        }
+    }
+
+    // Ledger VAT / Tax Calculator
+    function toggleLedgerVatTaxSection(isChecked) {
+        const panel = document.getElementById('ledgerVatTaxCalculatorPanel');
+        if (!panel) return;
+        if (isChecked) {
+            panel.classList.remove('d-none');
+            calculateLedgerVatTaxDeductions();
+        } else {
+            panel.classList.add('d-none');
+            document.getElementById('ledgerVatDeductionRate').value = '';
+            document.getElementById('ledgerVatDeductionAmount').value = '';
+            document.getElementById('ledgerTaxDeductionRate').value = '';
+            document.getElementById('ledgerTaxDeductionAmount').value = '';
+            document.getElementById('ledgerOtherDeductionAmount').value = '';
+            document.getElementById('ledgerNetAmountInput').value = '';
+            document.getElementById('ledgerDeductionChallanNo').value = '';
+            document.getElementById('ledgerDeductionNotes').value = '';
+        }
+    }
+
+    function switchLedgerCalcMode(mode) {
+        currentLedgerCalcMode = mode;
+        calculateLedgerVatTaxDeductions();
+    }
+
+    function setLedgerVatRate(rate) {
+        const input = document.getElementById('ledgerVatDeductionRate');
+        if (input) {
+            input.value = rate > 0 ? rate : '';
+            calculateLedgerVatTaxDeductions();
+        }
+    }
+
+    function setLedgerTaxRate(rate) {
+        const input = document.getElementById('ledgerTaxDeductionRate');
+        if (input) {
+            input.value = rate > 0 ? rate : '';
+            calculateLedgerVatTaxDeductions();
+        }
+    }
+
+    function onLedgerGrossChange() {
+        if (currentLedgerCalcMode === 'gross') {
+            calculateLedgerVatTaxDeductions();
+        }
+    }
+
+    function onLedgerNetChequeChange() {
+        const radioNet = document.getElementById('ledgerCalcModeNet');
+        if (radioNet && !radioNet.checked) {
+            radioNet.checked = true;
+            currentLedgerCalcMode = 'net';
+        }
+        calculateLedgerVatTaxDeductions();
+    }
+
+    function onLedgerDirectDeductionChange() {
+        const grossInput = document.getElementById('ledgerPaymentAmountInput');
+        const vatAmtInput = document.getElementById('ledgerVatDeductionAmount');
+        const taxAmtInput = document.getElementById('ledgerTaxDeductionAmount');
+        const otherInput = document.getElementById('ledgerOtherDeductionAmount');
+        const netInput = document.getElementById('ledgerNetAmountInput');
+        const vatRateInput = document.getElementById('ledgerVatDeductionRate');
+        const taxRateInput = document.getElementById('ledgerTaxDeductionRate');
+
+        const gross = parseFloat(grossInput?.value) || 0;
+        const vatAmt = parseFloat(vatAmtInput?.value) || 0;
+        const taxAmt = parseFloat(taxAmtInput?.value) || 0;
+        const other = parseFloat(otherInput?.value) || 0;
+
+        if (gross > 0) {
+            if (vatRateInput) vatRateInput.value = vatAmt > 0 ? ((vatAmt / gross) * 100).toFixed(2) : '';
+            if (taxRateInput) taxRateInput.value = taxAmt > 0 ? ((taxAmt / gross) * 100).toFixed(2) : '';
+            const net = Math.max(0, gross - (vatAmt + taxAmt + other));
+            if (netInput) netInput.value = net.toFixed(2);
+        }
+
+        updateLedgerCalcDisplays(
+            parseFloat(netInput?.value) || 0,
+            vatAmt + taxAmt + other,
+            gross
+        );
+    }
+
+    function calculateLedgerVatTaxDeductions() {
+        const toggle = document.getElementById('toggleLedgerVatTax');
+        if (!toggle || !toggle.checked) return;
+
+        const grossInput = document.getElementById('ledgerPaymentAmountInput');
+        const netInput = document.getElementById('ledgerNetAmountInput');
+        const vatRateInput = document.getElementById('ledgerVatDeductionRate');
+        const vatAmtInput = document.getElementById('ledgerVatDeductionAmount');
+        const taxRateInput = document.getElementById('ledgerTaxDeductionRate');
+        const taxAmtInput = document.getElementById('ledgerTaxDeductionAmount');
+        const otherInput = document.getElementById('ledgerOtherDeductionAmount');
+
+        const vatRate = parseFloat(vatRateInput?.value) || 0;
+        const taxRate = parseFloat(taxRateInput?.value) || 0;
+        const other = parseFloat(otherInput?.value) || 0;
+
+        let gross = 0;
+        let net = 0;
+        let vatAmt = 0;
+        let taxAmt = 0;
+
+        if (currentLedgerCalcMode === 'gross') {
+            gross = parseFloat(grossInput?.value) || 0;
+            vatAmt = gross * (vatRate / 100);
+            taxAmt = gross * (taxRate / 100);
+            net = Math.max(0, gross - (vatAmt + taxAmt + other));
+
+            if (vatAmtInput) vatAmtInput.value = vatAmt > 0 ? vatAmt.toFixed(2) : '';
+            if (taxAmtInput) taxAmtInput.value = taxAmt > 0 ? taxAmt.toFixed(2) : '';
+            if (netInput) netInput.value = net.toFixed(2);
+        } else {
+            net = parseFloat(netInput?.value) || 0;
+            const totalDeductionPercent = (vatRate + taxRate) / 100;
+            if (totalDeductionPercent < 0.999) {
+                gross = (net + other) / (1 - totalDeductionPercent);
+            } else {
+                gross = net + other;
+            }
+            vatAmt = gross * (vatRate / 100);
+            taxAmt = gross * (taxRate / 100);
+
+            if (grossInput) grossInput.value = gross.toFixed(2);
+            if (vatAmtInput) vatAmtInput.value = vatAmt > 0 ? vatAmt.toFixed(2) : '';
+            if (taxAmtInput) taxAmtInput.value = taxAmt > 0 ? taxAmt.toFixed(2) : '';
+        }
+
+        const totalDeductions = vatAmt + taxAmt + other;
+        updateLedgerCalcDisplays(net, totalDeductions, gross);
+    }
+
+    function updateLedgerCalcDisplays(net, deductions, gross) {
+        const dNet = document.getElementById('displayLedgerCalcNet');
+        const dDed = document.getElementById('displayLedgerCalcDeductions');
+        const dGross = document.getElementById('displayLedgerCalcGross');
+
+        if (dNet) dNet.textContent = '৳' + Number(net || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        if (dDed) dDed.textContent = '৳' + Number(deductions || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        if (dGross) dGross.textContent = '৳' + Number(gross || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
 
     // Quick Date Preset Handler

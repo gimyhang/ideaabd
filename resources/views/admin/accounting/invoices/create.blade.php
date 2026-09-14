@@ -157,30 +157,68 @@
                 </div>
             </div>
 
-            <div class="row g-3">
-                <div class="col-md-4">
-                    <label class="form-label fw-semibold">Customer / Client Name <span class="text-danger">*</span></label>
-                    <input type="text" name="customer_name" class="form-control @error('customer_name') is-invalid @enderror" 
-                           placeholder="Client / Contact person name..." value="{{ old('customer_name') }}" required>
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="small text-muted fw-semibold">
+                    <i class="fa-solid fa-magnifying-glass me-1 text-primary"></i>গ্রাহকের নাম, মোবাইল নম্বর বা প্রতিষ্ঠান টাইপ করলে পুরাতন তথ্য অটো-ফিল হবে:
+                </span>
+                <div class="d-flex align-items-center gap-2">
+                    <span id="customerMatchBadge" class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1" style="display:none;">
+                        <i class="fas fa-check-circle me-1"></i>পুরাতন রেজিস্টার্ড কাস্টমার সংযুক্ত
+                    </span>
+                    <button type="button" id="btnClearCustomerInfo" class="btn btn-xs btn-outline-secondary rounded-pill px-2 py-0.5" style="display:none;" onclick="clearClientInfo()" title="তথ্য মুছে নতুন গ্রাহক এন্ট্রি করুন">
+                        <i class="fas fa-rotate-left me-1"></i>নতুন এন্ট্রি
+                    </button>
+                </div>
+            </div>
+
+            <div class="row g-3 position-relative" id="clientFieldsContainer">
+                <div class="col-md-4 position-relative">
+                    <label class="form-label fw-semibold d-flex justify-content-between align-items-center">
+                        <span>Customer / Client Name <span class="text-danger">*</span></span>
+                        <small class="text-primary font-monospace fw-normal" style="font-size: 11px;"><i class="fas fa-bolt me-1"></i>Auto-fill</small>
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light text-muted"><i class="fas fa-user"></i></span>
+                        <input type="text" name="customer_name" id="inputCustomerName" class="form-control client-autocomplete-input @error('customer_name') is-invalid @enderror" 
+                               placeholder="Client / Contact person name..." value="{{ old('customer_name') }}" required autocomplete="off">
+                    </div>
                     @error('customer_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-md-4">
                     <label class="form-label fw-semibold">Designation</label>
-                    <input type="text" name="customer_designation" class="form-control" 
-                           placeholder="e.g. Executive Director, Headmaster..." value="{{ old('customer_designation') }}">
+                    <div class="input-group">
+                        <span class="input-group-text bg-light text-muted"><i class="fas fa-id-badge"></i></span>
+                        <input type="text" name="customer_designation" id="inputCustomerDesignation" class="form-control" 
+                               placeholder="e.g. Executive Director, Headmaster..." value="{{ old('customer_designation') }}">
+                    </div>
                 </div>
-                <div class="col-md-4">
-                    <label class="form-label fw-semibold">Organization / Institution</label>
-                    <input type="text" name="customer_org" class="form-control" 
-                           placeholder="Library, Bookshop or Company name..." value="{{ old('customer_org') }}">
+                <div class="col-md-4 position-relative">
+                    <label class="form-label fw-semibold d-flex justify-content-between align-items-center">
+                        <span>Organization / Institution</span>
+                        <small class="text-primary font-monospace fw-normal" style="font-size: 11px;"><i class="fas fa-bolt me-1"></i>Auto-fill</small>
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light text-muted"><i class="fas fa-building"></i></span>
+                        <input type="text" name="customer_org" id="inputCustomerOrg" class="form-control client-autocomplete-input" 
+                               placeholder="Library, Bookshop or Company name..." value="{{ old('customer_org') }}" autocomplete="off">
+                    </div>
                 </div>
-                <div class="col-md-3">
-                    <label class="form-label fw-semibold">Phone Number</label>
-                    <input type="text" name="customer_phone" class="form-control" placeholder="017XXXXXXXX" value="{{ old('customer_phone') }}">
+                <div class="col-md-3 position-relative">
+                    <label class="form-label fw-semibold d-flex justify-content-between align-items-center">
+                        <span>Phone Number</span>
+                        <small class="text-primary font-monospace fw-normal" style="font-size: 11px;"><i class="fas fa-bolt me-1"></i>Auto-fill</small>
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light text-muted"><i class="fas fa-phone"></i></span>
+                        <input type="text" name="customer_phone" id="inputCustomerPhone" class="form-control client-autocomplete-input font-monospace" placeholder="017XXXXXXXX" value="{{ old('customer_phone') }}" autocomplete="off">
+                    </div>
                 </div>
                 <div class="col-md-3">
                     <label class="form-label fw-semibold">Email Address</label>
-                    <input type="email" name="customer_email" class="form-control" placeholder="customer@example.com" value="{{ old('customer_email') }}">
+                    <div class="input-group">
+                        <span class="input-group-text bg-light text-muted"><i class="fas fa-envelope"></i></span>
+                        <input type="email" name="customer_email" id="inputCustomerEmail" class="form-control" placeholder="customer@example.com" value="{{ old('customer_email') }}">
+                    </div>
                 </div>
                 <div class="col-md-3">
                     <label class="form-label fw-semibold">Date <span class="text-danger">*</span></label>
@@ -192,11 +230,20 @@
                 </div>
                 <div class="col-md-8">
                     <label class="form-label small fw-semibold text-muted">Full Address / Shipping Destination</label>
-                    <input type="text" name="customer_address" class="form-control form-control-sm" placeholder="Full address..." value="{{ old('customer_address') }}">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-light text-muted"><i class="fas fa-location-dot"></i></span>
+                        <input type="text" name="customer_address" id="inputCustomerAddress" class="form-control form-control-sm" placeholder="Full address..." value="{{ old('customer_address') }}">
+                    </div>
                 </div>
                 <div class="col-md-4">
                     <label class="form-label small fw-semibold text-muted">Document / Invoice Number <span class="text-danger">*</span></label>
                     <input type="text" name="invoice_no" id="invoiceNoInput" class="form-control form-control-sm font-monospace fw-bold" value="{{ old('invoice_no', $suggestedNo) }}" required>
+                </div>
+
+                {{-- Live Client Autocomplete Dropdown Menu --}}
+                <div id="customerSearchDropdown" class="dropdown-menu shadow-lg rounded-3 p-2 border border-primary-subtle" 
+                     style="display: none; position: absolute; max-height: 380px; overflow-y: auto; z-index: 1060; width: auto; min-width: 340px;">
+                    <div id="customerSearchResultsList"></div>
                 </div>
             </div>
         </div>
@@ -1510,8 +1557,8 @@
 
     let customerDueCheckTimer = null;
     function checkCustomerPreviousDue() {
-        const nameInput = document.querySelector('input[name="customer_name"]');
-        const phoneInput = document.querySelector('input[name="customer_phone"]');
+        const nameInput = document.getElementById('inputCustomerName') || document.querySelector('input[name="customer_name"]');
+        const phoneInput = document.getElementById('inputCustomerPhone') || document.querySelector('input[name="customer_phone"]');
         const name = nameInput ? nameInput.value.trim() : '';
         const phone = phoneInput ? phoneInput.value.trim() : '';
         const noticeEl = document.getElementById('customerDueLiveNotice');
@@ -1531,7 +1578,8 @@
                 if (data && data.total_due > 0) {
                     if (noticeEl) {
                         noticeEl.style.display = 'block';
-                        noticeEl.innerHTML = `<span class="text-danger"><i class="fas fa-circle-exclamation me-1"></i>গ্রাহকের পূর্বের মোট বকেয়া: <strong>৳${data.total_due.toFixed(2)}</strong> (${data.due_count}টি বিল)</span> <button type="button" class="btn btn-xs btn-warning text-dark fw-bold ms-1 py-0 px-2 rounded-pill shadow-2xs" onclick="applyCustomerDue(${data.total_due})">+ বিলে জের যুক্ত করুন</button>`;
+                        const invoiceWord = (data.invoices_count || data.due_count || 1) + 'টি বিল';
+                        noticeEl.innerHTML = `<span class="text-danger"><i class="fas fa-circle-exclamation me-1"></i>গ্রাহকের পূর্বের মোট বকেয়া: <strong>৳${data.total_due.toFixed(2)}</strong> (${invoiceWord})</span> <button type="button" class="btn btn-xs btn-warning text-dark fw-bold ms-1 py-0 px-2 rounded-pill shadow-2xs" onclick="applyCustomerDue(${data.total_due})">+ বিলে জের যুক্ত করুন</button>`;
                     }
                 } else {
                     if (noticeEl) noticeEl.style.display = 'none';
@@ -1541,15 +1589,237 @@
         }, 400);
     }
 
+    // ─── Live Customer Auto-complete & Multi-field Auto-fill Engine ───────
+    let customerSearchTimer = null;
+    let activeAutocompleteInput = null;
+
+    function initCustomerAutocomplete() {
+        const inputs = document.querySelectorAll('.client-autocomplete-input');
+        const dropdown = document.getElementById('customerSearchDropdown');
+        const resultsList = document.getElementById('customerSearchResultsList');
+
+        if (!inputs.length || !dropdown || !resultsList) return;
+
+        inputs.forEach(input => {
+            input.addEventListener('input', function() {
+                const query = this.value.trim();
+                activeAutocompleteInput = this;
+
+                if (query.length < 1) {
+                    hideCustomerDropdown();
+                    return;
+                }
+
+                clearTimeout(customerSearchTimer);
+                customerSearchTimer = setTimeout(() => {
+                    fetchCustomerSuggestions(query, this);
+                }, 180);
+            });
+
+            input.addEventListener('focus', function() {
+                const query = this.value.trim();
+                if (query.length >= 1) {
+                    activeAutocompleteInput = this;
+                    fetchCustomerSuggestions(query, this);
+                }
+            });
+
+            input.addEventListener('keydown', function(e) {
+                if (!dropdown || dropdown.style.display !== 'block') return;
+                const items = dropdown.querySelectorAll('.customer-suggest-item');
+                if (!items.length) return;
+
+                let activeIdx = Array.from(items).findIndex(el => el.classList.contains('active'));
+
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    if (activeIdx >= 0) items[activeIdx].classList.remove('active', 'bg-primary-subtle');
+                    activeIdx = (activeIdx + 1) % items.length;
+                    items[activeIdx].classList.add('active', 'bg-primary-subtle');
+                    items[activeIdx].scrollIntoView({ block: 'nearest' });
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    if (activeIdx >= 0) items[activeIdx].classList.remove('active', 'bg-primary-subtle');
+                    activeIdx = (activeIdx - 1 + items.length) % items.length;
+                    items[activeIdx].classList.add('active', 'bg-primary-subtle');
+                    items[activeIdx].scrollIntoView({ block: 'nearest' });
+                } else if (e.key === 'Enter') {
+                    if (activeIdx >= 0) {
+                        e.preventDefault();
+                        items[activeIdx].click();
+                    }
+                } else if (e.key === 'Escape') {
+                    hideCustomerDropdown();
+                }
+            });
+        });
+
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('#customerSearchDropdown') && !e.target.closest('.client-autocomplete-input')) {
+                hideCustomerDropdown();
+            }
+        });
+    }
+
+    function fetchCustomerSuggestions(query, sourceInput) {
+        const dropdown = document.getElementById('customerSearchDropdown');
+        const resultsList = document.getElementById('customerSearchResultsList');
+        if (!dropdown || !resultsList) return;
+
+        const container = document.getElementById('clientFieldsContainer');
+        if (container) {
+            const rect = sourceInput.getBoundingClientRect();
+            const parentRect = container.getBoundingClientRect();
+            dropdown.style.top = (rect.bottom - parentRect.top + 4) + 'px';
+            dropdown.style.left = (rect.left - parentRect.left) + 'px';
+            dropdown.style.width = Math.max(340, rect.width) + 'px';
+        }
+
+        resultsList.innerHTML = `<div class="p-2.5 text-center text-muted small"><i class="fas fa-spinner fa-spin me-1.5 text-primary"></i>গ্রাহক অনুসন্ধান করা হচ্ছে...</div>`;
+        dropdown.style.display = 'block';
+
+        fetch(`{{ route('admin.accounting.invoices.customer-search') }}?q=${encodeURIComponent(query)}`, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+        })
+        .then(res => res.json())
+        .then(customers => {
+            if (!customers || !customers.length) {
+                resultsList.innerHTML = `
+                    <div class="p-2.5 text-center text-muted small">
+                        <i class="fas fa-user-slash me-1 text-secondary"></i>কোন পুরাতন রেজিস্টার্ড কাস্টমার পাওয়া যায়নি।
+                    </div>`;
+                return;
+            }
+
+            let html = `
+                <div class="px-2 py-1 mb-1 border-bottom d-flex align-items-center justify-content-between bg-light rounded-top">
+                    <span class="small fw-bold text-muted text-uppercase" style="font-size: 10.5px;">
+                        <i class="fas fa-users text-primary me-1"></i>মিলিত কাস্টমার তালিকা (${customers.length})
+                    </span>
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle" style="font-size: 9.5px;">ক্লিক করে অটো-পূরণ করুন</span>
+                </div>
+            `;
+
+            customers.forEach((c) => {
+                const encoded = encodeURIComponent(JSON.stringify(c));
+                html += `
+                    <div class="customer-suggest-item p-2 rounded-2 mb-1 cursor-pointer transition-all border-bottom border-light hover-bg-light" 
+                         data-customer="${encoded}" onclick="selectCustomerSuggestion(this)" style="cursor: pointer;">
+                        <div class="d-flex align-items-start justify-content-between gap-2">
+                            <div>
+                                <div class="fw-bold text-dark d-flex align-items-center gap-1.5 flex-wrap">
+                                    <span>${c.name || '—'}</span>
+                                    ${c.org ? `<span class="badge bg-white text-dark border fw-semibold shadow-2xs"><i class="fas fa-building text-primary me-0.5"></i>${c.org}</span>` : ''}
+                                    ${c.designation ? `<span class="badge bg-secondary-subtle text-secondary fw-normal">${c.designation}</span>` : ''}
+                                </div>
+                                <div class="small text-muted mt-0.5 d-flex align-items-center gap-2.5 flex-wrap" style="font-size: 11.5px;">
+                                    ${c.phone ? `<span><i class="fas fa-phone text-success me-0.5"></i><strong>${c.phone}</strong></span>` : ''}
+                                    ${c.email ? `<span><i class="fas fa-envelope text-info me-0.5"></i>${c.email}</span>` : ''}
+                                </div>
+                                ${c.address ? `<div class="text-muted small mt-0.5 text-truncate" style="font-size: 11px; max-width: 320px;"><i class="fas fa-location-dot text-danger me-0.5"></i>${c.address}</div>` : ''}
+                            </div>
+                            <div class="text-end text-nowrap">
+                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill" style="font-size: 10px;">${c.source}</span>
+                                ${c.due_amount > 0 ? `<div class="badge bg-danger text-white rounded-pill mt-1 d-block shadow-2xs" style="font-size: 9.5px;"><i class="fas fa-triangle-exclamation me-0.5"></i>বকেয়া: ৳${c.due_formatted}</div>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            resultsList.innerHTML = html;
+        })
+        .catch(() => {
+            resultsList.innerHTML = `<div class="p-2 text-center text-danger small">অনুসন্ধানে সমস্যা হয়েছে।</div>`;
+        });
+    }
+
+    function hideCustomerDropdown() {
+        const dropdown = document.getElementById('customerSearchDropdown');
+        if (dropdown) dropdown.style.display = 'none';
+    }
+
+    function selectCustomerSuggestion(el) {
+        const raw = el.getAttribute('data-customer');
+        if (!raw) return;
+        try {
+            const c = JSON.parse(decodeURIComponent(raw));
+            fillCustomerData(c);
+        } catch(e) {
+            console.error(e);
+        }
+    }
+
+    function fillCustomerData(c) {
+        const nameInput = document.getElementById('inputCustomerName') || document.querySelector('input[name="customer_name"]');
+        const desigInput = document.getElementById('inputCustomerDesignation') || document.querySelector('input[name="customer_designation"]');
+        const orgInput = document.getElementById('inputCustomerOrg') || document.querySelector('input[name="customer_org"]');
+        const phoneInput = document.getElementById('inputCustomerPhone') || document.querySelector('input[name="customer_phone"]');
+        const emailInput = document.getElementById('inputCustomerEmail') || document.querySelector('input[name="customer_email"]');
+        const addrInput = document.getElementById('inputCustomerAddress') || document.querySelector('input[name="customer_address"]');
+
+        if (nameInput && c.name) nameInput.value = c.name;
+        if (desigInput && c.designation) desigInput.value = c.designation;
+        if (orgInput && c.org) orgInput.value = c.org;
+        if (phoneInput && c.phone) phoneInput.value = c.phone;
+        if (emailInput && c.email) emailInput.value = c.email;
+        if (addrInput && c.address) addrInput.value = c.address;
+
+        // Show match badge and clear button
+        const badge = document.getElementById('customerMatchBadge');
+        const clearBtn = document.getElementById('btnClearCustomerInfo');
+        if (badge) {
+            badge.style.display = 'inline-flex';
+            badge.innerHTML = `<i class="fas fa-check-circle me-1"></i>${c.source || 'পুরাতন কাস্টমার'} অটো-ফিল হয়েছে`;
+        }
+        if (clearBtn) clearBtn.style.display = 'inline-flex';
+
+        // Flash highlight animation on inputs
+        [nameInput, desigInput, orgInput, phoneInput, emailInput, addrInput].forEach(inp => {
+            if (inp && inp.value) {
+                inp.classList.add('bg-success-subtle', 'border-success');
+                setTimeout(() => {
+                    inp.classList.remove('bg-success-subtle', 'border-success');
+                }, 1400);
+            }
+        });
+
+        hideCustomerDropdown();
+        checkCustomerPreviousDue();
+    }
+
+    function clearClientInfo() {
+        const nameInput = document.getElementById('inputCustomerName') || document.querySelector('input[name="customer_name"]');
+        const desigInput = document.getElementById('inputCustomerDesignation') || document.querySelector('input[name="customer_designation"]');
+        const orgInput = document.getElementById('inputCustomerOrg') || document.querySelector('input[name="customer_org"]');
+        const phoneInput = document.getElementById('inputCustomerPhone') || document.querySelector('input[name="customer_phone"]');
+        const emailInput = document.getElementById('inputCustomerEmail') || document.querySelector('input[name="customer_email"]');
+        const addrInput = document.getElementById('inputCustomerAddress') || document.querySelector('input[name="customer_address"]');
+
+        if (nameInput) nameInput.value = '';
+        if (desigInput) desigInput.value = '';
+        if (orgInput) orgInput.value = '';
+        if (phoneInput) phoneInput.value = '';
+        if (emailInput) emailInput.value = '';
+        if (addrInput) addrInput.value = '';
+
+        const badge = document.getElementById('customerMatchBadge');
+        const clearBtn = document.getElementById('btnClearCustomerInfo');
+        if (badge) badge.style.display = 'none';
+        if (clearBtn) clearBtn.style.display = 'none';
+
+        checkCustomerPreviousDue();
+        if (nameInput) nameInput.focus();
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
-        const nameInput = document.querySelector('input[name="customer_name"]');
-        const phoneInput = document.querySelector('input[name="customer_phone"]');
+        initCustomerAutocomplete();
+        const nameInput = document.getElementById('inputCustomerName') || document.querySelector('input[name="customer_name"]');
+        const phoneInput = document.getElementById('inputCustomerPhone') || document.querySelector('input[name="customer_phone"]');
         if (nameInput) {
-            nameInput.addEventListener('input', checkCustomerPreviousDue);
             nameInput.addEventListener('blur', checkCustomerPreviousDue);
         }
         if (phoneInput) {
-            phoneInput.addEventListener('input', checkCustomerPreviousDue);
             phoneInput.addEventListener('blur', checkCustomerPreviousDue);
         }
         calcTotals();

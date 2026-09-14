@@ -18,6 +18,14 @@ class IdeaInvoicePayment extends Model
         'payment_no',
         'payment_date',
         'amount',
+        'net_amount',
+        'vat_deduction_rate',
+        'vat_deduction_amount',
+        'tax_deduction_rate',
+        'tax_deduction_amount',
+        'other_deduction_amount',
+        'deduction_challan_no',
+        'deduction_notes',
         'payment_method',
         'transaction_ref',
         'note',
@@ -25,9 +33,35 @@ class IdeaInvoicePayment extends Model
     ];
 
     protected $casts = [
-        'payment_date' => 'date',
-        'amount'       => 'decimal:2',
+        'payment_date'           => 'date',
+        'amount'                 => 'decimal:2',
+        'net_amount'             => 'decimal:2',
+        'vat_deduction_rate'     => 'decimal:2',
+        'vat_deduction_amount'   => 'decimal:2',
+        'tax_deduction_rate'     => 'decimal:2',
+        'tax_deduction_amount'   => 'decimal:2',
+        'other_deduction_amount' => 'decimal:2',
     ];
+
+    public function getTotalDeductionsAttribute(): float
+    {
+        return (float) ($this->vat_deduction_amount ?? 0)
+            + (float) ($this->tax_deduction_amount ?? 0)
+            + (float) ($this->other_deduction_amount ?? 0);
+    }
+
+    public function getHasDeductionsAttribute(): bool
+    {
+        return $this->total_deductions > 0.001;
+    }
+
+    public function getEffectiveNetAmountAttribute(): float
+    {
+        if ((float)($this->net_amount ?? 0) > 0) {
+            return (float) $this->net_amount;
+        }
+        return max(0, (float)$this->amount - $this->total_deductions);
+    }
 
     public function invoice(): BelongsTo
     {

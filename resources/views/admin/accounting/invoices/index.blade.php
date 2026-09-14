@@ -164,6 +164,9 @@
         <a href="{{ route('admin.accounting.customer-ledger.index') }}" class="btn btn-outline-info text-dark btn-sm rounded-pill px-3 fw-semibold shadow-xs" title="গ্রাহকদের খতিয়ান ও বকেয়া জের">
             <i class="fas fa-book-bookmark me-1 text-primary"></i> Customer Ledgers
         </a>
+        <a href="{{ route('admin.accounting.tax-vat-deductions.index') }}" class="btn btn-outline-warning text-dark btn-sm rounded-pill px-3 fw-semibold shadow-xs" title="উৎসে কর ও মূসক কর্তন রেজিস্টার (TDS & VDS)">
+            <i class="fas fa-receipt me-1 text-warning"></i> TDS & VDS Register
+        </a>
         <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 fw-semibold shadow-xs" data-bs-toggle="modal" data-bs-target="#invoiceSettingsModal" title="Design & Typography Settings">
             <i class="fas fa-palette me-1 text-primary"></i> Design Settings
         </button>
@@ -1227,6 +1230,59 @@
                                 </label>
                                 <textarea name="quotation_default_terms" class="form-control form-control-sm rounded-2" rows="2" 
                                           placeholder="কোটেশনের নির্দিষ্ট শর্তাবলী লিখুন...">{{ $settings['quotation_default_terms'] ?? "১. কার্যাদেশ পাওয়ার পর নির্ধারিত সময়ের মধ্যে ডেলিভারি প্রদান করা হবে।\n২. কাজের পরিধি ও স্পেসিফিকেশন পরিবর্তন হলে দর সমন্বয়যোগ্য।" }}</textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- VAT & Tax Deduction (%) Preset Settings --}}
+                    <div class="card border border-warning-subtle rounded-3 p-3 mb-3 bg-warning-subtle bg-opacity-10">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label class="form-label fw-bold text-dark mb-0">
+                                <i class="fas fa-percent me-1 text-warning"></i> ভ্যাট ও ট্যাক্স কর্তন হার ও প্রিসেট (%) কনফিগারেশন
+                            </label>
+                            <span class="badge bg-warning text-dark font-monospace">TDS & VDS</span>
+                        </div>
+                        <p class="text-muted small mb-3">
+                            বিল ও লেজার পরিশোধের সময় স্বয়ংক্রিয় কর্তন হিসাবের জন্য ডিফল্ট হার ও দ্রুত নির্বাচনের প্রিসেট তালিকা নির্ধারণ করুন।
+                        </p>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-dark mb-1">
+                                    <i class="fas fa-file-invoice-dollar text-primary me-1"></i>ডিফল্ট ভ্যাট কর্তন হার (VDS %)
+                                </label>
+                                <div class="input-group input-group-sm">
+                                    <input type="number" step="0.01" name="default_vat_rate" class="form-control font-monospace fw-bold" 
+                                           value="{{ $settings['default_vat_rate'] ?? '7.5' }}" placeholder="7.5">
+                                    <span class="input-group-text bg-light fw-bold">%</span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-dark mb-1">
+                                    <i class="fas fa-landmark text-danger me-1"></i>ডিফল্ট ট্যাক্স কর্তন হার (TDS %)
+                                </label>
+                                <div class="input-group input-group-sm">
+                                    <input type="number" step="0.01" name="default_tax_rate" class="form-control font-monospace fw-bold" 
+                                           value="{{ $settings['default_tax_rate'] ?? '5.0' }}" placeholder="5.0">
+                                    <span class="input-group-text bg-light fw-bold">%</span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold text-dark mb-1">
+                                    কাস্টম ভ্যাট প্রিসেট (%) তালিকা (কমা দিয়ে আলাদা করুন)
+                                </label>
+                                <input type="text" name="vat_presets" class="form-control form-control-sm font-monospace" 
+                                       value="{{ is_array($settings['vat_presets'] ?? null) ? implode(',', $settings['vat_presets']) : ($settings['vat_presets'] ?? '0, 2.5, 5, 7.5, 10, 15') }}" 
+                                       placeholder="0, 2.5, 5, 7.5, 10, 15">
+                                <small class="text-muted d-block mt-1" style="font-size: 11px;">যেমন: 0, 2.5, 5, 7.5, 10, 15</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold text-dark mb-1">
+                                    কাস্টম ট্যাক্স প্রিসেট (%) তালিকা (কমা দিয়ে আলাদা করুন)
+                                </label>
+                                <input type="text" name="tax_presets" class="form-control form-control-sm font-monospace" 
+                                       value="{{ is_array($settings['tax_presets'] ?? null) ? implode(',', $settings['tax_presets']) : ($settings['tax_presets'] ?? '0, 2, 3, 5, 7, 10') }}" 
+                                       placeholder="0, 2, 3, 5, 7, 10">
+                                <small class="text-muted d-block mt-1" style="font-size: 11px;">যেমন: 0, 2, 3, 5, 7, 10</small>
                             </div>
                         </div>
                     </div>
