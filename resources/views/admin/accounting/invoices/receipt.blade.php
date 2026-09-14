@@ -412,42 +412,49 @@
         {{-- Financial Breakdown Card with Authentic Round Rubber Stamp Seal --}}
         <div class="amount-highlight-box mb-2">
             <div class="row align-items-center">
-                {{-- Column 1: Net Realized Amount & In Words --}}
-                <div class="col-md-5 border-end-md pe-md-3">
-                    <div class="text-success small fw-bold text-uppercase mb-0.5" style="font-size: 11px;">
-                        <i class="fas fa-money-check-dollar me-1"></i> Net Received Amount (Cheque / Cash)
-                    </div>
-                    <div class="fs-3 fw-bold text-success font-monospace mb-0.5">
-                        ৳{{ number_format($payment->effective_net_amount, 2) }}
-                    </div>
-                    <div class="text-muted small mb-1" style="font-size: 11px; line-height: 1.35;">
-                        In Words: <strong class="text-dark">@takaInWordsEn($payment->effective_net_amount)</strong>
-                    </div>
-                    @if($payment->has_deductions)
-                        <div class="small text-muted font-monospace border-top pt-1 mt-1" style="font-size: 10.5px;">
-                            <span class="text-primary fw-semibold">Gross Settled: ৳{{ number_format($thisAmount, 2) }}</span>
-                            <span class="text-muted mx-1">|</span>
-                            <span class="text-danger fw-semibold">TDS/VDS: -৳{{ number_format($payment->total_deductions, 2) }}</span>
+                {{-- Column 1 & 2: Clean Structured Billing & Highlighted Paid to Date --}}
+                <div class="col-md-9 border-end-md pe-md-4">
+                    {{-- Compact Financial Breakdown Rows --}}
+                    <div class="row g-2 mb-2">
+                        <div class="col-sm-4">
+                            <div class="p-1.5 bg-white rounded border">
+                                <span class="text-muted d-block" style="font-size: 10px; text-transform: uppercase;">Bill without TAX/VAT:</span>
+                                <span class="fw-bold font-monospace text-dark" style="font-size: 12px;">৳{{ number_format($payment->effective_net_amount, 2) }}</span>
+                            </div>
                         </div>
-                    @endif
-                </div>
+                        <div class="col-sm-4">
+                            <div class="p-1.5 bg-white rounded border">
+                                <span class="text-danger d-block" style="font-size: 10px; text-transform: uppercase;">TAX / VAT:</span>
+                                <span class="fw-bold font-monospace text-danger" style="font-size: 12px;">{{ $payment->total_deductions > 0 ? '-৳' . number_format($payment->total_deductions, 2) : '৳0.00' }}</span>
+                            </div>
+                        </div>
+                        <div class="col-sm-4">
+                            <div class="p-1.5 bg-white rounded border">
+                                <span class="text-muted d-block" style="font-size: 10px; text-transform: uppercase;">Total Bill:</span>
+                                <span class="fw-bold font-monospace text-dark" style="font-size: 12px;">৳{{ number_format($totalGrand, 2) }}</span>
+                            </div>
+                        </div>
+                    </div>
 
-                {{-- Column 2: Simplified Statement Summary (Zero Duplication) --}}
-                <div class="col-md-4 ps-md-3 pe-md-3 border-end-md">
-                    <div class="text-muted small fw-bold text-uppercase mb-1.5" style="font-size: 10px;">
-                        Invoice Balance Summary
-                    </div>
-                    <div class="d-flex justify-content-between py-1 small" style="font-size: 11px;">
-                        <span class="text-muted">Total Billed:</span>
-                        <span class="fw-semibold font-monospace">৳{{ number_format($totalGrand, 2) }}</span>
-                    </div>
-                    <div class="d-flex justify-content-between py-1 small" style="font-size: 11px;">
-                        <span class="text-muted">Total Paid to Date:</span>
-                        <span class="fw-semibold font-monospace text-primary">৳{{ number_format($totalPaidToDate, 2) }}</span>
-                    </div>
-                    <div class="d-flex justify-content-between py-1 mt-1 border-top fw-bold {{ $remainingDue > 0 ? 'text-danger' : 'text-success' }}" style="font-size: 11.5px;">
-                        <span>Remaining Due:</span>
-                        <span class="font-monospace">৳{{ number_format($remainingDue, 2) }}</span>
+                    {{-- Highlighted Box: Total Paid to Date & In Words & Due --}}
+                    <div class="p-2.5 rounded-2 bg-success-subtle border border-success-subtle d-flex align-items-center justify-content-between flex-wrap gap-2">
+                        <div>
+                            <div class="text-success small fw-bold text-uppercase mb-0.5" style="font-size: 11px;">
+                                <i class="fas fa-money-check-dollar me-1"></i> Total Paid to Date:
+                            </div>
+                            <div class="fs-3 fw-bold text-success font-monospace mb-0.5">
+                                ৳{{ number_format($payment->effective_net_amount, 2) }}
+                            </div>
+                            <div class="text-muted small" style="font-size: 11px;">
+                                In Words: <strong class="text-dark">@takaInWordsEn($payment->effective_net_amount)</strong>
+                            </div>
+                        </div>
+                        <div class="text-end ps-3 border-start border-success-subtle">
+                            <div class="text-muted small fw-semibold" style="font-size: 10.5px; text-transform: uppercase;">Due:</div>
+                            <div class="fs-4 fw-bold font-monospace {{ $remainingDue > 0 ? 'text-danger' : 'text-success' }}">
+                                ৳{{ number_format($remainingDue, 2) }}
+                            </div>
+                        </div>
                     </div>
                 </div>
 
