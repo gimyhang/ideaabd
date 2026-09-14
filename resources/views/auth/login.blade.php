@@ -5,7 +5,7 @@
     <meta name="google" content="notranslate">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>লগইন — আইডিয়া প্রকাশন ডিজিটাল পোর্টাল</title>
+    <title>Login — {{ \App\Support\SiteSetting::name() ?: 'Idea Prokashon' }}</title>
 
     {{-- Favicon --}}
     @php $siteFaviconUrl = \App\Support\SiteSetting::faviconUrl(); @endphp
@@ -141,10 +141,12 @@
         }
 
         .brand-card-header {
-            padding: 24px 28px 16px 28px;
+            padding: 26px 28px 18px 28px;
             display: flex;
+            flex-direction: column;
             align-items: center;
-            gap: 16px;
+            justify-content: center;
+            text-align: center;
             border-bottom: 1px solid #f1f5f9;
         }
 
@@ -377,17 +379,17 @@
     <header class="portal-header py-2.5 px-3 px-lg-4">
         <div class="container d-flex align-items-center justify-content-between flex-wrap gap-2.5">
             {{-- Left Side: Idea Prokashon Logo and Portal Title --}}
-            <a href="{{ url('/') }}" class="d-flex align-items-center text-decoration-none text-white gap-2.5" title="হোম পেইজে যান">
-                <div class="bg-white rounded-circle p-1 d-flex align-items-center justify-content-center shadow-sm" style="width: 44px; height: 44px; flex-shrink: 0;">
-                    <img src="{{ \App\Support\SiteSetting::loginLogoUrl() ?: \App\Support\SiteSetting::logoUrl() }}" alt="Idea Prokashon" class="w-100 h-100 object-fit-contain" 
+            <a href="{{ url('/') }}" class="d-flex align-items-center text-decoration-none text-white gap-3" title="Home">
+                <div class="bg-white rounded-circle p-1 d-flex align-items-center justify-content-center shadow-sm" style="width: 46px; height: 46px; flex-shrink: 0;">
+                    <img src="{{ \App\Support\SiteSetting::logoUrl() ?: (\App\Support\SiteSetting::loginLogoUrl() ?: asset('images/logo.png')) }}" alt="Idea Prokashon" class="w-100 h-100 object-fit-contain" 
                          onerror="this.src='{{ asset('images/logo.png') }}';">
                 </div>
-                <div class="portal-header-title d-flex flex-column justify-content-center lh-sm">
-                    <h5 class="fw-bold mb-0 text-white" style="font-size: 16.5px; letter-spacing: 0.2px;">
-                        আইডিয়া প্রকাশন ডিজিটাল পোর্টাল
+                <div class="portal-header-title d-flex flex-column justify-content-center lh-sm ps-1">
+                    <h5 class="fw-bold mb-0.5 text-white" style="font-size: 16px; letter-spacing: 0.2px;">
+                        Idea Prokashon
                     </h5>
-                    <small class="text-white-50" style="font-size: 11.5px;">
-                        অনলাইন বই ও প্রকাশনা ডিজিটাল প্ল্যাটফর্ম
+                    <small class="text-white-50" style="font-size: 11px; line-height: 1.25;">
+                        Books, Ebooks, Creative Writing Resources & General Supplies
                     </small>
                 </div>
             </a>
@@ -417,18 +419,21 @@
         <div class="brand-login-card">
             <div class="brand-card-top-strip"></div>
 
-            {{-- Card Header: Main Site Logo (Round Shape) + Clean Login Title --}}
-            <div class="brand-card-header">
-                <div class="bg-white rounded-circle p-1.5 border shadow-2xs d-flex align-items-center justify-content-center overflow-hidden" style="width: 52px; height: 52px; flex-shrink: 0; border-color: rgba(0, 106, 78, 0.2) !important;">
-                    <img src="{{ \App\Support\SiteSetting::loginLogoUrl() ?: \App\Support\SiteSetting::logoUrl() }}" 
-                         alt="{{ \App\Support\SiteSetting::name() }}" 
-                         class="w-100 h-100 object-fit-contain rounded-circle"
-                         onerror="this.src='{{ asset('images/logo.png') }}';">
-                </div>
-                <div>
-                    <h4 class="fw-bold mb-0 text-dark" style="font-size: 22px; letter-spacing: -0.3px;">
-                        Login
-                    </h4>
+            {{-- Card Header: Main Site Logo (Round Shape) + Idea Prokashon + Clean Login Title --}}
+            <div class="brand-card-header text-center">
+                <a href="{{ url('/') }}" class="text-decoration-none d-inline-block mb-2">
+                    <div class="bg-white rounded-circle p-1.5 border shadow-2xs d-flex align-items-center justify-content-center mx-auto overflow-hidden" style="width: 60px; height: 60px; flex-shrink: 0; border-color: rgba(0, 106, 78, 0.25) !important;">
+                        <img src="{{ \App\Support\SiteSetting::logoUrl() ?: (\App\Support\SiteSetting::loginLogoUrl() ?: asset('images/logo.png')) }}" 
+                             alt="{{ \App\Support\SiteSetting::name() ?: 'Idea Prokashon' }}" 
+                             class="w-100 h-100 object-fit-contain rounded-circle"
+                             onerror="this.src='{{ asset('images/logo.png') }}';">
+                    </div>
+                </a>
+                <h4 class="fw-bold mb-1 text-dark" style="font-size: 20px; letter-spacing: -0.2px;">
+                    {{ \App\Support\SiteSetting::name() ?: 'Idea Prokashon' }}
+                </h4>
+                <div class="text-muted fw-semibold small" style="font-size: 13.5px;">
+                    Login
                 </div>
             </div>
 
@@ -585,10 +590,10 @@
     <footer class="portal-footer">
         <div class="container-fluid d-flex align-items-center justify-content-between flex-wrap gap-2">
             <div>
-                &copy; ২০২৬ {{ \App\Support\SiteSetting::name() ?: 'আইডিয়া প্রকাশন' }} । ডিজিটাল বুক ও প্রকাশনা প্ল্যাটফর্ম । সর্বস্বত্ব সংরক্ষিত।
+                &copy; {{ date('Y') }} {{ \App\Support\SiteSetting::name() ?: 'Idea Prokashon' }}. All rights reserved.
                 @if(\App\Support\SiteSetting::showDesignerCredit())
-                    <span class="d-inline-block ms-1" style="color: rgba(255,255,255,0.7);">ডিজাইন বাই 
-                        <a href="{{ \App\Support\SiteSetting::designerUrl() }}" class="text-warning text-decoration-none fw-semibold" title="{{ \App\Support\SiteSetting::designerName() }} — লেখক প্রোফাইল দেখুন">{{ \App\Support\SiteSetting::designerName() }}</a>
+                    <span class="d-inline-block ms-1" style="color: rgba(255,255,255,0.7);">Design by 
+                        <a href="{{ \App\Support\SiteSetting::designerUrl() }}" class="text-warning text-decoration-none fw-semibold" title="{{ \App\Support\SiteSetting::designerName() }}">{{ \App\Support\SiteSetting::designerName() }}</a>
                     </span>
                 @endif
             </div>

@@ -522,6 +522,10 @@
                             <span>Special Concession (Discount):</span>
                             <span class="fw-bold font-monospace" id="displayDiscount">-৳0.00</span>
                         </div>
+                        <div class="d-flex justify-content-between mb-2 small text-muted" id="displayPreviousDueRow" style="{{ (($invoice->previous_due ?? 0) > 0) ? '' : 'display: none !important;' }}">
+                            <span>Previous Due (জের):</span>
+                            <span class="fw-bold text-warning font-monospace" id="displayPreviousDue">+৳{{ number_format($invoice->previous_due ?? 0, 2) }}</span>
+                        </div>
                         <div class="d-flex justify-content-between mb-2 small text-muted">
                             <span>VAT / Tax:</span>
                             <span class="fw-bold font-monospace" id="displayTax">+৳0.00</span>
@@ -531,6 +535,29 @@
                             <span class="fw-bold text-dark fs-6">Grand Total:</span>
                             <span class="fw-bold text-primary fs-5 font-monospace" id="displayGrandTotal">৳0.00</span>
                         </div>
+                    </div>
+
+                    {{-- Previous Due (জের) Integration --}}
+                    @php $hasPrevDue = ($invoice->previous_due ?? 0) > 0; @endphp
+                    <div class="mb-3 p-2.5 rounded-3 bg-warning bg-opacity-10 border border-warning-subtle" id="previousDueCard">
+                        <div class="d-flex justify-content-between align-items-center mb-1.5">
+                            <label class="form-label small fw-bold text-dark mb-0">
+                                <i class="fas fa-clock-rotate-left me-1 text-warning"></i>পূর্বের বকেয়া জের (Previous Due)
+                            </label>
+                            <div class="form-check form-switch m-0">
+                                <input class="form-check-input" type="checkbox" id="togglePreviousDueCheck" {{ $hasPrevDue ? 'checked' : '' }} onchange="togglePreviousDueInput(this.checked)">
+                            </div>
+                        </div>
+                        <div id="previousDueInputWrap" style="{{ $hasPrevDue ? '' : 'display: none;' }}">
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-white">৳</span>
+                                <input type="number" step="0.01" name="previous_due" id="previousDueInput" class="form-control font-monospace fw-bold text-dark text-end" value="{{ old('previous_due', $invoice->previous_due ?? 0) }}" min="0" placeholder="0.00" oninput="calcTotals()">
+                            </div>
+                            <div class="form-text text-muted" style="font-size: 10.5px;">
+                                পূর্বের বকেয়া টাকা মোট বিলের (Grand Total) সাথে যুক্ত হবে।
+                            </div>
+                        </div>
+                        <div id="customerDueLiveNotice" class="small mt-1 text-dark fw-semibold" style="display: none; font-size: 11px;"></div>
                     </div>
 
                     {{-- Global Discount & Tax Inputs --}}
@@ -1452,6 +1479,75 @@
         calcTotals();
     }
 
+    function togglePreviousDueInput(checked) {
+        const wrap = document.getElementById('previousDueInputWrap');
+        const input = document.getElementById('previousDueInput');
+        if (wrap) {
+            wrap.style.display = checked ? 'block' : 'none';
+        }
+        if (!checked && input) {
+            input.value = 0;
+        }
+        calcTotals();
+    }
+
+    function applyCustomerDue(amount) {
+        const toggle = document.getElementById('togglePreviousDueCheck');
+        const wrap = document.getElementById('previousDueInputWrap');
+        const input = document.getElementById('previousDueInput');
+        if (toggle) toggle.checked = true;
+        if (wrap) wrap.style.display = 'block';
+        if (input) input.value = amount;
+        calcTotals();
+    }
+
+    let customerDueCheckTimer = null;
+    function checkCustomerPreviousDue() {
+        const nameInput = document.querySelector('input[name="customer_name"]');
+        const phoneInput = document.querySelector('input[name="customer_phone"]');
+        const name = nameInput ? nameInput.value.trim() : '';
+        const phone = phoneInput ? phoneInput.value.trim() : '';
+        const noticeEl = document.getElementById('customerDueLiveNotice');
+
+        if (!name && !phone) {
+            if (noticeEl) noticeEl.style.display = 'none';
+            return;
+        }
+
+        clearTimeout(customerDueCheckTimer);
+        customerDueCheckTimer = setTimeout(() => {
+            fetch(`{{ route('admin.accounting.invoices.customer-due-info') }}?name=${encodeURIComponent(name)}&phone=${encodeURIComponent(phone)}&exclude_id={{ $invoice->id }}`, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data && data.total_due > 0) {
+                    if (noticeEl) {
+                        noticeEl.style.display = 'block';
+                        noticeEl.innerHTML = `<span class="text-danger"><i class="fas fa-circle-exclamation me-1"></i>গ্রাহকের পূর্বের মোট বকেয়া: <strong>৳${data.total_due.toFixed(2)}</strong> (${data.invoices_count || data.due_count}টি বিল)</span> <button type="button" class="btn btn-xs btn-warning text-dark fw-bold ms-1 py-0 px-2 rounded-pill shadow-2xs" onclick="applyCustomerDue(${data.total_due})">+ বিলে জের যুক্ত করুন</button>`;
+                    }
+                } else {
+                    if (noticeEl) noticeEl.style.display = 'none';
+                }
+            })
+            .catch(() => {});
+        }, 400);
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const nameInput = document.querySelector('input[name="customer_name"]');
+        const phoneInput = document.querySelector('input[name="customer_phone"]');
+        if (nameInput) {
+            nameInput.addEventListener('input', checkCustomerPreviousDue);
+            nameInput.addEventListener('blur', checkCustomerPreviousDue);
+        }
+        if (phoneInput) {
+            phoneInput.addEventListener('input', checkCustomerPreviousDue);
+            phoneInput.addEventListener('blur', checkCustomerPreviousDue);
+        }
+        calcTotals();
+    });
+
     function calcTotals() {
         let subtotal = 0;
         document.querySelectorAll('.item-row').forEach(row => {
@@ -1462,12 +1558,17 @@
 
         const discount = parseFloat(document.getElementById('discountInput')?.value) || 0;
         const tax = parseFloat(document.getElementById('taxInput')?.value) || 0;
-        const grandTotal = Math.max(0, subtotal - discount + tax);
+        const previousDue = parseFloat(document.getElementById('previousDueInput')?.value) || 0;
+        const grandTotal = Math.max(0, subtotal - discount + tax + previousDue);
 
         const elSubtotal = document.getElementById('displaySubtotal');
         if (elSubtotal) elSubtotal.textContent = '৳' + subtotal.toFixed(2);
         const elDisc = document.getElementById('displayDiscount');
         if (elDisc) elDisc.textContent = '-৳' + discount.toFixed(2);
+        const elPrevDue = document.getElementById('displayPreviousDue');
+        const elPrevDueRow = document.getElementById('displayPreviousDueRow');
+        if (elPrevDue) elPrevDue.textContent = '+৳' + previousDue.toFixed(2);
+        if (elPrevDueRow) elPrevDueRow.style.setProperty('display', previousDue > 0 ? 'flex' : 'none', 'important');
         const elTax = document.getElementById('displayTax');
         if (elTax) elTax.textContent = '+৳' + tax.toFixed(2);
         const elGrand = document.getElementById('displayGrandTotal');
@@ -1489,7 +1590,8 @@
         });
         const discount = parseFloat(document.getElementById('discountInput')?.value) || 0;
         const tax = parseFloat(document.getElementById('taxInput')?.value) || 0;
-        const grandTotal = Math.max(0, subtotal - discount + tax);
+        const previousDue = parseFloat(document.getElementById('previousDueInput')?.value) || 0;
+        const grandTotal = Math.max(0, subtotal - discount + tax + previousDue);
         const paidInput = document.getElementById('paidInput');
         if (paidInput) paidInput.value = grandTotal.toFixed(2);
         calcTotals();

@@ -5,7 +5,7 @@
     $bizLogo = $settings['logo'] ?? '/images/logo.png';
     $logoSrc = \App\Support\SiteSetting::resolveImageUrl($bizLogo, 'images/logo.png') ?: asset('images/logo.png');
 
-    $docTitle = 'Money Receipt #' . $payment->payment_no;
+    $docTitle = 'বিল পরিশোধ প্রাপ্তিস্বীকারপত্র #' . $payment->payment_no;
     $invoice = $payment->invoice;
 
     // Calculate previous payments prior to this one for clean statement breakdown
@@ -24,7 +24,7 @@
 @endphp
 
 @section('title', $docTitle)
-@section('heading', 'টাকা প্রাপ্তি রসিদ (Money Receipt)')
+@section('heading', 'বিল পরিশোধ প্রাপ্তিস্বীকারপত্র (Payment Acknowledgment)')
 @section('breadcrumb')
     <li class="breadcrumb-item"><a href="{{ route('admin.accounting.index') }}">Accounting</a></li>
     <li class="breadcrumb-item"><a href="{{ route('admin.accounting.invoices.index') }}">Invoices & Challans</a></li>
@@ -35,15 +35,30 @@
 @endsection
 
 @section('actions')
-    <div class="d-flex flex-wrap gap-2">
-        <button type="button" class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm fw-semibold" onclick="window.print()">
+    <div class="d-flex flex-wrap gap-2 align-items-center">
+        {{-- View Switcher Buttons --}}
+        <div class="btn-group btn-group-sm p-0.5 bg-light rounded-pill border shadow-2xs" role="group">
+            <button type="button" class="btn btn-sm rounded-pill px-3 fw-bold active" id="btnShowBn" onclick="switchReceiptView('bn')">
+                <i class="fas fa-certificate me-1 text-success"></i> বাংলা প্রত্যয়ন
+            </button>
+            <button type="button" class="btn btn-sm rounded-pill px-3 fw-bold text-muted" id="btnShowEn" onclick="switchReceiptView('en')">
+                <i class="fas fa-file-invoice me-1 text-primary"></i> English Version
+            </button>
+            <button type="button" class="btn btn-sm rounded-pill px-3 fw-bold text-muted" id="btnShowBoth" onclick="switchReceiptView('both')">
+                <i class="fas fa-layer-group me-1 text-secondary"></i> উভয় সংস্করণ
+            </button>
+        </div>
+
+        <button type="button" class="btn btn-primary btn-sm rounded-pill px-3.5 shadow-sm fw-semibold" onclick="window.print()">
             <i class="fas fa-print me-1.5"></i> প্রিন্ট / PDF
         </button>
+
         @if($invoice)
             <a href="{{ route('admin.accounting.invoices.show', $invoice->id) }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-xs">
                 <i class="fas fa-arrow-left me-1"></i> ইনভয়েসে ফিরে যান
             </a>
         @endif
+
         <a href="{{ route('admin.accounting.customer-ledger.index', ['customer_name' => $payment->party_name, 'customer_phone' => $payment->party_phone]) }}" class="btn btn-outline-info text-dark btn-sm rounded-pill px-3 shadow-xs fw-semibold">
             <i class="fas fa-book-bookmark me-1 text-primary"></i> গ্রাহক খতিয়ান
         </a>
@@ -53,12 +68,12 @@
 @section('content')
 <style>
     .receipt-paper {
-        max-width: 820px;
+        max-width: 860px;
         margin: 0 auto;
         background: #ffffff;
-        border-radius: 12px;
+        border-radius: 14px;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
-        padding: 40px 48px;
+        padding: 36px 44px;
         color: #1e293b;
         position: relative;
         overflow: hidden;
@@ -77,7 +92,7 @@
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%) rotate(-25deg);
-        font-size: 85px;
+        font-size: 80px;
         font-weight: 900;
         color: rgba(16, 185, 129, 0.04);
         pointer-events: none;
@@ -91,16 +106,32 @@
         background: #f0fdf4;
         color: #166534;
         border: 1.5px dashed #86efac;
-        padding: 6px 20px;
+        padding: 6px 18px;
         border-radius: 999px;
         font-weight: 700;
-        font-size: 14px;
+        font-size: 13.5px;
         letter-spacing: 0.5px;
+    }
+    .cert-box-bn {
+        background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%);
+        border: 2px solid #10b981 !important;
+        border-radius: 12px;
+    }
+    .cert-box-en {
+        background: linear-gradient(135deg, #f0f9ff 0%, #ffffff 100%);
+        border: 2px solid #0284c7 !important;
+        border-radius: 12px;
+    }
+    .cert-fill-underline {
+        display: inline-block;
+        border-bottom: 1.5px dashed #334155;
+        padding: 0 6px 1px 6px;
+        font-weight: 700;
     }
     .info-kv-row {
         display: flex;
         align-items: baseline;
-        padding: 6px 0;
+        padding: 5px 0;
         border-bottom: 1px dashed #e2e8f0;
     }
     .info-kv-label {
@@ -113,14 +144,14 @@
     .info-kv-val {
         color: #0f172a;
         font-weight: 600;
-        font-size: 13.5px;
+        font-size: 13px;
         flex-grow: 1;
     }
     .amount-highlight-box {
         background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
         border: 2px solid #bbf7d0;
         border-radius: 12px;
-        padding: 16px 24px;
+        padding: 16px 20px;
     }
     @media print {
         body {
@@ -128,17 +159,17 @@
             padding: 0 !important;
             margin: 0 !important;
         }
-        .main-header, .sidebar, .breadcrumb, .btn, .no-print, footer, nav, .alert {
+        .adm-side, .adm-header, .adm-topbar, .breadcrumb, .btn, .no-print, footer, nav, .alert {
             display: none !important;
         }
-        .content-wrapper, .container-fluid, .content {
+        .content-wrapper, .container-fluid, .content, .adm-main, .adm-content {
             padding: 0 !important;
             margin: 0 !important;
             background: #ffffff !important;
         }
         .receipt-paper {
             box-shadow: none !important;
-            padding: 20px 24px !important;
+            padding: 16px 20px !important;
             margin: 0 auto !important;
             width: 100% !important;
             max-width: 100% !important;
@@ -156,14 +187,14 @@
             <div class="col-8">
                 <div class="d-flex align-items-center gap-3">
                     @if(!empty($logoSrc))
-                        <img src="{{ $logoSrc }}" alt="Logo" style="height: 52px; max-width: 160px; object-fit: contain;">
+                        <img src="{{ $logoSrc }}" alt="Logo" style="height: 52px; max-width: 150px; object-fit: contain;">
                     @endif
                     <div>
                         <h4 class="fw-bold mb-0 text-dark">{{ $settings['business_name'] ?? 'আইডিয়া প্রকাশন' }}</h4>
                         @if(!empty($settings['tagline']))
                             <div class="text-muted small fw-medium">{{ $settings['tagline'] }}</div>
                         @endif
-                        <div class="text-secondary small mt-0.5" style="font-size: 12px;">
+                        <div class="text-secondary small mt-0.5" style="font-size: 11.5px;">
                             {{ $settings['address'] ?? '' }}
                             @if(!empty($settings['phone'])) | ফোন: {{ $settings['phone'] }} @endif
                             @if(!empty($settings['email'])) | ইমেইল: {{ $settings['email'] }} @endif
@@ -173,109 +204,190 @@
             </div>
             <div class="col-4 text-end">
                 <div class="receipt-title-badge mb-1">
-                    <i class="fas fa-receipt me-1"></i> টাকা প্রাপ্তি রসিদ
+                    <i class="fas fa-receipt me-1"></i> বিল পরিশোধ প্রাপ্তিস্বীকার
                 </div>
                 <div class="fw-bold text-dark fs-6 font-monospace">#{{ $payment->payment_no }}</div>
                 <div class="text-muted small">তারিখ: <strong class="text-dark">{{ $payment->payment_date ? $payment->payment_date->format('d M, Y') : date('d M, Y') }}</strong></div>
             </div>
         </div>
 
-        {{-- Party & Reference Details --}}
-        <div class="row g-3 mb-4">
-            <div class="col-md-7">
-                <div class="bg-light p-3 rounded-3 border">
-                    <div class="text-muted small fw-bold text-uppercase mb-2 text-primary" style="font-size: 11px; letter-spacing: 0.5px;">
-                        <i class="fas fa-user me-1"></i> গ্রাহক / প্রতিনিধির বিবরণ
+        {{-- 🇧🇩 SECTION 1: বাংলা বিল পরিশোধ প্রাপ্তিস্বীকারপত্র (Certificate of Acknowledgment) --}}
+        <div id="sectionBnCert" class="cert-box-bn p-4 mb-4 position-relative">
+            <div class="text-center mb-3">
+                <span class="badge bg-success text-white px-3 py-1.5 rounded-pill fw-bold text-uppercase fs-7 mb-1 shadow-2xs">
+                    <i class="fas fa-file-shield me-1"></i> বিল পরিশোধ প্রাপ্তিস্বীকারপত্র
+                </span>
+                <div class="text-muted small">Certificate of Bill Payment & Money Receipt</div>
+            </div>
+
+            <div class="p-3 bg-white rounded-3 border mb-3 text-dark lh-lg" style="font-size: 14.5px; text-align: justify;">
+                এতদ্বারা প্রত্যয়ন করা যাচ্ছে যে, 
+                <span class="cert-fill-underline text-primary">
+                    {{ $invoice?->customer_org ? $invoice->customer_org . ' (প্রতিনিধি: ' . $payment->party_name . ')' : $payment->party_name }}
+                </span>-এর 
+                নিকট হতে 
+                <span class="cert-fill-underline text-dark">
+                    {{ $invoice?->subject ?: ($invoice?->category_label ?? 'বই প্রকাশনা ও সরবরাহ') }}
+                </span> 
+                বাবদ বিলের অর্থ 
+                <span class="cert-fill-underline text-success font-monospace">৳{{ number_format($thisAmount, 2) }}</span> 
+                (কথায়: <span class="cert-fill-underline text-success">@takaInWords($thisAmount) টাকা মাত্র</span>) গ্রহণ করা হলো।
+            </div>
+
+            <div class="row g-2.5 p-3 bg-white rounded-3 border mb-3" style="font-size: 13px;">
+                <div class="col-sm-6">
+                    <div class="d-flex align-items-baseline">
+                        <span class="text-muted fw-semibold" style="width: 130px;">বিল নং:</span>
+                        <span class="fw-bold text-primary font-monospace">{{ $invoice ? $invoice->invoice_no : '—' }}</span>
                     </div>
-                    <div class="info-kv-row">
-                        <span class="info-kv-label">গ্রাহকের নাম:</span>
-                        <span class="info-kv-val text-dark fs-6">{{ $payment->party_name }}</span>
+                </div>
+                <div class="col-sm-6">
+                    <div class="d-flex align-items-baseline">
+                        <span class="text-muted fw-semibold" style="width: 130px;">বিলের তারিখ:</span>
+                        <span class="fw-bold text-dark">{{ $invoice && $invoice->invoice_date ? $invoice->invoice_date->format('d/m/Y') : '—' }}</span>
                     </div>
-                    @if($invoice && !empty($invoice->customer_org))
-                        <div class="info-kv-row">
-                            <span class="info-kv-label">প্রতিষ্ঠান / স্কুল:</span>
-                            <span class="info-kv-val">{{ $invoice->customer_org }}</span>
-                        </div>
-                    @endif
-                    @if($invoice && !empty($invoice->customer_designation))
-                        <div class="info-kv-row">
-                            <span class="info-kv-label">পদবি:</span>
-                            <span class="info-kv-val">{{ $invoice->customer_designation }}</span>
-                        </div>
-                    @endif
-                    <div class="info-kv-row">
-                        <span class="info-kv-label">মোবাইল নম্বর:</span>
-                        <span class="info-kv-val font-monospace">{{ $payment->party_phone }}</span>
+                </div>
+                <div class="col-sm-6">
+                    <div class="d-flex align-items-baseline">
+                        <span class="text-muted fw-semibold" style="width: 130px;">পরিশোধের তারিখ:</span>
+                        <span class="fw-bold text-dark font-monospace">{{ $payment->payment_date ? $payment->payment_date->format('d/m/Y') : date('d/m/Y') }}</span>
                     </div>
-                    @if($invoice && !empty($invoice->customer_address))
-                        <div class="info-kv-row border-bottom-0 pb-0">
-                            <span class="info-kv-label">ঠিকানা:</span>
-                            <span class="info-kv-val">{{ $invoice->customer_address }}</span>
+                </div>
+                <div class="col-sm-6">
+                    <div class="d-flex align-items-baseline">
+                        <span class="text-muted fw-semibold" style="width: 130px;">পরিশোধের মাধ্যম:</span>
+                        <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-0.5 fw-bold">
+                            {{ \App\Models\IdeaInvoicePayment::paymentMethods()[$payment->payment_method] ?? ucfirst($payment->payment_method) }}
+                        </span>
+                    </div>
+                </div>
+                @if($payment->transaction_ref)
+                    <div class="col-sm-6">
+                        <div class="d-flex align-items-baseline">
+                            <span class="text-muted fw-semibold" style="width: 130px;">চেক/Trx নং:</span>
+                            <span class="fw-bold font-monospace text-dark">{{ $payment->transaction_ref }}</span>
                         </div>
-                    @endif
+                    </div>
+                @endif
+                <div class="col-sm-6">
+                    <div class="d-flex align-items-baseline">
+                        <span class="text-muted fw-semibold" style="width: 130px;">রসিদ ট্র্যাকিং:</span>
+                        <span class="fw-bold text-secondary font-monospace">#{{ $payment->payment_no }}</span>
+                    </div>
                 </div>
             </div>
 
-            <div class="col-md-5">
-                <div class="bg-light p-3 rounded-3 border h-100">
-                    <div class="text-muted small fw-bold text-uppercase mb-2 text-primary" style="font-size: 11px; letter-spacing: 0.5px;">
-                        <i class="fas fa-file-invoice me-1"></i> সম্পর্কিত বিলের তথ্য
-                    </div>
-                    @if($invoice)
-                        <div class="info-kv-row">
-                            <span class="info-kv-label">ইনভয়েস নম্বর:</span>
-                            <span class="info-kv-val">
-                                <a href="{{ route('admin.accounting.invoices.show', $invoice->id) }}" class="text-primary text-decoration-none fw-bold font-monospace">
-                                    #{{ $invoice->invoice_no }}
-                                </a>
-                            </span>
-                        </div>
-                        <div class="info-kv-row">
-                            <span class="info-kv-label">ডকুমেন্ট টাইপ:</span>
-                            <span class="info-kv-val">{{ $invoice->type_label }}</span>
-                        </div>
-                        <div class="info-kv-row">
-                            <span class="info-kv-label">বিলের তারিখ:</span>
-                            <span class="info-kv-val">{{ $invoice->invoice_date ? $invoice->invoice_date->format('d M, Y') : '—' }}</span>
-                        </div>
-                        <div class="info-kv-row border-bottom-0 pb-0">
-                            <span class="info-kv-label">মোট বিলের দাবি:</span>
-                            <span class="info-kv-val font-monospace text-dark">৳{{ number_format($invoice->grand_total, 2) }}</span>
-                        </div>
-                    @else
-                        <div class="text-muted small py-3 text-center">
-                            <em>চলতি খাতা / অগ্রিম জমা (সাধারণ জমা)</em>
-                        </div>
-                    @endif
-                </div>
+            <div class="p-2.5 rounded-3 bg-white border d-flex align-items-center justify-content-between flex-wrap gap-2">
+                <p class="mb-0 text-dark fw-medium" style="font-size: 13px;">
+                    <i class="fas fa-check-circle text-success me-1"></i>
+                    উক্ত বিলের <strong class="text-success">{{ $remainingDue <= 0 ? 'সম্পূর্ণ' : 'আংশিক (কিস্তি)' }}</strong> অর্থ পরিশোধের মাধ্যমে গ্রহণ করা হয়েছে। এ বিষয়ে প্রাপ্তির স্বীকৃতিস্বরূপ এই পত্র প্রদান করা হলো।
+                </p>
+                <span class="badge {{ $remainingDue <= 0 ? 'bg-success text-white' : 'bg-warning text-dark' }} px-2.5 py-1 rounded-pill fw-bold">
+                    {{ $remainingDue <= 0 ? 'সম্পূর্ণ পরিশোধিত (Paid in Full)' : 'আংশিক জমা (Partial Paid)' }}
+                </span>
             </div>
         </div>
 
-        {{-- Highlighted Payment Box --}}
+        {{-- 🇬🇧 SECTION 2: English Official Payment Acknowledgment Certificate --}}
+        <div id="sectionEnCert" class="cert-box-en p-4 mb-4 position-relative d-none">
+            <div class="text-center mb-3">
+                <span class="badge bg-primary text-white px-3 py-1.5 rounded-pill fw-bold text-uppercase fs-7 mb-1 shadow-2xs">
+                    <i class="fas fa-certificate me-1"></i> Official Payment Acknowledgment
+                </span>
+                <div class="text-muted small">Certificate of Bill Settlement & Money Receipt</div>
+            </div>
+
+            <div class="p-3 bg-white rounded-3 border mb-3 text-dark lh-lg" style="font-size: 14px; text-align: justify;">
+                This is to formally certify and acknowledge that an amount of 
+                <span class="cert-fill-underline text-primary font-monospace">
+                    BDT {{ number_format($thisAmount, 2) }}
+                </span> 
+                (in words: <span class="cert-fill-underline text-primary">@takaInWordsEn($thisAmount) Taka Only</span>) 
+                has been duly received from 
+                <span class="cert-fill-underline text-dark">
+                    {{ $invoice?->customer_org ? $invoice->customer_org . ' (Attn: ' . $payment->party_name . ')' : $payment->party_name }}
+                </span> 
+                on account of 
+                <span class="cert-fill-underline text-dark">
+                    {{ $invoice?->subject ?: ($invoice?->category_label ?? 'Book Publication & Sales Supply') }}
+                </span>.
+            </div>
+
+            <div class="row g-2.5 p-3 bg-white rounded-3 border mb-3" style="font-size: 13px;">
+                <div class="col-sm-6">
+                    <div class="d-flex align-items-baseline">
+                        <span class="text-muted fw-semibold" style="width: 140px;">Bill / Invoice No:</span>
+                        <span class="fw-bold text-primary font-monospace">{{ $invoice ? $invoice->invoice_no : '—' }}</span>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="d-flex align-items-baseline">
+                        <span class="text-muted fw-semibold" style="width: 140px;">Bill Date:</span>
+                        <span class="fw-bold text-dark">{{ $invoice && $invoice->invoice_date ? $invoice->invoice_date->format('d M, Y') : '—' }}</span>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="d-flex align-items-baseline">
+                        <span class="text-muted fw-semibold" style="width: 140px;">Receipt Date:</span>
+                        <span class="fw-bold text-dark font-monospace">{{ $payment->payment_date ? $payment->payment_date->format('d M, Y') : date('d M, Y') }}</span>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="d-flex align-items-baseline">
+                        <span class="text-muted fw-semibold" style="width: 140px;">Payment Mode:</span>
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-0.5 fw-bold">
+                            {{ ucfirst($payment->payment_method) }}
+                        </span>
+                    </div>
+                </div>
+                @if($payment->transaction_ref)
+                    <div class="col-sm-6">
+                        <div class="d-flex align-items-baseline">
+                            <span class="text-muted fw-semibold" style="width: 140px;">Cheque / Trx ID:</span>
+                            <span class="fw-bold font-monospace text-dark">{{ $payment->transaction_ref }}</span>
+                        </div>
+                    </div>
+                @endif
+                <div class="col-sm-6">
+                    <div class="d-flex align-items-baseline">
+                        <span class="text-muted fw-semibold" style="width: 140px;">Receipt Reference:</span>
+                        <span class="fw-bold text-secondary font-monospace">#{{ $payment->payment_no }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-2.5 rounded-3 bg-white border d-flex align-items-center justify-content-between flex-wrap gap-2">
+                <p class="mb-0 text-dark fw-medium" style="font-size: 13px;">
+                    <i class="fas fa-check-circle text-primary me-1"></i>
+                    This payment has been accepted as <strong class="text-primary">{{ $remainingDue <= 0 ? 'Full & Final Payment' : 'Partial Installment Payment' }}</strong> against the aforementioned bill. This document is issued as a verified acknowledgment of receipt.
+                </p>
+                <span class="badge {{ $remainingDue <= 0 ? 'bg-success text-white' : 'bg-warning text-dark' }} px-2.5 py-1 rounded-pill fw-bold">
+                    {{ $remainingDue <= 0 ? 'Paid in Full' : 'Partial Installment' }}
+                </span>
+            </div>
+        </div>
+
+        {{-- Financial Breakdown & Statement Card --}}
         <div class="amount-highlight-box mb-4">
             <div class="row align-items-center">
-                <div class="col-md-7">
+                <div class="col-md-6 border-end-md">
                     <div class="text-success small fw-bold text-uppercase mb-1">
-                        <i class="fas fa-hand-holding-dollar me-1"></i> প্রাপ্ত টাকার পরিমাণ
+                        <i class="fas fa-hand-holding-dollar me-1"></i> প্রাপ্ত টাকার পরিমাণ (Received Amount)
                     </div>
-                    <div class="fs-2 fw-bold text-success font-monospace">
+                    <div class="fs-2 fw-bold text-success font-monospace mb-1">
                         ৳{{ number_format($thisAmount, 2) }}
                     </div>
-                    <div class="text-muted small mt-1">
-                        <strong>পেমেন্ট মাধ্যম:</strong> 
-                        <span class="badge bg-white text-dark border px-2 py-1">{{ IdeaInvoicePayment::paymentMethods()[$payment->payment_method] ?? ucfirst($payment->payment_method) }}</span>
-                        @if($payment->transaction_ref)
-                            <span class="ms-2">| Trx Ref: <strong class="font-monospace text-dark">{{ $payment->transaction_ref }}</strong></span>
-                        @endif
+                    <div class="text-muted small" style="font-size: 12px;">
+                        কথায়: <strong class="text-dark">@takaInWords($thisAmount) টাকা মাত্র</strong>
                     </div>
                 </div>
 
-                <div class="col-md-5 border-start-md ps-md-4">
-                    <div class="text-muted small fw-bold text-uppercase mb-1" style="font-size: 11px;">
+                <div class="col-md-6 ps-md-4">
+                    <div class="text-muted small fw-bold text-uppercase mb-1.5" style="font-size: 11px;">
                         হিসাবের বর্তমান জের (Payment Breakdown)
                     </div>
                     <div class="d-flex justify-content-between py-0.5 small">
-                        <span class="text-muted">মোট বিল:</span>
+                        <span class="text-muted">মোট বিলের দাবি:</span>
                         <span class="fw-semibold font-monospace">৳{{ number_format($totalGrand, 2) }}</span>
                     </div>
                     <div class="d-flex justify-content-between py-0.5 small">
@@ -287,7 +399,7 @@
                         <span class="font-monospace">৳{{ number_format($thisAmount, 2) }}</span>
                     </div>
                     <div class="d-flex justify-content-between py-1 mt-1 border-top fw-bold {{ $remainingDue > 0 ? 'text-danger' : 'text-success' }}">
-                        <span>বর্তমান বকেয়া জের:</span>
+                        <span>বর্তমান অবশিষ্ট বকেয়া জের:</span>
                         <span class="font-monospace fs-6">৳{{ number_format($remainingDue, 2) }}</span>
                     </div>
                 </div>
@@ -295,29 +407,27 @@
         </div>
 
         {{-- Note & Next Due Date --}}
-        <div class="row g-3 mb-4">
-            <div class="col-md-8">
-                @if(!empty($payment->note))
-                    <div class="p-2.5 bg-light rounded-3 border">
-                        <span class="text-muted small fw-bold me-2"><i class="fas fa-comment-dots me-1"></i>বিবরণ / নোট:</span>
-                        <span class="small text-dark">{{ $payment->note }}</span>
-                    </div>
-                @endif
-            </div>
+        @if(!empty($payment->note) || ($invoice && $invoice->due_date && $remainingDue > 0))
+            <div class="row g-3 mb-4">
+                <div class="col-md-8">
+                    @if(!empty($payment->note))
+                        <div class="p-2.5 bg-light rounded-3 border">
+                            <span class="text-muted small fw-bold me-2"><i class="fas fa-comment-dots me-1"></i>বিবরণ / নোট:</span>
+                            <span class="small text-dark">{{ $payment->note }}</span>
+                        </div>
+                    @endif
+                </div>
 
-            <div class="col-md-4 text-md-end">
-                @if($invoice && $invoice->due_date && $remainingDue > 0)
-                    <div class="p-2 bg-danger-subtle rounded-3 border border-danger-subtle text-danger small fw-semibold d-inline-block text-start">
-                        <i class="fas fa-calendar-day me-1"></i> পরবর্তী কিস্তির তারিখ (ঐচ্ছিক): 
-                        <strong class="text-danger font-monospace">{{ $invoice->due_date->format('d M, Y') }}</strong>
-                    </div>
-                @elseif($remainingDue <= 0)
-                    <div class="p-2 bg-success-subtle rounded-3 border border-success-subtle text-success small fw-bold d-inline-block">
-                        <i class="fas fa-check-circle me-1"></i> সম্পূর্ণ বিল পরিশোধিত (Paid in Full)
-                    </div>
-                @endif
+                <div class="col-md-4 text-md-end">
+                    @if($invoice && $invoice->due_date && $remainingDue > 0)
+                        <div class="p-2 bg-danger-subtle rounded-3 border border-danger-subtle text-danger small fw-semibold d-inline-block text-start">
+                            <i class="fas fa-calendar-day me-1"></i> পরবর্তী কিস্তির তারিখ: 
+                            <strong class="text-danger font-monospace">{{ $invoice->due_date->format('d M, Y') }}</strong>
+                        </div>
+                    @endif
+                </div>
             </div>
-        </div>
+        @endif
 
         {{-- Signatures & Acknowledgement --}}
         <div class="pt-5 mt-4 border-top">
@@ -348,4 +458,35 @@
         </div>
     </div>
 </div>
+
+<script>
+function switchReceiptView(lang) {
+    const secBn = document.getElementById('sectionBnCert');
+    const secEn = document.getElementById('sectionEnCert');
+    const btnBn = document.getElementById('btnShowBn');
+    const btnEn = document.getElementById('btnShowEn');
+    const btnBoth = document.getElementById('btnShowBoth');
+
+    if (!secBn || !secEn) return;
+
+    btnBn.classList.remove('active', 'btn-primary', 'btn-success', 'bg-white', 'shadow-xs');
+    btnEn.classList.remove('active', 'btn-primary', 'btn-success', 'bg-white', 'shadow-xs');
+    btnBoth.classList.remove('active', 'btn-primary', 'btn-success', 'bg-white', 'shadow-xs');
+
+    if (lang === 'bn') {
+        secBn.classList.remove('d-none');
+        secEn.classList.add('d-none');
+        btnBn.classList.add('active', 'bg-white', 'shadow-xs');
+    } else if (lang === 'en') {
+        secBn.classList.add('d-none');
+        secEn.classList.remove('d-none');
+        btnEn.classList.add('active', 'bg-white', 'shadow-xs');
+    } else {
+        secBn.classList.remove('d-none');
+        secEn.classList.remove('d-none');
+        btnBoth.classList.add('active', 'bg-white', 'shadow-xs');
+    }
+}
+</script>
 @endsection
+

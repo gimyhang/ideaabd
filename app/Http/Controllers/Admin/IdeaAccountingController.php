@@ -211,6 +211,25 @@ class IdeaAccountingController extends Controller
             'total_amount'     => (float) IdeaInvoice::whereIn('type', ['invoice', 'challan'])->sum('grand_total'),
             'total_paid'       => (float) IdeaInvoice::whereIn('type', ['invoice', 'challan'])->sum('paid_amount'),
             'total_due'        => (float) IdeaInvoice::whereIn('type', ['invoice', 'challan'])->sum('due_amount'),
+
+            // Folder-specific Metrics
+            'bills_amount'     => (float) IdeaInvoice::where('type', 'invoice')->sum('grand_total'),
+            'bills_paid'       => (float) IdeaInvoice::where('type', 'invoice')->sum('paid_amount'),
+            'bills_due'        => (float) IdeaInvoice::where('type', 'invoice')->sum('due_amount'),
+
+            'challans_amount'      => (float) IdeaInvoice::where('type', 'challan')->sum('grand_total'),
+            'challans_paid'        => (float) IdeaInvoice::where('type', 'challan')->sum('paid_amount'),
+            'challans_due'         => (float) IdeaInvoice::where('type', 'challan')->sum('due_amount'),
+            'challans_books_count' => IdeaInvoice::where('type', 'challan')->where(fn($q) => $q->where('sales_category', 'books')->orWhereNull('sales_category'))->count(),
+            'challans_other_count' => IdeaInvoice::where('type', 'challan')->where('sales_category', '!=', 'books')->count(),
+
+            'quotations_amount'  => (float) IdeaInvoice::where('type', 'quotation')->sum('grand_total'),
+            'quotations_active'  => IdeaInvoice::where('type', 'quotation')->where(fn($q) => $q->whereNull('valid_until')->orWhereDate('valid_until', '>=', now()))->count(),
+            'quotations_expired' => IdeaInvoice::where('type', 'quotation')->whereNotNull('valid_until')->whereDate('valid_until', '<', now())->count(),
+
+            'tenders_amount' => (float) IdeaInvoice::where('type', 'tender')->sum('grand_total'),
+            'tenders_active' => IdeaInvoice::where('type', 'tender')->where(fn($q) => $q->whereNull('valid_until')->orWhereDate('valid_until', '>=', now()))->count(),
+            'tenders_orgs'   => IdeaInvoice::where('type', 'tender')->whereNotNull('customer_org')->where('customer_org', '!=', '')->distinct('customer_org')->count('customer_org'),
         ];
 
         $invoiceSettings = self::getInvoiceSettings();
@@ -420,6 +439,63 @@ class IdeaAccountingController extends Controller
     }
 
     /**
+     * Get Customer Pending Dues & Invoices for Live Lookup in Invoice Creation.
+     */
+    public function getCustomerDueInfo(Request $request): JsonResponse
+    {
+        $name = trim((string)$request->input('name', ''));
+        $phone = trim((string)$request->input('phone', ''));
+        $excludeId = $request->input('exclude_id');
+
+        if (empty($name) && empty($phone)) {
+            return response()->json([
+                'found' => false,
+                'total_due' => 0,
+                'total_due_formatted' => '0.00',
+                'invoices_count' => 0,
+                'invoices' => []
+            ]);
+        }
+
+        $query = IdeaInvoice::whereIn('type', ['invoice', 'challan'])
+            ->where('due_amount', '>', 0)
+            ->where(function ($q) use ($name, $phone) {
+                if (!empty($name) && !empty($phone)) {
+                    $q->where('customer_name', $name)->orWhere('customer_phone', $phone);
+                } elseif (!empty($name)) {
+                    $q->where('customer_name', $name);
+                } else {
+                    $q->where('customer_phone', $phone);
+                }
+            });
+
+        if ($excludeId) {
+            $query->where('id', '!=', $excludeId);
+        }
+
+        $dueInvoices = $query->orderBy('invoice_date', 'asc')->get();
+        $totalDue = (float)$dueInvoices->sum('due_amount');
+
+        return response()->json([
+            'found'               => $dueInvoices->isNotEmpty(),
+            'total_due'           => $totalDue,
+            'total_due_formatted' => number_format($totalDue, 2),
+            'invoices_count'      => $dueInvoices->count(),
+            'invoices'            => $dueInvoices->map(fn($inv) => [
+                'id'                   => $inv->id,
+                'invoice_no'           => $inv->invoice_no,
+                'date'                 => $inv->invoice_date ? $inv->invoice_date->format('d M, Y') : '—',
+                'month_year'           => $inv->invoice_date ? $inv->invoice_date->format('F Y') : '—',
+                'type'                 => $inv->type_label,
+                'grand_total'          => (float)$inv->grand_total,
+                'paid_amount'          => (float)$inv->paid_amount,
+                'due_amount'           => (float)$inv->due_amount,
+                'due_amount_formatted' => number_format($inv->due_amount, 2),
+            ]),
+        ]);
+    }
+
+    /**
      * Store Bill / Challan / Quotation / Tender.
      */
     public function storeInvoice(Request $request): RedirectResponse
@@ -452,6 +528,7 @@ class IdeaAccountingController extends Controller
             'valid_until'          => 'nullable|date',
             'discount'             => 'nullable|numeric|min:0',
             'tax'                  => 'nullable|numeric|min:0',
+            'previous_due'         => 'nullable|numeric|min:0',
             'paid_amount'          => 'nullable|numeric|min:0',
             'payment_method'       => 'required|string|max:50',
             'notes'                => 'nullable|string|max:1000',
@@ -543,7 +620,8 @@ class IdeaAccountingController extends Controller
 
                 $discount = (float) ($validated['discount'] ?? 0);
                 $tax = (float) ($validated['tax'] ?? 0);
-                $grandTotal = max(0, $subtotal - $discount + $tax);
+                $previousDue = (float) ($validated['previous_due'] ?? 0);
+                $grandTotal = max(0, $subtotal - $discount + $tax + $previousDue);
                 $paid = (float) ($validated['paid_amount'] ?? 0);
                 $due = max(0, $grandTotal - $paid);
 
@@ -554,86 +632,7 @@ class IdeaAccountingController extends Controller
                     $paymentStatus = 'partial';
                 }
 
-                                        // Handle Banking Details
-            $settings['bank_name'] = $request->input('bank_name') ?? ($settings['bank_name'] ?? '');
-            $settings['bank_account_name'] = $request->input('bank_account_name') ?? ($settings['bank_account_name'] ?? '');
-            $settings['bank_account_no'] = $request->input('bank_account_no') ?? ($settings['bank_account_no'] ?? '');
-            $settings['bank_branch'] = $request->input('bank_branch') ?? ($settings['bank_branch'] ?? '');
-            $settings['bank_routing_no'] = $request->input('bank_routing_no') ?? ($settings['bank_routing_no'] ?? '');
-
-                        // Handle MFS QR (bKash / Nagad / Rocket)
-            if ($request->has('mfs_qr_note')) {
-                $settings['mfs_qr_note'] = $request->input('mfs_qr_note') ?: 'bKash / Nagad / Rocket';
-            }
-            if ($request->filled('remove_mfs_qr') && $request->input('remove_mfs_qr') == '1') {
-                unset($settings['mfs_qr_image']);
-            } elseif ($request->hasFile('mfs_qr_file')) {
-                $file = $request->file('mfs_qr_file');
-                $ext = $file->getClientOriginalExtension() ?: 'png';
-                $filename = 'mfs_qr_' . time() . '.' . $ext;
-                $targetDir = public_path('images/settings');
-                if (!is_dir($targetDir)) { @mkdir($targetDir, 0777, true); }
-                $file->move($targetDir, $filename);
-                $settings['mfs_qr_image'] = 'images/settings/' . $filename;
-            }
-
-            // Handle Bank QR (Bank Payment)
-            if ($request->has('bank_qr_note')) {
-                $settings['bank_qr_note'] = $request->input('bank_qr_note') ?: 'Bank Payment';
-            }
-            if ($request->filled('remove_bank_qr') && $request->input('remove_bank_qr') == '1') {
-                unset($settings['bank_qr_image']);
-            } elseif ($request->hasFile('bank_qr_file')) {
-                $file = $request->file('bank_qr_file');
-                $ext = $file->getClientOriginalExtension() ?: 'png';
-                $filename = 'bank_qr_' . time() . '.' . $ext;
-                $targetDir = public_path('images/settings');
-                if (!is_dir($targetDir)) { @mkdir($targetDir, 0777, true); }
-                $file->move($targetDir, $filename);
-                $settings['bank_qr_image'] = 'images/settings/' . $filename;
-            }
-
-            // Handle Payment QR (Bangla QR / bKash / Nagad / Bank)
-            if ($request->has('payment_qr_note')) {
-                $settings['payment_qr_note'] = $request->input('payment_qr_note') ?: 'বিকাশ / নগদ / রকেট';
-            }
-
-            if ($request->filled('remove_payment_qr') && $request->input('remove_payment_qr') == '1') {
-                unset($settings['payment_qr_image']);
-            } elseif ($request->hasFile('payment_qr_file')) {
-                $file = $request->file('payment_qr_file');
-                $ext = $file->getClientOriginalExtension() ?: 'png';
-                $filename = 'payment_qr_' . time() . '.' . $ext;
-
-                $targetDir = public_path('images/settings');
-                if (!is_dir($targetDir)) {
-                    @mkdir($targetDir, 0777, true);
-                }
-                $file->move($targetDir, $filename);
-                $settings['payment_qr_image'] = 'images/settings/' . $filename;
-            } elseif (!empty($request->input('payment_qr_base64')) && str_starts_with($request->input('payment_qr_base64'), 'data:image/')) {
-                $base64 = $request->input('payment_qr_base64');
-                if (preg_match('/^data:image\/(\w+);base64,/', $base64, $type)) {
-                    $base64Data = substr($base64, strpos($base64, ',') + 1);
-                    $decoded = base64_decode($base64Data);
-                    if ($decoded !== false) {
-                        $ext = strtolower($type[1] ?? 'png');
-                        if ($ext === 'jpeg') $ext = 'jpg';
-                        $filename = 'payment_qr_' . time() . '.' . $ext;
-
-                        $targetDir = public_path('images/settings');
-                        if (!is_dir($targetDir)) {
-                            @mkdir($targetDir, 0777, true);
-                        }
-                        @file_put_contents($targetDir . '/' . $filename, $decoded);
-                        $settings['payment_qr_image'] = 'images/settings/' . $filename;
-                    }
-                }
-            } elseif (!empty($request->input('payment_qr_url'))) {
-                $settings['payment_qr_image'] = $request->input('payment_qr_url');
-            }
-
-            $userId = auth()->id() ?: null;
+                $userId = auth()->id() ?: null;
                 if ($userId && !\Illuminate\Support\Facades\DB::table('users')->where('id', $userId)->exists()) {
                     $userId = null;
                 }
@@ -659,14 +658,15 @@ class IdeaAccountingController extends Controller
                     'subtotal'             => $subtotal,
                     'discount'             => $discount,
                     'tax'                  => $tax,
+                    'previous_due'         => $previousDue,
                     'grand_total'          => $grandTotal,
                     'paid_amount'          => $paid,
-                    'due_amount'       => $due,
-                    'payment_method'   => $validated['payment_method'],
-                    'payment_status'   => $paymentStatus,
-                    'notes'            => $validated['notes'] ?? null,
-                    'terms_conditions' => $validated['terms_conditions'] ?? null,
-                    'created_by'       => $userId,
+                    'due_amount'           => $due,
+                    'payment_method'       => $validated['payment_method'],
+                    'payment_status'       => $paymentStatus,
+                    'notes'                => $validated['notes'] ?? null,
+                    'terms_conditions'     => $validated['terms_conditions'] ?? null,
+                    'created_by'           => $userId,
                 ]);
 
                 // Record initial advance payment if paid amount > 0 and type is invoice/challan
@@ -727,7 +727,44 @@ class IdeaAccountingController extends Controller
         IdeaInvoice::ensureColumnsExist();
         $invoice->load(['payments.recorder', 'creator']);
         $invoiceSettings = self::getInvoiceSettings();
-        return view('admin.accounting.invoices.show', compact('invoice', 'invoiceSettings'));
+
+        // Customer Dues Summary (গ্রাহকের অন্যান্য ও সর্বমোট বকেয়া বিলের হিসাব)
+        $custName = trim((string)$invoice->customer_name);
+        $custPhone = trim((string)$invoice->customer_phone);
+
+        $otherDueInvoices = collect();
+        $allDueInvoices = collect();
+        $customerTotalDue = (float)$invoice->due_amount;
+        $customerTotalBilled = (float)$invoice->grand_total;
+        $customerTotalPaid = (float)$invoice->paid_amount;
+        $customerDueCount = ($invoice->due_amount > 0) ? 1 : 0;
+
+        if (!empty($custName) || !empty($custPhone)) {
+            $allCustomerInvoices = IdeaInvoice::whereIn('type', ['invoice', 'challan'])
+                ->where(function ($q) use ($custName, $custPhone) {
+                    if (!empty($custName) && !empty($custPhone)) {
+                        $q->where('customer_name', $custName)->orWhere('customer_phone', $custPhone);
+                    } elseif (!empty($custName)) {
+                        $q->where('customer_name', $custName);
+                    } else {
+                        $q->where('customer_phone', $custPhone);
+                    }
+                })
+                ->orderBy('invoice_date', 'asc')
+                ->get();
+
+            $allDueInvoices = $allCustomerInvoices->where('due_amount', '>', 0)->values();
+            $otherDueInvoices = $allCustomerInvoices->where('id', '!=', $invoice->id)->where('due_amount', '>', 0)->values();
+            $customerTotalDue = (float)$allCustomerInvoices->sum('due_amount');
+            $customerTotalBilled = (float)$allCustomerInvoices->sum('grand_total');
+            $customerTotalPaid = (float)$allCustomerInvoices->sum('paid_amount');
+            $customerDueCount = $allDueInvoices->count();
+        }
+
+        return view('admin.accounting.invoices.show', compact(
+            'invoice', 'invoiceSettings', 'otherDueInvoices', 'allDueInvoices',
+            'customerTotalDue', 'customerTotalBilled', 'customerTotalPaid', 'customerDueCount'
+        ));
     }
 
     /**
@@ -778,6 +815,7 @@ class IdeaAccountingController extends Controller
             'valid_until'          => 'nullable|date',
             'discount'             => 'nullable|numeric|min:0',
             'tax'                  => 'nullable|numeric|min:0',
+            'previous_due'         => 'nullable|numeric|min:0',
             'paid_amount'          => 'nullable|numeric|min:0',
             'payment_method'       => 'required|string|max:50',
             'notes'                => 'nullable|string|max:1000',
@@ -868,7 +906,8 @@ class IdeaAccountingController extends Controller
 
                 $discount = (float) ($validated['discount'] ?? 0);
                 $tax = (float) ($validated['tax'] ?? 0);
-                $grandTotal = max(0, $subtotal - $discount + $tax);
+                $previousDue = (float) ($validated['previous_due'] ?? ($invoice->previous_due ?? 0));
+                $grandTotal = max(0, $subtotal - $discount + $tax + $previousDue);
                 
                 // Check if payments exist
                 $hasPayments = $invoice->payments()->exists();
@@ -882,7 +921,7 @@ class IdeaAccountingController extends Controller
                     $paymentStatus = 'partial';
                 }
 
-                $salesCategory = $request->input('sales_category', $invoice->sales_category ?? 'books');
+                $salesCategory = $validated['sales_category'] ?? $request->input('sales_category', $invoice->sales_category ?? 'books');
 
                 $invoice->update([
                     'invoice_no'           => $validated['invoice_no'],
@@ -903,6 +942,7 @@ class IdeaAccountingController extends Controller
                     'subtotal'             => $subtotal,
                     'discount'             => $discount,
                     'tax'                  => $tax,
+                    'previous_due'         => $previousDue,
                     'grand_total'          => $grandTotal,
                     'paid_amount'          => $paid,
                     'due_amount'           => $due,
@@ -1144,87 +1184,7 @@ class IdeaAccountingController extends Controller
                     'other'          => 'অন্যান্য আয় (Other Income)',
                     default          => ($invoice->type === 'challan' ? 'পাইকারি বিক্রয় ও চালান (Wholesale Sales)' : 'বই বিক্রয় (Book Sales)')
                 };
-
-                                        // Handle Banking Details
-            $settings['bank_name'] = $request->input('bank_name') ?? ($settings['bank_name'] ?? '');
-            $settings['bank_account_name'] = $request->input('bank_account_name') ?? ($settings['bank_account_name'] ?? '');
-            $settings['bank_account_no'] = $request->input('bank_account_no') ?? ($settings['bank_account_no'] ?? '');
-            $settings['bank_branch'] = $request->input('bank_branch') ?? ($settings['bank_branch'] ?? '');
-            $settings['bank_routing_no'] = $request->input('bank_routing_no') ?? ($settings['bank_routing_no'] ?? '');
-
-                        // Handle MFS QR (bKash / Nagad / Rocket)
-            if ($request->has('mfs_qr_note')) {
-                $settings['mfs_qr_note'] = $request->input('mfs_qr_note') ?: 'bKash / Nagad / Rocket';
-            }
-            if ($request->filled('remove_mfs_qr') && $request->input('remove_mfs_qr') == '1') {
-                unset($settings['mfs_qr_image']);
-            } elseif ($request->hasFile('mfs_qr_file')) {
-                $file = $request->file('mfs_qr_file');
-                $ext = $file->getClientOriginalExtension() ?: 'png';
-                $filename = 'mfs_qr_' . time() . '.' . $ext;
-                $targetDir = public_path('images/settings');
-                if (!is_dir($targetDir)) { @mkdir($targetDir, 0777, true); }
-                $file->move($targetDir, $filename);
-                $settings['mfs_qr_image'] = 'images/settings/' . $filename;
-            }
-
-            // Handle Bank QR (Bank Payment)
-            if ($request->has('bank_qr_note')) {
-                $settings['bank_qr_note'] = $request->input('bank_qr_note') ?: 'Bank Payment';
-            }
-            if ($request->filled('remove_bank_qr') && $request->input('remove_bank_qr') == '1') {
-                unset($settings['bank_qr_image']);
-            } elseif ($request->hasFile('bank_qr_file')) {
-                $file = $request->file('bank_qr_file');
-                $ext = $file->getClientOriginalExtension() ?: 'png';
-                $filename = 'bank_qr_' . time() . '.' . $ext;
-                $targetDir = public_path('images/settings');
-                if (!is_dir($targetDir)) { @mkdir($targetDir, 0777, true); }
-                $file->move($targetDir, $filename);
-                $settings['bank_qr_image'] = 'images/settings/' . $filename;
-            }
-
-            // Handle Payment QR (Bangla QR / bKash / Nagad / Bank)
-            if ($request->has('payment_qr_note')) {
-                $settings['payment_qr_note'] = $request->input('payment_qr_note') ?: 'বিকাশ / নগদ / রকেট';
-            }
-
-            if ($request->filled('remove_payment_qr') && $request->input('remove_payment_qr') == '1') {
-                unset($settings['payment_qr_image']);
-            } elseif ($request->hasFile('payment_qr_file')) {
-                $file = $request->file('payment_qr_file');
-                $ext = $file->getClientOriginalExtension() ?: 'png';
-                $filename = 'payment_qr_' . time() . '.' . $ext;
-
-                $targetDir = public_path('images/settings');
-                if (!is_dir($targetDir)) {
-                    @mkdir($targetDir, 0777, true);
-                }
-                $file->move($targetDir, $filename);
-                $settings['payment_qr_image'] = 'images/settings/' . $filename;
-            } elseif (!empty($request->input('payment_qr_base64')) && str_starts_with($request->input('payment_qr_base64'), 'data:image/')) {
-                $base64 = $request->input('payment_qr_base64');
-                if (preg_match('/^data:image\/(\w+);base64,/', $base64, $type)) {
-                    $base64Data = substr($base64, strpos($base64, ',') + 1);
-                    $decoded = base64_decode($base64Data);
-                    if ($decoded !== false) {
-                        $ext = strtolower($type[1] ?? 'png');
-                        if ($ext === 'jpeg') $ext = 'jpg';
-                        $filename = 'payment_qr_' . time() . '.' . $ext;
-
-                        $targetDir = public_path('images/settings');
-                        if (!is_dir($targetDir)) {
-                            @mkdir($targetDir, 0777, true);
-                        }
-                        @file_put_contents($targetDir . '/' . $filename, $decoded);
-                        $settings['payment_qr_image'] = 'images/settings/' . $filename;
-                    }
-                }
-            } elseif (!empty($request->input('payment_qr_url'))) {
-                $settings['payment_qr_image'] = $request->input('payment_qr_url');
-            }
-
-            $userId = auth()->id() ?: null;
+                $userId = auth()->id() ?: null;
                 if ($userId && !\Illuminate\Support\Facades\DB::table('users')->where('id', $userId)->exists()) {
                     $userId = null;
                 }
@@ -1360,86 +1320,7 @@ class IdeaAccountingController extends Controller
 
         try {
             return DB::transaction(function () use ($specificInvoiceId, $customerName, $customerPhone, $amount, $paymentDate, $paymentMethod, $trxRef, $note, $request) {
-                                        // Handle Banking Details
-            $settings['bank_name'] = $request->input('bank_name') ?? ($settings['bank_name'] ?? '');
-            $settings['bank_account_name'] = $request->input('bank_account_name') ?? ($settings['bank_account_name'] ?? '');
-            $settings['bank_account_no'] = $request->input('bank_account_no') ?? ($settings['bank_account_no'] ?? '');
-            $settings['bank_branch'] = $request->input('bank_branch') ?? ($settings['bank_branch'] ?? '');
-            $settings['bank_routing_no'] = $request->input('bank_routing_no') ?? ($settings['bank_routing_no'] ?? '');
-
-                        // Handle MFS QR (bKash / Nagad / Rocket)
-            if ($request->has('mfs_qr_note')) {
-                $settings['mfs_qr_note'] = $request->input('mfs_qr_note') ?: 'bKash / Nagad / Rocket';
-            }
-            if ($request->filled('remove_mfs_qr') && $request->input('remove_mfs_qr') == '1') {
-                unset($settings['mfs_qr_image']);
-            } elseif ($request->hasFile('mfs_qr_file')) {
-                $file = $request->file('mfs_qr_file');
-                $ext = $file->getClientOriginalExtension() ?: 'png';
-                $filename = 'mfs_qr_' . time() . '.' . $ext;
-                $targetDir = public_path('images/settings');
-                if (!is_dir($targetDir)) { @mkdir($targetDir, 0777, true); }
-                $file->move($targetDir, $filename);
-                $settings['mfs_qr_image'] = 'images/settings/' . $filename;
-            }
-
-            // Handle Bank QR (Bank Payment)
-            if ($request->has('bank_qr_note')) {
-                $settings['bank_qr_note'] = $request->input('bank_qr_note') ?: 'Bank Payment';
-            }
-            if ($request->filled('remove_bank_qr') && $request->input('remove_bank_qr') == '1') {
-                unset($settings['bank_qr_image']);
-            } elseif ($request->hasFile('bank_qr_file')) {
-                $file = $request->file('bank_qr_file');
-                $ext = $file->getClientOriginalExtension() ?: 'png';
-                $filename = 'bank_qr_' . time() . '.' . $ext;
-                $targetDir = public_path('images/settings');
-                if (!is_dir($targetDir)) { @mkdir($targetDir, 0777, true); }
-                $file->move($targetDir, $filename);
-                $settings['bank_qr_image'] = 'images/settings/' . $filename;
-            }
-
-            // Handle Payment QR (Bangla QR / bKash / Nagad / Bank)
-            if ($request->has('payment_qr_note')) {
-                $settings['payment_qr_note'] = $request->input('payment_qr_note') ?: 'বিকাশ / নগদ / রকেট';
-            }
-
-            if ($request->filled('remove_payment_qr') && $request->input('remove_payment_qr') == '1') {
-                unset($settings['payment_qr_image']);
-            } elseif ($request->hasFile('payment_qr_file')) {
-                $file = $request->file('payment_qr_file');
-                $ext = $file->getClientOriginalExtension() ?: 'png';
-                $filename = 'payment_qr_' . time() . '.' . $ext;
-
-                $targetDir = public_path('images/settings');
-                if (!is_dir($targetDir)) {
-                    @mkdir($targetDir, 0777, true);
-                }
-                $file->move($targetDir, $filename);
-                $settings['payment_qr_image'] = 'images/settings/' . $filename;
-            } elseif (!empty($request->input('payment_qr_base64')) && str_starts_with($request->input('payment_qr_base64'), 'data:image/')) {
-                $base64 = $request->input('payment_qr_base64');
-                if (preg_match('/^data:image\/(\w+);base64,/', $base64, $type)) {
-                    $base64Data = substr($base64, strpos($base64, ',') + 1);
-                    $decoded = base64_decode($base64Data);
-                    if ($decoded !== false) {
-                        $ext = strtolower($type[1] ?? 'png');
-                        if ($ext === 'jpeg') $ext = 'jpg';
-                        $filename = 'payment_qr_' . time() . '.' . $ext;
-
-                        $targetDir = public_path('images/settings');
-                        if (!is_dir($targetDir)) {
-                            @mkdir($targetDir, 0777, true);
-                        }
-                        @file_put_contents($targetDir . '/' . $filename, $decoded);
-                        $settings['payment_qr_image'] = 'images/settings/' . $filename;
-                    }
-                }
-            } elseif (!empty($request->input('payment_qr_url'))) {
-                $settings['payment_qr_image'] = $request->input('payment_qr_url');
-            }
-
-            $userId = auth()->id() ?: null;
+                $userId = auth()->id() ?: null;
                 if ($userId && !\Illuminate\Support\Facades\DB::table('users')->where('id', $userId)->exists()) {
                     $userId = null;
                 }
@@ -1938,11 +1819,21 @@ class IdeaAccountingController extends Controller
             'challan_recipient_address_size' => 'nullable|string|max:10',
             'challan_recipient_desig_size'   => 'nullable|string|max:10',
             'challan_recipient_org_size'     => 'nullable|string|max:10',
+            'qr_code_size'                   => 'nullable|string|max:10',
             'default_creator_designation'    => 'nullable|string|max:150',
             'default_creator_name'           => 'nullable|string|max:150',
             'whatsapp_message_template'      => 'nullable|string|max:1000',
             'email_greeting_salutation'      => 'nullable|string|max:150',
             'email_intro_text'               => 'nullable|string|max:500',
+            'quotation_default_validity_days'=> 'nullable|integer|min:1|max:365',
+            'quotation_default_subject'      => 'nullable|string|max:255',
+            'quotation_default_notes'        => 'nullable|string|max:1000',
+            'quotation_default_terms'        => 'nullable|string|max:2000',
+            'quotation_title_bn'             => 'nullable|string|max:150',
+            'tender_title_bn'                => 'nullable|string|max:150',
+            'invoice_title_bn'               => 'nullable|string|max:150',
+            'challan_title_bn'               => 'nullable|string|max:150',
+            'digit_language'                 => 'nullable|string|in:bn,en',
             'logo_base64'                    => 'nullable|string',
             'logo_file'                      => 'nullable|image|max:5120',
             'logo_url'                       => 'nullable|string|max:255',
@@ -1977,11 +1868,21 @@ class IdeaAccountingController extends Controller
             $settings['challan_recipient_address_size'] = $validated['challan_recipient_address_size'] ?? '11.5px';
             $settings['challan_recipient_desig_size'] = $validated['challan_recipient_desig_size'] ?? '11.5px';
             $settings['challan_recipient_org_size'] = $validated['challan_recipient_org_size'] ?? '12px';
+            $settings['qr_code_size'] = $validated['qr_code_size'] ?? '60px';
             $settings['default_creator_designation'] = $validated['default_creator_designation'] ?? '';
             $settings['default_creator_name'] = $validated['default_creator_name'] ?? '';
             $settings['whatsapp_message_template'] = $validated['whatsapp_message_template'] ?? '';
             $settings['email_greeting_salutation'] = $validated['email_greeting_salutation'] ?? 'সম্মানিত গ্রাহক';
             $settings['email_intro_text'] = $validated['email_intro_text'] ?? '';
+            $settings['quotation_default_validity_days'] = $validated['quotation_default_validity_days'] ?? '30';
+            $settings['quotation_default_subject'] = $validated['quotation_default_subject'] ?? '';
+            $settings['quotation_default_notes'] = $validated['quotation_default_notes'] ?? '';
+            $settings['quotation_default_terms'] = $validated['quotation_default_terms'] ?? '';
+            $settings['quotation_title_bn'] = $validated['quotation_title_bn'] ?? 'মূল্য কোটেশন (PRICE QUOTATION)';
+            $settings['tender_title_bn'] = $validated['tender_title_bn'] ?? 'দরপত্র প্রস্তাবনা (TENDER PROPOSAL)';
+            $settings['invoice_title_bn'] = $validated['invoice_title_bn'] ?? 'ক্যাশ মেমো / বিল (INVOICE / BILL)';
+            $settings['challan_title_bn'] = $validated['challan_title_bn'] ?? 'ডেলিভারি চালান (DELIVERY CHALLAN)';
+            $settings['digit_language'] = $validated['digit_language'] ?? 'bn';
 
             // Handle 2:1 cropped base64 image
             if (!empty($validated['logo_base64']) && str_starts_with($validated['logo_base64'], 'data:image/')) {
@@ -2159,11 +2060,21 @@ class IdeaAccountingController extends Controller
             'challan_recipient_address_size' => '11.5px',
             'challan_recipient_desig_size'   => '11.5px',
             'challan_recipient_org_size'     => '12px',
+            'qr_code_size'                   => '60px',
             'default_creator_designation'    => '',
             'default_creator_name'           => '',
             'whatsapp_message_template'      => '{business_name} থেকে আপনার {doc_type} (#{invoice_no}) প্রস্তুত করা হয়েছে। সরাসরি দেখতে ভিজিট করুন: {invoice_url}',
             'email_greeting_salutation'      => 'সম্মানিত গ্রাহক',
             'email_intro_text'               => '',
+            'quotation_default_validity_days'=> '30',
+            'quotation_default_subject'      => 'বই প্রকাশনা, মুদ্রণ ও সরবরাহ প্রসঙ্গে',
+            'quotation_default_notes'        => '১. ভ্যাট যুক্ত করা হয়নি। ২. কোটেশনের মেয়াদ ৩০ দিন পর্যন্ত কার্যকর থাকবে।',
+            'quotation_default_terms'        => "১. কার্যাদেশ পাওয়ার পর নির্ধারিত সময়ের মধ্যে ডেলিভারি প্রদান করা হবে।\n২. কাজের পরিধি ও স্পেসিফিকেশন পরিবর্তন হলে দর সমন্বয়যোগ্য।",
+            'quotation_title_bn'             => 'মূল্য কোটেশন (PRICE QUOTATION)',
+            'tender_title_bn'                => 'দরপত্র প্রস্তাবনা (TENDER PROPOSAL)',
+            'invoice_title_bn'               => 'ক্যাশ মেমো / বিল (INVOICE / BILL)',
+            'challan_title_bn'               => 'ডেলিভারি চালান (DELIVERY CHALLAN)',
+            'digit_language'                 => 'bn',
         ];
 
         try {

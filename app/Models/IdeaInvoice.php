@@ -31,6 +31,7 @@ class IdeaInvoice extends Model
         'subtotal',
         'discount',
         'tax',
+        'previous_due',
         'grand_total',
         'paid_amount',
         'due_amount',
@@ -75,6 +76,7 @@ class IdeaInvoice extends Model
         'subtotal'     => 'decimal:2',
         'discount'     => 'decimal:2',
         'tax'          => 'decimal:2',
+        'previous_due' => 'decimal:2',
         'grand_total'  => 'decimal:2',
         'paid_amount'  => 'decimal:2',
         'due_amount'   => 'decimal:2',
@@ -133,6 +135,9 @@ class IdeaInvoice extends Model
                     }
                     if (!$schema->hasColumn('idea_invoices', 'email_logs')) {
                         $table->json('email_logs')->nullable();
+                    }
+                    if (!$schema->hasColumn('idea_invoices', 'previous_due')) {
+                        $table->decimal('previous_due', 12, 2)->default(0)->nullable();
                     }
                 });
             }

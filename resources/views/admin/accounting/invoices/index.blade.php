@@ -178,208 +178,677 @@
 
 @section('content')
 
-{{-- Summary Stat Cards --}}
-<div class="row g-3 mb-4">
-    <div class="col-6 col-md-3">
-        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-primary">
-            <span class="text-muted small fw-semibold">Total Documents</span>
-            <h3 class="fw-bold mb-0 text-primary">{{ number_format($stats['total_invoices']) }}</h3>
-            <div class="text-muted small mt-1" style="font-size: 11.5px;">
-                Bills: {{ number_format($stats['total_bills']) }} | Challans: {{ number_format($stats['total_challans']) }}
-            </div>
+{{-- 1. Dedicated Document Folder Tabs (ডকুমেন্ট ফোল্ডার হাব) --}}
+<div class="mb-4">
+    <div class="row row-cols-2 row-cols-md-3 row-cols-lg-5 g-2.5">
+        {{-- Folder 1: Invoices / Bills --}}
+        <div class="col">
+            <a href="{{ route('admin.accounting.invoices.index', array_merge(request()->except('type', 'page'), ['type' => 'invoice'])) }}" 
+               class="card h-100 border text-decoration-none transition-all rounded-4 p-3 shadow-2xs position-relative overflow-hidden {{ $currentType === 'invoice' ? 'bg-primary-subtle border-primary shadow-sm ring-2 ring-primary' : 'bg-white hover-shadow-md border-light-subtle' }}"
+               style="{{ $currentType === 'invoice' ? 'border-width: 2px !important; background: linear-gradient(135deg, rgba(13,110,253,0.06) 0%, #ffffff 100%);' : '' }}">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <div class="rounded-3 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px; background: rgba(13, 110, 253, 0.12); color: #0d6efd;">
+                        <i class="fas fa-receipt fs-5"></i>
+                    </div>
+                    <span class="badge {{ $currentType === 'invoice' ? 'bg-primary text-white' : 'bg-primary-subtle text-primary border border-primary-subtle' }} rounded-pill px-2.5 py-1 fw-bold fs-7 font-monospace">
+                        {{ number_format($stats['total_bills']) }}
+                    </span>
+                </div>
+                <h6 class="fw-bold text-dark mb-0.5 d-flex align-items-center gap-1.5" style="font-size: 14.5px;">
+                    <span>বিল ও ইনভয়েস</span>
+                </h6>
+                <p class="text-muted small mb-2" style="font-size: 11px;">নিয়মিত বিক্রয় বিল ও মেমো</p>
+                <div class="pt-1.5 border-top d-flex justify-content-between align-items-center">
+                    <span class="text-muted" style="font-size: 10.5px;">মোট বিল:</span>
+                    <span class="fw-bold text-primary font-monospace" style="font-size: 11.5px;">৳{{ number_format($stats['bills_amount']) }}</span>
+                </div>
+                @if($currentType === 'invoice')
+                    <div class="position-absolute bottom-0 start-0 w-100 bg-primary" style="height: 3.5px;"></div>
+                @endif
+            </a>
         </div>
-    </div>
-    <div class="col-6 col-md-3">
-        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4" style="border-left-color: #6f42c1 !important;">
-            <span class="text-muted small fw-semibold">Quotations & Tenders</span>
-            <h3 class="fw-bold mb-0" style="color: #6f42c1;">{{ number_format($stats['total_quotations'] + $stats['total_tenders']) }}</h3>
-            <div class="text-muted small mt-1" style="font-size: 11.5px;">
-                Quotations: {{ number_format($stats['total_quotations']) }} | Tenders: {{ number_format($stats['total_tenders']) }}
-            </div>
+
+        {{-- Folder 2: Delivery Challans --}}
+        <div class="col">
+            <a href="{{ route('admin.accounting.invoices.index', array_merge(request()->except('type', 'page'), ['type' => 'challan'])) }}" 
+               class="card h-100 border text-decoration-none transition-all rounded-4 p-3 shadow-2xs position-relative overflow-hidden {{ $currentType === 'challan' ? 'bg-info-subtle border-info shadow-sm' : 'bg-white hover-shadow-md border-light-subtle' }}"
+               style="{{ $currentType === 'challan' ? 'border-width: 2px !important; background: linear-gradient(135deg, rgba(13,202,240,0.08) 0%, #ffffff 100%);' : '' }}">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <div class="rounded-3 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px; background: rgba(13, 202, 240, 0.15); color: #087990;">
+                        <i class="fas fa-truck-fast fs-5"></i>
+                    </div>
+                    <span class="badge {{ $currentType === 'challan' ? 'bg-info text-white' : 'bg-info-subtle text-info-emphasis border border-info-subtle' }} rounded-pill px-2.5 py-1 fw-bold fs-7 font-monospace">
+                        {{ number_format($stats['total_challans']) }}
+                    </span>
+                </div>
+                <h6 class="fw-bold text-dark mb-0.5 d-flex align-items-center gap-1.5" style="font-size: 14.5px;">
+                    <span>ডেলিভারি চালান</span>
+                </h6>
+                <p class="text-muted small mb-2" style="font-size: 11px;">পণ্য সরবরাহ ও চালান কপি</p>
+                <div class="pt-1.5 border-top d-flex justify-content-between align-items-center">
+                    <span class="text-muted" style="font-size: 10.5px;">বই চালান:</span>
+                    <span class="fw-bold text-info-emphasis font-monospace" style="font-size: 11.5px;">{{ $stats['challans_books_count'] }} টি</span>
+                </div>
+                @if($currentType === 'challan')
+                    <div class="position-absolute bottom-0 start-0 w-100 bg-info" style="height: 3.5px;"></div>
+                @endif
+            </a>
         </div>
-    </div>
-    <div class="col-6 col-md-3">
-        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-success">
-            <span class="text-muted small fw-semibold">Total Collected / Paid</span>
-            <h3 class="fw-bold mb-0 text-success">৳{{ number_format($stats['total_paid'], 2) }}</h3>
-            <div class="text-muted small mt-1" style="font-size: 11.5px;">Total Billed: ৳{{ number_format($stats['total_amount'], 2) }}</div>
+
+        {{-- Folder 3: Price Quotations --}}
+        <div class="col">
+            <a href="{{ route('admin.accounting.invoices.index', array_merge(request()->except('type', 'page'), ['type' => 'quotation'])) }}" 
+               class="card h-100 border text-decoration-none transition-all rounded-4 p-3 shadow-2xs position-relative overflow-hidden {{ $currentType === 'quotation' ? 'bg-warning-subtle border-warning shadow-sm' : 'bg-white hover-shadow-md border-light-subtle' }}"
+               style="{{ $currentType === 'quotation' ? 'border-width: 2px !important; background: linear-gradient(135deg, rgba(255,193,7,0.12) 0%, #ffffff 100%);' : '' }}">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <div class="rounded-3 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px; background: rgba(255, 193, 7, 0.2); color: #997404;">
+                        <i class="fas fa-file-lines fs-5"></i>
+                    </div>
+                    <span class="badge {{ $currentType === 'quotation' ? 'bg-warning text-dark' : 'bg-warning-subtle text-warning-emphasis border border-warning-subtle' }} rounded-pill px-2.5 py-1 fw-bold fs-7 font-monospace">
+                        {{ number_format($stats['total_quotations']) }}
+                    </span>
+                </div>
+                <h6 class="fw-bold text-dark mb-0.5 d-flex align-items-center gap-1.5" style="font-size: 14.5px;">
+                    <span>দরপত্র ও কোটেশন</span>
+                </h6>
+                <p class="text-muted small mb-2" style="font-size: 11px;">প্রস্তাবিত মূল্য তালিকা</p>
+                <div class="pt-1.5 border-top d-flex justify-content-between align-items-center">
+                    <span class="text-muted" style="font-size: 10.5px;">প্রস্তাবিত মান:</span>
+                    <span class="fw-bold text-warning-emphasis font-monospace" style="font-size: 11.5px;">৳{{ number_format($stats['quotations_amount']) }}</span>
+                </div>
+                @if($currentType === 'quotation')
+                    <div class="position-absolute bottom-0 start-0 w-100 bg-warning" style="height: 3.5px;"></div>
+                @endif
+            </a>
         </div>
-    </div>
-    <div class="col-6 col-md-3">
-        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-danger">
-            <span class="text-muted small fw-semibold">Total Due Balance</span>
-            <h3 class="fw-bold mb-0 text-danger">৳{{ number_format($stats['total_due'], 2) }}</h3>
-            <div class="text-muted small mt-1" style="font-size: 11.5px;">Receivable from bills</div>
+
+        {{-- Folder 4: Tender Documents --}}
+        <div class="col">
+            <a href="{{ route('admin.accounting.invoices.index', array_merge(request()->except('type', 'page'), ['type' => 'tender'])) }}" 
+               class="card h-100 border text-decoration-none transition-all rounded-4 p-3 shadow-2xs position-relative overflow-hidden {{ $currentType === 'tender' ? 'border-purple shadow-sm' : 'bg-white hover-shadow-md border-light-subtle' }}"
+               style="{{ $currentType === 'tender' ? 'border-color: #9333ea !important; border-width: 2px !important; background: linear-gradient(135deg, rgba(147,51,234,0.08) 0%, #ffffff 100%);' : '' }}">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <div class="rounded-3 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px; background: rgba(147, 51, 234, 0.12); color: #7e22ce;">
+                        <i class="fas fa-landmark fs-5"></i>
+                    </div>
+                    <span class="badge {{ $currentType === 'tender' ? 'bg-purple text-white' : 'border' }} rounded-pill px-2.5 py-1 fw-bold fs-7 font-monospace" style="{{ $currentType === 'tender' ? 'background-color: #9333ea;' : 'background-color: #f3e8ff; color: #7e22ce; border-color: #d8b4fe;' }}">
+                        {{ number_format($stats['total_tenders']) }}
+                    </span>
+                </div>
+                <h6 class="fw-bold text-dark mb-0.5 d-flex align-items-center gap-1.5" style="font-size: 14.5px;">
+                    <span>টেন্ডার ফাইল</span>
+                </h6>
+                <p class="text-muted small mb-2" style="font-size: 11px;">প্রাতিষ্ঠানিক দরপত্র ও ফাইল</p>
+                <div class="pt-1.5 border-top d-flex justify-content-between align-items-center">
+                    <span class="text-muted" style="font-size: 10.5px;">টেন্ডার মূল্য:</span>
+                    <span class="fw-bold font-monospace" style="font-size: 11.5px; color: #7e22ce;">৳{{ number_format($stats['tenders_amount']) }}</span>
+                </div>
+                @if($currentType === 'tender')
+                    <div class="position-absolute bottom-0 start-0 w-100" style="height: 3.5px; background-color: #9333ea;"></div>
+                @endif
+            </a>
+        </div>
+
+        {{-- Folder 5: All Documents Archive --}}
+        <div class="col">
+            <a href="{{ route('admin.accounting.invoices.index', array_merge(request()->except('type', 'page'))) }}" 
+               class="card h-100 border text-decoration-none transition-all rounded-4 p-3 shadow-2xs position-relative overflow-hidden {{ empty($currentType) ? 'bg-secondary-subtle border-secondary shadow-sm' : 'bg-white hover-shadow-md border-light-subtle' }}"
+               style="{{ empty($currentType) ? 'border-width: 2px !important; background: linear-gradient(135deg, rgba(108,117,125,0.08) 0%, #ffffff 100%);' : '' }}">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <div class="rounded-3 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px; background: rgba(108, 117, 125, 0.15); color: #495057;">
+                        <i class="fas fa-folder-tree fs-5"></i>
+                    </div>
+                    <span class="badge {{ empty($currentType) ? 'bg-dark text-white' : 'bg-secondary-subtle text-dark border border-secondary-subtle' }} rounded-pill px-2.5 py-1 fw-bold fs-7 font-monospace">
+                        {{ number_format($stats['total_invoices']) }}
+                    </span>
+                </div>
+                <h6 class="fw-bold text-dark mb-0.5 d-flex align-items-center gap-1.5" style="font-size: 14.5px;">
+                    <span>সকল ডকুমেন্ট</span>
+                </h6>
+                <p class="text-muted small mb-2" style="font-size: 11px;">সার্বিক ফাইল আর্কাইভ</p>
+                <div class="pt-1.5 border-top d-flex justify-content-between align-items-center">
+                    <span class="text-muted" style="font-size: 10.5px;">ক্যাটাগরি:</span>
+                    <span class="fw-bold text-dark" style="font-size: 11px;">৪টি ফোল্ডার</span>
+                </div>
+                @if(empty($currentType))
+                    <div class="position-absolute bottom-0 start-0 w-100 bg-secondary" style="height: 3.5px;"></div>
+                @endif
+            </a>
         </div>
     </div>
 </div>
 
-{{-- Filters --}}
+{{-- 2. Context-Aware Sub-Dashboard Metrics (সক্রিয় ফোল্ডারের নির্দিষ্ট ড্যাশবোর্ড) --}}
+@if($currentType === 'invoice')
+    {{-- Invoice / Bills Sub-Dashboard --}}
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-primary">
+                <span class="text-muted small fw-semibold">মোট ইনভয়েস / বিল</span>
+                <h3 class="fw-bold mb-0 text-primary font-monospace">{{ number_format($stats['total_bills']) }}</h3>
+                <div class="text-muted small mt-1" style="font-size: 11.5px;">নিয়মিত বিক্রয় ও ক্যাশ মেমো</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-info">
+                <span class="text-muted small fw-semibold">মোট বিক্রয় মূল্য</span>
+                <h3 class="fw-bold mb-0 text-dark font-monospace">৳{{ number_format($stats['bills_amount'], 2) }}</h3>
+                <div class="text-muted small mt-1" style="font-size: 11.5px;">মোট বিলের পরিমাণ</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-success">
+                <span class="text-muted small fw-semibold">মোট আদায়কৃত টাকা</span>
+                <h3 class="fw-bold mb-0 text-success font-monospace">৳{{ number_format($stats['bills_paid'], 2) }}</h3>
+                <div class="text-muted small mt-1 text-success" style="font-size: 11.5px;"><i class="fas fa-check-circle me-1"></i>ক্যাশ ও ব্যাংক জমা</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-danger">
+                <span class="text-muted small fw-semibold">মোট বকেয়া জের</span>
+                <h3 class="fw-bold mb-0 text-danger font-monospace">৳{{ number_format($stats['bills_due'], 2) }}</h3>
+                <div class="text-muted small mt-1 text-danger" style="font-size: 11.5px;"><i class="fas fa-clock me-1"></i>গ্রাহক থেকে প্রাপ্য</div>
+            </div>
+        </div>
+    </div>
+@elseif($currentType === 'challan')
+    {{-- Delivery Challans Sub-Dashboard --}}
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-info">
+                <span class="text-muted small fw-semibold">মোট ডেলিভারি চালান</span>
+                <h3 class="fw-bold mb-0 text-info font-monospace">{{ number_format($stats['total_challans']) }}</h3>
+                <div class="text-muted small mt-1" style="font-size: 11.5px;">পণ্য সরবরাহ মেমো</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-primary">
+                <span class="text-muted small fw-semibold">বই ও প্রকাশনা চালান</span>
+                <h3 class="fw-bold mb-0 text-primary font-monospace">{{ number_format($stats['challans_books_count']) }}</h3>
+                <div class="text-muted small mt-1" style="font-size: 11.5px;">আইডিয়া প্রকাশন বুক চালান</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-warning">
+                <span class="text-muted small fw-semibold">স্টেশনারি ও প্রিন্টিং চালান</span>
+                <h3 class="fw-bold mb-0 text-warning-emphasis font-monospace">{{ number_format($stats['challans_other_count']) }}</h3>
+                <div class="text-muted small mt-1" style="font-size: 11.5px;">অন্যান্য পণ্য ও সেবা</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-success">
+                <span class="text-muted small fw-semibold">চালান পণ্যের মূল্যমান</span>
+                <h3 class="fw-bold mb-0 text-success font-monospace">৳{{ number_format($stats['challans_amount'], 2) }}</h3>
+                <div class="text-muted small mt-1" style="font-size: 11.5px;">আদায়: ৳{{ number_format($stats['challans_paid'], 2) }}</div>
+            </div>
+        </div>
+    </div>
+@elseif($currentType === 'quotation')
+    {{-- Quotations Sub-Dashboard --}}
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-warning">
+                <span class="text-muted small fw-semibold">মোট কোটেশন ফাইল</span>
+                <h3 class="fw-bold mb-0 text-warning-emphasis font-monospace">{{ number_format($stats['total_quotations']) }}</h3>
+                <div class="text-muted small mt-1" style="font-size: 11.5px;">মূল্য প্রস্তাবনা সমূহ</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-primary">
+                <span class="text-muted small fw-semibold">প্রস্তাবিত মোট মূল্য</span>
+                <h3 class="fw-bold mb-0 text-primary font-monospace">৳{{ number_format($stats['quotations_amount'], 2) }}</h3>
+                <div class="text-muted small mt-1" style="font-size: 11.5px;">কোটেশন সম্ভাব্য বিক্রয় মান</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-success">
+                <span class="text-muted small fw-semibold">সক্রিয় ও বৈধ কোটেশন</span>
+                <h3 class="fw-bold mb-0 text-success font-monospace">{{ number_format($stats['quotations_active']) }}</h3>
+                <div class="text-muted small mt-1 text-success" style="font-size: 11.5px;"><i class="fas fa-check-circle me-1"></i>মেয়াদ অবশিষ্ট আছে</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-danger">
+                <span class="text-muted small fw-semibold">মেয়াদোত্তীর্ণ / ফলোআপ</span>
+                <h3 class="fw-bold mb-0 text-danger font-monospace">{{ number_format($stats['quotations_expired']) }}</h3>
+                <div class="text-muted small mt-1 text-danger" style="font-size: 11.5px;"><i class="fas fa-triangle-exclamation me-1"></i>রিভিউ বা ফলোআপ প্রয়োজন</div>
+            </div>
+        </div>
+    </div>
+@elseif($currentType === 'tender')
+    {{-- Tenders Sub-Dashboard --}}
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4" style="border-left-color: #9333ea !important;">
+                <span class="text-muted small fw-semibold">মোট টেন্ডার ফাইল</span>
+                <h3 class="fw-bold mb-0 font-monospace" style="color: #7e22ce;">{{ number_format($stats['total_tenders']) }}</h3>
+                <div class="text-muted small mt-1" style="font-size: 11.5px;">প্রাতিষ্ঠানিক দরপত্র ও বিড</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-primary">
+                <span class="text-muted small fw-semibold">টেন্ডারে প্রস্তাবিত মূল্য</span>
+                <h3 class="fw-bold mb-0 text-primary font-monospace">৳{{ number_format($stats['tenders_amount'], 2) }}</h3>
+                <div class="text-muted small mt-1" style="font-size: 11.5px;">মোট প্রস্তাবিত প্রকল্প মূল্য</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-info">
+                <span class="text-muted small fw-semibold">অংশীদারী প্রতিষ্ঠান/দপ্তর</span>
+                <h3 class="fw-bold mb-0 text-info font-monospace">{{ number_format($stats['tenders_orgs']) }}</h3>
+                <div class="text-muted small mt-1" style="font-size: 11.5px;">সরকারি/বেসরকারি প্রতিষ্ঠান</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-success">
+                <span class="text-muted small fw-semibold">সক্রিয় টেন্ডার প্রস্তাবনা</span>
+                <h3 class="fw-bold mb-0 text-success font-monospace">{{ number_format($stats['tenders_active']) }}</h3>
+                <div class="text-muted small mt-1 text-success" style="font-size: 11.5px;"><i class="fas fa-bolt me-1"></i>চলমান প্রক্রিয়ায় আছে</div>
+            </div>
+        </div>
+    </div>
+@else
+    {{-- All Documents Overview --}}
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-primary">
+                <span class="text-muted small fw-semibold">সর্বমোট ফাইল</span>
+                <h3 class="fw-bold mb-0 text-primary font-monospace">{{ number_format($stats['total_invoices']) }}</h3>
+                <div class="text-muted small mt-1" style="font-size: 11.5px;">
+                    বিল: {{ number_format($stats['total_bills']) }} | চালান: {{ number_format($stats['total_challans']) }}
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4" style="border-left-color: #6f42c1 !important;">
+                <span class="text-muted small fw-semibold">কোটেশন ও টেন্ডার</span>
+                <h3 class="fw-bold mb-0 font-monospace" style="color: #6f42c1;">{{ number_format($stats['total_quotations'] + $stats['total_tenders']) }}</h3>
+                <div class="text-muted small mt-1" style="font-size: 11.5px;">
+                    কোটেশন: {{ number_format($stats['total_quotations']) }} | টেন্ডার: {{ number_format($stats['total_tenders']) }}
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-success">
+                <span class="text-muted small fw-semibold">মোট আদায়কৃত টাকা</span>
+                <h3 class="fw-bold mb-0 text-success font-monospace">৳{{ number_format($stats['total_paid'], 2) }}</h3>
+                <div class="text-muted small mt-1" style="font-size: 11.5px;">মোট বিক্রয়: ৳{{ number_format($stats['total_amount'], 2) }}</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-danger">
+                <span class="text-muted small fw-semibold">মোট বকেয়া জের</span>
+                <h3 class="fw-bold mb-0 text-danger font-monospace">৳{{ number_format($stats['total_due'], 2) }}</h3>
+                <div class="text-muted small mt-1" style="font-size: 11.5px;">গ্রাহকদের থেকে মোট পাওনা</div>
+            </div>
+        </div>
+    </div>
+@endif
+
+{{-- 3. Filter & Search Toolbar --}}
 <div class="card border-0 shadow-sm rounded-4 mb-4">
     <div class="card-body p-3">
         <form action="{{ route('admin.accounting.invoices.index') }}" method="GET" class="row g-2 align-items-center">
-            <div class="col-md-3">
+            @if($type)
+                <input type="hidden" name="type" value="{{ $type }}">
+            @endif
+
+            <div class="col-md-4">
                 <div class="input-group">
-                    <span class="input-group-text bg-light"><i class="fas fa-search"></i></span>
-                    <input type="text" name="search" class="form-control" placeholder="Document # / Customer / Org..." value="{{ $search }}">
+                    <span class="input-group-text bg-light border-end-0"><i class="fas fa-search text-muted"></i></span>
+                    <input type="text" name="search" class="form-control border-start-0 ps-1" placeholder="ডকুমেন্ট # / গ্রাহক / প্রতিষ্ঠান / বিষয়..." value="{{ $search }}">
                 </div>
             </div>
-            <div class="col-md-2">
-                <select name="type" class="form-select" onchange="this.form.submit()">
-                    <option value="">All Document Types</option>
-                    <option value="invoice" @selected($type === 'invoice')>Bill / Cash Memo</option>
-                    <option value="challan" @selected($type === 'challan')>Delivery Challan</option>
-                    <option value="quotation" @selected($type === 'quotation')>Quotation / Proforma</option>
-                    <option value="tender" @selected($type === 'tender')>Tender Document</option>
-                </select>
-            </div>
-            <div class="col-md-2">
+            
+            <div class="col-md-3">
                 <select name="sales_category" class="form-select" onchange="this.form.submit()">
-                    <option value="">All Categories (সকল পণ্য)</option>
-                    <option value="books" @selected($salesCategory === 'books')>Books (বই)</option>
-                    <option value="stationery" @selected($salesCategory === 'stationery')>Stationery (স্টেশনারি)</option>
-                    <option value="printing_goods" @selected($salesCategory === 'printing_goods')>Printing (মুদ্রণ)</option>
-                    <option value="other" @selected($salesCategory === 'other')>Others (অন্যান্য)</option>
+                    <option value="">সকল পণ্য ক্যাটাগরি (All Categories)</option>
+                    <option value="books" @selected($salesCategory === 'books')>বই ও প্রকাশনা (Books)</option>
+                    <option value="stationery" @selected($salesCategory === 'stationery')>স্টেশনারি সামগ্রী (Stationery)</option>
+                    <option value="printing_goods" @selected($salesCategory === 'printing_goods')>মুদ্রণ ও প্রিন্টিং (Printing)</option>
+                    <option value="other" @selected($salesCategory === 'other')>অন্যান্য পণ্য (Others)</option>
                 </select>
             </div>
+
+            @if(in_array($currentType, ['invoice', 'challan', null, '']))
+                <div class="col-md-2">
+                    <select name="payment_status" class="form-select" onchange="this.form.submit()">
+                        <option value="">পেমেন্ট স্ট্যাটাস (All)</option>
+                        <option value="paid" @selected($status === 'paid')>পরিশোধিত (Paid)</option>
+                        <option value="partial" @selected($status === 'partial')>আংশিক পরিশোধ (Partial)</option>
+                        <option value="unpaid" @selected($status === 'unpaid')>বকেয়া (Unpaid / Due)</option>
+                    </select>
+                </div>
+            @endif
+
             <div class="col-md-2">
-                <select name="payment_status" class="form-select" onchange="this.form.submit()">
-                    <option value="">All Payment Status</option>
-                    <option value="paid" @selected($status === 'paid')>Paid (পরিশোধিত)</option>
-                    <option value="partial" @selected($status === 'partial')>Partially Paid (আংশিক)</option>
-                    <option value="unpaid" @selected($status === 'unpaid')>Unpaid / Due (বকেয়া)</option>
-                </select>
+                <input type="date" name="date_from" class="form-control" value="{{ $dateFrom }}" title="তারিখ থেকে">
             </div>
-            <div class="col-md-2">
-                <input type="date" name="date_from" class="form-control" value="{{ $dateFrom }}" title="Date">
-            </div>
+
             <div class="col-md-1 d-flex gap-1">
-                <button type="submit" class="btn btn-primary w-100" title="Filter"><i class="fas fa-filter"></i></button>
-                @if(request()->hasAny(['search', 'type', 'sales_category', 'payment_status', 'date_from', 'date_to']))
-                    <a href="{{ route('admin.accounting.invoices.index') }}" class="btn btn-light border" title="Reset"><i class="fas fa-rotate-left"></i></a>
+                <button type="submit" class="btn btn-primary w-100 fw-semibold" title="ফিল্টার প্রয়োগ করুন"><i class="fas fa-filter"></i></button>
+                @if(request()->hasAny(['search', 'sales_category', 'payment_status', 'date_from', 'date_to']))
+                    <a href="{{ route('admin.accounting.invoices.index', $type ? ['type' => $type] : []) }}" class="btn btn-light border" title="রিসেট"><i class="fas fa-rotate-left"></i></a>
                 @endif
             </div>
         </form>
     </div>
 </div>
 
-{{-- Invoices Table --}}
+{{-- 4. Documents Data Table --}}
 <div class="adm-card shadow-sm rounded-4 overflow-hidden mb-4 bg-white">
+    <div class="card-header bg-white border-bottom py-3 px-3.5 d-flex flex-wrap align-items-center justify-content-between gap-2">
+        <div class="d-flex align-items-center gap-2">
+            @if($currentType === 'invoice')
+                <i class="fas fa-receipt text-primary fs-5"></i>
+                <h5 class="fw-bold mb-0 text-dark">বিল ও ক্যাশ মেমো তালিকা</h5>
+            @elseif($currentType === 'challan')
+                <i class="fas fa-truck-fast text-info fs-5"></i>
+                <h5 class="fw-bold mb-0 text-dark">ডেলিভারি চালান তালিকা</h5>
+            @elseif($currentType === 'quotation')
+                <i class="fas fa-file-lines text-warning fs-5"></i>
+                <h5 class="fw-bold mb-0 text-dark">দরপত্র ও কোটেশন তালিকা</h5>
+            @elseif($currentType === 'tender')
+                <i class="fas fa-landmark text-purple fs-5" style="color: #7e22ce;"></i>
+                <h5 class="fw-bold mb-0 text-dark">টেন্ডার ডকুমেন্ট ও প্রস্তাবনা তালিকা</h5>
+            @else
+                <i class="fas fa-folder-tree text-secondary fs-5"></i>
+                <h5 class="fw-bold mb-0 text-dark">সকল সংরক্ষিত ফাইল ও ডকুমেন্টস</h5>
+            @endif
+            <span class="badge bg-light text-muted border rounded-pill font-monospace">{{ $invoices->total() }} টি ফাইল</span>
+        </div>
+
+        <div>
+            @if($currentType === 'quotation')
+                <a href="{{ route('admin.accounting.invoices.create', ['type' => 'quotation']) }}" class="btn btn-warning btn-sm rounded-pill px-3 fw-semibold shadow-xs">
+                    <i class="fas fa-plus-circle me-1"></i> নতুন কোটেশন তৈরি
+                </a>
+            @elseif($currentType === 'tender')
+                <a href="{{ route('admin.accounting.invoices.create', ['type' => 'tender']) }}" class="btn btn-sm rounded-pill px-3 fw-semibold text-white shadow-xs" style="background-color: #9333ea;">
+                    <i class="fas fa-plus-circle me-1"></i> নতুন টেন্ডার প্রস্তাবনা
+                </a>
+            @elseif($currentType === 'challan')
+                <a href="{{ route('admin.accounting.invoices.create', ['type' => 'challan']) }}" class="btn btn-info btn-sm rounded-pill px-3 fw-semibold text-white shadow-xs">
+                    <i class="fas fa-plus-circle me-1"></i> নতুন ডেলিভারি চালান
+                </a>
+            @elseif($currentType === 'invoice')
+                <a href="{{ route('admin.accounting.invoices.create', ['type' => 'invoice']) }}" class="btn btn-primary btn-sm rounded-pill px-3 fw-semibold shadow-xs">
+                    <i class="fas fa-plus-circle me-1"></i> নতুন বিক্রয় বিল
+                </a>
+            @endif
+        </div>
+    </div>
+
     @if ($invoices->isEmpty())
         <div class="empty-state py-5 text-center">
-            <i class="fas fa-file-invoice fs-1 text-muted opacity-50 mb-3"></i>
-            <h5 class="fw-bold text-muted">No Documents Found</h5>
-            <p class="text-muted small">Create a new bill, delivery challan, quotation or tender document using the button above.</p>
+            <div class="mb-3">
+                <i class="fas fa-folder-open fs-1 text-muted opacity-50"></i>
+            </div>
+            <h5 class="fw-bold text-muted">কোনো ফাইল পাওয়া যায়নি</h5>
+            <p class="text-muted small">এই ফোল্ডারে নতুন ফাইল তৈরি করতে উপরের বাটনে ক্লিক করুন।</p>
+            @if($currentType === 'quotation')
+                <a href="{{ route('admin.accounting.invoices.create', ['type' => 'quotation']) }}" class="btn btn-warning btn-sm rounded-pill px-3.5 fw-semibold mt-2">
+                    <i class="fas fa-plus-circle me-1"></i> নতুন কোটেশন তৈরি করুন
+                </a>
+            @elseif($currentType === 'tender')
+                <a href="{{ route('admin.accounting.invoices.create', ['type' => 'tender']) }}" class="btn btn-sm rounded-pill px-3.5 fw-semibold text-white mt-2" style="background-color: #9333ea;">
+                    <i class="fas fa-plus-circle me-1"></i> নতুন টেন্ডার ডকুমেন্ট তৈরি করুন
+                </a>
+            @elseif($currentType === 'challan')
+                <a href="{{ route('admin.accounting.invoices.create', ['type' => 'challan']) }}" class="btn btn-info btn-sm rounded-pill px-3.5 fw-semibold text-white mt-2">
+                    <i class="fas fa-plus-circle me-1"></i> নতুন চালান তৈরি করুন
+                </a>
+            @else
+                <a href="{{ route('admin.accounting.invoices.create', ['type' => 'invoice']) }}" class="btn btn-primary btn-sm rounded-pill px-3.5 fw-semibold mt-2">
+                    <i class="fas fa-plus-circle me-1"></i> নতুন বিল তৈরি করুন
+                </a>
+            @endif
         </div>
     @else
-        <div class="table-responsive rounded-bottom-4">
-            <table class="table adm-table align-middle mb-0" style="min-width: 1080px;">
-                    <tr>
-                        <th class="ps-3 py-3" style="width: 170px;">Document #</th>
-                        <th class="py-3" style="width: 120px;">Type</th>
-                        <th class="py-3" style="width: 120px;">Date</th>
-                        <th class="py-3" style="min-width: 220px;">Client & Ledger</th>
-                        <th class="py-3" style="width: 100px;">Items</th>
-                        <th class="py-3 text-end" style="width: 130px;">Grand Total</th>
-                        <th class="py-3 text-end" style="width: 120px;">Paid</th>
-                        <th class="py-3 text-end" style="width: 120px;">Due</th>
-                        <th class="py-3 text-center" style="width: 130px;">Due Date / Status</th>
-                        <th class="text-center pe-3 py-3" style="width: 120px;">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach ($invoices as $inv)
-                        <tr class="{{ $inv->is_overdue ? 'table-danger-subtle' : '' }}">
-                            <td class="ps-3 fw-bold text-primary font-monospace">
-                                <a href="{{ route('admin.accounting.invoices.show', $inv->id) }}" class="text-decoration-none text-primary">
-                                    {{ $inv->invoice_no }}
-                                </a>
-                                @if($inv->reference_no)
-                                    <div class="text-muted small fw-normal" style="font-size: 11px;">Ref: {{ $inv->reference_no }}</div>
-                                @endif
-                                @php
-                                    $catBadge = $inv->category_badge;
-                                @endphp
-                                <div class="mt-1">
-                                    <span class="badge border {{ $catBadge['bg'] }} px-2 py-0.5 fw-semibold" style="font-size: 10px;">
-                                        {{ $catBadge['label'] }}
-                                    </span>
-                                </div>
-                            </td>
-                            <td>
-                                @if($inv->type === 'tender')
-                                    <span class="badge border px-2.5 py-1 rounded-pill" style="background-color: #f3e8ff; color: #7e22ce; border-color: #d8b4fe;">
-                                        <i class="fas fa-landmark me-1"></i>Tender
-                                    </span>
-                                @elseif($inv->type === 'quotation')
-                                    <span class="badge border px-2.5 py-1 rounded-pill" style="background-color: #fef3c7; color: #b45309; border-color: #fcd34d;">
-                                        <i class="fas fa-file-lines me-1"></i>Quotation
-                                    </span>
-                                @elseif($inv->type === 'challan')
-                                    <span class="badge bg-info-subtle text-dark border border-info-subtle px-2.5 py-1 rounded-pill">
-                                        <i class="fas fa-truck me-1"></i>Challan
-                                    </span>
-                                @else
-                                    <span class="badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1 rounded-pill">
-                                        <i class="fas fa-receipt me-1"></i>Bill / Memo
-                                    </span>
-                                @endif
-                            </td>
-                            <td class="text-muted small">
-                                <div class="fw-medium text-dark">{{ $inv->invoice_date ? $inv->invoice_date->format('d M, Y') : '—' }}</div>
-                                @if($inv->valid_until)
-                                    <div class="text-danger" style="font-size: 10.5px;">Valid: {{ $inv->valid_until->format('d M, Y') }}</div>
-                                @endif
-                            </td>
-                            <td>
-                                <div class="d-flex align-items-start justify-content-between">
-                                    <div>
-                                        @if($inv->customer_org)
-                                            <div class="fw-bold text-primary">
-                                                <i class="fas fa-building me-1 text-primary opacity-75" style="font-size: 11px;"></i>{{ $inv->customer_org }}
-                                            </div>
-                                            <div class="text-dark small">
-                                                <i class="fas fa-user me-1 text-muted" style="font-size: 10px;"></i>{{ $inv->customer_name }}
-                                            </div>
-                                        @else
-                                            <div class="fw-bold text-dark">
-                                                <i class="fas fa-user me-1 text-primary opacity-75" style="font-size: 11px;"></i>{{ $inv->customer_name }}
-                                            </div>
-                                        @endif
-
-                                        @if($inv->customer_phone)
-                                            <div class="text-muted small font-monospace" style="font-size: 11px;"><i class="fas fa-phone me-1 text-success"></i>{{ $inv->customer_phone }}</div>
-                                        @endif
-
-                                        @if($inv->subject)
-                                            <div class="text-primary-emphasis fw-medium mt-1 d-flex align-items-center gap-1.5" style="font-size: 11px; max-width: 280px;" title="বিষয়: {{ $inv->subject }}">
-                                                <i class="fas fa-heading text-primary opacity-75" style="font-size: 10px;"></i>
-                                                <span class="text-truncate">{{ $inv->subject }}</span>
-                                            </div>
-                                        @endif
-                                    </div>
-                                    <a href="{{ route('admin.accounting.customer-ledger.index', ['customer_name' => $inv->customer_name, 'customer_phone' => $inv->customer_phone]) }}" class="badge bg-light text-primary border text-decoration-none px-2 py-1 ms-1" title="গ্রাহকের সম্পূর্ণ খতিয়ান দেখুন">
-                                        <i class="fas fa-book-bookmark me-0.5"></i>লেজার
+        <div class="table-responsive">
+            @if(in_array($currentType, ['quotation', 'tender']))
+                {{-- Quotation & Tender Specialized Table Layout --}}
+                <table class="table adm-table align-middle mb-0" style="min-width: 1000px;">
+                    <thead>
+                        <tr>
+                            <th class="ps-3 py-3" style="width: 160px;">{{ $currentType === 'tender' ? 'টেন্ডার #' : 'কোটেশন #' }}</th>
+                            <th class="py-3" style="width: 120px;">তারিখ</th>
+                            <th class="py-3" style="min-width: 230px;">প্রতিষ্ঠান ও গ্রাহক</th>
+                            <th class="py-3" style="min-width: 220px;">বিষয় ও আইটেম</th>
+                            <th class="py-3 text-end" style="width: 130px;">প্রস্তাবিত মোট মূল্য</th>
+                            <th class="py-3 text-center" style="width: 130px;">মেয়াদ / স্ট্যাটাস</th>
+                            <th class="text-center pe-3 py-3" style="width: 160px;">অ্যাকশন</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($invoices as $inv)
+                            @php
+                                $isExpired = $inv->valid_until && $inv->valid_until->isPast() && !$inv->valid_until->isToday();
+                            @endphp
+                            <tr class="{{ $isExpired ? 'table-warning-subtle' : '' }}">
+                                <td class="ps-3 fw-bold font-monospace">
+                                    <a href="{{ route('admin.accounting.invoices.show', $inv->id) }}" class="text-decoration-none text-primary fw-bold">
+                                        {{ $inv->invoice_no }}
                                     </a>
-                                </div>
-                            </td>
-                            <td>
-                                <span class="badge bg-light text-dark border">{{ count($inv->items ?? []) }} items</span>
-                            </td>
-                            <td class="fw-bold text-dark font-monospace text-end">৳{{ number_format($inv->grand_total, 2) }}</td>
-                            <td class="fw-bold text-success font-monospace text-end">
-                                @if(in_array($inv->type, ['invoice', 'challan']))
-                                    ৳{{ number_format($inv->paid_amount, 2) }}
-                                    @if($inv->payments->count() > 1)
-                                        <div class="text-muted" style="font-size: 10px;">({{ $inv->payments->count() }}টি কিস্তিতে)</div>
+                                    @if($inv->reference_no)
+                                        <div class="text-muted small fw-normal" style="font-size: 11px;">সূত্র: {{ $inv->reference_no }}</div>
                                     @endif
-                                @else
-                                    <span class="text-muted small">—</span>
-                                @endif
-                            </td>
-                            <td class="fw-bold font-monospace text-end {{ $inv->due_amount > 0 ? 'text-danger' : 'text-muted' }}">
-                                @if(in_array($inv->type, ['invoice', 'challan']))
-                                    ৳{{ number_format($inv->due_amount, 2) }}
+                                    <div class="mt-1">
+                                        <span class="badge border {{ $inv->category_badge['bg'] }} px-2 py-0.5 fw-semibold" style="font-size: 10px;">
+                                            {{ $inv->category_badge['label'] }}
+                                        </span>
+                                    </div>
+                                </td>
+                                <td class="text-muted small">
+                                    <div class="fw-semibold text-dark">{{ $inv->invoice_date ? $inv->invoice_date->format('d M, Y') : '—' }}</div>
+                                    <div class="text-muted" style="font-size: 10.5px;">{{ $inv->invoice_date ? $inv->invoice_date->diffForHumans() : '' }}</div>
+                                </td>
+                                <td>
+                                    @if($inv->customer_org)
+                                        <div class="fw-bold text-primary">
+                                            <i class="fas fa-building me-1 text-primary opacity-75" style="font-size: 11px;"></i>{{ $inv->customer_org }}
+                                        </div>
+                                        <div class="text-dark small">
+                                            <i class="fas fa-user me-1 text-muted" style="font-size: 10px;"></i>{{ $inv->customer_name }}
+                                        </div>
+                                    @else
+                                        <div class="fw-bold text-dark">
+                                            <i class="fas fa-user me-1 text-primary opacity-75" style="font-size: 11px;"></i>{{ $inv->customer_name }}
+                                        </div>
+                                    @endif
+
+                                    @if($inv->customer_phone)
+                                        <div class="text-muted small font-monospace" style="font-size: 11px;"><i class="fas fa-phone me-1 text-success"></i>{{ $inv->customer_phone }}</div>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if($inv->subject)
+                                        <div class="fw-semibold text-dark text-truncate mb-1" style="max-width: 250px;" title="{{ $inv->subject }}">
+                                            <i class="fas fa-file-lines text-warning me-1" style="font-size: 11px;"></i>{{ $inv->subject }}
+                                        </div>
+                                    @endif
+                                    <span class="badge bg-light text-dark border px-2 py-0.5" style="font-size: 11px;">
+                                        <i class="fas fa-cubes me-1 text-muted"></i>{{ count($inv->items ?? []) }} টি আইটেম
+                                    </span>
+                                </td>
+                                <td class="fw-bold text-primary font-monospace text-end fs-6">
+                                    ৳{{ number_format($inv->grand_total, 2) }}
+                                </td>
+                                <td class="text-center">
+                                    @if($inv->valid_until)
+                                        @if($isExpired)
+                                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1 rounded-pill">
+                                                <i class="fas fa-calendar-xmark me-1"></i>মেয়াদোত্তীর্ণ
+                                            </span>
+                                            <div class="small text-danger fw-medium mt-1" style="font-size: 10.5px;">{{ $inv->valid_until->format('d M, Y') }}</div>
+                                        @else
+                                            <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 rounded-pill">
+                                                <i class="fas fa-calendar-check me-1"></i>সক্রিয়
+                                            </span>
+                                            <div class="small text-muted mt-1" style="font-size: 10.5px;">মেয়াদ: {{ $inv->valid_until->format('d M, Y') }}</div>
+                                        @endif
+                                    @else
+                                        <span class="badge bg-light text-muted border px-2 py-1 rounded-pill">ওপেন প্রস্তাবনা</span>
+                                    @endif
+                                </td>
+                                <td class="text-center pe-3">
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{{ route('admin.accounting.invoices.show', $inv->id) }}" class="btn btn-outline-primary" title="দেখুন ও প্রিন্ট করুন">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        {{-- Quick Convert Dropdown --}}
+                                        <div class="btn-group btn-group-sm">
+                                            <button type="button" class="btn btn-outline-success dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" title="বিল বা চালানে রূপান্তর করুন">
+                                                <i class="fas fa-share-nodes"></i>
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end shadow-sm rounded-3 border-0 p-2" style="min-width: 190px; font-size: 12.5px;">
+                                                <li><h6 class="dropdown-header small text-uppercase fw-bold text-muted px-2 py-1">রূপান্তর করুন:</h6></li>
+                                                <li>
+                                                    <form action="{{ route('admin.accounting.invoices.convert', $inv->id) }}" method="POST">
+                                                        @csrf
+                                                        <input type="hidden" name="target_type" value="invoice">
+                                                        <button type="submit" class="dropdown-item rounded-2 py-1.5 fw-semibold d-flex align-items-center gap-2">
+                                                            <i class="fas fa-receipt text-primary"></i> চূড়ান্ত বিলে রূপান্তর
+                                                        </button>
+                                                    </form>
+                                                </li>
+                                                <li>
+                                                    <form action="{{ route('admin.accounting.invoices.convert', $inv->id) }}" method="POST">
+                                                        @csrf
+                                                        <input type="hidden" name="target_type" value="challan">
+                                                        <button type="submit" class="dropdown-item rounded-2 py-1.5 fw-semibold d-flex align-items-center gap-2">
+                                                            <i class="fas fa-truck text-success"></i> ডেলিভারি চালানে রূপান্তর
+                                                        </button>
+                                                    </form>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                        <a href="{{ route('admin.accounting.invoices.edit', $inv->id) }}" class="btn btn-outline-warning text-dark" title="এডিট করুন">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <form action="{{ route('admin.accounting.invoices.destroy', $inv->id) }}" method="POST" class="d-inline" data-confirm="আপনি কি নিশ্চিত যে এই ফাইলটি মুছে ফেলতে চান?" data-confirm-title="ফাইল ডিলিট">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-outline-danger" title="মুছে ফেলুন">
+                                                <i class="fas fa-trash-can"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            @else
+                {{-- Invoices, Challans & All Standard Table Layout --}}
+                <table class="table adm-table align-middle mb-0" style="min-width: 1080px;">
+                    <thead>
+                        <tr>
+                            <th class="ps-3 py-3" style="width: 170px;">Document #</th>
+                            <th class="py-3" style="width: 120px;">Type</th>
+                            <th class="py-3" style="width: 120px;">Date</th>
+                            <th class="py-3" style="min-width: 220px;">Client & Ledger</th>
+                            <th class="py-3" style="width: 100px;">Items</th>
+                            <th class="py-3 text-end" style="width: 130px;">Grand Total</th>
+                            <th class="py-3 text-end" style="width: 120px;">Paid</th>
+                            <th class="py-3 text-end" style="width: 120px;">Due</th>
+                            <th class="py-3 text-center" style="width: 130px;">Due Date / Status</th>
+                            <th class="text-center pe-3 py-3" style="width: 120px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($invoices as $inv)
+                            <tr class="{{ $inv->is_overdue ? 'table-danger-subtle' : '' }}">
+                                <td class="ps-3 fw-bold text-primary font-monospace">
+                                    <a href="{{ route('admin.accounting.invoices.show', $inv->id) }}" class="text-decoration-none text-primary">
+                                        {{ $inv->invoice_no }}
+                                    </a>
+                                    @if($inv->reference_no)
+                                        <div class="text-muted small fw-normal" style="font-size: 11px;">Ref: {{ $inv->reference_no }}</div>
+                                    @endif
+                                    <div class="mt-1">
+                                        <span class="badge border {{ $inv->category_badge['bg'] }} px-2 py-0.5 fw-semibold" style="font-size: 10px;">
+                                            {{ $inv->category_badge['label'] }}
+                                        </span>
+                                    </div>
+                                </td>
+                                <td>
+                                    @if($inv->type === 'tender')
+                                        <span class="badge border px-2.5 py-1 rounded-pill" style="background-color: #f3e8ff; color: #7e22ce; border-color: #d8b4fe;">
+                                            <i class="fas fa-landmark me-1"></i>Tender
+                                        </span>
+                                    @elseif($inv->type === 'quotation')
+                                        <span class="badge border px-2.5 py-1 rounded-pill" style="background-color: #fef3c7; color: #b45309; border-color: #fcd34d;">
+                                            <i class="fas fa-file-lines me-1"></i>Quotation
+                                        </span>
+                                    @elseif($inv->type === 'challan')
+                                        <span class="badge bg-info-subtle text-dark border border-info-subtle px-2.5 py-1 rounded-pill">
+                                            <i class="fas fa-truck me-1"></i>Challan
+                                        </span>
+                                    @else
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1 rounded-pill">
+                                            <i class="fas fa-receipt me-1"></i>Bill / Memo
+                                        </span>
+                                    @endif
+                                </td>
+                                <td class="text-muted small">
+                                    <div class="fw-medium text-dark">{{ $inv->invoice_date ? $inv->invoice_date->format('d M, Y') : '—' }}</div>
+                                    @if($inv->valid_until)
+                                        <div class="text-danger" style="font-size: 10.5px;">Valid: {{ $inv->valid_until->format('d M, Y') }}</div>
+                                    @endif
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-start justify-content-between">
+                                        <div>
+                                            @if($inv->customer_org)
+                                                <div class="fw-bold text-primary">
+                                                    <i class="fas fa-building me-1 text-primary opacity-75" style="font-size: 11px;"></i>{{ $inv->customer_org }}
+                                                </div>
+                                                <div class="text-dark small">
+                                                    <i class="fas fa-user me-1 text-muted" style="font-size: 10px;"></i>{{ $inv->customer_name }}
+                                                </div>
+                                            @else
+                                                <div class="fw-bold text-dark">
+                                                    <i class="fas fa-user me-1 text-primary opacity-75" style="font-size: 11px;"></i>{{ $inv->customer_name }}
+                                                </div>
+                                            @endif
+
+                                            @if($inv->customer_phone)
+                                                <div class="text-muted small font-monospace" style="font-size: 11px;"><i class="fas fa-phone me-1 text-success"></i>{{ $inv->customer_phone }}</div>
+                                            @endif
+
+                                            @if($inv->subject)
+                                                <div class="text-primary-emphasis fw-medium mt-1 d-flex align-items-center gap-1.5" style="font-size: 11px; max-width: 280px;" title="Subject: {{ $inv->subject }}">
+                                                    <i class="fas fa-heading text-primary opacity-75" style="font-size: 10px;"></i>
+                                                    <span class="text-truncate">{{ $inv->subject }}</span>
+                                                </div>
+                                            @endif
+                                        </div>
+                                        <a href="{{ route('admin.accounting.customer-ledger.index', ['customer_name' => $inv->customer_name, 'customer_phone' => $inv->customer_phone]) }}" class="badge bg-light text-primary border text-decoration-none px-2 py-1 ms-1" title="View customer ledger">
+                                            <i class="fas fa-book-bookmark me-0.5"></i>Ledger
+                                        </a>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-dark border">{{ count($inv->items ?? []) }} items</span>
+                                </td>
+                                <td class="fw-bold text-dark font-monospace text-end">৳{{ number_format($inv->grand_total, 2) }}</td>
+                                <td class="fw-bold text-success font-monospace text-end">
+                                    @if(in_array($inv->type, ['invoice', 'challan']))
+                                        ৳{{ number_format($inv->paid_amount, 2) }}
+                                        @if($inv->payments->count() > 1)
+                                            <div class="text-muted" style="font-size: 10px;">({{ $inv->payments->count() }} installments)</div>
+                                        @endif
+                                    @else
+                                        <span class="text-muted small">—</span>
+                                    @endif
+                                </td>
+                                <td class="fw-bold font-monospace text-end {{ $inv->due_amount > 0 ? 'text-danger' : 'text-muted' }}">
+                                    @if(in_array($inv->type, ['invoice', 'challan']))
+                                        ৳{{ number_format($inv->due_amount, 2) }}
+                                    @else
+                                        <span class="text-muted small">—</span>
+                                    @endif
                                 </td>
                                 <td class="text-center">
                                     @if(in_array($inv->type, ['quotation', 'tender']))
@@ -412,31 +881,28 @@
                                         @endif
                                     @endif
                                 </td>
-                            @else
-                                <td>—</td>
-                                <td>—</td>
-                            @endif
-                            <td class="text-center pe-3">
-                                <div class="btn-group btn-group-sm">
-                                    <a href="{{ route('admin.accounting.invoices.show', $inv->id) }}" class="btn btn-outline-primary" title="View & Print">
-                                        <i class="fas fa-eye"></i>
-                                    </a>
-                                    <a href="{{ route('admin.accounting.invoices.edit', $inv->id) }}" class="btn btn-outline-warning text-dark" title="Edit">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                    <form action="{{ route('admin.accounting.invoices.destroy', $inv->id) }}" method="POST" class="d-inline" data-confirm="আপনি কি নিশ্চিত যে এই ইনভয়েসটি (#{{ $inv->invoice_number }}) মুছে ফেলতে চান?" data-confirm-title="ইনভয়েস ডিলিট">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-outline-danger" title="Delete">
-                                            <i class="fas fa-trash-can"></i>
-                                        </button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
+                                <td class="text-center pe-3">
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{{ route('admin.accounting.invoices.show', $inv->id) }}" class="btn btn-outline-primary" title="View & Print">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{{ route('admin.accounting.invoices.edit', $inv->id) }}" class="btn btn-outline-warning text-dark" title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <form action="{{ route('admin.accounting.invoices.destroy', $inv->id) }}" method="POST" class="d-inline" data-confirm="আপনি কি নিশ্চিত যে এই ইনভয়েসটি মুছে ফেলতে চান?" data-confirm-title="ইনভয়েস ডিলিট">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-outline-danger" title="Delete">
+                                                <i class="fas fa-trash-can"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            @endif
         </div>
 
         @if($invoices->hasPages())
@@ -457,7 +923,7 @@
 
                 <div class="modal-header border-bottom py-3">
                     <h5 class="modal-title fw-bold text-primary" id="invoiceSettingsModalLabel">
-                        <i class="fas fa-palette me-2"></i>Invoice Design & Memo Branding Settings
+                        <i class="fas fa-palette me-2"></i>Invoice & Memo Settings
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
@@ -484,7 +950,7 @@
                             <label class="form-label fw-bold text-primary mb-0">
                                 <i class="fas fa-crop-simple me-1"></i> Logo Upload & 2:1 Wide Crop Tool
                             </label>
-                            <span class="badge bg-primary text-white">Ratio 2:1 (Double Width)</span>
+                            <span class="badge bg-primary text-white">Ratio 2:1</span>
                         </div>
                         
                         <input type="file" id="indexLogoFileInput" class="form-control mb-3" accept="image/*">
@@ -519,29 +985,26 @@
                         </div>
                     </div>
 
-                                        {{-- Dual Payment QR Codes (MFS & Bank Payment QR) --}}
+                    {{-- Payment QR --}}
                     <div class="card border border-success-subtle rounded-3 p-3 mb-3 bg-success-subtle bg-opacity-10">
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <label class="form-label fw-bold text-success mb-0">
-                                <i class="fa-solid fa-qrcode me-1"></i> পেমেন্ট কিউআর কোডসমূহ (MFS & Bank Payment QR)
+                                <i class="fa-solid fa-qrcode me-1"></i> Payment QR
                             </label>
-                            <span class="badge bg-success text-white">শুধুমাত্র বিলে থাকবে</span>
+                            <span class="badge bg-success text-white">Bill Only</span>
                         </div>
-                        <p class="small text-muted mb-3" style="font-size: 11px;">
-                            বিলের ফুটার কলামে প্রদর্শনের জন্য বিকাশ/নগদ/রকেট কিউআর এবং ব্যাংক পেমেন্ট কিউআর ছবি ও বিবরণ যুক্ত করুন:
-                        </p>
                         
                         <div class="row g-3">
-                            {{-- 1. MFS (bKash / Nagad / Rocket) QR --}}
+                            {{-- 1. bKash / Nagad / Rocket QR --}}
                             <div class="col-md-6 border-end">
                                 <div class="p-2.5 bg-white rounded-3 border h-100 d-flex flex-column justify-content-between">
                                     <div>
                                         <div class="d-flex align-items-center justify-content-between mb-2">
-                                            <span class="small fw-bold text-dark"><i class="fas fa-mobile-screen-button text-primary me-1"></i>১. bKash / Nagad / Rocket কিউআর</span>
+                                            <span class="small fw-bold text-dark"><i class="fas fa-mobile-screen-button text-primary me-1"></i>bKash / Nagad / Rocket</span>
                                         </div>
                                         <input type="file" name="mfs_qr_file" id="mfsQrFileInput" class="form-control form-control-sm mb-2" accept="image/*" onchange="previewQr(this, 'mfsQrPreviewImg', 'mfsQrStatusText')">
                                         <div class="mb-2">
-                                            <label class="form-label small fw-semibold text-muted mb-0.5" style="font-size: 10.5px;">কিউআর এর নিচের লেখা (এক লাইনে):</label>
+                                            <label class="form-label small fw-semibold text-muted mb-0.5" style="font-size: 10.5px;">Label Text:</label>
                                             <input type="text" name="mfs_qr_note" class="form-control form-control-sm font-monospace" 
                                                    value="{{ $settings['mfs_qr_note'] ?? 'bkash/nagad/roket' }}" 
                                                    placeholder="bkash/nagad/roket">
@@ -550,7 +1013,7 @@
                                             <div class="form-check mb-2">
                                                 <input class="form-check-input" type="checkbox" name="remove_mfs_qr" value="1" id="removeMfsQrCheck">
                                                 <label class="form-check-label small text-danger" for="removeMfsQrCheck" style="font-size: 11px;">
-                                                    বর্তমান MFS কিউআর মুছুন
+                                                    Remove QR
                                                 </label>
                                             </div>
                                         @endif
@@ -562,9 +1025,6 @@
                                                  alt="MFS QR Preview" 
                                                  style="width: 55px; height: 55px; object-fit: contain; {{ empty($settings['mfs_qr_image']) ? 'opacity: 0.35; filter: grayscale(1);' : '' }}">
                                         </div>
-                                        <div class="small text-muted mt-0.5" id="mfsQrStatusText" style="font-size: 10px;">
-                                            {{ !empty($settings['mfs_qr_image']) ? 'MFS কিউআর সক্রিয়' : 'ছবি আপলোড করুন' }}
-                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -574,11 +1034,11 @@
                                 <div class="p-2.5 bg-white rounded-3 border h-100 d-flex flex-column justify-content-between">
                                     <div>
                                         <div class="d-flex align-items-center justify-content-between mb-2">
-                                            <span class="small fw-bold text-dark"><i class="fa-solid fa-building-columns text-success me-1"></i>২. Bank Payment কিউআর</span>
+                                            <span class="small fw-bold text-dark"><i class="fa-solid fa-building-columns text-success me-1"></i>Bank Payment</span>
                                         </div>
                                         <input type="file" name="bank_qr_file" id="bankQrFileInput" class="form-control form-control-sm mb-2" accept="image/*" onchange="previewQr(this, 'bankQrPreviewImg', 'bankQrStatusText')">
                                         <div class="mb-2">
-                                            <label class="form-label small fw-semibold text-muted mb-0.5" style="font-size: 10.5px;">কিউআর এর নিচের লেখা (এক লাইনে):</label>
+                                            <label class="form-label small fw-semibold text-muted mb-0.5" style="font-size: 10.5px;">Label Text:</label>
                                             <input type="text" name="bank_qr_note" class="form-control form-control-sm font-monospace" 
                                                    value="{{ $settings['bank_qr_note'] ?? 'bank payment' }}" 
                                                    placeholder="bank payment">
@@ -587,7 +1047,7 @@
                                             <div class="form-check mb-2">
                                                 <input class="form-check-input" type="checkbox" name="remove_bank_qr" value="1" id="removeBankQrCheck">
                                                 <label class="form-check-label small text-danger" for="removeBankQrCheck" style="font-size: 11px;">
-                                                    বর্তমান ব্যাংক কিউআর মুছুন
+                                                    Remove QR
                                                 </label>
                                             </div>
                                         @endif
@@ -599,35 +1059,48 @@
                                                  alt="Bank QR Preview" 
                                                  style="width: 55px; height: 55px; object-fit: contain; {{ empty($settings['bank_qr_image']) ? 'opacity: 0.35; filter: grayscale(1);' : '' }}">
                                         </div>
-                                        <div class="small text-muted mt-0.5" id="bankQrStatusText" style="font-size: 10px;">
-                                            {{ !empty($settings['bank_qr_image']) ? 'ব্যাংক কিউআর সক্রিয়' : 'ছবি আপলোড করুন' }}
-                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- QR Code Size Selector --}}
+                            <div class="col-12 mt-2 pt-2 border-top">
+                                <div class="row align-items-center">
+                                    <div class="col-md-5">
+                                        <label class="form-label small fw-bold text-dark mb-0">
+                                            <i class="fas fa-expand me-1 text-success"></i>QR Code Size:
+                                        </label>
+                                    </div>
+                                    <div class="col-md-7">
+                                        @php $qrCodeSize = $settings['qr_code_size'] ?? '60px'; @endphp
+                                        <select name="qr_code_size" id="indexInputQrCodeSize" class="form-select form-select-sm font-monospace fw-bold">
+                                            @foreach(['45px'=>'45px (Compact)', '55px'=>'55px (Small)', '60px'=>'60px (Standard / Recommended)', '70px'=>'70px (Medium / Clear)', '80px'=>'80px (Large)', '95px'=>'95px (Extra Large)'] as $qVal => $qLbl)
+                                                <option value="{{ $qVal }}" {{ ($qrCodeSize === $qVal) ? 'selected' : '' }}>{{ $qLbl }}</option>
+                                            @endforeach
+                                        </select>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    {{-- Challan Destination & Recipient Typography Controls --}}
+                    {{-- Delivery To --}}
                     <div class="card border border-primary-subtle rounded-3 p-3 mb-3 bg-primary bg-opacity-10">
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <label class="form-label fw-bold text-primary mb-0">
-                                <i class="fas fa-truck-ramp-box me-1"></i> Delivery Destination & Recipient ফন্ট সাইজ নিয়ন্ত্রণ
+                                <i class="fas fa-truck-ramp-box me-1"></i> Delivery To
                             </label>
                             <span class="badge bg-primary text-white">Challan Typography</span>
                         </div>
-                        <p class="small text-muted mb-3" style="font-size: 11px;">
-                            চালানের <strong>Delivery Destination & Recipient:</strong> সেকশনে প্রাপকের নাম, মোবাইল নম্বর ও ঠিকানার ফন্ট সাইজ নিয়ন্ত্রণ করুন।
-                        </p>
 
                         <div class="row g-2.5">
                             <div class="col-md-4 col-sm-6">
                                 <label class="form-label small fw-semibold text-dark mb-1">
-                                    প্রাপকের নাম সাইজ (Name)
+                                    Name
                                 </label>
                                 <select name="challan_recipient_name_size" class="form-select form-select-sm">
                                     @php $recNameSize = $settings['challan_recipient_name_size'] ?? '13px'; @endphp
-                                    @foreach(['11px'=>'ছোট (11px)', '12px'=>'স্বাভাবিক (12px)', '13px'=>'মাঝারি (13px)', '14px'=>'বড় (14px)', '15px'=>'অনেক বড় (15px)', '16px'=>'অতিরিক্ত বড় (16px)', '18px'=>'বিশাল (18px)'] as $val => $lbl)
+                                    @foreach(['11px'=>'11px', '12px'=>'12px', '13px'=>'13px (Default)', '14px'=>'14px', '15px'=>'15px', '16px'=>'16px', '18px'=>'18px'] as $val => $lbl)
                                         <option value="{{ $val }}" {{ ($recNameSize === $val) ? 'selected' : '' }}>{{ $lbl }}</option>
                                     @endforeach
                                 </select>
@@ -635,11 +1108,11 @@
 
                             <div class="col-md-4 col-sm-6">
                                 <label class="form-label small fw-semibold text-dark mb-1">
-                                    মোবাইল নম্বর সাইজ (Mobile)
+                                    Mobile
                                 </label>
                                 <select name="challan_recipient_phone_size" class="form-select form-select-sm">
                                     @php $recPhoneSize = $settings['challan_recipient_phone_size'] ?? '12px'; @endphp
-                                    @foreach(['10.5px'=>'ছোট (10.5px)', '11.5px'=>'স্বাভাবিক (11.5px)', '12px'=>'মাঝারি (12px)', '13px'=>'বড় (13px)', '14px'=>'অনেক বড় (14px)', '15px'=>'অতিরিক্ত বড় (15px)'] as $val => $lbl)
+                                    @foreach(['10.5px'=>'10.5px', '11.5px'=>'11.5px', '12px'=>'12px (Default)', '13px'=>'13px', '14px'=>'14px', '15px'=>'15px'] as $val => $lbl)
                                         <option value="{{ $val }}" {{ ($recPhoneSize === $val) ? 'selected' : '' }}>{{ $lbl }}</option>
                                     @endforeach
                                 </select>
@@ -647,11 +1120,11 @@
 
                             <div class="col-md-4 col-sm-6">
                                 <label class="form-label small fw-semibold text-dark mb-1">
-                                    ঠিকানা সাইজ (Address)
+                                    Address
                                 </label>
                                 <select name="challan_recipient_address_size" class="form-select form-select-sm">
                                     @php $recAddrSize = $settings['challan_recipient_address_size'] ?? '11.5px'; @endphp
-                                    @foreach(['10px'=>'ছোট (10px)', '11px'=>'স্বাভাবিক (11px)', '11.5px'=>'মাঝারি (11.5px)', '12px'=>'বড় (12px)', '13px'=>'অনেক বড় (13px)', '14px'=>'অতিরিক্ত বড় (14px)'] as $val => $lbl)
+                                    @foreach(['10px'=>'10px', '11px'=>'11px', '11.5px'=>'11.5px (Default)', '12px'=>'12px', '13px'=>'13px', '14px'=>'14px'] as $val => $lbl)
                                         <option value="{{ $val }}" {{ ($recAddrSize === $val) ? 'selected' : '' }}>{{ $lbl }}</option>
                                     @endforeach
                                 </select>
@@ -659,11 +1132,11 @@
 
                             <div class="col-md-6 col-sm-6">
                                 <label class="form-label small fw-semibold text-dark mb-1">
-                                    পদবি ও প্রতিষ্ঠান সাইজ (Designation/Org)
+                                    Designation/Org
                                 </label>
                                 <select name="challan_recipient_desig_size" class="form-select form-select-sm">
                                     @php $recDesigSize = $settings['challan_recipient_desig_size'] ?? '11.5px'; @endphp
-                                    @foreach(['10px'=>'ছোট (10px)', '11px'=>'স্বাভাবিক (11px)', '11.5px'=>'মাঝারি (11.5px)', '12px'=>'বড় (12px)', '13px'=>'অনেক বড় (13px)'] as $val => $lbl)
+                                    @foreach(['10px'=>'10px', '11px'=>'11px', '11.5px'=>'11.5px (Default)', '12px'=>'12px', '13px'=>'13px'] as $val => $lbl)
                                         <option value="{{ $val }}" {{ ($recDesigSize === $val) ? 'selected' : '' }}>{{ $lbl }}</option>
                                     @endforeach
                                 </select>
@@ -671,37 +1144,116 @@
 
                             <div class="col-md-6 col-sm-12">
                                 <label class="form-label small fw-semibold text-dark mb-1">
-                                    স্বাক্ষরকারীর ডিফল্ট পদবি (Signatory Title)
+                                    Signatory Title
                                 </label>
                                 <input type="text" name="default_creator_designation" class="form-control form-control-sm" 
-                                       value="{{ $settings['default_creator_designation'] ?? '' }}" placeholder="যেমন: Authorized Signatory / Billing Officer">
+                                       value="{{ $settings['default_creator_designation'] ?? '' }}" placeholder="Authorized Signatory / Billing Officer">
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Quotation & Tender Function Customization Settings --}}
+                    <div class="card border border-warning-subtle rounded-3 p-3 mb-3 bg-warning-subtle bg-opacity-15">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label class="form-label fw-bold text-warning-emphasis mb-0">
+                                <i class="fas fa-file-invoice-dollar me-1 text-warning"></i> Quotation & Tender Settings (কোটেশন ও দরপত্র সেটিংস)
+                            </label>
+                            <span class="badge bg-warning text-dark">Quotation / Tender</span>
+                        </div>
+                        
+                        <div class="row g-2.5">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold text-dark mb-1">
+                                    Quotation Title (কোটেশন শিরোনাম)
+                                </label>
+                                <input type="text" name="quotation_title_bn" class="form-control form-control-sm" 
+                                       value="{{ $settings['quotation_title_bn'] ?? 'মূল্য কোটেশন (PRICE QUOTATION)' }}" 
+                                       placeholder="মূল্য কোটেশন (PRICE QUOTATION)">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold text-dark mb-1">
+                                    Tender Title (দরপত্র শিরোনাম)
+                                </label>
+                                <input type="text" name="tender_title_bn" class="form-control form-control-sm" 
+                                       value="{{ $settings['tender_title_bn'] ?? 'দরপত্র প্রস্তাবনা (TENDER PROPOSAL)' }}" 
+                                       placeholder="দরপত্র প্রস্তাবনা (TENDER PROPOSAL)">
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label small fw-semibold text-dark mb-1">
+                                    Default Validity (ডিফল্ট মেয়াদ)
+                                </label>
+                                <select name="quotation_default_validity_days" class="form-select form-select-sm">
+                                    @php $qValDays = (int)($settings['quotation_default_validity_days'] ?? 30); @endphp
+                                    @foreach([7=>'৭ দিন (7 Days)', 15=>'১৫ দিন (15 Days)', 30=>'৩০ দিন (30 Days - Default)', 45=>'৪৫ দিন (45 Days)', 60=>'৬০ দিন (60 Days)', 90=>'৯০ দিন (90 Days)'] as $dKey => $dLbl)
+                                        <option value="{{ $dKey }}" {{ ($qValDays === $dKey) ? 'selected' : '' }}>{{ $dLbl }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label small fw-semibold text-dark mb-1">
+                                    Digit & Number Format (সংখ্যা ফরম্যাট)
+                                </label>
+                                <select name="digit_language" class="form-select form-select-sm">
+                                    @php $dLang = $settings['digit_language'] ?? 'bn'; @endphp
+                                    <option value="bn" {{ ($dLang === 'bn') ? 'selected' : '' }}>বাংলা সংখ্যা (১, ২, ৩, ৳)</option>
+                                    <option value="en" {{ ($dLang === 'en') ? 'selected' : '' }}>English Digits (1, 2, 3, ৳)</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label small fw-semibold text-dark mb-1">
+                                    Default Subject Line (ডিফল্ট বিষয়)
+                                </label>
+                                <input type="text" name="quotation_default_subject" class="form-control form-control-sm" 
+                                       value="{{ $settings['quotation_default_subject'] ?? 'বই প্রকাশনা, মুদ্রণ ও সরবরাহ প্রসঙ্গে' }}" 
+                                       placeholder="বই প্রকাশনা, মুদ্রণ ও সরবরাহ প্রসঙ্গে">
+                            </div>
+
+                            <div class="col-md-12">
+                                <label class="form-label small fw-semibold text-dark mb-1">
+                                    Default Quotation Notes (কোটেশন নোট)
+                                </label>
+                                <input type="text" name="quotation_default_notes" class="form-control form-control-sm" 
+                                       value="{{ $settings['quotation_default_notes'] ?? '১. ভ্যাট যুক্ত করা হয়নি। ২. কোটেশনের মেয়াদ ৩০ দিন পর্যন্ত কার্যকর থাকবে।' }}" 
+                                       placeholder="১. ভ্যাট যুক্ত করা হয়নি। ২. কোটেশনের মেয়াদ ৩০ দিন পর্যন্ত কার্যকর থাকবে।">
+                            </div>
+
+                            <div class="col-md-12">
+                                <label class="form-label small fw-semibold text-dark mb-1">
+                                    Quotation Terms & Conditions (কোটেশন শর্তাবলী)
+                                </label>
+                                <textarea name="quotation_default_terms" class="form-control form-control-sm rounded-2" rows="2" 
+                                          placeholder="কোটেশনের নির্দিষ্ট শর্তাবলী লিখুন...">{{ $settings['quotation_default_terms'] ?? "১. কার্যাদেশ পাওয়ার পর নির্ধারিত সময়ের মধ্যে ডেলিভারি প্রদান করা হবে।\n২. কাজের পরিধি ও স্পেসিফিকেশন পরিবর্তন হলে দর সমন্বয়যোগ্য।" }}</textarea>
                             </div>
                         </div>
                     </div>
 
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold">Company / Imprint Name <span class="text-danger">*</span></label>
+                            <label class="form-label fw-semibold">Company Name <span class="text-danger">*</span></label>
                             <input type="text" name="business_name" id="indexInputBusinessName" class="form-control" value="{{ $settings['business_name'] ?? 'Idea Publication' }}" required oninput="updateIndexLivePreview()">
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold">Tagline / Slogan</label>
+                            <label class="form-label fw-semibold">Tagline</label>
                             <input type="text" name="tagline" id="indexInputTagline" class="form-control" value="{{ $settings['tagline'] ?? 'Book Publication, Printing & Distribution' }}" placeholder="Book Publication, Printing..." oninput="updateIndexLivePreview()">
                         </div>
 
                         <div class="col-md-12">
-                            <label class="form-label fw-semibold">Full Official Address</label>
+                            <label class="form-label fw-semibold">Address</label>
                             <input type="text" name="address" id="indexInputAddress" class="form-control" value="{{ $settings['address'] ?? 'Dhaka, Bangladesh' }}" placeholder="e.g. 38 Banglabazar, Dhaka..." oninput="updateIndexLivePreview()">
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold">Official Phone Number</label>
+                            <label class="form-label fw-semibold">Phone</label>
                             <input type="text" name="phone" id="indexInputPhone" class="form-control" value="{{ $settings['phone'] ?? '018XXXXXXXX' }}" placeholder="017XXXXXXXX, 018XXXXXXXX" oninput="updateIndexLivePreview()">
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold">Official Email Address</label>
+                            <label class="form-label fw-semibold">Email</label>
                             <input type="email" name="email" id="indexInputEmail" class="form-control" value="{{ $settings['email'] ?? 'info@ideaabd.com' }}" placeholder="info@ideaabd.com" oninput="updateIndexLivePreview()">
                         </div>
 

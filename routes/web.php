@@ -259,6 +259,8 @@ Route::post('/contact/submit', function (\Illuminate\Http\Request $request) {
 // --- Registration routes --------------------------------------------------
 Route::get('/register', [RegistrationController::class, 'choose'])->name('register.choose');
 Route::get('/register-success', [RegistrationController::class, 'registrationSuccess'])->name('register.success');
+Route::post('/register/send-otp', [RegistrationController::class, 'sendOtp'])->name('register.send-otp');
+Route::post('/register/verify-otp', [RegistrationController::class, 'verifyOtp'])->name('register.verify-otp');
 Route::get('/register/{type}', [RegistrationController::class, 'showForm'])->name('register.form');
 Route::post('/register/{type}', [RegistrationController::class, 'register'])->name('register.submit');
 Route::get('/pending-approval', [RegistrationController::class, 'pendingApproval'])->name('pending.approval');
@@ -447,6 +449,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::delete('/entries/{entry}', 'destroyEntry')->name('entries.destroy');
         Route::get('/invoices', 'invoices')->name('invoices.index');
         Route::get('/invoices/search-books', 'searchBooks')->name('invoices.search-books');
+        Route::get('/invoices/customer-due-info', 'getCustomerDueInfo')->name('invoices.customer-due-info');
         Route::post('/invoices/quick-store-book', 'quickStoreBook')->name('invoices.quick-store-book');
         Route::get('/invoices/create', 'createInvoice')->name('invoices.create');
         Route::post('/invoices', 'storeInvoice')->name('invoices.store');

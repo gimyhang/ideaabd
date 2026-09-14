@@ -35,6 +35,7 @@
     $recipientAddressSize = $settings['challan_recipient_address_size'] ?? '11.5px';
     $recipientDesigSize = $settings['challan_recipient_desig_size'] ?? '11.5px';
     $recipientOrgSize = $settings['challan_recipient_org_size'] ?? '12px';
+    $qrCodeSize = $settings['qr_code_size'] ?? '60px';
 
     // Fetch books map for rich details like author_name, cover price etc.
     $bookIds = collect($invoice->items ?? [])->pluck('book_id')->filter()->unique()->toArray();
@@ -238,88 +239,117 @@
 
             {{-- Subject and Reference (for Bill, Challan, Tender & Quotation) --}}
             @if($invoice->subject || $invoice->reference_no)
-                <div class="p-1.5 bg-light rounded-2 border mb-2" style="font-size: 10px;">
-                    @if($invoice->reference_no)
-                        <div class="text-muted mb-0.5">
-                            <strong class="text-dark">
-                                @if($invoice->type === 'tender') Tender Ref:
-                                @elseif($invoice->type === 'quotation') Quotation Ref:
-                                @elseif($invoice->type === 'challan') Challan Ref:
-                                @else Ref / PO No: @endif
-                            </strong> 
-                            <span class="font-monospace fw-bold text-dark">{{ $invoice->reference_no }}</span>
-                        </div>
-                    @endif
-                    @if($invoice->subject)
-                        <div>
-                            <strong class="text-dark">Subject:</strong> <span class="fw-bold text-primary">{{ $invoice->subject }}</span>
-                        </div>
-                    @endif
+                <div class="p-2 bg-light rounded-2 border mb-2.5 subject-reference-box destination-box" style="font-size: 11px;">
+                    <table class="table-borderless p-0 m-0 w-100 colon-table" style="line-height: 1.45;">
+                        @if($invoice->reference_no)
+                            <tr>
+                                <td class="colon-label text-dark fw-bold" style="width: 105px;">
+                                    @if($invoice->type === 'tender') Tender Ref
+                                    @elseif($invoice->type === 'quotation') Quotation Ref
+                                    @elseif($invoice->type === 'challan') Challan Ref
+                                    @else Ref / PO No @endif
+                                </td>
+                                <td class="colon-sep">:</td>
+                                <td class="font-monospace fw-bold text-dark">{{ $invoice->reference_no }}</td>
+                            </tr>
+                        @endif
+                        @if($invoice->subject)
+                            <tr>
+                                <td class="colon-label text-dark fw-bold" style="width: 105px;">Subject</td>
+                                <td class="colon-sep">:</td>
+                                <td class="fw-bold text-primary" style="line-height: 1.35;">{{ $invoice->subject }}</td>
+                            </tr>
+                        @endif
+                    </table>
                 </div>
             @endif
 
-            {{-- Customer & Billed To Info --}}
+            {{-- Customer & Billed To Info (Structured Format with Vertical Colon Alignment) --}}
             <div class="p-2.5 bg-light rounded-2 border mb-2.5 destination-box" style="font-size: 12px; box-sizing: border-box;">
                 <div class="row g-2 align-items-start m-0">
-                    <div class="col-7 p-0 pe-2">
+                    <div class="col-7 p-0 pe-2 border-end">
                         <div class="fw-bold text-dark mb-1" style="font-size: 12px;"><i class="fas fa-user-tag me-1 text-primary"></i>Client / Customer Information:</div>
-                        <table class="table-borderless p-0 m-0 w-100" style="font-size: 12px; line-height: 1.45;">
+                        <table class="table-borderless p-0 m-0 w-100 colon-table" style="line-height: 1.45;">
                             @if($invoice->customer_name)
                                 <tr>
-                                    <td class="text-muted pe-1 text-nowrap" style="width: 110px; vertical-align: top; font-size: 11px;">Name:</td>
+                                    <td class="colon-label" style="width: 95px;">Name</td>
+                                    <td class="colon-sep">:</td>
                                     <td class="fw-bold text-dark" style="font-size: {{ $recipientNameSize }};">{{ $invoice->customer_name }}</td>
                                 </tr>
                             @endif
                             @if(!empty($invoice->customer_designation))
                                 <tr>
-                                    <td class="text-muted pe-1 text-nowrap" style="vertical-align: top; font-size: 11px;">Designation:</td>
+                                    <td class="colon-label" style="width: 95px;">Designation</td>
+                                    <td class="colon-sep">:</td>
                                     <td class="fw-semibold text-dark" style="font-size: {{ $recipientDesigSize }};">{{ $invoice->customer_designation }}</td>
                                 </tr>
                             @endif
                             @if($invoice->customer_org)
                                 <tr>
-                                    <td class="text-muted pe-1 text-nowrap" style="vertical-align: top; font-size: 11px;">Organization:</td>
+                                    <td class="colon-label" style="width: 95px;">Organization</td>
+                                    <td class="colon-sep">:</td>
                                     <td class="fw-semibold text-primary" style="font-size: {{ $recipientOrgSize }};">{{ $invoice->customer_org }}</td>
                                 </tr>
                             @endif
                             @if($invoice->customer_address)
                                 <tr>
-                                    <td class="text-muted pe-1 text-nowrap" style="vertical-align: top; font-size: 11px;">Address:</td>
+                                    <td class="colon-label" style="width: 95px;">Address</td>
+                                    <td class="colon-sep">:</td>
                                     <td class="text-dark" style="font-size: {{ $recipientAddressSize }}; line-height: 1.35;">{{ $invoice->customer_address }}</td>
                                 </tr>
                             @endif
                             @if($invoice->customer_phone)
                                 <tr>
-                                    <td class="text-muted pe-1 text-nowrap" style="vertical-align: top; font-size: 11px;">Phone:</td>
+                                    <td class="colon-label" style="width: 95px;">Phone</td>
+                                    <td class="colon-sep">:</td>
                                     <td class="text-dark fw-bold font-monospace" style="font-size: {{ $recipientPhoneSize }};">{{ $invoice->customer_phone }}</td>
                                 </tr>
                             @endif
                         </table>
                     </div>
-                    <div class="col-5 p-0 ps-2 text-end">
-                        <div class="text-muted text-uppercase fw-semibold mb-1" style="font-size: 11px;">Order & Payment Details:</div>
-                        <div style="font-size: 12px; line-height: 1.5;">
-                            <div>Type: <strong>{{ ucfirst($invoice->type) }}</strong> · Method: <strong>{{ $invoice->payment_method ?? 'Cash / Bank' }}</strong></div>
-                            @if(in_array($invoice->type, ['invoice', 'challan']))
-                            <div>
-                                Status: 
-                                @if($invoice->payment_status === 'paid')
-                                    <span class="badge bg-success-subtle text-success border px-2 py-0.5" style="font-size: 10.5px;">Paid</span>
-                                @elseif($invoice->payment_status === 'partial')
-                                    <span class="badge bg-warning-subtle text-dark border px-2 py-0.5" style="font-size: 10.5px;">Partially Paid</span>
-                                @else
-                                    <span class="badge bg-danger-subtle text-danger border px-2 py-0.5" style="font-size: 10.5px;">Due</span>
-                                @endif
-                                · Prepared by: <strong>{{ $invoice->creator->name ?? 'Admin' }}</strong>
-                            </div>
-                        @else
-                            <div>Proposal Status: <span class="badge bg-primary-subtle text-primary border px-2 py-0.5" style="font-size: 10.5px;">Proposed</span></div>
-                        @endif
+                    <div class="col-5 p-0 ps-2">
+                        <div class="text-muted text-uppercase fw-semibold mb-1" style="font-size: 11px;"><i class="fas fa-file-invoice me-1 text-primary"></i>Order & Payment Details:</div>
+                        <table class="table-borderless p-0 m-0 w-100 colon-table" style="line-height: 1.45;">
+                            <tr>
+                                <td class="colon-label" style="width: 85px;">Doc Type</td>
+                                <td class="colon-sep">:</td>
+                                <td class="fw-bold text-dark">{{ ucfirst($invoice->type) }}</td>
+                            </tr>
+                            <tr>
+                                <td class="colon-label" style="width: 85px;">Payment</td>
+                                <td class="colon-sep">:</td>
+                                <td class="fw-semibold text-dark">{{ $invoice->payment_method ?? 'Cash / Bank' }}</td>
+                            </tr>
+                            <tr>
+                                <td class="colon-label" style="width: 85px;">Status</td>
+                                <td class="colon-sep">:</td>
+                                <td>
+                                    @if(in_array($invoice->type, ['invoice', 'challan']))
+                                        @if($invoice->payment_status === 'paid')
+                                            <span class="badge bg-success-subtle text-success border px-2 py-0.5" style="font-size: 10px;">Paid</span>
+                                        @elseif($invoice->payment_status === 'partial')
+                                            <span class="badge bg-warning-subtle text-dark border px-2 py-0.5" style="font-size: 10px;">Partially Paid</span>
+                                        @else
+                                            <span class="badge bg-danger-subtle text-danger border px-2 py-0.5" style="font-size: 10px;">Due</span>
+                                        @endif
+                                    @else
+                                        <span class="badge bg-primary-subtle text-primary border px-2 py-0.5" style="font-size: 10px;">Proposed</span>
+                                    @endif
+                                </td>
+                            </tr>
+                            @if($invoice->valid_until)
+                                <tr>
+                                    <td class="colon-label text-danger" style="width: 85px;">Valid Until</td>
+                                    <td class="colon-sep text-danger">:</td>
+                                    <td class="text-danger fw-semibold">{{ $invoice->valid_until->format('d M, Y') }}</td>
+                                </tr>
+                            @endif
+                        </table>
                     </div>
                 </div>
             </div>
 
-            {{-- Items / Price Schedule Table --}}
+            {{-- Items / Price Schedule Table (with Right-Aligned Numbers) --}}
             <div class="table-responsive mb-2">
                 <table class="table table-bordered table-sm align-middle invoice-table mb-0" style="font-size: 10px;">
                     <thead class="table-light">
@@ -327,38 +357,38 @@
                             <th class="text-center py-1 px-1" style="width: 26px;">#</th>
                             <th class="py-1 px-1.5">
                                 @if($invoice->sales_category === 'stationery')
-                                    পণ্যের নাম ও বিবরণ (Item Title & Description)
+                                    Item Title & Description
                                 @elseif($invoice->sales_category === 'printing_goods')
-                                    কাজের নাম ও প্রিন্টিং বিবরণ (Job / Printing Description)
+                                    Job / Printing Description
                                 @elseif($invoice->sales_category === 'other')
-                                    মালের বিবরণ ও বিবরণী (Description)
+                                    Item Description
                                 @else
-                                    বইয়ের নাম ও বিবরণ (Book Title & Description)
+                                    Book Title & Description
                                 @endif
                             </th>
                             <th class="py-1 px-1" style="width: 105px;">
                                 @if($invoice->sales_category === 'stationery' || $invoice->sales_category === 'printing_goods')
-                                    স্পেক / সাইজ
+                                    Spec / Size
                                 @elseif($invoice->sales_category === 'other')
-                                    স্পেসিফিকেশন
+                                    Specification
                                 @else
-                                    লেখক (Author)
+                                    Author / Spec
                                 @endif
                             </th>
-                            <th class="text-center py-1 px-1" style="width: 45px;">একক</th>
-                            <th class="text-center py-1 px-1" style="width: 45px;">পরিমাণ</th>
+                            <th class="text-center py-1 px-1" style="width: 45px;">Unit</th>
+                            <th class="text-end py-1 px-1" style="width: 50px;">Qty</th>
                             <th class="text-end py-1 px-1" style="width: 70px;">
                                 @if($invoice->sales_category === 'stationery')
                                     MRP (৳)
                                 @elseif($invoice->sales_category === 'printing_goods')
-                                    বেসিক রেট
+                                    Base Rate
                                 @else
-                                    গায়ের দর
+                                    Price (৳)
                                 @endif
                             </th>
-                            <th class="text-center py-1 px-1" style="width: 55px;">কমিশন %</th>
-                            <th class="text-end py-1 px-1" style="width: 80px;">বিক্রয় দর</th>
-                            <th class="text-end py-1 pe-1.5" style="width: 85px;">মোট (৳)</th>
+                            <th class="text-end py-1 px-1" style="width: 55px;">Disc %</th>
+                            <th class="text-end py-1 px-1" style="width: 80px;">Net Price</th>
+                            <th class="text-end py-1 pe-1.5" style="width: 85px;">Total (৳)</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -401,9 +431,9 @@
                                 </td>
                                 <td class="py-0.5 px-1 text-muted" style="font-size: 9.5px;">{{ $authorName }}</td>
                                 <td class="text-center py-0.5 px-1 text-muted font-monospace" style="font-size: 9px;">{{ $unitName }}</td>
-                                <td class="text-center py-0.5 px-1 fw-bold">{{ $qty }}</td>
+                                <td class="text-end py-0.5 px-1 fw-bold">{{ $qty }}</td>
                                 <td class="text-end py-0.5 px-1">৳{{ number_format($coverPrice, 2) }}</td>
-                                <td class="text-center py-0.5 px-1">
+                                <td class="text-end py-0.5 px-1">
                                     @if($commPercent > 0)
                                         <span class="badge bg-danger-subtle text-danger border px-1 py-0" style="font-size: 8.5px;">{{ $commPercent }}%</span>
                                     @else
@@ -421,6 +451,7 @@
                             : 0;
 
                         $tfootRows = 3; // Subtotal + Special Discount + Grand Total
+                        if (($invoice->previous_due ?? 0) > 0) $tfootRows++;
                         if ($invoice->tax > 0) $tfootRows++;
                         if (in_array($invoice->type, ['invoice', 'challan'])) {
                             $tfootRows++; // Paid
@@ -450,6 +481,12 @@
                                 {{ $invoice->discount > 0 ? '- ৳' . number_format($invoice->discount, 2) : '৳0.00' }}
                             </td>
                         </tr>
+                        @if(($invoice->previous_due ?? 0) > 0)
+                            <tr class="table-warning bg-warning bg-opacity-10">
+                                <td class="text-end py-0.5 px-1.5 text-dark fw-bold">Previous Due (জের):</td>
+                                <td class="text-end py-0.5 pe-1.5 text-dark fw-bold">+ ৳{{ number_format($invoice->previous_due, 2) }}</td>
+                            </tr>
+                        @endif
                         @if($invoice->tax > 0)
                             <tr>
                                 <td class="text-end py-0.5 px-1.5 text-muted fw-semibold">VAT / Tax:</td>
@@ -505,7 +542,7 @@
                         <div class="col-2 text-center">
                             <a href="{{ $invoiceUrl }}" target="_blank" class="text-decoration-none d-inline-flex flex-column align-items-center">
                                 <div class="p-1 rounded border bg-white shadow-2xs d-inline-block">
-                                    <img src="{{ $qrCodeUrl }}" alt="Verify QR" style="width: 38px; height: 38px; object-fit: contain; display: block;">
+                                    <img src="{{ $qrCodeUrl }}" alt="Verify QR" style="width: {{ $qrCodeSize }}; height: {{ $qrCodeSize }}; object-fit: contain; display: block;">
                                 </div>
                                 <div class="text-primary fw-bold text-nowrap mt-1" style="font-size: 7.5px; line-height: 1.1;">
                                     Scan to Verify: #{{ $invoice->invoice_no }}
@@ -517,7 +554,7 @@
                         <div class="col-2 text-center">
                             <div class="d-inline-flex flex-column align-items-center">
                                 <div class="p-1 rounded border bg-white shadow-2xs d-inline-block">
-                                    <img src="{{ $mfsQrSrc }}" alt="MFS QR" style="width: 38px; height: 38px; object-fit: contain; display: block;">
+                                    <img src="{{ $mfsQrSrc }}" alt="MFS QR" style="width: {{ $qrCodeSize }}; height: {{ $qrCodeSize }}; object-fit: contain; display: block;">
                                 </div>
                                 <div class="text-dark fw-bold text-nowrap mt-1 font-monospace" style="font-size: 7.5px; line-height: 1.1;">
                                     {{ $settings['mfs_qr_note'] ?? 'bkash/nagad/roket' }}
@@ -529,7 +566,7 @@
                         <div class="col-2 text-center">
                             <div class="d-inline-flex flex-column align-items-center">
                                 <div class="p-1 rounded border bg-white shadow-2xs d-inline-block">
-                                    <img src="{{ $bankQrSrc }}" alt="Bank QR" style="width: 38px; height: 38px; object-fit: contain; display: block;">
+                                    <img src="{{ $bankQrSrc }}" alt="Bank QR" style="width: {{ $qrCodeSize }}; height: {{ $qrCodeSize }}; object-fit: contain; display: block;">
                                 </div>
                                 <div class="text-dark fw-bold text-nowrap mt-1 font-monospace" style="font-size: 7.5px; line-height: 1.1;">
                                     {{ $settings['bank_qr_note'] ?? 'bank payment' }}
@@ -567,7 +604,7 @@
                         <div class="col-4 text-center">
                             <a href="{{ $invoiceUrl }}" target="_blank" class="text-decoration-none d-inline-flex flex-column align-items-center">
                                 <div class="p-1 rounded border bg-white shadow-2xs d-inline-block">
-                                    <img src="{{ $qrCodeUrl }}" alt="QR" style="width: 38px; height: 38px; object-fit: contain; display: block;">
+                                    <img src="{{ $qrCodeUrl }}" alt="QR" style="width: {{ $qrCodeSize }}; height: {{ $qrCodeSize }}; object-fit: contain; display: block;">
                                 </div>
                                 <div class="text-primary fw-bold text-nowrap mt-1" style="font-size: 8px; line-height: 1.1;">
                                     Scan to Verify: #{{ $invoice->invoice_no }}
@@ -660,50 +697,72 @@
                 {{-- Delivery Destination & Client Details --}}
                 <div class="p-2.5 bg-light rounded-2 border mb-2.5 destination-box" style="font-size: 12px; box-sizing: border-box;">
                     <div class="row g-2 align-items-start m-0">
-                        <div class="col-7 p-0 pe-2">
+                        <div class="col-7 p-0 pe-2 border-end">
                             <div class="fw-bold text-dark mb-1 d-flex align-items-center justify-content-between" style="font-size: 12px;">
                                 <span><i class="fas fa-truck-ramp-box me-1 text-primary"></i>Delivery Destination & Recipient:</span>
                             </div>
-                            <table class="table-borderless p-0 m-0 w-100 recipient-info-table" style="line-height: 1.45;">
+                            <table class="table-borderless p-0 m-0 w-100 colon-table recipient-info-table" style="line-height: 1.45;">
                                 @if($invoice->customer_name)
                                     <tr>
-                                        <td class="text-muted pe-1 text-nowrap" style="width: 115px; vertical-align: top; font-size: 11px;">Recipient Name:</td>
+                                        <td class="colon-label" style="width: 95px;">Recipient</td>
+                                        <td class="colon-sep">:</td>
                                         <td class="fw-bold text-dark target-recipient-name" id="challanRecipientName" style="font-size: {{ $recipientNameSize }};">{{ $invoice->customer_name }}</td>
                                     </tr>
                                 @endif
                                 @if(!empty($invoice->customer_designation))
                                     <tr>
-                                        <td class="text-muted pe-1 text-nowrap" style="vertical-align: top; font-size: 11px;">Designation:</td>
+                                        <td class="colon-label" style="width: 95px;">Designation</td>
+                                        <td class="colon-sep">:</td>
                                         <td class="fw-semibold text-dark target-recipient-desig" id="challanRecipientDesig" style="font-size: {{ $recipientDesigSize }};">{{ $invoice->customer_designation }}</td>
                                     </tr>
                                 @endif
                                 @if($invoice->customer_org)
                                     <tr>
-                                        <td class="text-muted pe-1 text-nowrap" style="vertical-align: top; font-size: 11px;">Organization:</td>
+                                        <td class="colon-label" style="width: 95px;">Organization</td>
+                                        <td class="colon-sep">:</td>
                                         <td class="fw-semibold text-primary target-recipient-org" id="challanRecipientOrg" style="font-size: {{ $recipientOrgSize }};">{{ $invoice->customer_org }}</td>
                                     </tr>
                                 @endif
                                 @if($invoice->customer_address)
                                     <tr>
-                                        <td class="text-muted pe-1 text-nowrap" style="vertical-align: top; font-size: 11px;">Address:</td>
+                                        <td class="colon-label" style="width: 95px;">Address</td>
+                                        <td class="colon-sep">:</td>
                                         <td class="text-dark target-recipient-address" id="challanRecipientAddr" style="font-size: {{ $recipientAddressSize }}; line-height: 1.35;">{{ $invoice->customer_address }}</td>
                                     </tr>
                                 @endif
                                 @if($invoice->customer_phone)
                                     <tr>
-                                        <td class="text-muted pe-1 text-nowrap" style="vertical-align: top; font-size: 11px;">Phone / Mobile:</td>
+                                        <td class="colon-label" style="width: 95px;">Mobile</td>
+                                        <td class="colon-sep">:</td>
                                         <td class="text-dark fw-bold font-monospace target-recipient-phone" id="challanRecipientPhone" style="font-size: {{ $recipientPhoneSize }};">{{ $invoice->customer_phone }}</td>
                                     </tr>
                                 @endif
                             </table>
                         </div>
-                        <div class="col-5 p-0 ps-2 text-end">
-                            <div class="text-muted text-uppercase fw-semibold mb-1" style="font-size: 11px;">Challan Tracking & Dispatch Info:</div>
-                            <div style="font-size: 11.5px; line-height: 1.5;">
-                                <div>Challan Type: <strong>Goods / Book Delivery</strong></div>
-                                <div>Total Items: <strong>{{ count($invoice->items ?? []) }} items</strong> · Total Qty: <strong class="text-primary">{{ $totalQuantity }} pcs</strong></div>
-                                <div class="text-muted">Dispatcher / Packer: <strong>{{ $creatorName }}</strong></div>
-                            </div>
+                        <div class="col-5 p-0 ps-2">
+                            <div class="text-muted text-uppercase fw-semibold mb-1" style="font-size: 11px;"><i class="fas fa-truck-fast me-1 text-primary"></i>Challan Tracking & Dispatch Info:</div>
+                            <table class="table-borderless p-0 m-0 w-100 colon-table" style="line-height: 1.45;">
+                                <tr>
+                                    <td class="colon-label" style="width: 90px;">Challan Type</td>
+                                    <td class="colon-sep">:</td>
+                                    <td class="fw-semibold text-dark">Goods Delivery</td>
+                                </tr>
+                                <tr>
+                                    <td class="colon-label" style="width: 90px;">Total Items</td>
+                                    <td class="colon-sep">:</td>
+                                    <td class="fw-semibold text-dark">{{ count($invoice->items ?? []) }} items</td>
+                                </tr>
+                                <tr>
+                                    <td class="colon-label" style="width: 90px;">Total Qty</td>
+                                    <td class="colon-sep">:</td>
+                                    <td class="fw-bold text-primary">{{ $totalQuantity }} pcs</td>
+                                </tr>
+                                <tr>
+                                    <td class="colon-label" style="width: 90px;">Dispatcher</td>
+                                    <td class="colon-sep">:</td>
+                                    <td class="fw-semibold text-dark">{{ $creatorName }}</td>
+                                </tr>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -736,7 +795,7 @@
                                 </th>
                                 <th class="text-center py-1 px-1" style="width: 55px;">Type</th>
                                 <th class="text-center py-1 px-1" style="width: 45px;">Unit</th>
-                                <th class="text-center py-1 px-1" style="width: 50px;">Qty</th>
+                                <th class="text-end py-1 px-1" style="width: 50px;">Qty</th>
                                 <th class="text-center py-1 px-1" style="width: 70px;">Condition</th>
                                 <th class="py-1 px-1.5" style="width: 75px;">Remarks</th>
                             </tr>
@@ -758,7 +817,7 @@
                                     <td class="py-0.5 px-1 text-muted" style="font-size: 9.5px;">{{ $authorName }}</td>
                                     <td class="text-center py-0.5 px-1"><span class="badge bg-light text-dark border px-1 py-0" style="font-size: 8.5px;">{{ $item['item_type'] ?? 'Book' }}</span></td>
                                     <td class="text-center py-0.5 px-1 text-muted font-monospace" style="font-size: 8.5px;">{{ $unitName }}</td>
-                                    <td class="text-center py-0.5 px-1 fw-bold text-primary">{{ $item['quantity'] ?? 1 }}</td>
+                                    <td class="text-end py-0.5 px-1 fw-bold text-primary">{{ $item['quantity'] ?? 1 }}</td>
                                     <td class="text-center py-0.5 px-1 text-muted">Brand New</td>
                                     <td class="py-0.5 px-1.5 text-muted">Verified</td>
                                 </tr>
@@ -767,7 +826,7 @@
                         <tfoot>
                             <tr class="table-light">
                                 <td colspan="5" class="text-end py-1 px-1.5 fw-bold">Total Delivered Items / Quantity:</td>
-                                <td class="text-center py-1 px-1 fw-bold text-primary" style="font-size: 11px;">{{ $totalQuantity }}</td>
+                                <td class="text-end py-1 px-1 fw-bold text-primary" style="font-size: 11px;">{{ $totalQuantity }}</td>
                                 <td colspan="2" class="py-1 px-1.5 text-muted" style="font-size: 9px;">Complete lot dispatched</td>
                             </tr>
                         </tfoot>
@@ -796,7 +855,7 @@
                         {{-- QR Code & Verification Box --}}
                         <div class="col-4">
                             <div class="d-inline-flex align-items-center gap-1.5 px-2 py-1 rounded border bg-white shadow-xs">
-                                <img src="{{ $qrCodeUrl }}" alt="QR" style="width: 34px; height: 34px; object-fit: contain;">
+                                <img src="{{ $qrCodeUrl }}" alt="QR" style="width: {{ $qrCodeSize }}; height: {{ $qrCodeSize }}; object-fit: contain;">
                                 <div class="text-start" style="line-height: 1.15;">
                                     <span class="text-muted fw-semibold d-block" style="font-size: 8px;"><i class="fas fa-qrcode me-0.5"></i>Scan to Verify</span>
                                     <span class="font-monospace text-dark fw-bold" style="font-size: 9px;">#{{ $invoice->invoice_no }}</span>
@@ -831,6 +890,40 @@
     </div>
 </div>
 
+{{-- MULTI-BILL OUTSTANDING DUES BANNER (If customer has dues in multiple invoices) --}}
+@if(($customerDueCount ?? 0) > 1 || (isset($otherDueInvoices) && $otherDueInvoices->isNotEmpty()))
+<div class="row justify-content-center mt-3 d-print-none">
+    <div class="col-lg-10">
+        <div class="card border border-warning bg-warning bg-opacity-10 shadow-xs rounded-4 p-3.5 mb-2">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="p-2.5 bg-warning text-dark rounded-circle fs-5 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                        <i class="fas fa-layer-group"></i>
+                    </div>
+                    <div>
+                        <h6 class="fw-bold mb-1 text-dark">
+                            গ্রাহক <span class="text-primary">{{ $invoice->customer_name }}</span>-এর একাধিক বিলে বকেয়া রয়েছে
+                        </h6>
+                        <div class="text-muted small">
+                            মোট বকেয়া বিল: <strong class="text-dark">{{ $customerDueCount }}টি</strong> | সর্বমোট অপরিশোধিত বকেয়া: <strong class="text-danger font-monospace fs-6">৳{{ number_format($customerTotalDue, 2) }}</strong>
+                            (বর্তমান ইনভয়েস বকেয়া: <strong class="text-dark font-monospace">৳{{ number_format($invoice->due_amount, 2) }}</strong>)
+                        </div>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <a href="{{ route('admin.accounting.customer-ledger.index', ['customer_name' => $invoice->customer_name, 'customer_phone' => $invoice->customer_phone]) }}" class="btn btn-outline-dark btn-sm rounded-pill px-3 fw-semibold shadow-xs">
+                        <i class="fas fa-book-bookmark me-1 text-primary"></i> খতিয়ান দেখুন
+                    </a>
+                    <button type="button" class="btn btn-warning text-dark btn-sm rounded-pill px-3.5 fw-bold shadow-sm" onclick="openAllDueSettlementModal()">
+                        <i class="fas fa-hand-holding-dollar me-1.5"></i> সকল বকেয়া একসাথে পরিশোধ করুন
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endif
+
 {{-- ========================================================================= --}}
 {{-- STEP-BY-STEP PAYMENT & INSTALLMENTS TRACKER CARD (ধাপে ধাপে জমা ও কিস্তি হিসাব) --}}
 {{-- ========================================================================= --}}
@@ -852,7 +945,7 @@
                     <a href="{{ route('admin.accounting.customer-ledger.index', ['customer_name' => $invoice->customer_name, 'customer_phone' => $invoice->customer_phone]) }}" class="btn btn-outline-info text-dark btn-sm rounded-pill px-3 fw-semibold shadow-xs">
                         <i class="fas fa-book-bookmark me-1 text-primary"></i> সম্পূর্ণ গ্রাহক খতিয়ান
                     </a>
-                    @if($invoice->due_amount > 0)
+                    @if($invoice->due_amount > 0 || ($customerTotalDue ?? 0) > 0)
                         <button type="button" class="btn btn-success btn-sm rounded-pill px-3 fw-bold shadow-xs" data-bs-toggle="modal" data-bs-target="#recordInvoicePaymentModal">
                             <i class="fas fa-plus me-1"></i> নতুন কিস্তি জমা নিন
                         </button>
@@ -972,8 +1065,8 @@
                                     </td>
                                     <td class="text-center">
                                         <div class="d-flex align-items-center justify-content-center gap-1">
-                                            <a href="{{ route('admin.accounting.invoices.payments.receipt', $pmt->id) }}" class="btn btn-sm btn-outline-primary rounded-pill px-2 py-0.5" title="টাকা প্রাপ্তি রসিদ প্রিন্ট করুন">
-                                                <i class="fas fa-receipt me-1"></i>রসিদ
+                                            <a href="{{ route('admin.accounting.invoices.payments.receipt', $pmt->id) }}" class="btn btn-sm btn-outline-success rounded-pill px-2.5 py-0.5 fw-semibold" title="বিল পরিশোধ প্রাপ্তিস্বীকারপত্র ও রসিদ দেখুন">
+                                                <i class="fas fa-file-shield me-1"></i>প্রাপ্তিস্বীকারপত্র
                                             </a>
 
                                             <form action="{{ route('admin.accounting.invoices.payments.destroy', $pmt->id) }}" method="POST" class="d-inline"
@@ -1819,44 +1912,124 @@ function openResendModal(emails, customMsg) {
 {{-- RECORD INVOICE PAYMENT MODAL --}}
 @if(in_array($invoice->type, ['invoice', 'challan']))
 <div class="modal fade d-print-none" id="recordInvoicePaymentModal" tabindex="-1" aria-labelledby="recordInvoicePaymentModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
-            <form action="{{ route('admin.accounting.invoices.payments.store', $invoice->id) }}" method="POST">
+            <form action="{{ route('admin.accounting.invoices.payments.store', $invoice->id) }}" method="POST" id="recordPaymentForm">
                 @csrf
+                <input type="hidden" name="customer_name" value="{{ $invoice->customer_name }}">
+                <input type="hidden" name="customer_phone" value="{{ $invoice->customer_phone }}">
+                
                 <div class="modal-header bg-success text-white py-3">
-                    <h5 class="modal-title fw-bold" id="recordInvoicePaymentModalLabel">
-                        <i class="fas fa-hand-holding-dollar me-2"></i>কিস্তি / বকেয়া টাকা জমা গ্রহণ
-                    </h5>
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="fas fa-hand-holding-dollar fs-5"></i>
+                        <div>
+                            <h5 class="modal-title fw-bold mb-0" id="recordInvoicePaymentModalLabel">
+                                কিস্তি / বকেয়া টাকা জমা গ্রহণ
+                            </h5>
+                            <small class="text-white-50" style="font-size: 11.5px;">গ্রাহক: {{ $invoice->customer_name }} ({{ $invoice->customer_phone ?: 'ফোন নেই' }})</small>
+                        </div>
+                    </div>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
+                
                 <div class="modal-body p-4">
-                    <div class="bg-light p-3 rounded-3 border mb-3">
+                    {{-- Settlement Scope Selector (If customer has multiple due bills) --}}
+                    @if(($customerDueCount ?? 0) > 1 || (isset($otherDueInvoices) && $otherDueInvoices->isNotEmpty()))
+                        <div class="card border border-primary-subtle bg-primary-subtle bg-opacity-10 rounded-3 p-2.5 mb-3">
+                            <label class="form-label small fw-bold text-dark mb-1.5 d-block">
+                                <i class="fas fa-sliders text-primary me-1"></i>জমা প্রদানের পরিধি নির্বাচন করুন:
+                            </label>
+                            <div class="d-flex gap-2 flex-wrap">
+                                <div class="form-check form-check-inline m-0 p-2 bg-white rounded-2 border flex-fill">
+                                    <input class="form-check-input ms-0 me-2" type="radio" name="payment_scope_selector" id="scopeSingleInvoice" value="single" checked onchange="togglePaymentScope('single')">
+                                    <label class="form-check-label fw-bold text-dark small" for="scopeSingleInvoice">
+                                        ১. শুধুমাত্র এই বিল (#{{ $invoice->invoice_no }})
+                                        <span class="d-block text-danger font-monospace fw-normal" style="font-size: 11px;">বকেয়া: ৳{{ number_format($invoice->due_amount, 2) }}</span>
+                                    </label>
+                                </div>
+                                <div class="form-check form-check-inline m-0 p-2 bg-white rounded-2 border flex-fill">
+                                    <input class="form-check-input ms-0 me-2" type="radio" name="payment_scope_selector" id="scopeAllInvoices" value="all" onchange="togglePaymentScope('all')">
+                                    <label class="form-check-label fw-bold text-dark small" for="scopeAllInvoices">
+                                        ২. সকল বকেয়া বিল একযোগে পরিশোধ (FIFO)
+                                        <span class="d-block text-danger font-monospace fw-normal" style="font-size: 11px;">সর্বমোট {{ $customerDueCount }}টি বিলে বকেয়া: ৳{{ number_format($customerTotalDue, 2) }}</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
+                    {{-- Single Bill Summary Card --}}
+                    <div id="singleInvoiceSummaryBox" class="bg-light p-3 rounded-3 border mb-3">
                         <div class="d-flex justify-content-between small text-muted mb-1">
                             <span>ইনভয়েস নম্বর: <strong class="text-dark font-monospace">#{{ $invoice->invoice_no }}</strong></span>
                             <span>মোট বিল: <strong class="text-dark font-monospace">৳{{ number_format($invoice->grand_total, 2) }}</strong></span>
                         </div>
                         <div class="d-flex justify-content-between small text-muted">
                             <span>গ্রাহক: <strong class="text-dark">{{ $invoice->customer_name }}</strong></span>
-                            <span>বর্তমান বকেয়া: <strong class="text-danger fw-bold font-monospace fs-6">৳{{ number_format($invoice->due_amount, 2) }}</strong></span>
+                            <span>এই বিলের বকেয়া: <strong class="text-danger fw-bold font-monospace fs-6" id="singleInvoiceDueDisplay">৳{{ number_format($invoice->due_amount, 2) }}</strong></span>
                         </div>
                     </div>
 
+                    {{-- Multi-Bill Due Breakdown Table (Hidden by default, shown in 'all' mode) --}}
+                    @if(isset($allDueInvoices) && $allDueInvoices->isNotEmpty())
+                        <div id="allInvoicesBreakdownBox" class="mb-3 d-none">
+                            <div class="d-flex justify-content-between align-items-center mb-1.5">
+                                <span class="small fw-bold text-dark">
+                                    <i class="fas fa-list-check text-success me-1"></i>বকেয়া বিলসমূহের ক্রম (FIFO অনুযায়ী ১ম থেকে পরিশোধ হবে):
+                                </span>
+                                <span class="badge bg-danger text-white">মোট বকেয়া: ৳{{ number_format($customerTotalDue, 2) }}</span>
+                            </div>
+                            <div class="table-responsive border rounded-3 bg-white" style="max-height: 160px; overflow-y: auto;">
+                                <table class="table table-sm table-hover align-middle mb-0" style="font-size: 11.5px;">
+                                    <thead class="table-light sticky-top">
+                                        <tr>
+                                            <th>বিল নম্বর</th>
+                                            <th>তারিখ</th>
+                                            <th class="text-end">মোট বিল</th>
+                                            <th class="text-end">জমা</th>
+                                            <th class="text-end">বর্তমান বকেয়া</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($allDueInvoices as $dInv)
+                                            <tr class="{{ $dInv->id === $invoice->id ? 'table-warning bg-warning bg-opacity-10 fw-bold' : '' }}">
+                                                <td>
+                                                    <span class="font-monospace">#{{ $dInv->invoice_no }}</span>
+                                                    @if($dInv->id === $invoice->id)
+                                                        <span class="badge bg-primary text-white ms-1" style="font-size: 9px;">বর্তমান বিল</span>
+                                                    @endif
+                                                </td>
+                                                <td>{{ $dInv->invoice_date ? $dInv->invoice_date->format('d M, Y') : '—' }}</td>
+                                                <td class="text-end font-monospace">৳{{ number_format($dInv->grand_total, 2) }}</td>
+                                                <td class="text-end font-monospace text-success">৳{{ number_format($dInv->paid_amount, 2) }}</td>
+                                                <td class="text-end font-monospace text-danger fw-bold">৳{{ number_format($dInv->due_amount, 2) }}</td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    @endif
+
                     <div class="row g-3 mb-3">
-                        <div class="col-6">
+                        <div class="col-md-6 col-12">
                             <label class="form-label small fw-bold text-dark">জমার তারিখ: <span class="text-danger">*</span></label>
                             <input type="date" name="payment_date" class="form-control" required value="{{ date('Y-m-d') }}">
                         </div>
-                        <div class="col-6">
-                            <label class="form-label small fw-bold text-dark">জমার পরিমাণ (টাকা): <span class="text-danger">*</span></label>
+                        <div class="col-md-6 col-12">
+                            <label class="form-label small fw-bold text-dark" id="paymentAmountLabel">জমার পরিমাণ (টাকা): <span class="text-danger">*</span></label>
                             <div class="input-group">
                                 <span class="input-group-text">৳</span>
-                                <input type="number" step="0.01" min="0.01" name="amount" class="form-control fw-bold font-monospace text-success" required placeholder="0.00" value="{{ $invoice->due_amount > 0 ? $invoice->due_amount : '' }}">
+                                <input type="number" step="0.01" min="0.01" name="amount" id="paymentAmountInput" class="form-control fw-bold font-monospace text-success fs-5" required placeholder="0.00" value="{{ $invoice->due_amount > 0 ? $invoice->due_amount : ($customerTotalDue ?? '') }}">
+                            </div>
+                            <div class="form-text text-muted" id="paymentAmountHelp" style="font-size: 11px;">
+                                পূর্ণ বা আংশিক যেকোনো পরিমাণ টাকা লিখতে পারেন।
                             </div>
                         </div>
                     </div>
 
                     <div class="row g-3 mb-3">
-                        <div class="col-6">
+                        <div class="col-md-6 col-12">
                             <label class="form-label small fw-bold text-dark">পেমেন্ট মাধ্যম: <span class="text-danger">*</span></label>
                             <select name="payment_method" class="form-select" required>
                                 @foreach(\App\Models\IdeaInvoicePayment::paymentMethods() as $code => $lbl)
@@ -1864,26 +2037,26 @@ function openResendModal(emails, customMsg) {
                                 @endforeach
                             </select>
                         </div>
-                        <div class="col-6">
+                        <div class="col-md-6 col-12">
                             <label class="form-label small fw-bold text-dark">Trx / ভাউচার / চেক নং:</label>
                             <input type="text" name="transaction_ref" class="form-control font-monospace" placeholder="রেফারেন্স নম্বর">
                         </div>
                     </div>
 
-                    <div class="mb-3">
+                    <div class="mb-3" id="paymentDueDateContainer">
                         <label class="form-label small fw-bold text-dark">পরবর্তী কিস্তি / পরিশোধের শেষ তারিখ (ঐচ্ছিক):</label>
                         <input type="date" name="due_date" class="form-control" value="{{ $invoice->due_date ? $invoice->due_date->format('Y-m-d') : '' }}">
                         <div class="form-text text-muted" style="font-size: 11px;">যদি বকেয়া থাকে এবং পরবর্তী কিস্তির তারিখ নির্ধারণ করতে চান, তবে দিন। অন্যথায় খালি রাখুন।</div>
                     </div>
 
-                    <div class="mb-3">
+                    <div class="mb-2">
                         <label class="form-label small fw-bold text-dark">বিবরণ / নোট (ঐচ্ছিক):</label>
-                        <input type="text" name="note" class="form-control" placeholder="যেমন: ২য় কিস্তি পরিশোধ / বিকাশ ক্যাশ ইন">
+                        <input type="text" name="note" id="paymentNoteInput" class="form-control" placeholder="যেমন: কিস্তি পরিশোধ / বিকাশ ক্যাশ ইন">
                     </div>
                 </div>
                 <div class="modal-footer bg-light p-3">
                     <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">বাতিল</button>
-                    <button type="submit" class="btn btn-success rounded-pill px-4 fw-bold">
+                    <button type="submit" class="btn btn-success rounded-pill px-4 fw-bold shadow-sm" id="btnSubmitPayment">
                         <i class="fas fa-check me-1.5"></i> জমা গ্রহণ কনফার্ম করুন
                     </button>
                 </div>
@@ -1891,6 +2064,60 @@ function openResendModal(emails, customMsg) {
         </div>
     </div>
 </div>
+
+<script>
+const singleInvoiceActionUrl = @json(route('admin.accounting.invoices.payments.store', $invoice->id));
+const allInvoicesActionUrl = @json(route('admin.accounting.customer-ledger.payments.store'));
+const singleInvoiceDue = @json((float)$invoice->due_amount);
+const customerTotalDue = @json((float)($customerTotalDue ?? $invoice->due_amount));
+
+function togglePaymentScope(scope) {
+    const form = document.getElementById('recordPaymentForm');
+    const amountInput = document.getElementById('paymentAmountInput');
+    const singleBox = document.getElementById('singleInvoiceSummaryBox');
+    const allBox = document.getElementById('allInvoicesBreakdownBox');
+    const noteInput = document.getElementById('paymentNoteInput');
+    const helpText = document.getElementById('paymentAmountHelp');
+
+    if (!form || !amountInput) return;
+
+    if (scope === 'all') {
+        form.action = allInvoicesActionUrl;
+        amountInput.value = customerTotalDue > 0 ? customerTotalDue.toFixed(2) : '';
+        if (singleBox) singleBox.classList.add('d-none');
+        if (allBox) allBox.classList.remove('d-none');
+        if (noteInput && !noteInput.value) {
+            noteInput.value = 'সকল বকেয়া বিল বাবদ এককালীন/কিস্তি জমা';
+        }
+        if (helpText) {
+            helpText.textContent = 'প্রদত্ত অর্থ গ্রাহকের সবচেয়ে পুরোনো বকেয়া বিল হতে পর্যায়ক্রমে স্বয়ংক্রিয়ভাবে বণ্টন হবে।';
+        }
+    } else {
+        form.action = singleInvoiceActionUrl;
+        amountInput.value = singleInvoiceDue > 0 ? singleInvoiceDue.toFixed(2) : '';
+        if (singleBox) singleBox.classList.remove('d-none');
+        if (allBox) allBox.classList.add('d-none');
+        if (noteInput && noteInput.value === 'সকল বকেয়া বিল বাবদ এককালীন/কিস্তি জমা') {
+            noteInput.value = '';
+        }
+        if (helpText) {
+            helpText.textContent = 'পূর্ণ বা আংশিক যেকোনো পরিমাণ টাকা লিখতে পারেন।';
+        }
+    }
+}
+
+function openAllDueSettlementModal() {
+    const modalEl = document.getElementById('recordInvoicePaymentModal');
+    if (!modalEl) return;
+    const radioAll = document.getElementById('scopeAllInvoices');
+    if (radioAll) {
+        radioAll.checked = true;
+        togglePaymentScope('all');
+    }
+    const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+    modal.show();
+}
+</script>
 @endif
 
 {{-- Send Invoice Email to Customer Modal (Multiple Recipients Support) --}}
@@ -2039,7 +2266,7 @@ function openResendModal(emails, customMsg) {
 
                 <div class="modal-header border-bottom py-3">
                     <h5 class="modal-title fw-bold text-primary" id="invoiceSettingsModalLabel">
-                        <i class="fas fa-palette me-2"></i>Invoice Design & Memo Branding Settings
+                        <i class="fas fa-palette me-2"></i>Invoice & Memo Settings
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
@@ -2070,7 +2297,7 @@ function openResendModal(emails, customMsg) {
                             <label class="form-label fw-bold text-primary mb-0">
                                 <i class="fas fa-crop-simple me-1"></i> Logo Upload & 2:1 Wide Crop Tool
                             </label>
-                            <span class="badge bg-primary text-white">Ratio 2:1 (Double Width)</span>
+                            <span class="badge bg-primary text-white">Ratio 2:1</span>
                         </div>
                         
                         <input type="file" id="logoFileInput" class="form-control mb-3" accept="image/*">
@@ -2103,29 +2330,26 @@ function openResendModal(emails, customMsg) {
                         </div>
                     </div>
 
-                                        {{-- Dual Payment QR Codes (MFS & Bank Payment QR) --}}
+                    {{-- Payment QR --}}
                     <div class="card border border-success-subtle rounded-3 p-3 mb-3 bg-success-subtle bg-opacity-10">
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <label class="form-label fw-bold text-success mb-0">
-                                <i class="fa-solid fa-qrcode me-1"></i> পেমেন্ট কিউআর কোডসমূহ (MFS & Bank Payment QR)
+                                <i class="fa-solid fa-qrcode me-1"></i> Payment QR
                             </label>
-                            <span class="badge bg-success text-white">শুধুমাত্র বিলে থাকবে</span>
+                            <span class="badge bg-success text-white">Bill Only</span>
                         </div>
-                        <p class="small text-muted mb-3" style="font-size: 11px;">
-                            বিলের ফুটার কলামে প্রদর্শনের জন্য বিকাশ/নগদ/রকেট কিউআর এবং ব্যাংক পেমেন্ট কিউআর ছবি ও বিবরণ যুক্ত করুন:
-                        </p>
                         
                         <div class="row g-3">
-                            {{-- 1. MFS (bKash / Nagad / Rocket) QR --}}
+                            {{-- 1. bKash / Nagad / Rocket QR --}}
                             <div class="col-md-6 border-end">
                                 <div class="p-2.5 bg-white rounded-3 border h-100 d-flex flex-column justify-content-between">
                                     <div>
                                         <div class="d-flex align-items-center justify-content-between mb-2">
-                                            <span class="small fw-bold text-dark"><i class="fas fa-mobile-screen-button text-primary me-1"></i>১. bKash / Nagad / Rocket কিউআর</span>
+                                            <span class="small fw-bold text-dark"><i class="fas fa-mobile-screen-button text-primary me-1"></i>bKash / Nagad / Rocket</span>
                                         </div>
                                         <input type="file" name="mfs_qr_file" id="mfsQrFileInput" class="form-control form-control-sm mb-2" accept="image/*" onchange="previewQr(this, 'mfsQrPreviewImg', 'mfsQrStatusText')">
                                         <div class="mb-2">
-                                            <label class="form-label small fw-semibold text-muted mb-0.5" style="font-size: 10.5px;">কিউআর এর নিচের লেখা (এক লাইনে):</label>
+                                            <label class="form-label small fw-semibold text-muted mb-0.5" style="font-size: 10.5px;">Label Text:</label>
                                             <input type="text" name="mfs_qr_note" class="form-control form-control-sm font-monospace" 
                                                    value="{{ $settings['mfs_qr_note'] ?? 'bkash/nagad/roket' }}" 
                                                    placeholder="bkash/nagad/roket">
@@ -2134,7 +2358,7 @@ function openResendModal(emails, customMsg) {
                                             <div class="form-check mb-2">
                                                 <input class="form-check-input" type="checkbox" name="remove_mfs_qr" value="1" id="removeMfsQrCheck">
                                                 <label class="form-check-label small text-danger" for="removeMfsQrCheck" style="font-size: 11px;">
-                                                    বর্তমান MFS কিউআর মুছুন
+                                                    Remove QR
                                                 </label>
                                             </div>
                                         @endif
@@ -2146,9 +2370,6 @@ function openResendModal(emails, customMsg) {
                                                  alt="MFS QR Preview" 
                                                  style="width: 55px; height: 55px; object-fit: contain; {{ empty($settings['mfs_qr_image']) ? 'opacity: 0.35; filter: grayscale(1);' : '' }}">
                                         </div>
-                                        <div class="small text-muted mt-0.5" id="mfsQrStatusText" style="font-size: 10px;">
-                                            {{ !empty($settings['mfs_qr_image']) ? 'MFS কিউআর সক্রিয়' : 'ছবি আপলোড করুন' }}
-                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -2158,11 +2379,11 @@ function openResendModal(emails, customMsg) {
                                 <div class="p-2.5 bg-white rounded-3 border h-100 d-flex flex-column justify-content-between">
                                     <div>
                                         <div class="d-flex align-items-center justify-content-between mb-2">
-                                            <span class="small fw-bold text-dark"><i class="fa-solid fa-building-columns text-success me-1"></i>২. Bank Payment কিউআর</span>
+                                            <span class="small fw-bold text-dark"><i class="fa-solid fa-building-columns text-success me-1"></i>Bank Payment</span>
                                         </div>
                                         <input type="file" name="bank_qr_file" id="bankQrFileInput" class="form-control form-control-sm mb-2" accept="image/*" onchange="previewQr(this, 'bankQrPreviewImg', 'bankQrStatusText')">
                                         <div class="mb-2">
-                                            <label class="form-label small fw-semibold text-muted mb-0.5" style="font-size: 10.5px;">কিউআর এর নিচের লেখা (এক লাইনে):</label>
+                                            <label class="form-label small fw-semibold text-muted mb-0.5" style="font-size: 10.5px;">Label Text:</label>
                                             <input type="text" name="bank_qr_note" class="form-control form-control-sm font-monospace" 
                                                    value="{{ $settings['bank_qr_note'] ?? 'bank payment' }}" 
                                                    placeholder="bank payment">
@@ -2171,7 +2392,7 @@ function openResendModal(emails, customMsg) {
                                             <div class="form-check mb-2">
                                                 <input class="form-check-input" type="checkbox" name="remove_bank_qr" value="1" id="removeBankQrCheck">
                                                 <label class="form-check-label small text-danger" for="removeBankQrCheck" style="font-size: 11px;">
-                                                    বর্তমান ব্যাংক কিউআর মুছুন
+                                                    Remove QR
                                                 </label>
                                             </div>
                                         @endif
@@ -2183,26 +2404,38 @@ function openResendModal(emails, customMsg) {
                                                  alt="Bank QR Preview" 
                                                  style="width: 55px; height: 55px; object-fit: contain; {{ empty($settings['bank_qr_image']) ? 'opacity: 0.35; filter: grayscale(1);' : '' }}">
                                         </div>
-                                        <div class="small text-muted mt-0.5" id="bankQrStatusText" style="font-size: 10px;">
-                                            {{ !empty($settings['bank_qr_image']) ? 'ব্যাংক কিউআর সক্রিয়' : 'ছবি আপলোড করুন' }}
-                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- QR Code Size Selector --}}
+                            <div class="col-12 mt-2 pt-2 border-top">
+                                <div class="row align-items-center">
+                                    <div class="col-md-5">
+                                        <label class="form-label small fw-bold text-dark mb-0">
+                                            <i class="fas fa-expand me-1 text-success"></i>QR Code Size:
+                                        </label>
+                                    </div>
+                                    <div class="col-md-7">
+                                        <select name="qr_code_size" id="inputQrCodeSize" class="form-select form-select-sm font-monospace fw-bold">
+                                            @foreach(['45px'=>'45px (Compact)', '55px'=>'55px (Small)', '60px'=>'60px (Standard / Recommended)', '70px'=>'70px (Medium / Clear)', '80px'=>'80px (Large)', '95px'=>'95px (Extra Large)'] as $qVal => $qLbl)
+                                                <option value="{{ $qVal }}" {{ ($qrCodeSize === $qVal) ? 'selected' : '' }}>{{ $qLbl }}</option>
+                                            @endforeach
+                                        </select>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    {{-- Challan Destination & Recipient Typography Controls --}}
+                    {{-- Delivery To --}}
                     <div class="card border border-primary-subtle rounded-3 p-3 mb-3 bg-primary bg-opacity-10">
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <label class="form-label fw-bold text-primary mb-0">
-                                <i class="fas fa-truck-ramp-box me-1"></i> Delivery Destination & Recipient ফন্ট সাইজ নিয়ন্ত্রণ
+                                <i class="fas fa-truck-ramp-box me-1"></i> Delivery To
                             </label>
                             <span class="badge bg-primary text-white">Challan Typography</span>
                         </div>
-                        <p class="small text-muted mb-3" style="font-size: 11px;">
-                            চালানের <strong>Delivery Destination & Recipient:</strong> সেকশনে প্রাপকের নাম, মোবাইল নম্বর, ঠিকানা ও পদবির ফন্ট সাইজ বড় বা ছোট করুন।
-                        </p>
 
                         {{-- Recipient Live Preview Box --}}
                         <div class="p-2.5 bg-white rounded-2 border mb-3 shadow-xs">
@@ -2222,10 +2455,10 @@ function openResendModal(emails, customMsg) {
                         <div class="row g-2.5">
                             <div class="col-md-4 col-sm-6">
                                 <label class="form-label small fw-semibold text-dark mb-1">
-                                    প্রাপকের নাম সাইজ (Name)
+                                    Name
                                 </label>
                                 <select name="challan_recipient_name_size" id="inputNameSize" class="form-select form-select-sm" onchange="updateRecipientPreview()">
-                                    @foreach(['11px'=>'ছোট (11px)', '12px'=>'স্বাভাবিক (12px)', '13px'=>'মাঝারি (13px)', '14px'=>'বড় (14px)', '15px'=>'অনেক বড় (15px)', '16px'=>'অতিরিক্ত বড় (16px)', '18px'=>'বিশাল (18px)'] as $val => $lbl)
+                                    @foreach(['11px'=>'11px', '12px'=>'12px', '13px'=>'13px (Default)', '14px'=>'14px', '15px'=>'15px', '16px'=>'16px', '18px'=>'18px'] as $val => $lbl)
                                         <option value="{{ $val }}" {{ ($recipientNameSize === $val) ? 'selected' : '' }}>{{ $lbl }}</option>
                                     @endforeach
                                 </select>
@@ -2233,10 +2466,10 @@ function openResendModal(emails, customMsg) {
 
                             <div class="col-md-4 col-sm-6">
                                 <label class="form-label small fw-semibold text-dark mb-1">
-                                    মোবাইল নম্বর সাইজ (Mobile)
+                                    Mobile
                                 </label>
                                 <select name="challan_recipient_phone_size" id="inputPhoneSize" class="form-select form-select-sm" onchange="updateRecipientPreview()">
-                                    @foreach(['10.5px'=>'ছোট (10.5px)', '11.5px'=>'স্বাভাবিক (11.5px)', '12px'=>'মাঝারি (12px)', '13px'=>'বড় (13px)', '14px'=>'অনেক বড় (14px)', '15px'=>'অতিরিক্ত বড় (15px)'] as $val => $lbl)
+                                    @foreach(['10.5px'=>'10.5px', '11.5px'=>'11.5px', '12px'=>'12px (Default)', '13px'=>'13px', '14px'=>'14px', '15px'=>'15px'] as $val => $lbl)
                                         <option value="{{ $val }}" {{ ($recipientPhoneSize === $val) ? 'selected' : '' }}>{{ $lbl }}</option>
                                     @endforeach
                                 </select>
@@ -2244,10 +2477,10 @@ function openResendModal(emails, customMsg) {
 
                             <div class="col-md-4 col-sm-6">
                                 <label class="form-label small fw-semibold text-dark mb-1">
-                                    ঠিকানা সাইজ (Address)
+                                    Address
                                 </label>
                                 <select name="challan_recipient_address_size" id="inputAddressSize" class="form-select form-select-sm" onchange="updateRecipientPreview()">
-                                    @foreach(['10px'=>'ছোট (10px)', '11px'=>'স্বাভাবিক (11px)', '11.5px'=>'মাঝারি (11.5px)', '12px'=>'বড় (12px)', '13px'=>'অনেক বড় (13px)', '14px'=>'অতিরিক্ত বড় (14px)'] as $val => $lbl)
+                                    @foreach(['10px'=>'10px', '11px'=>'11px', '11.5px'=>'11.5px (Default)', '12px'=>'12px', '13px'=>'13px', '14px'=>'14px'] as $val => $lbl)
                                         <option value="{{ $val }}" {{ ($recipientAddressSize === $val) ? 'selected' : '' }}>{{ $lbl }}</option>
                                     @endforeach
                                 </select>
@@ -2255,10 +2488,10 @@ function openResendModal(emails, customMsg) {
 
                             <div class="col-md-6 col-sm-6">
                                 <label class="form-label small fw-semibold text-dark mb-1">
-                                    পদবি ও প্রতিষ্ঠান সাইজ (Designation/Org)
+                                    Designation/Org
                                 </label>
                                 <select name="challan_recipient_desig_size" id="inputDesigSize" class="form-select form-select-sm" onchange="updateRecipientPreview()">
-                                    @foreach(['10px'=>'ছোট (10px)', '11px'=>'স্বাভাবিক (11px)', '11.5px'=>'মাঝারি (11.5px)', '12px'=>'বড় (12px)', '13px'=>'অনেক বড় (13px)'] as $val => $lbl)
+                                    @foreach(['10px'=>'10px', '11px'=>'11px', '11.5px'=>'11.5px (Default)', '12px'=>'12px', '13px'=>'13px'] as $val => $lbl)
                                         <option value="{{ $val }}" {{ ($recipientDesigSize === $val) ? 'selected' : '' }}>{{ $lbl }}</option>
                                     @endforeach
                                 </select>
@@ -2266,37 +2499,116 @@ function openResendModal(emails, customMsg) {
 
                             <div class="col-md-6 col-sm-12">
                                 <label class="form-label small fw-semibold text-dark mb-1">
-                                    স্বাক্ষরকারীর ডিফল্ট পদবি (Signatory Title)
+                                    Signatory Title
                                 </label>
                                 <input type="text" name="default_creator_designation" id="inputDefaultCreatorDesig" class="form-control form-control-sm" 
-                                       value="{{ $settings['default_creator_designation'] ?? '' }}" placeholder="যেমন: Authorized Signatory / Billing Officer">
+                                       value="{{ $settings['default_creator_designation'] ?? '' }}" placeholder="Authorized Signatory / Billing Officer">
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Quotation & Tender Function Customization Settings --}}
+                    <div class="card border border-warning-subtle rounded-3 p-3 mb-3 bg-warning-subtle bg-opacity-15">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label class="form-label fw-bold text-warning-emphasis mb-0">
+                                <i class="fas fa-file-invoice-dollar me-1 text-warning"></i> Quotation & Tender Settings (কোটেশন ও দরপত্র সেটিংস)
+                            </label>
+                            <span class="badge bg-warning text-dark">Quotation / Tender</span>
+                        </div>
+                        
+                        <div class="row g-2.5">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold text-dark mb-1">
+                                    Quotation Title (কোটেশন শিরোনাম)
+                                </label>
+                                <input type="text" name="quotation_title_bn" class="form-control form-control-sm" 
+                                       value="{{ $settings['quotation_title_bn'] ?? 'মূল্য কোটেশন (PRICE QUOTATION)' }}" 
+                                       placeholder="মূল্য কোটেশন (PRICE QUOTATION)">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold text-dark mb-1">
+                                    Tender Title (দরপত্র শিরোনাম)
+                                </label>
+                                <input type="text" name="tender_title_bn" class="form-control form-control-sm" 
+                                       value="{{ $settings['tender_title_bn'] ?? 'দরপত্র প্রস্তাবনা (TENDER PROPOSAL)' }}" 
+                                       placeholder="দরপত্র প্রস্তাবনা (TENDER PROPOSAL)">
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label small fw-semibold text-dark mb-1">
+                                    Default Validity (ডিফল্ট মেয়াদ)
+                                </label>
+                                <select name="quotation_default_validity_days" class="form-select form-select-sm">
+                                    @php $qValDays = (int)($settings['quotation_default_validity_days'] ?? 30); @endphp
+                                    @foreach([7=>'৭ দিন (7 Days)', 15=>'১৫ দিন (15 Days)', 30=>'৩০ দিন (30 Days - Default)', 45=>'৪৫ দিন (45 Days)', 60=>'৬০ দিন (60 Days)', 90=>'৯০ দিন (90 Days)'] as $dKey => $dLbl)
+                                        <option value="{{ $dKey }}" {{ ($qValDays === $dKey) ? 'selected' : '' }}>{{ $dLbl }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label small fw-semibold text-dark mb-1">
+                                    Digit & Number Format (সংখ্যা ফরম্যাট)
+                                </label>
+                                <select name="digit_language" class="form-select form-select-sm">
+                                    @php $dLang = $settings['digit_language'] ?? 'bn'; @endphp
+                                    <option value="bn" {{ ($dLang === 'bn') ? 'selected' : '' }}>বাংলা সংখ্যা (১, ২, ৩, ৳)</option>
+                                    <option value="en" {{ ($dLang === 'en') ? 'selected' : '' }}>English Digits (1, 2, 3, ৳)</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label small fw-semibold text-dark mb-1">
+                                    Default Subject Line (ডিফল্ট বিষয়)
+                                </label>
+                                <input type="text" name="quotation_default_subject" class="form-control form-control-sm" 
+                                       value="{{ $settings['quotation_default_subject'] ?? 'বই প্রকাশনা, মুদ্রণ ও সরবরাহ প্রসঙ্গে' }}" 
+                                       placeholder="বই প্রকাশনা, মুদ্রণ ও সরবরাহ প্রসঙ্গে">
+                            </div>
+
+                            <div class="col-md-12">
+                                <label class="form-label small fw-semibold text-dark mb-1">
+                                    Default Quotation Notes (কোটেশন নোট)
+                                </label>
+                                <input type="text" name="quotation_default_notes" class="form-control form-control-sm" 
+                                       value="{{ $settings['quotation_default_notes'] ?? '১. ভ্যাট যুক্ত করা হয়নি। ২. কোটেশনের মেয়াদ ৩০ দিন পর্যন্ত কার্যকর থাকবে।' }}" 
+                                       placeholder="১. ভ্যাট যুক্ত করা হয়নি। ২. কোটেশনের মেয়াদ ৩০ দিন পর্যন্ত কার্যকর থাকবে।">
+                            </div>
+
+                            <div class="col-md-12">
+                                <label class="form-label small fw-semibold text-dark mb-1">
+                                    Quotation Terms & Conditions (কোটেশন শর্তাবলী)
+                                </label>
+                                <textarea name="quotation_default_terms" class="form-control form-control-sm rounded-2" rows="2" 
+                                          placeholder="কোটেশনের নির্দিষ্ট শর্তাবলী লিখুন...">{{ $settings['quotation_default_terms'] ?? "১. কার্যাদেশ পাওয়ার পর নির্ধারিত সময়ের মধ্যে ডেলিভারি প্রদান করা হবে।\n২. কাজের পরিধি ও স্পেসিফিকেশন পরিবর্তন হলে দর সমন্বয়যোগ্য।" }}</textarea>
                             </div>
                         </div>
                     </div>
 
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold">Company / Imprint Name (Header Title)</label>
+                            <label class="form-label fw-semibold">Company Name</label>
                             <input type="text" name="business_name" id="inputBusinessName" class="form-control" value="{{ $settings['business_name'] ?? 'Idea Publication' }}" required oninput="updateLivePreview()">
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold">Tagline / Slogan</label>
+                            <label class="form-label fw-semibold">Tagline</label>
                             <input type="text" name="tagline" id="inputTagline" class="form-control" value="{{ $settings['tagline'] ?? 'Book Publication, Printing & Distribution' }}" placeholder="Book Publication, Printing..." oninput="updateLivePreview()">
                         </div>
 
                         <div class="col-md-12">
-                            <label class="form-label fw-semibold">Full Official Address</label>
+                            <label class="form-label fw-semibold">Address</label>
                             <input type="text" name="address" id="inputAddress" class="form-control" value="{{ $settings['address'] ?? 'Dhaka, Bangladesh' }}" placeholder="e.g. 38 Banglabazar, Dhaka..." oninput="updateLivePreview()">
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold">Official Phone Number</label>
+                            <label class="form-label fw-semibold">Phone</label>
                             <input type="text" name="phone" id="inputPhone" class="form-control" value="{{ $settings['phone'] ?? '018XXXXXXXX' }}" placeholder="017XXXXXXXX, 018XXXXXXXX" oninput="updateLivePreview()">
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold">Official Email Address</label>
+                            <label class="form-label fw-semibold">Email</label>
                             <input type="email" name="email" id="inputEmail" class="form-control" value="{{ $settings['email'] ?? 'info@ideaabd.com' }}" placeholder="info@ideaabd.com" oninput="updateLivePreview()">
                         </div>
                     </div>
@@ -2568,9 +2880,9 @@ function resetCrop() {
 
 .invoice-table th,
 .invoice-table td {
-    padding: 2px 4px !important;
+    padding: 5px 8px !important;
     vertical-align: middle;
-    line-height: 1.25;
+    line-height: 1.35;
     font-size: 10px;
 }
 
@@ -2583,9 +2895,30 @@ function resetCrop() {
     margin-top: 24px;
 }
 
-.destination-box {
+.destination-box,
+.subject-reference-box {
     box-sizing: border-box !important;
     width: 100% !important;
+}
+
+.colon-table td {
+    padding: 1.5px 0 !important;
+    vertical-align: top;
+}
+
+.colon-table .colon-label {
+    color: #64748b;
+    white-space: nowrap;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.colon-table .colon-sep {
+    width: 14px;
+    text-align: center;
+    font-weight: 700;
+    color: #334155;
+    user-select: none;
 }
 
 @page {
@@ -2708,7 +3041,8 @@ function resetCrop() {
         overflow: visible !important;
     }
 
-    .destination-box {
+    .destination-box,
+    .subject-reference-box {
         width: 100% !important;
         margin-left: 0 !important;
         margin-right: 0 !important;
@@ -2734,9 +3068,9 @@ function resetCrop() {
 
     .invoice-table th,
     .invoice-table td {
-        padding: 1.5px 3.5px !important;
+        padding: 4px 6.5px !important;
         font-size: 9.5px !important;
-        line-height: 1.2 !important;
+        line-height: 1.25 !important;
         border-color: #475569 !important;
     }
 

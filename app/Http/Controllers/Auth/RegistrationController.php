@@ -24,6 +24,124 @@ class RegistrationController extends Controller
         return view("auth.register-{$type}");
     }
 
+    // Send SMS verification OTP for registration
+    public function sendOtp(Request $request, \App\Services\SmsService $smsService)
+    {
+        $request->validate([
+            'phone' => ['required', 'string', 'max:20'],
+            'country_code' => ['nullable', 'string', 'max:10'],
+        ]);
+
+        $countryCode = $request->input('country_code', '+880');
+        $rawPhone = trim($request->input('phone'));
+        $cleanDigits = preg_replace('/[^0-9]/', '', $rawPhone);
+
+        // Normalize phone with country code
+        if (str_starts_with($countryCode, '+880') || $countryCode === '880') {
+            if (str_starts_with($cleanDigits, '880')) {
+                $cleanDigits = substr($cleanDigits, 3);
+            }
+            if (str_starts_with($cleanDigits, '0')) {
+                $cleanDigits = substr($cleanDigits, 1);
+            }
+            $fullPhone = '+880' . $cleanDigits;
+            $localPhone = '0' . $cleanDigits;
+        } else {
+            $prefix = str_starts_with($countryCode, '+') ? $countryCode : '+' . $countryCode;
+            $fullPhone = $prefix . ltrim($cleanDigits, '0');
+            $localPhone = $fullPhone;
+        }
+
+        // Check if user already exists
+        $existing = User::where('phone', $fullPhone)
+            ->orWhere('phone', $localPhone)
+            ->orWhere('phone', $rawPhone)
+            ->first();
+
+        if ($existing) {
+            return response()->json([
+                'success' => false,
+                'already_exists' => true,
+                'message' => 'An account is already registered with this mobile number.',
+                'phone' => $rawPhone,
+                'login_url' => route('login'),
+                'forgot_url' => route('password.request'),
+            ], 422);
+        }
+
+        // Generate 6-digit OTP
+        $otpCode = (string) rand(100000, 999999);
+        $cacheKey = 'reg_otp_' . md5($fullPhone);
+        \Illuminate\Support\Facades\Cache::put($cacheKey, $otpCode, now()->addMinutes(10));
+
+        // Dispatch SMS
+        $res = $smsService->sendVerificationOtp($fullPhone, $otpCode);
+
+        // WhatsApp integration for official number +8801558712810
+        $officialWhatsApp = '+8801558712810';
+        $cleanOfficialWhatsApp = '8801558712810';
+        $userCleanPhone = preg_replace('/[^0-9]/', '', $fullPhone);
+        $whatsappMessage = "IDEA Publication — Your Buyer Account Verification Code is: {$otpCode} (Valid for 15 minutes).\n\nOfficial Helpline: {$officialWhatsApp}";
+        
+        $userWhatsappUrl = 'https://api.whatsapp.com/send?phone=' . $userCleanPhone . '&text=' . urlencode($whatsappMessage);
+        $supportWhatsappUrl = 'https://api.whatsapp.com/send?phone=' . $cleanOfficialWhatsApp . '&text=' . urlencode("Hello IDEA Publication, please verify my registration OTP for phone number: {$fullPhone}. OTP Code: {$otpCode}");
+
+        return response()->json([
+            'success' => true,
+            'message' => '6-digit verification code generated successfully.',
+            'cooldown' => 60,
+            'whatsapp_url' => $userWhatsappUrl,
+            'support_whatsapp_url' => $supportWhatsappUrl,
+            'official_whatsapp' => $officialWhatsApp,
+        ]);
+    }
+
+    // Verify SMS OTP for registration
+    public function verifyOtp(Request $request)
+    {
+        $request->validate([
+            'phone' => ['required', 'string'],
+            'country_code' => ['nullable', 'string'],
+            'otp' => ['required', 'string', 'min:4', 'max:10'],
+        ]);
+
+        $countryCode = $request->input('country_code', '+880');
+        $rawPhone = trim($request->input('phone'));
+        $cleanDigits = preg_replace('/[^0-9]/', '', $rawPhone);
+
+        if (str_starts_with($countryCode, '+880') || $countryCode === '880') {
+            if (str_starts_with($cleanDigits, '880')) {
+                $cleanDigits = substr($cleanDigits, 3);
+            }
+            if (str_starts_with($cleanDigits, '0')) {
+                $cleanDigits = substr($cleanDigits, 1);
+            }
+            $fullPhone = '+880' . $cleanDigits;
+        } else {
+            $prefix = str_starts_with($countryCode, '+') ? $countryCode : '+' . $countryCode;
+            $fullPhone = $prefix . ltrim($cleanDigits, '0');
+        }
+
+        $cacheKey = 'reg_otp_' . md5($fullPhone);
+        $cachedOtp = \Illuminate\Support\Facades\Cache::get($cacheKey);
+
+        if (!$cachedOtp || trim($request->input('otp')) !== (string) $cachedOtp) {
+            return response()->json([
+                'success' => false,
+                'message' => 'The verification code is invalid or has expired. Please try again.',
+            ], 422);
+        }
+
+        // Mark as verified in session
+        \Illuminate\Support\Facades\Cache::forget($cacheKey);
+        session(['phone_verified_' . md5($fullPhone) => true]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Mobile number verified successfully!',
+        ]);
+    }
+
     // Handle all registration types
     public function register(Request $request, string $type)
     {
@@ -54,6 +172,24 @@ class RegistrationController extends Controller
         ];
 
         if ($type === 'buyer') {
+            $countryCode = $request->input('country_code', '+880');
+            $rawPhone = trim($request->input('phone', ''));
+            $cleanDigits = preg_replace('/[^0-9]/', '', $rawPhone);
+            if (str_starts_with($countryCode, '+880') || $countryCode === '880') {
+                if (str_starts_with($cleanDigits, '880')) {
+                    $cleanDigits = substr($cleanDigits, 3);
+                }
+                if (str_starts_with($cleanDigits, '0')) {
+                    $cleanDigits = substr($cleanDigits, 1);
+                }
+                $formattedPhone = '0' . $cleanDigits;
+            } else {
+                $prefix = str_starts_with($countryCode, '+') ? $countryCode : '+' . $countryCode;
+                $formattedPhone = $prefix . ltrim($cleanDigits, '0');
+            }
+
+            $request->merge(['phone' => $formattedPhone]);
+
             $base = $request->validate([
                 'name'     => ['required', 'string', 'max:255'],
                 'phone'    => ['required', 'string', 'max:20', 'unique:users,phone'],
@@ -63,11 +199,11 @@ class RegistrationController extends Controller
 
             // If buyer didn't specify an email, auto-create a unique placeholder for DB uniqueness
             if (empty($base['email'])) {
-                $cleanPhone = preg_replace('/[^0-9]/', '', $base['phone']);
-                $generatedEmail = $cleanPhone . '@buyer.ideaabd.com';
+                $cleanP = preg_replace('/[^0-9]/', '', $formattedPhone);
+                $generatedEmail = $cleanP . '@buyer.ideaabd.com';
                 $existing = User::where('email', $generatedEmail)->first();
                 if ($existing) {
-                    $generatedEmail = $cleanPhone . '_' . rand(100, 999) . '@buyer.ideaabd.com';
+                    $generatedEmail = $cleanP . '_' . rand(100, 999) . '@buyer.ideaabd.com';
                 }
                 $base['email'] = $generatedEmail;
             }
@@ -229,12 +365,8 @@ class RegistrationController extends Controller
 
         session(['registration_summary' => $registrationSummary]);
 
-        if ($type === 'buyer') {
-            auth()->login($user);
-        }
-
         return redirect()->route('register.success')
-            ->with('success', 'আপনার রেজিস্ট্রেশন ও আবেদন সফলভাবে গৃহীত হয়েছে!');
+            ->with('success', 'আপনার রেজিস্ট্রেশন সফলভাবে সম্পন্ন হয়েছে!');
     }
 
     /**

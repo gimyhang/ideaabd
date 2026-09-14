@@ -862,9 +862,9 @@ function setViewMode(mode) {
 
 .invoice-table th,
 .invoice-table td {
-    padding: 2px 4px !important;
+    padding: 5px 8px !important;
     vertical-align: middle;
-    line-height: 1.25;
+    line-height: 1.35;
     font-size: 10px;
 }
 
@@ -1028,9 +1028,9 @@ function setViewMode(mode) {
 
     .invoice-table th,
     .invoice-table td {
-        padding: 1.5px 3.5px !important;
+        padding: 4px 6.5px !important;
         font-size: 9.5px !important;
-        line-height: 1.2 !important;
+        line-height: 1.25 !important;
         border-color: #475569 !important;
     }
 

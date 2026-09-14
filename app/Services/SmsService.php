@@ -83,6 +83,37 @@ class SmsService
                     'sender_id' => $senderId,
                     'message'   => $message,
                 ]);
+            } elseif ($provider === 'ultramsg' || str_contains($url, 'ultramsg.com')) {
+                // Automated WhatsApp via UltraMsg
+                $response = Http::timeout(10)->post($url, [
+                    'token' => $apiKey,
+                    'to'    => '+' . ltrim($formattedPhone, '+'),
+                    'body'  => $message,
+                ]);
+            } elseif ($provider === 'meta_whatsapp' || $provider === 'meta' || !empty(env('META_WHATSAPP_TOKEN'))) {
+                // Official Meta WhatsApp Cloud API
+                $metaToken   = env('META_WHATSAPP_TOKEN') ?: $apiKey;
+                $metaPhoneId = env('META_WHATSAPP_PHONE_ID') ?: env('META_PHONE_NUMBER_ID');
+                $metaUrl     = (str_contains((string)$url, 'graph.facebook.com') ? $url : null) ?: "https://graph.facebook.com/v21.0/{$metaPhoneId}/messages";
+                
+                $cleanRecipient = preg_replace('/[^0-9]/', '', $formattedPhone);
+                if (!str_starts_with($cleanRecipient, '880') && strlen($cleanRecipient) === 11 && str_starts_with($cleanRecipient, '01')) {
+                    $cleanRecipient = '88' . $cleanRecipient;
+                }
+
+                $response = Http::timeout(10)->withHeaders([
+                    'Authorization' => 'Bearer ' . $metaToken,
+                    'Content-Type'  => 'application/json',
+                ])->post($metaUrl, [
+                    'messaging_product' => 'whatsapp',
+                    'recipient_type'    => 'individual',
+                    'to'                => $cleanRecipient,
+                    'type'              => 'text',
+                    'text'              => [
+                        'preview_url' => false,
+                        'body'        => $message,
+                    ],
+                ]);
             } else {
                 // Generic POST / GET SMS Gateway
                 $payload = [
@@ -131,6 +162,15 @@ class SmsService
     public static function sendPasswordResetOtp(string $phone, string $otpCode, string $resetUrl): array
     {
         $message = "আইডিয়া প্রকাশন — আপনার পাসওয়ার্ড রিসেট ওটিপি কোড: {$otpCode} (মেয়াদ ৩০ মিনিট)। লিংক: {$resetUrl}";
+        return self::send($phone, $message);
+    }
+
+    /**
+     * Send mobile verification OTP SMS for registration.
+     */
+    public static function sendVerificationOtp(string $phone, string $otpCode): array
+    {
+        $message = "আইডিয়া প্রকাশন — আপনার মোবাইল ভেরিফিকেশন কোড: {$otpCode} (মেয়াদ ১৫ মিনিট)। কোডটি কাউকে শেয়ার করবেন না।";
         return self::send($phone, $message);
     }
 }
