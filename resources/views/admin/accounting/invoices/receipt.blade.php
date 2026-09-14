@@ -136,21 +136,26 @@
     }
 
     /* Authentic Vector Round Rubber Stamp Effect */
-    .round-rubber-stamp-container {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
+    .rubber-stamp-float-container {
+        position: absolute;
+        right: 25px;
+        top: -30px;
+        z-index: 10;
+        pointer-events: none;
         user-select: none;
     }
     .round-rubber-stamp-svg {
-        width: 140px;
-        height: 140px;
+        width: 135px;
+        height: 135px;
+        min-width: 135px;
+        min-height: 135px;
+        max-width: 135px;
+        max-height: 135px;
         display: block;
         transform: rotate(-10deg);
         filter: drop-shadow(0 0 1px rgba(107, 33, 168, 0.45));
         mix-blend-mode: multiply;
         opacity: 0.92;
-        pointer-events: none;
     }
 
     @media print {
@@ -192,12 +197,26 @@
             font-size: 11px !important;
             line-height: 1.4 !important;
         }
+        .rubber-stamp-float-container {
+            position: absolute !important;
+            right: 25px !important;
+            top: -30px !important;
+            z-index: 10 !important;
+            display: block !important;
+            width: 135px !important;
+            height: 135px !important;
+        }
         .round-rubber-stamp-svg {
+            width: 135px !important;
+            height: 135px !important;
+            min-width: 135px !important;
+            min-height: 135px !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
             mix-blend-mode: multiply !important;
             opacity: 0.95 !important;
             filter: none !important;
+            display: block !important;
         }
         .receipt-meta-cell {
             padding: 5px 8px !important;
@@ -205,6 +224,7 @@
         .amount-highlight-box {
             padding: 8px 12px !important;
             margin-bottom: 8px !important;
+            overflow: visible !important;
         }
         .signature-section {
             padding-top: 12px !important;
@@ -415,118 +435,111 @@
             </div>
         @endif
 
-        {{-- Financial Breakdown Card with Authentic Round Rubber Stamp Seal --}}
-        <div class="amount-highlight-box mb-2" style="background: #f8fafc; border: 1.5px solid #e2e8f0; padding: 14px 16px;">
-            <div class="row align-items-center g-3">
-                {{-- Column 1 & 2: Clean Structured Billing & Highlighted Paid to Date --}}
-                <div class="col-md-9 border-end-md pe-md-4">
-                    {{-- Top 3 Financial Metric Tiles --}}
-                    <div class="row g-2 mb-2">
-                        <div class="col-4">
-                            <div class="p-2 bg-white rounded-2 border shadow-2xs text-start h-100 d-flex flex-column justify-content-center">
-                                <span class="text-muted d-block fw-semibold" style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.3px;">Bill without TAX/VAT:</span>
-                                <span class="fw-bold font-monospace text-dark mt-0.5" style="font-size: 13px;">৳{{ number_format($payment->effective_net_amount, 2) }}</span>
-                            </div>
-                        </div>
-                        <div class="col-4">
-                            <div class="p-2 bg-white rounded-2 border shadow-2xs text-start h-100 d-flex flex-column justify-content-center">
-                                <span class="text-danger d-block fw-semibold" style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.3px;">TAX / VAT:</span>
-                                <span class="fw-bold font-monospace text-danger mt-0.5" style="font-size: 13px;">{{ $payment->total_deductions > 0 ? '-৳' . number_format($payment->total_deductions, 2) : '৳0.00' }}</span>
-                            </div>
-                        </div>
-                        <div class="col-4">
-                            <div class="p-2 bg-white rounded-2 border shadow-2xs text-start h-100 d-flex flex-column justify-content-center">
-                                <span class="text-muted d-block fw-semibold" style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.3px;">Total Bill:</span>
-                                <span class="fw-bold font-monospace text-dark mt-0.5" style="font-size: 13px;">৳{{ number_format($totalGrand, 2) }}</span>
-                            </div>
-                        </div>
+        {{-- Financial Breakdown Card with Floating Authentic Round Rubber Stamp Seal --}}
+        <div class="amount-highlight-box mb-2 position-relative" style="background: #f8fafc; border: 1.5px solid #e2e8f0; padding: 14px 16px; overflow: visible;">
+            {{-- Floating Seal overlapping top border / Statutory Tax & VAT Deduction Breakdown area --}}
+            <div class="rubber-stamp-float-container">
+                <svg class="round-rubber-stamp-svg" width="135" height="135" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        {{-- Top Curved Text Path for "IDEA PROKASHON" --}}
+                        <path id="stampTopPath" d="M 24,100 A 76,76 0 0,1 176,100" fill="none" />
+                        {{-- Bottom Curved Text Path --}}
+                        <path id="stampBottomPath" d="M 176,100 A 76,76 0 0,1 24,100" fill="none" />
+                    </defs>
+
+                    {{-- Outer Dashed Ring --}}
+                    <circle cx="100" cy="100" r="94" fill="none" stroke="#6b21a8" stroke-width="2.5" stroke-dasharray="6,4" />
+                    {{-- Inner Solid Ring --}}
+                    <circle cx="100" cy="100" r="88" fill="none" stroke="#7e22ce" stroke-width="1.5" />
+                    
+                    {{-- Curved Top Text: IDEA PROKASHON along the border --}}
+                    <text fill="#6b21a8" font-size="16" font-weight="900" font-family="'Arial Black', Impact, sans-serif" letter-spacing="3.5">
+                        <textPath href="#stampTopPath" xlink:href="#stampTopPath" startOffset="50%" text-anchor="middle">
+                            IDEA PROKASHON
+                        </textPath>
+                    </text>
+
+                    {{-- Curved Bottom Text --}}
+                    <text fill="#7e22ce" font-size="11.5" font-weight="800" font-family="'Arial Black', Impact, sans-serif" letter-spacing="2">
+                        <textPath href="#stampBottomPath" xlink:href="#stampBottomPath" startOffset="50%" text-anchor="middle">
+                            {{ $remainingDue <= 0 ? '★ FULL SETTLEMENT ★' : '★ PARTIAL PAYMENT ★' }}
+                        </textPath>
+                    </text>
+
+                    {{-- Inner Center Border Ring --}}
+                    <circle cx="100" cy="100" r="56" fill="rgba(243, 232, 255, 0.25)" stroke="#7e22ce" stroke-width="1.2" stroke-dasharray="4,2.5" />
+
+                    {{-- Center Big Status: PAID / DUE --}}
+                    @if($remainingDue <= 0)
+                        <text x="100" y="93" text-anchor="middle" fill="#581c87" font-size="34" font-weight="900" font-family="'Arial Black', Impact, sans-serif" letter-spacing="3">
+                            PAID
+                        </text>
+                    @else
+                        <text x="100" y="93" text-anchor="middle" fill="#7e22ce" font-size="34" font-weight="900" font-family="'Arial Black', Impact, sans-serif" letter-spacing="3">
+                            DUE
+                        </text>
+                    @endif
+
+                    {{-- Center Horizontal Date Lines --}}
+                    <line x1="50" y1="104" x2="150" y2="104" stroke="#7e22ce" stroke-width="1.2" />
+                    <text x="100" y="117" text-anchor="middle" fill="#6b21a8" font-size="12" font-weight="800" font-family="'Courier New', Courier, monospace" letter-spacing="1">
+                        {{ $payment->payment_date ? $payment->payment_date->format('d M, Y') : date('d M, Y') }}
+                    </text>
+                    <line x1="50" y1="123" x2="150" y2="123" stroke="#7e22ce" stroke-width="1.2" />
+                </svg>
+            </div>
+
+            {{-- Top 3 Financial Metric Tiles --}}
+            <div class="row g-2 mb-2">
+                <div class="col-4">
+                    <div class="p-2 bg-white rounded-2 border shadow-2xs text-start h-100 d-flex flex-column justify-content-center">
+                        <span class="text-muted d-block fw-semibold" style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.3px;">Bill without TAX/VAT:</span>
+                        <span class="fw-bold font-monospace text-dark mt-0.5" style="font-size: 13px;">৳{{ number_format($payment->effective_net_amount, 2) }}</span>
                     </div>
+                </div>
+                <div class="col-4">
+                    <div class="p-2 bg-white rounded-2 border shadow-2xs text-start h-100 d-flex flex-column justify-content-center">
+                        <span class="text-danger d-block fw-semibold" style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.3px;">TAX / VAT:</span>
+                        <span class="fw-bold font-monospace text-danger mt-0.5" style="font-size: 13px;">{{ $payment->total_deductions > 0 ? '-৳' . number_format($payment->total_deductions, 2) : '৳0.00' }}</span>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="p-2 bg-white rounded-2 border shadow-2xs text-start h-100 d-flex flex-column justify-content-center">
+                        <span class="text-muted d-block fw-semibold" style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.3px;">Total Bill:</span>
+                        <span class="fw-bold font-monospace text-dark mt-0.5" style="font-size: 13px;">৳{{ number_format($totalGrand, 2) }}</span>
+                    </div>
+                </div>
+            </div>
 
-                    {{-- Highlighted 2-Column Box: Total Paid to Date & Due --}}
-                    <div class="row g-2">
-                        {{-- Column 1: Total Paid to Date (Green) --}}
-                        <div class="col-sm-7">
-                            <div class="p-3 rounded-2 bg-white border border-success-subtle shadow-2xs h-100 d-flex flex-column justify-content-center">
-                                <div class="text-success small fw-bold text-uppercase mb-1" style="font-size: 11px; letter-spacing: 0.5px;">
-                                    <i class="fas fa-money-check-dollar me-1.5"></i> Total Paid to Date:
-                                </div>
-                                <div class="fs-3 fw-bold text-success font-monospace mb-1" style="line-height: 1.15;">
-                                    ৳{{ number_format($payment->effective_net_amount, 2) }}
-                                </div>
-                                <div class="text-muted small" style="font-size: 11px; line-height: 1.35;">
-                                    In Words: <strong class="text-dark">@takaInWordsEn($payment->effective_net_amount)</strong>
-                                </div>
-                            </div>
+            {{-- Highlighted 2-Column Box: Total Paid to Date & Due --}}
+            <div class="row g-2">
+                {{-- Column 1: Total Paid to Date (Green) --}}
+                <div class="col-sm-7">
+                    <div class="p-3 rounded-2 bg-white border border-success-subtle shadow-2xs h-100 d-flex flex-column justify-content-center">
+                        <div class="text-success small fw-bold text-uppercase mb-1" style="font-size: 11px; letter-spacing: 0.5px;">
+                            <i class="fas fa-money-check-dollar me-1.5"></i> Total Paid to Date:
                         </div>
-
-                        {{-- Column 2: Due (Red) --}}
-                        <div class="col-sm-5">
-                            <div class="p-3 rounded-2 bg-white border border-danger-subtle shadow-2xs h-100 d-flex flex-column justify-content-center">
-                                <div class="text-danger small fw-bold text-uppercase mb-1" style="font-size: 11px; letter-spacing: 0.5px;">
-                                    <i class="fas fa-circle-exclamation me-1.5"></i> Due:
-                                </div>
-                                <div class="fs-3 fw-bold text-danger font-monospace mb-1" style="line-height: 1.15;">
-                                    ৳{{ number_format($remainingDue, 2) }}
-                                </div>
-                                <div class="text-muted small" style="font-size: 11px; line-height: 1.35;">
-                                    Status: <strong class="{{ $remainingDue <= 0 ? 'text-success' : 'text-danger' }}">{{ $remainingDue <= 0 ? 'Full Settled' : 'Payment Pending' }}</strong>
-                                </div>
-                            </div>
+                        <div class="fs-3 fw-bold text-success font-monospace mb-1" style="line-height: 1.15;">
+                            ৳{{ number_format($payment->effective_net_amount, 2) }}
+                        </div>
+                        <div class="text-muted small" style="font-size: 11px; line-height: 1.35;">
+                            In Words: <strong class="text-dark">@takaInWordsEn($payment->effective_net_amount)</strong>
                         </div>
                     </div>
                 </div>
 
-                {{-- Column 3: Official Round Rubber Stamp (SVG with curved border text) --}}
-                <div class="col-md-3 text-center d-flex align-items-center justify-content-center py-1">
-                    <div class="round-rubber-stamp-container">
-                        <svg class="round-rubber-stamp-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-                            <defs>
-                                {{-- Top Curved Text Path for "IDEA PROKASHON" --}}
-                                <path id="stampTopPath" d="M 24,100 A 76,76 0 0,1 176,100" fill="none" />
-                                {{-- Bottom Curved Text Path --}}
-                                <path id="stampBottomPath" d="M 176,100 A 76,76 0 0,1 24,100" fill="none" />
-                            </defs>
-
-                            {{-- Outer Dashed Ring --}}
-                            <circle cx="100" cy="100" r="94" fill="none" stroke="#6b21a8" stroke-width="2.5" stroke-dasharray="6,4" />
-                            {{-- Inner Solid Ring --}}
-                            <circle cx="100" cy="100" r="88" fill="none" stroke="#7e22ce" stroke-width="1.5" />
-                            
-                            {{-- Curved Top Text: IDEA PROKASHON along the border --}}
-                            <text fill="#6b21a8" font-size="16" font-weight="900" font-family="'Arial Black', Impact, sans-serif" letter-spacing="3.5">
-                                <textPath href="#stampTopPath" xlink:href="#stampTopPath" startOffset="50%" text-anchor="middle">
-                                    IDEA PROKASHON
-                                </textPath>
-                            </text>
-
-                            {{-- Curved Bottom Text --}}
-                            <text fill="#7e22ce" font-size="11.5" font-weight="800" font-family="'Arial Black', Impact, sans-serif" letter-spacing="2">
-                                <textPath href="#stampBottomPath" xlink:href="#stampBottomPath" startOffset="50%" text-anchor="middle">
-                                    {{ $remainingDue <= 0 ? '★ FULL SETTLEMENT ★' : '★ PARTIAL PAYMENT ★' }}
-                                </textPath>
-                            </text>
-
-                            {{-- Inner Center Border Ring --}}
-                            <circle cx="100" cy="100" r="56" fill="rgba(243, 232, 255, 0.25)" stroke="#7e22ce" stroke-width="1.2" stroke-dasharray="4,2.5" />
-
-                            {{-- Center Big Status: PAID / DUE (+30px larger) --}}
-                            @if($remainingDue <= 0)
-                                <text x="100" y="93" text-anchor="middle" fill="#581c87" font-size="34" font-weight="900" font-family="'Arial Black', Impact, sans-serif" letter-spacing="3">
-                                    PAID
-                                </text>
-                            @else
-                                <text x="100" y="93" text-anchor="middle" fill="#7e22ce" font-size="34" font-weight="900" font-family="'Arial Black', Impact, sans-serif" letter-spacing="3">
-                                    DUE
-                                </text>
-                            @endif
-
-                            {{-- Center Horizontal Date Lines --}}
-                            <line x1="50" y1="104" x2="150" y2="104" stroke="#7e22ce" stroke-width="1.2" />
-                            <text x="100" y="117" text-anchor="middle" fill="#6b21a8" font-size="12" font-weight="800" font-family="'Courier New', Courier, monospace" letter-spacing="1">
-                                {{ $payment->payment_date ? $payment->payment_date->format('d M, Y') : date('d M, Y') }}
-                            </text>
-                            <line x1="50" y1="123" x2="150" y2="123" stroke="#7e22ce" stroke-width="1.2" />
-                        </svg>
+                {{-- Column 2: Due (Red) --}}
+                <div class="col-sm-5">
+                    <div class="p-3 rounded-2 bg-white border border-danger-subtle shadow-2xs h-100 d-flex flex-column justify-content-center">
+                        <div class="text-danger small fw-bold text-uppercase mb-1" style="font-size: 11px; letter-spacing: 0.5px;">
+                            <i class="fas fa-circle-exclamation me-1.5"></i> Due:
+                        </div>
+                        <div class="fs-3 fw-bold text-danger font-monospace mb-1" style="line-height: 1.15;">
+                            ৳{{ number_format($remainingDue, 2) }}
+                        </div>
+                        <div class="text-muted small" style="font-size: 11px; line-height: 1.35;">
+                            Status: <strong class="{{ $remainingDue <= 0 ? 'text-success' : 'text-danger' }}">{{ $remainingDue <= 0 ? 'Full Settled' : 'Payment Pending' }}</strong>
+                        </div>
                     </div>
                 </div>
             </div>
