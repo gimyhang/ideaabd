@@ -229,15 +229,15 @@
                         @if(!empty($settings['tagline']))
                             <div class="text-muted small" style="font-size: 11px; margin-top: 1px;">{{ $settings['tagline'] }}</div>
                         @endif
-                        <div class="text-secondary small mt-0.5 d-flex align-items-center flex-wrap gap-1.5" style="font-size: 10.5px;">
+                        <div class="text-secondary small mt-1 d-flex align-items-center flex-wrap" style="font-size: 11px; line-height: 1.4;">
                             <span>{{ $settings['address'] ?? 'Dhaka, Bangladesh' }}</span>
                             @if(!empty($settings['phone']))
-                                <span class="text-muted mx-0.5">|</span>
-                                <span><i class="fas fa-phone-alt text-secondary me-1"></i>{{ $settings['phone'] }}</span>
+                                <span class="text-muted mx-2">|</span>
+                                <span class="d-inline-flex align-items-center"><i class="fas fa-phone-alt text-secondary me-1.5" style="font-size: 10px;"></i>{{ $settings['phone'] }}</span>
                             @endif
                             @if(!empty($settings['email']))
-                                <span class="text-muted mx-0.5">|</span>
-                                <span><i class="fas fa-envelope text-secondary me-1"></i>{{ $settings['email'] }}</span>
+                                <span class="text-muted mx-2">|</span>
+                                <span class="d-inline-flex align-items-center"><i class="fas fa-envelope text-secondary me-1.5" style="font-size: 10.5px;"></i>{{ $settings['email'] }}</span>
                             @endif
                         </div>
                     </div>
@@ -254,7 +254,7 @@
 
         {{-- Formal English Official Certificate --}}
         <div class="cert-box-en position-relative">
-            <div class="p-2.5 bg-white rounded-2 border mb-2 text-dark lh-base" style="font-size: 12px; text-align: justify;">
+            <div class="p-3 bg-white rounded-2 border mb-2 text-dark lh-base" style="font-size: 11.5px; line-height: 1.6; text-align: justify;">
                 @if($payment->has_deductions)
                     This is to officially certify that an aggregate settlement amount of 
                     <span class="cert-fill-underline text-primary font-monospace">
@@ -446,14 +446,14 @@
                     <div class="row g-2">
                         {{-- Column 1: Total Paid to Date (Green) --}}
                         <div class="col-sm-7">
-                            <div class="p-2.5 rounded-2 bg-white border border-success-subtle shadow-2xs h-100 d-flex flex-column justify-content-center">
-                                <div class="text-success small fw-bold text-uppercase mb-0.5" style="font-size: 11px; letter-spacing: 0.5px;">
+                            <div class="p-3 rounded-2 bg-white border border-success-subtle shadow-2xs h-100 d-flex flex-column justify-content-center">
+                                <div class="text-success small fw-bold text-uppercase mb-1" style="font-size: 11px; letter-spacing: 0.5px;">
                                     <i class="fas fa-money-check-dollar me-1.5"></i> Total Paid to Date:
                                 </div>
-                                <div class="fs-3 fw-bold text-success font-monospace mb-0.5" style="line-height: 1.15;">
+                                <div class="fs-3 fw-bold text-success font-monospace mb-1" style="line-height: 1.15;">
                                     ৳{{ number_format($payment->effective_net_amount, 2) }}
                                 </div>
-                                <div class="text-muted small" style="font-size: 10.5px; line-height: 1.35;">
+                                <div class="text-muted small" style="font-size: 11px; line-height: 1.35;">
                                     In Words: <strong class="text-dark">@takaInWordsEn($payment->effective_net_amount)</strong>
                                 </div>
                             </div>
@@ -461,14 +461,14 @@
 
                         {{-- Column 2: Due (Red) --}}
                         <div class="col-sm-5">
-                            <div class="p-2.5 rounded-2 bg-white border border-danger-subtle shadow-2xs h-100 d-flex flex-column justify-content-center">
-                                <div class="text-danger small fw-bold text-uppercase mb-0.5" style="font-size: 11px; letter-spacing: 0.5px;">
+                            <div class="p-3 rounded-2 bg-white border border-danger-subtle shadow-2xs h-100 d-flex flex-column justify-content-center">
+                                <div class="text-danger small fw-bold text-uppercase mb-1" style="font-size: 11px; letter-spacing: 0.5px;">
                                     <i class="fas fa-circle-exclamation me-1.5"></i> Due:
                                 </div>
-                                <div class="fs-3 fw-bold text-danger font-monospace mb-0.5" style="line-height: 1.15;">
+                                <div class="fs-3 fw-bold text-danger font-monospace mb-1" style="line-height: 1.15;">
                                     ৳{{ number_format($remainingDue, 2) }}
                                 </div>
-                                <div class="text-muted small" style="font-size: 10.5px; line-height: 1.35;">
+                                <div class="text-muted small" style="font-size: 11px; line-height: 1.35;">
                                     Status: <strong class="{{ $remainingDue <= 0 ? 'text-success' : 'text-danger' }}">{{ $remainingDue <= 0 ? 'Full Settled' : 'Payment Pending' }}</strong>
                                 </div>
                             </div>
@@ -557,12 +557,12 @@
 
         {{-- Signatures & Acknowledgement --}}
         <div class="signature-section">
-            <div class="row align-items-center text-center">
-                {{-- Left: Customer / Payer Signature --}}
+            <div class="row align-items-end text-center">
+                {{-- Left: Customer / Payer Signature (Matched baseline with Collected By:) --}}
                 <div class="col-4 text-start">
-                    <div class="d-inline-block text-center" style="min-width: 145px;">
-                        <div class="border-top border-dark mb-1 mx-auto" style="width: 140px;"></div>
-                        <div class="small fw-bold text-dark mb-0.5" style="font-size: 11px;">Customer Signature</div>
+                    <div class="d-inline-flex flex-column align-items-center justify-content-end text-center" style="min-width: 145px; min-height: 54px;">
+                        <div class="border-top border-dark mb-1" style="width: 140px;"></div>
+                        <div class="small fw-bold text-dark" style="font-size: 11px; line-height: 1.3;">Customer Signature</div>
                     </div>
                 </div>
 
@@ -582,11 +582,11 @@
 
                 {{-- Right: Authorized Collector / Signatory --}}
                 <div class="col-4 text-end">
-                    <div class="d-inline-block text-center" style="min-width: 145px;">
-                        <div class="small fw-bold text-dark mb-0.5" style="font-size: 11.5px;">{{ $creatorName ?: 'Shakil Masud' }}</div>
-                        <div class="text-muted mb-1" style="font-size: 9.5px;">{{ $creatorDesignation ?: 'CEO & Publisher' }}</div>
-                        <div class="border-top border-dark mb-1 mx-auto" style="width: 140px;"></div>
-                        <div class="text-muted fw-semibold" style="font-size: 9.5px; text-transform: uppercase;">Collected By:</div>
+                    <div class="d-inline-flex flex-column align-items-center justify-content-end text-center" style="min-width: 145px; min-height: 54px;">
+                        <div class="small fw-bold text-dark mb-0.5" style="font-size: 11.5px; line-height: 1.2;">{{ $creatorName ?: 'Shakil Masud' }}</div>
+                        <div class="text-muted mb-1" style="font-size: 9.5px; line-height: 1.2;">{{ $creatorDesignation ?: 'CEO & Publisher' }}</div>
+                        <div class="border-top border-dark mb-1" style="width: 140px;"></div>
+                        <div class="text-muted fw-semibold" style="font-size: 9.5px; text-transform: uppercase; line-height: 1.3;">Collected By:</div>
                     </div>
                 </div>
             </div>
