@@ -56,33 +56,37 @@
     @endphp
 
     @if($totalAlertsCount > 0)
-        <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white border-start border-4 border-warning mb-3">
-            <div class="card-header bg-warning-subtle bg-opacity-50 py-3 px-4 border-bottom d-flex flex-wrap align-items-center justify-content-between gap-3">
-                <div class="d-flex align-items-center gap-2.5">
-                    <span class="badge bg-warning text-dark p-2.5 rounded-circle shadow-xs position-relative">
-                        <i class="fas fa-bell fa-shake"></i>
-                        <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle"></span>
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white mb-3">
+            <div class="card-header bg-warning-subtle bg-opacity-40 py-2.5 px-3 px-md-4 border-bottom d-flex align-items-center justify-content-between flex-wrap gap-2">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-warning text-dark p-2 rounded-circle shadow-xs">
+                        <i class="fas fa-bell"></i>
                     </span>
-                    <div>
-                        <h5 class="fw-bold mb-0 text-dark">পেন্ডিং রিকোয়েস্ট ({{ $totalAlertsCount }})</h5>
-                        <small class="text-muted">আপনার দ্রুত পর্যালোচনা ও অনুমোদনের অপেক্ষায় থাকা আইটেমসমূহ</small>
-                    </div>
+                    <h6 class="fw-bold mb-0 text-dark">পেন্ডিং রিকোয়েস্ট ({{ $totalAlertsCount }})</h6>
                 </div>
                 
                 {{-- Action Required Interactive Dropdown Launcher --}}
                 <div class="dropdown">
-                    <button class="btn btn-warning btn-sm rounded-pill px-3.5 py-2 fw-bold text-dark dropdown-toggle shadow-xs d-flex align-items-center gap-1.5" type="button" id="pendingActionMenu" data-bs-toggle="dropdown" aria-expanded="false">
+                    <button class="btn btn-warning btn-sm rounded-pill px-3 py-1.5 fw-bold text-dark dropdown-toggle shadow-xs d-flex align-items-center gap-1.5" type="button" id="pendingActionMenu" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="fas fa-bolt-lightning text-danger"></i>
                         <span>অ্যাকশন প্রয়োজন</span>
                         <span class="badge bg-danger text-white rounded-pill ms-1">{{ $totalAlertsCount }}</span>
                     </button>
-                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-3 p-2" aria-labelledby="pendingActionMenu" style="min-width: 260px;">
-                        <li class="dropdown-header text-uppercase small fw-bold text-muted px-3 py-1">দ্রুত একশন নেভিগেশন</li>
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-3 p-2" aria-labelledby="pendingActionMenu" style="min-width: 230px;">
+                        <li class="dropdown-header text-uppercase small fw-bold text-muted px-3 py-1">দ্রুত অ্যাকশন</li>
                         @if($orderCount > 0)
                             <li>
                                 <a class="dropdown-item d-flex align-items-center justify-content-between rounded-2 py-2 px-3" href="{{ route('admin.ecommerce-orders', ['status' => 'pending']) }}">
-                                    <span><i class="fas fa-cart-shopping text-warning me-2"></i>নতুন অর্ডার</span>
+                                    <span><i class="fas fa-cart-shopping text-warning me-2"></i>নতুন বই অর্ডার</span>
                                     <span class="badge bg-warning-subtle text-dark fw-bold rounded-pill">{{ $orderCount }}</span>
+                                </a>
+                            </li>
+                        @endif
+                        @if($submissionCount > 0 || $authorUpdateCount > 0)
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center justify-content-between rounded-2 py-2 px-3" href="{{ route('admin.registrations.index', ['status' => 'pending']) }}">
+                                    <span><i class="fas fa-file-signature text-dark me-2"></i>পাণ্ডুলিপি ও লেখক</span>
+                                    <span class="badge bg-dark-subtle text-dark fw-bold rounded-pill">{{ $submissionCount + $authorUpdateCount }}</span>
                                 </a>
                             </li>
                         @endif
@@ -113,7 +117,7 @@
                         @if($bookCount > 0)
                             <li>
                                 <a class="dropdown-item d-flex align-items-center justify-content-between rounded-2 py-2 px-3" href="{{ route('admin.books', ['mod_status' => 'pending']) }}">
-                                    <span><i class="fas fa-book-open text-primary me-2"></i>নতুন বই অনুমোদন</span>
+                                    <span><i class="fas fa-book-open text-primary me-2"></i>বই অনুমোদন</span>
                                     <span class="badge bg-primary-subtle text-primary fw-bold rounded-pill">{{ $bookCount }}</span>
                                 </a>
                             </li>
@@ -126,18 +130,10 @@
                                 </a>
                             </li>
                         @endif
-                        @if($submissionCount > 0 || $authorUpdateCount > 0)
-                            <li>
-                                <a class="dropdown-item d-flex align-items-center justify-content-between rounded-2 py-2 px-3" href="{{ route('admin.registrations.index', ['status' => 'pending']) }}">
-                                    <span><i class="fas fa-file-signature text-secondary me-2"></i>লেখক আপডেট / পাণ্ডুলিপি</span>
-                                    <span class="badge bg-secondary-subtle text-secondary fw-bold rounded-pill">{{ $submissionCount + $authorUpdateCount }}</span>
-                                </a>
-                            </li>
-                        @endif
                         <li><hr class="dropdown-divider my-1"></li>
                         <li>
-                            <a class="dropdown-item small text-center text-primary fw-semibold py-1.5" href="{{ route('admin.ecommerce-orders', ['status' => 'pending']) }}">
-                                <i class="fas fa-arrow-up-right-from-square me-1"></i>সকল পেন্ডিং কাজ সম্পন্ন করুন
+                            <a class="dropdown-item small text-center text-primary fw-semibold py-1" href="{{ route('admin.ecommerce-orders', ['status' => 'pending']) }}">
+                                <i class="fas fa-arrow-up-right-from-square me-1"></i>সব দেখুন
                             </a>
                         </li>
                     </ul>
@@ -145,208 +141,159 @@
             </div>
 
             {{-- Column Grid Presentation of Pending Notifications --}}
-            <div class="card-body p-4 bg-light-subtle">
-                <div class="row row-cols-1 row-cols-md-2 row-cols-xl-4 g-3">
+            <div class="card-body p-3 p-md-3.5">
+                <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-xl-4 g-3">
                     
                     {{-- 1. Pending Orders --}}
                     @if($orderCount > 0)
                         <div class="col">
-                            <div class="card h-100 border-0 shadow-xs rounded-3 bg-white p-3.5 transition-all hover-shadow-sm border-start border-3 border-warning">
-                                <div class="d-flex align-items-start justify-content-between mb-2.5">
+                            <div class="p-3 bg-light rounded-3 border h-100 d-flex flex-column justify-content-between">
+                                <div class="d-flex align-items-center justify-content-between mb-2.5">
                                     <div class="d-flex align-items-center gap-2.5">
-                                        <div class="rounded-circle bg-warning bg-opacity-15 text-warning p-2.5 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px;">
-                                            <i class="fas fa-cart-shopping fs-5"></i>
+                                        <div class="rounded-circle bg-warning bg-opacity-20 text-dark p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px;">
+                                            <i class="fas fa-cart-shopping"></i>
                                         </div>
                                         <div>
-                                            <h6 class="fw-bold text-dark mb-0">নতুন বই অর্ডার</h6>
-                                            <small class="text-muted">E-Commerce Orders</small>
+                                            <div class="fw-bold text-dark small">নতুন বই অর্ডার</div>
+                                            <span class="text-warning-emphasis fw-bold font-monospace small">{{ $orderCount }}টি পেন্ডিং</span>
                                         </div>
                                     </div>
-                                    <span class="badge bg-warning text-dark font-monospace fw-bold px-2.5 py-1 rounded-pill">{{ $orderCount }}</span>
                                 </div>
-                                <div class="text-muted small mb-3">
-                                    গ্রাহকের অর্ডার যাচাই ও শিপিং প্রসেসিং এর অপেক্ষায় আছে।
-                                </div>
-                                <div class="mt-auto pt-2 border-top d-flex align-items-center justify-content-between">
-                                    <span class="small font-monospace fw-bold text-warning">{{ $orderCount }}টি পেন্ডিং</span>
-                                    <a href="{{ route('admin.ecommerce-orders', ['status' => 'pending']) }}" class="btn btn-warning btn-sm rounded-pill px-3 py-1 fw-bold small text-dark">
-                                        অর্ডার দেখুন <i class="fas fa-arrow-right ms-1"></i>
-                                    </a>
-                                </div>
+                                <a href="{{ route('admin.ecommerce-orders', ['status' => 'pending']) }}" class="btn btn-warning btn-sm rounded-pill w-100 py-1 fw-bold small text-dark mt-1">
+                                    অর্ডার দেখুন <i class="fas fa-arrow-right ms-1"></i>
+                                </a>
                             </div>
                         </div>
                     @endif
 
-                    {{-- 2. Pending Registrations --}}
-                    @if($regCount > 0)
-                        <div class="col">
-                            <div class="card h-100 border-0 shadow-xs rounded-3 bg-white p-3.5 transition-all hover-shadow-sm border-start border-3 border-danger">
-                                <div class="d-flex align-items-start justify-content-between mb-2.5">
-                                    <div class="d-flex align-items-center gap-2.5">
-                                        <div class="rounded-circle bg-danger bg-opacity-10 text-danger p-2.5 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px;">
-                                            <i class="fas fa-user-clock fs-5"></i>
-                                        </div>
-                                        <div>
-                                            <h6 class="fw-bold text-dark mb-0">রেজিস্ট্রেশন অনুরোধ</h6>
-                                            <small class="text-muted">Seller/Author/Pub</small>
-                                        </div>
-                                    </div>
-                                    <span class="badge bg-danger text-white font-monospace fw-bold px-2.5 py-1 rounded-pill">{{ $regCount }}</span>
-                                </div>
-                                <div class="text-muted small mb-3">
-                                    নতুন পার্টনার ও লেখক অ্যাকাউন্ট ভেরিফিকেশন প্রয়োজন।
-                                </div>
-                                <div class="mt-auto pt-2 border-top d-flex align-items-center justify-content-between">
-                                    <span class="small font-monospace fw-bold text-danger">{{ $regCount }}টি পেন্ডিং</span>
-                                    <a href="{{ route('admin.registrations.index', ['status' => 'pending']) }}" class="btn btn-danger btn-sm rounded-pill px-3 py-1 fw-bold small text-white">
-                                        অনুমোদন <i class="fas fa-arrow-right ms-1"></i>
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    @endif
-
-                    {{-- 3. Pending Blog Posts --}}
-                    @if($blogCount > 0)
-                        <div class="col">
-                            <div class="card h-100 border-0 shadow-xs rounded-3 bg-white p-3.5 transition-all hover-shadow-sm border-start border-3 border-success">
-                                <div class="d-flex align-items-start justify-content-between mb-2.5">
-                                    <div class="d-flex align-items-center gap-2.5">
-                                        <div class="rounded-circle bg-success bg-opacity-10 text-success p-2.5 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px;">
-                                            <i class="fas fa-feather-pointed fs-5"></i>
-                                        </div>
-                                        <div>
-                                            <h6 class="fw-bold text-dark mb-0">ব্লগ পোস্ট রিভিউ</h6>
-                                            <small class="text-muted">Blog Moderation</small>
-                                        </div>
-                                    </div>
-                                    <span class="badge bg-success text-white font-monospace fw-bold px-2.5 py-1 rounded-pill">{{ $blogCount }}</span>
-                                </div>
-                                <div class="text-muted small mb-3">
-                                    লেখকদের নতুন ব্লগ আর্টিকেল রিডিং ও এপ্রুভাল প্রয়োজন।
-                                </div>
-                                <div class="mt-auto pt-2 border-top d-flex align-items-center justify-content-between">
-                                    <span class="small font-monospace fw-bold text-success">{{ $blogCount }}টি পেন্ডিং</span>
-                                    <a href="{{ route('admin.blog', ['status' => 'pending']) }}" class="btn btn-success btn-sm rounded-pill px-3 py-1 fw-bold small text-white">
-                                        রিভিউ করুন <i class="fas fa-arrow-right ms-1"></i>
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    @endif
-
-                    {{-- 4. Pending Book Requests --}}
-                    @if($bookReqCount > 0)
-                        <div class="col">
-                            <div class="card h-100 border-0 shadow-xs rounded-3 bg-white p-3.5 transition-all hover-shadow-sm border-start border-3 border-info">
-                                <div class="d-flex align-items-start justify-content-between mb-2.5">
-                                    <div class="d-flex align-items-center gap-2.5">
-                                        <div class="rounded-circle bg-info bg-opacity-10 text-info p-2.5 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px;">
-                                            <i class="fas fa-book-bookmark fs-5"></i>
-                                        </div>
-                                        <div>
-                                            <h6 class="fw-bold text-dark mb-0">বইয়ের রিকোয়েস্ট</h6>
-                                            <small class="text-muted">Reader Book Queries</small>
-                                        </div>
-                                    </div>
-                                    <span class="badge bg-info text-white font-monospace fw-bold px-2.5 py-1 rounded-pill">{{ $bookReqCount }}</span>
-                                </div>
-                                <div class="text-muted small mb-3">
-                                    পাঠকদের চাওয়া নির্দিষ্ট বই সোর্সিং ও ফিডব্যাক আপডেট।
-                                </div>
-                                <div class="mt-auto pt-2 border-top d-flex align-items-center justify-content-between">
-                                    <span class="small font-monospace fw-bold text-info">{{ $bookReqCount }}টি পেন্ডিং</span>
-                                    <a href="{{ route('admin.book-requests.index', ['status' => 'pending']) }}" class="btn btn-info btn-sm rounded-pill px-3 py-1 fw-bold small text-white">
-                                        সোর্সিং <i class="fas fa-arrow-right ms-1"></i>
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    @endif
-
-                    {{-- 5. Pending Books Moderation --}}
-                    @if($bookCount > 0)
-                        <div class="col">
-                            <div class="card h-100 border-0 shadow-xs rounded-3 bg-white p-3.5 transition-all hover-shadow-sm border-start border-3 border-primary">
-                                <div class="d-flex align-items-start justify-content-between mb-2.5">
-                                    <div class="d-flex align-items-center gap-2.5">
-                                        <div class="rounded-circle bg-primary bg-opacity-10 text-primary p-2.5 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px;">
-                                            <i class="fas fa-book-open fs-5"></i>
-                                        </div>
-                                        <div>
-                                            <h6 class="fw-bold text-dark mb-0">নতুন বই অনুমোদন</h6>
-                                            <small class="text-muted">Books Moderation</small>
-                                        </div>
-                                    </div>
-                                    <span class="badge bg-primary text-white font-monospace fw-bold px-2.5 py-1 rounded-pill">{{ $bookCount }}</span>
-                                </div>
-                                <div class="text-muted small mb-3">
-                                    প্রকাশকদের আপলোডকৃত নতুন বই ক্যাটালগ রিভিউ প্রয়োজন।
-                                </div>
-                                <div class="mt-auto pt-2 border-top d-flex align-items-center justify-content-between">
-                                    <span class="small font-monospace fw-bold text-primary">{{ $bookCount }}টি পেন্ডিং</span>
-                                    <a href="{{ route('admin.books', ['mod_status' => 'pending']) }}" class="btn btn-primary btn-sm rounded-pill px-3 py-1 fw-bold small text-white">
-                                        অনুমোদন <i class="fas fa-arrow-right ms-1"></i>
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    @endif
-
-                    {{-- 6. Pending E-Books Moderation --}}
-                    @if($ebookCount > 0)
-                        <div class="col">
-                            <div class="card h-100 border-0 shadow-xs rounded-3 bg-white p-3.5 transition-all hover-shadow-sm border-start border-3 border-secondary">
-                                <div class="d-flex align-items-start justify-content-between mb-2.5">
-                                    <div class="d-flex align-items-center gap-2.5">
-                                        <div class="rounded-circle bg-secondary bg-opacity-10 text-secondary p-2.5 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px;">
-                                            <i class="fas fa-tablet-screen-button fs-5"></i>
-                                        </div>
-                                        <div>
-                                            <h6 class="fw-bold text-dark mb-0">ই-বুক মডারেশন</h6>
-                                            <small class="text-muted">E-Books Review</small>
-                                        </div>
-                                    </div>
-                                    <span class="badge bg-secondary text-white font-monospace fw-bold px-2.5 py-1 rounded-pill">{{ $ebookCount }}</span>
-                                </div>
-                                <div class="text-muted small mb-3">
-                                    ডিজিটাল রিডিং ও পিডিএফ ফাইল কোয়ালিটি রিভিউ।
-                                </div>
-                                <div class="mt-auto pt-2 border-top d-flex align-items-center justify-content-between">
-                                    <span class="small font-monospace fw-bold text-secondary">{{ $ebookCount }}টি পেন্ডিং</span>
-                                    <a href="{{ route('admin.ebooks', ['mod_status' => 'pending']) }}" class="btn btn-secondary btn-sm rounded-pill px-3 py-1 fw-bold small text-white">
-                                        ই-বুক দেখুন <i class="fas fa-arrow-right ms-1"></i>
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    @endif
-
-                    {{-- 7. Pending Submissions or Author Updates --}}
+                    {{-- 2. Pending Submissions or Author Updates --}}
                     @if($submissionCount > 0 || $authorUpdateCount > 0)
                         <div class="col">
-                            <div class="card h-100 border-0 shadow-xs rounded-3 bg-white p-3.5 transition-all hover-shadow-sm border-start border-3 border-dark">
-                                <div class="d-flex align-items-start justify-content-between mb-2.5">
+                            <div class="p-3 bg-light rounded-3 border h-100 d-flex flex-column justify-content-between">
+                                <div class="d-flex align-items-center justify-content-between mb-2.5">
                                     <div class="d-flex align-items-center gap-2.5">
-                                        <div class="rounded-circle bg-dark bg-opacity-10 text-dark p-2.5 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px;">
-                                            <i class="fas fa-file-signature fs-5"></i>
+                                        <div class="rounded-circle bg-dark bg-opacity-10 text-dark p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px;">
+                                            <i class="fas fa-file-signature"></i>
                                         </div>
                                         <div>
-                                            <h6 class="fw-bold text-dark mb-0">পাণ্ডুলিপি ও লেখক</h6>
-                                            <small class="text-muted">Manuscript & Updates</small>
+                                            <div class="fw-bold text-dark small">পাণ্ডুলিপি ও লেখক</div>
+                                            <span class="text-dark fw-bold font-monospace small">{{ $submissionCount + $authorUpdateCount }}টি পেন্ডিং</span>
                                         </div>
                                     </div>
-                                    <span class="badge bg-dark text-white font-monospace fw-bold px-2.5 py-1 rounded-pill">{{ $submissionCount + $authorUpdateCount }}</span>
                                 </div>
-                                <div class="text-muted small mb-3">
-                                    নতুন লেখক প্রোফাইল আপডেট অথবা পাণ্ডুলিপি সাবমিশন।
+                                <a href="{{ route('admin.registrations.index', ['status' => 'pending']) }}" class="btn btn-dark btn-sm rounded-pill w-100 py-1 fw-bold small text-white mt-1">
+                                    রিভিউ করুন <i class="fas fa-arrow-right ms-1"></i>
+                                </a>
+                            </div>
+                        </div>
+                    @endif
+
+                    {{-- 3. Pending Registrations --}}
+                    @if($regCount > 0)
+                        <div class="col">
+                            <div class="p-3 bg-light rounded-3 border h-100 d-flex flex-column justify-content-between">
+                                <div class="d-flex align-items-center justify-content-between mb-2.5">
+                                    <div class="d-flex align-items-center gap-2.5">
+                                        <div class="rounded-circle bg-danger bg-opacity-10 text-danger p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px;">
+                                            <i class="fas fa-user-clock"></i>
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold text-dark small">রেজিস্ট্রেশন অনুরোধ</div>
+                                            <span class="text-danger fw-bold font-monospace small">{{ $regCount }}টি পেন্ডিং</span>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="mt-auto pt-2 border-top d-flex align-items-center justify-content-between">
-                                    <span class="small font-monospace fw-bold text-dark">{{ $submissionCount + $authorUpdateCount }}টি পেন্ডিং</span>
-                                    <a href="{{ route('admin.registrations.index', ['status' => 'pending']) }}" class="btn btn-dark btn-sm rounded-pill px-3 py-1 fw-bold small text-white">
-                                        রিভিউ <i class="fas fa-arrow-right ms-1"></i>
-                                    </a>
+                                <a href="{{ route('admin.registrations.index', ['status' => 'pending']) }}" class="btn btn-danger btn-sm rounded-pill w-100 py-1 fw-bold small text-white mt-1">
+                                    অনুমোদন <i class="fas fa-arrow-right ms-1"></i>
+                                </a>
+                            </div>
+                        </div>
+                    @endif
+
+                    {{-- 4. Pending Blog Posts --}}
+                    @if($blogCount > 0)
+                        <div class="col">
+                            <div class="p-3 bg-light rounded-3 border h-100 d-flex flex-column justify-content-between">
+                                <div class="d-flex align-items-center justify-content-between mb-2.5">
+                                    <div class="d-flex align-items-center gap-2.5">
+                                        <div class="rounded-circle bg-success bg-opacity-10 text-success p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px;">
+                                            <i class="fas fa-feather-pointed"></i>
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold text-dark small">ব্লগ পোস্ট</div>
+                                            <span class="text-success fw-bold font-monospace small">{{ $blogCount }}টি পেন্ডিং</span>
+                                        </div>
+                                    </div>
                                 </div>
+                                <a href="{{ route('admin.blog', ['status' => 'pending']) }}" class="btn btn-success btn-sm rounded-pill w-100 py-1 fw-bold small text-white mt-1">
+                                    রিভিউ করুন <i class="fas fa-arrow-right ms-1"></i>
+                                </a>
+                            </div>
+                        </div>
+                    @endif
+
+                    {{-- 5. Pending Book Requests --}}
+                    @if($bookReqCount > 0)
+                        <div class="col">
+                            <div class="p-3 bg-light rounded-3 border h-100 d-flex flex-column justify-content-between">
+                                <div class="d-flex align-items-center justify-content-between mb-2.5">
+                                    <div class="d-flex align-items-center gap-2.5">
+                                        <div class="rounded-circle bg-info bg-opacity-10 text-info p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px;">
+                                            <i class="fas fa-book-bookmark"></i>
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold text-dark small">বই রিকোয়েস্ট</div>
+                                            <span class="text-info-emphasis fw-bold font-monospace small">{{ $bookReqCount }}টি পেন্ডিং</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <a href="{{ route('admin.book-requests.index', ['status' => 'pending']) }}" class="btn btn-info btn-sm rounded-pill w-100 py-1 fw-bold small text-white mt-1">
+                                    সোর্সিং <i class="fas fa-arrow-right ms-1"></i>
+                                </a>
+                            </div>
+                        </div>
+                    @endif
+
+                    {{-- 6. Pending Books Moderation --}}
+                    @if($bookCount > 0)
+                        <div class="col">
+                            <div class="p-3 bg-light rounded-3 border h-100 d-flex flex-column justify-content-between">
+                                <div class="d-flex align-items-center justify-content-between mb-2.5">
+                                    <div class="d-flex align-items-center gap-2.5">
+                                        <div class="rounded-circle bg-primary bg-opacity-10 text-primary p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px;">
+                                            <i class="fas fa-book-open"></i>
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold text-dark small">বই অনুমোদন</div>
+                                            <span class="text-primary fw-bold font-monospace small">{{ $bookCount }}টি পেন্ডিং</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <a href="{{ route('admin.books', ['mod_status' => 'pending']) }}" class="btn btn-primary btn-sm rounded-pill w-100 py-1 fw-bold small text-white mt-1">
+                                    অনুমোদন <i class="fas fa-arrow-right ms-1"></i>
+                                </a>
+                            </div>
+                        </div>
+                    @endif
+
+                    {{-- 7. Pending E-Books Moderation --}}
+                    @if($ebookCount > 0)
+                        <div class="col">
+                            <div class="p-3 bg-light rounded-3 border h-100 d-flex flex-column justify-content-between">
+                                <div class="d-flex align-items-center justify-content-between mb-2.5">
+                                    <div class="d-flex align-items-center gap-2.5">
+                                        <div class="rounded-circle bg-secondary bg-opacity-10 text-secondary p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px;">
+                                            <i class="fas fa-tablet-screen-button"></i>
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold text-dark small">ই-বুক মডারেশন</div>
+                                            <span class="text-secondary fw-bold font-monospace small">{{ $ebookCount }}টি পেন্ডিং</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <a href="{{ route('admin.ebooks', ['mod_status' => 'pending']) }}" class="btn btn-secondary btn-sm rounded-pill w-100 py-1 fw-bold small text-white mt-1">
+                                    ই-বুক দেখুন <i class="fas fa-arrow-right ms-1"></i>
+                                </a>
                             </div>
                         </div>
                     @endif
