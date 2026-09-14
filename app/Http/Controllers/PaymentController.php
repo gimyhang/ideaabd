@@ -82,7 +82,7 @@ class PaymentController extends Controller
                 'X-APP-Key'     => $config['app_key'],
             ])->post($config['base_url'] . '/checkout/create', [
                 'mode'                  => '0011',
-                'payerReference'        => $order->phone ?? '01700000000',
+                'payerReference'        => $order->customer_phone ?: ($order->phone ?? '01700000000'),
                 'callbackURL'           => route('bkash.callback'),
                 'amount'                => number_format($order->total_amount, 2, '.', ''),
                 'currency'              => 'BDT',
@@ -133,10 +133,14 @@ class PaymentController extends Controller
                 $resData = $response->json();
 
                 if (isset($resData['transactionStatus']) && $resData['transactionStatus'] === 'Completed') {
-                    $order = Order::where('payment_id', $paymentID)->firstOrFail();
+                    $order = Order::where('payment_id', $paymentID)
+                        ->orWhere('order_number', $paymentID)
+                        ->orWhere('transaction_id', $paymentID)
+                        ->firstOrFail();
                     $order->update([
-                        'status'         => 'paid',
-                        'transaction_id' => $resData['trxID'],
+                        'payment_status' => 'paid',
+                        'status'         => 'processing',
+                        'transaction_id' => $resData['trxID'] ?? $paymentID,
                         'payment_method' => 'bKash',
                     ]);
 
@@ -240,13 +244,16 @@ class PaymentController extends Controller
         $order_id = $request->input('order_id');
 
         if ($status === '00_0000') { // নগদের সাকসেস স্ট্যাটাস কোড
-            $order = Order::where('payment_id', $order_id)->first();
+            $order = Order::where('payment_id', $order_id)
+                ->orWhere('order_number', $order_id)
+                ->orWhere('transaction_id', $order_id)
+                ->first();
 
             if ($order) {
                 $order->update([
                     'payment_status' => 'paid',
                     'status'         => 'processing',
-                    'transaction_id' => $request->input('payment_ref_id'),
+                    'transaction_id' => $request->input('payment_ref_id', $order_id),
                 ]);
 
                 Log::channel('audit')->info('Nagad Payment Successful', [
@@ -263,12 +270,12 @@ class PaymentController extends Controller
             }
         }
 
-        return redirect()->route('payment.fail')->with('error', 'নগদ পেমেন্ট ব্যর্থ বা বাতিল করা হয়েছে।');
+        return redirect()->route('payment.fail')->with('error', 'নগদ পেমেন্ট সম্পন্ন করা যায়নি।');
     }
 
 
     /* =========================================================================
-     | ৩. এসএসএলকমার্জ (SSLCommerz Automated Cards & Banking Gateway)
+     | ৩. SSLCommerz পেমেন্ট গেটওয়ে ইন্টিগ্রেশন
      | ========================================================================= */
 
     /**
@@ -283,17 +290,14 @@ class PaymentController extends Controller
         }
 
         $isSandbox = ($settings['sandbox'] ?? env('SSLCOMMERZ_SANDBOX', true)) == '1' || ($settings['sandbox'] ?? env('SSLCOMMERZ_SANDBOX', true)) === true;
-        
+
         return [
-            'store_id'     => $settings['store_id'] ?? env('SSLCOMMERZ_STORE_ID', ''),
-            'store_passwd' => $settings['store_passwd'] ?? env('SSLCOMMERZ_STORE_PASSWORD', ''),
+            'store_id'     => $settings['store_id'] ?? config('services.sslcommerz.store_id', env('SSLCOMMERZ_STORE_ID', '')),
+            'store_passwd' => $settings['store_passwd'] ?? config('services.sslcommerz.store_password', env('SSLCOMMERZ_STORE_PASSWORD', '')),
             'sandbox'      => $isSandbox,
             'api_url'      => $isSandbox
                 ? 'https://sandbox.sslcommerz.com/gwprocess/v4/api.php'
                 : 'https://securepay.sslcommerz.com/gwprocess/v4/api.php',
-            'validate_url' => $isSandbox
-                ? 'https://sandbox.sslcommerz.com/validator/api/validationserverAPI.php'
-                : 'https://securepay.sslcommerz.com/validator/api/validationserverAPI.php',
         ];
     }
 
@@ -326,11 +330,11 @@ class PaymentController extends Controller
             
             // Customer Information
             'cus_name'         => $order->customer_name ?? 'Customer',
-            'cus_email'        => $order->customer_email ?? 'customer@ideaabd.com',
+            'cus_email'        => $order->customer_email ?? ($order->user?->email ?? 'customer@ideaabd.com'),
             'cus_add1'         => $order->customer_address ?? 'Bangladesh',
             'cus_city'         => $order->district_label ?? 'Dhaka',
             'cus_country'      => 'Bangladesh',
-            'cus_phone'        => $order->customer_phone ?? '01700000000',
+            'cus_phone'        => $order->customer_phone ?: ($order->phone ?? '01700000000'),
 
             // Shipment Information
             'shipping_method'  => 'Courier',
@@ -367,7 +371,10 @@ class PaymentController extends Controller
         $amount = $request->input('amount');
         $card_type = $request->input('card_type');
 
-        $order = Order::where('order_number', $tran_id)->orWhere('payment_id', $tran_id)->first();
+        $order = Order::where('order_number', $tran_id)
+            ->orWhere('payment_id', $tran_id)
+            ->orWhere('transaction_id', $tran_id)
+            ->first();
 
         if ($order) {
             $order->update([
@@ -392,7 +399,10 @@ class PaymentController extends Controller
     public function sslcommerzFail(Request $request)
     {
         $tran_id = $request->input('tran_id');
-        $order = Order::where('order_number', $tran_id)->orWhere('payment_id', $tran_id)->first();
+        $order = Order::where('order_number', $tran_id)
+            ->orWhere('payment_id', $tran_id)
+            ->orWhere('transaction_id', $tran_id)
+            ->first();
         if ($order) {
             $order->update(['payment_status' => 'unpaid']);
         }
@@ -411,12 +421,15 @@ class PaymentController extends Controller
         $status = $request->input('status');
 
         if ($status === 'VALID' || $status === 'VALIDATED') {
-            $order = Order::where('order_number', $tran_id)->orWhere('payment_id', $tran_id)->first();
+            $order = Order::where('order_number', $tran_id)
+                ->orWhere('payment_id', $tran_id)
+                ->orWhere('transaction_id', $tran_id)
+                ->first();
             if ($order) {
                 $order->update([
                     'payment_status' => 'paid',
                     'status'         => 'processing',
-                    'transaction_id' => $request->input('val_id'),
+                    'transaction_id' => $request->input('val_id', $tran_id),
                 ]);
                 \App\Services\RoyaltyService::processOrderRoyalties($order);
             }

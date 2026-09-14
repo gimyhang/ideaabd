@@ -137,12 +137,20 @@ Route::get('/webzines/archive', fn() => redirect(route('webzine.index')))->name(
 
 // --- Storage Fallback Route for Live Shared Hosts & CPanel without Symlink ---
 Route::get('/storage/{path}', function (string $path) {
+    $baseDir = realpath(storage_path('app/public'));
     $filePath = storage_path('app/public/' . $path);
-    if (!file_exists($filePath)) {
+    $realPath = realpath($filePath);
+
+    // Prevent directory traversal and ensure file is within public storage directory
+    if (!$baseDir || !$realPath || !str_starts_with($realPath, $baseDir) || !is_file($realPath)) {
         abort(404);
     }
-    $mime = mime_content_type($filePath) ?: 'application/octet-stream';
-    return response()->file($filePath, ['Content-Type' => $mime]);
+
+    $mime = mime_content_type($realPath) ?: 'application/octet-stream';
+    return response()->file($realPath, [
+        'Content-Type'        => $mime,
+        'X-Content-Type-Options' => 'nosniff',
+    ]);
 })->where('path', '.*')->name('storage.file');
 
 // Public / Client Invoice & Delivery Challan Viewer (Link & QR access)

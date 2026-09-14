@@ -204,11 +204,13 @@ class AdminController extends Controller
                                 $w->where('order_number', 'like', $like)
                                   ->orWhere('customer_name', 'like', $like)
                                   ->orWhere('customer_phone', 'like', $like)
-                                  ->orWhere('customer_email', 'like', $like)
+                                  ->orWhere('transaction_id', 'like', $like)
+                                  ->orWhere('payment_id', 'like', $like)
                                   ->orWhere('gift_recipient_name', 'like', $like)
                                   ->orWhere('district', 'like', $like)
                                   ->orWhere('tracking_code', 'like', $like)
-                                  ->orWhereHas('book', fn($bq) => $bq->where('title', 'like', $like));
+                                  ->orWhereHas('book', fn($bq) => $bq->where('title', 'like', $like))
+                                  ->orWhereHas('user', fn($uq) => $uq->where('email', 'like', $like)->orWhere('name', 'like', $like));
                             });
                         }
                     });
