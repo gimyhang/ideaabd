@@ -438,7 +438,7 @@
 
                     {{-- Highlighted Box: Total Paid to Date & In Words & Due --}}
                     <div class="p-2.5 rounded-2 bg-success-subtle border border-success-subtle d-flex align-items-center justify-content-between flex-wrap gap-2">
-                        <div>
+                        <div class="flex-grow-1 pe-2">
                             <div class="text-success small fw-bold text-uppercase mb-0.5" style="font-size: 11px;">
                                 <i class="fas fa-money-check-dollar me-1"></i> Total Paid to Date:
                             </div>
@@ -449,9 +449,11 @@
                                 In Words: <strong class="text-dark">@takaInWordsEn($payment->effective_net_amount)</strong>
                             </div>
                         </div>
-                        <div class="text-end ps-3 border-start border-success-subtle">
-                            <div class="text-muted small fw-semibold" style="font-size: 10.5px; text-transform: uppercase;">Due:</div>
-                            <div class="fs-4 fw-bold font-monospace {{ $remainingDue > 0 ? 'text-danger' : 'text-success' }}">
+                        <div class="text-end ps-3.5 border-start border-success-subtle flex-shrink-0" style="min-width: 155px;">
+                            <div class="text-muted small fw-semibold mb-0.5" style="font-size: 11px; text-transform: uppercase;">
+                                <i class="fas fa-scale-unbalanced text-secondary me-1"></i> Due:
+                            </div>
+                            <div class="fs-4 fw-bold font-monospace {{ $remainingDue > 0 ? 'text-danger' : 'text-success' }}" style="white-space: nowrap;">
                                 ৳{{ number_format($remainingDue, 2) }}
                             </div>
                         </div>
@@ -543,32 +545,33 @@
                 {{-- Left: Customer / Payer Signature --}}
                 <div class="col-4 text-start">
                     <div class="d-inline-block text-center" style="min-width: 145px;">
+                        <div class="border-top border-dark mb-1 mx-auto" style="width: 140px;"></div>
                         <div class="small fw-bold text-dark mb-0.5" style="font-size: 11px;">Customer Signature</div>
                         <div class="text-muted" style="font-size: 9.5px;">Executive Director</div>
-                        <div class="border-bottom border-dark mt-1 mx-auto" style="width: 140px;"></div>
                     </div>
                 </div>
 
-                {{-- Center: Verify QR Code & Collector Info --}}
+                {{-- Center: Verify QR Code & Document Info --}}
                 <div class="col-4">
                     <div class="d-flex align-items-center justify-content-center gap-2.5">
                         <div class="p-1 border rounded bg-white shadow-2xs d-flex flex-column align-items-center" style="width: 83px; height: 83px;">
                             <img src="{{ $qrCodeUrl }}" alt="Verify QR" style="width: 75px; height: 75px; object-fit: contain; display: block;">
                         </div>
                         <div class="text-start text-muted" style="font-size: 10px; line-height: 1.4;">
-                            <div class="fw-bold text-dark" style="font-size: 11px;"><i class="fas fa-shield-check text-success me-1"></i>Official Verify</div>
-                            <div>Collected By: <strong class="text-dark">{{ $payment->recorder?->name ?? 'Admin' }}</strong></div>
+                            <div class="fw-bold text-dark" style="font-size: 11px;"><i class="fas fa-shield-check text-success me-1"></i>Official Verification</div>
                             <div class="font-monospace text-secondary" style="font-size: 9.5px;">Issued: {{ $payment->payment_date ? $payment->payment_date->format('d/m/Y') : date('d/m/Y') }}</div>
+                            <div class="text-muted small" style="font-size: 9px;">Scan to Verify Online</div>
                         </div>
                     </div>
                 </div>
 
-                {{-- Right: Authorized Signatory --}}
+                {{-- Right: Authorized Collector / Signatory --}}
                 <div class="col-4 text-end">
                     <div class="d-inline-block text-center" style="min-width: 145px;">
+                        <div class="border-top border-dark mb-1 mx-auto" style="width: 140px;"></div>
+                        <div class="text-muted fw-semibold" style="font-size: 9.5px; text-transform: uppercase;">Collected By:</div>
                         <div class="small fw-bold text-dark mb-0.5" style="font-size: 11px;">{{ $creatorName ?: 'Shakil Masud' }}</div>
                         <div class="text-muted" style="font-size: 9.5px;">{{ $creatorDesignation ?: 'CEO & Publisher' }}</div>
-                        <div class="border-bottom border-dark mt-1 mx-auto" style="width: 140px;"></div>
                     </div>
                 </div>
             </div>
