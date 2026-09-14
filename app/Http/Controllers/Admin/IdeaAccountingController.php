@@ -2434,8 +2434,8 @@ class IdeaAccountingController extends Controller
                 DB::raw("SUM(vat_deduction_amount) as sum_vat"),
                 DB::raw("SUM(tax_deduction_amount) as sum_tax")
             )
-            ->groupBy('ym')
-            ->orderBy('ym', 'desc')
+            ->groupBy(DB::raw("DATE_FORMAT(payment_date, '%Y-%m')"))
+            ->orderBy(DB::raw("DATE_FORMAT(payment_date, '%Y-%m')"), 'desc')
             ->limit(12)
             ->get();
 
@@ -2802,7 +2802,7 @@ class IdeaAccountingController extends Controller
         $netProfit = $totalIncome - $totalExpense;
         $netProfitMargin = $totalIncome > 0 ? round(($netProfit / $totalIncome) * 100, 2) : 0;
 
-        // Monthly breakdown for yearly view or daily breakdown for monthly view
+        // Monthly breakdown for yearly view, daily for monthly, or 7-day for weekly/daily
         $trendDataset = [];
         if ($period === 'yearly') {
             for ($m = 1; $m <= 12; $m++) {
@@ -2825,10 +2825,43 @@ class IdeaAccountingController extends Controller
                 $dDate = Carbon::createFromDate($year, $month, $d)->toDateString();
                 $dInc = (float) IdeaAccountingEntry::whereDate('entry_date', $dDate)->where('type', 'income')->sum('amount');
                 $dExp = (float) IdeaAccountingEntry::whereDate('entry_date', $dDate)->where('type', 'expense')->sum('amount');
+                $dProd = (float) IdeaAccountingEntry::whereDate('entry_date', $dDate)->where('type', 'expense')->whereIn('category', $prodCategories)->sum('amount');
                 $trendDataset[] = [
-                    'label' => $d,
+                    'label' => (string) $d,
                     'income' => $dInc,
                     'expense' => $dExp,
+                    'production' => $dProd,
+                    'profit' => $dInc - $dExp,
+                ];
+            }
+        } elseif ($period === 'weekly') {
+            for ($w = 0; $w < 7; $w++) {
+                $wDay = $startDate->copy()->addDays($w);
+                $wDate = $wDay->toDateString();
+                $wInc = (float) IdeaAccountingEntry::whereDate('entry_date', $wDate)->where('type', 'income')->sum('amount');
+                $wExp = (float) IdeaAccountingEntry::whereDate('entry_date', $wDate)->where('type', 'expense')->sum('amount');
+                $wProd = (float) IdeaAccountingEntry::whereDate('entry_date', $wDate)->where('type', 'expense')->whereIn('category', $prodCategories)->sum('amount');
+                $trendDataset[] = [
+                    'label' => $wDay->format('D (d M)'),
+                    'income' => $wInc,
+                    'expense' => $wExp,
+                    'production' => $wProd,
+                    'profit' => $wInc - $wExp,
+                ];
+            }
+        } else {
+            // Daily / Custom: 7 days trend
+            for ($d = 6; $d >= 0; $d--) {
+                $day = $endDate->copy()->subDays($d);
+                $dDate = $day->toDateString();
+                $dInc = (float) IdeaAccountingEntry::whereDate('entry_date', $dDate)->where('type', 'income')->sum('amount');
+                $dExp = (float) IdeaAccountingEntry::whereDate('entry_date', $dDate)->where('type', 'expense')->sum('amount');
+                $dProd = (float) IdeaAccountingEntry::whereDate('entry_date', $dDate)->where('type', 'expense')->whereIn('category', $prodCategories)->sum('amount');
+                $trendDataset[] = [
+                    'label' => $day->format('d M'),
+                    'income' => $dInc,
+                    'expense' => $dExp,
+                    'production' => $dProd,
                     'profit' => $dInc - $dExp,
                 ];
             }

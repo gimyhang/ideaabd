@@ -1,190 +1,198 @@
 @extends('layouts.admin')
 
-@section('title', 'আর্থিক হিসাব ও লাভ-ক্ষতি প্রতিবেদন (Financial & P&L Report) — আইডিয়া প্রকাশন')
-@section('heading', 'আর্থিক হিসাব ও লাভ-ক্ষতি প্রতিবেদন')
+@section('title', 'Financial Reports — Idea Accounting')
+@section('heading', 'Reports')
 
 @section('breadcrumb')
-    <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">ড্যাশবোর্ড</a></li>
-    <li class="breadcrumb-item"><a href="{{ route('admin.accounting.index') }}">Idea Accounting</a></li>
-    <li class="breadcrumb-item active" aria-current="page">লাভ-ক্ষতি ও আর্থিক প্রতিবেদন</li>
+    <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>
+    <li class="breadcrumb-item"><a href="{{ route('admin.accounting.index') }}">Accounting</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Reports</li>
 @endsection
 
 @section('actions')
     <div class="d-flex flex-wrap align-items-center gap-2">
-        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-2xs fw-semibold d-inline-flex align-items-center gap-1.5" onclick="window.print()">
-            <i class="fa-solid fa-print text-primary"></i>
-            <span>রিপোর্ট প্রিন্ট</span>
+        <button type="button" class="btn btn-outline-dark btn-sm rounded-pill px-3 shadow-2xs fw-semibold d-inline-flex align-items-center gap-1.5" onclick="exportReportToCSV()">
+            <i class="fa-solid fa-file-csv text-success"></i>
+            <span>Export CSV</span>
         </button>
-        <a href="{{ route('admin.accounting.index') }}" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-2xs fw-semibold">
-            <i class="fa-solid fa-book-journal-whills me-1"></i> সাধারণ লেজার
+
+        <button type="button" class="btn btn-primary btn-sm rounded-pill px-3 shadow-2xs fw-semibold d-inline-flex align-items-center gap-1.5" onclick="window.print()">
+            <i class="fa-solid fa-print"></i>
+            <span>Print</span>
+        </button>
+
+        <a href="{{ route('admin.accounting.index') }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-2xs fw-semibold">
+            <i class="fa-solid fa-book-bookmark me-1"></i> Ledger
         </a>
     </div>
 @endsection
 
 @section('content')
-<div class="d-flex flex-column gap-4 pb-4">
+<div class="d-flex flex-column gap-3.5 pb-4">
 
-    <!-- Top Action Bar & Period Filters -->
-    <div class="card border-0 shadow-2xs rounded-4 bg-white overflow-hidden">
+    <!-- Top Filter Bar -->
+    <div class="card border-0 shadow-2xs rounded-4 bg-white">
         <div class="card-body p-3.5 px-4">
             <div class="d-flex flex-column flex-lg-row align-items-start align-items-lg-center justify-content-between gap-3">
-                <div>
-                    <div class="d-flex align-items-center gap-2 mb-1">
-                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-1 small fw-bold">
-                            <i class="fa-solid fa-chart-pie me-1"></i> লাভ-ক্ষতি ও উৎপাদন হিসাব
-                        </span>
-                        <span class="text-muted small">
-                            <i class="fa-solid fa-calendar-day me-1"></i> {{ $periodLabel }}
-                        </span>
-                    </div>
-                    <h4 class="fw-bold text-dark mb-0">আর্থিক প্রতিবেদন ও লাভ-ক্ষতি বিবরণী (P&L Summary)</h4>
-                    <p class="text-muted small mb-0">কাঁচামাল (কাগজ, বোর্ড, কালি, প্রেস) ও বেতন ব্যয়ের সাথে বিক্রয় আয়ের সমন্বিত অডিট রিপোর্ট।</p>
+                <div class="d-flex align-items-center gap-2.5 flex-wrap">
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-1.5 small fw-bold">
+                        <i class="fa-solid fa-calendar-check me-1.5"></i>{{ $periodLabel }}
+                    </span>
+                    <span class="badge bg-light text-muted border rounded-pill px-2.5 py-1.5 font-monospace small">
+                        {{ $startDate->format('d M, Y') }} — {{ $endDate->format('d M, Y') }}
+                    </span>
                 </div>
-            </div>
 
-            <hr class="my-3 opacity-25">
+                <!-- Period Filter Form -->
+                <form action="{{ route('admin.accounting.reports.index') }}" method="GET" class="d-flex flex-wrap align-items-center gap-2">
+                    <input type="hidden" name="period" id="periodInput" value="{{ $period }}">
 
-            <!-- Filter Tabs & Form -->
-            <form action="{{ route('admin.accounting.reports.index') }}" method="GET" class="row g-2 align-items-center">
-                <!-- Period Toggle Buttons -->
-                <div class="col-12 col-xl-5">
-                    <div class="btn-group w-100 shadow-2xs rounded-pill p-0.5 bg-light border" role="group">
+                    <div class="btn-group shadow-2xs rounded-pill p-0.5 bg-light border" role="group">
                         <a href="{{ route('admin.accounting.reports.index', ['period' => 'daily']) }}" 
-                           class="btn btn-sm rounded-pill py-1.5 fw-semibold {{ $period === 'daily' ? 'btn-white text-primary shadow-xs' : 'btn-light text-muted' }}">
-                            <i class="fa-solid fa-calendar-day me-1"></i> দৈনিক
+                           class="btn btn-sm rounded-pill px-2.5 py-1 fw-semibold {{ $period === 'daily' ? 'btn-white text-primary shadow-xs' : 'btn-light text-muted' }}">
+                            Daily
                         </a>
                         <a href="{{ route('admin.accounting.reports.index', ['period' => 'weekly']) }}" 
-                           class="btn btn-sm rounded-pill py-1.5 fw-semibold {{ $period === 'weekly' ? 'btn-white text-primary shadow-xs' : 'btn-light text-muted' }}">
-                            <i class="fa-solid fa-calendar-week me-1"></i> সাপ্তাহিক
+                           class="btn btn-sm rounded-pill px-2.5 py-1 fw-semibold {{ $period === 'weekly' ? 'btn-white text-primary shadow-xs' : 'btn-light text-muted' }}">
+                            Weekly
                         </a>
                         <a href="{{ route('admin.accounting.reports.index', ['period' => 'monthly', 'year' => $year, 'month' => $month]) }}" 
-                           class="btn btn-sm rounded-pill py-1.5 fw-semibold {{ $period === 'monthly' ? 'btn-white text-primary shadow-xs' : 'btn-light text-muted' }}">
-                            <i class="fa-solid fa-calendar-days me-1"></i> মাসিক
+                           class="btn btn-sm rounded-pill px-2.5 py-1 fw-semibold {{ $period === 'monthly' ? 'btn-white text-primary shadow-xs' : 'btn-light text-muted' }}">
+                            Monthly
                         </a>
                         <a href="{{ route('admin.accounting.reports.index', ['period' => 'yearly', 'year' => $year]) }}" 
-                           class="btn btn-sm rounded-pill py-1.5 fw-semibold {{ $period === 'yearly' ? 'btn-white text-primary shadow-xs' : 'btn-light text-muted' }}">
-                            <i class="fa-solid fa-calendar me-1"></i> বাৎসরিক
+                           class="btn btn-sm rounded-pill px-2.5 py-1 fw-semibold {{ $period === 'yearly' ? 'btn-white text-primary shadow-xs' : 'btn-light text-muted' }}">
+                            Yearly
                         </a>
                     </div>
-                </div>
 
-                <input type="hidden" name="period" value="{{ $period }}">
-
-                @if($period === 'monthly')
-                    <div class="col-6 col-sm-3 col-xl-2">
-                        <select name="month" class="form-select form-select-sm rounded-3 fw-semibold" onchange="this.form.submit()">
+                    @if($period === 'monthly')
+                        <select name="month" class="form-select form-select-sm rounded-3 fw-semibold" style="width: auto;" onchange="this.form.submit()">
                             @for($m = 1; $m <= 12; $m++)
                                 <option value="{{ $m }}" @selected($month == $m)>
                                     {{ \Carbon\Carbon::create(null, $m, 1)->format('F') }}
                                 </option>
                             @endfor
                         </select>
-                    </div>
-                    <div class="col-6 col-sm-3 col-xl-2">
-                        <select name="year" class="form-select form-select-sm rounded-3 fw-semibold" onchange="this.form.submit()">
+                        <select name="year" class="form-select form-select-sm rounded-3 fw-semibold" style="width: auto;" onchange="this.form.submit()">
                             @for($y = date('Y') - 3; $y <= date('Y') + 1; $y++)
-                                <option value="{{ $y }}" @selected($year == $y)>{{ $y }} সাল</option>
+                                <option value="{{ $y }}" @selected($year == $y)>{{ $y }}</option>
                             @endfor
                         </select>
-                    </div>
-                @elseif($period === 'yearly')
-                    <div class="col-6 col-sm-4 col-xl-3">
-                        <select name="year" class="form-select form-select-sm rounded-3 fw-semibold" onchange="this.form.submit()">
+                    @elseif($period === 'yearly')
+                        <select name="year" class="form-select form-select-sm rounded-3 fw-semibold" style="width: auto;" onchange="this.form.submit()">
                             @for($y = date('Y') - 3; $y <= date('Y') + 1; $y++)
-                                <option value="{{ $y }}" @selected($year == $y)>{{ $y }} সাল</option>
+                                <option value="{{ $y }}" @selected($year == $y)>{{ $y }}</option>
                             @endfor
                         </select>
-                    </div>
-                @elseif($period === 'custom')
-                    <div class="col-6 col-sm-3 col-xl-2">
-                        <input type="date" name="date_from" value="{{ $startDate->format('Y-m-d') }}" class="form-control form-control-sm rounded-3">
-                    </div>
-                    <div class="col-6 col-sm-3 col-xl-2">
-                        <input type="date" name="date_to" value="{{ $endDate->format('Y-m-d') }}" class="form-control form-control-sm rounded-3">
-                    </div>
-                    <div class="col-12 col-sm-auto">
-                        <button type="submit" class="btn btn-sm btn-primary rounded-pill px-3 fw-semibold">ফিল্টার</button>
-                    </div>
-                @endif
-            </form>
+                    @elseif($period === 'custom')
+                        <input type="date" name="date_from" value="{{ $startDate->format('Y-m-d') }}" class="form-control form-control-sm rounded-3" style="width: auto;">
+                        <input type="date" name="date_to" value="{{ $endDate->format('Y-m-d') }}" class="form-control form-control-sm rounded-3" style="width: auto;">
+                        <button type="submit" class="btn btn-sm btn-primary rounded-pill px-3 fw-semibold">Filter</button>
+                    @endif
+                </form>
+            </div>
         </div>
     </div>
 
-    <!-- KPI Metric Summary Cards (5 Key Financial Pillars) -->
+    <!-- 4 KPI Summary Cards -->
     <div class="row g-3">
-        <!-- 1. Total Income -->
+        <!-- 1. Revenue -->
         <div class="col-sm-6 col-xl-3">
             <div class="card h-100 border-0 shadow-2xs rounded-4 p-3.5 bg-white border-start border-4 border-success">
                 <div class="d-flex justify-content-between align-items-center mb-2">
-                    <span class="text-muted small fw-bold text-uppercase">মোট বিক্রয় ও আয়</span>
-                    <span class="rounded-circle bg-success-subtle text-success p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                    <span class="text-muted small fw-bold text-uppercase">Revenue</span>
+                    <span class="rounded-circle bg-success-subtle text-success p-2 d-flex align-items-center justify-content-center" style="width: 34px; height: 34px;">
                         <i class="fa-solid fa-arrow-trend-up fs-6"></i>
                     </span>
                 </div>
                 <h3 class="fw-bold text-dark mb-1 font-monospace">৳{{ number_format($totalIncome, 2) }}</h3>
-                <span class="small text-muted"><i class="fas fa-book-bookmark text-success me-1"></i>বই বিক্রয় ও অন্যান্য আয়</span>
+                <span class="small text-muted">Total sales & incomes</span>
             </div>
         </div>
 
-        <!-- 2. Raw Materials & Production Expense -->
+        <!-- 2. Production -->
         <div class="col-sm-6 col-xl-3">
             <div class="card h-100 border-0 shadow-2xs rounded-4 p-3.5 bg-white border-start border-4 border-warning">
                 <div class="d-flex justify-content-between align-items-center mb-2">
-                    <span class="text-muted small fw-bold text-uppercase">কাঁচামাল ও উৎপাদন ব্যয়</span>
-                    <span class="rounded-circle bg-warning-subtle text-warning p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                    <span class="text-muted small fw-bold text-uppercase">Production</span>
+                    <span class="rounded-circle bg-warning-subtle text-warning p-2 d-flex align-items-center justify-content-center" style="width: 34px; height: 34px;">
                         <i class="fa-solid fa-print fs-6"></i>
                     </span>
                 </div>
                 <h3 class="fw-bold text-warning mb-1 font-monospace">৳{{ number_format($productionCost, 2) }}</h3>
-                <span class="small text-muted"><i class="fas fa-boxes text-warning me-1"></i>কাগজ, বোর্ড, কালি, প্রেস ও বাঁধাই</span>
+                <span class="small text-muted">Paper, press, print & binding</span>
             </div>
         </div>
 
-        <!-- 3. Payroll & Operating Expense -->
+        <!-- 3. Operations -->
         <div class="col-sm-6 col-xl-3">
             <div class="card h-100 border-0 shadow-2xs rounded-4 p-3.5 bg-white border-start border-4 border-danger">
                 <div class="d-flex justify-content-between align-items-center mb-2">
-                    <span class="text-muted small fw-bold text-uppercase">বেতন ও পরিচালন ব্যয়</span>
-                    <span class="rounded-circle bg-danger-subtle text-danger p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                    <span class="text-muted small fw-bold text-uppercase">Operations</span>
+                    <span class="rounded-circle bg-danger-subtle text-danger p-2 d-flex align-items-center justify-content-center" style="width: 34px; height: 34px;">
                         <i class="fa-solid fa-users-gear fs-6"></i>
                     </span>
                 </div>
                 <h3 class="fw-bold text-danger mb-1 font-monospace">৳{{ number_format($payrollCost + $otherExpense, 2) }}</h3>
-                <span class="small text-muted">বেতন: ৳{{ number_format($payrollCost, 0) }} | অফিস: ৳{{ number_format($otherExpense, 0) }}</span>
+                <span class="small text-muted">Payroll: ৳{{ number_format($payrollCost, 0) }} | Office: ৳{{ number_format($otherExpense, 0) }}</span>
             </div>
         </div>
 
-        <!-- 4. Net Profit / Loss -->
+        <!-- 4. Profit -->
         <div class="col-sm-6 col-xl-3">
-            <div class="card h-100 border-0 shadow-2xs rounded-4 p-3.5 text-white {{ $netProfit >= 0 ? 'bg-gradient-success' : 'bg-gradient-danger' }}" 
+            <div class="card h-100 border-0 shadow-2xs rounded-4 p-3.5 text-white" 
                  style="background: {{ $netProfit >= 0 ? 'linear-gradient(135deg, #059669 0%, #047857 100%)' : 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)' }};">
                 <div class="d-flex justify-content-between align-items-center mb-2">
-                    <span class="text-white-50 small fw-bold text-uppercase">নিট লাভ / মুনাফা (Net Profit)</span>
-                    <span class="rounded-circle bg-white bg-opacity-25 text-white p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                    <span class="text-white-50 small fw-bold text-uppercase">Net Profit</span>
+                    <span class="rounded-circle bg-white bg-opacity-25 text-white p-2 d-flex align-items-center justify-content-center" style="width: 34px; height: 34px;">
                         <i class="fa-solid {{ $netProfit >= 0 ? 'fa-sack-dollar' : 'fa-triangle-exclamation' }} fs-6"></i>
                     </span>
                 </div>
                 <h3 class="fw-bold text-white mb-1 font-monospace">৳{{ number_format($netProfit, 2) }}</h3>
                 <div class="d-flex align-items-center justify-content-between text-white-50 small">
-                    <span>মার্জিন: <strong class="text-white">{{ $netProfitMargin }}%</strong></span>
-                    <span>মোট লাভ: <strong class="text-white font-monospace">৳{{ number_format($grossProfit, 0) }}</strong></span>
+                    <span>Margin: <strong class="text-white">{{ $netProfitMargin }}%</strong></span>
+                    <span>Gross: <strong class="text-white font-monospace">৳{{ number_format($grossProfit, 0) }}</strong></span>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Production Cost Breakdown vs Operating Cost Details -->
-    <div class="row g-4">
-        <!-- Raw Materials (কাঁচামাল ও উৎপাদন খরচ) Breakdown -->
+    <!-- Analytics Chart -->
+    <div class="card border-0 shadow-2xs rounded-4 bg-white overflow-hidden">
+        <div class="card-header bg-white border-bottom p-3.5 px-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div class="d-flex align-items-center gap-2">
+                <span class="p-1.5 rounded bg-primary-subtle text-primary">
+                    <i class="fa-solid fa-chart-line"></i>
+                </span>
+                <h6 class="fw-bold text-dark mb-0">Analytics</h6>
+            </div>
+            <div class="d-flex align-items-center gap-2 small text-muted">
+                <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">Revenue</span>
+                <span class="badge bg-warning-subtle text-warning border border-warning-subtle px-2 py-1">Production</span>
+                <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1">Expense</span>
+                <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1">Profit</span>
+            </div>
+        </div>
+        <div class="card-body p-3.5 px-4">
+            <div style="position: relative; height: 260px; width: 100%;">
+                <canvas id="financialAnalyticsChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Breakdown Tables: Production vs Operations -->
+    <div class="row g-3">
+        <!-- Production Breakdown -->
         <div class="col-lg-6">
             <div class="card border-0 shadow-2xs rounded-4 h-100 bg-white overflow-hidden">
                 <div class="card-header bg-light bg-opacity-50 border-bottom p-3.5 px-4 d-flex justify-content-between align-items-center">
-                    <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                    <div class="d-flex align-items-center gap-2">
                         <span class="p-1.5 rounded bg-warning-subtle text-warning"><i class="fa-solid fa-boxes-stacked"></i></span>
-                        <span>কাঁচামাল ও বই উৎপাদন খাতের বিবরণ</span>
-                    </h6>
+                        <h6 class="fw-bold text-dark mb-0">Production</h6>
+                    </div>
                     <span class="badge bg-white text-dark border rounded-pill px-2.5 py-1 small fw-semibold font-monospace">
-                        মোট: ৳{{ number_format($productionCost, 2) }}
+                        ৳{{ number_format($productionCost, 2) }}
                     </span>
                 </div>
                 <div class="card-body p-0">
@@ -192,10 +200,10 @@
                         <table class="table table-hover align-middle mb-0">
                             <thead class="bg-light table-light small text-muted">
                                 <tr>
-                                    <th class="ps-3.5">কাঁচামাল / উৎপাদন খাত</th>
-                                    <th class="text-center">ভাউচার সংখ্যা</th>
-                                    <th class="text-end">মোট ব্যয়</th>
-                                    <th class="text-end pe-3.5">শতাংশ (%)</th>
+                                    <th class="ps-4 py-2.5">Category</th>
+                                    <th class="text-center py-2.5">Vouchers</th>
+                                    <th class="text-end py-2.5">Amount</th>
+                                    <th class="text-end pe-4 py-2.5">Share</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -204,16 +212,16 @@
                                         $pct = $productionCost > 0 ? round(($pItem->total / $productionCost) * 100, 1) : 0;
                                     @endphp
                                     <tr>
-                                        <td class="ps-3.5 fw-bold text-dark">
+                                        <td class="ps-4 fw-bold text-dark py-2.5">
                                             <i class="fa-solid fa-circle-dot text-warning me-2" style="font-size: 8px;"></i>
                                             {{ $pItem->category }}
                                         </td>
-                                        <td class="text-center small text-muted">{{ $pItem->count }} টি</td>
-                                        <td class="text-end fw-bold text-dark">৳{{ number_format($pItem->total, 2) }}</td>
-                                        <td class="text-end pe-3.5">
+                                        <td class="text-center small text-muted py-2.5">{{ $pItem->count }}</td>
+                                        <td class="text-end fw-bold text-dark font-monospace py-2.5">৳{{ number_format($pItem->total, 2) }}</td>
+                                        <td class="text-end pe-4 py-2.5">
                                             <div class="d-flex align-items-center justify-content-end gap-2">
-                                                <span class="small fw-semibold text-muted">{{ $pct }}%</span>
-                                                <div class="progress flex-grow-1" style="height: 6px; max-width: 60px;">
+                                                <span class="small fw-semibold text-muted font-monospace">{{ $pct }}%</span>
+                                                <div class="progress flex-grow-1" style="height: 6px; max-width: 55px;">
                                                     <div class="progress-bar bg-warning" role="progressbar" style="width: {{ $pct }}%"></div>
                                                 </div>
                                             </div>
@@ -222,7 +230,7 @@
                                 @empty
                                     <tr>
                                         <td colspan="4" class="text-center py-4 text-muted small">
-                                            এই সময়ে কোনো কাঁচামাল বা উৎপাদন খরচ রেকর্ড নেই।
+                                            No production entries found for this period.
                                         </td>
                                     </tr>
                                 @endforelse
@@ -233,16 +241,17 @@
             </div>
         </div>
 
-        <!-- Operating & Payroll Expenses Breakdown -->
+        <!-- Operations Breakdown -->
         <div class="col-lg-6">
-            <div class="card border-0 shadow-sm rounded-4 h-100 bg-white overflow-hidden">
-                <div class="card-header bg-white border-bottom p-3.5 d-flex justify-content-between align-items-center">
-                    <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
-                        <span class="p-1.5 rounded bg-primary-subtle text-primary"><i class="fa-solid fa-building-columns"></i></span>
-                        <span>বেতন ও অন্যান্য পরিচালন ব্যয়ের বিবরণ</span>
-                    </h6>
-                    <span class="badge bg-light text-muted border rounded-pill px-2.5 py-1 small fw-semibold">
-                        মোট: ৳{{ number_format($payrollCost + $otherExpense, 2) }}
+            <div class="card border-0 shadow-2xs rounded-4 h-100 bg-white overflow-hidden">
+                <div class="card-header bg-light bg-opacity-50 border-bottom p-3.5 px-4 d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="p-1.5 rounded bg-danger-subtle text-danger"><i class="fa-solid fa-building-columns"></i></span>
+                        <h6 class="fw-bold text-dark mb-0">Operations</h6>
+                    </div>
+                    @php $totalOp = $payrollCost + $otherExpense; @endphp
+                    <span class="badge bg-white text-dark border rounded-pill px-2.5 py-1 small fw-semibold font-monospace">
+                        ৳{{ number_format($totalOp, 2) }}
                     </span>
                 </div>
                 <div class="card-body p-0">
@@ -250,30 +259,29 @@
                         <table class="table table-hover align-middle mb-0">
                             <thead class="bg-light table-light small text-muted">
                                 <tr>
-                                    <th class="ps-3.5">ব্যয়ের খাত</th>
-                                    <th class="text-center">ভাউচার সংখ্যা</th>
-                                    <th class="text-end">মোট ব্যয়</th>
-                                    <th class="text-end pe-3.5">শতাংশ (%)</th>
+                                    <th class="ps-4 py-2.5">Category</th>
+                                    <th class="text-center py-2.5">Vouchers</th>
+                                    <th class="text-end py-2.5">Amount</th>
+                                    <th class="text-end pe-4 py-2.5">Share</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @php $totalOp = $payrollCost + $otherExpense; @endphp
                                 @forelse($operatingBreakdown as $oItem)
                                     @php 
                                         $pctOp = $totalOp > 0 ? round(($oItem->total / $totalOp) * 100, 1) : 0;
                                     @endphp
                                     <tr>
-                                        <td class="ps-3.5 fw-bold text-dark">
-                                            <i class="fa-solid fa-circle-dot text-primary me-2" style="font-size: 8px;"></i>
+                                        <td class="ps-4 fw-bold text-dark py-2.5">
+                                            <i class="fa-solid fa-circle-dot text-danger me-2" style="font-size: 8px;"></i>
                                             {{ $oItem->category }}
                                         </td>
-                                        <td class="text-center small text-muted">{{ $oItem->count }} টি</td>
-                                        <td class="text-end fw-bold text-dark">৳{{ number_format($oItem->total, 2) }}</td>
-                                        <td class="text-end pe-3.5">
+                                        <td class="text-center small text-muted py-2.5">{{ $oItem->count }}</td>
+                                        <td class="text-end fw-bold text-dark font-monospace py-2.5">৳{{ number_format($oItem->total, 2) }}</td>
+                                        <td class="text-end pe-4 py-2.5">
                                             <div class="d-flex align-items-center justify-content-end gap-2">
-                                                <span class="small fw-semibold text-muted">{{ $pctOp }}%</span>
-                                                <div class="progress flex-grow-1" style="height: 6px; max-width: 60px;">
-                                                    <div class="progress-bar bg-primary" role="progressbar" style="width: {{ $pctOp }}%"></div>
+                                                <span class="small fw-semibold text-muted font-monospace">{{ $pctOp }}%</span>
+                                                <div class="progress flex-grow-1" style="height: 6px; max-width: 55px;">
+                                                    <div class="progress-bar bg-danger" role="progressbar" style="width: {{ $pctOp }}%"></div>
                                                 </div>
                                             </div>
                                         </td>
@@ -281,7 +289,7 @@
                                 @empty
                                     <tr>
                                         <td colspan="4" class="text-center py-4 text-muted small">
-                                            এই সময়ে কোনো পরিচালন খরচ রেকর্ড নেই।
+                                            No operating entries found for this period.
                                         </td>
                                     </tr>
                                 @endforelse
@@ -293,32 +301,38 @@
         </div>
     </div>
 
-    <!-- Complete Ledger Statement Table (Print & Export Friendly) -->
-    <div class="card border-0 shadow-sm rounded-4 bg-white overflow-hidden mb-4 printable-report-card">
-        <div class="card-header bg-white border-bottom p-3.5 d-flex justify-content-between align-items-center">
-            <div>
-                <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
-                    <i class="fa-solid fa-list-check text-primary"></i>
-                    <span>সম্পূর্ণ আর্থিক লেনদেন খতিয়ান (Detailed Statement)</span>
-                </h6>
-                <span class="text-muted small">মোট {{ count($transactions) }} টি লেনদেন অন্তর্ভুক্ত</span>
+    <!-- Transactions Ledger Table -->
+    <div class="card border-0 shadow-2xs rounded-4 bg-white overflow-hidden printable-report-card">
+        <div class="card-header bg-white border-bottom p-3.5 px-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div class="d-flex align-items-center gap-2">
+                <span class="p-1.5 rounded bg-primary-subtle text-primary"><i class="fa-solid fa-list-check"></i></span>
+                <h6 class="fw-bold text-dark mb-0">Transactions</h6>
+                <span class="badge bg-light text-muted border rounded-pill px-2 py-0.5 small" id="trxCountBadge">
+                    {{ count($transactions) }}
+                </span>
             </div>
-            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1" onclick="window.print()">
-                <i class="fa-solid fa-print me-1"></i> প্রিন্ট
-            </button>
+
+            <!-- Instant Search Input -->
+            <div class="d-flex align-items-center gap-2">
+                <div class="input-group input-group-sm" style="max-width: 240px;">
+                    <span class="input-group-text bg-light border-end-0 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
+                    <input type="text" id="trxTableSearch" class="form-control bg-light border-start-0" placeholder="Search...">
+                </div>
+            </div>
         </div>
 
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
+                <table class="table table-hover align-middle mb-0" id="trxTable">
                     <thead class="bg-light table-light small text-muted">
                         <tr>
-                            <th class="ps-3.5" style="width: 110px;">তারিখ</th>
-                            <th style="width: 130px;">ভাউচার নং</th>
-                            <th>খাত ও বিবরণ</th>
-                            <th style="width: 140px;">মাধ্যম / পার্টি</th>
-                            <th class="text-end" style="width: 120px;">আয় (Income)</th>
-                            <th class="text-end pe-3.5" style="width: 120px;">ব্যয় (Expense)</th>
+                            <th class="ps-4 py-2.5" style="width: 105px;">Date</th>
+                            <th class="py-2.5" style="width: 120px;">Voucher</th>
+                            <th class="py-2.5">Category</th>
+                            <th class="py-2.5" style="width: 150px;">Party</th>
+                            <th class="text-end py-2.5" style="width: 125px;">Inflow</th>
+                            <th class="text-end py-2.5" style="width: 125px;">Outflow</th>
+                            <th class="text-end pe-4 py-2.5" style="width: 135px;">Balance</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -326,63 +340,63 @@
                         @forelse($transactions as $trx)
                             @php 
                                 if($trx->type === 'income') {
-                                    $runningBalance += $trx->amount;
+                                    $runningBalance += (float)$trx->amount;
                                 } else {
-                                    $runningBalance -= $trx->amount;
+                                    $runningBalance -= (float)$trx->amount;
                                 }
                             @endphp
-                            <tr>
-                                <td class="ps-3.5 small text-muted text-nowrap">
+                            <tr class="trx-row">
+                                <td class="ps-4 small text-muted text-nowrap py-2.5">
                                     {{ $trx->entry_date ? $trx->entry_date->format('d M, Y') : '' }}
                                 </td>
-                                <td>
-                                    <span class="badge bg-light text-dark border font-monospace small">
+                                <td class="py-2.5">
+                                    <span class="badge bg-light text-dark border font-monospace small px-2 py-1">
                                         {{ $trx->voucher_no ?: $trx->entry_no }}
                                     </span>
                                 </td>
-                                <td>
-                                    <div class="fw-bold text-dark small mb-0.5">{{ $trx->title }}</div>
-                                    <span class="badge {{ $trx->type === 'income' ? 'bg-success-subtle text-success' : 'bg-warning-subtle text-warning' }} border rounded-pill px-2 py-0.5" style="font-size: 11px;">
+                                <td class="py-2.5">
+                                    <div class="fw-bold text-dark small">{{ $trx->title }}</div>
+                                    <span class="badge {{ $trx->type === 'income' ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-warning-subtle text-warning border border-warning-subtle' }} rounded-pill px-2 py-0.5" style="font-size: 10.5px;">
                                         {{ $trx->category }}
                                     </span>
                                     @if($trx->notes)
-                                        <span class="small text-muted ms-1" style="font-size: 11px;">({{ Str::limit($trx->notes, 40) }})</span>
+                                        <span class="small text-muted ms-1" style="font-size: 11px;">({{ Str::limit($trx->notes, 35) }})</span>
                                     @endif
                                 </td>
-                                <td class="small text-muted">
-                                    <div class="text-truncate" style="max-width: 130px;">
-                                        {{ $trx->party_name ?: 'সাধারণ' }}
+                                <td class="small text-muted py-2.5">
+                                    <div class="text-truncate fw-semibold text-dark" style="max-width: 140px;">
+                                        {{ $trx->party_name ?: 'General' }}
                                     </div>
                                     <span class="badge bg-light text-muted border px-1.5 py-0.5" style="font-size: 10px;">
                                         {{ strtoupper($trx->payment_method) }}
                                     </span>
                                 </td>
-                                <td class="text-end fw-bold text-success">
+                                <td class="text-end fw-bold text-success font-monospace py-2.5">
                                     {{ $trx->type === 'income' ? '৳' . number_format($trx->amount, 2) : '—' }}
                                 </td>
-                                <td class="text-end pe-3.5 fw-bold text-danger">
+                                <td class="text-end fw-bold text-danger font-monospace py-2.5">
                                     {{ $trx->type === 'expense' ? '৳' . number_format($trx->amount, 2) : '—' }}
+                                </td>
+                                <td class="text-end pe-4 fw-bold font-monospace py-2.5 {{ $runningBalance >= 0 ? 'text-dark' : 'text-danger' }}">
+                                    ৳{{ number_format($runningBalance, 2) }}
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="text-center py-5 text-muted">
-                                    <i class="fa-solid fa-file-invoice text-muted opacity-50 fs-2 mb-2"></i>
-                                    <p class="small mb-0">নির্বাচিত সময়কালে কোনো লেনদেন পাওয়া যায়নি।</p>
+                                <td colspan="7" class="text-center py-5 text-muted">
+                                    <i class="fa-solid fa-file-invoice opacity-50 fs-3 mb-2 d-block"></i>
+                                    <p class="small mb-0">No transactions recorded for the selected period.</p>
                                 </td>
                             </tr>
                         @endforelse
                     </tbody>
                     <tfoot class="bg-light table-light fw-bold">
                         <tr>
-                            <td colspan="4" class="ps-3.5 text-dark">সর্বমোট (Total Summary)</td>
-                            <td class="text-end text-success">৳{{ number_format($totalIncome, 2) }}</td>
-                            <td class="text-end pe-3.5 text-danger">৳{{ number_format($totalExpense, 2) }}</td>
-                        </tr>
-                        <tr>
-                            <td colspan="4" class="ps-3.5 text-dark">নিট লাভ / ক্ষতি (Net Balance)</td>
-                            <td colspan="2" class="text-end pe-3.5 fs-6 {{ $netProfit >= 0 ? 'text-success' : 'text-danger' }}">
-                                ৳{{ number_format($netProfit, 2) }} ({{ $netProfitMargin }}%)
+                            <td colspan="4" class="ps-4 text-dark py-2.5">Total</td>
+                            <td class="text-end text-success font-monospace py-2.5">৳{{ number_format($totalIncome, 2) }}</td>
+                            <td class="text-end text-danger font-monospace py-2.5">৳{{ number_format($totalExpense, 2) }}</td>
+                            <td class="text-end pe-4 fs-6 font-monospace py-2.5 {{ $netProfit >= 0 ? 'text-success' : 'text-danger' }}">
+                                ৳{{ number_format($netProfit, 2) }}
                             </td>
                         </tr>
                     </tfoot>
@@ -393,23 +407,186 @@
 
 </div>
 
-<!-- Print Specific Styling -->
+<!-- Chart.js Script & Utilities -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // 1. Interactive Trend Chart
+    const trendData = @json($trendDataset ?? []);
+    const labels = trendData.map(d => d.label);
+    const incomeSeries = trendData.map(d => d.income || 0);
+    const productionSeries = trendData.map(d => d.production || 0);
+    const expenseSeries = trendData.map(d => d.expense || 0);
+    const profitSeries = trendData.map(d => d.profit || 0);
+
+    const ctx = document.getElementById('financialAnalyticsChart');
+    if (ctx && labels.length > 0) {
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Revenue',
+                        data: incomeSeries,
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.08)',
+                        fill: true,
+                        tension: 0.35,
+                        pointRadius: 3,
+                        pointHoverRadius: 5,
+                        borderWidth: 2
+                    },
+                    {
+                        label: 'Production',
+                        data: productionSeries,
+                        borderColor: '#f59e0b',
+                        backgroundColor: 'transparent',
+                        borderDash: [4, 4],
+                        tension: 0.35,
+                        pointRadius: 2.5,
+                        pointHoverRadius: 4,
+                        borderWidth: 2
+                    },
+                    {
+                        label: 'Expense',
+                        data: expenseSeries,
+                        borderColor: '#ef4444',
+                        backgroundColor: 'transparent',
+                        tension: 0.35,
+                        pointRadius: 2.5,
+                        pointHoverRadius: 4,
+                        borderWidth: 2
+                    },
+                    {
+                        label: 'Profit',
+                        data: profitSeries,
+                        borderColor: '#0284c7',
+                        backgroundColor: 'transparent',
+                        tension: 0.35,
+                        pointRadius: 2.5,
+                        pointHoverRadius: 4,
+                        borderWidth: 2
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ৳' + Number(context.raw).toLocaleString('en-US', {minimumFractionDigits: 2});
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { display: false }
+                    },
+                    y: {
+                        grid: { color: 'rgba(0, 0, 0, 0.05)' },
+                        ticks: {
+                            callback: function(value) {
+                                if (Math.abs(value) >= 1000) {
+                                    return '৳' + (value / 1000) + 'k';
+                                }
+                                return '৳' + value;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // 2. Client-side Live Search on Transactions Table
+    const searchInput = document.getElementById('trxTableSearch');
+    if (searchInput) {
+        searchInput.addEventListener('input', function () {
+            const filter = this.value.toLowerCase().trim();
+            const rows = document.querySelectorAll('#trxTable tbody tr.trx-row');
+            let visibleCount = 0;
+
+            rows.forEach(function (row) {
+                const text = row.textContent.toLowerCase();
+                if (text.includes(filter)) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            const badge = document.getElementById('trxCountBadge');
+            if (badge) {
+                badge.textContent = visibleCount;
+            }
+        });
+    }
+});
+
+// CSV Export Function
+function exportReportToCSV() {
+    const table = document.getElementById('trxTable');
+    if (!table) return;
+
+    let csv = [];
+    const rows = table.querySelectorAll('tr');
+
+    rows.forEach(row => {
+        if (row.style.display === 'none') return;
+        const cols = row.querySelectorAll('th, td');
+        let rowData = [];
+        cols.forEach(col => {
+            let text = col.innerText.replace(/(\r\n|\n|\r)/gm, ' ').replace(/\s+/g, ' ').trim();
+            text = text.replace(/"/g, '""');
+            rowData.push('"' + text + '"');
+        });
+        if (rowData.length > 0) {
+            csv.push(rowData.join(','));
+        }
+    });
+
+    const csvFile = new Blob(["\uFEFF" + csv.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const downloadLink = document.createElement('a');
+    downloadLink.download = 'financial-report-{{ $startDate->format('Ymd') }}-{{ $endDate->format('Ymd') }}.csv';
+    downloadLink.href = window.URL.createObjectURL(csvFile);
+    downloadLink.style.display = 'none';
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+}
+</script>
+
 <style>
 @media print {
-    body * {
-        visibility: hidden;
-    }
-    .printable-report-card, .printable-report-card * {
-        visibility: visible;
-    }
-    .printable-report-card {
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 100%;
-    }
-    .btn, form, .btn-group {
+    .adm-sidebar, .adm-side, .adm-topbar, .adm-top, .adm-backdrop,
+    .adm-header, .breadcrumb, .alert, nav, footer, .btn,
+    .d-print-none, [class*="d-print-none"],
+    #trxTableSearch, .input-group {
         display: none !important;
+        visibility: hidden !important;
+    }
+
+    .printable-report-card {
+        border: 1px solid #dee2e6 !important;
+        box-shadow: none !important;
+        page-break-inside: auto;
+    }
+
+    body {
+        background: #ffffff !important;
+        color: #000000 !important;
     }
 }
 </style>

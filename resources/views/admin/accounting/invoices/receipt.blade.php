@@ -72,12 +72,12 @@
         margin: 6mm 8mm;
     }
     .receipt-paper {
-        max-width: 820px;
+        max-width: 840px;
         margin: 0 auto;
         background: #ffffff;
-        border-radius: 12px;
+        border-radius: 14px;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-        padding: 24px 30px;
+        padding: 26px 32px;
         color: #1e293b;
         position: relative;
         overflow: hidden;
@@ -120,8 +120,22 @@
     .cert-fill-underline {
         display: inline-block;
         border-bottom: 1.5px dashed #334155;
-        padding: 0 4px 1px 4px;
+        padding: 0 5px 1px 5px;
         font-weight: 700;
+    }
+    .receipt-meta-grid {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    .receipt-meta-cell {
+        padding: 8px 12px !important;
+        border-right: 1px solid #edf2f7;
+        border-bottom: 1px solid #edf2f7;
+    }
+    .receipt-meta-cell:last-child {
+        border-right: none;
     }
     .amount-highlight-box {
         background: #f0fdf4;
@@ -134,11 +148,6 @@
         padding-top: 14px;
         margin-top: 12px;
         border-top: 1px solid #e2e8f0;
-    }
-    .receipt-meta-table td {
-        padding: 4px 8px !important;
-        font-size: 12px;
-        vertical-align: middle;
     }
     @media print {
         @page {
@@ -179,6 +188,9 @@
             font-size: 11px !important;
             line-height: 1.4 !important;
         }
+        .receipt-meta-cell {
+            padding: 5px 8px !important;
+        }
         .amount-highlight-box {
             padding: 8px 12px !important;
             margin-bottom: 8px !important;
@@ -187,26 +199,24 @@
             padding-top: 12px !important;
             margin-top: 8px !important;
         }
-        .receipt-meta-table td {
-            padding: 2px 6px !important;
-            font-size: 10.5px !important;
-        }
     }
 </style>
 
 <div class="container-fluid py-2">
     <div class="receipt-paper">
         {{-- Header & Branding --}}
-        <div class="row align-items-center pb-2 mb-2 border-bottom">
+        <div class="row align-items-center pb-2 mb-2.5 border-bottom">
             <div class="col-7">
-                <div class="d-flex align-items-center gap-2.5">
+                <div class="d-flex align-items-center gap-3">
                     @if(!empty($logoSrc))
-                        <img src="{{ $logoSrc }}" alt="Logo" style="height: 42px; max-width: 130px; object-fit: contain;">
+                        <div class="pe-2 me-1" style="border-right: 1.5px solid #f1f5f9;">
+                            <img src="{{ $logoSrc }}" alt="Logo" style="height: 44px; max-width: 130px; object-fit: contain;">
+                        </div>
                     @endif
                     <div>
-                        <h5 class="fw-bold mb-0 text-dark" style="font-size: 17px;">{{ $settings['business_name'] ?? 'আইডিয়া প্রকাশন' }}</h5>
+                        <h5 class="fw-bold mb-0 text-dark" style="font-size: 17px; letter-spacing: -0.2px;">{{ $settings['business_name'] ?? 'আইডিয়া প্রকাশন' }}</h5>
                         @if(!empty($settings['tagline']))
-                            <div class="text-muted small" style="font-size: 11px;">{{ $settings['tagline'] }}</div>
+                            <div class="text-muted small" style="font-size: 11px; margin-top: 1px;">{{ $settings['tagline'] }}</div>
                         @endif
                         <div class="text-secondary small mt-0.5" style="font-size: 10.5px;">
                             {{ $settings['address'] ?? '' }}
@@ -239,12 +249,12 @@
                     </span> 
                     বাবদ বিলের মোট অর্থ 
                     <span class="cert-fill-underline text-primary font-monospace">৳{{ number_format($thisAmount, 2) }}</span> 
-                    (কথায়: <span class="cert-fill-underline text-primary">@takaInWords($thisAmount) টাকা मात्र</span>) 
+                    (কথায়: <span class="cert-fill-underline text-primary">@takaInWords($thisAmount) টাকা মাত্র</span>) 
                     সমন্বয়পূর্বক সরকারি কোষাগারে জমাকৃত উৎসে ভ্যাট ও ট্যাক্স কর্তন বাবদ 
                     <span class="cert-fill-underline text-danger font-monospace">৳{{ number_format($payment->total_deductions, 2) }}</span> 
                     বাদ দিয়ে নগদ/ব্যাংক চেক মারফত নিট 
                     <span class="cert-fill-underline text-success font-monospace">৳{{ number_format($payment->effective_net_amount, 2) }}</span> 
-                    (কথায়: <span class="cert-fill-underline text-success">@takaInWords($payment->effective_net_amount) টাকা मात्र</span>) 
+                    (কথায়: <span class="cert-fill-underline text-success">@takaInWords($payment->effective_net_amount) টাকা মাত্র</span>) 
                     গ্রহণ করা হলো।
                 @else
                     এতদ্বারা প্রত্যয়ন করা যাচ্ছে যে, 
@@ -257,59 +267,46 @@
                     </span> 
                     বাবদ বিলের অর্থ 
                     <span class="cert-fill-underline text-success font-monospace">৳{{ number_format($thisAmount, 2) }}</span> 
-                    (কথায়: <span class="cert-fill-underline text-success">@takaInWords($thisAmount) টাকা मात्र</span>) গ্রহণ করা হলো।
+                    (কথায়: <span class="cert-fill-underline text-success">@takaInWords($thisAmount) টাকা মাত্র</span>) গ্রহণ করা হলো।
                 @endif
             </div>
 
-            <div class="row g-2 p-2 bg-white rounded-2 border mb-2 receipt-meta-table" style="font-size: 11.5px;">
-                <div class="col-sm-4 col-6">
-                    <div class="d-flex align-items-baseline">
-                        <span class="text-muted fw-semibold" style="width: 80px;">Invoice:</span>
-                        <span class="fw-bold text-primary font-monospace">{{ $invoice ? $invoice->invoice_no : '—' }}</span>
+            {{-- Structured Meta Grid with Light Border Dividers --}}
+            <div class="receipt-meta-grid mb-2">
+                <div class="row g-0">
+                    <div class="col-4 receipt-meta-cell">
+                        <span class="text-muted d-block fw-semibold" style="font-size: 10px; text-transform: uppercase;">Invoice:</span>
+                        <span class="fw-bold text-primary font-monospace" style="font-size: 12.5px;">{{ $invoice ? $invoice->invoice_no : '—' }}</span>
                     </div>
-                </div>
-                <div class="col-sm-4 col-6">
-                    <div class="d-flex align-items-baseline">
-                        <span class="text-muted fw-semibold" style="width: 80px;">Bill Date:</span>
-                        <span class="fw-bold text-dark">{{ $invoice && $invoice->invoice_date ? $invoice->invoice_date->format('d/m/Y') : '—' }}</span>
+                    <div class="col-4 receipt-meta-cell">
+                        <span class="text-muted d-block fw-semibold" style="font-size: 10px; text-transform: uppercase;">Bill Date:</span>
+                        <span class="fw-bold text-dark" style="font-size: 12px;">{{ $invoice && $invoice->invoice_date ? $invoice->invoice_date->format('d/m/Y') : '—' }}</span>
                     </div>
-                </div>
-                <div class="col-sm-4 col-6">
-                    <div class="d-flex align-items-baseline">
-                        <span class="text-muted fw-semibold" style="width: 80px;">Paid Date:</span>
-                        <span class="fw-bold text-dark font-monospace">{{ $payment->payment_date ? $payment->payment_date->format('d/m/Y') : date('d/m/Y') }}</span>
+                    <div class="col-4 receipt-meta-cell" style="border-right: none;">
+                        <span class="text-muted d-block fw-semibold" style="font-size: 10px; text-transform: uppercase;">Paid Date:</span>
+                        <span class="fw-bold text-dark font-monospace" style="font-size: 12px;">{{ $payment->payment_date ? $payment->payment_date->format('d/m/Y') : date('d/m/Y') }}</span>
                     </div>
-                </div>
-                <div class="col-sm-4 col-6">
-                    <div class="d-flex align-items-baseline">
-                        <span class="text-muted fw-semibold" style="width: 80px;">Method:</span>
-                        <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-0.5 fw-bold">
+                    <div class="col-4 receipt-meta-cell" style="border-bottom: none;">
+                        <span class="text-muted d-block fw-semibold" style="font-size: 10px; text-transform: uppercase;">Method:</span>
+                        <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-0.5 fw-bold" style="font-size: 11px;">
                             {{ \App\Models\IdeaInvoicePayment::paymentMethods()[$payment->payment_method] ?? ucfirst($payment->payment_method) }}
                         </span>
                     </div>
-                </div>
-                @if($payment->transaction_ref)
-                    <div class="col-sm-4 col-6">
-                        <div class="d-flex align-items-baseline">
-                            <span class="text-muted fw-semibold" style="width: 80px;">Trx / Ref:</span>
-                            <span class="fw-bold font-monospace text-dark">{{ $payment->transaction_ref }}</span>
+                    <div class="col-4 receipt-meta-cell" style="border-bottom: none;">
+                        <span class="text-muted d-block fw-semibold" style="font-size: 10px; text-transform: uppercase;">Trx / Ref:</span>
+                        <span class="fw-bold font-monospace text-dark" style="font-size: 11.5px;">{{ $payment->transaction_ref ?: '—' }}</span>
+                    </div>
+                    <div class="col-4 receipt-meta-cell" style="border-right: none; border-bottom: none;">
+                        <span class="text-muted d-block fw-semibold" style="font-size: 10px; text-transform: uppercase;">Tracking:</span>
+                        <span class="fw-bold text-secondary font-monospace" style="font-size: 11.5px;">#{{ $payment->payment_no }}</span>
+                    </div>
+                    @if($payment->deduction_challan_no)
+                        <div class="col-12 receipt-meta-cell border-top bg-light-subtle" style="border-right: none; border-bottom: none;">
+                            <span class="text-muted fw-semibold me-1" style="font-size: 10px; text-transform: uppercase;">Challan Ref:</span>
+                            <span class="fw-bold text-dark font-monospace" style="font-size: 11.5px;">{{ $payment->deduction_challan_no }} (ট্রেজারি চালান / মূসক-৬.৬)</span>
                         </div>
-                    </div>
-                @endif
-                <div class="col-sm-4 col-6">
-                    <div class="d-flex align-items-baseline">
-                        <span class="text-muted fw-semibold" style="width: 80px;">Tracking:</span>
-                        <span class="fw-bold text-secondary font-monospace">#{{ $payment->payment_no }}</span>
-                    </div>
+                    @endif
                 </div>
-                @if($payment->deduction_challan_no)
-                    <div class="col-12">
-                        <div class="d-flex align-items-baseline">
-                            <span class="text-muted fw-semibold" style="width: 80px;">Challan Ref:</span>
-                            <span class="fw-bold text-dark font-monospace">{{ $payment->deduction_challan_no }} (ট্রেজারি চালান / মূসক-৬.৬)</span>
-                        </div>
-                    </div>
-                @endif
             </div>
 
             <div class="p-1.5 rounded-2 bg-white border d-flex align-items-center justify-content-between flex-wrap gap-2">
@@ -361,55 +358,42 @@
                 @endif
             </div>
 
-            <div class="row g-2 p-2 bg-white rounded-2 border mb-2 receipt-meta-table" style="font-size: 11.5px;">
-                <div class="col-sm-4 col-6">
-                    <div class="d-flex align-items-baseline">
-                        <span class="text-muted fw-semibold" style="width: 80px;">Invoice:</span>
-                        <span class="fw-bold text-primary font-monospace">{{ $invoice ? $invoice->invoice_no : '—' }}</span>
+            {{-- Structured Meta Grid with Light Border Dividers --}}
+            <div class="receipt-meta-grid mb-2">
+                <div class="row g-0">
+                    <div class="col-4 receipt-meta-cell">
+                        <span class="text-muted d-block fw-semibold" style="font-size: 10px; text-transform: uppercase;">Invoice:</span>
+                        <span class="fw-bold text-primary font-monospace" style="font-size: 12.5px;">{{ $invoice ? $invoice->invoice_no : '—' }}</span>
                     </div>
-                </div>
-                <div class="col-sm-4 col-6">
-                    <div class="d-flex align-items-baseline">
-                        <span class="text-muted fw-semibold" style="width: 80px;">Bill Date:</span>
-                        <span class="fw-bold text-dark">{{ $invoice && $invoice->invoice_date ? $invoice->invoice_date->format('d M, Y') : '—' }}</span>
+                    <div class="col-4 receipt-meta-cell">
+                        <span class="text-muted d-block fw-semibold" style="font-size: 10px; text-transform: uppercase;">Bill Date:</span>
+                        <span class="fw-bold text-dark" style="font-size: 12px;">{{ $invoice && $invoice->invoice_date ? $invoice->invoice_date->format('d M, Y') : '—' }}</span>
                     </div>
-                </div>
-                <div class="col-sm-4 col-6">
-                    <div class="d-flex align-items-baseline">
-                        <span class="text-muted fw-semibold" style="width: 80px;">Receipt Date:</span>
-                        <span class="fw-bold text-dark font-monospace">{{ $payment->payment_date ? $payment->payment_date->format('d M, Y') : date('d M, Y') }}</span>
+                    <div class="col-4 receipt-meta-cell" style="border-right: none;">
+                        <span class="text-muted d-block fw-semibold" style="font-size: 10px; text-transform: uppercase;">Receipt Date:</span>
+                        <span class="fw-bold text-dark font-monospace" style="font-size: 12px;">{{ $payment->payment_date ? $payment->payment_date->format('d M, Y') : date('d M, Y') }}</span>
                     </div>
-                </div>
-                <div class="col-sm-4 col-6">
-                    <div class="d-flex align-items-baseline">
-                        <span class="text-muted fw-semibold" style="width: 80px;">Method:</span>
-                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-0.5 fw-bold">
+                    <div class="col-4 receipt-meta-cell" style="border-bottom: none;">
+                        <span class="text-muted d-block fw-semibold" style="font-size: 10px; text-transform: uppercase;">Method:</span>
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-0.5 fw-bold" style="font-size: 11px;">
                             {{ ucfirst($payment->payment_method) }}
                         </span>
                     </div>
-                </div>
-                @if($payment->transaction_ref)
-                    <div class="col-sm-4 col-6">
-                        <div class="d-flex align-items-baseline">
-                            <span class="text-muted fw-semibold" style="width: 80px;">Trx / Ref:</span>
-                            <span class="fw-bold font-monospace text-dark">{{ $payment->transaction_ref }}</span>
+                    <div class="col-4 receipt-meta-cell" style="border-bottom: none;">
+                        <span class="text-muted d-block fw-semibold" style="font-size: 10px; text-transform: uppercase;">Trx / Ref:</span>
+                        <span class="fw-bold font-monospace text-dark" style="font-size: 11.5px;">{{ $payment->transaction_ref ?: '—' }}</span>
+                    </div>
+                    <div class="col-4 receipt-meta-cell" style="border-right: none; border-bottom: none;">
+                        <span class="text-muted d-block fw-semibold" style="font-size: 10px; text-transform: uppercase;">Tracking:</span>
+                        <span class="fw-bold text-secondary font-monospace" style="font-size: 11.5px;">#{{ $payment->payment_no }}</span>
+                    </div>
+                    @if($payment->deduction_challan_no)
+                        <div class="col-12 receipt-meta-cell border-top bg-light-subtle" style="border-right: none; border-bottom: none;">
+                            <span class="text-muted fw-semibold me-1" style="font-size: 10px; text-transform: uppercase;">Challan Ref:</span>
+                            <span class="fw-bold text-dark font-monospace" style="font-size: 11.5px;">{{ $payment->deduction_challan_no }} (Treasury / Mushak 6.6)</span>
                         </div>
-                    </div>
-                @endif
-                <div class="col-sm-4 col-6">
-                    <div class="d-flex align-items-baseline">
-                        <span class="text-muted fw-semibold" style="width: 80px;">Tracking:</span>
-                        <span class="fw-bold text-secondary font-monospace">#{{ $payment->payment_no }}</span>
-                    </div>
+                    @endif
                 </div>
-                @if($payment->deduction_challan_no)
-                    <div class="col-12">
-                        <div class="d-flex align-items-baseline">
-                            <span class="text-muted fw-semibold" style="width: 80px;">Challan Ref:</span>
-                            <span class="fw-bold text-dark font-monospace">{{ $payment->deduction_challan_no }} (Treasury / Mushak 6.6)</span>
-                        </div>
-                    </div>
-                @endif
             </div>
 
             <div class="p-1.5 rounded-2 bg-white border d-flex align-items-center justify-content-between flex-wrap gap-2">

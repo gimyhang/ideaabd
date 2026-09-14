@@ -175,10 +175,10 @@
         {{-- ========================================================================= --}}
         <div class="card border shadow-xs rounded-3 p-3 p-md-4 bg-white mb-3 invoice-page-card" id="pageBillMemo">
             
-            {{-- Institutional / Company Header in 2-Column Single Row (No Wrapping) --}}
+            {{-- Institutional / Company Header in 2-Column Responsive Layout --}}
             <div class="row align-items-center border-bottom pb-2 mb-2 g-2">
-                <div class="col-7">
-                    <div class="d-flex align-items-center gap-3 invoice-brand-header">
+                <div class="col-12 col-md-7 col-print-7">
+                    <div class="d-flex align-items-center gap-2.5 invoice-brand-header">
                         <img src="{{ $logoSrc }}" alt="{{ $settings['business_name'] ?? 'Idea Publication' }}" 
                              class="img-fluid invoice-logo-img" style="height: 48px; width: 96px; aspect-ratio: 2/1; object-fit: contain; flex-shrink: 0; margin-right: 4px;">
                         <div class="d-flex flex-column justify-content-center" style="line-height: 1.3; padding-left: 2px;">
@@ -195,7 +195,7 @@
                     </div>
                 </div>
 
-                <div class="col-5 text-end">
+                <div class="col-12 col-md-5 col-print-5 text-md-end text-start mt-2 mt-md-0">
                     @php
                         $badgeStyles = [
                             'challan'   => 'background-color: #e0f2fe; color: #0369a1; border-color: #7dd3fc;',
@@ -267,7 +267,7 @@
             {{-- Customer & Billed To Info (Structured Format with Vertical Colon Alignment) --}}
             <div class="p-2.5 bg-light rounded-2 border mb-2.5 destination-box" style="font-size: 12px; box-sizing: border-box;">
                 <div class="row g-2 align-items-start m-0">
-                    <div class="col-7 p-0 pe-2 border-end">
+                    <div class="col-12 col-md-7 col-print-7 p-0 pe-md-2 border-end-md border-bottom border-bottom-md-0 pb-2 pb-md-0 mb-2 mb-md-0">
                         <div class="fw-bold text-dark mb-1" style="font-size: 12px;"><i class="fas fa-user-tag me-1 text-primary"></i>Client / Customer Information:</div>
                         <table class="table-borderless p-0 m-0 w-100 colon-table" style="line-height: 1.45;">
                             @if($invoice->customer_name)
@@ -307,7 +307,7 @@
                             @endif
                         </table>
                     </div>
-                    <div class="col-5 p-0 ps-2">
+                    <div class="col-12 col-md-5 col-print-5 p-0 ps-md-2">
                         <div class="text-muted text-uppercase fw-semibold mb-1" style="font-size: 11px;"><i class="fas fa-file-invoice me-1 text-primary"></i>Order & Payment Details:</div>
                         <table class="table-borderless p-0 m-0 w-100 colon-table" style="line-height: 1.45;">
                             <tr>
@@ -326,11 +326,11 @@
                                 <td>
                                     @if(in_array($invoice->type, ['invoice', 'challan']))
                                         @if($invoice->payment_status === 'paid')
-                                            <span class="badge bg-success-subtle text-success border px-2 py-0.5" style="font-size: 10px;">Paid</span>
+                                             <span class="badge bg-success-subtle text-success border px-2 py-0.5" style="font-size: 10px;">Paid</span>
                                         @elseif($invoice->payment_status === 'partial')
-                                            <span class="badge bg-warning-subtle text-dark border px-2 py-0.5" style="font-size: 10px;">Partially Paid</span>
+                                             <span class="badge bg-warning-subtle text-dark border px-2 py-0.5" style="font-size: 10px;">Partially Paid</span>
                                         @else
-                                            <span class="badge bg-danger-subtle text-danger border px-2 py-0.5" style="font-size: 10px;">Due</span>
+                                             <span class="badge bg-danger-subtle text-danger border px-2 py-0.5" style="font-size: 10px;">Due</span>
                                         @endif
                                     @else
                                         <span class="badge bg-primary-subtle text-primary border px-2 py-0.5" style="font-size: 10px;">Proposed</span>
@@ -560,11 +560,11 @@
             {{-- Signature, QR Code & Banking Footer (Positioned at A4/Letter page bottom) --}}
             <div class="invoice-footer-compact pt-2 mt-auto border-top">
                 @if($invoice->type === 'invoice')
-                    {{-- 5 Columns Layout: Customer Sig | Scan to Verify | bKash/Nagad/Rocket QR | Bank Payment QR | Authorized Sig --}}
-                    <div class="row g-2 align-items-end text-center" style="font-size: 10px;">
+                    {{-- Responsive 5 Columns Layout: Customer Sig | Scan to Verify | bKash/Nagad/Rocket QR | Bank Payment QR | Authorized Sig --}}
+                    <div class="row g-2 align-items-end text-center footer-signature-grid" style="font-size: 10px;">
                         {{-- 1. Customer Signature --}}
-                        <div class="col-3 text-center">
-                            <div class="signature-box" style="margin-top: 36px;">
+                        <div class="col-6 col-md-3 col-print-3 text-center">
+                            <div class="signature-box" style="margin-top: 24px;">
                                 <div class="border-top border-dark pt-1 fw-semibold text-dark" style="font-size: 9px;">
                                     Customer's Signature
                                 </div>
@@ -572,7 +572,7 @@
                         </div>
 
                         {{-- 2. Scan to Verify QR --}}
-                        <div class="col-2 text-center">
+                        <div class="col-6 col-md-2 col-print-2 text-center">
                             <a href="{{ $invoiceUrl }}" target="_blank" class="text-decoration-none d-inline-flex flex-column align-items-center">
                                 <div class="p-1 rounded border bg-white shadow-2xs d-inline-block">
                                     <img src="{{ $qrCodeUrl }}" alt="Verify QR" style="width: {{ $qrCodeSize }}; height: {{ $qrCodeSize }}; object-fit: contain; display: block;">
@@ -584,7 +584,7 @@
                         </div>
 
                         {{-- 3. bKash / Nagad / Rocket QR --}}
-                        <div class="col-2 text-center">
+                        <div class="col-6 col-md-2 col-print-2 text-center">
                             <div class="d-inline-flex flex-column align-items-center">
                                 <div class="p-1 rounded border bg-white shadow-2xs d-inline-block">
                                     <img src="{{ $mfsQrSrc }}" alt="MFS QR" style="width: {{ $qrCodeSize }}; height: {{ $qrCodeSize }}; object-fit: contain; display: block;">
@@ -596,7 +596,7 @@
                         </div>
 
                         {{-- 4. Bank Payment QR --}}
-                        <div class="col-2 text-center">
+                        <div class="col-6 col-md-2 col-print-2 text-center">
                             <div class="d-inline-flex flex-column align-items-center">
                                 <div class="p-1 rounded border bg-white shadow-2xs d-inline-block">
                                     <img src="{{ $bankQrSrc }}" alt="Bank QR" style="width: {{ $qrCodeSize }}; height: {{ $qrCodeSize }}; object-fit: contain; display: block;">
@@ -608,8 +608,8 @@
                         </div>
 
                         {{-- 5. Authorized Signature --}}
-                        <div class="col-3 text-center">
-                            <div class="signature-box" style="margin-top: 18px;">
+                        <div class="col-12 col-md-3 col-print-3 text-center mt-3 mt-md-0">
+                            <div class="signature-box" style="margin-top: 14px;">
                                 <div class="fw-bold text-dark text-truncate" style="font-size: 10.5px; line-height: 1.2;">
                                     {{ $creatorName }}
                                 </div>
@@ -624,9 +624,9 @@
                     </div>
                 @else
                     {{-- 3 Columns Layout for Delivery Challan / Quotation / Tender --}}
-                    <div class="row g-2 align-items-end text-center" style="font-size: 10px;">
-                        <div class="col-4">
-                            <div class="signature-box" style="margin-top: 36px;">
+                    <div class="row g-2 align-items-end text-center footer-signature-grid" style="font-size: 10px;">
+                        <div class="col-6 col-md-4 col-print-4">
+                            <div class="signature-box" style="margin-top: 24px;">
                                 <div class="border-top border-dark pt-1 fw-semibold text-dark">
                                     Customer's Signature
                                 </div>
@@ -634,7 +634,7 @@
                         </div>
 
                         {{-- QR Code & Verification Box --}}
-                        <div class="col-4 text-center">
+                        <div class="col-6 col-md-4 col-print-4 text-center">
                             <a href="{{ $invoiceUrl }}" target="_blank" class="text-decoration-none d-inline-flex flex-column align-items-center">
                                 <div class="p-1 rounded border bg-white shadow-2xs d-inline-block">
                                     <img src="{{ $qrCodeUrl }}" alt="QR" style="width: {{ $qrCodeSize }}; height: {{ $qrCodeSize }}; object-fit: contain; display: block;">
@@ -645,8 +645,8 @@
                             </a>
                         </div>
 
-                        <div class="col-4 text-center">
-                            <div class="signature-box" style="margin-top: 24px;">
+                        <div class="col-12 col-md-4 col-print-4 text-center mt-3 mt-md-0">
+                            <div class="signature-box" style="margin-top: 14px;">
                                 <div class="fw-bold text-dark" style="font-size: 11px; line-height: 1.25;">
                                     {{ $creatorName }}
                                 </div>
@@ -677,10 +677,10 @@
 
             <div class="card border shadow-xs rounded-3 p-3 p-md-4 bg-white mb-3 invoice-page-card" id="pageChallanMemo">
                 
-                {{-- Institutional / Company Header in 2-Column Single Row (No Wrapping) --}}
+                {{-- Institutional / Company Header in 2-Column Responsive Layout --}}
                 <div class="row align-items-center border-bottom pb-2 mb-2 g-2">
-                    <div class="col-7">
-                        <div class="d-flex align-items-center gap-3 invoice-brand-header">
+                    <div class="col-12 col-md-7 col-print-7">
+                        <div class="d-flex align-items-center gap-2.5 invoice-brand-header">
                             <img src="{{ $logoSrc }}" alt="{{ $settings['business_name'] ?? 'Idea Publication' }}" 
                                  class="img-fluid invoice-logo-img" style="height: 48px; width: 96px; aspect-ratio: 2/1; object-fit: contain; flex-shrink: 0; margin-right: 4px;">
                             <div class="d-flex flex-column justify-content-center" style="line-height: 1.3; padding-left: 2px;">
@@ -697,7 +697,7 @@
                         </div>
                     </div>
 
-                    <div class="col-5 text-end">
+                    <div class="col-12 col-md-5 col-print-5 text-md-end text-start mt-2 mt-md-0">
                         <span class="badge border px-2 py-0.5 rounded-pill mb-0.5 d-inline-block fw-bold" style="font-size: 10px; background-color: #e0f2fe; color: #0369a1; border-color: #7dd3fc;">
                             DELIVERY CHALLAN
                         </span>
@@ -730,7 +730,7 @@
                 {{-- Delivery Destination & Client Details --}}
                 <div class="p-2.5 bg-light rounded-2 border mb-2.5 destination-box" style="font-size: 12px; box-sizing: border-box;">
                     <div class="row g-2 align-items-start m-0">
-                        <div class="col-7 p-0 pe-2 border-end">
+                        <div class="col-12 col-md-7 col-print-7 p-0 pe-md-2 border-end-md border-bottom border-bottom-md-0 pb-2 pb-md-0 mb-2 mb-md-0">
                             <div class="fw-bold text-dark mb-1 d-flex align-items-center justify-content-between" style="font-size: 12px;">
                                 <span><i class="fas fa-truck-ramp-box me-1 text-primary"></i>Delivery Destination & Recipient:</span>
                             </div>
@@ -772,7 +772,7 @@
                                 @endif
                             </table>
                         </div>
-                        <div class="col-5 p-0 ps-2">
+                        <div class="col-12 col-md-5 col-print-5 p-0 ps-md-2">
                             <div class="text-muted text-uppercase fw-semibold mb-1" style="font-size: 11px;"><i class="fas fa-truck-fast me-1 text-primary"></i>Challan Tracking & Dispatch Info:</div>
                             <table class="table-borderless p-0 m-0 w-100 colon-table" style="line-height: 1.45;">
                                 <tr>
@@ -876,8 +876,8 @@
 
                 {{-- Challan Signatures & QR Code --}}
                 <div class="invoice-footer-compact pt-2 mt-auto border-top">
-                    <div class="row g-2 align-items-end text-center" style="font-size: 10px;">
-                        <div class="col-4">
+                    <div class="row g-2 align-items-end text-center footer-signature-grid" style="font-size: 10px;">
+                        <div class="col-6 col-md-4 col-print-4">
                             <div class="signature-box" style="margin-top: 24px;">
                                 <div class="border-top border-dark pt-1 fw-semibold text-dark">
                                     Recipient's Signature
@@ -886,7 +886,7 @@
                         </div>
 
                         {{-- QR Code & Verification Box --}}
-                        <div class="col-4">
+                        <div class="col-6 col-md-4 col-print-4 text-center">
                             <div class="d-inline-flex align-items-center gap-1.5 px-2 py-1 rounded border bg-white shadow-xs">
                                 <img src="{{ $qrCodeUrl }}" alt="QR" style="width: {{ $qrCodeSize }}; height: {{ $qrCodeSize }}; object-fit: contain;">
                                 <div class="text-start" style="line-height: 1.15;">
@@ -896,8 +896,8 @@
                             </div>
                         </div>
 
-                        <div class="col-4 text-center">
-                            <div class="signature-box" style="margin-top: 24px;">
+                        <div class="col-12 col-md-4 col-print-4 text-center mt-3 mt-md-0">
+                            <div class="signature-box" style="margin-top: 14px;">
                                 <div class="fw-bold text-dark" style="font-size: 11px; line-height: 1.25;">
                                     {{ $creatorName }}
                                 </div>
@@ -3269,6 +3269,50 @@ function resetCrop() {
     user-select: none;
 }
 
+@media (min-width: 768px) {
+    .border-end-md {
+        border-right: 1px solid #cbd5e1 !important;
+    }
+    .border-bottom-md-0 {
+        border-bottom: 0 !important;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .invoice-page-card {
+        padding: 12px 14px !important;
+        min-height: auto !important;
+        margin-bottom: 1rem;
+    }
+
+    .invoice-table {
+        min-width: 560px;
+    }
+
+    .table-responsive {
+        -webkit-overflow-scrolling: touch;
+        overflow-x: auto;
+        display: block;
+        width: 100%;
+    }
+
+    .colon-table .colon-label {
+        width: 85px !important;
+    }
+
+    .invoice-brand-header {
+        flex-wrap: wrap;
+    }
+
+    .invoice-no-text {
+        font-size: 14px !important;
+    }
+
+    .signature-box {
+        margin-top: 14px;
+    }
+}
+
 @page {
     size: A4 portrait;
     margin: 8mm 8mm 8mm 8mm;
@@ -3343,31 +3387,43 @@ function resetCrop() {
         box-sizing: border-box !important;
     }
 
-    .col-7 {
+    .col-7, .col-print-7 {
         flex: 0 0 58.333333% !important;
         max-width: 58.333333% !important;
         width: 58.333333% !important;
     }
 
-    .col-5 {
+    .col-5, .col-print-5 {
         flex: 0 0 41.666667% !important;
         max-width: 41.666667% !important;
         width: 41.666667% !important;
     }
 
-    .col-6 {
+    .col-6, .col-print-6 {
         flex: 0 0 50% !important;
         max-width: 50% !important;
         width: 50% !important;
     }
 
-    .col-4 {
+    .col-4, .col-print-4 {
         flex: 0 0 33.333333% !important;
         max-width: 33.333333% !important;
         width: 33.333333% !important;
     }
 
-    .col-12 {
+    .col-3, .col-print-3 {
+        flex: 0 0 25% !important;
+        max-width: 25% !important;
+        width: 25% !important;
+    }
+
+    .col-2, .col-print-2 {
+        flex: 0 0 16.666667% !important;
+        max-width: 16.666667% !important;
+        width: 16.666667% !important;
+    }
+
+    .col-12, .col-print-12 {
         flex: 0 0 100% !important;
         max-width: 100% !important;
         width: 100% !important;
@@ -3412,6 +3468,7 @@ function resetCrop() {
         max-width: 100% !important;
         border-collapse: collapse !important;
         margin: 0 !important;
+        min-width: 0 !important;
     }
 
     .invoice-table th,
@@ -3442,12 +3499,6 @@ function resetCrop() {
         page-break-inside: avoid !important;
         break-inside: avoid !important;
         margin-bottom: 6px !important;
-    }
-
-    .col-print-6 {
-        flex: 0 0 50% !important;
-        max-width: 50% !important;
-        width: 50% !important;
     }
 
     .invoice-footer-compact {
