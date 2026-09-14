@@ -620,19 +620,12 @@
 <div class="modal fade d-print-none" id="editReceiptPaymentModal" tabindex="-1" aria-labelledby="editReceiptPaymentModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
-            <div class="modal-header bg-gradient bg-primary text-white py-3 px-4">
+            <div class="modal-header bg-gradient bg-primary text-white py-2.5 px-3.5">
                 <div class="d-flex align-items-center gap-2">
-                    <div class="rounded-circle bg-white bg-opacity-25 p-2 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
-                        <i class="fas fa-pen-to-square text-white"></i>
-                    </div>
-                    <div>
-                        <h5 class="modal-title fw-bold mb-0 text-white" id="editReceiptPaymentModalLabel">
-                            Edit Payment & Deduction Breakdown
-                        </h5>
-                        <div class="text-white-50 small" style="font-size: 11.5px;">
-                            Receipt #{{ $payment->payment_no }} | Invoice #{{ $invoice ? $invoice->invoice_no : '—' }}
-                        </div>
-                    </div>
+                    <i class="fas fa-pen-to-square text-white"></i>
+                    <h5 class="modal-title fw-bold mb-0 text-white fs-6" id="editReceiptPaymentModalLabel">
+                        Edit Payment
+                    </h5>
                 </div>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
