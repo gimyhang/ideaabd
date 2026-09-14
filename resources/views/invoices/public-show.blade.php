@@ -242,6 +242,19 @@
                 font-size: 15.5px !important;
             }
 
+            .invoice-summary-container {
+                width: 100% !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+                margin-bottom: 6px !important;
+            }
+
+            .col-print-6 {
+                flex: 0 0 50% !important;
+                max-width: 50% !important;
+                width: 50% !important;
+            }
+
             .invoice-footer-compact {
                 margin-top: 15px !important;
                 page-break-inside: avoid !important;
@@ -610,72 +623,105 @@
                                 </tr>
                             @endforeach
                         </tbody>
-                        @php
-                            $specialCommPercent = ($invoice->subtotal > 0 && $invoice->discount > 0)
-                                ? round(($invoice->discount / $invoice->subtotal) * 100, 1)
-                                : 0;
-
-                            $tfootRows = 3; // মোট টাকা + বিশেষ কমিশন + সর্বমোট বিল
-                            if (($invoice->previous_due ?? 0) > 0) $tfootRows++;
-                            if ($invoice->tax > 0) $tfootRows++;
-                            if (in_array($invoice->type, ['invoice', 'challan'])) {
-                                $tfootRows++; // পরিশোধিত
-                                if ($invoice->due_amount > 0) $tfootRows++; // অবশিষ্ট বকেয়া
-                            }
-                        @endphp
-                        <tfoot>
-                            <tr>
-                                <td colspan="6" rowspan="{{ $tfootRows }}" class="py-2 px-2.5 border bg-light bg-opacity-25" style="vertical-align: middle;">
-                                    <div class="p-1">
-                                        <span class="text-muted fw-bold d-block mb-1" style="font-size: 9.5px;">
-                                            <i class="fas fa-coins me-1 text-primary"></i>কথায় (In Words):
-                                        </span>
-                                        <div class="fw-bold text-dark text-wrap" style="font-size: 11.5px; line-height: 1.45;">
-                                            @takaInWords($invoice->grand_total) মাত্র
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="text-end py-0.5 px-1.5 fw-semibold">মোট টাকা:</td>
-                                <td class="text-end py-0.5 pe-1.5 fw-semibold">@taka($invoice->subtotal)</td>
-                            </tr>
-                            <tr>
-                                <td class="text-end py-0.5 px-1.5 text-danger fw-semibold">
-                                    বিশেষ কমিশন @if($specialCommPercent > 0)(@bn($specialCommPercent)%)@endif:
-                                </td>
-                                <td class="text-end py-0.5 pe-1.5 text-danger fw-semibold">
-                                    {{ $invoice->discount > 0 ? '- ' . \App\Support\Bn::money($invoice->discount) : '৳০.০০' }}
-                                </td>
-                            </tr>
-                            @if(($invoice->previous_due ?? 0) > 0)
-                                <tr>
-                                    <td class="text-end py-0.5 px-1.5 text-warning-emphasis fw-semibold">পূর্বের বকেয়া জের:</td>
-                                    <td class="text-end py-0.5 pe-1.5 text-warning-emphasis fw-semibold">+ @taka($invoice->previous_due)</td>
-                                </tr>
-                            @endif
-                            @if($invoice->tax > 0)
-                                <tr>
-                                    <td class="text-end py-0.5 px-1.5 text-muted fw-semibold">ভ্যাট / ট্যাক্স:</td>
-                                    <td class="text-end py-0.5 pe-1.5 text-muted fw-semibold">+ @taka($invoice->tax)</td>
-                                </tr>
-                            @endif
-                            <tr class="table-light">
-                                <td class="text-end py-1 px-1.5 fw-bold text-dark">সর্বমোট বিল:</td>
-                                <td class="text-end py-1 pe-1.5 fw-bold text-primary" style="font-size: 11.5px;">@taka($invoice->grand_total)</td>
-                            </tr>
-                            @if(in_array($invoice->type, ['invoice', 'challan']))
-                                <tr>
-                                    <td class="text-end py-0.5 px-1.5 text-success fw-bold">পরিশোধিত:</td>
-                                    <td class="text-end py-0.5 pe-1.5 text-success fw-bold">@taka($invoice->paid_amount)</td>
-                                </tr>
-                                @if($invoice->due_amount > 0)
-                                    <tr class="table-danger">
-                                        <td class="text-end py-0.5 px-1.5 text-danger fw-bold">অবশিষ্ট বকেয়া:</td>
-                                        <td class="text-end py-0.5 pe-1.5 text-danger fw-bold">@taka($invoice->due_amount)</td>
-                                    </tr>
-                                @endif
-                            @endif
-                        </tfoot>
                     </table>
+                </div>
+
+                @php
+                    $specialCommPercent = ($invoice->subtotal > 0 && $invoice->discount > 0)
+                        ? round(($invoice->discount / $invoice->subtotal) * 100, 1)
+                        : 0;
+                @endphp
+
+                {{-- Invoice Summary & Total in Words (Flexbox Grid) --}}
+                <div class="invoice-summary-container mb-2.5">
+                    <div class="row g-2 align-items-stretch">
+                        {{-- Left Column: Total in Words & Payment Status --}}
+                        <div class="col-12 col-md-6 col-print-6 d-flex flex-column">
+                            <div class="p-2.5 bg-light bg-opacity-50 rounded-2 border h-100 d-flex flex-column justify-content-between">
+                                <div>
+                                    <div class="text-muted fw-bold mb-1" style="font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.3px;">
+                                        <i class="fas fa-coins me-1 text-primary"></i>কথায় (In Words):
+                                    </div>
+                                    <div class="fw-bold text-dark text-wrap" style="font-size: 11.5px; line-height: 1.45;">
+                                        @takaInWords($invoice->grand_total) মাত্র
+                                    </div>
+                                </div>
+
+                                @if(in_array($invoice->type, ['invoice', 'challan']))
+                                    <div class="mt-2 pt-2 border-top border-secondary-subtle d-flex align-items-center justify-content-between flex-wrap gap-1" style="font-size: 9.5px;">
+                                        <span class="text-muted fw-semibold">
+                                            <i class="fas fa-receipt me-1 text-secondary"></i>পরিশোধের অবস্থা:
+                                        </span>
+                                        @if($invoice->due_amount <= 0)
+                                            <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-0.5 fw-bold" style="font-size: 9px;">
+                                                <i class="fas fa-circle-check me-1"></i>পরিশোধিত (FULL PAID)
+                                            </span>
+                                        @elseif($invoice->paid_amount > 0)
+                                            <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2 py-0.5 fw-bold" style="font-size: 9px;">
+                                                <i class="fas fa-clock me-1"></i>আংশিক পরিশোধ (বকেয়া: @taka($invoice->due_amount))
+                                            </span>
+                                        @else
+                                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-0.5 fw-bold" style="font-size: 9px;">
+                                                <i class="fas fa-circle-exclamation me-1"></i>অপরিশোধিত (UNPAID)
+                                            </span>
+                                        @endif
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+
+                        {{-- Right Column: Detailed Calculation Breakdown --}}
+                        <div class="col-12 col-md-6 col-print-6 ms-auto">
+                            <div class="border rounded-2 overflow-hidden bg-white">
+                                <table class="table table-sm table-borderless align-middle mb-0 summary-table" style="font-size: 10px;">
+                                    <tbody>
+                                        <tr class="border-bottom border-light">
+                                            <td class="py-1 px-2 text-muted fw-semibold">মোট টাকা (Subtotal):</td>
+                                            <td class="py-1 px-2 text-end fw-semibold text-dark font-monospace">@taka($invoice->subtotal)</td>
+                                        </tr>
+                                        @if($invoice->discount > 0)
+                                            <tr class="border-bottom border-light">
+                                                <td class="py-1 px-2 text-danger fw-semibold">
+                                                    বিশেষ কমিশন @if($specialCommPercent > 0)<span class="badge bg-danger-subtle text-danger border px-1 py-0" style="font-size: 8.5px;">@bn($specialCommPercent)%</span>@endif:
+                                                </td>
+                                                <td class="py-1 px-2 text-end text-danger fw-semibold font-monospace">- {{ \App\Support\Bn::money($invoice->discount) }}</td>
+                                            </tr>
+                                        @endif
+                                        @if(($invoice->previous_due ?? 0) > 0)
+                                            <tr class="border-bottom border-warning-subtle table-warning bg-warning bg-opacity-10">
+                                                <td class="py-1 px-2 text-dark fw-bold">পূর্বের বকেয়া জের:</td>
+                                                <td class="py-1 px-2 text-end text-dark fw-bold font-monospace">+ @taka($invoice->previous_due)</td>
+                                            </tr>
+                                        @endif
+                                        @if($invoice->tax > 0)
+                                            <tr class="border-bottom border-light">
+                                                <td class="py-1 px-2 text-muted fw-semibold">ভ্যাট / ট্যাক্স:</td>
+                                                <td class="py-1 px-2 text-end text-muted fw-semibold font-monospace">+ @taka($invoice->tax)</td>
+                                            </tr>
+                                        @endif
+                                        <tr class="bg-primary bg-opacity-10 border-top border-primary-subtle">
+                                            <td class="py-1.5 px-2 fw-bold text-dark" style="font-size: 11px;">সর্বমোট বিল (Grand Total):</td>
+                                            <td class="py-1.5 px-2 text-end fw-bold text-primary font-monospace" style="font-size: 11.5px;">@taka($invoice->grand_total)</td>
+                                        </tr>
+                                        @if(in_array($invoice->type, ['invoice', 'challan']))
+                                            @if($invoice->paid_amount > 0)
+                                                <tr class="border-top border-light">
+                                                    <td class="py-1 px-2 text-success fw-bold">পরিশোধিত (Paid):</td>
+                                                    <td class="py-1 px-2 text-end text-success fw-bold font-monospace">@taka($invoice->paid_amount)</td>
+                                                </tr>
+                                            @endif
+                                            @if($invoice->due_amount > 0)
+                                                <tr class="table-danger bg-danger bg-opacity-10 border-top border-danger-subtle">
+                                                    <td class="py-1 px-2 text-danger fw-bold">অবশিষ্ট বকেয়া (Due):</td>
+                                                    <td class="py-1 px-2 text-end text-danger fw-bold font-monospace">@taka($invoice->due_amount)</td>
+                                                </tr>
+                                            @endif
+                                        @endif
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 {{-- Note at end right before signature --}}

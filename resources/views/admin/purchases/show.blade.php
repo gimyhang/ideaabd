@@ -345,82 +345,87 @@
                             @endforeach
                         </tbody>
                     @endif
-
-                    @php
-                        $tfootRows = 2; // Subtotal, Current Bill
-                        if ($purchase->discount_amount > 0) $tfootRows++;
-                        if ($previousDue > 0) $tfootRows += 2; // Previous Due, Total Payable
-                        if ($purchase->paid_amount > 0) $tfootRows++;
-                        if ($netTotalDue > 0 || $purchase->due_amount > 0) $tfootRows++;
-                    @endphp
-                    <tfoot>
-                        <tr>
-                            <td colspan="{{ $purchase->purchase_category === 'raw_materials' ? 6 : ($purchase->purchase_category === 'other' ? 4 : 7) }}" 
-                                rowspan="{{ $tfootRows }}" class="py-2 px-2.5 border bg-light bg-opacity-25" style="vertical-align: middle;">
-                                <div class="p-1">
-                                    <span class="text-muted fw-bold d-block mb-1" style="font-size: 9.5px;">
-                                        <i class="fas fa-coins me-1 text-primary"></i>টাকা কথায় (In Words):
-                                    </span>
-                                    <div class="fw-bold text-dark text-wrap" style="font-size: 11.5px; line-height: 1.45;">
-                                        @takaInWordsEn($totalPayable > 0 ? $totalPayable : $purchase->grand_total)
-                                    </div>
-                                    @if($previousDue > 0 && !empty($previousInvoices))
-                                        <div class="mt-2 pt-1.5 border-top border-secondary-subtle">
-                                            <span class="text-muted fw-bold d-block mb-1" style="font-size: 9px;">
-                                                <i class="fas fa-clock-rotate-left me-1 text-danger"></i>পূর্বের বকেয়া মেমো ও তারিখ:
-                                            </span>
-                                            <div class="d-flex flex-wrap gap-1">
-                                                @foreach($previousInvoices as $pi)
-                                                    <span class="badge bg-white text-dark border px-1.5 py-0.5 font-monospace" style="font-size: 8.5px;">
-                                                        #{{ $pi['purchase_no'] }} ({{ $pi['purchase_date'] }}): ৳{{ number_format($pi['due_amount'], 2) }}
-                                                    </span>
-                                                @endforeach
-                                            </div>
-                                        </div>
-                                    @endif
-                                </div>
-                            </td>
-                            <td class="text-end py-0.5 px-1.5 fw-semibold">উপমোট:</td>
-                            <td class="text-end py-0.5 pe-1.5 fw-semibold font-monospace">৳{{ number_format($purchase->total_amount, 2) }}</td>
-                        </tr>
-                        @if($purchase->discount_amount > 0)
-                            <tr>
-                                <td class="text-end py-0.5 px-1.5 text-danger fw-semibold">ছাড়:</td>
-                                <td class="text-end py-0.5 pe-1.5 text-danger fw-semibold font-monospace">- ৳{{ number_format($purchase->discount_amount, 2) }}</td>
-                            </tr>
-                        @endif
-                        <tr class="table-light">
-                            <td class="text-end py-0.5 px-1.5 fw-bold text-dark">চলতি ক্রয় বিল:</td>
-                            <td class="text-end py-0.5 pe-1.5 fw-bold text-dark font-monospace">৳{{ number_format($purchase->grand_total, 2) }}</td>
-                        </tr>
-                        @if($previousDue > 0)
-                            <tr class="table-warning bg-opacity-25">
-                                <td class="text-end py-0.5 px-1.5 text-danger fw-bold">
-                                    পূর্বের বকেয়া জের:
-                                </td>
-                                <td class="text-end py-0.5 pe-1.5 text-danger fw-bold font-monospace">+ ৳{{ number_format($previousDue, 2) }}</td>
-                            </tr>
-                            <tr class="table-light border-top border-dark">
-                                <td class="text-end py-1 px-1.5 fw-bold text-dark">সর্বমোট প্রদেয়:</td>
-                                <td class="text-end py-1 pe-1.5 fw-bold text-primary font-monospace" style="font-size: 11.5px;">৳{{ number_format($totalPayable, 2) }}</td>
-                            </tr>
-                        @endif
-                        @if($purchase->paid_amount > 0)
-                            <tr>
-                                <td class="text-end py-0.5 px-1.5 text-success fw-bold">চলতি পরিশোধ:</td>
-                                <td class="text-end py-0.5 pe-1.5 text-success fw-bold font-monospace">৳{{ number_format($purchase->paid_amount, 2) }}</td>
-                            </tr>
-                        @endif
-                        @if($netTotalDue > 0)
-                            <tr class="table-danger">
-                                <td class="text-end py-0.5 px-1.5 text-danger fw-bold">
-                                    {{ $previousDue > 0 ? 'সর্বমোট বকেয়া জের:' : 'বকেয়া বিল:' }}
-                                </td>
-                                <td class="text-end py-0.5 pe-1.5 text-danger fw-bold font-monospace">৳{{ number_format($netTotalDue, 2) }}</td>
-                            </tr>
-                        @endif
-                    </tfoot>
                 </table>
+            </div>
+
+            {{-- Purchase Summary & Total in Words (Flexbox Grid) --}}
+            <div class="purchase-summary-container mb-2.5">
+                <div class="row g-2 align-items-stretch">
+                    {{-- Left Column: Total in Words & Previous Invoices Breakdown --}}
+                    <div class="col-12 col-md-6 col-print-6 d-flex flex-column">
+                        <div class="p-2.5 bg-light bg-opacity-50 rounded-2 border h-100 d-flex flex-column justify-content-between">
+                            <div>
+                                <div class="text-muted fw-bold mb-1" style="font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.3px;">
+                                    <i class="fas fa-coins me-1 text-primary"></i>টাকা কথায় (In Words):
+                                </div>
+                                <div class="fw-bold text-dark text-wrap" style="font-size: 11.5px; line-height: 1.45;">
+                                    @takaInWordsEn($totalPayable > 0 ? $totalPayable : $purchase->grand_total)
+                                </div>
+                            </div>
+
+                            @if($previousDue > 0 && !empty($previousInvoices))
+                                <div class="mt-2 pt-1.5 border-top border-secondary-subtle">
+                                    <span class="text-muted fw-bold d-block mb-1" style="font-size: 9px;">
+                                        <i class="fas fa-clock-rotate-left me-1 text-danger"></i>পূর্বের বকেয়া মেমো ও তারিখ:
+                                    </span>
+                                    <div class="d-flex flex-wrap gap-1">
+                                        @foreach($previousInvoices as $pi)
+                                            <span class="badge bg-white text-dark border px-1.5 py-0.5 font-monospace" style="font-size: 8.5px;">
+                                                #{{ $pi['purchase_no'] }} ({{ $pi['purchase_date'] }}): ৳{{ number_format($pi['due_amount'], 2) }}
+                                            </span>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+
+                    {{-- Right Column: Calculation Breakdown --}}
+                    <div class="col-12 col-md-6 col-print-6 ms-auto">
+                        <div class="border rounded-2 overflow-hidden bg-white">
+                            <table class="table table-sm table-borderless align-middle mb-0 summary-table" style="font-size: 10px;">
+                                <tbody>
+                                    <tr class="border-bottom border-light">
+                                        <td class="py-1 px-2 text-muted fw-semibold">উপমোট (Subtotal):</td>
+                                        <td class="py-1 px-2 text-end fw-semibold text-dark font-monospace">৳{{ number_format($purchase->total_amount, 2) }}</td>
+                                    </tr>
+                                    @if($purchase->discount_amount > 0)
+                                        <tr class="border-bottom border-light">
+                                            <td class="py-1 px-2 text-danger fw-semibold">ছাড় (Discount):</td>
+                                            <td class="py-1 px-2 text-end text-danger fw-semibold font-monospace">- ৳{{ number_format($purchase->discount_amount, 2) }}</td>
+                                        </tr>
+                                    @endif
+                                    <tr class="border-bottom border-light">
+                                        <td class="py-1 px-2 fw-bold text-dark">চলতি ক্রয় বিল:</td>
+                                        <td class="py-1 px-2 text-end fw-bold text-dark font-monospace">৳{{ number_format($purchase->grand_total, 2) }}</td>
+                                    </tr>
+                                    @if($previousDue > 0)
+                                        <tr class="border-bottom border-warning-subtle table-warning bg-warning bg-opacity-10">
+                                            <td class="py-1 px-2 text-danger fw-bold">পূর্বের বকেয়া জের:</td>
+                                            <td class="py-1 px-2 text-end text-danger fw-bold font-monospace">+ ৳{{ number_format($previousDue, 2) }}</td>
+                                        </tr>
+                                        <tr class="bg-primary bg-opacity-10 border-top border-primary-subtle">
+                                            <td class="py-1.5 px-2 fw-bold text-dark" style="font-size: 11px;">সর্বমোট প্রদেয়:</td>
+                                            <td class="py-1.5 px-2 text-end fw-bold text-primary font-monospace" style="font-size: 11.5px;">৳{{ number_format($totalPayable, 2) }}</td>
+                                        </tr>
+                                    @endif
+                                    @if($purchase->paid_amount > 0)
+                                        <tr class="border-top border-light">
+                                            <td class="py-1 px-2 text-success fw-bold">চলতি পরিশোধ:</td>
+                                            <td class="py-1 px-2 text-end text-success fw-bold font-monospace">৳{{ number_format($purchase->paid_amount, 2) }}</td>
+                                        </tr>
+                                    @endif
+                                    @if($netTotalDue > 0)
+                                        <tr class="table-danger bg-danger bg-opacity-10 border-top border-danger-subtle">
+                                            <td class="py-1 px-2 text-danger fw-bold">{{ $previousDue > 0 ? 'সর্বমোট বকেয়া জের:' : 'বকেয়া বিল:' }}</td>
+                                            <td class="py-1 px-2 text-end text-danger fw-bold font-monospace">৳{{ number_format($netTotalDue, 2) }}</td>
+                                        </tr>
+                                    @endif
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             {{-- Notes & Terms --}}
@@ -1045,8 +1050,17 @@ function setViewMode(mode) {
         font-weight: 700 !important;
     }
 
-    .invoice-brand-name {
-        font-size: 15.5px !important;
+    .purchase-summary-container {
+        width: 100% !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        margin-bottom: 6px !important;
+    }
+
+    .col-print-6 {
+        flex: 0 0 50% !important;
+        max-width: 50% !important;
+        width: 50% !important;
     }
 
     .invoice-footer-compact {
