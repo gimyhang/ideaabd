@@ -420,45 +420,32 @@
                     <div class="fs-3 fw-bold text-success font-monospace mb-0.5">
                         ৳{{ number_format($payment->effective_net_amount, 2) }}
                     </div>
-                    <div class="text-muted small" style="font-size: 11px; line-height: 1.35;">
+                    <div class="text-muted small mb-1" style="font-size: 11px; line-height: 1.35;">
                         In Words: <strong class="text-dark">@takaInWordsEn($payment->effective_net_amount)</strong>
                     </div>
                     @if($payment->has_deductions)
-                        <div class="mt-2 pt-1.5 border-top border-success-subtle d-flex gap-2 flex-wrap">
-                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle font-monospace px-2 py-1" style="font-size: 11px;">
-                                <i class="fas fa-file-invoice-dollar me-1"></i> Gross Settled: ৳{{ number_format($thisAmount, 2) }}
-                            </span>
-                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle font-monospace px-2 py-1" style="font-size: 11px;">
-                                <i class="fas fa-hand-holding-dollar me-1"></i> TDS / VDS: ৳{{ number_format($payment->total_deductions, 2) }}
-                            </span>
+                        <div class="small text-muted font-monospace border-top pt-1 mt-1" style="font-size: 10.5px;">
+                            <span class="text-primary fw-semibold">Gross Settled: ৳{{ number_format($thisAmount, 2) }}</span>
+                            <span class="text-muted mx-1">|</span>
+                            <span class="text-danger fw-semibold">TDS/VDS: -৳{{ number_format($payment->total_deductions, 2) }}</span>
                         </div>
                     @endif
                 </div>
 
-                {{-- Column 2: Statement Summary --}}
+                {{-- Column 2: Simplified Statement Summary (Zero Duplication) --}}
                 <div class="col-md-4 ps-md-3 pe-md-3 border-end-md">
-                    <div class="text-muted small fw-bold text-uppercase mb-1" style="font-size: 10px;">
-                        Statement Summary
+                    <div class="text-muted small fw-bold text-uppercase mb-1.5" style="font-size: 10px;">
+                        Invoice Balance Summary
                     </div>
-                    <div class="d-flex justify-content-between py-0.5 small" style="font-size: 11px;">
+                    <div class="d-flex justify-content-between py-1 small" style="font-size: 11px;">
                         <span class="text-muted">Total Billed:</span>
                         <span class="fw-semibold font-monospace">৳{{ number_format($totalGrand, 2) }}</span>
                     </div>
-                    <div class="d-flex justify-content-between py-0.5 small" style="font-size: 11px;">
-                        <span class="text-muted">Previous Paid:</span>
-                        <span class="fw-semibold font-monospace">৳{{ number_format($prevPaid, 2) }}</span>
+                    <div class="d-flex justify-content-between py-1 small" style="font-size: 11px;">
+                        <span class="text-muted">Total Paid to Date:</span>
+                        <span class="fw-semibold font-monospace text-primary">৳{{ number_format($totalPaidToDate, 2) }}</span>
                     </div>
-                    <div class="d-flex justify-content-between py-0.5 small text-primary fw-bold" style="font-size: 11px;">
-                        <span>Current Settled:</span>
-                        <span class="font-monospace">৳{{ number_format($thisAmount, 2) }}</span>
-                    </div>
-                    @if($payment->has_deductions)
-                        <div class="d-flex justify-content-between py-0.5 small text-success fw-bold" style="font-size: 11px;">
-                            <span>Net Received:</span>
-                            <span class="font-monospace">৳{{ number_format($payment->effective_net_amount, 2) }}</span>
-                        </div>
-                    @endif
-                    <div class="d-flex justify-content-between py-0.5 mt-0.5 border-top fw-bold {{ $remainingDue > 0 ? 'text-danger' : 'text-success' }}" style="font-size: 11.5px;">
+                    <div class="d-flex justify-content-between py-1 mt-1 border-top fw-bold {{ $remainingDue > 0 ? 'text-danger' : 'text-success' }}" style="font-size: 11.5px;">
                         <span>Remaining Due:</span>
                         <span class="font-monospace">৳{{ number_format($remainingDue, 2) }}</span>
                     </div>
