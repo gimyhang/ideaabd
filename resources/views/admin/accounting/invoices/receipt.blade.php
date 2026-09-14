@@ -229,10 +229,16 @@
                         @if(!empty($settings['tagline']))
                             <div class="text-muted small" style="font-size: 11px; margin-top: 1px;">{{ $settings['tagline'] }}</div>
                         @endif
-                        <div class="text-secondary small mt-0.5" style="font-size: 10.5px;">
-                            {{ $settings['address'] ?? 'Dhaka, Bangladesh' }}
-                            @if(!empty($settings['phone'])) | Phone: {{ $settings['phone'] }} @endif
-                            @if(!empty($settings['email'])) | Email: {{ $settings['email'] }} @endif
+                        <div class="text-secondary small mt-0.5 d-flex align-items-center flex-wrap gap-1.5" style="font-size: 10.5px;">
+                            <span>{{ $settings['address'] ?? 'Dhaka, Bangladesh' }}</span>
+                            @if(!empty($settings['phone']))
+                                <span class="text-muted mx-0.5">|</span>
+                                <span><i class="fas fa-phone-alt text-secondary me-1"></i>{{ $settings['phone'] }}</span>
+                            @endif
+                            @if(!empty($settings['email']))
+                                <span class="text-muted mx-0.5">|</span>
+                                <span><i class="fas fa-envelope text-secondary me-1"></i>{{ $settings['email'] }}</span>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -557,7 +563,6 @@
                     <div class="d-inline-block text-center" style="min-width: 145px;">
                         <div class="border-top border-dark mb-1 mx-auto" style="width: 140px;"></div>
                         <div class="small fw-bold text-dark mb-0.5" style="font-size: 11px;">Customer Signature</div>
-                        <div class="text-muted" style="font-size: 9.5px;">Executive Director</div>
                     </div>
                 </div>
 
@@ -588,7 +593,10 @@
         </div>
 
         <div class="text-center text-muted mt-2 pt-1.5 border-top" style="font-size: 9.5px;">
-            Thank you! This is an official computer-generated receipt from {{ $settings['business_name'] ?? 'Idea Publication' }}. Contact: {{ $settings['phone'] ?? '' }}
+            Thank you! This is an official computer-generated receipt from {{ $settings['business_name'] ?? 'Idea Publication' }}.
+            @if(!empty($settings['phone']))
+                <span class="ms-1.5"><i class="fas fa-phone-alt me-1"></i>{{ $settings['phone'] }}</span>
+            @endif
         </div>
     </div>
 </div>
