@@ -135,79 +135,22 @@
         border-top: 1px solid #e2e8f0;
     }
 
-    /* Round Rubber Stamp Effect */
-    .round-rubber-stamp {
-        width: 118px;
-        height: 118px;
-        border: 2px dashed #6b21a8;
-        border-radius: 50%;
-        padding: 3px;
+    /* Authentic Vector Round Rubber Stamp Effect */
+    .round-rubber-stamp-container {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        background: radial-gradient(circle, rgba(255, 255, 255, 0.8) 0%, rgba(243, 232, 255, 0.45) 100%);
-        transform: rotate(-10deg);
         user-select: none;
-        box-shadow: 0 0 2px rgba(107, 33, 168, 0.35);
-        opacity: 0.92;
+    }
+    .round-rubber-stamp-svg {
+        width: 140px;
+        height: 140px;
+        display: block;
+        transform: rotate(-10deg);
+        filter: drop-shadow(0 0 1px rgba(107, 33, 168, 0.45));
         mix-blend-mode: multiply;
-    }
-    .round-rubber-stamp-inner {
-        width: 100%;
-        height: 100%;
-        border: 1.2px solid #7e22ce;
-        border-radius: 50%;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-        padding: 4px;
-        color: #581c87;
-        font-family: 'Arial Black', Impact, 'Trebuchet MS', sans-serif;
-    }
-    .round-stamp-org {
-        font-size: 8px;
-        font-weight: 900;
-        letter-spacing: 1px;
-        text-transform: uppercase;
-        color: #6b21a8;
-        line-height: 1;
-        margin-bottom: 2px;
-    }
-    .round-stamp-status {
-        font-size: 20px;
-        font-weight: 900;
-        letter-spacing: 2px;
-        line-height: 1;
-        margin: 1px 0;
-        text-shadow: 0 0 1px rgba(88, 28, 135, 0.4);
-    }
-    .round-stamp-status.stamp-paid {
-        color: #581c87;
-    }
-    .round-stamp-status.stamp-due {
-        color: #7e22ce;
-    }
-    .round-stamp-date {
-        font-size: 9px;
-        font-weight: 800;
-        letter-spacing: 0.5px;
-        color: #6b21a8;
-        border-top: 1px solid #7e22ce;
-        border-bottom: 1px solid #7e22ce;
-        padding: 1px 4px;
-        margin: 2px 0;
-        font-family: 'Courier New', Courier, monospace;
-        line-height: 1.1;
-    }
-    .round-stamp-sub {
-        font-size: 7px;
-        font-weight: 800;
-        letter-spacing: 0.8px;
-        text-transform: uppercase;
-        color: #7e22ce;
-        line-height: 1;
+        opacity: 0.92;
+        pointer-events: none;
     }
 
     @media print {
@@ -249,14 +192,12 @@
             font-size: 11px !important;
             line-height: 1.4 !important;
         }
-        .round-rubber-stamp {
+        .round-rubber-stamp-svg {
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
-            box-shadow: none !important;
-            border: 2px dashed #6b21a8 !important;
-        }
-        .round-rubber-stamp-inner {
-            border: 1.2px solid #7e22ce !important;
+            mix-blend-mode: multiply !important;
+            opacity: 0.95 !important;
+            filter: none !important;
         }
         .receipt-meta-cell {
             padding: 5px 8px !important;
@@ -460,7 +401,7 @@
                                 <td class="py-1 px-2">Total Settled Credit</td>
                                 <td class="text-center text-muted font-monospace py-1 px-2">—</td>
                                 <td class="text-end font-monospace text-primary py-1 px-2">৳{{ number_format($thisAmount, 2) }}</td>
-                                <td class="text-dark small py-1 px-2">{{ $payment->deduction_challan_no ? 'Challan: ' . $payment->deduction_challan_no . ' (Audited & Approved)' : 'Audited & Approved' }}</td>
+                                <td class="text-dark small py-1 px-2">{{ $payment->deduction_challan_no ? 'Challan: ' . $payment->deduction_challan_no . ' (Approved)' : 'Approved' }}</td>
                             </tr>
                         </tfoot>
                     </table>
@@ -483,9 +424,13 @@
                         In Words: <strong class="text-dark">@takaInWordsEn($payment->effective_net_amount)</strong>
                     </div>
                     @if($payment->has_deductions)
-                        <div class="mt-1.5 pt-1 border-top border-success-subtle d-flex gap-1.5 flex-wrap" style="font-size: 9.5px;">
-                            <span class="badge bg-white text-primary border border-primary font-monospace">Gross Settled: ৳{{ number_format($thisAmount, 2) }}</span>
-                            <span class="badge bg-white text-danger border border-danger font-monospace">TDS/VDS: ৳{{ number_format($payment->total_deductions, 2) }}</span>
+                        <div class="mt-2 pt-1.5 border-top border-success-subtle d-flex gap-2 flex-wrap">
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle font-monospace px-2 py-1" style="font-size: 11px;">
+                                <i class="fas fa-file-invoice-dollar me-1"></i> Gross Settled: ৳{{ number_format($thisAmount, 2) }}
+                            </span>
+                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle font-monospace px-2 py-1" style="font-size: 11px;">
+                                <i class="fas fa-hand-holding-dollar me-1"></i> TDS / VDS: ৳{{ number_format($payment->total_deductions, 2) }}
+                            </span>
                         </div>
                     @endif
                 </div>
@@ -519,21 +464,57 @@
                     </div>
                 </div>
 
-                {{-- Column 3: Official Round Rubber Stamp (Placed in dedicated open space) --}}
+                {{-- Column 3: Official Round Rubber Stamp (SVG with curved border text) --}}
                 <div class="col-md-3 text-center d-flex align-items-center justify-content-center py-2 py-md-0">
-                    <div class="round-rubber-stamp">
-                        <div class="round-rubber-stamp-inner">
-                            <span class="round-stamp-org">Idea Prokashon</span>
+                    <div class="round-rubber-stamp-container">
+                        <svg class="round-rubber-stamp-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                {{-- Top Curved Text Path for "IDEA PROKASHON" --}}
+                                <path id="stampTopPath" d="M 24,100 A 76,76 0 0,1 176,100" fill="none" />
+                                {{-- Bottom Curved Text Path --}}
+                                <path id="stampBottomPath" d="M 176,100 A 76,76 0 0,1 24,100" fill="none" />
+                            </defs>
+
+                            {{-- Outer Dashed Ring --}}
+                            <circle cx="100" cy="100" r="94" fill="none" stroke="#6b21a8" stroke-width="2.5" stroke-dasharray="6,4" />
+                            {{-- Inner Solid Ring --}}
+                            <circle cx="100" cy="100" r="88" fill="none" stroke="#7e22ce" stroke-width="1.5" />
+                            
+                            {{-- Curved Top Text: IDEA PROKASHON along the border --}}
+                            <text fill="#6b21a8" font-size="16" font-weight="900" font-family="'Arial Black', Impact, sans-serif" letter-spacing="3.5">
+                                <textPath href="#stampTopPath" xlink:href="#stampTopPath" startOffset="50%" text-anchor="middle">
+                                    IDEA PROKASHON
+                                </textPath>
+                            </text>
+
+                            {{-- Curved Bottom Text --}}
+                            <text fill="#7e22ce" font-size="11.5" font-weight="800" font-family="'Arial Black', Impact, sans-serif" letter-spacing="2">
+                                <textPath href="#stampBottomPath" xlink:href="#stampBottomPath" startOffset="50%" text-anchor="middle">
+                                    {{ $remainingDue <= 0 ? '★ FULL SETTLEMENT ★' : '★ PARTIAL PAYMENT ★' }}
+                                </textPath>
+                            </text>
+
+                            {{-- Inner Center Border Ring --}}
+                            <circle cx="100" cy="100" r="56" fill="rgba(243, 232, 255, 0.25)" stroke="#7e22ce" stroke-width="1.2" stroke-dasharray="4,2.5" />
+
+                            {{-- Center Big Status: PAID / DUE (+30px larger) --}}
                             @if($remainingDue <= 0)
-                                <span class="round-stamp-status stamp-paid">PAID</span>
-                                <span class="round-stamp-date">{{ $payment->payment_date ? $payment->payment_date->format('d M, Y') : date('d M, Y') }}</span>
-                                <span class="round-stamp-sub">FULL SETTLEMENT</span>
+                                <text x="100" y="93" text-anchor="middle" fill="#581c87" font-size="34" font-weight="900" font-family="'Arial Black', Impact, sans-serif" letter-spacing="3">
+                                    PAID
+                                </text>
                             @else
-                                <span class="round-stamp-status stamp-due">DUE</span>
-                                <span class="round-stamp-date">{{ $payment->payment_date ? $payment->payment_date->format('d M, Y') : date('d M, Y') }}</span>
-                                <span class="round-stamp-sub">PARTIAL PAYMENT</span>
+                                <text x="100" y="93" text-anchor="middle" fill="#7e22ce" font-size="34" font-weight="900" font-family="'Arial Black', Impact, sans-serif" letter-spacing="3">
+                                    DUE
+                                </text>
                             @endif
-                        </div>
+
+                            {{-- Center Horizontal Date Lines --}}
+                            <line x1="50" y1="104" x2="150" y2="104" stroke="#7e22ce" stroke-width="1.2" />
+                            <text x="100" y="117" text-anchor="middle" fill="#6b21a8" font-size="12" font-weight="800" font-family="'Courier New', Courier, monospace" letter-spacing="1">
+                                {{ $payment->payment_date ? $payment->payment_date->format('d M, Y') : date('d M, Y') }}
+                            </text>
+                            <line x1="50" y1="123" x2="150" y2="123" stroke="#7e22ce" stroke-width="1.2" />
+                        </svg>
                     </div>
                 </div>
             </div>
@@ -577,13 +558,13 @@
                 {{-- Center: Verify QR Code & Collector Info --}}
                 <div class="col-4">
                     <div class="d-flex align-items-center justify-content-center gap-2.5">
-                        <div class="p-1 border rounded bg-white shadow-2xs d-flex flex-column align-items-center" style="width: 44px; height: 44px;">
-                            <img src="{{ $qrCodeUrl }}" alt="Verify QR" style="width: 32px; height: 32px; object-fit: contain; display: block;">
-                            <span class="text-muted fw-bold" style="font-size: 6.5px; text-transform: uppercase; line-height: 1;">Verify</span>
+                        <div class="p-1 border rounded bg-white shadow-2xs d-flex flex-column align-items-center" style="width: 83px; height: 83px;">
+                            <img src="{{ $qrCodeUrl }}" alt="Verify QR" style="width: 75px; height: 75px; object-fit: contain; display: block;">
                         </div>
-                        <div class="text-start text-muted" style="font-size: 9.5px; line-height: 1.35;">
+                        <div class="text-start text-muted" style="font-size: 10px; line-height: 1.4;">
+                            <div class="fw-bold text-dark" style="font-size: 11px;"><i class="fas fa-shield-check text-success me-1"></i>Official Verify</div>
                             <div>Collected By: <strong class="text-dark">{{ $payment->recorder?->name ?? 'Admin' }}</strong></div>
-                            <div class="font-monospace text-secondary" style="font-size: 9px;">Issued: {{ $payment->payment_date ? $payment->payment_date->format('d/m/Y') : date('d/m/Y') }}</div>
+                            <div class="font-monospace text-secondary" style="font-size: 9.5px;">Issued: {{ $payment->payment_date ? $payment->payment_date->format('d/m/Y') : date('d/m/Y') }}</div>
                         </div>
                     </div>
                 </div>
