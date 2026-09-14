@@ -87,12 +87,12 @@
                     <div class="card border border-primary-subtle rounded-3 p-3 mb-3 bg-primary bg-opacity-10">
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <label class="form-label fw-bold text-primary mb-0">
-                                <i class="fas fa-truck-ramp-box me-1"></i> চালান ও সরবরাহকারী ফন্ট সাইজ নিয়ন্ত্রণ (Typography)
+                                <i class="fas fa-truck-ramp-box me-1"></i> Delivery & Supplier Typography
                             </label>
                             <span class="badge bg-primary text-white">Challan Typography</span>
                         </div>
                         <p class="small text-muted mb-3" style="font-size: 11px;">
-                            ক্রয় চালান ও রিসিভিং মেমোর <strong>Supplier / Recipient Details</strong> সেকশনে নাম, মোবাইল নম্বর, ঠিকানা ও পদবির ফন্ট সাইজ বড় বা ছোট করুন।
+                            Customize font sizes for Supplier / Recipient details on Purchase Memos & Challans.
                         </p>
 
                         {{-- Recipient Live Preview Box --}}
@@ -102,10 +102,10 @@
                             </div>
                             <div class="p-2 bg-light rounded border" id="previewRecipientBox">
                                 <div class="fw-bold text-dark mb-1" style="font-size: 11px;"><i class="fas fa-truck me-1 text-primary"></i>Supplier / Destination Details:</div>
-                                <div id="previewRecipientName" style="font-size: {{ $mRecipientNameSize }}; font-weight: bold; color: #0f172a;">অনুপম প্রকাশনী / Rahim Book House</div>
-                                <div id="previewRecipientDesig" class="text-muted" style="font-size: {{ $mRecipientDesigSize }};">সত্ত্বাধিকারী / ম্যানেজার</div>
-                                <div id="previewRecipientOrg" class="text-primary fw-semibold" style="font-size: {{ $mRecipientOrgSize }};">অনুপম প্রকাশনী ও ডিস্ট্রিবিউটর্স</div>
-                                <div id="previewRecipientAddr" class="text-dark" style="font-size: {{ $mRecipientAddressSize }};">৩৮ বাংলাবাজার, ঢাকা-১১০০, বাংলাদেশ</div>
+                                <div id="previewRecipientName" style="font-size: {{ $mRecipientNameSize }}; font-weight: bold; color: #0f172a;">Rahim Book House / Supplier Name</div>
+                                <div id="previewRecipientDesig" class="text-muted" style="font-size: {{ $mRecipientDesigSize }};">Proprietor / Manager</div>
+                                <div id="previewRecipientOrg" class="text-primary fw-semibold" style="font-size: {{ $mRecipientOrgSize }};">Anupam Publishing & Distributors</div>
+                                <div id="previewRecipientAddr" class="text-dark" style="font-size: {{ $mRecipientAddressSize }};">38 Banglabazar, Dhaka-1100, Bangladesh</div>
                                 <div id="previewRecipientPhone" class="text-dark fw-bold font-monospace" style="font-size: {{ $mRecipientPhoneSize }};">01812-345678, 01712-345678</div>
                             </div>
                         </div>
@@ -113,10 +113,10 @@
                         <div class="row g-2.5">
                             <div class="col-md-4 col-sm-6">
                                 <label class="form-label small fw-semibold text-dark mb-1">
-                                    সরবরাহকারী/নাম সাইজ (Name)
+                                    Supplier / Name Size
                                 </label>
                                 <select name="challan_recipient_name_size" id="inputNameSize" class="form-select form-select-sm" onchange="updateRecipientPreview()">
-                                    @foreach(['11px'=>'ছোট (11px)', '12px'=>'স্বাভাবিক (12px)', '13px'=>'মাঝারি (13px)', '14px'=>'বড় (14px)', '15px'=>'অনেক বড় (15px)', '16px'=>'অতিরিক্ত বড় (16px)', '18px'=>'বিশাল (18px)'] as $val => $lbl)
+                                    @foreach(['11px'=>'Small (11px)', '12px'=>'Regular (12px)', '13px'=>'Medium (13px)', '14px'=>'Large (14px)', '15px'=>'Extra Large (15px)', '16px'=>'Huge (16px)', '18px'=>'Display (18px)'] as $val => $lbl)
                                         <option value="{{ $val }}" {{ ($mRecipientNameSize === $val) ? 'selected' : '' }}>{{ $lbl }}</option>
                                     @endforeach
                                 </select>
@@ -124,10 +124,10 @@
 
                             <div class="col-md-4 col-sm-6">
                                 <label class="form-label small fw-semibold text-dark mb-1">
-                                    মোবাইল নম্বর সাইজ (Mobile)
+                                    Mobile Number Size
                                 </label>
                                 <select name="challan_recipient_phone_size" id="inputPhoneSize" class="form-select form-select-sm" onchange="updateRecipientPreview()">
-                                    @foreach(['10.5px'=>'ছোট (10.5px)', '11.5px'=>'স্বাভাবিক (11.5px)', '12px'=>'মাঝারি (12px)', '13px'=>'বড় (13px)', '14px'=>'অনেক বড় (14px)', '15px'=>'অতিরিক্ত বড় (15px)'] as $val => $lbl)
+                                    @foreach(['10.5px'=>'Small (10.5px)', '11.5px'=>'Regular (11.5px)', '12px'=>'Medium (12px)', '13px'=>'Large (13px)', '14px'=>'Extra Large (14px)', '15px'=>'Huge (15px)'] as $val => $lbl)
                                         <option value="{{ $val }}" {{ ($mRecipientPhoneSize === $val) ? 'selected' : '' }}>{{ $lbl }}</option>
                                     @endforeach
                                 </select>
@@ -135,10 +135,10 @@
 
                             <div class="col-md-4 col-sm-6">
                                 <label class="form-label small fw-semibold text-dark mb-1">
-                                    ঠিকানা সাইজ (Address)
+                                    Address Size
                                 </label>
                                 <select name="challan_recipient_address_size" id="inputAddressSize" class="form-select form-select-sm" onchange="updateRecipientPreview()">
-                                    @foreach(['10px'=>'ছোট (10px)', '11px'=>'স্বাভাবিক (11px)', '11.5px'=>'মাঝারি (11.5px)', '12px'=>'বড় (12px)', '13px'=>'অনেক বড় (13px)', '14px'=>'অতিরিক্ত বড় (14px)'] as $val => $lbl)
+                                    @foreach(['10px'=>'Small (10px)', '11px'=>'Regular (11px)', '11.5px'=>'Medium (11.5px)', '12px'=>'Large (12px)', '13px'=>'Extra Large (13px)', '14px'=>'Huge (14px)'] as $val => $lbl)
                                         <option value="{{ $val }}" {{ ($mRecipientAddressSize === $val) ? 'selected' : '' }}>{{ $lbl }}</option>
                                     @endforeach
                                 </select>
@@ -146,10 +146,10 @@
 
                             <div class="col-md-6 col-sm-6">
                                 <label class="form-label small fw-semibold text-dark mb-1">
-                                    পদবি ও প্রতিষ্ঠান সাইজ (Designation/Org)
+                                    Designation & Org Size
                                 </label>
                                 <select name="challan_recipient_desig_size" id="inputDesigSize" class="form-select form-select-sm" onchange="updateRecipientPreview()">
-                                    @foreach(['10px'=>'ছোট (10px)', '11px'=>'স্বাভাবিক (11px)', '11.5px'=>'মাঝারি (11.5px)', '12px'=>'বড় (12px)', '13px'=>'অনেক বড় (13px)'] as $val => $lbl)
+                                    @foreach(['10px'=>'Small (10px)', '11px'=>'Regular (11px)', '11.5px'=>'Medium (11.5px)', '12px'=>'Large (12px)', '13px'=>'Extra Large (13px)'] as $val => $lbl)
                                         <option value="{{ $val }}" {{ ($mRecipientDesigSize === $val) ? 'selected' : '' }}>{{ $lbl }}</option>
                                     @endforeach
                                 </select>
@@ -157,17 +157,17 @@
 
                             <div class="col-md-6 col-sm-12">
                                 <label class="form-label small fw-semibold text-dark mb-1">
-                                    স্বাক্ষরকারীর ডিফল্ট পদবি (Signatory Title)
+                                    Default Signatory Designation
                                 </label>
                                 <input type="text" name="default_creator_designation" id="inputDefaultCreatorDesig" class="form-control form-control-sm" 
-                                       value="{{ $modalSettings['default_creator_designation'] ?? '' }}" placeholder="যেমন: Authorized Signatory / Purchase In-Charge">
+                                       value="{{ $modalSettings['default_creator_designation'] ?? '' }}" placeholder="e.g. Authorized Signatory / Purchase In-Charge">
                             </div>
                         </div>
                     </div>
 
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold">Company / Imprint Name (Header Title)</label>
+                            <label class="form-label fw-semibold">Company / Imprint Name</label>
                             <input type="text" name="business_name" id="inputBusinessName" class="form-control" value="{{ $modalSettings['business_name'] ?? 'Idea Publication' }}" required oninput="updateLivePreview()">
                         </div>
 
@@ -193,7 +193,7 @@
 
                         <div class="col-12">
                             <label class="form-label fw-semibold">Terms & Conditions / Note</label>
-                            <textarea name="terms_and_conditions" id="inputTerms" class="form-control" rows="2" placeholder="পণ্য বুঝে পেয়ে রসিদ নিশ্চিত করুন...">{{ $modalSettings['terms_and_conditions'] ?? '' }}</textarea>
+                            <textarea name="terms_and_conditions" id="inputTerms" class="form-control" rows="2" placeholder="Standard terms, receiving conditions, etc.">{{ $modalSettings['terms_and_conditions'] ?? '' }}</textarea>
                         </div>
                     </div>
                 </div>

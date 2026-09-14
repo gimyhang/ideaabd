@@ -926,19 +926,21 @@
 
                 <div class="modal-header border-bottom py-3">
                     <h5 class="modal-title fw-bold text-primary" id="invoiceSettingsModalLabel">
-                        <i class="fas fa-palette me-2"></i>Invoice & Memo Settings
+                        <i class="fas fa-sliders me-2"></i>Invoice & Memo Settings
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body p-4">
                     
-                    {{-- Live Preview Header Card --}}
-                    <div class="card border rounded-3 p-3 mb-4 bg-light">
-                        <span class="small fw-bold text-muted text-uppercase mb-2 d-block"><i class="fas fa-eye me-1 text-primary"></i>Invoice Header Live Preview:</span>
-                        <div class="d-flex align-items-center gap-3 p-2 bg-white rounded border">
-                            <img src="{{ $logoSrc }}" id="indexPreviewHeaderLogo" alt="Logo Preview" style="height: 55px; width: 110px; aspect-ratio: 2/1; object-fit: contain;">
+                    {{-- 1. Live Header Preview --}}
+                    <div class="card border rounded-3 p-3 mb-3 bg-light">
+                        <span class="small fw-bold text-muted text-uppercase mb-2 d-block">
+                            <i class="fas fa-eye me-1 text-primary"></i>Header Live Preview
+                        </span>
+                        <div class="d-flex align-items-center gap-3 p-2.5 bg-white rounded border">
+                            <img src="{{ $logoSrc }}" id="indexPreviewHeaderLogo" alt="Logo Preview" style="height: 50px; width: 100px; aspect-ratio: 2/1; object-fit: contain;">
                             <div>
-                                <h4 class="fw-bold text-primary mb-0" id="indexPreviewHeaderTitle">{{ $settings['business_name'] ?? 'Idea Publication' }}</h4>
+                                <h5 class="fw-bold text-primary mb-0" id="indexPreviewHeaderTitle">{{ $settings['business_name'] ?? 'Idea Publication' }}</h5>
                                 <p class="text-muted small mb-0" id="indexPreviewHeaderTagline">{{ $settings['tagline'] ?? 'Book Publication, Printing & Distribution' }}</p>
                                 <div class="text-muted small mt-0.5" id="indexPreviewHeaderMeta" style="font-size: 11.5px;">
                                     {{ $settings['address'] ?? 'Dhaka, Bangladesh' }} · Phone: {{ $settings['phone'] ?? '018XXXXXXXX' }} · Email: {{ $settings['email'] ?? 'info@ideaabd.com' }}
@@ -947,16 +949,16 @@
                         </div>
                     </div>
 
-                    {{-- 2:1 Aspect Ratio Logo Cropper Tool --}}
-                    <div class="card border border-primary-subtle rounded-3 p-3 mb-4 bg-primary-subtle bg-opacity-10">
+                    {{-- 2. Logo Upload & 2:1 Cropper Tool --}}
+                    <div class="card border border-primary-subtle rounded-3 p-3 mb-3 bg-primary-subtle bg-opacity-10">
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <label class="form-label fw-bold text-primary mb-0">
-                                <i class="fas fa-crop-simple me-1"></i> Logo Upload & 2:1 Wide Crop Tool
+                                <i class="fas fa-image me-1"></i>Company Logo (2:1 Ratio)
                             </label>
-                            <span class="badge bg-primary text-white">Ratio 2:1</span>
+                            <span class="badge bg-primary text-white">2:1 Aspect Ratio</span>
                         </div>
                         
-                        <input type="file" id="indexLogoFileInput" class="form-control mb-3" accept="image/*">
+                        <input type="file" id="indexLogoFileInput" class="form-control mb-2" accept="image/*">
                         
                         <div id="indexCropperContainer" class="d-none">
                             <div class="row g-3 align-items-center">
@@ -974,43 +976,42 @@
                                         </button>
                                     </div>
                                     <small class="text-muted d-block mt-1" style="font-size: 11px;">
-                                        <i class="fas fa-hand me-1"></i>Drag to reposition, use slider to zoom.
+                                        <i class="fas fa-hand me-1"></i>Drag to position, use slider to zoom.
                                     </small>
                                 </div>
                                 <div class="col-md-5 text-center">
-                                    <span class="small fw-semibold text-muted d-block mb-1">Crop Preview (2:1 Wide):</span>
+                                    <span class="small fw-semibold text-muted d-block mb-1">Cropped Preview:</span>
                                     <div class="p-2 bg-white rounded border d-inline-block shadow-xs">
-                                        <img id="indexCroppedResultThumb" src="{{ $logoSrc }}" style="height: 60px; width: 120px; aspect-ratio: 2/1; object-fit: contain;" class="rounded">
+                                        <img id="indexCroppedResultThumb" src="{{ $logoSrc }}" style="height: 50px; width: 100px; aspect-ratio: 2/1; object-fit: contain;" class="rounded">
                                     </div>
-                                    <div class="text-success small fw-bold mt-1.5"><i class="fas fa-check-circle me-1"></i>2:1 Aspect Ratio Ready</div>
+                                    <div class="text-success small fw-bold mt-1.5"><i class="fas fa-check-circle me-1"></i>Ready</div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    {{-- Payment QR --}}
+                    {{-- 3. Payment QR Codes --}}
                     <div class="card border border-success-subtle rounded-3 p-3 mb-3 bg-success-subtle bg-opacity-10">
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <label class="form-label fw-bold text-success mb-0">
-                                <i class="fa-solid fa-qrcode me-1"></i> Payment QR
+                                <i class="fa-solid fa-qrcode me-1"></i>Payment QR Codes
                             </label>
-                            <span class="badge bg-success text-white">Bill Only</span>
+                            <span class="badge bg-success text-white">Bill & Invoice</span>
                         </div>
                         
                         <div class="row g-3">
-                            {{-- 1. bKash / Nagad / Rocket QR --}}
                             <div class="col-md-6 border-end">
                                 <div class="p-2.5 bg-white rounded-3 border h-100 d-flex flex-column justify-content-between">
                                     <div>
                                         <div class="d-flex align-items-center justify-content-between mb-2">
-                                            <span class="small fw-bold text-dark"><i class="fas fa-mobile-screen-button text-primary me-1"></i>bKash / Nagad / Rocket</span>
+                                            <span class="small fw-bold text-dark"><i class="fas fa-mobile-screen-button text-primary me-1"></i>bKash / Nagad / Rocket QR</span>
                                         </div>
                                         <input type="file" name="mfs_qr_file" id="mfsQrFileInput" class="form-control form-control-sm mb-2" accept="image/*" onchange="previewQr(this, 'mfsQrPreviewImg', 'mfsQrStatusText')">
                                         <div class="mb-2">
-                                            <label class="form-label small fw-semibold text-muted mb-0.5" style="font-size: 10.5px;">Label Text:</label>
+                                            <label class="form-label small fw-semibold text-muted mb-0.5" style="font-size: 11px;">Label Note:</label>
                                             <input type="text" name="mfs_qr_note" class="form-control form-control-sm font-monospace" 
-                                                   value="{{ $settings['mfs_qr_note'] ?? 'bkash/nagad/roket' }}" 
-                                                   placeholder="bkash/nagad/roket">
+                                                   value="{{ $settings['mfs_qr_note'] ?? 'bkash/nagad/rocket' }}" 
+                                                   placeholder="bkash/nagad/rocket">
                                         </div>
                                         @if(!empty($settings['mfs_qr_image']))
                                             <div class="form-check mb-2">
@@ -1026,22 +1027,21 @@
                                             <img id="mfsQrPreviewImg" 
                                                  src="{{ !empty($settings['mfs_qr_image']) ? \App\Support\SiteSetting::resolveImageUrl($settings['mfs_qr_image']) : asset('images/logo.png') }}" 
                                                  alt="MFS QR Preview" 
-                                                 style="width: 55px; height: 55px; object-fit: contain; {{ empty($settings['mfs_qr_image']) ? 'opacity: 0.35; filter: grayscale(1);' : '' }}">
+                                                 style="width: 50px; height: 50px; object-fit: contain; {{ empty($settings['mfs_qr_image']) ? 'opacity: 0.35; filter: grayscale(1);' : '' }}">
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
-                            {{-- 2. Bank Payment QR --}}
                             <div class="col-md-6">
                                 <div class="p-2.5 bg-white rounded-3 border h-100 d-flex flex-column justify-content-between">
                                     <div>
                                         <div class="d-flex align-items-center justify-content-between mb-2">
-                                            <span class="small fw-bold text-dark"><i class="fa-solid fa-building-columns text-success me-1"></i>Bank Payment</span>
+                                            <span class="small fw-bold text-dark"><i class="fa-solid fa-building-columns text-success me-1"></i>Bank Account QR</span>
                                         </div>
                                         <input type="file" name="bank_qr_file" id="bankQrFileInput" class="form-control form-control-sm mb-2" accept="image/*" onchange="previewQr(this, 'bankQrPreviewImg', 'bankQrStatusText')">
                                         <div class="mb-2">
-                                            <label class="form-label small fw-semibold text-muted mb-0.5" style="font-size: 10.5px;">Label Text:</label>
+                                            <label class="form-label small fw-semibold text-muted mb-0.5" style="font-size: 11px;">Label Note:</label>
                                             <input type="text" name="bank_qr_note" class="form-control form-control-sm font-monospace" 
                                                    value="{{ $settings['bank_qr_note'] ?? 'bank payment' }}" 
                                                    placeholder="bank payment">
@@ -1060,24 +1060,23 @@
                                             <img id="bankQrPreviewImg" 
                                                  src="{{ !empty($settings['bank_qr_image']) ? \App\Support\SiteSetting::resolveImageUrl($settings['bank_qr_image']) : asset('images/logo.png') }}" 
                                                  alt="Bank QR Preview" 
-                                                 style="width: 55px; height: 55px; object-fit: contain; {{ empty($settings['bank_qr_image']) ? 'opacity: 0.35; filter: grayscale(1);' : '' }}">
+                                                 style="width: 50px; height: 50px; object-fit: contain; {{ empty($settings['bank_qr_image']) ? 'opacity: 0.35; filter: grayscale(1);' : '' }}">
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
-                            {{-- QR Code Size Selector --}}
                             <div class="col-12 mt-2 pt-2 border-top">
                                 <div class="row align-items-center">
                                     <div class="col-md-5">
                                         <label class="form-label small fw-bold text-dark mb-0">
-                                            <i class="fas fa-expand me-1 text-success"></i>QR Code Size:
+                                            <i class="fas fa-expand me-1 text-success"></i>QR Code Display Size:
                                         </label>
                                     </div>
                                     <div class="col-md-7">
                                         @php $qrCodeSize = $settings['qr_code_size'] ?? '60px'; @endphp
                                         <select name="qr_code_size" id="indexInputQrCodeSize" class="form-select form-select-sm font-monospace fw-bold">
-                                            @foreach(['45px'=>'45px (Compact)', '55px'=>'55px (Small)', '60px'=>'60px (Standard / Recommended)', '70px'=>'70px (Medium / Clear)', '80px'=>'80px (Large)', '95px'=>'95px (Extra Large)'] as $qVal => $qLbl)
+                                            @foreach(['45px'=>'45px (Compact)', '55px'=>'55px (Small)', '60px'=>'60px (Standard / Recommended)', '70px'=>'70px (Medium)', '80px'=>'80px (Large)', '95px'=>'95px (Extra Large)'] as $qVal => $qLbl)
                                                 <option value="{{ $qVal }}" {{ ($qrCodeSize === $qVal) ? 'selected' : '' }}>{{ $qLbl }}</option>
                                             @endforeach
                                         </select>
@@ -1087,21 +1086,19 @@
                         </div>
                     </div>
 
-                    {{-- Delivery To --}}
+                    {{-- 4. Delivery Challan Typography --}}
                     <div class="card border border-primary-subtle rounded-3 p-3 mb-3 bg-primary bg-opacity-10">
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <label class="form-label fw-bold text-primary mb-0">
-                                <i class="fas fa-truck-ramp-box me-1"></i> Delivery To
+                                <i class="fas fa-truck-ramp-box me-1"></i>Delivery Challan Typography
                             </label>
-                            <span class="badge bg-primary text-white">Challan Typography</span>
+                            <span class="badge bg-primary text-white">Challan Fonts</span>
                         </div>
 
                         <div class="row g-2.5">
                             <div class="col-md-4 col-sm-6">
-                                <label class="form-label small fw-semibold text-dark mb-1">
-                                    Name
-                                </label>
-                                <select name="challan_recipient_name_size" class="form-select form-select-sm">
+                                <label class="form-label small fw-semibold text-dark mb-1">Recipient Name</label>
+                                <select name="challan_recipient_name_size" class="form-select form-select-sm font-monospace">
                                     @php $recNameSize = $settings['challan_recipient_name_size'] ?? '13px'; @endphp
                                     @foreach(['11px'=>'11px', '12px'=>'12px', '13px'=>'13px (Default)', '14px'=>'14px', '15px'=>'15px', '16px'=>'16px', '18px'=>'18px'] as $val => $lbl)
                                         <option value="{{ $val }}" {{ ($recNameSize === $val) ? 'selected' : '' }}>{{ $lbl }}</option>
@@ -1110,10 +1107,8 @@
                             </div>
 
                             <div class="col-md-4 col-sm-6">
-                                <label class="form-label small fw-semibold text-dark mb-1">
-                                    Mobile
-                                </label>
-                                <select name="challan_recipient_phone_size" class="form-select form-select-sm">
+                                <label class="form-label small fw-semibold text-dark mb-1">Phone Number</label>
+                                <select name="challan_recipient_phone_size" class="form-select form-select-sm font-monospace">
                                     @php $recPhoneSize = $settings['challan_recipient_phone_size'] ?? '12px'; @endphp
                                     @foreach(['10.5px'=>'10.5px', '11.5px'=>'11.5px', '12px'=>'12px (Default)', '13px'=>'13px', '14px'=>'14px', '15px'=>'15px'] as $val => $lbl)
                                         <option value="{{ $val }}" {{ ($recPhoneSize === $val) ? 'selected' : '' }}>{{ $lbl }}</option>
@@ -1122,10 +1117,8 @@
                             </div>
 
                             <div class="col-md-4 col-sm-6">
-                                <label class="form-label small fw-semibold text-dark mb-1">
-                                    Address
-                                </label>
-                                <select name="challan_recipient_address_size" class="form-select form-select-sm">
+                                <label class="form-label small fw-semibold text-dark mb-1">Address</label>
+                                <select name="challan_recipient_address_size" class="form-select form-select-sm font-monospace">
                                     @php $recAddrSize = $settings['challan_recipient_address_size'] ?? '11.5px'; @endphp
                                     @foreach(['10px'=>'10px', '11px'=>'11px', '11.5px'=>'11.5px (Default)', '12px'=>'12px', '13px'=>'13px', '14px'=>'14px'] as $val => $lbl)
                                         <option value="{{ $val }}" {{ ($recAddrSize === $val) ? 'selected' : '' }}>{{ $lbl }}</option>
@@ -1134,10 +1127,8 @@
                             </div>
 
                             <div class="col-md-6 col-sm-6">
-                                <label class="form-label small fw-semibold text-dark mb-1">
-                                    Designation/Org
-                                </label>
-                                <select name="challan_recipient_desig_size" class="form-select form-select-sm">
+                                <label class="form-label small fw-semibold text-dark mb-1">Designation / Org</label>
+                                <select name="challan_recipient_desig_size" class="form-select form-select-sm font-monospace">
                                     @php $recDesigSize = $settings['challan_recipient_desig_size'] ?? '11.5px'; @endphp
                                     @foreach(['10px'=>'10px', '11px'=>'11px', '11.5px'=>'11.5px (Default)', '12px'=>'12px', '13px'=>'13px'] as $val => $lbl)
                                         <option value="{{ $val }}" {{ ($recDesigSize === $val) ? 'selected' : '' }}>{{ $lbl }}</option>
@@ -1146,110 +1137,89 @@
                             </div>
 
                             <div class="col-md-6 col-sm-12">
-                                <label class="form-label small fw-semibold text-dark mb-1">
-                                    Signatory Title
-                                </label>
+                                <label class="form-label small fw-semibold text-dark mb-1">Signatory Title</label>
                                 <input type="text" name="default_creator_designation" class="form-control form-control-sm" 
                                        value="{{ $settings['default_creator_designation'] ?? '' }}" placeholder="Authorized Signatory / Billing Officer">
                             </div>
                         </div>
                     </div>
 
-                    {{-- Quotation & Tender Function Customization Settings --}}
+                    {{-- 5. Quotation & Tender Defaults --}}
                     <div class="card border border-warning-subtle rounded-3 p-3 mb-3 bg-warning-subtle bg-opacity-15">
                         <div class="d-flex justify-content-between align-items-center mb-2">
-                            <label class="form-label fw-bold text-warning-emphasis mb-0">
-                                <i class="fas fa-file-invoice-dollar me-1 text-warning"></i> Quotation & Tender Settings (কোটেশন ও দরপত্র সেটিংস)
+                            <label class="form-label fw-bold text-dark mb-0">
+                                <i class="fas fa-file-contract me-1 text-warning"></i>Quotation & Tender Presets
                             </label>
                             <span class="badge bg-warning text-dark">Quotation / Tender</span>
                         </div>
                         
                         <div class="row g-2.5">
                             <div class="col-md-6">
-                                <label class="form-label small fw-semibold text-dark mb-1">
-                                    Quotation Title (কোটেশন শিরোনাম)
-                                </label>
+                                <label class="form-label small fw-semibold text-dark mb-1">Quotation Document Title</label>
                                 <input type="text" name="quotation_title_bn" class="form-control form-control-sm" 
-                                       value="{{ $settings['quotation_title_bn'] ?? 'মূল্য কোটেশন (PRICE QUOTATION)' }}" 
-                                       placeholder="মূল্য কোটেশন (PRICE QUOTATION)">
+                                       value="{{ $settings['quotation_title_bn'] ?? 'PRICE QUOTATION' }}" 
+                                       placeholder="PRICE QUOTATION">
                             </div>
 
                             <div class="col-md-6">
-                                <label class="form-label small fw-semibold text-dark mb-1">
-                                    Tender Title (দরপত্র শিরোনাম)
-                                </label>
+                                <label class="form-label small fw-semibold text-dark mb-1">Tender Document Title</label>
                                 <input type="text" name="tender_title_bn" class="form-control form-control-sm" 
-                                       value="{{ $settings['tender_title_bn'] ?? 'দরপত্র প্রস্তাবনা (TENDER PROPOSAL)' }}" 
-                                       placeholder="দরপত্র প্রস্তাবনা (TENDER PROPOSAL)">
+                                       value="{{ $settings['tender_title_bn'] ?? 'TENDER PROPOSAL' }}" 
+                                       placeholder="TENDER PROPOSAL">
                             </div>
 
                             <div class="col-md-4">
-                                <label class="form-label small fw-semibold text-dark mb-1">
-                                    Default Validity (ডিফল্ট মেয়াদ)
-                                </label>
+                                <label class="form-label small fw-semibold text-dark mb-1">Default Validity</label>
                                 <select name="quotation_default_validity_days" class="form-select form-select-sm">
                                     @php $qValDays = (int)($settings['quotation_default_validity_days'] ?? 30); @endphp
-                                    @foreach([7=>'৭ দিন (7 Days)', 15=>'১৫ দিন (15 Days)', 30=>'৩০ দিন (30 Days - Default)', 45=>'৪৫ দিন (45 Days)', 60=>'৬০ দিন (60 Days)', 90=>'৯০ দিন (90 Days)'] as $dKey => $dLbl)
+                                    @foreach([7=>'7 Days', 15=>'15 Days', 30=>'30 Days (Default)', 45=>'45 Days', 60=>'60 Days', 90=>'90 Days'] as $dKey => $dLbl)
                                         <option value="{{ $dKey }}" {{ ($qValDays === $dKey) ? 'selected' : '' }}>{{ $dLbl }}</option>
                                     @endforeach
                                 </select>
                             </div>
 
                             <div class="col-md-4">
-                                <label class="form-label small fw-semibold text-dark mb-1">
-                                    Digit & Number Format (সংখ্যা ফরম্যাট)
-                                </label>
+                                <label class="form-label small fw-semibold text-dark mb-1">Digit & Number Format</label>
                                 <select name="digit_language" class="form-select form-select-sm">
                                     @php $dLang = $settings['digit_language'] ?? 'bn'; @endphp
-                                    <option value="bn" {{ ($dLang === 'bn') ? 'selected' : '' }}>বাংলা সংখ্যা (১, ২, ৩, ৳)</option>
                                     <option value="en" {{ ($dLang === 'en') ? 'selected' : '' }}>English Digits (1, 2, 3, ৳)</option>
+                                    <option value="bn" {{ ($dLang === 'bn') ? 'selected' : '' }}>Bengali Digits (১, ২, ৩, ৳)</option>
                                 </select>
                             </div>
 
                             <div class="col-md-4">
-                                <label class="form-label small fw-semibold text-dark mb-1">
-                                    Default Subject Line (ডিফল্ট বিষয়)
-                                </label>
+                                <label class="form-label small fw-semibold text-dark mb-1">Default Subject Line</label>
                                 <input type="text" name="quotation_default_subject" class="form-control form-control-sm" 
-                                       value="{{ $settings['quotation_default_subject'] ?? 'বই প্রকাশনা, মুদ্রণ ও সরবরাহ প্রসঙ্গে' }}" 
-                                       placeholder="বই প্রকাশনা, মুদ্রণ ও সরবরাহ প্রসঙ্গে">
+                                       value="{{ $settings['quotation_default_subject'] ?? 'Book Publishing, Printing & Supply' }}" 
+                                       placeholder="Book Publishing, Printing & Supply">
                             </div>
 
                             <div class="col-md-12">
-                                <label class="form-label small fw-semibold text-dark mb-1">
-                                    Default Quotation Notes (কোটেশন নোট)
-                                </label>
+                                <label class="form-label small fw-semibold text-dark mb-1">Default Quotation Notes</label>
                                 <input type="text" name="quotation_default_notes" class="form-control form-control-sm" 
-                                       value="{{ $settings['quotation_default_notes'] ?? '১. ভ্যাট যুক্ত করা হয়নি। ২. কোটেশনের মেয়াদ ৩০ দিন পর্যন্ত কার্যকর থাকবে।' }}" 
-                                       placeholder="১. ভ্যাট যুক্ত করা হয়নি। ২. কোটেশনের মেয়াদ ৩০ দিন পর্যন্ত কার্যকর থাকবে।">
+                                       value="{{ $settings['quotation_default_notes'] ?? '1. VAT not included. 2. Quotation valid for 30 days.' }}" 
+                                       placeholder="1. VAT not included. 2. Quotation valid for 30 days.">
                             </div>
 
                             <div class="col-md-12">
-                                <label class="form-label small fw-semibold text-dark mb-1">
-                                    Quotation Terms & Conditions (কোটেশন শর্তাবলী)
-                                </label>
+                                <label class="form-label small fw-semibold text-dark mb-1">Default Terms & Conditions</label>
                                 <textarea name="quotation_default_terms" class="form-control form-control-sm rounded-2" rows="2" 
-                                          placeholder="কোটেশনের নির্দিষ্ট শর্তাবলী লিখুন...">{{ $settings['quotation_default_terms'] ?? "১. কার্যাদেশ পাওয়ার পর নির্ধারিত সময়ের মধ্যে ডেলিভারি প্রদান করা হবে।\n২. কাজের পরিধি ও স্পেসিফিকেশন পরিবর্তন হলে দর সমন্বয়যোগ্য।" }}</textarea>
+                                          placeholder="Enter default quotation terms...">{{ $settings['quotation_default_terms'] ?? "1. Delivery will be provided within scheduled timeline upon purchase order.\n2. Price is adjustable upon changes in specifications." }}</textarea>
                             </div>
                         </div>
                     </div>
 
-                    {{-- VAT & Tax Deduction (%) Preset Settings --}}
-                    <div class="card border border-warning-subtle rounded-3 p-3 mb-3 bg-warning-subtle bg-opacity-10">
+                    {{-- 6. Tax & VAT Deduction Defaults (TDS & VDS) --}}
+                    <div class="card border border-danger-subtle rounded-3 p-3 mb-3 bg-danger-subtle bg-opacity-10">
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <label class="form-label fw-bold text-dark mb-0">
-                                <i class="fas fa-percent me-1 text-warning"></i> ভ্যাট ও ট্যাক্স কর্তন হার ও প্রিসেট (%) কনফিগারেশন
+                                <i class="fas fa-percent me-1 text-danger"></i>Tax & VAT Deduction Defaults (TDS & VDS)
                             </label>
-                            <span class="badge bg-warning text-dark font-monospace">TDS & VDS</span>
+                            <span class="badge bg-danger text-white font-monospace">TDS & VDS</span>
                         </div>
-                        <p class="text-muted small mb-3">
-                            বিল ও লেজার পরিশোধের সময় স্বয়ংক্রিয় কর্তন হিসাবের জন্য ডিফল্ট হার ও দ্রুত নির্বাচনের প্রিসেট তালিকা নির্ধারণ করুন।
-                        </p>
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label class="form-label small fw-bold text-dark mb-1">
-                                    <i class="fas fa-file-invoice-dollar text-primary me-1"></i>ডিফল্ট ভ্যাট কর্তন হার (VDS %)
-                                </label>
+                                <label class="form-label small fw-bold text-dark mb-1">Default VAT Deduction (VDS %)</label>
                                 <div class="input-group input-group-sm">
                                     <input type="number" step="0.01" name="default_vat_rate" class="form-control font-monospace fw-bold" 
                                            value="{{ $settings['default_vat_rate'] ?? '7.5' }}" placeholder="7.5">
@@ -1257,9 +1227,7 @@
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label small fw-bold text-dark mb-1">
-                                    <i class="fas fa-landmark text-danger me-1"></i>ডিফল্ট ট্যাক্স কর্তন হার (TDS %)
-                                </label>
+                                <label class="form-label small fw-bold text-dark mb-1">Default Tax Deduction (TDS %)</label>
                                 <div class="input-group input-group-sm">
                                     <input type="number" step="0.01" name="default_tax_rate" class="form-control font-monospace fw-bold" 
                                            value="{{ $settings['default_tax_rate'] ?? '5.0' }}" placeholder="5.0">
@@ -1267,58 +1235,60 @@
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label small fw-semibold text-dark mb-1">
-                                    কাস্টম ভ্যাট প্রিসেট (%) তালিকা (কমা দিয়ে আলাদা করুন)
-                                </label>
+                                <label class="form-label small fw-semibold text-dark mb-1">Custom VAT Presets (%)</label>
                                 <input type="text" name="vat_presets" class="form-control form-control-sm font-monospace" 
-                                       value="{{ is_array($settings['vat_presets'] ?? null) ? implode(',', $settings['vat_presets']) : ($settings['vat_presets'] ?? '0, 2.5, 5, 7.5, 10, 15') }}" 
+                                       value="{{ is_array($settings['vat_presets'] ?? null) ? implode(', ', $settings['vat_presets']) : ($settings['vat_presets'] ?? '0, 2.5, 5, 7.5, 10, 15') }}" 
                                        placeholder="0, 2.5, 5, 7.5, 10, 15">
-                                <small class="text-muted d-block mt-1" style="font-size: 11px;">যেমন: 0, 2.5, 5, 7.5, 10, 15</small>
+                                <small class="text-muted d-block mt-0.5" style="font-size: 11px;">Comma separated: 0, 2.5, 5, 7.5, 10, 15</small>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label small fw-semibold text-dark mb-1">
-                                    কাস্টম ট্যাক্স প্রিসেট (%) তালিকা (কমা দিয়ে আলাদা করুন)
-                                </label>
+                                <label class="form-label small fw-semibold text-dark mb-1">Custom Tax Presets (%)</label>
                                 <input type="text" name="tax_presets" class="form-control form-control-sm font-monospace" 
-                                       value="{{ is_array($settings['tax_presets'] ?? null) ? implode(',', $settings['tax_presets']) : ($settings['tax_presets'] ?? '0, 2, 3, 5, 7, 10') }}" 
+                                       value="{{ is_array($settings['tax_presets'] ?? null) ? implode(', ', $settings['tax_presets']) : ($settings['tax_presets'] ?? '0, 2, 3, 5, 7, 10') }}" 
                                        placeholder="0, 2, 3, 5, 7, 10">
-                                <small class="text-muted d-block mt-1" style="font-size: 11px;">যেমন: 0, 2, 3, 5, 7, 10</small>
+                                <small class="text-muted d-block mt-0.5" style="font-size: 11px;">Comma separated: 0, 2, 3, 5, 7, 10</small>
                             </div>
                         </div>
                     </div>
 
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Company Name <span class="text-danger">*</span></label>
-                            <input type="text" name="business_name" id="indexInputBusinessName" class="form-control" value="{{ $settings['business_name'] ?? 'Idea Publication' }}" required oninput="updateIndexLivePreview()">
-                        </div>
+                    {{-- 7. Company Details --}}
+                    <div class="card border rounded-3 p-3 mb-2 bg-light">
+                        <span class="small fw-bold text-muted text-uppercase mb-2 d-block">
+                            <i class="fas fa-building me-1 text-primary"></i>Company Information
+                        </span>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Company Name <span class="text-danger">*</span></label>
+                                <input type="text" name="business_name" id="indexInputBusinessName" class="form-control" value="{{ $settings['business_name'] ?? 'Idea Publication' }}" required oninput="updateIndexLivePreview()">
+                            </div>
 
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Tagline</label>
-                            <input type="text" name="tagline" id="indexInputTagline" class="form-control" value="{{ $settings['tagline'] ?? 'Book Publication, Printing & Distribution' }}" placeholder="Book Publication, Printing..." oninput="updateIndexLivePreview()">
-                        </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Tagline</label>
+                                <input type="text" name="tagline" id="indexInputTagline" class="form-control" value="{{ $settings['tagline'] ?? 'Book Publication, Printing & Distribution' }}" placeholder="Book Publication, Printing..." oninput="updateIndexLivePreview()">
+                            </div>
 
-                        <div class="col-md-12">
-                            <label class="form-label fw-semibold">Address</label>
-                            <input type="text" name="address" id="indexInputAddress" class="form-control" value="{{ $settings['address'] ?? 'Dhaka, Bangladesh' }}" placeholder="e.g. 38 Banglabazar, Dhaka..." oninput="updateIndexLivePreview()">
-                        </div>
+                            <div class="col-md-12">
+                                <label class="form-label fw-semibold">Address</label>
+                                <input type="text" name="address" id="indexInputAddress" class="form-control" value="{{ $settings['address'] ?? 'Dhaka, Bangladesh' }}" placeholder="e.g. 38 Banglabazar, Dhaka..." oninput="updateIndexLivePreview()">
+                            </div>
 
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Phone</label>
-                            <input type="text" name="phone" id="indexInputPhone" class="form-control" value="{{ $settings['phone'] ?? '018XXXXXXXX' }}" placeholder="017XXXXXXXX, 018XXXXXXXX" oninput="updateIndexLivePreview()">
-                        </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Phone</label>
+                                <input type="text" name="phone" id="indexInputPhone" class="form-control" value="{{ $settings['phone'] ?? '018XXXXXXXX' }}" placeholder="017XXXXXXXX, 018XXXXXXXX" oninput="updateIndexLivePreview()">
+                            </div>
 
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Email</label>
-                            <input type="email" name="email" id="indexInputEmail" class="form-control" value="{{ $settings['email'] ?? 'info@ideaabd.com' }}" placeholder="info@ideaabd.com" oninput="updateIndexLivePreview()">
-                        </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Email</label>
+                                <input type="email" name="email" id="indexInputEmail" class="form-control" value="{{ $settings['email'] ?? 'info@ideaabd.com' }}" placeholder="info@ideaabd.com" oninput="updateIndexLivePreview()">
+                            </div>
 
-                        <div class="col-md-12">
-                            <label class="form-label fw-semibold d-flex justify-content-between align-items-center">
-                                <span><i class="fa-solid fa-file-contract text-primary me-1"></i>Default Terms & Conditions (Policy Text)</span>
-                                <small class="text-muted">Auto-loads on new invoices & quotations</small>
-                            </label>
-                            <textarea name="terms_and_conditions" id="indexInputTerms" class="form-control rounded-3" rows="4" placeholder="Enter default commercial terms and conditions...">{{ $settings['terms_and_conditions'] ?? "1. Payment is due within 15 days of invoice date via Cash, Bank Transfer, or MFS (bKash/Nagad).\n2. Goods once sold in good condition are non-returnable without prior written consent.\n3. Quotations and price schedules remain valid for 30 days from date of issuance.\n4. All disputes are subject to the exclusive jurisdiction of competent courts in Bangladesh." }}</textarea>
+                            <div class="col-md-12">
+                                <label class="form-label fw-semibold d-flex justify-content-between align-items-center">
+                                    <span><i class="fa-solid fa-file-contract text-primary me-1"></i>Default Terms & Conditions (Policy Text)</span>
+                                    <small class="text-muted">Auto-loads on new invoices & quotations</small>
+                                </label>
+                                <textarea name="terms_and_conditions" id="indexInputTerms" class="form-control rounded-3" rows="3" placeholder="Enter default commercial terms and conditions...">{{ $settings['terms_and_conditions'] ?? "1. Payment is due within 15 days of invoice date via Cash, Bank Transfer, or MFS (bKash/Nagad).\n2. Goods once sold in good condition are non-returnable without prior written consent.\n3. Quotations and price schedules remain valid for 30 days from date of issuance.\n4. All disputes are subject to the exclusive jurisdiction of competent courts in Bangladesh." }}</textarea>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1329,7 +1299,7 @@
                     <div>
                         <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
                         <button type="submit" class="btn btn-primary fw-semibold px-4 shadow-sm">
-                            <i class="fas fa-save me-1"></i> Save Design & Settings
+                            <i class="fas fa-save me-1"></i> Save Settings
                         </button>
                     </div>
                 </div>
