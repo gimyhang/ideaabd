@@ -2261,6 +2261,9 @@ class IdeaAccountingController extends Controller
             'receipt_logo_width'             => 'nullable|string|max:20',
             'receipt_stamp_size'             => 'nullable|string|max:20',
             'receipt_stamp_rotation'         => 'nullable|string|max:20',
+            'receipt_stamp_top'              => 'nullable|string|max:20',
+            'receipt_stamp_right'            => 'nullable|string|max:20',
+            'receipt_font_scale'             => 'nullable|string|max:20',
             'remove_payment_qr'              => 'nullable',
         ]);
 
@@ -2302,6 +2305,9 @@ class IdeaAccountingController extends Controller
             $settings['receipt_logo_width'] = $validated['receipt_logo_width'] ?? ($settings['receipt_logo_width'] ?? '155px');
             $settings['receipt_stamp_size'] = $validated['receipt_stamp_size'] ?? ($settings['receipt_stamp_size'] ?? '135px');
             $settings['receipt_stamp_rotation'] = $validated['receipt_stamp_rotation'] ?? ($settings['receipt_stamp_rotation'] ?? '-10');
+            $settings['receipt_stamp_top'] = $validated['receipt_stamp_top'] ?? ($settings['receipt_stamp_top'] ?? '-30px');
+            $settings['receipt_stamp_right'] = $validated['receipt_stamp_right'] ?? ($settings['receipt_stamp_right'] ?? '25px');
+            $settings['receipt_font_scale'] = $validated['receipt_font_scale'] ?? ($settings['receipt_font_scale'] ?? '1');
 
             // Handle 2:1 cropped base64 image
             if (!empty($validated['logo_base64']) && str_starts_with($validated['logo_base64'], 'data:image/')) {
@@ -2624,6 +2630,9 @@ class IdeaAccountingController extends Controller
             'receipt_logo_width'             => '155px',
             'receipt_stamp_size'             => '135px',
             'receipt_stamp_rotation'         => '-10',
+            'receipt_stamp_top'              => '-30px',
+            'receipt_stamp_right'            => '25px',
+            'receipt_font_scale'             => '1',
         ];
 
         try {

@@ -40,11 +40,11 @@
 
 @section('actions')
     <div class="d-flex flex-wrap gap-2 align-items-center no-print">
-        <button type="button" class="btn btn-warning btn-sm rounded-pill px-3.5 shadow-xs fw-bold text-dark" data-bs-toggle="modal" data-bs-target="#editReceiptPaymentModal">
+        <button type="button" class="btn btn-warning btn-sm rounded-pill px-3 shadow-xs fw-bold text-dark" data-bs-toggle="modal" data-bs-target="#editReceiptPaymentModal">
             <i class="fas fa-pen-to-square me-1.5"></i> Edit Payment
         </button>
 
-        <button type="button" class="btn btn-dark btn-sm rounded-pill px-3.5 shadow-xs fw-semibold" data-bs-toggle="offcanvas" data-bs-target="#receiptDesignCustomizerOffcanvas">
+        <button type="button" class="btn btn-dark btn-sm rounded-pill px-3 shadow-xs fw-semibold" data-bs-toggle="offcanvas" data-bs-target="#receiptDesignCustomizerOffcanvas" id="btnOpenReceiptCustomizer">
             <i class="fas fa-palette me-1.5 text-warning"></i> Customize Design
         </button>
 
@@ -73,9 +73,9 @@
         --rcp-logo-w: {{ $settings['receipt_logo_width'] ?? '155px' }};
         --rcp-stamp-size: {{ $settings['receipt_stamp_size'] ?? '135px' }};
         --rcp-stamp-deg: {{ ($settings['receipt_stamp_rotation'] ?? '-10') . 'deg' }};
-        --rcp-stamp-top: -30px;
-        --rcp-stamp-right: 25px;
-        --rcp-font-scale: 1;
+        --rcp-stamp-top: {{ $settings['receipt_stamp_top'] ?? '-30px' }};
+        --rcp-stamp-right: {{ $settings['receipt_stamp_right'] ?? '25px' }};
+        --rcp-font-scale: {{ $settings['receipt_font_scale'] ?? '1' }};
     }
     @page {
         size: A4 portrait;
@@ -93,6 +93,7 @@
         overflow: hidden;
         border: 1px solid #e2e8f0;
         zoom: var(--rcp-font-scale);
+        transition: zoom 0.15s ease-in-out;
     }
     .receipt-paper::before {
         content: "";
@@ -165,6 +166,7 @@
         user-select: none;
         width: var(--rcp-stamp-size);
         height: var(--rcp-stamp-size);
+        transition: right 0.15s ease, top 0.15s ease, width 0.15s ease, height 0.15s ease;
     }
     .round-rubber-stamp-svg {
         width: var(--rcp-stamp-size);
@@ -178,6 +180,7 @@
         filter: drop-shadow(0 0 1px rgba(107, 33, 168, 0.45));
         mix-blend-mode: multiply;
         opacity: 0.92;
+        transition: transform 0.15s ease;
     }
     .round-rubber-stamp-svg .stamp-stroke {
         stroke: var(--rcp-stamp-ink) !important;
@@ -189,6 +192,61 @@
         height: var(--rcp-logo-h) !important;
         max-width: var(--rcp-logo-w) !important;
         object-fit: contain;
+        transition: height 0.15s ease, max-width 0.15s ease;
+    }
+
+    /* Responsive Drawer & Styling */
+    #receiptDesignCustomizerOffcanvas {
+        width: min(440px, 100vw) !important;
+        max-width: 100vw !important;
+        z-index: 1060;
+    }
+    .customizer-tab-btn {
+        font-size: 11.5px;
+        font-weight: 600;
+        padding: 8px 6px;
+        border-radius: 0;
+        border: none;
+        border-bottom: 2px solid transparent;
+        color: #64748b;
+        transition: all 0.2s ease;
+    }
+    .customizer-tab-btn.active {
+        color: #0f172a !important;
+        font-weight: 700;
+        border-bottom: 2px solid #059669 !important;
+        background: #f8fafc;
+    }
+    .customizer-color-swatch {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        cursor: pointer;
+        border: 2.5px solid #ffffff;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .customizer-color-swatch:hover {
+        transform: scale(1.15);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+    .customizer-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 12px 14px;
+        margin-bottom: 12px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+    }
+
+    @media (max-width: 575.98px) {
+        .receipt-paper {
+            padding: 16px 14px !important;
+            border-radius: 8px !important;
+        }
+        #receiptDesignCustomizerOffcanvas {
+            width: 100% !important;
+        }
     }
 
     @media print {
@@ -204,7 +262,7 @@
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
         }
-        .adm-side, .adm-header, .adm-topbar, .breadcrumb, .btn, .no-print, footer, nav, .alert, header {
+        .adm-side, .adm-header, .adm-topbar, .breadcrumb, .btn, .no-print, footer, nav, .alert, header, .modal, .offcanvas, .offcanvas-backdrop {
             display: none !important;
         }
         .content-wrapper, .container-fluid, .content, .adm-main, .adm-content {
@@ -232,24 +290,32 @@
         }
         .rubber-stamp-float-container {
             position: absolute !important;
-            right: 25px !important;
-            top: -30px !important;
+            right: var(--rcp-stamp-right) !important;
+            top: var(--rcp-stamp-top) !important;
             z-index: 10 !important;
             display: block !important;
-            width: 135px !important;
-            height: 135px !important;
+            width: var(--rcp-stamp-size) !important;
+            height: var(--rcp-stamp-size) !important;
         }
         .round-rubber-stamp-svg {
-            width: 135px !important;
-            height: 135px !important;
-            min-width: 135px !important;
-            min-height: 135px !important;
+            width: var(--rcp-stamp-size) !important;
+            height: var(--rcp-stamp-size) !important;
+            min-width: var(--rcp-stamp-size) !important;
+            min-height: var(--rcp-stamp-size) !important;
+            max-width: var(--rcp-stamp-size) !important;
+            max-height: var(--rcp-stamp-size) !important;
+            transform: rotate(var(--rcp-stamp-deg)) !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
             mix-blend-mode: multiply !important;
             opacity: 0.95 !important;
             filter: none !important;
             display: block !important;
+        }
+        .receipt-logo-img {
+            height: var(--rcp-logo-h) !important;
+            max-width: var(--rcp-logo-w) !important;
+            object-fit: contain !important;
         }
         .receipt-meta-cell {
             padding: 5px 8px !important;
@@ -272,28 +338,24 @@
         <div class="row align-items-center pb-2 mb-2.5 border-bottom">
             <div class="col-8">
                 <div class="d-flex align-items-center gap-3.5">
-                    @if(!empty($logoSrc))
-                        <div class="pe-3 me-2 flex-shrink-0" id="liveReceiptLogoContainer" style="border-right: 1.5px solid #e2e8f0;">
-                            <img src="{{ $logoSrc }}" alt="Logo" class="receipt-logo-img" id="liveReceiptLogo">
-                        </div>
-                    @endif
+                    <div class="pe-3 me-2 flex-shrink-0 {{ empty($logoSrc) ? 'd-none' : '' }}" id="liveReceiptLogoContainer" style="border-right: 1.5px solid #e2e8f0;">
+                        <img src="{{ $logoSrc ?: asset('images/logo.png') }}" alt="Logo" class="receipt-logo-img" id="liveReceiptLogo">
+                    </div>
                     <div class="ps-1">
                         <h5 class="fw-bold mb-0 text-dark" id="liveReceiptBizName" style="font-size: 18px; letter-spacing: -0.2px;">{{ $settings['business_name'] ?? 'Idea Publication' }}</h5>
-                        @if(!empty($settings['tagline']))
-                            <div class="text-muted small" id="liveReceiptTagline" style="font-size: 11px; margin-top: 1px;">{{ $settings['tagline'] }}</div>
-                        @else
-                            <div class="text-muted small d-none" id="liveReceiptTagline" style="font-size: 11px; margin-top: 1px;"></div>
-                        @endif
+                        <div class="text-muted small {{ empty($settings['tagline']) ? 'd-none' : '' }}" id="liveReceiptTagline" style="font-size: 11px; margin-top: 1px;">{{ $settings['tagline'] ?? '' }}</div>
                         <div class="text-secondary small mt-1 d-flex align-items-center flex-wrap" style="font-size: 11px; line-height: 1.4;">
                             <span id="liveReceiptAddress">{{ $settings['address'] ?? 'Dhaka, Bangladesh' }}</span>
-                            @if(!empty($settings['phone']))
-                                <span class="text-muted mx-2 live-phone-divider">|</span>
-                                <span class="d-inline-flex align-items-center" id="liveReceiptPhoneContainer"><i class="fas fa-phone-alt text-secondary me-1.5" style="font-size: 10px;"></i><span id="liveReceiptPhone">{{ $settings['phone'] }}</span></span>
-                            @endif
-                            @if(!empty($settings['email']))
-                                <span class="text-muted mx-2 live-email-divider">|</span>
-                                <span class="d-inline-flex align-items-center" id="liveReceiptEmailContainer"><i class="fas fa-envelope text-secondary me-1.5" style="font-size: 10.5px;"></i><span id="liveReceiptEmail">{{ $settings['email'] }}</span></span>
-                            @endif
+                            <span class="text-muted mx-2 {{ empty($settings['phone']) ? 'd-none' : '' }}" id="liveReceiptPhoneDivider">|</span>
+                            <span class="d-inline-flex align-items-center {{ empty($settings['phone']) ? 'd-none' : '' }}" id="liveReceiptPhoneContainer">
+                                <i class="fas fa-phone-alt text-secondary me-1.5" style="font-size: 10px;"></i>
+                                <span id="liveReceiptPhone">{{ $settings['phone'] ?? '' }}</span>
+                            </span>
+                            <span class="text-muted mx-2 {{ empty($settings['email']) ? 'd-none' : '' }}" id="liveReceiptEmailDivider">|</span>
+                            <span class="d-inline-flex align-items-center {{ empty($settings['email']) ? 'd-none' : '' }}" id="liveReceiptEmailContainer">
+                                <i class="fas fa-envelope text-secondary me-1.5" style="font-size: 10.5px;"></i>
+                                <span id="liveReceiptEmail">{{ $settings['email'] ?? '' }}</span>
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -605,7 +667,7 @@
         <div class="signature-section" id="liveReceiptSignatureSection">
             <div class="row align-items-end text-center">
                 {{-- Left: Customer / Payer Signature (Matched baseline with Collected By:) --}}
-                <div class="col-4 text-start">
+                <div class="col-4 text-start" id="liveReceiptCustomerSigCol">
                     <div class="d-inline-flex flex-column align-items-center justify-content-end text-center" style="min-width: 145px; min-height: 54px;">
                         <div class="border-top border-dark mb-1" style="width: 140px;"></div>
                         <div class="small fw-bold text-dark" id="liveReceiptCustomerSigLabel" style="font-size: 11px; line-height: 1.3;">Customer Signature</div>
@@ -627,7 +689,7 @@
                 </div>
 
                 {{-- Right: Authorized Collector / Signatory --}}
-                <div class="col-4 text-end">
+                <div class="col-4 text-end" id="liveReceiptSignatoryCol">
                     <div class="d-inline-flex flex-column align-items-center justify-content-end text-center" style="min-width: 145px; min-height: 54px;">
                         <div class="small fw-bold text-dark mb-0.5" id="liveReceiptSignatoryName" style="font-size: 11.5px; line-height: 1.2;">{{ $creatorName ?: 'Shakil Masud' }}</div>
                         <div class="text-muted mb-1" id="liveReceiptSignatoryDesig" style="font-size: 9.5px; line-height: 1.2;">{{ $creatorDesignation ?: 'CEO & Publisher' }}</div>
@@ -640,9 +702,9 @@
 
         <div class="text-center text-muted mt-2 pt-1.5 border-top" id="liveReceiptFooterBox" style="font-size: 9.5px;">
             Thank you! This is an official computer-generated receipt from <span id="liveReceiptFooterBizName">{{ $settings['business_name'] ?? 'Idea Publication' }}</span>.
-            @if(!empty($settings['phone']))
-                <span class="ms-1.5" id="liveReceiptFooterPhone"><i class="fas fa-phone-alt me-1"></i>{{ $settings['phone'] }}</span>
-            @endif
+            <span class="ms-1.5 {{ empty($settings['phone']) ? 'd-none' : '' }}" id="liveReceiptFooterPhoneContainer">
+                <i class="fas fa-phone-alt me-1"></i><span id="liveReceiptFooterPhone">{{ $settings['phone'] ?? '' }}</span>
+            </span>
         </div>
     </div>
 </div>
@@ -664,14 +726,14 @@
             <form action="{{ route('admin.accounting.invoices.payments.update', $payment->id) }}" method="POST" id="editPaymentReceiptForm">
                 @csrf
                 @method('PUT')
-                <div class="modal-body p-4">
+                <div class="modal-body p-3 p-md-4">
                     {{-- Financial Overview --}}
                     <div class="bg-light p-3 rounded-3 border mb-3">
-                        <div class="d-flex justify-content-between small text-muted mb-1">
+                        <div class="d-flex justify-content-between small text-muted mb-1 flex-wrap gap-1">
                             <span>Customer: <strong class="text-dark">{{ $payment->party_name }}</strong></span>
                             <span>Total Bill: <strong class="text-dark font-monospace">৳{{ number_format($totalGrand, 2) }}</strong></span>
                         </div>
-                        <div class="d-flex justify-content-between small text-muted">
+                        <div class="d-flex justify-content-between small text-muted flex-wrap gap-1">
                             <span>Payment Ref: <strong class="text-dark font-monospace">#{{ $payment->payment_no }}</strong></span>
                             <span>Remaining Due: <strong class="text-danger fw-bold font-monospace">৳{{ number_format($remainingDue, 2) }}</strong></span>
                         </div>
@@ -955,151 +1017,173 @@ function handleEditFieldChange(source) {
 }
 </script>
 
-{{-- Receipt Design Customizer Drawer (No-Print) --}}
-<div class="offcanvas offcanvas-end shadow-lg border-0 d-print-none" tabindex="-1" id="receiptDesignCustomizerOffcanvas" aria-labelledby="receiptDesignCustomizerLabel" style="width: 420px; z-index: 1060;">
+{{-- Receipt Design Customizer Offcanvas Drawer (No-Print) --}}
+<div class="offcanvas offcanvas-end shadow-lg border-0 d-print-none" tabindex="-1" id="receiptDesignCustomizerOffcanvas" aria-labelledby="receiptDesignCustomizerLabel">
+    {{-- Offcanvas Header --}}
     <div class="offcanvas-header bg-dark text-white py-3 px-3.5 border-bottom">
-        <div class="d-flex align-items-center gap-2">
-            <span class="badge bg-warning text-dark rounded-circle p-2"><i class="fas fa-palette fs-6"></i></span>
+        <div class="d-flex align-items-center gap-2.5">
+            <span class="badge bg-warning text-dark rounded-circle p-2 shadow-xs"><i class="fas fa-sliders fs-6"></i></span>
             <div>
-                <h6 class="offcanvas-title fw-bold mb-0 text-white" id="receiptDesignCustomizerLabel">
+                <h6 class="offcanvas-title fw-bold mb-0 text-white" id="receiptDesignCustomizerLabel" style="font-size: 15px;">
                     Receipt Design Customizer
                 </h6>
                 <div class="text-white-50 small" style="font-size: 11px;">
-                    Customize branding, colors, stamp & layout in real time
+                    Real-time visual layout & branding editor
                 </div>
             </div>
         </div>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
     </div>
 
+    {{-- Offcanvas Body with Scrollable Tabbed Content --}}
     <div class="offcanvas-body p-0 d-flex flex-column" style="background: #f8fafc;">
-        {{-- Navigation Tabs --}}
-        <ul class="nav nav-tabs nav-fill bg-white border-bottom px-2 pt-2" id="designCustomizerTabs" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active small py-2 fw-bold" id="tab-colors" data-bs-toggle="tab" data-bs-target="#panel-colors" type="button" role="tab">
-                    <i class="fas fa-droplet text-primary me-1"></i>Theme
+        {{-- Touch-Friendly Navigation Tabs --}}
+        <div class="bg-white border-bottom shadow-2xs">
+            <div class="d-flex justify-content-between px-2 pt-1" id="designCustomizerTabs" role="tablist">
+                <button class="customizer-tab-btn active flex-fill text-center" id="tab-colors" data-bs-toggle="tab" data-bs-target="#panel-colors" type="button" role="tab">
+                    <i class="fas fa-droplet text-primary d-block mb-0.5 fs-6"></i>Theme
                 </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link small py-2 fw-bold" id="tab-geometry" data-bs-toggle="tab" data-bs-target="#panel-geometry" type="button" role="tab">
-                    <i class="fas fa-stamp text-danger me-1"></i>Stamp/Logo
+                <button class="customizer-tab-btn flex-fill text-center" id="tab-geometry" data-bs-toggle="tab" data-bs-target="#panel-geometry" type="button" role="tab">
+                    <i class="fas fa-stamp text-danger d-block mb-0.5 fs-6"></i>Stamp/Logo
                 </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link small py-2 fw-bold" id="tab-branding" data-bs-toggle="tab" data-bs-target="#panel-branding" type="button" role="tab">
-                    <i class="fas fa-building text-info me-1"></i>Text/Info
+                <button class="customizer-tab-btn flex-fill text-center" id="tab-branding" data-bs-toggle="tab" data-bs-target="#panel-branding" type="button" role="tab">
+                    <i class="fas fa-building text-info d-block mb-0.5 fs-6"></i>Branding
                 </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link small py-2 fw-bold" id="tab-visibility" data-bs-toggle="tab" data-bs-target="#panel-visibility" type="button" role="tab">
-                    <i class="fas fa-eye text-success me-1"></i>Toggles
+                <button class="customizer-tab-btn flex-fill text-center" id="tab-visibility" data-bs-toggle="tab" data-bs-target="#panel-visibility" type="button" role="tab">
+                    <i class="fas fa-sliders text-success d-block mb-0.5 fs-6"></i>Toggles
                 </button>
-            </li>
-        </ul>
+            </div>
+        </div>
 
         <div class="tab-content p-3 flex-fill overflow-auto">
             {{-- Tab 1: Theme & Colors --}}
             <div class="tab-pane fade show active" id="panel-colors" role="tabpanel">
                 {{-- Primary Accent Color --}}
-                <div class="card border rounded-3 p-3 mb-3 bg-white shadow-2xs">
-                    <label class="form-label small fw-bold text-dark mb-2">
-                        <i class="fas fa-circle-notch text-success me-1.5"></i>Primary Accent Theme:
-                    </label>
-                    <div class="d-flex flex-wrap gap-2 mb-2">
-                        <button type="button" class="btn btn-sm rounded-pill px-2.5 py-1 text-white fw-semibold" style="background: #059669; font-size: 11px;" onclick="applyThemeColor('#059669')">Emerald</button>
-                        <button type="button" class="btn btn-sm rounded-pill px-2.5 py-1 text-white fw-semibold" style="background: #7e22ce; font-size: 11px;" onclick="applyThemeColor('#7e22ce')">Purple</button>
-                        <button type="button" class="btn btn-sm rounded-pill px-2.5 py-1 text-white fw-semibold" style="background: #0284c7; font-size: 11px;" onclick="applyThemeColor('#0284c7')">Ocean</button>
-                        <button type="button" class="btn btn-sm rounded-pill px-2.5 py-1 text-white fw-semibold" style="background: #1d4ed8; font-size: 11px;" onclick="applyThemeColor('#1d4ed8')">Navy</button>
-                        <button type="button" class="btn btn-sm rounded-pill px-2.5 py-1 text-white fw-semibold" style="background: #dc2626; font-size: 11px;" onclick="applyThemeColor('#dc2626')">Ruby</button>
-                        <button type="button" class="btn btn-sm rounded-pill px-2.5 py-1 text-white fw-semibold" style="background: #334155; font-size: 11px;" onclick="applyThemeColor('#334155')">Slate</button>
-                        <button type="button" class="btn btn-sm rounded-pill px-2.5 py-1 text-white fw-semibold" style="background: #d97706; font-size: 11px;" onclick="applyThemeColor('#d97706')">Amber</button>
+                <div class="customizer-card">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <label class="form-label small fw-bold text-dark mb-0">
+                            <i class="fas fa-circle-notch text-success me-1.5"></i>Primary Accent Theme:
+                        </label>
+                        <span class="badge bg-light text-dark border font-monospace" id="customThemeHexBadge">{{ $settings['receipt_primary_color'] ?? '#059669' }}</span>
                     </div>
+                    
+                    {{-- Quick Color Swatches --}}
+                    <div class="d-flex align-items-center gap-2 mb-2.5 flex-wrap">
+                        <div class="customizer-color-swatch" style="background: #059669;" title="Emerald" onclick="applyThemeColor('#059669')"></div>
+                        <div class="customizer-color-swatch" style="background: #7e22ce;" title="Royal Purple" onclick="applyThemeColor('#7e22ce')"></div>
+                        <div class="customizer-color-swatch" style="background: #0284c7;" title="Ocean Blue" onclick="applyThemeColor('#0284c7')"></div>
+                        <div class="customizer-color-swatch" style="background: #1d4ed8;" title="Navy Sapphire" onclick="applyThemeColor('#1d4ed8')"></div>
+                        <div class="customizer-color-swatch" style="background: #dc2626;" title="Ruby Red" onclick="applyThemeColor('#dc2626')"></div>
+                        <div class="customizer-color-swatch" style="background: #334155;" title="Slate Onyx" onclick="applyThemeColor('#334155')"></div>
+                        <div class="customizer-color-swatch" style="background: #d97706;" title="Amber Gold" onclick="applyThemeColor('#d97706')"></div>
+                        <div class="customizer-color-swatch" style="background: #0f172a;" title="Midnight Dark" onclick="applyThemeColor('#0f172a')"></div>
+                    </div>
+
                     <div class="input-group input-group-sm">
-                        <span class="input-group-text">Custom Hex:</span>
+                        <span class="input-group-text bg-light text-muted">Pick Hex:</span>
                         <input type="color" class="form-control form-control-color" id="customThemeColorPicker" value="{{ $settings['receipt_primary_color'] ?? '#059669' }}" oninput="applyThemeColor(this.value)">
-                        <input type="text" class="form-control font-monospace" id="customThemeColorHex" value="{{ $settings['receipt_primary_color'] ?? '#059669' }}" oninput="applyThemeColor(this.value)">
+                        <input type="text" class="form-control font-monospace" id="customThemeColorHex" value="{{ $settings['receipt_primary_color'] ?? '#059669' }}" placeholder="#059669" oninput="applyThemeColor(this.value)">
                     </div>
                 </div>
 
                 {{-- Stamp Ink Color --}}
-                <div class="card border rounded-3 p-3 mb-3 bg-white shadow-2xs">
-                    <label class="form-label small fw-bold text-dark mb-2">
-                        <i class="fas fa-stamp text-purple me-1.5"></i>Rubber Stamp Ink Color:
-                    </label>
-                    <div class="d-flex flex-wrap gap-2 mb-2">
-                        <button type="button" class="btn btn-sm rounded-pill px-2.5 py-1 text-white fw-semibold" style="background: #6b21a8; font-size: 11px;" onclick="applyStampColor('#6b21a8')">Royal Purple</button>
-                        <button type="button" class="btn btn-sm rounded-pill px-2.5 py-1 text-white fw-semibold" style="background: #b91c1c; font-size: 11px;" onclick="applyStampColor('#b91c1c')">Seal Crimson</button>
-                        <button type="button" class="btn btn-sm rounded-pill px-2.5 py-1 text-white fw-semibold" style="background: #047857; font-size: 11px;" onclick="applyStampColor('#047857')">Deep Emerald</button>
-                        <button type="button" class="btn btn-sm rounded-pill px-2.5 py-1 text-white fw-semibold" style="background: #1e3a8a; font-size: 11px;" onclick="applyStampColor('#1e3a8a')">Royal Navy</button>
-                        <button type="button" class="btn btn-sm rounded-pill px-2.5 py-1 text-white fw-semibold" style="background: #0f172a; font-size: 11px;" onclick="applyStampColor('#0f172a')">Dark Onyx</button>
+                <div class="customizer-card">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <label class="form-label small fw-bold text-dark mb-0">
+                            <i class="fas fa-stamp text-purple me-1.5"></i>Rubber Stamp Ink:
+                        </label>
+                        <span class="badge bg-light text-dark border font-monospace" id="customStampHexBadge">{{ $settings['receipt_stamp_color'] ?? '#6b21a8' }}</span>
                     </div>
+
+                    {{-- Quick Stamp Color Swatches --}}
+                    <div class="d-flex align-items-center gap-2 mb-2.5 flex-wrap">
+                        <div class="customizer-color-swatch" style="background: #6b21a8;" title="Royal Purple" onclick="applyStampColor('#6b21a8')"></div>
+                        <div class="customizer-color-swatch" style="background: #b91c1c;" title="Seal Crimson" onclick="applyStampColor('#b91c1c')"></div>
+                        <div class="customizer-color-swatch" style="background: #047857;" title="Deep Emerald" onclick="applyStampColor('#047857')"></div>
+                        <div class="customizer-color-swatch" style="background: #1e3a8a;" title="Royal Navy" onclick="applyStampColor('#1e3a8a')"></div>
+                        <div class="customizer-color-swatch" style="background: #831843;" title="Vintage Maroon" onclick="applyStampColor('#831843')"></div>
+                        <div class="customizer-color-swatch" style="background: #0f172a;" title="Dark Onyx" onclick="applyStampColor('#0f172a')"></div>
+                    </div>
+
                     <div class="input-group input-group-sm">
-                        <span class="input-group-text">Stamp Ink:</span>
+                        <span class="input-group-text bg-light text-muted">Ink Hex:</span>
                         <input type="color" class="form-control form-control-color" id="customStampColorPicker" value="{{ $settings['receipt_stamp_color'] ?? '#6b21a8' }}" oninput="applyStampColor(this.value)">
-                        <input type="text" class="form-control font-monospace" id="customStampColorHex" value="{{ $settings['receipt_stamp_color'] ?? '#6b21a8' }}" oninput="applyStampColor(this.value)">
+                        <input type="text" class="form-control font-monospace" id="customStampColorHex" value="{{ $settings['receipt_stamp_color'] ?? '#6b21a8' }}" placeholder="#6b21a8" oninput="applyStampColor(this.value)">
                     </div>
                 </div>
             </div>
 
             {{-- Tab 2: Logo & Stamp Dimensions --}}
             <div class="tab-pane fade" id="panel-geometry" role="tabpanel">
-                {{-- Logo Geometry --}}
-                <div class="card border rounded-3 p-3 mb-3 bg-white shadow-2xs">
+                {{-- Logo Geometry & Live Upload --}}
+                <div class="customizer-card">
                     <div class="d-flex justify-content-between align-items-center mb-2">
-                        <label class="form-label small fw-bold text-dark mb-0"><i class="fas fa-image text-primary me-1.5"></i>Logo Dimensions:</label>
-                        <span class="badge bg-light text-dark border font-monospace" id="customLogoHeightVal">58px</span>
+                        <label class="form-label small fw-bold text-dark mb-0"><i class="fas fa-image text-primary me-1.5"></i>Header Logo Settings:</label>
+                        <span class="badge bg-light text-dark border font-monospace" id="customLogoHeightVal">{{ $settings['receipt_logo_height'] ?? '58px' }}</span>
                     </div>
+
+                    {{-- Live Logo File Switcher --}}
+                    <div class="mb-2.5">
+                        <label class="form-label small text-muted mb-1" style="font-size: 11px;">Change Logo Preview:</label>
+                        <input type="file" class="form-control form-control-sm" id="customLogoFileInput" accept="image/*" onchange="handleLogoUpload(event)">
+                    </div>
+
                     <div class="mb-2.5">
                         <div class="d-flex justify-content-between small text-muted mb-1">
                             <span>Height:</span>
-                            <span id="logoHDisp">58px</span>
+                            <span class="font-monospace fw-bold text-dark" id="logoHDisp">{{ $settings['receipt_logo_height'] ?? '58px' }}</span>
                         </div>
-                        <input type="range" class="form-range" id="customLogoHeightSlider" min="35" max="85" step="1" value="58" oninput="updateLogoDimensions()">
+                        <input type="range" class="form-range" id="customLogoHeightSlider" min="30" max="90" step="1" value="{{ (int)($settings['receipt_logo_height'] ?? 58) }}" oninput="updateLogoDimensions()">
                     </div>
+
                     <div class="mb-2">
                         <div class="d-flex justify-content-between small text-muted mb-1">
                             <span>Max Width:</span>
-                            <span id="logoWDisp">155px</span>
+                            <span class="font-monospace fw-bold text-dark" id="logoWDisp">{{ $settings['receipt_logo_width'] ?? '155px' }}</span>
                         </div>
-                        <input type="range" class="form-range" id="customLogoWidthSlider" min="100" max="240" step="5" value="155" oninput="updateLogoDimensions()">
+                        <input type="range" class="form-range" id="customLogoWidthSlider" min="90" max="260" step="5" value="{{ (int)($settings['receipt_logo_width'] ?? 155) }}" oninput="updateLogoDimensions()">
                     </div>
+
                     <div class="form-check form-switch mt-2">
                         <input class="form-check-input" type="checkbox" id="toggleLogoDivider" checked onchange="toggleLogoDividerBorder(this.checked)">
                         <label class="form-check-label small fw-semibold text-dark" for="toggleLogoDivider">Show Logo Divider Line</label>
                     </div>
                 </div>
 
-                {{-- Rubber Stamp Geometry --}}
-                <div class="card border rounded-3 p-3 mb-3 bg-white shadow-2xs">
+                {{-- Rubber Stamp Geometry & Offsets --}}
+                <div class="customizer-card">
                     <div class="d-flex justify-content-between align-items-center mb-2">
-                        <label class="form-label small fw-bold text-dark mb-0"><i class="fas fa-stamp text-danger me-1.5"></i>Stamp Geometry & Seal:</label>
+                        <label class="form-label small fw-bold text-dark mb-0"><i class="fas fa-stamp text-danger me-1.5"></i>Rubber Stamp Seal:</label>
                         <div class="form-check form-switch m-0">
                             <input class="form-check-input" type="checkbox" id="toggleStampVisibility" checked onchange="toggleStampSeal(this.checked)">
                             <label class="form-check-label small fw-semibold text-dark" for="toggleStampVisibility">Show</label>
                         </div>
                     </div>
+
                     <div class="mb-2.5">
                         <div class="d-flex justify-content-between small text-muted mb-1">
-                            <span>Size:</span>
-                            <span id="stampSizeDisp">135px</span>
+                            <span>Size (Diameter):</span>
+                            <span class="font-monospace fw-bold text-dark" id="stampSizeDisp">{{ $settings['receipt_stamp_size'] ?? '135px' }}</span>
                         </div>
-                        <input type="range" class="form-range" id="customStampSizeSlider" min="95" max="165" step="2" value="135" oninput="updateStampDimensions()">
+                        <input type="range" class="form-range" id="customStampSizeSlider" min="90" max="175" step="2" value="{{ (int)($settings['receipt_stamp_size'] ?? 135) }}" oninput="updateStampDimensions()">
                     </div>
+
                     <div class="mb-2.5">
                         <div class="d-flex justify-content-between small text-muted mb-1">
                             <span>Rotation Angle:</span>
-                            <span id="stampRotDisp">-10°</span>
+                            <span class="font-monospace fw-bold text-dark" id="stampRotDisp">{{ ($settings['receipt_stamp_rotation'] ?? '-10') . '°' }}</span>
                         </div>
-                        <input type="range" class="form-range" id="customStampRotSlider" min="-30" max="20" step="1" value="-10" oninput="updateStampDimensions()">
+                        <input type="range" class="form-range" id="customStampRotSlider" min="-35" max="35" step="1" value="{{ (int)($settings['receipt_stamp_rotation'] ?? -10) }}" oninput="updateStampDimensions()">
                     </div>
+
                     <div class="row g-2">
                         <div class="col-6">
-                            <label class="form-label small text-muted mb-0.5" style="font-size: 10.5px;">Top Offset (px):</label>
-                            <input type="number" class="form-control form-control-sm font-monospace" id="customStampTopInput" value="-30" oninput="updateStampDimensions()">
+                            <label class="form-label small text-muted mb-1" style="font-size: 10.5px;">Top Offset (px):</label>
+                            <input type="number" class="form-control form-control-sm font-monospace" id="customStampTopInput" value="{{ (int)($settings['receipt_stamp_top'] ?? -30) }}" oninput="updateStampDimensions()">
                         </div>
                         <div class="col-6">
-                            <label class="form-label small text-muted mb-0.5" style="font-size: 10.5px;">Right Offset (px):</label>
-                            <input type="number" class="form-control form-control-sm font-monospace" id="customStampRightInput" value="25" oninput="updateStampDimensions()">
+                            <label class="form-label small text-muted mb-1" style="font-size: 10.5px;">Right Offset (px):</label>
+                            <input type="number" class="form-control form-control-sm font-monospace" id="customStampRightInput" value="{{ (int)($settings['receipt_stamp_right'] ?? 25) }}" oninput="updateStampDimensions()">
                         </div>
                     </div>
                 </div>
@@ -1107,7 +1191,7 @@ function handleEditFieldChange(source) {
 
             {{-- Tab 3: Branding & Text Info --}}
             <div class="tab-pane fade" id="panel-branding" role="tabpanel">
-                <div class="card border rounded-3 p-3 mb-3 bg-white shadow-2xs">
+                <div class="customizer-card">
                     <label class="form-label small fw-bold text-dark mb-2"><i class="fas fa-building text-primary me-1.5"></i>Organization Branding:</label>
                     <div class="mb-2">
                         <label class="form-label small text-muted mb-0.5">Business Name:</label>
@@ -1115,7 +1199,7 @@ function handleEditFieldChange(source) {
                     </div>
                     <div class="mb-2">
                         <label class="form-label small text-muted mb-0.5">Tagline / Slogan:</label>
-                        <input type="text" class="form-control form-control-sm" id="customInputTagline" value="{{ $settings['tagline'] ?? '' }}" oninput="updateLiveText('liveReceiptTagline', this.value)">
+                        <input type="text" class="form-control form-control-sm" id="customInputTagline" value="{{ $settings['tagline'] ?? '' }}" oninput="updateLiveTagline(this.value)">
                     </div>
                     <div class="mb-2">
                         <label class="form-label small text-muted mb-0.5">Address:</label>
@@ -1124,20 +1208,20 @@ function handleEditFieldChange(source) {
                     <div class="row g-2 mb-2">
                         <div class="col-6">
                             <label class="form-label small text-muted mb-0.5">Phone:</label>
-                            <input type="text" class="form-control form-control-sm font-monospace" id="customInputPhone" value="{{ $settings['phone'] ?? '' }}" oninput="updateLiveText('liveReceiptPhone', this.value)">
+                            <input type="text" class="form-control form-control-sm font-monospace" id="customInputPhone" value="{{ $settings['phone'] ?? '' }}" oninput="updateLivePhone(this.value)">
                         </div>
                         <div class="col-6">
                             <label class="form-label small text-muted mb-0.5">Email:</label>
-                            <input type="text" class="form-control form-control-sm" id="customInputEmail" value="{{ $settings['email'] ?? '' }}" oninput="updateLiveText('liveReceiptEmail', this.value)">
+                            <input type="text" class="form-control form-control-sm font-monospace" id="customInputEmail" value="{{ $settings['email'] ?? '' }}" oninput="updateLiveEmail(this.value)">
                         </div>
                     </div>
                 </div>
 
                 {{-- Signatures & Roles --}}
-                <div class="card border rounded-3 p-3 mb-3 bg-white shadow-2xs">
-                    <label class="form-label small fw-bold text-dark mb-2"><i class="fas fa-signature text-secondary me-1.5"></i>Signatures & Letterhead:</label>
+                <div class="customizer-card">
+                    <label class="form-label small fw-bold text-dark mb-2"><i class="fas fa-signature text-secondary me-1.5"></i>Signatures & Roles:</label>
                     <div class="mb-2">
-                        <label class="form-label small text-muted mb-0.5">Signatory / Collector Name:</label>
+                        <label class="form-label small text-muted mb-0.5">Collector / Signatory Name:</label>
                         <input type="text" class="form-control form-control-sm fw-bold" id="customInputSignatoryName" value="{{ $creatorName ?: 'Shakil Masud' }}" oninput="updateLiveText('liveReceiptSignatoryName', this.value)">
                     </div>
                     <div class="mb-2">
@@ -1159,7 +1243,7 @@ function handleEditFieldChange(source) {
 
             {{-- Tab 4: Component Toggles & Scale --}}
             <div class="tab-pane fade" id="panel-visibility" role="tabpanel">
-                <div class="card border rounded-3 p-3 mb-3 bg-white shadow-2xs">
+                <div class="customizer-card">
                     <label class="form-label small fw-bold text-dark mb-2.5"><i class="fas fa-sliders text-success me-1.5"></i>Component Visibility:</label>
                     
                     <div class="form-check form-switch mb-2.5">
@@ -1178,6 +1262,16 @@ function handleEditFieldChange(source) {
                     </div>
 
                     <div class="form-check form-switch mb-2.5">
+                        <input class="form-check-input" type="checkbox" id="toggleCustomerSig" checked onchange="toggleComponent('liveReceiptCustomerSigCol', this.checked)">
+                        <label class="form-check-label small fw-semibold text-dark" for="toggleCustomerSig">Customer Signature Column</label>
+                    </div>
+
+                    <div class="form-check form-switch mb-2.5">
+                        <input class="form-check-input" type="checkbox" id="toggleSignatoryCol" checked onchange="toggleComponent('liveReceiptSignatoryCol', this.checked)">
+                        <label class="form-check-label small fw-semibold text-dark" for="toggleSignatoryCol">Collector Signature Column</label>
+                    </div>
+
+                    <div class="form-check form-switch mb-2.5">
                         <input class="form-check-input" type="checkbox" id="toggleNoteBox" checked onchange="toggleComponent('liveReceiptNoteBox', this.checked)">
                         <label class="form-check-label small fw-semibold text-dark" for="toggleNoteBox">Remarks / Note Box</label>
                     </div>
@@ -1189,20 +1283,20 @@ function handleEditFieldChange(source) {
                 </div>
 
                 {{-- Document Font & Print Scale --}}
-                <div class="card border rounded-3 p-3 mb-3 bg-white shadow-2xs">
+                <div class="customizer-card">
                     <div class="d-flex justify-content-between align-items-center mb-1">
-                        <label class="form-label small fw-bold text-dark mb-0"><i class="fas fa-magnifying-glass-plus text-primary me-1.5"></i>Page Scale / Zoom:</label>
-                        <span class="badge bg-light text-dark border font-monospace" id="fontScaleVal">100%</span>
+                        <label class="form-label small fw-bold text-dark mb-0"><i class="fas fa-magnifying-glass-plus text-primary me-1.5"></i>Receipt Page Scale / Zoom:</label>
+                        <span class="badge bg-light text-dark border font-monospace" id="fontScaleVal">{{ round((float)($settings['receipt_font_scale'] ?? 1) * 100) }}%</span>
                     </div>
-                    <input type="range" class="form-range mt-2" id="customFontScaleSlider" min="0.85" max="1.15" step="0.02" value="1" oninput="updateFontScale(this.value)">
+                    <input type="range" class="form-range mt-2" id="customFontScaleSlider" min="0.85" max="1.15" step="0.01" value="{{ (float)($settings['receipt_font_scale'] ?? 1) }}" oninput="updateFontScale(this.value)">
                 </div>
             </div>
         </div>
 
-        {{-- Offcanvas Footer Actions --}}
+        {{-- Offcanvas Sticky Footer Actions --}}
         <div class="offcanvas-footer bg-white p-3 border-top d-flex align-items-center justify-content-between gap-2 shadow-sm">
             <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3" onclick="resetCustomizerDefaults()">
-                <i class="fas fa-rotate-left me-1"></i> Reset
+                <i class="fas fa-rotate-left me-1"></i> Reset Defaults
             </button>
             <button type="button" class="btn btn-primary btn-sm rounded-pill px-3.5 fw-bold shadow-sm" id="btnSaveReceiptSettings" onclick="saveReceiptCustomizerSettings()">
                 <i class="fas fa-floppy-disk me-1.5"></i> Save as Default
@@ -1218,8 +1312,10 @@ function applyThemeColor(hex) {
     document.documentElement.style.setProperty('--rcp-primary', hex);
     const picker = document.getElementById('customThemeColorPicker');
     const hexInput = document.getElementById('customThemeColorHex');
+    const badge = document.getElementById('customThemeHexBadge');
     if (picker) picker.value = hex;
     if (hexInput) hexInput.value = hex;
+    if (badge) badge.textContent = hex;
 }
 
 function applyStampColor(hex) {
@@ -1227,8 +1323,10 @@ function applyStampColor(hex) {
     document.documentElement.style.setProperty('--rcp-stamp-ink', hex);
     const picker = document.getElementById('customStampColorPicker');
     const hexInput = document.getElementById('customStampColorHex');
+    const badge = document.getElementById('customStampHexBadge');
     if (picker) picker.value = hex;
     if (hexInput) hexInput.value = hex;
+    if (badge) badge.textContent = hex;
 }
 
 function updateLogoDimensions() {
@@ -1242,6 +1340,23 @@ function updateLogoDimensions() {
     if (hDisp) hDisp.textContent = h + 'px';
     if (wDisp) wDisp.textContent = w + 'px';
     if (badge) badge.textContent = h + 'px';
+}
+
+function handleLogoUpload(event) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const logoImg = document.getElementById('liveReceiptLogo');
+        const container = document.getElementById('liveReceiptLogoContainer');
+        if (logoImg) {
+            logoImg.src = e.target.result;
+        }
+        if (container) {
+            container.classList.remove('d-none');
+        }
+    };
+    reader.readAsDataURL(file);
 }
 
 function toggleLogoDividerBorder(show) {
@@ -1279,10 +1394,42 @@ function updateLiveText(elementId, text) {
     const el = document.getElementById(elementId);
     if (el) {
         el.textContent = text;
-        if (elementId === 'liveReceiptTagline') {
-            el.classList.toggle('d-none', !text.trim());
-        }
     }
+}
+
+function updateLiveTagline(text) {
+    const el = document.getElementById('liveReceiptTagline');
+    if (el) {
+        el.textContent = text;
+        el.classList.toggle('d-none', !text.trim());
+    }
+}
+
+function updateLivePhone(text) {
+    const el = document.getElementById('liveReceiptPhone');
+    const divider = document.getElementById('liveReceiptPhoneDivider');
+    const container = document.getElementById('liveReceiptPhoneContainer');
+    const footerPhone = document.getElementById('liveReceiptFooterPhone');
+    const footerContainer = document.getElementById('liveReceiptFooterPhoneContainer');
+
+    if (el) el.textContent = text;
+    if (footerPhone) footerPhone.textContent = text;
+
+    const hasVal = Boolean(text && text.trim().length > 0);
+    if (divider) divider.classList.toggle('d-none', !hasVal);
+    if (container) container.classList.toggle('d-none', !hasVal);
+    if (footerContainer) footerContainer.classList.toggle('d-none', !hasVal);
+}
+
+function updateLiveEmail(text) {
+    const el = document.getElementById('liveReceiptEmail');
+    const divider = document.getElementById('liveReceiptEmailDivider');
+    const container = document.getElementById('liveReceiptEmailContainer');
+
+    if (el) el.textContent = text;
+    const hasVal = Boolean(text && text.trim().length > 0);
+    if (divider) divider.classList.toggle('d-none', !hasVal);
+    if (container) container.classList.toggle('d-none', !hasVal);
 }
 
 function toggleComponent(elementId, show) {
@@ -1322,6 +1469,8 @@ function resetCustomizerDefaults() {
     toggleComponent('liveReceiptCertBox', true);
     toggleComponent('liveReceiptDeductionBox', true);
     toggleComponent('liveReceiptQrBox', true);
+    toggleComponent('liveReceiptCustomerSigCol', true);
+    toggleComponent('liveReceiptSignatoryCol', true);
     toggleComponent('liveReceiptNoteBox', true);
     toggleComponent('liveReceiptFooterBox', true);
 }
@@ -1348,6 +1497,9 @@ function saveReceiptCustomizerSettings() {
     payload.append('receipt_logo_width', (document.getElementById('customLogoWidthSlider')?.value || 155) + 'px');
     payload.append('receipt_stamp_size', (document.getElementById('customStampSizeSlider')?.value || 135) + 'px');
     payload.append('receipt_stamp_rotation', document.getElementById('customStampRotSlider')?.value || '-10');
+    payload.append('receipt_stamp_top', (document.getElementById('customStampTopInput')?.value || -30) + 'px');
+    payload.append('receipt_stamp_right', (document.getElementById('customStampRightInput')?.value || 25) + 'px');
+    payload.append('receipt_font_scale', document.getElementById('customFontScaleSlider')?.value || '1');
 
     fetch('{{ route('admin.accounting.settings.update') }}', {
         method: 'POST',
