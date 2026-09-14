@@ -614,13 +614,13 @@
                 <table class="table adm-table align-middle mb-0" style="min-width: 1000px;">
                     <thead>
                         <tr>
-                            <th class="ps-3 py-3" style="width: 160px;">{{ $currentType === 'tender' ? 'টেন্ডার #' : 'কোটেশন #' }}</th>
-                            <th class="py-3" style="width: 120px;">তারিখ</th>
-                            <th class="py-3" style="min-width: 230px;">প্রতিষ্ঠান ও গ্রাহক</th>
-                            <th class="py-3" style="min-width: 220px;">বিষয় ও আইটেম</th>
-                            <th class="py-3 text-end" style="width: 130px;">প্রস্তাবিত মোট মূল্য</th>
-                            <th class="py-3 text-center" style="width: 130px;">মেয়াদ / স্ট্যাটাস</th>
-                            <th class="text-center pe-3 py-3" style="width: 160px;">অ্যাকশন</th>
+                            <th class="ps-3 py-3" style="width: 160px;">{{ $currentType === 'tender' ? 'Tender #' : 'Quotation #' }}</th>
+                            <th class="py-3 text-center" style="width: 110px;">Date</th>
+                            <th class="py-3" style="min-width: 220px;">Client</th>
+                            <th class="py-3" style="min-width: 200px;">Subject</th>
+                            <th class="py-3 text-end" style="width: 130px;">Total</th>
+                            <th class="py-3 text-center" style="width: 120px;">Status</th>
+                            <th class="text-center pe-3 py-3" style="width: 140px;">Action</th>
                         </tr>
                     </thead>
                     <tbody>

@@ -1052,82 +1052,82 @@
 
                 {{-- Installment Payments History Table --}}
                 <h6 class="fw-bold text-dark mb-2.5">
-                    <i class="fas fa-clock-rotate-left text-primary me-1.5"></i>জমা ও কিস্তির বিবরণী (Payment Logs)
+                    <i class="fas fa-clock-rotate-left text-primary me-1.5"></i>Payment History
                 </h6>
 
                 <div class="table-responsive">
                     <table class="table table-hover table-bordered align-middle mb-0" style="font-size: 13px;">
                         <thead class="table-light">
                             <tr>
-                                <th class="text-center" style="width: 45px;">#</th>
-                                <th style="width: 130px;">রসিদ নম্বর</th>
-                                <th style="width: 110px;">জমার তারিখ</th>
-                                <th class="text-end" style="width: 120px;">টাকার পরিমাণ</th>
-                                <th style="width: 120px;">পেমেন্ট মাধ্যম</th>
-                                <th>রেফারেন্স / বিবরণ</th>
-                                <th style="width: 130px;">আদায়কারী</th>
-                                <th class="text-center" style="width: 110px;">অ্যাকশন</th>
+                                <th class="text-center py-2 px-3" style="width: 45px;">#</th>
+                                <th class="text-center py-2 px-3" style="width: 130px;">Receipt</th>
+                                <th class="text-center py-2 px-3" style="width: 110px;">Date</th>
+                                <th class="text-end py-2 px-3" style="width: 130px;">Amount</th>
+                                <th class="text-center py-2 px-3" style="width: 120px;">Method</th>
+                                <th class="py-2 px-3">Description / Ref</th>
+                                <th class="text-center py-2 px-3" style="width: 130px;">Collector</th>
+                                <th class="text-center py-2 px-3" style="width: 140px;">Action</th>
                             </tr>
                         </thead>
                         <tbody>
                             @forelse($invoice->payments as $pIdx => $pmt)
                                 <tr>
-                                    <td class="text-center text-muted fw-semibold">{{ $pIdx + 1 }}</td>
-                                    <td>
+                                    <td class="text-center text-muted fw-semibold py-2 px-3">{{ $pIdx + 1 }}</td>
+                                    <td class="text-center py-2 px-3">
                                         <span class="font-monospace fw-bold text-dark">#{{ $pmt->payment_no }}</span>
                                     </td>
-                                    <td class="font-monospace">
+                                    <td class="text-center font-monospace py-2 px-3">
                                         {{ $pmt->payment_date ? $pmt->payment_date->format('d M, Y') : '—' }}
                                     </td>
-                                    <td class="text-end font-monospace">
+                                    <td class="text-end font-monospace py-2 px-3">
                                         <div class="fw-bold text-success fs-6">৳{{ number_format($pmt->amount, 2) }}</div>
                                         @if($pmt->has_deductions)
                                             <div class="mt-0.5" style="font-size: 10.5px;">
-                                                <span class="badge bg-warning-subtle text-dark border border-warning" title="নিট প্রাপ্তি: ৳{{ number_format($pmt->effective_net_amount, 2) }} | ভ্যাট/ট্যাক্স কর্তন: ৳{{ number_format($pmt->total_deductions, 2) }}">
-                                                    নিট: ৳{{ number_format($pmt->effective_net_amount, 2) }} | কর্তন: ৳{{ number_format($pmt->total_deductions, 2) }}
+                                                <span class="badge bg-warning-subtle text-dark border border-warning" title="Net: ৳{{ number_format($pmt->effective_net_amount, 2) }} | Deductions: ৳{{ number_format($pmt->total_deductions, 2) }}">
+                                                    Net: ৳{{ number_format($pmt->effective_net_amount, 2) }} | TDS/VDS: ৳{{ number_format($pmt->total_deductions, 2) }}
                                                 </span>
                                             </div>
                                         @endif
                                     </td>
-                                    <td>
+                                    <td class="text-center py-2 px-3">
                                         <span class="badge bg-light text-dark border px-2 py-1">
                                             {{ \App\Models\IdeaInvoicePayment::paymentMethods()[$pmt->payment_method] ?? ucfirst($pmt->payment_method) }}
                                         </span>
                                     </td>
-                                    <td>
+                                    <td class="py-2 px-3">
                                         <div class="text-dark fw-medium">{{ $pmt->note ?: '—' }}</div>
                                         @if($pmt->transaction_ref)
                                             <div class="text-muted font-monospace" style="font-size: 11px;">Trx: {{ $pmt->transaction_ref }}</div>
                                         @endif
                                         @if($pmt->deduction_challan_no)
-                                            <div class="text-primary font-monospace" style="font-size: 10.5px;"><i class="fas fa-file-lines me-1"></i>চালান: {{ $pmt->deduction_challan_no }}</div>
+                                            <div class="text-primary font-monospace" style="font-size: 10.5px;"><i class="fas fa-file-lines me-1"></i>Challan: {{ $pmt->deduction_challan_no }}</div>
                                         @endif
                                     </td>
-                                    <td class="text-muted small">
+                                    <td class="text-center text-muted small py-2 px-3">
                                         {{ $pmt->recorder?->name ?? 'Admin' }}
                                     </td>
-                                    <td class="text-center">
-                                        <div class="d-flex align-items-center justify-content-center gap-1">
-                                            <a href="{{ route('admin.accounting.invoices.payments.receipt', $pmt->id) }}" class="btn btn-sm btn-outline-success rounded-pill px-2.5 py-0.5 fw-semibold" title="বিল পরিশোধ প্রাপ্তিস্বীকারপত্র ও রসিদ দেখুন">
-                                                <i class="fas fa-file-shield me-1"></i>প্রাপ্তিস্বীকারপত্র
+                                    <td class="text-center py-2 px-3">
+                                        <div class="d-flex align-items-center justify-content-center gap-1.5">
+                                            <a href="{{ route('admin.accounting.invoices.payments.receipt', $pmt->id) }}" class="btn btn-sm btn-outline-success rounded-pill px-2.5 py-1 fw-semibold" title="View Receipt">
+                                                <i class="fas fa-file-shield me-1"></i>Receipt
                                             </a>
 
                                             <form action="{{ route('admin.accounting.invoices.payments.destroy', $pmt->id) }}" method="POST" class="d-inline"
-                                                  data-confirm="আপনি কি নিশ্চিত যে এই পেমেন্ট রেকর্ডটি (#{{ $pmt->payment_no }}) মুছে ফেলতে চান?" data-confirm-title="পেমেন্ট ডিলিট">
+                                                  data-confirm="Are you sure you want to delete payment record (#{{ $pmt->payment_no }})?" data-confirm-title="Delete Payment">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" class="btn btn-sm btn-outline-danger rounded-circle p-1" style="width: 26px; height: 26px; line-height: 1;" title="মুছে ফেলুন">
-                                                    <i class="fas fa-trash-alt" style="font-size: 10px;"></i>
+                                                <button type="submit" class="btn btn-sm btn-outline-danger rounded-circle p-1" style="width: 28px; height: 28px; line-height: 1;" title="Delete">
+                                                    <i class="fas fa-trash-alt" style="font-size: 11px;"></i>
                                                 </button>
                                             </form>
                                         </div>
                                     </td>
                                 </tr>
                             @empty
-                                                                <tr>
+                                <tr>
                                     <td colspan="8" class="text-center py-4 text-muted">
                                         <i class="fas fa-receipt fs-3 mb-2 d-block text-secondary"></i>
-                                        এখনও কোনো কিস্তি জমা রেকর্ড করা হয়নি।
+                                        No payments recorded yet.
                                     </td>
                                 </tr>
                             @endforelse
@@ -1967,9 +1967,9 @@ function openResendModal(emails, customMsg) {
                         <i class="fas fa-hand-holding-dollar fs-5"></i>
                         <div>
                             <h5 class="modal-title fw-bold mb-0" id="recordInvoicePaymentModalLabel">
-                                কিস্তি / বকেয়া টাকা জমা গ্রহণ
+                                Record Payment
                             </h5>
-                            <small class="text-white-50" style="font-size: 11.5px;">গ্রাহক: {{ $invoice->customer_name }} ({{ $invoice->customer_phone ?: 'ফোন নেই' }})</small>
+                            <small class="text-white-50" style="font-size: 11.5px;">Customer: {{ $invoice->customer_name }} ({{ $invoice->customer_phone ?: 'No phone' }})</small>
                         </div>
                     </div>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -1980,21 +1980,21 @@ function openResendModal(emails, customMsg) {
                     @if(($customerDueCount ?? 0) > 1 || (isset($otherDueInvoices) && $otherDueInvoices->isNotEmpty()))
                         <div class="card border border-primary-subtle bg-primary-subtle bg-opacity-10 rounded-3 p-2.5 mb-3">
                             <label class="form-label small fw-bold text-dark mb-1.5 d-block">
-                                <i class="fas fa-sliders text-primary me-1"></i>জমা প্রদানের পরিধি নির্বাচন করুন:
+                                <i class="fas fa-sliders text-primary me-1"></i>Payment Scope:
                             </label>
                             <div class="d-flex gap-2 flex-wrap">
                                 <div class="form-check form-check-inline m-0 p-2 bg-white rounded-2 border flex-fill">
                                     <input class="form-check-input ms-0 me-2" type="radio" name="payment_scope_selector" id="scopeSingleInvoice" value="single" checked onchange="togglePaymentScope('single')">
                                     <label class="form-check-label fw-bold text-dark small" for="scopeSingleInvoice">
-                                        ১. শুধুমাত্র এই বিল (#{{ $invoice->invoice_no }})
-                                        <span class="d-block text-danger font-monospace fw-normal" style="font-size: 11px;">বকেয়া: ৳{{ number_format($invoice->due_amount, 2) }}</span>
+                                        1. This Invoice (#{{ $invoice->invoice_no }})
+                                        <span class="d-block text-danger font-monospace fw-normal" style="font-size: 11px;">Due: ৳{{ number_format($invoice->due_amount, 2) }}</span>
                                     </label>
                                 </div>
                                 <div class="form-check form-check-inline m-0 p-2 bg-white rounded-2 border flex-fill">
                                     <input class="form-check-input ms-0 me-2" type="radio" name="payment_scope_selector" id="scopeAllInvoices" value="all" onchange="togglePaymentScope('all')">
                                     <label class="form-check-label fw-bold text-dark small" for="scopeAllInvoices">
-                                        ২. সকল বকেয়া বিল একযোগে পরিশোধ (FIFO)
-                                        <span class="d-block text-danger font-monospace fw-normal" style="font-size: 11px;">সর্বমোট {{ $customerDueCount }}টি বিলে বকেয়া: ৳{{ number_format($customerTotalDue, 2) }}</span>
+                                        2. Settle All Dues (FIFO)
+                                        <span class="d-block text-danger font-monospace fw-normal" style="font-size: 11px;">Total {{ $customerDueCount }} Invoices: ৳{{ number_format($customerTotalDue, 2) }}</span>
                                     </label>
                                 </div>
                             </div>
@@ -2004,12 +2004,12 @@ function openResendModal(emails, customMsg) {
                     {{-- Single Bill Summary Card --}}
                     <div id="singleInvoiceSummaryBox" class="bg-light p-3 rounded-3 border mb-3">
                         <div class="d-flex justify-content-between small text-muted mb-1">
-                            <span>ইনভয়েস নম্বর: <strong class="text-dark font-monospace">#{{ $invoice->invoice_no }}</strong></span>
-                            <span>মোট বিল: <strong class="text-dark font-monospace">৳{{ number_format($invoice->grand_total, 2) }}</strong></span>
+                            <span>Invoice: <strong class="text-dark font-monospace">#{{ $invoice->invoice_no }}</strong></span>
+                            <span>Total Billed: <strong class="text-dark font-monospace">৳{{ number_format($invoice->grand_total, 2) }}</strong></span>
                         </div>
                         <div class="d-flex justify-content-between small text-muted">
-                            <span>গ্রাহক: <strong class="text-dark">{{ $invoice->customer_name }}</strong></span>
-                            <span>এই বিলের বকেয়া: <strong class="text-danger fw-bold font-monospace fs-6" id="singleInvoiceDueDisplay">৳{{ number_format($invoice->due_amount, 2) }}</strong></span>
+                            <span>Customer: <strong class="text-dark">{{ $invoice->customer_name }}</strong></span>
+                            <span>Current Due: <strong class="text-danger fw-bold font-monospace fs-6" id="singleInvoiceDueDisplay">৳{{ number_format($invoice->due_amount, 2) }}</strong></span>
                         </div>
                     </div>
 
@@ -2018,34 +2018,36 @@ function openResendModal(emails, customMsg) {
                         <div id="allInvoicesBreakdownBox" class="mb-3 d-none">
                             <div class="d-flex justify-content-between align-items-center mb-1.5">
                                 <span class="small fw-bold text-dark">
-                                    <i class="fas fa-list-check text-success me-1"></i>বকেয়া বিলসমূহের ক্রম (FIFO অনুযায়ী ১ম থেকে পরিশোধ হবে):
+                                    <i class="fas fa-list-check text-success me-1"></i>Due Invoices (FIFO order):
                                 </span>
-                                <span class="badge bg-danger text-white">মোট বকেয়া: ৳{{ number_format($customerTotalDue, 2) }}</span>
+                                <span class="badge bg-danger text-white">Total Due: ৳{{ number_format($customerTotalDue, 2) }}</span>
                             </div>
                             <div class="table-responsive border rounded-3 bg-white" style="max-height: 160px; overflow-y: auto;">
                                 <table class="table table-sm table-hover align-middle mb-0" style="font-size: 11.5px;">
                                     <thead class="table-light sticky-top">
                                         <tr>
-                                            <th>বিল নম্বর</th>
-                                            <th>তারিখ</th>
-                                            <th class="text-end">মোট বিল</th>
-                                            <th class="text-end">জমা</th>
-                                            <th class="text-end">বর্তমান বকেয়া</th>
+                                            <th class="py-1 px-2 text-center" style="width: 40px;">#</th>
+                                            <th class="py-1 px-2">Invoice</th>
+                                            <th class="py-1 px-2 text-center">Date</th>
+                                            <th class="py-1 px-2 text-end">Billed</th>
+                                            <th class="py-1 px-2 text-end">Paid</th>
+                                            <th class="py-1 px-2 text-end">Due</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @foreach($allDueInvoices as $dInv)
+                                        @foreach($allDueInvoices as $dIdx => $dInv)
                                             <tr class="{{ $dInv->id === $invoice->id ? 'table-warning bg-warning bg-opacity-10 fw-bold' : '' }}">
-                                                <td>
+                                                <td class="py-1 px-2 text-center text-muted">{{ $dIdx + 1 }}</td>
+                                                <td class="py-1 px-2">
                                                     <span class="font-monospace">#{{ $dInv->invoice_no }}</span>
                                                     @if($dInv->id === $invoice->id)
-                                                        <span class="badge bg-primary text-white ms-1" style="font-size: 9px;">বর্তমান বিল</span>
+                                                        <span class="badge bg-primary text-white ms-1" style="font-size: 9px;">Current</span>
                                                     @endif
                                                 </td>
-                                                <td>{{ $dInv->invoice_date ? $dInv->invoice_date->format('d M, Y') : '—' }}</td>
-                                                <td class="text-end font-monospace">৳{{ number_format($dInv->grand_total, 2) }}</td>
-                                                <td class="text-end font-monospace text-success">৳{{ number_format($dInv->paid_amount, 2) }}</td>
-                                                <td class="text-end font-monospace text-danger fw-bold">৳{{ number_format($dInv->due_amount, 2) }}</td>
+                                                <td class="py-1 px-2 text-center">{{ $dInv->invoice_date ? $dInv->invoice_date->format('d M, Y') : '—' }}</td>
+                                                <td class="py-1 px-2 text-end font-monospace">৳{{ number_format($dInv->grand_total, 2) }}</td>
+                                                <td class="py-1 px-2 text-end font-monospace text-success">৳{{ number_format($dInv->paid_amount, 2) }}</td>
+                                                <td class="py-1 px-2 text-end font-monospace text-danger fw-bold">৳{{ number_format($dInv->due_amount, 2) }}</td>
                                             </tr>
                                         @endforeach
                                     </tbody>
@@ -2060,21 +2062,21 @@ function openResendModal(emails, customMsg) {
                             <div class="form-check form-switch m-0">
                                 <input class="form-check-input" type="checkbox" role="switch" id="toggleVatTaxDeduction" onchange="toggleVatTaxSection(this.checked)">
                                 <label class="form-check-label fw-bold text-dark small" for="toggleVatTaxDeduction">
-                                    <i class="fas fa-calculator text-warning-emphasis me-1"></i> ভ্যাট ও ট্যাক্স কর্তন সমন্বয় ক্যালকুলেটর (TDS / VDS Adjustment)
+                                    <i class="fas fa-calculator text-warning-emphasis me-1"></i> TDS & VDS Adjustment Calculator
                                 </label>
                             </div>
-                            <span class="badge bg-warning text-dark border font-monospace" style="font-size: 11px;">উৎসে কর ও মূসক কর্তন</span>
+                            <span class="badge bg-warning text-dark border font-monospace" style="font-size: 11px;">TDS / VDS</span>
                         </div>
                         
                         <div id="vatTaxCalculatorPanel" class="mt-3 pt-3 border-top border-warning-subtle d-none">
                             <div class="d-flex align-items-center justify-content-between mb-2.5 flex-wrap gap-2">
-                                <span class="text-muted small fw-bold"><i class="fas fa-arrow-right-arrow-left text-primary me-1"></i>হিসাবের ভিত্তি / ইনপুট মোড:</span>
+                                <span class="text-muted small fw-bold"><i class="fas fa-arrow-right-arrow-left text-primary me-1"></i>Calculation Mode:</span>
                                 <div class="btn-group btn-group-sm" role="group">
                                     <input type="radio" class="btn-check" name="calc_mode" id="calcModeGross" value="gross" checked onchange="switchCalcMode('gross')">
-                                    <label class="btn btn-outline-primary btn-sm py-0.5 px-2.5 font-monospace" for="calcModeGross" style="font-size: 11.5px;">১. বিল বকেয়া থেকে কর্তন হিসাব</label>
+                                    <label class="btn btn-outline-primary btn-sm py-0.5 px-2.5 font-monospace" for="calcModeGross" style="font-size: 11.5px;">1. Gross (From Due)</label>
                                     
                                     <input type="radio" class="btn-check" name="calc_mode" id="calcModeNet" value="net" onchange="switchCalcMode('net')">
-                                    <label class="btn btn-outline-primary btn-sm py-0.5 px-2.5 font-monospace" for="calcModeNet" style="font-size: 11.5px;">২. প্রাপ্ত চেক/ক্যাশ থেকে রিভার্স হিসাব</label>
+                                    <label class="btn btn-outline-primary btn-sm py-0.5 px-2.5 font-monospace" for="calcModeNet" style="font-size: 11.5px;">2. Net (From Received)</label>
                                 </div>
                             </div>
 
@@ -2083,7 +2085,7 @@ function openResendModal(emails, customMsg) {
                                 <div class="col-md-6 col-12">
                                     <div class="p-2.5 bg-white rounded-3 border">
                                         <div class="d-flex justify-content-between align-items-center mb-1">
-                                            <label class="form-label small fw-bold text-dark mb-0">উৎসে মূসক/ভ্যাট (VDS):</label>
+                                            <label class="form-label small fw-bold text-dark mb-0">VDS (VAT):</label>
                                             <div class="btn-group btn-group-sm">
                                                 <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-1.5" onclick="setVatRate(0)">0%</button>
                                                 <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-1.5" onclick="setVatRate(5)">5%</button>
@@ -2092,9 +2094,9 @@ function openResendModal(emails, customMsg) {
                                             </div>
                                         </div>
                                         <div class="input-group input-group-sm mb-1">
-                                            <input type="number" step="0.01" min="0" max="100" name="vat_deduction_rate" id="vatDeductionRate" class="form-control font-monospace" placeholder="হার %" value="" oninput="calculateVatTaxDeductions()">
+                                            <input type="number" step="0.01" min="0" max="100" name="vat_deduction_rate" id="vatDeductionRate" class="form-control font-monospace" placeholder="Rate %" value="" oninput="calculateVatTaxDeductions()">
                                             <span class="input-group-text">%</span>
-                                            <input type="number" step="0.01" min="0" name="vat_deduction_amount" id="vatDeductionAmount" class="form-control font-monospace text-danger fw-bold" placeholder="টাকা ৳" value="" oninput="onDirectDeductionAmountChange()">
+                                            <input type="number" step="0.01" min="0" name="vat_deduction_amount" id="vatDeductionAmount" class="form-control font-monospace text-danger fw-bold" placeholder="Amount" value="" oninput="onDirectDeductionAmountChange()">
                                             <span class="input-group-text">৳</span>
                                         </div>
                                     </div>
@@ -2104,7 +2106,7 @@ function openResendModal(emails, customMsg) {
                                 <div class="col-md-6 col-12">
                                     <div class="p-2.5 bg-white rounded-3 border">
                                         <div class="d-flex justify-content-between align-items-center mb-1">
-                                            <label class="form-label small fw-bold text-dark mb-0">উৎসে আয়কর/ট্যাক্স (TDS/AIT):</label>
+                                            <label class="form-label small fw-bold text-dark mb-0">TDS (Tax):</label>
                                             <div class="btn-group btn-group-sm">
                                                 <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-1.5" onclick="setTaxRate(0)">0%</button>
                                                 <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-1.5" onclick="setTaxRate(2)">2%</button>
@@ -2114,9 +2116,9 @@ function openResendModal(emails, customMsg) {
                                             </div>
                                         </div>
                                         <div class="input-group input-group-sm mb-1">
-                                            <input type="number" step="0.01" min="0" max="100" name="tax_deduction_rate" id="taxDeductionRate" class="form-control font-monospace" placeholder="হার %" value="" oninput="calculateVatTaxDeductions()">
+                                            <input type="number" step="0.01" min="0" max="100" name="tax_deduction_rate" id="taxDeductionRate" class="form-control font-monospace" placeholder="Rate %" value="" oninput="calculateVatTaxDeductions()">
                                             <span class="input-group-text">%</span>
-                                            <input type="number" step="0.01" min="0" name="tax_deduction_amount" id="taxDeductionAmount" class="form-control font-monospace text-danger fw-bold" placeholder="টাকা ৳" value="" oninput="onDirectDeductionAmountChange()">
+                                            <input type="number" step="0.01" min="0" name="tax_deduction_amount" id="taxDeductionAmount" class="form-control font-monospace text-danger fw-bold" placeholder="Amount" value="" oninput="onDirectDeductionAmountChange()">
                                             <span class="input-group-text">৳</span>
                                         </div>
                                     </div>
@@ -2128,25 +2130,23 @@ function openResendModal(emails, customMsg) {
                                 <div class="col-md-6 col-12">
                                     <div class="p-2.5 bg-white rounded-3 border">
                                         <label class="form-label small fw-bold text-dark mb-1">
-                                            <i class="fas fa-money-bill-wave text-success me-1"></i>গ্রাহকের দেওয়া চেক/ক্যাশ (নিট প্রাপ্তি):
+                                            <i class="fas fa-money-bill-wave text-success me-1"></i>Net Received:
                                         </label>
                                         <div class="input-group input-group-sm">
                                             <span class="input-group-text">৳</span>
                                             <input type="number" step="0.01" min="0" name="net_amount" id="netAmountInput" class="form-control font-monospace fw-bold text-success" placeholder="0.00" oninput="onNetChequeAmountChange()">
                                         </div>
-                                        <div class="text-muted" style="font-size: 10.5px; margin-top: 3px;">ব্যাংক চেক বা ক্যাশে যে পরিমাণ টাকা পাচ্ছেন</div>
                                     </div>
                                 </div>
 
                                 {{-- Other Deductions / Security --}}
                                 <div class="col-md-6 col-12">
                                     <div class="p-2.5 bg-white rounded-3 border">
-                                        <label class="form-label small fw-bold text-dark mb-1">অন্যান্য কর্তন (জামানত/সিকিউরিটি):</label>
+                                        <label class="form-label small fw-bold text-dark mb-1">Other Deduction:</label>
                                         <div class="input-group input-group-sm">
                                             <span class="input-group-text">৳</span>
                                             <input type="number" step="0.01" min="0" name="other_deduction_amount" id="otherDeductionAmount" class="form-control font-monospace text-danger fw-bold" placeholder="0.00" oninput="calculateVatTaxDeductions()">
                                         </div>
-                                        <div class="text-muted" style="font-size: 10.5px; margin-top: 3px;">অন্য কোনো কর্তন থাকলে এখানে লিখুন</div>
                                     </div>
                                 </div>
                             </div>
@@ -2154,12 +2154,12 @@ function openResendModal(emails, customMsg) {
                             {{-- Deduction Challan & Certificate Info --}}
                             <div class="row g-2.5 mb-2.5">
                                 <div class="col-md-6 col-12">
-                                    <label class="form-label small fw-semibold text-dark mb-1">ট্রেজারি চালান নং / মূসক-৬.৬ সনদ নং (ঐচ্ছিক):</label>
-                                    <input type="text" name="deduction_challan_no" id="deductionChallanNo" class="form-control form-control-sm font-monospace" placeholder="যেমন: TR-12345 / মূসক-৬.৬">
+                                    <label class="form-label small fw-semibold text-dark mb-1">Challan / Mushak Ref:</label>
+                                    <input type="text" name="deduction_challan_no" id="deductionChallanNo" class="form-control form-control-sm font-monospace" placeholder="e.g. TR-12345 / Mushak 6.6">
                                 </div>
                                 <div class="col-md-6 col-12">
-                                    <label class="form-label small fw-semibold text-dark mb-1">কর্তন নোট / বিবরণ (ঐচ্ছিক):</label>
-                                    <input type="text" name="deduction_notes" id="deductionNotes" class="form-control form-control-sm" placeholder="যেমন: ৫% ট্যাক্স ও ৭.৫% ভ্যাট কর্তনপূর্বক চেক প্রদান">
+                                    <label class="form-label small fw-semibold text-dark mb-1">Deduction Note:</label>
+                                    <input type="text" name="deduction_notes" id="deductionNotes" class="form-control form-control-sm" placeholder="Notes on TDS/VDS deductions">
                                 </div>
                             </div>
 
@@ -2167,15 +2167,15 @@ function openResendModal(emails, customMsg) {
                             <div class="p-2.5 bg-success-subtle bg-opacity-25 rounded-3 border border-success-subtle">
                                 <div class="row g-2 text-center" style="font-size: 12px;">
                                     <div class="col-4 border-end border-success-subtle">
-                                        <span class="text-muted d-block" style="font-size: 11px;">নিট চেক/ক্যাশ প্রাপ্তি</span>
+                                        <span class="text-muted d-block" style="font-size: 11px;">Net Received</span>
                                         <strong class="text-success font-monospace fs-7" id="displayCalcNet">৳0.00</strong>
                                     </div>
                                     <div class="col-4 border-end border-success-subtle">
-                                        <span class="text-muted d-block" style="font-size: 11px;">মোট ভ্যাট ও ট্যাক্স কর্তন</span>
+                                        <span class="text-muted d-block" style="font-size: 11px;">Total Deductions</span>
                                         <strong class="text-danger font-monospace fs-7" id="displayCalcDeductions">৳0.00</strong>
                                     </div>
                                     <div class="col-4">
-                                        <span class="text-muted d-block" style="font-size: 11px;">মোট বিল সমন্বয় (বকেয়া কমবে)</span>
+                                        <span class="text-muted d-block" style="font-size: 11px;">Total Credit</span>
                                         <strong class="text-primary font-monospace fs-7" id="displayCalcGross">৳0.00</strong>
                                     </div>
                                 </div>
@@ -2185,24 +2185,21 @@ function openResendModal(emails, customMsg) {
 
                     <div class="row g-3 mb-3">
                         <div class="col-md-6 col-12">
-                            <label class="form-label small fw-bold text-dark">জমার তারিখ: <span class="text-danger">*</span></label>
+                            <label class="form-label small fw-bold text-dark">Date: <span class="text-danger">*</span></label>
                             <input type="date" name="payment_date" class="form-control" required value="{{ date('Y-m-d') }}">
                         </div>
                         <div class="col-md-6 col-12">
-                            <label class="form-label small fw-bold text-dark" id="paymentAmountLabel">মোট বিল সমন্বয় / জমার পরিমাণ (টাকা): <span class="text-danger">*</span></label>
+                            <label class="form-label small fw-bold text-dark" id="paymentAmountLabel">Amount: <span class="text-danger">*</span></label>
                             <div class="input-group">
                                 <span class="input-group-text">৳</span>
                                 <input type="number" step="0.01" min="0.01" name="amount" id="paymentAmountInput" class="form-control fw-bold font-monospace text-success fs-5" required placeholder="0.00" value="{{ $invoice->due_amount > 0 ? $invoice->due_amount : ($customerTotalDue ?? '') }}" oninput="onGrossAmountChange()">
-                            </div>
-                            <div class="form-text text-muted" id="paymentAmountHelp" style="font-size: 11px;">
-                                ভ্যাট-ট্যাক্স কর্তনসহ বিলের মোট যে পরিমাণ সমন্বয় বা পরিশোধ হবে।
                             </div>
                         </div>
                     </div>
 
                     <div class="row g-3 mb-3">
                         <div class="col-md-6 col-12">
-                            <label class="form-label small fw-bold text-dark">পেমেন্ট মাধ্যম: <span class="text-danger">*</span></label>
+                            <label class="form-label small fw-bold text-dark">Method: <span class="text-danger">*</span></label>
                             <select name="payment_method" class="form-select" required>
                                 @foreach(\App\Models\IdeaInvoicePayment::paymentMethods() as $code => $lbl)
                                     <option value="{{ $code }}" {{ $code === 'cheque' ? 'selected' : ($code === 'cash' ? 'selected' : '') }}>{{ $lbl }}</option>
@@ -2210,26 +2207,26 @@ function openResendModal(emails, customMsg) {
                             </select>
                         </div>
                         <div class="col-md-6 col-12">
-                            <label class="form-label small fw-bold text-dark">Trx / ভাউচার / চেক নং:</label>
-                            <input type="text" name="transaction_ref" class="form-control font-monospace" placeholder="রেফারেন্স নম্বর">
+                            <label class="form-label small fw-bold text-dark">Trx / Ref:</label>
+                            <input type="text" name="transaction_ref" class="form-control font-monospace" placeholder="Ref / Cheque number">
                         </div>
                     </div>
 
-                    <div class="mb-3" id="paymentDueDateContainer">
-                        <label class="form-label small fw-bold text-dark">পরবর্তী কিস্তি / পরিশোধের শেষ তারিখ (ঐচ্ছিক):</label>
-                        <input type="date" name="due_date" class="form-control" value="{{ $invoice->due_date ? $invoice->due_date->format('Y-m-d') : '' }}">
-                        <div class="form-text text-muted" style="font-size: 11px;">যদি বকেয়া থাকে এবং পরবর্তী কিস্তির তারিখ নির্ধারণ করতে চান, তবে দিন। অন্যথায় খালি রাখুন।</div>
-                    </div>
-
-                    <div class="mb-2">
-                        <label class="form-label small fw-bold text-dark">বিবরণ / নোট (ঐচ্ছিক):</label>
-                        <input type="text" name="note" id="paymentNoteInput" class="form-control" placeholder="যেমন: কিস্তি পরিশোধ / ভ্যাট কর্তনপূর্বক চেক গ্রহণ">
+                    <div class="row g-3 mb-3" id="paymentDueDateContainer">
+                        <div class="col-md-6 col-12">
+                            <label class="form-label small fw-bold text-dark">Next Due:</label>
+                            <input type="date" name="due_date" class="form-control" value="{{ $invoice->due_date ? $invoice->due_date->format('Y-m-d') : '' }}">
+                        </div>
+                        <div class="col-md-6 col-12">
+                            <label class="form-label small fw-bold text-dark">Note:</label>
+                            <input type="text" name="note" id="paymentNoteInput" class="form-control" placeholder="Installment / settlement note">
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer bg-light p-3">
-                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">বাতিল</button>
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-success rounded-pill px-4 fw-bold shadow-sm" id="btnSubmitPayment">
-                        <i class="fas fa-check me-1.5"></i> জমা গ্রহণ কনফার্ম করুন
+                        <i class="fas fa-check me-1.5"></i> Confirm Payment
                     </button>
                 </div>
             </form>
