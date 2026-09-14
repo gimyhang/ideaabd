@@ -466,6 +466,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::get('/invoices/{invoice}/edit', 'editInvoice')->name('invoices.edit');
         Route::put('/invoices/{invoice}', 'updateInvoice')->name('invoices.update');
         Route::post('/invoices/{invoice}/payments', 'storeInvoicePayment')->name('invoices.payments.store');
+        Route::put('/invoices/payments/{payment}', 'updateInvoicePayment')->name('invoices.payments.update');
         Route::delete('/invoices/payments/{payment}', 'destroyInvoicePayment')->name('invoices.payments.destroy');
         Route::get('/invoices/payments/{payment}/receipt', 'invoicePaymentReceipt')->name('invoices.payments.receipt');
         Route::post('/invoices/{invoice}/send-email', 'sendInvoiceEmail')->name('invoices.send-email');

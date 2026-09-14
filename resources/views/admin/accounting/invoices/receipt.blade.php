@@ -39,7 +39,11 @@
 @endsection
 
 @section('actions')
-    <div class="d-flex flex-wrap gap-2 align-items-center">
+    <div class="d-flex flex-wrap gap-2 align-items-center no-print">
+        <button type="button" class="btn btn-warning btn-sm rounded-pill px-3.5 shadow-xs fw-bold text-dark" data-bs-toggle="modal" data-bs-target="#editReceiptPaymentModal">
+            <i class="fas fa-pen-to-square me-1.5"></i> Edit Payment
+        </button>
+
         <button type="button" class="btn btn-primary btn-sm rounded-pill px-3.5 shadow-sm fw-semibold" onclick="window.print()">
             <i class="fas fa-print me-1.5"></i> Print Receipt
         </button>
@@ -397,22 +401,20 @@
                                 <td class="text-end font-monospace fw-bold text-success py-1 px-2">৳{{ number_format($payment->effective_net_amount, 2) }}</td>
                                 <td class="text-muted small py-1 px-2">{{ $payment->transaction_ref ? 'Ref: ' . $payment->transaction_ref : 'Bank / Cash' }}</td>
                             </tr>
-                            @if((float)$payment->vat_deduction_amount > 0)
-                                <tr>
-                                    <td class="py-1 px-2">VDS (VAT Deducted at Source)</td>
-                                    <td class="text-center font-monospace py-1 px-2">{{ $payment->vat_deduction_rate ? $payment->vat_deduction_rate . '%' : '—' }}</td>
-                                    <td class="text-end font-monospace text-danger fw-bold py-1 px-2">৳{{ number_format($payment->vat_deduction_amount, 2) }}</td>
-                                    <td class="text-muted small py-1 px-2">Govt. Treasury (Mushak 6.6)</td>
-                                </tr>
-                            @endif
-                            @if((float)$payment->tax_deduction_amount > 0)
-                                <tr>
-                                    <td class="py-1 px-2">TDS (Tax Deducted at Source)</td>
-                                    <td class="text-center font-monospace py-1 px-2">{{ $payment->tax_deduction_rate ? $payment->tax_deduction_rate . '%' : '—' }}</td>
-                                    <td class="text-end font-monospace text-danger fw-bold py-1 px-2">৳{{ number_format($payment->tax_deduction_amount, 2) }}</td>
-                                    <td class="text-muted small py-1 px-2">Govt. Treasury Deposit</td>
-                                </tr>
-                            @endif
+                            {{-- TDS (Tax) Row --}}
+                            <tr>
+                                <td class="py-1 px-2">TDS (Tax Deducted at Source)</td>
+                                <td class="text-center font-monospace py-1 px-2">{{ (float)$payment->tax_deduction_rate > 0 ? $payment->tax_deduction_rate . '%' : '—' }}</td>
+                                <td class="text-end font-monospace text-danger fw-bold py-1 px-2">{{ (float)$payment->tax_deduction_amount > 0 ? '৳' . number_format($payment->tax_deduction_amount, 2) : '৳0.00' }}</td>
+                                <td class="text-muted small py-1 px-2">{{ (float)$payment->tax_deduction_amount > 0 ? 'Govt. Treasury Deposit' : '—' }}</td>
+                            </tr>
+                            {{-- VDS (VAT) Row --}}
+                            <tr>
+                                <td class="py-1 px-2">VDS (VAT Deducted at Source)</td>
+                                <td class="text-center font-monospace py-1 px-2">{{ (float)$payment->vat_deduction_rate > 0 ? $payment->vat_deduction_rate . '%' : '—' }}</td>
+                                <td class="text-end font-monospace text-danger fw-bold py-1 px-2">{{ (float)$payment->vat_deduction_amount > 0 ? '৳' . number_format($payment->vat_deduction_amount, 2) : '৳0.00' }}</td>
+                                <td class="text-muted small py-1 px-2">{{ (float)$payment->vat_deduction_amount > 0 ? 'Govt. Treasury (Mushak 6.6)' : '—' }}</td>
+                            </tr>
                             @if((float)$payment->other_deduction_amount > 0)
                                 <tr>
                                     <td class="py-1 px-2">Other Statutory / Contractual Deductions</td>
@@ -613,4 +615,319 @@
         </div>
     </div>
 </div>
+
+{{-- Edit Payment & Tax/VAT Deductions Modal (No-Print) --}}
+<div class="modal fade d-print-none" id="editReceiptPaymentModal" tabindex="-1" aria-labelledby="editReceiptPaymentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header bg-gradient bg-primary text-white py-3 px-4">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="rounded-circle bg-white bg-opacity-25 p-2 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                        <i class="fas fa-pen-to-square text-white"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title fw-bold mb-0 text-white" id="editReceiptPaymentModalLabel">
+                            Edit Payment & Deduction Breakdown
+                        </h5>
+                        <div class="text-white-50 small" style="font-size: 11.5px;">
+                            Receipt #{{ $payment->payment_no }} | Invoice #{{ $invoice ? $invoice->invoice_no : '—' }}
+                        </div>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <form action="{{ route('admin.accounting.invoices.payments.update', $payment->id) }}" method="POST" id="editPaymentReceiptForm">
+                @csrf
+                @method('PUT')
+                <div class="modal-body p-4">
+                    {{-- Financial Overview --}}
+                    <div class="bg-light p-3 rounded-3 border mb-3">
+                        <div class="d-flex justify-content-between small text-muted mb-1">
+                            <span>Customer: <strong class="text-dark">{{ $payment->party_name }}</strong></span>
+                            <span>Total Bill: <strong class="text-dark font-monospace">৳{{ number_format($totalGrand, 2) }}</strong></span>
+                        </div>
+                        <div class="d-flex justify-content-between small text-muted">
+                            <span>Payment Ref: <strong class="text-dark font-monospace">#{{ $payment->payment_no }}</strong></span>
+                            <span>Remaining Due: <strong class="text-danger fw-bold font-monospace">৳{{ number_format($remainingDue, 2) }}</strong></span>
+                        </div>
+                    </div>
+
+                    {{-- Primary Payment Info --}}
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6 col-12">
+                            <label class="form-label small fw-bold text-dark">Payment Date: <span class="text-danger">*</span></label>
+                            <input type="date" name="payment_date" class="form-control form-control-sm" required value="{{ $payment->payment_date ? $payment->payment_date->format('Y-m-d') : date('Y-m-d') }}">
+                        </div>
+                        <div class="col-md-6 col-12">
+                            <label class="form-label small fw-bold text-dark">Total Gross Settled Amount: <span class="text-danger">*</span></label>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text">৳</span>
+                                <input type="number" step="0.01" min="0.01" name="amount" id="editGrossAmountInput" class="form-control form-control-sm fw-bold font-monospace text-primary fs-6" required placeholder="0.00" value="{{ $payment->amount }}" oninput="handleEditFieldChange('gross')">
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Statutory Tax & VAT Deduction Breakdown Card --}}
+                    <div class="card border border-warning-subtle bg-warning-subtle bg-opacity-10 rounded-3 p-3 mb-3">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="fw-bold text-dark small">
+                                <i class="fas fa-scale-balanced text-warning-emphasis me-1"></i> Statutory Tax & VAT Deduction Breakdown
+                            </span>
+                            <span class="badge bg-warning text-dark border font-monospace" style="font-size: 11px;">TDS / VDS</span>
+                        </div>
+
+                        {{-- Tax (TDS) Row --}}
+                        <div class="p-2.5 bg-white rounded-3 border mb-2.5">
+                            <div class="d-flex justify-content-between align-items-center mb-1 flex-wrap gap-1">
+                                <label class="form-label small fw-bold text-dark mb-0">
+                                    <i class="fas fa-building-columns text-danger me-1"></i>TDS (Tax Deducted at Source):
+                                </label>
+                                <div class="btn-group btn-group-sm">
+                                    <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-1.5" onclick="setEditTaxRate(0)">0%</button>
+                                    <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-1.5" onclick="setEditTaxRate(2)">2%</button>
+                                    <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-1.5" onclick="setEditTaxRate(3)">3%</button>
+                                    <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-1.5" onclick="setEditTaxRate(5)">5%</button>
+                                    <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-1.5" onclick="setEditTaxRate(7)">7%</button>
+                                </div>
+                            </div>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text">Rate %</span>
+                                <input type="number" step="0.01" min="0" max="100" name="tax_deduction_rate" id="editTaxRateInput" class="form-control font-monospace" placeholder="Rate %" value="{{ $payment->tax_deduction_rate ?: '' }}" oninput="handleEditFieldChange('tax_rate')">
+                                <span class="input-group-text">%</span>
+                                <span class="input-group-text">Amount (BDT)</span>
+                                <input type="number" step="0.01" min="0" name="tax_deduction_amount" id="editTaxAmountInput" class="form-control font-monospace text-danger fw-bold" placeholder="0.00" value="{{ (float)$payment->tax_deduction_amount > 0 ? $payment->tax_deduction_amount : '' }}" oninput="handleEditFieldChange('tax_amount')">
+                                <span class="input-group-text">৳</span>
+                            </div>
+                        </div>
+
+                        {{-- VAT (VDS) Row --}}
+                        <div class="p-2.5 bg-white rounded-3 border mb-2.5">
+                            <div class="d-flex justify-content-between align-items-center mb-1 flex-wrap gap-1">
+                                <label class="form-label small fw-bold text-dark mb-0">
+                                    <i class="fas fa-file-invoice text-primary me-1"></i>VDS (VAT Deducted at Source):
+                                </label>
+                                <div class="btn-group btn-group-sm">
+                                    <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-1.5" onclick="setEditVatRate(0)">0%</button>
+                                    <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-1.5" onclick="setEditVatRate(5)">5%</button>
+                                    <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-1.5" onclick="setEditVatRate(7.5)">7.5%</button>
+                                    <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-1.5" onclick="setEditVatRate(15)">15%</button>
+                                </div>
+                            </div>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text">Rate %</span>
+                                <input type="number" step="0.01" min="0" max="100" name="vat_deduction_rate" id="editVatRateInput" class="form-control font-monospace" placeholder="Rate %" value="{{ $payment->vat_deduction_rate ?: '' }}" oninput="handleEditFieldChange('vat_rate')">
+                                <span class="input-group-text">%</span>
+                                <span class="input-group-text">Amount (BDT)</span>
+                                <input type="number" step="0.01" min="0" name="vat_deduction_amount" id="editVatAmountInput" class="form-control font-monospace text-danger fw-bold" placeholder="0.00" value="{{ (float)$payment->vat_deduction_amount > 0 ? $payment->vat_deduction_amount : '' }}" oninput="handleEditFieldChange('vat_amount')">
+                                <span class="input-group-text">৳</span>
+                            </div>
+                        </div>
+
+                        <div class="row g-2.5 mb-2.5">
+                            {{-- Net Received (Cheque/Cash) --}}
+                            <div class="col-md-6 col-12">
+                                <div class="p-2.5 bg-white rounded-3 border">
+                                    <label class="form-label small fw-bold text-dark mb-1">
+                                        <i class="fas fa-money-check-dollar text-success me-1"></i>Net Realized (Cheque / Cash):
+                                    </label>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text">৳</span>
+                                        <input type="number" step="0.01" min="0" name="net_amount" id="editNetAmountInput" class="form-control font-monospace fw-bold text-success" placeholder="0.00" value="{{ $payment->effective_net_amount }}" oninput="handleEditFieldChange('net')">
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Other Deductions --}}
+                            <div class="col-md-6 col-12">
+                                <div class="p-2.5 bg-white rounded-3 border">
+                                    <label class="form-label small fw-bold text-dark mb-1">
+                                        <i class="fas fa-minus-circle text-secondary me-1"></i>Other Deductions:
+                                    </label>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text">৳</span>
+                                        <input type="number" step="0.01" min="0" name="other_deduction_amount" id="editOtherDeductionInput" class="form-control font-monospace text-danger fw-bold" placeholder="0.00" value="{{ (float)$payment->other_deduction_amount > 0 ? $payment->other_deduction_amount : '' }}" oninput="handleEditFieldChange('other')">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Challan No & Deduction Notes --}}
+                        <div class="row g-2.5 mb-2">
+                            <div class="col-md-6 col-12">
+                                <label class="form-label small fw-semibold text-dark mb-1">Challan / Mushak Ref:</label>
+                                <input type="text" name="deduction_challan_no" class="form-control form-control-sm font-monospace" placeholder="e.g. TR-12345 / Mushak 6.6" value="{{ $payment->deduction_challan_no }}">
+                            </div>
+                            <div class="col-md-6 col-12">
+                                <label class="form-label small fw-semibold text-dark mb-1">Deduction Notes:</label>
+                                <input type="text" name="deduction_notes" class="form-control form-control-sm" placeholder="Notes on TDS/VDS deductions" value="{{ $payment->deduction_notes }}">
+                            </div>
+                        </div>
+
+                        {{-- Dynamic Settlement Preview Pill --}}
+                        <div class="p-2.5 bg-success-subtle bg-opacity-25 rounded-3 border border-success-subtle mt-2">
+                            <div class="row g-2 text-center" style="font-size: 11.5px;">
+                                <div class="col-4 border-end border-success-subtle">
+                                    <span class="text-muted d-block" style="font-size: 10.5px;">Net Received</span>
+                                    <strong class="text-success font-monospace" id="editDisplayNet">৳{{ number_format($payment->effective_net_amount, 2) }}</strong>
+                                </div>
+                                <div class="col-4 border-end border-success-subtle">
+                                    <span class="text-muted d-block" style="font-size: 10.5px;">Total Deductions</span>
+                                    <strong class="text-danger font-monospace" id="editDisplayDeductions">৳{{ number_format($payment->total_deductions, 2) }}</strong>
+                                </div>
+                                <div class="col-4">
+                                    <span class="text-muted d-block" style="font-size: 10.5px;">Total Settled Credit</span>
+                                    <strong class="text-primary font-monospace" id="editDisplayGross">৳{{ number_format($payment->amount, 2) }}</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Payment Method & Instrument Ref --}}
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6 col-12">
+                            <label class="form-label small fw-bold text-dark">Payment Method: <span class="text-danger">*</span></label>
+                            <select name="payment_method" class="form-select form-select-sm" required>
+                                @foreach(\App\Models\IdeaInvoicePayment::paymentMethods() as $code => $lbl)
+                                    <option value="{{ $code }}" {{ $payment->payment_method === $code ? 'selected' : '' }}>{{ $lbl }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-6 col-12">
+                            <label class="form-label small fw-bold text-dark">Instrument / Cheque / Trx Ref:</label>
+                            <input type="text" name="transaction_ref" class="form-control form-control-sm font-monospace" placeholder="e.g. Cheque #7329437, Sonali Bank" value="{{ $payment->transaction_ref }}">
+                        </div>
+                    </div>
+
+                    {{-- Next Due Date & Note --}}
+                    <div class="row g-3">
+                        @if($invoice)
+                            <div class="col-md-6 col-12">
+                                <label class="form-label small fw-bold text-dark">Next Due Date:</label>
+                                <input type="date" name="due_date" class="form-control form-control-sm" value="{{ $invoice->due_date ? $invoice->due_date->format('Y-m-d') : '' }}">
+                            </div>
+                        @endif
+                        <div class="col-md-{{ $invoice ? '6' : '12' }} col-12">
+                            <label class="form-label small fw-bold text-dark">Remarks / Note:</label>
+                            <input type="text" name="note" class="form-control form-control-sm" placeholder="Settlement remarks" value="{{ $payment->note }}">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer bg-light p-3">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm">
+                        <i class="fas fa-check me-1.5"></i> Save & Update Receipt
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function setEditTaxRate(rate) {
+    const rateInput = document.getElementById('editTaxRateInput');
+    if (rateInput) {
+        rateInput.value = rate > 0 ? rate : '';
+        handleEditFieldChange('tax_rate');
+    }
+}
+
+function setEditVatRate(rate) {
+    const rateInput = document.getElementById('editVatRateInput');
+    if (rateInput) {
+        rateInput.value = rate > 0 ? rate : '';
+        handleEditFieldChange('vat_rate');
+    }
+}
+
+function handleEditFieldChange(source) {
+    const grossInput = document.getElementById('editGrossAmountInput');
+    const netInput = document.getElementById('editNetAmountInput');
+    const taxRateInput = document.getElementById('editTaxRateInput');
+    const taxAmtInput = document.getElementById('editTaxAmountInput');
+    const vatRateInput = document.getElementById('editVatRateInput');
+    const vatAmtInput = document.getElementById('editVatAmountInput');
+    const otherInput = document.getElementById('editOtherDeductionInput');
+
+    let gross = parseFloat(grossInput?.value) || 0;
+    let taxRate = parseFloat(taxRateInput?.value) || 0;
+    let taxAmt = parseFloat(taxAmtInput?.value) || 0;
+    let vatRate = parseFloat(vatRateInput?.value) || 0;
+    let vatAmt = parseFloat(vatAmtInput?.value) || 0;
+    let otherAmt = parseFloat(otherInput?.value) || 0;
+    let net = parseFloat(netInput?.value) || 0;
+
+    if (source === 'tax_rate') {
+        if (gross > 0 && taxRate > 0) {
+            taxAmt = Number(((gross * taxRate) / 100).toFixed(2));
+            if (taxAmtInput) taxAmtInput.value = taxAmt > 0 ? taxAmt : '';
+        } else if (taxRate === 0) {
+            taxAmt = 0;
+            if (taxAmtInput) taxAmtInput.value = '';
+        }
+        net = Math.max(0, Number((gross - (taxAmt + vatAmt + otherAmt)).toFixed(2)));
+        if (netInput) netInput.value = net > 0 ? net : '';
+    } else if (source === 'tax_amount') {
+        if (gross > 0 && taxAmt > 0) {
+            taxRate = Number(((taxAmt / gross) * 100).toFixed(2));
+            if (taxRateInput) taxRateInput.value = taxRate > 0 ? taxRate : '';
+        } else if (taxAmt === 0) {
+            if (taxRateInput) taxRateInput.value = '';
+        }
+        net = Math.max(0, Number((gross - (taxAmt + vatAmt + otherAmt)).toFixed(2)));
+        if (netInput) netInput.value = net > 0 ? net : '';
+    } else if (source === 'vat_rate') {
+        if (gross > 0 && vatRate > 0) {
+            vatAmt = Number(((gross * vatRate) / 100).toFixed(2));
+            if (vatAmtInput) vatAmtInput.value = vatAmt > 0 ? vatAmt : '';
+        } else if (vatRate === 0) {
+            vatAmt = 0;
+            if (vatAmtInput) vatAmtInput.value = '';
+        }
+        net = Math.max(0, Number((gross - (taxAmt + vatAmt + otherAmt)).toFixed(2)));
+        if (netInput) netInput.value = net > 0 ? net : '';
+    } else if (source === 'vat_amount') {
+        if (gross > 0 && vatAmt > 0) {
+            vatRate = Number(((vatAmt / gross) * 100).toFixed(2));
+            if (vatRateInput) vatRateInput.value = vatRate > 0 ? vatRate : '';
+        } else if (vatAmt === 0) {
+            if (vatRateInput) vatRateInput.value = '';
+        }
+        net = Math.max(0, Number((gross - (taxAmt + vatAmt + otherAmt)).toFixed(2)));
+        if (netInput) netInput.value = net > 0 ? net : '';
+    } else if (source === 'gross') {
+        if (taxRate > 0) {
+            taxAmt = Number(((gross * taxRate) / 100).toFixed(2));
+            if (taxAmtInput) taxAmtInput.value = taxAmt > 0 ? taxAmt : '';
+        }
+        if (vatRate > 0) {
+            vatAmt = Number(((gross * vatRate) / 100).toFixed(2));
+            if (vatAmtInput) vatAmtInput.value = vatAmt > 0 ? vatAmt : '';
+        }
+        net = Math.max(0, Number((gross - (taxAmt + vatAmt + otherAmt)).toFixed(2)));
+        if (netInput) netInput.value = net > 0 ? net : '';
+    } else if (source === 'other') {
+        net = Math.max(0, Number((gross - (taxAmt + vatAmt + otherAmt)).toFixed(2)));
+        if (netInput) netInput.value = net > 0 ? net : '';
+    } else if (source === 'net') {
+        gross = Number((net + (taxAmt + vatAmt + otherAmt)).toFixed(2));
+        if (grossInput) grossInput.value = gross > 0 ? gross : '';
+        if (gross > 0) {
+            if (taxAmt > 0 && taxRateInput) taxRateInput.value = Number(((taxAmt / gross) * 100).toFixed(2));
+            if (vatAmt > 0 && vatRateInput) vatRateInput.value = Number(((vatAmt / gross) * 100).toFixed(2));
+        }
+    }
+
+    const totalDeductions = taxAmt + vatAmt + otherAmt;
+    const dispNet = document.getElementById('editDisplayNet');
+    const dispDed = document.getElementById('editDisplayDeductions');
+    const dispGross = document.getElementById('editDisplayGross');
+
+    if (dispNet) dispNet.textContent = '৳' + net.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    if (dispDed) dispDed.textContent = '৳' + totalDeductions.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    if (dispGross) dispGross.textContent = '৳' + gross.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+</script>
 @endsection

@@ -1428,6 +1428,114 @@ class IdeaAccountingController extends Controller
     }
 
     /**
+     * Update an existing installment payment record and adjust invoice + accounting.
+     */
+    public function updateInvoicePayment(Request $request, IdeaInvoicePayment $payment): RedirectResponse
+    {
+        $validated = $request->validate([
+            'payment_date'           => 'required|date',
+            'amount'                 => 'required|numeric|min:0.01',
+            'net_amount'             => 'nullable|numeric|min:0',
+            'vat_deduction_rate'     => 'nullable|numeric|min:0|max:100',
+            'vat_deduction_amount'   => 'nullable|numeric|min:0',
+            'tax_deduction_rate'     => 'nullable|numeric|min:0|max:100',
+            'tax_deduction_amount'   => 'nullable|numeric|min:0',
+            'other_deduction_amount' => 'nullable|numeric|min:0',
+            'deduction_challan_no'   => 'nullable|string|max:100',
+            'deduction_notes'        => 'nullable|string|max:1000',
+            'payment_method'         => 'required|string|max:50',
+            'transaction_ref'        => 'nullable|string|max:100',
+            'note'                   => 'nullable|string|max:500',
+            'due_date'               => 'nullable|date',
+        ], [
+            'amount.required'       => 'মোট জমার পরিমাণ প্রদান করুন।',
+            'amount.min'            => 'জমার পরিমাণ কমপক্ষে ০.০১ টাকা হতে হবে।',
+            'payment_date.required' => 'জমার তারিখ প্রদান করুন।',
+        ]);
+
+        $amount = (float) $validated['amount'];
+        $vatRate = isset($validated['vat_deduction_rate']) && $validated['vat_deduction_rate'] !== '' ? (float) $validated['vat_deduction_rate'] : null;
+        $vatAmount = (float) ($validated['vat_deduction_amount'] ?? 0);
+        $taxRate = isset($validated['tax_deduction_rate']) && $validated['tax_deduction_rate'] !== '' ? (float) $validated['tax_deduction_rate'] : null;
+        $taxAmount = (float) ($validated['tax_deduction_amount'] ?? 0);
+        $otherAmount = (float) ($validated['other_deduction_amount'] ?? 0);
+        $totalDeductions = $vatAmount + $taxAmount + $otherAmount;
+
+        $netAmount = isset($validated['net_amount']) && (float)$validated['net_amount'] > 0
+            ? (float)$validated['net_amount']
+            : max(0, $amount - $totalDeductions);
+
+        // If net_amount + totalDeductions is calculated, ensure gross settlement amount is synchronized
+        if ($netAmount > 0 && $totalDeductions > 0 && abs(($netAmount + $totalDeductions) - $amount) > 0.01) {
+            $amount = $netAmount + $totalDeductions;
+        }
+
+        $challanNo = $validated['deduction_challan_no'] ?? null;
+        $deductionNotes = $validated['deduction_notes'] ?? null;
+        $paymentDate = $validated['payment_date'];
+        $paymentMethod = $validated['payment_method'];
+        $trxRef = $validated['transaction_ref'] ?? null;
+        $note = $validated['note'] ?? null;
+
+        try {
+            return DB::transaction(function () use ($payment, $amount, $netAmount, $vatRate, $vatAmount, $taxRate, $taxAmount, $otherAmount, $challanNo, $deductionNotes, $totalDeductions, $paymentDate, $paymentMethod, $trxRef, $note, $request) {
+                $invoice = $payment->invoice;
+                $payNo = $payment->payment_no;
+
+                $payment->update([
+                    'payment_date'           => $paymentDate,
+                    'amount'                 => $amount,
+                    'net_amount'             => $netAmount,
+                    'vat_deduction_rate'     => $vatRate,
+                    'vat_deduction_amount'   => $vatAmount,
+                    'tax_deduction_rate'     => $taxRate,
+                    'tax_deduction_amount'   => $taxAmount,
+                    'other_deduction_amount' => $otherAmount,
+                    'deduction_challan_no'   => $challanNo,
+                    'deduction_notes'        => $deductionNotes,
+                    'payment_method'         => $paymentMethod,
+                    'transaction_ref'        => $trxRef,
+                    'note'                   => $note,
+                ]);
+
+                if ($invoice) {
+                    if ($request->has('due_date')) {
+                        $invoice->due_date = $request->filled('due_date') ? $request->input('due_date') : null;
+                    }
+                    $invoice->recalculatePayments();
+                }
+
+                // Update linked accounting entry
+                if (!empty($payNo)) {
+                    $deductionSummaryTxt = '';
+                    if ($totalDeductions > 0.001) {
+                        $parts = [];
+                        if ($netAmount > 0) $parts[] = "নিট প্রাপ্তি: ৳" . number_format($netAmount, 2);
+                        if ($vatAmount > 0) $parts[] = "মূসক কর্তন" . ($vatRate > 0 ? " ({$vatRate}%)" : "") . ": ৳" . number_format($vatAmount, 2);
+                        if ($taxAmount > 0) $parts[] = "উৎসে কর" . ($taxRate > 0 ? " ({$taxRate}%)" : "") . ": ৳" . number_format($taxAmount, 2);
+                        if ($otherAmount > 0) $parts[] = "অন্যান্য কর্তন: ৳" . number_format($otherAmount, 2);
+                        $deductionSummaryTxt = " [" . implode(', ', $parts) . ($challanNo ? " | চালান/সনদ: {$challanNo}" : "") . "]";
+                    }
+
+                    $invoiceNo = $invoice?->invoice_no ?? '—';
+
+                    IdeaAccountingEntry::where('voucher_no', $payNo)->update([
+                        'amount'         => $amount,
+                        'entry_date'     => $paymentDate,
+                        'payment_method' => $paymentMethod,
+                        'notes'          => ($note ? "{$note} — " : "") . "বিল #{$invoiceNo} এর কিস্তি/জমা রসিদ #{$payNo}{$deductionSummaryTxt}",
+                    ]);
+                }
+
+                $msg = "জমা রসিদ #{$payNo} (৳" . number_format($amount, 2) . ") সফলভাবে আপডেট করা হয়েছে।";
+                return back()->with('success', $msg);
+            });
+        } catch (\Throwable $e) {
+            return back()->withInput()->with('error', 'পেমেন্ট আপডেট করতে সমস্যা হয়েছে: ' . $e->getMessage());
+        }
+    }
+
+    /**
      * Delete an installment payment record and adjust invoice + accounting.
      */
     public function destroyInvoicePayment(IdeaInvoicePayment $payment): RedirectResponse

@@ -664,8 +664,7 @@
                     </div>
                     <div class="col-4">
                         <div class="border-top border-dark pt-1 mx-auto" style="width: 180px;">
-                            <div class="small fw-bold text-dark">{{ $settings['business_name'] ?? 'Idea Publication' }}</div>
-                            <div class="text-muted" style="font-size: 11px;">Billing Department</div>
+                            <div class="small fw-bold text-dark">Authorized Signature</div>
                         </div>
                     </div>
                 </div>
