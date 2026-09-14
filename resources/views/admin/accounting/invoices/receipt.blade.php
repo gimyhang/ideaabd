@@ -410,50 +410,50 @@
         @endif
 
         {{-- Financial Breakdown Card with Authentic Round Rubber Stamp Seal --}}
-        <div class="amount-highlight-box mb-2">
-            <div class="row align-items-center">
+        <div class="amount-highlight-box mb-2" style="background: #f8fafc; border: 1.5px solid #e2e8f0; padding: 14px 16px;">
+            <div class="row align-items-center g-3">
                 {{-- Column 1 & 2: Clean Structured Billing & Highlighted Paid to Date --}}
                 <div class="col-md-9 border-end-md pe-md-4">
-                    {{-- Compact Financial Breakdown Rows --}}
+                    {{-- Top 3 Financial Metric Tiles --}}
                     <div class="row g-2 mb-2">
-                        <div class="col-sm-4">
-                            <div class="p-1.5 bg-white rounded border">
-                                <span class="text-muted d-block" style="font-size: 10px; text-transform: uppercase;">Bill without TAX/VAT:</span>
-                                <span class="fw-bold font-monospace text-dark" style="font-size: 12px;">৳{{ number_format($payment->effective_net_amount, 2) }}</span>
+                        <div class="col-4">
+                            <div class="p-2 bg-white rounded-2 border shadow-2xs text-start h-100 d-flex flex-column justify-content-center">
+                                <span class="text-muted d-block fw-semibold" style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.3px;">Bill without TAX/VAT:</span>
+                                <span class="fw-bold font-monospace text-dark mt-0.5" style="font-size: 13px;">৳{{ number_format($payment->effective_net_amount, 2) }}</span>
                             </div>
                         </div>
-                        <div class="col-sm-4">
-                            <div class="p-1.5 bg-white rounded border">
-                                <span class="text-danger d-block" style="font-size: 10px; text-transform: uppercase;">TAX / VAT:</span>
-                                <span class="fw-bold font-monospace text-danger" style="font-size: 12px;">{{ $payment->total_deductions > 0 ? '-৳' . number_format($payment->total_deductions, 2) : '৳0.00' }}</span>
+                        <div class="col-4">
+                            <div class="p-2 bg-white rounded-2 border shadow-2xs text-start h-100 d-flex flex-column justify-content-center">
+                                <span class="text-danger d-block fw-semibold" style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.3px;">TAX / VAT:</span>
+                                <span class="fw-bold font-monospace text-danger mt-0.5" style="font-size: 13px;">{{ $payment->total_deductions > 0 ? '-৳' . number_format($payment->total_deductions, 2) : '৳0.00' }}</span>
                             </div>
                         </div>
-                        <div class="col-sm-4">
-                            <div class="p-1.5 bg-white rounded border">
-                                <span class="text-muted d-block" style="font-size: 10px; text-transform: uppercase;">Total Bill:</span>
-                                <span class="fw-bold font-monospace text-dark" style="font-size: 12px;">৳{{ number_format($totalGrand, 2) }}</span>
+                        <div class="col-4">
+                            <div class="p-2 bg-white rounded-2 border shadow-2xs text-start h-100 d-flex flex-column justify-content-center">
+                                <span class="text-muted d-block fw-semibold" style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.3px;">Total Bill:</span>
+                                <span class="fw-bold font-monospace text-dark mt-0.5" style="font-size: 13px;">৳{{ number_format($totalGrand, 2) }}</span>
                             </div>
                         </div>
                     </div>
 
                     {{-- Highlighted Box: Total Paid to Date & In Words & Due --}}
-                    <div class="p-2.5 rounded-2 bg-success-subtle border border-success-subtle d-flex align-items-center justify-content-between flex-wrap gap-2">
-                        <div class="flex-grow-1 pe-2">
-                            <div class="text-success small fw-bold text-uppercase mb-0.5" style="font-size: 11px;">
-                                <i class="fas fa-money-check-dollar me-1"></i> Total Paid to Date:
+                    <div class="p-3 rounded-2 bg-white border border-success-subtle shadow-2xs d-flex align-items-center justify-content-between flex-wrap gap-3">
+                        <div class="flex-grow-1 pe-md-3">
+                            <div class="text-success small fw-bold text-uppercase mb-0.5" style="font-size: 11px; letter-spacing: 0.5px;">
+                                <i class="fas fa-money-check-dollar me-1.5"></i> Total Paid to Date:
                             </div>
-                            <div class="fs-3 fw-bold text-success font-monospace mb-0.5">
+                            <div class="fs-3 fw-bold text-success font-monospace mb-0.5" style="line-height: 1.15;">
                                 ৳{{ number_format($payment->effective_net_amount, 2) }}
                             </div>
-                            <div class="text-muted small" style="font-size: 11px;">
+                            <div class="text-muted small" style="font-size: 11px; line-height: 1.35;">
                                 In Words: <strong class="text-dark">@takaInWordsEn($payment->effective_net_amount)</strong>
                             </div>
                         </div>
-                        <div class="text-end ps-3.5 border-start border-success-subtle flex-shrink-0" style="min-width: 155px;">
-                            <div class="text-muted small fw-semibold mb-0.5" style="font-size: 11px; text-transform: uppercase;">
+                        <div class="text-end ps-md-4 border-start-md border-success-subtle flex-shrink-0" style="min-width: 155px;">
+                            <div class="text-muted small fw-semibold text-uppercase mb-0.5" style="font-size: 10.5px; letter-spacing: 0.5px;">
                                 <i class="fas fa-scale-unbalanced text-secondary me-1"></i> Due:
                             </div>
-                            <div class="fs-4 fw-bold font-monospace {{ $remainingDue > 0 ? 'text-danger' : 'text-success' }}" style="white-space: nowrap;">
+                            <div class="fs-4 fw-bold font-monospace {{ $remainingDue > 0 ? 'text-danger' : 'text-success' }}" style="white-space: nowrap; line-height: 1.15;">
                                 ৳{{ number_format($remainingDue, 2) }}
                             </div>
                         </div>
@@ -461,7 +461,7 @@
                 </div>
 
                 {{-- Column 3: Official Round Rubber Stamp (SVG with curved border text) --}}
-                <div class="col-md-3 text-center d-flex align-items-center justify-content-center py-2 py-md-0">
+                <div class="col-md-3 text-center d-flex align-items-center justify-content-center py-1">
                     <div class="round-rubber-stamp-container">
                         <svg class="round-rubber-stamp-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
                             <defs>
@@ -568,10 +568,10 @@
                 {{-- Right: Authorized Collector / Signatory --}}
                 <div class="col-4 text-end">
                     <div class="d-inline-block text-center" style="min-width: 145px;">
+                        <div class="small fw-bold text-dark mb-0.5" style="font-size: 11.5px;">{{ $creatorName ?: 'Shakil Masud' }}</div>
+                        <div class="text-muted mb-1" style="font-size: 9.5px;">{{ $creatorDesignation ?: 'CEO & Publisher' }}</div>
                         <div class="border-top border-dark mb-1 mx-auto" style="width: 140px;"></div>
                         <div class="text-muted fw-semibold" style="font-size: 9.5px; text-transform: uppercase;">Collected By:</div>
-                        <div class="small fw-bold text-dark mb-0.5" style="font-size: 11px;">{{ $creatorName ?: 'Shakil Masud' }}</div>
-                        <div class="text-muted" style="font-size: 9.5px;">{{ $creatorDesignation ?: 'CEO & Publisher' }}</div>
                     </div>
                 </div>
             </div>
