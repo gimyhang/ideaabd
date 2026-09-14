@@ -436,25 +436,35 @@
                         </div>
                     </div>
 
-                    {{-- Highlighted Box: Total Paid to Date & In Words & Due --}}
-                    <div class="p-3 rounded-2 bg-white border border-success-subtle shadow-2xs d-flex align-items-center justify-content-between flex-wrap gap-3">
-                        <div class="flex-grow-1 pe-md-3">
-                            <div class="text-success small fw-bold text-uppercase mb-0.5" style="font-size: 11px; letter-spacing: 0.5px;">
-                                <i class="fas fa-money-check-dollar me-1.5"></i> Total Paid to Date:
-                            </div>
-                            <div class="fs-3 fw-bold text-success font-monospace mb-0.5" style="line-height: 1.15;">
-                                ৳{{ number_format($payment->effective_net_amount, 2) }}
-                            </div>
-                            <div class="text-muted small" style="font-size: 11px; line-height: 1.35;">
-                                In Words: <strong class="text-dark">@takaInWordsEn($payment->effective_net_amount)</strong>
+                    {{-- Highlighted 2-Column Box: Total Paid to Date & Due --}}
+                    <div class="row g-2">
+                        {{-- Column 1: Total Paid to Date (Green) --}}
+                        <div class="col-sm-7">
+                            <div class="p-2.5 rounded-2 bg-white border border-success-subtle shadow-2xs h-100 d-flex flex-column justify-content-center">
+                                <div class="text-success small fw-bold text-uppercase mb-0.5" style="font-size: 11px; letter-spacing: 0.5px;">
+                                    <i class="fas fa-money-check-dollar me-1.5"></i> Total Paid to Date:
+                                </div>
+                                <div class="fs-3 fw-bold text-success font-monospace mb-0.5" style="line-height: 1.15;">
+                                    ৳{{ number_format($payment->effective_net_amount, 2) }}
+                                </div>
+                                <div class="text-muted small" style="font-size: 10.5px; line-height: 1.35;">
+                                    In Words: <strong class="text-dark">@takaInWordsEn($payment->effective_net_amount)</strong>
+                                </div>
                             </div>
                         </div>
-                        <div class="text-end ps-md-4 border-start-md border-success-subtle flex-shrink-0" style="min-width: 155px;">
-                            <div class="text-muted small fw-semibold text-uppercase mb-0.5" style="font-size: 10.5px; letter-spacing: 0.5px;">
-                                <i class="fas fa-scale-unbalanced text-secondary me-1"></i> Due:
-                            </div>
-                            <div class="fs-4 fw-bold font-monospace {{ $remainingDue > 0 ? 'text-danger' : 'text-success' }}" style="white-space: nowrap; line-height: 1.15;">
-                                ৳{{ number_format($remainingDue, 2) }}
+
+                        {{-- Column 2: Due (Red) --}}
+                        <div class="col-sm-5">
+                            <div class="p-2.5 rounded-2 bg-white border border-danger-subtle shadow-2xs h-100 d-flex flex-column justify-content-center">
+                                <div class="text-danger small fw-bold text-uppercase mb-0.5" style="font-size: 11px; letter-spacing: 0.5px;">
+                                    <i class="fas fa-circle-exclamation me-1.5"></i> Due:
+                                </div>
+                                <div class="fs-3 fw-bold text-danger font-monospace mb-0.5" style="line-height: 1.15;">
+                                    ৳{{ number_format($remainingDue, 2) }}
+                                </div>
+                                <div class="text-muted small" style="font-size: 10.5px; line-height: 1.35;">
+                                    Status: <strong class="{{ $remainingDue <= 0 ? 'text-success' : 'text-danger' }}">{{ $remainingDue <= 0 ? 'Full Settled' : 'Payment Pending' }}</strong>
+                                </div>
                             </div>
                         </div>
                     </div>
