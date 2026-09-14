@@ -2544,6 +2544,9 @@ class IdeaAccountingController extends Controller
      */
     public function sendInvoiceEmail(Request $request, IdeaInvoice $invoice): RedirectResponse
     {
+        @set_time_limit(180);
+        @ini_set('max_execution_time', '180');
+
         $rawEmails = $request->input('email') ?? $request->input('emails');
         
         $emailList = [];
@@ -2594,13 +2597,26 @@ class IdeaAccountingController extends Controller
             $successRecipients = [];
             $failedRecipients = [];
 
+            $settings = self::getInvoiceSettings();
+            $pdfData = null;
+            try {
+                $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('emails.invoice-pdf', [
+                    'invoice' => $invoice,
+                    'invoiceSettings' => $settings,
+                ])->setPaper('a4', 'portrait');
+                $pdfData = $pdf->output();
+            } catch (\Throwable $pdfEx) {
+                Log::warning("Pre-rendering invoice PDF failed: " . $pdfEx->getMessage());
+            }
+
             // Send individual direct emails to all valid recipients
             foreach ($validEmails as $singleRecipient) {
                 try {
                     Mail::to($singleRecipient)->send(new CustomerInvoiceMail(
                         $invoice,
                         $customMsg,
-                        self::getInvoiceSettings()
+                        $settings,
+                        $pdfData
                     ));
                     $successRecipients[] = $singleRecipient;
                 } catch (\Throwable $sendEx) {
@@ -2713,28 +2729,28 @@ class IdeaAccountingController extends Controller
             case 'daily':
                 $startDate = $now->copy()->startOfDay();
                 $endDate = $now->copy()->endOfDay();
-                $periodLabel = 'আজকের হিসাব (' . $now->format('d M, Y') . ')';
+                $periodLabel = 'Today (' . $now->format('d M, Y') . ')';
                 break;
             case 'weekly':
                 $startDate = $now->copy()->startOfWeek();
                 $endDate = $now->copy()->endOfWeek();
-                $periodLabel = 'চলতি সপ্তাহের হিসাব (' . $startDate->format('d M') . ' - ' . $endDate->format('d M, Y') . ')';
+                $periodLabel = 'Week (' . $startDate->format('d M') . ' - ' . $endDate->format('d M') . ')';
                 break;
             case 'yearly':
                 $startDate = Carbon::createFromDate($year, 1, 1)->startOfDay();
                 $endDate = Carbon::createFromDate($year, 12, 31)->endOfDay();
-                $periodLabel = $year . ' সালের বাৎসরিক হিসাব';
+                $periodLabel = 'Year ' . $year;
                 break;
             case 'custom':
                 $startDate = $dateFrom ? Carbon::parse($dateFrom)->startOfDay() : $now->copy()->startOfMonth();
                 $endDate = $dateTo ? Carbon::parse($dateTo)->endOfDay() : $now->copy()->endOfDay();
-                $periodLabel = 'কাস্টম সময়কাল (' . $startDate->format('d M, Y') . ' - ' . $endDate->format('d M, Y') . ')';
+                $periodLabel = 'Custom';
                 break;
             case 'monthly':
             default:
                 $startDate = Carbon::createFromDate($year, $month, 1)->startOfDay();
                 $endDate = $startDate->copy()->endOfMonth()->endOfDay();
-                $periodLabel = $startDate->format('F Y') . ' এর মাসিক হিসাব';
+                $periodLabel = $startDate->format('F Y');
                 break;
         }
 

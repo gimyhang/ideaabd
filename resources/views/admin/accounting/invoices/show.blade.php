@@ -2570,6 +2570,17 @@ function updateCalcDisplays(net, deductions, gross) {
         if (emailTextarea && emailTextarea.value) {
             updateRecipientCount(emailTextarea);
         }
+
+        const emailForm = document.getElementById('sendInvoiceEmailForm');
+        if (emailForm) {
+            emailForm.addEventListener('submit', function() {
+                const btn = document.getElementById('btnSendInvoiceEmail');
+                if (btn) {
+                    btn.disabled = true;
+                    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1.5" role="status" aria-hidden="true"></span> Sending Email...';
+                }
+            });
+        }
     });
 </script>
 

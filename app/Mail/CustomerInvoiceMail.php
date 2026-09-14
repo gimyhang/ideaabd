@@ -17,17 +17,20 @@ class CustomerInvoiceMail extends Mailable
     use Queueable, SerializesModels;
 
     public array $invoiceSettings;
+    public ?string $pdfData = null;
 
     public function __construct(
         public IdeaInvoice $invoice,
         public ?string $customMessage = null,
-        ?array $invoiceSettings = null
+        ?array $invoiceSettings = null,
+        ?string $pdfData = null
     ) {
         $resolved = $invoiceSettings;
         if (!is_array($resolved) || empty($resolved)) {
             $resolved = \App\Http\Controllers\Admin\IdeaAccountingController::getInvoiceSettings();
         }
         $this->invoiceSettings = is_array($resolved) ? $resolved : [];
+        $this->pdfData = $pdfData;
     }
 
     public function envelope(): Envelope
@@ -69,6 +72,15 @@ class CustomerInvoiceMail extends Mailable
     public function attachments(): array
     {
         try {
+            $filename = ($this->invoice->type ?: 'invoice') . '-' . ($this->invoice->invoice_no ?: time()) . '.pdf';
+
+            if (!empty($this->pdfData)) {
+                return [
+                    Attachment::fromData(fn () => $this->pdfData, $filename)
+                        ->withMime('application/pdf'),
+                ];
+            }
+
             $settings = (is_array($this->invoiceSettings) && !empty($this->invoiceSettings))
                 ? $this->invoiceSettings
                 : \App\Http\Controllers\Admin\IdeaAccountingController::getInvoiceSettings();
@@ -77,8 +89,6 @@ class CustomerInvoiceMail extends Mailable
                 'invoice' => $this->invoice,
                 'invoiceSettings' => $settings,
             ])->setPaper('a4', 'portrait');
-
-            $filename = ($this->invoice->type ?: 'invoice') . '-' . ($this->invoice->invoice_no ?: time()) . '.pdf';
 
             return [
                 Attachment::fromData(fn () => $pdf->output(), $filename)
