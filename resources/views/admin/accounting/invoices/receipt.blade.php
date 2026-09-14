@@ -241,15 +241,15 @@
     <div class="receipt-paper">
         {{-- Header & Branding --}}
         <div class="row align-items-center pb-2 mb-2.5 border-bottom">
-            <div class="col-7">
-                <div class="d-flex align-items-center gap-3">
+            <div class="col-8">
+                <div class="d-flex align-items-center gap-3.5">
                     @if(!empty($logoSrc))
-                        <div class="pe-2 me-1" style="border-right: 1.5px solid #f1f5f9;">
-                            <img src="{{ $logoSrc }}" alt="Logo" style="height: 44px; max-width: 130px; object-fit: contain;">
+                        <div class="pe-3 me-2 flex-shrink-0" style="border-right: 1.5px solid #e2e8f0;">
+                            <img src="{{ $logoSrc }}" alt="Logo" style="height: 58px; max-width: 155px; object-fit: contain;">
                         </div>
                     @endif
-                    <div>
-                        <h5 class="fw-bold mb-0 text-dark" style="font-size: 17px; letter-spacing: -0.2px;">{{ $settings['business_name'] ?? 'Idea Publication' }}</h5>
+                    <div class="ps-1">
+                        <h5 class="fw-bold mb-0 text-dark" style="font-size: 18px; letter-spacing: -0.2px;">{{ $settings['business_name'] ?? 'Idea Publication' }}</h5>
                         @if(!empty($settings['tagline']))
                             <div class="text-muted small" style="font-size: 11px; margin-top: 1px;">{{ $settings['tagline'] }}</div>
                         @endif
@@ -267,7 +267,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-5 text-end">
+            <div class="col-4 text-end">
                 <div class="receipt-title-badge mb-0.5">
                     <i class="fas fa-receipt me-1"></i> MONEY RECEIPT
                 </div>
