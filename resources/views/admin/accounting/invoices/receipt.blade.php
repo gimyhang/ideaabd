@@ -135,127 +135,79 @@
         border-top: 1px solid #e2e8f0;
     }
 
-    /* Rubber Stamp Effect */
-    .rubber-stamp-container {
-        position: absolute;
-        right: 218px;
-        top: 50%;
-        transform: translateY(-50%) rotate(-12deg);
-        pointer-events: none;
-        user-select: none;
-        z-index: 5;
-    }
-    .rubber-stamp-paid {
+    /* Round Rubber Stamp Effect */
+    .round-rubber-stamp {
+        width: 118px;
+        height: 118px;
+        border: 2px dashed #6b21a8;
+        border-radius: 50%;
+        padding: 3px;
         display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.8) 0%, rgba(243, 232, 255, 0.45) 100%);
+        transform: rotate(-10deg);
+        user-select: none;
+        box-shadow: 0 0 2px rgba(107, 33, 168, 0.35);
+        opacity: 0.92;
+        mix-blend-mode: multiply;
+    }
+    .round-rubber-stamp-inner {
+        width: 100%;
+        height: 100%;
+        border: 1.2px solid #7e22ce;
+        border-radius: 50%;
+        display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        width: 220px;
-        padding: 8px 12px;
-        border: 4px dashed #6b21a8;
-        border-radius: 12px;
-        color: #581c87;
-        text-transform: uppercase;
-        font-family: 'Arial Black', Impact, 'Trebuchet MS', sans-serif;
         text-align: center;
-        line-height: 1.05;
-        opacity: 0.82;
-        mix-blend-mode: multiply;
-        box-shadow: inset 0 0 0 2px #7e22ce, 0 0 3px rgba(107, 33, 168, 0.45);
-        background: radial-gradient(circle, rgba(255, 255, 255, 0.65) 0%, rgba(243, 232, 255, 0.4) 100%);
-        letter-spacing: 1px;
-    }
-    .rubber-stamp-paid .stamp-org {
-        font-size: 8.5px;
-        font-weight: 800;
-        letter-spacing: 1.5px;
-        color: #6b21a8;
-        margin-bottom: 2px;
-        opacity: 0.9;
-    }
-    .rubber-stamp-paid .stamp-title {
-        font-size: 32px;
-        font-weight: 900;
-        letter-spacing: 4px;
-        line-height: 0.95;
+        padding: 4px;
         color: #581c87;
-        text-shadow: 0 0 1px rgba(88, 28, 135, 0.5);
+        font-family: 'Arial Black', Impact, 'Trebuchet MS', sans-serif;
     }
-    .rubber-stamp-paid .stamp-date {
-        font-size: 11px;
-        font-weight: 800;
+    .round-stamp-org {
+        font-size: 8px;
+        font-weight: 900;
         letter-spacing: 1px;
+        text-transform: uppercase;
         color: #6b21a8;
-        margin: 3px 0 2px 0;
-        padding: 1px 8px;
-        border-top: 1.5px solid #7e22ce;
-        border-bottom: 1.5px solid #7e22ce;
-        font-family: 'Courier New', Courier, monospace, sans-serif;
-        display: inline-block;
+        line-height: 1;
+        margin-bottom: 2px;
     }
-    .rubber-stamp-paid .stamp-sub {
+    .round-stamp-status {
+        font-size: 20px;
+        font-weight: 900;
+        letter-spacing: 2px;
+        line-height: 1;
+        margin: 1px 0;
+        text-shadow: 0 0 1px rgba(88, 28, 135, 0.4);
+    }
+    .round-stamp-status.stamp-paid {
+        color: #581c87;
+    }
+    .round-stamp-status.stamp-due {
+        color: #7e22ce;
+    }
+    .round-stamp-date {
         font-size: 9px;
         font-weight: 800;
-        letter-spacing: 1.5px;
-        margin-top: 2px;
-        color: #7e22ce;
-        display: block;
+        letter-spacing: 0.5px;
+        color: #6b21a8;
+        border-top: 1px solid #7e22ce;
+        border-bottom: 1px solid #7e22ce;
+        padding: 1px 4px;
+        margin: 2px 0;
+        font-family: 'Courier New', Courier, monospace;
+        line-height: 1.1;
     }
-
-    .rubber-stamp-partial {
-        display: inline-flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        width: 220px;
-        padding: 8px 12px;
-        border: 4px dashed #6b21a8;
-        border-radius: 12px;
-        color: #581c87;
+    .round-stamp-sub {
+        font-size: 7px;
+        font-weight: 800;
+        letter-spacing: 0.8px;
         text-transform: uppercase;
-        font-family: 'Arial Black', Impact, 'Trebuchet MS', sans-serif;
-        text-align: center;
-        line-height: 1.05;
-        opacity: 0.82;
-        mix-blend-mode: multiply;
-        box-shadow: inset 0 0 0 2px #7e22ce, 0 0 3px rgba(107, 33, 168, 0.45);
-        background: radial-gradient(circle, rgba(255, 255, 255, 0.65) 0%, rgba(243, 232, 255, 0.4) 100%);
-        letter-spacing: 1px;
-    }
-    .rubber-stamp-partial .stamp-org {
-        font-size: 8.5px;
-        font-weight: 800;
-        letter-spacing: 1.5px;
-        color: #6b21a8;
-        margin-bottom: 2px;
-        opacity: 0.9;
-    }
-    .rubber-stamp-partial .stamp-title {
-        font-size: 28px;
-        font-weight: 900;
-        letter-spacing: 3px;
-        line-height: 0.95;
-        color: #581c87;
-    }
-    .rubber-stamp-partial .stamp-date {
-        font-size: 11px;
-        font-weight: 800;
-        letter-spacing: 1px;
-        color: #6b21a8;
-        margin: 3px 0 2px 0;
-        padding: 1px 8px;
-        border-top: 1.5px solid #7e22ce;
-        border-bottom: 1.5px solid #7e22ce;
-        font-family: 'Courier New', Courier, monospace, sans-serif;
-        display: inline-block;
-    }
-    .rubber-stamp-partial .stamp-sub {
-        font-size: 8.5px;
-        font-weight: 800;
-        letter-spacing: 1.2px;
-        margin-top: 2px;
         color: #7e22ce;
-        display: block;
+        line-height: 1;
     }
 
     @media print {
@@ -296,6 +248,15 @@
             margin-bottom: 8px !important;
             font-size: 11px !important;
             line-height: 1.4 !important;
+        }
+        .round-rubber-stamp {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            box-shadow: none !important;
+            border: 2px dashed #6b21a8 !important;
+        }
+        .round-rubber-stamp-inner {
+            border: 1.2px solid #7e22ce !important;
         }
         .receipt-meta-cell {
             padding: 5px 8px !important;
@@ -507,71 +468,72 @@
             </div>
         @endif
 
-        {{-- Financial Breakdown Card with Authentic Rubber Stamp Pad Seal --}}
+        {{-- Financial Breakdown Card with Authentic Round Rubber Stamp Seal --}}
         <div class="amount-highlight-box mb-2">
-            {{-- Realistic Rubber Stamp Seal --}}
-            <div class="rubber-stamp-container">
-                @if($remainingDue <= 0)
-                    <div class="rubber-stamp-paid">
-                        <span class="stamp-org">IDEA PUBLICATION</span>
-                        <span class="stamp-title">PAID</span>
-                        <span class="stamp-date">{{ $payment->payment_date ? $payment->payment_date->format('d M, Y') : date('d M, Y') }}</span>
-                        <span class="stamp-sub">FULL SETTLEMENT</span>
-                    </div>
-                @else
-                    <div class="rubber-stamp-partial">
-                        <span class="stamp-org">IDEA PUBLICATION</span>
-                        <span class="stamp-title">PAID</span>
-                        <span class="stamp-date">{{ $payment->payment_date ? $payment->payment_date->format('d M, Y') : date('d M, Y') }}</span>
-                        <span class="stamp-sub">PARTIAL INSTALMENT</span>
-                    </div>
-                @endif
-            </div>
-
             <div class="row align-items-center">
-                <div class="col-md-6 border-end-md pe-md-4">
+                {{-- Column 1: Net Realized Amount & In Words --}}
+                <div class="col-md-5 border-end-md pe-md-3">
                     <div class="text-success small fw-bold text-uppercase mb-0.5" style="font-size: 11px;">
                         <i class="fas fa-money-check-dollar me-1"></i> Net Received Amount (Cheque / Cash)
                     </div>
                     <div class="fs-3 fw-bold text-success font-monospace mb-0.5">
                         ৳{{ number_format($payment->effective_net_amount, 2) }}
                     </div>
-                    <div class="text-muted small" style="font-size: 11.5px;">
+                    <div class="text-muted small" style="font-size: 11px; line-height: 1.35;">
                         In Words: <strong class="text-dark">@takaInWordsEn($payment->effective_net_amount)</strong>
                     </div>
                     @if($payment->has_deductions)
-                        <div class="mt-1.5 pt-1 border-top border-success-subtle d-flex gap-2 flex-wrap" style="font-size: 10px;">
+                        <div class="mt-1.5 pt-1 border-top border-success-subtle d-flex gap-1.5 flex-wrap" style="font-size: 9.5px;">
                             <span class="badge bg-white text-primary border border-primary font-monospace">Gross Settled: ৳{{ number_format($thisAmount, 2) }}</span>
                             <span class="badge bg-white text-danger border border-danger font-monospace">TDS/VDS: ৳{{ number_format($payment->total_deductions, 2) }}</span>
                         </div>
                     @endif
                 </div>
 
-                <div class="col-md-6 ps-md-4">
+                {{-- Column 2: Statement Summary --}}
+                <div class="col-md-4 ps-md-3 pe-md-3 border-end-md">
                     <div class="text-muted small fw-bold text-uppercase mb-1" style="font-size: 10px;">
                         Statement Summary
                     </div>
-                    <div class="d-flex justify-content-between py-0.5 small" style="font-size: 11.5px;">
+                    <div class="d-flex justify-content-between py-0.5 small" style="font-size: 11px;">
                         <span class="text-muted">Total Billed:</span>
                         <span class="fw-semibold font-monospace">৳{{ number_format($totalGrand, 2) }}</span>
                     </div>
-                    <div class="d-flex justify-content-between py-0.5 small" style="font-size: 11.5px;">
+                    <div class="d-flex justify-content-between py-0.5 small" style="font-size: 11px;">
                         <span class="text-muted">Previous Paid:</span>
                         <span class="fw-semibold font-monospace">৳{{ number_format($prevPaid, 2) }}</span>
                     </div>
-                    <div class="d-flex justify-content-between py-0.5 small text-primary fw-bold" style="font-size: 11.5px;">
+                    <div class="d-flex justify-content-between py-0.5 small text-primary fw-bold" style="font-size: 11px;">
                         <span>Current Settled:</span>
                         <span class="font-monospace">৳{{ number_format($thisAmount, 2) }}</span>
                     </div>
                     @if($payment->has_deductions)
-                        <div class="d-flex justify-content-between py-0.5 small text-success fw-bold" style="font-size: 11.5px;">
+                        <div class="d-flex justify-content-between py-0.5 small text-success fw-bold" style="font-size: 11px;">
                             <span>Net Received:</span>
                             <span class="font-monospace">৳{{ number_format($payment->effective_net_amount, 2) }}</span>
                         </div>
                     @endif
-                    <div class="d-flex justify-content-between py-0.5 mt-0.5 border-top fw-bold {{ $remainingDue > 0 ? 'text-danger' : 'text-success' }}" style="font-size: 12px;">
+                    <div class="d-flex justify-content-between py-0.5 mt-0.5 border-top fw-bold {{ $remainingDue > 0 ? 'text-danger' : 'text-success' }}" style="font-size: 11.5px;">
                         <span>Remaining Due:</span>
                         <span class="font-monospace">৳{{ number_format($remainingDue, 2) }}</span>
+                    </div>
+                </div>
+
+                {{-- Column 3: Official Round Rubber Stamp (Placed in dedicated open space) --}}
+                <div class="col-md-3 text-center d-flex align-items-center justify-content-center py-2 py-md-0">
+                    <div class="round-rubber-stamp">
+                        <div class="round-rubber-stamp-inner">
+                            <span class="round-stamp-org">Idea Prokashon</span>
+                            @if($remainingDue <= 0)
+                                <span class="round-stamp-status stamp-paid">PAID</span>
+                                <span class="round-stamp-date">{{ $payment->payment_date ? $payment->payment_date->format('d M, Y') : date('d M, Y') }}</span>
+                                <span class="round-stamp-sub">FULL SETTLEMENT</span>
+                            @else
+                                <span class="round-stamp-status stamp-due">DUE</span>
+                                <span class="round-stamp-date">{{ $payment->payment_date ? $payment->payment_date->format('d M, Y') : date('d M, Y') }}</span>
+                                <span class="round-stamp-sub">PARTIAL PAYMENT</span>
+                            @endif
+                        </div>
                     </div>
                 </div>
             </div>
