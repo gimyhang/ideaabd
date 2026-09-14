@@ -138,7 +138,7 @@
     /* Rubber Stamp Effect */
     .rubber-stamp-container {
         position: absolute;
-        right: 18px;
+        right: 218px;
         top: 50%;
         transform: translateY(-50%) rotate(-12deg);
         pointer-events: none;
@@ -146,62 +146,115 @@
         z-index: 5;
     }
     .rubber-stamp-paid {
-        display: inline-block;
-        border: 3.5px dashed #059669;
-        border-radius: 10px;
-        padding: 5px 14px;
-        color: #059669;
+        display: inline-flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 220px;
+        padding: 8px 12px;
+        border: 4px dashed #6b21a8;
+        border-radius: 12px;
+        color: #581c87;
         text-transform: uppercase;
-        font-family: 'Arial Black', Impact, sans-serif;
+        font-family: 'Arial Black', Impact, 'Trebuchet MS', sans-serif;
         text-align: center;
         line-height: 1.05;
-        opacity: 0.88;
-        box-shadow: inset 0 0 0 1.5px #059669, 0 0 2px rgba(5, 150, 105, 0.4);
-        background: radial-gradient(circle, rgba(255, 255, 255, 0.75) 0%, rgba(240, 253, 244, 0.45) 100%);
+        opacity: 0.82;
+        mix-blend-mode: multiply;
+        box-shadow: inset 0 0 0 2px #7e22ce, 0 0 3px rgba(107, 33, 168, 0.45);
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.65) 0%, rgba(243, 232, 255, 0.4) 100%);
+        letter-spacing: 1px;
+    }
+    .rubber-stamp-paid .stamp-org {
+        font-size: 8.5px;
+        font-weight: 800;
+        letter-spacing: 1.5px;
+        color: #6b21a8;
+        margin-bottom: 2px;
+        opacity: 0.9;
     }
     .rubber-stamp-paid .stamp-title {
-        font-size: 24px;
+        font-size: 32px;
         font-weight: 900;
-        letter-spacing: 2px;
-        display: block;
+        letter-spacing: 4px;
+        line-height: 0.95;
+        color: #581c87;
+        text-shadow: 0 0 1px rgba(88, 28, 135, 0.5);
     }
-    .rubber-stamp-paid .stamp-sub {
-        font-size: 8px;
+    .rubber-stamp-paid .stamp-date {
+        font-size: 11px;
         font-weight: 800;
         letter-spacing: 1px;
-        border-top: 1.5px solid #059669;
-        margin-top: 3px;
-        padding-top: 2px;
+        color: #6b21a8;
+        margin: 3px 0 2px 0;
+        padding: 1px 8px;
+        border-top: 1.5px solid #7e22ce;
+        border-bottom: 1.5px solid #7e22ce;
+        font-family: 'Courier New', Courier, monospace, sans-serif;
+        display: inline-block;
+    }
+    .rubber-stamp-paid .stamp-sub {
+        font-size: 9px;
+        font-weight: 800;
+        letter-spacing: 1.5px;
+        margin-top: 2px;
+        color: #7e22ce;
         display: block;
     }
 
     .rubber-stamp-partial {
-        display: inline-block;
-        border: 3.5px dashed #d97706;
-        border-radius: 10px;
-        padding: 5px 14px;
-        color: #d97706;
+        display: inline-flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 220px;
+        padding: 8px 12px;
+        border: 4px dashed #6b21a8;
+        border-radius: 12px;
+        color: #581c87;
         text-transform: uppercase;
-        font-family: 'Arial Black', Impact, sans-serif;
+        font-family: 'Arial Black', Impact, 'Trebuchet MS', sans-serif;
         text-align: center;
         line-height: 1.05;
-        opacity: 0.88;
-        box-shadow: inset 0 0 0 1.5px #d97706, 0 0 2px rgba(217, 119, 6, 0.4);
-        background: radial-gradient(circle, rgba(255, 255, 255, 0.75) 0%, rgba(254, 243, 199, 0.45) 100%);
+        opacity: 0.82;
+        mix-blend-mode: multiply;
+        box-shadow: inset 0 0 0 2px #7e22ce, 0 0 3px rgba(107, 33, 168, 0.45);
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.65) 0%, rgba(243, 232, 255, 0.4) 100%);
+        letter-spacing: 1px;
+    }
+    .rubber-stamp-partial .stamp-org {
+        font-size: 8.5px;
+        font-weight: 800;
+        letter-spacing: 1.5px;
+        color: #6b21a8;
+        margin-bottom: 2px;
+        opacity: 0.9;
     }
     .rubber-stamp-partial .stamp-title {
-        font-size: 22px;
+        font-size: 28px;
         font-weight: 900;
-        letter-spacing: 2px;
-        display: block;
+        letter-spacing: 3px;
+        line-height: 0.95;
+        color: #581c87;
     }
-    .rubber-stamp-partial .stamp-sub {
-        font-size: 8px;
+    .rubber-stamp-partial .stamp-date {
+        font-size: 11px;
         font-weight: 800;
         letter-spacing: 1px;
-        border-top: 1.5px solid #d97706;
-        margin-top: 3px;
-        padding-top: 2px;
+        color: #6b21a8;
+        margin: 3px 0 2px 0;
+        padding: 1px 8px;
+        border-top: 1.5px solid #7e22ce;
+        border-bottom: 1.5px solid #7e22ce;
+        font-family: 'Courier New', Courier, monospace, sans-serif;
+        display: inline-block;
+    }
+    .rubber-stamp-partial .stamp-sub {
+        font-size: 8.5px;
+        font-weight: 800;
+        letter-spacing: 1.2px;
+        margin-top: 2px;
+        color: #7e22ce;
         display: block;
     }
 
@@ -444,9 +497,9 @@
                         <tfoot class="table-light fw-bold">
                             <tr>
                                 <td class="py-1 px-2">Total Settled Credit</td>
-                                <td class="text-center text-danger font-monospace py-1 px-2">Deduction: ৳{{ number_format($payment->total_deductions, 2) }}</td>
+                                <td class="text-center text-muted font-monospace py-1 px-2">—</td>
                                 <td class="text-end font-monospace text-primary py-1 px-2">৳{{ number_format($thisAmount, 2) }}</td>
-                                <td class="text-dark small py-1 px-2">{{ $payment->deduction_challan_no ? 'Challan: ' . $payment->deduction_challan_no : 'Audited' }}</td>
+                                <td class="text-dark small py-1 px-2">{{ $payment->deduction_challan_no ? 'Challan: ' . $payment->deduction_challan_no . ' (Audited & Approved)' : 'Audited & Approved' }}</td>
                             </tr>
                         </tfoot>
                     </table>
@@ -460,12 +513,16 @@
             <div class="rubber-stamp-container">
                 @if($remainingDue <= 0)
                     <div class="rubber-stamp-paid">
+                        <span class="stamp-org">IDEA PUBLICATION</span>
                         <span class="stamp-title">PAID</span>
+                        <span class="stamp-date">{{ $payment->payment_date ? $payment->payment_date->format('d M, Y') : date('d M, Y') }}</span>
                         <span class="stamp-sub">FULL SETTLEMENT</span>
                     </div>
                 @else
                     <div class="rubber-stamp-partial">
+                        <span class="stamp-org">IDEA PUBLICATION</span>
                         <span class="stamp-title">PAID</span>
+                        <span class="stamp-date">{{ $payment->payment_date ? $payment->payment_date->format('d M, Y') : date('d M, Y') }}</span>
                         <span class="stamp-sub">PARTIAL INSTALMENT</span>
                     </div>
                 @endif
