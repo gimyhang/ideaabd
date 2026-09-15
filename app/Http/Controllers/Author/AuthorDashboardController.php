@@ -16,6 +16,58 @@ use Modules\Ebook\Models\Ebook;
 class AuthorDashboardController extends Controller
 {
     /**
+     * Get Base Query for Blog Posts belonging to the author or matched by owner info.
+     */
+    protected function getAuthorPostsBaseQuery($user, $author)
+    {
+        return BlogPost::where(function ($query) use ($user, $author) {
+            $query->where('submitted_by', $user->id)
+                ->orWhere('author_id', $user->id);
+
+            if ($author) {
+                $query->orWhere('author_id', $author->id);
+            }
+
+            $phones = array_unique(array_filter([$user->phone ?? null, $author->phone ?? null]));
+            if (!empty($phones)) {
+                $query->orWhereIn('owner_phone', $phones);
+            }
+
+            $names = array_unique(array_filter([$user->name ?? null, $author->name ?? null]));
+            if (!empty($names)) {
+                $query->orWhereIn('owner_name', $names);
+            }
+        });
+    }
+
+    /**
+     * Get Base Query for E-Books belonging to the author or matched by owner info.
+     */
+    protected function getAuthorEbooksBaseQuery($user, $author)
+    {
+        return Ebook::where(function ($query) use ($user, $author) {
+            $query->where('author_user_id', $user->id)
+                ->orWhere('submitted_by', $user->id);
+
+            if ($author) {
+                $query->orWhere('author_id', $author->id)
+                    ->orWhere('author_link_id', $author->id);
+            }
+
+            $phones = array_unique(array_filter([$user->phone ?? null, $author->phone ?? null]));
+            if (!empty($phones)) {
+                $query->orWhereIn('owner_phone', $phones);
+            }
+
+            $names = array_unique(array_filter([$user->name ?? null, $author->name ?? null]));
+            if (!empty($names)) {
+                $query->orWhereIn('owner_name', $names);
+                $query->orWhereIn('author_name', $names);
+            }
+        });
+    }
+
+    /**
      * Display Author KDP Portal Dashboard.
      */
     public function dashboard(): View
@@ -24,12 +76,7 @@ class AuthorDashboardController extends Controller
         $author = $user->getAuthorRecord();
 
         // 1. Author's Ebooks stats
-        $ebooksQuery = Ebook::where(function ($q) use ($user, $author) {
-            $q->where('author_user_id', $user->id);
-            if ($author) {
-                $q->orWhere('author_id', $author->id);
-            }
-        });
+        $ebooksQuery = $this->getAuthorEbooksBaseQuery($user, $author);
 
         $totalEbooks = (clone $ebooksQuery)->count();
         $publishedEbooks = (clone $ebooksQuery)->where('mod_status', 'approved')->where('is_active', true)->count();
@@ -86,13 +133,7 @@ class AuthorDashboardController extends Controller
         $recentEbooks = (clone $ebooksQuery)->latest('id')->take(5)->get();
 
         // 7. IdeaPatra (Blog Articles) Stats & Recent Posts
-        $postsQuery = BlogPost::where(function ($q) use ($user, $author) {
-            $q->where('submitted_by', $user->id)
-              ->orWhere('author_id', $user->id);
-            if ($author) {
-                $q->orWhere('author_id', $author->id);
-            }
-        });
+        $postsQuery = $this->getAuthorPostsBaseQuery($user, $author);
 
         $totalPosts = (clone $postsQuery)->count();
         $publishedPosts = (clone $postsQuery)->where('status', 'published')->count();
@@ -158,12 +199,7 @@ class AuthorDashboardController extends Controller
             }
         })->where('status', '!=', 'refunded')->sum('royalty_amount');
 
-        $authorEbooks = Ebook::where(function ($q) use ($user, $author) {
-            $q->where('author_user_id', $user->id);
-            if ($author) {
-                $q->orWhere('author_id', $author->id);
-            }
-        })->get(['id', 'title']);
+        $authorEbooks = $this->getAuthorEbooksBaseQuery($user, $author)->get(['id', 'title']);
 
         return view('author.royalties', compact('author', 'royalties', 'totalEarned', 'authorEbooks'));
     }
@@ -219,13 +255,7 @@ class AuthorDashboardController extends Controller
             ->sum('author_amount');
         $maxTip = (clone $baseQuery)->max('amount') ?? 0.00;
 
-        $authorPosts = BlogPost::where(function ($q) use ($user, $author) {
-            $q->where('submitted_by', $user->id)
-              ->orWhere('author_id', $user->id);
-            if ($author) {
-                $q->orWhere('author_id', $author->id);
-            }
-        })->get(['id', 'title']);
+        $authorPosts = $this->getAuthorPostsBaseQuery($user, $author)->get(['id', 'title']);
 
         return view('author.honorariums', compact(
             'author',

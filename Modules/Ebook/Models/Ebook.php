@@ -73,6 +73,7 @@ class Ebook extends Model
         'mod_status',
         'author_user_id',
         'royalty_percentage',
+        'is_royalty_free',
         'drm_enabled',
         'is_preorder',
         'preorder_release_date',
@@ -93,6 +94,7 @@ class Ebook extends Model
         'price'                 => 'decimal:2',
         'discount_price'        => 'decimal:2',
         'royalty_percentage'    => 'decimal:2',
+        'is_royalty_free'       => 'boolean',
         'pages'                 => 'integer',
         'preview_pages'         => 'integer',
         'preview_page_limit'    => 'integer',
@@ -104,6 +106,33 @@ class Ebook extends Model
         'is_preorder'           => 'boolean',
         'preorder_release_date' => 'date',
     ];
+
+    /**
+     * Check if this e-book is marked as royalty-free.
+     */
+    public function isRoyaltyFree(): bool
+    {
+        if ((bool) ($this->is_royalty_free ?? false)) {
+            return true;
+        }
+
+        if ($this->royalty_percentage !== null && (float) $this->royalty_percentage <= 0.0) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Get author royalty percentage.
+     */
+    public function getRoyaltyPercentage(): float
+    {
+        if ($this->isRoyaltyFree()) {
+            return 0.0;
+        }
+        return $this->royalty_percentage !== null ? (float) $this->royalty_percentage : 50.0;
+    }
 
     protected static function booted()
     {

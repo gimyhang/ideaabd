@@ -162,14 +162,24 @@
                             @error('pages')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
 
-                        {{-- 50% Royalty Share Display Badge --}}
+                        {{-- Royalty Share Display Badge --}}
                         <div class="col-12 col-md-4">
                             <label class="form-label small fw-bold text-dark mb-1">
-                                Royalty Share (50%)
+                                @if($ebook->isRoyaltyFree())
+                                    Royalty Share (Royalty-Free)
+                                @else
+                                    Royalty Share ({{ (float) $ebook->getRoyaltyPercentage() }}%)
+                                @endif
                             </label>
                             <div class="p-1.5 px-3 rounded-3 border bg-success-subtle bg-opacity-40 d-flex align-items-center justify-content-between">
                                 <span class="small text-dark fw-semibold" style="font-size: 11px;">Per copy:</span>
-                                <strong class="text-success fs-6 font-monospace" id="authorEarningDisplay">৳0.00</strong>
+                                <strong class="text-success fs-6 font-monospace" id="authorEarningDisplay">
+                                    @if($ebook->isRoyaltyFree())
+                                        ৳0.00 (ফ্রি)
+                                    @else
+                                        ৳{{ number_format(($ebook->price * $ebook->getRoyaltyPercentage()) / 100, 2) }}
+                                    @endif
+                                </strong>
                             </div>
                         </div>
                     </div>
@@ -434,8 +444,14 @@ function updateLiveCard() {
 
 function calculateRoyalty() {
     const price = parseFloat(document.getElementById('f-price')?.value) || 0;
-    const authorShare = (price * 0.50).toFixed(2);
-    document.getElementById('authorEarningDisplay').textContent = '৳' + authorShare;
+    const isRoyaltyFree = {{ $ebook->isRoyaltyFree() ? 'true' : 'false' }};
+    const royaltyPct = {{ (float) $ebook->getRoyaltyPercentage() }};
+    if (isRoyaltyFree || royaltyPct <= 0) {
+        document.getElementById('authorEarningDisplay').textContent = '৳0.00 (ফ্রি)';
+    } else {
+        const authorShare = ((price * royaltyPct) / 100).toFixed(2);
+        document.getElementById('authorEarningDisplay').textContent = '৳' + authorShare;
+    }
 }
 
 function submitQuickCategory() {

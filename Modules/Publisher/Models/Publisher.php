@@ -146,4 +146,92 @@ class Publisher extends Model
     {
         return $this->hasMany(\App\Models\PublisherPayment::class, 'publisher_id');
     }
+
+    /**
+     * UNIFIED PUBLISHER FIND OR CREATE / SYNC
+     * Ensures a single publisher record exists and is synced with user registration
+     */
+    public static function findOrCreateUnified(array $data): self
+    {
+        $name = trim($data['name'] ?? $data['publishing_house_name'] ?? '');
+        $email = !empty($data['email']) ? trim(strtolower((string) $data['email'])) : null;
+        $phone = !empty($data['phone']) ? trim((string) $data['phone']) : null;
+        $slug = !empty($data['slug']) ? trim(\Illuminate\Support\Str::slug((string) $data['slug'])) : null;
+        $logo = $data['logo'] ?? null;
+        $address = $data['address'] ?? null;
+        $country = $data['country'] ?? 'Bangladesh';
+
+        $publisher = null;
+
+        // 1. Search by exact or trimmed Name
+        if (!empty($name)) {
+            $publisher = self::where('name', $name)
+                ->orWhere(\Illuminate\Support\Facades\DB::raw('TRIM(name)'), $name)
+                ->first();
+        }
+
+        // 2. Search by Phone (if provided)
+        if (!$publisher && !empty($phone)) {
+            $publisher = self::where('phone', $phone)->first();
+        }
+
+        // 3. Search by Email (if provided)
+        if (!$publisher && !empty($email)) {
+            $publisher = self::where('email', $email)->first();
+        }
+
+        // 4. Search by Slug (if provided)
+        if (!$publisher && !empty($slug)) {
+            $publisher = self::where('slug', $slug)->first();
+        }
+
+        if ($publisher) {
+            $updates = [];
+            if (empty($publisher->email) && $email) {
+                $updates['email'] = $email;
+            }
+            if (empty($publisher->phone) && $phone) {
+                $updates['phone'] = $phone;
+            }
+            if (empty($publisher->address) && $address) {
+                $updates['address'] = $address;
+            }
+            if (empty($publisher->country) && $country) {
+                $updates['country'] = $country;
+            }
+            if (!empty($logo) && empty($publisher->logo)) {
+                $updates['logo'] = $logo;
+            }
+            if (!empty($updates)) {
+                $publisher->update($updates);
+            }
+            return $publisher;
+        }
+
+        if (empty($slug)) {
+            $rawSlug = \Illuminate\Support\Str::slug($name);
+            if (empty($rawSlug)) {
+                $rawSlug = 'publisher-' . time() . '-' . rand(100, 999);
+            }
+            $slug = $rawSlug;
+            $count = 1;
+            while (self::where('slug', $slug)->exists()) {
+                $slug = $rawSlug . '-' . $count++;
+            }
+        }
+
+        return self::create([
+            'name'        => $name,
+            'slug'        => $slug,
+            'email'       => $email,
+            'phone'       => $phone,
+            'address'     => $address,
+            'country'     => $country,
+            'description' => $data['description'] ?? null,
+            'logo'        => $logo,
+            'website'     => $data['website'] ?? null,
+            'is_verified' => !empty($data['is_verified']),
+            'is_active'   => $data['is_active'] ?? true,
+        ]);
+    }
 }

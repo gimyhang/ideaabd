@@ -91,11 +91,21 @@ class RoyaltyService
                 return;
             }
 
-            // 5. Calculate 50% Royalty Share
+            // 5. Calculate Royalty Share (Checks if ebook or post is Royalty-Free)
             $salePrice = (float) $order->total_amount;
-            $royaltyRate = (float) ($ebook->royalty_percentage ?: ($author->royalty_percentage ?: 50.00));
-            $royaltyAmount = round(($salePrice * $royaltyRate) / 100, 2);
-            $platformFee = round($salePrice - $royaltyAmount, 2);
+            $isRoyaltyFree = $ebook->isRoyaltyFree();
+
+            if ($isRoyaltyFree) {
+                $royaltyRate = 0.00;
+                $royaltyAmount = 0.00;
+                $platformFee = $salePrice;
+            } else {
+                $royaltyRate = $ebook->royalty_percentage !== null 
+                    ? (float) $ebook->royalty_percentage 
+                    : (float) ($author->royalty_percentage ?: 50.00);
+                $royaltyAmount = round(($salePrice * $royaltyRate) / 100, 2);
+                $platformFee = round($salePrice - $royaltyAmount, 2);
+            }
 
             // 6. Record in author_royalties table
             AuthorRoyalty::create([
@@ -107,11 +117,13 @@ class RoyaltyService
                 'royalty_percentage' => $royaltyRate,
                 'royalty_amount'     => $royaltyAmount,
                 'platform_fee'       => $platformFee,
-                'status'             => 'earned',
+                'status'             => $royaltyAmount > 0 ? 'earned' : 'royalty_free',
             ]);
 
-            // 7. Credit Author's Wallet Balance
-            $author->increment('wallet_balance', $royaltyAmount);
+            // 7. Credit Author's Wallet Balance if royalty amount > 0
+            if ($royaltyAmount > 0) {
+                $author->increment('wallet_balance', $royaltyAmount);
+            }
 
             Log::channel('audit')->info('Author Royalty Credited', [
                 'order_id'       => $order->id,

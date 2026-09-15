@@ -73,27 +73,14 @@ class AuthorBlogController extends Controller
         $author = $user->getAuthorRecord();
         $filterStatus = $request->input('status', 'all');
 
-        $query = BlogPost::where(function ($q) use ($user, $author) {
-            $q->where('submitted_by', $user->id)
-              ->orWhere('author_id', $user->id);
-            if ($author) {
-                $q->orWhere('author_id', $author->id);
-            }
-        })->with(['category']);
+        $basePostsQuery = $this->getAuthorPostsBaseQuery($user, $author);
+        $query = (clone $basePostsQuery)->with(['category']);
 
         if ($filterStatus !== 'all' && in_array($filterStatus, ['published', 'pending', 'draft', 'rejected'])) {
             $query->where('status', $filterStatus);
         }
 
         $posts = $query->latest('id')->paginate(12)->withQueryString();
-
-        $basePostsQuery = BlogPost::where(function ($q) use ($user, $author) {
-            $q->where('submitted_by', $user->id)
-              ->orWhere('author_id', $user->id);
-            if ($author) {
-                $q->orWhere('author_id', $author->id);
-            }
-        });
 
         $stats = [
             'total'     => (clone $basePostsQuery)->count(),
@@ -154,14 +141,7 @@ class AuthorBlogController extends Controller
         }
 
         $author = $user->getAuthorRecord();
-        $post = BlogPost::where('id', $id)
-            ->where(function ($q) use ($user, $author) {
-                $q->where('submitted_by', $user->id)
-                  ->orWhere('author_id', $user->id);
-                if ($author) {
-                    $q->orWhere('author_id', $author->id);
-                }
-            })->firstOrFail();
+        $post = $this->getAuthorPostsBaseQuery($user, $author)->where('id', $id)->firstOrFail();
 
         // If post is published or approved, open the dedicated edit request / correction form
         if ($post->status === 'published' || $post->mod_status === 'approved') {
@@ -190,14 +170,7 @@ class AuthorBlogController extends Controller
         }
 
         $author = $user->getAuthorRecord();
-        $post = BlogPost::where('id', $id)
-            ->where(function ($q) use ($user, $author) {
-                $q->where('submitted_by', $user->id)
-                  ->orWhere('author_id', $user->id);
-                if ($author) {
-                    $q->orWhere('author_id', $author->id);
-                }
-            })->firstOrFail();
+        $post = $this->getAuthorPostsBaseQuery($user, $author)->where('id', $id)->firstOrFail();
 
         $blogCategories = BlogCategory::where('is_active', true)->orderBy('name')->get();
 
@@ -216,14 +189,7 @@ class AuthorBlogController extends Controller
         }
 
         $author = $user->getAuthorRecord();
-        $post = BlogPost::where('id', $id)
-            ->where(function ($q) use ($user, $author) {
-                $q->where('submitted_by', $user->id)
-                  ->orWhere('author_id', $user->id);
-                if ($author) {
-                    $q->orWhere('author_id', $author->id);
-                }
-            })->firstOrFail();
+        $post = $this->getAuthorPostsBaseQuery($user, $author)->where('id', $id)->firstOrFail();
 
         $rules = [
             'title'          => 'required|string|max:255',
@@ -410,14 +376,7 @@ class AuthorBlogController extends Controller
             return redirect()->route('pending.approval')->with('warning', 'আপনার লেখক অ্যাকাউন্টটি এখনও অ্যাডমিন কর্তৃক অনুমোদিত হয়নি।');
         }
         $author = $user->getAuthorRecord();
-        $post = BlogPost::where('id', $id)
-            ->where(function ($q) use ($user, $author) {
-                $q->where('submitted_by', $user->id)
-                  ->orWhere('author_id', $user->id);
-                if ($author) {
-                    $q->orWhere('author_id', $author->id);
-                }
-            })->firstOrFail();
+        $post = $this->getAuthorPostsBaseQuery($user, $author)->where('id', $id)->firstOrFail();
 
         // Lock check: Once submitted or approved/published, author cannot edit directly
         if ($post->status === 'pending' || $post->status === 'published' || $post->mod_status === 'approved') {
@@ -571,14 +530,7 @@ class AuthorBlogController extends Controller
     {
         $user = auth()->user();
         $author = $user->getAuthorRecord();
-        $post = BlogPost::where('id', $id)
-            ->where(function ($q) use ($user, $author) {
-                $q->where('submitted_by', $user->id)
-                  ->orWhere('author_id', $user->id);
-                if ($author) {
-                    $q->orWhere('author_id', $author->id);
-                }
-            })->firstOrFail();
+        $post = $this->getAuthorPostsBaseQuery($user, $author)->where('id', $id)->firstOrFail();
 
         if ($post->status === 'published' || $post->mod_status === 'approved' || $post->status === 'pending') {
             return redirect()->route('author.posts.index')
@@ -640,5 +592,38 @@ class AuthorBlogController extends Controller
     protected function generateDefaultPhotocard(string $title, string $authorName): string
     {
         return \App\Services\ImageOptimizerService::generatePhotocardAndStore($title, $authorName, 'blog', 'public');
+    }
+
+    /**
+     * Unified Query for all posts belonging to or created on behalf of this Author.
+     */
+    public function getAuthorPostsBaseQuery($user, $author = null)
+    {
+        $author = $author ?: $user->getAuthorRecord();
+        $name = trim($user->name ?? '');
+        $authorName = $author ? trim($author->name ?? '') : '';
+        $phone = trim($user->phone ?? '');
+        $authorPhone = $author ? trim($author->phone ?? '') : '';
+
+        return BlogPost::where(function ($q) use ($user, $author, $name, $authorName, $phone, $authorPhone) {
+            $q->where('submitted_by', $user->id)
+              ->orWhere('author_id', $user->id);
+
+            if ($author) {
+                $q->orWhere('author_id', $author->id);
+            }
+            if ($name !== '') {
+                $q->orWhere('owner_name', $name);
+            }
+            if ($authorName !== '' && $authorName !== $name) {
+                $q->orWhere('owner_name', $authorName);
+            }
+            if ($phone !== '') {
+                $q->orWhere('owner_phone', $phone);
+            }
+            if ($authorPhone !== '' && $authorPhone !== $phone) {
+                $q->orWhere('owner_phone', $authorPhone);
+            }
+        });
     }
 }

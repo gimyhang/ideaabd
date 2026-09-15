@@ -86,7 +86,11 @@
                             </td>
                             <td class="font-monospace">৳{{ number_format($r->sale_price, 2) }}</td>
                             <td>
-                                <span class="badge bg-info-subtle text-info font-monospace">{{ $r->royalty_percentage }}%</span>
+                                @if((float) $r->royalty_percentage <= 0 || $r->status === 'royalty_free')
+                                    <span class="badge bg-secondary-subtle text-secondary border rounded-pill px-2 py-0.5" style="font-size: 11px;">রয়্যালটি ফ্রি (০%)</span>
+                                @else
+                                    <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle font-monospace">{{ (float) $r->royalty_percentage }}%</span>
+                                @endif
                             </td>
                             <td class="fw-bold text-success font-monospace fs-6">
                                 +৳{{ number_format($r->royalty_amount, 2) }}
@@ -97,6 +101,8 @@
                             <td>
                                 @if($r->status === 'earned')
                                     <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5">Earned</span>
+                                @elseif($r->status === 'royalty_free')
+                                    <span class="badge bg-secondary-subtle text-secondary border rounded-pill px-2 py-0.5">রয়্যালটি ফ্রি</span>
                                 @elseif($r->status === 'withdrawn')
                                     <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-2 py-0.5">Withdrawn</span>
                                 @else

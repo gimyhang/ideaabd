@@ -69,9 +69,17 @@ class AuthorHonorariumController extends Controller
         }
 
         $amount = round((float) $validated['amount'], 2);
-        // 70% goes to author, 30% goes to site maintenance fee
-        $platformFee = round($amount * 0.30, 2); // ৩০% সাইট মেইনটেনেন্স বিল
-        $authorAmount = round($amount - $platformFee, 2); // ৭০% লেখক পাবেন
+        
+        // Check if post is marked as royalty-free
+        $isRoyaltyFree = $post->isRoyaltyFree();
+        if ($isRoyaltyFree) {
+            $authorAmount = 0.00;
+            $platformFee = $amount; // 100% platform maintenance
+        } else {
+            $shareRate = $post->getRoyaltyPercentage() ?: 70.0;
+            $authorAmount = round(($amount * $shareRate) / 100, 2);
+            $platformFee = round($amount - $authorAmount, 2);
+        }
 
         $donorUserId = auth()->check() ? auth()->id() : null;
         $donorName = !empty($validated['sender_name']) ? trim($validated['sender_name']) : (auth()->check() ? auth()->user()->name : 'সম্মানিত পাঠক');
@@ -122,8 +130,8 @@ class AuthorHonorariumController extends Controller
                     'is_anonymous'          => $isAnonymous,
                 ]);
 
-                // 2. Credit Author's Wallet (70% share)
-                if ($author) {
+                // 2. Credit Author's Wallet if author amount > 0
+                if ($author && $authorAmount > 0) {
                     $author->increment('wallet_balance', $authorAmount);
                 }
 

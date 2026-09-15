@@ -167,6 +167,20 @@
                                         <i class="fas fa-file-lines me-1"></i> খসড়া
                                     </span>
                                 @endif
+
+                                @if($post->isRoyaltyFree())
+                                    <div class="mt-1">
+                                        <span class="badge bg-secondary-subtle text-secondary border rounded-pill px-2 py-0.5" style="font-size: 10.5px;" title="এই পোস্টটি রয়্যালটি-মুক্ত হিসেবে চিহ্নিত">
+                                            <i class="fas fa-gift me-0.5"></i> রয়্যালটি ফ্রি
+                                        </span>
+                                    </div>
+                                @else
+                                    <div class="mt-1">
+                                        <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle rounded-pill px-2 py-0.5" style="font-size: 10.5px;" title="পাঠক সম্মানি: {{ (float) $post->getRoyaltyPercentage() }}% লেখক প্রাপ্য">
+                                            <i class="fas fa-coins me-0.5 text-warning"></i> সম্মানি ({{ (float) $post->getRoyaltyPercentage() }}%)
+                                        </span>
+                                    </div>
+                                @endif
                             </td>
                             <td class="text-end">
                                 <div class="btn-group btn-group-sm shadow-xs">

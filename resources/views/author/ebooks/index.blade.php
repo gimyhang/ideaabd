@@ -52,7 +52,7 @@
                         <th style="width: 70px;">প্রচ্ছদ</th>
                         <th>ই-বুকের বিবরণ</th>
                         <th>বিষয়শ্রেণী</th>
-                        <th>মূল্য ও ৫০% শেয়ার</th>
+                        <th>মূল্য ও রয়্যালটি শেয়ার</th>
                         <th>বিক্রয় সংখ্যা</th>
                         <th>স্ট্যাটাস</th>
                         <th class="text-end">অ্যাকশন</th>
@@ -82,9 +82,21 @@
                             </td>
                             <td>
                                 <div class="font-monospace fw-bold text-dark">৳{{ number_format($ebook->price, 2) }}</div>
-                                <div class="small text-success fw-semibold font-monospace" style="font-size: 11px;">
-                                    রয়্যালটি: ৳{{ number_format(($ebook->price * ($ebook->royalty_percentage ?: 50)) / 100, 2) }} (৫০%)
-                                </div>
+                                @if($ebook->isRoyaltyFree())
+                                    <div class="small text-muted fw-semibold mt-1" style="font-size: 11px;">
+                                        <span class="badge bg-secondary-subtle text-secondary border rounded-pill px-2 py-0.5">
+                                            <i class="fas fa-gift me-0.5"></i> রয়্যালটি ফ্রি (০%)
+                                        </span>
+                                    </div>
+                                @else
+                                    @php
+                                        $rPct = (float) $ebook->getRoyaltyPercentage();
+                                        $rAmount = ($ebook->price * $rPct) / 100;
+                                    @endphp
+                                    <div class="small text-success fw-semibold font-monospace mt-0.5" style="font-size: 11px;">
+                                        রয়্যালটি: ৳{{ number_format($rAmount, 2) }} ({{ $rPct }}%)
+                                    </div>
+                                @endif
                             </td>
                             <td>
                                 <strong class="text-primary fs-6">{{ number_format($ebook->sales_count ?? 0) }}</strong>

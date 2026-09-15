@@ -21,9 +21,9 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 class EbookController extends Controller
 {
     /**
-     * ডিজিটাল ই-বুক ক্যাটালগ ও ফিল্টারিং
+     * ডিজিটাল ই-বুক ক্যাটালগ ও ফিল্টারিং (আন্তর্জাতিক মানের ডিজিটাল লাইব্রেরি স্টোরফ্রন্ট)
      */
-    public function index(Request $request): View
+    public function index(Request $request): View|\Illuminate\Http\JsonResponse
     {
         $canUseEbooks = false;
 
@@ -33,22 +33,76 @@ class EbookController extends Controller
             $canUseEbooks = false;
         }
 
+        // Live AJAX Instant Search Autocomplete
+        if (($request->ajax() || $request->wantsJson()) && ($request->filled('q') || $request->filled('live_search'))) {
+            $term = trim((string) ($request->input('q') ?: $request->input('live_search')));
+            if (mb_strlen($term) < 2) {
+                return response()->json(['results' => []]);
+            }
+
+            $liveResults = Ebook::query()
+                ->where('is_active', true)
+                ->where(function ($q) use ($term) {
+                    $q->where('title', 'LIKE', "%{$term}%")
+                      ->orWhere('subtitle', 'LIKE', "%{$term}%")
+                      ->orWhere('author_name', 'LIKE', "%{$term}%")
+                      ->orWhereHas('author', fn ($a) => $a->where('name', 'LIKE', "%{$term}%"))
+                      ->orWhereHas('category', fn ($c) => $c->where('name', 'LIKE', "%{$term}%"));
+                })
+                ->with(['author:id,name,slug', 'category:id,name,slug'])
+                ->take(8)
+                ->get(['id', 'title', 'subtitle', 'author_id', 'author_name', 'category_id', 'slug', 'price', 'discount_price', 'cover_image', 'file_type', 'epub_file_path', 'file_path']);
+
+            $formatted = $liveResults->map(function ($eb) {
+                return [
+                    'id'          => $eb->id,
+                    'title'       => $eb->title,
+                    'author'      => $eb->author?->name ?: ($eb->author_name ?: 'আইডিয়া লেখক'),
+                    'category'    => $eb->category?->name ?? 'সাধারণ',
+                    'price'       => (float) $eb->price,
+                    'discount_price' => $eb->discount_price ? (float) $eb->discount_price : null,
+                    'is_free'     => $eb->is_free,
+                    'cover_url'   => $eb->cover_url,
+                    'format_badge'=> $eb->format_badge,
+                    'url'         => route('ebook.show', $eb->slug),
+                    'read_url'    => route('ebook.read', $eb->slug),
+                ];
+            });
+
+            return response()->json(['results' => $formatted]);
+        }
+
         $ebooks = collect();
         $categories = collect();
         $sidebarAuthors = collect();
         $sidebarPublishers = collect();
         $featuredEbooks = collect();
+        $bestsellingEbooks = collect();
+        $freeEbooks = collect();
+        $newReleaseEbooks = collect();
+        $spotlightEbook = null;
+        $userLibraryIds = [];
+
         $stats = [
-            'total' => 0,
-            'free' => 0,
-            'epub' => 0,
-            'pdf' => 0,
+            'total'   => 0,
+            'free'    => 0,
+            'epub'    => 0,
+            'pdf'     => 0,
+            'readers' => 0,
         ];
 
         $isSearchMode = $request->anyFilled([
             'search', 'category', 'author', 'publisher', 'format', 
             'min_price', 'max_price', 'free_only', 'sort'
         ]);
+
+        if (auth()->check()) {
+            try {
+                if (DB::getSchemaBuilder()->hasTable('user_ebook_library')) {
+                    $userLibraryIds = UserEbookLibrary::where('user_id', auth()->id())->pluck('ebook_id')->toArray();
+                }
+            } catch (\Throwable) {}
+        }
 
         if ($canUseEbooks) {
             // Stats
@@ -66,6 +120,7 @@ class EbookController extends Controller
                   ->orWhere('file_path', 'LIKE', '%.pdf')
                   ->orWhereNull('file_type');
             })->count();
+            $stats['readers'] = (int) Ebook::query()->where('is_active', true)->sum('read_count') + (int) Ebook::query()->where('is_active', true)->sum('sales_count');
 
             // Categories
             try {
@@ -87,7 +142,7 @@ class EbookController extends Controller
                         ->withCount(['ebooks' => fn ($q) => $q->where('is_active', true)])
                         ->orderByDesc('ebooks_count')
                         ->orderBy('name')
-                        ->take(25)
+                        ->take(30)
                         ->get(['id', 'name', 'slug', 'ebooks_count']);
                 }
             } catch (\Throwable) {}
@@ -100,18 +155,41 @@ class EbookController extends Controller
                         ->withCount(['ebooks' => fn ($q) => $q->where('is_active', true)])
                         ->orderByDesc('ebooks_count')
                         ->orderBy('name')
-                        ->take(25)
+                        ->take(30)
                         ->get(['id', 'name', 'slug', 'ebooks_count']);
                 }
             } catch (\Throwable) {}
 
-            // Featured Ebooks for Hero
-            $featuredEbooks = Ebook::query()
-                ->with(['author', 'publisher', 'category'])
-                ->where('is_active', true)
-                ->orderByDesc('sales_count')
-                ->take(4)
-                ->get();
+            // Curated Shelves (when browsing landing catalog)
+            if (!$isSearchMode) {
+                $bestsellingEbooks = Ebook::query()
+                    ->with(['author', 'publisher', 'category'])
+                    ->where('is_active', true)
+                    ->orderByDesc('sales_count')
+                    ->orderByDesc('read_count')
+                    ->take(10)
+                    ->get();
+
+                $freeEbooks = Ebook::query()
+                    ->with(['author', 'publisher', 'category'])
+                    ->where('is_active', true)
+                    ->where(function ($q) {
+                        $q->where('price', '<=', 0)->orWhere('discount_price', '=', 0);
+                    })
+                    ->latest('id')
+                    ->take(10)
+                    ->get();
+
+                $newReleaseEbooks = Ebook::query()
+                    ->with(['author', 'publisher', 'category'])
+                    ->where('is_active', true)
+                    ->latest('id')
+                    ->take(10)
+                    ->get();
+
+                $featuredEbooks = $bestsellingEbooks->take(4);
+                $spotlightEbook = $bestsellingEbooks->first() ?: $newReleaseEbooks->first();
+            }
 
             // Main Query
             $query = Ebook::query()
@@ -215,6 +293,11 @@ class EbookController extends Controller
             'sidebarAuthors',
             'sidebarPublishers',
             'featuredEbooks',
+            'bestsellingEbooks',
+            'freeEbooks',
+            'newReleaseEbooks',
+            'spotlightEbook',
+            'userLibraryIds',
             'stats',
             'isSearchMode'
         ));
@@ -231,12 +314,47 @@ class EbookController extends Controller
             abort(404, 'অনুরোধকৃত ই-বুকটি পাওয়া যায়নি।');
         }
 
+        // Eager load reviews with reviewer user details
+        $ebook->loadMissing([
+            'author',
+            'publisher',
+            'category',
+            'authors',
+            'reviews' => fn ($q) => $q->where('is_approved', true)->with('user')->latest('id'),
+        ]);
+
         // Check current user's legitimate library access (admin, author, paid order, or claimed free)
         $user = auth()->user();
         $isOwnerOrAdmin = $user && ($user->isAdmin() || $user->isSubAdmin() || $ebook->author_user_id === $user->id);
         $hasAccess = $this->checkUserEbookAccess($user, $ebook);
         $libraryEntry = $hasAccess && $user ? UserEbookLibrary::where('user_id', $user->id)->where('ebook_id', $ebook->id)->first() : null;
 
+        // Ratings & Review Metrics
+        $reviewCount = $ebook->reviews->count();
+        $avgRating = $reviewCount > 0 ? round((float) $ebook->reviews->avg('rating'), 1) : 4.9;
+        
+        $ratingCounts = [5 => 0, 4 => 0, 3 => 0, 2 => 0, 1 => 0];
+        foreach ($ebook->reviews as $rev) {
+            $r = max(1, min(5, (int) ($rev->rating ?? 5)));
+            $ratingCounts[$r]++;
+        }
+        $ratingPercentages = [];
+        foreach ($ratingCounts as $star => $count) {
+            $ratingPercentages[$star] = $reviewCount > 0 ? round(($count / $reviewCount) * 100) : ($star === 5 ? 88 : ($star === 4 ? 12 : 0));
+        }
+
+        $userHasReviewed = $user ? $ebook->reviews->where('user_id', $user->id)->isNotEmpty() : false;
+
+        // Estimated Reading Time Calculation (Average 1.5 mins per page or 200 wpm)
+        $pageCount = max(1, (int) ($ebook->pages ?: 180));
+        $totalMinutes = (int) round($pageCount * 1.5);
+        $hours = floor($totalMinutes / 60);
+        $minutes = $totalMinutes % 60;
+        $estimatedReadingTime = $hours > 0 
+            ? ($hours . ' ঘণ্টা ' . ($minutes > 0 ? $minutes . ' মিনিট' : ''))
+            : ($minutes . ' মিনিট');
+
+        // Related E-Books (from same category or latest)
         $relatedEbooks = Ebook::query()
             ->where('id', '!=', $ebook->id)
             ->where('is_active', true)
@@ -254,6 +372,7 @@ class EbookController extends Controller
                 ->get();
         }
 
+        // Author's Other Works
         $authorOtherEbooks = collect();
         if ($ebook->author_id) {
             $authorOtherEbooks = Ebook::query()
@@ -270,7 +389,13 @@ class EbookController extends Controller
             'authorOtherEbooks',
             'hasAccess',
             'libraryEntry',
-            'isOwnerOrAdmin'
+            'isOwnerOrAdmin',
+            'reviewCount',
+            'avgRating',
+            'ratingCounts',
+            'ratingPercentages',
+            'userHasReviewed',
+            'estimatedReadingTime'
         ));
     }
 

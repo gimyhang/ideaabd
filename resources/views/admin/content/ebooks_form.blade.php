@@ -153,6 +153,54 @@
                 </div>
             </div>
 
+            {{-- 5.1 Royalty & Earnings Model --}}
+            @php
+                $isRoyaltyFree = old('is_royalty_free', $editing ? (bool) ($record->is_royalty_free ?? false) : false);
+                $royaltyPct = old('royalty_percentage', $editing ? ($record->royalty_percentage ?? 50) : 50);
+            @endphp
+            <div class="col-12 mt-2">
+                <div class="p-3 bg-light bg-opacity-75 rounded-3 border" style="border-left: 4px solid #10b981 !important;">
+                    <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom">
+                        <label class="form-label small fw-bold text-dark mb-0">
+                            <i class="fas fa-coins text-success me-1"></i> রয়্যালটি ও লেখক আয় সেটিংস (Royalty & Author Earnings)
+                        </label>
+                        <span class="badge bg-success bg-opacity-10 text-success border border-success-subtle small fw-bold">
+                            ইবুক রয়্যালটি নিয়ন্ত্রণ
+                        </span>
+                    </div>
+
+                    <div class="row g-2 align-items-center">
+                        <div class="col-12 col-md-6">
+                            <div class="form-check form-switch p-2 bg-white rounded-3 border">
+                                <input type="hidden" name="is_royalty_free" value="0">
+                                <input class="form-check-input ms-0 me-2 cursor-pointer" type="checkbox" role="switch" 
+                                       id="f-is_royalty_free" name="is_royalty_free" value="1" 
+                                       @checked($isRoyaltyFree) onchange="toggleEbookRoyaltyInputs(this)">
+                                <label class="form-check-label fw-bold text-dark small cursor-pointer" for="f-is_royalty_free">
+                                    <i class="fas fa-hand-holding-heart text-warning me-1"></i> রয়্যালটি ফ্রি ইবুক (Royalty-Free)
+                                </label>
+                                <small class="d-block text-muted" style="font-size: 11px;">অন করলে এই ইবুক বিক্রয়ে কোনো রয়্যালটি লেখক অ্যাকাউন্টে যাবে না (০% রয়্যালটি)।</small>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-md-6" id="ebookRoyaltyPercentGroup">
+                            <label for="f-royalty_percentage" class="form-label small fw-semibold text-dark mb-1">
+                                লেখক রয়্যালটি শেয়ার (%) (Author Royalty %)
+                            </label>
+                            <div class="input-group input-group-sm">
+                                <input type="number" step="0.5" min="0" max="100" id="f-royalty_percentage" 
+                                       name="royalty_percentage" value="{{ $royaltyPct }}" 
+                                       class="form-control rounded-start-3 font-monospace fw-bold @error('royalty_percentage') is-invalid @enderror" 
+                                       placeholder="50">
+                                <span class="input-group-text bg-white fw-bold">%</span>
+                            </div>
+                            <small class="text-muted d-block mt-0.5" style="font-size: 10.5px;">ডিফল্ট ৫০%। চাইলে পরিবর্তন বা ০% (রয়্যালটি ফ্রি) করতে পারেন।</small>
+                            @error('royalty_percentage')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             {{-- 6. Authors & Contributors (Single Section) --}}
             @php
                 $curAuthorId   = old('author_id', old('author_link_id', $editing ? ($record->author_id ?? ($record->author_link_id ?? '')) : ''));
@@ -521,9 +569,25 @@ function calculateEbookDiscount() {
     }
 }
 
+function toggleEbookRoyaltyInputs(cb) {
+    const group = document.getElementById('ebookRoyaltyPercentGroup');
+    const pctInput = document.getElementById('f-royalty_percentage');
+    if (cb && cb.checked) {
+        if (pctInput) pctInput.value = '0';
+        if (group) group.style.opacity = '0.5';
+    } else {
+        if (pctInput && (pctInput.value === '0' || !pctInput.value)) pctInput.value = '50';
+        if (group) group.style.opacity = '1';
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     calculateEbookDiscount();
     updateEbookLivePreview();
+    const royaltyFreeCb = document.getElementById('f-is_royalty_free');
+    if (royaltyFreeCb) {
+        toggleEbookRoyaltyInputs(royaltyFreeCb);
+    }
 });
 </script>
 @endpush

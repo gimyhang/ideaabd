@@ -72,9 +72,14 @@ Route::get('/ads.txt', function () {
     ]);
 })->name('ads.txt');
 
-// --- Auth routes (login / logout) --------------------------------------------
+// --- Auth routes (login / logout / registration) --------------------------------------------
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login')->middleware('guest');
 Route::post('/login', [LoginController::class, 'login'])->middleware('guest');
+Route::get('/register/author', [\Modules\Author\Http\Controllers\Frontend\AuthorController::class, 'register'])->name('register.author');
+Route::post('/register/author', [\Modules\Author\Http\Controllers\Frontend\AuthorController::class, 'storeRegistration'])->name('register.author.store');
+Route::get('/register/publisher', [\Modules\Publisher\Http\Controllers\Frontend\PublisherController::class, 'register'])->name('register.publisher');
+Route::post('/register/publisher', [\Modules\Publisher\Http\Controllers\Frontend\PublisherController::class, 'storeRegistration'])->name('register.publisher.store');
+Route::get('/register', fn() => redirect()->route('register.author'))->name('register');
 Route::get('/login/refresh-bot-challenge', [LoginController::class, 'refreshBotChallenge'])->name('login.refresh-bot');
 Route::get('/login/visual-challenge', [LoginController::class, 'getVisualChallenge'])->name('login.visual-challenge');
 Route::match(['get', 'post'], '/logout', [LoginController::class, 'logout'])->name('logout');
@@ -265,11 +270,12 @@ Route::post('/contact/submit', function (\Illuminate\Http\Request $request) {
 })->name('contact.submit');
 
 // --- Registration routes --------------------------------------------------
-Route::get('/register', [RegistrationController::class, 'choose'])->name('register.choose');
+Route::get('/register', fn() => redirect('/login?mode=register'))->name('register.choose');
+Route::post('/register/complete', [RegistrationController::class, 'completeUnifiedRegistration'])->name('register.complete');
 Route::get('/register-success', [RegistrationController::class, 'registrationSuccess'])->name('register.success');
 Route::post('/register/send-otp', [RegistrationController::class, 'sendOtp'])->name('register.send-otp');
 Route::post('/register/verify-otp', [RegistrationController::class, 'verifyOtp'])->name('register.verify-otp');
-Route::get('/register/{type}', [RegistrationController::class, 'showForm'])->name('register.form');
+Route::get('/register/{type}', fn($type) => redirect('/login?mode=register&category=' . $type))->name('register.form');
 Route::post('/register/{type}', [RegistrationController::class, 'register'])->name('register.submit');
 Route::get('/pending-approval', [RegistrationController::class, 'pendingApproval'])->name('pending.approval');
 
@@ -279,6 +285,7 @@ Route::prefix('my-account')->middleware('auth')->group(function () {
     Route::post('/profile', [\App\Http\Controllers\UserController::class, 'updateProfile'])->name('my-account.profile.update');
     Route::post('/address', [\App\Http\Controllers\UserController::class, 'updateAddress'])->name('my-account.address.update');
     Route::post('/password', [\App\Http\Controllers\UserController::class, 'updatePassword'])->name('my-account.password.update');
+    Route::post('/kyc', [\App\Http\Controllers\UserController::class, 'updateKyc'])->name('my-account.kyc.update');
     Route::get('/orders/{id}', [\App\Http\Controllers\UserController::class, 'orderDetails'])->name('my-account.orders.details');
     Route::post('/wishlist/remove/{id}', [\App\Http\Controllers\UserController::class, 'removeFromWishlist'])->name('my-account.wishlist.remove');
 });

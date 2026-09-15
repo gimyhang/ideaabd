@@ -25,6 +25,8 @@ class BlogPost extends Model
         'category_id',
         'author_id',
         'status',
+        'is_royalty_free',
+        'royalty_percentage',
         'published_at',
         'view_count',
         'is_featured',
@@ -44,6 +46,8 @@ class BlogPost extends Model
     ];
 
     protected $casts = [
+        'is_royalty_free'           => 'boolean',
+        'royalty_percentage'        => 'decimal:2',
         'published_at'              => 'datetime',
         'created_at'                => 'datetime',
         'updated_at'                => 'datetime',
@@ -51,6 +55,33 @@ class BlogPost extends Model
         'edit_request_reviewed_at'  => 'datetime',
         'edit_request_data'         => 'array',
     ];
+
+    /**
+     * Check if this post is marked as royalty-free.
+     */
+    public function isRoyaltyFree(): bool
+    {
+        if ((bool) ($this->is_royalty_free ?? false)) {
+            return true;
+        }
+
+        if ($this->royalty_percentage !== null && (float) $this->royalty_percentage <= 0.0) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Get author honorarium/royalty share percentage.
+     */
+    public function getRoyaltyPercentage(): float
+    {
+        if ($this->isRoyaltyFree()) {
+            return 0.0;
+        }
+        return $this->royalty_percentage !== null ? (float) $this->royalty_percentage : 70.0;
+    }
 
     /**
      * Check if the post has a pending edit/correction request.

@@ -355,7 +355,7 @@
                                 <th>Date</th>
                                 <th>E-Book Title</th>
                                 <th>Price</th>
-                                <th>Royalty (50%)</th>
+                                <th>Royalty Share</th>
                                 <th>Status</th>
                             </tr>
                         </thead>
@@ -368,9 +368,22 @@
                                         <small class="d-block text-muted">Order #{{ $royalty->order?->order_number ?? $royalty->order_id }}</small>
                                     </td>
                                     <td class="font-monospace">৳{{ number_format($royalty->sale_price, 2) }}</td>
-                                    <td class="fw-bold text-success font-monospace">+৳{{ number_format($royalty->royalty_amount, 2) }}</td>
                                     <td>
-                                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5">Earned</span>
+                                        @if((float) $royalty->royalty_percentage <= 0 || $royalty->status === 'royalty_free')
+                                            <span class="badge bg-secondary-subtle text-secondary border rounded-pill px-2 py-0.5" style="font-size: 10px;">রয়্যালটি ফ্রি</span>
+                                        @else
+                                            <span class="fw-bold text-success font-monospace">+৳{{ number_format($royalty->royalty_amount, 2) }}</span>
+                                            <small class="text-muted font-monospace d-block" style="font-size: 10.5px;">({{ (float) $royalty->royalty_percentage }}%)</small>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if($royalty->status === 'earned')
+                                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5">Earned</span>
+                                        @elseif($royalty->status === 'royalty_free')
+                                            <span class="badge bg-secondary-subtle text-secondary border rounded-pill px-2 py-0.5">রয়্যালটি ফ্রি</span>
+                                        @else
+                                            <span class="badge bg-light text-dark border rounded-pill px-2 py-0.5">{{ ucfirst($royalty->status) }}</span>
+                                        @endif
                                     </td>
                                 </tr>
                             @empty
@@ -437,13 +450,19 @@
                             <div class="overflow-hidden flex-grow-1">
                                 <h6 class="small fw-bold mb-0 text-truncate text-dark">{{ $eb->title }}</h6>
                                 <div class="font-monospace small text-primary fw-semibold" style="font-size: 11px;">৳{{ number_format($eb->price, 2) }}</div>
-                                <div class="mt-0.5">
+                                <div class="mt-0.5 d-flex align-items-center gap-1">
                                     @if($eb->mod_status === 'approved')
                                         <span class="badge bg-success-subtle text-success" style="font-size: 9.5px;">Live</span>
                                     @elseif($eb->mod_status === 'rejected')
                                         <span class="badge bg-danger-subtle text-danger" style="font-size: 9.5px;">Revision</span>
                                     @else
                                         <span class="badge bg-warning-subtle text-warning-emphasis" style="font-size: 9.5px;">Pending</span>
+                                    @endif
+
+                                    @if($eb->isRoyaltyFree())
+                                        <span class="badge bg-secondary-subtle text-secondary" style="font-size: 9px;">ফ্রি</span>
+                                    @else
+                                        <span class="badge bg-info-subtle text-info-emphasis" style="font-size: 9px;">{{ (float) $eb->getRoyaltyPercentage() }}%</span>
                                     @endif
                                 </div>
                             </div>
@@ -576,6 +595,12 @@
                                     <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2 py-0.5">Pending</span>
                                 @else
                                     <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-2 py-0.5">Draft</span>
+                                @endif
+
+                                @if($post->isRoyaltyFree())
+                                    <span class="badge bg-secondary-subtle text-secondary rounded-pill px-1.5 py-0.5" style="font-size: 9px;">ফ্রি</span>
+                                @else
+                                    <span class="badge bg-info-subtle text-info-emphasis rounded-pill px-1.5 py-0.5" style="font-size: 9px;">{{ (float) $post->getRoyaltyPercentage() }}%</span>
                                 @endif
                             </td>
                             <td class="text-end">

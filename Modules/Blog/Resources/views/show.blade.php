@@ -1029,7 +1029,15 @@
                         <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-2.5 py-0.5 ms-1 fw-semibold" onclick="copyAnyNumber('{{ $bkashNumber }}', this)" title="বিকাশ নম্বর কপি করুন">
                             <i class="fa-regular fa-copy me-1"></i><span>কপি</span>
                         </button>
-                        <span class="ms-1.5">• সম্মানির ৭০% লেখক পাবেন, ৩০% সাইট মেইনটেনেন্স</span>
+                        @if($post->isRoyaltyFree())
+                            <span class="ms-1.5">• প্রাপ্ত সম্মানি সম্পূর্ণভাবে ওয়েবসাইট ও মুক্ত সাহিত্য চর্চার উন্নয়ন ও রক্ষণাবেক্ষণে ব্যয় হবে</span>
+                        @else
+                            @php
+                                $postAuthorPct = (float) $post->getRoyaltyPercentage();
+                                $postMaintPct = max(0, 100 - $postAuthorPct);
+                            @endphp
+                            <span class="ms-1.5">• সম্মানির @bn($postAuthorPct)% লেখক পাবেন, @bn($postMaintPct)% সাইট মেইনটেনেন্স</span>
+                        @endif
                     </div>
                 </div>
 
@@ -1081,7 +1089,15 @@
                                             <div class="mb-1"><i class="fa-solid fa-circle-check text-success me-1.5"></i>১. আপনার বিকাশ অ্যাপে গিয়ে <strong>Send Money</strong> করে <strong>{{ $bkashNumber }}</strong> নম্বরে আপনার পছন্দের সম্মানির টাকা পাঠান।</div>
                                             <div class="mb-1"><i class="fa-solid fa-circle-check text-success me-1.5"></i>২. টাকা পাঠানোর পর নিচের ফর্মে <strong>টাকার পরিমাণ</strong> ও বিকাশ থেকে পাওয়া <strong>TrxID (ট্রানজেকশন আইডি)</strong> প্রদান করুন।</div>
                                             <div class="text-primary-emphasis fw-semibold" style="font-size: 11.5px;">
-                                                <i class="fa-solid fa-info-circle text-primary me-1"></i>এই সম্মানির <strong>৭০%</strong> সরাসরি লেখকের অ্যাকাউন্টে জমা হবে এবং <strong>৩০%</strong> সাইট মেইনটেনেন্স বিল হিসেবে গৃহীত হবে।
+                                                @if($post->isRoyaltyFree())
+                                                    <i class="fa-solid fa-info-circle text-primary me-1"></i>এই সম্মানিসমূহ মুক্ত সাহিত্য চর্চা ও সাইটের প্রযুক্তিগত উন্নয়ন ফান্ড হিসেবে ব্যবহৃত হবে।
+                                                @else
+                                                    @php
+                                                        $mAuthPct = (float) $post->getRoyaltyPercentage();
+                                                        $mMaintPct = max(0, 100 - $mAuthPct);
+                                                    @endphp
+                                                    <i class="fa-solid fa-info-circle text-primary me-1"></i>এই সম্মানির <strong>@bn($mAuthPct)%</strong> সরাসরি লেখকের অ্যাকাউন্টে জমা হবে এবং <strong>@bn($mMaintPct)%</strong> সাইট মেইনটেনেন্স ফি হিসেবে গৃহীত হবে।
+                                                @endif
                                             </div>
                                         </div>
                                     </div>

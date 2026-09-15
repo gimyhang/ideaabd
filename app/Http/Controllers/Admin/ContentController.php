@@ -127,6 +127,10 @@ class ContentController extends Controller
         );
 
         $credit = $this->creditAttributes($request, $spec, isNew: true, record: null);
+        foreach ($credit as $k => $v) {
+            $attributes[$k] = $v;
+        }
+
         if ($type === 'authors') {
             $authorName = $attributes['name_bn'] ?? ($attributes['name_en'] ?? ($attributes['name'] ?? ''));
             $attributes['name'] = $authorName;
@@ -150,7 +154,7 @@ class ContentController extends Controller
 
         if ($type === 'blog') {
             if (empty($attributes['author_id']) || !is_numeric($attributes['author_id'])) {
-                $attributes['author_id'] = (int) (auth()->id() ?: 1);
+                $attributes['author_id'] = (int) ($credit['author_id'] ?? (auth()->id() ?: 1));
             } else {
                 $attributes['author_id'] = (int) $attributes['author_id'];
             }
@@ -925,6 +929,19 @@ class ContentController extends Controller
             } else {
                 $attributes['format'] = 'pdf';
             }
+
+            if ($request->has('is_royalty_free')) {
+                $attributes['is_royalty_free'] = $request->boolean('is_royalty_free');
+                if ($attributes['is_royalty_free']) {
+                    $attributes['royalty_percentage'] = 0.00;
+                }
+            }
+            if ($request->filled('royalty_percentage')) {
+                $attributes['royalty_percentage'] = (float) $request->input('royalty_percentage');
+                if ($attributes['royalty_percentage'] <= 0) {
+                    $attributes['is_royalty_free'] = true;
+                }
+            }
         }
 
         if ($spec['key'] === 'books') {
@@ -1246,6 +1263,19 @@ class ContentController extends Controller
                 $attributes['status'] = $request->input('status');
                 if ($request->input('status') === 'draft') {
                     $attributes['mod_status'] = 'pending';
+                }
+            }
+
+            if ($request->has('is_royalty_free')) {
+                $attributes['is_royalty_free'] = $request->boolean('is_royalty_free');
+                if ($attributes['is_royalty_free']) {
+                    $attributes['royalty_percentage'] = 0.00;
+                }
+            }
+            if ($request->filled('royalty_percentage')) {
+                $attributes['royalty_percentage'] = (float) $request->input('royalty_percentage');
+                if ($attributes['royalty_percentage'] <= 0) {
+                    $attributes['is_royalty_free'] = true;
                 }
             }
         }

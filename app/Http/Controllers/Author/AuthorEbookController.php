@@ -15,6 +15,35 @@ use Modules\Publisher\Models\Publisher;
 class AuthorEbookController extends Controller
 {
     /**
+     * Get Base Query for E-Books belonging to the author or matched by owner info.
+     */
+    protected function getAuthorEbooksBaseQuery($user, $author)
+    {
+        return Ebook::where(function ($query) use ($user, $author) {
+            $query->where('author_user_id', $user->id)
+                ->orWhere('submitted_by', $user->id);
+
+            if ($author) {
+                $query->orWhere('author_id', $author->id)
+                    ->orWhere('author_link_id', $author->id);
+            }
+
+            // Match by phone
+            $phones = array_unique(array_filter([$user->phone ?? null, $author->phone ?? null]));
+            if (!empty($phones)) {
+                $query->orWhereIn('owner_phone', $phones);
+            }
+
+            // Match by name
+            $names = array_unique(array_filter([$user->name ?? null, $author->name ?? null]));
+            if (!empty($names)) {
+                $query->orWhereIn('owner_name', $names);
+                $query->orWhereIn('author_name', $names);
+            }
+        });
+    }
+
+    /**
      * Display Author's E-Book Inventory.
      */
     public function index(Request $request): View
@@ -22,12 +51,7 @@ class AuthorEbookController extends Controller
         $user = auth()->user();
         $author = $user->getAuthorRecord();
 
-        $query = Ebook::where(function ($q) use ($user, $author) {
-            $q->where('author_user_id', $user->id);
-            if ($author) {
-                $q->orWhere('author_id', $author->id);
-            }
-        })->with(['category']);
+        $query = $this->getAuthorEbooksBaseQuery($user, $author)->with(['category']);
 
         if ($request->filled('status')) {
             $query->where('mod_status', $request->status);
@@ -247,13 +271,9 @@ class AuthorEbookController extends Controller
         $user = auth()->user();
         $author = $user->getAuthorRecord();
 
-        $ebook = Ebook::where('id', $id)
-            ->where(function ($q) use ($user, $author) {
-                $q->where('author_user_id', $user->id);
-                if ($author) {
-                    $q->orWhere('author_id', $author->id);
-                }
-            })->firstOrFail();
+        $ebook = $this->getAuthorEbooksBaseQuery($user, $author)
+            ->where('id', $id)
+            ->firstOrFail();
 
         $categories = Category::where('is_active', true)->orderBy('name')->get();
         $publishers = Publisher::where('is_active', true)->orderBy('name')->get();
@@ -269,13 +289,9 @@ class AuthorEbookController extends Controller
         $user = auth()->user();
         $author = $user->getAuthorRecord();
 
-        $ebook = Ebook::where('id', $id)
-            ->where(function ($q) use ($user, $author) {
-                $q->where('author_user_id', $user->id);
-                if ($author) {
-                    $q->orWhere('author_id', $author->id);
-                }
-            })->firstOrFail();
+        $ebook = $this->getAuthorEbooksBaseQuery($user, $author)
+            ->where('id', $id)
+            ->firstOrFail();
 
         $validated = $request->validate([
             'title'                 => 'required|string|max:255',
@@ -397,13 +413,9 @@ class AuthorEbookController extends Controller
         $user = auth()->user();
         $author = $user->getAuthorRecord();
 
-        $ebook = Ebook::where('id', $id)
-            ->where(function ($q) use ($user, $author) {
-                $q->where('author_user_id', $user->id);
-                if ($author) {
-                    $q->orWhere('author_id', $author->id);
-                }
-            })->firstOrFail();
+        $ebook = $this->getAuthorEbooksBaseQuery($user, $author)
+            ->where('id', $id)
+            ->firstOrFail();
 
         $ebook->delete();
 

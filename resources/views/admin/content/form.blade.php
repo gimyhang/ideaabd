@@ -323,6 +323,52 @@
                                            placeholder="Display Author Name"
                                            oninput="updateLiveMockupCard()">
                                 </div>
+
+                                {{-- Blog Royalty / Honorarium Model --}}
+                                @php
+                                    $isBlogRoyaltyFree = old('is_royalty_free', $editing ? (bool) ($record->is_royalty_free ?? false) : false);
+                                    $blogRoyaltyPct = old('royalty_percentage', $editing ? ($record->royalty_percentage ?? 70) : 70);
+                                @endphp
+                                <div class="mt-2.5 pt-2 border-top">
+                                    <div class="p-2.5 bg-white rounded-3 border" style="border-left: 3.5px solid #0284c7 !important;">
+                                        <div class="d-flex align-items-center justify-content-between mb-1.5 pb-1 border-bottom">
+                                            <label class="form-label small fw-bold text-dark mb-0" style="font-size: 11.5px;">
+                                                <i class="fas fa-hand-holding-dollar text-primary me-1"></i> রয়্যালটি ও পাঠক সম্মানী নিয়ন্ত্রণ (Royalty & Honorarium)
+                                            </label>
+                                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle small" style="font-size: 10px;">
+                                                আইডিয়াপত্র
+                                            </span>
+                                        </div>
+
+                                        <div class="row g-2 align-items-center">
+                                            <div class="col-12 col-md-7">
+                                                <div class="form-check form-switch mb-0">
+                                                    <input type="hidden" name="is_royalty_free" value="0">
+                                                    <input class="form-check-input ms-0 me-2 cursor-pointer" type="checkbox" role="switch" 
+                                                           id="f-is_royalty_free_blog" name="is_royalty_free" value="1" 
+                                                           @checked($isBlogRoyaltyFree) onchange="toggleBlogRoyaltyInputs(this)">
+                                                    <label class="form-check-label fw-bold text-dark small cursor-pointer" for="f-is_royalty_free_blog" style="font-size: 11.5px;">
+                                                        <i class="fas fa-gift text-warning me-1"></i> রয়্যালটি ফ্রি লেখা (Royalty-Free)
+                                                    </label>
+                                                </div>
+                                                <small class="text-muted d-block" style="font-size: 10px;">অন করলে এই লেখায় পাঠক সম্মানী লেখক ওয়ালেটে যাবে না (সম্পাদকীয়/ফ্রি পোস্ট)।</small>
+                                            </div>
+
+                                            <div class="col-12 col-md-5" id="blogRoyaltyPercentGroup">
+                                                <label for="f-royalty_percentage_blog" class="form-label small fw-semibold text-dark mb-0.5" style="font-size: 11px;">
+                                                    লেখক সম্মানী শেয়ার (%)
+                                                </label>
+                                                <div class="input-group input-group-sm">
+                                                    <input type="number" step="1" min="0" max="100" id="f-royalty_percentage_blog" 
+                                                           name="royalty_percentage" value="{{ $blogRoyaltyPct }}" 
+                                                           class="form-control rounded-start-3 font-monospace fw-bold @error('royalty_percentage') is-invalid @enderror" 
+                                                           placeholder="70">
+                                                    <span class="input-group-text bg-light fw-bold" style="font-size: 11px;">%</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
                         {{-- ══ PUBLISHER SELECT WITH QUICK CREATION ══════════════ --}}
@@ -4029,8 +4075,25 @@ window.magicAutoGenerateCover = magicAutoGenerateCover;
 window.generateAutoBookCoverLive = generateAutoBookCoverLive;
 window.generatePhotocardCover = generatePhotocardCover;
 
+function toggleBlogRoyaltyInputs(cb) {
+    const group = document.getElementById('blogRoyaltyPercentGroup');
+    const pctInput = document.getElementById('f-royalty_percentage_blog');
+    if (cb && cb.checked) {
+        if (pctInput) pctInput.value = '0';
+        if (group) group.style.opacity = '0.5';
+    } else {
+        if (pctInput && (pctInput.value === '0' || !pctInput.value)) pctInput.value = '70';
+        if (group) group.style.opacity = '1';
+    }
+}
+window.toggleBlogRoyaltyInputs = toggleBlogRoyaltyInputs;
+
 // Auto-trigger live cover rendering on page load & when typing title or author
 document.addEventListener('DOMContentLoaded', function() {
+    const royaltyFreeBlogCb = document.getElementById('f-is_royalty_free_blog');
+    if (royaltyFreeBlogCb) {
+        toggleBlogRoyaltyInputs(royaltyFreeBlogCb);
+    }
     const isBlogType = @json($spec['key'] === 'blog');
     const titleEl = document.getElementById('f-title');
     if (titleEl) {

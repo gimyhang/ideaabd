@@ -21,6 +21,12 @@ class RegistrationController extends Controller
     {
         $allowed = ['seller', 'publisher', 'author', 'buyer'];
         abort_unless(in_array($type, $allowed), 404);
+        if ($type === 'author') {
+            return app(\Modules\Author\Http\Controllers\Frontend\AuthorController::class)->register();
+        }
+        if ($type === 'publisher') {
+            return app(\Modules\Publisher\Http\Controllers\Frontend\PublisherController::class)->register();
+        }
         return view("auth.register-{$type}");
     }
 
@@ -142,11 +148,204 @@ class RegistrationController extends Controller
         ]);
     }
 
+    /**
+     * Complete Unified Onboarding Registration (Amazon-style Multi-step Onboarding)
+     * Handles Category selection (Buyer, Author, Publisher, Seller) + Primary Address
+     * and auto-logs the user in directly to /my-account.
+     */
+    public function completeUnifiedRegistration(Request $request)
+    {
+        \Illuminate\Support\Facades\Validator::make($request->all(), [
+            'name'           => ['required', 'string', 'max:255'],
+            'email'          => ['required', 'email', 'max:255'],
+            'phone'          => ['required', 'string', 'max:25'],
+            'country_code'   => ['nullable', 'string', 'max:10'],
+            'password'       => ['required', 'string', 'min:6'],
+            'category'       => ['required', 'string', 'in:buyer,author,publisher,seller'],
+            'author_name'    => ['nullable', 'string', 'max:255'],
+            'author_name_en' => ['nullable', 'string', 'max:255'],
+            'publisher_name' => ['nullable', 'string', 'max:255'],
+            'shop_name'      => ['nullable', 'string', 'max:255'],
+            'country'        => ['nullable', 'string', 'max:100'],
+            'district'       => ['nullable', 'string', 'max:100'],
+            'thana'          => ['nullable', 'string', 'max:100'],
+            'post_code'      => ['nullable', 'string', 'max:20'],
+            'address'        => ['nullable', 'string', 'max:500'],
+        ])->validate();
+
+        $countryCode = $request->input('country_code', '+880');
+        $rawPhone = trim($request->input('phone'));
+        $cleanDigits = preg_replace('/[^0-9]/', '', $rawPhone);
+
+        if (str_starts_with($countryCode, '+880') || $countryCode === '880') {
+            if (str_starts_with($cleanDigits, '880')) {
+                $cleanDigits = substr($cleanDigits, 3);
+            }
+            if (str_starts_with($cleanDigits, '0')) {
+                $cleanDigits = substr($cleanDigits, 1);
+            }
+            $fullPhone = '+880' . $cleanDigits;
+            $localPhone = '0' . $cleanDigits;
+        } else {
+            $prefix = str_starts_with($countryCode, '+') ? $countryCode : '+' . $countryCode;
+            $fullPhone = $prefix . ltrim($cleanDigits, '0');
+            $localPhone = $fullPhone;
+        }
+
+        $email = trim(strtolower($request->input('email')));
+        $category = $request->input('category', 'buyer');
+
+        // Check for existing user by phone or email
+        $user = User::where('phone', $fullPhone)
+            ->orWhere('phone', $localPhone)
+            ->orWhere('email', $email)
+            ->first();
+
+        if ($user) {
+            // If user exists, log in and update category if previously default buyer
+            if ($user->role === 'buyer' && $category !== 'buyer') {
+                $user->role = $category;
+                $user->reg_type = $category;
+                $user->reg_status = 'pending';
+                $user->save();
+            }
+            \Illuminate\Support\Facades\Auth::login($user, true);
+            return response()->json([
+                'success' => true,
+                'redirect_url' => route('my-account'),
+                'message' => 'Welcome back! You have successfully signed in.',
+            ]);
+        }
+
+        $authorName = trim((string) $request->input('author_name', ''));
+        $authorNameEn = trim((string) $request->input('author_name_en', ''));
+        $publisherName = trim((string) $request->input('publisher_name', ''));
+        $shopName = trim((string) $request->input('shop_name', ''));
+
+        if ($category === 'author' && empty($authorName)) {
+            $authorName = trim((string) $request->input('name'));
+        }
+
+        $displayName = $request->input('name');
+        if ($category === 'author' && !empty($authorName)) {
+            $displayName = $authorName;
+        } elseif ($category === 'publisher' && !empty($publisherName)) {
+            $displayName = $publisherName;
+        } elseif ($category === 'seller' && !empty($shopName)) {
+            $displayName = $shopName;
+        }
+
+        // Create new User
+        $regData = [
+            'category'        => $category,
+            'country'         => $request->input('country', 'Bangladesh'),
+            'district'        => $request->input('district', ''),
+            'thana'           => $request->input('thana', ''),
+            'post_code'       => $request->input('post_code', ''),
+            'address'         => $request->input('address', ''),
+            'country_code'    => $countryCode,
+            'author_name'     => $authorName,
+            'author_name_en'  => $authorNameEn,
+            'author_name_bn'  => $authorName,
+            'name_bn'         => $authorName,
+            'name_en'         => $authorNameEn,
+            'publisher_name'  => $publisherName,
+            'shop_name'       => $shopName,
+            'registered_ip'   => $request->ip(),
+            'registered_at'   => now()->toIso8601String(),
+        ];
+
+        $user = User::create([
+            'name'       => $displayName,
+            'email'      => $email,
+            'phone'      => $fullPhone,
+            'password'   => Hash::make($request->input('password')),
+            'role'       => $category,
+            'reg_type'   => $category,
+            'reg_status' => ($category === 'buyer' ? 'approved' : 'pending'),
+            'reg_data'   => $regData,
+            'is_active'  => true,
+        ]);
+
+        // If author category, sync unified author record so that all books, ebooks, ideapatra, and author directory link directly here
+        if ($category === 'author' && class_exists(\Modules\Author\Models\Author::class)) {
+            try {
+                $authorRecord = \Modules\Author\Models\Author::findOrCreateUnified([
+                    'name'        => $authorName,
+                    'name_bn'     => $authorName,
+                    'name_en'     => $authorNameEn ?: null,
+                    'email'       => $user->email,
+                    'phone'       => $user->phone,
+                    'user_id'     => $user->id,
+                    'is_active'   => true,
+                    'is_verified' => false,
+                ]);
+
+                if ($authorRecord && $authorRecord->id) {
+                    $regData['author_id'] = $authorRecord->id;
+                    $user->reg_data = $regData;
+                    $user->save();
+                }
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('Author unified sync error: ' . $e->getMessage());
+            }
+        }
+
+        // If publisher category, sync unified publisher record so that all books, ebooks, directory, and billing vouchers link directly here
+        if ($category === 'publisher' && class_exists(\Modules\Publisher\Models\Publisher::class)) {
+            try {
+                $pubHouse = trim((string) ($request->input('publishing_house_name') ?: $request->input('publisher_name') ?: $request->input('name')));
+                $fullAddress = trim(implode(', ', array_filter([
+                    $request->input('address'),
+                    $request->input('thana'),
+                    $request->input('district'),
+                    $request->input('post_code'),
+                ])));
+
+                $publisherRecord = \Modules\Publisher\Models\Publisher::findOrCreateUnified([
+                    'name'        => $pubHouse,
+                    'email'       => $user->email,
+                    'phone'       => $user->phone,
+                    'address'     => $fullAddress,
+                    'country'     => $request->input('country', 'Bangladesh'),
+                    'is_active'   => true,
+                    'is_verified' => false,
+                ]);
+
+                if ($publisherRecord && $publisherRecord->id) {
+                    $regData['publisher_id'] = $publisherRecord->id;
+                    $regData['publishing_house_name'] = $pubHouse;
+                    $regData['publisher_owner_name'] = trim((string) $request->input('publisher_owner_name', $user->name));
+                    $user->reg_data = $regData;
+                    $user->save();
+                }
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('Publisher unified sync error: ' . $e->getMessage());
+            }
+        }
+
+        // Auto login and redirect to my-account
+        \Illuminate\Support\Facades\Auth::login($user, true);
+
+        return response()->json([
+            'success'      => true,
+            'redirect_url' => route('my-account'),
+            'message'      => 'Your account has been created successfully!',
+        ]);
+    }
+
     // Handle all registration types
     public function register(Request $request, string $type)
     {
         $allowed = ['seller', 'publisher', 'author', 'buyer'];
         abort_unless(in_array($type, $allowed), 404);
+
+        if ($type === 'author') {
+            return app(\Modules\Author\Http\Controllers\Frontend\AuthorController::class)->storeRegistration($request);
+        }
+        if ($type === 'publisher') {
+            return app(\Modules\Publisher\Http\Controllers\Frontend\PublisherController::class)->storeRegistration($request);
+        }
 
         $customMessages = [
             'name.required'      => 'আপনার পুরো নাম লিখুন।',

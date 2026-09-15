@@ -60,10 +60,29 @@ class UserController extends Controller
         $blogCategories = collect();
         $editPost = null;
 
-        if ($user->role === 'author' || $user->reg_type === 'author' || BlogPost::where('author_id', $user->id)->exists()) {
-            $authorPosts = BlogPost::where(function($q) use ($user) {
-                    $q->where('author_id', $user->id)->orWhere('submitted_by', $user->id);
-                })
+        $author = method_exists($user, 'getAuthorRecord') ? $user->getAuthorRecord() : null;
+
+        $authorPostsQuery = BlogPost::where(function($q) use ($user, $author) {
+            $q->where('author_id', $user->id)
+              ->orWhere('submitted_by', $user->id);
+
+            if ($author) {
+                $q->orWhere('author_id', $author->id);
+            }
+
+            $phones = array_unique(array_filter([$user->phone ?? null, $author->phone ?? null]));
+            if (!empty($phones)) {
+                $q->orWhereIn('owner_phone', $phones);
+            }
+
+            $names = array_unique(array_filter([$user->name ?? null, $author->name ?? null]));
+            if (!empty($names)) {
+                $q->orWhereIn('owner_name', $names);
+            }
+        });
+
+        if ($user->role === 'author' || $user->reg_type === 'author' || $author || (clone $authorPostsQuery)->exists()) {
+            $authorPosts = (clone $authorPostsQuery)
                 ->with('category')
                 ->latest('id')
                 ->get();
@@ -71,10 +90,9 @@ class UserController extends Controller
             $blogCategories = BlogCategory::where('is_active', true)->orderBy('name')->get();
 
             if ($request->filled('edit_post_id')) {
-                $candidate = BlogPost::where('id', $request->edit_post_id)
-                    ->where(function($q) use ($user) {
-                        $q->where('author_id', $user->id)->orWhere('submitted_by', $user->id);
-                    })->first();
+                $candidate = (clone $authorPostsQuery)
+                    ->where('id', $request->edit_post_id)
+                    ->first();
                 if ($candidate && ($candidate->status === 'draft' || $candidate->status === 'rejected' || $candidate->mod_status === 'rejected')) {
                     $editPost = $candidate;
                 }
@@ -260,4 +278,106 @@ class UserController extends Controller
         return redirect()->route('my-account', ['tab' => 'wishlist'])
             ->with('success', 'বইটি পছন্দের তালিকা থেকে অপসারণ করা হয়েছে।');
     }
+
+    /**
+     * Update Role-based KYC & Verification Profile (Author, Publisher, Seller, Reader).
+     */
+    public function updateKyc(Request $request)
+    {
+        $user = auth()->user();
+        $role = $user->role ?: ($user->reg_type ?: 'buyer');
+
+        $validated = $request->validate([
+            'name'                   => 'nullable|string|max:255',
+            'name_bn'                => 'nullable|string|max:255',
+            'name_en'                => 'nullable|string|max:255',
+            'pen_name'               => 'nullable|string|max:255',
+            'avatar'                 => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
+            'genres'                 => 'nullable|array',
+            'genres.*'               => 'string|max:100',
+            'bio'                    => 'nullable|string|max:5000',
+            'nid'                    => 'nullable|string|max:50',
+            'nid_file'               => 'nullable|file|mimes:jpeg,png,jpg,webp,pdf|max:10240',
+            'payout_account_type'    => 'nullable|string|max:50',
+            'payout_account_details' => 'nullable|string|max:255',
+            'publisher_name'         => 'nullable|string|max:255',
+            'established'            => 'nullable|digits:4',
+            'trade_license'          => 'nullable|string|max:100',
+            'shop_name'              => 'nullable|string|max:255',
+            'address'                => 'nullable|string|max:500',
+            'district'               => 'nullable|string|max:100',
+            'thana'                  => 'nullable|string|max:100',
+        ]);
+
+        $regData = is_array($user->reg_data) ? $user->reg_data : [];
+
+        // 1. Handle Avatar Upload
+        if ($request->hasFile('avatar') && $request->file('avatar')->isValid()) {
+            $avatarPath = $request->file('avatar')->store('avatars', 'public');
+            $user->avatar = $avatarPath;
+            $regData['avatar'] = $avatarPath;
+        }
+
+        // 2. Handle NID Document Upload
+        if ($request->hasFile('nid_file') && $request->file('nid_file')->isValid()) {
+            $nidPath = $request->file('nid_file')->store('kyc_documents', 'public');
+            $regData['nid_file'] = $nidPath;
+        }
+
+        // 3. Populate KYC Meta Fields
+        if (!empty($validated['name_bn'])) $regData['name_bn'] = $validated['name_bn'];
+        if (!empty($validated['name_en'])) $regData['name_en'] = $validated['name_en'];
+        if (!empty($validated['pen_name'])) $regData['pen_name'] = $validated['pen_name'];
+        if (isset($validated['genres'])) $regData['genres'] = $validated['genres'];
+        if (!empty($validated['bio'])) $regData['bio'] = $validated['bio'];
+        if (!empty($validated['nid'])) $regData['nid'] = $validated['nid'];
+        if (!empty($validated['payout_account_type'])) $regData['payout_type'] = $validated['payout_account_type'];
+        if (!empty($validated['payout_account_details'])) $regData['payout_details'] = $validated['payout_account_details'];
+        if (!empty($validated['publisher_name'])) $regData['publisher_name'] = $validated['publisher_name'];
+        if (!empty($validated['established'])) $regData['established'] = $validated['established'];
+        if (!empty($validated['trade_license'])) $regData['trade_license'] = $validated['trade_license'];
+        if (!empty($validated['shop_name'])) $regData['shop_name'] = $validated['shop_name'];
+        if (!empty($validated['address'])) $regData['address'] = $validated['address'];
+        if (!empty($validated['district'])) $regData['district'] = $validated['district'];
+        if (!empty($validated['thana'])) $regData['thana'] = $validated['thana'];
+
+        $regData['kyc_submitted_at'] = now()->toIso8601String();
+
+        // Update User Model
+        if (!empty($validated['name_bn'])) {
+            $user->name = $validated['name_bn'];
+        } elseif (!empty($validated['name'])) {
+            $user->name = $validated['name'];
+        }
+
+        $user->reg_data = $regData;
+        if ($user->reg_status !== 'approved') {
+            $user->reg_status = 'pending';
+        }
+        $user->save();
+
+        // 4. Sync with Module Models (Author / Publisher)
+        if (($role === 'author' || $user->reg_type === 'author') && class_exists(\Modules\Author\Models\Author::class)) {
+            try {
+                \Modules\Author\Models\Author::findOrCreateUnified([
+                    'name'                   => $user->name,
+                    'name_bn'                => $validated['name_bn'] ?? null,
+                    'name_en'                => $validated['name_en'] ?? null,
+                    'bio'                    => $validated['bio'] ?? null,
+                    'avatar'                 => $user->avatar,
+                    'email'                  => $user->email,
+                    'phone'                  => $user->phone,
+                    'user_id'                => $user->id,
+                    'payout_account_type'    => $validated['payout_account_type'] ?? 'bkash',
+                    'payout_account_details' => $validated['payout_account_details'] ?? null,
+                ]);
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('Author KYC sync error: ' . $e->getMessage());
+            }
+        }
+
+        return redirect()->route('my-account', ['tab' => 'kyc'])
+            ->with('success', 'আপনার KYC ভেরিফিকেশন তথ্য সফলভাবে জমা দেওয়া হয়েছে! এডমিন পর্যালোচনার পর ভেরিফাইড ব্যাজ সক্রিয় হবে।');
+    }
 }
+
