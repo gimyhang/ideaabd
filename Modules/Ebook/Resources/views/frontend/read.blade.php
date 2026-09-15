@@ -430,6 +430,12 @@
                 <i class="fa-solid fa-bookmark text-info"></i>
                 <span class="d-none d-md-inline">বুকমার্ক</span>
             </button>
+
+            <!-- Smart Bengali Audiobook (TTS) Player Button -->
+            <button type="button" class="reader-btn text-primary fw-bold" id="btn-toggle-audiobook" title="বইটি শুনুন (বাংলা অডিওপাঠ / Text-to-Speech)">
+                <i class="fa-solid fa-headphones text-primary"></i>
+                <span class="d-none d-sm-inline">অডিওপাঠ</span>
+            </button>
         </div>
 
         <div class="text-center px-2 overflow-hidden text-truncate mx-2" style="max-width: 420px;">
@@ -1383,6 +1389,46 @@
                     console.error("PDF initialization error:", e);
                     if (loader) loader.style.display = 'none';
                 }
+            }
+        });
+    </script>
+
+    @include('partials.audiobook-dock')
+    <script src="{{ asset('js/idea-audiobook-engine.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const btnAudio = document.getElementById('btn-toggle-audiobook');
+            if (btnAudio) {
+                btnAudio.addEventListener('click', function() {
+                    const sel = window.getSelection()?.toString()?.trim();
+                    if (sel && sel.length > 0) {
+                        if (window.IdeaAudiobook) IdeaAudiobook.speakSelectedText();
+                        return;
+                    }
+
+                    let readerText = '';
+                    const iframe = document.querySelector('#epub-viewer-wrapper iframe');
+                    if (iframe && iframe.contentDocument) {
+                        readerText = iframe.contentDocument.body?.innerText || '';
+                    } else {
+                        const pdfTextLayer = document.querySelector('.textLayer');
+                        if (pdfTextLayer) {
+                            readerText = pdfTextLayer.innerText || '';
+                        }
+                    }
+
+                    const bookTitle = @js($ebook->title);
+                    if (readerText && readerText.trim().length > 20) {
+                        if (window.IdeaAudiobook) {
+                            IdeaAudiobook.startArticle(bookTitle, readerText, location.href);
+                        }
+                    } else {
+                        if (window.IdeaAudiobook) {
+                            const desc = @js($ebook->description ?: ($ebook->title . ' — লেখক: ' . ($ebook->author?->name ?: ($ebook->author_name ?: 'আইডিয়া প্রকাশন')) . '।'));
+                            IdeaAudiobook.startArticle(bookTitle, desc + '\nযেকোনো অনুচ্ছেদ বা লাইন সিলেক্ট করেও সাথে সাথে শুনতে পারবেন।', location.href);
+                        }
+                    }
+                });
             }
         });
     </script>

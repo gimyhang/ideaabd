@@ -800,6 +800,10 @@
         }, true);
     </script>
 
+    {{-- Universal World-Class Bengali Audiobook Dock & Selection Tooltip --}}
+    @include('partials.audiobook-dock')
+    <script src="{{ asset('js/idea-audiobook-engine.js') }}"></script>
+
     {{-- Both mechanisms are supported: @section('scripts') and @push('scripts') --}}
     @yield('scripts')
     @stack('scripts')

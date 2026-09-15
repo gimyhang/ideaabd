@@ -461,6 +461,12 @@
                 <i class="fa-solid fa-list-ul"></i> <span class="d-none d-md-inline" id="toc-btn-text">সূচিপত্র</span>
             </button>
 
+            <!-- Smart Bengali Audiobook (TTS) Player Button -->
+            <button type="button" class="reader-btn text-primary fw-bold" id="btn-toggle-audiobook" title="ম্যাগাজিন শুনুন (বাংলা অডিওপাঠ / Text-to-Speech)">
+                <i class="fa-solid fa-headphones text-primary"></i>
+                <span class="d-none d-sm-inline">অডিওপাঠ</span>
+            </button>
+
             <!-- File Format Badge -->
             <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill px-2.5 py-1 d-none d-lg-inline-block small">
                 <i class="fa-solid fa-book-open me-1"></i>
@@ -1377,6 +1383,46 @@
         if (toggleTocBtn && tocDrawer) toggleTocBtn.addEventListener('click', () => tocDrawer.classList.toggle('open'));
         if (closeTocBtn && tocDrawer) closeTocBtn.addEventListener('click', () => tocDrawer.classList.remove('open'));
     });
+    </script>
+
+    @include('partials.audiobook-dock')
+    <script src="{{ asset('js/idea-audiobook-engine.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const btnAudio = document.getElementById('btn-toggle-audiobook');
+            if (btnAudio) {
+                btnAudio.addEventListener('click', function() {
+                    const sel = window.getSelection()?.toString()?.trim();
+                    if (sel && sel.length > 0) {
+                        if (window.IdeaAudiobook) IdeaAudiobook.speakSelectedText();
+                        return;
+                    }
+
+                    let readerText = '';
+                    const articlesArea = document.getElementById('text-reader-area');
+                    if (articlesArea && articlesArea.style.display !== 'none') {
+                        readerText = articlesArea.innerText || '';
+                    } else {
+                        const iframe = document.querySelector('#epub-viewer iframe');
+                        if (iframe && iframe.contentDocument) {
+                            readerText = iframe.contentDocument.body?.innerText || '';
+                        }
+                    }
+
+                    const webzineTitle = @js($webzine->title);
+                    if (readerText && readerText.trim().length > 20) {
+                        if (window.IdeaAudiobook) {
+                            IdeaAudiobook.startArticle(webzineTitle, readerText, location.href);
+                        }
+                    } else {
+                        if (window.IdeaAudiobook) {
+                            const desc = @js($webzine->description ?: ($webzine->title . ' — আইডিয়া প্রকাশন ওয়েবজিন ও সাহিত্য সাময়িকী।'));
+                            IdeaAudiobook.startArticle(webzineTitle, desc + '\nযেকোনো লেখা বা অনুচ্ছেদ সিলেক্ট করেও সরাসরি অডিওপাঠ শুনতে পারবেন।', location.href);
+                        }
+                    }
+                });
+            }
+        });
     </script>
 </body>
 </html>

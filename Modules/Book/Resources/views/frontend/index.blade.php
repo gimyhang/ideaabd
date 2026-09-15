@@ -275,9 +275,45 @@
                             </div>
                         </div>
 
-                        {{-- Cross-Entity Matches: Categories / Authors / Ideapatra Blog --}}
-                        @if((isset($matchedCategories) && $matchedCategories->isNotEmpty()) || (isset($matchedAuthors) && $matchedAuthors->isNotEmpty()) || (isset($matchedBlogPosts) && $matchedBlogPosts->isNotEmpty()))
+                        {{-- Cross-Entity Matches: Site Pages / Categories / Authors / Ideapatra Blog --}}
+                        @if((isset($matchedPages) && count($matchedPages) > 0) || (isset($matchedCategories) && $matchedCategories->isNotEmpty()) || (isset($matchedAuthors) && $matchedAuthors->isNotEmpty()) || (isset($matchedBlogPosts) && $matchedBlogPosts->isNotEmpty()))
                             <div class="mb-4 d-flex flex-column gap-3">
+
+                                {{-- Matched Site Pages & Navigation Guides --}}
+                                @if(isset($matchedPages) && count($matchedPages) > 0)
+                                    <div class="p-3 rounded-4 bg-white border shadow-2xs">
+                                        <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom">
+                                            <div class="fw-bold text-dark small d-flex align-items-center gap-1.5">
+                                                <i class="fa-solid fa-file-lines text-primary"></i> 
+                                                <span>সংশ্লিষ্ট পেজ ও নির্দেশিকা ({{ count($matchedPages) }}টি)</span>
+                                            </div>
+                                            <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-2 py-0.5" style="font-size: 10px;">সাইট নেভিগেশন</span>
+                                        </div>
+                                        <div class="row g-2">
+                                            @foreach(array_slice($matchedPages, 0, 4) as $mPage)
+                                                <div class="col-md-6 col-12">
+                                                    <a href="{{ $mPage['url'] }}" class="d-flex align-items-center gap-2.5 p-2.5 bg-light bg-opacity-75 rounded-3 border text-decoration-none shadow-2xs hover-lift h-100">
+                                                        <div class="rounded-circle bg-white shadow-2xs border text-primary d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px; font-size: 14px;">
+                                                            <i class="fa-solid {{ $mPage['icon'] ?? 'fa-file-lines' }}"></i>
+                                                        </div>
+                                                        <div class="flex-grow-1 min-w-0">
+                                                            <div class="d-flex align-items-center gap-1.5 flex-wrap">
+                                                                <span class="fw-bold text-dark text-truncate small">{{ $mPage['title'] }}</span>
+                                                                @if(!empty($mPage['category']))
+                                                                    <span class="badge bg-white text-secondary border rounded-pill px-1.5 py-0.2" style="font-size: 9px;">{{ $mPage['category'] }}</span>
+                                                                @endif
+                                                            </div>
+                                                            @if(!empty($mPage['description']))
+                                                                <div class="text-muted text-truncate" style="font-size: 11px;">{{ $mPage['description'] }}</div>
+                                                            @endif
+                                                        </div>
+                                                        <span class="btn btn-sm btn-primary rounded-pill px-2.5 py-1 text-white flex-shrink-0 ms-1 d-none d-sm-inline-block" style="font-size: 10.5px;">প্রবেশ করুন →</span>
+                                                    </a>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                @endif
                                 
                                 {{-- Matched Categories --}}
                                 @if(isset($matchedCategories) && $matchedCategories->isNotEmpty())
@@ -314,41 +350,95 @@
                                     </div>
                                 @endif
 
-                                {{-- Matched Ideapatra / Blog Articles --}}
-                                @if(isset($matchedBlogPosts) && $matchedBlogPosts->isNotEmpty())
+                                {{-- Matched Published Writings, Ideapatra Articles, Webzines & Research Papers --}}
+                                @php
+                                    $hasWritings = (isset($matchedBlogPosts) && $matchedBlogPosts->isNotEmpty()) || 
+                                                   (isset($matchedWebzineArticles) && $matchedWebzineArticles->isNotEmpty()) || 
+                                                   (isset($matchedResearchPapers) && $matchedResearchPapers->isNotEmpty());
+                                    $totalWritings = ($matchedBlogPosts->count() ?? 0) + ($matchedWebzineArticles->count() ?? 0) + ($matchedResearchPapers->count() ?? 0);
+                                @endphp
+
+                                @if($hasWritings)
                                     <div class="p-3 rounded-4 bg-primary-subtle bg-opacity-25 border border-primary-subtle">
-                                        <div class="d-flex align-items-center justify-content-between mb-2">
+                                        <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom border-primary-subtle">
                                             <div class="fw-bold text-primary small d-flex align-items-center gap-1.5">
-                                                <i class="fa-solid fa-newspaper"></i> সংশ্লিষ্ট আইডিয়াপত্র ও ব্লগ নিবন্ধ ({{ count($matchedBlogPosts) }}টি)
+                                                <i class="fa-solid fa-newspaper"></i> সংশ্লিষ্ট প্রকাশিত লেখা ও প্রবন্ধ ({{ $totalWritings }}টি)
                                             </div>
                                             @if(Route::has('blog.index'))
                                                 <a href="{{ route('blog.index', ['q' => request('q') ?: request('search')]) }}" class="small fw-semibold text-decoration-none text-primary">সকল লেখা দেখুন →</a>
                                             @endif
                                         </div>
                                         <div class="row g-2">
-                                            @foreach($matchedBlogPosts as $mPost)
-                                                <div class="col-md-6 col-12">
-                                                    <a href="{{ route('blog.show', $mPost->slug) }}" class="d-flex align-items-center gap-2 p-2 bg-white rounded-3 border text-decoration-none shadow-2xs hover-lift h-100">
-                                                        <div class="rounded-2 bg-light d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; overflow: hidden;">
-                                                            @if(!empty($mPost->featured_image))
-                                                                <img src="{{ asset('storage/' . $mPost->featured_image) }}" alt="{{ $mPost->title }}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.onerror=null;this.parentElement.innerHTML='📰';">
-                                                            @else
-                                                                <span class="fs-5">📰</span>
-                                                            @endif
-                                                        </div>
-                                                        <div class="flex-grow-1 min-w-0">
-                                                            <div class="fw-semibold text-dark text-truncate small">{{ $mPost->title }}</div>
-                                                            <div class="text-muted" style="font-size: 11px;">
-                                                                @if($mPost->category)
-                                                                    <span class="text-primary">{{ $mPost->category->name }}</span> • 
+                                            {{-- Blog Posts / Ideapatra --}}
+                                            @if(isset($matchedBlogPosts))
+                                                @foreach($matchedBlogPosts as $mPost)
+                                                    <div class="col-md-6 col-12">
+                                                        <a href="{{ route('blog.show', $mPost->slug) }}" class="d-flex align-items-center gap-2.5 p-2 bg-white rounded-3 border text-decoration-none shadow-2xs hover-lift h-100">
+                                                            <div class="rounded-2 bg-light d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; overflow: hidden;">
+                                                                @if(!empty($mPost->featured_image))
+                                                                    <img src="{{ asset('storage/' . $mPost->featured_image) }}" alt="{{ $mPost->title }}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.onerror=null;this.parentElement.innerHTML='<span class=\'fs-5\'>📰</span>';">
+                                                                @else
+                                                                    <span class="fs-5">📰</span>
                                                                 @endif
-                                                                <span>আইডিয়াপত্র</span>
                                                             </div>
-                                                        </div>
-                                                        <i class="fa-solid fa-chevron-right text-muted small me-1"></i>
-                                                    </a>
-                                                </div>
-                                            @endforeach
+                                                            <div class="flex-grow-1 min-w-0">
+                                                                <div class="fw-semibold text-dark text-truncate small">{{ $mPost->title }}</div>
+                                                                <div class="text-muted" style="font-size: 11px;">
+                                                                    <span><i class="fa-solid fa-user-pen me-0.5 opacity-75"></i> {{ $mPost->author?->name ?: ($mPost->owner_name ?: 'আইডিয়াপত্র লেখক') }}</span>
+                                                                    <span class="opacity-50">•</span>
+                                                                    <span class="badge bg-info bg-opacity-10 text-info px-1.5 py-0.2 rounded-pill" style="font-size: 9px;">{{ $mPost->category?->name ?: 'আইডিয়াপত্র' }}</span>
+                                                                </div>
+                                                            </div>
+                                                            <i class="fa-solid fa-chevron-right text-muted small me-1"></i>
+                                                        </a>
+                                                    </div>
+                                                @endforeach
+                                            @endif
+
+                                            {{-- Webzine Articles --}}
+                                            @if(isset($matchedWebzineArticles))
+                                                @foreach($matchedWebzineArticles as $mWArt)
+                                                    @php $wSlug = $mWArt->webzine?->slug ?: $mWArt->webzine_id; @endphp
+                                                    <div class="col-md-6 col-12">
+                                                        <a href="{{ Route::has('webzine.read') ? route('webzine.read', $wSlug) . '#page-' . ($mWArt->page_number ?: 1) : url('/webzines/' . $wSlug) }}" class="d-flex align-items-center gap-2.5 p-2 bg-white rounded-3 border text-decoration-none shadow-2xs hover-lift h-100">
+                                                            <div class="rounded-2 bg-light d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; overflow: hidden;">
+                                                                <i class="fa-solid fa-book-journal-whills text-info fs-5"></i>
+                                                            </div>
+                                                            <div class="flex-grow-1 min-w-0">
+                                                                <div class="fw-semibold text-dark text-truncate small">{{ $mWArt->title }}</div>
+                                                                <div class="text-muted" style="font-size: 11px;">
+                                                                    <span>{{ $mWArt->author_name ?: 'ওয়েবজিন লেখক' }}</span>
+                                                                    <span class="opacity-50">•</span>
+                                                                    <span class="badge bg-warning bg-opacity-15 text-dark px-1.5 py-0.2 rounded-pill" style="font-size: 9px;">ওয়েবজিন</span>
+                                                                </div>
+                                                            </div>
+                                                            <i class="fa-solid fa-chevron-right text-muted small me-1"></i>
+                                                        </a>
+                                                    </div>
+                                                @endforeach
+                                            @endif
+
+                                            {{-- Research Papers --}}
+                                            @if(isset($matchedResearchPapers))
+                                                @foreach($matchedResearchPapers as $mRPaper)
+                                                    <div class="col-md-6 col-12">
+                                                        <a href="{{ Route::has('research.show') ? route('research.show', $mRPaper->slug ?: $mRPaper->id) : url('/research/' . ($mRPaper->slug ?: $mRPaper->id)) }}" class="d-flex align-items-center gap-2.5 p-2 bg-white rounded-3 border text-decoration-none shadow-2xs hover-lift h-100">
+                                                            <div class="rounded-2 bg-light d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; overflow: hidden;">
+                                                                <i class="fa-solid fa-flask text-success fs-5"></i>
+                                                            </div>
+                                                            <div class="flex-grow-1 min-w-0">
+                                                                <div class="fw-semibold text-dark text-truncate small">{{ $mRPaper->title }}</div>
+                                                                <div class="text-muted" style="font-size: 11px;">
+                                                                    <span>{{ $mRPaper->author?->name ?: 'গবেষক' }}</span>
+                                                                    <span class="opacity-50">•</span>
+                                                                    <span class="badge bg-success bg-opacity-10 text-success px-1.5 py-0.2 rounded-pill" style="font-size: 9px;">গবেষণাপত্র</span>
+                                                                </div>
+                                                            </div>
+                                                            <i class="fa-solid fa-chevron-right text-muted small me-1"></i>
+                                                        </a>
+                                                    </div>
+                                                @endforeach
+                                            @endif
                                         </div>
                                     </div>
                                 @endif

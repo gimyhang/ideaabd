@@ -79,6 +79,12 @@
                                 <i class="fa-solid fa-book-open-reader fs-5"></i>
                                 <span>সম্পূর্ণ সাময়িকী বই আকারে পড়ুন</span>
                             </a>
+                            @if(!empty($webzine->description))
+                                <button type="button" class="btn btn-outline-primary btn-lg rounded-pill px-4 py-2.5 fw-bold d-inline-flex align-items-center gap-2" onclick="IdeaAudiobook.speakExcerpt('{{ addslashes(preg_replace('/\s+/', ' ', strip_tags($webzine->description))) }}', '{{ addslashes($webzine->title) }}')">
+                                    <i class="fa-solid fa-headphones fs-5"></i>
+                                    <span>অডিও শুনুন</span>
+                                </button>
+                            @endif
                             <a href="{{ route('webzine.index') }}" class="btn btn-outline-secondary btn-lg rounded-pill px-4 py-2.5">
                                 <i class="fa-solid fa-list me-1"></i>সকল সংখ্যা
                             </a>
@@ -113,11 +119,18 @@
                                         <i class="fa-solid fa-file-lines text-primary me-1.5 small"></i>{{ $article->title }}
                                     </a>
                                 </h5>
-                                @if($article->page_number)
-                                    <a href="{{ $readUrl }}" class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2.5 py-1 rounded-pill text-decoration-none small">
-                                        <i class="fa-solid fa-bookmark me-1"></i>পৃষ্ঠা {{ $article->page_number }}
-                                    </a>
-                                @endif
+                                <div class="d-flex align-items-center gap-1.5">
+                                    @if(!empty($article->content))
+                                        <button type="button" class="btn-quick-audio" onclick="IdeaAudiobook.speakExcerpt('{{ addslashes(preg_replace('/\s+/', ' ', strip_tags($article->content))) }}', '{{ addslashes($article->title) }}')" title="লেখাটি শুনুন">
+                                            <i class="fa-solid fa-headphones"></i> শুনুন
+                                        </button>
+                                    @endif
+                                    @if($article->page_number)
+                                        <a href="{{ $readUrl }}" class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2.5 py-1 rounded-pill text-decoration-none small">
+                                            <i class="fa-solid fa-bookmark me-1"></i>পৃষ্ঠা {{ $article->page_number }}
+                                        </a>
+                                    @endif
+                                </div>
                             </div>
                             
                             @if($article->author_name || $article->author)

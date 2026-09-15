@@ -340,11 +340,19 @@
                                         @endif
                                     </div>
 
-                                    <a href="{{ route('ebook.read', $ebook->slug) }}" 
-                                       class="btn btn-sm btn-primary rounded-pill px-3 py-1 fw-semibold shadow-sm" 
-                                       style="font-size: 0.78rem;">
-                                        <i class="fa-solid fa-book-open-reader me-1"></i> পড়ুন
-                                    </a>
+                                    <div class="d-flex align-items-center gap-1">
+                                        <button type="button" class="btn btn-sm btn-light border text-primary rounded-circle d-inline-flex align-items-center justify-content-center btn-quick-audio"
+                                            style="width: 28px; height: 28px; font-size: 0.75rem;"
+                                            onclick="if(window.IdeaAudiobook) IdeaAudiobook.speakExcerpt(this, @js($ebook->title), @js($ebook->description ? Str::limit(trim(strip_tags(html_entity_decode((string)$ebook->description, ENT_QUOTES | ENT_HTML5, 'UTF-8'))), 180) : ($ebook->title . ' — লেখক: ' . ($ebook->author?->name ?: ($ebook->author_name ?: 'আইডিয়া প্রকাশন')) . '। আইডিয়া প্রকাশনের ডিজিটাল পাঠাগারে বইটি পড়ুন।')), @js(route('ebook.show', $ebook->slug)))"
+                                            title="ই-বুক বিবরণ শুনুন">
+                                            <i class="fa-solid fa-volume-high text-primary"></i>
+                                        </button>
+                                        <a href="{{ route('ebook.read', $ebook->slug) }}" 
+                                           class="btn btn-sm btn-primary rounded-pill px-2.5 py-1 fw-semibold shadow-sm" 
+                                           style="font-size: 0.78rem;">
+                                            <i class="fa-solid fa-book-open-reader me-1"></i> পড়ুন
+                                        </a>
+                                    </div>
                                 </div>
                             </div>
                         </div>

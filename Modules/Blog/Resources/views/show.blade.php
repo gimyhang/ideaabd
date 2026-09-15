@@ -309,12 +309,12 @@
         gap: 6px;
     }
 
-    /* High-Contrast Audio Player Pill */
+    /* High-Contrast Modern Audio Player Controls */
     .tts-player-pill {
         background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
         color: #ffffff !important;
         border-radius: 50rem;
-        padding: 5px 15px 5px 10px;
+        padding: 6px 16px 6px 12px;
         display: inline-flex;
         align-items: center;
         gap: 8px;
@@ -325,10 +325,10 @@
         box-shadow: 0 2px 10px rgba(2, 132, 199, 0.35);
         transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         line-height: 1.3;
-        min-height: 34px;
+        min-height: 36px;
     }
     .tts-player-pill i, .tts-player-pill #ttsIcon {
-        font-size: 1.30rem !important;
+        font-size: 1.25rem !important;
         line-height: 1;
         color: #ffffff;
         transition: transform 0.2s ease;
@@ -342,8 +342,12 @@
         transform: scale(1.12);
     }
     .tts-player-pill.is-playing {
+        background: linear-gradient(135deg, #e11d48 0%, #be123c 100%);
+        box-shadow: 0 2px 12px rgba(225, 29, 72, 0.4);
+    }
+    .tts-player-pill.is-paused {
         background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
-        box-shadow: 0 2px 10px rgba(217, 119, 6, 0.4);
+        box-shadow: 0 2px 12px rgba(217, 119, 6, 0.4);
     }
     .tts-wave-bar {
         width: 3px;
@@ -358,6 +362,182 @@
     @keyframes ttsWave {
         0%, 100% { transform: scaleY(0.5); }
         50% { transform: scaleY(1.3); }
+    }
+
+    /* Floating Audiobook Dock */
+    #audiobookFloatingDock {
+        position: fixed;
+        bottom: 24px;
+        left: 50%;
+        transform: translateX(-50%) translateY(120%);
+        z-index: 1060;
+        background: rgba(15, 23, 42, 0.96);
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        color: #fff;
+        border-radius: 24px;
+        padding: 10px 18px;
+        box-shadow: 0 16px 36px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255,255,255,0.08);
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
+        opacity: 0;
+        pointer-events: none;
+        max-width: 95vw;
+        width: 580px;
+    }
+    #audiobookFloatingDock.active {
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+        pointer-events: auto;
+    }
+    #audiobookFloatingDock.minimized {
+        width: auto;
+        padding: 6px 14px;
+        border-radius: 50rem;
+    }
+    #audiobookFloatingDock.minimized .audio-dock-expanded-content {
+        display: none !important;
+    }
+    .audio-dock-btn {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        border: none;
+        background: rgba(255, 255, 255, 0.12);
+        color: #fff;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.88rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        flex-shrink: 0;
+    }
+    .audio-dock-btn:hover {
+        background: rgba(255, 255, 255, 0.25);
+        transform: scale(1.08);
+        color: #fff;
+    }
+    .audio-dock-btn.primary {
+        background: #0284c7;
+        width: 38px;
+        height: 38px;
+        font-size: 1.05rem;
+        box-shadow: 0 2px 12px rgba(2, 132, 199, 0.5);
+    }
+    .audio-dock-btn.primary:hover {
+        background: #0369a1;
+        transform: scale(1.1);
+    }
+    .audio-dock-pill {
+        background: rgba(255, 255, 255, 0.12);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        color: #fff;
+        border-radius: 50rem;
+        padding: 3px 9px;
+        font-size: 0.74rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+    }
+    .audio-dock-pill:hover {
+        background: rgba(255, 255, 255, 0.24);
+        color: #fff;
+    }
+    
+    /* Interactive Progress Scrub Bar */
+    .tts-scrub-container {
+        width: 100%;
+        height: 6px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 3px;
+        position: relative;
+        cursor: pointer;
+        overflow: hidden;
+        transition: height 0.18s ease;
+    }
+    .tts-scrub-container:hover {
+        height: 9px;
+    }
+    .tts-scrub-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #38bdf8, #0284c7);
+        width: 0%;
+        border-radius: 3px;
+        transition: width 0.15s linear;
+    }
+
+    /* Selection Floating Button */
+    #selectionAudioTooltip {
+        position: absolute;
+        z-index: 1080;
+        background: #0f172a;
+        color: #ffffff;
+        border-radius: 50rem;
+        padding: 5px 12px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        box-shadow: 0 6px 18px rgba(0,0,0,0.3);
+        border: 1px solid rgba(255,255,255,0.2);
+        cursor: pointer;
+        display: none;
+        align-items: center;
+        gap: 6px;
+        animation: fadeIn 0.18s ease;
+    }
+    #selectionAudioTooltip:hover {
+        background: #0284c7;
+        transform: translateY(-2px);
+    }
+
+    /* Paragraph Hover-to-Speak Trigger */
+    .article-content p, .article-content blockquote, .article-content li {
+        position: relative;
+        transition: background-color 0.25s ease;
+    }
+    .tts-para-speak-btn {
+        position: absolute;
+        right: -32px;
+        top: 2px;
+        opacity: 0;
+        pointer-events: none;
+        background: #f1f5f9;
+        border: 1px solid #cbd5e1;
+        color: #0284c7;
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    }
+    .article-content p:hover .tts-para-speak-btn,
+    .article-content blockquote:hover .tts-para-speak-btn {
+        opacity: 0.85;
+        pointer-events: auto;
+    }
+    .tts-para-speak-btn:hover {
+        opacity: 1 !important;
+        background: #0284c7;
+        color: #fff;
+        transform: scale(1.15);
+    }
+
+    .tts-live-highlight {
+        background-color: rgba(254, 240, 138, 0.45) !important;
+        border-radius: 6px;
+        box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.35);
+        transition: background-color 0.3s ease;
     }
 
     /* Toolbar Action Buttons */
@@ -1295,6 +1475,113 @@
             </div>
         </div>
     </div>
+<!-- Floating Selected Text Audio Tooltip -->
+<div id="selectionAudioTooltip" onclick="speakSelectedText()" role="button" title="নির্বাচিত অংশটি শুনুন">
+    <i class="fa-solid fa-headphones text-info"></i>
+    <span>নির্বাচিত অংশ শুনুন</span>
+</div>
+
+<!-- Modern Floating Audiobook Control Dock -->
+<div id="audiobookFloatingDock" class="no-print shadow-lg" role="region" aria-label="অডিওবুক কন্ট্রোল">
+    <!-- Interactive Timeline Scrub Bar -->
+    <div class="tts-scrub-container audio-dock-expanded-content" id="ttsScrubContainer" onclick="handleScrubClick(event)" title="যেকোনো বাক্যে সরাসরি জাম্প করতে ক্লিক করুন">
+        <div class="tts-scrub-fill" id="ttsScrubFill"></div>
+    </div>
+
+    <!-- Main Controls Row -->
+    <div class="d-flex align-items-center justify-content-between gap-2 w-100">
+        <!-- Playback Navigation Buttons -->
+        <div class="d-flex align-items-center gap-1.5 flex-shrink-0">
+            <button type="button" class="audio-dock-btn" onclick="prevTTSSentence()" title="পূর্ববর্তী বাক্য (⏮) বা বাম তীর চিহ্ন">
+                <i class="fa-solid fa-backward-step"></i>
+            </button>
+            <button type="button" class="audio-dock-btn primary" id="dockPlayPauseBtn" onclick="togglePlayPauseTTS()" title="প্লে / পজ (Spacebar)">
+                <i class="fa-solid fa-pause" id="dockPlayPauseIcon"></i>
+            </button>
+            <button type="button" class="audio-dock-btn" onclick="nextTTSSentence()" title="পরবর্তী বাক্য (⏭) বা ডান তীর চিহ্ন">
+                <i class="fa-solid fa-forward-step"></i>
+            </button>
+            <button type="button" class="audio-dock-btn text-danger" onclick="stopArticleAudio(true)" title="পাঠ বন্ধ করুন (⏹) বা Esc">
+                <i class="fa-solid fa-stop"></i>
+            </button>
+        </div>
+
+        <!-- Progress Counter & Estimated Time -->
+        <div class="d-flex flex-column justify-content-center px-1 audio-dock-expanded-content" style="min-width: 120px; flex: 1;">
+            <div class="d-flex align-items-center justify-content-between text-white-50" style="font-size: 0.70rem;">
+                <span id="dockTimeEstimate">অডিওবুক পাঠ</span>
+                <span id="dockProgressPercent" class="fw-bold text-info">০%</span>
+            </div>
+            <div class="fw-bold text-white text-truncate" id="dockSentenceCounter" style="font-size: 0.80rem;">
+                বাক্য ১ / ১
+            </div>
+        </div>
+
+        <!-- Action Pills (Speed, Timer, Voice, Mute, Minimize, Close) -->
+        <div class="d-flex align-items-center gap-1.5 flex-shrink-0">
+            <!-- Speed Selector -->
+            <div class="dropdown d-inline-block audio-dock-expanded-content">
+                <button type="button" class="audio-dock-pill dropdown-toggle" data-bs-toggle="dropdown" id="dockSpeedBtn" title="পড়ার গতি">
+                    <i class="fa-solid fa-gauge-high text-info"></i>
+                    <span id="dockSpeedLabel">১.০x</span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end shadow-lg border-0 small">
+                    <li><h6 class="dropdown-header text-muted small" style="font-size: 11px;">পড়ার গতি</h6></li>
+                    <li><button class="dropdown-item small" type="button" onclick="setTTSSpeed(0.8, '০.৮x')">০.৮x (ধীর গতি)</button></li>
+                    <li><button class="dropdown-item small active" type="button" onclick="setTTSSpeed(1.0, '১.০x')">১.০x (স্বাভাবিক)</button></li>
+                    <li><button class="dropdown-item small" type="button" onclick="setTTSSpeed(1.25, '১.২৫x')">১.২৫x (মাঝারি দ্রুত)</button></li>
+                    <li><button class="dropdown-item small" type="button" onclick="setTTSSpeed(1.5, '১.৫x')">১.৫x (দ্রুত)</button></li>
+                </ul>
+            </div>
+
+            <!-- Sleep Timer Dropdown -->
+            <div class="dropdown d-inline-block audio-dock-expanded-content">
+                <button type="button" class="audio-dock-pill dropdown-toggle" data-bs-toggle="dropdown" id="dockTimerBtn" title="স্লিপ টাইমার">
+                    <i class="fa-regular fa-clock text-warning"></i>
+                    <span id="dockTimerLabel">টাইমার</span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end shadow-lg border-0 small">
+                    <li><h6 class="dropdown-header text-muted small" style="font-size: 11px;">স্লিপ টাইমার</h6></li>
+                    <li><button class="dropdown-item small active" type="button" onclick="setTTSSleepTimer(0, 'বন্ধ')">টাইমার বন্ধ</button></li>
+                    <li><button class="dropdown-item small" type="button" onclick="setTTSSleepTimer(5, '৫ মিনিট')">৫ মিনিট পর বন্ধ</button></li>
+                    <li><button class="dropdown-item small" type="button" onclick="setTTSSleepTimer(10, '১০ মিনিট')">১০ মিনিট পর বন্ধ</button></li>
+                    <li><button class="dropdown-item small" type="button" onclick="setTTSSleepTimer(15, '১৫ মিনিট')">১৫ মিনিট পর বন্ধ</button></li>
+                    <li><button class="dropdown-item small" type="button" onclick="setTTSSleepTimer(30, '৩০ মিনিট')">৩০ মিনিট পর বন্ধ</button></li>
+                </ul>
+            </div>
+
+            <!-- Voice & Pitch Dropdown -->
+            <div class="dropdown d-inline-block audio-dock-expanded-content">
+                <button type="button" class="audio-dock-btn" data-bs-toggle="dropdown" title="কণ্ঠস্বর ও স্বর পরিবর্তন">
+                    <i class="fa-solid fa-sliders text-light"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end shadow-lg border-0 small" style="min-width: 220px;" id="ttsVoiceMenuList">
+                    <li><h6 class="dropdown-header text-muted small" style="font-size: 11px;">বাংলা ভয়েস ও স্বর</h6></li>
+                    <li><button class="dropdown-item small d-flex align-items-center justify-content-between" type="button" onclick="setTTSVoicePreferred('bd')"><span>🇧🇩 বাংলা (বাংলাদেশ)</span> <i class="fa-solid fa-check text-info ms-2" id="vCheckBD"></i></button></li>
+                    <li><button class="dropdown-item small d-flex align-items-center justify-content-between" type="button" onclick="setTTSVoicePreferred('in')"><span>🇮🇳 বাংলা (ভারত)</span> <i class="fa-solid fa-check text-info ms-2 d-none" id="vCheckIN"></i></button></li>
+                    <li><button class="dropdown-item small d-flex align-items-center justify-content-between" type="button" onclick="setTTSVoicePreferred('default')"><span>🌐 ব্রাউজার ডিফল্ট</span> <i class="fa-solid fa-check text-info ms-2 d-none" id="vCheckDef"></i></button></li>
+                    <li><hr class="dropdown-divider opacity-25"></li>
+                    <li><h6 class="dropdown-header text-muted small" style="font-size: 11px;">কণ্ঠের স্বর (Pitch)</h6></li>
+                    <li><button class="dropdown-item small" type="button" onclick="setTTSPitch(0.9, 'গম্ভীর')">গম্ভীর স্বর (Deep)</button></li>
+                    <li><button class="dropdown-item small active" type="button" onclick="setTTSPitch(1.0, 'স্বাভাবিক')">স্বাভাবিক স্বর (Normal)</button></li>
+                    <li><button class="dropdown-item small" type="button" onclick="setTTSPitch(1.15, 'উচ্চ')">উচ্চ স্বর (High)</button></li>
+                </ul>
+            </div>
+
+            <!-- Mute / Unmute Button -->
+            <button type="button" class="audio-dock-btn audio-dock-expanded-content" id="dockMuteBtn" onclick="toggleTTSMute()" title="মিউট / আনমিউট (M)">
+                <i class="fa-solid fa-volume-high text-light" id="dockMuteIcon"></i>
+            </button>
+
+            <!-- Minimize / Expand Toggle -->
+            <button type="button" class="audio-dock-btn" onclick="toggleDockMinimize()" title="মিনিমাইজ / এক্সপ্যান্ড">
+                <i class="fa-solid fa-compress text-light" id="dockMinIcon"></i>
+            </button>
+
+            <!-- Close Dock -->
+            <button type="button" class="btn-close btn-close-white ms-0.5" style="font-size: 0.65rem;" onclick="stopArticleAudio(true)" title="বন্ধ করুন (Esc)"></button>
+        </div>
+    </div>
 </div>
 
 <!-- Floating Notification Toast Notice -->
@@ -1344,21 +1631,62 @@
         }
     }
 
-    // 3. Audio Reader (Text-to-Speech Streaming Chunked Engine)
+    // 3. Ultimate Dynamic Bengali Audiobook Engine
     let isSpeaking = false;
-    let synth = window.speechSynthesis;
+    let isPaused = false;
+    let isMuted = false;
+    let isDockMinimized = false;
+    let synth = ('speechSynthesis' in window) ? window.speechSynthesis : null;
     let speechChunks = [];
     let currentChunkIndex = 0;
-    let ttsHeartbeat = null;
+    let ttsWatchdogTimer = null;
+    let ttsSleepTimerInterval = null;
+    let ttsSleepRemainingSec = 0;
     let activeUtterance = null;
     let bengaliVoice = null;
+    let preferredVoiceType = 'bd'; // 'bd', 'in', 'default'
+    let ttsRate = 1.0;
+    let ttsPitch = 1.0;
+    let currentHighlightedEl = null;
+    const POST_STORAGE_KEY = 'idea_audiobook_progress_{{ $post->id }}';
+
+    function toBengaliDigits(num) {
+        if (num === null || num === undefined) return '০';
+        const banglaDigits = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+        return String(num).replace(/[0-9]/g, w => banglaDigits[+w]);
+    }
 
     function initTTSVoices() {
         if (!synth) return;
         try {
             const voices = synth.getVoices() || [];
-            bengaliVoice = voices.find(v => (v.lang && v.lang.toLowerCase().startsWith('bn')) || (v.name && (v.name.toLowerCase().includes('bangla') || v.name.toLowerCase().includes('bengali')))) || null;
-        } catch (err) {}
+            if (!voices.length) return;
+
+            const bdVoice = voices.find(v => v.lang === 'bn-BD' || v.lang === 'bn_BD')
+                || voices.find(v => (v.lang && v.lang.toLowerCase().startsWith('bn-bd')) || (v.name && v.name.toLowerCase().includes('bangladesh')));
+            
+            const inVoice = voices.find(v => v.lang === 'bn-IN' || v.lang === 'bn_IN')
+                || voices.find(v => (v.lang && v.lang.toLowerCase().startsWith('bn-in')) || (v.name && v.name.toLowerCase().includes('india')));
+            
+            const generalBnVoice = voices.find(v => v.lang && v.lang.toLowerCase().startsWith('bn'))
+                || voices.find(v => v.name && (
+                    v.name.toLowerCase().includes('bangla') || 
+                    v.name.toLowerCase().includes('bengali') ||
+                    v.name.toLowerCase().includes('tapti') ||
+                    v.name.toLowerCase().includes('mithun') ||
+                    v.name.toLowerCase().includes('bashkar')
+                ));
+
+            if (preferredVoiceType === 'bd' && (bdVoice || generalBnVoice)) {
+                bengaliVoice = bdVoice || generalBnVoice;
+            } else if (preferredVoiceType === 'in' && (inVoice || generalBnVoice)) {
+                bengaliVoice = inVoice || generalBnVoice;
+            } else {
+                bengaliVoice = bdVoice || inVoice || generalBnVoice || null;
+            }
+        } catch (err) {
+            console.warn('Voice init error:', err);
+        }
     }
 
     if (synth) {
@@ -1368,49 +1696,268 @@
         }
     }
 
-    function splitTextIntoSentences(text, maxChunkLen = 120) {
+    function cleanAndNormalizeBengaliText(text) {
+        if (!text) return '';
+        let cleaned = text;
+
+        // Strip invisible zero-width and control characters that break synthesis
+        cleaned = cleaned.replace(/[\u200B-\u200D\uFEFF\u00A0\u200E\u200F\u00AD\u202A-\u202E]/g, ' ');
+
+        // Expand common Bengali abbreviations to natural speakable words
+        cleaned = cleaned
+            .replace(/(?:^|\s)ড\.(?=\s|[অ-হ])/g, ' ডক্টর ')
+            .replace(/(?:^|\s)ডা\.(?=\s|[অ-হ])/g, ' ডাক্তার ')
+            .replace(/(?:^|\s)প্রো\.(?=\s|[অ-হ])/g, ' প্রফেসর ')
+            .replace(/(?:^|\s)প্রফে\.(?=\s|[অ-হ])/g, ' প্রফেসর ')
+            .replace(/(?:^|\s)পৃ\.(?=\s|[০-৯\d])/g, ' পৃষ্ঠা ')
+            .replace(/(?:^|\s)ইত্যা\.(?=\s|$|[।!?])/g, ' ইত্যাদি ')
+            .replace(/(?:^|\s)নং(?=\s|[০-৯\d])/g, ' নম্বর ')
+            .replace(/(?:^|\s)মো\.(?=\s|[অ-হ])/g, ' মোহাম্মদ ')
+            .replace(/(?:^|\s)মি\.(?=\s|[অ-হ])/g, ' মিস্টার ')
+            .replace(/(?:^|\s)খ্রি\.(?=\s|[০-৯\d])/g, ' খ্রিস্টাব্দ ')
+            .replace(/%/g, ' শতাংশ ')
+            .replace(/&/g, ' এবং ')
+            .replace(/\+/g, ' যোগ ')
+            .replace(/=/g, ' সমান ')
+            .replace(/\//g, ' বা ');
+
+        // Remove citations like [১], [1], (২)
+        cleaned = cleaned.replace(/\[\s*[০-৯\d]+\s*\]/g, ' ');
+        
+        // Convert English dots used as sentence ends to Bengali dāṛi
+        cleaned = cleaned.replace(/([অ-হ\u0980-\u09FF])\s*\.\s+/g, '$1। ');
+
+        // Replace dashes and hyphens with natural pause commas
+        cleaned = cleaned.replace(/[—–-]{2,}/g, ', ').replace(/[\"\'\`]/g, ' ');
+
+        // Normalize whitespace
+        cleaned = cleaned.replace(/[\r\n\t]+/g, ' ').replace(/\s{2,}/g, ' ').trim();
+
+        return cleaned;
+    }
+
+    function splitTextIntoSmartSentences(text, maxChunkLen = 95) {
         if (!text) return [];
-        const clean = text.replace(/[\r\n\t]+/g, ' ').replace(/\s+/g, ' ').trim();
-        const rawPieces = clean.split(/([।!?؛;\n\r]+|\.\s+)/);
-        const chunks = [];
-        let cur = '';
+        const cleaned = cleanAndNormalizeBengaliText(text);
+        if (!cleaned) return [];
+
+        const rawPieces = cleaned.split(/([।!?؛;\n\r]+)/);
+        const sentences = [];
+        let buffer = '';
 
         for (let i = 0; i < rawPieces.length; i++) {
-            const piece = rawPieces[i] ? rawPieces[i].trim() : '';
+            const piece = (rawPieces[i] || '').trim();
             if (!piece) continue;
 
-            if ((cur + ' ' + piece).length <= maxChunkLen) {
-                cur = cur ? (cur + ' ' + piece) : piece;
+            if (/^[।!?؛;\n\r]+$/.test(piece)) {
+                if (buffer) {
+                    sentences.push((buffer + ' ' + piece).trim());
+                    buffer = '';
+                }
             } else {
-                if (cur) chunks.push(cur);
-                if (piece.length > maxChunkLen) {
-                    const words = piece.split(' ');
-                    let sub = '';
-                    for (const w of words) {
-                        if ((sub + ' ' + w).length <= maxChunkLen) {
-                            sub = sub ? (sub + ' ' + w) : w;
-                        } else {
-                            if (sub) chunks.push(sub);
-                            sub = w;
-                        }
+                if (buffer) {
+                    if ((buffer + ' ' + piece).length <= maxChunkLen) {
+                        buffer += ' ' + piece;
+                    } else {
+                        sentences.push(buffer);
+                        buffer = piece;
                     }
-                    if (sub) chunks.push(sub);
-                    cur = '';
                 } else {
-                    cur = piece;
+                    buffer = piece;
                 }
             }
         }
-        if (cur) chunks.push(cur);
-        return chunks.filter(c => c.length > 0);
+        if (buffer) sentences.push(buffer);
+
+        const finalChunks = [];
+        for (const s of sentences) {
+            if (s.length <= maxChunkLen) {
+                finalChunks.push(s);
+            } else {
+                const subParts = s.split(/([,]+)/);
+                let subBuf = '';
+                for (let k = 0; k < subParts.length; k++) {
+                    const subP = (subParts[k] || '').trim();
+                    if (!subP) continue;
+                    if (subP === ',') {
+                        if (subBuf) {
+                            finalChunks.push((subBuf + ',').trim());
+                            subBuf = '';
+                        }
+                    } else if ((subBuf + ' ' + subP).length <= maxChunkLen) {
+                        subBuf = subBuf ? (subBuf + ' ' + subP) : subP;
+                    } else {
+                        if (subBuf) finalChunks.push(subBuf);
+                        if (subP.length > maxChunkLen) {
+                            const words = subP.split(' ');
+                            let wBuf = '';
+                            for (const w of words) {
+                                if ((wBuf + ' ' + w).length <= maxChunkLen) {
+                                    wBuf = wBuf ? (wBuf + ' ' + w) : w;
+                                } else {
+                                    if (wBuf) finalChunks.push(wBuf);
+                                    wBuf = w;
+                                }
+                            }
+                            if (wBuf) finalChunks.push(wBuf);
+                            subBuf = '';
+                        } else {
+                            subBuf = subP;
+                        }
+                    }
+                }
+                if (subBuf) finalChunks.push(subBuf);
+            }
+        }
+
+        return finalChunks.filter(c => c && c.trim().length > 0);
+    }
+
+    // Extract DOM Hierarchical Chunks for flawless long-article reading
+    function extractArticleChunksFromDOM() {
+        const chunks = [];
+        const titleEl = document.querySelector('.lit-title');
+        if (titleEl && titleEl.textContent.trim()) {
+            const titleSentences = splitTextIntoSmartSentences(titleEl.textContent.trim() + '। ');
+            titleSentences.forEach(s => chunks.push({ text: s, el: titleEl }));
+        }
+
+        const subtitleEl = document.querySelector('.fst-italic span');
+        if (subtitleEl && subtitleEl.textContent.trim()) {
+            const subSentences = splitTextIntoSmartSentences(subtitleEl.textContent.trim() + '। ');
+            subSentences.forEach(s => chunks.push({ text: s, el: subtitleEl.parentElement || subtitleEl }));
+        }
+
+        const articleEl = document.getElementById('articleBody');
+        if (articleEl) {
+            const blockElements = articleEl.querySelectorAll('p, blockquote, li, h2, h3, h4, h5, h6');
+            blockElements.forEach((node, pIdx) => {
+                // Ignore empty or no-print/ad nodes
+                if (node.closest('.no-print') || node.classList.contains('no-print') || node.classList.contains('lit-ornament')) return;
+                
+                const txt = node.innerText || node.textContent;
+                if (!txt || !txt.trim()) return;
+
+                // Add hover-to-listen button if not already present
+                if (!node.querySelector('.tts-para-speak-btn') && !['LI'].includes(node.tagName)) {
+                    const speakBtn = document.createElement('button');
+                    speakBtn.type = 'button';
+                    speakBtn.className = 'tts-para-speak-btn no-print';
+                    speakBtn.title = 'এই অনুচ্ছেদ থেকে পাঠ শুনুন';
+                    speakBtn.innerHTML = '<i class="fa-solid fa-play" style="font-size: 10px;"></i>';
+                    speakBtn.onclick = (e) => {
+                        e.stopPropagation();
+                        startListeningFromElement(node);
+                    };
+                    node.style.position = 'relative';
+                    node.appendChild(speakBtn);
+                }
+
+                const nodeSentences = splitTextIntoSmartSentences(txt);
+                nodeSentences.forEach(s => {
+                    chunks.push({ text: s, el: node });
+                });
+            });
+        }
+
+        return chunks;
+    }
+
+    function clearWatchdog() {
+        if (ttsWatchdogTimer) {
+            clearTimeout(ttsWatchdogTimer);
+            ttsWatchdogTimer = null;
+        }
+    }
+
+    function highlightActiveChunkElement(chunkObj) {
+        if (currentHighlightedEl) {
+            currentHighlightedEl.classList.remove('tts-live-highlight');
+            currentHighlightedEl = null;
+        }
+        if (!chunkObj || !chunkObj.el) return;
+
+        const el = chunkObj.el;
+        el.classList.add('tts-live-highlight');
+        currentHighlightedEl = el;
+
+        const rect = el.getBoundingClientRect();
+        if (rect.top < 90 || rect.bottom > (window.innerHeight - 100)) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }
+
+    function updateTTSUI() {
+        const btn = document.getElementById('ttsToggleBtn');
+        const label = document.getElementById('ttsBtnLabel');
+        const icon = document.getElementById('ttsIcon');
+        const wave = document.getElementById('ttsWaveAnimation');
+        const dock = document.getElementById('audiobookFloatingDock');
+        const dockPlayPauseIcon = document.getElementById('dockPlayPauseIcon');
+        const dockSentenceCounter = document.getElementById('dockSentenceCounter');
+        const dockProgressPercent = document.getElementById('dockProgressPercent');
+        const scrubFill = document.getElementById('ttsScrubFill');
+        const timeEstimate = document.getElementById('dockTimeEstimate');
+
+        if (isSpeaking) {
+            if (dock) dock.classList.add('active');
+            if (btn) {
+                btn.classList.add('is-playing');
+                btn.classList.toggle('is-paused', isPaused);
+            }
+            if (label) label.textContent = isPaused ? 'পাঠ পজ আছে' : 'পাঠ থামান';
+            if (icon) icon.className = isPaused ? 'fa-solid fa-circle-play fs-5 text-white' : 'fa-solid fa-circle-pause fs-5 text-white';
+            if (wave) {
+                if (isPaused) wave.classList.add('d-none');
+                else wave.classList.remove('d-none');
+            }
+            if (dockPlayPauseIcon) {
+                dockPlayPauseIcon.className = isPaused ? 'fa-solid fa-play' : 'fa-solid fa-pause';
+            }
+
+            const total = speechChunks.length || 1;
+            const current = Math.min(currentChunkIndex + 1, total);
+            const percent = Math.min(100, Math.round((current / total) * 100));
+
+            if (dockSentenceCounter) {
+                dockSentenceCounter.textContent = `বাক্য ${toBengaliDigits(current)} / ${toBengaliDigits(total)}`;
+            }
+            if (dockProgressPercent) {
+                dockProgressPercent.textContent = `${toBengaliDigits(percent)}%`;
+            }
+            if (scrubFill) {
+                scrubFill.style.width = `${percent}%`;
+            }
+
+            // Estimate remaining time (avg ~4 sec per chunk / rate)
+            if (timeEstimate) {
+                const remainingChunks = total - current;
+                const estMin = Math.ceil((remainingChunks * 4.2) / (60 * ttsRate));
+                timeEstimate.textContent = estMin > 0 ? `বাকি আনুমানিক ${toBengaliDigits(estMin)} মি.` : 'শেষ বাক্য';
+            }
+        } else {
+            if (dock) dock.classList.remove('active');
+            if (btn) {
+                btn.classList.remove('is-playing', 'is-paused');
+            }
+            if (label) label.textContent = 'পাঠ শুনুন';
+            if (icon) icon.className = 'fa-solid fa-circle-play fs-5';
+            if (wave) wave.classList.add('d-none');
+            if (currentHighlightedEl) {
+                currentHighlightedEl.classList.remove('tts-live-highlight');
+                currentHighlightedEl = null;
+            }
+            if (scrubFill) {
+                scrubFill.style.width = '0%';
+            }
+        }
     }
 
     function stopArticleAudio(showNotice = true) {
-        if (ttsHeartbeat) {
-            clearInterval(ttsHeartbeat);
-            ttsHeartbeat = null;
-        }
+        clearWatchdog();
+        clearSleepTimer();
         isSpeaking = false;
+        isPaused = false;
         speechChunks = [];
         currentChunkIndex = 0;
         activeUtterance = null;
@@ -1420,70 +1967,316 @@
             try { synth.cancel(); } catch (e) {}
         }
 
-        const btn = document.getElementById('ttsToggleBtn');
-        const label = document.getElementById('ttsBtnLabel');
-        const icon = document.getElementById('ttsIcon');
-        const wave = document.getElementById('ttsWaveAnimation');
-
-        if (btn) btn.classList.remove('is-playing');
-        if (label) label.textContent = 'পাঠ শুনুন';
-        if (icon) icon.className = 'fa-solid fa-circle-play fs-5';
-        if (wave) wave.classList.add('d-none');
+        updateTTSUI();
 
         if (showNotice) {
-            showToast('অডিও পাঠ বন্ধ করা হয়েছে।', 'fa-solid fa-circle-stop text-secondary');
+            showToast('অডিওবুক পাঠ বন্ধ করা হয়েছে।', 'fa-solid fa-circle-stop text-secondary');
         }
     }
 
     function playNextTTSChunk() {
+        clearWatchdog();
+
         if (!isSpeaking || !synth) return;
 
+        if (isPaused) {
+            return;
+        }
+
         if (currentChunkIndex >= speechChunks.length) {
+            localStorage.removeItem(POST_STORAGE_KEY);
             stopArticleAudio(false);
             showToast('সম্পূর্ণ লেখার পাঠ সম্পন্ন হয়েছে।', 'fa-solid fa-circle-check text-success');
             return;
         }
 
-        const chunkText = speechChunks[currentChunkIndex];
+        const chunkObj = speechChunks[currentChunkIndex];
+        const chunkText = chunkObj ? chunkObj.text : '';
+
         if (!chunkText || !chunkText.trim()) {
             currentChunkIndex++;
             playNextTTSChunk();
             return;
         }
 
-        // Global reference prevents browser garbage-collection bug
+        // Save progress for long article resume capability
+        try {
+            localStorage.setItem(POST_STORAGE_KEY, currentChunkIndex);
+        } catch (e) {}
+
+        updateTTSUI();
+        highlightActiveChunkElement(chunkObj);
+
+        try { synth.cancel(); } catch (e) {}
+
+        // Global reference prevents Chrome/WebKit GC interruption
         activeUtterance = new SpeechSynthesisUtterance(chunkText);
         window._activeTTSUtterance = activeUtterance;
-        
+
+        if (!bengaliVoice) {
+            initTTSVoices();
+        }
+
         if (bengaliVoice) {
             activeUtterance.voice = bengaliVoice;
+            activeUtterance.lang = bengaliVoice.lang || 'bn-BD';
+        } else {
+            activeUtterance.lang = 'bn-BD';
         }
-        activeUtterance.lang = 'bn-BD';
-        activeUtterance.rate = 0.95;
-        activeUtterance.pitch = 1.0;
+
+        activeUtterance.rate = ttsRate;
+        activeUtterance.pitch = ttsPitch;
+        activeUtterance.volume = isMuted ? 0 : 1.0;
 
         activeUtterance.onend = function() {
-            if (isSpeaking) {
+            clearWatchdog();
+            if (isSpeaking && !isPaused) {
                 currentChunkIndex++;
                 playNextTTSChunk();
             }
         };
 
         activeUtterance.onerror = function(e) {
+            clearWatchdog();
             console.warn('TTS playback issue on chunk:', e);
-            if (isSpeaking) {
+            if (isSpeaking && !isPaused) {
                 currentChunkIndex++;
                 playNextTTSChunk();
             }
         };
 
+        // Per-chunk Watchdog Safety Timer: guarantees large texts never freeze after 2 lines
+        const wordsCount = chunkText.split(/\s+/).length;
+        const expectedDurationMs = Math.max(4500, (wordsCount * 750 * (1 / ttsRate)) + 3500);
+        ttsWatchdogTimer = setTimeout(() => {
+            if (isSpeaking && !isPaused) {
+                console.info('Advancing TTS via watchdog timer to prevent browser idle freeze.');
+                currentChunkIndex++;
+                playNextTTSChunk();
+            }
+        }, expectedDurationMs);
+
         try {
-            synth.resume();
             synth.speak(activeUtterance);
         } catch (err) {
             console.error('Speech synthesis speak error:', err);
+            currentChunkIndex++;
+            playNextTTSChunk();
         }
     }
+
+    function togglePlayPauseTTS() {
+        if (!isSpeaking || !synth) return;
+
+        if (isPaused) {
+            isPaused = false;
+            updateTTSUI();
+            showToast('পাঠ আবার শুরু হচ্ছে...', 'fa-solid fa-play text-primary');
+            playNextTTSChunk();
+        } else {
+            isPaused = true;
+            clearWatchdog();
+            try { synth.cancel(); } catch (e) {}
+            updateTTSUI();
+            showToast('পাঠ সাময়িক স্থগিত (Pause) করা হয়েছে।', 'fa-solid fa-pause text-warning');
+        }
+    }
+
+    function prevTTSSentence() {
+        if (!isSpeaking) return;
+        currentChunkIndex = Math.max(0, currentChunkIndex - 1);
+        isPaused = false;
+        playNextTTSChunk();
+    }
+
+    function nextTTSSentence() {
+        if (!isSpeaking) return;
+        if (currentChunkIndex + 1 < speechChunks.length) {
+            currentChunkIndex++;
+            isPaused = false;
+            playNextTTSChunk();
+        } else {
+            stopArticleAudio(true);
+        }
+    }
+
+    function handleScrubClick(e) {
+        if (!isSpeaking || speechChunks.length === 0) return;
+        const scrubContainer = document.getElementById('ttsScrubContainer');
+        if (!scrubContainer) return;
+
+        const rect = scrubContainer.getBoundingClientRect();
+        const clickX = e.clientX - rect.left;
+        const ratio = Math.max(0, Math.min(1, clickX / rect.width));
+        const targetIndex = Math.floor(ratio * speechChunks.length);
+
+        currentChunkIndex = Math.min(targetIndex, speechChunks.length - 1);
+        isPaused = false;
+        playNextTTSChunk();
+        showToast(`জাম্প করা হয়েছে: ${toBengaliDigits(Math.round(ratio * 100))}%`, 'fa-solid fa-forward-step text-info');
+    }
+
+    function setTTSSpeed(rate, label) {
+        ttsRate = parseFloat(rate) || 1.0;
+        const speedLabel = document.getElementById('dockSpeedLabel');
+        if (speedLabel) speedLabel.textContent = label;
+
+        const dock = document.getElementById('audiobookFloatingDock');
+        if (dock) {
+            dock.querySelectorAll('.dropdown-item').forEach(item => {
+                if (item.textContent.includes(label)) item.classList.add('active');
+                else if (item.textContent.includes('x')) item.classList.remove('active');
+            });
+        }
+
+        showToast(`পড়ার গতি পরিবর্তন: ${label}`, 'fa-solid fa-gauge-high text-info');
+
+        if (isSpeaking && !isPaused) {
+            playNextTTSChunk();
+        }
+    }
+
+    function setTTSPitch(pitchVal, label) {
+        ttsPitch = parseFloat(pitchVal) || 1.0;
+        showToast(`কণ্ঠের স্বর: ${label}`, 'fa-solid fa-sliders text-info');
+        if (isSpeaking && !isPaused) {
+            playNextTTSChunk();
+        }
+    }
+
+    function setTTSVoicePreferred(type) {
+        preferredVoiceType = type;
+        initTTSVoices();
+
+        const vCheckBD = document.getElementById('vCheckBD');
+        const vCheckIN = document.getElementById('vCheckIN');
+        const vCheckDef = document.getElementById('vCheckDef');
+
+        if (vCheckBD) vCheckBD.classList.toggle('d-none', type !== 'bd');
+        if (vCheckIN) vCheckIN.classList.toggle('d-none', type !== 'in');
+        if (vCheckDef) vCheckDef.classList.toggle('d-none', type !== 'default');
+
+        const voiceName = (bengaliVoice ? bengaliVoice.name : 'ডিফল্ট');
+        showToast(`ভয়েস পরিবর্তন: ${voiceName}`, 'fa-solid fa-microphone text-info');
+
+        if (isSpeaking && !isPaused) {
+            playNextTTSChunk();
+        }
+    }
+
+    function toggleTTSMute() {
+        isMuted = !isMuted;
+        const icon = document.getElementById('dockMuteIcon');
+        if (icon) {
+            icon.className = isMuted ? 'fa-solid fa-volume-xmark text-danger' : 'fa-solid fa-volume-high text-light';
+        }
+        if (activeUtterance) {
+            activeUtterance.volume = isMuted ? 0 : 1.0;
+        }
+        showToast(isMuted ? 'শব্দ মিউট করা হয়েছে (Muted)' : 'শব্দ আনমিউট করা হয়েছে', 'fa-solid fa-volume-high text-info');
+    }
+
+    function toggleDockMinimize() {
+        isDockMinimized = !isDockMinimized;
+        const dock = document.getElementById('audiobookFloatingDock');
+        const icon = document.getElementById('dockMinIcon');
+        if (dock) dock.classList.toggle('minimized', isDockMinimized);
+        if (icon) icon.className = isDockMinimized ? 'fa-solid fa-expand text-light' : 'fa-solid fa-compress text-light';
+    }
+
+    // Sleep Timer
+    function clearSleepTimer() {
+        if (ttsSleepTimerInterval) {
+            clearInterval(ttsSleepTimerInterval);
+            ttsSleepTimerInterval = null;
+        }
+        ttsSleepRemainingSec = 0;
+        const label = document.getElementById('dockTimerLabel');
+        if (label) label.textContent = 'টাইমার';
+    }
+
+    function setTTSSleepTimer(minutes, label) {
+        clearSleepTimer();
+        if (minutes <= 0) {
+            showToast('স্লিপ টাইমার বন্ধ করা হয়েছে।', 'fa-regular fa-clock text-secondary');
+            return;
+        }
+
+        ttsSleepRemainingSec = minutes * 60;
+        const labelEl = document.getElementById('dockTimerLabel');
+        if (labelEl) labelEl.textContent = label;
+
+        showToast(`স্লিপ টাইমার চালু: ${label}`, 'fa-regular fa-clock text-warning');
+
+        ttsSleepTimerInterval = setInterval(() => {
+            ttsSleepRemainingSec--;
+            if (ttsSleepRemainingSec <= 0) {
+                clearSleepTimer();
+                stopArticleAudio(true);
+                showToast('স্লিপ টাইমারের সময় শেষ হওয়ায় পাঠ বন্ধ হয়েছে।', 'fa-solid fa-moon text-primary');
+            } else if (labelEl && ttsSleepRemainingSec % 60 === 0) {
+                labelEl.textContent = `${toBengaliDigits(Math.ceil(ttsSleepRemainingSec / 60))} মি.`;
+            }
+        }, 1000);
+    }
+
+    // Start reading directly from any paragraph or element
+    function startListeningFromElement(element) {
+        if (!synth) return;
+        speechChunks = extractArticleChunksFromDOM();
+        if (!speechChunks.length) return;
+
+        let targetIdx = speechChunks.findIndex(c => c.el === element);
+        if (targetIdx === -1) targetIdx = 0;
+
+        currentChunkIndex = targetIdx;
+        isSpeaking = true;
+        isPaused = false;
+        updateTTSUI();
+        showToast('অনুচ্ছেদ থেকে পাঠ শুরু হচ্ছে...', 'fa-solid fa-volume-high text-primary');
+        playNextTTSChunk();
+    }
+
+    // Read selected highlighted text
+    function speakSelectedText() {
+        const selection = window.getSelection();
+        const selectedText = selection.toString().trim();
+        const tooltip = document.getElementById('selectionAudioTooltip');
+        if (tooltip) tooltip.style.display = 'none';
+
+        if (!selectedText || !synth) return;
+
+        speechChunks = [{ text: cleanAndNormalizeBengaliText(selectedText), el: null }];
+        currentChunkIndex = 0;
+        isSpeaking = true;
+        isPaused = false;
+        updateTTSUI();
+        showToast('বাছাইকৃত অংশ পড়া হচ্ছে...', 'fa-solid fa-headphones text-info');
+        playNextTTSChunk();
+    }
+
+    // Listen to text selection in the article
+    document.addEventListener('selectionchange', () => {
+        const selection = window.getSelection();
+        const tooltip = document.getElementById('selectionAudioTooltip');
+        if (!tooltip) return;
+
+        if (selection && selection.rangeCount > 0 && !selection.isCollapsed) {
+            const range = selection.getRangeAt(0);
+            const articleEl = document.getElementById('articleBody');
+            if (articleEl && articleEl.contains(range.commonAncestorContainer)) {
+                const text = selection.toString().trim();
+                if (text.length >= 4) {
+                    const rect = range.getBoundingClientRect();
+                    tooltip.style.left = `${Math.max(10, rect.left + (rect.width / 2) - 60 + window.scrollX)}px`;
+                    tooltip.style.top = `${rect.top + window.scrollY - 40}px`;
+                    tooltip.style.display = 'inline-flex';
+                    return;
+                }
+            }
+        }
+        tooltip.style.display = 'none';
+    });
 
     function toggleArticleAudio() {
         if (!('speechSynthesis' in window) || !synth) {
@@ -1495,62 +2288,65 @@
             stopArticleAudio(true);
         } else {
             initTTSVoices();
-            const articleEl = document.getElementById('articleBody');
-            const titleEl = document.querySelector('.lit-title');
-            
-            let fullText = '';
-            if (titleEl) fullText += titleEl.textContent.trim() + '। ';
-            if (articleEl) {
-                const clone = articleEl.cloneNode(true);
-                clone.querySelectorAll('script, style, .no-print, button, iframe, noscript').forEach(n => n.remove());
-                fullText += clone.textContent.trim();
-            }
+            speechChunks = extractArticleChunksFromDOM();
 
-            if (!fullText.trim()) {
+            if (speechChunks.length === 0) {
                 showToast('পড়ার মতো পর্যাপ্ত লেখা পাওয়া যায়নি।', 'fa-solid fa-triangle-exclamation text-warning');
                 return;
             }
 
-            speechChunks = splitTextIntoSentences(fullText, 120);
-            if (speechChunks.length === 0) {
-                showToast('অডিও প্রস্তুত করা সম্ভব হয়নি।', 'fa-solid fa-triangle-exclamation text-warning');
-                return;
+            // Check if there was saved progress
+            let startIndex = 0;
+            const savedProgress = parseInt(localStorage.getItem(POST_STORAGE_KEY));
+            if (!isNaN(savedProgress) && savedProgress > 2 && savedProgress < speechChunks.length - 2) {
+                startIndex = savedProgress;
+                showToast(`পূর্বে পঠিত ${toBengaliDigits(Math.round((startIndex / speechChunks.length) * 100))}% থেকে চালু হচ্ছে...`, 'fa-solid fa-clock-rotate-left text-info');
+            } else {
+                showToast('অডিওবুক পাঠ শুরু হয়েছে...', 'fa-solid fa-volume-high text-primary');
             }
 
-            currentChunkIndex = 0;
+            currentChunkIndex = startIndex;
             isSpeaking = true;
+            isPaused = false;
 
-            const btn = document.getElementById('ttsToggleBtn');
-            const label = document.getElementById('ttsBtnLabel');
-            const icon = document.getElementById('ttsIcon');
-            const wave = document.getElementById('ttsWaveAnimation');
-
-            if (btn) btn.classList.add('is-playing');
-            if (label) label.textContent = 'পাঠ থামান';
-            if (icon) icon.className = 'fa-solid fa-circle-pause fs-5 text-white';
-            if (wave) wave.classList.remove('d-none');
-
-            showToast('অডিও পাঠ শুরু হয়েছে...', 'fa-solid fa-volume-high text-primary');
-
-            // Heartbeat to prevent browser speech synthesis idle freeze
-            if (ttsHeartbeat) clearInterval(ttsHeartbeat);
-            ttsHeartbeat = setInterval(() => {
-                if (synth && isSpeaking) {
-                    try {
-                        synth.pause();
-                        synth.resume();
-                    } catch (e) {}
-                }
-            }, 8000);
+            updateTTSUI();
 
             try { synth.cancel(); } catch (e) {}
             setTimeout(() => {
                 if (isSpeaking) {
                     playNextTTSChunk();
                 }
-            }, 60);
+            }, 80);
         }
     }
+
+    // Keyboard Shortcuts for Reader Controls
+    document.addEventListener('keydown', (e) => {
+        // Ignore if user is typing inside an input, textarea or contenteditable
+        const activeTag = document.activeElement ? document.activeElement.tagName : '';
+        if (['INPUT', 'TEXTAREA', 'SELECT'].includes(activeTag) || (document.activeElement && document.activeElement.isContentEditable)) {
+            return;
+        }
+
+        if (isSpeaking) {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                togglePlayPauseTTS();
+            } else if (e.code === 'ArrowLeft') {
+                e.preventDefault();
+                prevTTSSentence();
+            } else if (e.code === 'ArrowRight') {
+                e.preventDefault();
+                nextTTSSentence();
+            } else if (e.key === 'm' || e.key === 'M') {
+                e.preventDefault();
+                toggleTTSMute();
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                stopArticleAudio(true);
+            }
+        }
+    });
 
     window.addEventListener('beforeunload', () => {
         if (isSpeaking && synth) {

@@ -76,14 +76,22 @@
                             {{ $post->excerpt ?: Str::limit(trim(strip_tags(html_entity_decode((string)$post->content, ENT_QUOTES | ENT_HTML5, 'UTF-8'))), 100) }}
                         </p>
 
-                        <div class="mt-auto pt-3 border-top d-flex align-items-center justify-content-between">
-                            <span class="small fw-bold text-dark">
+                        <div class="mt-auto pt-3 border-top d-flex align-items-center justify-content-between gap-2">
+                            <span class="small fw-bold text-dark text-truncate" style="max-width: 120px;">
                                 <i class="fa-solid fa-pen-nib text-muted me-1"></i>
                                 {{ $post->author_name ?: 'সম্পাদকীয়' }}
                             </span>
-                            <a href="{{ route('blog.show', $post->slug) }}" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-semibold" style="font-size: 0.8rem;">
-                                পড়ুন →
-                            </a>
+                            <div class="d-flex align-items-center gap-1.5">
+                                <button type="button" class="btn btn-sm btn-light border text-primary rounded-pill px-2.5 py-1 fw-semibold btn-quick-audio d-inline-flex align-items-center gap-1"
+                                    style="font-size: 0.76rem;"
+                                    onclick="if(window.IdeaAudiobook) IdeaAudiobook.speakExcerpt(this, @js($post->title), @js($post->excerpt ?: Str::limit(trim(strip_tags(html_entity_decode((string)$post->content, ENT_QUOTES | ENT_HTML5, 'UTF-8'))), 150)), @js(route('blog.show', $post->slug)))"
+                                    title="সংক্ষিপ্ত অডিও শুনুন">
+                                    <i class="fa-solid fa-volume-high text-primary"></i> <span>শুনুন</span>
+                                </button>
+                                <a href="{{ route('blog.show', $post->slug) }}" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-semibold" style="font-size: 0.8rem;">
+                                    পড়ুন →
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </article>

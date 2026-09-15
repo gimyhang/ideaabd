@@ -9,6 +9,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Route;
 use Modules\Book\Models\Book;
 use Modules\Book\Models\Category;
 use Modules\Author\Models\Author;
@@ -287,23 +288,70 @@ class BookController extends Controller
                         });
                 }
             } else {
-                // When in Search Mode, also fetch cross-entity matches (Blog Posts / Ideapatra, Authors, Categories)
+                // When in Search Mode, also fetch cross-entity matches (Writings/Blog Posts/Ideapatra, Webzine Articles, Research Papers, Authors, Categories, Site Pages)
                 $matchedBlogPosts = collect();
+                $matchedWebzineArticles = collect();
+                $matchedResearchPapers = collect();
                 $matchedAuthors = collect();
                 $matchedCategories = collect();
+                $matchedPages = [];
 
                 if (!empty($rawSearch)) {
+                    $matchedPages = $this->matchSitePages($rawSearch);
+                    $tokens = array_filter(preg_split('/\s+/', $rawSearch));
+
                     try {
                         if (class_exists(\Modules\Blog\Models\BlogPost::class)) {
                             $matchedBlogPosts = \Modules\Blog\Models\BlogPost::query()
-                                ->where('status', 'published')
-                                ->where(function ($b) use ($rawSearch) {
+                                ->where(function ($sub) {
+                                    $sub->where('status', 'published')
+                                        ->orWhere('status', 'approved')
+                                        ->orWhere('mod_status', 'approved')
+                                        ->orWhereNull('status');
+                                })
+                                ->where(function ($b) use ($rawSearch, $tokens) {
                                     $b->where('title', 'LIKE', "%{$rawSearch}%")
-                                      ->orWhere('excerpt', 'LIKE', "%{$rawSearch}%");
+                                      ->orWhere('subtitle', 'LIKE', "%{$rawSearch}%")
+                                      ->orWhere('excerpt', 'LIKE', "%{$rawSearch}%")
+                                      ->orWhere('slug', 'LIKE', "%{$rawSearch}%");
+                                    foreach ($tokens as $tok) {
+                                        $b->orWhere('title', 'LIKE', "%{$tok}%");
+                                    }
                                 })
                                 ->with(['category', 'author'])
-                                ->latest()
+                                ->latest('id')
                                 ->take(6)
+                                ->get();
+                        }
+                    } catch (\Throwable) {}
+
+                    try {
+                        if (class_exists(\Modules\Webzine\Models\WebzineArticle::class)) {
+                            $matchedWebzineArticles = \Modules\Webzine\Models\WebzineArticle::query()
+                                ->where(function ($w) use ($rawSearch, $tokens) {
+                                    $w->where('title', 'LIKE', "%{$rawSearch}%");
+                                    foreach ($tokens as $tok) {
+                                        $w->orWhere('title', 'LIKE', "%{$tok}%");
+                                    }
+                                })
+                                ->with(['webzine', 'author'])
+                                ->take(4)
+                                ->get();
+                        }
+                    } catch (\Throwable) {}
+
+                    try {
+                        if (class_exists(\Modules\Research\Models\ResearchPaper::class)) {
+                            $matchedResearchPapers = \Modules\Research\Models\ResearchPaper::query()
+                                ->where(function ($r) use ($rawSearch, $tokens) {
+                                    $r->where('title', 'LIKE', "%{$rawSearch}%")
+                                      ->orWhere('abstract', 'LIKE', "%{$rawSearch}%");
+                                    foreach ($tokens as $tok) {
+                                        $r->orWhere('title', 'LIKE', "%{$tok}%");
+                                    }
+                                })
+                                ->with('author')
+                                ->take(4)
                                 ->get();
                         }
                     } catch (\Throwable) {}
@@ -312,7 +360,12 @@ class BookController extends Controller
                         if (class_exists(\Modules\Author\Models\Author::class)) {
                             $matchedAuthors = \Modules\Author\Models\Author::query()
                                 ->where('is_active', true)
-                                ->where('name', 'LIKE', "%{$rawSearch}%")
+                                ->where(function ($q) use ($rawSearch) {
+                                    $q->where('name', 'LIKE', "%{$rawSearch}%")
+                                      ->orWhere('name_bn', 'LIKE', "%{$rawSearch}%")
+                                      ->orWhere('name_en', 'LIKE', "%{$rawSearch}%")
+                                      ->orWhere('slug', 'LIKE', "%{$rawSearch}%");
+                                })
                                 ->withCount(['books' => fn($q) => $q->where('is_active', true)])
                                 ->take(6)
                                 ->get();
@@ -323,7 +376,10 @@ class BookController extends Controller
                         if (class_exists(\Modules\Book\Models\Category::class)) {
                             $matchedCategories = \Modules\Book\Models\Category::query()
                                 ->where('is_active', true)
-                                ->where('name', 'LIKE', "%{$rawSearch}%")
+                                ->where(function ($q) use ($rawSearch) {
+                                    $q->where('name', 'LIKE', "%{$rawSearch}%")
+                                      ->orWhere('slug', 'LIKE', "%{$rawSearch}%");
+                                })
                                 ->withCount(['books' => fn($q) => $q->where('is_active', true)])
                                 ->take(6)
                                 ->get();
@@ -334,7 +390,7 @@ class BookController extends Controller
         }
 
         return view('book::frontend.index', compact(
-            'books', 'categories', 'isSearchMode', 'recentlySold', 'newArrivals', 'bestSellerEbooks', 'categoryBooks', 'sidebarAuthors', 'sidebarPublishers', 'flashSales', 'recentlyViewedBooks', 'topSeller', 'dynamicCategories', 'activeFilterTitle', 'matchedBlogPosts', 'matchedAuthors', 'matchedCategories'
+            'books', 'categories', 'isSearchMode', 'recentlySold', 'newArrivals', 'bestSellerEbooks', 'categoryBooks', 'sidebarAuthors', 'sidebarPublishers', 'flashSales', 'recentlyViewedBooks', 'topSeller', 'dynamicCategories', 'activeFilterTitle', 'matchedBlogPosts', 'matchedWebzineArticles', 'matchedResearchPapers', 'matchedAuthors', 'matchedCategories', 'matchedPages'
         ));
     }
 
@@ -616,44 +672,121 @@ class BookController extends Controller
         $posts = collect();
         if ($type === 'blog' || $type === 'all') {
             try {
-                $posts = \Modules\Blog\Models\BlogPost::query()
-                    ->with(['category:id,name,slug', 'author:id,name'])
-                    ->where(function ($sub) {
-                        $sub->where('status', 'published')
-                            ->orWhere('status', 'approved')
-                            ->orWhere('mod_status', 'approved')
-                            ->orWhereNull('status');
-                    })
-                    ->where(function ($q) use ($query) {
-                        $q->where('title', 'LIKE', "%{$query}%")
-                          ->orWhere('subtitle', 'LIKE', "%{$query}%")
-                          ->orWhere('excerpt', 'LIKE', "%{$query}%")
-                          ->orWhere('slug', 'LIKE', "%{$query}%")
-                          ->orWhere('owner_name', 'LIKE', "%{$query}%");
-                    })
-                    ->latest('published_at')
-                    ->latest('id')
-                    ->take(4)
-                    ->get()
-                    ->map(function ($post) {
-                        $img = $post->featured_image ? (str_starts_with($post->featured_image, 'http') ? $post->featured_image : asset('storage/' . ltrim($post->featured_image, '/'))) : null;
-                        return [
-                            'id'           => $post->id,
-                            'title'        => $post->title,
-                            'slug'         => $post->slug,
-                            'url'          => route('blog.show', $post->slug ?: $post->id),
-                            'author'       => $post->author?->name ?: ($post->owner_name ?: 'আইডিয়াপত্র লেখক'),
-                            'category'     => $post->category?->name ?: 'আইডিয়াপত্র',
-                            'image'        => $img,
-                            'published_at' => $post->published_at ? $post->published_at->format('d M Y') : null,
-                        ];
-                    });
+                if (class_exists(\Modules\Blog\Models\BlogPost::class)) {
+                    $posts = \Modules\Blog\Models\BlogPost::query()
+                        ->with(['category:id,name,slug', 'author:id,name'])
+                        ->where(function ($sub) {
+                            $sub->where('status', 'published')
+                                ->orWhere('status', 'approved')
+                                ->orWhere('mod_status', 'approved')
+                                ->orWhereNull('status');
+                        })
+                        ->where(function ($q) use ($query, $tokens) {
+                            $q->where('title', 'LIKE', "%{$query}%")
+                              ->orWhere('subtitle', 'LIKE', "%{$query}%")
+                              ->orWhere('excerpt', 'LIKE', "%{$query}%")
+                              ->orWhere('slug', 'LIKE', "%{$query}%")
+                              ->orWhere('owner_name', 'LIKE', "%{$query}%");
+                            foreach ($tokens as $tok) {
+                                $q->orWhere('title', 'LIKE', "%{$tok}%");
+                            }
+                        })
+                        ->latest('published_at')
+                        ->latest('id')
+                        ->take(5)
+                        ->get()
+                        ->map(function ($post) {
+                            $img = $post->featured_image ? (str_starts_with($post->featured_image, 'http') ? $post->featured_image : asset('storage/' . ltrim($post->featured_image, '/'))) : null;
+                            return [
+                                'id'           => $post->id,
+                                'title'        => $post->title,
+                                'slug'         => $post->slug,
+                                'url'          => route('blog.show', $post->slug ?: $post->id),
+                                'author'       => $post->author?->name ?: ($post->owner_name ?: 'আইডিয়াপত্র লেখক'),
+                                'category'     => $post->category?->name ?: 'আইডিয়াপত্র',
+                                'source'       => 'আইডিয়াপত্র',
+                                'image'        => $img,
+                                'published_at' => $post->published_at ? $post->published_at->format('d M Y') : null,
+                            ];
+                        });
+                }
             } catch (\Throwable) {
                 $posts = collect();
             }
         }
 
-        // 5. Publishers Query
+        // 5. Webzine Articles Query
+        $webzineArticles = collect();
+        if ($type === 'all' || $type === 'webzines') {
+            try {
+                if (class_exists(\Modules\Webzine\Models\WebzineArticle::class)) {
+                    $webzineArticles = \Modules\Webzine\Models\WebzineArticle::query()
+                        ->with(['webzine', 'author'])
+                        ->where(function ($q) use ($query, $tokens) {
+                            $q->where('title', 'LIKE', "%{$query}%");
+                            foreach ($tokens as $tok) {
+                                $q->orWhere('title', 'LIKE', "%{$tok}%");
+                            }
+                        })
+                        ->take(4)
+                        ->get()
+                        ->map(function ($art) {
+                            $wSlug = $art->webzine?->slug ?: $art->webzine_id;
+                            return [
+                                'id'           => $art->id,
+                                'title'        => $art->title,
+                                'author'       => $art->author_name ?: 'ওয়েবজিন লেখক',
+                                'category'     => 'ওয়েবজিন সাহিত্য',
+                                'source'       => 'ওয়েবজিন',
+                                'url'          => Route::has('webzine.read') ? route('webzine.read', $wSlug) . '#page-' . ($art->page_number ?: 1) : url('/webzines/' . $wSlug),
+                                'image'        => $art->featured_image ? (str_starts_with($art->featured_image, 'http') ? $art->featured_image : asset('storage/' . ltrim($art->featured_image, '/'))) : null,
+                                'published_at' => null,
+                            ];
+                        });
+                }
+            } catch (\Throwable) {
+                $webzineArticles = collect();
+            }
+        }
+
+        // 6. Research Papers Query
+        $researchPapers = collect();
+        if ($type === 'all' || $type === 'research') {
+            try {
+                if (class_exists(\Modules\Research\Models\ResearchPaper::class)) {
+                    $researchPapers = \Modules\Research\Models\ResearchPaper::query()
+                        ->with('author')
+                        ->where(function ($q) use ($query, $tokens) {
+                            $q->where('title', 'LIKE', "%{$query}%")
+                              ->orWhere('abstract', 'LIKE', "%{$query}%");
+                            foreach ($tokens as $tok) {
+                                $q->orWhere('title', 'LIKE', "%{$tok}%");
+                            }
+                        })
+                        ->take(4)
+                        ->get()
+                        ->map(function ($paper) {
+                            return [
+                                'id'           => $paper->id,
+                                'title'        => $paper->title,
+                                'author'       => $paper->author?->name ?: 'গবেষক',
+                                'category'     => $paper->category ?: 'গবেষণাপত্র',
+                                'source'       => 'গবেষণা',
+                                'url'          => Route::has('research.show') ? route('research.show', $paper->slug ?: $paper->id) : url('/research/' . ($paper->slug ?: $paper->id)),
+                                'image'        => null,
+                                'published_at' => $paper->published_at ? $paper->published_at->format('d M Y') : null,
+                            ];
+                        });
+                }
+            } catch (\Throwable) {
+                $researchPapers = collect();
+            }
+        }
+
+        // Unified Writings collection
+        $writings = $posts->concat($webzineArticles)->concat($researchPapers)->values();
+
+        // 7. Publishers Query
         $publishers = collect();
         if ($type === 'publishers' || $type === 'all') {
             $publishers = Publisher::query()
@@ -677,9 +810,9 @@ class BookController extends Controller
                 });
         }
 
-        // 6. Webzines Query
+        // 8. Webzines Query
         $webzines = collect();
-        if ($type === 'all') {
+        if ($type === 'all' || $type === 'webzines') {
             try {
                 if (class_exists(\Modules\Webzine\Models\Webzine::class)) {
                     $webzines = \Modules\Webzine\Models\Webzine::query()
@@ -702,65 +835,60 @@ class BookController extends Controller
             }
         }
 
-        // 7. Site Destinations & Quick Links Match
-        $siteDestinations = [
-            ['title' => 'আইডিয়াপত্র ও ব্লগ', 'keywords' => ['আইডিয়াপত্র', 'ideapatra', 'ব্লগ', 'blog', 'ম্যাগাজিন', 'magazine', 'পত্রিকা', 'লেখা'], 'url' => route('blog.index'), 'icon' => 'fa-newspaper'],
-            ['title' => 'নিজের লেখা প্রকাশ করুন', 'keywords' => ['লেখা পোস্ট', 'লেখা প্রকাশ', 'write', 'post', 'blog write', 'কবিতা পোস্ট'], 'url' => route('blog.write'), 'icon' => 'fa-pen-nib'],
-            ['title' => 'ডিজিটাল ই-বুক সম্ভার', 'keywords' => ['ই-বুক', 'ইবুক', 'ebook', 'ebooks', 'ডিজিটাল', 'pdf'], 'url' => route('ebook.index'), 'icon' => 'fa-tablet-screen-button'],
-            ['title' => 'জনপ্রিয় লেখক তালিকা', 'keywords' => ['লেখক', 'authors', 'লেখকবৃন্দ', 'কবি', 'সাহিত্যিক'], 'url' => route('authors.index'), 'icon' => 'fa-feather-pointed'],
-            ['title' => 'শীর্ষ প্রকাশনী ও পাবলিশার্স', 'keywords' => ['প্রকাশক', 'publishers', 'প্রকাশনী', 'প্রেস'], 'url' => route('publishers.index'), 'icon' => 'fa-building'],
-            ['title' => 'আইডিয়া ওয়েবজিন', 'keywords' => ['ওয়েবজিন', 'webzine', 'সাহিত্য পত্রিকা'], 'url' => Route::has('webzine.index') ? route('webzine.index') : url('/webzines'), 'icon' => 'fa-book-open'],
-            ['title' => 'গবেষণা ও উন্নয়ন', 'keywords' => ['গবেষণা', 'research', 'রিসার্চ', 'গবেষণাপত্র'], 'url' => Route::has('research.index') ? route('research.index') : url('/research'), 'icon' => 'fa-flask'],
-            ['title' => 'আইডিয়া হাব ও কমিউনিটি', 'keywords' => ['আইডিয়া হাব', 'hub', 'community', 'সদস্য'], 'url' => Route::has('hub') ? route('hub') : url('/hub'), 'icon' => 'fa-compass'],
-            ['title' => 'বইমেলা ২০২৬ বিশেষ কালেকশন', 'keywords' => ['বইমেলা', 'boimela', 'মেলা', '২০২৬'], 'url' => route('book.index', ['filter' => 'boimela-2026']), 'icon' => 'fa-fire'],
-            ['title' => 'আমার কার্ট ও চেকআউট', 'keywords' => ['কার্ট', 'cart', 'checkout', 'ঝুড়ি', 'অর্ডার'], 'url' => route('cart'), 'icon' => 'fa-bag-shopping'],
-            ['title' => 'গ্রাহক একাউন্ট ও অর্ডার ট্র্যাকিং', 'keywords' => ['একাউন্ট', 'account', 'অর্ডার', 'profile', 'লগইন', 'login'], 'url' => route('my-account'), 'icon' => 'fa-user'],
-            ['title' => 'যোগাযোগ ও সহায়তা', 'keywords' => ['যোগাযোগ', 'contact', 'হেল্পলাইন', 'whatsapp', 'help'], 'url' => Route::has('contact') ? route('contact') : url('/contact'), 'icon' => 'fa-headset'],
-        ];
+        // 9. Bilingual Dynamic Site Pages & Quick Navigation Match
+        $matchedPages = $this->matchSitePages($query);
+        $matchedQuickLinks = array_slice($matchedPages, 0, 4);
 
-        $matchedQuickLinks = collect($siteDestinations)->filter(function($dest) use ($query) {
-            if (mb_stripos($dest['title'], $query) !== false) return true;
-            foreach ($dest['keywords'] as $kw) {
-                if (mb_stripos($kw, $query) !== false || mb_stripos($query, $kw) !== false) return true;
-            }
-            return false;
-        })->take(3)->values()->all();
-
-        // 8. Intelligent Keyword Suggestions (Amazon-like typeahead strings)
+        // 10. Intelligent Keyword Suggestions (Prioritizing Book & Writing Titles)
         $keywordSuggestions = collect();
+        // Add book titles
         foreach ($books as $b) {
             $keywordSuggestions->push($b['title']);
             if (!empty($b['author'])) {
                 $keywordSuggestions->push($b['author']);
             }
         }
+        // Add writing titles
+        foreach ($writings as $w) {
+            $keywordSuggestions->push($w['title']);
+            if (!empty($w['author'])) {
+                $keywordSuggestions->push($w['author']);
+            }
+        }
+        // Add author names
         foreach ($authors as $a) {
             $keywordSuggestions->push($a['name']);
         }
+        // Add category names
         foreach ($categories as $c) {
             $keywordSuggestions->push($c['name']);
         }
-        foreach ($posts as $p) {
-            $keywordSuggestions->push($p['title']);
-        }
+        // Add publisher names
         foreach ($publishers as $pub) {
             $keywordSuggestions->push($pub['name']);
+        }
+        // Add site page titles
+        foreach ($matchedPages as $pg) {
+            $keywordSuggestions->push($pg['title']);
+            if (!empty($pg['title_en'])) {
+                $keywordSuggestions->push($pg['title_en']);
+            }
         }
 
         $keywordSuggestions = $keywordSuggestions
             ->filter(fn($text) => !empty($text) && mb_stripos($text, $query) !== false)
             ->unique()
-            ->take(5)
+            ->take(6)
             ->values()
             ->all();
 
-        // 9. Scoped Suggestions ("query in Department")
+        // 11. Scoped Suggestions ("query in Department")
         $scopedSuggestions = [];
         if ($type === 'all') {
-            if ($posts->isNotEmpty()) {
+            if ($writings->isNotEmpty()) {
                 $scopedSuggestions[] = [
                     'title'       => $query,
-                    'scope_label' => 'আইডিয়াপত্র ও ব্লগ',
+                    'scope_label' => 'আইডিয়াপত্র ও সাহিত্য লেখা',
                     'icon'        => 'fa-newspaper',
                     'type'        => 'blog',
                     'url'         => route('blog.index', ['search' => $query]),
@@ -795,7 +923,7 @@ class BookController extends Controller
             }
         }
 
-        $totalEntities = $totalBooksCount + $authors->count() + $categories->count() + $posts->count() + $publishers->count() + count($matchedQuickLinks);
+        $totalEntities = $totalBooksCount + $authors->count() + $categories->count() + $writings->count() + $publishers->count() + count($matchedPages);
 
         return response()->json([
             'success'             => true,
@@ -805,14 +933,333 @@ class BookController extends Controller
             'total_books'         => $totalBooksCount,
             'keyword_suggestions' => $keywordSuggestions,
             'scoped_suggestions'  => $scopedSuggestions,
+            'pages'               => $matchedPages,
             'quick_links'         => $matchedQuickLinks,
             'books'               => $books,
+            'posts'               => $posts,
+            'writings'            => $writings,
+            'webzine_articles'    => $webzineArticles,
+            'research_papers'     => $researchPapers,
             'authors'             => $authors,
             'categories'          => $categories,
-            'posts'               => $posts,
             'publishers'          => $publishers,
             'webzines'            => $webzines,
             'full_search_url'     => route('book.index', ['search' => $query, 'type' => $type]),
         ]);
+    }
+
+    /**
+     * স্মার্ট দ্বিভাষিক পেজ ম্যাচিং ইঞ্জিন (বাংলা ও ইংরেজি)
+     */
+    private function matchSitePages(string $query): array
+    {
+        $q = mb_strtolower(trim($query));
+        if (empty($q)) {
+            return [];
+        }
+
+        $pages = $this->getSitePagesList();
+        $tokens = array_filter(preg_split('/\s+/', $q));
+        $matched = [];
+
+        foreach ($pages as $page) {
+            $score = 0;
+            $titleBn = mb_strtolower($page['title']);
+            $titleEn = mb_strtolower($page['title_en'] ?? '');
+            $desc = mb_strtolower($page['description'] ?? '');
+            $category = mb_strtolower($page['category'] ?? '');
+
+            // 1. Direct match on Bangla or English title
+            if (mb_stripos($titleBn, $q) !== false) {
+                $score += 150;
+            }
+            if (!empty($titleEn) && mb_stripos($titleEn, $q) !== false) {
+                $score += 130;
+            }
+
+            // 2. Keyword exact / partial matches
+            if (isset($page['keywords']) && is_array($page['keywords'])) {
+                foreach ($page['keywords'] as $kw) {
+                    $kwLower = mb_strtolower($kw);
+                    if ($kwLower === $q) {
+                        $score += 140;
+                    } elseif (mb_stripos($kwLower, $q) !== false || mb_stripos($q, $kwLower) !== false) {
+                        $score += 60;
+                    }
+                }
+            }
+
+            // 3. Multi-token partial analysis
+            foreach ($tokens as $token) {
+                if (mb_stripos($titleBn, $token) !== false) {
+                    $score += 40;
+                }
+                if (!empty($titleEn) && mb_stripos($titleEn, $token) !== false) {
+                    $score += 35;
+                }
+                if (mb_stripos($desc, $token) !== false || mb_stripos($category, $token) !== false) {
+                    $score += 20;
+                }
+                if (isset($page['keywords']) && is_array($page['keywords'])) {
+                    foreach ($page['keywords'] as $kw) {
+                        if (mb_stripos(mb_strtolower($kw), $token) !== false) {
+                            $score += 25;
+                        }
+                    }
+                }
+            }
+
+            if ($score > 0) {
+                $page['score'] = $score;
+                $matched[] = $page;
+            }
+        }
+
+        // Sort by relevance score descending
+        usort($matched, fn($a, $b) => $b['score'] <=> $a['score']);
+
+        return array_map(function($p) {
+            unset($p['score']);
+            return $p;
+        }, $matched);
+    }
+
+    /**
+     * সাইটের সকল স্ট্যাটিক ও ডায়নামিক পেজের সমৃদ্ধ দ্বিভাষিক (বাংলা ও ইংরেজি) ডিরেক্টরি
+     */
+    private function getSitePagesList(): array
+    {
+        return [
+            [
+                'id'          => 'ideapatra',
+                'title'       => 'আইডিয়াপত্র ও ব্লগ',
+                'title_en'    => 'Ideapatra & Literary Blog',
+                'description' => 'সাহিত্য, প্রবন্ধ, কবিতা ও চিন্তামূলক লেখার উন্মুক্ত প্ল্যাটফর্ম',
+                'category'    => 'সাহিত্য ও কন্টেন্ট',
+                'url'         => route('blog.index'),
+                'icon'        => 'fa-newspaper',
+                'keywords'    => ['আইডিয়াপত্র', 'আইডিয়া পত্র', 'আইডিয়া পত্র', 'ব্লগ', 'লেখালেখি', 'সাহিত্য', 'নিবন্ধ', 'কবিতা', 'প্রবন্ধ', 'ideapatra', 'idea patra', 'blog', 'articles', 'literature', 'essay', 'poetry', 'aydiapatro'],
+            ],
+            [
+                'id'          => 'ideapatra_write',
+                'title'       => 'নিজের লেখা প্রকাশ করুন',
+                'title_en'    => 'Write for Ideapatra / Publish Article',
+                'description' => 'আইডিয়াপত্রে আপনার স্বরচিত সাহিত্যকর্ম ও প্রবন্ধ জমা দিন',
+                'category'    => 'লেখক ও সেবা',
+                'url'         => route('blog.write'),
+                'icon'        => 'fa-pen-nib',
+                'keywords'    => ['লেখা পোস্ট', 'লেখা প্রকাশ', 'লেখা পাঠান', 'নিজের লেখা', 'ব্লগ লিখুন', 'কবিতা প্রকাশ', 'গল্প প্রকাশ', 'write', 'publish article', 'submit post', 'author write', 'lekha'],
+            ],
+            [
+                'id'          => 'ebooks',
+                'title'       => 'ডিজিটাল ই-বুক সম্ভার',
+                'title_en'    => 'Digital E-Books Library',
+                'description' => 'অনলাইনে যেকোনো ডিভাইস থেকে সরাসরি ই-বুক পড়ুন ও সংগ্রহ করুন',
+                'category'    => 'বই ও প্রকাশনা',
+                'url'         => route('ebook.index'),
+                'icon'        => 'fa-tablet-screen-button',
+                'keywords'    => ['ইবুক', 'ই-বুক', 'ডিজিটাল বই', 'পিডিএফ', 'অনলাইন বই', 'ebook', 'ebooks', 'pdf', 'digital books', 'online reading'],
+            ],
+            [
+                'id'          => 'books_catalog',
+                'title'       => 'সকল বিষয় ও অনলাইন বই সম্ভার',
+                'title_en'    => 'All Books & Catalog',
+                'description' => 'আইডিয়া প্রকাশনের সকল ক্যাটাগরির মুদ্রিত বইয়ের পূর্ণাঙ্গ ক্যাটালগ',
+                'category'    => 'বই ও প্রকাশনা',
+                'url'         => route('book.index'),
+                'icon'        => 'fa-book-open',
+                'keywords'    => ['বইসমূহ', 'সকল বই', 'বই সম্ভার', 'বইয়ের দোকান', 'শপ', 'books', 'all books', 'bookstore', 'shop', 'catalog', 'boi'],
+            ],
+            [
+                'id'          => 'authors',
+                'title'       => 'লেখকবৃন্দ ও সাহিত্যিক তালিকা',
+                'title_en'    => 'Authors & Writers Directory',
+                'description' => 'সকল সম্মানিত লেখক ও কবিদের প্রোফাইল এবং প্রকাশিত বইসমূহ',
+                'category'    => 'লেখক ও কমিউনিটি',
+                'url'         => route('authors.index'),
+                'icon'        => 'fa-feather-pointed',
+                'keywords'    => ['লেখক', 'লেখকবৃন্দ', 'লেখক তালিকা', 'কবি', 'সাহিত্যিক', 'authors', 'writers', 'author list', 'poets', 'lekhok'],
+            ],
+            [
+                'id'          => 'publishers',
+                'title'       => 'প্রকাশনা সংস্থা ও ডিস্ট্রিবিউটরস',
+                'title_en'    => 'Publishers & Distributors',
+                'description' => 'আইডিয়া প্রকাশনের অংশীদার প্রকাশনী ও সহযোগী প্রতিষ্ঠানসমূহ',
+                'category'    => 'প্রকাশক ও ডিস্ট্রিবিউশন',
+                'url'         => route('publishers.index'),
+                'icon'        => 'fa-building',
+                'keywords'    => ['প্রকাশক', 'প্রকাশনী', 'পাবলিশার্স', 'প্রেস', 'প্রকাশনা সংস্থা', 'publishers', 'publications', 'press', 'prokashoni'],
+            ],
+            [
+                'id'          => 'webzines',
+                'title'       => 'অনলাইন ওয়েবজিন ও সাহিত্য সাময়িকী',
+                'title_en'    => 'Online Webzines & Periodicals',
+                'description' => 'আইডিয়া প্রকাশন ডিজিটাল সাহিত্য সাময়িকী ও নিয়মিত সংখ্যাসমূহ',
+                'category'    => 'সাহিত্য ও কন্টেন্ট',
+                'url'         => Route::has('webzine.index') ? route('webzine.index') : url('/webzines'),
+                'icon'        => 'fa-book-journal-whills',
+                'keywords'    => ['ওয়েবজিন', 'ওয়েবজিন', 'ম্যাগাজিন', 'সাহিত্য সাময়িকী', 'পত্রিকা', 'webzine', 'webzines', 'magazine', 'periodical', 'samoyiki'],
+            ],
+            [
+                'id'          => 'research',
+                'title'       => 'গবেষণা ও উন্নয়ন প্রবন্ধ',
+                'title_en'    => 'Research Papers & Journals',
+                'description' => 'একাডেমিক গবেষণা, জার্নাল ও বিশ্লেষণধর্মী গবেষণাপত্র',
+                'category'    => 'গবেষণা ও শিক্ষা',
+                'url'         => Route::has('research.index') ? route('research.index') : url('/research'),
+                'icon'        => 'fa-flask',
+                'keywords'    => ['গবেষণা', 'গবেষণাপত্র', 'রিসার্চ', 'প্রবন্ধ', 'জার্নাল', 'থিসিস', 'research', 'papers', 'journal', 'thesis', 'gobeshona'],
+            ],
+            [
+                'id'          => 'hub',
+                'title'       => 'আইডিয়া হাব ও কমিউনিটি নেটওয়ার্ক',
+                'title_en'    => 'Idea Hub & Community',
+                'description' => 'লেখক, পাঠক ও গবেষকদের সমন্বিত আইডিয়া নেটওয়ার্ক হাব',
+                'category'    => 'কমিউনিটি ও হাব',
+                'url'         => Route::has('hub') ? route('hub') : url('/hub'),
+                'icon'        => 'fa-compass',
+                'keywords'    => ['আইডিয়া হাব', 'হাব', 'কমিউনিটি', 'সদস্য', 'নেটওয়ার্ক', 'hub', 'idea hub', 'community', 'network', 'hab'],
+            ],
+            [
+                'id'          => 'about',
+                'title'       => 'আমাদের সম্পর্কে (About Us)',
+                'title_en'    => 'About Us — Idea Prokashon',
+                'description' => 'আইডিয়া প্রকাশনের লক্ষ্য, উদ্দেশ্য ও প্রকাশনা যাত্রার বিস্তারিত তথ্য',
+                'category'    => 'প্রাতিষ্ঠানিক তথ্য',
+                'url'         => Route::has('about') ? route('about') : url('/about'),
+                'icon'        => 'fa-circle-info',
+                'keywords'    => ['আমাদের সম্পর্কে', 'পরিচিতি', 'আমাদের কথা', 'আইডিয়া প্রকাশন কে', 'কোম্পানি পরিচিতি', 'about', 'about us', 'company', 'who we are', 'idea prokashon', 'amader somporke'],
+            ],
+            [
+                'id'          => 'contact',
+                'title'       => 'যোগাযোগ ও সহায়তা কেন্দ্র',
+                'title_en'    => 'Contact Us & Customer Support',
+                'description' => 'আমাদের অফিস ঠিকানা, ফোন নাম্বার, হোয়াটসঅ্যাপ ও সহায়তা বার্তা পাঠান',
+                'category'    => 'গ্রাহক সেবা ও যোগাযোগ',
+                'url'         => Route::has('contact') ? route('contact') : url('/contact'),
+                'icon'        => 'fa-headset',
+                'keywords'    => ['যোগাযোগ', 'ঠিকানা', 'ফোন নম্বর', 'ইমেইল', 'হেল্পলাইন', 'সহায়তা', 'হোয়াটসঅ্যাপ', 'কাস্টমার কেয়ার', 'contact', 'contact us', 'support', 'helpline', 'whatsapp', 'phone', 'email', 'address', 'help', 'jogajog'],
+            ],
+            [
+                'id'          => 'faq',
+                'title'       => 'সাধারণ জিজ্ঞাসা ও প্রশ্নোত্তর (FAQ)',
+                'title_en'    => 'Frequently Asked Questions (FAQ)',
+                'description' => 'অর্ডার, পেমেন্ট, ডেলিভারি ও প্রকাশনা সংক্রান্ত সাধারণ প্রশ্নের উত্তর',
+                'category'    => 'গ্রাহক সেবা ও সহায়তা',
+                'url'         => Route::has('faq') ? route('faq') : url('/faq'),
+                'icon'        => 'fa-circle-question',
+                'keywords'    => ['সাধারণ জিজ্ঞাসা', 'প্রশ্নোত্তর', 'এফএকিউ', 'প্রশ্ন ও উত্তর', 'সহায়তা গাইড', 'faq', 'frequently asked questions', 'help center', 'questions', 'answers', 'proshnottor'],
+            ],
+            [
+                'id'          => 'documents',
+                'title'       => 'নথিপত্র ও প্রকাশনা গাইডলাইন',
+                'title_en'    => 'Documents, Guidelines & Author Contracts',
+                'description' => 'বই প্রকাশনা চুক্তিপত্র, পাণ্ডুলিপি জমা দেওয়ার নিয়ম ও রয়্যালটি গাইড',
+                'category'    => 'লেখক ও প্রকাশনা সেবা',
+                'url'         => Route::has('documents') ? route('documents') : url('/documents'),
+                'icon'        => 'fa-file-lines',
+                'keywords'    => ['নথিপত্র', 'ডকুমেন্টস', 'প্রকাশনা গাইড', 'চুক্তিপত্র', 'রয়্যালটি নিয়ম', 'বই প্রকাশের নিয়ম', 'documents', 'guidelines', 'contract', 'author contract', 'publication rules', 'chuktir niyom', 'dokuments'],
+            ],
+            [
+                'id'          => 'terms',
+                'title'       => 'শর্তাবলী ও ব্যবহারের নিয়মাবলী',
+                'title_en'    => 'Terms & Conditions',
+                'description' => 'আইডিয়া প্রকাশন ওয়েবসাইট ও সেবা ব্যবহারের আইনি শর্তাবলী',
+                'category'    => 'আইনি ও নীতিমালা',
+                'url'         => Route::has('terms') ? route('terms') : url('/terms'),
+                'icon'        => 'fa-scale-balanced',
+                'keywords'    => ['শর্তাবলী', 'ব্যবহারের শর্ত', 'টার্মস', 'নিয়মাবলী', 'শর্তসমূহ', 'terms', 'terms and conditions', 'terms of service', 'policy', 'rules', 'shortaboli'],
+            ],
+            [
+                'id'          => 'privacy',
+                'title'       => 'গোপনীয়তা নীতি (Privacy Policy)',
+                'title_en'    => 'Privacy Policy & Data Protection',
+                'description' => 'গ্রাহকের তথ্যের সুরক্ষা ও ব্যক্তিগত গোপনীয়তা রক্ষা সংক্রান্ত নীতিমালা',
+                'category'    => 'আইনি ও নীতিমালা',
+                'url'         => Route::has('privacy') ? route('privacy') : url('/privacy'),
+                'icon'        => 'fa-shield-halved',
+                'keywords'    => ['গোপনীয়তা', 'গোপনীয়তা নীতি', 'প্রাইভেসি পলিসি', 'তথ্য সুরক্ষা', 'নিরাপত্তা', 'privacy', 'privacy policy', 'security', 'data protection', 'goponiyota'],
+            ],
+            [
+                'id'          => 'refund',
+                'title'       => 'রিফান্ড ও রিটার্ন নীতি',
+                'title_en'    => 'Refund, Return & Cancellation Policy',
+                'description' => 'ত্রুটিপূর্ণ বই পরিবর্তন ও টাকা ফেরতের সুনির্দিষ্ট নীতিমালা',
+                'category'    => 'আইনি ও নীতিমালা',
+                'url'         => Route::has('refund.policy') ? route('refund.policy') : url('/refund-policy'),
+                'icon'        => 'fa-rotate-left',
+                'keywords'    => ['রিফান্ড', 'রিটার্ন', 'টাকা ফেরত', 'বই পরিবর্তন', 'রিটার্ন পলিসি', 'রিফান্ড পলিসি', 'refund', 'return', 'refund policy', 'return policy', 'money back', 'exchange', 'cancellation'],
+            ],
+            [
+                'id'          => 'shipping',
+                'title'       => 'শিপিং ও হোম ডেলিভারি তথ্য',
+                'title_en'    => 'Shipping & Delivery Policy',
+                'description' => 'সারা দেশে ক্যাশ অন ডেলিভারি, কুরিয়ার চার্জ ও সময়সীমার তথ্য',
+                'category'    => 'ডেলিভারি ও অর্ডার',
+                'url'         => Route::has('shipping.policy') ? route('shipping.policy') : url('/shipping-policy'),
+                'icon'        => 'fa-truck-fast',
+                'keywords'    => ['শিপিং', 'ডেলিভারি', 'হোম ডেলিভারি', 'কুরিয়ার', 'ডেলিভারি চার্জ', 'shipping', 'delivery', 'delivery charges', 'courier', 'home delivery', 'tracking'],
+            ],
+            [
+                'id'          => 'author_register',
+                'title'       => 'লেখক হিসেবে রেজিস্ট্রেশন / নিবন্ধন',
+                'title_en'    => 'Author Registration / Join as Author',
+                'description' => 'আইডিয়া প্রকাশনে লেখক হিসেবে যুক্ত হয়ে নিজের বই ও আইডিয়াপত্র প্রকাশ করুন',
+                'category'    => 'রেজিস্ট্রেশন ও একাউন্ট',
+                'url'         => route('register.form', 'author'),
+                'icon'        => 'fa-user-pen',
+                'keywords'    => ['লেখক নিবন্ধন', 'লেখক রেজিস্ট্রেশন', 'লেখক একাউন্ট', 'বই প্রকাশ করতে চাই', 'author registration', 'author register', 'join author', 'author signup', 'lekhok registration'],
+            ],
+            [
+                'id'          => 'publisher_register',
+                'title'       => 'প্রকাশক হিসেবে রেজিস্ট্রেশন',
+                'title_en'    => 'Publisher Registration & Partnership',
+                'description' => 'সহযোগী প্রকাশনী হিসেবে যুক্ত হয়ে আপনার বই আইডিয়া প্ল্যাটফর্মে যুক্ত করুন',
+                'category'    => 'রেজিস্ট্রেশন ও একাউন্ট',
+                'url'         => route('register.form', 'publisher'),
+                'icon'        => 'fa-briefcase',
+                'keywords'    => ['প্রকাশক নিবন্ধন', 'প্রকাশক রেজিস্ট্রেশন', 'publisher registration', 'publisher register', 'publisher signup'],
+            ],
+            [
+                'id'          => 'cart',
+                'title'       => 'আমার শপিং কার্ট ও চেকআউট',
+                'title_en'    => 'Shopping Cart & Checkout',
+                'description' => 'অর্ডারকৃত বইসমূহের তালিকা এবং সরাসরি চেকআউট সম্পন্ন করার পাতা',
+                'category'    => 'অর্ডার ও চেকআউট',
+                'url'         => route('cart'),
+                'icon'        => 'fa-bag-shopping',
+                'keywords'    => ['কার্ট', 'শপিং কার্ট', 'ঝুড়ি', 'চেকআউট', 'অর্ডার', 'cart', 'shopping cart', 'checkout', 'bag', 'order'],
+            ],
+            [
+                'id'          => 'login',
+                'title'       => 'গ্রাহক ও লেখক লগইন',
+                'title_en'    => 'User & Author Login',
+                'description' => 'আপনার আইডিয়া প্রোফাইল, অর্ডার হিস্ট্রি ও ড্যাশবোর্ডে প্রবেশ করুন',
+                'category'    => 'লগইন ও পোর্টাল',
+                'url'         => route('login'),
+                'icon'        => 'fa-arrow-right-to-bracket',
+                'keywords'    => ['লগইন', 'সাইন ইন', 'একাউন্টে প্রবেশ', 'login', 'sign in', 'log in', 'portal', 'account'],
+            ],
+            [
+                'id'          => 'my_account',
+                'title'       => 'আমার অ্যাকাউন্ট ও অর্ডার হিস্ট্রি',
+                'title_en'    => 'My Account & Order Tracking',
+                'description' => 'আপনার প্রোফাইল তথ্য, সংরক্ষিত ঠিকানা ও সকল অর্ডারের বর্তমান অবস্থা',
+                'category'    => 'গ্রাহক সেবা ও একাউন্ট',
+                'url'         => route('my-account'),
+                'icon'        => 'fa-user-gear',
+                'keywords'    => ['আমার একাউন্ট', 'প্রোফাইল', 'অর্ডার হিস্ট্রি', 'অর্ডার ট্র্যাকিং', 'my account', 'profile', 'order history', 'track order', 'account dashboard'],
+            ],
+            [
+                'id'          => 'boimela',
+                'title'       => 'বইমেলা ২০২৬ বিশেষ কালেকশন',
+                'title_en'    => 'Ekushey Boi Mela 2026 Collection',
+                'description' => 'একুশে বইমেলা উপলক্ষে প্রকাশিত সকল নতুন ও সমাদৃত বইয়ের বিশেষ সম্ভার',
+                'category'    => 'বিশেষ আয়োজন',
+                'url'         => route('book.index', ['filter' => 'boimela-2026']),
+                'icon'        => 'fa-fire',
+                'keywords'    => ['বইমেলা', 'বইমেলা ২০২৬', 'একুশে বইমেলা', 'মেলা', 'boimela', 'boi mela', 'mela', 'ekushey boimela'],
+            ],
+        ];
     }
 }

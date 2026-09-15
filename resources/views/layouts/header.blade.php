@@ -1554,10 +1554,11 @@
                 const categoriesCount = data.categories?.length || 0;
                 const postsCount = data.posts?.length || 0;
                 const publishersCount = data.publishers?.length || 0;
-                const quickLinksCount = data.quick_links?.length || 0;
+                const pagesList = data.pages || data.quick_links || [];
+                const pagesCount = pagesList.length;
                 const keywordsCount = data.keyword_suggestions?.length || 0;
 
-                const totalMatches = booksCount + authorsCount + categoriesCount + postsCount + publishersCount + quickLinksCount + keywordsCount;
+                const totalMatches = booksCount + authorsCount + categoriesCount + postsCount + publishersCount + pagesCount + keywordsCount;
 
                 if (totalMatches === 0) {
                     searchContent.innerHTML = `
@@ -1585,6 +1586,11 @@
                         <button type="button" class="btn btn-sm ${activeFilterTab === 'all' ? 'btn-primary text-white' : 'btn-light text-dark'} rounded-pill px-2.5 py-0.5 fw-bold search-tab-btn" data-tab="all" style="font-size: 11px; white-space: nowrap;">
                             সকল কিছু (${totalMatches})
                         </button>
+                        ${pagesCount > 0 ? `
+                            <button type="button" class="btn btn-sm ${activeFilterTab === 'pages' ? 'btn-primary text-white' : 'btn-light text-dark'} rounded-pill px-2.5 py-0.5 fw-bold search-tab-btn" data-tab="pages" style="font-size: 11px; white-space: nowrap;">
+                                <i class="fa-solid fa-file-lines me-1"></i>পেজসমূহ (${pagesCount})
+                            </button>
+                        ` : ''}
                         ${booksCount > 0 ? `
                             <button type="button" class="btn btn-sm ${activeFilterTab === 'books' ? 'btn-primary text-white' : 'btn-light text-dark'} rounded-pill px-2.5 py-0.5 fw-bold search-tab-btn" data-tab="books" style="font-size: 11px; white-space: nowrap;">
                                 <i class="fa-solid fa-book me-1"></i>বইসমূহ (${booksCount})
@@ -1613,16 +1619,29 @@
                     </div>
                 `;
 
-                // ══ SECTION 0: Quick Direct Site Navigation Shortcuts ══
-                if ((activeFilterTab === 'all') && data.quick_links && data.quick_links.length > 0) {
+                // ══ SECTION 0: Rich Dynamic Site Pages & Navigation Links ══
+                if ((activeFilterTab === 'all' || activeFilterTab === 'pages') && pagesList.length > 0) {
                     html += `
-                        <div class="mb-2 px-1">
-                            <div class="d-flex flex-column gap-1">
-                                ${data.quick_links.map(ql => `
-                                    <a href="${ql.url}" class="site-search-scoped-item site-search-selectable py-1.5" onclick="window.addIdeaRecentSearch('${ql.title.replace(/'/g, "\\'")}')">
-                                        <i class="fa-solid ${ql.icon} text-primary" style="font-size: 13px;"></i>
-                                        <span class="fw-bold text-dark">${highlightText(ql.title, q)}</span>
-                                        <span class="badge bg-primary text-white ms-auto px-2 py-0.5 rounded-pill" style="font-size: 9.5px;">সরাসরি যান →</span>
+                        <div class="mb-2.5 px-1 ${activeFilterTab !== 'all' ? 'pt-1' : ''}">
+                            <div class="site-search-sec-hdr">
+                                <span><i class="fa-solid fa-file-lines text-primary me-1"></i> সাইট পেজ ও নির্দেশিকা (${pagesList.length}টি)</span>
+                                <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-2 py-0.5" style="font-size: 9.5px;">সরাসরি পাতা</span>
+                            </div>
+                            <div class="d-flex flex-column gap-1.5">
+                                ${pagesList.map(pg => `
+                                    <a href="${pg.url}" class="site-search-item site-search-selectable py-2 px-2.5 rounded-3 d-flex align-items-center gap-2.5 border text-decoration-none" onclick="window.addIdeaRecentSearch('${pg.title.replace(/'/g, "\\'")}')">
+                                        <div class="rounded-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center flex-shrink-0" style="width: 34px; height: 34px; font-size: 13px;">
+                                            <i class="fa-solid ${pg.icon || 'fa-file-lines'}"></i>
+                                        </div>
+                                        <div class="flex-grow-1 min-w-0">
+                                            <div class="d-flex align-items-center gap-1.5 flex-wrap">
+                                                <span class="fw-bold text-dark text-truncate" style="font-size: 13px;">${highlightText(pg.title, q)}</span>
+                                                ${pg.title_en ? `<span class="text-muted small text-truncate" style="font-size: 11px;">(${highlightText(pg.title_en, q)})</span>` : ''}
+                                                ${pg.category ? `<span class="badge bg-light text-secondary border rounded-pill px-1.5 py-0.2" style="font-size: 9px;">${pg.category}</span>` : ''}
+                                            </div>
+                                            ${pg.description ? `<div class="text-muted text-truncate" style="font-size: 11px;">${pg.description}</div>` : ''}
+                                        </div>
+                                        <span class="badge bg-primary text-white flex-shrink-0 px-2.5 py-1 rounded-pill shadow-2xs d-none d-sm-inline-block" style="font-size: 10px;">পেজে যান →</span>
                                     </a>
                                 `).join('')}
                             </div>
@@ -1721,26 +1740,27 @@
                     `;
                 }
 
-                // ══ SECTION 4: Ideapatra / Blog Articles ══
-                if ((activeFilterTab === 'all' || activeFilterTab === 'blog') && data.posts && data.posts.length > 0) {
+                // ══ SECTION 4: Published Writings, Ideapatra Articles & Research ══
+                const writingsList = data.writings || data.posts || [];
+                if ((activeFilterTab === 'all' || activeFilterTab === 'blog') && writingsList.length > 0) {
                     html += `
                         <div class="mb-2 pt-2 border-top">
                             <div class="site-search-sec-hdr">
-                                <span><i class="fa-solid fa-newspaper text-info me-1"></i> আইডিয়াপত্র ও ব্লগ নিবন্ধ (${data.posts.length}টি)</span>
+                                <span><i class="fa-solid fa-newspaper text-info me-1"></i> প্রকাশিত লেখা, নিবন্ধ ও প্রবন্ধ (${writingsList.length}টি)</span>
                                 <a href="{{ route('blog.index') }}" class="small text-primary text-decoration-none fw-semibold" style="font-size: 11px;">আইডিয়াপত্রে যান →</a>
                             </div>
                             <div class="d-flex flex-column gap-1.5 px-1">
-                                ${data.posts.map(p => `
-                                    <a href="${p.url}" class="site-search-item site-search-selectable py-2 px-2.5" onclick="window.addIdeaRecentSearch('${p.title.replace(/'/g, "\\'")}')">
+                                ${writingsList.map(p => `
+                                    <a href="${p.url}" class="site-search-item site-search-selectable py-2 px-2.5 rounded-3 d-flex align-items-center gap-2.5 border text-decoration-none" onclick="window.addIdeaRecentSearch('${p.title.replace(/'/g, "\\'")}')">
                                         <div class="rounded-3 bg-light border d-flex align-items-center justify-content-center overflow-hidden flex-shrink-0" style="width: 44px; height: 44px;">
-                                            ${p.image ? `<img src="${p.image}" alt="${p.title}" class="w-100 h-100 object-fit-cover">` : `<i class="fa-solid fa-feather-pointed text-primary fs-5"></i>`}
+                                            ${p.image ? `<img src="${p.image}" alt="${p.title}" class="w-100 h-100 object-fit-cover" onerror="this.onerror=null;this.parentElement.innerHTML='<i class=\\'fa-solid fa-feather-pointed text-primary fs-5\\'></i>';">` : `<i class="fa-solid fa-feather-pointed text-primary fs-5"></i>`}
                                         </div>
-                                        <div class="text-truncate flex-grow-1">
+                                        <div class="text-truncate flex-grow-1 min-w-0">
                                             <div class="fw-bold text-dark text-truncate" style="font-size: 13px;">${highlightText(p.title, q)}</div>
                                             <div class="d-flex align-items-center gap-1.5 text-muted small text-truncate" style="font-size: 11px;">
                                                 <span><i class="fa-solid fa-user-pen me-0.5 opacity-75"></i> ${highlightText(p.author, q)}</span>
                                                 <span class="opacity-50">•</span>
-                                                <span class="badge bg-info bg-opacity-10 text-info px-1.5 py-0.5 rounded-pill" style="font-size: 9px;">${p.category}</span>
+                                                <span class="badge bg-info bg-opacity-10 text-info px-1.5 py-0.5 rounded-pill" style="font-size: 9px;">${p.source || p.category}</span>
                                                 ${p.published_at ? `<span class="ms-auto opacity-75">${p.published_at}</span>` : ''}
                                             </div>
                                         </div>

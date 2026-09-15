@@ -87,18 +87,26 @@
                             $authorName = $post->author_name ?: 'সম্পাদকীয় বিভাগ';
                             $authorSearchUrl = route('authors.index') . '?search=' . urlencode($authorName);
                         @endphp
-                        <div class="mt-auto pt-3 border-top d-flex align-items-center justify-content-between">
+                        <div class="mt-auto pt-3 border-top d-flex align-items-center justify-content-between gap-2">
                             <a href="{{ $authorSearchUrl }}" class="d-flex align-items-center gap-2 text-decoration-none text-dark hover-primary" title="লেখক ডিরেক্টরীতে লেখকের প্রোফাইল ও বই দেখুন">
                                 <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold" style="width: 28px; height: 28px; font-size: 0.8rem;">
                                     {{ mb_substr($authorName, 0, 1) }}
                                 </div>
-                                <span class="small fw-bold text-dark text-truncate" style="max-width: 130px;">
+                                <span class="small fw-bold text-dark text-truncate" style="max-width: 110px;">
                                     {{ $authorName }}
                                 </span>
                             </a>
-                            <a href="{{ route('blog.show', $post->slug) }}" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-semibold" style="font-size: 0.8rem;">
-                                পড়ুন →
-                            </a>
+                            <div class="d-flex align-items-center gap-1.5">
+                                <button type="button" class="btn btn-sm btn-light border text-primary rounded-pill px-2.5 py-1 fw-semibold btn-quick-audio d-inline-flex align-items-center gap-1"
+                                    style="font-size: 0.76rem;"
+                                    onclick="if(window.IdeaAudiobook) IdeaAudiobook.speakExcerpt(this, @js($post->title), @js($post->excerpt ?: Str::limit(trim(strip_tags(html_entity_decode((string)$post->content, ENT_QUOTES | ENT_HTML5, 'UTF-8'))), 150)), @js(route('blog.show', $post->slug)))"
+                                    title="সংক্ষিপ্ত অডিও শুনুন">
+                                    <i class="fa-solid fa-volume-high text-primary"></i> <span>শুনুন</span>
+                                </button>
+                                <a href="{{ route('blog.show', $post->slug) }}" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-semibold" style="font-size: 0.8rem;">
+                                    পড়ুন →
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </article>

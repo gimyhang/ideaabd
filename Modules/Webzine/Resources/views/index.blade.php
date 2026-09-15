@@ -84,10 +84,15 @@
                                     </div>
                                 </a>
 
-                                <div class="mt-auto d-grid gap-1 pt-2 border-top">
+                                <div class="mt-auto d-flex flex-column gap-1 pt-2 border-top">
                                     <a href="{{ route('webzine.read', $webzine->slug) }}" class="btn btn-primary btn-sm rounded-pill fw-semibold py-1" style="font-size: 0.78rem;">
                                         <i class="fa-solid fa-book-open me-1"></i> সংখ্যাটি পড়ুন
                                     </a>
+                                    @if(!empty($webzine->description))
+                                        <button type="button" class="btn-quick-audio w-100 justify-content-center" onclick="IdeaAudiobook.speakExcerpt('{{ addslashes(preg_replace('/\s+/', ' ', strip_tags($webzine->description))) }}', '{{ addslashes($webzine->title) }}')">
+                                            <i class="fa-solid fa-headphones"></i> অডিও শুনুন
+                                        </button>
+                                    @endif
                                 </div>
                             </div>
                         </div>

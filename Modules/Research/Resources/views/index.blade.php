@@ -20,7 +20,14 @@
                         <h3 class="font-bold mb-2 line-clamp-2">{{ $paper->title }}</h3>
                         <p class="text-xs text-slate-600 mb-2">লেখক: {{ $paper->author->name ?? 'অজানা' }}</p>
                         <p class="text-xs text-slate-500 mb-3">{{ $paper->published_at->format('d M Y') }} | {{ $paper->view_count }} ভিউ</p>
-                        <a href="{{ route('research.show', $paper->slug) }}" class="text-brand-600 hover:text-brand-700 font-semibold text-sm">পড়ুন →</a>
+                        <div class="flex items-center justify-between mt-3 pt-2 border-t">
+                            <a href="{{ route('research.show', $paper->slug) }}" class="text-brand-600 hover:text-brand-700 font-semibold text-sm">পড়ুন →</a>
+                            @if(!empty($paper->abstract))
+                                <button type="button" class="btn-quick-audio" onclick="IdeaAudiobook.speakExcerpt('{{ addslashes(preg_replace('/\s+/', ' ', strip_tags($paper->abstract))) }}', '{{ addslashes($paper->title) }}')" title="সারমর্ম শুনুন">
+                                    <i class="fa-solid fa-headphones"></i> শুনুন
+                                </button>
+                            @endif
+                        </div>
                     </div>
                 </article>
             @empty

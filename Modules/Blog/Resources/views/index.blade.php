@@ -460,9 +460,16 @@
                             </div>
                         </div>
 
-                        <a href="{{ route('blog.show', $heroPost->slug) }}" class="btn btn-primary rounded-pill px-4 fw-semibold shadow-sm">
-                            সম্পূর্ণ পড়ুন <i class="fa-solid fa-arrow-right ms-1"></i>
-                        </a>
+                        <div class="d-flex align-items-center gap-2">
+                            <button type="button" class="btn btn-outline-primary rounded-pill px-3 py-1.5 fw-semibold btn-quick-audio d-inline-flex align-items-center gap-1.5"
+                                onclick="if(window.IdeaAudiobook) IdeaAudiobook.speakExcerpt(this, @js($heroPost->title), @js($heroPost->excerpt ?: Str::limit(trim(strip_tags(html_entity_decode((string)$heroPost->content, ENT_QUOTES | ENT_HTML5, 'UTF-8'))), 250)), @js(route('blog.show', $heroPost->slug)))"
+                                title="সংক্ষিপ্ত অডিও শুনুন">
+                                <i class="fa-solid fa-volume-high text-primary"></i> <span>শুনুন</span>
+                            </button>
+                            <a href="{{ route('blog.show', $heroPost->slug) }}" class="btn btn-primary rounded-pill px-4 fw-semibold shadow-sm">
+                                সম্পূর্ণ পড়ুন <i class="fa-solid fa-arrow-right ms-1"></i>
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -577,10 +584,13 @@
                                         {{ $post->excerpt ?: Str::limit(trim(strip_tags(html_entity_decode((string)$post->content, ENT_QUOTES | ENT_HTML5, 'UTF-8'))), 90) }}
                                     </p>
 
-                                    <div class="mt-auto pt-2 d-flex align-items-center justify-content-between">
-                                        <span class="text-muted small" style="font-size: 0.72rem;">
-                                            <i class="fa-solid fa-book-open text-warning me-1"></i>৩ মিনিট পাঠ
-                                        </span>
+                                    <div class="mt-auto pt-2 d-flex align-items-center justify-content-between gap-1">
+                                        <button type="button" class="btn btn-sm btn-light border text-primary rounded-pill px-2.5 py-0.5 fw-semibold btn-quick-audio d-inline-flex align-items-center gap-1"
+                                            style="font-size: 0.72rem;"
+                                            onclick="if(window.IdeaAudiobook) IdeaAudiobook.speakExcerpt(this, @js($post->title), @js($post->excerpt ?: Str::limit(trim(strip_tags(html_entity_decode((string)$post->content, ENT_QUOTES | ENT_HTML5, 'UTF-8'))), 150)), @js(route('blog.show', $post->slug)))"
+                                            title="সংক্ষিপ্ত অডিও শুনুন">
+                                            <i class="fa-solid fa-volume-high text-primary"></i> <span>শুনুন</span>
+                                        </button>
                                         <a href="{{ route('blog.show', $post->slug) }}" class="btn btn-outline-primary btn-sm rounded-pill px-3 py-1 fw-bold btn-lit-read" style="font-size: 0.75rem;">
                                             পড়ুন <i class="fa-solid fa-arrow-right ms-1"></i>
                                         </a>
