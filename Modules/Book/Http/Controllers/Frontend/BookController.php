@@ -286,11 +286,55 @@ class BookController extends Controller
                             return array_search($b->id, $recentlyViewedIds);
                         });
                 }
+            } else {
+                // When in Search Mode, also fetch cross-entity matches (Blog Posts / Ideapatra, Authors, Categories)
+                $matchedBlogPosts = collect();
+                $matchedAuthors = collect();
+                $matchedCategories = collect();
+
+                if (!empty($rawSearch)) {
+                    try {
+                        if (class_exists(\Modules\Blog\Models\BlogPost::class)) {
+                            $matchedBlogPosts = \Modules\Blog\Models\BlogPost::query()
+                                ->where('status', 'published')
+                                ->where(function ($b) use ($rawSearch) {
+                                    $b->where('title', 'LIKE', "%{$rawSearch}%")
+                                      ->orWhere('excerpt', 'LIKE', "%{$rawSearch}%");
+                                })
+                                ->with(['category', 'author'])
+                                ->latest()
+                                ->take(6)
+                                ->get();
+                        }
+                    } catch (\Throwable) {}
+
+                    try {
+                        if (class_exists(\Modules\Author\Models\Author::class)) {
+                            $matchedAuthors = \Modules\Author\Models\Author::query()
+                                ->where('is_active', true)
+                                ->where('name', 'LIKE', "%{$rawSearch}%")
+                                ->withCount(['books' => fn($q) => $q->where('is_active', true)])
+                                ->take(6)
+                                ->get();
+                        }
+                    } catch (\Throwable) {}
+
+                    try {
+                        if (class_exists(\Modules\Book\Models\Category::class)) {
+                            $matchedCategories = \Modules\Book\Models\Category::query()
+                                ->where('is_active', true)
+                                ->where('name', 'LIKE', "%{$rawSearch}%")
+                                ->withCount(['books' => fn($q) => $q->where('is_active', true)])
+                                ->take(6)
+                                ->get();
+                        }
+                    } catch (\Throwable) {}
+                }
             }
         }
 
         return view('book::frontend.index', compact(
-            'books', 'categories', 'isSearchMode', 'recentlySold', 'newArrivals', 'bestSellerEbooks', 'categoryBooks', 'sidebarAuthors', 'sidebarPublishers', 'flashSales', 'recentlyViewedBooks', 'topSeller', 'dynamicCategories', 'activeFilterTitle'
+            'books', 'categories', 'isSearchMode', 'recentlySold', 'newArrivals', 'bestSellerEbooks', 'categoryBooks', 'sidebarAuthors', 'sidebarPublishers', 'flashSales', 'recentlyViewedBooks', 'topSeller', 'dynamicCategories', 'activeFilterTitle', 'matchedBlogPosts', 'matchedAuthors', 'matchedCategories'
         ));
     }
 
@@ -417,6 +461,9 @@ class BookController extends Controller
     /**
      * World-Class Real-Time Smart Live Search & Spotlight Suggestions
      */
+    /**
+     * World-Class Real-Time Smart Live Search & Spotlight Suggestions (1-Letter Universal Search)
+     */
     public function suggest(Request $request): JsonResponse
     {
         $query = trim((string)($request->input('q') ?: $request->input('search') ?: ''));
@@ -424,27 +471,37 @@ class BookController extends Controller
 
         if (mb_strlen($query) < 1) {
             return response()->json([
-                'success'    => true,
-                'query'      => $query,
-                'books'      => [],
-                'authors'    => [],
-                'categories' => [],
-                'publishers' => [],
-                'total'      => 0,
+                'success'             => true,
+                'query'               => $query,
+                'keyword_suggestions' => [],
+                'scoped_suggestions'  => [],
+                'quick_links'         => [],
+                'books'               => [],
+                'authors'             => [],
+                'categories'          => [],
+                'posts'               => [],
+                'publishers'          => [],
+                'webzines'            => [],
+                'total'               => 0,
             ]);
         }
 
         // Tokenize query words
         $tokens = array_filter(preg_split('/\s+/', $query));
 
-        // 1. Books Query
+        // 1. Books Query (1-letter prefix & contains match)
         $booksQuery = Book::query()
             ->with(['authors:id,name,slug', 'category:id,name,slug', 'publisher:id,name,slug'])
+            ->withAvg('reviews', 'rating')
+            ->withCount('reviews')
             ->where('is_active', true);
 
-        if ($type === 'books' || $type === 'all') {
+        if ($type === 'ebooks') {
+            $booksQuery->where('format', 'ebook');
+        }
+
+        if ($type === 'books' || $type === 'all' || $type === 'ebooks') {
             $booksQuery->where(function ($master) use ($tokens, $query) {
-                // Exact or full match priority
                 $master->where('title', 'LIKE', "%{$query}%")
                        ->orWhere('title_en', 'LIKE', "%{$query}%")
                        ->orWhere('sku', 'LIKE', "%{$query}%")
@@ -452,7 +509,6 @@ class BookController extends Controller
                        ->orWhere('isbn', 'LIKE', "%{$query}%")
                        ->orWhere('author_name', 'LIKE', "%{$query}%");
 
-                // Multi-token match
                 foreach ($tokens as $token) {
                     $like = "%{$token}%";
                     $master->orWhere(function ($sub) use ($like) {
@@ -477,24 +533,28 @@ class BookController extends Controller
             $price = (float)$book->price;
             $discountPrice = (float)$book->discount_price;
             $hasDiscount = $discountPrice > 0 && $discountPrice < $price;
+            $discountPercent = $hasDiscount && $price > 0 ? (int)round((($price - $discountPrice) / $price) * 100) : 0;
 
             return [
-                'id'             => $book->id,
-                'title'          => $book->title,
-                'slug'           => $book->slug ?: (string)$book->id,
-                'url'            => route('book.show', $book->slug ?: $book->id),
-                'author'         => $authorName,
-                'category'       => $categoryName,
-                'format'         => $book->format ?? 'paperback',
-                'format_label'   => $book->format === 'hardcover' ? 'হার্ডকভার' : ($book->format === 'ebook' ? 'ই-বুক' : 'কাগজের বই'),
-                'cover'          => $cover,
-                'price'          => $price,
-                'discount_price' => $discountPrice,
-                'has_discount'   => $hasDiscount,
-                'price_formatted'=> '৳' . number_format($hasDiscount ? $discountPrice : $price, 0),
-                'mrp_formatted'  => $hasDiscount ? '৳' . number_format($price, 0) : null,
-                'in_stock'       => (int)$book->stock_quantity > 0,
-                'idea_serial_no' => $book->idea_serial_no,
+                'id'               => $book->id,
+                'title'            => $book->title,
+                'slug'             => $book->slug ?: (string)$book->id,
+                'url'              => route('book.show', $book->slug ?: $book->id),
+                'author'           => $authorName,
+                'category'         => $categoryName,
+                'format'           => $book->format ?? 'paperback',
+                'format_label'     => $book->format === 'hardcover' ? 'হার্ডকভার' : ($book->format === 'ebook' ? 'ই-বুক' : 'কাগজের বই'),
+                'cover'            => $cover,
+                'price'            => $price,
+                'discount_price'   => $discountPrice,
+                'has_discount'     => $hasDiscount,
+                'discount_percent' => $discountPercent,
+                'price_formatted'  => '৳' . number_format($hasDiscount ? $discountPrice : $price, 0),
+                'mrp_formatted'    => $hasDiscount ? '৳' . number_format($price, 0) : null,
+                'in_stock'         => (int)$book->stock_quantity > 0,
+                'rating_avg'       => $book->reviews_avg_rating ? round((float)$book->reviews_avg_rating, 1) : 0,
+                'reviews_count'    => (int)$book->reviews_count,
+                'idea_serial_no'   => $book->idea_serial_no,
             ];
         });
 
@@ -529,7 +589,7 @@ class BookController extends Controller
 
         // 3. Categories Query
         $categories = collect();
-        if ($type === 'all') {
+        if ($type === 'categories' || $type === 'all') {
             $categories = Category::query()
                 ->where('is_active', true)
                 ->where(function ($q) use ($query) {
@@ -552,7 +612,48 @@ class BookController extends Controller
                 });
         }
 
-        // 4. Publishers Query
+        // 4. Ideapatra / Blog Articles Query
+        $posts = collect();
+        if ($type === 'blog' || $type === 'all') {
+            try {
+                $posts = \Modules\Blog\Models\BlogPost::query()
+                    ->with(['category:id,name,slug', 'author:id,name'])
+                    ->where(function ($sub) {
+                        $sub->where('status', 'published')
+                            ->orWhere('status', 'approved')
+                            ->orWhere('mod_status', 'approved')
+                            ->orWhereNull('status');
+                    })
+                    ->where(function ($q) use ($query) {
+                        $q->where('title', 'LIKE', "%{$query}%")
+                          ->orWhere('subtitle', 'LIKE', "%{$query}%")
+                          ->orWhere('excerpt', 'LIKE', "%{$query}%")
+                          ->orWhere('slug', 'LIKE', "%{$query}%")
+                          ->orWhere('owner_name', 'LIKE', "%{$query}%");
+                    })
+                    ->latest('published_at')
+                    ->latest('id')
+                    ->take(4)
+                    ->get()
+                    ->map(function ($post) {
+                        $img = $post->featured_image ? (str_starts_with($post->featured_image, 'http') ? $post->featured_image : asset('storage/' . ltrim($post->featured_image, '/'))) : null;
+                        return [
+                            'id'           => $post->id,
+                            'title'        => $post->title,
+                            'slug'         => $post->slug,
+                            'url'          => route('blog.show', $post->slug ?: $post->id),
+                            'author'       => $post->author?->name ?: ($post->owner_name ?: 'আইডিয়াপত্র লেখক'),
+                            'category'     => $post->category?->name ?: 'আইডিয়াপত্র',
+                            'image'        => $img,
+                            'published_at' => $post->published_at ? $post->published_at->format('d M Y') : null,
+                        ];
+                    });
+            } catch (\Throwable) {
+                $posts = collect();
+            }
+        }
+
+        // 5. Publishers Query
         $publishers = collect();
         if ($type === 'publishers' || $type === 'all') {
             $publishers = Publisher::query()
@@ -576,16 +677,142 @@ class BookController extends Controller
                 });
         }
 
+        // 6. Webzines Query
+        $webzines = collect();
+        if ($type === 'all') {
+            try {
+                if (class_exists(\Modules\Webzine\Models\Webzine::class)) {
+                    $webzines = \Modules\Webzine\Models\Webzine::query()
+                        ->where('is_active', true)
+                        ->where(function ($q) use ($query) {
+                            $q->where('title', 'LIKE', "%{$query}%")
+                              ->orWhere('theme', 'LIKE', "%{$query}%")
+                              ->orWhere('slug', 'LIKE', "%{$query}%");
+                        })
+                        ->take(2)
+                        ->get()
+                        ->map(fn($w) => [
+                            'id'    => $w->id,
+                            'title' => $w->title,
+                            'url'   => Route::has('webzine.show') ? route('webzine.show', $w->slug ?: $w->id) : url('/webzines/' . ($w->slug ?: $w->id)),
+                        ]);
+                }
+            } catch (\Throwable) {
+                $webzines = collect();
+            }
+        }
+
+        // 7. Site Destinations & Quick Links Match
+        $siteDestinations = [
+            ['title' => 'আইডিয়াপত্র ও ব্লগ', 'keywords' => ['আইডিয়াপত্র', 'ideapatra', 'ব্লগ', 'blog', 'ম্যাগাজিন', 'magazine', 'পত্রিকা', 'লেখা'], 'url' => route('blog.index'), 'icon' => 'fa-newspaper'],
+            ['title' => 'নিজের লেখা প্রকাশ করুন', 'keywords' => ['লেখা পোস্ট', 'লেখা প্রকাশ', 'write', 'post', 'blog write', 'কবিতা পোস্ট'], 'url' => route('blog.write'), 'icon' => 'fa-pen-nib'],
+            ['title' => 'ডিজিটাল ই-বুক সম্ভার', 'keywords' => ['ই-বুক', 'ইবুক', 'ebook', 'ebooks', 'ডিজিটাল', 'pdf'], 'url' => route('ebook.index'), 'icon' => 'fa-tablet-screen-button'],
+            ['title' => 'জনপ্রিয় লেখক তালিকা', 'keywords' => ['লেখক', 'authors', 'লেখকবৃন্দ', 'কবি', 'সাহিত্যিক'], 'url' => route('authors.index'), 'icon' => 'fa-feather-pointed'],
+            ['title' => 'শীর্ষ প্রকাশনী ও পাবলিশার্স', 'keywords' => ['প্রকাশক', 'publishers', 'প্রকাশনী', 'প্রেস'], 'url' => route('publishers.index'), 'icon' => 'fa-building'],
+            ['title' => 'আইডিয়া ওয়েবজিন', 'keywords' => ['ওয়েবজিন', 'webzine', 'সাহিত্য পত্রিকা'], 'url' => Route::has('webzine.index') ? route('webzine.index') : url('/webzines'), 'icon' => 'fa-book-open'],
+            ['title' => 'গবেষণা ও উন্নয়ন', 'keywords' => ['গবেষণা', 'research', 'রিসার্চ', 'গবেষণাপত্র'], 'url' => Route::has('research.index') ? route('research.index') : url('/research'), 'icon' => 'fa-flask'],
+            ['title' => 'আইডিয়া হাব ও কমিউনিটি', 'keywords' => ['আইডিয়া হাব', 'hub', 'community', 'সদস্য'], 'url' => Route::has('hub') ? route('hub') : url('/hub'), 'icon' => 'fa-compass'],
+            ['title' => 'বইমেলা ২০২৬ বিশেষ কালেকশন', 'keywords' => ['বইমেলা', 'boimela', 'মেলা', '২০২৬'], 'url' => route('book.index', ['filter' => 'boimela-2026']), 'icon' => 'fa-fire'],
+            ['title' => 'আমার কার্ট ও চেকআউট', 'keywords' => ['কার্ট', 'cart', 'checkout', 'ঝুড়ি', 'অর্ডার'], 'url' => route('cart'), 'icon' => 'fa-bag-shopping'],
+            ['title' => 'গ্রাহক একাউন্ট ও অর্ডার ট্র্যাকিং', 'keywords' => ['একাউন্ট', 'account', 'অর্ডার', 'profile', 'লগইন', 'login'], 'url' => route('my-account'), 'icon' => 'fa-user'],
+            ['title' => 'যোগাযোগ ও সহায়তা', 'keywords' => ['যোগাযোগ', 'contact', 'হেল্পলাইন', 'whatsapp', 'help'], 'url' => Route::has('contact') ? route('contact') : url('/contact'), 'icon' => 'fa-headset'],
+        ];
+
+        $matchedQuickLinks = collect($siteDestinations)->filter(function($dest) use ($query) {
+            if (mb_stripos($dest['title'], $query) !== false) return true;
+            foreach ($dest['keywords'] as $kw) {
+                if (mb_stripos($kw, $query) !== false || mb_stripos($query, $kw) !== false) return true;
+            }
+            return false;
+        })->take(3)->values()->all();
+
+        // 8. Intelligent Keyword Suggestions (Amazon-like typeahead strings)
+        $keywordSuggestions = collect();
+        foreach ($books as $b) {
+            $keywordSuggestions->push($b['title']);
+            if (!empty($b['author'])) {
+                $keywordSuggestions->push($b['author']);
+            }
+        }
+        foreach ($authors as $a) {
+            $keywordSuggestions->push($a['name']);
+        }
+        foreach ($categories as $c) {
+            $keywordSuggestions->push($c['name']);
+        }
+        foreach ($posts as $p) {
+            $keywordSuggestions->push($p['title']);
+        }
+        foreach ($publishers as $pub) {
+            $keywordSuggestions->push($pub['name']);
+        }
+
+        $keywordSuggestions = $keywordSuggestions
+            ->filter(fn($text) => !empty($text) && mb_stripos($text, $query) !== false)
+            ->unique()
+            ->take(5)
+            ->values()
+            ->all();
+
+        // 9. Scoped Suggestions ("query in Department")
+        $scopedSuggestions = [];
+        if ($type === 'all') {
+            if ($posts->isNotEmpty()) {
+                $scopedSuggestions[] = [
+                    'title'       => $query,
+                    'scope_label' => 'আইডিয়াপত্র ও ব্লগ',
+                    'icon'        => 'fa-newspaper',
+                    'type'        => 'blog',
+                    'url'         => route('blog.index', ['search' => $query]),
+                ];
+            }
+            if ($categories->isNotEmpty()) {
+                $scopedSuggestions[] = [
+                    'title'       => $query,
+                    'scope_label' => 'বিষয় ও ক্যাটাগরি',
+                    'icon'        => 'fa-shapes',
+                    'type'        => 'categories',
+                    'url'         => route('book.index', ['search' => $query, 'type' => 'categories']),
+                ];
+            }
+            if ($authors->isNotEmpty()) {
+                $scopedSuggestions[] = [
+                    'title'       => $query,
+                    'scope_label' => 'লেখক',
+                    'icon'        => 'fa-feather-pointed',
+                    'type'        => 'authors',
+                    'url'         => route('book.index', ['search' => $query, 'type' => 'authors']),
+                ];
+            }
+            if ($publishers->isNotEmpty()) {
+                $scopedSuggestions[] = [
+                    'title'       => $query,
+                    'scope_label' => 'প্রকাশক',
+                    'icon'        => 'fa-building',
+                    'type'        => 'publishers',
+                    'url'         => route('book.index', ['search' => $query, 'type' => 'publishers']),
+                ];
+            }
+        }
+
+        $totalEntities = $totalBooksCount + $authors->count() + $categories->count() + $posts->count() + $publishers->count() + count($matchedQuickLinks);
+
         return response()->json([
-            'success'          => true,
-            'query'            => $query,
-            'type'             => $type,
-            'total_books'      => $totalBooksCount,
-            'books'            => $books,
-            'authors'          => $authors,
-            'categories'       => $categories,
-            'publishers'       => $publishers,
-            'full_search_url'  => route('book.index', ['search' => $query, 'type' => $type]),
+            'success'             => true,
+            'query'               => $query,
+            'type'                => $type,
+            'total_all'           => $totalEntities,
+            'total_books'         => $totalBooksCount,
+            'keyword_suggestions' => $keywordSuggestions,
+            'scoped_suggestions'  => $scopedSuggestions,
+            'quick_links'         => $matchedQuickLinks,
+            'books'               => $books,
+            'authors'             => $authors,
+            'categories'          => $categories,
+            'posts'               => $posts,
+            'publishers'          => $publishers,
+            'webzines'            => $webzines,
+            'full_search_url'     => route('book.index', ['search' => $query, 'type' => $type]),
         ]);
     }
 }

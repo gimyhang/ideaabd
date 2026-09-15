@@ -275,6 +275,87 @@
                             </div>
                         </div>
 
+                        {{-- Cross-Entity Matches: Categories / Authors / Ideapatra Blog --}}
+                        @if((isset($matchedCategories) && $matchedCategories->isNotEmpty()) || (isset($matchedAuthors) && $matchedAuthors->isNotEmpty()) || (isset($matchedBlogPosts) && $matchedBlogPosts->isNotEmpty()))
+                            <div class="mb-4 d-flex flex-column gap-3">
+                                
+                                {{-- Matched Categories --}}
+                                @if(isset($matchedCategories) && $matchedCategories->isNotEmpty())
+                                    <div class="p-2.5 rounded-3 bg-light border">
+                                        <div class="small fw-bold text-muted mb-2 d-flex align-items-center gap-1.5">
+                                            <i class="fa-solid fa-folder-open text-warning"></i> সংশ্লিষ্ট বিষয় / ক্যাটাগরি:
+                                        </div>
+                                        <div class="d-flex flex-wrap gap-2">
+                                            @foreach($matchedCategories as $mCat)
+                                                <a href="{{ route('book.index', ['category' => $mCat->slug]) }}" class="btn btn-sm btn-white border rounded-pill px-3 py-1 shadow-2xs fw-semibold text-dark text-decoration-none d-inline-flex align-items-center gap-1.5 hover-primary">
+                                                    <span>{{ $mCat->name }}</span>
+                                                    <span class="badge bg-secondary-subtle text-secondary rounded-pill small">{{ $mCat->books_count ?? 0 }}</span>
+                                                </a>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                @endif
+
+                                {{-- Matched Authors --}}
+                                @if(isset($matchedAuthors) && $matchedAuthors->isNotEmpty())
+                                    <div class="p-2.5 rounded-3 bg-light border">
+                                        <div class="small fw-bold text-muted mb-2 d-flex align-items-center gap-1.5">
+                                            <i class="fa-solid fa-feather text-success"></i> সংশ্লিষ্ট লেখক:
+                                        </div>
+                                        <div class="d-flex flex-wrap gap-2">
+                                            @foreach($matchedAuthors as $mAuth)
+                                                <a href="{{ route('book.index', ['author' => $mAuth->slug]) }}" class="btn btn-sm btn-white border rounded-pill px-3 py-1 shadow-2xs fw-semibold text-dark text-decoration-none d-inline-flex align-items-center gap-1.5 hover-primary">
+                                                    <i class="fa-regular fa-user small text-muted"></i>
+                                                    <span>{{ $mAuth->name }}</span>
+                                                    <span class="badge bg-secondary-subtle text-secondary rounded-pill small">{{ $mAuth->books_count ?? 0 }}টি বই</span>
+                                                </a>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                @endif
+
+                                {{-- Matched Ideapatra / Blog Articles --}}
+                                @if(isset($matchedBlogPosts) && $matchedBlogPosts->isNotEmpty())
+                                    <div class="p-3 rounded-4 bg-primary-subtle bg-opacity-25 border border-primary-subtle">
+                                        <div class="d-flex align-items-center justify-content-between mb-2">
+                                            <div class="fw-bold text-primary small d-flex align-items-center gap-1.5">
+                                                <i class="fa-solid fa-newspaper"></i> সংশ্লিষ্ট আইডিয়াপত্র ও ব্লগ নিবন্ধ ({{ count($matchedBlogPosts) }}টি)
+                                            </div>
+                                            @if(Route::has('blog.index'))
+                                                <a href="{{ route('blog.index', ['q' => request('q') ?: request('search')]) }}" class="small fw-semibold text-decoration-none text-primary">সকল লেখা দেখুন →</a>
+                                            @endif
+                                        </div>
+                                        <div class="row g-2">
+                                            @foreach($matchedBlogPosts as $mPost)
+                                                <div class="col-md-6 col-12">
+                                                    <a href="{{ route('blog.show', $mPost->slug) }}" class="d-flex align-items-center gap-2 p-2 bg-white rounded-3 border text-decoration-none shadow-2xs hover-lift h-100">
+                                                        <div class="rounded-2 bg-light d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; overflow: hidden;">
+                                                            @if(!empty($mPost->featured_image))
+                                                                <img src="{{ asset('storage/' . $mPost->featured_image) }}" alt="{{ $mPost->title }}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.onerror=null;this.parentElement.innerHTML='📰';">
+                                                            @else
+                                                                <span class="fs-5">📰</span>
+                                                            @endif
+                                                        </div>
+                                                        <div class="flex-grow-1 min-w-0">
+                                                            <div class="fw-semibold text-dark text-truncate small">{{ $mPost->title }}</div>
+                                                            <div class="text-muted" style="font-size: 11px;">
+                                                                @if($mPost->category)
+                                                                    <span class="text-primary">{{ $mPost->category->name }}</span> • 
+                                                                @endif
+                                                                <span>আইডিয়াপত্র</span>
+                                                            </div>
+                                                        </div>
+                                                        <i class="fa-solid fa-chevron-right text-muted small me-1"></i>
+                                                    </a>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                @endif
+
+                            </div>
+                        @endif
+
                         <!-- Books Grid -->
                         <div class="row row-cols-2 row-cols-sm-3 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 g-2.5 g-md-3">
                             @forelse($books as $book)
