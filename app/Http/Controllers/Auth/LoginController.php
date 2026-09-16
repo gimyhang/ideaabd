@@ -493,27 +493,9 @@ class LoginController extends Controller
                 Session::forget('login_visual_challenge');
                 Session::forget('show_captcha');
 
-                // Check registration approval for vendor/author/seller/publisher
-                if (in_array($matchedUser->role, ['author', 'seller', 'publisher'], true)) {
-                    if ($matchedUser->reg_status === 'pending' || !$matchedUser->is_active) {
-                        $msg = 'আপনার অ্যাকাউন্টটি এখনও অ্যাডমিন কর্তৃক অনুমোদিত হয়নি। অনুমোদন সম্পন্ন হলে আপনার ইমেইলে নোটিফিকেশন পৌঁছে যাবে এবং আপনি লগইন করতে পারবেন।';
-                        if ($isAjax) {
-                            return response()->json(['success' => false, 'message' => $msg], 422);
-                        }
-                        throw ValidationException::withMessages(['email' => $msg]);
-                    }
-                    if ($matchedUser->reg_status === 'rejected') {
-                        $msg = 'আপনার রেজিস্ট্রেশন অ্যাকাউন্টটির আবেদন প্রত্যাখ্যাত বা বাতিল করা হয়েছে।' . ($matchedUser->rejection_reason ? ' কারণ: ' . $matchedUser->rejection_reason : '');
-                        if ($isAjax) {
-                            return response()->json(['success' => false, 'message' => $msg], 422);
-                        }
-                        throw ValidationException::withMessages(['email' => $msg]);
-                    }
-                }
-
                 // Check active status
                 if (isset($matchedUser->is_active) && ! $matchedUser->is_active) {
-                    $msg = 'আপনার অ্যাকাউন্টটি নিষ্ক্রিয় করা আছে। Authorities-এর সাথে যোগাযোগ করুন।';
+                    $msg = 'আপনার অ্যাকাউন্টটি নিষ্ক্রিয় করা আছে। কর্তৃপক্ষের সাথে যোগাযোগ করুন।';
                     if ($isAjax) {
                         return response()->json(['success' => false, 'message' => $msg], 422);
                     }
@@ -524,17 +506,19 @@ class LoginController extends Controller
                 $request->session()->regenerate();
 
                 $redirectUrl = route('home');
+                $isApproved = ($matchedUser->reg_status === 'approved');
+
                 if (!empty($matchedUser->must_change_password)) {
                     $redirectUrl = route('my-account');
                 } elseif ($matchedUser->isAdmin()) {
                     $redirectUrl = route('admin.dashboard');
-                } elseif ($matchedUser->isSeller() || $matchedUser->isSubAdmin() || $matchedUser->reg_type === 'seller') {
+                } elseif ($isApproved && ($matchedUser->isSeller() || $matchedUser->isSubAdmin() || $matchedUser->reg_type === 'seller')) {
                     $redirectUrl = route('subadmin.dashboard');
-                } elseif ($matchedUser->isPublisher() || $matchedUser->reg_type === 'publisher') {
+                } elseif ($isApproved && ($matchedUser->isPublisher() || $matchedUser->reg_type === 'publisher')) {
                     $redirectUrl = route('publisher.dashboard');
-                } elseif ($matchedUser->isAuthor() || $matchedUser->reg_type === 'author') {
+                } elseif ($isApproved && ($matchedUser->isAuthor() || $matchedUser->reg_type === 'author')) {
                     $redirectUrl = route('author.dashboard');
-                } elseif ($matchedUser->isBuyer()) {
+                } else {
                     $redirectUrl = route('my-account');
                 }
 

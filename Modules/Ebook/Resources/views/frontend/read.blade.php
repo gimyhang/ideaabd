@@ -483,6 +483,19 @@
         </div>
     </header>
 
+    @if(isset($isSample) && $isSample)
+        <!-- Sample Preview Notice Bar -->
+        <div class="bg-warning bg-opacity-10 border-bottom border-warning border-opacity-25 px-3 py-1.5 d-flex flex-wrap align-items-center justify-content-between gap-2 text-dark small" style="font-size: 0.8rem; z-index: 95; flex-shrink: 0;">
+            <div class="d-flex align-items-center gap-2">
+                <i class="fa-solid fa-circle-info text-warning fs-6"></i>
+                <span>আপনি <strong>{{ $ebook->title }}</strong> বইটির ফ্রি নমুনা অংশ পড়ছেন। সম্পূর্ণ সংস্করণ পড়তে বইটি সংগ্রহ করুন।</span>
+            </div>
+            <a href="{{ route('ebook.show', $ebook->slug) }}" class="btn btn-xs btn-primary rounded-pill px-3 py-1 fw-bold text-white shadow-xs text-decoration-none d-inline-flex align-items-center gap-1" style="font-size: 0.75rem;">
+                <i class="fa-solid fa-cart-shopping"></i> সম্পূর্ণ বইটি কিনুন (৳{{ $ebook->effective_price }})
+            </a>
+        </div>
+    @endif
+
     <!-- Main Container -->
     <main class="reader-main">
         <!-- Table of Contents Drawer -->

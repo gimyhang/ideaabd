@@ -110,6 +110,18 @@ class HomeController extends Controller
             }
         } catch (\Throwable $e) {}
 
+        $ebooks = collect();
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('ebooks')) {
+                $ebooks = \Modules\Ebook\Models\Ebook::query()
+                    ->with(['category', 'author'])
+                    ->where('is_active', true)
+                    ->latest('id')
+                    ->take(12)
+                    ->get();
+            }
+        } catch (\Throwable $e) {}
+
         if ($canUseBooks) {
             try {
                 $books = \Modules\Book\Models\Book::query()
@@ -252,7 +264,7 @@ class HomeController extends Controller
         }
 
         return view('frontend.home', compact(
-            'books', 'recentlySold', 'bestSellerEbooks', 'flashSales', 'ideaSpecialBooks', 'preOrderBooks',
+            'books', 'recentlySold', 'bestSellerEbooks', 'ebooks', 'flashSales', 'ideaSpecialBooks', 'preOrderBooks',
             'recentlyViewedBooks', 'dynamicCategories', 'categoryBooks', 'categoryGridCards',
             'blogPosts', 'latestBlogPosts', 'mostReadBlogPosts', 'topHonorariumBlogPosts', 'blogCategories',
             'sidebarAuthors', 'sidebarPublishers', 'topSeller'

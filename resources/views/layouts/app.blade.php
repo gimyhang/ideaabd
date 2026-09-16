@@ -7,10 +7,30 @@
     <meta http-equiv="Content-Language" content="bn">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
     <meta name="theme-color" content="#0066cc">
-    <meta name="color-scheme" content="light">
+    <meta name="color-scheme" content="light dark">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+
+    {{-- Anti-FOUC Instant Theme Initialization --}}
+    <script>
+        (function() {
+            try {
+                var savedTheme = localStorage.getItem('idea_theme_preference');
+                if (!savedTheme) {
+                    var match = document.cookie.match(new RegExp('(^| )idea_theme=([^;]+)'));
+                    if (match) savedTheme = match[2];
+                }
+                if (!savedTheme && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    savedTheme = 'dark';
+                }
+                var activeTheme = (savedTheme === 'dark') ? 'dark' : 'light';
+                document.documentElement.setAttribute('data-bs-theme', activeTheme);
+                document.documentElement.setAttribute('data-theme', activeTheme);
+                if (activeTheme === 'dark') document.documentElement.classList.add('dark-mode');
+            } catch(e) {}
+        })();
+    </script>
     <title>@yield('title', \App\Support\SiteSetting::name() . ' — ' . \App\Support\SiteSetting::tagline())</title>
 
     {{-- Universal Social Media Open Graph (Facebook, WhatsApp, LinkedIn) & Twitter / X Cards --}}
@@ -206,6 +226,9 @@
 
     <!-- Site chrome (header/nav/footer) — served from /public, no build step needed -->
     <link rel="stylesheet" href="{{ asset('css/site.css') }}?v={{ @filemtime(public_path('css/site.css')) ?: 1 }}">
+    
+    <!-- Universal Theme Engine & Color Contrast Guard Stylesheet -->
+    <link rel="stylesheet" href="{{ asset('css/theme.css') }}?v={{ @filemtime(public_path('css/theme.css')) ?: 1 }}">
     
     <!-- Custom Styles -->
     <style>
@@ -833,6 +856,9 @@
     {{-- Universal World-Class Bengali Audiobook Dock & Selection Tooltip --}}
     @include('partials.audiobook-dock')
     <script src="{{ asset('js/idea-audiobook-engine.js') }}"></script>
+
+    {{-- Universal Theme Controller Script --}}
+    <script src="{{ asset('js/theme.js') }}?v={{ @filemtime(public_path('js/theme.js')) ?: 1 }}"></script>
 
     {{-- Both mechanisms are supported: @section('scripts') and @push('scripts') --}}
     @yield('scripts')

@@ -377,6 +377,8 @@ Route::prefix('author')->name('author.')->middleware(['auth'])->group(function (
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/', [AdminController::class, 'index'])->name('index');
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
+    Route::post('/dashboard/quick-action', [AdminController::class, 'dashboardQuickAction'])->name('dashboard.quick-action');
+    Route::get('/dashboard/pending-data', [AdminController::class, 'dashboardPendingData'])->name('dashboard.pending-data');
 
     // E-Book Sales Report, Royalty Management & Payouts (KDP Engine)
     Route::get('/ebook-sales-report', [\App\Http\Controllers\Admin\AuthorRoyaltyAdminController::class, 'salesReport'])->name('ebook-sales-report');

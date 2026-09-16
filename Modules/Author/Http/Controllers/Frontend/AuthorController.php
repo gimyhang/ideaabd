@@ -231,13 +231,13 @@ class AuthorController extends Controller
         if ($request->expectsJson() || $request->ajax()) {
             return response()->json([
                 'success'      => true,
-                'message'      => 'অভিনন্দন! লেখক হিসেবে আপনার রেজিস্ট্রেশন সফলভাবে সম্পন্ন হয়েছে।',
-                'redirect_url' => route('author.dashboard'),
+                'message'      => 'অভিনন্দন! লেখক হিসেবে আপনার রেজিস্ট্রেশন সফলভাবে সম্পন্ন হয়েছে। অ্যাডমিন অনুমোদন সম্পন্ন হলে লেখক স্টুডিও সক্রিয় হবে। বর্তমানে আপনি কাস্টমার অ্যাকাউন্ট ব্যবহার করতে পারেন।',
+                'redirect_url' => route('my-account'),
             ]);
         }
 
-        return redirect()->route('author.dashboard')
-            ->with('success', 'অভিনন্দন! লেখক হিসেবে আপনার প্রোফাইল তৈরি হয়েছে। আপনার ড্যাশবোর্ড থেকে বই, ই-বুক ও গবেষণাধর্মী লেখা প্রকাশ করুন।');
+        return redirect()->route('my-account')
+            ->with('success', 'অভিনন্দন! লেখক হিসেবে আপনার আবেদনটি গৃহীত হয়েছে। অ্যাডমিন অনুমোদনের পর লেখক স্টুডিও উন্মুক্ত হবে। বর্তমানে আপনি সাধারণ গ্রাহক হিসেবে কেনাকাটা ও অ্যাকাউন্ট ব্যবহার করতে পারছেন।');
     }
 
     /**

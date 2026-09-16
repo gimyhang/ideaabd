@@ -182,12 +182,35 @@ class RoleMiddleware
             return redirect()->route('login');
         }
 
-        // 1. Account Active & Status Check
-        if (!$user->is_active || (in_array($user->role, ['author', 'seller', 'publisher'], true) && $user->reg_status !== 'approved')) {
+        // 1. Account Active Check
+        if (!$user->is_active) {
             auth()->logout();
             return redirect()->route('login')->withErrors([
-                'email' => 'আপনার অ্যাকাউন্টটি সাময়িকভাবে স্থগিত বা অনুমোদনের অপেক্ষায় রয়েছে। বিস্তারিত জানতে অ্যাডমিনের সাথে যোগাযোগ করুন।'
+                'email' => 'আপনার অ্যাকাউন্টটি নিষ্ক্রিয় করা হয়েছে। বিস্তারিত জানতে অ্যাডমিনের সাথে যোগাযোগ করুন।'
             ]);
+        }
+
+        // 1.1 Pending Approval Check for Special Portals (author, seller, publisher)
+        if (in_array($user->role, ['author', 'seller', 'publisher'], true) && $user->reg_status !== 'approved') {
+            $portalRoles = ['author', 'seller', 'publisher', 'sub_admin'];
+            $isAccessingSpecialPortal = false;
+            foreach ($roles as $r) {
+                if (in_array($r, $portalRoles, true)) {
+                    $isAccessingSpecialPortal = true;
+                    break;
+                }
+            }
+
+            if ($isAccessingSpecialPortal) {
+                $roleLabels = [
+                    'author'    => 'লেখক (Author)',
+                    'publisher' => 'প্রকাশক (Publisher)',
+                    'seller'    => 'সেলার (Seller)',
+                ];
+                $roleLabel = $roleLabels[$user->role] ?? 'বিশেষ';
+                
+                return redirect()->route('my-account')->with('warning', "আপনার {$roleLabel} অ্যাকাউন্টটি বর্তমানে অ্যাডমিনের অনুমোদনের অপেক্ষায় রয়েছে (Pending Approval)। অ্যাডমিন অনুমোদন দিলে আপনার বিশেষায়িত স্টুডিও পোর্টালটি সক্রিয় হবে। ইতিমধ্যে আপনি সাধারণ গ্রাহক হিসেবে কেনাকাটা ও অ্যাকাউন্ট ব্যবহার করতে পারেন।");
+            }
         }
 
         // 2. IP Whitelist Check (if configured for staff)

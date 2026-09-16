@@ -27,6 +27,7 @@
         @endif
 
         @php
+            $activeTab = request('tab');
             $isAuthor = $user->role === 'author' || $user->reg_type === 'author' || !empty($author);
             $isPublisher = $user->role === 'publisher' || $user->reg_type === 'publisher';
             $isSeller = $user->role === 'seller' || $user->reg_type === 'seller';
@@ -36,9 +37,178 @@
             $isPending = !$isApproved && ($user->reg_status === 'pending' || !empty($regData['kyc_submitted_at']));
         @endphp
 
-        @php
-            $activeTab = request('tab');
-        @endphp
+        {{-- Pending Approval Alert for Author / Publisher / Seller Accounts --}}
+        @if(($isAuthor || $isPublisher || $isSeller) && !$isApproved)
+            <div class="alert alert-warning border-0 rounded-4 p-3.5 mb-4 shadow-sm d-flex align-items-start gap-3" style="background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border-left: 5px solid #f59e0b !important;">
+                <div class="rounded-circle bg-warning text-white p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px;">
+                    <i class="fa-solid fa-hourglass-half fs-5 text-dark"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <h5 class="fw-bold mb-1 text-dark" style="font-size: 15.5px;">
+                        আপনার {{ $isAuthor ? 'লেখক (Author)' : ($isPublisher ? 'প্রকাশক (Publisher)' : 'সেলার (Seller)') }} অ্যাকাউন্টটি অনুমোদনের অপেক্ষায় রয়েছে (Pending Approval)
+                    </h5>
+                    <p class="mb-0 text-muted small lh-base" style="font-size: 13px;">
+                        আপনার আবেদনটি এডমিন টিম কর্তৃক পর্যালোচনায় রয়েছে। অনুমোদন সম্পন্ন হলে আপনার বিশেষায়িত ড্যাশবোর্ড ও ম্যানেজমেন্ট পোর্টাল স্বয়ংক্রিয়ভাবে সক্রিয় হবে। 
+                        <strong class="text-dark">বর্তমানে আপনি সাধারণ গ্রাহক হিসেবে বই ব্রাউজিং, শপিং কার্ট, কেনাকাটা, অর্ডার ট্র্যাকিং এবং ব্যক্তিগত অ্যাকাউন্ট সুবিধা ব্যবহার করতে পারছেন।</strong>
+                    </p>
+                </div>
+            </div>
+        @endif
+
+        {{-- ═════════════════════════════════════════════════════════════════════ --}}
+        {{-- MY ACCOUNT QUICK-JUMP DROPDOWN NAVIGATION BAR                         --}}
+        {{-- ═════════════════════════════════════════════════════════════════════ --}}
+        <div class="amz-account-nav-bar">
+            <div class="amz-nav-user-badge">
+                <div class="amz-nav-user-avatar">
+                    @if(!empty($user->avatar))
+                        <img src="{{ str_starts_with($user->avatar, 'http') ? $user->avatar : asset('storage/' . ltrim($user->avatar, '/')) }}" alt="{{ $user->name }}" class="w-100 h-100 object-fit-cover rounded-circle">
+                    @else
+                        <span>{{ mb_substr($user->name, 0, 1) }}</span>
+                    @endif
+                </div>
+                <div>
+                    <div class="fw-bold text-dark lh-1" style="font-size: 14px;">স্বাগতম, {{ $user->name }}</div>
+                    <div class="text-muted small" style="font-size: 11px;">
+                        @if($isAdmin)
+                            <span class="badge bg-danger px-2 py-0.5 rounded-pill">👑 অ্যাডমিন</span>
+                        @elseif($isAuthor)
+                            <span class="badge {{ $isApproved ? 'bg-primary' : 'bg-warning text-dark' }} px-2 py-0.5 rounded-pill">
+                                ✍️ লেখক {{ $isApproved ? 'Studio' : '(অপেক্ষমাণ)' }}
+                            </span>
+                        @elseif($isPublisher)
+                            <span class="badge {{ $isApproved ? 'bg-success' : 'bg-warning text-dark' }} px-2 py-0.5 rounded-pill">
+                                🏢 প্রকাশক {{ $isApproved ? 'Portal' : '(অপেক্ষমাণ)' }}
+                            </span>
+                        @elseif($isSeller)
+                            <span class="badge {{ $isApproved ? 'bg-info text-dark' : 'bg-warning text-dark' }} px-2 py-0.5 rounded-pill">
+                                💼 সেলার {{ $isApproved ? 'Panel' : '(অপেক্ষমাণ)' }}
+                            </span>
+                        @else
+                            <span class="badge bg-secondary px-2 py-0.5 rounded-pill">👤 কাস্টমার একাউন্ট</span>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
+            {{-- Responsive Dropdown Navigation Controller --}}
+            <div class="dropdown">
+                <button class="amz-nav-dropdown-btn dropdown-toggle" type="button" id="myAccountInternalNavDropdownBtn" data-bs-toggle="dropdown" aria-expanded="false" title="My Account Menu Options">
+                    <i class="fa-solid fa-house text-primary" id="currentAccountNavIcon"></i>
+                    <span id="currentAccountNavLabel">Your Account Hub</span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end amz-nav-menu shadow-2xl" aria-labelledby="myAccountInternalNavDropdownBtn">
+                    <li class="dropdown-header">Primary Hub</li>
+                    <li>
+                        <a class="dropdown-item active" href="javascript:void(0)" data-panel="hub" onclick="closeAllPanels()">
+                            <i class="fa-solid fa-house text-primary" style="width: 18px;"></i>
+                            <span>Your Account Hub</span>
+                        </a>
+                    </li>
+                    <li class="dropdown-header mt-1">Orders & Shopping</li>
+                    <li>
+                        <a class="dropdown-item" href="javascript:void(0)" data-panel="orders" onclick="openSectionPanel('orders')">
+                            <i class="fa-solid fa-box-archive text-info" style="width: 18px;"></i>
+                            <span>Your Orders</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item" href="javascript:void(0)" data-panel="digitalServices" onclick="openSectionPanel('digitalServices')">
+                            <i class="fa-solid fa-book-open-reader text-success" style="width: 18px;"></i>
+                            <span>Digital Library & E-Books</span>
+                        </a>
+                    </li>
+                    <li class="dropdown-header mt-1">Account & Security</li>
+                    <li>
+                        <a class="dropdown-item" href="javascript:void(0)" data-panel="loginSecurity" onclick="openSectionPanel('loginSecurity')">
+                            <i class="fa-solid fa-shield-halved text-success" style="width: 18px;"></i>
+                            <span>Login & Security</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item" href="javascript:void(0)" data-panel="addresses" onclick="openSectionPanel('addresses')">
+                            <i class="fa-solid fa-location-dot text-danger" style="width: 18px;"></i>
+                            <span>Your Addresses</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item" href="javascript:void(0)" data-panel="payments" onclick="openSectionPanel('payments')">
+                            <i class="fa-solid fa-credit-card text-purple" style="width: 18px; color: #8b5cf6;"></i>
+                            <span>Your Payments</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item" href="javascript:void(0)" data-panel="prime" onclick="openSectionPanel('prime')">
+                            <i class="fa-solid fa-crown text-warning" style="width: 18px;"></i>
+                            <span>Prime Membership</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item" href="javascript:void(0)" data-panel="giftcards" onclick="openSectionPanel('giftcards')">
+                            <i class="fa-solid fa-gift text-danger" style="width: 18px;"></i>
+                            <span>Gift Cards & Balance</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item" href="javascript:void(0)" data-panel="kyc" onclick="openSectionPanel('kyc')">
+                            <i class="fa-solid fa-id-card text-secondary" style="width: 18px;"></i>
+                            <span>KYC & Verification</span>
+                        </a>
+                    </li>
+                    @if($isAuthor)
+                        <li class="dropdown-header mt-1">Author Services</li>
+                        <li>
+                            <a class="dropdown-item" href="javascript:void(0)" data-panel="royalties" onclick="openSectionPanel('royalties')">
+                                <i class="fa-solid fa-sack-dollar text-warning" style="width: 18px;"></i>
+                                <span>Royalties & Payouts</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="javascript:void(0)" data-panel="blog" onclick="openSectionPanel('blog')">
+                                <i class="fa-solid fa-pen-nib text-primary" style="width: 18px;"></i>
+                                <span>Author Articles & Blog</span>
+                            </a>
+                        </li>
+                    @endif
+                    <li class="dropdown-header mt-1">Support & Settings</li>
+                    <li>
+                        <a class="dropdown-item" href="javascript:void(0)" data-panel="customerService" onclick="openSectionPanel('customerService')">
+                            <i class="fa-solid fa-headset text-success" style="width: 18px;"></i>
+                            <span>Customer Service & Help</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item" href="javascript:void(0)" data-panel="preferences" onclick="openSectionPanel('preferences')">
+                            <i class="fa-solid fa-globe text-muted" style="width: 18px;"></i>
+                            <span>Language & Preferences</span>
+                        </a>
+                    </li>
+                    @if(($isAuthor && $isApproved) || ($isPublisher && $isApproved) || ($isSeller && $isApproved) || $isAdmin)
+                        <li><hr class="dropdown-divider my-1"></li>
+                        <li class="dropdown-header">Special Portals</li>
+                        @if($isAdmin)
+                            <li><a class="dropdown-item fw-bold text-danger" href="{{ url('/admin') }}"><i class="fa-solid fa-shield-halved" style="width: 18px;"></i> Admin Panel</a></li>
+                        @endif
+                        @if($isAuthor && $isApproved)
+                            <li><a class="dropdown-item fw-bold text-primary" href="{{ route('author.dashboard') }}"><i class="fa-solid fa-feather-pointed" style="width: 18px;"></i> Author Studio</a></li>
+                        @endif
+                        @if($isPublisher && $isApproved)
+                            <li><a class="dropdown-item fw-bold text-success" href="{{ route('publisher.dashboard') }}"><i class="fa-solid fa-building" style="width: 18px;"></i> Publisher Portal</a></li>
+                        @endif
+                        @if($isSeller && $isApproved)
+                            <li><a class="dropdown-item fw-bold text-warning" href="{{ route('subadmin.dashboard') }}"><i class="fa-solid fa-store" style="width: 18px;"></i> Seller Panel</a></li>
+                        @endif
+                    @endif
+                    <li><hr class="dropdown-divider my-1"></li>
+                    <li>
+                        <a class="dropdown-item text-danger fw-bold" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('amzLogoutForm').submit();">
+                            <i class="fa-solid fa-power-off text-danger" style="width: 18px;"></i>
+                            <span>Sign Out</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
 
         {{-- ═════════════════════════════════════════════════════════════════════ --}}
         {{-- VIEW 1: AUTHENTIC AMAZON "YOUR ACCOUNT" HOME HUB                      --}}
@@ -56,17 +226,17 @@
                             <i class="fa-solid fa-shield-halved me-1 text-danger"></i> Admin Panel
                         </a>
                     @endif
-                    @if($isAuthor && Route::has('author.dashboard'))
+                    @if($isAuthor && $isApproved && Route::has('author.dashboard'))
                         <a href="{{ route('author.dashboard') }}" class="amz-btn-silver" title="Author Studio">
                             <i class="fa-solid fa-feather-pointed me-1 text-primary"></i> Author Studio
                         </a>
                     @endif
-                    @if($isPublisher && Route::has('publisher.dashboard'))
+                    @if($isPublisher && $isApproved && Route::has('publisher.dashboard'))
                         <a href="{{ route('publisher.dashboard') }}" class="amz-btn-silver" title="Publisher Portal">
                             <i class="fa-solid fa-building me-1 text-success"></i> Publisher Portal
                         </a>
                     @endif
-                    @if(($isSeller || $user->isSeller() || $user->isSubAdmin()) && Route::has('subadmin.dashboard'))
+                    @if(($isSeller || $user->isSeller() || $user->isSubAdmin()) && $isApproved && Route::has('subadmin.dashboard'))
                         <a href="{{ route('subadmin.dashboard') }}" class="amz-btn-silver" title="Seller Dashboard">
                             <i class="fa-solid fa-store me-1 text-warning"></i> Seller Dashboard
                         </a>

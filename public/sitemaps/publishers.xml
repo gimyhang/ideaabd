@@ -2,47 +2,73 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
   <url>
     <loc>https://www.ideaabd.com/publishers</loc>
-    <lastmod>2026-09-08</lastmod>
+    <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.85</priority>
   </url>
   <url>
-    <loc>https://www.ideaabd.com/publishers/test-registered-pub</loc>
-    <lastmod>2026-08-29</lastmod>
+    <loc>https://www.ideaabd.com/publishers/kakoli-prokashoni</loc>
+    <lastmod>2026-09-16</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.80</priority>
   </url>
   <url>
-    <loc>https://www.ideaabd.com/publishers/itzadi-grnth-prkash</loc>
-    <lastmod>2026-08-17</lastmod>
+    <loc>https://www.ideaabd.com/publishers/somoy-prokashon</loc>
+    <lastmod>2026-09-16</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.80</priority>
   </url>
   <url>
-    <loc>https://www.ideaabd.com/publishers/tamrlipi-prkashni-627</loc>
-    <lastmod>2026-08-17</lastmod>
+    <loc>https://www.ideaabd.com/publishers/ananya</loc>
+    <lastmod>2026-09-16</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.80</priority>
   </url>
   <url>
-    <loc>https://www.ideaabd.com/publishers/annza-prkashni-560</loc>
-    <lastmod>2026-08-17</lastmod>
+    <loc>https://www.ideaabd.com/publishers/prothoma-prokashan</loc>
+    <lastmod>2026-09-16</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.80</priority>
   </url>
   <url>
-    <loc>https://www.ideaabd.com/publishers/ideaprokashon</loc>
-    <lastmod>2026-08-15</lastmod>
+    <loc>https://www.ideaabd.com/publishers/anindya-prokash</loc>
+    <lastmod>2026-09-16</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.80</priority>
-    <image:image>
-      <image:loc>https://www.ideaabd.com/storage/publishers/8qKiDj1yCmBnu84CkwaK5JCKKcbsUeKYhJVnVmkp.jpg</image:loc>
-      <image:title>আইডিয়া প্রকাশন — প্রকাশনী</image:title>
-    </image:image>
   </url>
   <url>
-    <loc>https://www.ideaabd.com/publishers/টসট-পরকশন-184</loc>
-    <lastmod>2026-08-12</lastmod>
+    <loc>https://www.ideaabd.com/publishers/idea-prakashan</loc>
+    <lastmod>2026-09-16</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://www.ideaabd.com/publishers/somoy-prokashan</loc>
+    <lastmod>2026-09-16</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://www.ideaabd.com/publishers/batighar</loc>
+    <lastmod>2026-09-16</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://www.ideaabd.com/publishers/oitijhyo</loc>
+    <lastmod>2026-09-16</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://www.ideaabd.com/publishers/ananya-prokashoni</loc>
+    <lastmod>2026-09-16</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://www.ideaabd.com/publishers/idea-prokashon</loc>
+    <lastmod>2026-09-16</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.80</priority>
   </url>

@@ -44,9 +44,16 @@ class BookController extends Controller
         $categoryBooks = [];
         $sidebarAuthors = collect();
         $sidebarPublishers = collect();
+        $dynamicCategories = collect();
+        $matchedBlogPosts = collect();
+        $matchedWebzineArticles = collect();
+        $matchedResearchPapers = collect();
+        $matchedAuthors = collect();
+        $matchedCategories = collect();
+        $matchedPages = collect();
         $topSeller = null;
         $rawSearch = trim((string)($request->input('search') ?: $request->input('q') ?: ''));
-        $isSearchMode = $request->anyFilled(['search', 'q', 'category', 'author', 'publisher', 'in_stock', 'min_price', 'max_price', 'rating', 'format', 'discount_min', 'sort']) || ($request->has('page') && (int)$request->get('page') > 1);
+        $isSearchMode = $request->anyFilled(['search', 'q', 'category', 'author', 'publisher', 'in_stock', 'min_price', 'max_price', 'rating', 'format', 'discount_min', 'sort', 'letter']) || ($request->has('page') && (int)$request->get('page') > 1);
 
         $activeFilterTitle = null;
 
@@ -224,6 +231,22 @@ class BookController extends Controller
                             });
                         }
                     });
+                })
+                ->when($request->filled('letter') && $request->get('letter') !== 'all', function ($q) use ($request) {
+                    $letter = $request->string('letter')->trim()->value();
+                    if ($letter === 'A-Z') {
+                        $q->where(function($sub) {
+                            $sub->where('title', 'REGEXP', '^[A-Za-z]')
+                                ->orWhere('title_en', 'REGEXP', '^[A-Za-z]')
+                                ->orWhere('author_name', 'REGEXP', '^[A-Za-z]');
+                        });
+                    } else {
+                        $q->where(function($sub) use ($letter) {
+                            $sub->where('title', 'LIKE', "{$letter}%")
+                                ->orWhere('author_name', 'LIKE', "{$letter}%")
+                                ->orWhereHas('authors', fn($a) => $a->where('name', 'LIKE', "{$letter}%"));
+                        });
+                    }
                 });
 
             // Sorting logic
@@ -387,6 +410,26 @@ class BookController extends Controller
                     } catch (\Throwable) {}
                 }
             }
+        }
+
+        // Resolve Active Filter Title
+        if ($request->filled('category')) {
+            $catObj = Category::where('slug', $request->string('category'))->orWhere('id', $request->input('category'))->first();
+            if ($catObj) $activeFilterTitle = $catObj->name . ' — বই সম্ভার';
+        } elseif ($request->filled('author')) {
+            $authObj = Author::where('slug', $request->string('author'))->orWhere('id', $request->input('author'))->first();
+            if ($authObj) $activeFilterTitle = $authObj->name . ' এর বইসমূহ';
+        } elseif ($request->filled('publisher')) {
+            $pubObj = Publisher::where('slug', $request->string('publisher'))->orWhere('id', $request->input('publisher'))->first();
+            if ($pubObj) $activeFilterTitle = $pubObj->name . ' এর প্রকাশিত বই';
+        } elseif ($request->filled('letter') && $request->get('letter') !== 'all') {
+            $activeFilterTitle = '"' . $request->get('letter') . '" বর্ণ দিয়ে শুরু বইসমূহ';
+        } elseif (!empty($rawSearch)) {
+            $activeFilterTitle = '"' . $rawSearch . '" সম্পর্কিত ফলাফল';
+        } elseif ($request->string('sort') === 'bestselling') {
+            $activeFilterTitle = 'বেস্টসেলার ও জনপ্রিয় বই';
+        } elseif ($request->string('filter') === 'flash_sale') {
+            $activeFilterTitle = 'ফ্ল্যাশ সেল ও বিশেষ অফার';
         }
 
         return view('book::frontend.index', compact(

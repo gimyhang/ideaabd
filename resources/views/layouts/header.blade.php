@@ -63,7 +63,7 @@
     $headerBlogCats = collect();
     try {
         if (\Illuminate\Support\Facades\Schema::hasTable('blog_categories')) {
-            $headerBlogCats = \App\Models\BlogCategory::query()
+            $headerBlogCats = \Modules\Blog\Models\BlogCategory::query()
                 ->where('is_active', true)
                 ->withCount(['posts' => fn($q) => $q->where('status', 'published')])
                 ->orderByDesc('posts_count')
@@ -114,164 +114,6 @@
                     </a>
                 </div>
 
-                {{-- My Account Interactive Dropdown Menu --}}
-                <div class="dropdown notranslate flex-shrink-0">
-                    <button class="btn btn-sm btn-outline-light rounded-pill py-1 px-2.5 d-inline-flex align-items-center gap-1.5 shadow-2xs hover-warning fw-semibold" 
-                            type="button" 
-                            id="topAccountDropdownBtn" 
-                            data-bs-toggle="dropdown" 
-                            aria-expanded="false"
-                            title="My Account Options"
-                            style="background: rgba(255, 255, 255, 0.16); border: 1px solid rgba(255, 255, 255, 0.35); font-size: 12.5px; backdrop-filter: blur(4px);">
-                        <i class="fa-solid fa-user-circle text-warning" style="font-size: 13px;"></i>
-                        <span class="text-white fw-bold">{{ $me ? Str::limit($me->name, 12) : 'My Account' }}</span>
-                        <i class="fa-solid fa-chevron-down ms-0.5 text-white-50" style="font-size: 10px;"></i>
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end shadow-2xl border-0 rounded-4 p-2 mt-1" aria-labelledby="topAccountDropdownBtn" style="width: 280px; max-height: 480px; overflow-y: auto; z-index: 1100;">
-                        @if($me)
-                            {{-- Authenticated User Header Card --}}
-                            <li class="px-3 py-2.5 border-bottom mb-2 bg-light rounded-3 text-center">
-                                <div class="fw-bold text-dark fs-6">{{ $me->name }}</div>
-                                <div class="text-muted small text-truncate" style="font-size: 11.5px;">{{ $me->email }}</div>
-                                <div class="badge bg-primary mt-1.5 px-2.5 py-0.5 rounded-pill small" style="font-size: 10.5px;">
-                                    {{ ['admin' => 'Admin', 'sub_admin' => 'Sub-Admin', 'seller' => 'Seller', 'publisher' => 'Publisher', 'author' => 'Author'][$me->role] ?? 'Customer' }}
-                                </div>
-                            </li>
-
-                            {{-- Core Account Functions --}}
-                            <li>
-                                <a class="dropdown-item py-1.5 px-3 rounded-2 fw-semibold d-flex align-items-center gap-2 text-dark" href="{{ route('my-account') }}">
-                                    <i class="fa-solid fa-user-gear text-primary" style="width: 18px;"></i>
-                                    <span>Your Account Hub</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item py-1.5 px-3 rounded-2 fw-semibold d-flex align-items-center gap-2 text-dark" href="{{ route('my-account', ['tab' => 'orders']) }}">
-                                    <i class="fa-solid fa-box-archive text-info" style="width: 18px;"></i>
-                                    <span>Your Orders</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item py-1.5 px-3 rounded-2 fw-semibold d-flex align-items-center gap-2 text-dark" href="{{ route('my-account', ['tab' => 'loginSecurity']) }}">
-                                    <i class="fa-solid fa-shield-halved text-success" style="width: 18px;"></i>
-                                    <span>Login & Security</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item py-1.5 px-3 rounded-2 fw-semibold d-flex align-items-center gap-2 text-dark" href="{{ route('my-account', ['tab' => 'addresses']) }}">
-                                    <i class="fa-solid fa-location-dot text-danger" style="width: 18px;"></i>
-                                    <span>Your Addresses</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item py-1.5 px-3 rounded-2 fw-semibold d-flex align-items-center gap-2 text-dark" href="{{ route('my-account', ['tab' => 'payments']) }}">
-                                    <i class="fa-solid fa-wallet text-warning" style="width: 18px;"></i>
-                                    <span>Your Payments</span>
-                                </a>
-                            </li>
-                            @if (Route::has('wishlist'))
-                                <li>
-                                    <a class="dropdown-item py-1.5 px-3 rounded-2 fw-semibold d-flex align-items-center gap-2 text-dark" href="{{ route('wishlist') }}">
-                                        <i class="fa-solid fa-heart text-danger" style="width: 18px;"></i>
-                                        <span>Your Wishlist</span>
-                                    </a>
-                                </li>
-                            @endif
-                            <li>
-                                <a class="dropdown-item py-1.5 px-3 rounded-2 fw-semibold d-flex align-items-center gap-2 text-dark" href="{{ route('my-account', ['tab' => 'kyc']) }}">
-                                    <i class="fa-solid fa-id-card text-primary" style="width: 18px;"></i>
-                                    <span>KYC Verification</span>
-                                </a>
-                            </li>
-
-                            {{-- Role Specific Portal Shortcuts --}}
-                            @if ($me->isAdmin() && Route::has('admin.dashboard'))
-                                <li><hr class="dropdown-divider my-1"></li>
-                                <li>
-                                    <a class="dropdown-item py-1.5 px-3 rounded-2 fw-bold text-danger d-flex align-items-center gap-2" href="{{ route('admin.dashboard') }}">
-                                        <i class="fa-solid fa-shield-halved text-danger" style="width: 18px;"></i>
-                                        <span>Admin Panel</span>
-                                    </a>
-                                </li>
-                            @endif
-                            @if (($me->isAuthor() || $me->isAdmin() || $me->reg_type === 'author') && Route::has('author.dashboard'))
-                                <li>
-                                    <a class="dropdown-item py-1.5 px-3 rounded-2 fw-bold text-primary d-flex align-items-center gap-2" href="{{ route('author.dashboard') }}">
-                                        <i class="fa-solid fa-feather-pointed text-primary" style="width: 18px;"></i>
-                                        <span>Author Studio</span>
-                                    </a>
-                                </li>
-                            @endif
-                            @if (($me->isPublisher() || $me->isAdmin() || $me->reg_type === 'publisher') && Route::has('publisher.dashboard'))
-                                <li>
-                                    <a class="dropdown-item py-1.5 px-3 rounded-2 fw-bold text-success d-flex align-items-center gap-2" href="{{ route('publisher.dashboard') }}">
-                                        <i class="fa-solid fa-building text-success" style="width: 18px;"></i>
-                                        <span>Publisher Portal</span>
-                                    </a>
-                                </li>
-                            @endif
-                            @if (($me->isSeller() || $me->isSubAdmin() || $me->isAdmin() || $me->reg_type === 'seller') && Route::has('subadmin.dashboard'))
-                                <li>
-                                    <a class="dropdown-item py-1.5 px-3 rounded-2 fw-bold text-warning-emphasis d-flex align-items-center gap-2" href="{{ route('subadmin.dashboard') }}">
-                                        <i class="fa-solid fa-store text-warning" style="width: 18px;"></i>
-                                        <span>Seller Dashboard</span>
-                                    </a>
-                                </li>
-                            @endif
-
-                            <li><hr class="dropdown-divider my-1.5"></li>
-                            <li>
-                                <form method="POST" action="{{ route('logout') }}" class="m-0">
-                                    @csrf
-                                    <button type="submit" class="dropdown-item text-danger py-1.5 px-3 rounded-2 fw-semibold d-flex align-items-center gap-2 bg-danger-subtle text-center justify-content-center">
-                                        <i class="fa-solid fa-arrow-right-from-bracket"></i>
-                                        <span>Sign Out</span>
-                                    </button>
-                                </form>
-                            </li>
-                        @else
-                            {{-- Guest Dropdown --}}
-                            <li class="px-3 py-2.5 border-bottom mb-2 bg-light rounded-3 text-center">
-                                <div class="fw-bold text-dark small mb-2">Welcome to Idea Prokashon</div>
-                                <a href="{{ route('login') }}" class="btn btn-warning btn-sm w-100 rounded-pill fw-bold text-dark shadow-xs mb-1.5">
-                                    <i class="fa-solid fa-arrow-right-to-bracket me-1"></i> Sign In / Register
-                                </a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item py-1.5 px-3 rounded-2 fw-semibold d-flex align-items-center gap-2 text-dark" href="{{ route('login') }}">
-                                    <i class="fa-solid fa-box-archive text-info" style="width: 18px;"></i>
-                                    <span>Track Your Orders</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item py-1.5 px-3 rounded-2 fw-semibold d-flex align-items-center gap-2 text-dark" href="{{ route('register.form', 'author') }}">
-                                    <i class="fa-solid fa-feather-pointed text-primary" style="width: 18px;"></i>
-                                    <span>Register as Author</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item py-1.5 px-3 rounded-2 fw-semibold d-flex align-items-center gap-2 text-dark" href="{{ route('register.form', 'publisher') }}">
-                                    <i class="fa-solid fa-building text-success" style="width: 18px;"></i>
-                                    <span>Register as Publisher</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item py-1.5 px-3 rounded-2 fw-semibold d-flex align-items-center gap-2 text-dark" href="{{ route('register.form', 'seller') }}">
-                                    <i class="fa-solid fa-store text-warning" style="width: 18px;"></i>
-                                    <span>Register as Seller / Dealer</span>
-                                </a>
-                            </li>
-                            <li><hr class="dropdown-divider my-1"></li>
-                            <li>
-                                <a class="dropdown-item py-1.5 px-3 rounded-2 fw-semibold d-flex align-items-center gap-2 text-dark" href="{{ route('contact') }}">
-                                    <i class="fa-solid fa-headset text-success" style="width: 18px;"></i>
-                                    <span>Help Center & Support</span>
-                                </a>
-                            </li>
-                        @endif
-                    </ul>
-                </div>
-
                 {{-- Compact Native Language Switcher Dropdown --}}
                 <div class="dropdown notranslate flex-shrink-0">
                     <button class="btn btn-sm btn-outline-light rounded-pill py-1 px-2.5 d-inline-flex align-items-center gap-1.5 shadow-2xs hover-primary" 
@@ -314,6 +156,18 @@
                         </li>
                     </ul>
                 </div>
+
+                {{-- Light / Dark Theme Mode Switcher Toggle Button --}}
+                <button class="btn btn-sm btn-outline-light rounded-pill py-1 px-2.5 d-inline-flex align-items-center gap-1.5 shadow-2xs hover-primary theme-switch-btn flex-shrink-0" 
+                        type="button" 
+                        id="siteThemeToggleBtn" 
+                        onclick="toggleSiteTheme()" 
+                        data-theme-toggle
+                        title="Toggle Dark / Light Mode" 
+                        style="background: rgba(255, 255, 255, 0.16); border: 1px solid rgba(255, 255, 255, 0.35); font-size: 12px; font-weight: 600; backdrop-filter: blur(4px);">
+                    <i class="fas fa-moon text-warning" id="siteThemeIcon" style="font-size: 12px;"></i>
+                    <span class="d-none d-sm-inline text-white fw-bold" id="siteThemeLabel">Dark</span>
+                </button>
             </div>
         </div>
     </div>
@@ -486,21 +340,23 @@
                                 </div>
                             </li>
 
+                            @php
+                                $isMeApproved = ($me->reg_status === 'approved');
+                            @endphp
+
                             @if ($me->isAdmin() && Route::has('admin.dashboard'))
                                 <li><a class="dropdown-item py-2" href="{{ route('admin.dashboard') }}"><i class="fas fa-gauge-high text-primary me-2"></i>অ্যাডমিন প্যানেল</a></li>
                             @endif
 
-                            @if (($me->isSeller() || $me->isSubAdmin() || $me->isAdmin() || $me->reg_type === 'seller') && Route::has('subadmin.dashboard'))
+                            @if (($me->isAdmin() || (($me->isSeller() || $me->isSubAdmin() || $me->reg_type === 'seller') && $isMeApproved)) && Route::has('subadmin.dashboard'))
                                 <li>
                                     <a class="dropdown-item py-2 fw-semibold text-primary" href="{{ route('subadmin.dashboard') }}">
                                         <i class="fas fa-store me-2 text-primary"></i>সেলার ড্যাশবোর্ড
                                     </a>
                                 </li>
-                            @elseif ($me->isSeller() && Route::has('subadmin.bills.index'))
-                                <li><a class="dropdown-item py-2" href="{{ route('subadmin.bills.index') }}"><i class="fas fa-file-invoice-dollar text-success me-2"></i>সেলার প্যানেল</a></li>
                             @endif
 
-                            @if (($me->isPublisher() || $me->isAdmin() || $me->reg_type === 'publisher') && Route::has('publisher.dashboard'))
+                            @if (($me->isAdmin() || (($me->isPublisher() || $me->reg_type === 'publisher') && $isMeApproved)) && Route::has('publisher.dashboard'))
                                 <li>
                                     <a class="dropdown-item py-2 fw-semibold text-success" href="{{ route('publisher.dashboard') }}">
                                         <i class="fas fa-building me-2 text-success"></i>পাবলিশার ড্যাশবোর্ড
@@ -508,7 +364,7 @@
                                 </li>
                             @endif
 
-                            @if (($me->isAuthor() || $me->isAdmin() || $me->reg_type === 'author') && Route::has('author.dashboard'))
+                            @if (($me->isAdmin() || (($me->isAuthor() || $me->reg_type === 'author') && $isMeApproved)) && Route::has('author.dashboard'))
                                 <li>
                                     <a class="dropdown-item py-2 fw-semibold text-success" href="{{ route('author.dashboard') }}">
                                         <i class="fas fa-feather-pointed me-2"></i>লেখক ড্যাশবোর্ড
@@ -760,6 +616,7 @@
                 </li>
             </ul>
         </div>
+    </nav>
     {{-- ══════════════════════════════════════════════════════════════════
          DYNAMIC FUNCTIONAL ICON & AUTH BUTTON STYLES
     ══════════════════════════════════════════════════════════════════ --}}
@@ -1378,7 +1235,24 @@
             </div>
         </div>
 
-        {{-- 8. LOGOUT ACTION FOR AUTH USERS --}}
+        {{-- 8. MOBILE THEME SELECTOR --}}
+        <div class="mb-3 p-3 rounded-4 bg-light border shadow-2xs">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="fw-bold text-dark small"><i class="fas fa-circle-half-stroke text-warning me-1.5"></i>থিম মোড / Theme:</span>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-sm btn-outline-secondary py-1.5 px-2.5 rounded-pill flex-grow-1 fw-semibold d-inline-flex align-items-center justify-content-center gap-1.5" onclick="applySiteTheme('light', true)">
+                    <i class="fas fa-sun text-warning"></i>
+                    <span>লাইট মোড</span>
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-dark py-1.5 px-2.5 rounded-pill flex-grow-1 fw-semibold d-inline-flex align-items-center justify-content-center gap-1.5" onclick="applySiteTheme('dark', true)">
+                    <i class="fas fa-moon text-primary"></i>
+                    <span>ডার্ক মোড</span>
+                </button>
+            </div>
+        </div>
+
+        {{-- 9. LOGOUT ACTION FOR AUTH USERS --}}
         @auth
             <div class="mt-2">
                 <form method="POST" action="{{ route('logout') }}">

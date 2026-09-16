@@ -458,6 +458,18 @@
                                 <span>Your Addresses</span>
                             </a>
                         </li>
+                        <li>
+                            <a class="dropdown-item py-1.5 px-3 rounded-2 fw-semibold d-flex align-items-center gap-2 text-dark" href="{{ route('my-account', ['tab' => 'payments']) }}">
+                                <i class="fas fa-credit-card text-purple" style="width: 18px; color: #8b5cf6;"></i>
+                                <span>Your Payments</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item py-1.5 px-3 rounded-2 fw-semibold d-flex align-items-center gap-2 text-dark" href="{{ route('my-account', ['tab' => 'kyc']) }}">
+                                <i class="fas fa-id-card text-secondary" style="width: 18px;"></i>
+                                <span>KYC Verification</span>
+                            </a>
+                        </li>
                         <li><hr class="dropdown-divider my-1.5"></li>
                         <li>
                             <form action="{{ route('logout') }}" method="POST" class="m-0">
@@ -646,32 +658,6 @@
             }
         });
 
-        // Bulletproof Dropdown Toggle Helper for Author Studio
-        document.addEventListener('click', function(e) {
-            var toggle = e.target.closest('[data-bs-toggle="dropdown"]');
-            if (toggle) {
-                var menu = toggle.nextElementSibling || toggle.parentElement.querySelector('.dropdown-menu');
-                if (menu) {
-                    var isShown = menu.classList.contains('show');
-                    document.querySelectorAll('.dropdown-menu.show').forEach(function(m) {
-                        if (m !== menu) m.classList.remove('show');
-                    });
-                    if (isShown) {
-                        menu.classList.remove('show');
-                        toggle.setAttribute('aria-expanded', 'false');
-                    } else {
-                        menu.classList.add('show');
-                        toggle.setAttribute('aria-expanded', 'true');
-                    }
-                }
-            } else if (!e.target.closest('.dropdown-menu')) {
-                document.querySelectorAll('.dropdown-menu.show').forEach(function(m) {
-                    m.classList.remove('show');
-                    var pToggle = m.parentElement.querySelector('[data-bs-toggle="dropdown"]');
-                    if (pToggle) pToggle.setAttribute('aria-expanded', 'false');
-                });
-            }
-        });
     </script>
     @stack('scripts')
 </body>

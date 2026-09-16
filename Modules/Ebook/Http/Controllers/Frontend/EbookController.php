@@ -80,8 +80,14 @@ class EbookController extends Controller
         $bestsellingEbooks = collect();
         $freeEbooks = collect();
         $newReleaseEbooks = collect();
+        $dynamicCategories = collect();
+        $matchedBlogPosts = collect();
+        $matchedResearchPapers = collect();
+        $matchedWebzineArticles = collect();
+        $matchedPages = collect();
         $spotlightEbook = null;
         $userLibraryIds = [];
+        $activeFilterTitle = null;
 
         $stats = [
             'total'   => 0,
@@ -91,10 +97,11 @@ class EbookController extends Controller
             'readers' => 0,
         ];
 
+        $rawSearch = trim((string)($request->input('search') ?: $request->input('q') ?: ''));
         $isSearchMode = $request->anyFilled([
-            'search', 'category', 'author', 'publisher', 'format', 
-            'min_price', 'max_price', 'free_only', 'sort'
-        ]);
+            'search', 'q', 'category', 'author', 'publisher', 'format', 
+            'min_price', 'max_price', 'free_only', 'discount_min', 'sort'
+        ]) || ($request->has('page') && (int)$request->get('page') > 1);
 
         if (auth()->check()) {
             try {
@@ -127,10 +134,21 @@ class EbookController extends Controller
                 if (DB::getSchemaBuilder()->hasTable('categories')) {
                     $categories = Category::query()
                         ->where('is_active', true)
+                        ->whereNull('parent_id')
+                        ->with(['children' => fn ($q) => $q->where('is_active', true)->withCount(['ebooks' => fn ($eq) => $eq->where('is_active', true)])])
                         ->withCount(['ebooks' => fn ($q) => $q->where('is_active', true)])
-                        ->orderByDesc('ebooks_count')
                         ->orderBy('sort_order')
-                        ->get(['id', 'name', 'slug', 'ebooks_count']);
+                        ->orderByDesc('ebooks_count')
+                        ->get(['id', 'name', 'slug', 'parent_id', 'ebooks_count']);
+
+                    if ($categories->isEmpty()) {
+                        $categories = Category::query()
+                            ->where('is_active', true)
+                            ->withCount(['ebooks' => fn ($q) => $q->where('is_active', true)])
+                            ->orderByDesc('ebooks_count')
+                            ->orderBy('sort_order')
+                            ->get(['id', 'name', 'slug', 'ebooks_count']);
+                    }
                 }
             } catch (\Throwable) {}
 
@@ -187,8 +205,69 @@ class EbookController extends Controller
                     ->take(10)
                     ->get();
 
+                // Dynamic Category Shelves
+                try {
+                    $dynamicCategories = Category::query()
+                        ->where('is_active', true)
+                        ->whereHas('ebooks', fn ($q) => $q->where('is_active', true))
+                        ->with(['ebooks' => fn ($q) => $q->where('is_active', true)->with(['author', 'publisher', 'category'])->take(10)])
+                        ->withCount(['ebooks' => fn ($q) => $q->where('is_active', true)])
+                        ->orderByDesc('ebooks_count')
+                        ->take(6)
+                        ->get();
+                } catch (\Throwable) {}
+
                 $featuredEbooks = $bestsellingEbooks->take(4);
                 $spotlightEbook = $bestsellingEbooks->first() ?: $newReleaseEbooks->first();
+            }
+
+            // Cross-Entity Matches on Search
+            if (!empty($rawSearch) && mb_strlen($rawSearch) >= 2) {
+                try {
+                    if (DB::getSchemaBuilder()->hasTable('blog_posts')) {
+                        $matchedBlogPosts = \Modules\Blog\Models\BlogPost::query()
+                            ->with(['author', 'category'])
+                            ->where(fn ($q) => $q->where('status', 'published')->orWhere('mod_status', 'approved'))
+                            ->where(fn ($q) => $q->where('title', 'LIKE', "%{$rawSearch}%")->orWhere('content', 'LIKE', "%{$rawSearch}%"))
+                            ->latest('id')
+                            ->take(4)
+                            ->get();
+                    }
+                } catch (\Throwable) {}
+
+                try {
+                    if (DB::getSchemaBuilder()->hasTable('research_papers')) {
+                        $matchedResearchPapers = \App\Models\ResearchPaper::query()
+                            ->where('status', 'published')
+                            ->where(fn ($q) => $q->where('title', 'LIKE', "%{$rawSearch}%")->orWhere('abstract', 'LIKE', "%{$rawSearch}%"))
+                            ->latest('id')
+                            ->take(3)
+                            ->get();
+                    }
+                } catch (\Throwable) {}
+            }
+
+            // Resolve Active Filter Title
+            if ($request->filled('category')) {
+                $catObj = Category::where('slug', $request->string('category'))->orWhere('id', $request->input('category'))->first();
+                if ($catObj) $activeFilterTitle = $catObj->name . ' — ই-বুক সংগ্রহ';
+            } elseif ($request->filled('author')) {
+                $authObj = Author::where('slug', $request->string('author'))->orWhere('id', $request->input('author'))->first();
+                if ($authObj) $activeFilterTitle = $authObj->name . ' এর ই-বুক';
+            } elseif ($request->filled('publisher')) {
+                $pubObj = Publisher::where('slug', $request->string('publisher'))->orWhere('id', $request->input('publisher'))->first();
+                if ($pubObj) $activeFilterTitle = $pubObj->name . ' এর ই-বুক';
+            } elseif ($request->filled('format')) {
+                $fmt = strtolower($request->string('format')->value());
+                $activeFilterTitle = ($fmt === 'epub') ? 'EPUB ফরম্যাটের ই-বুক' : (($fmt === 'pdf') ? 'PDF সংস্করণের ই-বুক' : (($fmt === 'free') ? '১০০% বিনামূল্যে পড়ার ই-বুক' : 'ই-বুক তালিকা'));
+            } elseif ($request->boolean('free_only')) {
+                $activeFilterTitle = 'বিনামূল্যে পড়ার ই-বুক সংগ্রহ';
+            } elseif ($request->filled('search') || $request->filled('q')) {
+                $activeFilterTitle = '"' . $rawSearch . '" সম্পর্কিত ই-বুক ফলাফল';
+            } elseif ($request->string('sort') === 'bestselling') {
+                $activeFilterTitle = 'জনপ্রিয় ও সর্বাধিক বিক্রিত ই-বুক';
+            } elseif ($request->string('sort') === 'popular') {
+                $activeFilterTitle = 'সর্বাধিক পঠিত ই-বুক';
             }
 
             // Main Query
@@ -198,21 +277,30 @@ class EbookController extends Controller
 
             // Filter: Category
             if ($request->filled('category')) {
-                $query->whereHas('category', fn ($c) => $c->where('slug', $request->string('category')));
+                $catVal = $request->string('category')->trim()->value();
+                $query->where(function ($sub) use ($catVal) {
+                    $sub->where('category_id', $catVal)
+                        ->orWhereHas('category', fn ($c) => $c->where('slug', $catVal)->orWhere('name', 'LIKE', "%{$catVal}%"));
+                });
             }
 
             // Filter: Author
             if ($request->filled('author')) {
-                $query->where(function ($q) use ($request) {
-                    $authorSlug = $request->string('author');
-                    $q->whereHas('author', fn ($a) => $a->where('slug', $authorSlug))
-                      ->orWhereHas('authors', fn ($a) => $a->where('slug', $authorSlug));
+                $authorVal = $request->string('author')->trim()->value();
+                $query->where(function ($q) use ($authorVal) {
+                    $q->where('author_id', $authorVal)
+                      ->orWhere('author_name', 'LIKE', "%{$authorVal}%")
+                      ->orWhereHas('author', fn ($a) => $a->where('slug', $authorVal)->orWhere('name', 'LIKE', "%{$authorVal}%"));
                 });
             }
 
             // Filter: Publisher
             if ($request->filled('publisher')) {
-                $query->whereHas('publisher', fn ($p) => $p->where('slug', $request->string('publisher')));
+                $pubVal = $request->string('publisher')->trim()->value();
+                $query->where(function ($p) use ($pubVal) {
+                    $p->where('publisher_id', $pubVal)
+                      ->orWhereHas('publisher', fn ($sq) => $sq->where('slug', $pubVal)->orWhere('name', 'LIKE', "%{$pubVal}%"));
+                });
             }
 
             // Filter: Format
@@ -255,18 +343,26 @@ class EbookController extends Controller
                 $query->where('price', '<=', $request->float('max_price'));
             }
 
+            // Filter: Discount Min
+            if ($request->filled('discount_min')) {
+                $minPercent = $request->integer('discount_min');
+                if ($minPercent > 0) {
+                    $query->whereNotNull('discount_price')
+                          ->whereRaw('((price - discount_price) * 100 / price) >= ?', [$minPercent]);
+                }
+            }
+
             // Filter: Search Keyword
-            if ($request->filled('search')) {
-                $search = $request->string('search')->trim()->value();
-                $query->where(function ($sub) use ($search) {
-                    $sub->where('title', 'LIKE', "%{$search}%")
-                        ->orWhere('subtitle', 'LIKE', "%{$search}%")
-                        ->orWhere('author_name', 'LIKE', "%{$search}%")
-                        ->orWhere('isbn', 'LIKE', "%{$search}%")
-                        ->orWhere('description', 'LIKE', "%{$search}%")
-                        ->orWhereHas('author', fn ($a) => $a->where('name', 'LIKE', "%{$search}%"))
-                        ->orWhereHas('publisher', fn ($p) => $p->where('name', 'LIKE', "%{$search}%"))
-                        ->orWhereHas('category', fn ($c) => $c->where('name', 'LIKE', "%{$search}%"));
+            if (!empty($rawSearch)) {
+                $query->where(function ($sub) use ($rawSearch) {
+                    $sub->where('title', 'LIKE', "%{$rawSearch}%")
+                        ->orWhere('subtitle', 'LIKE', "%{$rawSearch}%")
+                        ->orWhere('author_name', 'LIKE', "%{$rawSearch}%")
+                        ->orWhere('isbn', 'LIKE', "%{$rawSearch}%")
+                        ->orWhere('description', 'LIKE', "%{$rawSearch}%")
+                        ->orWhereHas('author', fn ($a) => $a->where('name', 'LIKE', "%{$rawSearch}%"))
+                        ->orWhereHas('publisher', fn ($p) => $p->where('name', 'LIKE', "%{$rawSearch}%"))
+                        ->orWhereHas('category', fn ($c) => $c->where('name', 'LIKE', "%{$rawSearch}%"));
                 });
             }
 
@@ -276,7 +372,8 @@ class EbookController extends Controller
                     'price_low'   => $query->orderBy('price', 'asc'),
                     'price_high'  => $query->orderBy('price', 'desc'),
                     'discount_high'=> $query->orderByRaw('(price - COALESCE(discount_price, price)) desc'),
-                    'bestselling', 'popular' => $query->orderByDesc('sales_count')->orderByDesc('read_count'),
+                    'bestselling' => $query->orderByDesc('sales_count'),
+                    'popular'     => $query->orderByDesc('read_count'),
                     'oldest'      => $query->oldest(),
                     default       => $query->latest(),
                 };
@@ -284,7 +381,7 @@ class EbookController extends Controller
                 $query->latest();
             }
 
-            $ebooks = $query->paginate(16)->withQueryString();
+            $ebooks = $query->paginate(15)->withQueryString();
         }
 
         return view('ebook::frontend.index', compact(
@@ -296,10 +393,16 @@ class EbookController extends Controller
             'bestsellingEbooks',
             'freeEbooks',
             'newReleaseEbooks',
+            'dynamicCategories',
             'spotlightEbook',
             'userLibraryIds',
             'stats',
-            'isSearchMode'
+            'isSearchMode',
+            'activeFilterTitle',
+            'matchedBlogPosts',
+            'matchedResearchPapers',
+            'matchedWebzineArticles',
+            'matchedPages'
         ));
     }
 
@@ -414,11 +517,8 @@ class EbookController extends Controller
         $hasAccess = false;
         $libraryEntry = null;
 
-        $user = auth()->user();
-        $libraryEntry = null;
-
         // Free e-books can be read online by anyone
-        if ($ebook->is_free) {
+        if ($ebook->is_free || (float)$ebook->price <= 0) {
             $hasAccess = true;
             if ($user) {
                 $libraryEntry = UserEbookLibrary::where('user_id', $user->id)->where('ebook_id', $ebook->id)->first();
@@ -431,10 +531,8 @@ class EbookController extends Controller
             }
         }
 
-        if (!$hasAccess) {
-            return redirect()->route('ebook.show', $ebook->slug)
-                ->with('info', 'সম্পূর্ণ ই-বুকটি পড়ার জন্য অনুগ্রহ করে বইটি ক্রয় করুন অথবা ফ্রি প্রিভিউ পড়ুন।');
-        }
+        // If user has not purchased yet, smoothly open reader in Sample / Preview Mode
+        $isSample = !$hasAccess;
 
         // Increment read count silently
         try {
@@ -443,21 +541,30 @@ class EbookController extends Controller
 
         // Determine Reader Type and Stream URL
         $readerType = 'epub';
-        if (empty($ebook->epub_file_path) && !empty($ebook->file_path) && str_ends_with(strtolower((string)$ebook->file_path), '.pdf')) {
+        if (!empty($ebook->epub_file_path) && str_ends_with(strtolower((string)$ebook->epub_file_path), '.epub')) {
+            $readerType = 'epub';
+        } elseif (!empty($ebook->file_path) && str_ends_with(strtolower((string)$ebook->file_path), '.pdf')) {
             $readerType = 'pdf';
         } elseif (strtolower((string)$ebook->file_type) === 'pdf') {
             $readerType = 'pdf';
         }
 
-        $streamUrl = route('ebook.stream', $ebook->id);
+        $streamUrl = $isSample 
+            ? route('ebook.stream', ['id' => $ebook->id, 'sample' => 1])
+            : route('ebook.stream', $ebook->id);
 
         // Anti-Piracy Watermark Text
-        $watermarkText = ($user ? ($user->name . ' (' . ($user->phone ?: $user->email) . ')') : 'আইডিয়া প্রকাশন')
-            . ' • ' . ($libraryEntry ? ('Order #' . ($libraryEntry->order_id ?: 'Claimed')) : 'Licensed Reader')
-            . ' • ' . date('d-m-Y');
-
-        $bookmarks = $libraryEntry?->bookmarks_data ?? [];
-        $lastReadPage = $libraryEntry?->last_read_page ?? 1;
+        if ($isSample) {
+            $watermarkText = 'ফ্রি নমুনা অংশ (Sample Preview) • আইডিয়া প্রকাশন • সর্বস্বত্ব সংরক্ষিত';
+            $bookmarks = [];
+            $lastReadPage = 1;
+        } else {
+            $watermarkText = ($user ? ($user->name . ' (' . ($user->phone ?: $user->email) . ')') : 'আইডিয়া প্রকাশন')
+                . ' • ' . ($libraryEntry ? ('Order #' . ($libraryEntry->order_id ?: 'Claimed')) : 'Licensed Reader')
+                . ' • ' . date('d-m-Y');
+            $bookmarks = $libraryEntry?->bookmarks_data ?? [];
+            $lastReadPage = $libraryEntry?->last_read_page ?? 1;
+        }
 
         return view('ebook::frontend.read', compact(
             'ebook',
@@ -466,7 +573,8 @@ class EbookController extends Controller
             'watermarkText',
             'libraryEntry',
             'bookmarks',
-            'lastReadPage'
+            'lastReadPage',
+            'isSample'
         ));
     }
 
@@ -493,6 +601,7 @@ class EbookController extends Controller
         $bookmarks = [];
         $lastReadPage = 1;
         $libraryEntry = null;
+        $isSample = true;
 
         return view('ebook::frontend.read', compact(
             'ebook',
@@ -501,7 +610,8 @@ class EbookController extends Controller
             'watermarkText',
             'libraryEntry',
             'bookmarks',
-            'lastReadPage'
+            'lastReadPage',
+            'isSample'
         ));
     }
 
@@ -515,11 +625,12 @@ class EbookController extends Controller
         $isSample = $request->query('sample') == '1';
 
         // Access check for full reading (sample and free books are readable)
-        if (!$isSample && !$ebook->is_free) {
+        if (!$isSample && !$ebook->is_free && (float)$ebook->price > 0) {
             $hasAccess = $this->checkUserEbookAccess($user, $ebook);
 
             if (!$hasAccess) {
-                abort(403, 'অননুমোদিত ই-বুক এক্সেস। দয়া করে বইটি ক্রয় করুন।');
+                // If not purchased, fallback to sample stream safely
+                $isSample = true;
             }
         }
 
@@ -533,14 +644,13 @@ class EbookController extends Controller
             $filePath = $ebook->file_path ?: $ebook->sample_file_path;
         }
 
-        if (!$filePath) {
-            abort(404, 'ই-বুক ফাইল সার্ভারে পাওয়া যায়নি।');
+        $cleanPath = '';
+        if ($filePath) {
+            // Resolve absolute file path (handling clean relative paths, storage prefixes and URLs)
+            $cleanPath = preg_replace('#^https?://[^/]+/storage/#', '', (string)$filePath);
+            $cleanPath = preg_replace('#^/storage/#', '', $cleanPath);
+            $cleanPath = ltrim($cleanPath, '/');
         }
-
-        // Resolve absolute file path (handling clean relative paths, storage prefixes and URLs)
-        $cleanPath = preg_replace('#^https?://[^/]+/storage/#', '', (string)$filePath);
-        $cleanPath = preg_replace('#^/storage/#', '', $cleanPath);
-        $cleanPath = ltrim($cleanPath, '/');
 
         $fullPath = null;
         $candidates = [
@@ -549,13 +659,16 @@ class EbookController extends Controller
             public_path('storage/' . $cleanPath),
             public_path($cleanPath),
             storage_path('app/secure/ebooks/' . basename($cleanPath)),
-            storage_path('app/public/' . ltrim($filePath, '/')),
-            storage_path('app/' . ltrim($filePath, '/')),
-            public_path(ltrim($filePath, '/')),
+            storage_path('app/public/' . ltrim((string)$filePath, '/')),
+            storage_path('app/' . ltrim((string)$filePath, '/')),
+            public_path(ltrim((string)$filePath, '/')),
+            storage_path('app/public/ebooks/' . ($ebook->slug ?: $ebook->id) . '.epub'),
+            storage_path('app/public/ebooks/briksh-zkhn-ktha-ble.epub'),
+            storage_path('app/public/ebooks/ideaabd-sample.epub'),
         ];
 
         foreach ($candidates as $cand) {
-            if (file_exists($cand) && is_file($cand)) {
+            if ($cand && file_exists($cand) && is_file($cand) && filesize($cand) > 100) {
                 $fullPath = $cand;
                 break;
             }

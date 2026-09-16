@@ -23,7 +23,7 @@
         $payoutNumber = $userRegData['payout_number'] ?? null;
         $hasExtraDetails = $fatherName || $motherName || $nidOrPassport || $presentAddress || $payoutMethod || !empty($authorBioText);
     @endphp
-    <div class="card border-0 shadow-sm rounded-4 overflow-hidden text-white position-relative" 
+    <div class="card border-0 shadow-sm rounded-4 text-white position-relative" 
          style="background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%);">
         
         <div class="p-3.5 p-md-4 position-relative z-1">
@@ -137,10 +137,82 @@
                             </button>
                         </div>
                         <div class="col-6 col-md-3">
-                            <a href="{{ route('my-account') }}" class="btn btn-outline-warning btn-sm w-100 rounded-pill py-1.5 px-1 px-md-2 fw-semibold text-white d-flex align-items-center justify-content-center gap-1 text-truncate" title="মাই একাউন্ট">
-                                <i class="fas fa-user-gear text-warning"></i>
-                                <span>মাই একাউন্ট</span>
-                            </a>
+                            <div class="dropdown w-100">
+                                <button type="button" 
+                                        class="btn btn-outline-warning btn-sm w-100 rounded-pill py-1.5 px-1 px-md-2 fw-semibold text-white d-flex align-items-center justify-content-center gap-1 text-truncate dropdown-toggle" 
+                                        id="authorDashAccountDropdownBtn" 
+                                        data-bs-toggle="dropdown" 
+                                        aria-expanded="false" 
+                                        title="মাই একাউন্ট অপশনসমূহ">
+                                    <i class="fas fa-user-gear text-warning"></i>
+                                    <span>মাই একাউন্ট</span>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end shadow-2xl border-0 rounded-4 p-2 mt-1" aria-labelledby="authorDashAccountDropdownBtn" style="min-width: 260px; z-index: 1100;">
+                                    <li class="px-3 py-2 border-bottom mb-2 bg-light rounded-3 text-center">
+                                        <div class="fw-bold text-dark fs-6">{{ auth()->user()->name }}</div>
+                                        <div class="text-muted small text-truncate" style="font-size: 11px;">{{ auth()->user()->email }}</div>
+                                        <div class="badge bg-primary mt-1 px-2.5 py-0.5 rounded-pill small" style="font-size: 10px;">Author Studio</div>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item py-1.5 px-3 rounded-2 fw-semibold d-flex align-items-center gap-2 text-dark" href="{{ route('my-account') }}">
+                                            <i class="fas fa-user-gear text-primary" style="width: 18px;"></i>
+                                            <span>Your Account Hub</span>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item py-1.5 px-3 rounded-2 fw-semibold d-flex align-items-center gap-2 text-dark" href="{{ route('my-account', ['tab' => 'orders']) }}">
+                                            <i class="fas fa-box-archive text-info" style="width: 18px;"></i>
+                                            <span>Your Orders</span>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item py-1.5 px-3 rounded-2 fw-semibold d-flex align-items-center gap-2 text-dark" href="{{ route('author.royalties') }}">
+                                            <i class="fas fa-sack-dollar text-warning" style="width: 18px;"></i>
+                                            <span>Royalties (50%)</span>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item py-1.5 px-3 rounded-2 fw-semibold d-flex align-items-center gap-2 text-dark" href="{{ route('author.payouts.index') }}">
+                                            <i class="fas fa-hand-holding-dollar text-success" style="width: 18px;"></i>
+                                            <span>Payouts</span>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item py-1.5 px-3 rounded-2 fw-semibold d-flex align-items-center gap-2 text-dark" href="{{ route('my-account', ['tab' => 'loginSecurity']) }}">
+                                            <i class="fas fa-shield-halved text-success" style="width: 18px;"></i>
+                                            <span>Login & Security</span>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item py-1.5 px-3 rounded-2 fw-semibold d-flex align-items-center gap-2 text-dark" href="{{ route('my-account', ['tab' => 'addresses']) }}">
+                                            <i class="fas fa-location-dot text-danger" style="width: 18px;"></i>
+                                            <span>Your Addresses</span>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item py-1.5 px-3 rounded-2 fw-semibold d-flex align-items-center gap-2 text-dark" href="{{ route('my-account', ['tab' => 'payments']) }}">
+                                            <i class="fas fa-credit-card text-purple" style="width: 18px; color: #8b5cf6;"></i>
+                                            <span>Your Payments</span>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item py-1.5 px-3 rounded-2 fw-semibold d-flex align-items-center gap-2 text-dark" href="{{ route('my-account', ['tab' => 'kyc']) }}">
+                                            <i class="fas fa-id-card text-secondary" style="width: 18px;"></i>
+                                            <span>KYC Verification</span>
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider my-1.5"></li>
+                                    <li>
+                                        <form action="{{ route('logout') }}" method="POST" class="m-0">
+                                            @csrf
+                                            <button type="submit" class="dropdown-item text-danger py-1.5 px-3 rounded-2 fw-semibold d-flex align-items-center gap-2 bg-danger-subtle text-center justify-content-center">
+                                                <i class="fas fa-power-off"></i>
+                                                <span>Sign Out</span>
+                                            </button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </div>
                         </div>
                         <div class="col-6 col-md-3">
                             @if($author && $author->slug)

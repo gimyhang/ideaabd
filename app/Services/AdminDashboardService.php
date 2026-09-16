@@ -92,6 +92,76 @@ class AdminDashboardService
     }
 
     /**
+     * Fetch complete detailed models of pending items for the interactive dashboard action modal.
+     */
+    public function getPendingRecordsData(int $limit = 10): array
+    {
+        $orders = $this->safe(fn () => Order::where('status', 'pending')
+            ->with(['items.book'])
+            ->latest()
+            ->limit($limit)
+            ->get(), collect());
+
+        $registrations = $this->safe(fn () => User::whereIn('role', ['seller', 'publisher', 'author'])
+            ->where('reg_status', User::STATUS_PENDING)
+            ->latest()
+            ->limit($limit)
+            ->get(), collect());
+
+        $blogs = collect();
+        if (Schema::hasTable('blog_posts')) {
+            $blogs = $this->safe(fn () => \Modules\Blog\Models\BlogPost::where(function ($q) {
+                $q->where('status', 'pending')->orWhere('mod_status', 'pending');
+            })->with(['authorUser', 'category'])->latest()->limit($limit)->get(), collect());
+        }
+
+        $books = collect();
+        if (Schema::hasTable('books')) {
+            $books = $this->safe(fn () => \Modules\Book\Models\Book::where('mod_status', 'pending')
+                ->with(['category', 'publisher'])
+                ->latest()
+                ->limit($limit)
+                ->get(), collect());
+        }
+
+        $ebooks = collect();
+        if (Schema::hasTable('ebooks')) {
+            $ebooks = $this->safe(fn () => \Modules\Ebook\Models\Ebook::where('mod_status', 'pending')
+                ->with(['category'])
+                ->latest()
+                ->limit($limit)
+                ->get(), collect());
+        }
+
+        $bookRequests = collect();
+        if (Schema::hasTable('book_requests')) {
+            $bookRequests = $this->safe(fn () => \App\Models\BookRequest::where('status', 'pending')
+                ->latest()
+                ->limit($limit)
+                ->get(), collect());
+        }
+
+        $submissions = collect();
+        if (Schema::hasTable('author_submissions')) {
+            $submissions = $this->safe(fn () => \Modules\Author\Models\AuthorSubmission::where('status', 'pending')
+                ->with('user')
+                ->latest()
+                ->limit($limit)
+                ->get(), collect());
+        }
+
+        return [
+            'orders'        => $orders,
+            'registrations' => $registrations,
+            'blogs'         => $blogs,
+            'books'         => $books,
+            'ebooks'        => $ebooks,
+            'book_requests' => $bookRequests,
+            'submissions'   => $submissions,
+        ];
+    }
+
+    /**
      * Backward-compatible stats() method.
      */
     public function stats(): array

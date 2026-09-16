@@ -40,7 +40,7 @@
                 </button>
 
                 <div class="d-flex align-items-center gap-2 overflow-x-auto scrollbar-none py-1 px-1 text-nowrap w-100 pill-scroll-track" id="categoryPillTrack" style="scroll-behavior: smooth; cursor: grab;">
-                    <a href="{{ route('book.index') }}" class="btn btn-sm {{ !request()->anyFilled(['category', 'filter', 'sort', 'format']) ? 'btn-primary text-white' : 'btn-light border text-dark' }} rounded-pill px-3 py-1.5 fw-bold d-inline-flex align-items-center gap-1.5 shadow-2xs flex-shrink-0">
+                    <a href="{{ route('book.index') }}" class="btn btn-sm {{ !request()->anyFilled(['category', 'filter', 'sort', 'format', 'search', 'q', 'letter', 'discount_min', 'in_stock']) ? 'btn-primary text-white' : 'btn-light border text-dark' }} rounded-pill px-3 py-1.5 fw-bold d-inline-flex align-items-center gap-1.5 shadow-2xs flex-shrink-0">
                         <i class="fa-solid fa-layer-group"></i>
                         <span>সকল বিষয়</span>
                     </a>
@@ -84,6 +84,29 @@
             </div>
         </div>
 
+        <!-- ══ 2.1 ALPHABETICAL FILTER CHIPS (BANGLA & ENGLISH) ═══════════════════ -->
+        @php
+            $alphabetLetters = ['সব', 'অ', 'আ', 'ই', 'ঈ', 'উ', 'ঋ', 'এ', 'ঐ', 'ও', 'ঔ', 'ক', 'খ', 'গ', 'ঘ', 'চ', 'ছ', 'জ', 'ঝ', 'ট', 'ঠ', 'ড', 'ঢ', 'ত', 'থ', 'দ', 'ধ', 'ন', 'প', 'ফ', 'ব', 'ভ', 'ম', 'য', 'র', 'ল', 'শ', 'ষ', 'স', 'হ', 'A-Z'];
+        @endphp
+        <div class="card p-2.5 px-3 border-0 shadow-2xs rounded-4 bg-white mb-4">
+            <div class="d-flex align-items-center gap-1.5 overflow-x-auto pb-1 custom-scrollbar">
+                <span class="small fw-bold text-dark text-nowrap d-inline-flex align-items-center gap-1 me-2" style="font-size: 0.8rem;">
+                    <i class="fa-solid fa-arrow-down-a-z text-primary"></i>বর্ণানুক্রমিক:
+                </span>
+                @foreach($alphabetLetters as $char)
+                    @php
+                        $isCharActive = ($char === 'সব' && (!request('letter') || request('letter') === 'all')) || request('letter') === $char;
+                        $charParam = $char === 'সব' ? 'all' : $char;
+                    @endphp
+                    <a href="{{ route('book.index', array_merge(request()->except(['letter', 'page']), ['letter' => $charParam])) }}" 
+                       class="badge text-decoration-none px-2.5 py-1.5 rounded-pill transition-all {{ $isCharActive ? 'bg-primary text-white shadow-xs fw-bold' : 'bg-light text-secondary hover-bg-light border' }}"
+                       style="font-size: 0.8rem; min-width: 32px; text-align: center;">
+                        {{ $char }}
+                    </a>
+                @endforeach
+            </div>
+        </div>
+
         @if(isset($isSearchMode) && $isSearchMode)
             <!-- ══ 3. CATALOG GRID VIEW (FILTERED / SEARCH / SINGLE CATEGORY MODE) ══ -->
             <div class="row g-4">
@@ -91,6 +114,9 @@
                 <!-- Left Sidebar Filters -->
                 <aside class="col-lg-3 col-12">
                     <form action="{{ route('book.index') }}" method="GET" id="filter-form" class="d-flex flex-column gap-3 sticky-top" style="top: 85px;">
+                        @if(request('letter') && request('letter') !== 'all')
+                            <input type="hidden" name="letter" value="{{ request('letter') }}">
+                        @endif
                         
                         <div class="card p-3 border-0 shadow-sm rounded-4 bg-white">
                             <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">

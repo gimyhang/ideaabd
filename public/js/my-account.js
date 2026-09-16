@@ -4,7 +4,48 @@
  * ══════════════════════════════════════════════════════════════════════════
  */
 
+const SECTION_TITLES = {
+    'hub': { title: 'Your Account Hub', icon: 'fa-house' },
+    'orders': { title: 'Your Orders', icon: 'fa-box-archive' },
+    'loginSecurity': { title: 'Login & security', icon: 'fa-shield-halved' },
+    'addresses': { title: 'Your Addresses', icon: 'fa-location-dot' },
+    'payments': { title: 'Your Payments', icon: 'fa-credit-card' },
+    'prime': { title: 'Prime Membership', icon: 'fa-crown' },
+    'giftcards': { title: 'Gift cards & Balance', icon: 'fa-gift' },
+    'digitalServices': { title: 'Digital Library & E-Books', icon: 'fa-book-open-reader' },
+    'kyc': { title: 'KYC & Verification', icon: 'fa-id-card' },
+    'royalties': { title: 'Royalties & Payouts', icon: 'fa-sack-dollar' },
+    'authorHub': { title: 'Author Studio Hub', icon: 'fa-feather-pointed' },
+    'blog': { title: 'Author Articles & Blog', icon: 'fa-pen-nib' },
+    'memberships': { title: 'Memberships & Subscriptions', icon: 'fa-user-group' },
+    'preferences': { title: 'Language & Preferences', icon: 'fa-globe' },
+    'customerService': { title: 'Customer Service & Help', icon: 'fa-headset' },
+};
+
+function syncNavDropdown(panelKey) {
+    const key = panelKey || 'hub';
+    const info = SECTION_TITLES[key] || { title: 'Your Account Hub', icon: 'fa-house' };
+    
+    const labelEl = document.getElementById('currentAccountNavLabel');
+    const iconEl = document.getElementById('currentAccountNavIcon');
+    if (labelEl) labelEl.textContent = info.title;
+    if (iconEl) iconEl.className = 'fa-solid ' + info.icon + ' text-primary';
+
+    document.querySelectorAll('.amz-nav-menu .dropdown-item[data-panel]').forEach(function(item) {
+        if (item.getAttribute('data-panel') === key) {
+            item.classList.add('active');
+        } else {
+            item.classList.remove('active');
+        }
+    });
+}
+
 function openSectionPanel(panelKey) {
+    if (!panelKey || panelKey === 'hub') {
+        closeAllPanels();
+        return;
+    }
+
     const hub = document.getElementById('mainAccountHubView');
     if (hub) hub.style.display = 'none';
 
@@ -23,6 +64,8 @@ function openSectionPanel(panelKey) {
             history.pushState({ panel: panelKey }, null, window.location.pathname + '?tab=' + panelKey);
         }
     }
+
+    syncNavDropdown(panelKey);
 }
 
 function closeAllPanels() {
@@ -41,6 +84,8 @@ function closeAllPanels() {
     if (history.pushState) {
         history.pushState({ panel: 'hub' }, null, window.location.pathname);
     }
+
+    syncNavDropdown('hub');
 }
 
 function toggleAddressForm() {

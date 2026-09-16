@@ -103,29 +103,273 @@ class AdminController extends Controller
             $activityLogs = collect([]);
         }
 
-        $smsInfo = null;
+        $pendingData = [];
         try {
-            $smsInfo = \App\Services\SmsService::checkBalance();
+            $pendingData = $this->dashboard->getPendingRecordsData(15);
+        } catch (\Throwable) {
+            $pendingData = [
+                'orders'        => collect(),
+                'registrations' => collect(),
+                'blogs'         => collect(),
+                'books'         => collect(),
+                'ebooks'        => collect(),
+                'book_requests' => collect(),
+                'submissions'   => collect(),
+            ];
+        }
+
+        $smsInfo = ['balance' => 'N/A', 'status' => 'unknown'];
+        try {
+            $smsService = app(\App\Services\SmsService::class);
+            if (method_exists($smsService, 'getBalance')) {
+                $smsInfo = $smsService->getBalance();
+            }
         } catch (\Throwable) {}
 
         return view('admin.dashboard', [
-            'stats'         => $stats,
-            'salesChart'    => $salesChart,
-            'visitorChart'  => $visitorChart,
-            'recentOrders'  => $recentOrders,
+            'stats'          => $stats,
+            'salesChart'     => $salesChart,
+            'visitorChart'   => $visitorChart,
+            'recentOrders'   => $recentOrders,
             'recentBills'    => $recentBills,
             'pendingRegs'    => $pendingRegs,
+            'pendingData'    => $pendingData,
             'topSellers'     => $topSellers,
             'sellersSummary' => $sellersSummary,
             'systemHealth'   => $systemHealth,
-            'activityLogs'  => $activityLogs,
-            'systemNotice'  => $systemNotice,
-            'smsInfo'       => $smsInfo,
-            'currentPeriod' => $period,
-            'dateFrom'      => $dateFrom,
-            'dateTo'        => $dateTo,
-            'trafficPeriod' => $trafficPeriod,
-            'salesPeriod'   => $salesPeriod,
+            'activityLogs'   => $activityLogs,
+            'systemNotice'   => $systemNotice,
+            'smsInfo'        => $smsInfo,
+            'currentPeriod'  => $period,
+            'dateFrom'       => $dateFrom,
+            'dateTo'         => $dateTo,
+            'trafficPeriod'  => $trafficPeriod,
+            'salesPeriod'    => $salesPeriod,
+        ]);
+    }
+
+    /**
+     * Universal Dynamic Pending Request Quick Action Endpoint (AJAX).
+     * Handles Approve, Reject, Delete/Cancel, and Status changes for
+     * Registrations, Orders, Blogs, Books, E-Books, and Book Requests directly from Dashboard.
+     */
+    public function dashboardQuickAction(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $validated = $request->validate([
+            'type'   => ['required', 'string', 'in:user,order,blog,book,ebook,book_request,submission'],
+            'id'     => ['required'],
+            'action' => ['required', 'string', 'in:approve,reject,delete,cancel,process,complete'],
+            'reason' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $type = $validated['type'];
+        $id = $validated['id'];
+        $action = $validated['action'];
+        $reason = $validated['reason'] ?? null;
+        $message = 'অ্যাকশন সফলভাবে সম্পন্ন হয়েছে।';
+
+        try {
+            switch ($type) {
+                case 'user':
+                    $user = User::findOrFail($id);
+                    if ($action === 'approve') {
+                        $user->update([
+                            'reg_status'        => User::STATUS_APPROVED,
+                            'is_active'         => true,
+                            'approved_by'       => auth()->id(),
+                            'approved_at'       => now(),
+                            'rejection_reason'  => null,
+                            'email_verified_at' => $user->email_verified_at ?: now(),
+                        ]);
+
+                        // If author, sync to authors table
+                        if ($user->role === 'author' || $user->reg_type === 'author') {
+                            try {
+                                $regData = is_array($user->reg_data) ? $user->reg_data : [];
+                                $authorName = !empty($regData['pen_name']) ? trim($regData['pen_name']) : (!empty($regData['name_bn']) ? trim($regData['name_bn']) : $user->name);
+                                $nameBn = !empty($regData['name_bn']) ? trim($regData['name_bn']) : $authorName;
+                                $nameEn = $user->name;
+                                $authorAvatar = $user->avatar ?: ($regData['avatar'] ?? null);
+
+                                \Modules\Author\Models\Author::updateOrCreate(
+                                    ['user_id' => $user->id],
+                                    [
+                                        'name'         => $authorName,
+                                        'name_en'      => $nameEn,
+                                        'name_bn'      => $nameBn,
+                                        'email'        => $user->email,
+                                        'phone'        => $user->phone,
+                                        'bio'          => $regData['bio'] ?? null,
+                                        'avatar'       => $authorAvatar,
+                                        'website'      => $regData['website'] ?? null,
+                                        'is_active'    => true,
+                                        'is_verified'  => true,
+                                    ]
+                                );
+                            } catch (\Throwable $e) {}
+                        }
+
+                        // Send SMS if phone exists
+                        if (!empty($user->phone)) {
+                            try {
+                                \App\Services\SmsService::send($user->phone, "অভিনন্দন {$user->name}! আইডিয়া প্রকাশনে আপনার {$user->role} অ্যাকাউন্ট অনুমোদন করা হয়েছে।");
+                            } catch (\Throwable) {}
+                        }
+
+                        $message = "{$user->name} ({$user->role}) এর রেজিস্ট্রেশন সফলভাবে অনুমোদন করা হয়েছে।";
+                    } elseif ($action === 'reject') {
+                        $user->update([
+                            'reg_status'       => User::STATUS_REJECTED,
+                            'is_active'        => false,
+                            'rejection_reason' => $reason ?: 'অসম্পূর্ণ বা ত্রুটিপূর্ণ তথ্য',
+                        ]);
+                        $message = "{$user->name} এর রেজিস্ট্রেশন আবেদন বাতিল করা হয়েছে।";
+                    } elseif ($action === 'delete' || $action === 'cancel') {
+                        $userName = $user->name;
+                        if ($user->role === 'author') {
+                            try {
+                                DB::table('authors')->where('user_id', $user->id)->orWhere('email', $user->email)->delete();
+                            } catch (\Throwable) {}
+                        }
+                        $user->forceDelete();
+                        $message = "{$userName} এর আবেদন ও অ্যাকাউন্ট মুছে ফেলা হয়েছে।";
+                    }
+                    break;
+
+                case 'order':
+                    $order = \App\Models\Order::findOrFail($id);
+                    if ($action === 'approve' || $action === 'process') {
+                        $order->update(['status' => 'processing']);
+                        $message = "অর্ডার #{$order->order_number} সফলভাবে কনফার্ম ও প্রসেসিংয়ে নেওয়া হয়েছে।";
+                    } elseif ($action === 'complete') {
+                        $order->update(['status' => 'completed', 'payment_status' => 'paid']);
+                        $message = "অর্ডার #{$order->order_number} সম্পন্ন (Completed) হিসেবে চিহ্নিত করা হয়েছে।";
+                    } elseif ($action === 'reject') {
+                        $order->update(['status' => 'cancelled']);
+                        $message = "অর্ডার #{$order->order_number} বাতিল (Cancelled) করা হয়েছে।";
+                    } elseif ($action === 'delete') {
+                        $orderNum = $order->order_number;
+                        $order->items()->delete();
+                        $order->delete();
+                        $message = "অর্ডার #{$orderNum} স্থায়ীভাবে মুছে ফেলা হয়েছে।";
+                    }
+                    break;
+
+                case 'blog':
+                    $post = \Modules\Blog\Models\BlogPost::findOrFail($id);
+                    if ($action === 'approve') {
+                        $post->update([
+                            'status'       => 'published',
+                            'mod_status'   => 'approved',
+                            'published_at' => $post->published_at ?: now(),
+                        ]);
+                        $message = "'{$post->title}' পোস্টটি সফলভাবে অনুমোদন ও প্রকাশ করা হয়েছে।";
+                    } elseif ($action === 'reject') {
+                        $post->update([
+                            'status'     => 'draft',
+                            'mod_status' => 'rejected',
+                        ]);
+                        $message = "'{$post->title}' পোস্টটি বাতিল ও ড্রাফট করা হয়েছে।";
+                    } elseif ($action === 'delete') {
+                        $postTitle = $post->title;
+                        $post->delete();
+                        $message = "'{$postTitle}' পোস্টটি সম্পূর্ণ মুছে ফেলা হয়েছে।";
+                    }
+                    break;
+
+                case 'book':
+                    $book = \Modules\Book\Models\Book::findOrFail($id);
+                    if ($action === 'approve') {
+                        $book->update(['mod_status' => 'approved', 'is_active' => true]);
+                        $message = "'{$book->title}' বইটি অনুমোদন করা হয়েছে এবং সাইটে লাইভ রয়েছে।";
+                    } elseif ($action === 'reject') {
+                        $book->update(['mod_status' => 'rejected', 'is_active' => false]);
+                        $message = "'{$book->title}' বইটি রিজেক্ট করা হয়েছে।";
+                    } elseif ($action === 'delete') {
+                        $bookTitle = $book->title;
+                        $book->delete();
+                        $message = "'{$bookTitle}' বইটি মুছে ফেলা হয়েছে।";
+                    }
+                    break;
+
+                case 'ebook':
+                    $ebook = \Modules\Ebook\Models\Ebook::findOrFail($id);
+                    if ($action === 'approve') {
+                        $ebook->update(['mod_status' => 'approved', 'is_active' => true]);
+                        $message = "'{$ebook->title}' ই-বুকটি অনুমোদন ও লাইভ করা হয়েছে।";
+                    } elseif ($action === 'reject') {
+                        $ebook->update(['mod_status' => 'rejected', 'is_active' => false]);
+                        $message = "'{$ebook->title}' ই-বুকটি রিজেক্ট করা হয়েছে।";
+                    } elseif ($action === 'delete') {
+                        $ebookTitle = $ebook->title;
+                        $ebook->delete();
+                        $message = "'{$ebookTitle}' ই-বুকটি মুছে ফেলা হয়েছে।";
+                    }
+                    break;
+
+                case 'book_request':
+                    $req = \App\Models\BookRequest::findOrFail($id);
+                    if ($action === 'approve') {
+                        $req->update(['status' => 'sourcing']);
+                        $message = "বইয়ের অনুরোধটি সোর্সিংয়ে নেওয়া হয়েছে।";
+                    } elseif ($action === 'reject') {
+                        $req->update(['status' => 'cancelled']);
+                        $message = "বইয়ের অনুরোধটি বাতিল করা হয়েছে।";
+                    } elseif ($action === 'delete') {
+                        $req->delete();
+                        $message = "বইয়ের অনুরোধটি মুছে ফেলা হয়েছে।";
+                    }
+                    break;
+
+                case 'submission':
+                    if (Schema::hasTable('author_submissions')) {
+                        $sub = \Modules\Author\Models\AuthorSubmission::findOrFail($id);
+                        if ($action === 'approve') {
+                            $sub->update(['status' => 'accepted']);
+                            $message = "পাণ্ডুলিপিটি সফলভাবে অনুমোদন (Accepted) করা হয়েছে।";
+                        } elseif ($action === 'reject') {
+                            $sub->update(['status' => 'rejected', 'rejection_reason' => $reason]);
+                            $message = "পাণ্ডুলিপিটি রিজেক্ট করা হয়েছে।";
+                        } elseif ($action === 'delete') {
+                            $sub->delete();
+                            $message = "পাণ্ডুলিপি রেকর্ডটি মুছে ফেলা হয়েছে।";
+                        }
+                    }
+                    break;
+            }
+
+            // Fresh counts
+            $newAlerts = $this->dashboard->getPendingAlerts();
+
+            return response()->json([
+                'success'   => true,
+                'message'   => $message,
+                'type'      => $type,
+                'id'        => $id,
+                'action'    => $action,
+                'newAlerts' => $newAlerts,
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'অ্যাকশন পরিচালনায় ত্রুটি: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * AJAX endpoint to fetch full pending records data dynamically.
+     */
+    public function dashboardPendingData(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $limit = in_array((int)$request->input('limit'), [5, 10, 20, 50], true) ? (int)$request->input('limit') : 15;
+        $data = $this->dashboard->getPendingRecordsData($limit);
+        $alerts = $this->dashboard->getPendingAlerts();
+
+        return response()->json([
+            'success' => true,
+            'alerts'  => $alerts,
+            'data'    => $data,
         ]);
     }
 

@@ -2,152 +2,140 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
   <url>
     <loc>https://www.ideaabd.com/authors</loc>
-    <lastmod>2026-09-08</lastmod>
+    <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.90</priority>
   </url>
   <url>
-    <loc>https://www.ideaabd.com/authors/sbyngkriy-author</loc>
-    <lastmod>2026-09-05</lastmod>
+    <loc>https://www.ideaabd.com/authors/manik-bandyopadhyay</loc>
+    <lastmod>2026-09-16</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.82</priority>
   </url>
   <url>
-    <loc>https://www.ideaabd.com/authors/test-author</loc>
-    <lastmod>2026-09-05</lastmod>
+    <loc>https://www.ideaabd.com/authors/jibananda-das</loc>
+    <lastmod>2026-09-16</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.82</priority>
   </url>
   <url>
-    <loc>https://www.ideaabd.com/authors/shakil-masud</loc>
-    <lastmod>2026-09-06</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.82</priority>
-    <image:image>
-      <image:loc>https://www.ideaabd.com/storage/avatars/FwAkcSS7yLN9m7ipQVnV2oqW_1788705461.jpg</image:loc>
-      <image:title>শাকিল নির্ঝর — লেখক পরিচিতি</image:title>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://www.ideaabd.com/authors/mnir-hosen</loc>
-    <lastmod>2026-09-02</lastmod>
+    <loc>https://www.ideaabd.com/authors/syed-mujtaba-ali</loc>
+    <lastmod>2026-09-16</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.82</priority>
   </url>
   <url>
-    <loc>https://www.ideaabd.com/authors/dbitiy-lekhk</loc>
-    <lastmod>2026-08-31</lastmod>
+    <loc>https://www.ideaabd.com/authors/ahmed-sofa</loc>
+    <lastmod>2026-09-16</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.82</priority>
   </url>
   <url>
-    <loc>https://www.ideaabd.com/authors/prikshamulk-lekhk</loc>
-    <lastmod>2026-08-29</lastmod>
+    <loc>https://www.ideaabd.com/authors/shamsur-rahman</loc>
+    <lastmod>2026-09-16</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.82</priority>
   </url>
   <url>
-    <loc>https://www.ideaabd.com/authors/kazi-nazrul-islam-test</loc>
-    <lastmod>2026-08-25</lastmod>
+    <loc>https://www.ideaabd.com/authors/muhammed-zafar-iqbal</loc>
+    <lastmod>2026-09-16</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.82</priority>
   </url>
   <url>
-    <loc>https://www.ideaabd.com/authors/sigmund-fryed</loc>
-    <lastmod>2026-08-22</lastmod>
+    <loc>https://www.ideaabd.com/authors/kazi-nazrul-islam</loc>
+    <lastmod>2026-09-16</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.82</priority>
   </url>
   <url>
-    <loc>https://www.ideaabd.com/authors/muhmmd-jafr-ikbal</loc>
-    <lastmod>2026-08-22</lastmod>
+    <loc>https://www.ideaabd.com/authors/masud-rana-author</loc>
+    <lastmod>2026-09-16</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.82</priority>
   </url>
   <url>
-    <loc>https://www.ideaabd.com/authors/lekhk-dui</loc>
-    <lastmod>2026-08-22</lastmod>
+    <loc>https://www.ideaabd.com/authors/sunil-gangopadhyay</loc>
+    <lastmod>2026-09-16</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.82</priority>
   </url>
   <url>
-    <loc>https://www.ideaabd.com/authors/lekhk-ek</loc>
-    <lastmod>2026-08-22</lastmod>
+    <loc>https://www.ideaabd.com/authors/ahmad-sofa</loc>
+    <lastmod>2026-09-16</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.82</priority>
+  </url>
+  <url>
+    <loc>https://www.ideaabd.com/authors/muhammad-jafor-iqbal</loc>
+    <lastmod>2026-09-16</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.82</priority>
+  </url>
+  <url>
+    <loc>https://www.ideaabd.com/authors/nabanita-rahman</loc>
+    <lastmod>2026-09-16</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.82</priority>
+  </url>
+  <url>
+    <loc>https://www.ideaabd.com/authors/nazmul-hosen</loc>
+    <lastmod>2026-09-16</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.82</priority>
+  </url>
+  <url>
+    <loc>https://www.ideaabd.com/authors/rabindranath-tagore</loc>
+    <lastmod>2026-09-16</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.82</priority>
+  </url>
+  <url>
+    <loc>https://www.ideaabd.com/authors/sharat-chandra</loc>
+    <lastmod>2026-09-16</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.82</priority>
   </url>
   <url>
     <loc>https://www.ideaabd.com/authors/humayun-ahmed</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-16</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.82</priority>
   </url>
   <url>
-    <loc>https://www.ideaabd.com/authors/shrtchndr-chttopadhzay</loc>
-    <lastmod>2026-09-05</lastmod>
+    <loc>https://www.ideaabd.com/authors/akhtar-ilias</loc>
+    <lastmod>2026-09-16</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.82</priority>
   </url>
   <url>
-    <loc>https://www.ideaabd.com/authors/kaji-njrul-islam</loc>
-    <lastmod>2026-08-21</lastmod>
+    <loc>https://www.ideaabd.com/authors/jafar-ikbal</loc>
+    <lastmod>2026-09-16</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.82</priority>
   </url>
   <url>
-    <loc>https://www.ideaabd.com/authors/rbindrnath-thakur</loc>
-    <lastmod>2026-08-21</lastmod>
+    <loc>https://www.ideaabd.com/authors/omres-mitr-amaresh-mitra</loc>
+    <lastmod>2026-09-16</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.82</priority>
   </url>
   <url>
-    <loc>https://www.ideaabd.com/authors/lekhk-ek-lekhk-dui</loc>
-    <lastmod>2026-08-21</lastmod>
+    <loc>https://www.ideaabd.com/authors/benamibaul</loc>
+    <lastmod>2026-09-16</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.82</priority>
   </url>
   <url>
-    <loc>https://www.ideaabd.com/authors/jakir-sohan</loc>
-    <lastmod>2026-08-20</lastmod>
+    <loc>https://www.ideaabd.com/authors/amaresh-datta</loc>
+    <lastmod>2026-09-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.82</priority>
   </url>
   <url>
-    <loc>https://www.ideaabd.com/authors/al-amin-islam</loc>
-    <lastmod>2026-09-06</lastmod>
+    <loc>https://www.ideaabd.com/authors/shakil-masud</loc>
+    <lastmod>2026-09-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.82</priority>
-    <image:image>
-      <image:loc>https://www.ideaabd.com/storage/avatars/tekLEQZx4JumQW0plpnmG8D9_1788709401.avif</image:loc>
-      <image:title>অনিন্দ্য লেখক — লেখক পরিচিতি</image:title>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://www.ideaabd.com/authors/muhmmd-jafr-ikbal-214</loc>
-    <lastmod>2026-08-17</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.82</priority>
-  </url>
-  <url>
-    <loc>https://www.ideaabd.com/authors/humayun-ahmed-812</loc>
-    <lastmod>2026-08-17</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.82</priority>
-  </url>
-  <url>
-    <loc>https://www.ideaabd.com/authors/abdur-rajjak</loc>
-    <lastmod>2026-09-06</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.82</priority>
-  </url>
-  <url>
-    <loc>https://www.ideaabd.com/authors/sakil-masud</loc>
-    <lastmod>2026-09-02</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.82</priority>
-    <image:image>
-      <image:loc>https://www.ideaabd.com/storage/authors/5dZR9ZBQYQRNClXmzrXuQjeK1MlGCqgY0f6v72Bn.jpg</image:loc>
-      <image:title>সাকিল মাসুদ — লেখক পরিচিতি</image:title>
-    </image:image>
   </url>
 </urlset>

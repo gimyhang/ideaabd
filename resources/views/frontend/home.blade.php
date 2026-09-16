@@ -581,6 +581,68 @@ document.addEventListener('DOMContentLoaded', function() {
 </section>
 @endif
 
+{{-- ══ 5.3. SECTION: ডিজিটাল ই-বুক কালেকশন স্লাইডার (E-BOOKS SLIDE ROW) ═════════════ --}}
+@php
+    $displayedEbooks = (isset($ebooks) && $ebooks->isNotEmpty()) ? $ebooks : (isset($bestSellerEbooks) ? $bestSellerEbooks : collect());
+@endphp
+@if($displayedEbooks->isNotEmpty())
+<section class="mb-4">
+    <div class="container">
+        <div class="card p-3 p-md-4 border-0 shadow-sm rounded-4 bg-white position-relative" style="border: 1px solid #f1f5f9 !important;">
+            
+            {{-- Section Header --}}
+            <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="rounded-circle bg-info bg-opacity-10 text-info d-flex align-items-center justify-content-center shadow-2xs" style="width: 32px; height: 32px;">
+                        <i class="fa-solid fa-tablet-screen-button text-info fs-6"></i>
+                    </span>
+                    <div>
+                        <h4 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2" style="font-size: clamp(1.05rem, 2.5vw, 1.35rem);">
+                            <span>ডিজিটাল ই-বুক কালেকশন</span>
+                            <span class="badge bg-info text-dark rounded-pill px-2 py-0.5 small fw-bold" style="font-size: 0.68rem;">তাৎক্ষণিক পাঠ</span>
+                        </h4>
+                        <span class="text-muted small" style="font-size: 0.78rem;">মোবাইল বা কম্পিউটারে যেকোনো সময় সহজে ই-বুক ও ডিজিটাল বই পড়ুন</span>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <button type="button" class="btn btn-sm btn-light rounded-circle shadow-2xs border d-none d-md-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" onclick="scrollIdeaSlider('ebookSlider', -1)" title="পূর্ববর্তী">
+                        <i class="fa-solid fa-chevron-left text-secondary" style="font-size: 11px;"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-light rounded-circle shadow-2xs border d-none d-md-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" onclick="scrollIdeaSlider('ebookSlider', 1)" title="পরবর্তী">
+                        <i class="fa-solid fa-chevron-right text-secondary" style="font-size: 11px;"></i>
+                    </button>
+                    <a href="{{ route('ebook.index') }}" class="btn btn-outline-info btn-sm rounded-pill px-3 fw-bold ms-1" style="font-size: 0.80rem;">
+                        সকল ই-বুক <i class="fa-solid fa-arrow-right ms-0.5"></i>
+                    </a>
+                </div>
+            </div>
+
+            {{-- Slider Track with Floating Nav Buttons --}}
+            <div class="idea-slider-wrapper position-relative">
+                <button type="button" class="idea-slider-nav-btn prev-btn shadow-md d-none d-lg-flex" onclick="scrollIdeaSlider('ebookSlider', -1)" aria-label="পূর্ববর্তী">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </button>
+                <div class="idea-book-slider" id="ebookSlider">
+                    @foreach($displayedEbooks as $eb)
+                        <div class="idea-slider-item">
+                            @if($eb instanceof \Modules\Ebook\Models\Ebook)
+                                @include('ebook::frontend.partials.book_3d_card', ['ebook' => $eb])
+                            @else
+                                @include('book::frontend.partials.book-card', ['book' => $eb])
+                            @endif
+                        </div>
+                    @endforeach
+                </div>
+                <button type="button" class="idea-slider-nav-btn next-btn shadow-md d-none d-lg-flex" onclick="scrollIdeaSlider('ebookSlider', 1)" aria-label="পরবর্তী">
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+            </div>
+
+        </div>
+    </div>
+</section>
+@endif
+
 {{-- ══ 6. SECTION: জনপ্রিয় লেখকগণ (POPULAR AUTHORS CIRCLE AVATARS) ═══════════════ --}}
 @if(isset($sidebarAuthors) && $sidebarAuthors->isNotEmpty())
 <section class="mb-4">
@@ -737,61 +799,6 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
 </section>
 
-{{-- ══ 9. SECTION: ডিজিটাল ই-বুক কালেকশন (E-BOOKS SLIDER) ═══════════════════════ --}}
-@if(isset($bestSellerEbooks) && $bestSellerEbooks->isNotEmpty())
-<section class="mb-4">
-    <div class="container">
-        <div class="card p-3 p-md-4 border-0 shadow-sm rounded-4 bg-white position-relative" style="border: 1px solid #f1f5f9 !important;">
-            
-            {{-- Section Header --}}
-            <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
-                <div class="d-flex align-items-center gap-2">
-                    <span class="rounded-circle bg-info bg-opacity-10 text-info d-flex align-items-center justify-content-center shadow-2xs" style="width: 32px; height: 32px;">
-                        <i class="fa-solid fa-tablet-screen-button text-info fs-6"></i>
-                    </span>
-                    <div>
-                        <h4 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2" style="font-size: clamp(1.05rem, 2.5vw, 1.35rem);">
-                            <span>ডিজিটাল ই-বুক কালেকশন</span>
-                            <span class="badge bg-info text-dark rounded-pill px-2 py-0.5 small fw-bold" style="font-size: 0.68rem;">তাৎক্ষণিক পাঠ</span>
-                        </h4>
-                        <span class="text-muted small" style="font-size: 0.78rem;">মোবাইল বা কম্পিউটারে যেকোনো সময় সহজে ই-বুক পড়ুন</span>
-                    </div>
-                </div>
-                <div class="d-flex align-items-center gap-2">
-                    <button type="button" class="btn btn-sm btn-light rounded-circle shadow-2xs border d-none d-md-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" onclick="scrollIdeaSlider('ebookSlider', -1)" title="পূর্ববর্তী">
-                        <i class="fa-solid fa-chevron-left text-secondary" style="font-size: 11px;"></i>
-                    </button>
-                    <button type="button" class="btn btn-sm btn-light rounded-circle shadow-2xs border d-none d-md-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" onclick="scrollIdeaSlider('ebookSlider', 1)" title="পরবর্তী">
-                        <i class="fa-solid fa-chevron-right text-secondary" style="font-size: 11px;"></i>
-                    </button>
-                    <a href="{{ route('ebook.index') }}" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-bold ms-1" style="font-size: 0.80rem;">
-                        সকল ই-বুক <i class="fa-solid fa-arrow-right ms-0.5"></i>
-                    </a>
-                </div>
-            </div>
-
-            {{-- Slider Track with Floating Nav Buttons --}}
-            <div class="idea-slider-wrapper position-relative">
-                <button type="button" class="idea-slider-nav-btn prev-btn shadow-md d-none d-lg-flex" onclick="scrollIdeaSlider('ebookSlider', -1)" aria-label="পূর্ববর্তী">
-                    <i class="fa-solid fa-chevron-left"></i>
-                </button>
-                <div class="idea-book-slider" id="ebookSlider">
-                    @foreach($bestSellerEbooks as $b)
-                        <div class="idea-slider-item">
-                            @include('book::frontend.partials.book-card', ['book' => $b])
-                        </div>
-                    @endforeach
-                </div>
-                <button type="button" class="idea-slider-nav-btn next-btn shadow-md d-none d-lg-flex" onclick="scrollIdeaSlider('ebookSlider', 1)" aria-label="পরবর্তী">
-                    <i class="fa-solid fa-chevron-right"></i>
-                </button>
-            </div>
-
-        </div>
-    </div>
-</section>
-@endif
-
 {{-- ══ 10. SECTION: বিষয় ও ক্যাটাগরি অনুসারে বই (BROWSE BY CATEGORIES) ═══════════ --}}
 @if(isset($dynamicCategories) && $dynamicCategories->isNotEmpty())
 <section class="mb-4">
@@ -827,61 +834,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         </a>
                     </div>
                 @endforeach
-            </div>
-
-        </div>
-    </div>
-</section>
-@endif
-
-{{-- ══ 11. SECTION: আইডিয়া প্রকাশন স্পেশাল কালেকশন (IDEA SPECIAL BOOKS) ══════════ --}}
-@if(isset($ideaSpecialBooks) && $ideaSpecialBooks->isNotEmpty())
-<section class="mb-4">
-    <div class="container">
-        <div class="card p-3 p-md-4 border-0 shadow-sm rounded-4 bg-white position-relative" style="border: 1px solid #f1f5f9 !important;">
-            
-            {{-- Section Header --}}
-            <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
-                <div class="d-flex align-items-center gap-2">
-                    <span class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center shadow-2xs" style="width: 32px; height: 32px;">
-                        <i class="fa-solid fa-feather-pointed text-primary fs-6"></i>
-                    </span>
-                    <div>
-                        <h4 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2" style="font-size: clamp(1.05rem, 2.5vw, 1.35rem);">
-                            <span>আইডিয়া প্রকাশন স্পেশাল কালেকশন</span>
-                            <span class="badge bg-primary text-white rounded-pill px-2 py-0.5 small fw-bold" style="font-size: 0.68rem;">অরিজিনাল</span>
-                        </h4>
-                        <span class="text-muted small" style="font-size: 0.78rem;">আইডিয়া প্রকাশনীর নিজস্ব প্রকাশনা ও মানসম্মত বইসমূহ</span>
-                    </div>
-                </div>
-                <div class="d-flex align-items-center gap-2">
-                    <button type="button" class="btn btn-sm btn-light rounded-circle shadow-2xs border d-none d-md-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" onclick="scrollIdeaSlider('ideaSpecialSlider', -1)" title="পূর্ববর্তী">
-                        <i class="fa-solid fa-chevron-left text-secondary" style="font-size: 11px;"></i>
-                    </button>
-                    <button type="button" class="btn btn-sm btn-light rounded-circle shadow-2xs border d-none d-md-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" onclick="scrollIdeaSlider('ideaSpecialSlider', 1)" title="পরবর্তী">
-                        <i class="fa-solid fa-chevron-right text-secondary" style="font-size: 11px;"></i>
-                    </button>
-                    <a href="{{ route('book.index') }}" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-bold ms-1" style="font-size: 0.80rem;">
-                        সব দেখুন <i class="fa-solid fa-arrow-right ms-0.5"></i>
-                    </a>
-                </div>
-            </div>
-
-            {{-- Slider Track with Floating Nav Buttons --}}
-            <div class="idea-slider-wrapper position-relative">
-                <button type="button" class="idea-slider-nav-btn prev-btn shadow-md d-none d-lg-flex" onclick="scrollIdeaSlider('ideaSpecialSlider', -1)" aria-label="পূর্ববর্তী">
-                    <i class="fa-solid fa-chevron-left"></i>
-                </button>
-                <div class="idea-book-slider" id="ideaSpecialSlider">
-                    @foreach($ideaSpecialBooks as $b)
-                        <div class="idea-slider-item">
-                            @include('book::frontend.partials.book-card', ['book' => $b])
-                        </div>
-                    @endforeach
-                </div>
-                <button type="button" class="idea-slider-nav-btn next-btn shadow-md d-none d-lg-flex" onclick="scrollIdeaSlider('ideaSpecialSlider', 1)" aria-label="পরবর্তী">
-                    <i class="fa-solid fa-chevron-right"></i>
-                </button>
             </div>
 
         </div>
