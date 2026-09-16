@@ -667,13 +667,62 @@ class AdminController extends Controller
         return view('admin.orders.ecommerce-slip', compact('order', 'invoiceSettings'));
     }
 
-    public function destroyEcommerceOrder(\App\Models\Order $order)
+    public function destroyEcommerceOrder(Request $request, \App\Models\Order $order)
     {
-        $orderNum = $order->order_number;
-        $order->delete();
-        $this->accessService->log('order_delete', "অর্ডার #{$orderNum} মুছে ফেলা হয়েছে");
+        try {
+            $orderNum = $order->order_number ?? ("#" . $order->id);
 
-        return back()->with('success', "অর্ডার #{$orderNum} সফলভাবে মুছে ফেলা হয়েছে।");
+            DB::transaction(function () use ($order) {
+                // Delete related author royalties
+                if (Schema::hasTable('author_royalties') && Schema::hasColumn('author_royalties', 'order_id')) {
+                    DB::table('author_royalties')->where('order_id', $order->id)->delete();
+                }
+
+                // Delete related user ebook library entries
+                if (Schema::hasTable('user_ebook_library') && Schema::hasColumn('user_ebook_library', 'order_id')) {
+                    DB::table('user_ebook_library')->where('order_id', $order->id)->delete();
+                }
+
+                // Delete related courier consignments if table exists
+                if (Schema::hasTable('courier_consignments') && Schema::hasColumn('courier_consignments', 'order_id')) {
+                    DB::table('courier_consignments')->where('order_id', $order->id)->delete();
+                }
+
+                // Delete related order items if table exists
+                if (Schema::hasTable('order_items') && Schema::hasColumn('order_items', 'order_id')) {
+                    DB::table('order_items')->where('order_id', $order->id)->delete();
+                }
+
+                // Delete payments if referencing order_id
+                if (Schema::hasTable('payments') && Schema::hasColumn('payments', 'order_id')) {
+                    DB::table('payments')->where('order_id', $order->id)->delete();
+                }
+
+                $order->delete();
+            });
+
+            $this->accessService->log('order_delete', "অর্ডার {$orderNum} সফলভাবে মুছে ফেলা হয়েছে");
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => "অর্ডার {$orderNum} সফলভাবে মুছে ফেলা হয়েছে।",
+                ]);
+            }
+
+            return back()->with('success', "অর্ডার {$orderNum} সফলভাবে মুছে ফেলা হয়েছে।");
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error("Order Delete Error: " . $e->getMessage());
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'অর্ডারটি মুছে ফেলা সম্ভব হয়নি: ' . $e->getMessage(),
+                ], 500);
+            }
+
+            return back()->with('error', 'অর্ডারটি মুছে ফেলা সম্ভব হয়নি। বিস্তারিত: ' . $e->getMessage());
+        }
     }
 
     // ─── Catalog & content lists ────────────────────────────────────────

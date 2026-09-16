@@ -85,19 +85,22 @@
         @endphp
         <div class="col-xl-3 col-lg-4 col-sm-6">
             <a href="{{ $key === 'all' ? route('admin.users') : route('admin.users', ['role' => $key]) }}" 
-               class="card border-0 shadow-xs rounded-4 text-decoration-none h-100 transition-all p-3 {{ $isActive ? 'border-start border-4 border-' . ($cfg['color'] === 'indigo' ? 'primary' : ($cfg['color'] === 'teal' ? 'success' : $cfg['color'])) . ' bg-white shadow-sm' : 'bg-light bg-opacity-75 hover-lift' }}">
+               class="card border-0 rounded-4 text-decoration-none h-100 transition-all p-3 {{ $isActive ? 'border-start border-4 border-' . ($cfg['color'] === 'indigo' ? 'primary' : ($cfg['color'] === 'teal' ? 'success' : $cfg['color'])) . ' bg-white shadow-sm ring-1 ring-primary ring-opacity-25' : 'bg-white shadow-xs hover-lift border' }}">
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
                         <span class="small fw-semibold text-muted d-block mb-1">{{ $cfg['label'] }}</span>
-                        <h4 class="fw-bold mb-0 text-dark">{{ number_format($cfg['count']) }}</h4>
+                        <h4 class="fw-bold mb-0 text-dark font-monospace">{{ number_format($cfg['count']) }}</h4>
                     </div>
-                    <div class="rounded-circle p-2.5 d-flex align-items-center justify-content-center" 
+                    <div class="rounded-3 p-2.5 d-flex align-items-center justify-content-center" 
                          style="width: 44px; height: 44px; background: rgba(0, 102, 204, 0.08);">
                         <i class="fa-solid {{ $cfg['icon'] }} fs-5 text-primary"></i>
                     </div>
                 </div>
-                <div class="small text-muted mt-2 pt-1 border-top" style="font-size: 11.5px;">
-                    {{ $cfg['desc'] }}
+                <div class="small text-muted mt-2 pt-2 border-top d-flex align-items-center justify-content-between" style="font-size: 11.5px;">
+                    <span>{{ $cfg['desc'] }}</span>
+                    @if($isActive)
+                        <span class="badge bg-primary-subtle text-primary rounded-pill px-2 py-0.5" style="font-size: 10px;">Active</span>
+                    @endif
                 </div>
             </a>
         </div>
@@ -115,17 +118,17 @@
             @endif
 
             <!-- Search Query -->
-            <div class="col-md-5">
+            <div class="col-12 col-md-5">
                 <div class="input-group">
-                    <span class="input-group-text bg-white border-end-0 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
-                    <input type="text" name="search" value="{{ $currentSearch }}" class="form-control border-start-0 ps-0" placeholder="Search by name, email or phone...">
+                    <span class="input-group-text bg-light border-end-0 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
+                    <input type="text" name="search" value="{{ $currentSearch }}" class="form-control bg-light border-start-0 ps-0" placeholder="Search by name, email or phone...">
                 </div>
             </div>
 
             <!-- Role Selector -->
-            <div class="col-md-3">
-                <select name="role" class="form-select" onchange="this.form.submit()">
-                    <option value="">All Roles</option>
+            <div class="col-12 col-md-4">
+                <select name="role" class="form-select bg-light" onchange="this.form.submit()">
+                    <option value="">All Roles (সকল পদবী)</option>
                     <option value="admin" {{ $currentRole === 'admin' ? 'selected' : '' }}>👑 Super Admin</option>
                     <option value="sub_admin" {{ $currentRole === 'sub_admin' ? 'selected' : '' }}>🛡️ Sub-Admin / Staff</option>
                     <option value="seller" {{ $currentRole === 'seller' ? 'selected' : '' }}>🏬 Seller / Vendor</option>
@@ -136,12 +139,12 @@
             </div>
 
             <!-- Filter Buttons -->
-            <div class="col-md-4 d-flex gap-2">
-                <button type="submit" class="btn btn-primary rounded-pill px-4 flex-grow-1">
-                    <i class="fa-solid fa-filter me-1"></i> Filter
+            <div class="col-12 col-md-3 d-flex gap-2">
+                <button type="submit" class="btn btn-primary rounded-pill px-4 flex-grow-1 shadow-xs fw-semibold">
+                    <i class="fa-solid fa-filter me-1.5"></i> Filter
                 </button>
                 @if($currentSearch || $currentRole)
-                    <a href="{{ route('admin.users') }}" class="btn btn-outline-secondary rounded-pill px-3" title="Reset">
+                    <a href="{{ route('admin.users') }}" class="btn btn-outline-secondary rounded-pill px-3" title="Reset Filters">
                         <i class="fa-solid fa-rotate-left"></i>
                     </a>
                 @endif
@@ -153,11 +156,11 @@
 
 <!-- Users Table Card -->
 <div class="card border-0 shadow-xs rounded-4 overflow-hidden bg-white">
-    <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+    <div class="card-header bg-white border-bottom py-3 px-4 d-flex justify-content-between align-items-center">
         <h6 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
             <i class="fa-solid fa-users text-primary"></i> 
-            Registered Users
-            <span class="badge bg-primary-subtle text-primary rounded-pill px-2.5 py-1">{{ number_format($users->total()) }} users</span>
+            <span>Registered Users Directory</span>
+            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1 fw-bold">{{ number_format($users->total()) }} users</span>
         </h6>
     </div>
 
@@ -166,29 +169,29 @@
             <table class="table table-hover align-middle mb-0" style="font-size: 13.5px;">
                 <thead class="table-light">
                     <tr>
-                        <th style="width: 5%;">#</th>
-                        <th style="width: 25%;">User Profile</th>
-                        <th style="width: 15%;">Phone</th>
-                        <th style="width: 18%;">Role</th>
-                        <th style="width: 12%;">Registration</th>
-                        <th style="width: 10%;">Status</th>
-                        <th style="width: 15%;" class="text-center">Actions</th>
+                        <th style="width: 50px;" class="text-center">#</th>
+                        <th style="min-width: 220px;">User Profile</th>
+                        <th style="min-width: 140px;">Phone</th>
+                        <th style="min-width: 130px;">Role</th>
+                        <th style="min-width: 110px;">Registration</th>
+                        <th style="min-width: 90px;">Status</th>
+                        <th style="min-width: 270px;" class="text-end pe-4">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($users as $index => $user)
                     <tr>
                         <!-- Index -->
-                        <td class="text-muted small">{{ $users->firstItem() + $index }}</td>
+                        <td class="text-center text-muted small fw-semibold">{{ $users->firstItem() + $index }}</td>
 
                         <!-- Name & Email with Avatar -->
                         <td>
                             <div class="d-flex align-items-center gap-2.5">
-                                <div class="rounded-circle bg-primary bg-opacity-10 text-primary fw-bold d-flex align-items-center justify-content-center" 
-                                     style="width: 38px; height: 38px; min-width: 38px;">
+                                <div class="rounded-3 bg-primary bg-opacity-10 text-primary fw-bold d-flex align-items-center justify-content-center flex-shrink-0" 
+                                     style="width: 38px; height: 38px; font-size: 14px; border: 1px solid rgba(13, 110, 253, 0.15);">
                                     {{ mb_substr($user->name ?? 'U', 0, 1) }}
                                 </div>
-                                <div class="text-truncate" style="max-width: 200px;">
+                                <div class="text-truncate" style="max-width: 220px;">
                                     <div class="fw-bold text-dark text-truncate">{{ $user->name }}</div>
                                     <div class="small text-muted text-truncate">{{ $user->email ?? 'No email' }}</div>
                                 </div>
@@ -198,8 +201,8 @@
                         <!-- Phone -->
                         <td>
                             @if($user->phone)
-                                <a href="tel:{{ $user->phone }}" class="text-decoration-none fw-semibold text-primary font-monospace">
-                                    <i class="fa-solid fa-phone me-1 small"></i>{{ $user->phone }}
+                                <a href="tel:{{ $user->phone }}" class="text-decoration-none fw-semibold text-primary font-monospace small">
+                                    <i class="fa-solid fa-phone me-1 small text-muted"></i>{{ $user->phone }}
                                 </a>
                             @else
                                 <span class="text-muted small fst-italic">Not provided</span>
@@ -218,7 +221,7 @@
                                     default => ['badge' => 'secondary', 'icon' => 'bag-shopping', 'text' => 'Buyer / Reader'],
                                 };
                             @endphp
-                            <span class="badge bg-{{ $roleBadge['badge'] }} rounded-pill px-2.5 py-1">
+                            <span class="badge bg-{{ $roleBadge['badge'] }} rounded-pill px-2.5 py-1 text-nowrap" style="font-size: 11.5px;">
                                 <i class="fa-solid fa-{{ $roleBadge['icon'] }} me-1"></i> {{ $roleBadge['text'] }}
                             </span>
                         </td>
@@ -226,15 +229,15 @@
                         <!-- Registration Status -->
                         <td>
                             @if($user->reg_status === 'approved')
-                                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5" style="font-size: 11px;">
-                                    <i class="fa-solid fa-check me-0.5"></i> Approved
+                                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1 text-nowrap" style="font-size: 11px;">
+                                    <i class="fa-solid fa-circle-check me-1"></i> Approved
                                 </span>
                             @elseif($user->reg_status === 'pending')
-                                <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-2 py-0.5" style="font-size: 11px;">
-                                    <i class="fa-solid fa-clock me-0.5"></i> Pending
+                                <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-2.5 py-1 text-nowrap" style="font-size: 11px;">
+                                    <i class="fa-solid fa-clock me-1"></i> Pending
                                 </span>
                             @else
-                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2 py-0.5" style="font-size: 11px;">
+                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-1 text-nowrap" style="font-size: 11px;">
                                     Rejected
                                 </span>
                             @endif
@@ -249,56 +252,74 @@
                             @endif
                         </td>
 
-                        <!-- Action Buttons -->
-                        <td class="text-center">
-                            <div class="d-flex align-items-center justify-content-center gap-1.5 flex-wrap">
+                        <!-- Action Buttons (Strictly Non-Wrapping Horizontal Group) -->
+                        <td class="text-end pe-4">
+                            <div class="d-inline-flex align-items-center justify-content-end gap-1.5 flex-nowrap" style="white-space: nowrap;">
+                                
                                 {{-- Dynamic Appointment & Role Assignment --}}
-                                <button type="button" class="btn btn-sm btn-success rounded-pill px-2.5 py-1 fw-bold text-white shadow-2xs" style="font-size: 11px;" 
+                                <button type="button" class="btn btn-sm btn-success rounded-pill px-2.5 py-1 fw-bold text-white shadow-2xs text-nowrap" style="font-size: 11.5px;" 
                                         onclick="openAssignRoleModal('{{ $user->id }}', '{{ addslashes($user->name) }}', '{{ $user->role }}', '{{ $user->custom_role_id ?? '' }}', '{{ $user->reg_status }}', {{ $user->is_active ? 'true' : 'false' }})" 
-                                        title="যে কোনো পদে পদায়ন বা নিয়োগ দিন">
+                                        title="যেকোনো পদে পদায়ন বা নিয়োগ দিন">
                                     <i class="fa-solid fa-user-gear me-1"></i> পদায়ন
                                 </button>
 
-                                @if($user->role !== 'buyer' && $user->role !== 'admin')
-                                    <form action="{{ route('admin.users.revoke-role', $user->id) }}" method="POST" class="d-inline"
-                                          data-confirm="আপনি কি নিশ্চিত যে '{{ addslashes($user->name) }}' এর বর্তমান পদায়ন বাতিল করে সাধারণ ক্রেতা (Buyer) করতে চান?"
-                                          data-confirm-title="পদায়ন বাতিলের নিশ্চিতকরণ"
-                                          data-confirm-icon="warning"
-                                          data-confirm-btn="<i class='fa-solid fa-user-xmark me-1'></i> হ্যাঁ, পদায়ন বাতিল করুন">
-                                        @csrf
-                                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-2 py-1 fw-semibold" style="font-size: 11px;" title="পদায়ন বাতিল করুন">
-                                            <i class="fa-solid fa-user-xmark"></i>
-                                        </button>
-                                    </form>
-                                @endif
-
-                                @if(in_array($user->role, ['sub_admin', 'admin']))
-                                    <a href="{{ route('admin.sub-admins.show', $user->id) }}" class="btn btn-sm btn-outline-primary rounded-pill px-2.5 py-1" style="font-size: 11.5px;">
-                                        <i class="fa-solid fa-sliders me-1"></i> Permissions
-                                    </a>
-                                @elseif($user->reg_status === 'pending')
-                                    <a href="{{ route('admin.registrations.show', $user->id) }}" class="btn btn-sm btn-warning rounded-pill px-2.5 py-1 fw-bold" style="font-size: 11.5px;">
-                                        <i class="fa-solid fa-user-check me-1"></i> Review
-                                    </a>
-                                @endif
-
-                                <button type="button" class="btn btn-sm btn-primary rounded-pill px-2.5 py-1 fw-semibold" style="font-size: 11px;" 
-                                        onclick="openAutoPasswordModal('{{ $user->id }}', '{{ $user->name }}', '{{ $user->email ?: $user->phone }}')" 
+                                {{-- Auto Password Generation --}}
+                                <button type="button" class="btn btn-sm btn-primary rounded-pill px-2.5 py-1 fw-semibold text-white shadow-2xs text-nowrap" style="font-size: 11.5px;" 
+                                        onclick="openAutoPasswordModal('{{ $user->id }}', '{{ addslashes($user->name) }}', '{{ $user->email ?: $user->phone }}')" 
                                         title="অটো-পাসওয়ার্ড তৈরি করুন">
                                     <i class="fa-solid fa-key me-1"></i> পাসওয়ার্ড
                                 </button>
 
-                                <form action="{{ route('admin.users.security.generate-otp') }}" method="POST" class="d-inline"
+                                {{-- Generate OTP --}}
+                                <form action="{{ route('admin.users.security.generate-otp') }}" method="POST" class="d-inline m-0"
                                       data-confirm="আপনি কি '{{ addslashes($user->name) }}' এর জন্য একটি নতুন ওয়ানটাইম পাসওয়ার্ড (OTP) তৈরি করতে চান?"
                                       data-confirm-title="ওয়ানটাইম পাসওয়ার্ড (OTP) তৈরি"
                                       data-confirm-icon="info"
                                       data-confirm-btn="<i class='fa-solid fa-key me-1'></i> ওটিপি তৈরি করুন">
                                     @csrf
                                     <input type="hidden" name="user_id" value="{{ $user->id }}">
-                                    <button type="submit" class="btn btn-sm btn-outline-warning rounded-pill px-2 py-1 text-dark fw-semibold" style="font-size: 11px;" title="ওয়ানটাইম ওটিপি (OTP) তৈরি করুন">
-                                        OTP
+                                    <button type="submit" class="btn btn-sm btn-outline-warning text-dark rounded-pill px-2 py-1 fw-bold text-nowrap" style="font-size: 11.5px;" title="ওয়ানটাইম ওটিপি (OTP) তৈরি করুন">
+                                        <i class="fa-solid fa-shield-halved text-warning"></i> OTP
                                     </button>
                                 </form>
+
+                                {{-- More Actions Dropdown --}}
+                                <div class="dropdown d-inline">
+                                    <button class="btn btn-sm btn-light border rounded-pill px-2 py-1 text-muted" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="আরও অপশন">
+                                        <i class="fa-solid fa-ellipsis-vertical"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3 py-2" style="min-width: 210px; font-size: 13px;">
+                                        @if(in_array($user->role, ['sub_admin', 'admin']))
+                                            <li>
+                                                <a href="{{ route('admin.sub-admins.show', $user->id) }}" class="dropdown-item py-1.5">
+                                                    <i class="fa-solid fa-sliders text-primary me-2"></i> পারমিশন ও অ্যাক্সেস
+                                                </a>
+                                            </li>
+                                        @endif
+                                        @if($user->reg_status === 'pending')
+                                            <li>
+                                                <a href="{{ route('admin.registrations.show', $user->id) }}" class="dropdown-item py-1.5">
+                                                    <i class="fa-solid fa-user-check text-warning me-2"></i> রিভিউ রেজিস্ট্রেশন
+                                                </a>
+                                            </li>
+                                        @endif
+                                        @if($user->role !== 'buyer' && $user->role !== 'admin')
+                                            <li>
+                                                <form action="{{ route('admin.users.revoke-role', $user->id) }}" method="POST" class="m-0"
+                                                      data-confirm="আপনি কি নিশ্চিত যে '{{ addslashes($user->name) }}' এর বর্তমান পদায়ন বাতিল করে সাধারণ ক্রেতা (Buyer) করতে চান?"
+                                                      data-confirm-title="পদায়ন বাতিলের নিশ্চিতকরণ"
+                                                      data-confirm-icon="warning"
+                                                      data-confirm-btn="<i class='fa-solid fa-user-xmark me-1'></i> হ্যাঁ, পদায়ন বাতিল করুন">
+                                                    @csrf
+                                                    <button type="submit" class="dropdown-item py-1.5 text-danger">
+                                                        <i class="fa-solid fa-user-xmark me-2"></i> পদায়ন বাতিল (Demote)
+                                                    </button>
+                                                </form>
+                                            </li>
+                                        @endif
+                                    </ul>
+                                </div>
+
                             </div>
                         </td>
                     </tr>

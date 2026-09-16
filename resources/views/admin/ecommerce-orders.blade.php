@@ -305,13 +305,10 @@
                                     </li>
                                     <li><hr class="dropdown-divider my-1"></li>
                                     <li>
-                                        <form action="{{ route('admin.ecommerce-orders.destroy', $order) }}" method="POST" data-confirm="আপনি কি নিশ্চিত যে এই অর্ডারটি (#{{ $order->id }}) ডিলিট করতে চান?" data-confirm-title="অর্ডার ডিলিট">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="dropdown-item py-1.5 small text-danger">
-                                                <i class="fa-solid fa-trash-can me-2"></i> Delete
-                                            </button>
-                                        </form>
+                                        <button type="button" class="dropdown-item py-1.5 small text-danger" 
+                                                onclick="deleteOrderDirectly('{{ $order->id }}', '{{ $order->order_number ?? $order->id }}')">
+                                            <i class="fa-solid fa-trash-can me-2"></i> Delete Order
+                                        </button>
                                     </li>
                                 </ul>
 
@@ -684,12 +681,50 @@
     function calculateEditTotal() {
         const qty = parseInt(document.getElementById('editQuantity').value) || 1;
         const unit = parseFloat(document.getElementById('editUnitPrice').value) || 0;
-        const shipping = parseFloat(document.getElementById('editShippingCost').value) || 0;
-        const discount = parseFloat(document.getElementById('editDiscount').value) || 0;
-        const giftFee = parseFloat(document.getElementById('editGiftFee').value) || 0;
-
         const total = Math.max(0, (qty * unit) + shipping + giftFee - discount);
         document.getElementById('editTotalAmount').value = total.toFixed(2);
+    }
+
+    function deleteOrderDirectly(orderId, orderNum) {
+        const confirmMsg = `আপনি কি নিশ্চিত যে অর্ডার (#${orderNum || orderId}) স্থায়ীভাবে মুছে ফেলতে চান? এই অ্যাকশনটি অপরিবর্তনযোগ্য।`;
+        
+        if (typeof SwalConfirm === 'function') {
+            SwalConfirm({
+                title: 'অর্ডার ডিলিট নিশ্চিতকরণ',
+                text: confirmMsg,
+                icon: 'warning',
+                confirmButtonText: '<i class="fa-solid fa-trash-can me-1"></i> হ্যাঁ, ডিলিট করুন',
+                cancelButtonText: '<i class="fa-solid fa-times me-1"></i> বাতিল'
+            }).then(result => {
+                if (result.isConfirmed) {
+                    submitDeleteOrderForm(orderId);
+                }
+            });
+        } else if (confirm(confirmMsg)) {
+            submitDeleteOrderForm(orderId);
+        }
+    }
+
+    function submitDeleteOrderForm(orderId) {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}';
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/admin/ecommerce-orders/${orderId}`;
+        
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = '_token';
+        csrfInput.value = csrfToken;
+        form.appendChild(csrfInput);
+
+        const methodInput = document.createElement('input');
+        methodInput.type = 'hidden';
+        methodInput.name = '_method';
+        methodInput.value = 'DELETE';
+        form.appendChild(methodInput);
+
+        document.body.appendChild(form);
+        form.submit();
     }
 </script>
 @endpush
