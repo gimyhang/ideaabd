@@ -150,7 +150,7 @@ class AdminSmsController extends Controller
     public function updateSettings(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'provider'  => 'required|string|in:bulksmsbd,greenweb,alphasms,sms4bd,generic',
+            'provider'  => 'required|string|in:alaapcloud,bulksmsbd,greenweb,alphasms,sms4bd,generic',
             'url'       => 'required|string|url',
             'api_key'   => 'required|string|max:255',
             'sender_id' => 'required|string|max:100',

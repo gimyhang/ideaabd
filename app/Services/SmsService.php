@@ -35,10 +35,11 @@ class SmsService
     {
         $settings = \App\Support\SiteSetting::get('sms_gateway_settings', []);
         return [
-            'provider'  => $settings['provider'] ?? env('SMS_GATEWAY_PROVIDER', 'bulksmsbd'),
-            'url'       => $settings['url'] ?? env('SMS_GATEWAY_URL', 'http://bulksmsbd.net/api/smsapi'),
-            'api_key'   => $settings['api_key'] ?? env('SMS_GATEWAY_API_KEY', 'NDZQOR8CI0fWSxqk1go8'),
-            'sender_id' => $settings['sender_id'] ?? env('SMS_GATEWAY_SENDER_ID', 'IdeaProkash'),
+            'provider'  => $settings['provider'] ?? env('SMS_GATEWAY_PROVIDER', 'alaapcloud'),
+            'url'       => $settings['url'] ?? env('SMS_GATEWAY_URL', 'https://www.alaapcloud.gov.bd/api/sms/send'),
+            'api_key'   => $settings['api_key'] ?? env('SMS_GATEWAY_API_KEY', env('ALAAP_SMS_API_KEY', '')),
+            'sender_id' => $settings['sender_id'] ?? env('SMS_GATEWAY_SENDER_ID', env('ALAAP_SMS_SENDER_ID', 'IdeaProkash')),
+            'client_id' => $settings['client_id'] ?? env('ALAAP_SMS_CLIENT_ID', ''),
         ];
     }
 
@@ -80,12 +81,12 @@ class SmsService
 
         // If no API key is set, simulate
         if (empty($apiKey) || $apiKey === 'your_sms_api_key') {
-            Log::info("SMS Gateway not fully configured. SMS simulated for: {$formattedNumbers}");
+            Log::info("SMS Gateway (Alaap Cloud) not fully configured. SMS simulated for: {$formattedNumbers}");
             return [
                 'success'       => true,
                 'simulated'     => true,
                 'response_code' => 1000,
-                'message'       => 'এসএমএস প্রস্তুত করা হয়েছে (সিমুলেশন মোড)।',
+                'message'       => 'এসএমএস প্রস্তুত করা হয়েছে (সিমুলেশন মোড — Alaap Cloud এপিআই কি প্রয়োজন)।',
                 'numbers'       => $formattedNumbers,
             ];
         }
@@ -93,29 +94,90 @@ class SmsService
         try {
             $response = null;
 
-            if ($provider === 'bulksmsbd' || $provider === 'balksms' || str_contains((string) $url, 'bulksmsbd.net')) {
-                // BulkSMSBD API (Single / Comma-separated Bulk)
+            if ($provider === 'alaapcloud' || str_contains((string) $url, 'alaapcloud')) {
+                // Alaap Cloud (BTCL) REST API Gateway
+                $payload = [
+                    'api_key'   => $apiKey,
+                    'token'     => $apiKey,
+                    'sender_id' => $senderId,
+                    'senderid'  => $senderId,
+                    'recipient' => $formattedNumbers,
+                    'to'        => $formattedNumbers,
+                    'number'    => $formattedNumbers,
+                    'msisdn'    => $formattedNumbers,
+                    'message'   => $message,
+                    'text'      => $message,
+                    'type'      => $isUnicode ? 'unicode' : 'text',
+                ];
+
+                try {
+                    // Try JSON POST first with Bearer Token header
+                    $response = Http::timeout(15)
+                        ->withHeaders([
+                            'Authorization' => 'Bearer ' . $apiKey,
+                            'Accept'        => 'application/json',
+                        ])
+                        ->asJson()
+                        ->post($url, $payload);
+
+                    if (!$response->successful()) {
+                        // Fallback to Form-encoded POST
+                        $response = Http::timeout(15)->asForm()->post($url, $payload);
+                    }
+                } catch (\Throwable $httpEx) {
+                    $rawCurl = self::executeCurl($url, $payload);
+                    if (!empty($rawCurl)) {
+                        $jsonCurl = json_decode($rawCurl, true);
+                        return [
+                            'success'       => !empty($jsonCurl) && !isset($jsonCurl['error']),
+                            'status'        => 200,
+                            'response_code' => $jsonCurl['status_code'] ?? ($jsonCurl['code'] ?? null),
+                            'message'       => $jsonCurl['message'] ?? ($jsonCurl['status'] ?? $rawCurl),
+                            'raw_response'  => $rawCurl,
+                            'numbers'       => $formattedNumbers,
+                        ];
+                    }
+                    throw $httpEx;
+                }
+            } elseif ($provider === 'bulksmsbd' || str_contains((string) $url, 'bulksmsbd.net')) {
+                // BulkSMSBD API
                 $apiUrl = (str_contains((string) $url, '/api/smsapi')) ? $url : 'http://bulksmsbd.net/api/smsapi';
                 $smsType = $isUnicode ? 'unicode' : 'text';
                 
-                // BulkSMSBD supports GET & POST
                 $payload = [
                     'api_key'  => $apiKey,
                     'type'     => $smsType,
                     'number'   => $formattedNumbers,
-                    'senderid' => $senderId,
+                    'senderid' => $senderId ?: '',
                     'message'  => $message,
                 ];
 
-                $response = Http::timeout(12)->asForm()->post($apiUrl, $payload);
-                if (!$response->successful()) {
-                    $response = Http::timeout(12)->get($apiUrl, [
-                        'api_key'  => $apiKey,
-                        'type'     => $smsType,
-                        'number'   => $formattedNumbers,
-                        'senderid' => $senderId,
-                        'message'  => urlencode($message),
-                    ]);
+                try {
+                    $response = Http::timeout(12)->asForm()->post($apiUrl, $payload);
+                    if (!$response->successful()) {
+                        $response = Http::timeout(12)->get($apiUrl, [
+                            'api_key'  => $apiKey,
+                            'type'     => $smsType,
+                            'number'   => $formattedNumbers,
+                            'senderid' => $senderId ?: '',
+                            'message'  => urlencode($message),
+                        ]);
+                    }
+                } catch (\Throwable $httpEx) {
+                    $rawCurl = self::executeCurl($apiUrl, $payload);
+                    if (!empty($rawCurl)) {
+                        $jsonCurl = json_decode($rawCurl, true);
+                        $respCode = $jsonCurl['response_code'] ?? null;
+                        return [
+                            'success'       => ($respCode === 1000 || ($respCode === null && !str_contains($rawCurl, 'error'))),
+                            'status'        => 200,
+                            'response_code' => $respCode,
+                            'message'       => $jsonCurl['success_message'] ?? ($jsonCurl['error_message'] ?? $rawCurl),
+                            'raw_response'  => $rawCurl,
+                            'numbers'       => $formattedNumbers,
+                        ];
+                    }
+                    throw $httpEx;
                 }
             } elseif ($provider === 'greenweb') {
                 $response = Http::timeout(10)->post($url, [
@@ -218,6 +280,7 @@ class SmsService
 
     /**
      * Check SMS account balance with BulkSMSBD API.
+     * Supports both POST (recommended by BulkSMSBD) and GET requests.
      */
     public static function checkBalance(): array
     {
@@ -226,9 +289,17 @@ class SmsService
         $url    = 'http://bulksmsbd.net/api/getBalanceApi';
 
         try {
-            $response = Http::timeout(8)->get($url, [
+            // First try POST as per BulkSMSBD API documentation
+            $response = Http::timeout(8)->asForm()->post($url, [
                 'api_key' => $apiKey,
             ]);
+
+            if (!$response->successful()) {
+                // Fallback to GET
+                $response = Http::timeout(8)->get($url, [
+                    'api_key' => $apiKey,
+                ]);
+            }
 
             $json = $response->json();
             $balance = $json['balance'] ?? ($json['balance_sms'] ?? null);
@@ -246,11 +317,19 @@ class SmsService
     }
 
     /**
+     * Alias helper for checkBalance().
+     */
+    public static function getBalance(): array
+    {
+        return self::checkBalance();
+    }
+
+    /**
      * Send password reset OTP SMS.
      */
     public static function sendPasswordResetOtp(string $phone, string $otpCode, string $resetUrl): array
     {
-        $message = "আইডিয়া প্রকাশন — আপনার পাসওয়ার্ড রিসেট ওটিপি কোড: {$otpCode} (মেয়াদ ৩০ মিনিট)। লিংক: {$resetUrl}";
+        $message = "Idea Prokashon: Your password reset OTP is {$otpCode} (Valid for 30 mins). Reset link: {$resetUrl}";
         return self::send($phone, $message);
     }
 
@@ -259,7 +338,7 @@ class SmsService
      */
     public static function sendVerificationOtp(string $phone, string $otpCode): array
     {
-        $message = "আইডিয়া প্রকাশন — আপনার মোবাইল ভেরিফিকেশন কোড: {$otpCode} (মেয়াদ ১৫ মিনিট)। কোডটি কাউকে শেয়ার করবেন না।";
+        $message = "Idea Prokashon: Your verification code is {$otpCode} (Valid for 15 mins). Do not share this code.";
         return self::send($phone, $message);
     }
 
@@ -268,7 +347,7 @@ class SmsService
      */
     public static function sendLoginOtp(string $phone, string $otpCode): array
     {
-        $message = "আইডিয়া প্রকাশন — আপনার সিকিউরিটি লগইন ওটিপি কোড: {$otpCode} (মেয়াদ ৫ মিনিট)।";
+        $message = "Idea Prokashon: Your security login OTP is {$otpCode} (Valid for 5 mins).";
         return self::send($phone, $message);
     }
 
@@ -277,8 +356,8 @@ class SmsService
      */
     public static function sendOrderOtp(string $phone, string $otpCode, ?string $orderNumber = null): array
     {
-        $orderLabel = $orderNumber ? "#{$orderNumber}" : '';
-        $message = "আইডিয়া প্রকাশন — বই অর্ডার {$orderLabel} নিশ্চিত করতে ভেরিফিকেশন ওটিপি: {$otpCode}।";
+        $orderLabel = $orderNumber ? " #{$orderNumber}" : '';
+        $message = "Idea Prokashon: Your OTP to confirm book order{$orderLabel} is {$otpCode}.";
         return self::send($phone, $message);
     }
 
@@ -287,7 +366,8 @@ class SmsService
      */
     public static function sendOrderNotification(string $phone, string $orderNumber, string $statusText): array
     {
-        $message = "আইডিয়া প্রকাশন — আপনার অর্ডার #{$orderNumber} {$statusText}। বিস্তারিত: " . url('/track-order');
+        $trackUrl = url('/track-order');
+        $message = "Idea Prokashon: Your order #{$orderNumber} is {$statusText}. Track here: {$trackUrl}";
         return self::send($phone, $message);
     }
 
@@ -297,8 +377,26 @@ class SmsService
     public static function sendRoyaltyNotification(string $phone, float $amount, ?string $note = null): array
     {
         $amt = number_format($amount, 2);
-        $message = "আইডিয়া প্রকাশন — সম্মানিত লেখক, আপনার ৳{$amt} রয়্যালটি/সম্মানি সফলভাবে প্রস্তুত/পরিশোধ করা হয়েছে (" . ($note ?: 'চলতি মাস') . ")।";
+        $period = $note ?: 'Current Cycle';
+        $message = "Idea Prokashon: Dear Author, your royalty payment of BDT {$amt} has been processed ({$period}).";
         return self::send($phone, $message);
+    }
+
+    /**
+     * Native cURL executor helper for BulkSMSBD.
+     */
+    public static function executeCurl(string $url, array $data): string
+    {
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 12);
+        $response = curl_exec($ch);
+        curl_close($ch);
+        return $response ?: '';
     }
 }
 

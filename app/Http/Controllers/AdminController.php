@@ -212,7 +212,7 @@ class AdminController extends Controller
                         // Send SMS if phone exists
                         if (!empty($user->phone)) {
                             try {
-                                \App\Services\SmsService::send($user->phone, "অভিনন্দন {$user->name}! আইডিয়া প্রকাশনে আপনার {$user->role} অ্যাকাউন্ট অনুমোদন করা হয়েছে।");
+                                \App\Services\SmsService::send($user->phone, "Congratulations {$user->name}! Your {$user->role} account at Idea Prokashon has been approved.");
                             } catch (\Throwable) {}
                         }
 
